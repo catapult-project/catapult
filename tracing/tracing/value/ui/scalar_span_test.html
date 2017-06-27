@@ -510,7 +510,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.closeTo(parseFloat(computedStyle.left), expectation.left, 0.1);
     assert.closeTo(parseFloat(computedStyle.width), expectation.width, 0.1);
-    assert.sameMembers(tr.b.asArray(sparklineEl.classList),
+    assert.sameMembers(Array.from(sparklineEl.classList),
         expectation.classList || []);
   }
 
@@ -914,56 +914,56 @@ tr.b.unittest.testSuite(function() {
     });
     Polymer.dom(div).appendChild(span);
 
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['worse']);
     checkSignificance(span, 'significantly_worse');
 
     span.significance = tr.b.math.Statistics.Significance.DONT_CARE;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+    assert.sameMembers(Array.from(span.$.sparkline.classList),
         ['positive', 'worse']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['worse']);
     checkSignificance(span, '');
 
     span.value = -5;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['better']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    assert.sameMembers(Array.from(span.$.sparkline.classList), ['better']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['better']);
     checkSignificance(span, '');
 
     span.unit = Unit.byName.energyInJoules;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    assert.sameMembers(Array.from(span.$.sparkline.classList), []);
+    assert.sameMembers(Array.from(span.$.content.classList), []);
     checkSignificance(span, '');
 
     span.value = 20;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    assert.sameMembers(Array.from(span.$.sparkline.classList), ['positive']);
+    assert.sameMembers(Array.from(span.$.content.classList), []);
     checkSignificance(span, '');
 
     span.unit = Unit.byName.energyInJoulesDelta_biggerIsBetter;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+    assert.sameMembers(Array.from(span.$.sparkline.classList),
         ['positive', 'better']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['better']);
     checkSignificance(span, '');
 
     span.significance = tr.b.math.Statistics.Significance.INSIGNIFICANT;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+    assert.sameMembers(Array.from(span.$.sparkline.classList),
         ['positive', 'better']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['better']);
     checkSignificance(span, 'insignificant');
 
     span.unit = Unit.byName.energyInJoulesDelta_smallerIsBetter;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+    assert.sameMembers(Array.from(span.$.sparkline.classList),
         ['positive', 'worse']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    assert.sameMembers(Array.from(span.$.content.classList), ['worse']);
     checkSignificance(span, 'insignificant');
 
     span.unit = Unit.byName.energyInJoulesDelta;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    assert.sameMembers(Array.from(span.$.sparkline.classList), ['positive']);
+    assert.sameMembers(Array.from(span.$.content.classList), []);
     checkSignificance(span, '');
 
     span.value = 0;
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
-    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    assert.sameMembers(Array.from(span.$.sparkline.classList), []);
+    assert.sameMembers(Array.from(span.$.content.classList), []);
     checkSignificance(span, '');
   });
 

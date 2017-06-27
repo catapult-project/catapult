@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return;
     }
 
-    assert.deepEqual(tr.b.asArray(fields), expectedStrings);
+    assert.deepEqual(Array.from(fields), expectedStrings);
   }
 
   /**

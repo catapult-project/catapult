@@ -244,7 +244,7 @@ tr.b.unittest.testSuite(function() {
     if (typeof expectedContexts === 'function') {
       expectedContexts(row.contexts);
     } else if (expectedContexts !== undefined) {
-      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
+      assert.deepEqual(Array.from(row.contexts), expectedContexts);
     } else {
       assert.isUndefined(row.contexts);
     }

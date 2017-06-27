@@ -154,7 +154,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateCanvasSizeIfNeeded_() {
       const visibleChildTracks =
-          tr.b.asArray(this.children).filter(this.visibleFilter_);
+          Array.from(this.children).filter(this.visibleFilter_);
 
       if (visibleChildTracks.length === 0) {
         return;

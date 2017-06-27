@@ -12,25 +12,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b', function() {
   /**
-   * Converts any object which is either (a) an iterable, or (b) an
-   * "array-ish" object (has length property and can be indexed into)
-   * into an array.
-   */
-  function asArray(x) {
-    const values = [];
-    if (x[Symbol.iterator]) {
-      for (const value of x) {
-        values.push(value);
-      }
-    } else {
-      for (let i = 0; i < x.length; i++) {
-        values.push(x[i]);
-      }
-    }
-    return values;
-  }
-
-  /**
    * Returns the only element in the iterable. If the iterable is empty or has
    * more than one element, an error is thrown.
    */
@@ -338,7 +319,6 @@ tr.exportTo('tr.b', function() {
   }
 
   return {
-    asArray,
     concatenateObjects,
     compareArrays,
     comparePossiblyUndefinedValues,

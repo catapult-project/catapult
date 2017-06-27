@@ -180,7 +180,7 @@ tr.b.unittest.testSuite(function() {
           if (updatedGroups) {
             assert.fail('Unexpected context-updated event fired.');
           }
-          updatedGroups = tr.b.asArray(e.groups);
+          updatedGroups = Array.from(e.groups);
         });
 
         c.expectContextUpdatedEventForTesting =
@@ -205,27 +205,27 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(10, 10)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s1]);
 
     const s2 = {value: 15};
     c.onScalarSpanAdded('G', s2);
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(10, 15)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1, s2]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s1, s2]);
 
     s1.value = 5;
     c.onScalarSpanUpdated('G', s1);
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(5, 15)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1, s2]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s1, s2]);
 
     c.onScalarSpanRemoved('G', s2);
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(5, 5)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s1]);
 
     const s3 = {value: 0};
     c.onScalarSpanAdded('G', s3);
@@ -234,7 +234,7 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(0, 14)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1, s2, s3]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s1, s2, s3]);
 
     c.onScalarSpanRemoved('G', s1);
     c.onScalarSpanRemoved('G', s2);
@@ -246,7 +246,7 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.math.Range.fromExplicitRange(14, 14)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s2]);
+    assert.sameMembers(Array.from(c.getContext('G').spans), [s2]);
   });
 
   contextTest('multipleGroups', function(c) {
@@ -258,14 +258,14 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G1']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.math.Range.fromExplicitRange(0, 0)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1]);
+    assert.sameMembers(Array.from(c.getContext('G1').spans), [s1]);
 
     const s2 = {value: 1};
     c.onScalarSpanAdded('G2', s2);
     c.expectContextUpdatedEventForTesting(['G2']);
     assert.isTrue(c.getContext('G2').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 1)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G2').spans), [s2]);
+    assert.sameMembers(Array.from(c.getContext('G2').spans), [s2]);
 
     const s3 = {value: 2};
     const s4 = {value: -1};
@@ -274,20 +274,20 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G1', 'G2']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.math.Range.fromExplicitRange(-1, 0)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1, s4]);
+    assert.sameMembers(Array.from(c.getContext('G1').spans), [s1, s4]);
     assert.isTrue(c.getContext('G2').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 2)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G2').spans), [s2, s3]);
+    assert.sameMembers(Array.from(c.getContext('G2').spans), [s2, s3]);
 
     c.onScalarSpanRemoved('G2', s3);
     c.onScalarSpanAdded('G1', s3);
     c.expectContextUpdatedEventForTesting(['G1', 'G2']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.math.Range.fromExplicitRange(-1, 2)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1, s3, s4]);
+    assert.sameMembers(Array.from(c.getContext('G1').spans), [s1, s3, s4]);
     assert.isTrue(c.getContext('G2').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 1)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G2').spans), [s2]);
+    assert.sameMembers(Array.from(c.getContext('G2').spans), [s2]);
 
     s4.value = 3;
     c.onScalarSpanUpdated('G1', s4);
@@ -296,16 +296,16 @@ tr.b.unittest.testSuite(function() {
     c.expectContextUpdatedEventForTesting(['G1']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 3)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1, s3, s4]);
+    assert.sameMembers(Array.from(c.getContext('G1').spans), [s1, s3, s4]);
     assert.isTrue(c.getContext('G2').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 1)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G2').spans), [s2]);
+    assert.sameMembers(Array.from(c.getContext('G2').spans), [s2]);
 
     c.onScalarSpanRemoved('G2', s2);
     c.expectContextUpdatedEventForTesting(['G2']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.math.Range.fromExplicitRange(1, 3)));
-    assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1, s3, s4]);
+    assert.sameMembers(Array.from(c.getContext('G1').spans), [s1, s3, s4]);
     assert.isUndefined(c.getContext('G2'));
   });
 });

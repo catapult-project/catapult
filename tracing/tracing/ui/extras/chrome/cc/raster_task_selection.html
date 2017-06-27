@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     if (!whySupported.ok) {
       throw new Error('Fail: ' + whySupported.why);
     }
-    this.slices_ = tr.b.asArray(selection);
+    this.slices_ = Array.from(selection);
     this.tiles_ = this.slices_.map(function(slice) {
       const tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined) {

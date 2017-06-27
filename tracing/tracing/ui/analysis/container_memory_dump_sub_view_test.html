@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     const processMemoryDumps = containerMemoryDumps.map(
         containerDump => containerDump.processMemoryDumps);
     assert.deepEqual(
-        tr.b.asArray(headerPaneEl.containerMemoryDumps), containerMemoryDumps);
+        Array.from(headerPaneEl.containerMemoryDumps), containerMemoryDumps);
     assert.deepEqual(overviewPaneEl.processMemoryDumps, processMemoryDumps);
     assert.strictEqual(
         overviewPaneEl.aggregationMode, headerPaneEl.aggregationMode);
@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
       if (pid === undefined) {
         assert.isUndefined(detailsPaneEl);
       } else {
-        assert.deepEqual(tr.b.asArray(detailsPaneEl.vmRegions),
+        assert.deepEqual(Array.from(detailsPaneEl.vmRegions),
             extractVmRegions(processMemoryDumps, pid));
         assert.strictEqual(
             detailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
@@ -97,7 +97,7 @@ tr.b.unittest.testSuite(function() {
       }
 
       assert.deepEqual(
-          tr.b.asArray(allocatorDetailsPaneEl.memoryAllocatorDumps),
+          Array.from(allocatorDetailsPaneEl.memoryAllocatorDumps),
           extractMemoryAllocatorDumps(processMemoryDumps, pid, allocatorName));
       assert.strictEqual(
           allocatorDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
         return;
       }
 
-      assert.deepEqual(tr.b.asArray(heapDetailsPaneEl.heapDumps),
+      assert.deepEqual(Array.from(heapDetailsPaneEl.heapDumps),
           extractHeapDumps(processMemoryDumps, pid, allocatorName));
       assert.strictEqual(
           heapDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);

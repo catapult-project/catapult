@@ -37,16 +37,16 @@ tr.b.unittest.testSuite(function() {
     fc.addOutFlow(d);
 
     function asSortedArray(selection) {
-      const events = tr.b.asArray(selection);
+      const events = Array.from(selection);
       events.sort(function(a, b) {
         return a.guid - b.guid;
       });
       return events;
     }
 
-    assert.deepEqual(tr.b.asArray(fc.inFlowEvents), [a]);
-    assert.deepEqual(tr.b.asArray(fc.outFlowEvents), [d]);
-    assert.deepEqual(tr.b.asArray(fc.internalFlowEvents), [b, c]);
+    assert.deepEqual(Array.from(fc.inFlowEvents), [a]);
+    assert.deepEqual(Array.from(fc.outFlowEvents), [d]);
+    assert.deepEqual(Array.from(fc.internalFlowEvents), [b, c]);
   });
 });
 </script>

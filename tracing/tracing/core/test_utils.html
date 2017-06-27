@@ -409,7 +409,7 @@ tr.exportTo('tr.c', function() {
     formatSingleLineList(list, itemCallback, opt_this) {
       opt_this = opt_this || this;
       this.push('[');
-      tr.b.asArray(list).forEach(function(item, index) {
+      Array.from(list).forEach(function(item, index) {
         if (index > 0) this.push(', ');
         itemCallback.call(opt_this, item, index);
       }, this);
@@ -420,7 +420,7 @@ tr.exportTo('tr.c', function() {
       opt_this = opt_this || this;
       this.push('[');
       this.indentBlock(2, false /* don't break line */, function() {
-        tr.b.asArray(list).forEach(function(item, index) {
+        Array.from(list).forEach(function(item, index) {
           if (index > 0) this.push(',');
           this.breakLine();
           itemCallback.call(opt_this, item, index);

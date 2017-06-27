@@ -46,7 +46,7 @@ Polymer({
   set selection(selection) {
     this.currentSelection_ = selection;
 
-    const objectEvents = tr.b.asArray(selection).sort(
+    const objectEvents = Array.from(selection).sort(
         tr.b.math.Range.compareByMinTimes);
 
     const timeSpanConfig = {

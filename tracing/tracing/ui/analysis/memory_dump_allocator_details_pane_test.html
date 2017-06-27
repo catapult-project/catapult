@@ -206,7 +206,7 @@ tr.b.unittest.testSuite(function() {
     if (expectedContexts === undefined) {
       assert.isUndefined(row.contexts);
     } else {
-      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
+      assert.deepEqual(Array.from(row.contexts), expectedContexts);
     }
   }
 

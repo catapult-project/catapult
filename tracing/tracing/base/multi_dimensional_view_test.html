@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
       actualTreeNodesById, expectedStructureNodesById) {
     // Check the multi-dimensional title.
     assert.deepEqual(
-        tr.b.asArray(actualTreeNode.title), expectedStructureNode.title);
+        Array.from(actualTreeNode.title), expectedStructureNode.title);
 
     // Check the values.
     assert.deepEqual(actualTreeNode.values, expectedStructureNode.values);

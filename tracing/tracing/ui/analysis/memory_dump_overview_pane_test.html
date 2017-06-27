@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(row.subRows);
 
     if (expectedContexts) {
-      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
+      assert.deepEqual(Array.from(row.contexts), expectedContexts);
     } else {
       assert.isUndefined(row.contexts);
     }
@@ -440,7 +440,7 @@ tr.b.unittest.testSuite(function() {
           const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
-          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+          assert.deepEqual(Array.from(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 2));
           assert.strictEqual(childPane.aggregationMode, AggregationMode.MAX);
         });
@@ -461,7 +461,7 @@ tr.b.unittest.testSuite(function() {
           const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
-          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+          assert.deepEqual(Array.from(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 2));
           assert.strictEqual(childPane.aggregationMode, AggregationMode.DIFF);
 
@@ -490,7 +490,7 @@ tr.b.unittest.testSuite(function() {
           const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
-          assert.deepEqual(tr.b.asArray(childPane.vmRegions),
+          assert.deepEqual(Array.from(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 1));
           assert.strictEqual(childPane.aggregationMode, AggregationMode.MAX);
         });

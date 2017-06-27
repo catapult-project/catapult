@@ -11,7 +11,6 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
   const compareArrays = tr.b.compareArrays;
-  const asArray = tr.b.asArray;
   const getOnlyElement = tr.b.getOnlyElement;
   const getFirstElement = tr.b.getFirstElement;
 
@@ -21,19 +20,6 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(tr.b.setsEqual(new Set(), undefined));
     assert.isFalse(tr.b.setsEqual(new Set(), new Set(['a'])));
     assert.isFalse(tr.b.setsEqual(new Set(['a']), new Set(['b'])));
-  });
-
-  test('asArray_indexed', function() {
-    assert.deepEqual(asArray({'0': 2, '1': 4, '2': 6, 'length': 3}), [2, 4, 6]);
-  });
-
-  test('asArray_iterable', function() {
-    function* iterfunc() {
-      yield 2;
-      yield 4;
-      yield 6;
-    }
-    assert.deepEqual(asArray({[Symbol.iterator]: iterfunc}), [2, 4, 6]);
   });
 
   test('comparePossiblyUndefinedValues', function() {
@@ -212,9 +198,9 @@ tr.b.unittest.testSuite(function() {
     ];
     const dict = tr.b.invertArrayOfDicts(array);
     assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
-    assert.deepEqual(tr.b.asArray(dict.a), [6, undefined, 4, undefined]);
-    assert.deepEqual(tr.b.asArray(dict.b), [5, undefined, 3, 1]);
-    assert.deepEqual(tr.b.asArray(dict.c), [undefined, undefined, 2, 0]);
+    assert.deepEqual(Array.from(dict.a), [6, undefined, 4, undefined]);
+    assert.deepEqual(Array.from(dict.b), [5, undefined, 3, 1]);
+    assert.deepEqual(Array.from(dict.c), [undefined, undefined, 2, 0]);
   });
 
   test('invertArrayOfDicts_customGetter', function() {
@@ -234,11 +220,11 @@ tr.b.unittest.testSuite(function() {
     }, fakeThis);
     assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
     assert.deepEqual(
-        tr.b.asArray(dict.a), ['test', undefined, undefined, 42]);
+        Array.from(dict.a), ['test', undefined, undefined, 42]);
     assert.deepEqual(
-        tr.b.asArray(dict.b), [true, undefined, undefined, undefined]);
+        Array.from(dict.b), [true, undefined, undefined, undefined]);
     assert.deepEqual(
-        tr.b.asArray(dict.c), [undefined, undefined, undefined, false]);
+        Array.from(dict.c), [undefined, undefined, undefined, false]);
   });
 
   test('arrayToDict', function() {

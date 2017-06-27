@@ -195,7 +195,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       Polymer.dom(this).querySelector(
           'input[name=test-type-to-run][value=unit]').checked = true;
-      const testTypeToRunEls = tr.b.asArray(Polymer.dom(this).querySelectorAll(
+      const testTypeToRunEls = Array.from(Polymer.dom(this).querySelectorAll(
           'input[name=test-type-to-run]'));
 
       testTypeToRunEls.forEach(
