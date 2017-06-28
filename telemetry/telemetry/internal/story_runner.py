@@ -216,7 +216,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
     ValidateStory(s)
 
   # Filter page set based on options.
-  stories = filter(story_module.StoryFilter.IsSelected, story_set)
+  stories = story_module.StoryFilter.FilterStorySet(story_set)
 
   if (not finder_options.use_live_sites and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):

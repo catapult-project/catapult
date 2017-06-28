@@ -29,20 +29,27 @@ class FilterTest(unittest.TestCase):
     class Options(object):
       def __init__(
           self, story_filter=None, story_filter_exclude=None,
-          story_tag_filter=None, story_tag_filter_exclude=None):
+          story_tag_filter=None, story_tag_filter_exclude=None,
+          experimental_story_shard_begin_index=None,
+          experimental_story_shard_end_index=None):
         self.story_filter = story_filter
         self.story_filter_exclude = story_filter_exclude
         self.story_tag_filter = story_tag_filter
         self.story_tag_filter_exclude = story_tag_filter_exclude
+        self.experimental_story_shard_begin_index = (
+            experimental_story_shard_begin_index)
+        self.experimental_story_shard_end_index = (
+            experimental_story_shard_end_index)
     story_filter_module.StoryFilter.ProcessCommandLineArgs(
         parser, Options(**kwargs))
 
-  def PageSelections(self):
-    return [story_filter_module.StoryFilter.IsSelected(p) for p in self.pages]
+  def assertPagesSelected(self, expected):
+    result = story_filter_module.StoryFilter.FilterStorySet(self.pages)
+    self.assertEqual(expected, result)
 
   def testNoFilterMatchesAll(self):
     self.ProcessCommandLineArgs()
-    self.assertEquals([True, True, True], self.PageSelections())
+    self.assertPagesSelected(self.pages)
 
   def testBadRegexCallsParserError(self):
     class MockParserException(Exception):
@@ -53,42 +60,85 @@ class FilterTest(unittest.TestCase):
     with self.assertRaises(MockParserException):
       self.ProcessCommandLineArgs(parser=MockParser(), story_filter='+')
 
+  def testBadStoryShardArgEnd(self):
+    class MockParserException(Exception):
+      pass
+    class MockParser(object):
+      def error(self, _):
+        raise MockParserException
+    with self.assertRaises(MockParserException):
+      self.ProcessCommandLineArgs(
+          parser=MockParser(), experimental_story_shard_end_index=-1)
+
+  def testBadStoryShardArgEndAndBegin(self):
+    class MockParserException(Exception):
+      pass
+    class MockParser(object):
+      def error(self, _):
+        raise MockParserException
+    with self.assertRaises(MockParserException):
+      self.ProcessCommandLineArgs(
+          parser=MockParser(), experimental_story_shard_end_index=2,
+          experimental_story_shard_begin_index=3)
+
   def testUniqueSubstring(self):
     self.ProcessCommandLineArgs(story_filter='smile_widen')
-    self.assertEquals([True, False, False], self.PageSelections())
+    self.assertPagesSelected([self.p1])
 
   def testSharedSubstring(self):
     self.ProcessCommandLineArgs(story_filter='smile')
-    self.assertEquals([True, True, True], self.PageSelections())
+    self.assertPagesSelected(self.pages)
 
   def testNoMatch(self):
     self.ProcessCommandLineArgs(story_filter='frown')
-    self.assertEquals([False, False, False], self.PageSelections())
+    self.assertPagesSelected([])
 
   def testExclude(self):
     self.ProcessCommandLineArgs(story_filter_exclude='ShareA')
-    self.assertEquals([True, False, True], self.PageSelections())
+    self.assertPagesSelected([self.p1, self.p3])
 
   def testExcludeTakesPriority(self):
     self.ProcessCommandLineArgs(
         story_filter='smile',
         story_filter_exclude='wide')
-    self.assertEquals([False, True, True], self.PageSelections())
+    self.assertPagesSelected([self.p2, self.p3])
 
   def testNoNameMatchesDisplayName(self):
     self.ProcessCommandLineArgs(story_filter='share_a/smile')
-    self.assertEquals([False, False, True], self.PageSelections())
+    self.assertPagesSelected([self.p3])
 
   def testNotagMatch(self):
     self.ProcessCommandLineArgs(story_tag_filter='tagX')
-    self.assertEquals([False, False, False], self.PageSelections())
+    self.assertPagesSelected([])
 
   def testtagsAllMatch(self):
     self.ProcessCommandLineArgs(story_tag_filter='tag1,tag2')
-    self.assertEquals([True, True, True], self.PageSelections())
+    self.assertPagesSelected(self.pages)
 
   def testExcludetagTakesPriority(self):
     self.ProcessCommandLineArgs(
         story_tag_filter='tag1',
         story_tag_filter_exclude='tag2')
-    self.assertEquals([False, True, False], self.PageSelections())
+    self.assertPagesSelected([self.p2])
+
+  def testStoryShardBegin(self):
+    self.ProcessCommandLineArgs(experimental_story_shard_begin_index=1)
+    self.assertPagesSelected([self.p2, self.p3])
+
+  def testStoryShardEnd(self):
+    self.ProcessCommandLineArgs(experimental_story_shard_end_index=2)
+    self.assertPagesSelected([self.p1, self.p2])
+
+  def testStoryShardBoth(self):
+    self.ProcessCommandLineArgs(
+        experimental_story_shard_begin_index=1,
+        experimental_story_shard_end_index=2)
+    self.assertPagesSelected([self.p2])
+
+  def testStoryShardBeginWraps(self):
+    self.ProcessCommandLineArgs(experimental_story_shard_begin_index=-1)
+    self.assertPagesSelected(self.pages)
+
+  def testStoryShardEndWraps(self):
+    self.ProcessCommandLineArgs(experimental_story_shard_end_index=5)
+    self.assertPagesSelected(self.pages)
