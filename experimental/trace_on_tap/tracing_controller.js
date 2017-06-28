@@ -21,8 +21,8 @@
 //                  event stream and passes it to the client via |onTraceChunk|.
 class TracingController {
   static get ATTACH_TIMEOUT_MS() { return 3000; }
-  static get FLUSH_TIMEOUT_MS() { return 200000; }
-  static get WAIT_FOR_DUMP_TIMEOUT_MS() { return 200000; }
+  static get FLUSH_TIMEOUT_MS() { return 2000000; }
+  static get WAIT_FOR_DUMP_TIMEOUT_MS() { return 2000000; }
   static get STATE() {
     return {
       IDLE: 'idle',
