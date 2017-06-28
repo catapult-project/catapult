@@ -13,6 +13,7 @@ found in the LICENSE file.
 <body>
   <nav-bar></nav-bar>
   <h1>Load Data From Production</h1>
+  <h2>Load by data path</h2>
   <p>Use this form to load a given master/system/test/graph/trace and all
   associated alerts from prod onto a dev server.</p>
   <form method="POST">
@@ -26,7 +27,7 @@ found in the LICENSE file.
     <input type="submit">
   </form>
   <br />
-  <p>Load recent alerts for a sheriff.</p>
+  <h2>Load recent alerts for a sheriff</h2>
   <form method="POST">
     Sheriff: <input name="sheriff"
                     type="text"
@@ -43,6 +44,28 @@ found in the LICENSE file.
                              max="500"
                              value="100"></input><br>
     <input type="submit" value="Load alerts"></input>
+  </form>
+  <br />
+  <h2>Load from raw json</h2>
+  <p>This can be used if the any of above methods fail. The error page
+    contains an URL which can be entered in the location bar. Save the
+    result to disk and upload it using this form.</p>
+  <p>You can also manually construct the URL. The formats are:
+    <ul>
+      <li>
+        <code>HOST/dump_graph_json?test_path= <b>TEST_PATH</b>
+          &num_points= <b>NUM_POINTS</b> &end_rev= <b>END_REVISION</b></code>
+      </li>
+      <li>
+        <code>HOST/dump_graph_json?sheriff= <b>SHERIFF%20NAME</b>
+          &num_alerts= <b>NUM_ALERTS</b> &num_points= <b>NUM_POINTS</b></code>
+      </li>
+    </ul>
+  </p>
+  <form method="POST" enctype="multipart/form-data" >
+    Raw json data file:
+    <input type="file" name="raw_json">
+    <input type="submit">
   </form>
 </body>
 </html>
