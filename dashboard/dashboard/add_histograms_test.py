@@ -23,6 +23,15 @@ class AddHistogramsTest(testing_common.TestCase):
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
+  def TaskParamsByGuid(self):
+    tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
+    params_by_guid = {}
+    for task in tasks:
+      params = urlparse.parse_qs(base64.b64decode(task['body']))
+      guid = json.loads(params['data'][0])['guid']
+      params_by_guid[guid] = params
+    return params_by_guid
+
   def testPostHistogramSetsTestPathAndRevision(self):
     data = json.dumps([
         {
@@ -69,12 +78,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'component': 'fooBar'}
     ])
     self.testapp.post('/add_histograms', {'data': data})
-    tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
-    params_by_guid = {}
-    for task in tasks:
-      params = urlparse.parse_qs(base64.b64decode(task['body']))
-      guid = json.loads(params['data'][0])['guid']
-      params_by_guid[guid] = params
+    params_by_guid = self.TaskParamsByGuid()
 
     self.assertEqual(4, len(params_by_guid))
     self.assertEqual(
