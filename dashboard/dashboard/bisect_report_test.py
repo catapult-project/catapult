@@ -142,7 +142,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -194,7 +194,7 @@ To Run This Test
   src/tools/perf/run_benchmark system_health.memory_foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -241,7 +241,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -282,7 +282,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -331,7 +331,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -386,7 +386,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -438,7 +438,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -473,7 +473,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -508,7 +508,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -564,7 +564,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -631,7 +631,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -663,7 +663,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -700,7 +700,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -747,7 +747,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -797,7 +797,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -850,7 +850,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -898,7 +898,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -951,7 +951,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
@@ -1001,7 +1001,7 @@ To Run This Test
   src/tools/perf/run_benchmark foo
 
 More information on addressing performance regressions:
-  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+  http://g.co/ChromePerformanceRegressions
 
 Debug information about this bisect:
   https://test-rietveld.appspot.com/200039

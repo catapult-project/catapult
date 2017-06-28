@@ -36,8 +36,7 @@ Please refer to the following doc on diagnosing memory regressions:
   %s
 """ % _MEMORY_DOC_URL
 
-_BISECT_ADDRESSING_DOC_URL = ('https://chromium.googlesource.com/chromium/src/'\
-  '+/master/docs/speed/addressing_performance_regressions.md')
+_BISECT_ADDRESSING_DOC_URL = ('http://g.co/ChromePerformanceRegressions')
 
 _BISECT_ADDRESSING_DOC_INFO = """
 More information on addressing performance regressions:
