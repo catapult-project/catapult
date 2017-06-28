@@ -278,13 +278,13 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     expected_archive_contents = _BASE_ARCHIVE.copy()
     expected_archive_contents['archives'] = {
-        page1.display_name: {
+        page1.name: {
             _DEFAULT_PLATFORM: recording1
         },
-        page2.display_name: {
+        page2.name: {
             _DEFAULT_PLATFORM: 'data_006.wpr'
         },
-        page3.display_name: {
+        page3.name: {
            _DEFAULT_PLATFORM: u'data_006.wpr',
            'linux': recording4,
            'mac': recording3,
@@ -320,14 +320,14 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     expected_archive_contents = _BASE_ARCHIVE.copy()
     expected_archive_contents['archives'] = {
-        page1.display_name: {
+        page1.name: {
             _DEFAULT_PLATFORM: recording1
         },
-        page2.display_name: {
+        page2.name: {
             _DEFAULT_PLATFORM: recording2,
             'android': 'data_006.wpr'
         },
-        page3.display_name: {
+        page3.name: {
            _DEFAULT_PLATFORM: recording1,
            'linux': recording4,
            'mac': recording3,
@@ -376,23 +376,23 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     expected_archive_contents = _BASE_ARCHIVE.copy()
     expected_archive_contents['archives'] = {
-        page1.display_name: {
+        page1.name: {
             _DEFAULT_PLATFORM: recording1
         },
-        page2.display_name: {
+        page2.name: {
             _DEFAULT_PLATFORM: recording2,
         },
-        page3.display_name: {
+        page3.name: {
            _DEFAULT_PLATFORM: recording1,
            'linux': recording4,
            'mac': recording3,
            'win': recording2,
            'android': recording5
         },
-        pageNew1.display_name: {
+        pageNew1.name: {
           _DEFAULT_PLATFORM: 'data_006.wpr'
         },
-        pageNew2.display_name: {
+        pageNew2.name: {
           _DEFAULT_PLATFORM: 'data_007.wpr',
           'android': 'data_007.wpr'
         }

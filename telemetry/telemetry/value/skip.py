@@ -19,7 +19,7 @@ class SkipValue(value_module.Value):
     self._reason = reason
 
   def __repr__(self):
-    page_name = self.page.display_name
+    page_name = self.page.name
     return 'SkipValue(%s, %s, description=%s)' % (page_name, self._reason,
                                                   self.description)
 

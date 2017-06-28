@@ -18,7 +18,7 @@ class MockStory(object):
     self._name = name
 
   @property
-  def display_name(self):
+  def name(self):
     return self._name
 
 

@@ -41,7 +41,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       self._output_stream.flush()
     elif isinstance(value, skip.SkipValue):
       print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
-          value.page.display_name, value.reason)
+          value.page.name, value.reason)
     # TODO(chrishenry): Consider outputting metric values as well. For
     # e.g., it can replace BuildbotOutputFormatter in
     # --output-format=html, which we used only so that users can grep
@@ -50,7 +50,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
     print >> self._output_stream, '[ RUN      ] %s%s' % (
-        page_test_results.current_page.display_name,
+        page_test_results.current_page.name,
         self._GenerateGroupingKeyString(page_test_results.current_page))
 
     self._output_stream.flush()
@@ -61,12 +61,12 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     page = page_test_results.current_page
     if page_test_results.current_page_run.failed:
       print >> self._output_stream, '[  FAILED  ] %s%s (%0.f ms)' % (
-          page.display_name,
+          page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
     else:
       print >> self._output_stream, '[       OK ] %s%s (%0.f ms)' % (
-          page.display_name,
+          page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
     self._output_stream.flush()
@@ -90,7 +90,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           (len(page_test_results.failures), unit))
       for failed_run in failed_runs:
         print >> self._output_stream, '[  FAILED  ]  %s%s' % (
-            failed_run.story.display_name,
+            failed_run.story.name,
             self._GenerateGroupingKeyString(failed_run.story))
       print >> self._output_stream
       count = len(failed_runs)
@@ -101,6 +101,6 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     if self._output_skipped_tests_summary:
       if len(page_test_results.skipped_values) > 0:
         print >> self._output_stream, 'Skipped pages:\n%s\n' % ('\n'.join(
-            v.page.display_name for v in page_test_results.skipped_values))
+            v.page.name for v in page_test_results.skipped_values))
 
     self._output_stream.flush()

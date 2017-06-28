@@ -104,7 +104,7 @@ class ListOfScalarValues(summarizable.SummarizableValue):
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.display_name
+      page_name = self.page.name
     else:
       page_name = 'None'
     return ('ListOfScalarValues(%s, %s, %s, %s, '

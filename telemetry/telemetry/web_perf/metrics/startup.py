@@ -70,7 +70,7 @@ class StartupTimelineMetric(timeline_based_metric.TimelineBasedMetric):
       tracked_events[event.name] = event
 
     # Generate the metric values according to the tracked events.
-    for display_name, event_names in _METRICS.iteritems():
+    for name, event_names in _METRICS.iteritems():
       if event_names[0] not in tracked_events:
         continue
 
@@ -89,7 +89,7 @@ class StartupTimelineMetric(timeline_based_metric.TimelineBasedMetric):
 
       results.AddValue(value.scalar.ScalarValue(
         page=results.current_page,
-        name=display_name,
+        name=name,
         units='ms',
         value=duration,
         improvement_direction=value.improvement_direction.DOWN))

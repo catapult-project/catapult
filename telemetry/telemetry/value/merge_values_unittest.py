@@ -91,7 +91,7 @@ class MergeValueTest(TestBase):
                       improvement_direction=improvement_direction.UP)]
 
     merged_values = merge_values.MergeLikeValuesFromSamePage(
-      all_values, key_func=lambda v: v.page.display_name)
+      all_values, key_func=lambda v: v.page.name)
     # Sort the results so that their order is predictable for the subsequent
     # assertions.
     merged_values.sort(key=lambda x: x.page.url)

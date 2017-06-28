@@ -25,7 +25,7 @@ class StoryExpectations(object):
     self._Freeze()
 
   def GetBrokenExpectations(self, story_set):
-    story_set_story_names = [s.display_name for s in story_set.stories]
+    story_set_story_names = [s.name for s in story_set.stories]
     invalid_story_names = []
     for story_name in self._expectations:
       if story_name not in story_set_story_names:
@@ -115,17 +115,17 @@ class StoryExpectations(object):
     """Returns the reason the story was disabled, or None if not disabled.
 
     Args:
-      story: Story object that contains a display_name property.
+      story: Story object that contains a name property.
       platform: A platform object.
 
     Returns:
       Reason if disabled, None otherwise.
     """
-    for conditions, reason in self._expectations.get(story.display_name, []):
+    for conditions, reason in self._expectations.get(story.name, []):
       for condition in conditions:
         if condition.ShouldDisable(platform, finder_options):
           logging.info('%s is disabled on %s due to %s.',
-                       story.display_name, condition, reason)
+                       story.name, condition, reason)
           return reason
     return None
 

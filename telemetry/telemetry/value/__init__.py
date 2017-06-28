@@ -153,7 +153,7 @@ class Value(object):
 
   def GetChartAndTraceNameForPerPageResult(self):
     chart_name, _ = _ConvertValueNameToChartAndTraceName(self.name)
-    trace_name = self.page.display_name
+    trace_name = self.page.name
     return chart_name, trace_name
 
   @property

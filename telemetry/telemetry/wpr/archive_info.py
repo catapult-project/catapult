@@ -113,10 +113,10 @@ class WprArchiveInfo(object):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
 
-    wpr_file = self._story_name_to_wpr_file.get(story.display_name, None)
+    wpr_file = self._story_name_to_wpr_file.get(story.name, None)
     if wpr_file is None and hasattr(story, 'url'):
       # Some old pages always use the URL to identify a page rather than the
-      # display_name, so try to look for that.
+      # name, so try to look for that.
       wpr_file = self._story_name_to_wpr_file.get(story.url, None)
     if wpr_file:
       if target_platform in wpr_file:
@@ -144,7 +144,7 @@ class WprArchiveInfo(object):
       else:
         current_target_platform = target_platform
       self._SetWprFileForStory(
-          story.display_name, target_wpr_file, current_target_platform)
+          story.name, target_wpr_file, current_target_platform)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.

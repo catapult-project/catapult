@@ -320,10 +320,10 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
 
 def ValidateStory(story):
-  if len(story.display_name) > 180:
+  if len(story.name) > 180:
     raise ValueError(
-        'User story has display name exceeding 180 characters: %s' %
-        story.display_name)
+        'User story has name exceeding 180 characters: %s' %
+        story.name)
 
 
 def RunBenchmark(benchmark, finder_options):
@@ -471,7 +471,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
         'pass the flag --use-live-sites.')
     logging.error(
         'stories without archives: %s',
-        ', '.join(story.display_name
+        ', '.join(story.name
                   for story in stories_missing_archive_path))
   if stories_missing_archive_data:
     logging.error(
@@ -483,7 +483,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
         'pass the flag --use-live-sites.')
     logging.error(
         'stories missing archives: %s',
-        ', '.join(story.display_name
+        ', '.join(story.name
                   for story in stories_missing_archive_data))
   if stories_missing_archive_path or stories_missing_archive_data:
     raise ArchiveError('Archive file is missing stories.')

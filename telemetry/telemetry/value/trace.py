@@ -51,13 +51,13 @@ class TraceValue(value_module.Value):
     tf.close()
     title = ''
     if self.page:
-      title = self.page.display_name
+      title = self.page.name
     trace_data.Serialize(tf.name, trace_title=title)
     return file_handle.FromFilePath(tf.name)
 
   def __repr__(self):
     if self.page:
-      page_name = self.page.display_name
+      page_name = self.page.name
     else:
       page_name = 'None'
     return 'TraceValue(%s, %s)' % (page_name, self.name)
@@ -154,7 +154,7 @@ class TraceValue(value_module.Value):
           bucket, remote_path, fh.GetAbsPath())
       sys.stderr.write(
           'View generated trace files online at %s for story %s\n' %
-          (self._cloud_url, self.page.display_name if self.page else 'unknown'))
+          (self._cloud_url, self.page.name if self.page else 'unknown'))
       return self._cloud_url
     except cloud_storage.PermissionError as e:
       logging.error('Cannot upload trace files to cloud storage due to '

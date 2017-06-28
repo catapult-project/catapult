@@ -22,9 +22,7 @@ class _StoryMatcher(object):
     return self._regex is not None
 
   def HasMatch(self, story):
-    return self and bool(
-        self._regex.search(story.display_name) or
-        (story.name and self._regex.search(story.name)))
+    return self and bool(self._regex.search(story.name))
 
 
 class _StoryTagMatcher(object):

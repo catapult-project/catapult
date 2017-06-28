@@ -126,7 +126,7 @@ class Summary(object):
       # Sort the values by their URL.
       sorted_per_page_values = list(per_page_values)
       sorted_per_page_values.sort(
-          key=lambda per_page_values: per_page_values.page.display_name)
+          key=lambda per_page_values: per_page_values.page.name)
 
       # Output the page-specific results.
       num_successful_pages_for_this_key = (

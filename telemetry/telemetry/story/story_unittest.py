@@ -25,15 +25,15 @@ class StoryTest(unittest.TestCase):
     s1 = story.Story(SharedStateBar, 'bar')
     self.assertNotEqual(s0.id, s1.id)
 
-  def testNamedStoryDisplayName(self):
+  def testStoryName(self):
     s = StoryFoo('Bar')
-    self.assertEquals('Bar', s.display_name)
+    self.assertEquals('Bar', s.name)
 
   def testStoryFileSafeName(self):
     s = StoryFoo('Foo Bar:Baz~0')
     self.assertEquals('Foo_Bar_Baz_0', s.file_safe_name)
 
-  def testNamedStoryAsDict(self):
+  def testStoryAsDict(self):
     s = story.Story(SharedStateBar, 'Foo')
     s_dict = s.AsDict()
     self.assertEquals(s_dict['id'], s.id)
