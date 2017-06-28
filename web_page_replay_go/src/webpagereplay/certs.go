@@ -22,8 +22,7 @@ func ReplayTLSConfig(root tls.Certificate, a *Archive) (*tls.Config, error) {
 	}
 	tp := &tlsProxy{&root, root_cert, a, nil}
 	return &tls.Config{
-		Certificates:   []tls.Certificate{*tp.root},
-		GetCertificate: tp.getReplayCertificate,
+		GetConfigForClient: tp.getReplayConfigForClient,
 	}, nil
 }
 
@@ -36,8 +35,7 @@ func RecordTLSConfig(root tls.Certificate, w *WritableArchive) (*tls.Config, err
 	}
 	tp := &tlsProxy{&root, root_cert, nil, w}
 	return &tls.Config{
-		Certificates:   []tls.Certificate{*tp.root},
-		GetCertificate: tp.getCertificate,
+		GetConfigForClient: tp.getRecordConfigForClient,
 	}, nil
 }
 
@@ -64,39 +62,50 @@ type tlsProxy struct {
 // served by the same IP. We can then run a DNS proxy that maps all hostnames in the
 // same equivalence class to the same local port, which models the possibility that
 // every equivalence class of hostnames can be served over the same HTTP/2 connection.
-//
-// getCertificate implements a callback for tls.Config.GetCertificate.
-func (tp *tlsProxy) getReplayCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func (tp *tlsProxy) getReplayConfigForClient(clientHello *tls.ClientHelloInfo) (*tls.Config, error) {
 	h := clientHello.ServerName
 	if h == "" {
-		return tp.root, nil
-	}
-
-	der_bytes, err := tp.archive.FindHostCert(h)
-	if err != nil || der_bytes == nil {
-		return nil, fmt.Errorf("No archived cert for %s", h)
-	}
-	return &tls.Certificate{
-		Certificate: [][]byte{der_bytes},
-		PrivateKey:  tp.root.PrivateKey,
-	}, nil
-}
-
-func (tp *tlsProxy) getCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	h := clientHello.ServerName
-	if h == "" {
-		return tp.root, nil
-	}
-
-	der_bytes, err := tp.writable_archive.FindHostCert(h)
-	if err == nil && der_bytes != nil {
-		return &tls.Certificate{
-			Certificate: [][]byte{der_bytes},
-			PrivateKey:  tp.root.PrivateKey,
+		return &tls.Config{
+			Certificates: []tls.Certificate{*tp.root},
 		}, nil
 	}
 
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", h), nil)
+	der_bytes, negotiatedProtocol, err := tp.archive.FindHostTlsConfig(h)
+	if err != nil || der_bytes == nil {
+		return nil, fmt.Errorf("No archived cert for %s", h)
+	}
+	return &tls.Config{
+		Certificates: []tls.Certificate{
+			tls.Certificate{
+				Certificate: [][]byte{der_bytes},
+				PrivateKey:  tp.root.PrivateKey,
+			}},
+		NextProtos: []string{negotiatedProtocol},
+	}, nil
+}
+
+func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (*tls.Config, error) {
+	h := clientHello.ServerName
+	if h == "" {
+		return &tls.Config{
+			Certificates: []tls.Certificate{*tp.root},
+		}, nil
+	}
+	der_bytes, negotiatedProtocol, err := tp.writable_archive.Archive.FindHostTlsConfig(h)
+	if err == nil && der_bytes != nil {
+		return &tls.Config{
+			Certificates: []tls.Certificate{
+				tls.Certificate{
+					Certificate: [][]byte{der_bytes},
+					PrivateKey:  tp.root.PrivateKey,
+				}},
+			NextProtos: []string{negotiatedProtocol},
+		}, nil
+	}
+
+	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", h), &tls.Config{
+		NextProtos: []string{"h2", "http/1.1"},
+	})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't reach host %s: %v", h, err)
 	}
@@ -121,9 +130,15 @@ func (tp *tlsProxy) getCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certi
 	if err != nil {
 		return nil, fmt.Errorf("create cert failed: %v", err)
 	}
-	tp.writable_archive.RecordCert(h, der_bytes)
-	return &tls.Certificate{
-		Certificate: [][]byte{der_bytes},
-		PrivateKey:  tp.root.PrivateKey,
+
+	negotiatedProtocol = conn.ConnectionState().NegotiatedProtocol
+	tp.writable_archive.RecordTlsConfig(h, der_bytes, negotiatedProtocol)
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{
+			tls.Certificate{
+				Certificate: [][]byte{der_bytes},
+				PrivateKey:  tp.root.PrivateKey}},
+		NextProtos: []string{negotiatedProtocol},
 	}, nil
 }

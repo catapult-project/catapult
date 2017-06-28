@@ -62,7 +62,7 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	logf := makeLogger(req)
 
 	// Lookup the response in the archive.
-	_, storedResp, _, err := proxy.a.FindRequest(req, proxy.scheme)
+	_, storedResp, err := proxy.a.FindRequest(req, proxy.scheme)
 	if err != nil {
 		logf("couldn't find matching request: %v", err)
 		w.WriteHeader(http.StatusNotFound)
