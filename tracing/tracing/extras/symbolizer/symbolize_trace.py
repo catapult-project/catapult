@@ -1263,10 +1263,6 @@ def SymbolizeTrace(options, trace, symbolizer):
 
 
   if not trace.is_chromium:
-    # A non-chromium trace probably is not coming from the current machine.
-    # Don't attempt to symbolize system symbols, as that will produce the wrong
-    # results.
-    options.only_symbolize_chrome_symbols = True
     if symbolizer.is_mac:
       RemapMacFiles(symfiles, options.symbol_base_directory, trace.version,
                     options.only_symbolize_chrome_symbols)
