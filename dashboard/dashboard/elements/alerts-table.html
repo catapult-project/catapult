@@ -921,11 +921,13 @@ found in the LICENSE file.
           let numB = parseNumber(valB);
           let result;
           if (numA && numB) {
-            if (!alertA.improvement) {
-              numA = -numA;
-            }
-            if (!alertB.improvement) {
-              numB = -numB;
+            if (sortBy == 'absolute_delta' || sortBy == 'percent_changed') {
+              if (!alertA.improvement) {
+                numA = -numA;
+              }
+              if (!alertB.improvement) {
+                numB = -numB;
+              }
             }
             result = numA - numB;
           } else {
