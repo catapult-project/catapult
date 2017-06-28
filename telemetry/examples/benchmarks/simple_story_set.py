@@ -9,8 +9,10 @@ from telemetry import page
 class ExamplePage(page.Page):
 
   def __init__(self, page_set):
+    url = 'https://google.com/search?q=lemon'
     super(ExamplePage, self).__init__(
-        url='https://google.com/search?q=lemon',
+        url=url,
+        name=url,
         page_set=page_set)
 
   def RunPageInteractions(self, action_runner):
