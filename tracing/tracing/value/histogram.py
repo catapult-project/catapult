@@ -1088,6 +1088,9 @@ class DiagnosticRef(object):
   def AsDict(self):
     return self.guid
 
+  def AsDictOrReference(self):
+    return self.AsDict()
+
 
 class UnmergeableDiagnosticSet(Diagnostic):
   def __init__(self, diagnostics):

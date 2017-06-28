@@ -26,6 +26,10 @@ tr.exportTo('tr.v.d', function() {
     asDict() {
       return this.guid;
     }
+
+    asDictOrReference() {
+      return this.asDict();
+    }
   }
 
   return {

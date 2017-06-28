@@ -974,6 +974,14 @@ class DiagnosticMapUnittest(unittest.TestCase):
     self.assertIsInstance(diag_dict, dict)
     self.assertEqual(diag_dict['type'], 'Generic')
 
+  def testCloneWithRef(self):
+    diagnostics = histogram.DiagnosticMap()
+    diagnostics['ref'] = histogram.DiagnosticRef('abc')
+
+    clone = histogram.DiagnosticMap.FromDict(diagnostics.AsDict())
+    self.assertIsInstance(clone.get('ref'), histogram.DiagnosticRef)
+    self.assertEqual(clone.get('ref').guid, 'abc')
+
   def testDiagnosticGuidDeserialized(self):
     d = {
         'type': 'Generic',

@@ -35,6 +35,15 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.RelatedHistogramBreakdown);
   });
 
+  test('cloneWithRef', function() {
+    const diagnostics = new tr.v.d.DiagnosticMap();
+    diagnostics.set('ref', new tr.v.d.DiagnosticRef('abc'));
+
+    const clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
+    assert.instanceOf(clone.get('ref'), tr.v.d.DiagnosticRef);
+    assert.strictEqual(clone.get('ref').guid, 'abc');
+  });
+
   test('requireFromDict', function() {
     class MissingFromDict extends tr.v.d.Diagnostic { }
     assert.throws(() => tr.v.d.Diagnostic.register(MissingFromDict));
