@@ -17,15 +17,15 @@ import tempfile
 
 sys.path.append(os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    '..', '..', '..', 'tracing', 'bin')))
+    '..', '..', '..', 'tracing', 'tracing', 'extras')))
 sys.path.append(os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     '..', '..', '..', 'tracing', 'third_party', 'symbols')))
 # pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
-import symbolize_trace_atos_regex
-import symbolize_trace_macho_reader
+from symbolizer import symbolize_trace_atos_regex
+from symbolizer import symbolize_trace_macho_reader
 
 
 class MemoryMap(object):
