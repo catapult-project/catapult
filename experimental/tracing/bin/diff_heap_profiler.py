@@ -47,7 +47,6 @@ class GraphDump(object):
     self.leak_objects = 0
 
 
-
 def FindMemoryDumps(filename):
   processes = {}
 
@@ -156,7 +155,7 @@ def IncrementHeapEntry(stack, count, size, typename, root):
   if not stack:
     root['count'] += count
     root['size'] += size
-    if not type in root['count_by_type']:
+    if typename not in root['count_by_type']:
       root['count_by_type'][typename] = 0
     root['count_by_type'][typename] += count
   else:
@@ -234,7 +233,7 @@ def GetEntries(heap, process):
     for raw_entry in process.allocators[heap]['entries']:
       # Cumulative sizes and types are skipped. see:
       # https://chromium.googlesource.com/chromium/src/+/a990af190304be5bf38b120799c594df5a293518/base/trace_event/heap_profiler_heap_dump_writer.cc#294
-      if not 'type' in raw_entry or not raw_entry['bt']:
+      if 'type' not in raw_entry or not raw_entry['bt']:
         continue
 
       entry = Entry()
@@ -266,10 +265,10 @@ def GetEntries(heap, process):
 def FilterProcesses(processes, filter_by_name, filter_by_labels):
   remaining_processes = {}
   for pid, process in processes.iteritems():
-    if filter_by_name and not process.name == filter_by_name:
+    if filter_by_name and process.name != filter_by_name:
       continue
     if (filter_by_labels and
-        (not process.labels or not filter_by_labels in process.labels)):
+        (not process.labels or filter_by_labels not in process.labels)):
       continue
     remaining_processes[pid] = process
 
@@ -303,7 +302,7 @@ def FindRelevantProcesses(start_trace, end_trace,
       matching_start_process = None
       for pid, start_process in start_processes.iteritems():
         if (start_process.name == end_process.name and
-            (start_process.name in ["Browser", "GPU"] or
+            (start_process.name in ['Browser', 'GPU'] or
              start_process.labels == end_process.labels)):
           matching_start_process = start_process
 
@@ -331,8 +330,8 @@ def BuildGraphDumps(processes, threshold, size_threshold):
 
   for (start_process, end_process) in processes:
     pid = end_process.pid
-    name = end_process.name if end_process.name else ""
-    labels = end_process.labels if end_process.labels else ""
+    name = end_process.name if end_process.name else ''
+    labels = end_process.labels if end_process.labels else ''
     print 'Process[%d] %s: %s' % (pid, name, labels)
 
     for heap in end_process.allocators:
@@ -425,12 +424,12 @@ def WriteHTML():
 
   # Copy the D3 library file.
   source = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        "..",
-                        "..",
-                        "..",
-                        "tracing",
-                        "third_party",
-                        "d3",
+                        os.path.pardir,
+                        os.path.pardir,
+                        os.path.pardir,
+                        'tracing',
+                        'third_party',
+                        'd3',
                         'd3.min.js')
   destination = os.path.join(_OUTPUT_GRAPH_DIR, 'd3.min.js')
   shutil.copyfile(source, destination)
