@@ -33,7 +33,7 @@ class TelemetryInfo(object):
     self._benchmark_name = None
     self._benchmark_start_ms = None
     self._label = None
-    self._story_display_name = ''
+    self._story_name = ''
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
     self._trace_start_ms = None
@@ -73,7 +73,7 @@ class TelemetryInfo(object):
 
   @property
   def story_display_name(self):
-    return self._story_display_name
+    return self._story_name
 
   @property
   def story_grouping_keys(self):
@@ -85,7 +85,7 @@ class TelemetryInfo(object):
 
   def WillRunStory(self, story, storyset_repeat_counter):
     self._trace_start_ms = 1000 * time.time()
-    self._story_display_name = story.display_name
+    self._story_name = story.name
     if story.grouping_keys:
       self._story_grouping_keys = story.grouping_keys
     self._storyset_repeat_counter = storyset_repeat_counter
@@ -100,7 +100,7 @@ class TelemetryInfo(object):
     d['benchmarkStartMs'] = self.benchmark_start_ms
     if self.label:
       d['label'] = self.label
-    d['storyDisplayName'] = self.story_display_name
+    d['storyDisplayName'] = self._story_name
     d['storyGroupingKeys'] = self.story_grouping_keys
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
     d['traceStartMs'] = self.trace_start_ms
@@ -420,7 +420,7 @@ class PageTestResults(object):
               bucket, remote_path, file_handle.GetAbsPath())
           sys.stderr.write(
               'View generated profiler files online at %s for page %s\n' %
-              (cloud_url, page.display_name))
+              (cloud_url, page.name))
           self._pages_to_profiling_files_cloud_url[page].append(cloud_url)
         except cloud_storage.PermissionError as e:
           logging.error('Cannot upload profiling files to cloud storage due to '
