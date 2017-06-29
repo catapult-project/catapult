@@ -19,8 +19,9 @@ class Process(object):
     self.pid = None
     self.name = None
     self.labels = None
-    self.types = None
-    self.stackframes = None
+    self.types = {}
+    self.strings = {}
+    self.stackframes = {}
     self.allocators = None
     self.version = None
 
@@ -52,11 +53,6 @@ def FindMemoryDumps(filename):
 
   with gzip.open(filename, 'rb') as f:
     data = json.loads(f.read().decode('ascii'))
-
-    # Memory dump format V2 cumulated indexes.
-    nodes = {}
-    types = {}
-    strings = {}
 
     for event in data['traceEvents']:
       pid = event['pid']
@@ -103,22 +99,20 @@ def FindMemoryDumps(filename):
       # See format: [chromium] src/base/trace_event/heap_profiler_event_writer.h
       if u'heaps_v2' in event['args']['dumps']:
         # Memory dump format V2 is dumping information incrementally. Update
-        # the cumulated indexes
+        # the cumulated indexes.
         maps = event['args']['dumps']['heaps_v2']['maps']
         for string in maps['strings']:
-          strings[string['id']] = string['string']
+          process.strings[string['id']] = string['string']
 
         for node in maps['nodes']:
           node_v1 = {}
-          node_v1['name'] = strings[node['name_sid']]
+          node_v1['name'] = process.strings[node['name_sid']]
           if 'parent' in node:
             node_v1['parent'] = node['parent']
-          nodes[node['id']] = node_v1
-        process.stackframes = nodes
+          process.stackframes[node['id']] = node_v1
 
         for t in maps['types']:
-          types[t['id']] = strings[t['name_sid']]
-        process.types = types
+          process.types[t['id']] = process.strings[t['name_sid']]
 
         # Get the first memory dump.
         if not process.allocators:
