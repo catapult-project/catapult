@@ -476,8 +476,9 @@ def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
 
   # TODO(simonhatch): Workaround for crbug.com/677843
   pageset_repeat = 1
-  if 'startup.warm' in suite:
-    pageset_repeat = 2
+  if ('startup.warm' in suite or
+      'start_with_url.warm' in suite):
+    pageset_repeat = 5
 
   command.extend([
       test_cmd,
