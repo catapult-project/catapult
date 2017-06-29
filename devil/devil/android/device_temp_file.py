@@ -6,12 +6,16 @@
 
 # pylint: disable=W0622
 
+import logging
 import posixpath
 import random
 import threading
 
+from devil import base_error
 from devil.android import device_errors
 from devil.utils import cmd_helper
+
+logger = logging.getLogger(__name__)
 
 
 def _GenerateName(prefix, suffix, dir):
@@ -55,9 +59,11 @@ class DeviceTempFile(object):
     def delete_temporary_file():
       try:
         self._adb.Shell('rm -f %s' % self.name_quoted, expect_status=None)
-      except device_errors.AdbCommandFailedError:
-        # file does not exist on Android version without 'rm -f' support (ICS)
-        pass
+      except base_error.BaseError as e:
+        # We don't really care, and stack traces clog up the log.
+        # Log a warning and move on.
+        logger.warning('Failed to delete temporary file %s: %s',
+                        self.name, str(e))
 
     # It shouldn't matter when the temp file gets deleted, so do so
     # asynchronously.
