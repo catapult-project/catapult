@@ -45,5 +45,18 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(encoded.map(x => x.value), [1, 2, 3, 1]);
     assert.deepEqual(encoded.map(x => x.count), [2, 3, 1, 2]);
   });
+
+  test('isUrl', function() {
+    assert.isFalse(tr.b.isUrl());
+    assert.isFalse(tr.b.isUrl(null));
+    assert.isFalse(tr.b.isUrl(42));
+    assert.isFalse(tr.b.isUrl([]));
+    assert.isFalse(tr.b.isUrl({}));
+    assert.isFalse(tr.b.isUrl(''));
+    assert.isFalse(tr.b.isUrl('data:,'));
+    assert.isFalse(tr.b.isUrl('ftp://user:password@host:port/path'));
+    assert.isTrue(tr.b.isUrl('http://google.com/'));
+    assert.isTrue(tr.b.isUrl('https://www.google.com/'));
+  });
 });
 </script>

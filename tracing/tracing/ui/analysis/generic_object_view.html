@@ -31,8 +31,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
-
 function isTable(object) {
   if (!(object instanceof Array) ||
       (object.length < 2)) return false;
@@ -140,7 +138,7 @@ Polymer({
           }, this);
           return;
         }
-        if (object.match(URL_REGEX)) {
+        if (tr.b.isUrl(object)) {
           const link = document.createElement('a');
           link.href = object;
           link.textContent = object;

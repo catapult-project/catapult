@@ -11,6 +11,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
+  const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
+
   /**
    * Adds a {@code getInstance} static method that always return the same
    * instance object.
@@ -178,21 +180,26 @@ tr.exportTo('tr.b', function() {
     return encodedArray;
   }
 
+  /**
+   * @param {string} s
+   * @return {boolean}
+   */
+  function isUrl(s) {
+    return typeof(s) === 'string' && s.match(URL_REGEX) !== null;
+  }
+
   return {
     addSingletonGetter,
-
     deepCopy,
-
+    formatDate,
+    getUsingPath,
+    isUrl,
     normalizeException,
+    numberFromJson,
+    numberToJson,
+    runLengthEncoding,
     stackTrace,
     stackTraceAsString,
-    formatDate,
-    numberToJson,
-    numberFromJson,
-
-    getUsingPath,
-
-    runLengthEncoding,
   };
 });
 </script>
