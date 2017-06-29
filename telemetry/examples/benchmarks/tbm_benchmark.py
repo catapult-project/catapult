@@ -13,7 +13,7 @@ class TBMSample(benchmark.Benchmark):
 
   def CreateTimelineBasedMeasurementOptions(self):
     options = timeline_based_measurement.Options()
-    options.SetTimelineBasedMetrics(['sample_metric.html'])
+    options.SetTimelineBasedMetrics(['sampleMetric'])
     return options
 
   @classmethod

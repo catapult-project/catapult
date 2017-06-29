@@ -9,7 +9,7 @@ from telemetry import page
 class ExamplePage(page.Page):
 
   def __init__(self, page_set):
-    url = 'https://google.com/search?q=lemon'
+    url = 'https://example.com'
     super(ExamplePage, self).__init__(
         url=url,
         name=url,
@@ -20,17 +20,9 @@ class ExamplePage(page.Page):
     # telemetry.page.action_runner module.
 
     action_runner.Wait(0.5)
-    # Create interaction record will create a region of interest in tracing that
-    # cover the wait, tap, and scroll actions nested in the block below.
-    with action_runner.CreateInteraction('Scroll-And-Tap'):
-      action_runner.Wait(0.3)
-      action_runner.ScrollPage()
-      action_runner.TapElement(text='Next')
-    action_runner.Wait(1)
-    with action_runner.CreateInteraction('Scroll'):
-      action_runner.ScrollPage()
-    with action_runner.CreateInteraction('Wait-two'):
-      action_runner.Wait(1)
+    action_runner.TapElement(text='More information...')
+    action_runner.Wait(2)
+    action_runner.ScrollPage()
 
 
 class SimpleStorySet(story.StorySet):
