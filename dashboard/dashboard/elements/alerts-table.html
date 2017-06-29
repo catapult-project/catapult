@@ -360,6 +360,7 @@ found in the LICENSE file.
           </td>
           <td>
             <input type="checkbox"
+                   title="Shift click to select range"
                    id="{{item.key}}"
                    checked="{{item.selected::change}}"
                    on-click="onCheckboxClick"
@@ -1135,6 +1136,7 @@ found in the LICENSE file.
           const alertIndex = Polymer.dom(Polymer.dom(
               event.currentTarget).parentNode).parentNode.rowIndex - 1;
           const alert = this.alertList[alertIndex];
+          alert.selected = event.currentTarget.checked;
           this.updateGroupCheckboxes(alert, alertIndex, alert.selected);
 
           this.set('previousCheckboxId', this.currentCheckboxId);
