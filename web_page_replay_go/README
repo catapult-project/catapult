@@ -1,10 +1,17 @@
 Requires go 1.5. Not tested with earlier or later versions of go.
 
+REQUIRED PACKAGES
+
+$ go get github.com/codegangsta/cli
+$ go get gopkg.in/kothar/brotli-go.v0
+
+SETUP GOPATH
+
+$ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
+
 SAMPLE USAGE
 
 Terminal 1:
-$ cd to this directory
-$ export GOPATH=$PWD
 $ go run src/wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.json
 ...
 Ctrl-C
