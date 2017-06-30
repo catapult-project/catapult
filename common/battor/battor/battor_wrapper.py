@@ -27,7 +27,20 @@ from serial.tools import list_ports
 DEFAULT_SHELL_CLOSE_TIMEOUT_S = 60
 
 
-def IsBattOrConnected(test_platform, android_device=None,
+def IsBattOrConnected(*args, **kwargs):
+  """Returns True if BattOr is detected.
+
+  See _IsBattOrConnected below for arguments.
+  """
+  is_connected = _IsBattOrConnected(*args, **kwargs)
+  if is_connected:
+    logging.info('BattOr power monitor is connected.')
+  else:
+    logging.info('BattOr power monitor is not connected.')
+  return is_connected
+
+
+def _IsBattOrConnected(test_platform, android_device=None,
                       android_device_map=None, android_device_file=None):
   """Returns True if BattOr is detected."""
   if test_platform == 'android':
