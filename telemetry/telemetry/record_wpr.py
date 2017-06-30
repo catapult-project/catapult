@@ -131,6 +131,7 @@ class WprRecorder(object):
     self._base_dir = base_dir
     self._record_page_test = RecorderPageTest()
     self._options = self._CreateOptions()
+    self._expectations = None
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
                                                benchmark.Benchmark)
@@ -144,6 +145,7 @@ class WprRecorder(object):
         test = timeline_based_page_test.TimelineBasedPageTest(test)
       # This must be called after the command line args are added.
       self._record_page_test.page_test = test
+      self._expectations = self._benchmark.GetExpectations()
 
     self._page_set_base_dir = (
         self._options.page_set_base_dir if self._options.page_set_base_dir
@@ -236,7 +238,8 @@ class WprRecorder(object):
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     story_runner.Run(self._record_page_test, self._story_set,
-        self._options, results, metadata=self._CreateBenchmarkMetadata())
+        self._options, results, expectations=self._expectations,
+        metadata=self._CreateBenchmarkMetadata())
 
   def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:
@@ -244,7 +247,7 @@ class WprRecorder(object):
                       'has not been updated for these pages.')
     results.PrintSummary()
     self._story_set.wpr_archive_info.AddRecordedStories(
-        results.pages_that_succeeded,
+        results.pages_that_succeeded_and_not_skipped,
         upload_to_cloud_storage,
         target_platform=self._record_page_test.platform)
 

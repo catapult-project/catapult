@@ -244,9 +244,22 @@ class PageTestResults(object):
 
   @property
   def pages_that_succeeded(self):
-    """Returns the set of pages that succeeded."""
+    """Returns the set of pages that succeeded.
+
+    Note: This also includes skipped pages.
+    """
     pages = set(run.story for run in self.all_page_runs)
     pages.difference_update(self.pages_that_failed)
+    return pages
+
+  @property
+  def pages_that_succeeded_and_not_skipped(self):
+    """Returns the set of pages that succeeded and werent skipped."""
+    skipped_stories = [x.page.name for x in self.skipped_values]
+    pages = self.pages_that_succeeded
+    for page in self.pages_that_succeeded:
+      if page.name in skipped_stories:
+        pages.remove(page)
     return pages
 
   @property

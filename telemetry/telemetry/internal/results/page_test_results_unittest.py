@@ -77,6 +77,31 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[0].skipped)
     self.assertTrue(results.all_page_runs[1].ok)
 
+  def testPassesNoSkips(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    results.AddValue(
+        failure.FailureValue(self.pages[0], self.CreateException()))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.DidRunPage(self.pages[1])
+
+    results.WillRunPage(self.pages[2])
+    results.AddValue(skip.SkipValue(self.pages[2], 'testing reason'))
+    results.DidRunPage(self.pages[2])
+
+    self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
+    self.assertEqual(set([self.pages[1], self.pages[2]]),
+                     results.pages_that_succeeded)
+    self.assertEqual(set([self.pages[1]]),
+                     results.pages_that_succeeded_and_not_skipped)
+
+    self.assertEqual(3, len(results.all_page_runs))
+    self.assertTrue(results.all_page_runs[0].failed)
+    self.assertTrue(results.all_page_runs[1].ok)
+    self.assertTrue(results.all_page_runs[2].skipped)
+
   def testBasic(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
