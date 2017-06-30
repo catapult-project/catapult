@@ -71,7 +71,7 @@ tr.exportTo('tr.metrics.v8', function() {
     const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
 
-    for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+    function addHistogramsForRuntimeGroup(runtimeGroup) {
       const durationSamples = new tr.v.d.RelatedHistogramBreakdown();
       const countSamples = new tr.v.d.RelatedHistogramBreakdown();
       for (const entry of runtimeGroup.values) {
@@ -115,6 +115,13 @@ tr.exportTo('tr.metrics.v8', function() {
             binBoundaries: COUNT_CUSTOM_BOUNDARIES,
             summaryOptions: SUMMARY_OPTIONS,
           });
+    }
+
+    for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+      addHistogramsForRuntimeGroup(runtimeGroup);
+    }
+    if (runtimeGroupCollection.blinkRCSGroup.count > 0) {
+      addHistogramsForRuntimeGroup(runtimeGroupCollection.blinkRCSGroup);
     }
   }
 

@@ -68,6 +68,8 @@ tr.exportTo('tr.e.v8', function() {
 
   class RuntimeStatsGroupCollection {
     constructor() {
+      this.blink_rcs_group_ =
+        new RuntimeStatsGroup('Blink RCS', /Blink_(.*)/);
       this.groups_ = [
         new RuntimeStatsGroup('Total'),
         new RuntimeStatsGroup('IC', /.*IC_.*/),
@@ -97,6 +99,13 @@ tr.exportTo('tr.e.v8', function() {
         }
         if (runtimeCallStats === undefined) continue;
         for (const [name, stat] of Object.entries(runtimeCallStats)) {
+          // Blink RCS stats go to a separate table
+          if (this.blink_rcs_group_.match(name)) {
+            const entry = new RuntimeStatsEntry(name, stat[0], stat[1]);
+            this.blink_rcs_group_.add(entry);
+            continue;
+          }
+
           // Skip the 'Total' group
           for (let i = 1; i < this.groups_.length; ++i) {
             if (this.groups_[i].match(name)) {
@@ -121,6 +130,10 @@ tr.exportTo('tr.e.v8', function() {
 
     get runtimeGroups() {
       return this.groups_;
+    }
+
+    get blinkRCSGroup() {
+      return this.blink_rcs_group_;
     }
   }
 

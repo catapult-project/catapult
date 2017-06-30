@@ -40,12 +40,12 @@ tr.b.unittest.testSuite(function() {
   test('runtimeStatsMetricUsingTTI', function() {
     // The renderer thread timeline looks like:
     //
-    // *   [V8.NewInstance]         *  [  V8.Execute ]        * ...[V8.Ignored]
-    // |                            |                         |
-    // |                            |                         |
-    // v                            v                         v
-    // First navigation             FMP                       TTI
-    // 200                          9200                     15400
+    // * [V8.NewInstance] * [BlinkRuntimeCallStats,V8.Execute] * ...[V8.Ignored]
+    // |                  |                                    |
+    // |                  |                                    |
+    // v                  v                                    v
+    // First navigation   FMP                                  TTI
+    // 200                9200                                 15400
     const model = tr.c.TestUtils.newModel(function(model) {
       const rendererProcess = model.getOrCreateProcess(1984);
       const mainThread = rendererProcess.getOrCreateThread(2);
@@ -120,6 +120,19 @@ tr.b.unittest.testSuite(function() {
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.runtime_stats',
+        title: 'BlinkRuntimeCallStats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 12552,
+        duration: 1000,
+        args: {
+          'runtime-call-stats': {
+            Blink_UpdateLayout: [15, 60],
+          }
+        }
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',
         title: 'V8.Execute',
         type: tr.e.v8.V8ThreadSlice,
@@ -178,12 +191,25 @@ tr.b.unittest.testSuite(function() {
           }
         }
       }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.runtime_stats',
+        title: 'V8.Ignored',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 30000,
+        duration: 1000,
+        args: {
+          'runtime-call-stats': {
+            Blink_UpdateLayout: [15, 60],
+          }
+        }
+      }));
     });
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.strictEqual(histograms.length, 48);
-    assert.strictEqual(histograms.sourceHistograms.length, 24);
+    assert.strictEqual(histograms.length, 52);
+    assert.strictEqual(histograms.sourceHistograms.length, 26);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.088, ['LoadIC_Miss',
@@ -194,6 +220,7 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeHistogram_(histograms, 'LoadIC_Miss', 4, 0.044);
     checkRuntimeHistogram_(histograms, 'API_Object_Get', 18, 0.198);
     checkRuntimeHistogram_(histograms, 'CompileBackgroundIgnition', 3, 0.033);
+    checkRuntimeHistogram_(histograms, 'Blink_UpdateLayout', 15, 0.06);
   });
 
   test('runtimeStatsMetricUsingDomContentLoaded', function() {
