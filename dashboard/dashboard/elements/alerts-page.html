@@ -133,8 +133,10 @@ found in the LICENSE file.
           <template is="dom-if" if="{{anomalies.length}}">
             <h2>Performance alerts</h2>
             <p id='num-alerts'>
-              {{getAlertCount(anomalies.length)}}
-              alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
+              [[getAlertCount(anomalies.length)]]
+              alert<span hidden$="[[computeIsSingular(totalAnomalyCount)]]">s</span>
+              in [[anomalyGroupCount]]
+              group<span hidden$="[[computeIsSingular(anomalyGroupCount)]]">s</span>
             </p>
             <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
@@ -157,8 +159,10 @@ found in the LICENSE file.
           <template is="dom-if" if="{{stoppageAlerts.length}}">
             <h2>Data stoppage alerts</h2>
             <p>
-              {{getStoppageCount(stoppageAlerts.length)}}
-              alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
+              [[getStoppageCount(stoppageAlerts.length)]]
+              alert<span hidden$="[[computeIsSingular(totalStoppageAlertCount)]]">s</span>
+              in [[stoppageGroupCount]]
+              group<span hidden$="[[computeIsSingular(stoppageGroupCount)]]">s</span>
             </p>
             <alerts-table id="stoppage-alert-table"
                           xsrf-token="{{xsrfToken}}"
@@ -212,6 +216,14 @@ found in the LICENSE file.
           // were too many stoppage alerts to pull from the datastore.
           type: Number,
           value: 0
+        },
+        anomalyGroupCount: {
+          type: Number,
+          value: 0,
+        },
+        stoppageGroupCount: {
+          type: Number,
+          value: 0,
         },
         loading: {
           type: Boolean,
@@ -293,6 +305,10 @@ found in the LICENSE file.
           type: Boolean,
           value: false
         },
+      },
+
+      listeners: {
+        groupCount: 'onGroupCount_',
       },
 
       computeIsSingular: count => count === 1,
@@ -444,6 +460,14 @@ found in the LICENSE file.
           return trueLength + ' of ' + totalCount;
         }
         return totalCount;
+      },
+
+      onGroupCount_(event) {
+        if (event.target.id === 'anomaly-table') {
+          this.set('anomalyGroupCount', event.detail);
+        } else if (event.target.id === 'stoppage-alert-table') {
+          this.set('stoppageGroupCount', event.detail);
+        }
       },
 
       ready() {

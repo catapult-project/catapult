@@ -679,6 +679,8 @@ found in the LICENSE file.
           }
         }
 
+        this.fire('groupCount', alertOrder.length);
+
         // Preserve expanded groups
         for (const k in groupMap) {
           const alertsInGroup = groupMap[k];
