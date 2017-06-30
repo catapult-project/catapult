@@ -1297,7 +1297,6 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version,
 
   bzip_path = GetLocalPath(symbol_base_directory, version)
   if not os.path.isfile(bzip_path):
-
     if not cloud_storage.Exists(cloud_storage_bucket, GetSymbolsPath(version)):
       print "Can't find symbols on GCS."
       return False
@@ -1305,6 +1304,7 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version,
     cloud_storage.Get(cloud_storage_bucket, GetSymbolsPath(version), bzip_path)
 
   ExtractSymbolTarFile(symbol_sub_dir, bzip_path)
+  os.remove(bzip_path)
   return True
 
 
@@ -1331,6 +1331,7 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
         target = file(os.path.join(destination, filename), "wb")
         with source, target:
           shutil.copyfileobj(source, target)
+    os.remove(zip_path)
 
   folder = "win64" if is64bit else "win"
   gcs_folder = "desktop-*/" + version + "/" + folder + "-pgo/"
