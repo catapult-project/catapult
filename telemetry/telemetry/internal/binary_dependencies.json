@@ -366,6 +366,17 @@
           "download_path": "bin/win/AMD64/winring0.zip"
         }
       }
+    },
+    "wpr_go": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "5c59caa7fa4f886b7d5d85b5219dc481498d6679",
+          "download_path": "bin/linux/x86_64/wpr",
+          "version_in_cs": "b0300e32745103bd6cf8ed6c4e54e524c22c1392"
+        }
+      }
     }
   }
 }

@@ -8,7 +8,10 @@ import os
 from py_utils import binary_manager
 from py_utils import dependency_util
 import dependency_manager
+from dependency_manager import base_config
+
 from devil import devil_env
+
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -151,3 +154,33 @@ def _FetchReferenceBrowserBinary(platform):
   else:
     manager.FetchPath(
         'chrome_stable', os_name, arch_name)
+
+
+def UpdateDependency(dependency, dep_local_path, version,
+                     os_name=None, arch_name=None):
+  config = os.path.join(util.GetTelemetryDir(), 'telemetry', 'internal',
+      'binary_dependencies.json')
+
+  if not os_name:
+    assert not arch_name, 'arch_name is specified but not os_name'
+    os_name = platform_module.GetHostPlatform().GetOSName()
+    arch_name = platform_module.GetHostPlatform().GetArchName()
+  else:
+    assert arch_name, 'os_name is specified but not arch_name'
+
+  dep_platform = '%s_%s' % (os_name, arch_name)
+
+  c = base_config.BaseConfig(config, writable=True)
+  try:
+    old_version = c.GetVersion(dependency, dep_platform)
+    print 'Updating from version: {}'.format(old_version)
+  except ValueError:
+    raise RuntimeError(
+        ('binary_dependencies.json entry for %s missing or invalid; please add '
+        'it first! (need download_path and path_within_archive)') %
+        dep_platform)
+
+  if dep_local_path:
+    c.AddCloudStorageDependencyUpdateJob(
+        dependency, dep_platform, dep_local_path, version=version,
+        execute_job=True)

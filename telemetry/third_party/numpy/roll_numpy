@@ -21,37 +21,13 @@ sys.path.append(os.path.join(CATAPULT_ROOT, 'common', 'py_utils'))
 from py_utils import shell_util as sh
 sys.path.append(os.path.join(CATAPULT_ROOT, 'telemetry'))
 from telemetry.core import platform as platform_module
-sys.path.append(os.path.join(CATAPULT_ROOT, 'dependency_manager'))
-from dependency_manager import base_config
 
 class RollError(Exception):
   pass
 
-# Dependency update helper
-def update_dependency(dependency, path, version):
-  config = os.path.join(CATAPULT_ROOT, 'telemetry', 'telemetry', 'internal',
-      'binary_dependencies.json')
-
-  os_name = platform_module.GetHostPlatform().GetOSName()
-  arch_name = platform_module.GetHostPlatform().GetArchName()
-  platform = "{}_{}".format(os_name, arch_name)
-
-  c = base_config.BaseConfig(config, writable=True)
-  try:
-    old_version = c.GetVersion(dependency, platform)
-    print 'Updating from version: {}'.format(old_version)
-  except ValueError:
-    raise RollError(
-        ('binary_dependencies.json entry for {} missing or invalid; please add '
-        'it first! (need download_path and path_within_archive)')
-        .format(platform))
-
-  if path:
-    c.AddCloudStorageDependencyUpdateJob(
-        dependency, platform, path, version=version, execute_job=True)
 
 def verify_dependency_entry(dependency):
-  update_dependency(dependency, None, None)
+  binary_manager.UpdateDependency(dependency, None, None)
 
 # Main
 def main(version):
@@ -92,7 +68,7 @@ def main(version):
           root_dir=root_dir,
           base_dir='numpy')
     print 'Uploading zip...'
-    update_dependency('numpy', zip_result, version)
+    binary_manager.UpdateDependency('numpy', zip_result, version)
 
   print '''\
   Don't forget to run:
