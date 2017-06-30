@@ -21,6 +21,7 @@ class New(webapp2.RequestHandler):
     test = None
     metric = None
     auto_explore = True
+    bug_id = None
 
     change_1 = {
         'base_commit': {
@@ -54,7 +55,8 @@ class New(webapp2.RequestHandler):
         test_suite=test_suite,
         test=test,
         metric=metric,
-        auto_explore=auto_explore)
+        auto_explore=auto_explore,
+        bug_id=bug_id)
 
     # Add changes.
     for c in changes:

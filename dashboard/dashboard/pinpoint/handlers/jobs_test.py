@@ -40,7 +40,8 @@ class JobsTest(unittest.TestCase):
         test_suite='suite',
         test='filter',
         metric='metric',
-        auto_explore=True)
+        auto_explore=True,
+        bug_id=None)
     job.put()
 
     data = json.loads(self.testapp.post('/jobs').body)
