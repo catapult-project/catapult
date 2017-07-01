@@ -27,7 +27,7 @@ class MemtrackProc {
   uint64_t other_total() const;
   uint64_t other_pss() const;
 
-  bool has_errors() const { return proc_ != nullptr; };
+  bool has_errors() const { return proc_ == nullptr; };
 
  private:
   MemtrackProc(const MemtrackProc&) = delete;

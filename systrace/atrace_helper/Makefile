@@ -16,7 +16,7 @@ test: install
 	adb shell /data/local/tmp/atrace_helper -c 1
 
 testf: install
-	adb shell /data/local/tmp/atrace_helper -c 1 -m -g -o /data/local/tmp/dump.json
+	adb shell /data/local/tmp/atrace_helper -c 1 -m system_server -g -s -o /data/local/tmp/dump.json
 	adb pull /data/local/tmp/dump.json /tmp/dump.json
 	python -c 'import json; json.load(open("/tmp/dump.json"))'
 

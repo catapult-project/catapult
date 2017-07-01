@@ -14,9 +14,11 @@ LOCAL_LDLIBS := -fPIE -pie -llog
 
 LOCAL_SRC_FILES := \
     main.cc \
+    atrace_process_dump.cc \
     file_utils.cc \
     libmemtrack_wrapper.cc \
-    process_info.cc \
-    process_memory_stats.cc
+    process_memory_stats.cc \
+    procfs_utils.cc \
+    time_utils.cc
 
 include $(BUILD_EXECUTABLE)

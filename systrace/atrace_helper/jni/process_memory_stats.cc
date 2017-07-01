@@ -17,6 +17,14 @@ namespace {
 
 const int kKbPerPage = 4;
 
+const char kRss[] = "Rss";
+const char kPss[] = "Pss";
+const char kSwap[] = "Swap";
+const char kSharedClean[] = "Shared_Clean";
+const char kSharedDirty[] = "Shared_Dirty";
+const char kPrivateClean[] = "Private_Clean";
+const char kPrivateDirty[] = "Private_Dirty";
+
 // Takes a C string buffer and chunks it into lines without creating any
 // copies. It modifies the original buffer, by replacing \n with \0.
 class LineReader {
@@ -42,23 +50,21 @@ class LineReader {
   char* end_;
 };
 
-bool ReadSmapsMetric(const char* line, const char* metric, uint64_t* res) {
-  if (strncmp(line, metric, strlen(metric)))
+bool ReadSmapsMetric(
+    const char* line, const char* metric, int metric_size, uint64_t* res) {
+  if (strncmp(line, metric, metric_size - 1))
     return false;
-  line = strchr(line, ':');
-  if (!line)
+  if (line[metric_size - 1] != ':')
     return false;
-  *res = strtoull(line + 1, nullptr, 10);
+  *res = strtoull(line + metric_size, nullptr, 10);
   return true;
 }
 
 }  // namespace
 
-ProcessMemoryStats::ProcessMemoryStats(int pid) : pid_(pid) {}
-
-bool ProcessMemoryStats::ReadLightStats() {
+bool ProcessMemoryStats::ReadLightStats(int pid) {
   char buf[64];
-  if (file_utils::ReadProcFile(pid_, "statm", buf, sizeof(buf)) <= 0)
+  if (file_utils::ReadProcFile(pid, "statm", buf, sizeof(buf)) <= 0)
     return false;
   uint32_t vm_size_pages;
   uint32_t rss_pages;
@@ -69,10 +75,10 @@ bool ProcessMemoryStats::ReadLightStats() {
   return true;
 }
 
-bool ProcessMemoryStats::ReadFullStats() {
-  const size_t kBufSize = 32u * 1024 * 1024;
+bool ProcessMemoryStats::ReadFullStats(int pid) {
+  const size_t kBufSize = 8u * 1024 * 1024;
   std::unique_ptr<char[]> buf(new char[kBufSize]);
-  ssize_t rsize = file_utils::ReadProcFile(pid_, "smaps", &buf[0], kBufSize);
+  ssize_t rsize = file_utils::ReadProcFile(pid, "smaps", &buf[0], kBufSize);
   if (rsize <= 0)
     return false;
   MmapInfo* last_mmap_entry = nullptr;
@@ -83,63 +89,74 @@ bool ProcessMemoryStats::ReadFullStats() {
   // Iterate over all lines in /proc/PID/smaps.
   LineReader rd(&buf[0], rsize);
   for (const char* line = rd.NextLine(); line; line = rd.NextLine()) {
-    // Check if the current line is the beginning of a new mmaps entry, e.g.:
-    // be7f7000-be818000 rw-p 00000000 00:00 0          [stack]
-    // Note that the mapped file name ([stack]) is optional and won't be
-    // present
-    // on anonymous memory maps (hence res >= 3 below).
-    int res = sscanf(
-        line, "%llx-%llx %4s %*llx %*[:0-9a-f] %*[0-9a-f]%*[ \t]%128[^\n]",
-        &new_mmap->start_addr, &new_mmap->end_addr, new_mmap->prot_flags,
-        new_mmap->mapped_file);
-    if (res >= 3) {
+    if (!line[0])
+      continue;
+    // Performance optimization (hack).
+    // Any header line starts with lowercase hex digit but subsequent lines
+    // start with uppercase letter.
+    if (line[0] < 'A' || line[0] > 'Z') {
+      // Note that the mapped file name ([stack]) is optional and won't be
+      // present on anonymous memory maps (hence res >= 3 below).
+      int res = sscanf(line,
+          "%llx-%llx %4s %*llx %*[:0-9a-f] %*[0-9a-f]%*[ \t]%127[^\n]",
+          &new_mmap->start_addr, &new_mmap->end_addr, new_mmap->prot_flags,
+          new_mmap->mapped_file);
       last_mmap_entry = new_mmap.get();
       CHECK(new_mmap->end_addr >= new_mmap->start_addr);
-      new_mmap->virt_kb = (new_mmap->end_addr - new_mmap->start_addr) / 1024;
+      new_mmap->virt_kb =
+          (new_mmap->end_addr - new_mmap->start_addr) / 1024;
       if (res == 3)
         new_mmap->mapped_file[0] = '\0';
       virt_kb_ += new_mmap->virt_kb;
-      mmaps_[new_mmap->start_addr] = std::move(new_mmap);
+      mmaps_.push_back(std::move(new_mmap));
       new_mmap.reset(new MmapInfo());
     } else {
       // The current line is a metrics line within a mmap entry, e.g.:
       // Size:   4 kB
       uint64_t size = 0;
       CHECK(last_mmap_entry);
-      if (ReadSmapsMetric(line, "Rss:", &size)) {
+      if (ReadSmapsMetric(line, kRss, sizeof(kRss), &size)) {
         last_mmap_entry->rss_kb = size;
         rss_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Pss:", &size)) {
+      } else if (ReadSmapsMetric(line, kPss, sizeof(kPss), &size)) {
         last_mmap_entry->pss_kb = size;
         pss_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Swap:", &size)) {
+      } else if (ReadSmapsMetric(line, kSwap, sizeof(kSwap), &size)) {
         last_mmap_entry->swapped_kb = size;
         swapped_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Shared_Clean:", &size)) {
+      } else if (ReadSmapsMetric(
+                     line, kSharedClean, sizeof(kSharedClean), &size)) {
         last_mmap_entry->shared_clean_kb = size;
         shared_clean_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Shared_Dirty:", &size)) {
+      } else if (ReadSmapsMetric(
+                     line, kSharedDirty, sizeof(kSharedDirty), &size)) {
         last_mmap_entry->shared_dirty_kb = size;
         shared_dirty_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Private_Clean:", &size)) {
+      } else if (ReadSmapsMetric(
+                     line, kPrivateClean, sizeof(kPrivateClean), &size)) {
         last_mmap_entry->private_clean_kb = size;
         private_clean_kb_ += size;
-      } else if (ReadSmapsMetric(line, "Private_Dirty:", &size)) {
+      } else if (ReadSmapsMetric(
+                     line, kPrivateDirty, sizeof(kPrivateDirty), &size)) {
         last_mmap_entry->private_dirty_kb = size;
         private_dirty_kb_ += size;
       }
     }
   }
+  full_stats_ = true;
   return true;
 }
 
-bool ProcessMemoryStats::ReadMemtrackStats() {
-  MemtrackProc mt(pid_);
+bool ProcessMemoryStats::ReadGpuStats(int pid) {
+  MemtrackProc mt(pid);
   gpu_graphics_kb_ = mt.graphics_total() / 1024;
   gpu_graphics_pss_kb_ = mt.graphics_pss() / 1024;
   gpu_gl_kb_ = mt.gl_total() / 1024;
   gpu_gl_pss_kb_ = mt.gl_pss() / 1024;
   gpu_other_kb_ = mt.other_total() / 1024;
   gpu_other_pss_kb_ = mt.other_pss() / 1024;
-  return !mt.has_errors();
+
+  gpu_stats_ = !mt.has_errors() &&
+      (gpu_graphics_kb_ != 0 || gpu_gl_kb_ != 0 || gpu_other_kb_ != 0);
+  return gpu_stats_;
 }

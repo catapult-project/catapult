@@ -2,117 +2,42 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <dirent.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/timerfd.h>
-#include <sys/types.h>
 
 #include <limits>
 #include <memory>
+#include <set>
+#include <string>
+#include <sstream>
 
-#include "file_utils.h"
+#include "atrace_process_dump.h"
 #include "logging.h"
-#include "process_info.h"
 
 namespace {
 
-using ProcessMap = std::map<int, std::unique_ptr<ProcessInfo>>;
+std::unique_ptr<AtraceProcessDump> g_prog;
 
-int g_timer;
-
-std::unique_ptr<ProcessMap> CollectStatsForAllProcs(bool full_mem_stats,
-                                                    bool gpu_mem_stats) {
-  std::unique_ptr<ProcessMap> procs(new ProcessMap());
-  file_utils::ForEachPidInProcPath("/proc",
-      [&procs, full_mem_stats, gpu_mem_stats](int pid) {
-
-    if (!ProcessInfo::IsProcess(pid))
+void ParseFullDumpConfig(const std::string& config, AtraceProcessDump* prog) {
+  using FullDumpMode = AtraceProcessDump::FullDumpMode;
+  if (config == "all") {
+    prog->set_full_dump_mode(FullDumpMode::kAllProcesses);
+  } else if (config == "apps") {
+    prog->set_full_dump_mode(FullDumpMode::kAllJavaApps);
+  } else {
+    std::set<std::string> whitelist;
+    std::istringstream ss(config);
+    std::string entry;
+    while (std::getline(ss, entry, ',')) {
+      whitelist.insert(entry);
+    }
+    if (whitelist.empty())
       return;
-    CHECK(procs->count(pid) == 0);
-    std::unique_ptr<ProcessInfo> pinfo(new ProcessInfo(pid));
-    if (!(pinfo->ReadProcessName() && pinfo->ReadThreadNames() &&
-          pinfo->ReadOOMStats() && pinfo->ReadPageFaultsAndCPUTimeStats()))
-      return;
-
-    if (full_mem_stats) {
-      if (!pinfo->memory()->ReadFullStats())
-        return;
-    } else {
-      if (!pinfo->memory()->ReadLightStats())
-        return;
-    }
-    if (gpu_mem_stats) {
-      // It might fail on some devices.
-      pinfo->memory()->ReadMemtrackStats();
-    }
-    (*procs)[pid] = std::move(pinfo);
-  });
-  return procs;
-}
-
-void SerializeSnapshot(const ProcessMap& procs,
-                       FILE* stream,
-                       bool full_mem_stats,
-                       bool gpu_mem_stats) {
-  struct timespec ts = {};
-  CHECK(clock_gettime(CLOCK_MONOTONIC_COARSE, &ts) == 0);
-  fprintf(stream, "{\n");
-  fprintf(stream, "  \"ts\": %lu,\n",
-          (ts.tv_sec * 1000 + ts.tv_nsec / 1000000ul));
-  fprintf(stream, "  \"processes\": [\n");
-  for (auto it = procs.begin(); it != procs.end();) {
-    int pid = it->first;
-    const ProcessInfo& pinfo = *it->second;
-    fprintf(stream, "    {\"pid\": %d, \"name\": \"%s\", \"exe\": \"%s\"", pid,
-            pinfo.name(), pinfo.exe());
-    fprintf(stream, ", \"threads\": [");
-    for (auto t = pinfo.threads()->begin(); t != pinfo.threads()->end();) {
-      fprintf(stream, "{\"tid\": %d, \"name\":\"%s\"", t->first,
-              t->second->name);
-      t++;
-      fprintf(stream, t != pinfo.threads()->end() ? "}, " : "}");
-    }
-    fprintf(stream, "]");
-
-    const ProcessMemoryStats* mem_info = pinfo.memory();
-    fprintf(stream, ", \"mem\": {\"vm\": %llu, \"rss\": %llu",
-            mem_info->virt_kb(), mem_info->rss_kb());
-    if (full_mem_stats) {
-      fprintf(stream,
-              ", \"pss\": %llu, \"swp\": %llu, \"pc\": %llu, \"pd\": %llu, "
-              "\"sc\": %llu, \"sd\": %llu",
-              mem_info->pss_kb(), mem_info->swapped_kb(),
-              mem_info->private_clean_kb(), mem_info->private_dirty_kb(),
-              mem_info->shared_clean_kb(), mem_info->shared_dirty_kb());
-    }
-    if (gpu_mem_stats) {
-      fprintf(stream,
-              ", \"gpu\": %llu, \"gpu_pss\": %llu"
-              ", \"gpu_gl\": %llu, \"gpu_gl_pss\": %llu"
-              ", \"gpu_etc\": %llu, \"gpu_etc_pss\": %llu",
-              mem_info->gpu_graphics_kb(), mem_info->gpu_graphics_pss_kb(),
-              mem_info->gpu_gl_kb(), mem_info->gpu_gl_pss_kb(),
-              mem_info->gpu_other_kb(), mem_info->gpu_other_pss_kb());
-    }
-    fprintf(stream, "}");
-
-    fprintf(stream,
-            ", \"oom\": {\"adj\": %d, \"score_adj\": %d, \"score\": %d}",
-            pinfo.oom_adj(), pinfo.oom_score_adj(), pinfo.oom_score());
-    fprintf(stream,
-            ", \"stat\": {\"minflt\": %lu, \"majflt\": %lu, "
-            "\"utime\": %lu, \"stime\": %lu }",
-            pinfo.minflt(), pinfo.majflt(), pinfo.utime(), pinfo.stime());
-    fprintf(stream, "}");
-    it++;
-    fprintf(stream, it != procs.end() ? ",\n" : "\n");
+    prog->set_full_dump_mode(FullDumpMode::kOnlyWhitelisted);
+    prog->set_full_dump_whitelist(whitelist);
   }
-  fprintf(stream, "  ]\n");
-  fprintf(stream, "}\n");
 }
 
 }  // namespace
@@ -122,20 +47,30 @@ int main(int argc, char** argv) {
   int dump_interval_ms = 5000;
   char out_file[PATH_MAX] = {};
   bool dump_to_file = false;
-  bool full_mem_stats = false;
-  bool gpu_mem_stats = false;
   int count = std::numeric_limits<int>::max();
+
+  AtraceProcessDump* prog = new AtraceProcessDump();
+  g_prog = std::unique_ptr<AtraceProcessDump>(prog);
+
+  if (geteuid()) {
+    fprintf(stderr, "Must run as root\n");
+    exit(EXIT_FAILURE);
+  }
+
   int opt;
-  while ((opt = getopt(argc, argv, "bmgt:o:c:")) != -1) {
+  while ((opt = getopt(argc, argv, "bm:gst:o:c:")) != -1) {
     switch (opt) {
       case 'b':
         background = true;
         break;
       case 'm':
-        full_mem_stats = true;
+        ParseFullDumpConfig(optarg, prog);
         break;
       case 'g':
-        gpu_mem_stats = true;
+        prog->enable_graphics_stats();
+        break;
+      case 's':
+        prog->enable_print_smaps();
         break;
       case 't':
         dump_interval_ms = atoi(optarg);
@@ -151,17 +86,16 @@ int main(int argc, char** argv) {
         break;
       default:
         fprintf(stderr,
-                "Usage: %s [-b] [-m] [-g] [-t dump_interval_ms] "
+                "Usage: %s [-b] [-m full_dump_filter] [-g] [-s] "
+                "[-t dump_interval_ms] "
                 "[-c dumps_count] [-o out.json]\n",
                 argv[0]);
         exit(EXIT_FAILURE);
     }
   }
 
-  if (geteuid()) {
-    fprintf(stderr, "Must run as root\n");
-    exit(EXIT_FAILURE);
-  }
+  prog->set_dump_count(count);
+  prog->set_dump_interval(dump_interval_ms);
 
   FILE* out_stream = stdout;
   char tmp_file[PATH_MAX];
@@ -174,47 +108,20 @@ int main(int argc, char** argv) {
 
   if (background) {
     if (!dump_to_file) {
-      fprintf(stderr, "-b requires -o for output dump path\n");
+      fprintf(stderr, "-b requires -o for output dump path.\n");
       exit(EXIT_FAILURE);
     }
     printf("Continuing in background. kill -TERM to terminate the daemon.\n");
     CHECK(daemon(0 /* nochdir */, 0 /* noclose */) == 0);
   }
 
-  g_timer = timerfd_create(CLOCK_MONOTONIC, 0);
-  CHECK(g_timer >= 0);
-  struct itimerspec ts = {};
-  ts.it_value.tv_nsec = 1;  // Get the first snapshot immediately.
-  ts.it_interval.tv_nsec = (dump_interval_ms % 1000) * 1000000ul;
-  ts.it_interval.tv_sec = dump_interval_ms / 1000;
-  CHECK(timerfd_settime(g_timer, 0, &ts, nullptr) == 0);
-
-  // Closing the g_timer fd on SIGINT/SIGTERM will cause the read() below to
-  // unblock and fail with EBADF, hence allowing the loop below to finalize
-  // the file and exit.
-  auto on_exit = [](int) { close(g_timer); };
+  auto on_exit = [](int) { g_prog->Stop(); };
   signal(SIGINT, on_exit);
   signal(SIGTERM, on_exit);
 
-  fprintf(out_stream, "{\"snapshots\": [\n");
-  bool is_first_snapshot = true;
-  for (; count > 0; count--) {
-    uint64_t missed = 0;
-    int res = read(g_timer, &missed, sizeof(missed));
-    if (res < 0 && errno == EBADF)
-      break;  // Received SIGINT/SIGTERM signal.
-    CHECK(res > 0);
-    if (!is_first_snapshot)
-      fprintf(out_stream, ",");
-    is_first_snapshot = false;
-
-    std::unique_ptr<ProcessMap> procs =
-        CollectStatsForAllProcs(full_mem_stats, gpu_mem_stats);
-    SerializeSnapshot(*procs, out_stream, full_mem_stats, gpu_mem_stats);
-    fflush(out_stream);
-  }
-  fprintf(out_stream, "]}\n");
+  prog->RunAndPrintJson(out_stream);
   fclose(out_stream);
+
   if (dump_to_file)
     rename(tmp_file, out_file);
 }

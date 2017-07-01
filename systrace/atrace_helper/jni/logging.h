@@ -6,6 +6,7 @@
 #define LOGGING_H_
 
 #include <android/log.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
