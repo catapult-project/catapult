@@ -338,8 +338,8 @@ class Browser(app.App):
   def supports_memory_dumping(self):
     return self._browser_backend.supports_memory_dumping
 
-  def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
-    return self._browser_backend.DumpMemory(timeout)
+  def DumpMemory(self, timeout=None):
+    return self._browser_backend.DumpMemory(timeout=timeout)
 
   @property
   def supports_overriding_memory_pressure_notifications(self):

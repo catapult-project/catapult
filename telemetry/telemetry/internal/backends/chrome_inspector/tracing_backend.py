@@ -184,8 +184,11 @@ class TracingBackend(object):
     self._start_issued = False
     self._can_collect_data = True
 
-  def DumpMemory(self, timeout=30):
+  def DumpMemory(self, timeout=None):
     """Dumps memory.
+
+    Args:
+      timeout: If not specified defaults to 20 minutes.
 
     Returns:
       GUID of the generated dump if successful, None otherwise.
@@ -200,6 +203,8 @@ class TracingBackend(object):
     request = {
       'method': 'Tracing.requestMemoryDump'
     }
+    if timeout is None:
+      timeout = 1200  # 20 minutes.
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
     except websocket.WebSocketTimeoutException:

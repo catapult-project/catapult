@@ -275,8 +275,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def supports_memory_dumping(self):
     return True
 
-  def DumpMemory(self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
-    return self.devtools_client.DumpMemory(timeout)
+  def DumpMemory(self, timeout=None):
+    return self.devtools_client.DumpMemory(timeout=timeout)
 
   @property
   def supports_overriding_memory_pressure_notifications(self):
