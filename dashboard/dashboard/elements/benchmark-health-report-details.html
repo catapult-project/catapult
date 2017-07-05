@@ -46,8 +46,7 @@ found in the LICENSE file.
         <h2>{{alerts.length}} alerts for {{benchmark}} in the last {{numDays}} days</h2>
         <h3>{{computeNumValid(alerts)}} valid and {{computeNumInvalid(alerts)}} invalid and {{computeNumUntriaged(alerts)}} untriaged</h3>
         <alerts-table id="alerts-table"
-                      alert-list="{{alerts}}"
-                      extra-columns="{{extraColumns}}"></alerts-table>
+                      alert-list="{{alerts}}"></alerts-table>
 
         <h2>{{bugIds.length}} bugs for {{benchmark}} in the last {{numDays}} days</h2>
         <template is="dom-repeat" items="{{bugIds}}">
@@ -77,24 +76,6 @@ found in the LICENSE file.
         bugIds: {
           notify: true,
           type: Array
-        },
-        extraColumns: {
-          type: Array,
-          notify: true,
-          value: () => ([
-            {
-              'key': 'percent_changed',
-              'label': 'Delta %'
-            },
-            {
-              'key': 'absolute_delta',
-              'label': 'Abs Delta'
-            },
-            {
-              'key': 'units',
-              'label': 'Units'
-            }
-          ])
         },
         error: {
           notify: true,

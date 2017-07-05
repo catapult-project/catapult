@@ -97,7 +97,7 @@ def GetAlertsWithBugId(bug_id):
         such as -1 or -2 indicating invalid or ignored.
 
   Returns:
-    tuple (alerts, extra_columns)
+    list of anomaly.Anomaly
   """
   if not _IsInt(bug_id):
     raise request_handler.InvalidInputError('Invalid bug ID "%s".' % bug_id)
@@ -114,7 +114,7 @@ def GetAlertsAroundRevision(rev):
     rev: A revision number, as a string.
 
   Returns:
-    tuple (alerts, extra_columns)
+    list of anomaly.Anomaly
   """
   if not _IsInt(rev):
     raise request_handler.InvalidInputError('Invalid rev "%s".' % rev)
@@ -140,7 +140,7 @@ def GetAlertsForKeys(keys):
     keys: Comma-separated list of urlsafe strings for Anomaly keys.
 
   Returns:
-    tuple (alerts, extra_columns)
+    list of anomaly.Anomaly
   """
   urlsafe_keys = keys
 

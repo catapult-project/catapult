@@ -141,7 +141,6 @@ found in the LICENSE file.
             <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
                           alert-list="{{anomalies}}"
-                          extra-columns="{{extraAnomaliesColumns}}"
                           on-sortby="onPushHistoryState"
                           on-sortdirection="onPushHistoryState"
                           sort-by="{{sortBy}}"
@@ -195,25 +194,6 @@ found in the LICENSE file.
           type: String,
           value: '',
           notify: true
-        },
-
-        extraAnomaliesColumns: {
-          type: Array,
-          notify: true,
-          value: () => ([
-            {
-              'key': 'percent_changed',
-              'label': 'Delta %'
-            },
-            {
-              'key': 'absolute_delta',
-              'label': 'Abs Delta'
-            },
-            {
-              'key': 'units',
-              'label': 'Units'
-            }
-          ])
         },
         selectedSheriffIndex: {
           type: Number,

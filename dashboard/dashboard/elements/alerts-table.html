@@ -333,12 +333,8 @@ found in the LICENSE file.
         <th id="bot" on-click="columnHeaderClicked">Bot</th>
         <th id="testsuite" on-click="columnHeaderClicked">Test Suite</th>
         <th id="test" on-click="columnHeaderClicked">Test</th>
-        <template is="dom-repeat" items="{{extraColumns}}">
-          <th id="{{item.key}}" on-click="columnHeaderClicked"
-              hidden$={{hideUnitsColumn(item.key)}}>
-            {{item.label}}
-          </th>
-        </template>
+        <th id="percent_changed" on-click="columnHeaderClicked">Delta %</th>
+        <th id="absolute_delta" on-click="columnHeaderClicked">Abs Delta</th>
       </tr>
       </thead>
       <tbody>
@@ -393,19 +389,8 @@ found in the LICENSE file.
           <td class="bot">{{item.bot}}</td>
           <td class="testsuite">{{item.testsuite}}</td>
           <td class="test">{{item.test}}</td>
-
-          <template is="dom-repeat" items="{{extraColumns}}" as="column"
-                    index-as="colnum">
-            <td class$="{{column.key}}" hidden$={{hideUnitsColumn(column.key)}}>
-              {{computeExtraColumnValue(item, column.key)}}
-              <template is="dom-if" if="{{isBugDetailsKey(column.key)}}">
-                <bug-details 
-                    compact-view="true",
-                    bug-id="{{item.bug_id}}">
-                </bug-details>
-              </template>
-            </td>
-          </template>
+          <td class="percent_changed">{{item.percent_changed}}</td>
+          <td class="absolute_delta">{{computeAbsDeltaWithUnits(item)}}</td>
         </tr>
       </template>
       </tbody>
@@ -448,12 +433,6 @@ found in the LICENSE file.
           type: Array,
           notify: true,
           observer: 'alertListChanged',
-          value: () => []
-        },
-
-        extraColumns: {
-          type: Array,
-          notify: true,
           value: () => []
         },
 
@@ -541,50 +520,32 @@ found in the LICENSE file.
 
       /**
        * Determines how to format the unit. E.g. switching between MiB and
-       * KiB as appropriate. Accepts tbmv1 and tbmv2 units. Also handles
-       * showing bug-details, which is used by speed releasing.
+       * KiB as appropriate. Accepts tbmv1 and tbmv2 units.
        */
-      computeExtraColumnValue(item, key) {
-        if (key === 'absolute_delta') {
-          let unitName = item.units;
-          if (tr.b.Unit.byName[unitName]) {
-            return (tr.b.Unit.byName[unitName].format(item[key]));
-          }
-
-          let unitInfo = tr.v.LEGACY_UNIT_INFO.get(unitName);
-          if (unitInfo &&
-              unitInfo.name != 'unitlessNumber' &&
-              unitInfo.name != 'count') {
-            const conversionFactor = unitInfo.conversionFactor || 1;
-            const value = item[key] * conversionFactor;
-            unitInfo = unitInfo.name;
-            return tr.b.Unit.byName[unitInfo].format(value);
-          }
-
-          let value = item[key];
-          value = parseFloat(value).toFixed(3);
-          if (!unitName) {
-            unitName = '(unformatted)';
-          }
-          value = value + ' ' + unitName;
-          return value;
-        } else if (key === 'bug_details') {
-          if (item.bug_id > 0) {
-            return item.bug_id;
-          }
-          return undefined;  // Don't display details for invalid bugs.
+      computeAbsDeltaWithUnits(item) {
+        let unitName = item.units;
+        if (tr.b.Unit.byName[unitName]) {
+          return (tr.b.Unit.byName[unitName].format(item.absolute_delta));
         }
-        return item[key];
+
+        let unitInfo = tr.v.LEGACY_UNIT_INFO.get(unitName);
+        if (unitInfo &&
+            unitInfo.name != 'unitlessNumber' &&
+            unitInfo.name != 'count') {
+          const conversionFactor = unitInfo.conversionFactor || 1;
+          const value = item.absolute_delta * conversionFactor;
+          unitInfo = unitInfo.name;
+          return tr.b.Unit.byName[unitInfo].format(value);
+        }
+
+        let value = item.absolute_delta;
+        value = parseFloat(value).toFixed(3);
+        if (!unitName) {
+          unitName = '(unformatted)';
+        }
+        value = value + ' ' + unitName;
+        return value;
       },
-
-      /**
-       * Hides the units header and column. This column needs to remain in the
-       * data for use by the computeExtraColumnValue function so we can
-       * format the unit.
-       */
-      hideUnitsColumn: key => key === 'units',
-
-      isBugDetailsKey: key => key === 'bug_details',
 
       setAlertList(i, property, value) {
         this.set('alertList.' + i + '.' + property, value);

@@ -59,7 +59,6 @@ found in the LICENSE file.
           <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
                           alert-list="{{anomalies}}"
-                          extra-columns="{{extraAnomaliesColumns}}"
                           on-sortby="onPushHistoryState"
                           on-sortdirection="onPushHistoryState"
                           sort-by="{{sortBy}}"
@@ -101,32 +100,7 @@ found in the LICENSE file.
         sortDirection: {
           type: String,
           value: 'up'
-        },
-        extraAnomaliesColumns: {
-          type: Array,
-          notify: true,
-          value: () => ([
-            {
-              'key': 'percent_changed',
-              'label': 'Delta %'
-            },
-            {
-              'key': 'absolute_delta',
-              'label': 'Abs Delta'
-            },
-            {
-              'key': 'units',
-              'label': 'Units'
-            },
-            {
-              'key': 'bug_details',
-              'label': 'Bug Details'
-            }
-            // TODO(jessimb): add extra columns as appropriate for speed
-            // releasing (e.g. bisect statuses). See
-            // https://github.com/catapult-project/catapult/issues/3354
-          ])
-        },
+        }
       },
 
       onPushHistoryState(event, detail) {
