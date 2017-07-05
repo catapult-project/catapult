@@ -9,7 +9,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  const comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
   const compareArrays = tr.b.compareArrays;
   const getOnlyElement = tr.b.getOnlyElement;
   const getFirstElement = tr.b.getFirstElement;
@@ -20,23 +19,6 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(tr.b.setsEqual(new Set(), undefined));
     assert.isFalse(tr.b.setsEqual(new Set(), new Set(['a'])));
     assert.isFalse(tr.b.setsEqual(new Set(['a']), new Set(['b'])));
-  });
-
-  test('comparePossiblyUndefinedValues', function() {
-    function cmp(x, y) {
-      assert.isDefined(x);
-      assert.isDefined(y);
-      return x - y;
-    }
-
-    assert.isBelow(comparePossiblyUndefinedValues(0, 1, cmp), 0);
-    assert.isAbove(comparePossiblyUndefinedValues(1, 0, cmp), 0);
-    assert.strictEqual(comparePossiblyUndefinedValues(1, 1, cmp), 0);
-
-    assert.isBelow(comparePossiblyUndefinedValues(0, undefined, cmp), 0);
-    assert.isAbove(comparePossiblyUndefinedValues(undefined, 0, cmp), 0);
-    assert.strictEqual(
-        comparePossiblyUndefinedValues(undefined, undefined, cmp), 0);
   });
 
   test('compareArrays', function() {

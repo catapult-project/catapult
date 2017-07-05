@@ -60,19 +60,6 @@ tr.exportTo('tr.b', function() {
     return 1;
   }
 
-  /**
-   * Compares two values when one or both might be undefined. Undefined
-   * values are sorted after defined.
-   */
-  function comparePossiblyUndefinedValues(x, y, cmp, opt_this) {
-    if (x !== undefined && y !== undefined) {
-      return cmp.call(opt_this, x, y);
-    }
-    if (x !== undefined) return -1;
-    if (y !== undefined) return 1;
-    return 0;
-  }
-
   function concatenateObjects(/* arguments */) {
     const result = {};
     for (let i = 0; i < arguments.length; i++) {
@@ -282,7 +269,6 @@ tr.exportTo('tr.b', function() {
   return {
     concatenateObjects,
     compareArrays,
-    comparePossiblyUndefinedValues,
     getOnlyElement,
     getFirstElement,
     groupIntoMap,

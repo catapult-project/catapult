@@ -50,9 +50,15 @@ tr.exportTo('tr.model', function() {
     let tmp = tr.model.ProcessBase.compare(x, y);
     if (tmp) return tmp;
 
-    tmp = tr.b.comparePossiblyUndefinedValues(
-        x.name, y.name,
-        function(x, y) { return x.localeCompare(y); });
+    if (x.name !== undefined) {
+      if (y.name !== undefined) {
+        tmp = x.name.localeCompare(y.name);
+      } else {
+        tmp = -1;
+      }
+    } else if (y.name !== undefined) {
+      tmp = 1;
+    }
     if (tmp) return tmp;
 
     tmp = tr.b.compareArrays(x.labels, y.labels,
