@@ -22,6 +22,8 @@
     "polymer": "Polymer/polymer#^1.0.0",
     "paper-listbox": "polymerelements/paper-listbox#^1.1.2",
     "app-route": "PolymerElements/app-route#^0.9.3",
-    "iron-pages": "PolymerElements/iron-pages#^1.0.8"
+    "iron-pages": "PolymerElements/iron-pages#^1.0.8",
+    "paper-radio-button": "PolymerElements/paper-radio-button#^1.0.0",
+    "paper-radio-group": "PolymerElements/paper-radio-group#^1.0.0"
   }
 }
