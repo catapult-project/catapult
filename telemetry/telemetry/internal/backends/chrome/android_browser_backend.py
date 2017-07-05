@@ -14,6 +14,7 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
+from devil.android import device_signal
 from devil.android import flag_changer
 from devil.android.sdk import intent
 
@@ -201,6 +202,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.append('--disable-fre')
     args.append('--disable-external-intent-requests')
     return args
+
+  def ForceJavaHeapGarbageCollection(self):
+    # Send USR1 signal to force GC on Chrome processes forked from Zygote.
+    # (c.f. crbug.com/724032)
+    self.device.KillAll(
+        self._backend_settings.package,
+        exact=False,  # Send signal to children too.
+        signum=device_signal.SIGUSR1)
 
   @property
   def pid(self):

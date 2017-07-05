@@ -145,15 +145,12 @@ class ActionRunner(object):
     Returns:
       GUID of the generated dump if one was triggered, None otherwise.
     """
-    platform = self.tab.browser.platform
-    if not platform.tracing_controller.is_tracing_running:
+    if not self.tab.browser.platform.tracing_controller.is_tracing_running:
       logging.warning('Tracing is off. No memory dumps are being recorded.')
       return None
     if deterministic_mode:
       self.Wait(_DUMP_WAIT_TIME)
       self.ForceGarbageCollection()
-      if platform.SupportFlushEntireSystemCache():
-        platform.FlushEntireSystemCache()
       self.Wait(_DUMP_WAIT_TIME)
     dump_id = self.tab.browser.DumpMemory()
     if not dump_id:
@@ -789,8 +786,18 @@ class ActionRunner(object):
         timeout_in_seconds=timeout_in_seconds))
 
   def ForceGarbageCollection(self):
-    """Forces JavaScript garbage collection on the page."""
+    """Forces garbage collection on all relevant systems.
+
+    This includes:
+    - Java heap for browser and child subprocesses (on Android).
+    - JavaScript on the current renderer.
+    - System caches (on supported platforms).
+    """
+    if self._tab.browser.supports_java_heap_garbage_collection:
+      self._tab.browser.ForceJavaHeapGarbageCollection()
     self._tab.CollectGarbage()
+    if self._tab.browser.platform.SupportFlushEntireSystemCache():
+      self._tab.browser.platform.FlushEntireSystemCache()
 
   def SimulateMemoryPressureNotification(self, pressure_level):
     """Simulate memory pressure notification.

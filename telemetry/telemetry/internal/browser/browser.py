@@ -342,6 +342,14 @@ class Browser(app.App):
     return self._browser_backend.DumpMemory(timeout=timeout)
 
   @property
+  def supports_java_heap_garbage_collection(self):
+    return hasattr(self._browser_backend, 'ForceJavaHeapGarbageCollection')
+
+  def ForceJavaHeapGarbageCollection(self):
+    """Forces java heap GC on supported platforms."""
+    return self._browser_backend.ForceJavaHeapGarbageCollection()
+
+  @property
   def supports_overriding_memory_pressure_notifications(self):
     return (
         self._browser_backend.supports_overriding_memory_pressure_notifications)
