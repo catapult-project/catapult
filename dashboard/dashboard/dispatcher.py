@@ -11,7 +11,6 @@ from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import alerts
 from dashboard import associate_alerts
-from dashboard import auto_bisect
 from dashboard import auto_triage
 from dashboard import bad_bisect
 from dashboard import benchmark_health_report
@@ -69,7 +68,6 @@ _URL_MAPPING = [
     ('/alerts', alerts.AlertsHandler),
     (r'/api/alerts/(.*)', api_alerts.AlertsHandler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
-    ('/auto_bisect', auto_bisect.AutoBisectHandler),
     ('/auto_triage', auto_triage.AutoTriageHandler),
     ('/bad_bisect', bad_bisect.BadBisectHandler),
     ('/benchmark_health_report',

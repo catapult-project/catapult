@@ -4,12 +4,10 @@
 
 """URL endpoint for a cron job to automatically run bisects."""
 
-import datetime
 import logging
 
 from dashboard import can_bisect
 from dashboard import start_try_job
-from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -17,89 +15,9 @@ from dashboard.models import graph_data
 from dashboard.models import try_job
 
 
-class AutoBisectHandler(request_handler.RequestHandler):
-  """URL endpoint for a cron job to automatically run bisects."""
-
-  def get(self):
-    """A get request is the same a post request for this endpoint."""
-    self.post()
-
-  def post(self):
-    """Runs auto bisects."""
-    if 'stats' in self.request.query_string:
-      self.RenderHtml('result.html', _PrintStartedAndFailedBisectJobs())
-      return
-    datastore_hooks.SetPrivilegedRequest()
-    if _RestartFailedBisectJobs():
-      utils.TickMonitoringCustomMetric('RestartFailedBisectJobs')
-
-
 class NotBisectableError(Exception):
   """An error indicating that a bisect couldn't be automatically started."""
   pass
-
-
-def _RestartFailedBisectJobs():
-  """Restarts failed bisect jobs.
-
-  Bisect jobs that ran out of retries will be deleted.
-
-  Returns:
-    True if all bisect jobs that were retried were successfully triggered,
-    and False otherwise.
-  """
-  bisect_jobs = try_job.TryJob.query(try_job.TryJob.status == 'failed').fetch()
-  all_successful = True
-  for job in bisect_jobs:
-    if job.run_count > 0:
-      if job.run_count <= 1:
-        if _IsBisectJobDueForRestart(job):
-          logging.info('RestartingFailedBisect: job.key: %s', str(job.key.id()))
-          # Start bisect right away if this is the first retry. Otherwise,
-          # try bisect with different config.
-          if job.run_count == 1:
-            try:
-              start_try_job.PerformBisect(job)
-            except request_handler.InvalidInputError as e:
-              logging.error(e.message)
-              all_successful = False
-          elif job.bug_id:
-            restart_successful = _RestartBisect(job)
-            if not restart_successful:
-              all_successful = False
-      else:
-        if job.bug_id:
-          comment = ('Failed to run bisect %s times.'
-                     'Stopping automatic restart for this job.' %
-                     job.run_count)
-          start_try_job.LogBisectResult(job, comment)
-        job.key.delete()
-  return all_successful
-
-
-def _RestartBisect(bisect_job):
-  """Re-starts a bisect-job after modifying it's config based on run count.
-
-  Args:
-    bisect_job: TryJob entity with initialized bot name and config.
-
-  Returns:
-    True if the bisect was successfully triggered and False otherwise.
-  """
-  try:
-    new_bisect_job = _MakeBisectTryJob(
-        bisect_job.bug_id, bisect_job.run_count)
-  except NotBisectableError:
-    return False
-  bisect_job.config = new_bisect_job.config
-  bisect_job.bot = new_bisect_job.bot
-  bisect_job.put()
-  try:
-    start_try_job.PerformBisect(bisect_job)
-  except request_handler.InvalidInputError as e:
-    logging.error(e.message)
-    return False
-  return True
 
 
 def StartNewBisectForBug(bug_id):
@@ -129,14 +47,11 @@ def StartNewBisectForBug(bug_id):
   return bisect_result
 
 
-def _MakeBisectTryJob(bug_id, run_count=0):
+def _MakeBisectTryJob(bug_id):
   """Tries to automatically select parameters for a bisect job.
 
   Args:
     bug_id: A bug ID which some alerts are associated with.
-    run_count: An integer; this is supposed to represent the number of times
-        that a bisect has been tried for this bug; it is used to try different
-        config parameters on different re-try attempts.
 
   Returns:
     A TryJob entity, which has not yet been put in the datastore.
@@ -148,7 +63,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not anomalies:
     raise NotBisectableError('No Anomaly alerts found for this bug.')
 
-  test_anomaly = _ChooseTest(anomalies, run_count)
+  test_anomaly = _ChooseTest(anomalies)
   test = None
   if test_anomaly:
     test = test_anomaly.GetTestMetadataKey().get()
@@ -202,13 +117,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   return bisect_job
 
 
-def _IsBisectJobDueForRestart(bisect_job):
-  """Whether bisect job is due for restart."""
-  old_timestamp = (datetime.datetime.now() - datetime.timedelta(days=0))
-  return bisect_job.last_ran_timestamp <= old_timestamp
-
-
-def _ChooseTest(anomalies, index=0):
+def _ChooseTest(anomalies):
   """Chooses a test to use for a bisect job.
 
   The particular TestMetadata chosen determines the command and metric name that
@@ -226,19 +135,14 @@ def _ChooseTest(anomalies, index=0):
 
   Args:
     anomalies: A non-empty list of Anomaly entities.
-    index: Index of the first Anomaly entity to look at. If this is greater
-        than the number of Anomalies, it will wrap around. This is used to
-        make it easier to get different suggestions for what test to use given
-        the same list of alerts.
 
   Returns:
     An Anomaly entity, or None if no valid entity could be chosen.
   """
   if not anomalies:
     return None
-  index %= len(anomalies)
   anomalies.sort(cmp=_CompareAnomalyBisectability)
-  for anomaly_entity in anomalies[index:]:
+  for anomaly_entity in anomalies:
     if can_bisect.IsValidTestForBisect(
         utils.TestPath(anomaly_entity.GetTestMetadataKey())):
       return anomaly_entity
@@ -302,8 +206,6 @@ def _PrintStartedAndFailedBisectJobs():
       try_job.TryJob.status == 'failed').fetch()
   started_jobs = try_job.TryJob.query(
       try_job.TryJob.status == 'started').fetch()
-  failed_jobs.sort(key=lambda b: b.run_count)
-  started_jobs.sort(key=lambda b: b.run_count)
 
   return {
       'headline': 'Bisect Jobs',
@@ -326,4 +228,4 @@ def _JobsListResult(title, jobs):
 def _JobLine(job):
   """Returns a string with information about one TryJob entity."""
   config = job.config.replace('\n', '') if job.config else 'No config.'
-  return 'Run count %d. Bug ID %d. %s' % (job.run_count, job.bug_id, config)
+  return 'Bug ID %d. %s' % (job.bug_id, config)

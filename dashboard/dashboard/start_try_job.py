@@ -657,7 +657,6 @@ def PerformBisect(bisect_job):
 
   result = _PerformBuildbucketBisect(bisect_job)
   if 'error' in result:
-    bisect_job.run_count += 1
     bisect_job.SetFailed()
     comment = 'Bisect job failed to kick off'
   elif result.get('issue_url'):
@@ -733,8 +732,8 @@ def _PerformPerfTryJob(perf_job):
   master = 'tryserver.chromium.perf'
   trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
   if trypatch_success:
-    # Create TryJob entity. The update_bug_with_results and auto_bisect
-    # cron jobs will be tracking, or restarting the job.
+    # Create TryJob entity. The update_bug_with_results cron job will be
+    # tracking the job.
     perf_job.rietveld_issue_id = int(issue_id)
     perf_job.rietveld_patchset_id = int(patchset_id)
     perf_job.SetStarted()

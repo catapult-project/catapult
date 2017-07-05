@@ -47,9 +47,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
       ],
       indexed=True)
 
-  # Number of times this job has been tried.
-  run_count = ndb.IntegerProperty(default=0)
-
   # Last time this job was started.
   last_ran_timestamp = ndb.DateTimeProperty()
 
@@ -70,7 +67,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
 
   def SetStarted(self):
     self.status = 'started'
-    self.run_count += 1
     self.last_ran_timestamp = datetime.datetime.now()
     self.put()
     if self.bug_id:

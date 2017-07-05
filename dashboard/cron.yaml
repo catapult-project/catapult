@@ -3,10 +3,6 @@
 
 cron:
 
-- description: Start and restart bisect jobs.
-  url: /auto_bisect
-  schedule: every 1 hours
-
 - description: Mark alerts as recovered, and associate alerts with groups.
   url: /auto_triage
   schedule: every 6 hours
