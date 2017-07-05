@@ -41,14 +41,17 @@ class ShortUriHandler(request_handler.RequestHandler):
       self.ReportError('Missing required parameters.', status=400)
       return
 
-    state = state.encode('utf-8')
-
-    state_id = GenerateHash(state)
-
-    if not ndb.Key(page_state.PageState, state_id).get():
-      page_state.PageState(id=state_id, value=state).put()
+    state_id = GetOrCreatePageState(state)
 
     self.response.out.write(json.dumps({'sid': state_id}))
+
+
+def GetOrCreatePageState(state):
+  state = state.encode('utf-8')
+  state_id = GenerateHash(state)
+  if not ndb.Key(page_state.PageState, state_id).get():
+    page_state.PageState(id=state_id, value=state).put()
+  return state_id
 
 
 def GenerateHash(state_string):

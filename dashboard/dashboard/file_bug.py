@@ -14,6 +14,7 @@ from google.appengine.ext import ndb
 
 from dashboard import auto_bisect
 from dashboard import oauth2_decorator
+from dashboard import short_uri
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -133,9 +134,9 @@ class FileBugHandler(request_handler.RequestHandler):
     cc = self.request.get('cc')
 
     http = oauth2_decorator.DECORATOR.http()
-    service = issue_tracker_service.IssueTrackerService(http)
+    user_issue_tracker_service = issue_tracker_service.IssueTrackerService(http)
 
-    new_bug_response = service.NewBug(
+    new_bug_response = user_issue_tracker_service.NewBug(
         summary, description, labels=labels, components=components, owner=owner,
         cc=cc)
     if 'error' in new_bug_response:
@@ -148,7 +149,11 @@ class FileBugHandler(request_handler.RequestHandler):
     alert_group.ModifyAlertsAndAssociatedGroups(alerts, bug_id=bug_id)
 
     comment_body = _AdditionalDetails(bug_id, alerts)
-    service.AddBugComment(bug_id, comment_body)
+    # Add the bug comment with the service account, so that there are no
+    # permissions issues.
+    dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService(
+        utils.ServiceAccountHttp())
+    dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body)
 
     template_params = {'bug_id': bug_id}
     if all(k.kind() == 'Anomaly' for k in alert_keys):
@@ -175,9 +180,11 @@ def _AdditionalDetails(bug_id, alerts):
   """Returns a message with additional information to add to a bug."""
   base_url = '%s/group_report' % _GetServerURL()
   bug_page_url = '%s?bug_id=%s' % (base_url, bug_id)
-  alerts_url = '%s?keys=%s' % (base_url, _UrlsafeKeys(alerts))
-  comment = 'All graphs for this bug:\n  %s\n\n' % bug_page_url
-  comment += 'Original alerts at time of bug-filing:\n  %s\n' % alerts_url
+  sid = short_uri.GetOrCreatePageState(json.dumps(_UrlsafeKeys(alerts)))
+  alerts_url = '%s?sid=%s' % (base_url, sid)
+  comment = '<b>All graphs for this bug:</b>\n  %s\n\n' % bug_page_url
+  comment += ('(For debugging:) Original alerts at time of bug-filing:\n  %s\n'
+              % alerts_url)
   bot_names = anomaly.GetBotNamesFromAlerts(alerts)
   if bot_names:
     comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
@@ -192,7 +199,7 @@ def _GetServerURL():
 
 
 def _UrlsafeKeys(alerts):
-  return ','.join(a.key.urlsafe() for a in alerts)
+  return [a.key.urlsafe() for a in alerts]
 
 
 def _ComponentFromCrLabel(label):

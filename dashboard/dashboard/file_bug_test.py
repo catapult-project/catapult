@@ -151,6 +151,7 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('<input name="cc" type="text" value="foo@chromium.org">',
                   str(response.html('form')[0]))
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testInternalBugLabel(self):
     # If any of the alerts are marked as internal-only, which should happen
     # when the corresponding test is internal-only, then the create bug dialog
@@ -164,6 +165,7 @@ class FileBugTest(testing_common.TestCase):
         '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
     self.assertIn('Restrict-View-Google', response.body)
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testGet_SetsBugLabelsComponents(self):
     self.SetCurrentUser('internal@chromium.org')
     alert_keys = self._AddSampleAlerts()
@@ -178,6 +180,7 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('Performance-Sheriff', response.body)
     self.assertIn('Blink&gt;Javascript', response.body)
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
       mock.MagicMock(return_value='chromeperf.appspot.com'))
@@ -203,6 +206,7 @@ class FileBugTest(testing_common.TestCase):
         ])
     return response
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[]))
@@ -231,10 +235,11 @@ class FileBugTest(testing_common.TestCase):
     comment = self.service.add_comment_args[1]
     self.assertIn(
         'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
-    self.assertIn('https://chromeperf.appspot.com/group_report?keys=', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
     self.assertIn(
         '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
@@ -257,6 +262,7 @@ class FileBugTest(testing_common.TestCase):
     self._PostSampleBug()
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @unittest.skip('Flaky; see #1555.')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -282,6 +288,7 @@ class FileBugTest(testing_common.TestCase):
     self._PostSampleBug()
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
@@ -304,6 +311,7 @@ class FileBugTest(testing_common.TestCase):
     labels = self.service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
@@ -327,6 +335,7 @@ class FileBugTest(testing_common.TestCase):
     self._PostSampleBug(is_clankium=True)
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
@@ -338,6 +347,7 @@ class FileBugTest(testing_common.TestCase):
     labels = self.service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
@@ -347,6 +357,7 @@ class FileBugTest(testing_common.TestCase):
     self._PostSampleBug()
     self.assertIn('Foo>Bar', self.service.new_bug_kwargs['components'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
@@ -363,6 +374,7 @@ class FileBugTest(testing_common.TestCase):
     self._PostSampleBug()
     self.assertIn('M-1', self.service.new_bug_kwargs['labels'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
