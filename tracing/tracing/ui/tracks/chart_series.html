@@ -532,9 +532,7 @@ tr.exportTo('tr.ui.tracks', function() {
     addEventNearToProvidedEventToSelection(event, offset, selection) {
       if (this.points === undefined) return false;
 
-      const index = tr.b.findFirstIndexInArray(this.points, function(point) {
-        return point.modelItem === event;
-      }, this);
+      const index = this.points.findIndex(point => point.modelItem === event);
       if (index === -1) return false;
 
       const newIndex = index + offset;

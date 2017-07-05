@@ -312,8 +312,7 @@ tr.exportTo('tr.model', function() {
         return fileRegExp.test(region.mappedFile);
       }
 
-      let matchedChild = tr.b.findFirstInArray(
-          this.children_, regionRowMatchesChildNide);
+      let matchedChild = this.children_.find(regionRowMatchesChildNide);
       if (matchedChild === undefined) {
         // Region belongs to the 'Other' node (created lazily).
         if (this.children_.length !== this.rule_.children.length) {

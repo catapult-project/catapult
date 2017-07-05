@@ -725,7 +725,7 @@ tr.exportTo('tr.metrics.sh', function() {
     for (let i = 0; i < path.length; i++) {
       if (node === undefined) break;
 
-      node = tr.b.findFirstInArray(node.children, c => c.title === path[i]);
+      node = node.children.find(c => c.title === path[i]);
     }
     return node;
   }

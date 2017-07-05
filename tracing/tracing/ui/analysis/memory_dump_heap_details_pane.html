@@ -388,7 +388,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createHeapTree_() {
-      const definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
+      const definedHeapDump = this.heapDumps_.find(x => x);
       if (definedHeapDump === undefined) return undefined;
 
       // The title of the root node is the name of the allocator.

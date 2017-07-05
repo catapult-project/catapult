@@ -107,11 +107,9 @@ tr.b.unittest.testSuite(function() {
       }
     });
     let node = VMRegionClassificationNode.fromRegions([region]);
-    expectedPath.forEach(function(title) {
-      node = tr.b.findFirstInArray(node.children, function(childNode) {
-        return childNode.title === title;
-      });
-    });
+    for (const title of expectedPath) {
+      node = node.children.find(c => c.title === title);
+    }
     assert.deepEqual(node.regions, [region]);
   }
 

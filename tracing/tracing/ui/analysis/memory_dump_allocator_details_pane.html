@@ -634,7 +634,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createAllocatorRowRecursively_(dumps) {
       // Get the name of the memory allocator dumps. We can use any defined
       // dump in dumps since they all have the same name.
-      const definedDump = tr.b.findFirstInArray(dumps);
+      const definedDump = dumps.find(x => x);
       const title = definedDump.name;
       const fullName = definedDump.fullName;
 

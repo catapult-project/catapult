@@ -584,7 +584,7 @@ tr.exportTo('tr.ui.analysis', function() {
             // Get the process associated with the dumps. We can use any defined
             // process memory dump in timeToDump since they all have the same
             // pid.
-            const process = tr.b.findFirstInArray(timeToDump).process;
+            const process = timeToDump.find(x => x).process;
 
             // Used memory (total resident, PSS, ...).
             const usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
@@ -725,18 +725,13 @@ tr.exportTo('tr.ui.analysis', function() {
         return;
       }
 
-      const selectedColumnName = settings.columnName;
-      const selectedColumnIndex = tr.b.findFirstIndexInArray(
-          this.$.table.tableColumns, function(column) {
-            return column.name === selectedColumnName;
-          });
-      if (selectedColumnIndex < 0) return;
+      const selectedColumnIndex = this.$.table.tableColumns.findIndex(
+          col => col.name === settings.columnName);
+      if (selectedColumnIndex === -1) return;
 
       const selectedRowTitle = settings.rowTitle;
-      const selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
-          function(row) {
-            return row.title === selectedRowTitle;
-          });
+      const selectedRow = this.$.table.tableRows.find(
+          row => row.title === selectedRowTitle);
       if (selectedRow === undefined) return;
 
       this.$.table.selectedTableRow = selectedRow;

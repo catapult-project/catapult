@@ -196,15 +196,12 @@ tr.exportTo('tr.ui.tracks', function() {
     addEventNearToProvidedEventToSelection(event, offset, selection) {
       if (this.items_ === undefined) return;
 
-      const items = this.items_;
-      const index = tr.b.findFirstIndexInArray(items, function(item) {
-        return item.modelItem === event;
-      });
+      const index = this.items_.findIndex(item => item.modelItem === event);
       if (index === -1) return false;
 
       const newIndex = index + offset;
-      if (newIndex >= 0 && newIndex < items.length) {
-        items[newIndex].addToSelection(selection);
+      if (newIndex >= 0 && newIndex < this.items_.length) {
+        this.items_[newIndex].addToSelection(selection);
         return true;
       }
       return false;

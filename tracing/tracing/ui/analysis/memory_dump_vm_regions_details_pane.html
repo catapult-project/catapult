@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createClassificationNodeRow(timeToNode, is64BitAddress) {
       // Get any defined classification node so that we can extract the
       // properties which don't change over time.
-      const definedNode = tr.b.findFirstInArray(timeToNode);
+      const definedNode = timeToNode.find(x => x);
 
       // Child node ID (list index) -> Timestamp (list index) ->
       // VM region classification node.
@@ -299,7 +299,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createRegionRow_(timeToRegion, is64BitAddress) {
       // Get any defined VM region so that we can extract the properties which
       // don't change over time.
-      const definedRegion = tr.b.findFirstInArray(timeToRegion);
+      const definedRegion = timeToRegion.find(x => x);
 
       return {
         title: definedRegion.mappedFile,

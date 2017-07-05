@@ -222,40 +222,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  /**
-   * Returns the index of the first element in |ary| for which |opt_func|
-   * returns a truthy value.
-   *
-   * @param {!Array} ary The array being searched
-   * @param {function(*): *=} opt_func The test function which accepts an array
-   *     element and returns a value that is coerced to a boolean. Defaults to
-   *     the identity function.
-   * @param {*=} opt_this Optional 'this' context for opt_func.
-   */
-  function findFirstIndexInArray(ary, opt_func, opt_this) {
-    const func = opt_func || (x => x);
-    for (let i = 0; i < ary.length; i++) {
-      if (func.call(opt_this, ary[i], i)) return i;
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the value of the first element in |ary| for which |opt_func|
-   * returns a truthy value.
-   *
-   * @param {!Array} ary The array being searched.
-   * @param {function(*): *=} opt_func The test function which accepts an array
-   *     element and returns a value that is coerced to a boolean. Defaults to
-   *     the identity function.
-   * @param {*=} opt_this Optional 'this' context for opt_func.
-   */
-  function findFirstInArray(ary, opt_func, opt_this) {
-    const i = findFirstIndexInArray(ary, opt_func, opt_func);
-    if (i === -1) return undefined;
-    return ary[i];
-  }
-
   function setsEqual(a, b) {
     if (!(a instanceof Set) || !(b instanceof Set)) return false;
     if (a.size !== b.size) return false;
@@ -277,8 +243,6 @@ tr.exportTo('tr.b', function() {
     inPlaceFilter,
     invertArrayOfDicts,
     arrayToDict,
-    findFirstIndexInArray,
-    findFirstInArray,
     setsEqual,
   };
 });
