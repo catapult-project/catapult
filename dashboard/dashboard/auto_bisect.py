@@ -161,6 +161,9 @@ def _MakeBisectTryJob(bug_id, run_count=0):
     raise NotBisectableError('Invalid "good" revision: %s.' % good_revision)
   if not can_bisect.IsValidRevisionForBisect(bad_revision):
     raise NotBisectableError('Invalid "bad" revision: %s.' % bad_revision)
+  if test_anomaly.start_revision == test_anomaly.end_revision:
+    raise NotBisectableError(
+        'Same "good"/"bad" revisions, bisect skipped')
 
   metric = start_try_job.GuessMetric(test.test_path)
   story_filter = start_try_job.GuessStoryFilter(test.test_path)

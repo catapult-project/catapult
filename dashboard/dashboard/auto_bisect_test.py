@@ -134,6 +134,30 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     result = auto_bisect.StartNewBisectForBug(222)
     self.assertEqual({'error': 'Invalid "good" revision: 1199.'}, result)
 
+  def testStartNewBisectForBug_RevisionsEqual_ReturnsError(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
+    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
+    testing_common.AddRows(
+        'ChromiumPerf/linux-release/sunspider/score',
+        {
+            11990: {
+                'a_default_rev': 'r_foo',
+                'r_foo': '9e29b5bcd08357155b2859f87227d50ed60cf857'
+            },
+            12500: {
+                'a_default_rev': 'r_foo',
+                'r_foo': 'fc34e5346446854637311ad7793a95d56e314042'
+            }
+        })
+    anomaly.Anomaly(
+        bug_id=222, test=test_key,
+        start_revision=12500, end_revision=12500,
+        median_before_anomaly=100, median_after_anomaly=200).put()
+    result = auto_bisect.StartNewBisectForBug(222)
+    self.assertEqual(
+        {'error': 'Same "good"/"bad" revisions, bisect skipped'}, result)
+
   @mock.patch.object(
       auto_bisect.start_try_job, 'PerformBisect',
       mock.MagicMock(side_effect=request_handler.InvalidInputError(
