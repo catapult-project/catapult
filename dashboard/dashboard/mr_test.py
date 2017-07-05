@@ -15,8 +15,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 # Some sample Tests to add to the mock datastore below.
 _TESTS = {
@@ -153,70 +151,6 @@ class MrTest(testing_common.TestCase):
     self.assertTrue(trace_a.deprecated)
     self.assertTrue(trace_b.deprecated)
     self.assertTrue(suite.deprecated)
-
-  def _AddTestRowSheriff(self, row_age_days, stoppage_alert_delay):
-    """Adds a TestMetadata, Row and Sheriff and returns their keys."""
-    sheriff_key = sheriff.Sheriff(
-        id='X', email='x@google.com',
-        patterns=['ChromiumPerf/*/*/*/trace_a',
-                  'ChromiumPerf/*/*/*/trace_a/ref'],
-        stoppage_alert_delay=stoppage_alert_delay).put()
-    trace_a, trace_a_ref, _, _ = self._AddMockDataForDeprecatedTests()
-    trace_a_test_container_key = utils.GetTestContainerKey(trace_a)
-    trace_a_ref_test_container_key = utils.GetTestContainerKey(trace_a_ref)
-    now = datetime.datetime.now()
-    row_timestamp = now - datetime.timedelta(days=row_age_days)
-    row_key = graph_data.Row(
-        id=12345, value=100, timestamp=row_timestamp,
-        parent=trace_a_test_container_key).put()
-    row_ref_key = graph_data.Row(
-        id=12345, value=100, timestamp=row_timestamp,
-        parent=trace_a_ref_test_container_key).put()
-    return trace_a.key, row_key, trace_a_ref.key, row_ref_key, sheriff_key
-
-  def testDeprecateTestsMapper_RefBuild_NoStoppageAlert(self):
-    test_key, row_key, ref_test_key, _, sheriff_key = (
-        self._AddTestRowSheriff(row_age_days=8, stoppage_alert_delay=6))
-    self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
-    for operation in mr.DeprecateTestsMapper(test_key.get()):
-      self._ExecOperation(operation)
-    for operation in mr.DeprecateTestsMapper(ref_test_key.get()):
-      self._ExecOperation(operation)
-    alerts = stoppage_alert.StoppageAlert.query().fetch()
-    self.assertEqual(1, len(alerts))  # Should not be 2, 2nd is ref.
-    self.assertEqual(sheriff_key, alerts[0].sheriff)
-    self.assertEqual(test_key, alerts[0].test)
-    self.assertEqual(row_key.id(), alerts[0].revision)
-
-  def testDeprecateTestsMapper_NoAlertYet_CreatesStoppageAlert(self):
-    test_key, row_key, _, _, sheriff_key = self._AddTestRowSheriff(
-        row_age_days=8, stoppage_alert_delay=6)
-    self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
-    for operation in mr.DeprecateTestsMapper(test_key.get()):
-      self._ExecOperation(operation)
-    alerts = stoppage_alert.StoppageAlert.query().fetch()
-    self.assertEqual(1, len(alerts))
-    self.assertEqual(sheriff_key, alerts[0].sheriff)
-    self.assertEqual(test_key, alerts[0].test)
-    self.assertEqual(row_key.id(), alerts[0].revision)
-
-  def testDeprecateTestsMapper_AlreadyHasAlert_NoNewStoppageAlert(self):
-    test_key, row_key, _, _, _ = self._AddTestRowSheriff(
-        row_age_days=8, stoppage_alert_delay=6)
-    self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
-    stoppage_alert.CreateStoppageAlert(test_key.get(), row_key.get()).put()
-    self.assertEqual(1, len(stoppage_alert.StoppageAlert.query().fetch()))
-    for operation in mr.DeprecateTestsMapper(test_key.get()):
-      self._ExecOperation(operation)
-    self.assertEqual(1, len(stoppage_alert.StoppageAlert.query().fetch()))
-
-  def testDeprecateTestsMapper_NotOldEnough_NoNewStoppageAlert(self):
-    test_key, _, _, _, _ = self._AddTestRowSheriff(
-        row_age_days=4, stoppage_alert_delay=5)
-    self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
-    for operation in mr.DeprecateTestsMapper(test_key.get()):
-      self._ExecOperation(operation)
-    self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
 
   def testDeprecateTestsMapper_DeletesTest(self):
     trace_a, trace_b, suite = self._AddMockDataForDeletedTests()

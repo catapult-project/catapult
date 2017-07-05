@@ -14,7 +14,6 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
-from dashboard.models import stoppage_alert
 from dashboard.services import issue_tracker_service
 
 
@@ -143,11 +142,8 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     if not utils.MinimumAlertRange(alerts):
       return 'Selected alerts do not have overlapping revision range.'
     else:
-      anomalies_with_bug = anomaly.Anomaly.query(
+      alerts_with_bug = anomaly.Anomaly.query(
           anomaly.Anomaly.bug_id == bug_id).fetch()
-      stoppage_alerts_with_bug = stoppage_alert.StoppageAlert.query(
-          stoppage_alert.StoppageAlert.bug_id == bug_id).fetch()
-      alerts_with_bug = anomalies_with_bug + stoppage_alerts_with_bug
 
       if not alerts_with_bug:
         return None

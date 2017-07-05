@@ -194,30 +194,10 @@ tr.b.unittest.testSuite(function() {
           'recovered': false
         }
       ],
-      'stoppage_alert_list': [
-        {
-          'key': '12345',
-          'group': null,
-          'start_revision': 55555,
-          'end_revision': 55558,
-          'date': '2016-02-27',
-          'master': 'Chromium',
-          'bot': 'win',
-          'testsuite': 'sunspider',
-          'test': 'Total',
-          'bug_id': null,
-          'dashboard_link': 'http://do/not/click/me',
-          'mail_sent': false,
-          'last_row_date': 'N/A',
-          'recovered': false,
-        }
-      ],
       'sheriff_list': ['Chromium Perf Sheriff', 'V8 Sheriff', 'CrOS Sheriff'],
       'xsrf_token': '12345',
       'anomaly_count': 8,
-      'stoppage_alert_count': 1,
       'show_more_anomalies': false,
-      'show_more_stoppage_alerts': false
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
     const page = document.createElement('alerts-page');

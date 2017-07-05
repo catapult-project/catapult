@@ -15,7 +15,6 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import page_state
-from dashboard.models import stoppage_alert
 
 # This is the max number of alerts to query at once. This is used in cases
 # when we may want to query more many more alerts than actually get displayed.
@@ -62,25 +61,21 @@ class GroupReportHandler(chart_handler.ChartHandler):
     try:
       alert_list = None
       if bug_id:
-        alert_list, extra_columns = GetAlertsWithBugId(bug_id)
+        alert_list = GetAlertsWithBugId(bug_id)
       elif keys:
-        alert_list, extra_columns = GetAlertsForKeys(keys)
+        alert_list = GetAlertsForKeys(keys)
       elif rev:
-        alert_list, extra_columns = GetAlertsAroundRevision(rev)
+        alert_list = GetAlertsAroundRevision(rev)
       else:
         # TODO(qyearsley): Instead of just showing an error here, show a form
         # where the user can input a bug ID or revision.
         raise request_handler.InvalidInputError('No anomalies specified.')
 
-      anomaly_dicts = alerts.AnomalyDicts(
+      alert_dicts = alerts.AnomalyDicts(
           [a for a in alert_list if a.key.kind() == 'Anomaly'])
-      stoppage_alert_dicts = alerts.StoppageAlertDicts(
-          [a for a in alert_list if a.key.kind() == 'StoppageAlert'])
-      alert_dicts = anomaly_dicts + stoppage_alert_dicts
 
       values = {
           'alert_list': alert_dicts[:_DISPLAY_LIMIT],
-          'extra_columns': extra_columns,
           'test_suites': update_test_suites.FetchCachedTestSuites(),
       }
       if bug_id:
@@ -109,17 +104,7 @@ def GetAlertsWithBugId(bug_id):
   bug_id = int(bug_id)
   anomaly_query = anomaly.Anomaly.query(
       anomaly.Anomaly.bug_id == bug_id)
-  anomalies = anomaly_query.fetch(limit=_DISPLAY_LIMIT)
-  stoppage_alert_query = stoppage_alert.StoppageAlert.query(
-      stoppage_alert.StoppageAlert.bug_id == bug_id)
-  stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
-  # If there are any anomalies on the bug, use anomaly extra columns.
-  extra_columns = None
-  if len(anomalies) > 0:
-    extra_columns = 'anomalies'
-  elif len(stoppage_alerts) > 0:
-    extra_columns = 'stoppage_alerts'
-  return anomalies + stoppage_alerts, extra_columns
+  return anomaly_query.fetch(limit=_DISPLAY_LIMIT)
 
 
 def GetAlertsAroundRevision(rev):
@@ -141,12 +126,7 @@ def GetAlertsAroundRevision(rev):
   anomaly_query = anomaly.Anomaly.query(anomaly.Anomaly.end_revision >= rev)
   anomaly_query = anomaly_query.order(anomaly.Anomaly.end_revision)
   anomalies = anomaly_query.fetch(limit=_QUERY_LIMIT)
-  anomalies = [a for a in anomalies if a.start_revision <= rev]
-  stoppage_alert_query = stoppage_alert.StoppageAlert.query(
-      stoppage_alert.StoppageAlert.end_revision == rev)
-  stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
-  # Always show anomalies extra_columns for alerts around revision.
-  return anomalies + stoppage_alerts, 'anomalies'
+  return [a for a in anomalies if a.start_revision <= rev]
 
 
 def GetAlertsForKeys(keys):
@@ -174,13 +154,7 @@ def GetAlertsForKeys(keys):
 
   requested_anomalies = utils.GetMulti(keys)
 
-  extra_columns = None
   for i, anomaly_entity in enumerate(requested_anomalies):
-    if isinstance(anomaly_entity, anomaly.Anomaly):
-      extra_columns = 'anomalies'
-    elif (isinstance(anomaly_entity, stoppage_alert.StoppageAlert) and
-          extra_columns is None):
-      extra_columns = 'stoppage_alerts'
     if anomaly_entity is None:
       raise request_handler.InvalidInputError(
           'No Anomaly found for key %s.' % urlsafe_keys[i])
@@ -214,7 +188,7 @@ def GetAlertsForKeys(keys):
     anomalies = requested_anomalies + anomalies
   else:
     anomalies = requested_anomalies
-  return anomalies, extra_columns
+  return anomalies
 
 
 def _IsInt(x):

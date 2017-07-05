@@ -15,7 +15,6 @@ was just clicked.
 <link rel="import" href="/dashboard/elements/alert-remove-box.html">
 <link rel="import" href="/dashboard/elements/bisect-button.html">
 <link rel="import" href="/dashboard/elements/dialog-container.html">
-<link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
 <link rel="import" href="/dashboard/elements/trace-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 
@@ -123,12 +122,6 @@ was just clicked.
           <trace-button dialog-confirm xsrf-token="{{xsrfToken}}"
                         bug-id="{{bugId}}"
                         trace-info="{{bisectInfo}}"></trace-button>
-          <template is="dom-if" if="{{isLastPoint}}">
-            <stoppage-alert-debug-button
-                xsrf-token="{{xsrfToken}}"
-                test-path="{{testPath}}"
-                test-rev="{{pointId}}"></stoppage-alert-debug-button>
-          </template>
           <paper-button id="close-button" raised dismissive on-click="close">Close</paper-button>
         </div>
 
@@ -155,10 +148,6 @@ was just clicked.
         hideStdioUri: {
           type: Boolean,
           value: true
-        },
-        isLastPoint: {
-          type: Boolean,
-          value: false
         },
         links: { notify: true },
         pointId: { notify: true },

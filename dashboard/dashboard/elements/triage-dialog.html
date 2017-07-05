@@ -357,10 +357,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * @return {string} The bug title.
        */
       getBugTitle() {
-        if (this.alerts[0].percent_changed) {
-          return this.getBugTitleForAnomaly();
-        }
-        return this.getBugTitleForStoppageAlert();
+        return this.getBugTitleForAnomaly();
       },
 
       getSuiteNameForAlert(alert) {
@@ -433,17 +430,6 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             replace('{{suite}}', suiteTitle).
             replace('{{start}}', startRev).
             replace('{{end}}', endRev);
-        return summary;
-      },
-
-      getBugTitleForStoppageAlert() {
-        const alert = this.alerts[0];
-        const suiteTitle = this.getSuiteNameForAlert(alert);
-        const summary =
-            'No data received for {{suite}} from {{bot}} since {{rev}}'.
-                replace('{{suite}}', suiteTitle).
-                replace('{{bot}}', alert.bot).
-                replace('{{rev}}', alert.end_revision);
         return summary;
       },
 

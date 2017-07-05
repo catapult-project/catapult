@@ -32,7 +32,6 @@ from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import graph_data
-from dashboard.models import stoppage_alert
 
 # Length of time required to pass for a test to be considered deprecated.
 _DEPRECATION_REVISION_DELTA = datetime.timedelta(days=14)
@@ -164,50 +163,12 @@ def DeprecateTestsMapper(entity):
     for operation in _MarkDeprecated(entity):
       yield operation
 
-  for operation in _CreateStoppageAlerts(entity, last_row):
-    yield operation
-
 
 def _IsRef(test):
   if test.test_path.endswith('/ref') or test.test_path.endswith('_ref'):
     return True
 
   return False
-
-
-def _CreateStoppageAlerts(test, last_row):
-  """Yields put operations for any StoppageAlert that may be created.
-
-  A stoppage alert is an alert created to warn people that data has not
-  been received for a particular test for some length of time. An alert
-  will only be created if the stoppage_alert_delay property of the sheriff
-  is non-zero -- the value of this property is the number of days that should
-  pass before an alert is created.
-
-  Args:
-    test: A TestMetadata entity.
-    last_row: The Row entity that was last added.
-
-  Yields:
-    Either one op.db.Put, or nothing.
-  """
-  if not test.sheriff or _IsRef(test):
-    return
-  sheriff_entity = test.sheriff.get()
-  warn_sheriff_delay_days = sheriff_entity.stoppage_alert_delay
-  if warn_sheriff_delay_days < 0:
-    return
-  now = datetime.datetime.now()
-  warn_sheriff_delta = datetime.timedelta(days=warn_sheriff_delay_days)
-  earliest_warn_time = now - warn_sheriff_delta
-  if last_row.timestamp >= earliest_warn_time:
-    return
-  if stoppage_alert.GetStoppageAlert(test.test_path, last_row.revision):
-    return
-  new_alert = stoppage_alert.CreateStoppageAlert(test, last_row)
-  if not new_alert:
-    return
-  yield op.db.Put(new_alert)
 
 
 def _MarkDeprecated(test):

@@ -18,7 +18,6 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import page_state
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 
 class GroupReportTest(testing_common.TestCase):
@@ -164,17 +163,6 @@ class GroupReportTest(testing_common.TestCase):
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
-
-  def testPost_WithBugIdParameter_ListsStoppageAlerts(self):
-    test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
-    row = testing_common.AddRows(utils.TestPath(test_keys[0]), {100})[0]
-    alert = stoppage_alert.CreateStoppageAlert(test_keys[0].get(), row)
-    alert.bug_id = 123
-    alert.put()
-    response = self.testapp.post('/group_report?bug_id=123')
-    alert_list = self.GetJsonValue(response, 'alert_list')
-    self.assertEqual(1, len(alert_list))
 
   def testPost_WithInvalidBugIdParameter_ShowsError(self):
     response = self.testapp.post('/group_report?bug_id=foo')

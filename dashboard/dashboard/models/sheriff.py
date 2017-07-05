@@ -71,13 +71,6 @@ class Sheriff(internal_only_model.InternalOnlyModel):
   # A list of labels to add to all bugs for the sheriffing rotation.
   labels = ndb.StringProperty(repeated=True, indexed=False)
 
-  # Number of days before the Sheriff should get an alert about not having
-  # received any data for a particular TestMetadata entity; -1 means no alerts.
-  # If a sheriff wants to receive these alerts, the number should be greater
-  # than zero but less than two weeks (the amount of time before tests become
-  # marked as deprecated).
-  stoppage_alert_delay = ndb.IntegerProperty(default=-1, indexed=True)
-
   def _pre_put_hook(self):
     """Checks that the Sheriff properties are OK before putting."""
     if (self.internal_only and self.email

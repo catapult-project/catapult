@@ -17,7 +17,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 from dashboard.services import issue_tracker_service
 
 
@@ -142,15 +141,6 @@ class AssociateAlertsTest(testing_common.TestCase):
         self.assertEqual(12345, anomaly_entity.bug_id)
       elif anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
-
-  def testGet_WithStoppageAlert_ChangesAlertBugId(self):
-    test_keys = self._AddTests()
-    rows = testing_common.AddRows(utils.TestPath(test_keys[0]), {10, 20})
-    alert_key = stoppage_alert.CreateStoppageAlert(
-        test_keys[0].get(), rows[0]).put()
-    self.testapp.get(
-        '/associate_alerts?bug_id=123&keys=%s' % alert_key.urlsafe())
-    self.assertEqual(123, alert_key.get().bug_id)
 
   def testGet_TargetBugHasNoAlerts_DoesNotAskForConfirmation(self):
     # Associating alert with bug ID that has no alerts is always OK.

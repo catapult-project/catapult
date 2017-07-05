@@ -98,8 +98,6 @@ fields that need to be filled out:
    there’s nothing stopping it from being an individual’s email
    account. It must be specified if there is no Rotation URL, but it’s
    optional otherwise.
- - **Days before alerting on missing data**:
-   Number of days before "stoppage alerts" are made; -1 for no alerts. 
  - **Internal-only**: If the tests this sheriff is monitoring are internal-only,
    or the name of the sheriff rotation is sensitive, please
    set this to "Yes". If set to "Yes", the sheriff rotation will only

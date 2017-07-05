@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import unittest
 
-import mock
 import webapp2
 import webtest
 
@@ -13,9 +13,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.models import graph_data
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 
 class AlertsTest(testing_common.TestCase):
@@ -97,7 +95,6 @@ class AlertsTest(testing_common.TestCase):
       anomaly_key = anomaly_entity.put()
       self.assertTrue(anomaly_entity.is_improvement)
       key_map[end_rev] = anomaly_key.urlsafe()
-
     return key_map
 
   def testGet(self):
@@ -136,6 +133,7 @@ class AlertsTest(testing_common.TestCase):
       expected_end_rev -= 10
     self.assertEqual(expected_end_rev, 9990)
 
+  @unittest.skipIf(sys.platform.startswith('win'), 'bad mock datastore')
   def testPost_TriagedParameterSet_TriagedListed(self):
     self._AddAlertsToDataStore()
     response = self.testapp.post('/alerts', {'triaged': 'true'})
@@ -185,31 +183,6 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual(2, len(sheriff_list))
     self.assertEqual('Chromium Perf Sheriff', sheriff_list[0])
     self.assertEqual('Sheriff2', sheriff_list[1])
-
-  def testPost_StoppageAlerts_EmbedsStoppageAlertListAndOneTable(self):
-    sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
-    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
-    test_key = utils.TestKey('M/b/foo/bar')
-    rows = testing_common.AddRows('M/b/foo/bar', {9800, 9802})
-    for row in rows:
-      stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
-    response = self.testapp.post('/alerts?sheriff=Sheriff')
-    stoppage_alert_list = self.GetJsonValue(response, 'stoppage_alert_list')
-    self.assertEqual(2, len(stoppage_alert_list))
-
-  @mock.patch('logging.error')
-  def testPost_StoppageAlertWithBogusRow_LogsErrorAndShowsTable(
-      self, mock_logging_error):
-    sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
-    testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
-    test_key = utils.TestKey('M/b/foo/bar')
-    row_parent = utils.GetTestContainerKey(test_key)
-    row = graph_data.Row(parent=row_parent, id=1234)
-    stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
-    response = self.testapp.post('/alerts?sheriff=Sheriff')
-    stoppage_alert_list = self.GetJsonValue(response, 'stoppage_alert_list')
-    self.assertEqual(1, len(stoppage_alert_list))
-    self.assertEqual(1, mock_logging_error.call_count)
 
   def testPost_WithBogusSheriff_HasErrorMessage(self):
     response = self.testapp.post('/alerts?sheriff=Foo')

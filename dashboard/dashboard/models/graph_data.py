@@ -67,7 +67,6 @@ from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
-from dashboard.models import stoppage_alert as stoppage_alert_module
 
 # Maximum level of nested tests.
 MAX_TEST_ANCESTORS = 10
@@ -155,11 +154,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
 
   # Whether or not the test has child rows. Set by hook on Row class put.
   has_rows = ndb.BooleanProperty(default=False, indexed=True)
-
-  # If there is a currently a StoppageAlert that indicates that data hasn't
-  # been received for some time, then will be set. Otherwise, it is None.
-  stoppage_alert = ndb.KeyProperty(
-      kind=stoppage_alert_module.StoppageAlert, indexed=True)
 
   # A test is marked "deprecated" if no new points have been received for
   # a long time; these tests should usually not be listed.

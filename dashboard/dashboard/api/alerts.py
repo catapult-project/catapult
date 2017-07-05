@@ -48,13 +48,13 @@ class AlertsHandler(request_handler.RequestHandler):
     try:
       if list_type.startswith('bug_id'):
         bug_id = list_type.replace('bug_id/', '')
-        alert_list, _ = group_report.GetAlertsWithBugId(bug_id)
+        alert_list = group_report.GetAlertsWithBugId(bug_id)
       elif list_type.startswith('keys'):
         keys = list_type.replace('keys/', '').split(',')
-        alert_list, _ = group_report.GetAlertsForKeys(keys)
+        alert_list = group_report.GetAlertsForKeys(keys)
       elif list_type.startswith('rev'):
         rev = list_type.replace('rev/', '')
-        alert_list, _ = group_report.GetAlertsAroundRevision(rev)
+        alert_list = group_report.GetAlertsAroundRevision(rev)
       elif list_type.startswith('history'):
         try:
           days = int(list_type.replace('history/', ''))
@@ -82,14 +82,10 @@ class AlertsHandler(request_handler.RequestHandler):
 
     anomaly_dicts = alerts.AnomalyDicts(
         [a for a in alert_list if a.key.kind() == 'Anomaly'])
-    stoppage_alert_dicts = alerts.StoppageAlertDicts(
-        [a for a in alert_list if a.key.kind() == 'StoppageAlert'])
 
-    response = {}
-    if anomaly_dicts:
-      response['anomalies'] = anomaly_dicts
-    if stoppage_alert_dicts:
-      response['stoppage_alerts'] = stoppage_alert_dicts
+    response = {
+        'anomalies': anomaly_dicts
+    }
 
     return response
 

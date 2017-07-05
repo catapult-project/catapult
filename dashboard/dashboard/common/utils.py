@@ -314,7 +314,7 @@ def MinimumAlertRange(alerts):
   """Returns the intersection of the revision ranges for a set of alerts.
 
   Args:
-    alerts: An iterable of Alerts (Anomaly or StoppageAlert entities).
+    alerts: An iterable of Alerts.
 
   Returns:
     A pair (start, end) if there is a valid minimum range,

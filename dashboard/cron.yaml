@@ -19,10 +19,6 @@ cron:
   url: /email_summary?internal_only=1
   schedule: every 24 hours
 
-- description: Send data stoppage alert emails.
-  url: /send_stoppage_alert_emails
-  schedule: every 24 hours
-
 - description: Run a job to mark tests as deprecated.
   url: /deprecate_tests
   schedule: every 48 hours
@@ -65,7 +61,6 @@ cron:
 #&kind=Sheriff\
 #&kind=AnomalyConfig\
 #&kind=Anomaly\
-#&kind=StoppageAlert\
 #&kind=IpWhitelist\
 #&kind=BotWhitelist\
 #&kind=BugLabelPatterns\

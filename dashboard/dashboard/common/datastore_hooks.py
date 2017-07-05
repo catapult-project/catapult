@@ -25,7 +25,6 @@ _INTERNAL_ONLY_KINDS = [
     'Row',
     'Sheriff',
     'Anomaly',
-    'StoppageAlert',
     'TryJob',
     'TableConfig',
 ]

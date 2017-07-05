@@ -30,7 +30,6 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import stoppage_alert
 
 _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 50
 
@@ -326,7 +325,6 @@ def _MigrateTestToNewKey(old_test_key, new_test_key):
     return False
 
   futures += _MigrateAnomalies(old_test_key, new_test_key)
-  futures += _MigrateStoppageAlerts(old_test_key, new_test_key)
 
   if not futures:
     _SendNotificationEmail(old_test_key, new_test_key)
@@ -422,32 +420,6 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
   for anomaly_entity in anomalies_to_update:
     anomaly_entity.test = new_parent_key
   return ndb.put_multi_async(anomalies_to_update)
-
-
-def _MigrateStoppageAlerts(old_parent_key, new_parent_key):
-  """Copies the StoppageAlert entities from one test to another.
-
-  Args:
-    old_parent_key: Source TestMetadata entity key.
-    new_parent_key: Destination TestMetadata entity key.
-
-  Returns:
-    A list of Future objects for StoppageAlert puts and deletes.
-  """
-  alerts_to_update = stoppage_alert.StoppageAlert.GetAlertsForTest(
-      old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
-  if not alerts_to_update:
-    return []
-  futures = []
-  for entity in alerts_to_update:
-    new_entity = stoppage_alert.StoppageAlert(
-        parent=ndb.Key('StoppageAlertParent', utils.TestPath(new_parent_key)),
-        id=entity.key.id(),
-        mail_sent=entity.mail_sent,
-        recovered=entity.recovered)
-    futures.append(entity.key.delete_async())
-    futures.append(new_entity.put_async())
-  return futures
 
 
 def _SendNotificationEmail(old_test_key, new_test_key):

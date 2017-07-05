@@ -48,12 +48,12 @@ class EditSheriffsTest(testing_common.TestCase):
 
   def _AddSheriff(self, name, email=None, url=None,
                   internal_only=False, summarize=False, patterns=None,
-                  stoppage_alert_delay=0, labels=None):
+                  labels=None):
     """Adds a Sheriff entity to the datastore."""
     sheriff.Sheriff(
         id=name, email=email, url=url, internal_only=internal_only,
         summarize=summarize, patterns=patterns or [],
-        stoppage_alert_delay=stoppage_alert_delay, labels=labels or []).put()
+        labels=labels or []).put()
 
   def testPost_AddNewSheriff(self):
     self.testapp.post('/edit_sheriffs', {
@@ -189,7 +189,7 @@ class EditSheriffsTest(testing_common.TestCase):
 
   def testGet_SheriffDataIsEmbeddedOnPage(self):
     self._AddSheriff('Foo Sheriff', email='foo@x.org', patterns=['*/*/*/*'])
-    self._AddSheriff('Bar Sheriff', summarize=True, stoppage_alert_delay=5,
+    self._AddSheriff('Bar Sheriff', summarize=True,
                      patterns=['x/y/z', 'a/b/c'], labels=['hello', 'world'])
     response = self.testapp.get('/edit_sheriffs')
     expected = {
@@ -199,7 +199,6 @@ class EditSheriffsTest(testing_common.TestCase):
             'internal_only': False,
             'labels': '',
             'summarize': False,
-            'stoppage_alert_delay': 0,
             'patterns': '*/*/*/*',
         },
         'Bar Sheriff': {
@@ -208,7 +207,6 @@ class EditSheriffsTest(testing_common.TestCase):
             'internal_only': False,
             'labels': 'hello,world',
             'summarize': True,
-            'stoppage_alert_delay': 5,
             'patterns': 'a/b/c\nx/y/z',
         },
     }

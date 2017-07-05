@@ -2,9 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Task queue which deprecates TestMetadata, kicks off jobs to delete old
-row data, and create StoppageAlerts when tests stop sending data for an extended
-period of time.
+"""Task queue which deprecates TestMetadata and kicks off jobs to delete old
+row data when tests stop sending data for an extended period of time.
 """
 
 import datetime
@@ -20,7 +19,6 @@ from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import graph_data
-from dashboard.models import stoppage_alert
 
 # Length of time required to pass for a test to be considered deprecated.
 _DEPRECATION_REVISION_DELTA = datetime.timedelta(days=14)
@@ -69,12 +67,6 @@ class DeprecateTestsHandler(request_handler.RequestHandler):
     if task_type == 'deprecate-test':
       test_key = ndb.Key(urlsafe=self.request.get('test_key'))
       _MarkTestDeprecated(test_key)
-      return
-
-    if task_type == 'create-stoppage-alert':
-      test_key = ndb.Key(urlsafe=self.request.get('test_key'))
-      row_key = ndb.Key(urlsafe=self.request.get('row_key'))
-      _CreateStoppageAlerts(test_key, row_key)
       return
 
     logging.error(
@@ -146,9 +138,9 @@ def _CheckTestForDeprecationOrRemoval(entity_key):
 
   # You shouldn't mix sync and async code, and TestMetadata.put() invokes a
   # complex _pre_put_hook() that will take a lot of work to get rid of. For
-  # now we simply queue up a separate task to do the actual creation of
-  # stoppage alerts or test deprecation. This happens infrequently anyway, the
-  # much more common case is nothing happens.
+  # now we simply queue up a separate task to do the actual test deprecation.
+  # This happens infrequently anyway, the much more common case is nothing
+  # happens.
   if not last_row:
     should_deprecate = yield _CheckSuiteShouldBeDeprecated(entity)
     if should_deprecate:
@@ -160,13 +152,6 @@ def _CheckTestForDeprecationOrRemoval(entity_key):
   if last_row.timestamp < now - _DEPRECATION_REVISION_DELTA:
     _AddDeprecateTestDataTask({
         'type': 'deprecate-test',
-        'test_key': entity.key.urlsafe()})
-
-  should_create_alert = yield _ShouldCreateStoppageAlerts(entity, last_row)
-  if should_create_alert:
-    _AddDeprecateTestDataTask({
-        'type': 'create-stoppage-alert',
-        'row_key': last_row.key.urlsafe(),
         'test_key': entity.key.urlsafe()})
 
 
@@ -192,53 +177,6 @@ def _AddDeleteTestDataTask(entity):
           'notify': 'false',
       },
       queue_name=_DELETE_TASK_QUEUE_NAME)
-
-
-@ndb.tasklet
-def _ShouldCreateStoppageAlerts(test, last_row):
-  """Checks to see if we should create a StoppageAlert for the test."""
-  if not test.sheriff or _IsRef(test):
-    raise ndb.Return(False)
-  sheriff_entity = yield test.sheriff.get_async()
-  warn_sheriff_delay_days = sheriff_entity.stoppage_alert_delay
-  if warn_sheriff_delay_days < 0:
-    raise ndb.Return(False)
-  now = datetime.datetime.now()
-  warn_sheriff_delta = datetime.timedelta(days=warn_sheriff_delay_days)
-  earliest_warn_time = now - warn_sheriff_delta
-  if last_row.timestamp >= earliest_warn_time:
-    raise ndb.Return(False)
-  existing_stoppage_alert = yield stoppage_alert.GetStoppageAlertAsync(
-      test.test_path, last_row.revision)
-  if existing_stoppage_alert:
-    raise ndb.Return(False)
-  raise ndb.Return(True)
-
-
-def _CreateStoppageAlerts(test_key, last_row_key):
-  """Creates a StoppageAlert for the test.
-
-  A stoppage alert is an alert created to warn people that data has not
-  been received for a particular test for some length of time. An alert
-  will only be created if the stoppage_alert_delay property of the sheriff
-  is non-zero -- the value of this property is the number of days that should
-  pass before an alert is created.
-
-  Args:
-    test_key: A TestMetadata entity key.
-    last_row_key: The Row entity key that was last added.
-  Return:
-    True, if we should create a stoppage alert, False otherwise.
-  """
-  logging.info("_CreateStoppageAlerts: [%s, %s]",
-               str(test_key.id()), str(last_row_key.id()))
-  test = test_key.get()
-  last_row = last_row_key.get()
-
-  new_alert = stoppage_alert.CreateStoppageAlert(test, last_row)
-  if not new_alert:
-    return
-  new_alert.put()
 
 
 def _MarkTestDeprecated(test_key):

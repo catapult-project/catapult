@@ -38,10 +38,6 @@ down in test results.
 the case of performance tests, we're generally concerned with step-like
 increases and decreases.
 
-*Data stoppage*: A data stoppage is when data is received for a particular
-data series for some time, and then is not received (i.e. because the
-test is disabled or broken).
-
 *To triage*: To assign a bug number to an alert, or mark it as "invalid" or
 "ignored".
 

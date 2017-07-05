@@ -13,7 +13,6 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 # Masters, bots and test names to add to the mock datastore.
 _MOCK_DATA = [
@@ -294,29 +293,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'migrated to ChromiumPerf/win7/moz/read_operations_browser', body)
     self.assertIn('sheriffed by Perf Sheriff Win', body)
 
-  def testPost_MigratesStoppageAlerts(self):
-    testing_common.AddTests(['Master'], ['b'], {'suite': {'foo': {}}})
-    test_path = 'Master/b/suite/foo'
-    test_key = utils.TestKey(test_path)
-    test_container_key = utils.GetTestContainerKey(test_key)
-    row_key = graph_data.Row(id=100, parent=test_container_key, value=5).put()
-    stoppage_alert.CreateStoppageAlert(test_key.get(), row_key.get()).put()
-    self.assertIsNotNone(
-        stoppage_alert.GetStoppageAlert('Master/b/suite/foo', 100))
-    self.assertIsNone(
-        stoppage_alert.GetStoppageAlert('Master/b/suite/bar', 100))
-
-    self.testapp.post('/migrate_test_names', {
-        'old_pattern': 'Master/b/suite/foo',
-        'new_pattern': 'Master/b/suite/bar',
-    })
-    self.ExecuteTaskQueueTasks(
-        '/migrate_test_names', migrate_test_names._TASK_QUEUE_NAME)
-
-    self.assertIsNotNone(
-        stoppage_alert.GetStoppageAlert('Master/b/suite/bar', 100))
-    self.assertIsNone(
-        stoppage_alert.GetStoppageAlert('Master/b/suite/foo', 100))
 
   def testGetNewTestPath_WithAsterisks(self):
     self.assertEqual(

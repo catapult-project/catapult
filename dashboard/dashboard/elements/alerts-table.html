@@ -13,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/bug-details.html">
 <link rel="import" href="/dashboard/elements/bug-info-span.html">
 <link rel="import" href="/dashboard/elements/revision-range.html">
-<link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 <link rel="import" href="/dashboard/static/group_alerts.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
@@ -399,11 +398,6 @@ found in the LICENSE file.
                     index-as="colnum">
             <td class$="{{column.key}}" hidden$={{hideUnitsColumn(column.key)}}>
               {{computeExtraColumnValue(item, column.key)}}
-              <template is="dom-if" if="{{isDebugButtonKey(column.key)}}">
-                <stoppage-alert-debug-button
-                    alert-key="{{item.key}}"
-                    bug-id="{{item.bug_id}}"></stoppage-alert-debug-button>
-              </template>
               <template is="dom-if" if="{{isBugDetailsKey(column.key)}}">
                 <bug-details 
                     compact-view="true",
@@ -589,8 +583,6 @@ found in the LICENSE file.
        * format the unit.
        */
       hideUnitsColumn: key => key === 'units',
-
-      isDebugButtonKey: key => key === 'debug_button',
 
       isBugDetailsKey: key => key === 'bug_details',
 

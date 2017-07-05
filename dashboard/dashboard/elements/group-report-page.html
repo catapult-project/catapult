@@ -402,36 +402,20 @@ found in the LICENSE file.
        * in the list for the table.
        */
       setExtraColumns(extraColumns) {
-        if (extraColumns == 'anomalies') {
-          this.set('extraColumns', [
-            {
-              'key': 'percent_changed',
-              'label': 'Delta %'
-            },
-            {
-              'key': 'absolute_delta',
-              'label': 'Abs Delta'
-            },
-            {
-              'key': 'units',
-              'label': 'Units'
-            }
-          ]);
-        } else if (extraColumns == 'stoppage_alerts') {
-          this.set('extraColumns', [
-            {
-              'key': 'last_row_date',
-              'label': 'Date'
-            },
-            {
-              'key': 'debug_button',
-              'label': ''
-            }
-          ]);
-        } else {
-          // Either multiple or no types. Can't set extraColumns.
-          this.set('extraColumns', []);
-        }
+        this.set('extraColumns', [
+          {
+            'key': 'percent_changed',
+            'label': 'Delta %'
+          },
+          {
+            'key': 'absolute_delta',
+            'label': 'Abs Delta'
+          },
+          {
+            'key': 'units',
+            'label': 'Units'
+          }
+        ]);
       },
 
       /**

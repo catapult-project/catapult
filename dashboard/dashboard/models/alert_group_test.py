@@ -11,7 +11,6 @@ from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 
 class AnomalyGroupingTest(testing_common.TestCase):
@@ -213,35 +212,6 @@ class AnomalyGroupingTest(testing_common.TestCase):
     group = anomalies[0].group.get()
     self.assertEqual(3000, group.start_revision)
     self.assertEqual(4000, group.end_revision)
-
-
-class StoppageAlertGroupingTest(testing_common.TestCase):
-  """Test case for the behavior of updating StoppageAlert groups."""
-
-  def _AddStoppageAlerts(self):
-    testing_common.AddTests(
-        ['ChromiumGPU'], ['linux-release'],
-        {
-            'scrolling_benchmark': {
-                'dropped_foo': {},
-                'dropped_bar': {},
-            }
-        })
-    foo_path = 'ChromiumGPU/linux-release/scrolling_benchmark/dropped_foo'
-    bar_path = 'ChromiumGPU/linux-release/scrolling_benchmark/dropped_bar'
-    foo_test = utils.TestKey(foo_path).get()
-    bar_test = utils.TestKey(bar_path).get()
-    foo_row = testing_common.AddRows(foo_path, {200})[0]
-    bar_row = testing_common.AddRows(bar_path, {200})[0]
-    foo_alert_key = stoppage_alert.CreateStoppageAlert(foo_test, foo_row).put()
-    bar_alert_key = stoppage_alert.CreateStoppageAlert(bar_test, bar_row).put()
-    return [foo_alert_key.get(), bar_alert_key.get()]
-
-  def testStoppageAlertGroup_GroupAssignedUponCreation(self):
-    foo_test, bar_test = self._AddStoppageAlerts()
-    self.assertIsNotNone(foo_test.group)
-    self.assertIsNotNone(bar_test.group)
-    self.assertEqual('StoppageAlert', foo_test.group.get().alert_kind)
 
 
 class GroupAlertsTest(testing_common.TestCase):

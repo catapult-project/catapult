@@ -6,10 +6,8 @@ import unittest
 
 from dashboard import add_point_queue
 from dashboard.common import testing_common
-from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import stoppage_alert
 
 
 class GetOrCreateAncestorsTest(testing_common.TestCase):
@@ -62,18 +60,6 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     self.assertEqual(
         'ChromiumPerf/win7/dromaeo/dom', created_tests[2].parent_test.id())
     self.assertIsNone(created_tests[2].bot)
-
-  def testGetOrCreateAncestors_UpdatesStoppageAlert(self):
-    testing_common.AddTests(['M'], ['b'], {'suite': {'foo': {}}})
-    row = testing_common.AddRows('M/b/suite/foo', {123})[0]
-    test = utils.TestKey('M/b/suite/foo').get()
-    alert_key = stoppage_alert.CreateStoppageAlert(test, row).put()
-    test.stoppage_alert = alert_key
-    test.put()
-    add_point_queue.GetOrCreateAncestors('M', 'b', 'suite/foo')
-    self.assertIsNone(test.key.get().stoppage_alert)
-    self.assertTrue(alert_key.get().recovered)
-    self.assertIsNotNone(alert_key.get().last_row_timestamp)
 
   def testGetOrCreateAncestors_RespectsImprovementDirectionForNewTest(self):
     test = add_point_queue.GetOrCreateAncestors(

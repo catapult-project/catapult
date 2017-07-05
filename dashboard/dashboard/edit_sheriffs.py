@@ -36,7 +36,6 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
           'labels': ','.join(sorted(sheriff_entity.labels)),
           'internal_only': sheriff_entity.internal_only,
           'summarize': sheriff_entity.summarize,
-          'stoppage_alert_delay': sheriff_entity.stoppage_alert_delay or 0,
       }
 
     sheriff_dicts = {entity.key.string_id(): SheriffData(entity)
@@ -63,8 +62,3 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
     else:
       sheriff_entity.labels = []
     sheriff_entity.summarize = self.request.get('summarize') == 'true'
-    stoppage_alert_delay = self.request.get('stoppage-alert-delay')
-    if stoppage_alert_delay and int(stoppage_alert_delay) > 0:
-      sheriff_entity.stoppage_alert_delay = int(stoppage_alert_delay)
-    else:
-      stoppage_alert_delay = -1

@@ -63,7 +63,7 @@ found in the LICENSE file.
       padding: 15px 0 15px 0;
     }
 
-    #anomaly-table, #stoppage-alert-table {
+    #anomaly-table {
       width: 100%;
     }
 
@@ -156,34 +156,10 @@ found in the LICENSE file.
               </div>
             </paper-button>
           </template>
-          <template is="dom-if" if="{{stoppageAlerts.length}}">
-            <h2>Data stoppage alerts</h2>
-            <p>
-              [[getStoppageCount(stoppageAlerts.length)]]
-              alert<span hidden$="[[computeIsSingular(totalStoppageAlertCount)]]">s</span>
-              in [[stoppageGroupCount]]
-              group<span hidden$="[[computeIsSingular(stoppageGroupCount)]]">s</span>
-            </p>
-            <alerts-table id="stoppage-alert-table"
-                          xsrf-token="{{xsrfToken}}"
-                          alert-list="{{stoppageAlerts}}"
-                          extra-columns="{{extraStoppageAlertsColumns}}">
-            </alerts-table>
-            <paper-button hidden$="{{!moreStoppageAlertsExist}}"
-                          raised class="show-more-button" 
-                          on-click="onShowMoreStoppageAlerts">
-              <div class="button-spinner">
-                <p class="show-more-text">Show More</p>
-                <paper-spinner active$="{{stoppageAlertsLoading}}">
-                </paper-spinner>
-              </div>
-            </paper-button>
-          </template>
+>>>>>>> master
           <template is="dom-if" if="{{!anomalies.length}}">
-            <template is="dom-if" if="{{!stoppageAlerts.length}}">
-              <h2 class="center">All alerts triaged!</h2>
-              <iframe src="https://lorempixel.com/800/600/cats/" width="800" height="600"></iframe>
-            </template>
+            <h2 class="center">All alerts triaged!</h2>
+            <iframe src="https://lorempixel.com/800/600/cats/" width="800" height="600"></iframe>
           </template>
           <quick-log id="auto-triage-log" xsrf-token="{{xsrfToken}}"
                      style="width:100%; display:block;"></quick-log>
@@ -207,21 +183,7 @@ found in the LICENSE file.
           type: Number,
           value: 0
         },
-        stoppageAlerts: {
-          type: Array,
-          value: () => []
-        },
-        totalStoppageAlertCount: {
-          // The total count may be different from the array length if there
-          // were too many stoppage alerts to pull from the datastore.
-          type: Number,
-          value: 0
-        },
         anomalyGroupCount: {
-          type: Number,
-          value: 0,
-        },
-        stoppageGroupCount: {
           type: Number,
           value: 0,
         },
@@ -254,19 +216,6 @@ found in the LICENSE file.
             }
           ])
         },
-
-        extraStoppageAlertsColumns: {
-          type: Array,
-          notify: true,
-          value: () => ([{
-            'key': 'last_row_date',
-            'label': 'Date'
-          },
-          {
-            'key': 'debug_button',
-            'label': ''
-          }])
-        },
         selectedSheriffIndex: {
           type: Number,
           value: -1
@@ -293,13 +242,6 @@ found in the LICENSE file.
         },
         anomalyCursor: {
           type: String
-        },
-        stoppageAlertCursor: {
-          type: String
-        },
-        stoppageAlertsLoading: {
-          type: Boolean,
-          value: false
         },
         anomaliesLoading: {
           type: Boolean,
@@ -386,36 +328,6 @@ found in the LICENSE file.
             }.bind(this));
       },
 
-      /*
-       * Similar to the anomaly show more button, gets the next 500 stoppage
-       * alerts.
-       */
-      onShowMoreStoppageAlerts() {
-        const params = uri.getAllParameters();
-        if (this.stoppageAlertCursor != null) {
-          params.stoppage_alert_cursor = this.stoppageAlertCursor;
-        }
-        this.stoppageAlertsLoading = true;
-        simple_xhr.send('/alerts', params,
-            function(response) {
-              const allStoppageAlerts =
-                  this.stoppageAlerts.concat(response.stoppage_alert_list);
-              this.set('stoppageAlerts', allStoppageAlerts);
-              this.totalStoppageAlertCount = response.stoppage_alert_count;
-              this.stoppageAlertCursor = response.stoppage_alert_cursor;
-              this.moreStoppageAlertsExist =
-                  response.show_more_stoppage_alerts;
-              this.sheriffList = response.sheriff_list;
-              this.xsrfToken = response.xsrf_token;
-              this.stoppageAlertsLoading = false;
-              this.updateFromURIParameters();
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.stoppageAlertsLoading = false;
-            }.bind(this));
-      },
-
       onPopState(e) {
         // Pop State event will have a non-null state if this came from an
         // actual pop instead of the load event.
@@ -446,20 +358,10 @@ found in the LICENSE file.
       },
 
       getAlertCount(anomalyListLength) {
-        return this.getCount(false, anomalyListLength);
-      },
-
-      getStoppageCount(stoppageAlertsListLength) {
-        return this.getCount(true, stoppageAlertsListLength);
-      },
-
-      getCount(isStoppage, trueLength) {
-        const totalCount = isStoppage ? this.totalStoppageAlertCount :
-          this.totalAnomalyCount;
-        if (trueLength < totalCount) {
-          return trueLength + ' of ' + totalCount;
+        if (anomalyListLength < this.totalAnomalyCount) {
+          return anomalyListLength + ' of ' + this.totalAnomalyCount;
         }
-        return totalCount;
+        return anomalyListLength;
       },
 
       onGroupCount_(event) {
@@ -487,15 +389,10 @@ found in the LICENSE file.
             function(response) {
               this.anomalies = response.anomaly_list;
               this.totalAnomalyCount = response.anomaly_count;
-              this.stoppageAlerts = response.stoppage_alert_list;
-              this.totalStoppageAlertCount = response.stoppage_alert_count;
               this.sheriffList = response.sheriff_list;
               this.xsrfToken = response.xsrf_token;
               this.moreAnomaliesExist = response.show_more_anomalies;
-              this.moreStoppageAlertsExist =
-                  response.show_more_stoppage_alerts;
               this.anomalyCursor = response.anomaly_cursor;
-              this.stoppageAlertCursor = response.stoppage_alert_cursor;
               this.loading = false;
               this.updateFromURIParameters();
             }.bind(this),

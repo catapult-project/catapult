@@ -20,7 +20,6 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import sheriff
-from dashboard.models import stoppage_alert
 
 
 GOOGLER_USER = users.User(email='sullivan@chromium.org',
@@ -172,19 +171,6 @@ class AlertsTest(testing_common.TestCase):
     response = self.testapp.post('/api/alerts/bug_id/123')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(1, len(anomalies))
-
-  @mock.patch.object(oauth, 'oauth')
-  def testPost_WithBugIdParameter_ListsStoppageAlerts(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
-    test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
-    row = testing_common.AddRows(utils.TestPath(test_keys[0]), {100})[0]
-    alert = stoppage_alert.CreateStoppageAlert(test_keys[0].get(), row)
-    alert.bug_id = 123
-    alert.put()
-    response = self.testapp.post('/api/alerts/bug_id/123')
-    stoppage_alerts = self.GetJsonValue(response, 'stoppage_alerts')
-    self.assertEqual(1, len(stoppage_alerts))
 
   @mock.patch.object(oauth, 'oauth')
   def testPost_WithInvalidBugIdParameter_ShowsError(self, mock_oauth):

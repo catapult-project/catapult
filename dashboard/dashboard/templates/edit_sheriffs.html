@@ -45,8 +45,6 @@ found in the LICENSE file.
 
     document.getElementById('url').value = sheriff['url'];
     document.getElementById('email').value = sheriff['email'];
-    document.getElementById('stoppage-alert-delay').value =
-        sheriff['stoppage_alert_delay'];
 
     var internalOnly = sheriff['internal_only'] ? 'yes' : 'no';
     document.getElementById('internal-only-' + internalOnly).checked = true;
@@ -66,7 +64,6 @@ found in the LICENSE file.
     document.getElementById('add-radio').checked = true;
     document.getElementById('url').value = '';
     document.getElementById('email').value = '';
-    document.getElementById('stoppage-alert-delay').value = -1;
     document.getElementById('internal-only-yes').checked = true;
     document.getElementById('summarize-no').checked = true;
     document.getElementById('patterns-textarea').textContent = '';
@@ -137,14 +134,6 @@ found in the LICENSE file.
       <tr>
         <td><label for="labels">Bug labels to add (comma-separated):</label></td>
         <td><input type="text" name="labels" id="labels" size=75></td>
-      </tr>
-      </tr>
-        <td><label for="email">Days before alerting on missing data
-        (-1 for no alerts):</label></td>
-        <td><input type="number"
-                   name="stoppage-alert-delay"
-                   id="stoppage-alert-delay"
-                   min="-1" max="13"></td>
       </tr>
       <tr>
         <td>Internal-only:</td>

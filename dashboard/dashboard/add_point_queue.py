@@ -4,7 +4,6 @@
 
 """URL endpoint to add new graph data to the datastore."""
 
-import datetime
 import json
 import logging
 
@@ -275,8 +274,8 @@ def _GetOrCreateTest(name, parent_test_path, properties):
   If the entity already exists but the properties are different than the ones
   specified, then the properties will be updated first. This implies that a
   new point is being added for an existing TestMetadata, so if the TestMetadata
-  has been previously marked as deprecated or associated with a stoppage alert,
-  then it can be updated and marked as non-deprecated.
+  has been previously marked as deprecated then it can be updated and marked as
+  non-deprecated.
 
   If the entity doesn't yet exist, a new one will be created with the given
   properties.
@@ -316,17 +315,6 @@ def _GetOrCreateTest(name, parent_test_path, properties):
 
   if existing.deprecated:
     existing.deprecated = False
-    properties_changed = True
-
-  if existing.stoppage_alert:
-    alert = existing.stoppage_alert.get()
-    if alert:
-      alert.recovered = True
-      alert.last_row_timestamp = datetime.datetime.now()
-      alert.put()
-    else:
-      logging.warning('Stoppage alert %s not found.', existing.stoppage_alert)
-    existing.stoppage_alert = None
     properties_changed = True
 
   # Special case to update improvement direction from units for TestMetadata

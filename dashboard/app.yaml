@@ -185,11 +185,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /send_stoppage_alert_emails
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /start_try_job
   script: dashboard.dispatcher.APP
   login: required
