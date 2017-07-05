@@ -1,4 +1,4 @@
-# Copyright 2015 The Chromium Authors. All rights reserved.
+# Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -8,34 +8,33 @@ from google.appengine.ext import ndb
 
 from dashboard.common import testing_common
 from dashboard.common import utils
-from dashboard.models import alert
 from dashboard.models import anomaly
 
 
-class AlertTest(testing_common.TestCase):
+class AnomalyTest(testing_common.TestCase):
   """Test case for some functions in anomaly."""
 
-  def testGetBotNamesFromAlerts_EmptyList_ReturnsEmptySet(self):
-    self.assertEqual(set(), alert.GetBotNamesFromAlerts([]))
+  def testGetBotNamesFromAnomalies_EmptyList_ReturnsEmptySet(self):
+    self.assertEqual(set(), anomaly.GetBotNamesFromAlerts([]))
 
-  def testGetBotNamesFromAlerts_RemovesDuplicates(self):
+  def testGetBotNamesFromAnomalies_RemovesDuplicates(self):
     testing_common.AddTests(
         ['SuperGPU'], ['Bot1'], {'foo': {'bar': {}}})
     anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
     anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
     anomalies = anomaly.Anomaly.query().fetch()
-    bot_names = alert.GetBotNamesFromAlerts(anomalies)
+    bot_names = anomaly.GetBotNamesFromAlerts(anomalies)
     self.assertEqual(2, len(anomalies))
     self.assertEqual(1, len(bot_names))
 
-  def testGetBotNamesFromAlerts_ReturnsBotNames(self):
+  def testGetBotNamesFromAnomalies_ReturnsBotNames(self):
     testing_common.AddTests(
         ['SuperGPU'], ['Bot1', 'Bot2', 'Bot3'], {'foo': {'bar': {}}})
     anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot1/foo/bar')).put()
     anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot2/foo/bar')).put()
     anomaly.Anomaly(test=utils.TestKey('SuperGPU/Bot3/foo/bar')).put()
     anomalies = anomaly.Anomaly.query().fetch()
-    bot_names = alert.GetBotNamesFromAlerts(anomalies)
+    bot_names = anomaly.GetBotNamesFromAlerts(anomalies)
     self.assertEqual({'Bot1', 'Bot2', 'Bot3'}, bot_names)
 
   def testGetTestMetadataKey_Test(self):
@@ -58,7 +57,7 @@ class AlertTest(testing_common.TestCase):
     k = a.GetTestMetadataKey()
     self.assertIsNone(k)
 
-  def testGetAlertsForTest(self):
+  def testGetAnomaliesForTest(self):
     old_style_key1 = utils.OldStyleTestKey('master/bot/test1/metric')
     new_style_key1 = utils.TestMetadataKey('master/bot/test1/metric')
     old_style_key2 = utils.OldStyleTestKey('master/bot/test2/metric')

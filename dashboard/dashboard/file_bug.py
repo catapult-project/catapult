@@ -16,8 +16,8 @@ from dashboard import auto_bisect
 from dashboard import oauth2_decorator
 from dashboard.common import request_handler
 from dashboard.common import utils
-from dashboard.models import alert
 from dashboard.models import alert_group
+from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
 from dashboard.services import issue_tracker_service
@@ -178,7 +178,7 @@ def _AdditionalDetails(bug_id, alerts):
   alerts_url = '%s?keys=%s' % (base_url, _UrlsafeKeys(alerts))
   comment = 'All graphs for this bug:\n  %s\n\n' % bug_page_url
   comment += 'Original alerts at time of bug-filing:\n  %s\n' % alerts_url
-  bot_names = alert.GetBotNamesFromAlerts(alerts)
+  bot_names = anomaly.GetBotNamesFromAlerts(alerts)
   if bot_names:
     comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
     comment += '\n'.join(sorted(bot_names))
