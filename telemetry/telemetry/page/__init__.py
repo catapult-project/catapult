@@ -216,13 +216,3 @@ class Page(story.Story):
       return file_path
     else:
       return os.path.dirname(file_path)
-
-  @property
-  def display_name(self):
-    if self.name:
-      return self.name
-    if self.page_set is None or not self.is_file:
-      return self.url
-    all_urls = [p.url.rstrip('/') for p in self.page_set if p.is_file]
-    common_prefix = os.path.dirname(os.path.commonprefix(all_urls))
-    return self.url[len(common_prefix):].strip('/')

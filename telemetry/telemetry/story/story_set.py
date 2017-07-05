@@ -103,15 +103,15 @@ class StorySet(object):
 
   def AddStory(self, story):
     assert isinstance(story, story_module.Story)
-    assert self._IsUnique(story), ('Tried to add story with duplicate display '
-                                   'name %s. Story display names should be '
-                                   'unique.' % story.display_name)
+    assert self._IsUnique(story), ('Tried to add story with duplicate '
+                                   'name %s. Story names should be '
+                                   'unique.' % story.name)
     self._stories.append(story)
     self._story_names_and_grouping_keys.add(
-        story.display_name_and_grouping_key_tuple)
+        story.name_and_grouping_key_tuple)
 
   def _IsUnique(self, story):
-    return (story.display_name_and_grouping_key_tuple not in
+    return (story.name_and_grouping_key_tuple not in
             self._story_names_and_grouping_keys)
 
   def RemoveStory(self, story):
@@ -121,7 +121,7 @@ class StorySet(object):
     """
     self._stories.remove(story)
     self._story_names_and_grouping_keys.remove(
-        story.display_name_and_grouping_key_tuple)
+        story.name_and_grouping_key_tuple)
 
   @classmethod
   def Name(cls):
