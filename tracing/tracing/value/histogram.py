@@ -418,6 +418,17 @@ class Ownership(Diagnostic):
     else:
       raise TypeError('component must be None or string')
 
+  def __eq__(self, other):
+    if self.component != other.component:
+      return False
+    if self.emails != other.emails:
+      return False
+
+    return True
+
+  def __ne__(self, other):
+    return not self == other
+
   @property
   def emails(self):
     return self._emails[:]

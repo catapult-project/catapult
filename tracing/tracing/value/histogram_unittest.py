@@ -587,6 +587,17 @@ class OwnershipUnittest(unittest.TestCase):
     self.assertNotIn('component', ownership_dict_no_component)
     self.assertEqual(ownership_with_component.AsDict()['component'], 'fooBar')
 
+  def testEquality(self):
+    ownership0 = histogram.Ownership(['alice@chromium.org'], 'foo')
+    ownership1 = histogram.Ownership(['alice@chromium.org'], 'foo')
+
+    self.assertEqual(ownership0, ownership1)
+
+  def testInequality(self):
+    ownership0 = histogram.Ownership(['alice@chromium.org'], 'foo')
+    ownership1 = histogram.Ownership(['alice@chromium.org'], 'bar')
+
+    self.assertNotEqual(ownership0, ownership1)
 
 class BreakdownUnittest(unittest.TestCase):
 
