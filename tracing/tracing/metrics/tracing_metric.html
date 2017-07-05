@@ -211,15 +211,18 @@ tr.exportTo('tr.metrics', function() {
     };
 
     totalTraceBytesValue.diagnostics.set(
-        'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
+        'category_with_max_event_size',
+        new tr.v.d.GenericSet([biggestCategory]));
     histograms.addHistogram(totalTraceBytesValue);
 
     maxEventCountPerSecValue.diagnostics.set(
-        'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
+        'category_with_max_event_size',
+        new tr.v.d.GenericSet([biggestCategory]));
     histograms.addHistogram(maxEventCountPerSecValue);
 
     maxEventBytesPerSecValue.diagnostics.set(
-        'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
+        'category_with_max_event_size',
+        new tr.v.d.GenericSet([biggestCategory]));
     histograms.addHistogram(maxEventBytesPerSecValue);
 
     addMemoryInfraHistograms(histograms, model, categoryNamesToTotalEventSizes);

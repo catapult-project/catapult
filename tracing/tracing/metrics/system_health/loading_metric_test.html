@@ -500,11 +500,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(15200, hist.running.mean);
     const binsWithSampleDiagnosticMaps = hist.allBins.filter(
         bin => bin.diagnosticMaps.length > 0);
-    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
-        'Navigation infos');
-    assert.strictEqual(diagnostic.value.start, 200);
-    assert.strictEqual(diagnostic.value.interactive, 15400);
-    assert.strictEqual(diagnostic.value.pid, 1984);
+    const diagnostic = tr.b.getOnlyElement(binsWithSampleDiagnosticMaps[0]
+        .diagnosticMaps[0].get('Navigation infos'));
+    assert.strictEqual(diagnostic.start, 200);
+    assert.strictEqual(diagnostic.interactive, 15400);
+    assert.strictEqual(diagnostic.pid, 1984);
   });
 
   test('multiTimeToInteractive', function() {

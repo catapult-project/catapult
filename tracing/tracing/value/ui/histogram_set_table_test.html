@@ -1437,7 +1437,7 @@ tr.b.unittest.testSuite(function() {
                     unit: tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
                     description: 'The best description.',
                     samples: range(0, 100).map(i => [
-                      Math.random() * 1e3, {x: new tr.v.d.Generic(i)}]),
+                      Math.random() * 1e3, {x: new tr.v.d.GenericSet([i])}]),
                     telemetry: {
                       storyGroupingKeys: {
                         storyGroupingKey0,

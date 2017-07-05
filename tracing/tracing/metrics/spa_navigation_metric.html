@@ -82,12 +82,12 @@ tr.exportTo('tr.metrics', function() {
               'Breakdown of [navStart, firstPaint]': breakdownDiagnostic,
               'Start': new tr.v.d.RelatedEventSet(spaNav.navigationStart),
               'End': new tr.v.d.RelatedEventSet(spaNav.firstPaintEvent),
-              'Navigation infos': new tr.v.d.Generic({
+              'Navigation infos': new tr.v.d.GenericSet([{
                 url: spaNav.url,
                 pid: rendererHelper.pid,
                 navStart: beginTs,
                 firstPaint: spaNav.firstPaintEvent.start
-              })
+              }]),
             });
       }
     }

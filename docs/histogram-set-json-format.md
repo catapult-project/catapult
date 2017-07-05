@@ -126,7 +126,7 @@ DiagnosticMap is a dictionary mapping strings to Diagnostic dictionaries.
 ## Diagnostics
 
 The only field that is required for all Diagnostics, `type`, must be one of
- * `Generic`
+ * `GenericSet`
  * `RelatedEventSet`
  * `Breakdown`
  * `RelatedHistogramSet`
@@ -209,11 +209,11 @@ to compare or merge results across similar bots.
  * `owners`: an array of strings containing email addresses
  * `component`: a string, a Monorail component
 
-### Generic
+### GenericSet
 
 This allows metrics to store arbitrary untyped data in Histograms.
 
- * `value`: can contain any JSON data.
+ * `values`: array of any JSON data.
 
 ### Scalar
 

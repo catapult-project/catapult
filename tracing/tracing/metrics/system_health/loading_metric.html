@@ -196,7 +196,7 @@ tr.exportTo('tr.metrics.sh', function() {
       const timeToEvent = ev.start - navigationStartEvent.start;
       samples.push({
         value: timeToEvent,
-        diagnostics: {url: new tr.v.d.Generic(url)}
+        diagnostics: {url: new tr.v.d.GenericSet([url])}
       });
     }
     return samples;
@@ -224,12 +224,12 @@ tr.exportTo('tr.metrics.sh', function() {
         'Breakdown of [navStart, FMP]': breakdownDiagnostic,
         'Start': new RelatedEventSet(navigationStart),
         'End': new RelatedEventSet(fmpMarkerEvent),
-        'Navigation infos': new tr.v.d.Generic({
+        'Navigation infos': new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStart.start,
-          fmp: fmpMarkerEvent.start
-        }),
+          fmp: fmpMarkerEvent.start,
+        }]),
       }
     });
     return {firstMeaningfulPaint: fmpMarkerEvent.start, url};
@@ -257,12 +257,12 @@ tr.exportTo('tr.metrics.sh', function() {
         'Breakdown of [navStart, FMP]': breakdownDiagnostic,
         'Start': new RelatedEventSet(navigationStart),
         'End': new RelatedEventSet(fmpMarkerEvent),
-        'Navigation infos': new tr.v.d.Generic({
+        'Navigation infos': new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStart.start,
-          fmp: fmpMarkerEvent.start
-        }),
+          fmp: fmpMarkerEvent.start,
+        }]),
       }
     });
   }
@@ -326,12 +326,12 @@ tr.exportTo('tr.metrics.sh', function() {
       diagnostics: {
         'Start': new RelatedEventSet(navigationStart),
         'Last long task': new RelatedEventSet(lastLongTaskEvent),
-        'Navigation infos': new tr.v.d.Generic({
+        'Navigation infos': new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStartTime,
-          interactive: firstInteractive
-        }),
+          interactive: firstInteractive,
+        }]),
         'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
       }
     });

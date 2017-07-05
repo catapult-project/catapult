@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 
 <script>
@@ -13,9 +13,9 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    const diagnostic = new tr.v.d.Generic({foo: 'bar', baz: [42]});
+    const diagnostic = new tr.v.d.GenericSet([{foo: 'bar', baz: [42]}]);
     const span = tr.v.ui.createDiagnosticSpan(diagnostic);
-    assert.strictEqual('TR-V-UI-GENERIC-DIAGNOSTIC-SPAN', span.tagName);
+    assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 });

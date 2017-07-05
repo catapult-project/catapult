@@ -58,10 +58,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(chromeStatistics.count, 1);
     assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
     assert.closeTo(chromeStatistics.max, 0.011, 1e-5);
-    assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.Generic);
-    assert.lengthOf(chromeValue.diagnostics.get('paths').value, 1);
-    assert.strictEqual(chromeValue.diagnostics.get('paths').value[0],
-        '/opt/chrome/chrome');
+    assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.GenericSet);
+    const paths = tr.b.getOnlyElement(chromeValue.diagnostics.get('paths'));
+    assert.strictEqual(paths, '/opt/chrome/chrome');
   });
 
   test('cpuProcessMetric_multipleSnapshots', function() {
@@ -111,10 +110,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(chromeStatistics.count, 2);
     assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);
     assert.strictEqual(chromeStatistics.max, 0.008);
-    assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.Generic);
-    assert.lengthOf(chromeValue.diagnostics.get('paths').value, 2);
-    assert.strictEqual(chromeValue.diagnostics.get('paths').value[0],
-        '/opt/chrome/chrome');
+    assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.GenericSet);
+    const paths = Array.from(chromeValue.diagnostics.get('paths'));
+    assert.lengthOf(paths, 2);
+    assert.strictEqual(paths[0], '/opt/chrome/chrome');
   });
 });
 </script>

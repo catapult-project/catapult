@@ -26,8 +26,7 @@ tr.b.unittest.testSuite(function() {
       sum: false,
     });
     const htmlString = '<script>throw new Error("oops");<' + '/script>';
-    hist.diagnostics.set('html', new tr.v.d.Generic(
-        htmlString));
+    hist.diagnostics.set('html', new tr.v.d.GenericSet([htmlString]));
     const jsonEl = document.createElement('div');
     jsonEl.innerHTML = JSON.stringify(hist.asDict());
     jsonEl.style.display = 'none';
@@ -42,7 +41,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual('block', view.style.display);
       assert.lengthOf(view.histograms, 1);
       const hist2 = view.histograms.getHistogramNamed('foo');
-      assert.strictEqual(htmlString, hist2.diagnostics.get('html').value);
+      assert.strictEqual(htmlString, tr.b.getOnlyElement(
+          hist2.diagnostics.get('html')));
     });
   });
 });

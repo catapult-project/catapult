@@ -420,7 +420,7 @@ class AddHistogramsTest(testing_common.TestCase):
   def testFindHistogramLevelSparseDiagnostics(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic('foo', histogram_module.Generic('bar'))
+    histograms.AddSharedDiagnostic('foo', histogram_module.GenericSet(['bar']))
     histograms.AddSharedDiagnostic(
         'telemetry', histogram_module.TelemetryInfo())
     diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(

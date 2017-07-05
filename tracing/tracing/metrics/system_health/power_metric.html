@@ -104,7 +104,8 @@ tr.exportTo('tr.metrics.sh', function() {
       const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
       for (const sample of samples) {
-        const info = sample.diagnostics['Navigation infos'].value;
+        const info = tr.b.getOnlyElement(
+            sample.diagnostics['Navigation infos']);
         intervals.push(tr.b.math.Range.fromExplicitRange(
             info.start, info.interactive));
       }

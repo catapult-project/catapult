@@ -498,23 +498,66 @@ class Breakdown(Diagnostic):
       yield name, value
 
 
-# A Generic diagnostic can contain any Plain-Ol'-Data objects that can be
-# serialized using JSON.stringify(): null, boolean, number, string, array, dict.
-class Generic(Diagnostic):
-  def __init__(self, value):
-    super(Generic, self).__init__()
-    self._value = value
+# A GenericSet diagnostic can contain any Plain-Ol'-Data objects that can be
+# serialized using json.dumps(): None, boolean, number, string, list, dict.
+# Dicts, lists, and booleans are deduplicated by their JSON representation.
+# Dicts and lists are not hashable.
+# (1 == True) and (0 == False) in Python, but not in JSON.
+class GenericSet(Diagnostic):
+  def __init__(self, values):
+    super(GenericSet, self).__init__()
 
-  @property
-  def value(self):
-    return self._value
+    # Use a list because Python sets cannot store dicts or lists because they
+    # are not hashable.
+    self._values = list(values)
+
+    # Cache a set to facilitate comparing and merging GenericSets.
+    # Dicts, lists, and booleans are serialized; other types are not.
+    self._comparable_set = None
+
+  def __iter__(self):
+    for value in self._values:
+      yield value
+
+  def __len__(self):
+    return len(self._values)
+
+  def __eq__(self, other):
+    return self._GetComparableSet() == other._GetComparableSet()
+
+  def _GetComparableSet(self):
+    if self._comparable_set is None:
+      self._comparable_set = set()
+      for value in self:
+        if isinstance(value, (dict, list, bool)):
+          self._comparable_set.add(json.dumps(value, sort_keys=True))
+        else:
+          self._comparable_set.add(value)
+    return self._comparable_set
+
+  def CanAddDiagnostic(self, other_diagnostic, unused_name=None,
+                       unused_parent_hist=None, unused_other_parent_hist=None):
+    return isinstance(other_diagnostic, GenericSet)
+
+  def AddDiagnostic(self, other_diagnostic, unused_name=None,
+                    unused_parent_hist=None, unused_other_parent_hist=None):
+    comparable_set = self._GetComparableSet()
+    for value in other_diagnostic:
+      if isinstance(value, (dict, list, bool)):
+        json_value = json.dumps(value, sort_keys=True)
+        if json_value not in comparable_set:
+          self._values.append(value)
+          self._comparable_set.add(json_value)
+      elif value not in comparable_set:
+        self._values.append(value)
+        self._comparable_set.add(value)
 
   def _AsDictInto(self, dct):
-    dct['value'] = self.value
+    dct['values'] = list(self)
 
   @staticmethod
   def FromDict(dct):
-    return Generic(dct['value'])
+    return GenericSet(dct['values'])
 
 
 class DateRange(Diagnostic):

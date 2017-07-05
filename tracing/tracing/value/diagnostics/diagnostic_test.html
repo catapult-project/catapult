@@ -6,14 +6,14 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('roundtripPreservesGuid', function() {
-    const diagnostic = new tr.v.d.Generic('generic');
+    const diagnostic = new tr.v.d.GenericSet(['generic']);
     diagnostic.guid = 'foo';
     const clone = tr.v.d.Diagnostic.fromDict(diagnostic.asDict());
     assert.strictEqual('foo', clone.guid);

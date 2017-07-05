@@ -169,12 +169,12 @@ tr.b.unittest.testSuite(function() {
 
     const binsWithSampleDiagnosticMaps =
         histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
-    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
-        'Navigation infos');
-    assert.strictEqual(diagnostic.value.url, URL);
-    assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
-    assert.strictEqual(diagnostic.value.navStart, navStartTs);
-    assert.strictEqual(diagnostic.value.firstPaint, 101);
+    const diagnostic = tr.b.getOnlyElement(binsWithSampleDiagnosticMaps[0]
+        .diagnosticMaps[0].get('Navigation infos'));
+    assert.strictEqual(diagnostic.url, URL);
+    assert.strictEqual(diagnostic.pid, RENDERER_PROCESS_ID);
+    assert.strictEqual(diagnostic.navStart, navStartTs);
+    assert.strictEqual(diagnostic.firstPaint, 101);
   });
 
   test('spaNavStartToFirstPaintDuration_goToIndexAsNavStart', function() {
@@ -193,12 +193,12 @@ tr.b.unittest.testSuite(function() {
 
     const binsWithSampleDiagnosticMaps =
         histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
-    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
-        'Navigation infos');
-    assert.strictEqual(diagnostic.value.url, URL);
-    assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
-    assert.strictEqual(diagnostic.value.navStart, 99);
-    assert.strictEqual(diagnostic.value.firstPaint, 101);
+    const diagnostic = tr.b.getOnlyElement(binsWithSampleDiagnosticMaps[0]
+        .diagnosticMaps[0].get('Navigation infos'));
+    assert.strictEqual(diagnostic.url, URL);
+    assert.strictEqual(diagnostic.pid, RENDERER_PROCESS_ID);
+    assert.strictEqual(diagnostic.navStart, 99);
+    assert.strictEqual(diagnostic.firstPaint, 101);
   });
 
   test('spaNavStartToFirstPaintDuration_multipleSpaNavs', function() {

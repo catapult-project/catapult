@@ -15,7 +15,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('clone', function() {
     const diagnostics = new tr.v.d.DiagnosticMap();
-    diagnostics.set('generic', new tr.v.d.Generic({a: ['b', 3]}));
+    diagnostics.set('generic', new tr.v.d.GenericSet([{a: ['b', 3]}]));
     diagnostics.set('breakdown', new tr.v.d.Breakdown());
     diagnostics.set('events', new tr.v.d.RelatedEventSet());
     diagnostics.set('set', new tr.v.d.RelatedHistogramSet());
@@ -24,9 +24,9 @@ tr.b.unittest.testSuite(function() {
         new tr.v.d.RelatedHistogramBreakdown());
 
     const clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
-    assert.instanceOf(clone.get('generic'), tr.v.d.Generic);
-    assert.deepEqual(clone.get('generic').value,
-        diagnostics.get('generic').value);
+    assert.instanceOf(clone.get('generic'), tr.v.d.GenericSet);
+    assert.deepEqual(tr.b.getOnlyElement(clone.get('generic')),
+        tr.b.getOnlyElement(diagnostics.get('generic')));
     assert.instanceOf(clone.get('breakdown'), tr.v.d.Breakdown);
     assert.instanceOf(clone.get('events'), tr.v.d.RelatedEventSet);
     assert.instanceOf(clone.get('set'), tr.v.d.RelatedHistogramSet);
@@ -67,8 +67,8 @@ tr.b.unittest.testSuite(function() {
         slices: [event],
       },
     };
-    const generic = new tr.v.d.Generic('generic diagnostic');
-    const generic2 = new tr.v.d.Generic('generic diagnostic 2');
+    const generic = new tr.v.d.GenericSet(['generic diagnostic']);
+    const generic2 = new tr.v.d.GenericSet(['generic diagnostic 2']);
     const relatedSet = new tr.v.d.RelatedHistogramSet();
     const events = new tr.v.d.RelatedEventSet([event]);
 
@@ -79,17 +79,19 @@ tr.b.unittest.testSuite(function() {
     const hist2 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist2.diagnostics.set('a', generic);
     hist.diagnostics.addDiagnostics(hist2.diagnostics);
-    assert.strictEqual(
-        generic.value, tr.b.getOnlyElement(hist.diagnostics.get('a').value));
+    assert.strictEqual(tr.b.getOnlyElement(generic),
+        tr.b.getOnlyElement(hist.diagnostics.get('a')));
 
     // Separate keys are not merged.
     const hist3 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist3.diagnostics.set('b', generic2);
     hist.diagnostics.addDiagnostics(hist3.diagnostics);
     assert.strictEqual(
-        generic.value, tr.b.getOnlyElement(hist.diagnostics.get('a').value));
+        tr.b.getOnlyElement(generic),
+        tr.b.getOnlyElement(hist.diagnostics.get('a')));
     assert.strictEqual(
-        generic2.value, tr.b.getOnlyElement(hist.diagnostics.get('b').value));
+        tr.b.getOnlyElement(generic2),
+        tr.b.getOnlyElement(hist.diagnostics.get('b')));
 
     // Merging unmergeable diagnostics should produce an
     // UnmergeableDiagnosticSet.
@@ -100,7 +102,7 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.UnmergeableDiagnosticSet);
     let diagnostics = Array.from(hist.diagnostics.get('a'));
     assert.strictEqual(
-        generic.value, tr.b.getOnlyElement(diagnostics[0].value));
+        tr.b.getOnlyElement(generic), tr.b.getOnlyElement(diagnostics[0]));
     // Don't test merging relationships here.
     assert.instanceOf(diagnostics[1], tr.v.d.RelatedHistogramSet);
 
@@ -113,8 +115,8 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.UnmergeableDiagnosticSet);
     diagnostics = Array.from(hist.diagnostics.get('a'));
     assert.lengthOf(diagnostics, 3);
-    assert.instanceOf(diagnostics[0], tr.v.d.CollectedGeneric);
-    assert.deepEqual(diagnostics[0].value, [generic.value, generic2.value]);
+    assert.instanceOf(diagnostics[0], tr.v.d.GenericSet);
+    assert.deepEqual(Array.from(diagnostics[0]), [...generic, ...generic2]);
     assert.instanceOf(diagnostics[1], tr.v.d.RelatedHistogramSet);
     assert.instanceOf(diagnostics[2], tr.v.d.CollectedRelatedEventSet);
   });
@@ -130,7 +132,8 @@ tr.b.unittest.testSuite(function() {
     let breakdown = new tr.v.d.RelatedHistogramBreakdown();
     breakdown.set('d', bHist0);
     aHist0.diagnostics.set('breakdown', breakdown);
-    aHist0.diagnostics.set('unmergeable', new tr.v.d.Generic('unmergeable'));
+    aHist0.diagnostics.set('unmergeable',
+        new tr.v.d.GenericSet(['unmergeable']));
 
     const histograms0 = new tr.v.HistogramSet([aHist0, bHist0]);
 

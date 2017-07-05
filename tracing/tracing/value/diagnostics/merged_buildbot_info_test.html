@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/buildbot_info.html">
-<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/diagnostics/merged_buildbot_info.html">
 
 <script>
@@ -33,13 +33,13 @@ tr.b.unittest.testSuite(function() {
       logUri: 'j',
     });
 
-    assert.isFalse(buildbotA.canAddDiagnostic(new tr.v.d.Generic('')));
+    assert.isFalse(buildbotA.canAddDiagnostic(new tr.v.d.GenericSet()));
     assert.isFalse(buildbotA.canAddDiagnostic(buildbotB));
     assert.isFalse(buildbotB.canAddDiagnostic(buildbotA));
 
     const merged = new tr.v.d.MergedBuildbotInfo();
 
-    assert.isFalse(merged.canAddDiagnostic(new tr.v.d.Generic('')));
+    assert.isFalse(merged.canAddDiagnostic(new tr.v.d.GenericSet()));
     assert.isTrue(merged.canAddDiagnostic(buildbotA));
     assert.isTrue(merged.canAddDiagnostic(buildbotB));
 

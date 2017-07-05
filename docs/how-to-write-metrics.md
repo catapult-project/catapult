@@ -112,7 +112,7 @@ histogram.addSample(number, {name: diagnostic})
 
 ### General Diagnostics
 
- * [Generic](/tracing/tracing/value/diagnostics/generic.html): This can contain
+ * [GenericSet](/tracing/tracing/value/diagnostics/generic_set.html): This can contain
    any data that can be serialized and deserialized using JSON.stringify() and
    JSON.parse(), including numbers, strings, Arrays, and dictionaries (simple
    Objects). It will be visualized using
@@ -227,11 +227,11 @@ histogram.addSample(number, {name: diagnostic})
    Metrics must not use this, since it is incapable of being merged. It is
    mentioned here for completeness. It wraps a Scalar, which is just a
    unitted number. This is only to allow Histograms in other parts of the trace
-   viewer to display number sample diagnostics more intelligently than Generic
-   can. If a metric wants to display number sample diagnostics intelligently,
-   then it should use RelatedHistogramSet or RelatedHistogramMap; if it does not want to
-   monitor changes in those numbers, then the TBM2 maintainers can add a
-   HistogramDiagnostic that supports merging.
+   viewer to display number sample diagnostics more intelligently than
+   GenericSet can. If a metric wants to display number sample diagnostics
+   intelligently, then it should use RelatedHistogramSet or RelatedHistogramMap;
+   if it does not want to monitor changes in those numbers, then the TBM2
+   maintainers can add a HistogramDiagnostic that supports merging.
 
 
 ## Consumers of Histograms

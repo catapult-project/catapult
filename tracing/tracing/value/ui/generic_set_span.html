@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 
-<dom-module id="tr-v-ui-generic-diagnostic-span">
+<dom-module id="tr-v-ui-generic-set-span">
   <template>
     <tr-ui-a-generic-object-view id="generic"></tr-ui-a-generic-object-view>
   </template>
@@ -15,7 +15,7 @@ found in the LICENSE file.
   <script>
   'use strict';
   Polymer({
-    is: 'tr-v-ui-generic-diagnostic-span',
+    is: 'tr-v-ui-generic-set-span',
 
     ready() {
       this.diagnostic_ = undefined;
@@ -36,7 +36,7 @@ found in the LICENSE file.
         return;
       }
 
-      this.$.generic.object = this.diagnostic.value;
+      this.$.generic.object = Array.from(this.diagnostic);
     }
   });
   </script>
