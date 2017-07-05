@@ -531,8 +531,6 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(4, hist.GetApproximatePercentile(1))
 
 class OwnershipUnittest(unittest.TestCase):
-  def assertDeepEqual(self, a, b):
-    self.assertEqual(ToJSON(a), ToJSON(b))
 
   def testInitRequiresEmailsAsIterable(self):
     with self.assertRaises(TypeError):
@@ -551,49 +549,47 @@ class OwnershipUnittest(unittest.TestCase):
     ownership = histogram.Ownership([])
     self.assertEqual(ownership.emails, [])
 
-    ownership = histogram.Ownership(["alice@chromium.org"])
-    self.assertEqual(ownership.emails, ["alice@chromium.org"])
+    ownership = histogram.Ownership(['alice@chromium.org'])
+    self.assertEqual(ownership.emails, ['alice@chromium.org'])
 
   def testComponent(self):
     ownership = histogram.Ownership([])
     self.assertIsNone(ownership.component)
 
-    ownership = histogram.Ownership([], "fooBar")
-    self.assertEqual(ownership.component, "fooBar")
+    ownership = histogram.Ownership([], 'fooBar')
+    self.assertEqual(ownership.component, 'fooBar')
 
   def testFromDict(self):
-    sample_emails = ["alice@chromium.org", "bob@chromium.org"]
+    sample_emails = ['alice@chromium.org', 'bob@chromium.org']
 
-    ownership_dict = {"emails": sample_emails}
+    ownership_dict = {'emails': sample_emails}
     ownership_no_component = histogram.Ownership.FromDict(ownership_dict)
     self.assertEqual(ownership_no_component.emails, sample_emails)
     self.assertIsNone(ownership_no_component.component)
 
-    ownership_dict["component"] = "fooBar"
+    ownership_dict['component'] = 'fooBar'
     ownership_with_component = histogram.Ownership.FromDict(ownership_dict)
     self.assertEqual(ownership_with_component.emails, sample_emails)
-    self.assertEqual(ownership_with_component.component, "fooBar")
+    self.assertEqual(ownership_with_component.component, 'fooBar')
 
-  def testAsDictInfo(self):
-    sample_emails = ["alice@chromium.org"]
+  def testAsDict(self):
+    sample_emails = ['alice@chromium.org']
 
     ownership_no_component = histogram.Ownership(sample_emails)
-    ownership_dict_no_comp = {}
-    ownership_no_component._AsDictInto(ownership_dict_no_comp)
+    ownership_dict_no_component = ownership_no_component.AsDict()
 
-    sample_emails.append("bob@chromium.org")
+    sample_emails.append('bob@chromium.org')
 
-    ownership_with_component = histogram.Ownership(sample_emails, "fooBar")
-    ownership_dict_with_comp = {}
-    ownership_with_component._AsDictInto(ownership_dict_with_comp)
+    ownership_with_component = histogram.Ownership(sample_emails, 'fooBar')
 
-    self.assertDeepEqual(ownership_dict_with_comp,
-                         {"emails": sample_emails, "component": "fooBar"})
+    self.assertEqual(ownership_dict_no_component['emails'],
+                     ['alice@chromium.org'])
+    self.assertNotIn('component', ownership_dict_no_component)
+    self.assertEqual(ownership_with_component.AsDict()['component'], 'fooBar')
 
-    self.assertDeepEqual(ownership_dict_no_comp,
-                         {"emails": ["alice@chromium.org"]})
 
 class BreakdownUnittest(unittest.TestCase):
+
   def testRoundtrip(self):
     bd = histogram.Breakdown()
     bd.Set('one', 1)
