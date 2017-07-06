@@ -4506,8 +4506,12 @@ tr.b.unittest.testSuite(function() {
       assert.lengthOf(p2.memoryDumps, 1);
 
       // Stack frames.
+      const frameIdToTitle = {};
+      for (const [id, f] of Object.entries(m.stackFrames)) {
+        frameIdToTitle[id] = f.title;
+      }
       assert.deepEqual(
-          tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
+          frameIdToTitle,
           {
             'p21:0': 'FrameView::layout',
             'p21:0:self': '<self>',
@@ -4749,8 +4753,12 @@ tr.b.unittest.testSuite(function() {
       assert.lengthOf(p4.memoryDumps, 1);
 
       // Stack frames.
+      const frameIdToTitle = {};
+      for (const [id, f] of Object.entries(m.stackFrames)) {
+        frameIdToTitle[id] = f.title;
+      }
       assert.deepEqual(
-          tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
+          frameIdToTitle,
           {
             'p21:0': 'FrameView::layout',
             'p21:A': '<self>',

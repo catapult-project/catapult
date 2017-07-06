@@ -579,92 +579,94 @@ tr.exportTo('tr.ui.analysis', function() {
           timeToPidToProcessMemoryDump);
 
       // Process (list index) -> Component (dict key) -> Cell.
-      return Object.values(tr.b.mapItems(
-          pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
-            // Get the process associated with the dumps. We can use any defined
-            // process memory dump in timeToDump since they all have the same
-            // pid.
-            const process = timeToDump.find(x => x).process;
+      const rows = [];
+      for (const [pid, timeToDump] of
+          Object.entries(pidToTimeToProcessMemoryDump)) {
+        // Get the process associated with the dumps. We can use any defined
+        // process memory dump in timeToDump since they all have the same
+        // pid.
+        const process = timeToDump.find(x => x).process;
 
-            // Used memory (total resident, PSS, ...).
-            const usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
-                function(dump) {
-                  const sizes = {};
+        // Used memory (total resident, PSS, ...).
+        const usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
+            function(dump) {
+              const sizes = {};
 
-                  const totals = dump.totals;
-                  if (totals !== undefined) {
-                    // Common totals.
-                    for (const [totalName, cellName] of
-                        Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
-                      const total = totals[totalName];
-                      if (total === undefined) continue;
-                      sizes[cellName] = new Scalar(
-                      sizeInBytes_smallerIsBetter, total);
+              const totals = dump.totals;
+              if (totals !== undefined) {
+                // Common totals.
+                for (const [totalName, cellName] of
+                    Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
+                  const total = totals[totalName];
+                  if (total === undefined) continue;
+                  sizes[cellName] = new Scalar(
+                  sizeInBytes_smallerIsBetter, total);
+                }
+
+                // Platform-specific totals (e.g. private resident on Mac).
+                const platformSpecific = totals.platformSpecific;
+                if (platformSpecific !== undefined) {
+                  for (const [name, size] of
+                      Object.entries(platformSpecific)) {
+                    let newName = name;
+                    // Change raw OS-specific total name to a user-friendly
+                    // column title (e.g. 'private_bytes' -> 'Private').
+                    if (name.endsWith(
+                        PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
+                      newName = name.substring(0, name.length -
+                      PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
                     }
-
-                    // Platform-specific totals (e.g. private resident on Mac).
-                    const platformSpecific = totals.platformSpecific;
-                    if (platformSpecific !== undefined) {
-                      for (const [name, size] of
-                          Object.entries(platformSpecific)) {
-                        let newName = name;
-                        // Change raw OS-specific total name to a user-friendly
-                        // column title (e.g. 'private_bytes' -> 'Private').
-                        if (name.endsWith(
-                            PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
-                          newName = name.substring(0, name.length -
-                          PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
-                        }
-                        newName = newName.replace('_', ' ').trim();
-                        newName = newName.charAt(0).toUpperCase() +
-                          newName.slice(1);
-                        sizes[newName] = new Scalar(
-                        sizeInBytes_smallerIsBetter, size);
-                      }
-                    }
+                    newName = newName.replace('_', ' ').trim();
+                    newName = newName.charAt(0).toUpperCase() +
+                      newName.slice(1);
+                    sizes[newName] = new Scalar(
+                    sizeInBytes_smallerIsBetter, size);
                   }
+                }
+              }
 
-                  // VM regions byte stats.
-                  const vmRegions = dump.mostRecentVmRegions;
-                  if (vmRegions !== undefined) {
-                    for (const [byteStatName, cellName] of
-                        Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
-                      const byteStat = vmRegions.byteStats[byteStatName];
-                      if (byteStat === undefined) continue;
-                      sizes[cellName] = new Scalar(
-                      sizeInBytes_smallerIsBetter, byteStat);
-                    }
-                  }
+              // VM regions byte stats.
+              const vmRegions = dump.mostRecentVmRegions;
+              if (vmRegions !== undefined) {
+                for (const [byteStatName, cellName] of
+                    Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
+                  const byteStat = vmRegions.byteStats[byteStatName];
+                  if (byteStat === undefined) continue;
+                  sizes[cellName] = new Scalar(
+                  sizeInBytes_smallerIsBetter, byteStat);
+                }
+              }
 
-                  return sizes;
-                });
+              return sizes;
+            });
 
-            // Allocator memory (v8, oilpan, ...).
-            const allocatorCells = tr.ui.analysis.createCells(timeToDump,
-                function(dump) {
-                  const memoryAllocatorDumps = dump.memoryAllocatorDumps;
-                  if (memoryAllocatorDumps === undefined) return undefined;
+        // Allocator memory (v8, oilpan, ...).
+        const allocatorCells = tr.ui.analysis.createCells(timeToDump,
+            function(dump) {
+              const memoryAllocatorDumps = dump.memoryAllocatorDumps;
+              if (memoryAllocatorDumps === undefined) return undefined;
 
-                  const sizes = {};
-                  memoryAllocatorDumps.forEach(function(allocatorDump) {
-                    let rootDisplayedSizeNumeric = allocatorDump.numerics[
-                    DISPLAYED_SIZE_NUMERIC_NAME];
-                    if (rootDisplayedSizeNumeric === undefined) {
-                      rootDisplayedSizeNumeric =
-                      new Scalar(sizeInBytes_smallerIsBetter, 0);
-                    }
-                    sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
-                  });
-                  return sizes;
-                });
+              const sizes = {};
+              memoryAllocatorDumps.forEach(function(allocatorDump) {
+                let rootDisplayedSizeNumeric = allocatorDump.numerics[
+                DISPLAYED_SIZE_NUMERIC_NAME];
+                if (rootDisplayedSizeNumeric === undefined) {
+                  rootDisplayedSizeNumeric =
+                  new Scalar(sizeInBytes_smallerIsBetter, 0);
+                }
+                sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
+              });
+              return sizes;
+            });
 
-            return {
-              title: process.userFriendlyName,
-              contexts: timeToDump,
-              usedMemoryCells,
-              allocatorCells
-            };
-          }));
+        rows.push({
+          title: process.userFriendlyName,
+          contexts: timeToDump,
+          usedMemoryCells,
+          allocatorCells
+        });
+      }
+      return rows;
     },
 
     createFooterRows_(rows, columns) {

@@ -88,53 +88,6 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(tr.b.groupIntoMap(srcArray, fn), dstMap);
   });
 
-  test('mapItems', function() {
-    // Empty dictionary.
-    let srcDict = {};
-    let dstDict = tr.b.mapItems(srcDict, function(key, value) {
-      return value;
-    });
-    assert.lengthOf(Object.keys(srcDict), 0);
-    assert.lengthOf(Object.keys(dstDict), 0);
-    assert.notStrictEqual(dstDict, srcDict);
-
-    // Non-empty dictionary.
-    srcDict = {a: 0, b: 30};
-    dstDict = tr.b.mapItems(srcDict, function(key, value) {
-      return 9 * value / 5 + 32;
-    });
-    assert.lengthOf(Object.keys(srcDict), 2);
-    assert.strictEqual(srcDict.a, 0);
-    assert.strictEqual(srcDict.b, 30);
-    assert.lengthOf(Object.keys(dstDict), 2);
-    assert.strictEqual(dstDict.a, 32);
-    assert.strictEqual(dstDict.b, 86);
-    assert.notStrictEqual(dstDict, srcDict);
-
-    // Optional 'this' argument.
-    srcDict = {c: '?', d: '!', e: '.'};
-    dstDict = tr.b.mapItems(srcDict, function(key, value) {
-      return key + this.delimiter + value;
-    }, {delimiter: '='});
-    assert.lengthOf(Object.keys(srcDict), 3);
-    assert.strictEqual(srcDict.c, '?');
-    assert.strictEqual(srcDict.d, '!');
-    assert.strictEqual(srcDict.e, '.');
-    assert.lengthOf(Object.keys(dstDict), 3);
-    assert.strictEqual(dstDict.c, 'c=?');
-    assert.strictEqual(dstDict.d, 'd=!');
-    assert.strictEqual(dstDict.e, 'e=.');
-    assert.notStrictEqual(dstDict, srcDict);
-
-    // Inherited properties should not be mapped.
-    srcDict = {__proto__: {a: 10}};
-    dstDict = tr.b.mapItems(srcDict, function(key, value) {
-      return value;
-    });
-    assert.lengthOf(Object.keys(srcDict), 0);
-    assert.lengthOf(Object.keys(dstDict), 0);
-  });
-
   test('inPlaceFilter_simple', function() {
     const someThisArg = {};
     const list = [1, 2, 3, 4];

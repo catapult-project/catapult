@@ -53,12 +53,13 @@ tr.exportTo('tr.ui.tracks', function() {
 
   function createAllocatorDumps(memoryDump, dumpData) {
     // Create the individual allocator dumps.
-    const allocatorDumps = tr.b.mapItems(dumpData, (allocatorName, data) => {
+    const allocatorDumps = {};
+    for (const [allocatorName, data] of Object.entries(dumpData)) {
       const size = data.size;
       assert.typeOf(size, 'number');  // Sanity check.
-      return newAllocatorDump(memoryDump, allocatorName,
-          {numerics: {size}});
-    });
+      allocatorDumps[allocatorName] = newAllocatorDump(
+          memoryDump, allocatorName, {numerics: {size}});
+    }
 
     // Add ownership links between them.
     for (const [allocatorName, data] of Object.entries(dumpData)) {

@@ -83,28 +83,6 @@ tr.exportTo('tr.b', function() {
     return results;
   }
 
-  /**
-   * Create a new dictionary with the same keys as the original dictionary
-   * mapped to the results of the provided function called on the corresponding
-   * entries in the original dictionary, i.e. result[key] = fn(key, dict[key])
-   * for all keys in dict (own enumerable properties only).
-   *
-   * Example:
-   *   var srcDict = {a: 10, b: 15};
-   *   var dstDict = mapItems(srcDict, function(k, v) { return 2 * v; });
-   *   // srcDict is unmodified and dstDict is now equal to {a: 20, b: 30}.
-   */
-  function mapItems(dict, fn, opt_this) {
-    opt_this = opt_this || this;
-    const result = {};
-    const keys = Object.keys(dict);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      result[key] = fn.call(opt_this, key, dict[key]);
-    }
-    return result;
-  }
-
   function inPlaceFilter(array, predicate, opt_this) {
     opt_this = opt_this || this;
     let nextPosition = 0;
@@ -212,7 +190,6 @@ tr.exportTo('tr.b', function() {
     getOnlyElement,
     getFirstElement,
     groupIntoMap,
-    mapItems,
     inPlaceFilter,
     invertArrayOfDicts,
     arrayToDict,

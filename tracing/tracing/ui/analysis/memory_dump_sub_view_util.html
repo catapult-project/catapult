@@ -866,9 +866,11 @@ tr.exportTo('tr.ui.analysis', function() {
     opt_this = opt_this || this;
     const fieldNameToFields = tr.b.invertArrayOfDicts(
         timeToValues, valueFieldsGetter, opt_this);
-    return tr.b.mapItems(fieldNameToFields, function(fieldName, fields) {
-      return new tr.ui.analysis.MemoryCell(fields);
-    });
+    const result = {};
+    for (const [fieldName, fields] of Object.entries(fieldNameToFields)) {
+      result[fieldName] = new tr.ui.analysis.MemoryCell(fields);
+    }
+    return result;
   }
 
   function createWarningInfo(message) {
