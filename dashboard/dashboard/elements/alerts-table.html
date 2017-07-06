@@ -589,14 +589,12 @@ found in the LICENSE file.
        * Displays alerts in groups.
        */
       showAlertsGrouped() {
-        if (uri.getParameter('3651') === 'y') {
-          // https://github.com/catapult-project/catapult/issues/3651
-          const groupedAlerts = d.groupAlerts(this.alertList);
+        // https://github.com/catapult-project/catapult/issues/3651
+        const groupedAlerts = d.groupAlerts(this.alertList);
 
-          for (let i = 0; i < groupedAlerts.length; ++i) {
-            for (const alert of groupedAlerts[i]) {
-              alert.group = 'group' + i;
-            }
+        for (let i = 0; i < groupedAlerts.length; ++i) {
+          for (const alert of groupedAlerts[i]) {
+            alert.group = 'group' + i;
           }
         }
 
