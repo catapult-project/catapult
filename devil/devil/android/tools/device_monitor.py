@@ -25,11 +25,11 @@ if __name__ == '__main__':
       os.path.abspath(os.path.join(os.path.dirname(__file__),
                                    '..', '..', '..')))
 
-from devil import devil_env
 from devil.android import battery_utils
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
+from devil.android.tools import script_common
 
 
 # Various names of sensors used to measure cpu temp
@@ -200,7 +200,7 @@ def main(argv):
 
   parser = argparse.ArgumentParser(
       description='Launches the device monitor.')
-  parser.add_argument('--adb-path', help='Path to adb binary.')
+  script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--blacklist-file', help='Path to device blacklist file.')
   args = parser.parse_args(argv)
 
@@ -212,14 +212,7 @@ def main(argv):
                           datefmt='%y%m%d %H:%M:%S')
   handler.setFormatter(fmt)
   logger.addHandler(handler)
-
-  devil_dynamic_config = devil_env.EmptyConfig()
-  if args.adb_path:
-    devil_dynamic_config['dependencies'].update(
-        devil_env.LocalConfigItem(
-            'adb', devil_env.GetPlatform(), args.adb_path))
-
-  devil_env.config.Initialize(configs=[devil_dynamic_config])
+  script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)
                if args.blacklist_file else None)

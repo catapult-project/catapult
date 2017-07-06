@@ -19,7 +19,6 @@ if __name__ == '__main__':
                                    '..', '..', '..')))
 
 
-from devil import devil_env
 from devil.android import apk_helper
 from devil.android import device_errors
 from devil.android import device_temp_file
@@ -168,8 +167,7 @@ def main(raw_args):
 
   def add_common_arguments(p):
     script_common.AddDeviceArguments(p)
-    p.add_argument(
-        '--adb-path', help='Path to the adb binary.')
+    script_common.AddEnvironmentArguments(p)
     p.add_argument(
         '-v', '--verbose', action='count', default=0,
         help='Print more information.')
@@ -205,14 +203,7 @@ def main(raw_args):
   args = parser.parse_args(raw_args)
 
   run_tests_helper.SetLogLevel(args.verbose)
-
-  devil_dynamic_config = devil_env.EmptyConfig()
-  if args.adb_path:
-    devil_dynamic_config['dependencies'].update(
-        devil_env.LocalConfigItem(
-            'adb', devil_env.GetPlatform(), args.adb_path))
-
-  devil_env.config.Initialize(configs=[devil_dynamic_config])
+  script_common.InitializeEnvironment(args)
 
   devices = script_common.GetDevices(args.devices, args.blacklist_file)
   parallel_devices = parallelizer.SyncParallelizer(

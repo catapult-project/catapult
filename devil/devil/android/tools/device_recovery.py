@@ -16,11 +16,11 @@ if __name__ == '__main__':
   sys.path.append(
       os.path.abspath(os.path.join(os.path.dirname(__file__),
                                    '..', '..', '..')))
-from devil import devil_env
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import device_status
+from devil.android.tools import script_common
 from devil.utils import lsusb
 # TODO(jbudorick): Resolve this after experimenting w/ disabling the USB reset.
 from devil.utils import reset_usb  # pylint: disable=unused-import
@@ -174,8 +174,7 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--adb-path',
-                      help='Absolute path to the adb binary to use.')
+  script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
   parser.add_argument('--known-devices-file', action='append', default=[],
                       dest='known_devices_files',
@@ -187,13 +186,7 @@ def main():
 
   args = parser.parse_args()
   run_tests_helper.SetLogLevel(args.verbose)
-
-  devil_dynamic_config = devil_env.EmptyConfig()
-  if args.adb_path:
-    devil_dynamic_config['dependencies'].update(
-        devil_env.LocalConfigItem(
-            'adb', devil_env.GetPlatform(), args.adb_path))
-  devil_env.config.Initialize(configs=[devil_dynamic_config])
+  script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)
                if args.blacklist_file

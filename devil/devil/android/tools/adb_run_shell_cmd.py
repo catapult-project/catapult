@@ -13,8 +13,8 @@ if __name__ == '__main__':
       os.path.abspath(os.path.join(os.path.dirname(__file__),
                                    '..', '..', '..')))
 
-from devil.android import device_blacklist
 from devil.android import device_utils
+from devil.android.tools import script_common
 from devil.utils import run_tests_helper
 
 
@@ -22,24 +22,19 @@ def main():
   parser = argparse.ArgumentParser(
       'Run an adb shell command on selected devices')
   parser.add_argument('cmd', help='Adb shell command to run.', nargs="+")
-  parser.add_argument('-d', '--device', action='append', dest='devices',
-                      default=[],
-                      help='Device to run cmd on. Runs on all devices if not '
-                           'specified. Set multiple times for multiple devices')
-  parser.add_argument('-v', '--verbose', default=0, action='count',
-                      help='Verbose level (multiple times for more)')
-  parser.add_argument('--blacklist-file', help='Device blacklist file.')
+  script_common.AddDeviceArguments(parser)
+  script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--as-root', action='store_true', help='Run as root.')
   parser.add_argument('--json-output',
                       help='File to dump json output to.')
+  parser.add_argument('-v', '--verbose', default=0, action='count',
+                      help='Verbose level (multiple times for more)')
   args = parser.parse_args()
+
   run_tests_helper.SetLogLevel(args.verbose)
+  script_common.InitializeEnvironment(args)
 
-  args.blacklist_file = device_blacklist.Blacklist(
-      args.blacklist_file) if args.blacklist_file else None
-  devices = device_utils.DeviceUtils.HealthyDevices(
-      blacklist=args.blacklist_file, device_arg=args.devices)
-
+  devices = script_common.GetDevices(args.devices, args.blacklist_file)
   p_out = (device_utils.DeviceUtils.parallel(devices).RunShellCommand(
       args.cmd, large_output=True, as_root=args.as_root, check_return=True)
       .pGet(None))

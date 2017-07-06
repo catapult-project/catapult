@@ -30,7 +30,6 @@ if __name__ == '__main__':
       os.path.abspath(os.path.join(os.path.dirname(__file__),
                                    '..', '..', '..')))
 
-from devil import devil_env
 from devil.android import battery_utils
 from devil.android import device_blacklist
 from devil.android import device_errors
@@ -543,12 +542,10 @@ def main(raw_args):
   parser = argparse.ArgumentParser(
       description='Provision Android devices with settings required for bots.')
   script_common.AddDeviceArguments(parser)
+  script_common.AddEnvironmentArguments(parser)
   parser.add_argument(
       '--adb-key-files', type=str, nargs='+',
       help='list of adb keys to push to device')
-  parser.add_argument(
-      '--adb-path',
-      help='Absolute path to the adb binary to use.')
   parser.add_argument(
       '--disable-location', action='store_true',
       help='disable Google location services on devices')
@@ -622,14 +619,7 @@ def main(raw_args):
   args = parser.parse_args(raw_args)
 
   run_tests_helper.SetLogLevel(args.verbose)
-
-  devil_dynamic_config = devil_env.EmptyConfig()
-  if args.adb_path:
-    devil_dynamic_config['dependencies'].update(
-        devil_env.LocalConfigItem(
-            'adb', devil_env.GetPlatform(), args.adb_path))
-
-  devil_env.config.Initialize(configs=[devil_dynamic_config])
+  script_common.InitializeEnvironment(args)
 
   try:
     return ProvisionDevices(

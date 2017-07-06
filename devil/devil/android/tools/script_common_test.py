@@ -4,7 +4,9 @@
 # found in the LICENSE file.
 
 
+import argparse
 import sys
+import tempfile
 import unittest
 
 from devil import devil_env
@@ -15,10 +17,13 @@ from devil.android.tools import script_common
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
+with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
+  from dependency_manager import exceptions
 
-class ScriptCommonTest(unittest.TestCase):
 
-  def testGetDevices_noSpecs(self):
+class GetDevicesTest(unittest.TestCase):
+
+  def testNoSpecs(self):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
@@ -29,7 +34,7 @@ class ScriptCommonTest(unittest.TestCase):
           devices,
           script_common.GetDevices(None, None))
 
-  def testGetDevices_withDevices(self):
+  def testWithDevices(self):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
@@ -40,17 +45,47 @@ class ScriptCommonTest(unittest.TestCase):
           [device_utils.DeviceUtils('456')],
           script_common.GetDevices(['456'], None))
 
-  def testGetDevices_missingDevice(self):
+  def testMissingDevice(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
                     return_value=[device_utils.DeviceUtils('123')]):
       with self.assertRaises(device_errors.DeviceUnreachableError):
         script_common.GetDevices(['456'], None)
 
-  def testGetDevices_noDevices(self):
+  def testNoDevices(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
                     return_value=[]):
       with self.assertRaises(device_errors.NoDevicesError):
         script_common.GetDevices(None, None)
+
+
+class InitializeEnvironmentTest(unittest.TestCase):
+
+  def setUp(self):
+    # pylint: disable=protected-access
+    self.parser = argparse.ArgumentParser()
+    script_common.AddEnvironmentArguments(self.parser)
+    devil_env.config = devil_env._Environment()
+
+  def testNoAdb(self):
+    args = self.parser.parse_args([])
+    script_common.InitializeEnvironment(args)
+    with self.assertRaises(exceptions.NoPathFoundError):
+      devil_env.config.LocalPath('adb')
+
+  def testAdb(self):
+    with tempfile.NamedTemporaryFile() as f:
+      args = self.parser.parse_args(['--adb-path=%s' % f.name])
+      script_common.InitializeEnvironment(args)
+      self.assertEquals(
+          f.name,
+          devil_env.config.LocalPath('adb'))
+
+  def testNonExistentAdb(self):
+    with tempfile.NamedTemporaryFile() as f:
+      args = self.parser.parse_args(['--adb-path=%s' % f.name])
+    script_common.InitializeEnvironment(args)
+    with self.assertRaises(exceptions.NoPathFoundError):
+      devil_env.config.LocalPath('adb')
 
 
 if __name__ == '__main__':
