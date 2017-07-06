@@ -90,11 +90,6 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     # cause the progress_reporter to log it in the output.
     results.AddValue(failure.FailureValue(story, sys.exc_info(), description))
   try:
-    # TODO(mikecase): Remove this logging once Android perf bots are swarmed.
-    # crbug.com/678282
-    if state.platform.GetOSName() == 'android':
-      state.platform._platform_backend.Log(
-          'START %s' % (story.name if story.name else str(story)))
     if isinstance(test, story_test.StoryTest):
       test.WillRunStory(state.platform)
     state.WillRunStory(story)
@@ -134,11 +129,6 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         test.DidRunPage(state.platform)
       # And the following normally causes the browser to be closed.
       state.DidRunStory(results)
-      # TODO(mikecase): Remove this logging once Android perf bots are swarmed.
-      # crbug.com/678282
-      if state.platform.GetOSName() == 'android':
-        state.platform._platform_backend.Log(
-            'END %s' % (story.name if story.name else str(story)))
     except Exception:
       if not has_existing_exception:
         state.DumpStateUponFailure(story, results)
