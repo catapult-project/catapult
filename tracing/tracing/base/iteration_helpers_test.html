@@ -135,32 +135,6 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(Object.keys(dstDict), 0);
   });
 
-  test('filterItemsSimple', function() {
-    const someThisArg = {};
-    const srcDict = {a: 0, b: 30};
-    const dstDict = tr.b.filterItems(srcDict, function(key, value) {
-      assert.strictEqual(this, someThisArg);
-      return value >= 30;
-    }, someThisArg);
-    assert.lengthOf(Object.keys(dstDict), 1);
-    assert.strictEqual(dstDict.b, 30);
-  });
-
-  test('filterItemsInheritedProps', function() {
-    const srcDict = {
-      a: 0,
-      b: 30,
-      __proto__: {
-        c: 40
-      }
-    };
-    const dstDict = tr.b.filterItems(srcDict, function(key, value) {
-      return value >= 30;
-    });
-    assert.lengthOf(Object.keys(dstDict), 1);
-    assert.strictEqual(dstDict.b, 30);
-  });
-
   test('inPlaceFilter_simple', function() {
     const someThisArg = {};
     const list = [1, 2, 3, 4];

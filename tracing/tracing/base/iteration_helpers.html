@@ -116,20 +116,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  function filterItems(dict, predicate, opt_this) {
-    opt_this = opt_this || this;
-    const result = {};
-    const keys = Object.keys(dict);
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
-      const value = dict[key];
-      if (predicate.call(opt_this, key, value)) {
-        result[key] = value;
-      }
-    }
-    return result;
-  }
-
   function inPlaceFilter(array, predicate, opt_this) {
     opt_this = opt_this || this;
     let nextPosition = 0;
@@ -239,7 +225,6 @@ tr.exportTo('tr.b', function() {
     getFirstElement,
     groupIntoMap,
     mapItems,
-    filterItems,
     inPlaceFilter,
     invertArrayOfDicts,
     arrayToDict,

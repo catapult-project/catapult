@@ -392,9 +392,11 @@ tr.b.unittest.testSuite(function() {
 
       const displayedProcessMemoryDumps = processMemoryDumps.map(
           function(memoryDumps) {
-            return tr.b.filterItems(memoryDumps, function(pid, pmd) {
-              return pids.includes(pmd.process.pid);
-            });
+            const result = {};
+            for (const [pid, pmd] of Object.entries(memoryDumps)) {
+              if (pids.includes(pmd.process.pid)) result[pid] = pmd;
+            }
+            return result;
           });
       viewEl.processMemoryDumps = displayedProcessMemoryDumps;
       viewEl.aggregationMode = aggregationMode;
