@@ -77,10 +77,10 @@ class BattOrTraceAgent(tracing_agents.TracingAgent):
 
   @staticmethod
   def _FindBattOrPath(config):
-    device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
-    battors = battor_device_mapping.GetBattOrList(device_tree)
     battor_path = config.battor_path
     if not config.battor_path and not config.serial_map:
+      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
+      battors = battor_device_mapping.GetBattOrList(device_tree)
       assert len(battors) == 1, ('Must specify BattOr path if there is not '
                                  'exactly one')
       battor_path = battors[0]

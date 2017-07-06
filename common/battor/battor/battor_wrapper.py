@@ -309,7 +309,6 @@ class BattOrWrapper(object):
           return port
 
     if target_platform in ['android', 'linux']:
-      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
       if battor_path:
         if not isinstance(battor_path, basestring):
           raise battor_error.BattOrError(
@@ -329,6 +328,7 @@ class BattOrWrapper(object):
             serial_map=battor_map)
 
       # Not Android and no explicitly passed BattOr.
+      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
       battors = battor_device_mapping.GetBattOrList(device_tree)
       if len(battors) != 1:
         raise battor_error.BattOrError(
