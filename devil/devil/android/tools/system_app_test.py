@@ -14,6 +14,7 @@ if __name__ == '__main__':
 from devil import devil_env
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
+from devil.android.sdk import version_codes
 from devil.android.tools import system_app
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
@@ -31,6 +32,8 @@ class SystemAppTest(unittest.TestCase):
     # pylint: disable=no-self-use,protected-access
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
     mock_device.adb = mock.Mock(spec=adb_wrapper.AdbWrapper)
+    type(mock_device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.LOLLIPOP)
 
     system_props = {}
 
