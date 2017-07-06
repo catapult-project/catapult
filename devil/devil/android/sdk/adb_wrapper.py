@@ -193,7 +193,7 @@ class AdbWrapper(object):
           send_cmd = '( %s ); echo $?; exit;\n' % cmd.rstrip()
           (output, _) = self._process.communicate(send_cmd)
           self._process = None
-          for x in output.splitlines():
+          for x in output.rstrip().splitlines():
             yield x
 
       else:

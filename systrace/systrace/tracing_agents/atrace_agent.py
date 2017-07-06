@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import optparse
+import platform
 import py_utils
 import re
 import sys
@@ -414,7 +415,10 @@ class AtraceConfig(tracing_agents.TracingConfig):
     self.trace_buf_size = trace_buf_size
     self.kfuncs = kfuncs
     self.app_name = app_name
-    self.compress_trace_data = compress_trace_data
+    # Trace compression is broken on Windows.
+    # TODO: Fix https://crbug.com/739751.
+    self.compress_trace_data = \
+        compress_trace_data and platform.system() != 'Windows'
     self.from_file = from_file
     self.device_serial_number = device_serial_number
     self.trace_time = trace_time
