@@ -60,17 +60,6 @@ tr.exportTo('tr.b', function() {
     return 1;
   }
 
-  function concatenateObjects(/* arguments */) {
-    const result = {};
-    for (let i = 0; i < arguments.length; i++) {
-      const object = arguments[i];
-      for (const j in object) {
-        result[j] = object[j];
-      }
-    }
-    return result;
-  }
-
   /**
    * Returns a new Map with items grouped by the return value of the
    * specified function being called on each item.
@@ -219,7 +208,6 @@ tr.exportTo('tr.b', function() {
   }
 
   return {
-    concatenateObjects,
     compareArrays,
     getOnlyElement,
     getFirstElement,

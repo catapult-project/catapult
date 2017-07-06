@@ -1744,7 +1744,7 @@ tr.exportTo('tr.e.importer', function() {
                 name,
                 getEventColor(events[0].event),
                 this.toModelTimeFromUs_(events[0].event.ts),
-                tr.b.concatenateObjects(events[0].event.args,
+                Object.assign({}, events[0].event.args,
                     events[events.length - 1].event.args),
                 this.toModelTimeFromUs_(event.ts - events[0].event.ts),
                 true, undefined, undefined, events[0].event.argsStripped);
@@ -1897,13 +1897,12 @@ tr.exportTo('tr.e.importer', function() {
               // Include args for both END and BEGIN for a matched pair.
               function concatenateArguments(args1, args2) {
                 if (args1.params === undefined || args2.params === undefined) {
-                  return tr.b.concatenateObjects(args1, args2);
+                  return Object.assign({}, args1, args2);
                 }
                 // Make an argument object to hold the combined params.
                 const args3 = {};
-                args3.params = tr.b.concatenateObjects(args1.params,
-                    args2.params);
-                return tr.b.concatenateObjects(args1, args2, args3);
+                args3.params = Object.assign({}, args1.params, args2.params);
+                return Object.assign({}, args1, args2, args3);
               }
               const endArgs = eventStateEntry.end.event.args || {};
               sliceArgs = concatenateArguments(sliceArgs, endArgs);
