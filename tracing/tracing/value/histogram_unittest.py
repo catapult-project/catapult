@@ -8,6 +8,7 @@ import time
 import unittest
 
 from tracing.value import histogram
+from tracing.value.diagnostics import diagnostic_ref
 
 # pylint: disable=too-many-lines
 
@@ -1065,10 +1066,10 @@ class DiagnosticMapUnittest(unittest.TestCase):
 
   def testCloneWithRef(self):
     diagnostics = histogram.DiagnosticMap()
-    diagnostics['ref'] = histogram.DiagnosticRef('abc')
+    diagnostics['ref'] = diagnostic_ref.DiagnosticRef('abc')
 
     clone = histogram.DiagnosticMap.FromDict(diagnostics.AsDict())
-    self.assertIsInstance(clone.get('ref'), histogram.DiagnosticRef)
+    self.assertIsInstance(clone.get('ref'), diagnostic_ref.DiagnosticRef)
     self.assertEqual(clone.get('ref').guid, 'abc')
 
   def testDiagnosticGuidDeserialized(self):

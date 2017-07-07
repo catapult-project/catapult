@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import diagnostic_ref
 
 class HistogramSet(object):
   def __init__(self, histograms=()):
@@ -89,7 +90,7 @@ class HistogramSet(object):
     return dcts
 
   def ReplaceSharedDiagnostic(self, old_guid, new_diagnostic):
-    if not isinstance(new_diagnostic, histogram_module.DiagnosticRef):
+    if not isinstance(new_diagnostic, diagnostic_ref.DiagnosticRef):
       self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
 
     for hist in self:

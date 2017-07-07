@@ -6,6 +6,7 @@ import unittest
 
 from tracing.value import histogram
 from tracing.value import histogram_set
+from tracing.value.diagnostics import diagnostic_ref
 
 
 class HistogramSetUnittest(unittest.TestCase):
@@ -163,7 +164,7 @@ class HistogramSetUnittest(unittest.TestCase):
     # The diagnostic reference should be deserialized as a DiagnosticRef until
     # resolveRelatedHistograms is called.
     self.assertIsInstance(
-        hist2.diagnostics.get('generic'), histogram.DiagnosticRef)
+        hist2.diagnostics.get('generic'), diagnostic_ref.DiagnosticRef)
     hists2.ResolveRelatedHistograms()
     self.assertIsInstance(
         hist2.diagnostics.get('generic'), histogram.GenericSet)
@@ -180,7 +181,8 @@ class HistogramSetUnittest(unittest.TestCase):
     guid0 = diag0.guid
     guid1 = diag1.guid
 
-    hists.ReplaceSharedDiagnostic(guid0, histogram.DiagnosticRef('fakeGuid'))
+    hists.ReplaceSharedDiagnostic(
+        guid0, diagnostic_ref.DiagnosticRef('fakeGuid'))
 
     self.assertEqual(hist.diagnostics['generic0'].guid, 'fakeGuid')
     self.assertEqual(hist.diagnostics['generic1'].guid, guid1)

@@ -21,6 +21,7 @@ from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import diagnostic_ref
 
 
 REVISION_FIELDS_TO_ANNOTATION_NAMES = {
@@ -118,7 +119,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
         # TODO(eakuefner): Share code for replacement logic with add_histograms
         for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
           hs.ReplaceSharedDiagnostic(
-              new_guid, histogram_module.DiagnosticRef(
+              new_guid, diagnostic_ref.DiagnosticRef(
                   existing_diagnostic['guid']))
         data = hs.GetFirstHistogram().AsDict()
 

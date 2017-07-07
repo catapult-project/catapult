@@ -8,6 +8,8 @@ import math
 import random
 import uuid
 
+from tracing.value.diagnostics import diagnostic_ref
+
 
 # pylint: disable=too-many-lines
 # TODO(benjhayden): Split this file up.
@@ -1156,26 +1158,6 @@ GenerateReservedNames()
 RESERVED_NAMES_SET = set(RESERVED_NAMES.values())
 
 
-class DiagnosticRef(object):
-
-  def __init__(self, guid):
-    self._guid = guid
-
-  @property
-  def guid(self):
-    return self._guid
-
-  @property
-  def has_guid(self):
-    return True
-
-  def AsDict(self):
-    return self.guid
-
-  def AsDictOrReference(self):
-    return self.AsDict()
-
-
 class UnmergeableDiagnosticSet(Diagnostic):
 
   def __init__(self, diagnostics):
@@ -1213,7 +1195,7 @@ class UnmergeableDiagnosticSet(Diagnostic):
   def FromDict(dct):
     def RefOrDiagnostic(d):
       if isinstance(d, basestring):
-        return DiagnosticRef(d)
+        return diagnostic_ref.DiagnosticRef(d)
       return Diagnostic.FromDict(d)
 
     return UnmergeableDiagnosticSet(
@@ -1231,13 +1213,13 @@ class DiagnosticMap(dict):
   def AddDicts(self, dct):
     for name, diagnostic_dict in dct.iteritems():
       if isinstance(diagnostic_dict, basestring):
-        self[name] = DiagnosticRef(diagnostic_dict)
+        self[name] = diagnostic_ref.DiagnosticRef(diagnostic_dict)
       else:
         self[name] = Diagnostic.FromDict(diagnostic_dict)
 
   def ResolveSharedDiagnostics(self, histograms, required=False):
     for name, diagnostic in self.iteritems():
-      if not isinstance(diagnostic, DiagnosticRef):
+      if not isinstance(diagnostic, diagnostic_ref.DiagnosticRef):
         continue
       guid = diagnostic.guid
       diagnostic = histograms.LookupDiagnostic(guid)
