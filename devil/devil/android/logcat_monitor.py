@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class LogcatMonitor(object):
 
-  _RECORD_ITER_TIMEOUT = 2.0
+  _RECORD_ITER_TIMEOUT = 0.2
   _RECORD_THREAD_JOIN_WAIT = 5.0
   _WAIT_TIME = 0.2
   _THREADTIME_RE_FORMAT = (
