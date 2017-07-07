@@ -61,7 +61,7 @@ tr.exportTo('tr.v.d', function() {
 
       for (const [name, otherRelatedHist] of otherDiagnostic) {
         const mergedTo = otherRelatedHist.diagnostics.get(
-            tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+            tr.v.d.RESERVED_NAMES.MERGED_TO);
         if (mergedTo === undefined) continue;
 
         for (const relatedHist of mergedTo) {

@@ -422,8 +422,8 @@ tr.exportTo('tr.v', function() {
 
     TRACE_START: new HistogramGrouping(
         'trace start',
-        h => (!h.diagnostics.has(tr.v.d.DateRange.TRACE_START_NAME) ? '' :
-            h.diagnostics.get(tr.v.d.DateRange.TRACE_START_NAME).toString())),
+        h => (!h.diagnostics.has(tr.v.d.RESERVED_NAMES.TRACE_START) ? '' :
+            h.diagnostics.get(tr.v.d.RESERVED_NAMES.TRACE_START).toString())),
   };
 
   return {

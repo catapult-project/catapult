@@ -28,7 +28,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(tr.v.d.DeviceInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.DEVICE, this);
     }
 
     canAddDiagnostic(otherDiagnostic) {

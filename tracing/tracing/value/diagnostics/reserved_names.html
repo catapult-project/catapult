@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+  Include all Diagnostic subclasses here so that RESERVED_INFOS always has
+  access to all subclasses.
+-->
+<link rel="import" href="/tracing/value/diagnostics/all_diagnostics.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v.d', function() {
+  // Diagnostics that are produced outside of metrics (e.g. by telemetry) use
+  // reserved names.
+  const RESERVED_INFOS = {
+    BUILDBOT: {name: 'buildbot'},  // BuildbotInfo or MergedBuildbotInfo
+    DEVICE: {name: 'device'},  // DeviceInfo or MergedDeviceInfo
+    GROUPING_PATH: {name: 'grouping path', type: tr.v.d.GroupingPath},
+    ITERATION: {name: 'iteration'},  // Legacy name for TELEMETRY
+    MERGED_FROM: {name: 'merged from', type: tr.v.d.RelatedHistogramSet},
+    MERGED_TO: {name: 'merged to', type: tr.v.d.RelatedHistogramSet},
+    OWNERS: {name: 'owners', type: tr.v.d.Ownership},
+    REVISIONS: {name: 'revisions'},  // RevisionInfo or MergedRevisionInfo
+    TAG_MAP: {name: 'tagmap', type: tr.v.d.TagMap},
+    TELEMETRY: {name: 'telemetry'},  // TelemetryInfo or MergedTelemetryInfo
+    TRACE_START: {name: 'trace start', type: tr.v.d.DateRange},
+  };
+
+  const RESERVED_NAMES = {};
+
+  const RESERVED_NAMES_TO_TYPES = new Map();
+
+  for (const [codename, info] of Object.entries(RESERVED_INFOS)) {
+    RESERVED_NAMES[codename] = info.name;
+    if (RESERVED_NAMES_TO_TYPES.has(info.name)) {
+      throw new Error(`Duplicate reserved name "${info.name}"`);
+    }
+    RESERVED_NAMES_TO_TYPES.set(info.name, info.type);
+  }
+
+  const RESERVED_NAMES_SET = new Set(Object.values(RESERVED_NAMES));
+
+  return {
+    RESERVED_INFOS,
+    RESERVED_NAMES,
+    RESERVED_NAMES_SET,
+    RESERVED_NAMES_TO_TYPES,
+  };
+});
+</script>

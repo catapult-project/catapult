@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/mre/function_handle.html">
+<link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
@@ -40,7 +41,25 @@ tr.exportTo('tr.metrics', function() {
       metric.constructor(histograms, model, options);
     }
 
+    validateDiagnosticNames(histograms);
+
     return histograms;
+  }
+
+  /**
+   * Ensure that metrics don't use reserved diagnostic names.
+   *
+   * @param {!tr.v.HistogramSet} histograms
+   */
+  function validateDiagnosticNames(histograms) {
+    for (const hist of histograms) {
+      for (const name of hist.diagnostics.keys()) {
+        if (tr.v.d.RESERVED_NAMES_SET.has(name)) {
+          throw new Error(
+              `Illegal diagnostic name "${name}" on Histogram "${hist.name}"`);
+        }
+      }
+    }
   }
 
   /**
@@ -56,11 +75,11 @@ tr.exportTo('tr.metrics', function() {
         telemetry.addInfo(metadata.value.telemetry);
 
         histograms.addSharedDiagnostic(
-            tr.v.d.DateRange.TRACE_START_NAME,
+            tr.v.d.RESERVED_NAMES.TRACE_START,
             new tr.v.d.DateRange(metadata.value.telemetry.traceStartMs));
       }
     }
-    histograms.addSharedDiagnostic(tr.v.d.TelemetryInfo.NAME, telemetry);
+    histograms.addSharedDiagnostic(tr.v.d.RESERVED_NAMES.TELEMETRY, telemetry);
   }
 
   /**

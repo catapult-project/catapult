@@ -26,7 +26,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(DeviceInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.DEVICE, this);
     }
 
     /**
@@ -34,7 +34,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {(undefined|!tr.v.d.DeviceInfo)}
      */
     static getFromHistogram(hist) {
-      return hist.diagnostics.get(DeviceInfo.NAME);
+      return hist.diagnostics.get(tr.v.d.RESERVED_NAMES.DEVICE);
     }
 
     clone() {
@@ -80,8 +80,6 @@ tr.exportTo('tr.v.d', function() {
       return this.ram_;
     }
   }
-
-  DeviceInfo.NAME = 'device';
 
   tr.v.d.Diagnostic.register(DeviceInfo, {
     elementName: 'tr-v-ui-device-info-span'

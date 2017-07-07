@@ -14,7 +14,7 @@ tr.exportTo('tr.v', function() {
     for (const [name, histograms] of histogramArrayMap) {
       if (histograms instanceof Array) {
         for (const histogram of histograms) {
-          histogram.diagnostics.delete(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+          histogram.diagnostics.delete(tr.v.d.RESERVED_NAMES.MERGED_TO);
         }
       } else if (histograms instanceof Map) {
         deleteMergedToDiagnostics(histograms);
@@ -160,7 +160,7 @@ tr.exportTo('tr.v', function() {
           // if the rows will only be able to display (unmergeable).
           const unmergeableHistograms = new tr.v.HistogramSet([histogram]);
           const mergedFrom = existing.diagnostics.get(
-              tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+              tr.v.d.RESERVED_NAMES.MERGED_FROM);
           if (mergedFrom !== undefined) {
             for (const origHist of mergedFrom) {
               unmergeableHistograms.addHistogram(origHist);
@@ -256,7 +256,7 @@ tr.exportTo('tr.v', function() {
             }
 
             const mergedFrom = testHist.diagnostics.get(
-                tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+                tr.v.d.RESERVED_NAMES.MERGED_FROM);
             if (mergedFrom !== undefined) {
               for (const origHist of mergedFrom) {
                 if (histograms.lookupHistogram(origHist.guid) !== undefined) {

@@ -295,7 +295,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
       results.PopulateHistogramSet(metadata)
       tagmap = _GenerateTagMapFromStorySet(stories)
       if tagmap.tags_to_story_names:
-        results.histograms.AddSharedDiagnostic(histogram.TagMap.NAME, tagmap)
+        results.histograms.AddSharedDiagnostic(
+            histogram.RESERVED_NAMES['TAG_MAP'], tagmap)
 
       if state:
         has_existing_exception = sys.exc_info() != (None, None, None)
@@ -403,7 +404,7 @@ def RunBenchmark(benchmark, finder_options):
       return_code = 255
 
     results.histograms.AddSharedDiagnostic(
-        histogram.Ownership.NAME, benchmark.GetOwnership())
+        histogram.RESERVED_NAMES['OWNERS'], benchmark.GetOwnership())
 
     try:
       if finder_options.upload_results:

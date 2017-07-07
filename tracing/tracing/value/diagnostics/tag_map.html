@@ -32,7 +32,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(tr.v.d.TagMap.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.TAG_MAP, this);
     }
 
     equals(other) {
@@ -99,14 +99,6 @@ tr.exportTo('tr.v.d', function() {
       return info;
     }
   }
-
-  // Diagnostics generally do not need a constant name or getFromHistogram().
-  // TagMap is a special kind of Diagnostic that is produced by the
-  // benchmark to map tags to sets of story display names.
-
-  // Histograms produced by telemetry all have a single TagMap at this key
-  // in their DiagnosticMap.
-  TagMap.NAME = 'tagmap';
 
   tr.v.d.Diagnostic.register(TagMap, {
     elementName: 'tr-v-ui-tag-map-span'

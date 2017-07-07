@@ -36,7 +36,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(tr.v.d.RevisionInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.REVISIONS, this);
     }
 
     canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {

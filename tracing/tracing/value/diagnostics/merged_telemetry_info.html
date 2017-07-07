@@ -31,7 +31,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(tr.v.d.TelemetryInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY, this);
     }
 
     equals(other) {

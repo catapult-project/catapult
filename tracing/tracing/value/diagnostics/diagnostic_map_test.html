@@ -138,7 +138,7 @@ tr.b.unittest.testSuite(function() {
     const histograms0 = new tr.v.HistogramSet([aHist0, bHist0]);
 
     histograms0.addSharedDiagnostic(
-        tr.v.d.TelemetryInfo.NAME,
+        tr.v.d.RESERVED_NAMES.TELEMETRY,
         new tr.v.d.TelemetryInfo({label: 'iteration 0'}));
 
     const aHist1 = new tr.v.Histogram('a', tr.b.Unit.byName.count);
@@ -157,7 +157,7 @@ tr.b.unittest.testSuite(function() {
     const histograms1 = new tr.v.HistogramSet([aHist1, bHist1]);
 
     histograms1.addSharedDiagnostic(
-        tr.v.d.TelemetryInfo.NAME,
+        tr.v.d.RESERVED_NAMES.TELEMETRY,
         new tr.v.d.TelemetryInfo({label: 'iteration 1'}));
 
     const aMergedHist = aHist0.clone();
@@ -190,6 +190,17 @@ tr.b.unittest.testSuite(function() {
 
     const aMergedUnmergeable = aMergedHist.diagnostics.get('unmergeable');
     assert.instanceOf(aMergedUnmergeable, tr.v.d.UnmergeableDiagnosticSet);
+  });
+
+  test('validateDiagnosticTypes', function() {
+    const hist = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    function addInvalidDiagnosticType() {
+      hist.diagnostics.set(
+          tr.v.d.RESERVED_NAMES.GROUPING_PATH, new tr.v.d.GenericSet());
+    }
+    assert.throw(addInvalidDiagnosticType, Error,
+        'Diagnostics named "grouping path" must be GroupingPath, not ' +
+        'GenericSet');
   });
 });
 </script>

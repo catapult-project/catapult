@@ -24,7 +24,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(BuildbotInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BUILDBOT, this);
     }
 
     clone() {
@@ -75,7 +75,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {(undefined|!tr.v.d.BuildbotInfo)}
      */
     static getFromHistogram(hist) {
-      return hist.diagnostics.get(BuildbotInfo.NAME);
+      return hist.diagnostics.get(tr.v.d.RESERVED_NAMES.BUILDBOT);
     }
 
     /**
@@ -93,14 +93,6 @@ tr.exportTo('tr.v.d', function() {
       return buildbot[fieldName];
     }
   }
-
-  // Diagnostics generally do not need a constant name or getFromHistogram().
-  // BuildbotInfo is a special kind of Diagnostic that is produced by buildbots,
-  // which need a system to identify and find Histograms by these attributes.
-
-  // Histograms produced by buildbots all have a single BuildbotInfo at this key
-  // in their DiagnosticMap.
-  BuildbotInfo.NAME = 'buildbot';
 
   tr.v.d.Diagnostic.register(BuildbotInfo, {
     elementName: 'tr-v-ui-buildbot-info-span'

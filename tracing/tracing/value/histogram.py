@@ -125,6 +125,7 @@ def Percentile(ary, percent):
 
 
 class Range(object):
+
   def __init__(self):
     self._empty = True
     self._min = None
@@ -179,6 +180,7 @@ class Range(object):
 
 # This class computes statistics online in O(1).
 class RunningStatistics(object):
+
   def __init__(self):
     self._count = 0
     self._mean = 0.0
@@ -329,6 +331,7 @@ class RunningStatistics(object):
 
 
 class Diagnostic(object):
+
   def __init__(self):
     self._guid = None
 
@@ -404,8 +407,6 @@ def RegisterDiagnosticTypes(baseclass=Diagnostic):
 
 class Ownership(Diagnostic):
 
-  NAME = 'owners'
-
   def __init__(self, emails, component=None):
     super(Ownership, self).__init__()
 
@@ -448,6 +449,7 @@ class Ownership(Diagnostic):
     return Ownership(dct.get('emails'), dct.get('component'))
 
 class Breakdown(Diagnostic):
+
   def __init__(self):
     super(Breakdown, self).__init__()
     self._values = {}
@@ -504,6 +506,7 @@ class Breakdown(Diagnostic):
 # Dicts and lists are not hashable.
 # (1 == True) and (0 == False) in Python, but not in JSON.
 class GenericSet(Diagnostic):
+
   def __init__(self, values):
     super(GenericSet, self).__init__()
 
@@ -561,6 +564,7 @@ class GenericSet(Diagnostic):
 
 
 class DateRange(Diagnostic):
+
   def __init__(self, ms):
     super(DateRange, self).__init__()
     self._range = Range()
@@ -600,6 +604,7 @@ class DateRange(Diagnostic):
     self._range.AddRange(other_diagnostic._range)
 
 class HistogramRef(object):
+
   def __init__(self, guid):
     self._guid = guid
 
@@ -609,6 +614,7 @@ class HistogramRef(object):
 
 
 class RelatedHistogramSet(Diagnostic):
+
   def __init__(self, histograms=()):
     super(RelatedHistogramSet, self).__init__()
     self._histograms_by_guid = {}
@@ -652,6 +658,7 @@ class RelatedHistogramSet(Diagnostic):
 
 
 class RelatedHistogramMap(Diagnostic):
+
   def __init__(self):
     super(RelatedHistogramMap, self).__init__()
     self._histograms_by_name = {}
@@ -699,6 +706,7 @@ class RelatedHistogramMap(Diagnostic):
 
 
 class RelatedHistogramBreakdown(RelatedHistogramMap):
+
   def __init__(self):
     super(RelatedHistogramBreakdown, self).__init__()
     self._color_scheme = None
@@ -730,7 +738,6 @@ class RelatedHistogramBreakdown(RelatedHistogramMap):
 
 
 class TagMap(Diagnostic):
-  NAME = 'tagmap'
 
   def __init__(self, info):
     super(TagMap, self).__init__()
@@ -771,7 +778,6 @@ class TagMap(Diagnostic):
 
 
 class BuildbotInfo(Diagnostic):
-  NAME = 'buildbot'
 
   def __init__(self, info):
     super(BuildbotInfo, self).__init__()
@@ -839,8 +845,6 @@ class BuildbotInfo(Diagnostic):
 
 class RevisionInfo(Diagnostic):
 
-  NAME = 'revisions'
-
   def __init__(self, info):
     super(RevisionInfo, self).__init__()
     self._chromium_commit_position = info.get('chromiumCommitPosition', None)
@@ -901,7 +905,6 @@ class RevisionInfo(Diagnostic):
 
 # TODO(benjhayden): Unify this with telemetry's IterationInfo.
 class TelemetryInfo(Diagnostic):
-  NAME = 'telemetry'
 
   def __init__(self):
     super(TelemetryInfo, self).__init__()
@@ -1001,7 +1004,6 @@ class TelemetryInfo(Diagnostic):
 
 
 class DeviceInfo(Diagnostic):
-  NAME = 'device'
 
   def __init__(self):
     super(DeviceInfo, self).__init__()
@@ -1099,6 +1101,7 @@ class DeviceInfo(Diagnostic):
 
 
 class RelatedEventSet(Diagnostic):
+
   def __init__(self):
     super(RelatedEventSet, self).__init__()
     self._events_by_stable_id = {}
@@ -1126,8 +1129,35 @@ class RelatedEventSet(Diagnostic):
 
 RegisterDiagnosticTypes()
 
+RESERVED_INFOS = {
+    'BUILDBOT': {'name': 'buildbot'},  # BuildbotInfo or MergedBuildbotInfo
+    'DEVICE': {'name': 'device'},  # DeviceInfo or MergedDeviceInfo
+    'GROUPING_PATH': {'name': 'grouping path'},
+    'ITERATION': {'name': 'iteration'},  # Legacy name for TELEMETRY
+    'MERGED_FROM': {'name': 'merged from', 'type': RelatedHistogramSet},
+    'MERGED_TO': {'name': 'merged to', 'type': RelatedHistogramSet},
+    'OWNERS': {'name': 'owners', 'type': Ownership},
+    'REVISIONS': {'name': 'revisions'},  # RevisionInfo or MergedRevisionInfo
+    'TAG_MAP': {'name': 'tagmap', 'type': TagMap},
+    'TELEMETRY': {'name': 'telemetry'},  # TelemetryInfo or MergedTelemetryInfo
+    'TRACE_START': {'name': 'trace start', 'type': DateRange},
+}
+
+RESERVED_NAMES = {}
+RESERVED_NAMES_TO_TYPES = {}
+
+def GenerateReservedNames():
+  for codename, info in RESERVED_INFOS.iteritems():
+    RESERVED_NAMES[codename] = info['name']
+    assert info['name'] not in RESERVED_NAMES_TO_TYPES
+    RESERVED_NAMES_TO_TYPES[info['name']] = info.get('type')
+
+GenerateReservedNames()
+RESERVED_NAMES_SET = set(RESERVED_NAMES.values())
+
 
 class DiagnosticRef(object):
+
   def __init__(self, guid):
     self._guid = guid
 
@@ -1147,6 +1177,7 @@ class DiagnosticRef(object):
 
 
 class UnmergeableDiagnosticSet(Diagnostic):
+
   def __init__(self, diagnostics):
     super(UnmergeableDiagnosticSet, self).__init__()
     self._diagnostics = diagnostics
@@ -1190,6 +1221,7 @@ class UnmergeableDiagnosticSet(Diagnostic):
 
 
 class DiagnosticMap(dict):
+
   @staticmethod
   def FromDict(dct):
     dm = DiagnosticMap()
@@ -1245,6 +1277,7 @@ MAX_DIAGNOSTIC_MAPS = 16
 
 
 class HistogramBin(object):
+
   def __init__(self, rang):
     self._range = rang
     self._count = 0
@@ -1309,6 +1342,7 @@ ExtendUnitNames()
 
 
 class Scalar(object):
+
   def __init__(self, unit, value):
     assert unit in UNIT_NAMES
     self._unit = unit
@@ -1346,6 +1380,7 @@ DEFAULT_SUMMARY_OPTIONS = {
 
 
 class Histogram(object):
+
   def __init__(self, name, unit, bin_boundaries=None):
     assert unit in UNIT_NAMES
 

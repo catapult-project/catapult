@@ -11,15 +11,24 @@ found in the LICENSE file.
   Diagnostic registry.
 -->
 <link rel="import" href="/tracing/value/diagnostics/all_diagnostics.html">
+<link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  const MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
-  const MERGED_TO_DIAGNOSTIC_KEY = 'merged to';
-
   class DiagnosticMap extends Map {
+    /**
+     * @param {boolean=} opt_allowReservedNames defaults to true
+     */
+    constructor(opt_allowReservedNames) {
+      super();
+      if (opt_allowReservedNames === undefined) {
+        opt_allowReservedNames = true;
+      }
+      this.allowReservedNames_ = opt_allowReservedNames;
+    }
+
     /**
      * Add a new Diagnostic to this map.
      *
@@ -28,12 +37,25 @@ tr.exportTo('tr.v.d', function() {
      */
     set(name, diagnostic) {
       if (typeof(name) !== 'string') {
-        throw new Error('name must be string, not ' + name);
+        throw new Error(`name must be string, not ${name}`);
       }
 
       if (!(diagnostic instanceof tr.v.d.Diagnostic) &&
           !(diagnostic instanceof tr.v.d.DiagnosticRef)) {
-        throw new Error('Must be instanceof Diagnostic: ' + diagnostic);
+        throw new Error(`Must be instanceof Diagnostic: ${diagnostic}`);
+      }
+
+      // TODO(#3507): Reserved names should never be UnmergeableDiagnosticSet.
+      if (!this.allowReservedNames_ &&
+          tr.v.d.RESERVED_NAMES_SET.has(name) &&
+          !(diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) &&
+          !(diagnostic instanceof tr.v.d.DiagnosticRef)) {
+        const type = tr.v.d.RESERVED_NAMES_TO_TYPES.get(name);
+        if (type && !(diagnostic instanceof type)) {
+          throw new Error(
+              `Diagnostics named "${name}" must be ${type.name}, ` +
+              `not ${diagnostic.constructor.name}`);
+        }
       }
 
       Map.prototype.set.call(this, name, diagnostic);
@@ -99,9 +121,9 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostics(other) {
       for (const [name, otherDiagnostic] of other) {
-        if (name === MERGED_FROM_DIAGNOSTIC_KEY ||
-            name === MERGED_TO_DIAGNOSTIC_KEY ||
-            name === tr.v.d.GroupingPath) {
+        if (name === tr.v.d.RESERVED_NAMES.MERGED_FROM ||
+            name === tr.v.d.RESERVED_NAMES.MERGED_TO ||
+            name === tr.v.d.RESERVED_NAMES.GROUPING_PATH) {
           continue;
         }
 
@@ -160,7 +182,7 @@ tr.exportTo('tr.v.d', function() {
           continue;
         }
 
-        for (const otherHist of this.get(MERGED_FROM_DIAGNOSTIC_KEY)) {
+        for (const otherHist of this.get(tr.v.d.RESERVED_NAMES.MERGED_FROM)) {
           const otherDiagnostic = otherHist.diagnostics.get(name);
           if (!(otherDiagnostic instanceof tr.v.d.RelatedHistogramSet) &&
               !(otherDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
@@ -176,8 +198,6 @@ tr.exportTo('tr.v.d', function() {
 
   return {
     DiagnosticMap,
-    MERGED_FROM_DIAGNOSTIC_KEY,
-    MERGED_TO_DIAGNOSTIC_KEY,
   };
 });
 </script>

@@ -172,7 +172,8 @@ tr.exportTo('tr.v', function() {
 
       this.allBins = binBoundaries.bins.slice();
       this.description = '';
-      this.diagnostics = new tr.v.d.DiagnosticMap();
+      const allowReservedNames = false;
+      this.diagnostics_ = new tr.v.d.DiagnosticMap(allowReservedNames);
       this.maxNumSampleValues_ = this.defaultMaxNumSampleValues_;
       this.name_ = name;
       this.nanDiagnosticMaps = [];
@@ -245,6 +246,10 @@ tr.exportTo('tr.v', function() {
       }
 
       return hist;
+    }
+
+    get diagnostics() {
+      return this.diagnostics_;
     }
 
     get running() {
@@ -569,17 +574,17 @@ tr.exportTo('tr.v', function() {
         bin.addBin(other.allBins[i]);
       }
 
-      let mergedFrom = this.diagnostics.get(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+      let mergedFrom = this.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_FROM);
       if (!mergedFrom) {
         mergedFrom = new tr.v.d.RelatedHistogramSet();
-        this.diagnostics.set(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
+        this.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_FROM, mergedFrom);
       }
       mergedFrom.add(other);
 
-      let mergedTo = other.diagnostics.get(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+      let mergedTo = other.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_TO);
       if (!mergedTo) {
         mergedTo = new tr.v.d.RelatedHistogramSet();
-        other.diagnostics.set(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY, mergedTo);
+        other.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_TO, mergedTo);
       }
       mergedTo.add(this);
 

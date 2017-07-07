@@ -34,11 +34,11 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(GroupingPath.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.GROUPING_PATH, this);
     }
 
     static getFromHistogram(hist) {
-      return hist.diagnostics.get(GroupingPath.NAME);
+      return hist.diagnostics.get(tr.v.d.RESERVED_NAMES.GROUPING_PATH);
     }
 
     equals(other) {
@@ -55,8 +55,6 @@ tr.exportTo('tr.v.d', function() {
       return new GroupingPath(d.groupingPath);
     }
   }
-
-  GroupingPath.NAME = 'grouping path';
 
   tr.v.d.Diagnostic.register(GroupingPath);
 

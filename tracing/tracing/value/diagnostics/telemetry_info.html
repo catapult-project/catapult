@@ -74,7 +74,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToHistogram(hist) {
-      hist.diagnostics.set(TelemetryInfo.NAME, this);
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY, this);
     }
 
     /**
@@ -82,8 +82,8 @@ tr.exportTo('tr.v.d', function() {
      * @return {(undefined|!tr.v.d.TelemetryInfo)}
      */
     static getFromHistogram(hist) {
-      return hist.diagnostics.get(TelemetryInfo.NAME) ||
-             hist.diagnostics.get('iteration');
+      return hist.diagnostics.get(tr.v.d.RESERVED_NAMES.TELEMETRY) ||
+             hist.diagnostics.get(tr.v.d.RESERVED_NAMES.ITERATION);
     }
 
     asDictInto_(d) {
@@ -200,15 +200,6 @@ tr.exportTo('tr.v.d', function() {
           v, storyGroupingKey);
     }
   }
-
-  // Diagnostics generally do not need a constant name or getFromHistogram().
-  // TelemetryInfo is a special kind of Diagnostic that is produced by
-  // telemetry, which shepherds whole flocks of traces at once, and needs a
-  // system to identify and find traces by these attributes.
-
-  // Histograms produced by telemetry all have a single TelemetryInfo at this
-  // key in their DiagnosticMap.
-  TelemetryInfo.NAME = 'telemetry';
 
   tr.v.d.Diagnostic.register(TelemetryInfo, {
     elementName: 'tr-v-ui-telemetry-info-span'

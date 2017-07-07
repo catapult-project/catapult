@@ -182,7 +182,8 @@ def GetSuiteKey(histograms):
 def ComputeTestPath(guid, histograms):
   hist = histograms.LookupHistogram(guid)
   suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
-  telemetry_info = hist.diagnostics[histogram_module.TelemetryInfo.NAME]
+  telemetry_info = hist.diagnostics[
+      histogram_module.RESERVED_NAMES['TELEMETRY']]
   story_display_name = telemetry_info.story_display_name
 
   path = '%s/%s' % (suite_path, hist.name)
@@ -194,12 +195,14 @@ def ComputeTestPath(guid, histograms):
 
 
 def _GetMasterBotBenchmarkFromHistogram(hist):
-  _CheckRequest(histogram_module.BuildbotInfo.NAME in hist.diagnostics,
+  _CheckRequest(histogram_module.RESERVED_NAMES['BUILDBOT'] in hist.diagnostics,
                 'Histograms must have BuildbotInfo attached')
-  buildbot_info = hist.diagnostics[histogram_module.BuildbotInfo.NAME]
-  _CheckRequest(histogram_module.TelemetryInfo.NAME in hist.diagnostics,
-                'Histograms must have TelemetryInfo attached')
-  telemetry_info = hist.diagnostics[histogram_module.TelemetryInfo.NAME]
+  buildbot_info = hist.diagnostics[histogram_module.RESERVED_NAMES['BUILDBOT']]
+  _CheckRequest(
+      histogram_module.RESERVED_NAMES['TELEMETRY'] in hist.diagnostics,
+      'Histograms must have TelemetryInfo attached')
+  telemetry_info = hist.diagnostics[
+      histogram_module.RESERVED_NAMES['TELEMETRY']]
 
   master = buildbot_info.display_master_name
   bot = buildbot_info.display_bot_name
@@ -211,9 +214,9 @@ def _GetMasterBotBenchmarkFromHistogram(hist):
 def ComputeRevision(histograms):
   _CheckRequest(len(histograms) > 0, 'Must upload at least one histogram')
   diagnostics = histograms.GetFirstHistogram().diagnostics
-  _CheckRequest(histogram_module.RevisionInfo.NAME in diagnostics,
+  _CheckRequest(histogram_module.RESERVED_NAMES['REVISIONS'] in diagnostics,
                 'Histograms must have RevisionInfo attached')
-  revision_info = diagnostics[histogram_module.RevisionInfo.NAME]
+  revision_info = diagnostics[histogram_module.RESERVED_NAMES['REVISIONS']]
   # TODO(eakuefner): Allow users to specify other types of revisions to be used
   # for computing revisions of dashboard points. See
   # https://github.com/catapult-project/catapult/issues/3623.

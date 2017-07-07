@@ -60,5 +60,24 @@ tr.b.unittest.testSuite(function() {
     assert.property(result.pairs, 'scalars');
     assert.strictEqual(result.pairs.scalars.length, 6);
   });
+
+  function invalidDiagnosticNameMetric(histograms, model) {
+    const hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.GROUPING_PATH,
+        new tr.v.d.GroupingPath([]));
+  }
+
+  tr.metrics.MetricRegistry.register(invalidDiagnosticNameMetric);
+
+  test('validateDiagnosticNames', function() {
+    const result = new tr.mre.MreResult();
+    const m = TestUtils.newModel();
+
+    assert.throw(function() {
+      tr.metrics.metricMapFunction(result, m, {
+        'metrics': ['invalidDiagnosticNameMetric'],
+      });
+    }, Error, 'Illegal diagnostic name "grouping path" on Histogram "a"');
+  });
 });
 </script>
