@@ -278,9 +278,12 @@ tr.exportTo('tr.ui.analysis', function() {
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
             const regions = node.regions;
             if (regions === undefined) return undefined;
-            return tr.b.arrayToDict(regions, function(region) {
-              return region.uniqueIdWithinProcess;
-            });
+
+            const results = {};
+            for (const region of regions) {
+              results[region.uniqueIdWithinProcess] = region;
+            }
+            return results;
           }));
       const regionSubRows = regionIdToTimeToRegion.map(function(timeToRegion) {
         return this.createRegionRow_(timeToRegion, is64BitAddress);

@@ -135,18 +135,5 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(
         Array.from(dict.c), [undefined, undefined, undefined, false]);
   });
-
-  test('arrayToDict', function() {
-    const fakeThis = { prefix: 'key_' };
-    const array = [5, undefined, 'test'];
-    const dict = tr.b.arrayToDict(array, function(value) {
-      return this.prefix + value;
-    }, fakeThis);
-    assert.deepEqual(dict, {
-      'key_5': 5,
-      'key_undefined': undefined,
-      'key_test': 'test'
-    });
-  });
 });
 </script>

@@ -150,31 +150,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  /**
-   * Convert an array to a dictionary.
-   *
-   * Every element in the array is mapped in the dictionary to the key returned
-   * by the provided function:
-   *
-   *   dictionary[valueToKeyFn(element)] = element;
-   *
-   * @param {!Array} array Arbitrary array.
-   * @param {function(*): string} valueToKeyFn Function mapping array elements
-   *     to dictionary keys.
-   * @param {*=} opt_this Optional 'this' context for valueToKeyFn.
-   */
-  function arrayToDict(array, valueToKeyFn, opt_this) {
-    opt_this = opt_this || this;
-    const result = {};
-    const length = array.length;
-    for (let i = 0; i < length; i++) {
-      const value = array[i];
-      const key = valueToKeyFn.call(opt_this, value);
-      result[key] = value;
-    }
-    return result;
-  }
-
   function setsEqual(a, b) {
     if (!(a instanceof Set) || !(b instanceof Set)) return false;
     if (a.size !== b.size) return false;
@@ -192,7 +167,6 @@ tr.exportTo('tr.b', function() {
     groupIntoMap,
     inPlaceFilter,
     invertArrayOfDicts,
-    arrayToDict,
     setsEqual,
   };
 });

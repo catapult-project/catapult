@@ -697,9 +697,11 @@ tr.exportTo('tr.ui.analysis', function() {
       // Child dump.
       const childDumpNameToDumps = tr.b.invertArrayOfDicts(dumps,
           function(dump) {
-            return tr.b.arrayToDict(dump.children, function(child) {
-              return child.name;
-            });
+            const results = {};
+            for (const child of dump.children) {
+              results[child.name] = child;
+            }
+            return results;
           });
 
       // Recursively create sub-rows for children (if applicable).
