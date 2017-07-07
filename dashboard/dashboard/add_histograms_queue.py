@@ -5,9 +5,11 @@
 """URL endpoint to add new histograms to the datastore."""
 
 import json
+import sys
 
 # TODO(eakuefner): Move these helpers so we don't have to import add_point or
 # add_point_queue directly.
+from dashboard import add_histograms
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard.common import datastore_hooks
@@ -18,6 +20,7 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 
 
 REVISION_FIELDS_TO_ANNOTATION_NAMES = {
@@ -96,6 +99,29 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           id=guid, data=data, test=test_key, start_revision=revision,
           end_revision=revision, internal_only=internal_only)
     else:
+      diagnostics = self.request.get('diagnostics')
+      if diagnostics:
+        diagnostic_data = json.loads(diagnostics)
+        diagnostic_entities = []
+        for diagnostic_datum in diagnostic_data:
+          # TODO(eakuefner): Pass map of guid to dict to avoid overhead
+          guid = diagnostic_datum['guid']
+          diagnostic_entities.append(histogram.SparseDiagnostic(
+              id=guid, data=diagnostic_datum, test=test_key,
+              start_revision=revision, end_revision=sys.maxint,
+              internal_only=internal_only))
+        new_guids_to_existing_diagnostics = add_histograms.DeduplicateAndPut(
+            diagnostic_entities, test_key, revision).iteritems()
+        # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
+        hs = histogram_set.HistogramSet()
+        hs.ImportDicts([data_dict])
+        # TODO(eakuefner): Share code for replacement logic with add_histograms
+        for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
+          hs.ReplaceSharedDiagnostic(
+              new_guid, histogram_module.DiagnosticRef(
+                  existing_diagnostic['guid']))
+        data = hs.GetFirstHistogram().AsDict()
+
       entity = histogram.Histogram(
           id=guid, data=data, test=test_key, revision=revision,
           internal_only=internal_only)

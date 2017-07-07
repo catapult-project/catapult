@@ -81,7 +81,7 @@ def ProcessHistogramSet(histogram_dicts):
     if type(diagnostic) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
       suite_level_sparse_diagnostic_entities.append(
           histogram.SparseDiagnostic(
-              id=diagnostic.guid, data=json.dumps(diagnostic.AsDict()),
+              id=diagnostic.guid, data=diagnostic.AsDict(),
               test=suite_key, start_revision=revision, end_revision=sys.maxint))
 
   # TODO(eakuefner): Refactor master/bot computation to happen above this line
@@ -90,8 +90,7 @@ def ProcessHistogramSet(histogram_dicts):
       suite_level_sparse_diagnostic_entities, suite_key, revision)
   for new_guid, old_diagnostic in new_guids_to_old_diagnostics.iteritems():
     histograms.ReplaceSharedDiagnostic(
-        new_guid, histogram_module.Diagnostic.FromDict(
-            json.loads(old_diagnostic)))
+        new_guid, histogram_module.Diagnostic.FromDict(old_diagnostic))
 
   for hist in histograms:
     guid = hist.guid
@@ -128,12 +127,11 @@ def DeduplicateAndPut(new_entities, test, rev):
   entity_futures = []
   new_guids_to_existing_diagnostics = {}
   for new_entity in new_entities:
-    # TODO(eakuefner): Pass in entity-to-type dict to cut out deserialization
-    type_str = json.loads(new_entity.data)['type']
+    type_str = new_entity.data['type']
     old_entity = _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities)
     if old_entity is not None:
       # Case 1: One in datastore, different from new one.
-      if _IsDifferent(json.loads(old_entity.data), json.loads(new_entity.data)):
+      if _IsDifferent(old_entity.data, new_entity.data):
         old_entity.end_revision = rev - 1
         entity_futures.append(old_entity.put_async())
         new_entity.start_revision = rev
@@ -151,7 +149,7 @@ def DeduplicateAndPut(new_entities, test, rev):
 
 def _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities):
   for entity in diagnostic_entities:
-    if json.loads(entity.data)['type'] == type_str:
+    if entity.data['type'] == type_str:
       return entity
 
 

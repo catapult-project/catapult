@@ -10,12 +10,69 @@ import webapp2
 import webtest
 
 from dashboard import add_histograms
+from dashboard import add_histograms_queue
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 
+
+class AddHistogramsEndToEndTest(testing_common.TestCase):
+  def setUp(self):
+    super(AddHistogramsEndToEndTest, self).setUp()
+    app = webapp2.WSGIApplication([
+        ('/add_histograms', add_histograms.AddHistogramsHandler),
+        ('/add_histograms_queue',
+         add_histograms_queue.AddHistogramsQueueHandler)])
+    self.testapp = webtest.TestApp(app)
+    testing_common.SetIsInternalUser('foo@bar.com', True)
+    self.SetCurrentUser('foo@bar.com', is_admin=True)
+
+  def testPostHistogramEndToEnd(self):
+    data = json.dumps([
+        {
+            'benchmarkName': 'benchmark',
+            'canonicalUrl': '',
+            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            'label': '',
+            'legacyTIRLabel': '',
+            'storyDisplayName': 'story',
+            'type': 'TelemetryInfo'
+        }, {
+            'angle': [],
+            'catapult': [],
+            'chromium': [],
+            'chromiumCommitPosition': 424242,
+            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            'skia': [],
+            'type': 'RevisionInfo',
+            'v8': [],
+            'webrtc': []
+        }, {
+            'buildNumber': 0,
+            'buildbotMasterName': '',
+            'buildbotName': '',
+            'displayBotName': 'bot',
+            'displayMasterName': 'master',
+            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+            'logUri': '',
+            'type': 'BuildbotInfo'
+        }, {
+            'binBoundaries': [1, [1, 1000, 20]],
+            'diagnostics': {
+                'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
+            },
+            'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
+            'name': 'foo2',
+            'unit': 'count'
+        }
+    ])
+    self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
 
 class AddHistogramsTest(testing_common.TestCase):
   def setUp(self):
@@ -176,7 +233,7 @@ class AddHistogramsTest(testing_common.TestCase):
         'type': 'BuildbotInfo'
     }
     diag = histogram.SparseDiagnostic(
-        data=json.dumps(diag_dict), start_revision=1, end_revision=sys.maxint,
+        data=diag_dict, start_revision=1, end_revision=sys.maxint,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
     data = json.dumps([
@@ -241,7 +298,7 @@ class AddHistogramsTest(testing_common.TestCase):
         'type': 'BuildbotInfo'
     }
     diag = histogram.SparseDiagnostic(
-        id='e9c2891d-2b04-413f-8cf4-099827e67626', data=json.dumps(diag_dict),
+        id='e9c2891d-2b04-413f-8cf4-099827e67626', data=diag_dict,
         start_revision=1, end_revision=sys.maxint,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
@@ -495,13 +552,13 @@ class AddHistogramsTest(testing_common.TestCase):
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(d), test=test_key, start_revision=1,
+        data=d, test=test_key, start_revision=1,
         end_revision=sys.maxint, id='abc')
     entity.put()
     d2 = d.copy()
     d2['guid'] = 'def'
     entity2 = histogram.SparseDiagnostic(
-        data=json.dumps(d2), test=test_key,
+        data=d2, test=test_key,
         start_revision=2, end_revision=sys.maxint, id='def')
     add_histograms.DeduplicateAndPut([entity2], test_key, 2)
     sparse = histogram.SparseDiagnostic.query().fetch()
@@ -515,14 +572,14 @@ class AddHistogramsTest(testing_common.TestCase):
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(d), test=test_key, start_revision=1,
+        data=d, test=test_key, start_revision=1,
         end_revision=sys.maxint, id='abc')
     entity.put()
     d2 = d.copy()
     d2['guid'] = 'def'
     d2['osName'] = 'mac'
     entity2 = histogram.SparseDiagnostic(
-        data=json.dumps(d2), test=test_key,
+        data=d2, test=test_key,
         start_revision=1, end_revision=sys.maxint, id='def')
     add_histograms.DeduplicateAndPut([entity2], test_key, 2)
     sparse = histogram.SparseDiagnostic.query().fetch()
@@ -536,7 +593,7 @@ class AddHistogramsTest(testing_common.TestCase):
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(d), test=test_key, start_revision=1,
+        data=d, test=test_key, start_revision=1,
         end_revision=sys.maxint, id='abc')
     entity.put()
     add_histograms.DeduplicateAndPut([entity], test_key, 1)
