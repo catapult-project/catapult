@@ -1436,7 +1436,7 @@ def main(args):
 
     print 'Updating the trace file...'
     with OpenTraceFile(trace_file_path, 'w') as trace_file:
-      json.dump(trace.node, trace_file)
+      trace_file.write(json.dumps(trace.node))
   else:
     print 'No modifications were made - not updating the trace file.'
   return True
