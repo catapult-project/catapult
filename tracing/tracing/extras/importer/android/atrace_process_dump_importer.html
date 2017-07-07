@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/tracing/importer/importer.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
+  const IMPORT_PRIORITY = tr.e.importer.linux_perf.IMPORT_PRIORITY + 1;
+  const HEADER = 'ATRACE_PROCESS_DUMP';
+
+  class AtraceProcessDumpImporter extends tr.importer.Importer {
+    constructor(model, data) {
+      super(model, data);
+      this.importPriority = IMPORT_PRIORITY;
+      this.model_ = model;
+      this.raw_data_ = data;
+    }
+
+    static canImport(events) {
+      if (!(typeof(events) === 'string' || events instanceof String)) {
+        return false;
+      }
+      return events.startsWith(HEADER);
+    }
+
+    get importerName() {
+      return 'AtraceProcessDumpImporter';
+    }
+
+    get model() {
+      return this.model_;
+    }
+
+    parseData() {
+      return JSON.parse(this.raw_data_.slice(HEADER.length + 1));
+    }
+
+    importEvents() {
+      const dump = this.parseData();
+      // TODO(kraynov): Implement actual importer.
+      // console.log(dump);
+    }
+  }
+
+  tr.importer.Importer.register(AtraceProcessDumpImporter);
+
+  return {
+    AtraceProcessDumpImporter,
+  };
+});
+</script>

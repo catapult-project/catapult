@@ -53,12 +53,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   const MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID =
       'linux_clock_monotonic_to_ftrace_global';
 
+  const IMPORT_PRIORITY = 2;
+
   /**
    * Imports linux perf events into a specified model.
    * @constructor
    */
   function FTraceImporter(model, events) {
-    this.importPriority = 2;
+    this.importPriority = IMPORT_PRIORITY;
     this.model_ = model;
     this.events_ = events;
     this.wakeups_ = [];
@@ -929,7 +931,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   return {
     FTraceImporter,
-    _FTraceImporterTestExports: TestExports
+    _FTraceImporterTestExports: TestExports,
+    IMPORT_PRIORITY,
   };
 });
 </script>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/android/atrace_process_dump_importer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  const Importer =
+      tr.e.importer.android.atrace_process_dump.AtraceProcessDumpImporter;
+
+  const TEST_DATA_TRIVIAL =
+      'ATRACE_PROCESS_DUMP\n' +
+      '{"start_ts": "21917568", "snapshots": [' +
+      '{"ts": "21917568", "memdump": {' +
+      '  "788": {' +
+      '    "vm": 2629440, "rss": 249348,' +
+      '    "oom_sc": 0, "oom_sc_adj": -900,' +
+      '    "min_flt": 15844983, "maj_flt": 54832,' +
+      '    "utime": 831123, "stime": 1117125' +
+      '}}}],' +
+      '"processes": {' +
+      '"37": {"name": "kworker/5:0H"},' +
+      '"788": {"name": "system_server", "exe": "/system/bin/app_process64",' +
+      '  "threads": {' +
+      '    "788": {"name": "system_server"},' +
+      '    "793": {"name": "Signal Catcher"}' +
+      '}}}}';
+
+  test('canImport', function() {
+    const canImport = Importer.canImport;
+    assert.isTrue(canImport(TEST_DATA_TRIVIAL));
+    assert.isFalse(canImport('\n'));
+  });
+
+  test('parseData', function() {
+    const importer = new Importer(null, TEST_DATA_TRIVIAL);
+    const result = importer.parseData();
+    assert.strictEqual(result.start_ts, '21917568');
+    assert.lengthOf(result.snapshots, 1);
+    assert.lengthOf(Object.keys(result.processes), 2);
+    assert.lengthOf(Object.keys(result.processes['37']), 1);
+    assert.lengthOf(Object.keys(result.processes['788']), 3);
+    assert.lengthOf(Object.keys(result.processes['788'].threads), 2);
+
+    const snapshot = result.snapshots[0];
+    assert.strictEqual(snapshot.ts, '21917568');
+    assert.lengthOf(Object.keys(snapshot.memdump), 1);
+    assert.lengthOf(Object.keys(snapshot.memdump['788']), 8);
+  });
+});
+</script>
