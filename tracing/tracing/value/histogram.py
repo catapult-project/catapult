@@ -21,9 +21,6 @@ from tracing.value.diagnostics import diagnostic_ref
 JS_MAX_VALUE = 1.7976931348623157e+308
 
 
-MERGED_FROM_DIAGNOSTIC_KEY = 'merged from'
-
-
 # Converts the given percent to a string in the following format:
 # 0.x produces '0x0',
 # 0.xx produces '0xx',
@@ -1235,10 +1232,10 @@ class DiagnosticMap(dict):
     return dct
 
   def Merge(self, other, parent_hist, other_parent_hist):
-    merged_from = self.get(MERGED_FROM_DIAGNOSTIC_KEY)
+    merged_from = self.get(RESERVED_NAMES['MERGED_FROM'])
     if merged_from is None:
       merged_from = RelatedHistogramSet()
-      self[MERGED_FROM_DIAGNOSTIC_KEY] = merged_from
+      self[RESERVED_NAMES['MERGED_FROM']] = merged_from
     merged_from.Add(other_parent_hist)
 
     for name, other_diagnostic in other.iteritems():
