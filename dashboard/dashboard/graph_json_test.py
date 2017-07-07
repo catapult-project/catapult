@@ -686,7 +686,7 @@ class GraphJsonTest(testing_common.TestCase):
     paths = list_tests.GetTestsForTestPathDict(
         {
             'ChromiumGPU/win7/dromaeo/jslib': ['jslib'],
-        }, False)
+        }, False)['tests']
     flot_json_str = graph_json.GetGraphJson(
         paths, rev=15000, num_points=8, is_selected=False)
     flot = json.loads(flot_json_str)
@@ -709,7 +709,7 @@ class GraphJsonTest(testing_common.TestCase):
     for p in test_paths:
       testing_common.AddRows(p, [1])
     path_list = list_tests.GetTestsForTestPathDict(
-        {p: [] for p in test_paths}, False)
+        {p: [] for p in test_paths}, False)['tests']
     response = graph_json.GetGraphJson(path_list, is_selected=False)
     self.assertEqual(
         {'data': {}, 'annotations': {}, 'error_bars': {}},

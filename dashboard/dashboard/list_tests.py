@@ -393,28 +393,54 @@ def GetTestsForTestPathDict(test_path_dict, return_selected):
 
 def _GetSelectedTestPathsForDict(test_path_dict):
   paths = []
+  test_key_futures = []
+  any_missing = False
   for path, selection in test_path_dict.iteritems():
     if selection == 'core':
-      paths.extend(_GetCoreTestPathsForTest(path, True))
+      try:
+        paths.extend(_GetCoreTestPathsForTest(path, True))
+      except AssertionError:
+        any_missing = True
     elif selection == 'all':
-      paths.append(path)
-      paths.extend(GetTestsMatchingPattern(
-          '%s/*' % path, only_with_rows=True))
+      test_key_futures.append(utils.TestKey(path).get_async())
+      try:
+        paths.extend(GetTestsMatchingPattern(
+            '%s/*' % path, only_with_rows=True))
+      except AssertionError:
+        any_missing = True
     elif isinstance(selection, list):
       parent_test_name = path.split('/')[-1]
+      test_key_futures = []
       for part in selection:
         if part == parent_test_name:
           # When the element in the selected list is the same as the last part
           # of the path, it's meant to mean just the path.
           # TODO(eakuefner): Disambiguate this by making it explicit.
-          paths.append(path)
+          part_path = path
         else:
-          # Otherwise, the element is intended to be appended to the path.
-          paths.append('%s/%s' % (path, part))
+          part_path = '%s/%s' % (path, part)
+        test_key_futures.append(utils.TestKey(part_path).get_async())
     else:
       raise BadRequestError("selected must be 'all', 'core', or a list of "
                             "subtests")
-  return paths
+
+  # Can't use Future.wait_all(): if any one test_key is internal-only, then
+  # wait_all() throws AssertionError.
+  for test_key_future in test_key_futures:
+    try:
+      test_key = test_key_future.get_result()
+    except AssertionError:
+      # This is an internal-only timeseries. Don't leak that fact by returning
+      # 500. Pretend that it doesn't exist.
+      any_missing = True
+      continue
+
+    if test_key is None or not test_key.has_rows:
+      any_missing = True
+    else:
+      paths.append(test_key.test_path)
+
+  return {'anyMissing': any_missing, 'tests': paths}
 
 
 def _GetUnselectedTestPathsForDict(test_path_dict):
@@ -423,7 +449,7 @@ def _GetUnselectedTestPathsForDict(test_path_dict):
     if selection == 'core':
       paths.extend(_GetCoreTestPathsForTest(path, False))
     elif selection == 'all':
-      return []
+      return {'tests': []}
     elif isinstance(selection, list):
       # The parent is represented in the selection by its last component, so if
       # we don't see it, we know we need to include it in unselected.
@@ -438,7 +464,7 @@ def _GetUnselectedTestPathsForDict(test_path_dict):
         item = child.split('/')[-1]
         if item not in selection:
           paths.append(child)
-  return paths
+  return {'tests': paths}
 
 
 def _GetCoreTestPathsForTest(path, return_selected):

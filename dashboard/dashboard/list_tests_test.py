@@ -62,6 +62,18 @@ class ListTestsTest(testing_common.TestCase):
   def tearDown(self):
     self.testbed.deactivate()
 
+  def testPost_GetTestsForTestPath_Selected_Invalid(self):
+    self._AddSampleData()
+    # Requesting an invalid test path should not throw 500 error, it should
+    # silently ignore the requested invalid test path.
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': ['commit_time_ref']}),
+        'return_selected': '1'})
+    expected = {'anyMissing': True, 'tests': []}
+    self.assertEqual(expected, json.loads(response.body))
+
   def testGetSubTests_FetchAndCacheBehavior(self):
     self._AddSampleData()
 
@@ -176,6 +188,53 @@ class ListTestsTest(testing_common.TestCase):
         }
     }
     self.assertEqual(expected, json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Selected_SomeInternal(self):
+    self._AddSampleData()
+
+    # Set has_rows on two subtests but internal_only on only one.
+    test = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.cnn.com')
+    test.internal_only = True
+    test.has_rows = True
+    test.put()
+
+    test = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.yahoo.com')
+    test.has_rows = True
+    test.put()
+
+    request = {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': [
+                'www.cnn.com', 'www.yahoo.com']}),
+        'return_selected': '1',
+    }
+
+    self.SetCurrentUser('internal@chromium.org')
+    response = self.testapp.post('/list_tests', request)
+
+    expected = {
+        'anyMissing': False,
+        'tests': [
+            'Chromium/win7/scrolling/commit_time/www.cnn.com',
+            'Chromium/win7/scrolling/commit_time/www.yahoo.com',
+        ],
+    }
+    self.assertEqual(expected, json.loads(response.body))
+
+    self.SetCurrentUser('foo@chromium.org')
+    response = self.testapp.post('/list_tests', request)
+
+    expected = {
+        'anyMissing': True,
+        'tests': [
+            'Chromium/win7/scrolling/commit_time/www.yahoo.com',
+        ],
+    }
+    self.assertEqual(expected, json.loads(response.body))
+
 
   def testGetSubTests_InternalData_OnlyReturnedForAuthorizedUsers(self):
     # When the user has a an internal account, internal-only data is given.
@@ -431,9 +490,11 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '1'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time/www.yahoo.com'],
-        json.loads(response.body))
+    expected = {
+        'anyMissing': False,
+        'tests': ['Chromium/win7/scrolling/commit_time/www.yahoo.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Core_MonitoredChildNoRows(self):
     self._AddSampleData()
@@ -449,7 +510,8 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '1'})
 
-    self.assertEqual([], json.loads(response.body))
+    expected = {'tests': [], 'anyMissing': False}
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Core_ParentHasRows(self):
     self._AddSampleData()
@@ -465,8 +527,11 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '1'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time'], json.loads(response.body))
+    expected = {
+        'anyMissing': False,
+        'tests': ['Chromium/win7/scrolling/commit_time'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Core_AllHaveRows(self):
     self._AddSampleData()
@@ -491,10 +556,14 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '1'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time',
-         'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
-        json.loads(response.body))
+    expected = {
+        'anyMissing': False,
+        'tests': [
+            'Chromium/win7/scrolling/commit_time',
+            'Chromium/win7/scrolling/commit_time/www.yahoo.com',
+        ],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Core_NoRows(self):
     self._AddSampleData()
@@ -505,7 +574,11 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '1'})
 
-    self.assertEqual([], json.loads(response.body))
+    expected = {
+        'anyMissing': False,
+        'tests': [],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_EmptyPreselected(self):
     self._AddSampleData()
@@ -516,10 +589,16 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': []}),
         'return_selected': '1'})
 
-    self.assertEqual([], json.loads(response.body))
+    expected = {'anyMissing': False, 'tests': []}
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Preselected(self):
     self._AddSampleData()
+
+    test = utils.TestKey(
+        'Chromium/win7/scrolling/commit_time/www.yahoo.com').get()
+    test.has_rows = True
+    test.put()
 
     response = self.testapp.post('/list_tests', {
         'type': 'test_path_dict',
@@ -528,10 +607,11 @@ class ListTestsTest(testing_common.TestCase):
                 'commit_time', 'www.yahoo.com']}),
         'return_selected': '1'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time',
-         'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
-        json.loads(response.body))
+    expected = {
+        'anyMissing': True,
+        'tests': ['Chromium/win7/scrolling/commit_time/www.yahoo.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_All(self):
     self._AddSampleData()
@@ -547,10 +627,11 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'all'}),
         'return_selected': '1'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time',
-         'Chromium/win7/scrolling/commit_time/www.cnn.com'],
-        json.loads(response.body))
+    expected = {
+        'anyMissing': True,
+        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_Core_NoParent(self):
     self._AddSampleData()
@@ -561,7 +642,8 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '0'})
 
-    self.assertEqual([], json.loads(response.body))
+    expected = {'tests': []}
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_Core_Unmonitored(self):
     self._AddSampleData()
@@ -586,9 +668,10 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'core'}),
         'return_selected': '0'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
-        json.loads(response.body))
+    expected = {
+        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_EmptyPreselected(self):
     self._AddSampleData()
@@ -599,9 +682,10 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': []}),
         'return_selected': '0'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time'],
-        json.loads(response.body))
+    expected = {
+        'tests': ['Chromium/win7/scrolling/commit_time'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_PreselectedWithRows(self):
     self._AddSampleData()
@@ -618,9 +702,10 @@ class ListTestsTest(testing_common.TestCase):
                 'commit_time', 'www.yahoo.com']}),
         'return_selected': '0'})
 
-    self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
-        json.loads(response.body))
+    expected = {
+        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_PreselectedWithoutRows(self):
     self._AddSampleData()
@@ -632,7 +717,8 @@ class ListTestsTest(testing_common.TestCase):
                 'commit_time', 'www.yahoo.com']}),
         'return_selected': '0'})
 
-    self.assertEqual([], json.loads(response.body))
+    expected = {'tests': []}
+    self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_All(self):
     self._AddSampleData()
@@ -643,7 +729,7 @@ class ListTestsTest(testing_common.TestCase):
             'Chromium/win7/scrolling/commit_time': 'all'}),
         'return_selected': '0'})
 
-    self.assertEqual([], json.loads(response.body))
+    self.assertEqual({'tests': []}, json.loads(response.body))
 
   def testGetDescendants(self):
     self._AddSampleData()

@@ -537,7 +537,7 @@ found in the LICENSE file.
           params.return_selected = '0';
         }
 
-        return await simple_xhr.asPromise('/list_tests', params);
+        return await simple_xhr.asPromise('/list_tests', params).tests;
       },
 
       /**

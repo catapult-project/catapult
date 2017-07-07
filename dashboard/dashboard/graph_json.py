@@ -119,7 +119,8 @@ def _ResolveTestPathDict(test_path_dict, is_selected):
       if selected == []:
         test_path_dict[test] = 'all'
 
-  return list_tests.GetTestsForTestPathDict(test_path_dict, bool(is_selected))
+  return list_tests.GetTestsForTestPathDict(
+      test_path_dict, bool(is_selected))['tests']
 
 
 def GetGraphJson(

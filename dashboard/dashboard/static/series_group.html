@@ -18,10 +18,11 @@ tr.exportTo('d', function() {
      * @param {Array.<string>} selectedPaths
      * @param {Array.<string>} unselectedPaths
      */
-    constructor(mainPath, selectedPaths, unselectedPaths) {
+    constructor(mainPath, selectedPaths, unselectedPaths, anyMissing) {
       this.mainPath_ = mainPath;
       this.selectedPaths_ = selectedPaths;
       this.unselectedPaths_ = unselectedPaths;
+      this.anyMissing_ = anyMissing;
     }
 
     get mainPath() {
@@ -35,6 +36,10 @@ tr.exportTo('d', function() {
     get unselectedPaths() {
       return this.unselectedPaths_;
     }
+
+    get anyMissing() {
+      return this.anyMissing_;
+    }
   }
 
   /**
@@ -44,6 +49,7 @@ tr.exportTo('d', function() {
    * the docstring for listTestsRequestParams.
    *
    * @param {Array} element
+   * @return {!Promise.<!d.SeriesGroup>}
    */
   SeriesGroup.fromLegacyChartStateElement = element => {
     const mainPath = element[0];
@@ -53,13 +59,12 @@ tr.exportTo('d', function() {
     const unselectedTests = simple_xhr.asPromise(
         'list_tests', unselectedParams);
 
-    // TODO(eakuefner): Make this error handling better. See
-    // https://github.com/catapult-project/catapult/issues/3391.
     return Promise.all([selectedTests, unselectedTests]).then(
-        tests => new SeriesGroup(mainPath, ...tests),
-        reason => {
-          throw new Error(reason);
-        });
+        tests => new SeriesGroup(
+            mainPath,
+            tests[0].tests,
+            tests[1].tests,
+            tests[0].anyMissing || tests[1].anyMissing));
   };
 
   /**

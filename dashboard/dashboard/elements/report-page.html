@@ -22,6 +22,12 @@ found in the LICENSE file.
       #feedback {
         text-align: right;
       }
+
+      #loading_error {
+        color: red;
+        display: none;
+        font-weight: bold;
+      }
     </style>
 
     <div id="feedback">
@@ -32,6 +38,12 @@ found in the LICENSE file.
       <test-picker id="test-picker" xsrf-token="{{xsrfToken}}"
                    test-suites="{{testSuites}}"></test-picker>
     </div>
+
+    <div id="loading_error">
+      Some charts failed to load. Either they don't exist, or they are
+      empty, or they are accessible only for signed-in google.com accounts.
+    </div>
+
     <section id="charts-container"></section>
 
     <div id="toasts" hidden>
@@ -164,6 +176,11 @@ found in the LICENSE file.
             const element = d.SeriesGroup.fromLegacyChartStateElement(
                 legacyElement);
             elements.push(element);
+            element.then(seriesGroup => {
+              if (seriesGroup.anyMissing) {
+                this.$.loading_error.style.display = 'block';
+              }
+            });
           }
           chartStates.push(Promise.all(elements));
         }
