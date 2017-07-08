@@ -35,7 +35,7 @@ from py_trace_event import trace_event
 import py_utils
 
 
-_DUMP_WAIT_TIME = 5
+_DUMP_WAIT_TIME = 3
 
 
 class ActionRunner(object):
