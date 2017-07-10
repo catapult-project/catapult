@@ -1034,7 +1034,7 @@ def FindInSystemPath(binary_name):
 class Symbolizer(object):
   """Encapsulates platform-specific symbolization logic."""
 
-  def __init__(self):
+  def __init__(self, addr2line_executable):
     self.is_mac = sys.platform == 'darwin'
     self.is_win = sys.platform == 'win32'
     if self.is_mac:
@@ -1044,7 +1044,12 @@ class Symbolizer(object):
       self.binary = 'addr2line-pdb.exe'
     else:
       self.binary = 'addr2line'
-    self.symbolizer_path = FindInSystemPath(self.binary)
+
+    if addr2line_executable and os.path.isfile(addr2line_executable):
+      self.symbolizer_path = addr2line_executable
+    else:
+      self.symbolizer_path = FindInSystemPath(self.binary)
+
 
   def _SymbolizeLinuxAndAndroid(self, symfile):
     def _SymbolizerCallback(sym_info, frames):
@@ -1113,10 +1118,12 @@ class Symbolizer(object):
            symfile.symbolizable_path]
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-                            stderr=sys.stderr)
+                            stderr=None)
     addrs = ["%x" % relative_pc for relative_pc in
              symfile.frames_by_address.keys()]
     (stdout_data, _) = proc.communicate('\n'.join(addrs))
+    # On windows, lines may contain '\r' character: e.g. "RtlUserThreadStart\r".
+    stdout_data.replace('\r', '')
     stdout_data = stdout_data.split('\n')
 
     # This is known to be in the same order as stderr_data.
@@ -1298,7 +1305,7 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version,
   bzip_path = GetLocalPath(symbol_base_directory, version)
   if not os.path.isfile(bzip_path):
     if not cloud_storage.Exists(cloud_storage_bucket, GetSymbolsPath(version)):
-      print "Can't find symbols on GCS."
+      print "Can't find symbols on GCS '%s'." % version
       return False
     print "Downloading symbols files from GCS, please wait."
     cloud_storage.Get(cloud_storage_bucket, GetSymbolsPath(version), bzip_path)
@@ -1313,7 +1320,7 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
   def DownloadAndExtractZipFile(zip_path, source, destination):
     if not os.path.isfile(zip_path):
       if not cloud_storage.Exists(cloud_storage_bucket, source):
-        print "Can't find symbols on GCS."
+        print "Can't find symbols on GCS '%s'." % version
         return False
       print "Downloading symbols files from GCS, please wait."
       cloud_storage.Get(cloud_storage_bucket, source, zip_path)
@@ -1382,6 +1389,12 @@ def main(args):
       help="Bucket that holds symbols for official Chrome builds. "
            "Used by tests, which don't have access to the default bucket.")
 
+  parser.add_argument(
+      '--addr2line-executable', default=None,
+      help="The path to the executable used to convert address to line."
+           "Default uses the executable found in the PATH environment variable."
+           "Used by tests, which don't have the executable.")
+
   home_dir = os.path.expanduser('~')
   default_dir = os.path.join(home_dir, "symbols")
   parser.add_argument(
@@ -1389,11 +1402,11 @@ def main(args):
       default=default_dir,
       help='Directory where symbols are downloaded and cached.')
 
-  symbolizer = Symbolizer()
+  options = parser.parse_args(args)
+
+  symbolizer = Symbolizer(options.addr2line_executable)
   if symbolizer.symbolizer_path is None:
     sys.exit("Can't symbolize - no %s in PATH." % symbolizer.binary)
-
-  options = parser.parse_args(args)
 
   trace_file_path = options.file
 
