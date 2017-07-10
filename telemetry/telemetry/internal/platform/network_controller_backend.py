@@ -8,6 +8,7 @@ import shutil
 import tempfile
 
 from telemetry.internal.util import wpr_server
+from telemetry.internal.util import webpagereplay_go
 from telemetry.internal.util import ts_proxy_server
 from telemetry.util import wpr_modes
 
@@ -36,6 +37,7 @@ class NetworkControllerBackend(object):
     self._platform_backend = platform_backend
     self._wpr_mode = None
     self._extra_wpr_args = None
+    self._use_wpr_go = False
     self._archive_path = None
     self._make_javascript_deterministic = None
     self._forwarder = None
@@ -86,7 +88,7 @@ class NetworkControllerBackend(object):
   def is_test_ca_installed(self):
     return self._wpr_ca_cert_path is not None
 
-  def Open(self, wpr_mode, extra_wpr_args):
+  def Open(self, wpr_mode, extra_wpr_args, use_wpr_go=False):
     """Configure and prepare target platform for network control.
 
     This may, e.g., install test certificates and perform any needed setup
@@ -103,6 +105,7 @@ class NetworkControllerBackend(object):
     assert not self.is_open, 'Network controller is already open'
     self._wpr_mode = wpr_mode
     self._extra_wpr_args = extra_wpr_args
+    self._use_wpr_go = use_wpr_go
     self._InstallTestCa()
 
   def Close(self):
@@ -117,6 +120,7 @@ class NetworkControllerBackend(object):
     self._make_javascript_deterministic = None
     self._archive_path = None
     self._extra_wpr_args = None
+    self._use_wpr_go = False
     self._wpr_mode = None
 
   def _InstallTestCa(self):
@@ -227,13 +231,21 @@ class NetworkControllerBackend(object):
   def _StartReplayServer(self):
     """Start the replay server and return the started local_ports."""
     self._StopReplayServer()  # In case it was already running.
-    self._wpr_server = wpr_server.ReplayServer(
-        self._archive_path,
-        self.host_ip,
-        http_port=0,
-        https_port=0,
-        dns_port=None,
-        replay_options=self._ReplayCommandLineArgs())
+    if self._use_wpr_go:
+      self._wpr_server = webpagereplay_go.ReplayServer(
+          self._archive_path,
+          self.host_ip,
+          http_port=0,
+          https_port=0,
+          replay_options=self._ReplayCommandLineArgs())
+    else:
+      self._wpr_server = wpr_server.ReplayServer(
+          self._archive_path,
+          self.host_ip,
+          http_port=0,
+          https_port=0,
+          dns_port=None,
+          replay_options=self._ReplayCommandLineArgs())
     return self._wpr_server.StartServer()
 
   def _StopReplayServer(self):

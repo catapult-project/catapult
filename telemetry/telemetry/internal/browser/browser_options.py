@@ -49,6 +49,9 @@ class BrowserFinderOptions(optparse.Values):
 
     self.no_performance_mode = False
 
+    # Whether to use the new Golang implementation of web page replay.
+    self.use_wpr_go = False
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
@@ -73,6 +76,10 @@ class BrowserFinderOptions(optparse.Values):
         dest='chrome_root',
         help='Where to look for chrome builds. '
              'Defaults to searching parent dirs by default.')
+    group.add_option('--use-wpr-go', dest='use_wpr_go',
+                      action='store_true',
+                      help='use the format of the new Golang implementation of '
+                           'web page replay.')
     group.add_option('--chromium-output-directory',
         dest='chromium_output_dir',
         help='Where to look for build artifacts. '

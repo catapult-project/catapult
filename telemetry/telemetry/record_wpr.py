@@ -235,6 +235,8 @@ class WprRecorder(object):
   def Record(self, results):
     assert self._story_set.wpr_archive_info, (
       'Pageset archive_data_file path must be specified.')
+    self._story_set.wpr_archive_info.is_using_wpr_go_archives = \
+        self._options.use_wpr_go
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     story_runner.Run(self._record_page_test, self._story_set,
@@ -273,6 +275,7 @@ def Main(environment, **log_config_kwargs):
                       action='store_true', help='list all benchmark names.')
   parser.add_argument('--upload', action='store_true',
                       help='upload to cloud storage.')
+
   args, extra_args = parser.parse_known_args()
 
   if args.list_benchmarks or args.list_stories:

@@ -42,7 +42,32 @@ class WprArchiveInfo(object):
         'Detected old version of archive info json file. Please update to new '
         'version.')
 
+    self.is_using_wpr_go_archives = False
     self._story_name_to_wpr_file = data['archives']
+    story_archives = self._data['archives']
+    for story in story_archives:
+      files = story_archives[story]
+      for f in files:
+        if files[f].endswith('.wprgo'):
+          self.is_using_wpr_go_archives = True
+    self.ValidateWprGoFormat(story_archives)
+
+  @staticmethod
+  def ValidateWprGoFormat(story_archives):
+    """ Checks that all archives follow either .wpr format or .wprgo format
+    but not both.
+    """
+    using_wpr = False
+    using_wpr_go = False
+    for story in story_archives:
+      files = story_archives[story]
+      for f in files:
+        if files[f].endswith('.wprgo'):
+          using_wpr_go = True
+        elif files[f].endswith('.wpr'):
+          using_wpr = True
+        assert not(using_wpr and using_wpr_go), (
+            'Detected both .wprgo or .wpr archive format.')
 
   @classmethod
   def FromFile(cls, file_path, bucket):
@@ -73,7 +98,7 @@ class WprArchiveInfo(object):
     else:
       assert isinstance(target_platforms, list), 'Must pass platforms as a list'
       target_platforms = target_platforms + [_DEFAULT_PLATFORM]
-    # Download all .wpr files.
+    # Download all .wpr or .wprgo files.
     if not self._bucket:
       logging.warning('Story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
@@ -186,16 +211,20 @@ class WprArchiveInfo(object):
 
   def _NextWprFileName(self):
     """Creates a new file name for a wpr archive file."""
-    # The names are of the format "some_thing_number.wpr". Read the numbers.
+    # The names are of the format "some_thing_number.wpr" or
+    # "some_thing_number.wprgo". Read the numbers.
     highest_number = -1
     base = None
     wpr_files = []
+    extension = 'wprgo' if self.is_using_wpr_go_archives else 'wpr'
     for story in self._data['archives']:
       for p in self._data['archives'][story]:
         wpr_files.append(self._data['archives'][story][p])
 
     for wpr_file in wpr_files:
-      match = re.match(r'(?P<BASE>.*)_(?P<NUMBER>[0-9]+)\.wpr', wpr_file)
+      pattern = r'(?P<BASE>.*)_(?P<NUMBER>[0-9]+).{extension}'.format(
+              extension=extension)
+      match = re.match(pattern, wpr_file)
       if not match:
         raise Exception('Illegal wpr file name ' + wpr_file)
       highest_number = max(int(match.groupdict()['NUMBER']), highest_number)
@@ -207,7 +236,7 @@ class WprArchiveInfo(object):
       # If we're creating a completely new info file, use the base name of the
       # story set file.
       base = os.path.splitext(os.path.basename(self._file_path))[0]
-    new_filename = '%s_%03d.wpr' % (base, highest_number + 1)
+    new_filename = '%s_%03d.%s' % (base, highest_number + 1, extension)
     return new_filename, self._WprFileNameToPath(new_filename)
 
   def _SetWprFileForStory(self, story_name, wpr_file, target_platform):

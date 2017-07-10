@@ -20,8 +20,8 @@ class NetworkController(object):
   def InitializeIfNeeded(self, use_live_traffic=False):
     self._network_controller_backend.InitializeIfNeeded(use_live_traffic)
 
-  def Open(self, wpr_mode, extra_wpr_args):
-    self._network_controller_backend.Open(wpr_mode, extra_wpr_args)
+  def Open(self, wpr_mode, extra_wpr_args, use_wpr_go=False):
+    self._network_controller_backend.Open(wpr_mode, extra_wpr_args, use_wpr_go)
 
   def UpdateTrafficSettings(self, round_trip_latency_ms=None,
       download_bandwidth_kbps=None, upload_bandwidth_kbps=None):
