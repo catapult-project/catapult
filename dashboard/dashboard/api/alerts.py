@@ -29,7 +29,7 @@ class AlertsHandler(request_handler.RequestHandler):
       rev: A revision number.
 
     Outputs:
-      JSON data for an XHR request to show a table of alerts.
+      JSON data; see README.md.
     """
     try:
       alert_list = self._GetAlerts(*args)
