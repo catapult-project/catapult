@@ -383,7 +383,7 @@ class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
       self.assertEquals([],
           self.device._GetApplicationPathsInternal('not.installed.app'))
 
-  def testGetApplicationPathsInternal_garbageFirstLine(self):
+  def testGetApplicationPathsInternal_garbageOutputRaises(self):
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
         (self.call.device.RunShellCommand(
@@ -391,6 +391,15 @@ class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
          ['garbage first line'])):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device._GetApplicationPathsInternal('android')
+
+  def testGetApplicationPathsInternal_outputWarningsIgnored(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
+        (self.call.device.RunShellCommand(
+            ['pm', 'path', 'not.installed.app'], check_return=True),
+         ['WARNING: some warning message from pm'])):
+      self.assertEquals([],
+          self.device._GetApplicationPathsInternal('not.installed.app'))
 
   def testGetApplicationPathsInternal_fails(self):
     with self.assertCalls(

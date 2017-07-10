@@ -590,13 +590,22 @@ class DeviceUtils(object):
     output = self.RunShellCommand(
         ['pm', 'path', package], check_return=should_check_return)
     apks = []
+    bad_output = False
     for line in output:
-      if not line.startswith('package:'):
+      if line.startswith('package:'):
+        apks.append(line[len('package:'):])
+      elif line.startswith('WARNING:'):
         continue
-      apks.append(line[len('package:'):])
+      else:
+        bad_output = True  # Unexpected line in output.
     if not apks and output:
-      raise device_errors.CommandFailedError(
-          'pm path returned: %r' % '\n'.join(output), str(self))
+      if bad_output:
+        raise device_errors.CommandFailedError(
+            'Unexpected pm path output: %r' % '\n'.join(output), str(self))
+      else:
+        logger.warning('pm returned no paths but the following warnings:')
+        for line in output:
+          logger.warning('- %s', line)
     self._cache['package_apk_paths'][package] = list(apks)
     return apks
 
