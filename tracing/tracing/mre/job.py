@@ -8,7 +8,10 @@ from tracing.mre import function_handle
 
 class Job(object):
 
-  def __init__(self, map_function_handle, guid=uuid.uuid4()):
+  def __init__(self, map_function_handle, guid=None):
+    if guid is None:
+      guid = uuid.uuid4()
+
     assert map_function_handle is not None
 
     self._map_function_handle = map_function_handle
