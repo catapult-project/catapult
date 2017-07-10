@@ -13,15 +13,25 @@ def _AddToPathIfNeeded(path):
 
 
 def UpdateSysPathIfNeeded():
-  p = TracingProject()
-  _AddToPathIfNeeded(p.catapult_path)
-  _AddToPathIfNeeded(p.py_vulcanize_path)
-  _AddToPathIfNeeded(p.vinn_path)
+  for path in GetDependencyPaths():
+    _AddToPathIfNeeded(path)
 
-  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'WebOb'))
-  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'Paste'))
-  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'six'))
-  _AddToPathIfNeeded(os.path.join(p.catapult_third_party_path, 'webapp2'))
+
+def GetDependencyPaths():
+  # TODO(#3703): Separate the paths that are only used by the dev server into
+  # another call.
+  p = TracingProject()
+  return [
+      p.catapult_path,
+      p.py_vulcanize_path,
+      p.vinn_path,
+      os.path.join(p.catapult_third_party_path, 'WebOb'),
+      os.path.join(p.catapult_third_party_path, 'Paste'),
+      os.path.join(p.catapult_third_party_path, 'six'),
+      os.path.join(p.catapult_third_party_path, 'webapp2'),
+      os.path.join(p.catapult_path, 'common', 'py_utils'),
+      os.path.join(p.tracing_third_party_path, 'symbols')
+  ]
 
 
 def _FindAllFilesRecursive(source_paths):

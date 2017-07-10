@@ -6,8 +6,12 @@
 import os
 import sys
 
+tracing_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(tracing_path)
+import tracing_project
+tracing_project.UpdateSysPathIfNeeded()
+
 if __name__ == '__main__':
-  tracing_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-  sys.path.append(tracing_path)
   from tracing.extras.symbolizer import symbolize_trace
   sys.exit(symbolize_trace.main(sys.argv[1:]))

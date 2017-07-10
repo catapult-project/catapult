@@ -226,27 +226,11 @@ import tarfile
 import zipfile
 import tempfile
 
-_TRACING_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-
-_SYMBOLS_PATH = os.path.abspath(os.path.join(
-    _TRACING_DIR,
-    'third_party',
-    'symbols'))
-sys.path.append(_SYMBOLS_PATH)
-# pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
 from tracing.extras.symbolizer import symbolize_trace_atos_regex
 from tracing.extras.symbolizer import symbolize_trace_macho_reader
 
-_PY_UTILS_PATH = os.path.abspath(os.path.join(
-    _TRACING_DIR,
-    '..',
-    'common',
-    'py_utils'))
-sys.path.append(_PY_UTILS_PATH)
-# pylint: disable=import-error
 import py_utils.cloud_storage as cloud_storage
 
 _UNNAMED_FILE = 'unnamed'

@@ -14,9 +14,14 @@ _CATAPULT_PATH = os.path.abspath(
         os.path.pardir))
 _TRACING_PATH = os.path.join(_CATAPULT_PATH, 'tracing')
 
+sys.path.insert(0, _TRACING_PATH)
+from tracing import tracing_project
+
 
 def _RunTestsOrDie(top_level_dir):
-  exit_code = run_with_typ.Run(top_level_dir, path=[_TRACING_PATH])
+  path = [_TRACING_PATH]
+  path.extend(tracing_project.GetDependencyPaths())
+  exit_code = run_with_typ.Run(top_level_dir, path=path)
   if exit_code:
     sys.exit(exit_code)
 
