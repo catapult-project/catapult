@@ -6,7 +6,7 @@ import json
 
 from google.appengine.ext import ndb
 
-from dashboard.api import oauth
+from dashboard.api import api_auth
 from dashboard.common import request_handler
 from dashboard.models import anomaly
 from dashboard import alerts
@@ -36,12 +36,12 @@ class AlertsHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps(alert_list))
     except BadRequestError as e:
       self._WriteErrorMessage(e.message, 500)
-    except oauth.NotLoggedInError:
+    except api_auth.NotLoggedInError:
       self._WriteErrorMessage('User not authenticated', 403)
-    except oauth.OAuthError:
+    except api_auth.OAuthError:
       self._WriteErrorMessage('User authentication error', 403)
 
-  @oauth.Authorize
+  @api_auth.Authorize
   def _GetAlerts(self, *args):
     alert_list = None
     list_type = args[0]

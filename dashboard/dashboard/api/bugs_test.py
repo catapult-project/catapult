@@ -10,8 +10,8 @@ import webtest
 
 from google.appengine.api import users
 
+from dashboard.api import api_auth
 from dashboard.api import bugs
-from dashboard.api import oauth
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import try_job
@@ -98,11 +98,12 @@ class BugsTest(testing_common.TestCase):
 
   def _SetGooglerOAuth(self, mock_oauth):
     mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithValidBug_ShowsData(self, mock_oauth, mock_utils):
     self._SetGooglerOAuth(mock_oauth)
     mock_utils.return_value = True
@@ -136,7 +137,7 @@ class BugsTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithInvalidBugIdParameter_ShowsError(
       self, mock_oauth, mock_utils):
     mock_utils.return_value = True
@@ -146,22 +147,24 @@ class BugsTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_NoAccess_ShowsError(
       self, mock_oauth, mock_utils):
     mock_utils.return_value = False
     mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     response = self.testapp.post('/api/bugs/foo', status=500)
     self.assertIn('No access', response.body)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_NoOauthUser(self, mock_oauth):
     mock_oauth.get_current_user.return_value = None
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     self.testapp.post('/api/bugs/12345', status=403)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_BadOauthClientId(self, mock_oauth):
     mock_oauth.get_current_user.return_value = GOOGLER_USER
     mock_oauth.get_client_id.return_value = 'invalid'

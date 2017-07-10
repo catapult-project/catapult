@@ -13,7 +13,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard.api import alerts
-from dashboard.api import oauth
+from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -83,12 +83,14 @@ class AlertsTest(testing_common.TestCase):
 
   def _SetGooglerOAuth(self, mock_oauth):
     mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping(self, mock_oauth):
     mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
@@ -109,7 +111,7 @@ class AlertsTest(testing_common.TestCase):
     # but not the non-overlapping alert.
     self.assertEqual(5, len(anomalies))
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithKeyOfNonExistentAlert_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     key = ndb.Key('Anomaly', 123)
@@ -117,7 +119,7 @@ class AlertsTest(testing_common.TestCase):
                                  status=500)
     self.assertIn('No Anomaly found for key %s.' % key.urlsafe(), response.body)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithRevParameter(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     # If the rev parameter is given, then all alerts whose revision range
@@ -131,13 +133,13 @@ class AlertsTest(testing_common.TestCase):
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithInvalidRevParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     response = self.testapp.post('/api/alerts/rev/foo', status=500)
     self.assertIn('Invalid rev "foo".', response.body)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithBugIdParameter(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     sheriff_key = self._AddSheriff()
@@ -153,11 +155,12 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual(3, len(anomalies))
 
   @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithBugIdParameterExternalUser_ExternaData(
       self, mock_oauth, mock_utils):
     mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     mock_utils.return_value = False
     datastore_hooks.InstallHooks()
     sheriff_key = self._AddSheriff()
@@ -172,25 +175,26 @@ class AlertsTest(testing_common.TestCase):
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(1, len(anomalies))
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithInvalidBugIdParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     response = self.testapp.post('/api/alerts/bug_id/foo', status=500)
     self.assertIn('Invalid bug ID "foo".', response.body)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_NoOauthUser(self, mock_oauth):
     mock_oauth.get_current_user.return_value = None
-    mock_oauth.get_client_id.return_value = oauth.OAUTH_CLIENT_ID_WHITELIST[0]
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     self.testapp.post('/api/alerts/bug_id/12345', status=403)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_BadOauthClientId(self, mock_oauth):
     mock_oauth.get_current_user.return_value = GOOGLER_USER
     mock_oauth.get_client_id.return_value = 'invalid'
     self.testapp.post('/api/alerts/bug_id/12345', status=403)
 
-  @mock.patch.object(oauth, 'oauth')
+  @mock.patch.object(api_auth, 'oauth')
   def testPost_WithHistoryParameter_ListsAlerts(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     test_keys = self._AddTests()

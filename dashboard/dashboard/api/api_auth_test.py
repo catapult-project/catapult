@@ -7,7 +7,7 @@ import unittest
 
 from google.appengine.api import users
 
-from dashboard.api import oauth
+from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -26,7 +26,7 @@ class OauthTest(testing_common.TestCase):
   def setUp(self):
     super(OauthTest, self).setUp()
 
-    patcher = mock.patch.object(oauth, 'oauth')
+    patcher = mock.patch.object(api_auth, 'oauth')
     self.addCleanup(patcher.stop)
     self.mock_oauth = patcher.start()
 
@@ -37,21 +37,21 @@ class OauthTest(testing_common.TestCase):
   def testPost_NoUser(self):
     self.mock_oauth.get_current_user.return_value = None
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
-    with self.assertRaises(oauth.NotLoggedInError):
+    with self.assertRaises(api_auth.NotLoggedInError):
       FuncThatNeedsAuth()
     self.assertFalse(self.mock_set_privileged_request.called)
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
-  def testPost_AuthorizedUser(self):
+  def testPost_OAuthUser(self):
     self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
     self.mock_oauth.get_client_id.return_value = (
-        oauth.OAUTH_CLIENT_ID_WHITELIST[0])
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
@@ -60,10 +60,10 @@ class OauthTest(testing_common.TestCase):
     self.assertTrue(self.mock_set_privileged_request.called)
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
-  def testPost_ServiceAccount(self):
+  def testPost_OAuthUser_ServiceAccount(self):
     self.mock_oauth.get_current_user.return_value = _SERVICE_ACCOUNT_USER
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
@@ -72,10 +72,10 @@ class OauthTest(testing_common.TestCase):
     self.assertTrue(self.mock_set_privileged_request.called)
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
-  def testPost_ServiceAccount_NotInChromeperfAccess(self):
+  def testPost_OAuthUser_ServiceAccount_NotInChromeperfAccess(self):
     self.mock_oauth.get_current_user.return_value = _SERVICE_ACCOUNT_USER
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
@@ -86,21 +86,21 @@ class OauthTest(testing_common.TestCase):
   def testPost_AuthorizedUser_NotInWhitelist(self):
     self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
-    with self.assertRaises(oauth.OAuthError):
+    with self.assertRaises(api_auth.OAuthError):
       FuncThatNeedsAuth()
     self.assertFalse(self.mock_set_privileged_request.called)
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
-  def testPost_AuthorizedUser_NotInChromeperfAccess(self):
+  def testPost_OAuthUser_User_NotInChromeperfAccess(self):
     self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
     self.mock_oauth.get_client_id.return_value = (
-        oauth.OAUTH_CLIENT_ID_WHITELIST[0])
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
@@ -109,12 +109,12 @@ class OauthTest(testing_common.TestCase):
     self.assertFalse(self.mock_set_privileged_request.called)
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
-  def testPost_AuthorizedUser_InChromeperfAccess(self):
+  def testPost_OAuthUser_User_InChromeperfAccess(self):
     self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
     self.mock_oauth.get_client_id.return_value = (
-        oauth.OAUTH_CLIENT_ID_WHITELIST[0])
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
@@ -122,16 +122,60 @@ class OauthTest(testing_common.TestCase):
 
     self.assertTrue(self.mock_set_privileged_request.called)
 
-  def testPost_UnauthorizedUser(self):
-    self.mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
+  @mock.patch.object(api_auth, 'users')
+  @mock.patch(
+      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
+      mock.MagicMock(return_value=True))
+  def testPost_AppengineUser(self, mock_users):
+    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
+    mock_users.get_current_user.return_value = _AUTHORIZED_USER
 
-    @oauth.Authorize
+    @api_auth.Authorize
     def FuncThatNeedsAuth():
       pass
 
-    with self.assertRaises(oauth.OAuthError):
+    FuncThatNeedsAuth()
+
+  @mock.patch.object(api_auth, 'users')
+  @mock.patch(
+      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
+      mock.MagicMock(return_value=False))
+  def testPost_AppengineUser_Unauthorized(self, mock_users):
+    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
+    mock_users.get_current_user.return_value = _UNAUTHORIZED_USER
+
+    @api_auth.Authorize
+    def FuncThatNeedsAuth():
+      pass
+
+    with self.assertRaises(api_auth.InternalOnlyError):
+      FuncThatNeedsAuth()
+
+  def testPost_OauthUser_Unauthorized(self):
+    self.mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
+
+    @api_auth.Authorize
+    def FuncThatNeedsAuth():
+      pass
+
+    with self.assertRaises(api_auth.OAuthError):
       FuncThatNeedsAuth()
     self.assertFalse(self.mock_set_privileged_request.called)
+
+  @mock.patch.object(api_auth, 'users')
+  @mock.patch(
+      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
+      mock.MagicMock(return_value=True))
+  def testPost_NoOAuthUser_NoAppengineUser(self, mock_users):
+    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
+    mock_users.get_current_user.return_value = None
+
+    @api_auth.Authorize
+    def FuncThatNeedsAuth():
+      pass
+
+    with self.assertRaises(api_auth.OAuthError):
+      FuncThatNeedsAuth()
 
 
 if __name__ == '__main__':
