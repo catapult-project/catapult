@@ -370,6 +370,9 @@ def IsGroupMember(identity, group):
   Returns:
     True if confirmed to be a member, False otherwise.
   """
+  cached = GetCachedIsGroupMember(identity, group)
+  if cached is not None:
+    return cached
   try:
     discovery_url = ('https://chrome-infra-auth.appspot.com'
                      '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
@@ -378,10 +381,24 @@ def IsGroupMember(identity, group):
         http=ServiceAccountHttp())
     request = service.membership(identity=identity, group=group)
     response = request.execute()
-    return response['is_member']
+    is_member = response['is_member']
+    SetCachedIsGroupMember(identity, group, is_member)
+    return is_member
   except (errors.HttpError, KeyError, AttributeError) as e:
     logging.error('Failed to check membership of %s: %s', identity, e)
     return False
+
+
+def GetCachedIsGroupMember(identity, group):
+  return memcache.get(_IsGroupMemberCacheKey(identity, group))
+
+
+def SetCachedIsGroupMember(identity, group, value):
+  memcache.add(_IsGroupMemberCacheKey(identity, group), value, time=60*60*24)
+
+
+def _IsGroupMemberCacheKey(identity, group):
+  return 'is_group_member_%s_%s' % (identity, group)
 
 
 def ServiceAccountHttp(*args, **kwargs):
