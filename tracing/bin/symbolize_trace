@@ -7,7 +7,7 @@ import os
 import sys
 
 tracing_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(tracing_path)
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
