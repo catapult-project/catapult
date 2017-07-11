@@ -21,10 +21,10 @@ _UNAUTHORIZED_USER = users.User(
     email='test@chromium.org', _auth_domain='foo.com')
 
 
-class OauthTest(testing_common.TestCase):
+class ApiAuthTest(testing_common.TestCase):
 
   def setUp(self):
-    super(OauthTest, self).setUp()
+    super(ApiAuthTest, self).setUp()
 
     patcher = mock.patch.object(api_auth, 'oauth')
     self.addCleanup(patcher.stop)
