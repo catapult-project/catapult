@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     table.viewState = new tr.v.ui.HistogramSetViewState();
     await table.viewState.update({
       displayStatisticName: 'avg',
-      groupings: [tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME],
+      groupings: [tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME],
     });
 
     table.style.display = 'none';
@@ -355,8 +355,8 @@ tr.b.unittest.testSuite(function() {
     ]);
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
     assert.lengthOf(getTableCells(table), 1);
 
@@ -374,8 +374,8 @@ tr.b.unittest.testSuite(function() {
     ]);
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
     assert.isFalse(table.viewState.tableRowStates.get('a').isExpanded);
 
@@ -400,8 +400,8 @@ tr.b.unittest.testSuite(function() {
     ]);
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
 
     const nameCells = getNameCells(table);
@@ -429,8 +429,8 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({
       groupings: [
-        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
       ],
       sortColumnIndex: 0,
       sortDescending: true,
@@ -470,8 +470,8 @@ tr.b.unittest.testSuite(function() {
     ]);
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
 
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
@@ -501,8 +501,8 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.update({
       displayStatisticName: 'count',
       groupings: [
-        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
       ],
     });
     await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
@@ -626,8 +626,8 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     assert.lengthOf(table.leafHistograms, 1);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
     assert.lengthOf(table.leafHistograms, 2);
   });
@@ -658,8 +658,8 @@ tr.b.unittest.testSuite(function() {
     ]);
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
 
     const dots = tr.ui.b.findDeepElementMatchingPredicate(
@@ -710,8 +710,8 @@ tr.b.unittest.testSuite(function() {
     const now = new Date().getTime();
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
     ]});
 
     for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
@@ -1460,17 +1460,17 @@ tr.b.unittest.testSuite(function() {
 
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-      tr.v.HistogramSet.GROUPINGS.BENCHMARK_NAME,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.BY_NAME.BENCHMARK_NAME,
       new tr.v.HistogramGrouping('storyGroupingKey_storyGroupingKey0',
           tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
               'storyGroupingKey0')),
       new tr.v.HistogramGrouping('storyGroupingKey_storyGroupingKey1',
           tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
               'storyGroupingKey1')),
-      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
-      tr.v.HistogramSet.GROUPINGS.BENCHMARK_START,
-      tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT,
+      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
+      tr.v.HistogramGrouping.BY_NAME.BENCHMARK_START,
+      tr.v.HistogramGrouping.BY_NAME.STORYSET_REPEAT,
     ]});
     const baseTable = getBaseTable(table);
 

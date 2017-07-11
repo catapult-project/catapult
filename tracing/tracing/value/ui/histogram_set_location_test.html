@@ -41,8 +41,8 @@ tr.b.unittest.testSuite(function() {
     await hsl.viewState.update({
       displayStatisticName: 'avg',
       groupings: [
-        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
       ],
       sortColumnIndex: undefined,
     });

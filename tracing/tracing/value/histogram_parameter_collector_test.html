@@ -100,23 +100,23 @@ tr.b.unittest.testSuite(function() {
         collector.possibleGroupings.map(g => g.key));
     assert.strictEqual(possibleGroupingKeys.size, 9);
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key));
+        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.BENCHMARK_NAME.key));
+        tr.v.HistogramGrouping.BY_NAME.BENCHMARK_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT.key));
+        tr.v.HistogramGrouping.BY_NAME.STORYSET_REPEAT.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.key));
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.key));
+        tr.v.HistogramGrouping.BY_NAME.LEGACY_TIR_LABEL.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.MASTER_NAME.key));
+        tr.v.HistogramGrouping.BY_NAME.MASTER_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.SLAVE_NAME.key));
+        tr.v.HistogramGrouping.BY_NAME.SLAVE_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.BUILD_NUMBER.key));
+        tr.v.HistogramGrouping.BY_NAME.BUILD_NUMBER.key));
     assert.isFalse(possibleGroupingKeys.has(
-        tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.key));
+        tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL.key));
   });
 });
 </script>

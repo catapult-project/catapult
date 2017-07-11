@@ -554,6 +554,7 @@
       'tracing/value/diagnostics/telemetry_info.html',
       'tracing/value/diagnostics/unmergeable_diagnostic_set.html',
       'tracing/value/histogram.html',
+      'tracing/value/histogram_grouping.html',
       'tracing/value/histogram_parameter_collector.html',
       'tracing/value/histogram_set.html',
       'tracing/value/histogram_set_hierarchy.html',

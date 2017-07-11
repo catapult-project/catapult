@@ -44,9 +44,9 @@ tr.b.unittest.testSuite(function() {
     const hist = [...histograms][0];
     assert.strictEqual('mean_frame_time', hist.name);
     assert.strictEqual('',
-        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.LEGACY_TIR_LABEL.callback(hist));
     assert.strictEqual('http://games.yahoo.com',
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.callback(hist));
     assert.strictEqual(0, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         hist.unit);
@@ -91,9 +91,9 @@ tr.b.unittest.testSuite(function() {
     const hist = [...histograms][0];
     assert.strictEqual('mean_frame_time', hist.name);
     assert.strictEqual('',
-        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.LEGACY_TIR_LABEL.callback(hist));
     assert.strictEqual('http://games.yahoo.com',
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.callback(hist));
     assert.strictEqual(42, hist.average);
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -130,9 +130,9 @@ tr.b.unittest.testSuite(function() {
     const hist = [...histograms][0];
     assert.strictEqual('value-name', hist.name);
     assert.strictEqual('TIR-A',
-        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.LEGACY_TIR_LABEL.callback(hist));
     assert.strictEqual('story-name',
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.callback(hist));
     assert.strictEqual(42, hist.average);
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -170,9 +170,9 @@ tr.b.unittest.testSuite(function() {
     const hist = [...histograms][0];
     assert.strictEqual('MPArch_RWH_TabSwitchPaintDuration', hist.name);
     assert.strictEqual('',
-        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.LEGACY_TIR_LABEL.callback(hist));
     assert.strictEqual('',
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
+        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.callback(hist));
     assert.strictEqual(20, hist.average);
     assert.strictEqual(4, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,

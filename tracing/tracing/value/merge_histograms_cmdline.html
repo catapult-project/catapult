@@ -15,10 +15,8 @@ found in the LICENSE file.
 // TODO(benjhayden): Test after MergedTelemetryInfo.
 
 function findGrouping(key) {
-  for (const grouping of Object.values(tr.v.HistogramSet.GROUPINGS)) {
-    if (grouping.key === key) {
-      return grouping;
-    }
+  if (tr.v.HistogramGrouping.BY_KEY.has(key)) {
+    return tr.v.HistogramGrouping.BY_KEY.get(key);
   }
   return new tr.v.HistogramGrouping(key,
       tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(key));

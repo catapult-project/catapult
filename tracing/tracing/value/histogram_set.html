@@ -13,27 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v', function() {
-  /*
-   * See HistogramSet.groupHistogramsRecursively() and
-   * tr-ui-b-grouping-table-groupby-picker.
-   */
-  class HistogramGrouping {
-    /**
-     * @param {string} key
-     * @param {!function(!tr.v.Histogram):string} callback
-     * @param {string=} opt_label
-     */
-    constructor(key, callback, opt_label) {
-      this.key = key;
-      this.callback = callback;
-      this.label = opt_label || key;
-
-      HistogramGrouping.KEYS_TO_GROUPINGS.set(key, this);
-    }
-  }
-
-  HistogramGrouping.KEYS_TO_GROUPINGS = new Map();
-
   class HistogramSet {
     constructor(opt_histograms) {
       this.histogramsByGuid_ = new Map();
@@ -379,56 +358,7 @@ tr.exportTo('tr.v', function() {
     }
   }
 
-  // This does not contain storyGroupingKeys!
-  HistogramSet.GROUPINGS = {
-    HISTOGRAM_NAME: new HistogramGrouping('name', h => h.name),
-
-    BENCHMARK_NAME: new HistogramGrouping(
-        'benchmark',
-        h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', '')),
-
-    BENCHMARK_START: new HistogramGrouping(
-        'benchmark start',
-        h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', '')),
-
-    STORYSET_REPEAT: new HistogramGrouping(
-        'storyset_repeat',
-        h => tr.v.d.TelemetryInfo.getField(
-            h, 'storysetRepeatCounterLabel', 0),
-        'storyset repeat'),
-
-    STORY_NAME: new HistogramGrouping(
-        'story',
-        h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', '')),
-
-    LEGACY_TIR_LABEL: new HistogramGrouping(
-        'tir',
-        h => tr.v.d.TelemetryInfo.getField(h, 'legacyTIRLabel', '')),
-
-    MASTER_NAME: new HistogramGrouping(
-        'master',
-        h => tr.v.d.BuildbotInfo.getField(h, 'buildbotMasterName', '')),
-
-    SLAVE_NAME: new HistogramGrouping(
-        'bot',
-        h => tr.v.d.BuildbotInfo.getField(h, 'buildbotName', '')),
-
-    BUILD_NUMBER: new HistogramGrouping(
-        'build',
-        h => tr.v.d.BuildbotInfo.getField(h, 'buildNumber', '')),
-
-    DISPLAY_LABEL: new HistogramGrouping(
-        'label',
-        h => tr.v.d.TelemetryInfo.getField(h, 'displayLabel', 'Value')),
-
-    TRACE_START: new HistogramGrouping(
-        'trace start',
-        h => (!h.diagnostics.has(tr.v.d.RESERVED_NAMES.TRACE_START) ? '' :
-            h.diagnostics.get(tr.v.d.RESERVED_NAMES.TRACE_START).toString())),
-  };
-
   return {
-    HistogramGrouping,
     HistogramSet,
   };
 });

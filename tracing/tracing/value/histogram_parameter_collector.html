@@ -5,26 +5,28 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/value/histogram_grouping.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
 tr.exportTo('tr.v', function() {
-  const getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
+  const getDisplayLabel =
+    tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL.callback;
 
   const DEFAULT_POSSIBLE_GROUPS = [];
 
   // Override HISTOGRAM_NAME so that we can display shortName.
   DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
+      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
 
-  for (const group of Object.values(tr.v.HistogramSet.GROUPINGS)) {
+  for (const group of Object.values(tr.v.HistogramGrouping.BY_NAME)) {
     // DISPLAY_LABEL is used to define the columns, so don't allow grouping
     // rows by it.
     // HISTOGRAM_NAME is overridden.
-    if (group !== tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL &&
-        group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME) {
+    if (group !== tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL &&
+        group !== tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME) {
       DEFAULT_POSSIBLE_GROUPS.push(group);
     }
   }
@@ -47,7 +49,8 @@ tr.exportTo('tr.v', function() {
           g => [g.key, new Set()]));
 
       // Never remove 'name' from keysToGroupings.
-      this.keysToValues_.delete(tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key);
+      this.keysToValues_.delete(
+          tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key);
     }
 
     process(histograms) {
