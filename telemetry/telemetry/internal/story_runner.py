@@ -400,6 +400,7 @@ def RunBenchmark(benchmark, finder_options):
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
     except Exception:
+      results.telemetry_info.InterruptBenchmark()
       exception_formatter.PrintFormattedException()
       return_code = 255
 

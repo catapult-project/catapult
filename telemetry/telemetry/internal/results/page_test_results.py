@@ -32,6 +32,7 @@ class TelemetryInfo(object):
   def __init__(self):
     self._benchmark_name = None
     self._benchmark_start_ms = None
+    self._benchmark_interrupted = False
     self._label = None
     self._story_name = ''
     self._story_grouping_keys = {}
@@ -63,6 +64,10 @@ class TelemetryInfo(object):
     return self._trace_start_ms
 
   @property
+  def benchmark_interrupted(self):
+    return self._benchmark_interrupted
+
+  @property
   def label(self):
     return self._label
 
@@ -82,6 +87,9 @@ class TelemetryInfo(object):
   @property
   def storyset_repeat_counter(self):
     return self._storyset_repeat_counter
+
+  def InterruptBenchmark(self):
+    self._benchmark_interrupted = True
 
   def WillRunStory(self, story, storyset_repeat_counter):
     self._trace_start_ms = 1000 * time.time()

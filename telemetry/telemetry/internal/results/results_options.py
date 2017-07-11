@@ -17,13 +17,14 @@ from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_output_formatter
+from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import legacy_html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 
-_OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
+_OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'json-test-results', 'chartjson',
     'csv-pivot-table', 'histograms', 'legacy-html', 'none')
 
 
@@ -31,6 +32,7 @@ _OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
 _OUTPUT_FILENAME_LOOKUP = {
     'html': 'results.html',
     'json': 'results.json',
+    'json-test-results': 'test-results.json',
     'chartjson': 'results-chart.json',
     'csv-pivot-table': 'results-pivot-table.csv',
     'histograms': 'histograms.json',
@@ -146,6 +148,9 @@ def CreateResults(benchmark_metadata, options,
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))
+    elif output_format == 'json-test-results':
+      output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
+          output_stream))
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
