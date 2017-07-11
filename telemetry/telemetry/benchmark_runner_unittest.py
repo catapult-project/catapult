@@ -25,13 +25,16 @@ class BenchmarkBar(benchmark.Benchmark):
   def Name(cls):
     return 'BarBenchmarkkkkk'
 
+
 class UnusualBenchmark(benchmark.Benchmark):
+
   @classmethod
   def Name(cls):
     return 'I have a very unusual name'
 
 
 class BenchmarkRunnerUnittest(unittest.TestCase):
+
   def setUp(self):
     self._stream = stream.TestOutputStream()
     self._mock_possible_browser = mock.MagicMock()
@@ -45,8 +48,9 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         'Pass --browser to list benchmarks for another browser.\n\n')
     with mock.patch('telemetry.benchmark_runner.decorators') as mock_module:
       mock_module.IsEnabled.return_value = (True, None)
-      benchmark_runner.PrintBenchmarkList(
-        [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+      benchmark_runner.PrintBenchmarkList([BenchmarkFoo, BenchmarkBar],
+                                          self._mock_possible_browser,
+                                          self._stream)
       self.assertEquals(expected_printed_stream, self._stream.output_data)
 
   def testPrintBenchmarkListWithOneDisabledBenchmark(self):
@@ -58,6 +62,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
     with mock.patch('telemetry.benchmark_runner.decorators') as mock_module:
+
       def FakeIsEnabled(benchmark_class, _):
         if benchmark_class is BenchmarkFoo:
           return True
@@ -65,8 +70,9 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
           return False
 
       mock_module.IsBenchmarkEnabled = FakeIsEnabled
-      benchmark_runner.PrintBenchmarkList(
-        [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+      benchmark_runner.PrintBenchmarkList([BenchmarkFoo, BenchmarkBar],
+                                          self._mock_possible_browser,
+                                          self._stream)
       self.assertEquals(expected_printed_stream, self._stream.output_data)
 
   def testShouldDisable(self):
@@ -78,14 +84,16 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         'Disabled benchmarks for TestBrowser are (force run with -d):\n'
         '  FooBenchmark      Benchmark Foo for testing.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
+
     @classmethod
     def FakeShouldDisable(cls, possible_browser):
       del possible_browser  # unused
       return cls is BenchmarkFoo
+
     BenchmarkFoo.ShouldDisable = FakeShouldDisable
     BenchmarkBar.ShouldDisable = FakeShouldDisable
     benchmark_runner.PrintBenchmarkList(
-      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+        [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
     self.assertEquals(expected_printed_stream, self._stream.output_data)
 
   def testShouldDisableComplex(self):
@@ -103,14 +111,16 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         '  BarBenchmarkkkkk  Benchmark Bar for testing long description line.\n'
         '  FooBenchmark      Benchmark Foo for testing.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
+
     @classmethod
     def FakeShouldDisable(cls, possible_browser):
       return cls is BenchmarkBar and not 'Mock' in possible_browser.browser_type
+
     BenchmarkFoo.ShouldDisable = FakeShouldDisable
     BenchmarkBar.ShouldDisable = FakeShouldDisable
     benchmark_runner.PrintBenchmarkList(
-      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+        [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
     self._mock_possible_browser.browser_type = 'MockBrowser'
     benchmark_runner.PrintBenchmarkList(
-      [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
+        [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
     self.assertEquals(expected_printed_stream, self._stream.output_data)

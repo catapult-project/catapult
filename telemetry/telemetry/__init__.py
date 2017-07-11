@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A library for cross-platform browser tests."""
 import os
 import sys
@@ -13,7 +12,6 @@ try:
   faulthandler.enable()
 except ImportError:
   pass
-
 
 # Ensure Python >= 2.7.
 if sys.version_info < (2, 7):
@@ -44,8 +42,8 @@ def _AddOptionalSingleGlobToPythonPath(*match_path_parts):
   absolute_match_path = _JoinPath(*match_path_parts)
   paths = glob.glob(absolute_match_path)
   if len(paths) > 1:
-    raise ImportError("More than one result was found for glob {}"
-        .format(absolute_match_path))
+    raise ImportError('More than one result was found for glob {}'
+                      .format(absolute_match_path))
   for path in paths:
     _InsertPath(path)
 
@@ -63,7 +61,6 @@ _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing', 'tracing_build')
 _AddDirToPythonPath(_CATAPULT_DIR, 'third_party', 'py_vulcanize')
-
 
 from telemetry.core import util
 from telemetry.internal.util import global_hooks

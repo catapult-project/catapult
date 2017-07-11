@@ -16,12 +16,14 @@ Disabled = decorators.Disabled
 Enabled = decorators.Enabled
 Owner = decorators.Owner
 
+
 class InvalidOptionsError(Exception):
   """Raised for invalid benchmark options."""
   pass
 
 
 class BenchmarkMetadata(object):
+
   def __init__(self, name, description='', rerun_options=None):
     self._name = name
     self._description = description
@@ -41,10 +43,10 @@ class BenchmarkMetadata(object):
 
   def AsDict(self):
     return {
-      'type': 'telemetry_benchmark',
-      'name': self._name,
-      'description': self._description,
-      'rerun_options': self._rerun_options,
+        'type': 'telemetry_benchmark',
+        'name': self._name,
+        'description': self._description,
+        'rerun_options': self._rerun_options,
     }
 
 
@@ -181,8 +183,7 @@ class Benchmark(command_line.Command):
   @classmethod
   def SetArgumentDefaults(cls, parser):
     default_values = parser.get_default_values()
-    invalid_options = [
-        o for o in cls.options if not hasattr(default_values, o)]
+    invalid_options = [o for o in cls.options if not hasattr(default_values, o)]
     if invalid_options:
       raise InvalidOptionsError('Invalid benchmark options: %s',
                                 ', '.join(invalid_options))
@@ -216,8 +217,8 @@ class Benchmark(command_line.Command):
     """Add browser options that are required by this benchmark."""
 
   def GetMetadata(self):
-    return BenchmarkMetadata(
-        self.Name(), self.__doc__, self.GetTraceRerunCommands())
+    return BenchmarkMetadata(self.Name(), self.__doc__,
+                             self.GetTraceRerunCommands())
 
   def GetOwnership(self):
     """Returns an Ownership Diagnostic containing the benchmark's information.
@@ -225,8 +226,8 @@ class Benchmark(command_line.Command):
     Returns:
       Diagnostic with the benchmark's owners' e-mails and component name
     """
-    return histogram.Ownership(decorators.GetEmails(self),
-                               decorators.GetComponent(self))
+    return histogram.Ownership(
+        decorators.GetEmails(self), decorators.GetComponent(self))
 
   def CreateTimelineBasedMeasurementOptions(self):
     """Return the TimelineBasedMeasurementOptions for this Benchmark.

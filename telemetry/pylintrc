@@ -6,8 +6,6 @@ disable=
   design,
   similarities,
 
-  abstract-class-little-used,
-  abstract-class-not-used,
   bad-builtin,
   bad-continuation,
   broad-except,

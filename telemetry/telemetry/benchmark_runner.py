@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Parses the command line, discovers the appropriate benchmarks, and runs them.
 
 Handles benchmark configuration, but all the logic for
@@ -34,14 +33,12 @@ from py_utils import discover
 # one all-green test run. As this happens for each bot, we'll add it to this
 # whitelist, making it eligible to run only BattOr power tests.
 GOOD_POWER_PERF_BOT_WHITELIST = [
-  "Mac Power Dual-GPU Perf",
-  "Mac Power Low-End Perf"
+    'Mac Power Dual-GPU Perf', 'Mac Power Low-End Perf'
 ]
 
-
 DEFAULT_LOG_FORMAT = (
-  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-  '%(message)s')
+    '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+    '%(message)s')
 
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
@@ -64,10 +61,10 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
     print >> output_pipe, 'No benchmarks found!'
     return
 
-  bad_benchmark = next(
-    (b for b in benchmarks if not issubclass(b, benchmark.Benchmark)), None)
+  bad_benchmark = next((b for b in benchmarks
+                        if not issubclass(b, benchmark.Benchmark)), None)
   assert bad_benchmark is None, (
-    '|benchmarks| param contains non benchmark class: %s' % bad_benchmark)
+      '|benchmarks| param contains non benchmark class: %s' % bad_benchmark)
 
   # Align the benchmark names to the longest one.
   format_string = '  %%-%ds %%s' % max(len(b.Name()) for b in benchmarks)
@@ -115,8 +112,8 @@ class Help(command_line.OptparseCommand):
     print >> sys.stderr, ('usage: %s [command] [<options>]' % _ScriptName())
     print >> sys.stderr, 'Available commands are:'
     for command in self._all_commands:
-      print >> sys.stderr, '  %-10s %s' % (
-          command.Name(), command.Description())
+      print >> sys.stderr, '  %-10s %s' % (command.Name(),
+                                           command.Description())
     print >> sys.stderr, ('"%s help <command>" to see usage information '
                           'for a specific command.' % _ScriptName())
     return 0
@@ -143,8 +140,8 @@ class List(command_line.OptparseCommand):
     if not args.positional_args:
       args.benchmarks = _Benchmarks(environment)
     elif len(args.positional_args) == 1:
-      args.benchmarks = _MatchBenchmarkName(args.positional_args[0],
-                                            environment, exact_matches=False)
+      args.benchmarks = _MatchBenchmarkName(
+          args.positional_args[0], environment, exact_matches=False)
     else:
       parser.error('Must provide at most one benchmark name.')
 
@@ -154,18 +151,17 @@ class List(command_line.OptparseCommand):
     # should be change to use verbose logging instead.
     logging.getLogger().setLevel(logging.INFO)
     possible_browser = browser_finder.FindBrowser(args)
-    if args.browser_type in (
-        'release', 'release_x64', 'debug', 'debug_x64', 'canary',
-        'android-chromium', 'android-chrome'):
+    if args.browser_type in ('release', 'release_x64', 'debug', 'debug_x64',
+                             'canary', 'android-chromium', 'android-chrome'):
       args.browser_type = 'reference'
       possible_reference_browser = browser_finder.FindBrowser(args)
     else:
       possible_reference_browser = None
     if args.json_output_file:
       with open(args.json_output_file, 'w') as f:
-        f.write(_GetJsonBenchmarkList(possible_browser,
-                                      possible_reference_browser,
-                                      args.benchmarks, args.num_shards))
+        f.write(
+            _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
+                                  args.benchmarks, args.num_shards))
     else:
       PrintBenchmarkList(args.benchmarks, possible_browser)
     return 0
@@ -204,8 +200,8 @@ class Run(command_line.OptparseCommand):
   def ProcessCommandLineArgs(cls, parser, args, environment):
     all_benchmarks = _Benchmarks(environment)
     if not args.positional_args:
-      possible_browser = (
-          browser_finder.FindBrowser(args) if args.browser_type else None)
+      possible_browser = (browser_finder.FindBrowser(args)
+                          if args.browser_type else None)
       PrintBenchmarkList(all_benchmarks, possible_browser)
       sys.exit(-1)
 
@@ -222,8 +218,8 @@ class Run(command_line.OptparseCommand):
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
-      print >> sys.stderr, ('Multiple benchmarks named "%s".' %
-                            input_benchmark_name)
+      print >> sys.stderr, (
+          'Multiple benchmarks named "%s".' % input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
       PrintBenchmarkList(matching_benchmarks, None, sys.stderr)
@@ -233,8 +229,8 @@ class Run(command_line.OptparseCommand):
     if len(args.positional_args) > 1:
       parser.error('Too many arguments.')
 
-    assert issubclass(benchmark_class, benchmark.Benchmark), (
-        'Trying to run a non-Benchmark?!')
+    assert issubclass(benchmark_class,
+                      benchmark.Benchmark), ('Trying to run a non-Benchmark?!')
 
     benchmark.ProcessCommandLineArgs(parser, args)
     benchmark_class.ProcessCommandLineArgs(parser, args)
@@ -250,20 +246,23 @@ def _ScriptName():
 
 
 def _MatchingCommands(string, commands):
-  return [command for command in commands
-         if command.Name().startswith(string)]
+  return [command for command in commands if command.Name().startswith(string)]
+
 
 @decorators.Cache
 def _Benchmarks(environment):
   benchmarks = []
   for search_dir in environment.benchmark_dirs:
-    benchmarks += discover.DiscoverClasses(search_dir,
-                                           environment.top_level_dir,
-                                           benchmark.Benchmark,
-                                           index_by_class_name=True).values()
+    benchmarks += discover.DiscoverClasses(
+        search_dir,
+        environment.top_level_dir,
+        benchmark.Benchmark,
+        index_by_class_name=True).values()
   return benchmarks
 
+
 def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
+
   def _Matches(input_string, search_string):
     if search_string.startswith(input_string):
       return True
@@ -286,8 +285,10 @@ def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
     return []
 
   # Fuzzy matching.
-  return [benchmark_class for benchmark_class in _Benchmarks(environment)
-          if _Matches(input_benchmark_name, benchmark_class.Name())]
+  return [
+      benchmark_class for benchmark_class in _Benchmarks(environment)
+      if _Matches(input_benchmark_name, benchmark_class.Name())
+  ]
 
 
 def GetBenchmarkByName(name, environment):
@@ -321,18 +322,14 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
   if os.environ.get('BUILDBOT_BUILDERNAME') in GOOD_POWER_PERF_BOT_WHITELIST:
     only_run_battor_benchmarks = True
 
-  output = {
-    'version': 1,
-    'steps': {
-    }
-  }
+  output = {'version': 1, 'steps': {}}
   for benchmark_class in benchmark_classes:
     # Filter out benchmarks in tools/perf/contrib/ directory
     # This is a terrible hack but we should no longer need this
     # _GetJsonBenchmarkList once all the perf bots are moved to swarming
     # (crbug.com/715565)
-    if ('contrib' in
-        os.path.abspath(sys.modules[benchmark_class.__module__].__file__)):
+    if ('contrib' in os.path.abspath(
+        sys.modules[benchmark_class.__module__].__file__)):
       continue
 
     if not _IsBenchmarkEnabled(benchmark_class, possible_browser):
@@ -345,26 +342,34 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     # is solved.
     if only_run_battor_benchmarks and not base_name.startswith('battor'):
       continue
-    base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
-                '-v', '--output-format=chartjson', '--upload-results',
-                base_name]
+    base_cmd = [
+        sys.executable,
+        os.path.realpath(sys.argv[0]), '-v', '--output-format=chartjson',
+        '--upload-results', base_name
+    ]
     perf_dashboard_id = base_name
 
     device_affinity = bot_utils.GetDeviceAffinity(num_shards, base_name)
 
     output['steps'][base_name] = {
-      'cmd': ' '.join(base_cmd + [
-            '--browser=%s' % possible_browser.browser_type]),
-      'device_affinity': device_affinity,
-      'perf_dashboard_id': perf_dashboard_id,
+        'cmd':
+            ' '
+            .join(base_cmd + ['--browser=%s' % possible_browser.browser_type]),
+        'device_affinity':
+            device_affinity,
+        'perf_dashboard_id':
+            perf_dashboard_id,
     }
     if (possible_reference_browser and
         _IsBenchmarkEnabled(benchmark_class, possible_reference_browser)):
       output['steps'][base_name + '.reference'] = {
-        'cmd': ' '.join(base_cmd + [
-              '--browser=reference', '--output-trace-tag=_ref']),
-        'device_affinity': device_affinity,
-        'perf_dashboard_id': perf_dashboard_id,
+          'cmd':
+              ' '.join(base_cmd +
+                       ['--browser=reference', '--output-trace-tag=_ref']),
+          'device_affinity':
+              device_affinity,
+          'perf_dashboard_id':
+              perf_dashboard_id,
       }
 
   return json.dumps(output, indent=2, sort_keys=True)
@@ -400,11 +405,12 @@ def main(environment, extra_commands=None, **log_config_kwargs):
   # Validate and interpret the command name.
   commands = _MatchingCommands(command_name, all_commands)
   if len(commands) > 1:
-    print >> sys.stderr, ('"%s" is not a %s command. Did you mean one of these?'
-                          % (command_name, _ScriptName()))
+    print >> sys.stderr, (
+        '"%s" is not a %s command. Did you mean one of these?' %
+        (command_name, _ScriptName()))
     for command in commands:
-      print >> sys.stderr, '  %-10s %s' % (
-          command.Name(), command.Description())
+      print >> sys.stderr, '  %-10s %s' % (command.Name(),
+                                           command.Description())
     return 1
   if commands:
     command = commands[0]
@@ -419,7 +425,6 @@ def main(environment, extra_commands=None, **log_config_kwargs):
 
   # Set the default chrome root variable.
   parser.set_defaults(chrome_root=environment.default_chrome_root)
-
 
   if isinstance(parser, argparse.ArgumentParser):
     commandline_args = sys.argv[1:]
