@@ -6,9 +6,13 @@ import datetime
 import json
 import math
 import random
+import os
 import uuid
 
+from tracing import tracing_project
 from tracing.value.diagnostics import diagnostic_ref
+from py_utils import camel_case
+from py_utils import discover
 
 
 # pylint: disable=too-many-lines
@@ -330,6 +334,7 @@ class RunningStatistics(object):
 
 
 class Diagnostic(object):
+  _subtypes = None
 
   def __init__(self):
     self._guid = None
@@ -366,12 +371,25 @@ class Diagnostic(object):
 
   @staticmethod
   def FromDict(dct):
-    if dct['type'] not in Diagnostic.REGISTRY:
+    cls = Diagnostic.GetDiagnosticType(dct['type'])
+    if not cls:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
-    diagnostic = Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+    diagnostic = cls.FromDict(dct)
     if 'guid' in dct:
       diagnostic.guid = dct['guid']
     return diagnostic
+
+  @staticmethod
+  def GetDiagnosticType(typename):
+    if not Diagnostic._subtypes:
+      Diagnostic._subtypes = discover.DiscoverClasses(
+          os.path.join(tracing_project.TracingProject.tracing_src_path,
+                       'value'),
+          tracing_project.TracingProject.tracing_root_path,
+          Diagnostic, index_by_class_name=True)
+
+    # TODO(eakuefner): Add camelcase mode to discover.DiscoverClasses.
+    return Diagnostic._subtypes.get(camel_case.ToUnderscore(typename))
 
   def Inline(self):
     """Inlines a shared diagnostic.
@@ -394,14 +412,6 @@ class Diagnostic(object):
                     unused_parent_hist, unused_other_parent_hist):
     raise Exception('Abstract virtual method: subclasses must override '
                     'this method if they override canAddDiagnostic')
-
-
-Diagnostic.REGISTRY = {}
-
-def RegisterDiagnosticTypes(baseclass=Diagnostic):
-  for subclass in baseclass.__subclasses__():  # pylint: disable=no-member
-    Diagnostic.REGISTRY[subclass.__name__] = subclass
-    RegisterDiagnosticTypes(subclass)
 
 
 class Ownership(Diagnostic):
@@ -1125,8 +1135,6 @@ class RelatedEventSet(Diagnostic):
   def _AsDictInto(self, d):
     d['events'] = [event for event in self]
 
-
-RegisterDiagnosticTypes()
 
 RESERVED_INFOS = {
     'BUILDBOT': {'name': 'buildbot'},  # BuildbotInfo or MergedBuildbotInfo
