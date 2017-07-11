@@ -797,6 +797,7 @@ class Trace(NodeWrapper):
     self._is_64bit = False
     self._is_win = False
     self._is_mac = False
+    self._is_cros = False
 
     # Misc per-process information needed only during parsing.
     class ProcessExt(object):
@@ -818,6 +819,7 @@ class Trace(NodeWrapper):
       command_line = metadata['command_line']
       self._is_win = re.search('windows', metadata['os-name'], re.IGNORECASE)
       self._is_mac = re.search('mac', metadata['os-name'], re.IGNORECASE)
+      self._is_cros = re.search('cros', metadata['os-name'], re.IGNORECASE)
 
       if self._is_win:
         self._is_chromium = (
@@ -827,6 +829,11 @@ class Trace(NodeWrapper):
                           re.IGNORECASE))
       if self._is_mac:
         self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
+
+      if self._is_cros:
+        self._is_chromium = not re.search('/opt/google/chrome/chrome',
+                                          command_line,
+                                          re.IGNORECASE)
 
       self._is_64bit = (
           re.search('x86_64', metadata['os-arch'], re.IGNORECASE) and
@@ -1352,42 +1359,49 @@ def SymbolizeTrace(options, trace, symbolizer):
   SymbolizeFiles(symfiles, symbolizer)
 
 
-def FetchAndExtractBreakpadSymbols(symbol_base_directory, trace, symbolizer,
+def FetchAndExtractBreakpadSymbols(symbol_base_directory,
+                                   breakpad_info_folder,
+                                   trace,
+                                   symbolizer,
                                    cloud_storage_bucket):
-  if trace.is_win:
-    folder = 'win64-pgo' if trace.is_64bit else 'win-pgo'
-  elif trace.is_mac:
-    folder = 'mac64'
+
+  if breakpad_info_folder:
+    symbol_sub_dir = breakpad_info_folder
   else:
-    raise Exception('OS not supported for Breakpad symbolization (%s/%s)' %
-                    (trace.os, trace.version))
+    if trace.is_win:
+      folder = 'win64-pgo' if trace.is_64bit else 'win-pgo'
+    elif trace.is_mac:
+      folder = 'mac64'
+    else:
+      raise Exception('OS not supported for Breakpad symbolization (%s/%s)' %
+                      (trace.os, trace.version))
 
-  gsc_folder = 'desktop-*/' + trace.version + '/' + folder
-  gcs_file = gsc_folder + '/breakpad-info'
+    gsc_folder = 'desktop-*/' + trace.version + '/' + folder
+    gcs_file = gsc_folder + '/breakpad-info'
 
-  symbol_sub_dir = os.path.join(symbol_base_directory,
-                                'breakpad-info_' + trace.version + '_' + folder)
-  zip_path = symbol_sub_dir + '/breakpad-info.zip'
+    symbol_sub_dir = os.path.join(symbol_base_directory,
+                                  'breakpad-info_' + trace.version + '_' + folder)
+    zip_path = symbol_sub_dir + '/breakpad-info.zip'
 
-  # Check whether symbols are already downloaded and extracted.
-  if not os.path.isdir(symbol_sub_dir):
-    if cloud_storage.Exists(cloud_storage_bucket, gcs_file + '.zip'):
-      # Some version, like mac, doesn't have the .zip extension.
-      gcs_file = gcs_file + '.zip'
-    elif not cloud_storage.Exists(cloud_storage_bucket, gcs_file):
-      print "Can't find symbols on GCS."
-      return False
-    print 'Downloading symbols files from GCS, please wait.'
-    cloud_storage.Get(cloud_storage_bucket, gcs_file, zip_path)
+    # Check whether symbols are already downloaded and extracted.
+    if not os.path.isdir(symbol_sub_dir):
+      if cloud_storage.Exists(cloud_storage_bucket, gcs_file + '.zip'):
+        # Some version, like mac, doesn't have the .zip extension.
+        gcs_file = gcs_file + '.zip'
+      elif not cloud_storage.Exists(cloud_storage_bucket, gcs_file):
+        print "Can't find symbols on GCS."
+        return False
+      print 'Downloading symbols files from GCS, please wait.'
+      cloud_storage.Get(cloud_storage_bucket, gcs_file, zip_path)
 
-    with zipfile.ZipFile(zip_path, 'r') as zip_file:
-      zip_file.extractall(symbol_sub_dir)
-    os.remove(zip_path)
+      with zipfile.ZipFile(zip_path, 'r') as zip_file:
+        zip_file.extractall(symbol_sub_dir)
+      os.remove(zip_path)
 
   # Parse breakpad module header (first line) and register known modules.
   for root, _, filenames in os.walk(symbol_sub_dir):
     for filename in filenames:
-      full_filename = os.path.join(root, filename)
+      full_filename = os.path.abspath(os.path.join(root, filename))
       with open(full_filename, 'r') as file_handle:
         first_line = file_handle.readline()
         fragments = first_line.rstrip().split()
@@ -1518,6 +1532,10 @@ def main(args):
       action='store_true',
       help='Use breakpad symbols files for symbolisation.')
 
+  parser.add_argument(
+      '--breakpad-symbols-directory', default=None,
+      help='A path to a directory containing breakpad symbols.')
+
   home_dir = os.path.expanduser('~')
   default_dir = os.path.join(home_dir, "symbols")
   parser.add_argument(
@@ -1553,7 +1571,9 @@ def main(args):
     has_symbols = False
     if options.use_breakpad_symbols:
       has_symbols = FetchAndExtractBreakpadSymbols(
-          options.symbol_base_directory, trace, symbolizer,
+          options.symbol_base_directory,
+          options.breakpad_symbols_directory,
+          trace, symbolizer,
           options.cloud_storage_bucket)
     else:
       if symbolizer.is_mac:
