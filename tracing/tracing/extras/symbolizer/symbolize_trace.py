@@ -791,6 +791,7 @@ class Trace(NodeWrapper):
     self._trace_node = trace_node
     self._processes = []
     self._heap_dump_version = None
+    self._os = None
     self._version = None
     self._is_chromium = True
     self._is_64bit = False
@@ -812,6 +813,7 @@ class Trace(NodeWrapper):
       product_version = metadata['product-version']
       # product-version has the form "Chrome/60.0.3103.0"
       self._version = product_version.split('/', 1)[-1]
+      self._os = metadata['os-name']
 
       command_line = metadata['command_line']
       self._is_win = re.search('windows', metadata['os-name'], re.IGNORECASE)
@@ -924,6 +926,10 @@ class Trace(NodeWrapper):
     return self._version
 
   @property
+  def os(self):
+    return self._os
+
+  @property
   def is_chromium(self):
     return self._is_chromium
 
@@ -974,6 +980,7 @@ class SymbolizableFile(object):
     self.symbolizable_path = file_path # path to use for symbolization
     self.frames_by_address = collections.defaultdict(list)
     self.skip_symbolization = False
+    self.has_breakpad_symbols = False
 
 
 def ResolveSymbolizableFiles(processes):
@@ -1014,6 +1021,38 @@ def FindInSystemPath(binary_name):
       return binary_path
   return None
 
+class BreakpadSymbolsModule(object):
+  """Encapsulates Breakpad logic for symbols of a specific module."""
+
+  def __init__(self, filename):
+    super(BreakpadSymbolsModule, self).__init__()
+    self.filename = filename
+    self.files = []
+    self.symbols = {}
+    self.arch = None
+    self.debug_id = None
+    self.binary = None
+
+  def Parse(self):
+    # see: https://chromium.googlesource.com/breakpad/breakpad/+/master/docs/symbol_files.md
+    with open(self.filename) as fp:
+      for line in fp:
+        fragments = line.rstrip().split()
+        if fragments[0] == 'MODULE':
+          # MODULE mac x86_64 A7001116478B33F18FF9BEDE9F615F190 t
+          self.arch = fragments[2]
+          self.debug_id = fragments[3]
+          self.binary = ' '.join(fragments[4:])
+        elif fragments[0] == 'FILE':
+          # FILE 0 /b/c/b/mac64/src/out/Release/../../base/at_exit.cc
+          self.files.append(' '.join(fragments[2:]))
+        elif fragments[0] == 'PUBLIC':
+          # PUBLIC db60 0 base::mac::CallWithEHFrame(void () block_pointer)
+          self.symbols[int(fragments[1], 16)] = ' '.join(fragments[3:])
+        elif fragments[0] == 'FUNC':
+          # FUNC 567e0 264 0 Cr_z_fill_window_sse
+          self.symbols[int(fragments[1], 16)] = ' '.join(fragments[4:])
+
 
 class Symbolizer(object):
   """Encapsulates platform-specific symbolization logic."""
@@ -1034,6 +1073,7 @@ class Symbolizer(object):
     else:
       self.symbolizer_path = FindInSystemPath(self.binary)
 
+    self.breakpad_modules = {}
 
   def _SymbolizeLinuxAndAndroid(self, symfile):
     def _SymbolizerCallback(sym_info, frames):
@@ -1059,7 +1099,6 @@ class Symbolizer(object):
       symbolizer.SymbolizeAsync(int(address), frames)
 
     symbolizer.Join()
-
 
   def _SymbolizeMac(self, symfile):
     load_address = (symbolize_trace_macho_reader.
@@ -1118,6 +1157,30 @@ class Symbolizer(object):
         # the function name as line info is not always available.
         frame.name = stdout_data[i * 2]
 
+  def _SymbolizeBreakpad(self, symfile):
+    module_filename = symfile.symbolizable_path
+    module = BreakpadSymbolsModule(module_filename)
+    module.Parse()
+
+    addresses = symfile.frames_by_address.keys()
+    addresses.sort()
+
+    symbols_addresses = module.symbols.keys()
+    symbols_addresses.sort()
+    symbols_addresses.append(sys.maxint)
+
+    offset = 0
+    for symbol_offset in xrange(1, len(symbols_addresses)):
+      symbol_address_start = symbols_addresses[symbol_offset - 1]
+      symbol_address_end = symbols_addresses[symbol_offset]
+      resolved_symbol = module.symbols[symbol_address_start]
+      while (offset < len(addresses) and
+             addresses[offset] >= symbol_address_start and
+             addresses[offset] < symbol_address_end):
+        for frame in  symfile.frames_by_address[addresses[offset]]:
+          frame.name = resolved_symbol
+        offset = offset + 1
+
   def SymbolizeSymfile(self, symfile):
     if symfile.skip_symbolization:
       for address, frames in symfile.frames_by_address.iteritems():
@@ -1131,7 +1194,9 @@ class Symbolizer(object):
           frame.name = unsymbolized_name
       return
 
-    if self.is_mac:
+    if symfile.has_breakpad_symbols:
+      self._SymbolizeBreakpad(symfile)
+    elif self.is_mac:
       self._SymbolizeMac(symfile)
     elif self.is_win:
       self._SymbolizeWin(symfile)
@@ -1164,7 +1229,13 @@ def SymbolizeFiles(symfiles, symbolizer):
 
   for symfile in symfiles:
     problem = None
-    if not os.path.isabs(symfile.symbolizable_path):
+    if symfile.skip_symbolization:
+      pass
+    elif (symfile.has_breakpad_symbols and
+          os.path.isabs(symfile.symbolizable_path) and
+          os.path.isfile(symfile.symbolizable_path)):
+      pass
+    elif not os.path.isabs(symfile.symbolizable_path):
       problem = 'not a file'
     elif not os.path.isfile(symfile.symbolizable_path):
       problem = "file doesn't exist"
@@ -1228,6 +1299,7 @@ def RemapMacFiles(symfiles, symbol_base_directory, version,
     elif only_symbolize_chrome_symbols:
       symfile.skip_symbolization = True
 
+
 def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
                   only_symbolize_chrome_symbols):
   folder = "win64" if is64bit else "win"
@@ -1241,27 +1313,89 @@ def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
     elif only_symbolize_chrome_symbols:
       symfile.skip_symbolization = True
 
+
+def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols):
+  for symfile in symfiles:
+    image = os.path.basename(symfile.path).lower()
+    # Looked if the image has Breakpad symbols. Breakpad symbols are generated
+    # for Chrome modules for official builds.
+    if image in symbolizer.breakpad_modules:
+      symfile.symbolizable_path = symbolizer.breakpad_modules[image]
+      symfile.has_breakpad_symbols = True
+    elif only_symbolize_chrome_symbols:
+      symfile.skip_symbolization = True
+
+
 def SymbolizeTrace(options, trace, symbolizer):
   symfiles = ResolveSymbolizableFiles(trace.processes)
 
-  # Android trace files don't have any indication they are from Android.
-  # So we're checking for Android-specific paths.
-  if HaveFilesFromAndroid(symfiles):
-    if not options.output_directory:
-      sys.exit('The trace file appears to be from Android. Please '
-               'specify output directory to properly symbolize it.')
-    RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
+  if options.use_breakpad_symbols:
+    RemapBreakpadModules(symfiles, symbolizer,
+                         options.only_symbolize_chrome_symbols)
+  else:
+    # Android trace files don't have any indication they are from Android.
+    # So we're checking for Android-specific paths.
+    if HaveFilesFromAndroid(symfiles):
+      if not options.output_directory:
+        sys.exit('The trace file appears to be from Android. Please '
+                 'specify output directory to properly symbolize it.')
+      RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
 
-
-  if not trace.is_chromium:
-    if symbolizer.is_mac:
-      RemapMacFiles(symfiles, options.symbol_base_directory, trace.version,
-                    options.only_symbolize_chrome_symbols)
-    if symbolizer.is_win:
-      RemapWinFiles(symfiles, options.symbol_base_directory, trace.version,
-                    trace.is_64bit, options.only_symbolize_chrome_symbols)
+    if not trace.is_chromium:
+      if symbolizer.is_mac:
+        RemapMacFiles(symfiles, options.symbol_base_directory, trace.version,
+                      options.only_symbolize_chrome_symbols)
+      if symbolizer.is_win:
+        RemapWinFiles(symfiles, options.symbol_base_directory, trace.version,
+                      trace.is_64bit, options.only_symbolize_chrome_symbols)
 
   SymbolizeFiles(symfiles, symbolizer)
+
+
+def FetchAndExtractBreakpadSymbols(symbol_base_directory, trace, symbolizer,
+                                   cloud_storage_bucket):
+  if trace.is_win:
+    folder = 'win64-pgo' if trace.is_64bit else 'win-pgo'
+  elif trace.is_mac:
+    folder = 'mac64'
+  else:
+    raise Exception('OS not supported for Breakpad symbolization (%s/%s)' %
+                    (trace.os, trace.version))
+
+  gsc_folder = 'desktop-*/' + trace.version + '/' + folder
+  gcs_file = gsc_folder + '/breakpad-info'
+
+  symbol_sub_dir = os.path.join(symbol_base_directory,
+                                'breakpad-info_' + trace.version + '_' + folder)
+  zip_path = symbol_sub_dir + '/breakpad-info.zip'
+
+  # Check whether symbols are already downloaded and extracted.
+  if not os.path.isdir(symbol_sub_dir):
+    if cloud_storage.Exists(cloud_storage_bucket, gcs_file + '.zip'):
+      # Some version, like mac, doesn't have the .zip extension.
+      gcs_file = gcs_file + '.zip'
+    elif not cloud_storage.Exists(cloud_storage_bucket, gcs_file):
+      print "Can't find symbols on GCS."
+      return False
+    print 'Downloading symbols files from GCS, please wait.'
+    cloud_storage.Get(cloud_storage_bucket, gcs_file, zip_path)
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_file:
+      zip_file.extractall(symbol_sub_dir)
+    os.remove(zip_path)
+
+  # Parse breakpad module header (first line) and register known modules.
+  for root, _, filenames in os.walk(symbol_sub_dir):
+    for filename in filenames:
+      full_filename = os.path.join(root, filename)
+      with open(full_filename, 'r') as file_handle:
+        first_line = file_handle.readline()
+        fragments = first_line.rstrip().split()
+        if fragments[0] == 'MODULE':
+          binary = ' '.join(fragments[4:])
+          symbolizer.breakpad_modules[binary.lower()] = full_filename
+
+  return True
 
 
 def OpenTraceFile(file_path, mode):
@@ -1379,6 +1513,11 @@ def main(args):
            "Default uses the executable found in the PATH environment variable."
            "Used by tests, which don't have the executable.")
 
+  parser.add_argument(
+      '--use-breakpad-symbols',
+      action='store_true',
+      help='Use breakpad symbols files for symbolisation.')
+
   home_dir = os.path.expanduser('~')
   default_dir = os.path.join(home_dir, "symbols")
   parser.add_argument(
@@ -1389,7 +1528,8 @@ def main(args):
   options = parser.parse_args(args)
 
   symbolizer = Symbolizer(options.addr2line_executable)
-  if symbolizer.symbolizer_path is None:
+  if (symbolizer.symbolizer_path is None and
+      not options.use_breakpad_symbols):
     sys.exit("Can't symbolize - no %s in PATH." % symbolizer.binary)
 
   trace_file_path = options.file
@@ -1397,9 +1537,11 @@ def main(args):
   print 'Reading trace file...'
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file))
+  print 'Trace loaded for %s/%s' % (trace.os, trace.version)
 
   # Perform some sanity checks.
-  if trace.is_win and sys.platform != 'win32':
+  if (trace.is_win and sys.platform != 'win32' and
+      not options.use_breakpad_symbols):
     print "Cannot symbolize a windows trace on this architecture!"
     return False
 
@@ -1409,14 +1551,20 @@ def main(args):
   # from gcs.
   if not trace.is_chromium:
     has_symbols = False
-    if symbolizer.is_mac:
-      has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
-                                              trace.version,
-                                              options.cloud_storage_bucket)
-    if symbolizer.is_win:
-      has_symbols = FetchAndExtractSymbolsWin(options.symbol_base_directory,
-                                              trace.version, trace.is_64bit,
-                                              options.cloud_storage_bucket)
+    if options.use_breakpad_symbols:
+      has_symbols = FetchAndExtractBreakpadSymbols(
+          options.symbol_base_directory, trace, symbolizer,
+          options.cloud_storage_bucket)
+    else:
+      if symbolizer.is_mac:
+        has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
+                                                trace.version,
+                                                options.cloud_storage_bucket)
+      if symbolizer.is_win:
+        has_symbols = FetchAndExtractSymbolsWin(options.symbol_base_directory,
+                                                trace.version, trace.is_64bit,
+                                                options.cloud_storage_bucket)
+
     if not has_symbols:
       print 'Cannot fetch symbols from GCS'
       return False

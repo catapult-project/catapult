@@ -57,7 +57,8 @@ def GetTraceCrc(filename):
 
 class SymbolizeTraceEndToEndTest(unittest.TestCase):
 
-  def _RunSymbolizationOnTrace(self, pre_symbolization, post_symbolization):
+  def _RunSymbolizationOnTrace(self, pre_symbolization, post_symbolization,
+                               extra_options):
     trace_presymbolization_path = os.path.join(
         _THIS_DIR_PATH, 'data', pre_symbolization)
     _DownloadFromCloudStorage(trace_presymbolization_path)
@@ -75,6 +76,8 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
                              '--cloud-storage-bucket',
                              cloud_storage.PARTNER_BUCKET,
                              temporary_trace]
+
+    symbolization_options.extend(extra_options)
 
     # On windows, a pre-built version of addr2line-pdb is provided.
     if sys.platform == 'win32':
@@ -110,7 +113,18 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # "Google Chrome.dSYM.tar.bz2"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
     self._RunSymbolizationOnTrace('mac_trace_v1_presymbolization.json.gz',
-                                  'mac_trace_v1_postsymbolization.json.gz')
+                                  'mac_trace_v1_postsymbolization.json.gz',
+                                  [])
+
+  def testMacv1Breakpad(self):
+    # The trace produced by the breakpad symbolizer is slightly different for
+    # function name that are omitted. Breakpad is producing "<name omitted>"
+    # for some function name. See:
+    # https://cs.chromium.org/chromium/src/breakpad/src/common/dwarf_cu_to_module.cc?l=551&rcl=7a65a47345a86c9e9a3fbc2e92a756a429a0c82f
+    self._RunSymbolizationOnTrace(
+        'mac_trace_v1_presymbolization.json.gz',
+        'mac_trace_v1_breakpad_postsymbolisation.json.gz',
+        ['--use-breakpad-symbols'])
 
   def testWin64v1(self):
     if sys.platform != 'win32':
@@ -124,7 +138,8 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # "win64-pgo/chrome-win64-pgo.zip"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
     self._RunSymbolizationOnTrace('windows_trace_v1_presymbolization.json.gz',
-                                  'windows_trace_v1_postsymbolization.json.gz')
+                                  'windows_trace_v1_postsymbolization.json.gz',
+                                  [])
 
   def testWin64v2(self):
     if sys.platform != 'win32':
@@ -138,7 +153,8 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # "win64-pgo/chrome-win64-pgo.zip"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
     self._RunSymbolizationOnTrace('windows_trace_v2_presymbolization.json.gz',
-                                  'windows_trace_v2_postsymbolization.json.gz')
+                                  'windows_trace_v2_postsymbolization.json.gz',
+                                  [])
 
 
 if __name__ == '__main__':
