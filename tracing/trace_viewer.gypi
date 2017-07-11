@@ -524,6 +524,7 @@
       'tracing/ui/tracks/x_axis_track.html',
       'tracing/ui/view_specific_brushing_state.html',
       'tracing/value/csv_builder.html',
+      'tracing/value/diagnostics/add_related_names.html',
       'tracing/value/diagnostics/all_diagnostics.html',
       'tracing/value/diagnostics/breakdown.html',
       'tracing/value/diagnostics/buildbot_info.html',
