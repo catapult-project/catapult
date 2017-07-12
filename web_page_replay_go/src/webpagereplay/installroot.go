@@ -59,7 +59,7 @@ func RemoveRoot() {
 		fmt.Printf("Root certificate is skipped for %s\n", runtime.GOOS)
 		return
 	}
-	fmt.Println("Removing root certificate from NSS (i.e. Chrome).")
+	fmt.Printf("Removing root certificate %s from NSS (i.e. Chrome)\n", getCAName())
 	// Try to delete any existing certificate. We ignore failures since the
 	// root might not yet exist.
 	cmd := exec.Command("certutil", "-d", getDbPath(), "-D", "-n", getCAName())

@@ -23,7 +23,12 @@ import (
 	"webpagereplay"
 )
 
-const longUsage = `%s [record|replay] [options] archive_file
+const longUsage = `
+   %s [installroot|removeroot] [options]
+   %s [record|replay] [options] archive_file
+
+   Before: Install a test root CA.
+     $ GOPATH=$PWD go run src/wpr.go installroot
 
    To record web pages:
      1. Start this program in record mode.
@@ -37,16 +42,24 @@ const longUsage = `%s [record|replay] [options] archive_file
      1. Start this program in replay mode with a previously recorded archive.
         $ GOPATH=$PWD go run src/wpr.go replay archive.json
      2. Load recorded pages in a web browser. A 404 will be served for any pages or
-        resources not in the recorded archive.`
+        resources not in the recorded archive.
+
+   After: Remove the test root CA.
+     $ GOPATH=$PWD go run src/wpr.go removeroot`
+
+type CertConfig struct {
+	// Flags common to all commands.
+	certFile, keyFile string
+}
 
 type CommonConfig struct {
-	// Info aboth this command.
+	// Info about this command.
 	cmd cli.Command
 
-	// Flags common to all commands.
+	// Flags common to RecordCommand and ReplayCommand.
 	host                                     string
 	httpPort, httpsPort, httpSecureProxyPort int
-	certFile, keyFile                        string
+	certConfig                               CertConfig
 	injectScripts                            string
 
 	// Computed state.
@@ -67,8 +80,30 @@ type ReplayCommand struct {
 	rulesFile string
 }
 
-func (common *CommonConfig) Flags() []cli.Flag {
+type RootCACommand struct {
+	certConfig CertConfig
+	cmd        cli.Command
+}
+
+func (certCfg *CertConfig) Flags() []cli.Flag {
 	return []cli.Flag{
+		cli.StringFlag{
+			Name:        "https_cert_file",
+			Value:       "wpr_cert.pem",
+			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
+			Destination: &certCfg.certFile,
+		},
+		cli.StringFlag{
+			Name:        "https_key_file",
+			Value:       "wpr_key.pem",
+			Usage:       "File containing a PEM-encoded private key to use with SSL.",
+			Destination: &certCfg.keyFile,
+		},
+	}
+}
+
+func (common *CommonConfig) Flags() []cli.Flag {
+	return append(common.certConfig.Flags(),
 		cli.StringFlag{
 			Name:        "host",
 			Value:       "",
@@ -94,18 +129,6 @@ func (common *CommonConfig) Flags() []cli.Flag {
 			Destination: &common.httpSecureProxyPort,
 		},
 		cli.StringFlag{
-			Name:        "https_cert_file",
-			Value:       "wpr_cert.pem",
-			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
-			Destination: &common.certFile,
-		},
-		cli.StringFlag{
-			Name:        "https_key_file",
-			Value:       "wpr_key.pem",
-			Usage:       "File containing a PEM-encoded private key to use with SSL.",
-			Destination: &common.keyFile,
-		},
-		cli.StringFlag{
 			Name:  "inject_scripts",
 			Value: "deterministic.js",
 			Usage: "A comma separated list of JavaScript sources to inject in all pages. " +
@@ -114,7 +137,7 @@ func (common *CommonConfig) Flags() []cli.Flag {
 				"CAUTION: Without deterministic.js, many pages will not replay.",
 			Destination: &common.injectScripts,
 		},
-	}
+	)
 }
 
 func (common *CommonConfig) CheckArgs(c *cli.Context) error {
@@ -129,16 +152,12 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	}
 
 	// Load common configs.
-	log.Printf("Loading cert from %v\n", common.certFile)
-	log.Printf("Loading key from %v\n", common.keyFile)
+	log.Printf("Loading cert from %v\n", common.certConfig.certFile)
+	log.Printf("Loading key from %v\n", common.certConfig.keyFile)
 	var err error
-	common.root_cert, err = tls.LoadX509KeyPair(common.certFile, common.keyFile)
+	common.root_cert, err = tls.LoadX509KeyPair(common.certConfig.certFile, common.certConfig.keyFile)
 	if err != nil {
 		return fmt.Errorf("error opening cert or key files: %v", err)
-	}
-	err = webpagereplay.InstallRoot(common.root_cert.Certificate[0])
-	if err != nil {
-		return fmt.Errorf("Install root failed: %v", err)
 	}
 	for _, scriptFile := range strings.Split(common.injectScripts, ",") {
 		log.Printf("Loading script from %v\n", scriptFile)
@@ -238,7 +257,7 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 			case "http":
 				err = s.ListenAndServe()
 			case "https":
-				err = s.ListenAndServeTLS(common.certFile, common.keyFile)
+				err = s.ListenAndServeTLS(common.certConfig.certFile, common.certConfig.keyFile)
 			default:
 				panic(fmt.Sprintf("unknown s.Scheme: %s", s.Scheme))
 			}
@@ -272,7 +291,6 @@ func (r *RecordCommand) Run(c *cli.Context) {
 		if err := archive.Close(); err != nil {
 			log.Printf("Error flushing archive: %v", err)
 		}
-		webpagereplay.RemoveRoot()
 		os.Exit(0)
 	}()
 
@@ -315,11 +333,31 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 	startServers(tlsconfig, httpHandler, httpsHandler, &r.common)
 }
 
+func (r *RootCACommand) Install(c *cli.Context) {
+	log.Printf("Loading cert from %v\n", r.certConfig.certFile)
+	log.Printf("Loading key from %v\n", r.certConfig.keyFile)
+	root_cert, err := tls.LoadX509KeyPair(r.certConfig.certFile, r.certConfig.keyFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error opening cert or key files: %v", err)
+		os.Exit(1)
+	}
+	err = webpagereplay.InstallRoot(root_cert.Certificate[0])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Install root failed: %v", err)
+	}
+}
+
+func (r *RootCACommand) Remove(c *cli.Context) {
+	webpagereplay.RemoveRoot()
+}
+
 func main() {
 	progName := filepath.Base(os.Args[0])
 
 	var record RecordCommand
 	var replay ReplayCommand
+	var installroot RootCACommand
+	var removeroot RootCACommand
 
 	record.cmd = cli.Command{
 		Name:   "record",
@@ -337,10 +375,23 @@ func main() {
 		Action: replay.Run,
 	}
 
+	installroot.cmd = cli.Command{
+		Name:   "installroot",
+		Usage:  "Install a test root CA",
+		Flags:  installroot.certConfig.Flags(),
+		Action: installroot.Install,
+	}
+
+	removeroot.cmd = cli.Command{
+		Name:   "removeroot",
+		Usage:  "Remove a test root CA",
+		Action: removeroot.Remove,
+	}
+
 	app := cli.NewApp()
-	app.Commands = []cli.Command{record.cmd, replay.cmd}
+	app.Commands = []cli.Command{record.cmd, replay.cmd, installroot.cmd, removeroot.cmd}
 	app.Usage = "Web Page Replay"
-	app.UsageText = fmt.Sprintf(longUsage, progName)
+	app.UsageText = fmt.Sprintf(longUsage, progName, progName)
 	app.HideVersion = true
 	app.Version = ""
 	app.Writer = os.Stderr

@@ -12,10 +12,20 @@ $ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
 SAMPLE USAGE
 
 Terminal 1:
+
+Install a test certificate authority.
+$ go run src/wpr.go installroot
+
+Start wpr in record mode.
 $ go run src/wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.json
 ...
 Ctrl-C
+
+Start wpr in replay mode.
 $ go run src/wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.json
+
+Uninstall the test certificate authority.
+$ go run src/wpr.go removeroot
 
 Terminal 2:
 $ google-chrome-beta --user-data-dir=$foo \

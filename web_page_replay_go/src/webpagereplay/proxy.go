@@ -54,7 +54,6 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	}
 	if req.URL.Path == "/web-page-replay-command-exit" {
 		log.Printf("Shutting down. Received /web-page-replay-command-exit")
-		RemoveRoot()
 		os.Exit(0)
 		return
 	}
@@ -142,7 +141,6 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		if err := proxy.a.Close(); err != nil {
 			log.Printf("Error flushing archive: %v", err)
 		}
-		RemoveRoot()
 		os.Exit(0)
 		return
 	}
