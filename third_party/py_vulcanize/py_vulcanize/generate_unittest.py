@@ -29,6 +29,13 @@ class GenerateTests(unittest.TestCase):
     self.fs.AddFile('/x/foo/raw/raw_script.js', '\n/* raw script */\n')
     self.fs.AddFile('/x/components/polymer/polymer.min.js', '\n')
 
+    self.fs.AddFile('/x/foo/external_script.js', 'External()')
+    self.fs.AddFile('/x/foo/inline_and_external_module.html',
+                    ('<!DOCTYPE html>\n'
+                    '<script>Script1()</script>'
+                    '<script src=/foo/external_script.js></script>'
+                    '<script>Script2()</script>'))
+
     self.project = project_module.Project([os.path.normpath('/x')])
 
   def testJSGeneration(self):
@@ -57,3 +64,26 @@ class GenerateTests(unittest.TestCase):
       result = generate.GenerateStandaloneHTMLAsString(
           load_sequence, title='Title', extra_scripts=[ExtraScript()])
       self.assertIn('ExtraScript', result)
+
+  def testScriptOrdering(self):
+    with self.fs:
+      load_sequence = self.project.CalcLoadSequenceForModuleNames(
+          [os.path.normpath('foo.inline_and_external_module')])
+      result = generate.GenerateStandaloneHTMLAsString(load_sequence)
+      script1_pos = result.index('Script1()')
+      script2_pos = result.index('Script2()')
+      external_pos = result.index('External()')
+      self.assertTrue(script1_pos < external_pos < script2_pos)
+
+  def testScriptOrderingWithIncludeTag(self):
+    with self.fs:
+      load_sequence = self.project.CalcLoadSequenceForModuleNames(
+          [os.path.normpath('foo.inline_and_external_module')])
+      result = generate.GenerateJS(load_sequence,
+                                   use_include_tags_for_scripts = True,
+      dir_for_include_tag_root='/x/')
+      script1_pos = result.index('Script1()')
+      script2_pos = result.index('Script2()')
+      external_path = os.path.join('foo', 'external_script.js')
+      external_pos = result.index('<include src="{0}">'.format(external_path))
+      self.assertTrue(script1_pos < external_pos < script2_pos)

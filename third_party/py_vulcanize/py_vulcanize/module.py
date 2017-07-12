@@ -115,6 +115,7 @@ class Module(object):
     # Actual dependencies, set up during load().
     self.dependent_modules = []
     self.dependent_raw_scripts = []
+    self.scripts = []
     self.style_sheets = []
 
     # Caches.
@@ -152,14 +153,9 @@ class Module(object):
                              use_include_tags_for_scripts,
                              dir_for_include_tag_root):
     """Appends the js for this module to the provided file."""
-    for dependent_raw_script in self.dependent_raw_scripts:
-      if use_include_tags_for_scripts:
-        rel_filename = os.path.relpath(dependent_raw_script.filename,
-                                       dir_for_include_tag_root)
-        f.write("""<include src="%s">\n""" % rel_filename)
-      else:
-        f.write(js_utils.EscapeJSIfNeeded(dependent_raw_script.contents))
-        f.write('\n')
+    for script in self.scripts:
+      script.AppendJSContentsToFile(f, use_include_tags_for_scripts,
+                                    dir_for_include_tag_root)
 
   def AppendHTMLContentsToFile(self, f, ctl, minify=False):
     """Appends the HTML for this module [without links] to the provided file."""
@@ -182,10 +178,6 @@ class Module(object):
     for name in metadata.dependent_module_names:
       module = self.loader.LoadModule(module_name=name)
       self.dependent_modules.append(module)
-
-    for path in metadata.dependent_raw_script_relative_paths:
-      raw_script = self.loader.LoadRawScript(path)
-      self.dependent_raw_scripts.append(raw_script)
 
     for name in metadata.style_sheet_names:
       style_sheet = self.loader.LoadStyleSheet(name)

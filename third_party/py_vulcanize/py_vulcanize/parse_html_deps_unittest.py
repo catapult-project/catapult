@@ -93,6 +93,24 @@ class ParseTests(unittest.TestCase):
         'py_vulcanize.require("foo");',
         module.html_contents_without_links_and_script)
 
+  def test_parse_script_inline_and_external(self):
+    html = """<polymer-element name="tk-element-proto">
+                <template>
+                </template>
+                <script>window = {}</script>
+                <script src="foo.js"></script>
+                <script>window = undefined</script>
+              </polymer-element>"""
+
+    parser = parse_html_deps.HTMLModuleParser()
+    module = parser.Parse(html)
+    self.assertEquals(3, len(module.scripts))
+    self.assertEquals('window = {}', module.scripts[0].contents)
+    self.assertEquals("foo.js",module.scripts[1].src)
+    self.assertTrue(module.scripts[1].is_external)
+    self.assertEquals('window = undefined', module.scripts[2].contents)
+    self.assertEquals([], module.imports)
+
   def test_parse_script_src_sripping(self):
     html = """
 <script src="blah.js"></script>

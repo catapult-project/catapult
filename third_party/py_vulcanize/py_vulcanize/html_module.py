@@ -34,6 +34,7 @@ class HTMLModule(module.Module):
                                      self.IsThirdPartyComponent(),
                                      parser_results)
     self._parser_results = parser_results
+    self.scripts = parser_results.scripts
 
   def Load(self):
     super(HTMLModule, self).Load()
@@ -45,23 +46,18 @@ class HTMLModule(module.Module):
         raise Exception('%s: Does not have a dependency on base' %
                         os.path.relpath(self.resource.absolute_path))
 
+    for script in self.scripts:
+      if script.is_external:
+        resource = _HRefToResource(self.loader, self.name, self._module_dir_name,
+                                   script.src,
+                                   tag_for_err_msg='<script src="%s">' % script.src)
+        path = resource.unix_style_relative_path
+        raw_script = self.loader.LoadRawScript(path)
+        self.dependent_raw_scripts.append(raw_script)
+        script.loaded_raw_script = raw_script
+
   def GetTVCMDepsModuleType(self):
     return 'py_vulcanize.HTML_MODULE_TYPE'
-
-  def AppendJSContentsToFile(self,
-                             f,
-                             use_include_tags_for_scripts,
-                             dir_for_include_tag_root):
-    super(HTMLModule, self).AppendJSContentsToFile(f,
-                                                   use_include_tags_for_scripts,
-                                                   dir_for_include_tag_root)
-    for inline_script in self._parser_results.inline_scripts:
-      js = inline_script.contents
-
-      js = js_utils.EscapeJSIfNeeded(js)
-
-      f.write(js)
-      f.write('\n')
 
   def AppendHTMLContentsToFile(self, f, ctl, minify=False):
     super(HTMLModule, self).AppendHTMLContentsToFile(f, ctl)
@@ -86,7 +82,6 @@ class HTMLModule(module.Module):
       ss = style_sheet.ParsedStyleSheet(
           self.loader, module_dirname, contents)
       ss.AppendDirectlyDependentFilenamesTo(dependent_filenames)
-
 
 def _HRefToResource(
     loader, module_name, module_dir_name, href, tag_for_err_msg):

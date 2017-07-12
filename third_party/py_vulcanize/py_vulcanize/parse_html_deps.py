@@ -5,6 +5,7 @@
 import os
 import sys
 
+from py_vulcanize import js_utils
 from py_vulcanize import module
 from py_vulcanize import strip_js_comments
 from py_vulcanize import html_generation_controller
@@ -32,15 +33,23 @@ def _InitBeautifulSoup():
 _InitBeautifulSoup()
 import bs4
 
-
-class InlineScript(object):
+class Script(object):
 
   def __init__(self, soup):
     if not soup:
-      raise module.DepsException('InlineScript created without soup')
+      raise module.DepsException('Script object created without soup')
     self._soup = soup
+
+  def AppendJSContentsToFile(self, f, *args, **kwargs):
+    raise NotImplementedError()
+
+class InlineScript(Script):
+
+  def __init__(self, soup):
+    super(InlineScript, self).__init__(soup)
     self._stripped_contents = None
     self._open_tags = None
+    self.is_external = False
 
   @property
   def contents(self):
@@ -73,6 +82,47 @@ class InlineScript(object):
     self._open_tags = open_tags
     return self._open_tags
 
+  def AppendJSContentsToFile(self, f, *args, **kwargs):
+    js = self.contents
+    escaped_js = js_utils.EscapeJSIfNeeded(js)
+    f.write(escaped_js)
+    f.write('\n')
+
+class ExternalScript(Script):
+
+  def __init__(self, soup):
+    super(ExternalScript, self).__init__(soup)
+    if 'src' not in soup.attrs:
+      raise Exception("{0} is not an external script.".format(soup))
+    self.is_external = True
+    self._loaded_raw_script = None
+
+  @property
+  def loaded_raw_script(self):
+    if self._loaded_raw_script:
+      return self._loaded_raw_script
+    raise Exception("Raw script was never loaded for this external script.")
+
+  @loaded_raw_script.setter
+  def loaded_raw_script(self, value):
+    self._loaded_raw_script = value
+
+  @property
+  def src(self):
+    return self._soup.attrs['src']
+
+  def AppendJSContentsToFile(self,
+                             f,
+                             use_include_tags_for_scripts,
+                             dir_for_include_tag_root):
+    raw_script = self.loaded_raw_script
+    if use_include_tags_for_scripts:
+      rel_filename = os.path.relpath(raw_script.filename,
+                                    dir_for_include_tag_root)
+      f.write("""<include src="%s">\n""" % rel_filename)
+    else:
+      f.write(js_utils.EscapeJSIfNeeded(raw_script.contents))
+      f.write('\n')
 
 def _CreateSoupWithoutHeadOrBody(html):
   soupCopy = bs4.BeautifulSoup(html, 'html5lib')
@@ -94,6 +144,7 @@ class HTMLModuleParserResults(object):
   def __init__(self, html):
     self._soup = bs4.BeautifulSoup(html, 'html5lib')
     self._inline_scripts = None
+    self._scripts = None
 
   @property
   def scripts_external(self):
@@ -106,6 +157,18 @@ class HTMLModuleParserResults(object):
       tags = self._soup.findAll('script', src=None)
       self._inline_scripts = [InlineScript(t.string) for t in tags]
     return self._inline_scripts
+
+  @property
+  def scripts(self):
+    if not self._scripts:
+      self._scripts = []
+      script_elements = self._soup.findAll('script')
+      for element in script_elements:
+        if 'src' in element.attrs:
+          self._scripts.append(ExternalScript(element))
+        else:
+          self._scripts.append(InlineScript(element))
+    return self._scripts
 
   @property
   def imports(self):
