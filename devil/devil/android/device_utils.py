@@ -17,6 +17,7 @@ import multiprocessing
 import os
 import posixpath
 import pprint
+import random
 import re
 import shutil
 import stat
@@ -1622,7 +1623,7 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RemovePath(self, device_path, force=False, recursive=False,
-                 as_root=False, timeout=None, retries=None):
+                 as_root=False, rename=False, timeout=None, retries=None):
     """Removes the given path(s) from the device.
 
     Args:
@@ -1632,20 +1633,28 @@ class DeviceUtils(object):
       recursive: Whether to remove any directories in the path(s) recursively.
       as_root: Whether root permissions should be use to remove the given
                path(s).
+      rename: Whether to rename the path(s) before removing to help avoid
+            filesystem errors. See https://stackoverflow.com/questions/11539657
       timeout: timeout in seconds
       retries: number of retries
     """
+    def _RenamePath(path):
+      random_suffix = hex(random.randint(2 ** 12, 2 ** 16 - 1))[2:]
+      dest = '%s-%s' % (path, random_suffix)
+      self.RunShellCommand(
+          ['mv', path, dest], as_root=as_root, check_return=True)
+      return dest
     args = ['rm']
     if force:
       args.append('-f')
     if recursive:
       args.append('-r')
     if isinstance(device_path, basestring):
-      args.append(device_path)
+      args.append(device_path if not rename else _RenamePath(device_path))
     else:
-      args.extend(device_path)
+      args.extend(
+          device_path if not rename else [_RenamePath(p) for p in device_path])
     self.RunShellCommand(args, as_root=as_root, check_return=True)
-
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def PullFile(self, device_path, host_path, timeout=None, retries=None):
