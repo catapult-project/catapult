@@ -285,12 +285,11 @@ Polymer({
   },
 
   addRuntimeCallStats_(eventSet) {
-    const slices = new tr.model.EventSet();
-    for (const slice of eventSet) {
-      if (slice.category === 'v8' && slice.runtimeCallStats) {
-        slices.push(slice);
-      }
-    }
+    const slices = eventSet.filter(function(slice) {
+      return (slice.category === 'v8' ||
+              slice.category === 'disabled-by-default-v8.runtime_stats') &&
+        slice.runtimeCallStats;
+    });
     if (slices.length > 0) {
       this.eventGroups_.push({
         type: 'Runtime call stats table',

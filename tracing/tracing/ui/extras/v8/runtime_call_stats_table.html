@@ -12,7 +12,7 @@ found in the LICENSE file.
 <dom-module id='tr-ui-e-v8-runtime-call-stats-table'>
   <template>
     <style>
-    #table {
+    #table, #blink_rcs_table {
       flex: 0 0 auto;
       align-self: stretch;
       margin-top: 1em;
@@ -20,104 +20,161 @@ found in the LICENSE file.
     }
     </style>
     <tr-ui-b-table id="table"></tr-ui-b-table>
+    <tr-ui-b-table id="blink_rcs_table"></tr-ui-b-table>
   </template>
 </dom-module>
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.e.v8', function() {
-  function handleCodeSearch_(event) {
+  const codeSearchURL_ = 'https://cs.chromium.org/search/?sq=package:chromium&type=cs&q=';
+
+  function handleCodeSearchForV8_(event) {
     if (event.target.parentNode === undefined) return;
     let name = event.target.parentNode.entryName;
-    let url = 'https://cs.chromium.org/search/?sq=package:chromium&type=cs&q=';
     if (name.startsWith('API_')) name = name.substring(4);
-    url += encodeURIComponent(name) + '+file:src/v8/src';
+    const url = codeSearchURL_ + encodeURIComponent(name) + '+file:src/v8/src';
     window.open(url, '_blank');
   }
+
+  function handleCodeSearchForBlink_(event) {
+    if (event.target.parentNode === undefined) return;
+    let name = event.target.parentNode.entryName;
+    if (name.startsWith('Blink_')) name = name.substring(6);
+    const url = codeSearchURL_ +
+      encodeURIComponent('RuntimeCallStats::CounterId::k' + name) +
+      '+file:src/third_party/WebKit/|src/out/Debug/';
+    window.open(url, '_blank');
+  }
+
+  function createCodeSearchEl_(handleCodeSearch) {
+    const codeSearchEl = document.createElement('span');
+    codeSearchEl.innerText = '?';
+    codeSearchEl.style.float = 'right';
+    codeSearchEl.style.borderRadius = '5px';
+    codeSearchEl.style.backgroundColor = '#EEE';
+    codeSearchEl.addEventListener('click',
+        handleCodeSearch.bind(this));
+    return codeSearchEl;
+  }
+
+  const timeColumn_ = {
+    title: 'Time',
+    value(row) {
+      const typeEl = document.createElement('span');
+      typeEl.innerText = (row.time / 1000.0).toFixed(3) + ' ms';
+      return typeEl;
+    },
+    width: '100px',
+    cmp(a, b) {
+      return a.time - b.time;
+    }
+  };
+
+  const countColumn_ = {
+    title: 'Count',
+    value(row) {
+      const typeEl = document.createElement('span');
+      typeEl.innerText = row.count;
+      return typeEl;
+    },
+    width: '100px',
+    cmp(a, b) {
+      return a.count - b.count;
+    }
+  };
+
+  function percentColumn_(title, totalTime) {
+    return {
+      title,
+      value(row) {
+        const typeEl = document.createElement('span');
+        typeEl.innerText = (row.time / totalTime * 100).toFixed(3) + '%';
+        return typeEl;
+      },
+      width: '100px',
+      cmp(a, b) {
+        return a.time - b.time;
+      }
+    };
+  }
+
+  function nameColumn_(showExpandButtons, handleCodeSearch) {
+    return {
+      title: 'Name',
+      value(row) {
+        const typeEl = document.createElement('span');
+        typeEl.innerText = row.name;
+        if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
+          typeEl.title = 'click ? for code search';
+          typeEl.entryName = row.name;
+          const codeSearchEl = createCodeSearchEl_(handleCodeSearch);
+          typeEl.appendChild(codeSearchEl);
+        }
+        return typeEl;
+      },
+      width: '200px',
+      showExpandButtons
+    };
+  }
+
+  function initializeCommonOptions_(table) {
+    table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+    table.sortColumnIndex = 1;
+    table.sortDescending = true;
+  }
+
 
   Polymer({
     is: 'tr-ui-e-v8-runtime-call-stats-table',
 
     ready() {
       this.table_ = this.$.table;
+      this.blink_rcs_table_ = this.$.blink_rcs_table;
       this.totalTime_ = 0;
     },
 
-    constructTable_(totalTime) {
-      this.table_.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+    constructV8RCSTable_(totalTime) {
       this.table_.tableColumns = [
-        {
-          title: 'Name',
-          value(row) {
-            const typeEl = document.createElement('span');
-            typeEl.innerText = row.name;
-            if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
-              typeEl.title = 'click ? for code search';
-              typeEl.entryName = row.name;
-              const codeSearchEl = document.createElement('span');
-              codeSearchEl.innerText = '?';
-              codeSearchEl.style.float = 'right';
-              codeSearchEl.style.borderRadius = '5px';
-              codeSearchEl.style.backgroundColor = '#EEE';
-              codeSearchEl.addEventListener('click',
-                  handleCodeSearch_.bind(this));
-              typeEl.appendChild(codeSearchEl);
-            }
-            return typeEl;
-          },
-          width: '200px',
-          showExpandButtons: true
-        },
-        {
-          title: 'Time',
-          value(row) {
-            const typeEl = document.createElement('span');
-            typeEl.innerText = (row.time / 1000.0).toFixed(3) + ' ms';
-            return typeEl;
-          },
-          width: '100px',
-          cmp(a, b) {
-            return a.time - b.time;
-          }
-        },
-        {
-          title: 'Count',
-          value(row) {
-            const typeEl = document.createElement('span');
-            typeEl.innerText = row.count;
-            return typeEl;
-          },
-          width: '100px',
-          cmp(a, b) {
-            return a.count - b.count;
-          }
-        },
-        {
-          title: 'Percent',
-          value(row) {
-            const typeEl = document.createElement('span');
-            typeEl.innerText = (row.time / totalTime * 100).toFixed(3) + '%';
-            return typeEl;
-          },
-          width: '100px',
-          cmp(a, b) {
-            return a.time - b.time;
-          }
-        }
+        nameColumn_(true, handleCodeSearchForV8_),
+        timeColumn_,
+        countColumn_,
+        percentColumn_('Percent', totalTime)
       ];
 
-      this.table_.sortColumnIndex = 1;
-      this.table_.sortDescending = true;
+      initializeCommonOptions_(this.table_);
       this.table_.subRowsPropertyName = 'values';
+    },
+
+    constructBlinkRCSTable_(blinkCPPTime) {
+      this.blink_rcs_table_.tableColumns = [
+        nameColumn_(false, handleCodeSearchForBlink_),
+        timeColumn_,
+        countColumn_,
+        percentColumn_('Percent (of Blink C++)', blinkCPPTime)
+      ];
+
+      initializeCommonOptions_(this.blink_rcs_table_);
     },
 
     set slices(slices) {
       const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
       runtimeGroupCollection.addSlices(slices);
       if (runtimeGroupCollection.totalTime > 0) {
-        this.constructTable_(runtimeGroupCollection.totalTime);
+        this.constructV8RCSTable_(runtimeGroupCollection.totalTime);
         this.table_.tableRows = runtimeGroupCollection.runtimeGroups;
         this.table_.rebuild();
+      }
+
+      const blinkRCSGroup = runtimeGroupCollection.blinkRCSGroup;
+      if (runtimeGroupCollection.blinkCppTime > 0 && blinkRCSGroup.time > 0) {
+        this.constructBlinkRCSTable_(runtimeGroupCollection.blinkCppTime);
+        const rows = blinkRCSGroup.values;
+        rows.unshift(new tr.e.v8.RuntimeStatsEntry('Total',
+                                                   blinkRCSGroup.count,
+                                                   blinkRCSGroup.time));
+        this.blink_rcs_table_.tableRows = rows;
+        this.blink_rcs_table_.rebuild();
       }
     }
   });
