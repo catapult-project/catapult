@@ -1329,7 +1329,7 @@ class DeviceUtils(object):
 
     all_changed_files = []
     all_stale_files = []
-    missing_dirs = []
+    missing_dirs = set()
     cache_commit_funcs = []
     for h, d in host_device_tuples:
       assert os.path.isabs(h) and posixpath.isabs(d)
@@ -1341,16 +1341,17 @@ class DeviceUtils(object):
       cache_commit_funcs.append(cache_commit_func)
       if changed_files and not up_to_date_files and not stale_files:
         if os.path.isdir(h):
-          missing_dirs.append(d)
+          missing_dirs.add(d)
         else:
-          missing_dirs.append(posixpath.dirname(d))
+          missing_dirs.add(posixpath.dirname(d))
 
     if delete_device_stale and all_stale_files:
       self.RunShellCommand(['rm', '-f'] + all_stale_files, check_return=True)
 
     if all_changed_files:
       if missing_dirs:
-        self.RunShellCommand(['mkdir', '-p'] + missing_dirs, check_return=True)
+        self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
+                             check_return=True)
       self._PushFilesImpl(host_device_tuples, all_changed_files)
     for func in cache_commit_funcs:
       func()
