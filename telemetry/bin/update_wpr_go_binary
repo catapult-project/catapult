@@ -6,6 +6,7 @@
 import os
 import sys
 import subprocess
+import platform
 
 TELEMETRY_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 sys.path.insert(1, TELEMETRY_DIR)
@@ -18,8 +19,7 @@ _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go')
 _GO_LIB_DIR = os.path.expanduser('~/go')
 
 
-_SUPPORTED_GO_VERSIONS = (
-  'go1.5', 'go1.6', 'go1.7', 'go1.8')
+_SUPPORTED_GO_VERSIONS = ('go1.8',)
 
 
 def check_go_version():
@@ -46,13 +46,13 @@ def build_wpr_go(os_name, os_arch):
   env['GOARCH'] = os_arch
   build_cmd = ['go', 'build', '-v', os.path.join('src', 'wpr.go')]
   print 'Running build command: %s' % ' '.join(build_cmd)
-  p = subprocess.Popen(build_cmd, env=env, cwd=_WPR_GO_DIR)
-  p.wait()
+  subprocess.check_call(build_cmd, env=env, cwd=_WPR_GO_DIR)
   return os.path.join(_WPR_GO_DIR, 'wpr')
 
 
 # TODO(nedn): support building other architectures & OSes.
 _SUPPORTED_PLATFORMS = (
+  ('darwin', 'x86_64'),
   ('linux', 'x86_64'),
 )
 
@@ -62,12 +62,16 @@ def get_latest_wpr_go_commit_hash():
 
 
 def main():
-  for os_name, arch_name in _SUPPORTED_PLATFORMS:
-    wpr_bin = build_wpr_go(os_name, arch_name)
-    binary_manager.UpdateDependency(
-        'wpr_go', wpr_bin,
-         version=get_latest_wpr_go_commit_hash(),
-         os_name=os_name, arch_name=arch_name)
+  os_name = sys.platform
+  arch_name = platform.machine()
+  if (os_name, arch_name) not in _SUPPORTED_PLATFORMS:
+    raise NotImplementedError('OS = %s, ARCH = %s is not supported' %
+        (os_name, arch_name))
+  wpr_bin = build_wpr_go(os_name, arch_name)
+  binary_manager.UpdateDependency(
+      'wpr_go', wpr_bin,
+       version=get_latest_wpr_go_commit_hash(),
+       os_name=os_name, arch_name=arch_name)
 
 
 if __name__ == "__main__":
