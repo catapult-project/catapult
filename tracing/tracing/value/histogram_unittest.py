@@ -8,6 +8,7 @@ import time
 import unittest
 
 from tracing.value import histogram
+from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 
 # pylint: disable=too-many-lines
@@ -610,7 +611,7 @@ class BreakdownUnittest(unittest.TestCase):
     bd.Set('nun', float('nan'))
     bd.Set('ninf', float('-inf'))
     d = bd.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.Get('one'), 1)
     self.assertEqual(clone.Get('m1'), -1)
@@ -628,7 +629,7 @@ class TagMapUnittest(unittest.TestCase):
     }
     info = histogram.TagMap({'tagsToStoryNames': tags})
     d = info.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertSetEqual(
         clone.tags_to_story_names['tag1'], set(tags['tag1']))
@@ -667,7 +668,7 @@ class TagMapUnittest(unittest.TestCase):
         histogram.GenericSet([]), None, None, None))
     self.assertTrue(t0.CanAddDiagnostic(t1, None, None, None))
 
-    m0 = histogram.Diagnostic.FromDict(t0.AsDict())
+    m0 = diagnostic.Diagnostic.FromDict(t0.AsDict())
 
     self.assertTrue(isinstance(m0, histogram.TagMap))
     self.assertFalse(
@@ -676,17 +677,17 @@ class TagMapUnittest(unittest.TestCase):
 
     m0.AddDiagnostic(t1, None, None, None)
 
-    m1 = histogram.Diagnostic.FromDict(t1.AsDict())
+    m1 = diagnostic.Diagnostic.FromDict(t1.AsDict())
     m1.AddDiagnostic(t0, None, None, None)
 
     self.assertDictEqual(m0.AsDict(), m1.AsDict())
 
-    m2 = histogram.Diagnostic.FromDict(t1.AsDict())
+    m2 = diagnostic.Diagnostic.FromDict(t1.AsDict())
 
     self.assertNotEqual(m2.AsDict(), m0.AsDict())
 
     # Test round-tripping of merged diagnostic
-    clone = histogram.Diagnostic.FromDict(m0.AsDict())
+    clone = diagnostic.Diagnostic.FromDict(m0.AsDict())
 
     self.assertSetEqual(
         set(clone.tags_to_story_names.keys()),
@@ -713,7 +714,7 @@ class BuildbotInfoUnittest(unittest.TestCase):
         'logUri': 'uri',
     })
     d = info.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.display_master_name, 'dmn')
     self.assertEqual(clone.display_bot_name, 'dbn')
@@ -778,7 +779,7 @@ class RevisionInfoUnittest(unittest.TestCase):
         'webrtc': ['277b25', 'f8b262'],
     })
     d = info.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.chromium_commit_position, 42)
     self.assertEqual(clone.v8_commit_position, 57)
@@ -803,7 +804,7 @@ class TelemetryInfoUnittest(unittest.TestCase):
         'legacyTIRLabel': 'tir',
     })
     d = info.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.benchmark_name, 'foo')
     self.assertEqual(clone.benchmark_start, 42)
@@ -874,7 +875,7 @@ class DeviceInfoUnittest(unittest.TestCase):
     info.arch = {'more': 'stuff'}
     info.ram = 42
     d = info.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.chrome_version, '1.2.3.4')
     self.assertEqual(clone.os_name, 'linux')
@@ -932,7 +933,7 @@ class RelatedEventSetUnittest(unittest.TestCase):
         'duration': 1,
     })
     d = events.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(len(events), 1)
     event = list(events)[0]
@@ -950,7 +951,7 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
     breakdown.Add(hista)
     breakdown.Add(histb)
     d = breakdown.AsDict()
-    clone = histogram.Diagnostic.FromDict(d)
+    clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(hista.guid, clone.Get('a').guid)
     self.assertEqual(histb.guid, clone.Get('b').guid)
@@ -962,7 +963,7 @@ class DateRangeUnittest(unittest.TestCase):
     dr.AddDiagnostic(histogram.DateRange(1496693746000))
     self.assertEqual(time.mktime(dr.min_date.timetuple()), 1496693745)
     self.assertEqual(time.mktime(dr.max_date.timetuple()), 1496693746)
-    clone = histogram.Diagnostic.FromDict(dr.AsDict())
+    clone = diagnostic.Diagnostic.FromDict(dr.AsDict())
     self.assertEqual(clone.min_date, dr.min_date)
     self.assertEqual(clone.max_date, dr.max_date)
 
@@ -981,7 +982,7 @@ class GenericSetUnittest(unittest.TestCase):
         [0, False],
         {'a': 1, 'b': True},
     ])
-    self.assertEqual(a_set, histogram.Diagnostic.FromDict(a_set.AsDict()))
+    self.assertEqual(a_set, diagnostic.Diagnostic.FromDict(a_set.AsDict()))
 
   def testEq(self):
     a_set = histogram.GenericSet([
@@ -1078,7 +1079,7 @@ class DiagnosticMapUnittest(unittest.TestCase):
         'values': [],
         'guid': 'bar'
     }
-    g = histogram.Diagnostic.FromDict(d)
+    g = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual('bar', g.guid)
 
   def testMerge(self):

@@ -17,6 +17,7 @@ from dashboard.common import stored_object
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import diagnostic
 
 
 SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
@@ -74,15 +75,15 @@ def ProcessHistogramSet(histogram_dicts):
   suite_key = GetSuiteKey(histograms)
 
   suite_level_sparse_diagnostic_entities = []
-  for diagnostic in histograms.shared_diagnostics:
+  for diag in histograms.shared_diagnostics:
     # We'll skip the histogram-level sparse diagnostics because we need to
     # handle those with the histograms, below, so that we can properly assign
     # test paths.
-    if type(diagnostic) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+    if type(diag) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
       suite_level_sparse_diagnostic_entities.append(
           histogram.SparseDiagnostic(
-              id=diagnostic.guid, data=diagnostic.AsDict(),
-              test=suite_key, start_revision=revision, end_revision=sys.maxint))
+              id=diag.guid, data=diag.AsDict(), test=suite_key,
+              start_revision=revision, end_revision=sys.maxint))
 
   # TODO(eakuefner): Refactor master/bot computation to happen above this line
   # so that we can replace with a DiagnosticRef rather than a full diagnostic.
@@ -90,7 +91,7 @@ def ProcessHistogramSet(histogram_dicts):
       suite_level_sparse_diagnostic_entities, suite_key, revision)
   for new_guid, old_diagnostic in new_guids_to_old_diagnostics.iteritems():
     histograms.ReplaceSharedDiagnostic(
-        new_guid, histogram_module.Diagnostic.FromDict(old_diagnostic))
+        new_guid, diagnostic.Diagnostic.FromDict(old_diagnostic))
 
   for hist in histograms:
     guid = hist.guid
@@ -154,16 +155,16 @@ def _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities):
 
 
 def _IsDifferent(diagnostic_a, diagnostic_b):
-  return (histogram_module.Diagnostic.FromDict(diagnostic_a) !=
-          histogram_module.Diagnostic.FromDict(diagnostic_b))
+  return (diagnostic.Diagnostic.FromDict(diagnostic_a) !=
+          diagnostic.Diagnostic.FromDict(diagnostic_b))
 
 
 def FindHistogramLevelSparseDiagnostics(guid, histograms):
   hist = histograms.LookupHistogram(guid)
   diagnostics = []
-  for diagnostic in hist.diagnostics.itervalues():
-    if type(diagnostic) in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
-      diagnostics.append(diagnostic)
+  for diag in hist.diagnostics.itervalues():
+    if type(diag) in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+      diagnostics.append(diag)
   return diagnostics
 
 
@@ -227,6 +228,6 @@ def InlineDenseSharedDiagnostics(histograms):
   # TODO(eakuefner): Delete inlined diagnostics from the set
   for hist in histograms:
     diagnostics = hist.diagnostics
-    for diagnostic in diagnostics.itervalues():
-      if type(diagnostic) not in SPARSE_DIAGNOSTIC_TYPES:
-        diagnostic.Inline()
+    for diag in diagnostics.itervalues():
+      if type(diag) not in SPARSE_DIAGNOSTIC_TYPES:
+        diag.Inline()

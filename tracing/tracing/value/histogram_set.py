@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 
 class HistogramSet(object):
@@ -21,16 +22,16 @@ class HistogramSet(object):
       raise ValueError('Cannot add same Histogram twice')
 
     if diagnostics:
-      for name, diagnostic in diagnostics.iteritems():
-        hist.diagnostics[name] = diagnostic
+      for name, diag in diagnostics.iteritems():
+        hist.diagnostics[name] = diag
 
     self._histograms_by_guid[hist.guid] = hist
 
-  def AddSharedDiagnostic(self, name, diagnostic):
-    self._shared_diagnostics_by_guid[diagnostic.guid] = diagnostic
+  def AddSharedDiagnostic(self, name, diag):
+    self._shared_diagnostics_by_guid[diag.guid] = diag
 
     for hist in self:
-      hist.diagnostics[name] = diagnostic
+      hist.diagnostics[name] = diag
 
   def GetFirstHistogram(self):
     for histogram in self._histograms_by_guid.itervalues():
@@ -51,11 +52,11 @@ class HistogramSet(object):
   def ResolveRelatedHistograms(self):
     histograms = self
     def HandleDiagnosticMap(dm):
-      for diagnostic in dm.itervalues():
+      for diag in dm.itervalues():
         if isinstance(
-            diagnostic, (histogram_module.RelatedHistogramSet,
-                         histogram_module.RelatedHistogramMap)):
-          diagnostic.Resolve(histograms)
+            diag, (histogram_module.RelatedHistogramSet,
+                   histogram_module.RelatedHistogramMap)):
+          diag.Resolve(histograms)
 
     for hist in self:
       hist.diagnostics.ResolveSharedDiagnostics(self)
@@ -75,8 +76,8 @@ class HistogramSet(object):
 
   def ImportDicts(self, dicts):
     for d in dicts:
-      if histogram_module.Diagnostic.GetDiagnosticType(d.get('type')):
-        diag = histogram_module.Diagnostic.FromDict(d)
+      if diagnostic.Diagnostic.GetDiagnosticType(d.get('type')):
+        diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:
         self.AddHistogram(histogram_module.Histogram.FromDict(d))
@@ -94,6 +95,6 @@ class HistogramSet(object):
       self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
 
     for hist in self:
-      for name, diagnostic in hist.diagnostics.iteritems():
-        if diagnostic.has_guid and diagnostic.guid == old_guid:
+      for name, diag in hist.diagnostics.iteritems():
+        if diag.has_guid and diag.guid == old_guid:
           hist.diagnostics[name] = new_diagnostic

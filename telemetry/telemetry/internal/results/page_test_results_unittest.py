@@ -22,6 +22,7 @@ from telemetry.value import trace
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import diagnostic
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -430,8 +431,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     histogram_dicts = results.AsHistogramDicts()
     self.assertEquals(1, len(histogram_dicts))
 
-    diagnostic = histogram_module.Diagnostic.FromDict(histogram_dicts[0])
-    self.assertIsInstance(diagnostic, histogram_module.TelemetryInfo)
+    diag = diagnostic.Diagnostic.FromDict(histogram_dicts[0])
+    self.assertIsInstance(diag, histogram_module.TelemetryInfo)
 
   def testPopulateHistogramSet_UsesScalarValueData(self):
     results = page_test_results.PageTestResults()
@@ -473,8 +474,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)
 
-    diagnostic = hs.LookupDiagnostic(original_diagnostic.guid)
-    self.assertIsInstance(diagnostic, histogram_module.TelemetryInfo)
+    diag = hs.LookupDiagnostic(original_diagnostic.guid)
+    self.assertIsInstance(diag, histogram_module.TelemetryInfo)
 
 
 class PageTestResultsFilterTest(unittest.TestCase):
