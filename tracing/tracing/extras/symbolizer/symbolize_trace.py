@@ -1177,16 +1177,22 @@ class Symbolizer(object):
     symbols_addresses.append(sys.maxint)
 
     offset = 0
+    skipped_addresses = 0
     for symbol_offset in xrange(1, len(symbols_addresses)):
       symbol_address_start = symbols_addresses[symbol_offset - 1]
       symbol_address_end = symbols_addresses[symbol_offset]
       resolved_symbol = module.symbols[symbol_address_start]
       while (offset < len(addresses) and
-             addresses[offset] >= symbol_address_start and
              addresses[offset] < symbol_address_end):
-        for frame in  symfile.frames_by_address[addresses[offset]]:
-          frame.name = resolved_symbol
+        if addresses[offset] >= symbol_address_start:
+          for frame in symfile.frames_by_address[addresses[offset]]:
+            frame.name = resolved_symbol
+        else:
+          skipped_addresses = skipped_addresses + 1
         offset = offset + 1
+
+    if skipped_addresses:
+      print "warning: %d unsymbolized symbols!" % skipped_addresses
 
   def SymbolizeSymfile(self, symfile):
     if symfile.skip_symbolization:
