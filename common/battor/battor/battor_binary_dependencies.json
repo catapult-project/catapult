@@ -106,7 +106,7 @@
           "local_paths": [
             "../bin/override/battor_firmware.hex"
           ],
-          "version_in_cs": "a2a02cb"
+          "version_in_cs": "3d63c69"
         }
       }
     }
