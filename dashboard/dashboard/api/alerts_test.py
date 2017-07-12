@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import mock
 import datetime
 import unittest
@@ -137,7 +138,8 @@ class AlertsTest(testing_common.TestCase):
   def testPost_WithInvalidRevParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     response = self.testapp.post('/api/alerts/rev/foo', status=500)
-    self.assertIn('Invalid rev "foo".', response.body)
+    self.assertEqual(
+        {'error': 'Invalid rev "foo".'}, json.loads(response.body))
 
   @mock.patch.object(api_auth, 'oauth')
   def testPost_WithBugIdParameter(self, mock_oauth):
@@ -179,20 +181,8 @@ class AlertsTest(testing_common.TestCase):
   def testPost_WithInvalidBugIdParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
     response = self.testapp.post('/api/alerts/bug_id/foo', status=500)
-    self.assertIn('Invalid bug ID "foo".', response.body)
-
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoOauthUser(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = None
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    self.testapp.post('/api/alerts/bug_id/12345', status=403)
-
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_BadOauthClientId(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = 'invalid'
-    self.testapp.post('/api/alerts/bug_id/12345', status=403)
+    self.assertEqual(
+        {'error': 'Invalid bug ID "foo".'}, json.loads(response.body))
 
   @mock.patch.object(api_auth, 'oauth')
   def testPost_WithHistoryParameter_ListsAlerts(self, mock_oauth):

@@ -2,25 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import datetime
-import json
 
 from google.appengine.ext import ndb
 
-from dashboard.api import api_auth
+from dashboard.api import api_request_handler
 from dashboard.common import request_handler
 from dashboard.models import anomaly
 from dashboard import alerts
 from dashboard import group_report
 
 
-class BadRequestError(Exception):
-  pass
-
-
-class AlertsHandler(request_handler.RequestHandler):
+class AlertsHandler(api_request_handler.ApiRequestHandler):
   """API handler for various alert requests."""
 
-  def post(self, *args):
+  def AuthorizedPost(self, *args):
     """Returns alert data in response to API requests.
 
     Possible list types:
@@ -29,20 +24,8 @@ class AlertsHandler(request_handler.RequestHandler):
       rev: A revision number.
 
     Outputs:
-      JSON data; see README.md.
+      Alerts data; see README.md.
     """
-    try:
-      alert_list = self._GetAlerts(*args)
-      self.response.out.write(json.dumps(alert_list))
-    except BadRequestError as e:
-      self._WriteErrorMessage(e.message, 500)
-    except api_auth.NotLoggedInError:
-      self._WriteErrorMessage('User not authenticated', 403)
-    except api_auth.OAuthError:
-      self._WriteErrorMessage('User authentication error', 403)
-
-  @api_auth.Authorize
-  def _GetAlerts(self, *args):
     alert_list = None
     list_type = args[0]
     try:
@@ -65,7 +48,8 @@ class AlertsHandler(request_handler.RequestHandler):
         sheriff_key = ndb.Key('Sheriff', sheriff_name)
         sheriff = sheriff_key.get()
         if not sheriff:
-          raise BadRequestError('Invalid sheriff %s' % sheriff_name)
+          raise api_request_handler.BadRequestError(
+              'Invalid sheriff %s' % sheriff_name)
         include_improvements = bool(self.request.get('improvements'))
         query = anomaly.Anomaly.query(anomaly.Anomaly.sheriff == sheriff_key)
         query = query.filter(anomaly.Anomaly.timestamp > cutoff)
@@ -76,9 +60,10 @@ class AlertsHandler(request_handler.RequestHandler):
         query = query.order(-anomaly.Anomaly.timestamp)
         alert_list = query.fetch()
       else:
-        raise BadRequestError('Invalid alert type %s' % list_type)
+        raise api_request_handler.BadRequestError(
+            'Invalid alert type %s' % list_type)
     except request_handler.InvalidInputError as e:
-      raise BadRequestError(e.message)
+      raise api_request_handler.BadRequestError(e.message)
 
     anomaly_dicts = alerts.AnomalyDicts(
         [a for a in alert_list if a.key.kind() == 'Anomaly'])
@@ -88,8 +73,3 @@ class AlertsHandler(request_handler.RequestHandler):
     }
 
     return response
-
-  def _WriteErrorMessage(self, message, status):
-    self.ReportError(message, status=status)
-    self.response.out.write(json.dumps({'error': message}))
-

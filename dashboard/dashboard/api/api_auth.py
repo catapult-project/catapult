@@ -65,13 +65,17 @@ def _AuthorizeAppEngineUser():
     raise InternalOnlyError
 
 
+def TryAuthorize():
+  try:
+    _AuthorizeAppEngineUser()
+  except NotLoggedInError:
+    _AuthorizeOauthUser()
+
+
 def Authorize(function_to_wrap):
   @functools.wraps(function_to_wrap)
   def Wrapper(*args, **kwargs):
-    try:
-      _AuthorizeAppEngineUser()
-    except NotLoggedInError:
-      _AuthorizeOauthUser()
+    TryAuthorize()
 
     return function_to_wrap(*args, **kwargs)
   return Wrapper
