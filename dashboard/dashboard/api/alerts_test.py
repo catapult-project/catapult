@@ -117,7 +117,7 @@ class AlertsTest(testing_common.TestCase):
     self._SetGooglerOAuth(mock_oauth)
     key = ndb.Key('Anomaly', 123)
     response = self.testapp.post('/api/alerts/keys/%s' % key.urlsafe(),
-                                 status=500)
+                                 status=400)
     self.assertIn('No Anomaly found for key %s.' % key.urlsafe(), response.body)
 
   @mock.patch.object(api_auth, 'oauth')
@@ -137,7 +137,7 @@ class AlertsTest(testing_common.TestCase):
   @mock.patch.object(api_auth, 'oauth')
   def testPost_WithInvalidRevParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/alerts/rev/foo', status=500)
+    response = self.testapp.post('/api/alerts/rev/foo', status=400)
     self.assertEqual(
         {'error': 'Invalid rev "foo".'}, json.loads(response.body))
 
@@ -180,7 +180,7 @@ class AlertsTest(testing_common.TestCase):
   @mock.patch.object(api_auth, 'oauth')
   def testPost_WithInvalidBugIdParameter_ShowsError(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/alerts/bug_id/foo', status=500)
+    response = self.testapp.post('/api/alerts/bug_id/foo', status=400)
     self.assertEqual(
         {'error': 'Invalid bug ID "foo".'}, json.loads(response.body))
 

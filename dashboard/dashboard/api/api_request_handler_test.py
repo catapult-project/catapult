@@ -50,8 +50,8 @@ class ApiRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       api_auth, 'TryAuthorize',
       mock.MagicMock(side_effect=api_request_handler.BadRequestError('foo')))
-  def testPost_BadRequest_500(self):
-    response = self.testapp.post('/api/test', status=500)
+  def testPost_BadRequest_400(self):
+    response = self.testapp.post('/api/test', status=400)
     self.assertEqual(
         {'error': 'foo'},
         json.loads(response.body))

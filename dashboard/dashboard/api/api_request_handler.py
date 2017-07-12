@@ -28,7 +28,7 @@ class ApiRequestHandler(request_handler.RequestHandler):
       results = self._TryAuthorizePost(*args)
       self.response.out.write(json.dumps(results))
     except BadRequestError as e:
-      self.WriteErrorMessage(e.message, 500)
+      self.WriteErrorMessage(e.message, 400)
     except api_auth.NotLoggedInError:
       self.WriteErrorMessage('User not authenticated', 403)
     except api_auth.OAuthError:
