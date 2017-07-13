@@ -92,6 +92,18 @@ class ReplayServer(object):
 
     self.replay_process = None
 
+  @property
+  def http_port(self):
+    if not self._IsStarted():
+      return None
+    return self._started_ports['http']
+
+  @property
+  def https_port(self):
+    if not self._IsStarted():
+      return None
+    return self._started_ports['https']
+
   @staticmethod
   def _GetCommandLine(go_binary_path, http_port, https_port,
                       replay_options, archive_path):
