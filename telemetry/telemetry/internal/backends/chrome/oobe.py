@@ -113,10 +113,19 @@ class Oobe(web_contents.WebContents):
     self._WaitForField(field)
     self._WaitForField(next_field)
     gaia_webview_context = self._GaiaWebviewContext()
+    # This code supports both ChromeOS Gaia v1 and v2.
+    # In v2 'password' id is assigned to <DIV> element encapsulating
+    # unnamed <INPUT>. So this code will select the first <INPUT> element
+    # below the given field id in the DOM tree if field id is not attached
+    # to <INPUT>.
     gaia_webview_context.EvaluateJavaScript("""
-       document.getElementById({{ field }}).value= {{ value }};
-       document.getElementById({{ next_field }}).click()""",
-       field=field, value=value, next_field=next_field)
+        var field = document.getElementById({{ field }});
+        if (field.tagName != 'INPUT')
+          field = field.getElementsByTagName('INPUT')[0];
+
+        field.value= {{ value }};
+        document.getElementById({{ next_field }}).click();""",
+        field=field, value=value, next_field=next_field)
 
   def _WaitForField(self, field):
     gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)
