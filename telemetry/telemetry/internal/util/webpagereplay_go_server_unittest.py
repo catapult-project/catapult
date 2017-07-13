@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import httplib
 import unittest
+import urllib2
 
 import py_utils
 
@@ -20,7 +20,7 @@ class WebPageReplayGoServerTest(unittest.TestCase):
         py_utils.GetHostArchName(),
         py_utils.GetHostOsName())
 
-  @decorators.Disabled('win', 'mac')  # These platform are not supported yet.
+  @decorators.Disabled('win')  # These platform are not supported yet.
   def testSmokeStartingWebPageReplayGoServer(self):
     with webpagereplay_go_server.ReplayServer(
         self.archive_path, replay_host='127.0.0.1', http_port=0, https_port=0,
@@ -28,11 +28,14 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       self.assertIsNotNone(server.http_port)
       self.assertIsNotNone(server.https_port)
 
-      # Make sure that we can establish connection to both HTTP & HTTPS ports
-      connection = httplib.HTTPConnection('127.0.0.1:%s' % server.http_port)
-      connection.connect()
-      connection.close()
+      # Make sure that we can establish connection to HTTP port.
+      req = urllib2.Request('http://www.example.com/',
+          origin_req_host='127.0.0.1')
+      r = urllib2.urlopen(req)
+      self.assertEquals(r.getcode(), 200)
 
-      connection = httplib.HTTPSConnection('127.0.0.1:%s' % server.https_port)
-      connection.connect()
-      connection.close()
+      # Make sure that we can establish connection to HTTPS port.
+      req = urllib2.Request('https://www.example.com/',
+          origin_req_host='127.0.0.1')
+      r = urllib2.urlopen(req)
+      self.assertEquals(r.getcode(), 200)

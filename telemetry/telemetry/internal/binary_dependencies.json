@@ -371,15 +371,15 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "darwin_x86_64": {
-          "cloud_storage_hash": "743fd613d50fbf4d3f5b50ae01f5190850169a17",
-          "download_path": "bin/mac/x86_64/wpr",
-          "version_in_cs": "11be1ed696ba1029960ca3b55bb369222dff183a"
-        },
         "linux_x86_64": {
           "cloud_storage_hash": "b13d9785e7ee6ad881480f4b43fb39bcb4aef662",
           "download_path": "bin/linux/x86_64/wpr",
           "version_in_cs": "11be1ed696ba1029960ca3b55bb369222dff183a"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "60ada5ae82b6aab5828aab38e1cedea1e1090481",
+          "download_path": "bin/mac/x86_64/wpr",
+          "version_in_cs": "0612ed4c46e3cbceac5bdef517edb9de75569b54"
         }
       }
     }

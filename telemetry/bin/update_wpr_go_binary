@@ -14,6 +14,8 @@ from telemetry.core import util
 from telemetry.core import platform as platform_module
 from telemetry.internal.util import binary_manager
 
+import py_utils
+
 
 _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go')
 _GO_LIB_DIR = os.path.expanduser('~/go')
@@ -33,12 +35,15 @@ def check_go_version():
 
 def build_wpr_go(os_name, os_arch):
   """ Build and return path to wpr binary."""
-  # go build command recongize 'amd64' but not 'x86_64', so we switch 'x86_64'
+  # go build command recognizes 'amd64' but not 'x86_64', so we switch 'x86_64'
   # to 'amd64' string here.
   # The two names can be used interchangbly, see:
   # https://wiki.debian.org/DebianAMD64Faq?action=recall&rev=65
   if os_arch == 'x86_64':
     os_arch = 'amd64'
+  # go build command recognizes 'darwin' but not 'mac'.
+  if os_name == 'mac':
+    os_name = 'darwin'
   check_go_version()
   env = os.environ.copy()
   env['GOPATH'] = '%s:%s' % (_WPR_GO_DIR, _GO_LIB_DIR)
@@ -52,7 +57,7 @@ def build_wpr_go(os_name, os_arch):
 
 # TODO(nedn): support building other architectures & OSes.
 _SUPPORTED_PLATFORMS = (
-  ('darwin', 'x86_64'),
+  ('mac', 'x86_64'),
   ('linux', 'x86_64'),
 )
 
@@ -62,8 +67,8 @@ def get_latest_wpr_go_commit_hash():
 
 
 def main():
-  os_name = sys.platform
-  arch_name = platform.machine()
+  os_name = py_utils.GetHostOsName()
+  arch_name = py_utils.GetHostArchName()
   if (os_name, arch_name) not in _SUPPORTED_PLATFORMS:
     raise NotImplementedError('OS = %s, ARCH = %s is not supported' %
         (os_name, arch_name))
