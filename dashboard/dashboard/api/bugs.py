@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import datetime
 
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
@@ -51,26 +50,22 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
             'command': b.GetConfigDict()['command'],
             'culprit': self._GetCulpritInfo(b),
             'metric': (b.results_data or {}).get('metric'),
+            'started_timestamp': b.last_ran_timestamp.isoformat(),
         } for b in bisects],
         'cc': [cc.get('name') for cc in issue.get('cc', [])],
         'comments': [{
             'content': comment.get('content'),
             'author': comment.get('author'),
-            'published': self._FormatTimestampMilliseconds(
-                comment.get('published')),
+            'published': comment.get('published'),
         } for comment in comments],
         'components': issue.get('components', []),
         'id': bug_id,
         'labels': issue.get('labels', []),
-        'published': self._FormatTimestampMilliseconds(issue.get('published')),
+        'published': issue.get('published'),
         'state': issue.get('state'),
         'status': issue.get('status'),
         'summary': issue.get('summary'),
     }}
-
-  def _FormatTimestampMilliseconds(self, timestamp_string):
-    time = datetime.datetime.strptime(timestamp_string, '%Y-%m-%dT%H:%M:%S')
-    return utils.TimestampMilliseconds(time)
 
   def _GetCulpritInfo(self, try_job_entity):
     if not try_job_entity.results_data:

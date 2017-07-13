@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import mock
 import unittest
 
@@ -110,15 +111,18 @@ class BugsTest(testing_common.TestCase):
 
     try_job.TryJob(
         bug_id=123456, status='started', bot='win_perf',
-        results_data={}, config='config = {"command": "cmd"}').put()
+        results_data={}, config='config = {"command": "cmd"}',
+        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
     try_job.TryJob(
         bug_id=123456, status='failed', bot='android_bisect',
         results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
+        config='config = {"command": "cmd"}',
+        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
     try_job.TryJob(
         bug_id=99999, status='failed', bot='win_perf',
         results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
+        config='config = {"command": "cmd"}',
+        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
     response = self.testapp.post('/api/bugs/123456')
     bug = self.GetJsonValue(response, 'bug')
     self.assertEqual('The bug title', bug.get('summary'))
@@ -134,6 +138,8 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual(2, len(bug.get('legacy_bisects')))
     self.assertEqual('started', bug.get('legacy_bisects')[0].get('status'))
     self.assertEqual('cmd', bug.get('legacy_bisects')[0].get('command'))
+    self.assertEqual('2017-01-01T00:00:00', bug.get('legacy_bisects')[0].get(
+        'started_timestamp'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')
