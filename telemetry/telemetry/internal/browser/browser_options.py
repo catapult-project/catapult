@@ -121,6 +121,16 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--print-bootstrap-deps',
                      action='store_true',
                      help='Output bootstrap deps list.')
+    group.add_option(
+        '--extra-chrome-categories', dest='extra_chrome_categories', type=str,
+        help='Filter string to enable additional chrome tracing categories. See'
+             ' documentation here: https://cs.chromium.org/chromium/src/base/'
+             'trace_event/trace_config.h?rcl='
+             'c8db6c6371ca047c24d41f3972d5819bc83d83ae&l=125')
+    group.add_option(
+        '--extra-atrace-categories', dest='extra_atrace_categories', type=str,
+        help='Comma-separated list of extra atrace categories. Use atrace'
+             ' --list_categories to get full list.')
     parser.add_option_group(group)
 
     # Platform options

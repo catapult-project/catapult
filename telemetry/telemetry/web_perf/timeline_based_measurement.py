@@ -145,7 +145,7 @@ class Options(object):
   """A class to be used to configure TimelineBasedMeasurement.
 
   This is created and returned by
-  Benchmark.CreateTimelineBasedMeasurementOptions.
+  Benchmark.CreateCoreTimelineBasedMeasurementOptions.
 
   By default, all the timeline based metrics in telemetry/web_perf/metrics are
   used (see _GetAllLegacyTimelineBasedMetrics above).

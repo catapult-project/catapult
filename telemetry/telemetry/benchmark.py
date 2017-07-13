@@ -4,6 +4,7 @@
 
 import optparse
 
+from py_utils import class_util
 from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
@@ -72,14 +73,14 @@ class Benchmark(command_line.Command):
     """
     self._expectations = None
     self._max_failures = max_failures
-    self._has_original_tbm_options = (
-        self.CreateTimelineBasedMeasurementOptions.__func__ ==
-        Benchmark.CreateTimelineBasedMeasurementOptions.__func__)
-    has_original_create_page_test = (
-        self.CreatePageTest.__func__ == Benchmark.CreatePageTest.__func__)
-    assert self._has_original_tbm_options or has_original_create_page_test, (
-        'Cannot override both CreatePageTest and '
-        'CreateTimelineBasedMeasurementOptions.')
+    # TODO: There should be an assertion here that checks that only one of
+    # the following is true:
+    # * It's a TBM benchmark, with CreateCoreTimelineBasedMeasurementOptions
+    #   defined.
+    # * It's a legacy benchmark, with either CreatePageTest defined or
+    #   Benchmark.test set.
+    # See https://github.com/catapult-project/catapult/issues/3708
+
 
   # pylint: disable=unused-argument
   @classmethod
@@ -229,20 +230,87 @@ class Benchmark(command_line.Command):
     return histogram.Ownership(
         decorators.GetEmails(self), decorators.GetComponent(self))
 
+  @decorators.Deprecated(
+      2017, 7, 29, 'Use CreateCoreTimelineBasedMeasurementOptions instead.')
   def CreateTimelineBasedMeasurementOptions(self):
-    """Return the TimelineBasedMeasurementOptions for this Benchmark.
+    """See CreateCoreTimelineBasedMeasurementOptions."""
+    return self.CreateCoreTimelineBasedMeasurementOptions()
 
-    Override this method to configure a TimelineBasedMeasurement benchmark.
-    Otherwise, override CreatePageTest for PageTest tests. Do not override
-    both methods.
+  def CreateCoreTimelineBasedMeasurementOptions(self):
+    """Return the base TimelineBasedMeasurementOptions for this Benchmark.
+
+    Additional chrome and atrace categories can be appended when running the
+    benchmark with the --extra-chrome-categories and --extra-atrace-categories
+    flags.
+
+    Override this method to configure a TimelineBasedMeasurement benchmark. If
+    this is not a TimelineBasedMeasurement benchmark, override CreatePageTest
+    for PageTest tests. Do not override both methods.
     """
     return timeline_based_measurement.Options()
+
+  def _GetTimelineBasedMeasurementOptions(self, options):
+    """Return all timeline based measurements for the curren benchmark run.
+
+    This includes the benchmark-configured measurements in
+    CreateCoreTimelineBasedMeasurementOptions as well as the user-flag-
+    configured options from --extra-chrome-categories and
+    --extra-atrace-categories.
+    """
+    # TODO(sullivan): the benchmark options should all be configured in
+    # CreateCoreTimelineBasedMeasurementOptions. Remove references to
+    # CreateCoreTimelineBasedMeasurementOptions when it is fully deprecated.
+    # In the short term, if the benchmark overrides
+    # CreateCoreTimelineBasedMeasurementOptions use the overridden version,
+    # otherwise call CreateCoreTimelineBasedMeasurementOptions.
+    # https://github.com/catapult-project/catapult/issues/3450
+    tbm_options = None
+    assert not (
+        class_util.IsMethodOverridden(
+            Benchmark, self.__class__,
+            'CreateTimelineBasedMeasurementOptions') and
+        class_util.IsMethodOverridden(
+            Benchmark, self.__class__,
+            'CreateCoreTimelineBasedMeasurementOptions')), (
+        'Benchmarks should override CreateCoreTimelineBasedMeasurementOptions '
+        'and NOT also CreateTimelineBasedMeasurementOptions.')
+    if class_util.IsMethodOverridden(
+        Benchmark, self.__class__, 'CreateCoreTimelineBasedMeasurementOptions'):
+      tbm_options = self.CreateCoreTimelineBasedMeasurementOptions()
+    else:
+      tbm_options = self.CreateTimelineBasedMeasurementOptions()
+    if options and options.extra_chrome_categories:
+      # If Chrome tracing categories for this benchmark are not already
+      # enabled, there is probably a good reason why (for example, maybe
+      # it is the benchmark that runs a BattOr without Chrome to get an energy
+      # baseline). Don't change whether Chrome tracing is enabled.
+      assert tbm_options.config.enable_chrome_trace, (
+        'This benchmark does not support Chrome tracing.')
+      tbm_options.config.chrome_trace_config.category_filter.AddFilterString(
+          options.extra_chrome_categories)
+    if options and options.extra_atrace_categories:
+      # Many benchmarks on Android run without atrace by default. Hopefully the
+      # user understands that atrace is only supported on Android when setting
+      # this option.
+      tbm_options.config.enable_atrace_trace = True
+
+      categories = tbm_options.config.atrace_config.categories
+      if type(categories) != list:
+        # Categories can either be a list or comma-separated string.
+        # https://github.com/catapult-project/catapult/issues/3712
+        categories = categories.split(',')
+      for category in options.extra_atrace_categories.split(','):
+        if category not in categories:
+          categories.append(category)
+      tbm_options.config.atrace_config.categories = categories
+    return tbm_options
+
 
   def CreatePageTest(self, options):  # pylint: disable=unused-argument
     """Return the PageTest for this Benchmark.
 
     Override this method for PageTest tests.
-    Override, override CreateTimelineBasedMeasurementOptions to configure
+    Override, CreateCoreTimelineBasedMeasurementOptions to configure
     TimelineBasedMeasurement tests. Do not override both methods.
 
     Args:
@@ -257,12 +325,12 @@ class Benchmark(command_line.Command):
       raise TypeError('"%s" is not a PageTest or a TimelineBasedMeasurement.' %
                       self.test.__name__)
     if is_page_test:
-      assert self._has_original_tbm_options, (
-          'Cannot override CreateTimelineBasedMeasurementOptions '
-          'with a PageTest.')
+      # TODO: assert that CreateCoreTimelineBasedMeasurementOptions is not
+      # defined. That's incorrect for a page test. See
+      # https://github.com/catapult-project/catapult/issues/3708
       return self.test()  # pylint: disable=no-value-for-parameter
 
-    opts = self.CreateTimelineBasedMeasurementOptions()
+    opts = self._GetTimelineBasedMeasurementOptions(options)
     self.SetupTraceRerunOptions(options, opts)
     return timeline_based_measurement.TimelineBasedMeasurement(opts)
 

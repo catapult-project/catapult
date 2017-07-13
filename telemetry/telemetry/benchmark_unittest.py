@@ -8,6 +8,7 @@ import unittest
 from telemetry import android
 from telemetry import benchmark
 from telemetry.testing import options_for_unittests
+from telemetry.timeline import chrome_trace_category_filter
 from telemetry.internal import story_runner
 from telemetry import page
 from telemetry.page import legacy_page_test
@@ -83,22 +84,6 @@ class BenchmarkTest(unittest.TestCase):
 
     self.assertTrue(was_run[0])
 
-  def testOverriddenTbmOptionsAndPageTestRaises(self):
-    class FakeTimelineBasedMeasurementOptions(object):
-      pass
-
-    class OverrideBothBenchmark(benchmark.Benchmark):
-      def CreatePageTest(self, _):
-        return DummyPageTest()
-      def CreateTimelineBasedMeasurementOptions(self):
-        return FakeTimelineBasedMeasurementOptions()
-
-    assertion_regex = (
-        'Cannot override both CreatePageTest and '
-        'CreateTimelineBasedMeasurementOptions')
-    with self.assertRaisesRegexp(AssertionError, assertion_regex):
-      OverrideBothBenchmark()
-
   def testBenchmarkMakesTbmTestByDefault(self):
     class DefaultTbmBenchmark(benchmark.Benchmark):
       pass
@@ -117,21 +102,6 @@ class BenchmarkTest(unittest.TestCase):
         '"UnknownTestType" is not a PageTest or a TimelineBasedMeasurement')
     with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
-
-  def testOverriddenTbmOptionsAndPageTestTestAttributeRaises(self):
-    class FakeTimelineBasedMeasurementOptions(object):
-      pass
-
-    class OverrideOptionsOnPageTestBenchmark(benchmark.Benchmark):
-      test = DummyPageTest
-      def CreateTimelineBasedMeasurementOptions(self):
-        return FakeTimelineBasedMeasurementOptions()
-
-    assertion_regex = (
-        'Cannot override CreateTimelineBasedMeasurementOptions '
-        'with a PageTest')
-    with self.assertRaisesRegexp(AssertionError, assertion_regex):
-      OverrideOptionsOnPageTestBenchmark().CreatePageTest(options=None)
 
   def testBenchmarkPredicate(self):
     class PredicateBenchmark(TestBenchmark):
@@ -195,3 +165,96 @@ class BenchmarkTest(unittest.TestCase):
     self.assertIsInstance(barOwnerDiangostic, histogram.Ownership)
     self.assertItemsEqual(barOwnerDiangostic.emails, ['bob@chromium.org'])
     self.assertEqual(barOwnerDiangostic.component, 'xyzzyx')
+
+  def testGetTBMOptionsSupportsLegacyName(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateTimelineBasedMeasurementOptions(self):
+        return 'Legacy'
+
+    options = TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
+    self.assertEqual(options, 'Legacy')
+
+  def testGetTBMOptionsSupportsNewName(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        return 'New'
+
+    options = TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
+    self.assertEqual(options, 'New')
+
+  def testGetTBMOptionsBothAsserts(self):
+    # TODO(sullivan): remove this test after fully removing
+    # CreateCoreTimelineBasedMeasurementOptions.
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateTimelineBasedMeasurementOptions(self):
+        return 'Legacy'
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        return 'New'
+
+
+    with self.assertRaisesRegexp(
+        AssertionError, 'Benchmarks should override'):
+      TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
+
+  def testChromeTraceOptionsUpdateFilterString(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        tbm_options = timeline_based_measurement.Options(
+            chrome_trace_category_filter.ChromeTraceCategoryFilter(
+                filter_string='rail,toplevel'))
+        tbm_options.config.enable_chrome_trace = True
+        return tbm_options
+
+    options = options_for_unittests.GetCopy()
+    options.extra_chrome_categories = 'toplevel,net'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
+
+    b = TbmBenchmark(None)
+    tbm = b.CreatePageTest(options)
+    self.assertEqual(
+        'net,rail,toplevel',
+        tbm._tbm_options.category_filter.stable_filter_string)
+
+  def testAtraceOptionsTurnsOnAtrace(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        tbm_options = timeline_based_measurement.Options()
+        tbm_options.config.atrace_config.categories = []
+        return tbm_options
+
+    options = options_for_unittests.GetCopy()
+    options.extra_atrace_categories = 'foo,bar'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
+
+    b = TbmBenchmark(None)
+    tbm = b.CreatePageTest(options)
+    self.assertTrue(tbm._tbm_options.config.enable_atrace_trace)
+    self.assertEqual(
+        ['foo', 'bar'],
+        tbm._tbm_options.config.atrace_config.categories)
+
+  def testAdditionalAtraceCategories(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        tbm_options = timeline_based_measurement.Options()
+        tbm_options.config.enable_atrace_trace = True
+        tbm_options.config.atrace_config.categories = 'string,foo,stuff'
+        return tbm_options
+
+    options = options_for_unittests.GetCopy()
+    options.extra_atrace_categories = 'foo,bar'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
+
+    b = TbmBenchmark(None)
+    tbm = b.CreatePageTest(options)
+    self.assertTrue(tbm._tbm_options.config.enable_atrace_trace)
+    self.assertEqual(
+        ['string', 'foo', 'stuff', 'bar'],
+        tbm._tbm_options.config.atrace_config.categories)
+
