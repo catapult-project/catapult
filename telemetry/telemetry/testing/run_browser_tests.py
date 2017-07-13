@@ -327,7 +327,6 @@ def RunTests(args):
 
 
 def _SetUpProcess(child, context):
-  del child  # Unused.
   args = context.finder_options
   if binary_manager.NeedsInit():
     # On windows, typ doesn't keep the DependencyManager initialization in the
