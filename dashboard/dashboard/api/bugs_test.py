@@ -142,8 +142,8 @@ class BugsTest(testing_common.TestCase):
       self, mock_oauth, mock_utils):
     mock_utils.return_value = True
     self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/bugs/foo', status=500)
-    self.assertIn('Invalid bug ID "foo".', response.body)
+    response = self.testapp.post('/api/bugs/foo', status=400)
+    self.assertIn('Invalid bug ID \\"foo\\".', response.body)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')
@@ -154,7 +154,7 @@ class BugsTest(testing_common.TestCase):
     mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
     mock_oauth.get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    response = self.testapp.post('/api/bugs/foo', status=500)
+    response = self.testapp.post('/api/bugs/foo', status=400)
     self.assertIn('No access', response.body)
 
   @mock.patch.object(api_auth, 'oauth')

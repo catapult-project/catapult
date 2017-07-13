@@ -2,27 +2,21 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import datetime
-import json
 
-from dashboard.api import api_auth
+from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
-from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 
 
-class BadRequestError(Exception):
-  pass
-
-
-class BugsHandler(request_handler.RequestHandler):
+class BugsHandler(api_request_handler.ApiRequestHandler):
   """API handler for bug requests.
 
   Convenience methods for getting bug data; only available to internal users.
   """
 
-  def post(self, *args):
+  def AuthorizedPost(self, *args):
     """Returns alert data in response to API requests.
 
     Argument:
@@ -31,32 +25,21 @@ class BugsHandler(request_handler.RequestHandler):
     Outputs:
       JSON data for the bug, see README.md.
     """
-    try:
-      bug = self._GetBug(*args)
-      self.response.out.write(json.dumps({'bug': bug}))
-    except BadRequestError as e:
-      self._WriteErrorMessage(e.message, 500)
-    except api_auth.NotLoggedInError:
-      self._WriteErrorMessage('User not authenticated', 403)
-    except api_auth.OAuthError:
-      self._WriteErrorMessage('User authentication error', 403)
-
-  @api_auth.Authorize
-  def _GetBug(self, *args):
     # Users must log in with privileged access to see all bugs.
     if not datastore_hooks.IsUnalteredQueryPermitted():
-      raise BadRequestError('No access.')
+      raise api_request_handler.BadRequestError('No access.')
 
     try:
       bug_id = int(args[0])
     except ValueError:
-      raise BadRequestError('Invalid bug ID "%s".' % args[0])
+      raise api_request_handler.BadRequestError(
+          'Invalid bug ID "%s".' % args[0])
     service = issue_tracker_service.IssueTrackerService(
         utils.ServiceAccountHttp())
     issue = service.GetIssue(bug_id)
     comments = service.GetIssueComments(bug_id)
     bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
-    return {
+    return {'bug': {
         'author': issue.get('author', {}).get('name'),
         'legacy_bisects': [{
             'status': b.status,
@@ -83,11 +66,7 @@ class BugsHandler(request_handler.RequestHandler):
         'state': issue.get('state'),
         'status': issue.get('status'),
         'summary': issue.get('summary'),
-    }
-
-  def _WriteErrorMessage(self, message, status):
-    self.ReportError(message, status=status)
-    self.response.out.write(json.dumps({'error': message}))
+    }}
 
   def _FormatTimestampMilliseconds(self, timestamp_string):
     time = datetime.datetime.strptime(timestamp_string, '%Y-%m-%dT%H:%M:%S')
