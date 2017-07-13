@@ -1053,17 +1053,50 @@ class RelatedEventSet(diagnostic.Diagnostic):
 
 
 RESERVED_INFOS = {
-    'BUILDBOT': {'name': 'buildbot'},  # BuildbotInfo or MergedBuildbotInfo
-    'DEVICE': {'name': 'device'},  # DeviceInfo or MergedDeviceInfo
+    'ANGLE_REVISIONS': {'name': 'angle revisions', 'type': GenericSet},
+    'ARCHITECTURES': {'name': 'architectures', 'type': GenericSet},
+    'BENCHMARKS': {'name': 'benchmarks', 'type': GenericSet},
+    'BENCHMARK_START': {'name': 'benchmark start', 'type': DateRange},
+    'BOTS': {'name': 'bots', 'type': GenericSet},
+    'BUG_COMPONENTS': {'name': 'bug components', 'type': GenericSet},
+    'BUILDS': {'name': 'builds', 'type': GenericSet},
+    'CATAPULT_REVISIONS': {'name': 'catapult revisions', 'type': GenericSet},
+    'CHROMIUM_COMMIT_POSITIONS': {
+        'name': 'chromium commit positions', 'type': GenericSet},
+    'CHROMIUM_REVISIONS': {'name': 'chromium revisions', 'type': GenericSet},
+    'GPUS': {'name': 'gpus', 'type': GenericSet},
     'GROUPING_PATH': {'name': 'grouping path'},
-    'ITERATION': {'name': 'iteration'},  # Legacy name for TELEMETRY
+    'LABELS': {'name': 'labels', 'type': GenericSet},
+    'LOG_URLS': {'name': 'log urls', 'type': GenericSet},
+    'MASTERS': {'name': 'masters', 'type': GenericSet},
+    'MEMORY_AMOUNTS': {'name': 'memory amounts', 'type': GenericSet},
     'MERGED_FROM': {'name': 'merged from', 'type': RelatedHistogramSet},
     'MERGED_TO': {'name': 'merged to', 'type': RelatedHistogramSet},
-    'OWNERS': {'name': 'owners', 'type': Ownership},
-    'REVISIONS': {'name': 'revisions'},  # RevisionInfo or MergedRevisionInfo
+    'OS_NAMES': {'name': 'os names', 'type': GenericSet},
+    'OS_VERSIONS': {'name': 'os versions', 'type': GenericSet},
+    'PRODUCT_VERSIONS': {'name': 'product versions', 'type': GenericSet},
+    'RELATED_NAMES': {'name': 'related names', 'type': GenericSet},
+    'SKIA_REVISIONS': {'name': 'skia revisions', 'type': GenericSet},
+    'STORIES': {'name': 'stories', 'type': GenericSet},
+    'STORYSET_REPEATS': {'name': 'storyset repeats', 'type': GenericSet},
+    'STORY_TAGS': {'name': 'story tags', 'type': GenericSet},
     'TAG_MAP': {'name': 'tagmap', 'type': TagMap},
-    'TELEMETRY': {'name': 'telemetry'},  # TelemetryInfo or MergedTelemetryInfo
     'TRACE_START': {'name': 'trace start', 'type': DateRange},
+    'TRACE_URLS': {'name': 'trace urls', 'type': GenericSet},
+    'V8_COMMIT_POSITIONS': {'name': 'v8 commit positions', 'type': DateRange},
+    'V8_REVISIONS': {'name': 'v8 revisions', 'type': GenericSet},
+    'WEBRTC_REVISIONS': {'name': 'webrtc revisions', 'type': GenericSet},
+
+    # DEPRECATED https://github.com/catapult-project/catapult/issues/3507
+    'BUILDBOT': {'name': 'buildbot'},  # BuildbotInfo or MergedBuildbotInfo
+    'DEVICE': {'name': 'device'},  # DeviceInfo or MergedDeviceInfo
+    'INTERACTION_RECORD': {'name': 'tir', 'type': GenericSet},
+    'ITERATION': {'name': 'iteration'},  # Legacy name for TELEMETRY
+    'REVISIONS': {'name': 'revisions'},  # RevisionInfo or MergedRevisionInfo
+    'TELEMETRY': {'name': 'telemetry'},  # TelemetryInfo or MergedTelemetryInfo
+
+    # TODO(#3507) Change OWNERS to GenericSet of email addresses.
+    'OWNERS': {'name': 'owners', 'type': Ownership},
 }
 
 RESERVED_NAMES = {}
