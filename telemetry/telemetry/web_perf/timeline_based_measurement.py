@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import collections
 import logging
+import time
 from collections import defaultdict
 
 from tracing.metrics import metric_runner
@@ -316,8 +317,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       'trackDetailedModelStats': True
     }
 
+    start = time.time()
     mre_result = metric_runner.RunMetric(
-        trace_value.filename, metrics, extra_import_options)
+        trace_value.filename, metrics, extra_import_options,
+        report_progress=False)
+    logging.warning('Processing resulting traces took %.3f seconds' % (
+        time.time() - start))
     page = results.current_page
 
     failure_dicts = mre_result.failures

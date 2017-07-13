@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import os
+import sys
 
 from tracing.mre import function_handle
 from tracing.mre import gtest_progress_reporter
@@ -30,17 +31,26 @@ def _GetMetricRunnerHandle(metrics):
 
   return job_module.Job(map_function_handle, None)
 
-def RunMetric(filename, metrics, extra_import_options=None):
-  result = RunMetricOnTraces([filename], metrics, extra_import_options)
+def RunMetric(filename, metrics, extra_import_options=None,
+              report_progress=True):
+  result = RunMetricOnTraces(
+      [filename], metrics, extra_import_options, report_progress)
   return result[filename]
 
 def RunMetricOnTraces(filenames, metrics,
-                      extra_import_options=None):
+                      extra_import_options=None, report_progress=True):
   trace_handles = [
       file_handle.URLFileHandle(f, 'file://%s' % f) for f in filenames]
   job = _GetMetricRunnerHandle(metrics)
-  runner = map_runner.MapRunner(
-      trace_handles, job, extra_import_options=extra_import_options,
-      progress_reporter=gtest_progress_reporter.GTestProgressReporter())
-  map_results = runner.RunMapper()
+  with open(os.devnull, 'w') as devnull_f:
+    o_stream = sys.stdout
+    if report_progress:
+      o_stream = devnull_f
+
+    runner = map_runner.MapRunner(
+        trace_handles, job, extra_import_options=extra_import_options,
+        progress_reporter=gtest_progress_reporter.GTestProgressReporter(
+            output_stream=o_stream))
+    map_results = runner.RunMapper()
+
   return map_results
