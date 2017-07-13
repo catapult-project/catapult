@@ -87,3 +87,14 @@ The bugs API returns the following JSON about the bug:
  * `state`: Issue state (open or closed)
  * `status`: Status of work on the issue (Assigned, Fixed, etc)
  * `summary`: The issue summary/title text.
+
+ ## Timeseries
+
+ URL patterns for accessing timeseries:
+
+  * `/api/list_timeseries/benchmark`: List all the monitored timeseries
+    associated with `benchmark`. Takes an optional `sheriff` param in postdata.
+    Returns an array of test_paths (master/bot/benchmark/metric/page).
+  * `/api/timeseries/test_path`: Return the timeseries data for the given
+    `test_path` as JSON. Can specify `num_days` param in postdata, defaults to
+    30.
