@@ -11,7 +11,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import add_point_queue
-from dashboard import post_data_handler
+from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 from dashboard.models import histogram
@@ -32,37 +32,28 @@ SPARSE_DIAGNOSTIC_TYPES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES.union(
 TASK_QUEUE_NAME = 'histograms-queue'
 
 
-class BadRequestError(Exception):
-  pass
-
-
 def _CheckRequest(condition, msg):
   if not condition:
-    raise BadRequestError(msg)
+    raise api_request_handler.BadRequestError(msg)
 
 
-class AddHistogramsHandler(post_data_handler.PostDataHandler):
+class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
-  def post(self):
+  def AuthorizedPost(self):
     datastore_hooks.SetPrivilegedRequest()
 
     data_str = self.request.get('data')
     if not data_str:
-      self.ReportError('Missing "data" parameter', status=400)
-      return
+      raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-    try:
-      histogram_dicts = json.loads(data_str)
-      ProcessHistogramSet(histogram_dicts)
-    except ValueError:
-      self.ReportError('Invalid JSON string', status=400)
-    except BadRequestError as e:
-      self.ReportError(e.message, status=400)
+    histogram_dicts = json.loads(data_str)
+    ProcessHistogramSet(histogram_dicts)
 
 
 def ProcessHistogramSet(histogram_dicts):
   if not isinstance(histogram_dicts, list):
-    raise BadRequestError('HistogramSet JSON much be a list of dicts')
+    raise api_request_handler.BadRequestError(
+        'HistogramSet JSON much be a list of dicts')
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(histogram_dicts)
   histograms.ResolveRelatedHistograms()

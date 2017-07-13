@@ -4,13 +4,17 @@
 
 import base64
 import json
+import mock
 import sys
 import urlparse
 import webapp2
 import webtest
 
+from google.appengine.api import users
+
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
+from dashboard.api import api_auth
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
@@ -18,7 +22,17 @@ from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 
 
+GOOGLER_USER = users.User(email='sullivan@chromium.org',
+                          _auth_domain='google.com')
+
+
+def SetGooglerOAuth(mock_oauth):
+  mock_oauth.get_current_user.return_value = GOOGLER_USER
+  mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_WHITELIST[0]
+
+
 class AddHistogramsEndToEndTest(testing_common.TestCase):
+
   def setUp(self):
     super(AddHistogramsEndToEndTest, self).setUp()
     app = webapp2.WSGIApplication([
@@ -28,6 +42,10 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
+    oauth_patcher = mock.patch.object(api_auth, 'oauth')
+    self.addCleanup(oauth_patcher.stop)
+    mock_oauth = oauth_patcher.start()
+    SetGooglerOAuth(mock_oauth)
 
   def testPostHistogramEndToEnd(self):
     data = json.dumps([
@@ -74,7 +92,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
 
+
 class AddHistogramsTest(testing_common.TestCase):
+
   def setUp(self):
     super(AddHistogramsTest, self).setUp()
     app = webapp2.WSGIApplication([
@@ -82,6 +102,10 @@ class AddHistogramsTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
+    oauth_patcher = mock.patch.object(api_auth, 'oauth')
+    self.addCleanup(oauth_patcher.stop)
+    mock_oauth = oauth_patcher.start()
+    SetGooglerOAuth(mock_oauth)
 
   def TaskParamsByGuid(self):
     tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
