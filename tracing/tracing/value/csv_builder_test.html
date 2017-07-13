@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/csv_builder.html">
-<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -20,10 +19,6 @@ tr.b.unittest.testSuite(function() {
       percentile: [0.1, 0.9],
     });
     new tr.v.d.TelemetryInfo({
-      storyGroupingKeys: {
-        storyGroupingKey0: 'sgk0',
-        storyGroupingKey1: 'sgk1',
-      },
       benchmarkName: 'benchmark A',
       storyDisplayName: 'story A',
       benchmarkStartMs: 0,
@@ -44,18 +39,30 @@ tr.b.unittest.testSuite(function() {
       max: false,
     });
 
-    const histograms = new tr.v.HistogramSet([hist0, hist1]);
+    const hist2 = new tr.v.Histogram('hist2', tr.b.Unit.byName.count);
+    new tr.v.d.TelemetryInfo({
+      benchmarkName: 'benchmark A',
+      benchmarkStartMs: 1499726648646,
+    }).addToHistogram(hist2);
+
+    const histograms = new tr.v.HistogramSet([hist0, hist1, hist2]);
     let csv = new tr.v.CSVBuilder(histograms);
     csv.build();
     csv = csv.toString().split('\n');
+    assert.lengthOf(csv, histograms.length + 2);
     assert.strictEqual(
         csv[0], 'name,unit,avg,nans,pct_010,pct_090,count,max,min,std,sum,' +
-        'benchmarkName,benchmarkStartString,label,storyDisplayName,' +
-        'storyGroupingKey0,storyGroupingKey1');
+        'benchmark,benchmarkStart,bot,build,label,master,' +
+        'story,storysetRepeat,tir,traceStart');
     assert.strictEqual(
-        csv[1], 'hist0,B,500,1,150,950,,,,,,benchmark A,1970-01-01 00:00:00,' +
-        'label A,story A,sgk0,sgk1');
-    assert.strictEqual(csv[2], 'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,,');
+        csv[1], 'hist0,B,500,1,150,950,,,,,,benchmark A,1970-01-01 00:00:00' +
+        ',,,label A,,story A,storyset repeat 0,,');
+    assert.strictEqual(csv[2],
+        'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,Value,,,0,,');
+    assert.strictEqual(csv[3], 'hist2,,,,,,0,-Infinity,Infinity,,0,' +
+        'benchmark A,2017-07-10 22:44:08,,,benchmark A 2017-07-10 ' +
+        '22:44:08,,,storyset repeat undefined,,');
+    assert.strictEqual(csv[4], '');
   });
 });
 </script>
