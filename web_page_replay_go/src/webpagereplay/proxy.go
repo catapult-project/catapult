@@ -146,6 +146,12 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	}
 	fixupRequestURL(req, proxy.scheme)
 	logf := makeLogger(req)
+	// https://github.com/golang/go/issues/16036. Server requests always
+	// have non-nil body even for GET and HEAD. This prevents http.Transport
+	// from retrying requests on dead reused conns. Catapult Issue 3706.
+	if req.ContentLength == 0 {
+		req.Body = nil
+	}
 	// Read the entire request body (for POST) before forwarding to the server
 	// so we can save the entire request in the archive.
 	var requestBody []byte
