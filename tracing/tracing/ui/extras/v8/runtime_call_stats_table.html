@@ -18,8 +18,15 @@ found in the LICENSE file.
       margin-top: 1em;
       font-size: 12px;
     }
+
+    #v8_rcs_heading, #blink_rcs_heading {
+        padding-top: 1em;
+        font-size: 18px;
+    }
     </style>
+    <h1 id="v8_rcs_heading"></h1>
     <tr-ui-b-table id="table"></tr-ui-b-table>
+    <h1 id="blink_rcs_heading"></h1>
     <tr-ui-b-table id="blink_rcs_table"></tr-ui-b-table>
   </template>
 </dom-module>
@@ -28,6 +35,11 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.e.v8', function() {
   const codeSearchURL_ = 'https://cs.chromium.org/search/?sq=package:chromium&type=cs&q=';
+
+  function removeBlinkPrefix_(name) {
+    if (name.startsWith('Blink_')) name = name.substring(6);
+    return name;
+  }
 
   function handleCodeSearchForV8_(event) {
     if (event.target.parentNode === undefined) return;
@@ -39,8 +51,7 @@ tr.exportTo('tr.ui.e.v8', function() {
 
   function handleCodeSearchForBlink_(event) {
     if (event.target.parentNode === undefined) return;
-    let name = event.target.parentNode.entryName;
-    if (name.startsWith('Blink_')) name = name.substring(6);
+    const name = event.target.parentNode.entryName;
     const url = codeSearchURL_ +
       encodeURIComponent('RuntimeCallStats::CounterId::k' + name) +
       '+file:src/third_party/WebKit/|src/out/Debug/';
@@ -99,15 +110,17 @@ tr.exportTo('tr.ui.e.v8', function() {
     };
   }
 
-  function nameColumn_(showExpandButtons, handleCodeSearch) {
+  function nameColumn_(showExpandButtons, handleCodeSearch, modifyName) {
     return {
       title: 'Name',
       value(row) {
         const typeEl = document.createElement('span');
-        typeEl.innerText = row.name;
+        let name = row.name;
+        if (modifyName) name = modifyName(name);
+        typeEl.innerText = name;
         if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
           typeEl.title = 'click ? for code search';
-          typeEl.entryName = row.name;
+          typeEl.entryName = name;
           const codeSearchEl = createCodeSearchEl_(handleCodeSearch);
           typeEl.appendChild(codeSearchEl);
         }
@@ -123,7 +136,6 @@ tr.exportTo('tr.ui.e.v8', function() {
     table.sortColumnIndex = 1;
     table.sortDescending = true;
   }
-
 
   Polymer({
     is: 'tr-ui-e-v8-runtime-call-stats-table',
@@ -148,7 +160,7 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     constructBlinkRCSTable_(blinkCPPTime) {
       this.blink_rcs_table_.tableColumns = [
-        nameColumn_(false, handleCodeSearchForBlink_),
+        nameColumn_(false, handleCodeSearchForBlink_, removeBlinkPrefix_),
         timeColumn_,
         countColumn_,
         percentColumn_('Percent (of Blink C++)', blinkCPPTime)
@@ -161,6 +173,7 @@ tr.exportTo('tr.ui.e.v8', function() {
       const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
       runtimeGroupCollection.addSlices(slices);
       if (runtimeGroupCollection.totalTime > 0) {
+        this.$.v8_rcs_heading.textContent = 'V8 Runtime Call Stats';
         this.constructV8RCSTable_(runtimeGroupCollection.totalTime);
         this.table_.tableRows = runtimeGroupCollection.runtimeGroups;
         this.table_.rebuild();
@@ -168,6 +181,7 @@ tr.exportTo('tr.ui.e.v8', function() {
 
       const blinkRCSGroup = runtimeGroupCollection.blinkRCSGroup;
       if (runtimeGroupCollection.blinkCppTime > 0 && blinkRCSGroup.time > 0) {
+        this.$.blink_rcs_heading.textContent = 'Blink Runtime Call Stats';
         this.constructBlinkRCSTable_(runtimeGroupCollection.blinkCppTime);
         const rows = blinkRCSGroup.values;
         rows.unshift(new tr.e.v8.RuntimeStatsEntry('Total',
