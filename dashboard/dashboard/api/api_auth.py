@@ -20,16 +20,23 @@ OAUTH_SCOPES = (
 )
 
 
-class OAuthError(Exception):
+class ApiAuthException(Exception):
   pass
 
 
-class NotLoggedInError(Exception):
-  pass
+class OAuthError(ApiAuthException):
+  def __init__(self):
+    super(OAuthError, self).__init__('User authentication error')
 
 
-class InternalOnlyError(Exception):
-  pass
+class NotLoggedInError(ApiAuthException):
+  def __init__(self):
+    super(NotLoggedInError, self).__init__('User not authenticated')
+
+
+class InternalOnlyError(ApiAuthException):
+  def __init__(self):
+    super(InternalOnlyError, self).__init__('User does not have access')
 
 
 def _AuthorizeOauthUser():

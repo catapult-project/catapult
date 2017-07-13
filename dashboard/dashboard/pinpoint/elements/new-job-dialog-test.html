@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/pinpoint/elements/new-job-dialog.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  const testOptions = {
+    tearDown() {
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('instantiation', function() {
+    const page = document.createElement('new-job-dialog');
+    page.show();
+    this.addHTMLOutput(page);
+  }, testOptions);
+
+  test('onCreateJob success fires event', async function() {
+    const mockResponse = {
+      'jobId': 12345
+    };
+    testing_common.addXhrMock('*', JSON.stringify(mockResponse));
+    const page = document.createElement('new-job-dialog');
+    this.addHTMLOutput(page);
+
+    page.show();
+
+    let fired = false;
+    page.fire = function(eventName) {
+      if (eventName === 'pinpoint-new-response') {
+        fired = true;
+      }
+    };
+    await page.onCreateJob();
+
+    assert.strictEqual(page.error, '');
+    assert.isTrue(fired);
+  }, testOptions);
+
+  test('onCreateJob failure shows error', async function() {
+    const mockResponse = {
+      'error': 'foo'
+    };
+    testing_common.addXhrMock('*', JSON.stringify(mockResponse));
+    const page = document.createElement('new-job-dialog');
+    this.addHTMLOutput(page);
+
+    page.show();
+
+    let fired = false;
+    page.fire = function(eventName) {
+      if (eventName === 'pinpoint-new-response') {
+        fired = true;
+      }
+    };
+    await page.onCreateJob();
+
+    assert.strictEqual(page.error, 'foo');
+    assert.isFalse(fired);
+  }, testOptions);
+});
+</script>

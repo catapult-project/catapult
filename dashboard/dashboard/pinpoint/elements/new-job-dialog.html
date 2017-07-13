@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/app-route/app-route.html">
+<link rel="import" href="/components/iron-form/iron-form.html">
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+
+<dom-module id="new-job-dialog">
+  <template>
+    <style>
+    form > paper-button {
+      margin-top: 20px;
+    }
+    form > paper-button:not([disabled]) {
+      background: var(--paper-green-700);
+      color: white;
+    }
+    .close-icon {
+      cursor: pointer;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .error {
+      color: #dd4b39;
+    }
+    </style>
+
+    <paper-dialog id="container" autoCloseDisabled="true">
+      <form>
+        <paper-input id="bug-id" label="Bug ID" value="{{bugId::input}}" required auto-validate></paper-input>
+        <paper-input id="configuration" label="configuration" value="{{configuration::input}}" required auto-validate></paper-input>
+        <paper-input id="test_suite" label="test_suite" value="{{test_suite::input}}" required auto-validate></paper-input>
+        <paper-input id="test" label="test" value="{{test::input}}" required auto-validate></paper-input>
+        <paper-input id="metric" label="metric" value="{{metric::input}}" required auto-validate></paper-input>
+        <paper-input id="start_repository" label="start_repository" value="{{start_repository::input}}" required auto-validate></paper-input>
+        <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="end_repository" label="end_repository" value="{{end_repository::input}}" required auto-validate></paper-input>
+        <paper-input id="end_git_hash" label="end_git_hash" value="{{end_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-radio-group id="bisect-mode" selected="performance">
+          <paper-radio-button id="performance" name="performance" on-change="onBisectModeChanged">Performance</paper-radio-button>
+          <paper-radio-button id="functional" name="functional" on-change="onBisectModeChanged">Functional</paper-radio-button>
+        </paper-radio-group>
+        <paper-checkbox id="auto_explore" checked>Automatically explore</paper-checkbox><br>
+        <div>
+          <paper-button raised disabled disabled$="{{create_disabled}}" on-click="onCreateJob">Create</paper-button>
+        </div>
+        <p class="error">{{error}}</p>
+        <div class="close-icon" on-click="close">
+          ❌ <!-- cross mark U+274C -->
+        </div>
+      </form>
+
+      <template is="dom-if" if="{{loading}}">
+        <div id="loading">
+          <paper-spinner active></paper-spinner>
+        </div>
+      </template>
+    </paper-dialog>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'new-job-dialog',
+
+      properties: {
+        bugId: {
+          type: Number,
+        },
+        configuration: {
+          type: String,
+          value: 'Mac Pro 10.11 Perf',
+        },
+        test_suite: {
+          type: String,
+          value: 'speedometer',
+        },
+        test: {
+          type: String,
+          value: '',
+        },
+        metric: {
+          type: String,
+          value: '',
+        },
+        start_repository: {
+          type: String,
+          value: 'chromium',
+        },
+        start_git_hash: {
+          type: String,
+          value: '2c1f8ed028edcb44c954cb2a0625a8f278933481',
+        },
+        end_repository: {
+          type: String,
+          value: 'chromium',
+        },
+        end_git_hash: {
+          type: String,
+          value: '858ceafc7cf4f11a6549b8c1ace839a45d943d68',
+        },
+        create_disabled: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+        error: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        endpoint: {
+          type: String,
+          value: '',
+          notify: true
+        }
+      },
+
+      computeIsDisabled(e) {
+        return !!e;
+      },
+
+      onBisectModeChanged(e) {
+        if (e.target.name == this.$.performance.name) {
+          this.$.metric.hidden = false;
+        } else {
+          this.$.metric.hidden = true;
+        }
+      },
+
+      async onCreateJob(e) {
+        const params = {
+          configuration: this.configuration,
+          test_suite: this.test_suite,
+          test: this.test,
+          metric: this.metric,
+          auto_explore: this.auto_explore ? '1' : '0',
+          start_repository: this.start_repository,
+          start_git_hash: this.start_git_hash,
+          end_repository: this.end_repository,
+          end_git_hash: this.end_git_hash
+        };
+
+        try {
+          this.create_disabled = true;
+          const results = await simple_xhr.asPromise(this.endpoint, params);
+          this.fire('pinpoint-new-response', {
+            'jobId': results.jobId,
+          });
+          this.close();
+        } catch (e) {
+          this.error = e;
+        }
+        this.create_disabled = false;
+      },
+
+      ready() {
+      },
+
+      /**
+       * Initializes and shows the bisect form.
+       */
+      show() {
+        this.create_disabled = false;
+        this.error = '';
+        this.open();
+      },
+
+      open() {
+        this.$.container.open();
+      },
+
+      close() {
+        this.$.container.close();
+      }
+
+    });
+  </script>
+</dom-module>
