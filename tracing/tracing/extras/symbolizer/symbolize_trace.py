@@ -305,6 +305,7 @@ class MemoryMap(NodeWrapper):
       self._start_address = start_address
       self._size = size
       self._file_path = file_path if file_path else _UNNAMED_FILE
+      self._code_id = None
 
     @property
     def start_address(self):
@@ -317,6 +318,10 @@ class MemoryMap(NodeWrapper):
     @property
     def size(self):
       return self._size
+
+    @property
+    def code_id(self):
+      return self._code_id
 
     @property
     def file_path(self):
@@ -343,10 +348,15 @@ class MemoryMap(NodeWrapper):
   def __init__(self, process_mmaps_node):
     regions = []
     for region_node in process_mmaps_node['vm_regions']:
-      regions.append(self.Region(
-          long(region_node['sa'], 16),
-          long(region_node['sz'], 16),
-          region_node['mf']))
+      region = self.Region(long(region_node['sa'], 16),
+                           long(region_node['sz'], 16),
+                           region_node['mf'])
+      regions.append(region)
+
+      # Keep track of code-identifier when present.
+      if 'ts' in region_node and 'sz' in region_node:
+        region._code_id = "%08X%X" % (long(region_node['ts'], 16), region.size)
+
     regions.sort()
 
     # Copy regions without duplicates and check for overlaps.
@@ -982,9 +992,10 @@ class SymbolizableFile(object):
   what to symbolize (addresses) and what to update with the symbolization
   result (frames).
   """
-  def __init__(self, file_path):
+  def __init__(self, file_path, code_id):
     self.path = file_path
     self.symbolizable_path = file_path # path to use for symbolization
+    self.code_id = code_id
     self.frames_by_address = collections.defaultdict(list)
     self.skip_symbolization = False
     self.has_breakpad_symbols = False
@@ -1012,7 +1023,7 @@ def ResolveSymbolizableFiles(processes):
       symfile = symfile_by_path.get(region.file_path)
       if symfile is None:
         file_path = region.file_path
-        symfile = SymbolizableFile(file_path)
+        symfile = SymbolizableFile(file_path, region.code_id)
         symfile_by_path[symfile.path] = symfile
 
       relative_pc = frame.pc - region.start_address
@@ -1028,6 +1039,7 @@ def FindInSystemPath(binary_name):
       return binary_path
   return None
 
+
 class BreakpadSymbolsModule(object):
   """Encapsulates Breakpad logic for symbols of a specific module."""
 
@@ -1038,6 +1050,7 @@ class BreakpadSymbolsModule(object):
     self.symbols = {}
     self.arch = None
     self.debug_id = None
+    self.code_id = None
     self.binary = None
 
   def Parse(self):
@@ -1050,6 +1063,9 @@ class BreakpadSymbolsModule(object):
           self.arch = fragments[2]
           self.debug_id = fragments[3]
           self.binary = ' '.join(fragments[4:])
+        elif fragments[0] == 'INFO' and fragments[1] == 'CODE_ID':
+          # INFO CODE_ID 595D00BD31F0000 chrome.dll
+          self.code_id = fragments[2]
         elif fragments[0] == 'FILE':
           # FILE 0 /b/c/b/mac64/src/out/Release/../../base/at_exit.cc
           self.files.append(' '.join(fragments[2:]))
@@ -1168,6 +1184,12 @@ class Symbolizer(object):
     module_filename = symfile.symbolizable_path
     module = BreakpadSymbolsModule(module_filename)
     module.Parse()
+
+    if module.code_id and symfile.code_id and module.code_id != symfile.code_id:
+      print "Warning: Code identifiers do not match for %s" % symfile.path
+      print "  from trace file: %s" % symfile.code_id
+      print "  from debug file: %s" % module.code_id
+      return
 
     addresses = symfile.frames_by_address.keys()
     addresses.sort()
@@ -1412,8 +1434,11 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
         first_line = file_handle.readline()
         fragments = first_line.rstrip().split()
         if fragments[0] == 'MODULE':
-          binary = ' '.join(fragments[4:])
-          symbolizer.breakpad_modules[binary.lower()] = full_filename
+          binary = ' '.join(fragments[4:]).lower()
+          module_name, extension = os.path.splitext(binary)
+          if extension == ".pdb":
+            binary = module_name
+          symbolizer.breakpad_modules[binary] = full_filename
 
   return True
 
@@ -1573,7 +1598,15 @@ def main(args):
   # Otherwise the trace is from Google Chrome. Assume that this is not a local
   # build of Google Chrome with symbols, and that we need to fetch symbols
   # from gcs.
-  if not trace.is_chromium:
+  if trace.is_chromium:
+    if options.use_breakpad_symbols and options.breakpad_symbols_directory:
+      # Local build with local symbols.
+      FetchAndExtractBreakpadSymbols(
+          options.symbol_base_directory,
+          options.breakpad_symbols_directory,
+          trace, symbolizer,
+          options.cloud_storage_bucket)
+  else:
     has_symbols = False
     if options.use_breakpad_symbols:
       has_symbols = FetchAndExtractBreakpadSymbols(
