@@ -21,7 +21,8 @@ def RunChecks(input_api, output_api, excluded_paths=()):
 
   for f in input_api.AffectedFiles():
     filepath = os.path.join(root, f.LocalPath())
-    if ShouldCheck(filepath) and not os.access(filepath, os.X_OK):
+    if (ShouldCheck(filepath) and os.path.exists(filepath)
+        and not os.access(filepath, os.X_OK)):
       results += [output_api.PresubmitError(
           '%r must be executable.' % filepath)]
 
