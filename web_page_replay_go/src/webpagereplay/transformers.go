@@ -70,7 +70,7 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 	if encodings, ok := resp.Header["Content-Encoding"]; ok && len(encodings) > 0 {
 		// TODO(xunjieli): Use the last CE for now. Support chained CEs.
 		ce = strings.ToLower(encodings[len(encodings)-1])
-		isCompressed = (ce != "" || ce != "identity")
+		isCompressed = (ce != "" && ce != "identity")
 	}
 
 	// Decompress as needed.
@@ -102,7 +102,7 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 // Decompresses Response Body in place.
 func DecompressResponse(resp *http.Response) error {
 	ce := strings.ToLower(resp.Header.Get("Content-Encoding"))
-	isCompressed := (ce != "" || ce != "identity")
+	isCompressed := (ce != "" && ce != "identity")
 	if isCompressed {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
