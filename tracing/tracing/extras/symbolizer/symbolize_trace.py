@@ -301,10 +301,11 @@ class MemoryMap(NodeWrapper):
   """
 
   class Region(object):
-    def __init__(self, start_address, size, file_path):
+    def __init__(self, start_address, size, file_path, file_offset):
       self._start_address = start_address
       self._size = size
       self._file_path = file_path if file_path else _UNNAMED_FILE
+      self._file_offset = file_offset
       self._code_id = None
 
     @property
@@ -327,6 +328,10 @@ class MemoryMap(NodeWrapper):
     def file_path(self):
       return self._file_path
 
+    @property
+    def file_offset(self):
+      return self._file_offset
+
     def __cmp__(self, other):
       if isinstance(other, type(self)):
         other_start_address = other._start_address
@@ -348,9 +353,11 @@ class MemoryMap(NodeWrapper):
   def __init__(self, process_mmaps_node):
     regions = []
     for region_node in process_mmaps_node['vm_regions']:
+      file_offset = long(region_node['fo'], 16) if 'fo' in region_node else 0
       region = self.Region(long(region_node['sa'], 16),
                            long(region_node['sz'], 16),
-                           region_node['mf'])
+                           region_node['mf'],
+                           file_offset)
       regions.append(region)
 
       # Keep track of code-identifier when present.
@@ -601,6 +608,7 @@ class StackFrameMap(NodeWrapper):
       self._pc = self._ParsePC(name)
       self._parent_id = parent_frame_id
       self._ext = None
+      self.debug = None
 
     @property
     def modified(self):
@@ -1026,8 +1034,9 @@ def ResolveSymbolizableFiles(processes):
         symfile = SymbolizableFile(file_path, region.code_id)
         symfile_by_path[symfile.path] = symfile
 
-      relative_pc = frame.pc - region.start_address
+      relative_pc = frame.pc - region.start_address + region.file_offset
       symfile.frames_by_address[relative_pc].append(frame)
+
   return symfile_by_path.values()
 
 
@@ -1394,8 +1403,10 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
                                    cloud_storage_bucket):
 
   if breakpad_info_folder:
+    # Using local symbols from |breakpad_info_folder|.
     symbol_sub_dir = breakpad_info_folder
   else:
+    # Fetching the symbols from GCS (OS dependent).
     if trace.is_win:
       folder = 'win64-pgo' if trace.is_64bit else 'win-pgo'
     elif trace.is_mac:
@@ -1609,12 +1620,14 @@ def main(args):
   else:
     has_symbols = False
     if options.use_breakpad_symbols:
+      # Official build, using Breakpad symbolization.
       has_symbols = FetchAndExtractBreakpadSymbols(
           options.symbol_base_directory,
           options.breakpad_symbols_directory,
           trace, symbolizer,
           options.cloud_storage_bucket)
     else:
+      # Official build, using native symbolization.
       if symbolizer.is_mac:
         has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
                                                 trace.version,
