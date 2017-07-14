@@ -10,6 +10,7 @@ import uuid
 
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
+from tracing.value.diagnostics import reserved_infos
 
 
 # pylint: disable=too-many-lines
@@ -1052,66 +1053,6 @@ class RelatedEventSet(diagnostic.Diagnostic):
     d['events'] = [event for event in self]
 
 
-RESERVED_INFOS = {
-    'ANGLE_REVISIONS': {'name': 'angle revisions', 'type': GenericSet},
-    'ARCHITECTURES': {'name': 'architectures', 'type': GenericSet},
-    'BENCHMARKS': {'name': 'benchmarks', 'type': GenericSet},
-    'BENCHMARK_START': {'name': 'benchmark start', 'type': DateRange},
-    'BOTS': {'name': 'bots', 'type': GenericSet},
-    'BUG_COMPONENTS': {'name': 'bug components', 'type': GenericSet},
-    'BUILDS': {'name': 'builds', 'type': GenericSet},
-    'CATAPULT_REVISIONS': {'name': 'catapult revisions', 'type': GenericSet},
-    'CHROMIUM_COMMIT_POSITIONS': {
-        'name': 'chromium commit positions', 'type': GenericSet},
-    'CHROMIUM_REVISIONS': {'name': 'chromium revisions', 'type': GenericSet},
-    'GPUS': {'name': 'gpus', 'type': GenericSet},
-    'GROUPING_PATH': {'name': 'grouping path'},
-    'LABELS': {'name': 'labels', 'type': GenericSet},
-    'LOG_URLS': {'name': 'log urls', 'type': GenericSet},
-    'MASTERS': {'name': 'masters', 'type': GenericSet},
-    'MEMORY_AMOUNTS': {'name': 'memory amounts', 'type': GenericSet},
-    'MERGED_FROM': {'name': 'merged from', 'type': RelatedHistogramSet},
-    'MERGED_TO': {'name': 'merged to', 'type': RelatedHistogramSet},
-    'OS_NAMES': {'name': 'os names', 'type': GenericSet},
-    'OS_VERSIONS': {'name': 'os versions', 'type': GenericSet},
-    'PRODUCT_VERSIONS': {'name': 'product versions', 'type': GenericSet},
-    'RELATED_NAMES': {'name': 'related names', 'type': GenericSet},
-    'SKIA_REVISIONS': {'name': 'skia revisions', 'type': GenericSet},
-    'STORIES': {'name': 'stories', 'type': GenericSet},
-    'STORYSET_REPEATS': {'name': 'storyset repeats', 'type': GenericSet},
-    'STORY_TAGS': {'name': 'story tags', 'type': GenericSet},
-    'TAG_MAP': {'name': 'tagmap', 'type': TagMap},
-    'TRACE_START': {'name': 'trace start', 'type': DateRange},
-    'TRACE_URLS': {'name': 'trace urls', 'type': GenericSet},
-    'V8_COMMIT_POSITIONS': {'name': 'v8 commit positions', 'type': DateRange},
-    'V8_REVISIONS': {'name': 'v8 revisions', 'type': GenericSet},
-    'WEBRTC_REVISIONS': {'name': 'webrtc revisions', 'type': GenericSet},
-
-    # DEPRECATED https://github.com/catapult-project/catapult/issues/3507
-    'BUILDBOT': {'name': 'buildbot'},  # BuildbotInfo or MergedBuildbotInfo
-    'DEVICE': {'name': 'device'},  # DeviceInfo or MergedDeviceInfo
-    'INTERACTION_RECORD': {'name': 'tir', 'type': GenericSet},
-    'ITERATION': {'name': 'iteration'},  # Legacy name for TELEMETRY
-    'REVISIONS': {'name': 'revisions'},  # RevisionInfo or MergedRevisionInfo
-    'TELEMETRY': {'name': 'telemetry'},  # TelemetryInfo or MergedTelemetryInfo
-
-    # TODO(#3507) Change OWNERS to GenericSet of email addresses.
-    'OWNERS': {'name': 'owners', 'type': Ownership},
-}
-
-RESERVED_NAMES = {}
-RESERVED_NAMES_TO_TYPES = {}
-
-def GenerateReservedNames():
-  for codename, info in RESERVED_INFOS.iteritems():
-    RESERVED_NAMES[codename] = info['name']
-    assert info['name'] not in RESERVED_NAMES_TO_TYPES
-    RESERVED_NAMES_TO_TYPES[info['name']] = info.get('type')
-
-GenerateReservedNames()
-RESERVED_NAMES_SET = set(RESERVED_NAMES.values())
-
-
 class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
 
   def __init__(self, diagnostics):
@@ -1158,6 +1099,28 @@ class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
 
 class DiagnosticMap(dict):
 
+  def __init__(self, *args, **kwargs):
+    self._allow_reserved_names = True
+    dict.__init__(self, *args, **kwargs)
+
+  def DisallowReservedNames(self):
+    self._allow_reserved_names = False
+
+  def __setitem__(self, name, diag):
+    if not isinstance(name, basestring):
+      raise TypeError('name must be string')
+    if not isinstance(diag, (diagnostic.Diagnostic,
+                             diagnostic_ref.DiagnosticRef)):
+      raise TypeError('diag must be Diagnostic or DiagnosticRef')
+    if (not self._allow_reserved_names and
+        not isinstance(diag, UnmergeableDiagnosticSet) and
+        not isinstance(diag, diagnostic_ref.DiagnosticRef)):
+      expected_type = reserved_infos.GetTypeForName(name)
+      if expected_type and diag.__class__.__name__ != expected_type:
+        raise TypeError('Diagnostics names "%s" must be %s, not %s' %
+                        (name, expected_type, diag.__class__.__name__))
+    dict.__setitem__(self, name, diag)
+
   @staticmethod
   def FromDict(dct):
     dm = DiagnosticMap()
@@ -1189,10 +1152,10 @@ class DiagnosticMap(dict):
     return dct
 
   def Merge(self, other, parent_hist, other_parent_hist):
-    merged_from = self.get(RESERVED_NAMES['MERGED_FROM'])
+    merged_from = self.get(reserved_infos.MERGED_FROM.name)
     if merged_from is None:
       merged_from = RelatedHistogramSet()
-      self[RESERVED_NAMES['MERGED_FROM']] = merged_from
+      self[reserved_infos.MERGED_FROM.name] = merged_from
     merged_from.Add(other_parent_hist)
 
     for name, other_diagnostic in other.iteritems():
@@ -1331,6 +1294,7 @@ class Histogram(object):
     self._description = ''
     self._name = name
     self._diagnostics = DiagnosticMap()
+    self._diagnostics.DisallowReservedNames()
     self._nan_diagnostic_maps = []
     self._num_nans = 0
     self._running = None

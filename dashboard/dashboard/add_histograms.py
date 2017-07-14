@@ -18,6 +18,7 @@ from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
+from tracing.value.diagnostics import reserved_infos
 
 
 SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
@@ -174,8 +175,7 @@ def GetSuiteKey(histograms):
 def ComputeTestPath(guid, histograms):
   hist = histograms.LookupHistogram(guid)
   suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
-  telemetry_info = hist.diagnostics[
-      histogram_module.RESERVED_NAMES['TELEMETRY']]
+  telemetry_info = hist.diagnostics[reserved_infos.TELEMETRY.name]
   story_display_name = telemetry_info.story_display_name
 
   path = '%s/%s' % (suite_path, hist.name)
@@ -187,14 +187,14 @@ def ComputeTestPath(guid, histograms):
 
 
 def _GetMasterBotBenchmarkFromHistogram(hist):
-  _CheckRequest(histogram_module.RESERVED_NAMES['BUILDBOT'] in hist.diagnostics,
+  _CheckRequest(reserved_infos.BUILDBOT.name in hist.diagnostics,
                 'Histograms must have BuildbotInfo attached')
-  buildbot_info = hist.diagnostics[histogram_module.RESERVED_NAMES['BUILDBOT']]
+  buildbot_info = hist.diagnostics[reserved_infos.BUILDBOT.name]
   _CheckRequest(
-      histogram_module.RESERVED_NAMES['TELEMETRY'] in hist.diagnostics,
+      reserved_infos.TELEMETRY.name in hist.diagnostics,
       'Histograms must have TelemetryInfo attached')
   telemetry_info = hist.diagnostics[
-      histogram_module.RESERVED_NAMES['TELEMETRY']]
+      reserved_infos.TELEMETRY.name]
 
   master = buildbot_info.display_master_name
   bot = buildbot_info.display_bot_name
@@ -206,9 +206,9 @@ def _GetMasterBotBenchmarkFromHistogram(hist):
 def ComputeRevision(histograms):
   _CheckRequest(len(histograms) > 0, 'Must upload at least one histogram')
   diagnostics = histograms.GetFirstHistogram().diagnostics
-  _CheckRequest(histogram_module.RESERVED_NAMES['REVISIONS'] in diagnostics,
+  _CheckRequest(reserved_infos.REVISIONS.name in diagnostics,
                 'Histograms must have RevisionInfo attached')
-  revision_info = diagnostics[histogram_module.RESERVED_NAMES['REVISIONS']]
+  revision_info = diagnostics[reserved_infos.REVISIONS.name]
   # TODO(eakuefner): Allow users to specify other types of revisions to be used
   # for computing revisions of dashboard points. See
   # https://github.com/catapult-project/catapult/issues/3623.

@@ -23,6 +23,7 @@ from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
+from tracing.value.diagnostics import reserved_infos
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -421,7 +422,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
     results.CleanUp()
     results.histograms.AddSharedDiagnostic(
-        histogram_module.RESERVED_NAMES['TELEMETRY'],
+        reserved_infos.TELEMETRY.name,
         histogram_module.TelemetryInfo())
 
     benchmark_metadata = benchmark.BenchmarkMetadata(
@@ -460,7 +461,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[0])
     results.histograms.AddHistogram(histogram_module.Histogram('foo', 'count'))
     results.histograms.AddSharedDiagnostic(
-        histogram_module.RESERVED_NAMES['TELEMETRY'], original_diagnostic)
+        reserved_infos.TELEMETRY.name, original_diagnostic)
     results.DidRunPage(self.pages[0])
     results.CleanUp()
 

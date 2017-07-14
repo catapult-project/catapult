@@ -26,6 +26,8 @@ from telemetry.value import skip
 from telemetry.value import scalar
 from telemetry.web_perf import story_test
 from tracing.value import histogram
+from tracing.value.diagnostics import reserved_infos
+
 
 # Allowed stages to pause for user interaction at.
 _PAUSE_STAGES = ('before-start-browser', 'after-start-browser',
@@ -296,7 +298,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
       tagmap = _GenerateTagMapFromStorySet(stories)
       if tagmap.tags_to_story_names:
         results.histograms.AddSharedDiagnostic(
-            histogram.RESERVED_NAMES['TAG_MAP'], tagmap)
+            reserved_infos.TAG_MAP.name, tagmap)
 
       if state:
         has_existing_exception = sys.exc_info() != (None, None, None)
@@ -405,7 +407,7 @@ def RunBenchmark(benchmark, finder_options):
       return_code = 255
 
     results.histograms.AddSharedDiagnostic(
-        histogram.RESERVED_NAMES['OWNERS'], benchmark.GetOwnership())
+        reserved_infos.OWNERS.name, benchmark.GetOwnership())
 
     try:
       if finder_options.upload_results:

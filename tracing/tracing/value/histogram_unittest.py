@@ -10,6 +10,7 @@ import unittest
 from tracing.value import histogram
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
+from tracing.value.diagnostics import reserved_infos
 
 # pylint: disable=too-many-lines
 
@@ -1051,6 +1052,19 @@ class GenericSetUnittest(unittest.TestCase):
 
 
 class DiagnosticMapUnittest(unittest.TestCase):
+  def testDisallowReservedNames(self):
+    diagnostics = histogram.DiagnosticMap()
+    with self.assertRaises(TypeError):
+      diagnostics[None] = histogram.GenericSet(())
+    with self.assertRaises(TypeError):
+      diagnostics['generic'] = None
+    diagnostics[reserved_infos.TRACE_URLS.name] = histogram.DateRange(0)
+    diagnostics.DisallowReservedNames()
+    diagnostics[reserved_infos.TRACE_URLS.name] = histogram.GenericSet(())
+    with self.assertRaises(TypeError):
+      diagnostics[reserved_infos.TRACE_URLS.name] = histogram.DateRange(0)
+
+
   # TODO(eakuefner): Find a better place for these non-map tests once we
   # break up the Python implementation more.
   def testInlineSharedDiagnostic(self):
