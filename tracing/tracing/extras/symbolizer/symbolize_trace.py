@@ -608,7 +608,6 @@ class StackFrameMap(NodeWrapper):
       self._pc = self._ParsePC(name)
       self._parent_id = parent_frame_id
       self._ext = None
-      self.debug = None
 
     @property
     def modified(self):
