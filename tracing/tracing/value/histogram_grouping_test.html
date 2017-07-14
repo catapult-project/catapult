@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram_grouping.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('booleanTags', function() {
+    const aHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(
+          ['video', 'audio']),
+      ]]),
+    });
+    const bHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['audio']),
+      ]]),
+    });
+    const cHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['video']),
+      ]]),
+    });
+    const dHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet([]),
+      ]]),
+    });
+
+    const groupings = tr.v.HistogramGrouping.buildFromTags(
+        ['video', 'audio'], tr.v.d.RESERVED_NAMES.STORY_TAGS);
+    assert.lengthOf(groupings, 2);
+    assert.strictEqual(groupings[0].key, 'videoTag');
+    assert.strictEqual(groupings[1].key, 'audioTag');
+    assert.strictEqual(groupings[0].callback(aHist), 'video');
+    assert.strictEqual(groupings[0].callback(bHist), '~video');
+    assert.strictEqual(groupings[0].callback(cHist), 'video');
+    assert.strictEqual(groupings[0].callback(dHist), '~video');
+    assert.strictEqual(groupings[1].callback(aHist), 'audio');
+    assert.strictEqual(groupings[1].callback(bHist), 'audio');
+    assert.strictEqual(groupings[1].callback(cHist), '~audio');
+    assert.strictEqual(groupings[1].callback(dHist), '~audio');
+  });
+
+  test('keyValueTags', function() {
+    const aHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['case:load']),
+      ]]),
+    });
+    const bHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(
+          ['case:browse']),
+      ]]),
+    });
+    const cHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet([]),
+      ]]),
+    });
+    const dHist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([[
+        tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(
+          ['case:load', 'case:browse']),
+      ]]),
+    });
+
+    const groupings = tr.v.HistogramGrouping.buildFromTags(
+        ['case:load', 'case:browse'], tr.v.d.RESERVED_NAMES.STORY_TAGS);
+    assert.lengthOf(groupings, 1);
+    assert.strictEqual(groupings[0].key, 'caseTag');
+    assert.strictEqual(groupings[0].callback(aHist), 'load');
+    assert.strictEqual(groupings[0].callback(bHist), 'browse');
+    assert.strictEqual(groupings[0].callback(cHist), '~case');
+    assert.strictEqual(groupings[0].callback(dHist), 'browse,load');
+  });
+});
+</script>

@@ -28,6 +28,68 @@ tr.exportTo('tr.v', function() {
 
       HistogramGrouping.BY_KEY.set(key, this);
     }
+
+    /**
+     * @param {!Set.<string>} tags
+     * @param {string} diagnosticName
+     * @return {!Array.<!HistogramGrouping>}
+     */
+    static buildFromTags(tags, diagnosticName) {
+      const booleanTags = new Set();
+      const keyValueTags = new Set();
+      for (const tag of tags) {
+        if (tag.includes(':')) {
+          const key = tag.split(':')[0];
+          if (booleanTags.has(key)) {
+            throw new Error(
+                `Tag "${key}" cannot be both boolean and key-value`);
+          }
+          keyValueTags.add(key);
+        } else {
+          if (keyValueTags.has(tag)) {
+            throw new Error(
+                `Tag "${tag}" cannot be both boolean and key-value`);
+          }
+          booleanTags.add(tag);
+        }
+      }
+
+      const groupings = [];
+      for (const tag of booleanTags) {
+        groupings.push(HistogramGrouping.buildBooleanTagGrouping_(
+            tag, diagnosticName));
+      }
+      for (const tag of keyValueTags) {
+        groupings.push(HistogramGrouping.buildKeyValueTagGrouping_(
+            tag, diagnosticName));
+      }
+      return groupings;
+    }
+
+    static buildBooleanTagGrouping_(tag, diagnosticName) {
+      return new HistogramGrouping(`${tag}Tag`, h => {
+        const tags = h.diagnostics.get(diagnosticName);
+        if (tags === undefined || !tags.has(tag)) return `~${tag}`;
+        return tag;
+      });
+    }
+
+    static buildKeyValueTagGrouping_(tag, diagnosticName) {
+      return new HistogramGrouping(`${tag}Tag`, h => {
+        const tags = h.diagnostics.get(diagnosticName);
+        if (tags === undefined) return `~${tag}`;
+        const values = new Set();
+        for (const value of tags) {
+          const kvp = value.split(':');
+          if (kvp.length < 2 || kvp[0] !== tag) continue;
+          values.add(kvp[1]);
+        }
+        if (values.size === 0) return `~${tag}`;
+        const sortedValues = Array.from(values);
+        sortedValues.sort();
+        return sortedValues.join(',');
+      }, `${tag} tag`);
+    }
   }
 
   HistogramGrouping.BY_KEY = new Map();

@@ -51,6 +51,16 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    has(value) {
+      if (typeof value !== 'object') return this.values_.has(value);
+      const json = JSON.stringify(value);
+      for (const x of this) {
+        if (typeof x !== 'object') continue;
+        if (json === JSON.stringify(x)) return true;
+      }
+      return false;
+    }
+
     asDictInto_(d) {
       d.values = Array.from(this);
     }
