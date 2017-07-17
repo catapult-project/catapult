@@ -149,7 +149,7 @@ found in the LICENSE file.
           test_suite: this.test_suite,
           test: this.test,
           metric: this.metric,
-          auto_explore: this.auto_explore ? '1' : '0',
+          auto_explore: this.$.auto_explore.checked ? '1' : '0',
           start_repository: this.start_repository,
           start_git_hash: this.start_git_hash,
           end_repository: this.end_repository,
