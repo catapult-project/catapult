@@ -151,6 +151,22 @@ Debug information about this bisect:
 For feedback, file a bug with component Speed>Bisection"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
+  def testGetReport_ConvertsUnicode(self):
+    author = u'Steve Mart\xc3n'
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        culprit_data=self._Culprit(cl=102, author=author),
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    self.assertIsInstance(bisect_report.GetReport(job), str)
+
   def testGetReport_CompletedWithCulprit_Memory(self):
     results_data = self._BisectResults(
         revision_data=self._Revisions(

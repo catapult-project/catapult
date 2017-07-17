@@ -348,6 +348,7 @@ def _GenerateReport(results_data):
   result += _BISECT_DEBUG_INFO % results_data
   result += '\n'
   result += _BISECT_FOOTER
+  result = result.encode('utf-8')
 
   return result
 
