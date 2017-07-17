@@ -24,8 +24,8 @@ from telemetry.internal.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 
-_OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'json-test-results', 'chartjson',
-    'csv-pivot-table', 'histograms', 'legacy-html', 'none')
+_OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'json-test-results',
+    'chartjson', 'csv-pivot-table', 'histograms', 'legacy-html', 'none')
 
 
 # Filenames to use for given output formats.
