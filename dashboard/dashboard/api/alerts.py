@@ -51,11 +51,15 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
           raise api_request_handler.BadRequestError(
               'Invalid sheriff %s' % sheriff_name)
         include_improvements = bool(self.request.get('improvements'))
+        filter_for_benchmark = self.request.get('benchmark')
         query = anomaly.Anomaly.query(anomaly.Anomaly.sheriff == sheriff_key)
         query = query.filter(anomaly.Anomaly.timestamp > cutoff)
         if not include_improvements:
           query = query.filter(
               anomaly.Anomaly.is_improvement == False)
+        if filter_for_benchmark:
+          query = query.filter(
+              anomaly.Anomaly.benchmark_name == filter_for_benchmark)
 
         query = query.order(-anomaly.Anomaly.timestamp)
         alert_list = query.fetch()

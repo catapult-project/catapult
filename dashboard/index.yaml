@@ -137,6 +137,22 @@ indexes:
   - name: timestamp
     direction: desc
 
+# Used in API to query for named benchmarks.
+- kind: Anomaly
+  properties:
+  - name: benchmark_name
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+
+- kind: Anomaly
+  properties:
+  - name: benchmark_name
+  - name: internal_only
+  - name: sheriff
+  - name: timestamp
+    direction: desc
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection

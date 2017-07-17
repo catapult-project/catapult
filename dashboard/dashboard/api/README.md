@@ -19,7 +19,8 @@ URL patterns for accessing alerts:
  * `/api/alerts/history/N`: Get all the alerts for N days (defaults to 7).
    Can specify a `sheriff` param in postdata, defaults to `Chromium Perf
    Sheriff`. Can specify an `improvements` param equal to 1 to include
-   improvements.
+   improvements. Can specify a `benchmark` param equal to the name to include
+   only alerts for a given benchmark.
 
 No matter what the url pattern, the alerts API returns a JSON list of alerts
 with the following fields:

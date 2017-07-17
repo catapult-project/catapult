@@ -187,7 +187,6 @@ class AlertsTest(testing_common.TestCase):
   @mock.patch.object(api_auth, 'oauth')
   def testPost_WithHistoryParameter_ListsAlerts(self, mock_oauth):
     self._SetGooglerOAuth(mock_oauth)
-    test_keys = self._AddTests()
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     recent_ranges = [(300, 500), (500, 600), (600, 800)]
@@ -201,6 +200,23 @@ class AlertsTest(testing_common.TestCase):
         '/api/alerts/history/5')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))
+
+  @mock.patch.object(api_auth, 'oauth')
+  def testPost_WithBenchmarkParameter_ListsOnlyMatching(self, mock_oauth):
+    self._SetGooglerOAuth(mock_oauth)
+    sheriff_key = self._AddSheriff()
+    test_keys = [
+        utils.TestKey('ChromiumPerf/bot/sunspider/Total'),
+        utils.TestKey('ChromiumPerf/bot/octane/Total')]
+    ranges = [(300, 500), (500, 600), (600, 800)]
+    for key in test_keys:
+      self._AddAnomalyEntities(ranges, key, sheriff_key)
+
+    response = self.testapp.post(
+        '/api/alerts/history/5', {'benchmark': 'octane'})
+    anomalies = self.GetJsonValue(response, 'anomalies')
+    self.assertEqual(3, len(anomalies))
+
 
 
 if __name__ == '__main__':
