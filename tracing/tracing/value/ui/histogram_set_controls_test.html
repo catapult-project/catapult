@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
+<link rel="import" href="/tracing/value/histogram_grouping.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_controls.html">
 
@@ -192,54 +193,54 @@ tr.b.unittest.testSuite(function() {
   test('viewGroupings', function() {
     const controls = buildControls(this);
     const fooGrouping = new tr.v.HistogramGrouping('foo', h => 'foo');
-    const groupings = Object.values(tr.v.HistogramGrouping.BY_NAME);
+    const groupings = Array.from(tr.v.HistogramGrouping.BY_KEY.values());
     groupings.push(fooGrouping);
     controls.possibleGroupings = groupings;
     const picker = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.tagName === 'TR-UI-B-GROUPING-TABLE-GROUPBY-PICKER');
     assert.lengthOf(picker.currentGroupKeys, 1);
     assert.strictEqual(picker.currentGroupKeys[0],
-        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key);
+        tr.v.HistogramGrouping.HISTOGRAM_NAME.key);
 
     controls.viewState.groupings = [
-      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.HISTOGRAM_NAME,
     ];
     assert.lengthOf(picker.currentGroupKeys, 1);
     assert.strictEqual(picker.currentGroupKeys[0],
-        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key);
+        tr.v.HistogramGrouping.HISTOGRAM_NAME.key);
     assert.strictEqual('block', picker.style.display);
 
     controls.viewState.groupings = [
-      tr.v.HistogramGrouping.BY_NAME.STORY_NAME,
+      tr.v.HistogramGrouping.STORY_NAME,
       fooGrouping,
     ];
     assert.lengthOf(picker.currentGroupKeys, 2);
     assert.strictEqual(picker.currentGroupKeys[0],
-        tr.v.HistogramGrouping.BY_NAME.STORY_NAME.key);
+        tr.v.HistogramGrouping.STORY_NAME.key);
     assert.strictEqual(picker.currentGroupKeys[1], 'foo');
   });
 
   test('controlGroupings', function() {
     const controls = buildControls(this);
     const fooGrouping = new tr.v.HistogramGrouping('foo', h => 'foo');
-    const groupings = Object.values(tr.v.HistogramGrouping.BY_NAME);
+    const groupings = Array.from(tr.v.HistogramGrouping.BY_KEY.values());
     groupings.push(fooGrouping);
     controls.possibleGroupings = groupings;
     const picker = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.tagName === 'TR-UI-B-GROUPING-TABLE-GROUPBY-PICKER');
     assert.lengthOf(picker.currentGroupKeys, 1);
-    assert.strictEqual(controls.viewState.groupings[0],
-        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME);
+    assert.strictEqual(controls.viewState.groupings[0].key,
+        tr.v.HistogramGrouping.HISTOGRAM_NAME.key);
 
     picker.currentGroupKeys = ['name'];
     assert.lengthOf(controls.viewState.groupings, 1);
-    assert.strictEqual(controls.viewState.groupings[0],
-        tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME);
+    assert.strictEqual(controls.viewState.groupings[0].key,
+        tr.v.HistogramGrouping.HISTOGRAM_NAME.key);
 
     picker.currentGroupKeys = ['story', 'foo'];
     assert.lengthOf(controls.viewState.groupings, 2);
     assert.strictEqual(controls.viewState.groupings[0],
-        tr.v.HistogramGrouping.BY_NAME.STORY_NAME);
+        tr.v.HistogramGrouping.STORY_NAME);
     assert.strictEqual(controls.viewState.groupings[1],
         fooGrouping);
   });

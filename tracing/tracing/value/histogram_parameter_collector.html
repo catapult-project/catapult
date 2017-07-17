@@ -12,21 +12,21 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.v', function() {
   const getDisplayLabel =
-    tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL.callback;
+    tr.v.HistogramGrouping.DISPLAY_LABEL.callback;
 
   const DEFAULT_POSSIBLE_GROUPS = [];
 
   // Override HISTOGRAM_NAME so that we can display shortName.
   DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
-      tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key,
+      tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
 
-  for (const group of Object.values(tr.v.HistogramGrouping.BY_NAME)) {
+  for (const group of tr.v.HistogramGrouping.BY_KEY.values()) {
     // DISPLAY_LABEL is used to define the columns, so don't allow grouping
     // rows by it.
     // HISTOGRAM_NAME is overridden.
-    if (group !== tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL &&
-        group !== tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME) {
+    if (group !== tr.v.HistogramGrouping.DISPLAY_LABEL &&
+        group !== tr.v.HistogramGrouping.HISTOGRAM_NAME) {
       DEFAULT_POSSIBLE_GROUPS.push(group);
     }
   }
@@ -50,7 +50,7 @@ tr.exportTo('tr.v', function() {
 
       // Never remove 'name' from keysToGroupings.
       this.keysToValues_.delete(
-          tr.v.HistogramGrouping.BY_NAME.HISTOGRAM_NAME.key);
+          tr.v.HistogramGrouping.HISTOGRAM_NAME.key);
     }
 
     process(histograms) {

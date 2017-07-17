@@ -305,7 +305,7 @@ tr.exportTo('tr.v.ui', function() {
 
     groupHistograms_() {
       const groupings = this.viewState.groupings.slice();
-      groupings.push(tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL);
+      groupings.push(tr.v.HistogramGrouping.DISPLAY_LABEL);
 
       function canSkipGrouping(grouping, groupedHistograms) {
         // Never skip meaningful groupings.
@@ -315,8 +315,7 @@ tr.exportTo('tr.v.ui', function() {
         if (grouping.key === groupings[0].key) return false;
 
         // Never skip the grouping that defines the table columns.
-        if (grouping.key ===
-            tr.v.HistogramGrouping.BY_NAME.DISPLAY_LABEL.key) {
+        if (grouping.key === tr.v.HistogramGrouping.DISPLAY_LABEL.key) {
           return false;
         }
 
