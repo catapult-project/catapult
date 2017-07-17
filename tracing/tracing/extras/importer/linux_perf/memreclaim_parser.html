@@ -31,6 +31,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         MemReclaimParser.prototype.reclaimBegin.bind(this));
     importer.registerEventHandler('mm_vmscan_direct_reclaim_end',
         MemReclaimParser.prototype.reclaimEnd.bind(this));
+    importer.registerEventHandler('lowmemory_kill',
+        MemReclaimParser.prototype.lowmemoryKill.bind(this));
   }
 
   // Matches the mm_vmscan_kswapd_wake record
@@ -48,6 +50,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   // Matches the mm_vmscan_direct_reclaim_end record
   //  mm_vmscan_direct_reclaim_end: nr_reclaimed=%lu
   const reclaimEndRE = /nr_reclaimed=(\d+)/;
+
+  // Matches the lowmemory_kill record
+  const lowmemoryRE =
+    /([^ ]+) \((\d+)\), page cache (\d+)kB \(limit (\d+)kB\), free (-?\d+)Kb/;
 
   MemReclaimParser.prototype = {
     __proto__: Parser.prototype,
@@ -138,8 +144,32 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.order = undefined;
       kthread.gfp = undefined;
       return true;
-    }
+    },
 
+    lowmemoryKill(eventName, cpuNumber, pid, ts, eventBase) {
+      const event = lowmemoryRE.exec(eventBase.details);
+      if (!event) return false;
+
+      const tgid = parseInt(eventBase.tgid);
+      const killedName = event[1];
+      const killedPid = parseInt(event[2]);
+      const cache = parseInt(event[3]);
+      const free = parseInt(event[5]);
+
+      const kthread = this.importer.getOrCreateKernelThread(
+          eventBase.threadName, tgid, pid);
+
+      kthread.thread.sliceGroup.pushCompleteSlice('lowmemory',
+          'low memory kill', ts, 0,
+          0, 0,
+          {
+            killed_name: killedName,
+            killed_pid: killedPid,
+            cache,
+            free
+          });
+      return true;
+    }
   };
 
   Parser.register(MemReclaimParser);

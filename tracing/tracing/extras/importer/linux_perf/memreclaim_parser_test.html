@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
       'kswapd0-48    (   48) [000] ...1  1739.799245: mm_vmscan_kswapd_wake: nid=0 order=2', // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1739.821950: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1739.894130: mm_vmscan_kswapd_wake: nid=0 order=2', // @suppress longLineCheck
-      'kswapd0-48    (   48) [000] ...1  1739.919775: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
+      'kswapd0-48    (   48) [000] ...1  1739.919775: lowmemory_kill: d.process.media (10517), page cache 311740kB (limit 322560kB), free -1456Kb', // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1740.026933: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1740.126608: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
       'kswapd0-48    (   48) [000] ...1  1740.150819: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
@@ -160,7 +160,7 @@ tr.b.unittest.testSuite(function() {
 
     const thread = threads[0];
 
-    assert.strictEqual(thread.sliceGroup.length, 6);
+    assert.strictEqual(thread.sliceGroup.length, 7);
 
     thread.sliceGroup.slices.forEach(function(slice) {
       assert.strictEqual(slice.args !== undefined, true);
