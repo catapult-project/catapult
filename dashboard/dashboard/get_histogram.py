@@ -33,7 +33,7 @@ class GetHistogramHandler(post_data_handler.PostDataHandler):
       histogram_entity = histogram_key.get()
     except AssertionError:
       # Thrown if accessing internal_only as an external user.
-      self.ReportError('Histogram "%s" not found for user' % guid, status=400)
+      self.ReportError('Histogram "%s" not found' % guid, status=400)
       return
 
     if not histogram_entity:
