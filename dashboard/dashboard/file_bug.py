@@ -92,6 +92,11 @@ class FileBugHandler(request_handler.RequestHandler):
     """
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     labels, components = _FetchLabelsAndComponents(alert_keys)
+    owner_emails, owner_component = _FetchOwnersEmailsAndComponent(alert_keys)
+
+    if owner_component:
+      components.add(owner_component)
+
     self.RenderHtml('bug_result.html', {
         'bug_create_form': True,
         'keys': urlsafe_keys,
@@ -99,7 +104,7 @@ class FileBugHandler(request_handler.RequestHandler):
         'description': description,
         'labels': labels,
         'components': components,
-        'owner': '',
+        'owner': owner_emails,
         'cc': users.get_current_user(),
     })
 
@@ -232,6 +237,24 @@ def _FetchLabelsAndComponents(alert_keys):
         labels.add(item)
   return labels, components
 
+def _FetchOwnersEmailsAndComponent(alert_keys):
+  """Fetches the emails and the component defined for the benchmark's ownership
+     stored in the most recent ownership alert of the given path.
+  """
+  alerts = ndb.get_multi(alert_keys)
+  sorted_alerts = reversed(sorted(alerts, key=lambda alert: alert.timestamp))
+
+  emails = ''
+  component = None
+
+  for selected_alert in sorted_alerts:
+    if selected_alert.ownership:
+      component = selected_alert.ownership.get('component')
+      if selected_alert.ownership.get('emails'):
+        emails = ', '.join(selected_alert.ownership['emails'])
+      break
+
+  return emails, component
 
 def _MilestoneLabel(alerts):
   """Returns a milestone label string, or None.

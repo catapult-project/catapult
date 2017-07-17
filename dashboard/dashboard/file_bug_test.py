@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import json
 import unittest
 
@@ -392,6 +393,162 @@ class FileBugTest(testing_common.TestCase):
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
     self.assertEqual(1, mock_warn.call_count)
 
+  def testGet_WithOwnersPreFilled(self):
+    ownership_samples = [
+        {
+            'type': 'Ownership',
+            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+            'emails': ['alice@chromium.org']
+        },
+        {
+            'type': 'Ownership',
+            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+            'emails': ['bob@chromium.org']
+        }
+    ]
+
+    now_datetime = datetime.datetime.now()
+
+    test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
+                  'ChromiumPerf/linux/scrolling/mean_frame_time']
+    test_keys = [utils.TestKey(test_path) for test_path in test_paths]
+
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff',
+        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+
+    anomaly_1 = anomaly.Anomaly(
+        start_revision=1476193324, end_revision=1476201840, test=test_keys[0],
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key, ownership=ownership_samples[0],
+        timestamp=now_datetime).put()
+
+    anomaly_2 = anomaly.Anomaly(
+        start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key, ownership=ownership_samples[1],
+        timestamp=now_datetime - datetime.timedelta(10)).put()
+
+    response = self.testapp.post(
+        '/file_bug',
+        [
+            ('keys', '%s,%s' % (anomaly_1.urlsafe(), anomaly_2.urlsafe())),
+            ('summary', 's'),
+            ('description', 'd\n'),
+            ('label', 'one'),
+            ('label', 'two'),
+            ('component', 'Foo>Bar'),
+        ])
+
+    self.assertIn(
+        '<input type="text" name="owner" value="alice@chromium.org">',
+        response.body)
+
+    response_changed_order = self.testapp.post(
+        '/file_bug',
+        [
+            ('keys', '%s,%s' % (anomaly_2.urlsafe(), anomaly_1.urlsafe())),
+            ('summary', 's'),
+            ('description', 'd\n'),
+            ('label', 'one'),
+            ('label', 'two'),
+            ('component', 'Foo>Bar'),
+        ])
+
+    self.assertIn(
+        '<input type="text" name="owner" value="alice@chromium.org">',
+        response_changed_order.body)
+
+  def testGet_OwnersNotFilledWhenNoOwnership(self):
+    test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff',
+        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1476193324, end_revision=1476201840, test=test_key,
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key).put()
+
+    response = self.testapp.post(
+        '/file_bug',
+        [
+            ('keys', '%s' % (anomaly_entity.urlsafe())),
+            ('summary', 's'),
+            ('description', 'd\n'),
+            ('label', 'one'),
+            ('label', 'two'),
+            ('component', 'Foo>Bar'),
+        ])
+
+    self.assertIn(
+        '<input type="text" name="owner" value="">',
+        response.body)
+
+  def testGet_OwnersNotFilledWhenOwnersEmpty(self):
+    ownership_data = {
+        'emails': [],
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+    }
+
+    test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff',
+        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1476193320, end_revision=1476201870, test=test_key,
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key, ownership=ownership_data).put()
+
+    response = self.testapp.post(
+        '/file_bug',
+        [
+            ('keys', '%s' % (anomaly_entity.urlsafe())),
+            ('summary', 's'),
+            ('description', 'd\n'),
+            ('label', 'one'),
+            ('label', 'two'),
+            ('component', 'Foo>Bar'),
+        ])
+
+    self.assertIn(
+        '<input type="text" name="owner" value="">',
+        response.body)
+
+  def testGet_WithOwnershipComponent(self):
+    ownership_data = {
+        'emails': [],
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+        'component': 'Abc>Xyz'
+    }
+
+    test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff',
+        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1476193320, end_revision=1476201870, test=test_key,
+        median_before_anomaly=100, median_after_anomaly=200,
+        sheriff=sheriff_key, ownership=ownership_data).put()
+
+    response = self.testapp.post(
+        '/file_bug',
+        [
+            ('keys', '%s' % (anomaly_entity.urlsafe())),
+            ('summary', 's'),
+            ('description', 'd\n'),
+            ('label', 'one'),
+            ('label', 'two'),
+            ('component', 'Foo>Bar'),
+        ])
+
+    self.assertIn(
+        '<input type="checkbox" checked name="component" value="Abc&gt;Xyz">',
+        response.body)
 
 if __name__ == '__main__':
   unittest.main()
