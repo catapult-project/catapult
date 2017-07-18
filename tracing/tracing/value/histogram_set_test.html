@@ -254,6 +254,11 @@ tr.b.unittest.testSuite(function() {
       osName: 'B',
     });
 
+    const genericA = new tr.v.d.GenericSet(['A']);
+    const genericB = new tr.v.d.GenericSet(['B']);
+    const dateA = new tr.v.d.DateRange(42);
+    const dateB = new tr.v.d.DateRange(57);
+
     const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
     const telemetry0 = new tr.v.d.MergedTelemetryInfo();
     telemetry0.addDiagnostic(telemetryA);
@@ -267,6 +272,12 @@ tr.b.unittest.testSuite(function() {
     device0.addDiagnostic(deviceA);
     device0.addDiagnostic(deviceB);
     device0.addToHistogram(aHist);
+    const generic0 = genericA.clone();
+    generic0.addDiagnostic(genericB);
+    aHist.diagnostics.set('generic', generic0);
+    const date0 = dateA.clone();
+    date0.addDiagnostic(dateB);
+    aHist.diagnostics.set('date', date0);
 
     const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
     const telemetry1 = new tr.v.d.MergedTelemetryInfo();
@@ -281,6 +292,12 @@ tr.b.unittest.testSuite(function() {
     device1.addDiagnostic(deviceA);
     device1.addDiagnostic(deviceB);
     device1.addToHistogram(bHist);
+    const generic1 = genericA.clone();
+    generic1.addDiagnostic(genericB);
+    bHist.diagnostics.set('generic', generic1);
+    const date1 = dateA.clone();
+    date1.addDiagnostic(dateB);
+    bHist.diagnostics.set('date', date1);
 
     const histograms = new tr.v.HistogramSet([aHist, bHist]);
     assert.notStrictEqual(
@@ -301,6 +318,15 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(
         tr.v.d.BuildbotInfo.getFromHistogram(aHist).equals(
             tr.v.d.BuildbotInfo.getFromHistogram(bHist)));
+    assert.notStrictEqual(
+        aHist.diagnostics.get('generic'), bHist.diagnostics.get('generic'));
+    assert.isTrue(
+        aHist.diagnostics.get('generic').equals(
+            bHist.diagnostics.get('generic')));
+    assert.notStrictEqual(
+        aHist.diagnostics.get('date'), bHist.diagnostics.get('date'));
+    assert.isTrue(
+        aHist.diagnostics.get('date').equals(bHist.diagnostics.get('date')));
 
     histograms.deduplicateDiagnostics();
 
@@ -313,6 +339,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         tr.v.d.BuildbotInfo.getFromHistogram(aHist),
         tr.v.d.BuildbotInfo.getFromHistogram(bHist));
+    assert.strictEqual(
+        aHist.diagnostics.get('generic'), bHist.diagnostics.get('generic'));
+    assert.strictEqual(
+        aHist.diagnostics.get('date'), bHist.diagnostics.get('date'));
 
     const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
@@ -329,6 +359,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         tr.v.d.BuildbotInfo.getFromHistogram(aHist2),
         tr.v.d.BuildbotInfo.getFromHistogram(bHist2));
+    assert.strictEqual(
+        aHist2.diagnostics.get('generic'), bHist2.diagnostics.get('generic'));
+    assert.strictEqual(
+        aHist2.diagnostics.get('date'), bHist2.diagnostics.get('date'));
   });
 });
 </script>

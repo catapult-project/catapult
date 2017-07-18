@@ -301,45 +301,45 @@ tr.exportTo('tr.v', function() {
      * quickly when merging relationship Diagnostics.
      */
     deduplicateDiagnostics() {
-      const diagnosticsToCounts = new Map();
+      const namesToCandidates = new Map();  // string: Set<Diagnostic>
+      const diagnosticsToHistograms = new Map();  // Diagnostic: Histogram
+
       for (const hist of this) {
-        const candidates = [];
+        for (const [name, candidate] of hist.diagnostics) {
+          if (candidate.equals === undefined) continue;
 
-        const telemetryInfo = tr.v.d.TelemetryInfo.getFromHistogram(hist);
-        if (telemetryInfo instanceof tr.v.d.MergedTelemetryInfo) {
-          candidates.push(telemetryInfo);
+          diagnosticsToHistograms.set(candidate, hist);
+
+          if (!namesToCandidates.has(name)) {
+            namesToCandidates.set(name, new Set());
+          }
+          namesToCandidates.get(name).add(candidate);
         }
+      }
 
-        const buildbotInfo = tr.v.d.BuildbotInfo.getFromHistogram(hist);
-        if (buildbotInfo instanceof tr.v.d.MergedBuildbotInfo) {
-          candidates.push(buildbotInfo);
-        }
+      for (const [name, candidates] of namesToCandidates) {
+        const diagnosticsToCounts = new Map();
 
-        const deviceInfo = tr.v.d.DeviceInfo.getFromHistogram(hist);
-        if (deviceInfo instanceof tr.v.d.MergedDeviceInfo) {
-          candidates.push(deviceInfo);
-        }
-
-        for (const diagnostic of candidates) {
-          if (diagnostic === undefined) continue;
+        for (const candidate of candidates) {
           let found = false;
-          for (const [testDiagnostic, count] of diagnosticsToCounts) {
-            if (diagnostic.equals(testDiagnostic)) {
-              testDiagnostic.addToHistogram(hist);
-              diagnosticsToCounts.set(testDiagnostic, count + 1);
+          for (const [test, count] of diagnosticsToCounts) {
+            if (candidate.equals(test)) {
+              const hist = diagnosticsToHistograms.get(candidate);
+              hist.diagnostics.set(name, test);
+              diagnosticsToCounts.set(test, count + 1);
               found = true;
               break;
             }
           }
           if (!found) {
-            diagnosticsToCounts.set(diagnostic, 1);
+            diagnosticsToCounts.set(candidate, 1);
           }
         }
-      }
 
-      for (const [diagnostic, count] of diagnosticsToCounts) {
-        if (count > 1) {
-          this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+        for (const [diagnostic, count] of diagnosticsToCounts) {
+          if (count > 1) {
+            this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+          }
         }
       }
     }

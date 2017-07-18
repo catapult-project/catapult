@@ -43,6 +43,11 @@ tr.exportTo('tr.v.d', function() {
       return clone;
     }
 
+    equals(other) {
+      if (!(other instanceof DateRange)) return false;
+      return this.range_.equals(other.range_);
+    }
+
     canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof DateRange;
     }

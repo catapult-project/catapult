@@ -61,6 +61,15 @@ tr.exportTo('tr.v.d', function() {
       return false;
     }
 
+    equals(other) {
+      if (!(other instanceof GenericSet)) return false;
+      if (this.size !== other.size) return false;
+      for (const value of this) {
+        if (!other.has(value)) return false;
+      }
+      return true;
+    }
+
     asDictInto_(d) {
       d.values = Array.from(this);
     }
