@@ -23,7 +23,7 @@ class _RunTestTest(unittest.TestCase):
 
   def assertNewTaskHasDimensions(self, swarming_tasks_new):
     body = {
-        'name': 'Pinpoint job on Mac Pro 10.11 Perf',
+        'name': 'Pinpoint job on chromium-rel-mac11-pro',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '600',
@@ -40,14 +40,14 @@ class _RunTestTest(unittest.TestCase):
             'io_timeout_secs': '3600',
         },
         'tags': [
-            'configuration:Mac Pro 10.11 Perf',
+            'configuration:chromium-rel-mac11-pro',
         ],
     }
     swarming_tasks_new.assert_called_with(body)
 
   def assertNewTaskHasBotId(self, swarming_tasks_new):
     body = {
-        'name': 'Pinpoint job on Mac Pro 10.11 Perf',
+        'name': 'Pinpoint job on chromium-rel-mac11-pro',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '600',
@@ -62,7 +62,7 @@ class _RunTestTest(unittest.TestCase):
             'io_timeout_secs': '3600',
         },
         'tags': [
-            'configuration:Mac Pro 10.11 Perf',
+            'configuration:chromium-rel-mac11-pro',
         ],
     }
     swarming_tasks_new.assert_called_with(body)
@@ -76,7 +76,7 @@ class RunTestFullTest(_RunTestTest):
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
-    quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
     execution = quest.Start('input isolate hash')
 
     swarming_task_result.assert_not_called()
@@ -148,7 +148,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -168,7 +168,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
     execution = quest.Start('isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -193,7 +193,7 @@ class BotIdHandlingTest(_RunTestTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
-    quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -217,7 +217,7 @@ class BotIdHandlingTest(_RunTestTest):
                                  swarming_tasks_new):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
-    quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
     execution_1 = quest.Start('input isolate hash')
     execution_2 = quest.Start('input isolate hash')
 

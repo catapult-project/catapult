@@ -87,7 +87,7 @@ class NewTest(testing_common.TestCase):
         {'commit': '3'},
     ]
     params = {
-        'configuration': 'Mac Pro 10.11 Perf',
+        'configuration': 'chromium-rel-mac11-pro',
         'test_suite': 'speedometer',
         'test': '',
         'metric': 'Total',
@@ -103,7 +103,7 @@ class NewTest(testing_common.TestCase):
 
   def testPost_MetricButNoTestSuite(self):
     params = {
-        'configuration': 'Mac Pro 10.11 Perf',
+        'configuration': 'chromium-rel-mac11-pro',
         'test_suite': '',
         'test': '',
         'metric': 'Total',
@@ -123,7 +123,7 @@ class NewTest(testing_common.TestCase):
       mock.MagicMock(side_effect=gitiles_service.NotFoundError))
   def testPost_InvalidChange(self):
     params = {
-        'configuration': 'Mac Pro 10.11 Perf',
+        'configuration': 'chromium-rel-mac11-pro',
         'test_suite': 'speedometer',
         'test': '',
         'metric': 'Total',
@@ -140,7 +140,7 @@ class NewTest(testing_common.TestCase):
 
   def testPost_InvalidBug(self):
     params = {
-        'configuration': 'Mac Pro 10.11 Perf',
+        'configuration': 'chromium-rel-mac11-pro',
         'test_suite': 'speedometer',
         'test': '',
         'metric': 'Total',
@@ -168,7 +168,7 @@ class NewTest(testing_common.TestCase):
         {'commit': '3'},
     ]
     params = {
-        'configuration': 'Mac Pro 10.11 Perf',
+        'configuration': 'chromium-rel-mac11-pro',
         'test_suite': 'speedometer',
         'test': '',
         'metric': 'Total',
