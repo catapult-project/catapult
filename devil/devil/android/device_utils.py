@@ -1018,7 +1018,7 @@ class DeviceUtils(object):
 
     if isinstance(cmd, basestring):
       if not shell:
-        logging.warning(
+        logger.warning(
             'The command to run should preferably be passed as a sequence of'
             ' args. If shell features are needed (pipes, wildcards, variables)'
             ' clients should explicitly set shell=True.')

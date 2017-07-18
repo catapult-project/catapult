@@ -81,7 +81,7 @@ class FlagChanger(object):
 
     cmdline_path_legacy = posixpath.join(_CMDLINE_DIR_LEGACY, cmdline_file)
     if self._device.PathExists(cmdline_path_legacy):
-      logging.warning(
+      logger.warning(
             'Removing legacy command line file %r.', cmdline_path_legacy)
       self._device.RemovePath(cmdline_path_legacy, as_root=True)
 

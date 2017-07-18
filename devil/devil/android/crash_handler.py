@@ -32,13 +32,12 @@ def RetryOnSystemCrash(f, device, retries=3):
       return f(device)
     except device_errors.DeviceUnreachableError:
       if num_try > retries:
-        logging.error('%d consecutive device crashes. No longer retrying.',
+        logger.error('%d consecutive device crashes. No longer retrying.',
                       num_try)
         raise
       try:
-        logging.warning('Device is unreachable. Waiting for recovery...')
+        logger.warning('Device is unreachable. Waiting for recovery...')
         device.WaitUntilFullyBooted()
       except base_error.BaseError:
-        logging.exception('Device never recovered. X(')
+        logger.exception('Device never recovered. X(')
     num_try += 1
-

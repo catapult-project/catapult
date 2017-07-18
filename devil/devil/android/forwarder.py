@@ -160,7 +160,7 @@ class Forwarder(object):
                   device_errors.DeviceUnreachableError):
             # We don't want the failure to kill the device forwarder to
             # supersede the original failure to map.
-            logging.warning(
+            logger.warning(
                 'Failed to kill the device forwarder after map failure: %s',
                 str(e))
           _LogMapFailureDiagnostics(device)
