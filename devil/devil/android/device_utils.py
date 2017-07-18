@@ -10,6 +10,7 @@ Eventually, this will be based on adb_wrapper.
 
 import calendar
 import collections
+import fnmatch
 import itertools
 import json
 import logging
@@ -38,7 +39,6 @@ from devil.android import device_temp_file
 from devil.android import install_commands
 from devil.android import logcat_monitor
 from devil.android import md5sum
-from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
@@ -72,7 +72,7 @@ _RESTART_ADBD_SCRIPT = """
 """
 
 # Not all permissions can be set.
-_PERMISSIONS_BLACKLIST = [
+_PERMISSIONS_BLACKLIST_RE = re.compile('|'.join(fnmatch.translate(p) for p in [
     'android.permission.ACCESS_LOCATION_EXTRA_COMMANDS',
     'android.permission.ACCESS_MOCK_LOCATION',
     'android.permission.ACCESS_NETWORK_STATE',
@@ -90,6 +90,7 @@ _PERMISSIONS_BLACKLIST = [
     'android.permission.EXPAND_STATUS_BAR',
     'android.permission.GET_PACKAGE_SIZE',
     'android.permission.INSTALL_SHORTCUT',
+    'android.permission.INJECT_EVENTS',
     'android.permission.INTERNET',
     'android.permission.KILL_BACKGROUND_PROCESSES',
     'android.permission.MANAGE_ACCOUNTS',
@@ -101,6 +102,7 @@ _PERMISSIONS_BLACKLIST = [
     'android.permission.RECORD_VIDEO',
     'android.permission.REORDER_TASKS',
     'android.permission.REQUEST_INSTALL_PACKAGES',
+    'android.permission.RESTRICTED_VR_ACCESS',
     'android.permission.RUN_INSTRUMENTATION',
     'android.permission.SET_ALARM',
     'android.permission.SET_TIME_ZONE',
@@ -120,12 +122,13 @@ _PERMISSIONS_BLACKLIST = [
     'com.google.android.c2dm.permission.RECEIVE',
     'com.google.android.providers.gsf.permission.READ_GSERVICES',
     'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
-]
-for package_info in chrome.PACKAGE_INFO.itervalues():
-  _PERMISSIONS_BLACKLIST.extend([
-      '%s.permission.C2D_MESSAGE' % package_info.package,
-      '%s.permission.READ_WRITE_BOOKMARK_FOLDERS' % package_info.package,
-      '%s.TOS_ACKED' % package_info.package])
+    '*.permission.C2D_MESSAGE',
+    '*.permission.READ_WRITE_BOOKMARK_FOLDERS',
+    '*.TOS_ACKED',
+]))
+_SHELL_OUTPUT_SEPARATOR = '~X~'
+_PERMISSIONS_EXCEPTION_RE = re.compile(
+    r'java\.lang\.\w+Exception: .*$', re.MULTILINE)
 
 _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
@@ -848,17 +851,18 @@ class DeviceUtils(object):
       else:
         self.adb.Install(
             base_apk.path, reinstall=reinstall, allow_downgrade=allow_downgrade)
-      if (permissions is None
-          and self.build_version_sdk >= version_codes.MARSHMALLOW):
-        permissions = base_apk.GetPermissions()
-      self.GrantPermissions(package_name, permissions)
-      # Upon success, we know the device checksums, but not their paths.
-      if host_checksums is not None:
-        self._cache['package_apk_checksums'][package_name] = host_checksums
     else:
       # Running adb install terminates running instances of the app, so to be
       # consistent, we explicitly terminate it when skipping the install.
       self.ForceStop(package_name)
+
+    if (permissions is None
+        and self.build_version_sdk >= version_codes.MARSHMALLOW):
+      permissions = base_apk.GetPermissions()
+    self.GrantPermissions(package_name, permissions)
+    # Upon success, we know the device checksums, but not their paths.
+    if host_checksums is not None:
+      self._cache['package_apk_checksums'][package_name] = host_checksums
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def Uninstall(self, package_name, keep_data=False, timeout=None,
@@ -2660,19 +2664,49 @@ class DeviceUtils(object):
     # the permission model.
     if not permissions or self.build_version_sdk < version_codes.MARSHMALLOW:
       return
-    logger.info('Setting permissions for %s.', package)
-    permissions = [p for p in permissions if p not in _PERMISSIONS_BLACKLIST]
+
+    permissions = set(
+        p for p in permissions if not _PERMISSIONS_BLACKLIST_RE.match(p))
+
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
-      permissions.append('android.permission.READ_EXTERNAL_STORAGE')
-    cmd = '&&'.join('pm grant %s %s' % (package, p) for p in permissions)
-    if cmd:
-      output = self.RunShellCommand(cmd, shell=True, check_return=True)
-      if output:
-        logger.warning('Possible problem when granting permissions. Blacklist '
-                       'may need to be updated.')
-        for line in output:
-          logger.warning('  %s', line)
+      permissions.add('android.permission.READ_EXTERNAL_STORAGE')
+
+    script = ';'.join([
+      'p={package}',
+      'for q in {permissions}',
+      'do pm grant "$p" "$q"',
+      'echo "{sep}$q{sep}$?{sep}"',
+      'done'
+    ]).format(
+        package=cmd_helper.SingleQuote(package),
+        permissions=' '.join(
+            cmd_helper.SingleQuote(p) for p in sorted(permissions)),
+        sep=_SHELL_OUTPUT_SEPARATOR)
+
+    logger.info('Setting permissions for %s.', package)
+    res = self.RunShellCommand(
+        script, shell=True, raw_output=True, large_output=True,
+        check_return=True)
+    res = res.split(_SHELL_OUTPUT_SEPARATOR)
+    failures = [
+      (permission, output.strip())
+      for permission, status, output in zip(res[1::3], res[2::3], res[0::3])
+      if int(status)]
+
+    if failures:
+      logger.warning(
+          'Failed to grant some permissions. Blacklist may need to be updated?')
+      for permission, output in failures:
+        # Try to grab the relevant error message from the output.
+        m = _PERMISSIONS_EXCEPTION_RE.search(output)
+        if m:
+          error_msg = m.group(0)
+        elif len(output) > 200:
+          error_msg = repr(output[:200]) + ' (truncated)'
+        else:
+          error_msg = repr(output)
+        logger.warning('- %s: %s', permission, error_msg)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def IsScreenOn(self, timeout=None, retries=None):

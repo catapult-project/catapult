@@ -142,6 +142,21 @@ class MockTempFile(object):
     return self.file.name
 
 
+class MockLogger(mock.Mock):
+  def __init__(self, *args, **kwargs):
+    super(MockLogger, self).__init__(*args, **kwargs)
+    # TODO(perezju): Consider adding traps for error, info, etc.
+    self.warnings = []
+
+  def warning(self, message, *args):
+    self.warnings.append(message % args)
+
+
+def PatchLogger():
+  return mock.patch(
+      'devil.android.device_utils.logger', new_callable=MockLogger)
+
+
 class _PatchedFunction(object):
 
   def __init__(self, patched=None, mocked=None):
@@ -2758,6 +2773,26 @@ class DeviceUtilsRestartAdbdTest(DeviceUtilsTest):
 
 
 class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
+  def _PmGrantShellCall(self, package, permissions):
+    fragment = 'p=%s;for q in %s;' % (package, ' '.join(sorted(permissions)))
+    results = []
+    for permission, result in sorted(permissions.iteritems()):
+      if result:
+        output, status = result + '\n', 1
+      else:
+        output, status = '', 0
+      results.append(
+          '{output}{sep}{permission}{sep}{status}{sep}\n'.format(
+              output=output,
+              permission=permission,
+              status=status,
+              sep=device_utils._SHELL_OUTPUT_SEPARATOR
+          ))
+    return (
+        self.call.device.RunShellCommand(
+            AnyStringWith(fragment),
+            shell=True, raw_output=True, large_output=True, check_return=True),
+        ''.join(results))
 
   def testGrantPermissions_none(self):
     self.device.GrantPermissions('package', [])
@@ -2768,40 +2803,52 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
       self.device.GrantPermissions('package', ['p1'])
 
   def testGrantPermissions_one(self):
-    permissions_cmd = 'pm grant package p1'
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
-          (self.call.device.RunShellCommand(
-              permissions_cmd, shell=True, check_return=True), [])):
+          self._PmGrantShellCall('package', {'p1': 0})):
         self.device.GrantPermissions('package', ['p1'])
 
   def testGrantPermissions_multiple(self):
-    permissions_cmd = 'pm grant package p1&&pm grant package p2'
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
-          (self.call.device.RunShellCommand(
-              permissions_cmd, shell=True, check_return=True), [])):
+          self._PmGrantShellCall('package', {'p1': 0, 'p2': 0})):
         self.device.GrantPermissions('package', ['p1', 'p2'])
 
   def testGrantPermissions_WriteExtrnalStorage(self):
-    permissions_cmd = (
-        'pm grant package android.permission.WRITE_EXTERNAL_STORAGE&&'
-        'pm grant package android.permission.READ_EXTERNAL_STORAGE')
-    with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=version_codes.MARSHMALLOW):
-      with self.assertCalls(
-          (self.call.device.RunShellCommand(
-              permissions_cmd, shell=True, check_return=True), [])):
-        self.device.GrantPermissions(
-            'package', ['android.permission.WRITE_EXTERNAL_STORAGE'])
+    WRITE = 'android.permission.WRITE_EXTERNAL_STORAGE'
+    READ = 'android.permission.READ_EXTERNAL_STORAGE'
+    with PatchLogger() as logger:
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.MARSHMALLOW):
+        with self.assertCalls(
+            self._PmGrantShellCall('package', {READ: 0, WRITE: 0})):
+          self.device.GrantPermissions('package', [WRITE])
+      self.assertEqual(logger.warnings, [])
 
   def testGrantPermissions_BlackList(self):
-    with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=version_codes.MARSHMALLOW):
-      self.device.GrantPermissions(
-          'package', ['android.permission.ACCESS_MOCK_LOCATION'])
+    with PatchLogger() as logger:
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.MARSHMALLOW):
+        with self.assertCalls(
+            self._PmGrantShellCall('package', {'p1': 0})):
+          self.device.GrantPermissions(
+              'package', ['p1', 'foo.permission.C2D_MESSAGE'])
+      self.assertEqual(logger.warnings, [])
+
+  def testGrantPermissions_unchangeablePermision(self):
+    error_message = (
+        'Operation not allowed: java.lang.SecurityException: '
+        'Permission UNCHANGEABLE is not a changeable permission type')
+    with PatchLogger() as logger:
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.MARSHMALLOW):
+        with self.assertCalls(
+            self._PmGrantShellCall('package', {'UNCHANGEABLE': error_message})):
+          self.device.GrantPermissions('package', ['UNCHANGEABLE'])
+      self.assertEqual(
+          logger.warnings, [mock.ANY, AnyStringWith('UNCHANGEABLE')])
 
 
 class DeviecUtilsIsScreenOn(DeviceUtilsTest):
