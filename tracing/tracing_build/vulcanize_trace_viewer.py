@@ -30,6 +30,13 @@ def Main(argv):
   parser.add_argument('--output',
                       help='Where to put the generated result. If not given, '
                            '$TRACING/tracing/bin/trace_viewer.html is used.')
+  parser.add_argument('--generate-js', default=False, action='store_true',
+                      help='Produce a js file instead of html.')
+  parser.add_argument('--fully-qualified-config',
+                      help='Fully qualified config name.'
+                           'For example: tracing.extras.lean_config_import. '
+                           'Overrides --config-name.')
+
 
   args = parser.parse_args(argv[1:])
 
@@ -38,16 +45,24 @@ def Main(argv):
   if args.output:
     output_filename = args.output
   else:
+    if args.generate_js:
+      output_suffix = '.js'
+    else:
+      output_suffix = '.html'
     output_filename = os.path.join(
-        tracing_dir, 'tracing/bin/trace_viewer_%s.html' % args.config_name)
+        tracing_dir,
+        'tracing/bin/trace_viewer_%s%s' % (args.config_name, output_suffix))
 
+  print 'Writing output to %s' % output_filename
   with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(
         f,
         config_name=args.config_name,
         minify=not args.no_min,
         report_sizes=args.report_sizes,
-        report_deps=args.report_deps)
+        report_deps=args.report_deps,
+        generate_js=args.generate_js,
+        fully_qualified_config_name=args.fully_qualified_config)
 
   return 0
 
@@ -59,7 +74,9 @@ def WriteTraceViewer(output_file,
                      report_deps=False,
                      output_html_head_and_body=True,
                      extra_search_paths=None,
-                     extra_module_names_to_load=None):
+                     extra_module_names_to_load=None,
+                     generate_js=False,
+                     fully_qualified_config_name=None):
   project = tracing_project.TracingProject()
   if extra_search_paths:
     for p in extra_search_paths:
@@ -67,7 +84,11 @@ def WriteTraceViewer(output_file,
   if config_name is None:
     config_name = project.GetDefaultConfigName()
 
-  module_names = [project.GetModuleNameForConfigName(config_name)]
+  if fully_qualified_config_name is not None:
+    module_names = [fully_qualified_config_name]
+  else:
+    module_names = [project.GetModuleNameForConfigName(config_name)]
+
   if extra_module_names_to_load:
     module_names += extra_module_names_to_load
 
@@ -78,7 +99,12 @@ def WriteTraceViewer(output_file,
   if report_deps:
     sys.stdout.write(vulcanizer.GetDepsGraphFromModuleNames(module_names))
 
-  generate.GenerateStandaloneHTMLToFile(
-      output_file, load_sequence,
-      minify=minify, report_sizes=report_sizes,
-      output_html_head_and_body=output_html_head_and_body)
+  if generate_js:
+    generate.GenerateJSToFile(
+        output_file, load_sequence,
+        minify=minify, report_sizes=report_sizes)
+  else:
+    generate.GenerateStandaloneHTMLToFile(
+        output_file, load_sequence,
+        minify=minify, report_sizes=report_sizes,
+        output_html_head_and_body=output_html_head_and_body)
