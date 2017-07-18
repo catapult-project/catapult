@@ -1645,9 +1645,13 @@ class DeviceUtils(object):
     def _RenamePath(path):
       random_suffix = hex(random.randint(2 ** 12, 2 ** 16 - 1))[2:]
       dest = '%s-%s' % (path, random_suffix)
-      self.RunShellCommand(
-          ['mv', path, dest], as_root=as_root, check_return=True)
-      return dest
+      try:
+        self.RunShellCommand(
+            ['mv', path, dest], as_root=as_root, check_return=True)
+        return dest
+      except device_errors.AdbShellCommandFailedError:
+        # If it couldn't be moved, just try rm'ing the original path instead.
+        return path
     args = ['rm']
     if force:
       args.append('-f')
