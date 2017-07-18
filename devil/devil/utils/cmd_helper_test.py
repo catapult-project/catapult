@@ -158,8 +158,11 @@ class _MockProcess(object):
         self._output_seq_index = 0
       else:
         self._output_seq_index += 1
-      return (self._output_sequence[self._output_seq_index].select_fds,
-              None, None)
+      if self._output_seq_index < len(self._output_sequence):
+        return (self._output_sequence[self._output_seq_index].select_fds,
+                None, None)
+      else:
+        return([], None, None)
 
     def time_side_effect(*_args, **_kwargs):
       return self._output_sequence[self._output_seq_index].ts

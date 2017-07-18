@@ -251,7 +251,19 @@ def _IterProcessStdoutFcntl(
         if not data:
           break
         yield data
+
       if process.poll() is not None:
+        # If process is closed, keep checking for output data (because of timing
+        # issues).
+        while True:
+          read_fds, _, _ = select.select(
+              [child_fd], [], [], iter_aware_poll_interval)
+          if child_fd in read_fds:
+            data = os.read(child_fd, buffer_size)
+            if data:
+              yield data
+              continue
+          break
         break
   finally:
     try:
