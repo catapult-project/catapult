@@ -104,29 +104,46 @@ tr.exportTo('tr.v', function() {
 
   HistogramGrouping.BY_KEY = new Map();
 
-  // This does not contain storyGroupingKeys!
+  function stringSetClosure(name, fallback) {
+    return function(hist) {
+      const diag = hist.diagnostics.get(name);
+      if (diag === undefined) return fallback(hist);
+      const parts = Array.from(diag);
+      parts.sort();
+      return parts.join(',');
+    };
+  }
+
+  function dateRangeClosure(name, fallback) {
+    return function(hist) {
+      const diag = hist.diagnostics.get(name);
+      if (diag === undefined) return fallback(hist);
+      return diag.toString();
+    };
+  }
+
   HistogramGrouping.HISTOGRAM_NAME = new HistogramGrouping('name', h => h.name);
 
-  HistogramGrouping.BENCHMARK_NAME = new HistogramGrouping(
-      'benchmark',
-      h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', ''));
+  HistogramGrouping.BENCHMARK_NAME = new HistogramGrouping('benchmark',
+      stringSetClosure(tr.v.d.RESERVED_NAMES.BENCHMARKS,
+          h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', '')));
 
-  HistogramGrouping.BENCHMARK_START = new HistogramGrouping(
-      'benchmarkStart',
-      h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', ''));
+  HistogramGrouping.BENCHMARK_START = new HistogramGrouping('benchmarkStart',
+      dateRangeClosure(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+          h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', '')));
 
-  HistogramGrouping.STORYSET_REPEAT = new HistogramGrouping(
-      'storysetRepeat',
-      h => tr.v.d.TelemetryInfo.getField(
-          h, 'storysetRepeatCounterLabel', 0));
+  HistogramGrouping.STORYSET_REPEAT = new HistogramGrouping('storysetRepeat',
+      stringSetClosure(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
+          h => tr.v.d.TelemetryInfo.getField(
+              h, 'storysetRepeatCounterLabel', 0)));
 
-  HistogramGrouping.STORY_NAME = new HistogramGrouping(
-      'story',
-      h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', ''));
+  HistogramGrouping.STORY_NAME = new HistogramGrouping('story',
+      stringSetClosure(tr.v.d.RESERVED_NAMES.STORIES,
+          h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', '')));
 
-  HistogramGrouping.LEGACY_TIR_LABEL = new HistogramGrouping(
-      'tir',
-      h => tr.v.d.TelemetryInfo.getField(h, 'legacyTIRLabel', ''));
+  HistogramGrouping.LEGACY_TIR_LABEL = new HistogramGrouping('tir',
+      stringSetClosure(tr.v.d.RESERVED_NAMES.INTERACTION_RECORD,
+          h => tr.v.d.TelemetryInfo.getField(h, 'legacyTIRLabel', '')));
 
   HistogramGrouping.MASTER_NAME = new HistogramGrouping(
       'master',
@@ -140,14 +157,32 @@ tr.exportTo('tr.v', function() {
       'build',
       h => tr.v.d.BuildbotInfo.getField(h, 'buildNumber', ''));
 
-  HistogramGrouping.DISPLAY_LABEL = new HistogramGrouping(
-      'label',
-      h => tr.v.d.TelemetryInfo.getField(h, 'displayLabel', 'Value'));
+  HistogramGrouping.DISPLAY_LABEL = new HistogramGrouping('label', hist => {
+    const labels = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.LABELS);
+    if (labels !== undefined && labels.size > 0) {
+      return Array.from(labels).join(',');
+    }
 
-  HistogramGrouping.TRACE_START = new HistogramGrouping(
-      'traceStart',
-      h => (!h.diagnostics.has(tr.v.d.RESERVED_NAMES.TRACE_START) ? '' :
-          h.diagnostics.get(tr.v.d.RESERVED_NAMES.TRACE_START).toString()));
+    const benchmarks = hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.BENCHMARKS);
+    const start = hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.BENCHMARK_START);
+    if (benchmarks === undefined) {
+      if (start === undefined) {
+        return tr.v.d.TelemetryInfo.getField(hist, 'displayLabel', 'Value');
+      }
+
+      return start.toString();
+    }
+    const benchmarksStr = Array.from(benchmarks).join('\n');
+
+    if (start === undefined) return benchmarksStr;
+
+    return benchmarksStr + '\n' + start.toString();
+  });
+
+  HistogramGrouping.TRACE_START = new HistogramGrouping('traceStart',
+      dateRangeClosure(tr.v.d.RESERVED_NAMES.TRACE_START, h => ''));
 
   return {
     HistogramGrouping,

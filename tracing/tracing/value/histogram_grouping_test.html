@@ -82,5 +82,117 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(groupings[0].callback(cHist), '~case');
     assert.strictEqual(groupings[0].callback(dHist), 'browse,load');
   });
+
+  test('histogramNameGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.HISTOGRAM_NAME.callback(hist),
+        'name');
+  });
+
+  test('benchmarkNameGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_NAME.callback(hist),
+        '');
+    const telemetry = new tr.v.d.TelemetryInfo({benchmarkName: 'A'});
+    telemetry.addToHistogram(hist);
+    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_NAME.callback(hist),
+        'A');
+    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
+        'A\n');
+    telemetry.addInfo({benchmarkStartMs: 15e11});
+    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
+        'A'));
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARKS,
+        new tr.v.d.GenericSet(['E']));
+    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_NAME.callback(hist),
+        'E');
+    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
+        'E');
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+        new tr.v.d.DateRange(16e11));
+    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
+        'E'));
+  });
+
+  test('benchmarkStartGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_START.callback(hist),
+        '');
+    const telemetry = new tr.v.d.TelemetryInfo({benchmarkStartMs: 15e11});
+    telemetry.addToHistogram(hist);
+    assert.isTrue(tr.v.HistogramGrouping.BENCHMARK_START.callback(hist)
+        .includes('2017-07-'));
+    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
+        '2017-07-'));
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+        new tr.v.d.DateRange(16e11));
+    assert.isTrue(tr.v.HistogramGrouping.BENCHMARK_START.callback(hist)
+        .includes('2020-09-'));
+    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
+        '2020-09-'));
+  });
+
+  test('storysetRepeatGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.STORYSET_REPEAT.callback(hist),
+        0);
+    const telemetry = new tr.v.d.TelemetryInfo({storysetRepeatCounter: 5});
+    telemetry.addToHistogram(hist);
+    assert.strictEqual(tr.v.HistogramGrouping.STORYSET_REPEAT.callback(hist),
+        'storyset repeat 5');
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
+        new tr.v.d.GenericSet([6]));
+    assert.strictEqual(tr.v.HistogramGrouping.STORYSET_REPEAT.callback(hist),
+        '6');
+  });
+
+  test('storyNameGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.STORY_NAME.callback(hist), '');
+
+    const telemetry = new tr.v.d.TelemetryInfo({storyDisplayName: 'B'});
+    telemetry.addToHistogram(hist);
+    assert.strictEqual(tr.v.HistogramGrouping.STORY_NAME.callback(hist), 'B');
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['F']));
+    assert.strictEqual(tr.v.HistogramGrouping.STORY_NAME.callback(hist), 'F');
+  });
+
+  test('legacyTIRLabelGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.LEGACY_TIR_LABEL.callback(hist),
+        '');
+
+    const telemetry = new tr.v.d.TelemetryInfo({legacyTIRLabel: 'C'});
+    telemetry.addToHistogram(hist);
+    assert.strictEqual(tr.v.HistogramGrouping.LEGACY_TIR_LABEL.callback(hist),
+        'C');
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.INTERACTION_RECORD,
+        new tr.v.d.GenericSet(['G']));
+    assert.strictEqual(tr.v.HistogramGrouping.LEGACY_TIR_LABEL.callback(hist),
+        'G');
+  });
+
+  test('labelGrouping', function() {
+    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
+    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
+        'Value');
+
+    const telemetry = new tr.v.d.TelemetryInfo({label: 'D'});
+    telemetry.addToHistogram(hist);
+    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
+        'D');
+
+    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.LABELS,
+        new tr.v.d.GenericSet(['H']));
+    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
+        'H');
+  });
 });
 </script>
