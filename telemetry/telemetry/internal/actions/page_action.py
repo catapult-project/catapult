@@ -7,16 +7,16 @@ from py_trace_event import trace_event
 from telemetry import decorators
 from telemetry.util import js_template
 
-
 GESTURE_SOURCE_DEFAULT = 'DEFAULT'
 GESTURE_SOURCE_MOUSE = 'MOUSE'
 GESTURE_SOURCE_TOUCH = 'TOUCH'
-SUPPORTED_GESTURE_SOURCES = (GESTURE_SOURCE_DEFAULT,
-                             GESTURE_SOURCE_MOUSE,
+SUPPORTED_GESTURE_SOURCES = (GESTURE_SOURCE_DEFAULT, GESTURE_SOURCE_MOUSE,
                              GESTURE_SOURCE_TOUCH)
+
 
 class PageActionNotSupported(Exception):
   pass
+
 
 class PageActionFailed(Exception):
   pass
@@ -37,6 +37,7 @@ class PageAction(object):
 
   def CleanUp(self, tab):
     pass
+
 
 def EvaluateCallbackWithElement(
     tab, callback_js, selector=None, text=None, element_function=None,
@@ -86,7 +87,8 @@ def EvaluateCallbackWithElement(
     count = count + 1
     info_msg = js_template.Render(
         'using exact text match {{ text }}', text=text)
-    element_function = js_template.Render('''
+    element_function = js_template.Render(
+        """
         (function() {
           function _findElement(element, text) {
             if (element.innerHTML == text) {
@@ -103,19 +105,20 @@ def EvaluateCallbackWithElement(
             return null;
           }
           return _findElement(document, {{ text }});
-        })()''',
+        })()""",
         text=text)
 
   if count != 1:
     raise PageActionFailed(
         'Must specify 1 way to retrieve element, but %s was specified.' % count)
 
-  code = js_template.Render('''
+  code = js_template.Render(
+      """
       (function() {
         var element = {{ @element_function }};
         var callback = {{ @callback_js }};
         return callback(element, {{ info_msg }});
-      })()''',
+      })()""",
       element_function=element_function,
       callback_js=callback_js,
       info_msg=info_msg)
@@ -138,7 +141,8 @@ def IsGestureSourceTypeSupported(tab, gesture_source_type):
     return (tab.browser.platform.GetOSName() != 'mac' or
             gesture_source_type.lower() != 'touch')
 
-  return tab.EvaluateJavaScript("""
+  return tab.EvaluateJavaScript(
+      """
       chrome.gpuBenchmarking.gestureSourceTypeSupported(
           chrome.gpuBenchmarking.{{ @gesture_source_type }}_INPUT)""",
       gesture_source_type=gesture_source_type.upper())

@@ -35,7 +35,8 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript(
+        'document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
     # Check that the browser is currently showing the top of the page and that
@@ -49,8 +50,8 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     time.sleep(1)
 
     # We can only expect the bottom scroll position to be approximatly equal.
-    self.assertAlmostEqual(2 * self._window_height, self._scroll_position,
-                           delta=20)
+    self.assertAlmostEqual(
+        2 * self._window_height, self._scroll_position, delta=20)
 
     self._PressKey('Home')
 

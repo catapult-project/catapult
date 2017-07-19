@@ -13,6 +13,7 @@ from telemetry.testing import tab_test_case
 
 
 class DragActionTest(tab_test_case.TabTestCase):
+
   def CheckWithinRange(self, value, expected, error_ratio):
     error_range = abs(expected * error_ratio)
     return abs(value - expected) <= error_range
@@ -31,7 +32,7 @@ class DragActionTest(tab_test_case.TabTestCase):
         '__GestureCommon_GetBoundingVisibleRect(document.body).height')
 
     i = drag.DragAction(left_start_ratio=0.5, top_start_ratio=0.5,
-            left_end_ratio=0.25, top_end_ratio=0.25)
+        left_end_ratio=0.25, top_end_ratio=0.25)
     try:
       i.WillRunAction(self._tab)
     except page_action.PageActionNotSupported:
@@ -39,13 +40,13 @@ class DragActionTest(tab_test_case.TabTestCase):
                       ' updating chrome.')
       return
 
-    self._tab.ExecuteJavaScript('''
+    self._tab.ExecuteJavaScript("""
         window.__dragAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
         window.__dragAction.endMeasuringHook = function() {
             window.__didEndMeasuring = true;
-        };''')
+        };""")
     i.RunAction(self._tab)
 
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))

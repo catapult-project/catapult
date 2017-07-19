@@ -25,6 +25,7 @@ def Cache(obj):
   Cached methods maintain their cache for the lifetime of the /instance/, while
   cached functions maintain their cache for the lifetime of the /module/.
   """
+
   @functools.wraps(obj)
   def Cacher(*args, **kwargs):
     cacher = args[0] if inspect.getargspec(obj).args[:1] == ['self'] else obj
@@ -33,6 +34,7 @@ def Cache(obj):
     if key not in cacher.__cache:
       cacher.__cache[key] = obj(*args, **kwargs)
     return cacher.__cache[key]
+
   return Cacher
 
 
@@ -48,13 +50,13 @@ class Deprecated(object):
       target_str = 'Function %s' % target.__name__
     else:
       target_str = 'Class %s' % target.__name__
-    warnings.warn('%s is deprecated. It will no longer be supported on %s. '
-                  'Please remove it or switch to an alternative before '
-                  'that time. %s\n'
-                  % (target_str,
-                     self._date_of_support_removal.strftime('%B %d, %Y'),
-                     self._extra_guidance),
-                  stacklevel=self._ComputeStackLevel())
+    warnings.warn(
+        '%s is deprecated. It will no longer be supported on %s. '
+        'Please remove it or switch to an alternative before '
+        'that time. %s\n' %
+        (target_str, self._date_of_support_removal.strftime('%B %d, %Y'),
+         self._extra_guidance),
+        stacklevel=self._ComputeStackLevel())
 
   def _ComputeStackLevel(self):
     this_file, _ = os.path.splitext(__file__)
@@ -69,10 +71,12 @@ class Deprecated(object):
 
   def __call__(self, target):
     if isinstance(target, types.FunctionType):
+
       @functools.wraps(target)
       def wrapper(*args, **kwargs):
         self._DisplayWarningMessage(target)
         return target(*args, **kwargs)
+
       return wrapper
     elif inspect.isclass(target):
       original_ctor = target.__init__
@@ -81,10 +85,12 @@ class Deprecated(object):
       # since object.__init__ does not have __module__ defined, which
       # cause functools.wraps() to raise exception.
       if original_ctor == object.__init__:
+
         def new_ctor(*args, **kwargs):
           self._DisplayWarningMessage(target)
           return original_ctor(*args, **kwargs)
       else:
+
         @functools.wraps(original_ctor)
         def new_ctor(*args, **kwargs):
           self._DisplayWarningMessage(target)
@@ -108,6 +114,7 @@ def Disabled(*args):
     @Disabled('mavericks')     # Disabled on Mac Mavericks (10.9) only.
     @Disabled('all')  # Unconditionally disabled.
   """
+
   def _Disabled(func):
     disabled_attr_name = DisabledAttributeName(func)
     if not hasattr(func, disabled_attr_name):
@@ -116,6 +123,7 @@ def Disabled(*args):
     disabled_set.update(disabled_strings)
     setattr(func, disabled_attr_name, disabled_set)
     return func
+
   assert args, (
       "@Disabled(...) requires arguments. Use @Disabled('all') if you want to "
       'unconditionally disable the test.')
@@ -137,6 +145,7 @@ def Enabled(*args):
     @Enabled('win', 'linux')  # Enabled only on Windows or Linux.
     @Enabled('mavericks')     # Enabled only on Mac Mavericks (10.9).
   """
+
   def _Enabled(func):
     enabled_attr_name = EnabledAttributeName(func)
     if not hasattr(func, enabled_attr_name):
@@ -145,6 +154,7 @@ def Enabled(*args):
     enabled_set.update(enabled_strings)
     setattr(func, enabled_attr_name, enabled_set)
     return func
+
   assert args, '@Enabled(..) requires arguments'
   assert not callable(args[0]), 'Please use @Enabled(..).'
   enabled_strings = list(args)
@@ -156,6 +166,7 @@ def Enabled(*args):
 
 def Owner(emails=None, component=None):
   """Decorator for specifying the owner of a benchmark."""
+
   def _Owner(func):
     owner_attr_name = OwnerAttributeName(func)
     assert inspect.isclass(func), '@Owner(...) can only be used on classes'
@@ -170,6 +181,7 @@ def Owner(emails=None, component=None):
       owner_dict['component'] = component
     setattr(func, owner_attr_name, owner_dict)
     return func
+
   help_text = '@Owner(...) requires emails and/or a component'
   assert emails or component, help_text
   if emails:
@@ -185,15 +197,19 @@ def Isolated(*args):
 
   The test will be run by itself (not concurrently with any other tests)
   if ANY of the args match the browser type, OS name, or OS version."""
+
   def _Isolated(func):
     if not isinstance(func, types.FunctionType):
       func._isolated_strings = isolated_strings
       return func
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
       func(*args, **kwargs)
+
     wrapper._isolated_strings = isolated_strings
     return wrapper
+
   if len(args) == 1 and callable(args[0]):
     isolated_strings = []
     return _Isolated(args[0])
@@ -296,7 +312,7 @@ def ShouldSkip(test, possible_browser):
       return (True, '%s it is unconditionally disabled.' % skip)
     if set(disabled_strings) & set(platform_attributes):
       return (True, '%s it is disabled for %s. %s' %
-                      (skip, ' and '.join(disabled_strings), running))
+              (skip, ' and '.join(disabled_strings), running))
 
   enabled_attr_name = EnabledAttributeName(test)
   if hasattr(test, enabled_attr_name):
@@ -305,7 +321,7 @@ def ShouldSkip(test, possible_browser):
       return False, None  # No arguments to @Enabled means always enable.
     if not set(enabled_strings) & set(platform_attributes):
       return (True, '%s it is only enabled for %s. %s' %
-                      (skip, ' or '.join(enabled_strings), running))
+              (skip, ' or '.join(enabled_strings), running))
 
   return False, None
 
@@ -315,7 +331,7 @@ def ShouldBeIsolated(test, possible_browser):
   if hasattr(test, '_isolated_strings'):
     isolated_strings = test._isolated_strings
     if not isolated_strings:
-      return True # No arguments to @Isolated means always isolate.
+      return True  # No arguments to @Isolated means always isolate.
     for isolated_string in isolated_strings:
       if isolated_string in platform_attributes:
         return True
@@ -325,11 +341,14 @@ def ShouldBeIsolated(test, possible_browser):
 
 def _PlatformAttributes(possible_browser):
   """Returns a list of platform attribute strings."""
-  attributes = [a.lower() for a in [
-      possible_browser.browser_type,
-      possible_browser.platform.GetOSName(),
-      possible_browser.platform.GetOSVersionName(),
-  ]]
+  attributes = [
+      a.lower()
+      for a in [
+          possible_browser.browser_type,
+          possible_browser.platform.GetOSName(),
+          possible_browser.platform.GetOSVersionName(),
+      ]
+  ]
   if possible_browser.supports_tab_control:
     attributes.append('has tabs')
   if 'content-shell' in possible_browser.browser_type:

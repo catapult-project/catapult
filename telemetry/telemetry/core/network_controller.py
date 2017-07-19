@@ -23,10 +23,12 @@ class NetworkController(object):
   def Open(self, wpr_mode, extra_wpr_args, use_wpr_go=False):
     self._network_controller_backend.Open(wpr_mode, extra_wpr_args, use_wpr_go)
 
-  def UpdateTrafficSettings(self, round_trip_latency_ms=None,
-      download_bandwidth_kbps=None, upload_bandwidth_kbps=None):
+  def UpdateTrafficSettings(self,
+                            round_trip_latency_ms=None,
+                            download_bandwidth_kbps=None,
+                            upload_bandwidth_kbps=None):
     self._network_controller_backend.ts_proxy_server.UpdateTrafficSettings(
-      round_trip_latency_ms, download_bandwidth_kbps, upload_bandwidth_kbps)
+        round_trip_latency_ms, download_bandwidth_kbps, upload_bandwidth_kbps)
 
   @property
   def is_open(self):
@@ -36,8 +38,8 @@ class NetworkController(object):
     self._network_controller_backend.Close()
 
   def StartReplay(self, archive_path, make_javascript_deterministic=False):
-    self._network_controller_backend.StartReplay(
-        archive_path, make_javascript_deterministic)
+    self._network_controller_backend.StartReplay(archive_path,
+                                                 make_javascript_deterministic)
 
   def StopReplay(self):
     self._network_controller_backend.StopReplay()

@@ -44,7 +44,8 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def CheckContentHeaders(self, content_range_request, content_range_response,
                           content_length_response):
-    self._tab.ExecuteJavaScript("""
+    self._tab.ExecuteJavaScript(
+        """
         var loaded = false;
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onload = function(e) {
@@ -69,12 +70,12 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def testAbsoluteAndRelativePathsYieldSameURL(self):
     test_file_rel_path = 'green_rect.html'
-    test_file_abs_path = os.path.abspath(os.path.join(util.GetUnittestDataDir(),
-                                                      test_file_rel_path))
+    test_file_abs_path = os.path.abspath(
+        os.path.join(util.GetUnittestDataDir(), test_file_rel_path))
     # It's necessary to bypass self.UrlOfUnittestFile since that
     # concatenates the unittest directory on to the incoming path,
     # causing the same code path to be taken in both cases.
     self._platform.SetHTTPServerDirectories(util.GetUnittestDataDir())
     self.assertEquals(
-      self._platform.http_server.UrlOf(test_file_rel_path),
-      self._platform.http_server.UrlOf(test_file_abs_path))
+        self._platform.http_server.UrlOf(test_file_rel_path),
+        self._platform.http_server.UrlOf(test_file_abs_path))
