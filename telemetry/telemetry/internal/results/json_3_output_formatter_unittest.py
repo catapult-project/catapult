@@ -68,7 +68,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(d['path_delimiter'], '/')
     self.assertEquals(d['seconds_since_epoch'], None)
     self.assertEquals(d['tests'], {})
-    self.assertEquals(d['version'], '3')
+    self.assertEquals(d['version'], 3)
 
   def testAsDictWithOnePage(self):
     results = page_test_results.PageTestResults()

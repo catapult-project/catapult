@@ -31,7 +31,7 @@ def ResultsAsDict(page_test_results):
   result_dict = {
     'interrupted': telemetry_info.benchmark_interrupted,
     'path_delimiter': '/',
-    'version': '3',
+    'version': 3,
     'seconds_since_epoch': telemetry_info.benchmark_start_ms,
     'tests': {},
   }
