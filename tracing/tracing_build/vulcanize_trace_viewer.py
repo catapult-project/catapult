@@ -36,7 +36,8 @@ def Main(argv):
                       help='Fully qualified config name.'
                            'For example: tracing.extras.lean_config_import. '
                            'Overrides --config-name.')
-
+  parser.add_argument('--extra-search-paths', nargs='+',
+                      help='Extra search paths for script imports.')
 
   args = parser.parse_args(argv[1:])
 
@@ -62,7 +63,8 @@ def Main(argv):
         report_sizes=args.report_sizes,
         report_deps=args.report_deps,
         generate_js=args.generate_js,
-        fully_qualified_config_name=args.fully_qualified_config)
+        fully_qualified_config_name=args.fully_qualified_config,
+        extra_search_paths=args.extra_search_paths)
 
   return 0
 
