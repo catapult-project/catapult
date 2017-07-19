@@ -375,6 +375,7 @@ tr.exportTo('tr.v.ui', function() {
 
       this.overviewChart_ = new tr.ui.b.NameLineChart();
       this.$.overview_container.appendChild(this.overviewChart_);
+      this.overviewChart_.displayXInHover = true;
       this.overviewChart_.hideLegend = true;
       this.overviewChart_.yAxisLabel = unitString;
       this.overviewChart_.overrideDataRange = this.row.overviewDataRange;

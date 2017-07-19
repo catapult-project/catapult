@@ -11,6 +11,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, y: 100},
@@ -22,6 +23,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSeries', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 100, beta: 50},
@@ -38,6 +40,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 20, beta: undefined},
@@ -50,6 +53,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 20, beta: 40},
@@ -62,6 +66,7 @@ tr.b.unittest.testSuite(function() {
 
   test('brushRangeFromIndices', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, value: 50},
@@ -93,6 +98,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_interactiveBrushing', function() {
     const chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, value: 50},
@@ -135,6 +141,7 @@ tr.b.unittest.testSuite(function() {
 
   test('overrideDataRange', function() {
     let chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(10, 90);
     chart.data = [
@@ -143,6 +150,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     chart = new tr.ui.b.LineChart();
+    chart.displayXInHover = true;
     this.addHTMLOutput(chart);
     chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(-10, 100);
     chart.data = [

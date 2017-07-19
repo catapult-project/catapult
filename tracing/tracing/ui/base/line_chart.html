@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/chart_base_2d_brushable_x.html">
+<link rel="import" href="/tracing/ui/base/column_chart.html">
 
 <script>
 'use strict';
@@ -16,12 +17,26 @@ tr.exportTo('tr.ui.b', function() {
   LineChart.prototype = {
     __proto__: tr.ui.b.ChartBase2DBrushX.prototype,
 
+    decorate() {
+      super.decorate();
+      this.enableHoverBox = true;
+      this.displayXInHover = false;
+    },
+
     get defaultGraphWidth() {
       return 20 * this.data_.length;
     },
 
     get defaultGraphHeight() {
       return 100;
+    },
+
+    drawHoverValueBox_(circle) {
+      tr.ui.b.ColumnChart.prototype.drawHoverValueBox_.call(this, circle);
+    },
+
+    clearHoverValueBox_(circle) {
+      tr.ui.b.ColumnChart.prototype.clearHoverValueBox_.call(this, circle);
     },
 
     updateDataContents_(dataSel) {
@@ -41,6 +56,36 @@ tr.exportTo('tr.ui.b', function() {
             return line(dataBySeriesKey[key]);
           });
       pathsSel.exit().remove();
+
+      if (this.enableHoverBox) {
+        for (let index = 0; index < this.data_.length; ++index) {
+          const datum = this.data_[index];
+          for (const [key, value] of Object.entries(datum)) {
+            if (key === 'x') continue;
+            const color = this.getDataSeries(key).color;
+            const circle = document.createElementNS(
+                'http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', this.xScale_(index));
+            circle.setAttribute('cy',
+                this.yScale_(this.dataRange.clamp(value)));
+            circle.setAttribute('r', 5);
+            circle.style.fill = color;
+            circle.datum = datum;
+            circle.key = key;
+            circle.value = datum[key];
+            circle.leftPx = this.xScale_(index);
+            circle.widthPx = 0;
+            circle.color = color;
+            circle.topPx = this.yScale_(this.dataRange.clamp(value));
+            circle.heightPx = 0;
+            circle.addEventListener(
+                'mouseenter', () => this.drawHoverValueBox_(circle));
+            circle.addEventListener(
+                'mouseleave', () => this.clearHoverValueBox_(circle));
+            dataSel[0][0].appendChild(circle);
+          }
+        }
+      }
     }
   };
 

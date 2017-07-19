@@ -33,6 +33,7 @@ tr.exportTo('tr.ui.b', function() {
       this.isStacked_ = false;
 
       this.enableHoverBox = true;
+      this.displayXInHover = false;
     },
 
     set isStacked(stacked) {
@@ -173,42 +174,81 @@ tr.exportTo('tr.ui.b', function() {
       if (seriesKeys.length > 1) {
         keyWidthPx = tr.ui.b.getSVGTextSize(
             this.chartAreaElement, rect.key).width + 5;
-        keyHeightPx = 16;
+        keyHeightPx = this.textHeightPx_;
       }
+
+      let xLabelWidthPx = 0;
+      let xLabelHeightPx = 0;
+      if (this.displayXInHover) {
+        xLabelWidthPx = tr.ui.b.getSVGTextSize(
+            this.chartAreaElement, rect.datum.x).width + 5;
+        xLabelHeightPx = this.textHeightPx_;
+      }
+
       const valueWidthPx = tr.ui.b.getSVGTextSize(
           this.chartAreaElement, rect.value).width + 5;
-      const valueHeightPx = 16;
-      const hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
+      const valueHeightPx = this.textHeightPx_;
+
+      const hoverWidthPx = Math.max(keyWidthPx, valueWidthPx, xLabelWidthPx);
+
+      let hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
+      hoverLeftPx = Math.max(hoverLeftPx - hoverWidthPx, -this.margin.left);
+
+      const hoverHeightPx = keyHeightPx + valueHeightPx + xLabelHeightPx + 2;
+
+      let hoverTopPx = rect.topPx;
+      hoverTopPx = Math.min(
+          hoverTopPx, this.getBoundingClientRect().height - hoverHeightPx - 12);
 
       chartAreaSel
           .append('rect')
           .attr('class', 'hover')
+          .on('mouseleave', () => this.clearHoverValueBox_(rect))
           .attr('fill', 'white')
+          .attr('stroke', 'black')
           .attr('x', hoverLeftPx)
-          .attr('y', rect.topPx)
-          .attr('width', Math.max(keyWidthPx, valueWidthPx))
-          .attr('height', keyHeightPx + valueHeightPx);
+          .attr('y', hoverTopPx)
+          .attr('width', hoverWidthPx)
+          .attr('height', hoverHeightPx);
 
       if (seriesKeys.length > 1) {
         chartAreaSel
             .append('text')
             .attr('class', 'hover')
+            .on('mouseleave', () => this.clearHoverValueBox_(rect))
             .attr('fill', rect.color)
             .attr('x', hoverLeftPx + 2)
-            .attr('y', rect.topPx + keyHeightPx - 3)
+            .attr('y', hoverTopPx + keyHeightPx - 2)
             .text(rect.key);
+      }
+
+      if (this.displayXInHover) {
+        chartAreaSel.append('text')
+            .attr('class', 'hover')
+            .on('mouseleave', () => this.clearHoverValueBox_(rect))
+            .attr('fill', rect.color)
+            .attr('x', hoverLeftPx + 2)
+            .attr('y', hoverTopPx + keyHeightPx + xLabelHeightPx - 2)
+            .text(rect.datum.x);
       }
 
       chartAreaSel
           .append('text')
           .attr('class', 'hover')
+          .on('mouseleave', () => this.clearHoverValueBox_(rect))
           .attr('fill', rect.color)
           .attr('x', hoverLeftPx + 2)
-          .attr('y', rect.topPx + keyHeightPx + valueHeightPx - 3)
+          .attr('y', hoverTopPx + hoverHeightPx - 2)
           .text(rect.value);
     },
 
     clearHoverValueBox_(rect) {
+      const event = window.event;
+      if (event.relatedTarget &&
+          Array.from(event.relatedTarget.classList).includes('hover')) {
+        return;
+      }
+
       const rectHoverEvent = new tr.b.Event('rect-mouseleave');
       rectHoverEvent.rect = rect;
       this.dispatchEvent(rectHoverEvent);
