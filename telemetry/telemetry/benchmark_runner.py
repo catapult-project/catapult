@@ -377,6 +377,8 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
 
 def main(environment, extra_commands=None, **log_config_kwargs):
   # The log level is set in browser_options.
+  # Clear the log handlers to ensure we can set up logging properly here.
+  logging.getLogger().handlers = []
   log_config_kwargs.pop('level', None)
   log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
   logging.basicConfig(**log_config_kwargs)
