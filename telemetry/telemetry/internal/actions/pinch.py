@@ -9,10 +9,15 @@ from telemetry.util import js_template
 
 class PinchAction(page_action.PageAction):
 
-  def __init__(self, selector=None, text=None, element_function=None,
-      left_anchor_ratio=0.5, top_anchor_ratio=0.5,
-      scale_factor=None, speed_in_pixels_per_second=800,
-      synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
+  def __init__(self,
+               selector=None,
+               text=None,
+               element_function=None,
+               left_anchor_ratio=0.5,
+               top_anchor_ratio=0.5,
+               scale_factor=None,
+               speed_in_pixels_per_second=800,
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(PinchAction, self).__init__()
     self._selector = selector
     self._text = text

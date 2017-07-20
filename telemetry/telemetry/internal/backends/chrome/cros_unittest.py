@@ -161,9 +161,9 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     logging.info('Waiting for the lock screen')
     def ScreenLocked():
       return (browser.oobe_exists and
-          browser.oobe.EvaluateJavaScript("typeof Oobe == 'function'") and
-          browser.oobe.EvaluateJavaScript(
-              "typeof Oobe.authenticateForTesting == 'function'"))
+              browser.oobe.EvaluateJavaScript("typeof Oobe == 'function'") and
+              browser.oobe.EvaluateJavaScript(
+                  "typeof Oobe.authenticateForTesting == 'function'"))
     py_utils.WaitFor(ScreenLocked, 10)
     self.assertTrue(self._IsScreenLocked(browser))
 

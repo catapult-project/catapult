@@ -43,7 +43,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
 
     # Crash the first tab.
     self.assertRaises(exceptions.DevtoolsTargetCrashException,
-        lambda: tabs[0].Navigate('chrome://crash'))
+                      lambda: tabs[0].Navigate('chrome://crash'))
 
     # Fetching the second tab by id should still work. Fetching the first tab
     # should raise an exception.

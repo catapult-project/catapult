@@ -20,17 +20,16 @@ class InspectorConsole(object):
       if msg['params']['message']['url'] == 'chrome://newtab/':
         return
       self._last_message = '(%s) %s:%i: %s' % (
-        msg['params']['message']['level'],
-        msg['params']['message']['url'],
-        msg['params']['message']['line'],
-        msg['params']['message']['text'])
+          msg['params']['message']['level'],
+          msg['params']['message']['url'],
+          msg['params']['message']['line'],
+          msg['params']['message']['text'])
       self._message_output_stream.write(
-        '%s\n' % self._last_message)
+          '%s\n' % self._last_message)
 
     elif msg['method'] == 'Console.messageRepeatCountUpdated':
       if self._message_output_stream:
-        self._message_output_stream.write(
-          '%s\n' % self._last_message)
+        self._message_output_stream.write('%s\n' % self._last_message)
 
   def GetCurrentConsoleOutputBuffer(self, timeout=10):
     self._message_output_stream = StringIO.StringIO()

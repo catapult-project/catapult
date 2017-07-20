@@ -189,8 +189,10 @@ def FindAllAvailableBrowsers(finder_options, device):
       CanPossiblyHandlePath(finder_options.browser_executable)):
     is_content_shell = finder_options.browser_executable.endswith(
         content_shell_app_name)
-    is_chrome_or_chromium = len([x for x in chromium_app_names if
-        finder_options.browser_executable.endswith(x)]) != 0
+    is_chrome_or_chromium = len([
+        x for x in chromium_app_names
+        if finder_options.browser_executable.endswith(x)
+    ]) != 0
 
     # It is okay if the executable name doesn't match any of known chrome
     # browser executables, since it may be of a different browser.
@@ -305,8 +307,8 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   if len(browsers) and not has_x11_display and not has_ozone_platform:
     logging.warning(
-      'Found (%s), but you do not have a DISPLAY environment set.' %
-      ','.join([b.browser_type for b in browsers]))
+        'Found (%s), but you do not have a DISPLAY environment set.', ','.join(
+            [b.browser_type for b in browsers]))
     return []
 
   return browsers

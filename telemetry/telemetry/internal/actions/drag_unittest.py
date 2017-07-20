@@ -31,8 +31,11 @@ class DragActionTest(tab_test_case.TabTestCase):
     div_height = self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).height')
 
-    i = drag.DragAction(left_start_ratio=0.5, top_start_ratio=0.5,
-        left_end_ratio=0.25, top_end_ratio=0.25)
+    i = drag.DragAction(
+        left_start_ratio=0.5,
+        top_start_ratio=0.5,
+        left_end_ratio=0.25,
+        top_end_ratio=0.25)
     try:
       i.WillRunAction(self._tab)
     except page_action.PageActionNotSupported:

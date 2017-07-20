@@ -45,7 +45,7 @@ class FindTestBase(unittest.TestCase):
 
   def DoFindAll(self):
     return desktop_browser_finder.FindAllAvailableBrowsers(
-      self._finder_options, desktop_device.DesktopDevice())
+        self._finder_options, desktop_device.DesktopDevice())
 
   def DoFindAllTypes(self):
     browsers = self.DoFindAll()
@@ -134,13 +134,13 @@ class OSXFindTest(FindTestBase):
     self._files.append('/Applications/Google Chrome.app/' +
                        'Contents/MacOS/Google Chrome')
     self._files.append(
-      '../../../out/Release/Chromium.app/Contents/MacOS/Chromium')
+        '../../../out/Release/Chromium.app/Contents/MacOS/Chromium')
     self._files.append(
-      '../../../out/Debug/Chromium.app/Contents/MacOS/Chromium')
+        '../../../out/Debug/Chromium.app/Contents/MacOS/Chromium')
     self._files.append(
-      '../../../out/Release/Content Shell.app/Contents/MacOS/Content Shell')
+        '../../../out/Release/Content Shell.app/Contents/MacOS/Content Shell')
     self._files.append(
-      '../../../out/Debug/Content Shell.app/Contents/MacOS/Content Shell')
+        '../../../out/Debug/Content Shell.app/Contents/MacOS/Content Shell')
 
   def testFindAll(self):
     if not self.CanFindAvailableBrowsers():
@@ -148,17 +148,18 @@ class OSXFindTest(FindTestBase):
 
     types = self.DoFindAllTypes()
     self.assertEquals(
-      set(types),
-      set(['debug', 'release',
-           'content-shell-debug', 'content-shell-release',
-           'canary', 'system']))
+        set(types),
+        set([
+            'debug', 'release', 'content-shell-debug', 'content-shell-release',
+            'canary', 'system'
+        ]))
 
   def testFindExact(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self._files.append(
-      '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
+        '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
     self._finder_options.browser_executable = (
         '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
     types = self.DoFindAllTypes()
@@ -169,7 +170,7 @@ class OSXFindTest(FindTestBase):
       return
 
     self._files.append(
-      '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
+        '../../../foo1/Chromium.app/Contents/MacOS/Chromium')
     self._finder_options.browser_executable = (
         '../../../foo2/Chromium.app/Contents/MacOS/Chromium')
     self.assertRaises(Exception, self.DoFindAllTypes)

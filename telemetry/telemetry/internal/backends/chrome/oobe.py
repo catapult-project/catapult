@@ -17,7 +17,7 @@ class Oobe(web_contents.WebContents):
 
   def _GaiaIFrameContext(self):
     max_context_id = self.EnableAllContexts()
-    logging.debug('%d contexts in Gaia page' % max_context_id)
+    logging.debug('%d contexts in Gaia page', max_context_id)
     for gaia_iframe_context in range(max_context_id + 1):
       try:
         if self.EvaluateJavaScript(
@@ -36,7 +36,7 @@ class Oobe(web_contents.WebContents):
     return None
 
   def _ExecuteOobeApi(self, api, *args):
-    logging.info('Invoking %s' % api)
+    logging.info('Invoking %s', api)
     self.WaitForJavaScriptCondition(
         "typeof Oobe == 'function' && Oobe.readyForTesting", timeout=120)
 
@@ -95,11 +95,13 @@ class Oobe(web_contents.WebContents):
 
     if add_user_for_testing:
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
-    self.ExecuteJavaScript("""
+    self.ExecuteJavaScript(
+        """
         document.getElementById('Email').value= {{ username }};
         document.getElementById('Passwd').value= {{ password }};
         document.getElementById('signIn').click();""",
-        username=username, password=password,
+        username=username,
+        password=password,
         context_id=gaia_iframe_context)
 
   def _NavigateWebViewLogin(self, username, password, wait_for_close):
@@ -118,14 +120,17 @@ class Oobe(web_contents.WebContents):
     # unnamed <INPUT>. So this code will select the first <INPUT> element
     # below the given field id in the DOM tree if field id is not attached
     # to <INPUT>.
-    gaia_webview_context.EvaluateJavaScript("""
+    gaia_webview_context.EvaluateJavaScript(
+        """
         var field = document.getElementById({{ field }});
         if (field.tagName != 'INPUT')
           field = field.getElementsByTagName('INPUT')[0];
 
         field.value= {{ value }};
         document.getElementById({{ next_field }}).click();""",
-        field=field, value=value, next_field=next_field)
+        field=field,
+        value=value,
+        next_field=next_field)
 
   def _WaitForField(self, field):
     gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)

@@ -37,7 +37,7 @@ class InspectorMemory(object):
       exceptions.WebSocketDisconnected
     """
     res = self._inspector_websocket.SyncRequest({
-      'method': 'Memory.getDOMCounters'
+        'method': 'Memory.getDOMCounters'
     }, timeout)
     if ('result' not in res or
         'nodes' not in res['result'] or

@@ -40,8 +40,8 @@ class InspectorPage(object):
         # TODO(tonyg): Remove this when Chrome 38 goes stable.
         self._navigation_url = ''
         self._navigation_pending = False
-      elif (not url == 'chrome://newtab/' and not url == 'about:blank'
-        and not 'parentId' in msg['params']['frame']):
+      elif (not url == 'chrome://newtab/' and not url == 'about:blank' and
+            not 'parentId' in msg['params']['frame']):
         # Marks the navigation as complete and unblocks the
         # WaitForNavigate call.
         self._navigation_pending = False
