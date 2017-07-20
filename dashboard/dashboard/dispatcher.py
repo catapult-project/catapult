@@ -14,7 +14,6 @@ from dashboard import alerts
 from dashboard import associate_alerts
 from dashboard import auto_triage
 from dashboard import bad_bisect
-from dashboard import benchmark_health_report
 from dashboard import bisect_stats
 from dashboard import bisect_fyi
 from dashboard import bug_details
@@ -32,7 +31,6 @@ from dashboard import edit_sheriffs
 from dashboard import edit_site_config
 from dashboard import email_summary
 from dashboard import file_bug
-from dashboard import generate_benchmark_health_report
 from dashboard import get_logs
 from dashboard import get_histogram
 from dashboard import graph_csv
@@ -78,8 +76,6 @@ _URL_MAPPING = [
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
     ('/auto_triage', auto_triage.AutoTriageHandler),
     ('/bad_bisect', bad_bisect.BadBisectHandler),
-    ('/benchmark_health_report',
-     benchmark_health_report.BenchmarkHealthReportHandler),
     ('/bisect_fyi', bisect_fyi.BisectFYIHandler),
     ('/bisect_stats', bisect_stats.BisectStatsHandler),
     ('/bug_details', bug_details.BugDetailsHandler),
@@ -98,8 +94,6 @@ _URL_MAPPING = [
     ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
     ('/email_summary', email_summary.EmailSummaryHandler),
     ('/file_bug', file_bug.FileBugHandler),
-    ('/generate_benchmark_health_report',
-     generate_benchmark_health_report.GenerateBenchmarkHealthReportHandler),
     ('/get_histogram', get_histogram.GetHistogramHandler),
     ('/get_logs', get_logs.GetLogsHandler),
     ('/graph_csv', graph_csv.GraphCsvHandler),
