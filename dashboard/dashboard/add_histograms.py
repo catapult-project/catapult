@@ -193,8 +193,7 @@ def _GetMasterBotBenchmarkFromHistogram(hist):
   _CheckRequest(
       reserved_infos.TELEMETRY.name in hist.diagnostics,
       'Histograms must have TelemetryInfo attached')
-  telemetry_info = hist.diagnostics[
-      reserved_infos.TELEMETRY.name]
+  telemetry_info = hist.diagnostics[reserved_infos.TELEMETRY.name]
 
   master = buildbot_info.display_master_name
   bot = buildbot_info.display_bot_name
@@ -209,10 +208,16 @@ def ComputeRevision(histograms):
   _CheckRequest(reserved_infos.REVISIONS.name in diagnostics,
                 'Histograms must have RevisionInfo attached')
   revision_info = diagnostics[reserved_infos.REVISIONS.name]
+
+  _CheckRequest(
+      isinstance(revision_info.chromium_commit_position, list) and
+      len(revision_info.chromium_commit_position) == 1,
+      'RevisionInfo chromium_commit_position must have 1 value')
+
   # TODO(eakuefner): Allow users to specify other types of revisions to be used
   # for computing revisions of dashboard points. See
   # https://github.com/catapult-project/catapult/issues/3623.
-  return revision_info.chromium_commit_position
+  return revision_info.chromium_commit_position[0]
 
 
 def InlineDenseSharedDiagnostics(histograms):

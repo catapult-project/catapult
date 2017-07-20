@@ -15,6 +15,7 @@ from google.appengine.api import users
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
 from dashboard.api import api_auth
+from dashboard.api import api_request_handler
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
@@ -61,7 +62,7 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -91,7 +92,11 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
-
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    # We expect to see BuildbotInfo/TelemetryInfo, RevisionInfo is inlined.
+    self.assertEqual(2, len(diagnostics))
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
 
 class AddHistogramsTest(testing_common.TestCase):
 
@@ -130,7 +135,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -198,7 +203,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -273,7 +278,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -339,7 +344,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -414,7 +419,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -470,7 +475,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'angle': [],
             'catapult': [],
             'chromium': [],
-            'chromiumCommitPosition': 424242,
+            'chromiumCommitPosition': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
             'skia': [],
             'type': 'RevisionInfo',
@@ -549,10 +554,20 @@ class AddHistogramsTest(testing_common.TestCase):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     revision_info = histogram_module.RevisionInfo({
-        'chromiumCommitPosition': 424242
+        'chromiumCommitPosition': [424242]
     })
     histograms.AddSharedDiagnostic('revisions', revision_info)
     self.assertEqual(424242, add_histograms.ComputeRevision(histograms))
+
+  def testComputeRevision_RaisesOnError(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    revision_info = histogram_module.RevisionInfo({
+        'chromiumCommitPosition': 424242
+    })
+    histograms.AddSharedDiagnostic('revisions', revision_info)
+    with self.assertRaises(api_request_handler.BadRequestError):
+      add_histograms.ComputeRevision(histograms)
 
   def testSparseDiagnosticsAreNotInlined(self):
     hist = histogram_module.Histogram('hist', 'count')
