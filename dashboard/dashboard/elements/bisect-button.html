@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/bisect-form.html">
+<link rel="import" href="/dashboard/pinpoint/elements/new-job-dialog.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="bisect-button">
@@ -47,6 +48,16 @@ found in the LICENSE file.
         later-revision="{{bisectInfo.badRev}}"
         test-path="{{bisectInfo.testPath}}"
         bug-id="{{bugId}}"></bisect-form>
+    <new-job-dialog id="pinpoint" endpoint="/pinpoint/new"></new-job-dialog>
+
+    <div id="toasts" hidden>
+      <div id="jobsubmitted">
+        <b>Pinpoint Job submitted!</b>
+        <a href="{{lastSubmittedJobUrl}}"
+           target="_blank">View job {{lastSubmittedJobId}}.</a>
+      </div>
+    </div>
+
   </template>
   <script>
     'use strict';
@@ -61,6 +72,12 @@ found in the LICENSE file.
           },
           bugId: { notify: true },
           xsrfToken: { notify: true }
+        },
+
+        ready() {
+          this.$.pinpoint.addEventListener(
+              'pinpoint-new-response',
+              this.onPinpointJobSubmitted.bind(this));
         },
 
         /**
@@ -83,11 +100,31 @@ found in the LICENSE file.
           return (bisectInfo.badRev > bisectInfo.goodRev + 1);
         },
 
+        onPinpointJobSubmitted(e) {
+          this.lastSubmittedJobId = e.detail.jobId;
+          this.lastSubmittedJobUrl = e.detail.jobUrl;
+
+          this.fire('display-toast', {'content': this.$.jobsubmitted});
+        },
+
         /**
          * Displays the bisect-form when the bisect button is clicked.
          */
         onBisect() {
-          this.$.bisect.show();
+          const testPathParts = this.bisectInfo.testPath.split('/');
+          const botName = testPathParts[1];
+          const PINPOINT_BOTS = [];
+
+          if (PINPOINT_BOTS.indexOf(botName) != -1) {
+            this.$.pinpoint.test_suite = testPathParts[2];
+            this.$.pinpoint.metric = testPathParts[testPathParts.length - 1];
+            this.$.pinpoint.start_git_hash = this.bisectInfo.goodRevHash;
+            this.$.pinpoint.end_git_hash = this.bisectInfo.badRevHash;
+            this.$.pinpoint.bugId = this.bugId;
+            this.$.pinpoint.show();
+          } else {
+            this.$.bisect.show();
+          }
         }
       });
     })();

@@ -55,6 +55,11 @@ handlers:
   upload: dashboard/elements/.*\.html$
   secure: always
 
+- url: /dashboard/pinpoint/elements/(.*\.html)$
+  static_files: dashboard/pinpoint/elements/\1
+  upload: dashboard/pinpoint/elements/.*\.html$
+  secure: always
+
 - url: /components/(.*)/(.*\.(html|js|css))$
   static_files: polymer/components/\1/\2
   upload: polymer/components/.*/.*\.(html|js|css)$
@@ -178,6 +183,11 @@ handlers:
 - url: /new_points
   script: dashboard.dispatcher.APP
   login: required
+  secure: always
+
+- url: /pinpoint/.*
+  script: dashboard.dispatcher.APP
+  login: admin
   secure: always
 
 - url: /put_entities_task

@@ -47,6 +47,7 @@ from dashboard import migrate_test_names
 from dashboard import navbar
 from dashboard import new_points
 from dashboard import oauth2_decorator
+from dashboard import pinpoint_request
 from dashboard import post_bisect_results
 from dashboard import put_entities_task
 from dashboard import report
@@ -109,6 +110,7 @@ _URL_MAPPING = [
     ('/deprecate_tests', deprecate_tests.DeprecateTestsHandler),
     ('/navbar', navbar.NavbarHandler),
     ('/new_points', new_points.NewPointsHandler),
+    ('/pinpoint/new', pinpoint_request.PinpointNewRequestHandler),
     ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),

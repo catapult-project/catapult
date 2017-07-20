@@ -43,10 +43,10 @@ found in the LICENSE file.
 
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
-        <paper-input id="bug-id" label="Bug ID" value="{{bugId::input}}" required auto-validate></paper-input>
+        <paper-input id="bug-id" label="Bug ID" value="{{bugId::input}}"></paper-input>
         <paper-input id="configuration" label="configuration" value="{{configuration::input}}" required auto-validate></paper-input>
         <paper-input id="test_suite" label="test_suite" value="{{test_suite::input}}" required auto-validate></paper-input>
-        <paper-input id="test" label="test" value="{{test::input}}" required auto-validate></paper-input>
+        <paper-input id="test" label="test" value="{{test::input}}"></paper-input>
         <paper-input id="metric" label="metric" value="{{metric::input}}" required auto-validate></paper-input>
         <paper-input id="start_repository" label="start_repository" value="{{start_repository::input}}" required auto-validate></paper-input>
         <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
@@ -75,6 +75,7 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
+
     Polymer({
       is: 'new-job-dialog',
 
@@ -158,10 +159,12 @@ found in the LICENSE file.
         };
 
         try {
+          this.error = '';
           this.create_disabled = true;
           const results = await simple_xhr.asPromise(this.endpoint, params);
           this.fire('pinpoint-new-response', {
             'jobId': results.jobId,
+            'jobUrl': results.jobUrl,
           });
           this.close();
         } catch (e) {

@@ -81,7 +81,8 @@ class New(webapp2.RequestHandler):
     job.put()
 
     self.response.out.write(json.dumps({
-        'jobId': job_id
+        'jobId': job_id,
+        'jobUrl': job.url
     }))
 
   def _ValidateBugId(self, bug_id):

@@ -2169,6 +2169,10 @@ triaging functionality in the chart.
             canBisect: series.can_bisect,
             badRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex),
             goodRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex - 1),
+            badRevHash: this.getDefaultRevisionGitHash(
+                jsonSeriesIndex, dataIndex),
+            goodRevHash: this.getDefaultRevisionGitHash(
+                jsonSeriesIndex, dataIndex - 1),
             testPath: series.path,
             traceRerunInfo
           };
@@ -2197,6 +2201,25 @@ triaging functionality in the chart.
           this.$.tooltip.recovered = null;
           this.$.tooltip.timestamp = null;
           this.$.tooltip.bisectInfo = null;
+        },
+
+        getDefaultRevisionGitHash(jsonSeriesIndex, dataIndex) {
+          // If the data point contains a default revision type, use that.
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          if (!annotation) {
+            return null;
+          }
+
+          let defaultRevType = 'r_chromium';
+          if ('a_default_rev' in annotation) {
+            defaultRevType = annotation.defaultRevType;
+          }
+
+          if (defaultRevType in annotation) {
+            return annotation[defaultRevType];
+          }
+
+          return null;
         },
 
         /**

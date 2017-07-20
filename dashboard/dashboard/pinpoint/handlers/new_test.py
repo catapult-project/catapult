@@ -99,7 +99,11 @@ class NewTest(testing_common.TestCase):
         'end_git_hash': '3'
     }
     response = self.testapp.post('/api/new', params, status=200)
-    self.assertIn('jobId', json.loads(response.body))
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    self.assertEqual(
+        result['jobUrl'],
+        'https://testbed.example.com/job/%s' % result['jobId'])
 
   def testPost_MetricButNoTestSuite(self):
     params = {
@@ -180,6 +184,10 @@ class NewTest(testing_common.TestCase):
         'end_git_hash': '3'
     }
     response = self.testapp.post('/api/new', params, status=200)
-    self.assertIn('jobId', json.loads(response.body))
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    self.assertEqual(
+        result['jobUrl'],
+        'https://testbed.example.com/job/%s' % result['jobId'])
     job = job_module.Job.query().get()
     self.assertEqual(None, job.bug_id)
