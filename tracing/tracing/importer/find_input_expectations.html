@@ -161,7 +161,7 @@ tr.exportTo('tr.importer', function() {
     return inputEvents.sort(compareEvents);
   }
 
-  function findProtoExpectations(modelHelper, sortedInputEvents) {
+  function findProtoExpectations(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     // This order is not important. Handlers are independent.
     const handlers = [
@@ -180,7 +180,7 @@ tr.exportTo('tr.importer', function() {
     ];
     handlers.forEach(function(handler) {
       protoExpectations.push.apply(protoExpectations, handler(
-          modelHelper, sortedInputEvents));
+          modelHelper, sortedInputEvents, warn));
     });
     protoExpectations.sort(compareEvents);
     return protoExpectations;
@@ -189,7 +189,7 @@ tr.exportTo('tr.importer', function() {
   /**
    * Every keyboard event is a Response.
    */
-  function handleKeyboardEvents(modelHelper, sortedInputEvents) {
+  function handleKeyboardEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
       const pe = new ProtoExpectation(
@@ -203,7 +203,7 @@ tr.exportTo('tr.importer', function() {
   /**
    * Some mouse events can be translated directly into Responses.
    */
-  function handleMouseResponseEvents(modelHelper, sortedInputEvents) {
+  function handleMouseResponseEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
@@ -226,7 +226,7 @@ tr.exportTo('tr.importer', function() {
    * ProtoExpectation.isNear, which compares the end time of the previous event
    * with the start time of the next.
    */
-  function handleMouseWheelEvents(modelHelper, sortedInputEvents) {
+  function handleMouseWheelEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     let prevEvent_ = undefined;
@@ -270,7 +270,7 @@ tr.exportTo('tr.importer', function() {
    * RRRRRRRAAAAAAAAAAAAAAAAAAAA
    * DDD MMM MMM MMM MMM MMM UUU
    */
-  function handleMouseDragEvents(modelHelper, sortedInputEvents) {
+  function handleMouseDragEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     let mouseDownEvent = undefined;
@@ -388,7 +388,7 @@ tr.exportTo('tr.importer', function() {
    * RRRRRRR
    * DDD CCC
    **/
-  function handleTapResponseEvents(modelHelper, sortedInputEvents) {
+  function handleTapResponseEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     forEventTypesIn(sortedInputEvents, TAP_TYPE_NAMES, function(event) {
@@ -444,7 +444,7 @@ tr.exportTo('tr.importer', function() {
    * RRRRRRRAAAAAAAAAAAAAAAAAAAA
    * BBB UUU UUU UUU UUU UUU EEE
    */
-  function handlePinchEvents(modelHelper, sortedInputEvents) {
+  function handlePinchEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     let sawFirstUpdate = false;
@@ -514,7 +514,7 @@ tr.exportTo('tr.importer', function() {
    * AAAAAAAAAAA
    * SSS        CCC
    */
-  function handleFlingEvents(modelHelper, sortedInputEvents) {
+  function handleFlingEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
 
@@ -546,7 +546,7 @@ tr.exportTo('tr.importer', function() {
       switch (event.typeName) {
         case INPUT_TYPE.FLING_START:
           if (currentPE) {
-            modelHelper.model.importWarning({
+            warn({
               type: 'UserModelBuilder',
               message: 'Please file a bug with this trace: FlingStart',
               showToUser: true
@@ -605,7 +605,7 @@ tr.exportTo('tr.importer', function() {
    * RRRRRRR
    * SSS EEE
    */
-  function handleTouchEvents(modelHelper, sortedInputEvents) {
+  function handleTouchEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     let sawFirstMove = false;
@@ -687,7 +687,7 @@ tr.exportTo('tr.importer', function() {
    * RRRRRRRAAAAAAAAAAAAAAAAAAAA
    * BBB UUU UUU UUU UUU UUU EEE
    */
-  function handleScrollEvents(modelHelper, sortedInputEvents) {
+  function handleScrollEvents(modelHelper, sortedInputEvents, warn) {
     const protoExpectations = [];
     let currentPE = undefined;
     let sawFirstUpdate = false;
@@ -728,7 +728,7 @@ tr.exportTo('tr.importer', function() {
 
         case INPUT_TYPE.SCROLL_END:
           if (!currentPE) {
-            modelHelper.model.importWarning({
+            warn({
               type: 'UserModelBuilder',
               message: 'Please file a bug with this trace: ScrollEnd',
               showToUser: true
@@ -752,7 +752,7 @@ tr.exportTo('tr.importer', function() {
    * VideoPlayback async events (going from the VideoFrameCompositor::Start
    * to VideoFrameCompositor::Stop calls)
    */
-  function handleVideoAnimations(modelHelper, sortedInputEvents) {
+  function handleVideoAnimations(modelHelper, sortedInputEvents, warn) {
     const events = [];
     for (const pid in modelHelper.rendererHelpers) {
       for (const tid in modelHelper.rendererHelpers[pid].process.threads) {
@@ -784,7 +784,7 @@ tr.exportTo('tr.importer', function() {
   /**
    * CSS Animations are merged into AnimationExpectations when they intersect.
    */
-  function handleCSSAnimations(modelHelper, sortedInputEvents) {
+  function handleCSSAnimations(modelHelper, sortedInputEvents, warn) {
     // First find all the top-level CSS Animation async events.
     const animationEvents = modelHelper.browserHelper.
         getAllAsyncSlicesMatching(function(event) {
@@ -948,7 +948,7 @@ tr.exportTo('tr.importer', function() {
   // WebGL animations are identified by the DrawingBuffer::prepareMailbox
   // and PageAnimator::serviceScriptedAnimations events (one of each per frame)
   // and consecutive frames are merged into the same animation.
-  function handleWebGLAnimations(modelHelper, sortedInputEvents) {
+  function handleWebGLAnimations(modelHelper, sortedInputEvents, warn) {
     // Get the prepareMailbox and scriptedAnimation events.
     const prepareMailboxEvents = [];
     const scriptedAnimationEvents = [];
@@ -1212,7 +1212,7 @@ tr.exportTo('tr.importer', function() {
    * Check that none of the handlers accidentally ignored an input event.
    */
   function checkAllInputEventsHandled(
-      modelHelper, sortedInputEvents, protoExpectations) {
+      modelHelper, sortedInputEvents, protoExpectations, warn) {
     const handledEvents = [];
     protoExpectations.forEach(function(protoExpectation) {
       protoExpectation.associatedEvents.forEach(function(event) {
@@ -1224,7 +1224,7 @@ tr.exportTo('tr.importer', function() {
 
         if ((handledEvents.indexOf(event) >= 0) &&
             (event.title !== tr.model.helpers.IMPL_RENDERING_STATS)) {
-          modelHelper.model.importWarning({
+          warn({
             type: 'UserModelBuilder',
             message: 'Please file a bug with this trace: ' +
                 `double-handled event: ${event.typeName} @ ${event.start}`,
@@ -1238,7 +1238,7 @@ tr.exportTo('tr.importer', function() {
 
     sortedInputEvents.forEach(function(event) {
       if (handledEvents.indexOf(event) < 0) {
-        modelHelper.model.importWarning({
+        warn({
           type: 'UserModelBuilder',
           message: 'Please file a bug with this trace: ' +
               `double-handled event: ${event.typeName} @ ${event.start}`,
@@ -1252,13 +1252,23 @@ tr.exportTo('tr.importer', function() {
    * Find ProtoExpectations, post-process them, convert them to real UEs.
    */
   function findInputExpectations(modelHelper) {
+    // Prevent helper functions from producing too many import warnings.
+    let warning;
+    function warn(w) {
+      // Keep only the first warning.
+      if (warning) return;
+      warning = w;
+    }
+
     const sortedInputEvents = getSortedInputEvents(modelHelper);
     let protoExpectations = findProtoExpectations(
-        modelHelper, sortedInputEvents);
+        modelHelper, sortedInputEvents, warn);
     protoExpectations = postProcessProtoExpectations(
         modelHelper, protoExpectations);
     checkAllInputEventsHandled(
-        modelHelper, sortedInputEvents, protoExpectations);
+        modelHelper, sortedInputEvents, protoExpectations, warn);
+
+    if (warning) modelHelper.model.importWarning(warning);
 
     const expectations = [];
     protoExpectations.forEach(function(protoExpectation) {
