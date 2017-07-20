@@ -167,10 +167,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     try:
       py_utils.WaitFor(self._AllExtensionsLoaded, timeout=60)
     except py_utils.TimeoutException:
-      logging.error('ExtensionsToLoad: ' +
-          repr([e.extension_id for e in self._extensions_to_load]))
-      logging.error('Extension list: ' +
-          pprint.pformat(self.extension_backend, indent=4))
+      logging.error('ExtensionsToLoad: ' + repr(
+          [e.extension_id for e in self._extensions_to_load]))
+      logging.error('Extension list: ' + pprint.pformat(
+          self.extension_backend, indent=4))
       raise
 
   def _AllExtensionsLoaded(self):
@@ -184,7 +184,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         return False
       for extension_object in extension_objects:
         try:
-          res = extension_object.EvaluateJavaScript("""
+          res = extension_object.EvaluateJavaScript(
+              """
               document.URL.lastIndexOf({{ url }}, 0) == 0 &&
               (document.readyState == 'complete' ||
                document.readyState == 'interactive')

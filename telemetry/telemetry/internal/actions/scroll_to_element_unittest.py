@@ -12,7 +12,8 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
 
   def _MakePageVerticallyScrollable(self):
     # Make page taller than window so it's scrollable vertically.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript(
+        'document.body.style.height ='
         '(6 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
   def _VisibleAreaOfElement(self, selector='#element'):

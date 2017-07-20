@@ -38,8 +38,9 @@ def _ValidateDependenciesFile(input_api, output_api, dependencies_path):
         input_api.os_path.join(telemetry_dir, 'json_format'),
         dependencies_path], input_api)
     if return_code:
-      results.append(output_api.PresubmitError(
-           'Validating %s failed:' % dependencies_path, long_text=out))
+      results.append(
+          output_api.PresubmitError(
+              'Validating %s failed:' % dependencies_path, long_text=out))
       break
     out, return_code = _RunArgs([
         input_api.python_executable,

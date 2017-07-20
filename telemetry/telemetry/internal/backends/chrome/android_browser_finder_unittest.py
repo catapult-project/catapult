@@ -16,9 +16,8 @@ from telemetry.testing import options_for_unittests
 
 
 def FakeFetchPath(dependency, arch, os_name, os_version=None):
-  return os.path.join(
-      'dependency_dir', dependency, '%s_%s_%s.apk' % (
-        os_name, os_version, arch))
+  return os.path.join('dependency_dir', dependency,
+                      '%s_%s_%s.apk' % (os_name, os_version, arch))
 
 
 class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
@@ -103,16 +102,16 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self._get_package_name_mock.return_value = 'org.unknown.app'
 
     self.assertRaises(Exception,
-        android_browser_finder._FindAllPossibleBrowsers,
-        self.finder_options, self.fake_platform)
+                      android_browser_finder._FindAllPossibleBrowsers,
+                      self.finder_options, self.fake_platform)
 
   def testErrorWithNonExistantExactApk(self):
     self.finder_options.browser_executable = '/foo/ContentShell.apk'
     self._get_package_name_mock.return_value = 'org.chromium.content_shell_apk'
 
     self.assertRaises(Exception,
-        android_browser_finder._FindAllPossibleBrowsers,
-        self.finder_options, self.fake_platform)
+                      android_browser_finder._FindAllPossibleBrowsers,
+                      self.finder_options, self.fake_platform)
 
   def testNoErrorWithUnrecognizedApkName(self):
     if not self.finder_options.chrome_root:
@@ -141,7 +140,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     if not self.finder_options.chrome_root:
       self.skipTest('--chrome-root is not specified, skip the test')
     possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
-      self.finder_options, self.fake_platform)
+        self.finder_options, self.fake_platform)
     self.assertNotIn('reference', [b.browser_type for b in possible_browsers])
 
   def testNoErrorWithReferenceBuildCloudStorageError(self):
@@ -151,7 +150,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
         'telemetry.internal.backends.chrome.android_browser_finder.binary_manager.FetchPath',  # pylint: disable=line-too-long
         side_effect=binary_manager.CloudStorageError):
       possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
-        self.finder_options, self.fake_platform)
+          self.finder_options, self.fake_platform)
     self.assertNotIn('reference', [b.browser_type for b in possible_browsers])
 
   def testNoErrorWithReferenceBuildNoPathFoundError(self):
@@ -159,7 +158,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
       self.skipTest('--chrome-root is not specified, skip the test')
     self._fetch_path_mock.side_effect = binary_manager.NoPathFoundError
     possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
-      self.finder_options, self.fake_platform)
+        self.finder_options, self.fake_platform)
     self.assertNotIn('reference', [b.browser_type for b in possible_browsers])
 
 
@@ -178,8 +177,8 @@ class SelectDefaultBrowserTest(unittest.TestCase):
   def testSinglePossibleReturnsSame(self):
     possible_browsers = [FakePossibleBrowser(last_modification_time=1)]
     self.assertIs(
-      possible_browsers[0],
-      android_browser_finder.SelectDefaultBrowser(possible_browsers))
+        possible_browsers[0],
+        android_browser_finder.SelectDefaultBrowser(possible_browsers))
 
   def testListGivesNewest(self):
     possible_browsers = [
@@ -188,5 +187,5 @@ class SelectDefaultBrowserTest(unittest.TestCase):
         FakePossibleBrowser(last_modification_time=1),
         ]
     self.assertIs(
-      possible_browsers[1],
-      android_browser_finder.SelectDefaultBrowser(possible_browsers))
+        possible_browsers[1],
+        android_browser_finder.SelectDefaultBrowser(possible_browsers))

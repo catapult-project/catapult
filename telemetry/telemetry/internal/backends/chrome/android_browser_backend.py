@@ -119,12 +119,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # Release reserved port right before forwarding host to device.
         self._port_keeper.Release()
         assert self._port == self._port_keeper.port, (
-          'Android browser backend must use reserved port by _port_keeper')
+            'Android browser backend must use reserved port by _port_keeper')
         self.platform_backend.ForwardHostToDevice(
             self._port, remote_devtools_port)
       except Exception:
         logging.exception('Failed to forward %s to %s.',
-            str(self._port), str(remote_devtools_port))
+                          str(self._port), str(remote_devtools_port))
         logging.warning('Currently forwarding:')
         try:
           for line in self.device.adb.ForwardList().splitlines():
@@ -157,10 +157,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         logging.critical('Failed to connect to browser.')
         if not (self.device.HasRoot() or self.device.NeedsSU()):
           logging.critical(
-            'Resolve this by either: '
-            '(1) Flashing to a userdebug build OR '
-            '(2) Manually enabling web debugging in Chrome at '
-            'Settings > Developer tools > Enable USB Web debugging.')
+              'Resolve this by either: '
+              '(1) Flashing to a userdebug build OR '
+              '(2) Manually enabling web debugging in Chrome at '
+              'Settings > Developer tools > Enable USB Web debugging.')
         self.Close()
         raise
       except:
@@ -182,7 +182,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       app_ui.AppUi(self.device).WaitForUiNode(package=package)
     except Exception:
-      raise exceptions.BrowserGoneException(self.browser,
+      raise exceptions.BrowserGoneException(
+          self.browser,
           'Timed out waiting for browser to come back foreground.')
 
   def Background(self):

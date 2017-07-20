@@ -266,13 +266,12 @@ class Benchmark(command_line.Command):
     # https://github.com/catapult-project/catapult/issues/3450
     tbm_options = None
     assert not (
-        class_util.IsMethodOverridden(
+        class_util.IsMethodOverridden(Benchmark, self.__class__,
+                                      'CreateTimelineBasedMeasurementOptions')
+        and class_util.IsMethodOverridden(
             Benchmark, self.__class__,
-            'CreateTimelineBasedMeasurementOptions') and
-        class_util.IsMethodOverridden(
-            Benchmark, self.__class__,
-            'CreateCoreTimelineBasedMeasurementOptions')), (
-        'Benchmarks should override CreateCoreTimelineBasedMeasurementOptions '
+            'CreateCoreTimelineBasedMeasurementOptions')
+    ), ('Benchmarks should override CreateCoreTimelineBasedMeasurementOptions '
         'and NOT also CreateTimelineBasedMeasurementOptions.')
     if class_util.IsMethodOverridden(
         Benchmark, self.__class__, 'CreateCoreTimelineBasedMeasurementOptions'):
@@ -285,7 +284,7 @@ class Benchmark(command_line.Command):
       # it is the benchmark that runs a BattOr without Chrome to get an energy
       # baseline). Don't change whether Chrome tracing is enabled.
       assert tbm_options.config.enable_chrome_trace, (
-        'This benchmark does not support Chrome tracing.')
+          'This benchmark does not support Chrome tracing.')
       tbm_options.config.chrome_trace_config.category_filter.AddFilterString(
           options.extra_chrome_categories)
     if options and options.extra_atrace_categories:

@@ -26,46 +26,50 @@ from telemetry.internal.util import binary_manager
 
 
 CHROME_PACKAGE_NAMES = {
-  'android-content-shell':
-      ['org.chromium.content_shell_apk',
-       android_browser_backend_settings.ContentShellBackendSettings,
-       'ContentShell.apk'],
-  'android-webview':
-      ['org.chromium.webview_shell',
-       android_browser_backend_settings.WebviewBackendSettings,
-       'SystemWebView.apk'],
-  'android-webview-instrumentation':
-      ['org.chromium.android_webview.shell',
-       android_browser_backend_settings.WebviewShellBackendSettings,
-       'WebViewInstrumentation.apk'],
-  'android-chromium':
-      ['org.chromium.chrome',
-       android_browser_backend_settings.ChromeBackendSettings,
-       'ChromePublic.apk'],
-  'android-chrome':
-      ['com.google.android.apps.chrome',
-       android_browser_backend_settings.ChromeBackendSettings,
-       'Chrome.apk'],
-  'android-chrome-work':
-      ['com.chrome.work',
-       android_browser_backend_settings.ChromeBackendSettings,
-       None],
-  'android-chrome-beta':
-      ['com.chrome.beta',
-       android_browser_backend_settings.ChromeBackendSettings,
-       None],
-  'android-chrome-dev':
-      ['com.chrome.dev',
-       android_browser_backend_settings.ChromeBackendSettings,
-       None],
-  'android-chrome-canary':
-      ['com.chrome.canary',
-       android_browser_backend_settings.ChromeBackendSettings,
-       None],
-  'android-system-chrome':
-      ['com.android.chrome',
-       android_browser_backend_settings.ChromeBackendSettings,
-       None],
+    'android-content-shell': [
+        'org.chromium.content_shell_apk',
+        android_browser_backend_settings.ContentShellBackendSettings,
+        'ContentShell.apk'
+    ],
+    'android-webview': [
+        'org.chromium.webview_shell',
+        android_browser_backend_settings.WebviewBackendSettings,
+        'SystemWebView.apk'
+    ],
+    'android-webview-instrumentation': [
+        'org.chromium.android_webview.shell',
+        android_browser_backend_settings.WebviewShellBackendSettings,
+        'WebViewInstrumentation.apk'
+    ],
+    'android-chromium': [
+        'org.chromium.chrome',
+        android_browser_backend_settings.ChromeBackendSettings,
+        'ChromePublic.apk'
+    ],
+    'android-chrome': [
+        'com.google.android.apps.chrome',
+        android_browser_backend_settings.ChromeBackendSettings, 'Chrome.apk'
+    ],
+    'android-chrome-work': [
+        'com.chrome.work',
+        android_browser_backend_settings.ChromeBackendSettings, None
+    ],
+    'android-chrome-beta': [
+        'com.chrome.beta',
+        android_browser_backend_settings.ChromeBackendSettings, None
+    ],
+    'android-chrome-dev': [
+        'com.chrome.dev',
+        android_browser_backend_settings.ChromeBackendSettings, None
+    ],
+    'android-chrome-canary': [
+        'com.chrome.canary',
+        android_browser_backend_settings.ChromeBackendSettings, None
+    ],
+    'android-system-chrome': [
+        'com.android.chrome',
+        android_browser_backend_settings.ChromeBackendSettings, None
+    ],
 }
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
@@ -76,7 +80,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         browser_type, 'android', backend_settings.supports_tab_control)
     assert browser_type in FindAllBrowserTypes(finder_options), (
         'Please add %s to android_browser_finder.FindAllBrowserTypes' %
-         browser_type)
+        browser_type)
     self._platform = android_platform
     self._platform_backend = (
         android_platform._platform_backend)  # pylint: disable=protected-access
@@ -156,12 +160,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
     if self.HaveLocalAPK():
-      logging.warn('Installing %s on device if needed.' % self._local_apk)
+      logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(self._local_apk)
 
     if self.HaveWebViewEmbedderAPK():
-      logging.warn('Installing %s on device if needed.' % (
-          self._webview_embedder_apk))
+      logging.warn('Installing %s on device if needed.',
+                   self._webview_embedder_apk)
       self.platform.InstallApplication(self._webview_embedder_apk)
 
   def last_modification_time(self):

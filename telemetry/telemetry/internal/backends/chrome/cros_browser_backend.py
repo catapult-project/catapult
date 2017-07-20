@@ -65,22 +65,23 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     vmodule = vmodule.rstrip(',')
 
     args.extend([
-            '--enable-smooth-scrolling',
-            '--enable-threaded-compositing',
-            # Allow devtools to connect to chrome.
-            '--remote-debugging-port=%i' % self._remote_debugging_port,
-            # Open a maximized window.
-            '--start-maximized',
-            # Disable system startup sound.
-            '--ash-disable-system-sounds',
-            # Ignore DMServer errors for policy fetches.
-            '--allow-failed-policy-fetch-for-test',
-            # Skip user image selection screen, and post login screens.
-            '--oobe-skip-postlogin',
-            # Disable chrome logging redirect. crbug.com/724273.
-            '--disable-logging-redirect',
-            # Debug logging.
-            vmodule])
+        '--enable-smooth-scrolling',
+        '--enable-threaded-compositing',
+        # Allow devtools to connect to chrome.
+        '--remote-debugging-port=%i' % self._remote_debugging_port,
+        # Open a maximized window.
+        '--start-maximized',
+        # Disable system startup sound.
+        '--ash-disable-system-sounds',
+        # Ignore DMServer errors for policy fetches.
+        '--allow-failed-policy-fetch-for-test',
+        # Skip user image selection screen, and post login screens.
+        '--oobe-skip-postlogin',
+        # Disable chrome logging redirect. crbug.com/724273.
+        '--disable-logging-redirect',
+        # Debug logging.
+        vmodule
+    ])
 
     # Disable GAIA services unless we're using GAIA login, or if there's an
     # explicit request for it.
@@ -161,8 +162,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       elif self.browser_options.gaia_login:
         self.oobe.NavigateGaiaLogin(self._username, self._password)
       else:
-        self.oobe.NavigateFakeLogin(self._username, self._password,
-            self._gaia_id, not self.browser_options.disable_gaia_services)
+        self.oobe.NavigateFakeLogin(
+            self._username, self._password, self._gaia_id,
+            not self.browser_options.disable_gaia_services)
 
       try:
         self._WaitForLogin()
