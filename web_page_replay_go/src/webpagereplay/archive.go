@@ -140,7 +140,7 @@ func (a *Archive) findHostNegotiatedProtocol(host string) string {
 
 // FindRequest searches for the given request in the archive.
 // Returns ErrNotFound if the request could not be found. Does not consume req.Body.
-// TODO: header-based matching and conditional requests
+// TODO: conditional requests
 func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, *http.Response, error) {
 	hostMap := a.Requests[req.Host]
 	if len(hostMap) == 0 {
@@ -153,8 +153,40 @@ func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, 
 		u.Host = req.Host
 		u.Scheme = scheme
 	}
-	if req, resp, err := findExactMatch(hostMap[u.String()], req.Method); err == nil {
-		return req, resp, nil
+	var bestRatio float64
+	if len(hostMap[u.String()]) > 0 {
+		var bestRequest *http.Request
+		var bestResponse *http.Response
+		// There can be multiple requests with the same URL string. If that's the case,
+		// break the tie by the number of headers that match.
+		for _, r := range hostMap[u.String()] {
+			curReq, curResp, err := r.unmarshal()
+			if err != nil {
+				log.Println("Error unmarshaling request")
+				continue
+			}
+			if curReq.Method != req.Method {
+				continue
+			}
+			rh := curReq.Header
+			reqh := req.Header
+			m := 1
+			t := len(rh) + len(reqh)
+			for k, v := range rh {
+				if reflect.DeepEqual(v, reqh[k]) {
+					m++
+				}
+			}
+			ratio := 2 * float64(m) / float64(t)
+			// Note that since |m| starts from 1. The ratio will be more than 0
+			// even if no header matches.
+			if ratio > bestRatio {
+				bestRequest = curReq
+				bestResponse = curResp
+				bestRatio = ratio
+			}
+		}
+		return bestRequest, bestResponse, nil
 	}
 
 	// For all URLs with a matching path, pick the URL that has the most matching query parameters.
@@ -164,7 +196,6 @@ func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, 
 	aq := req.URL.Query()
 
 	var bestURL string
-	var bestRatio float64
 
 	for ustr := range hostMap {
 		u, err := url.Parse(ustr)
@@ -185,6 +216,7 @@ func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, 
 		ratio := 2 * float64(m) / float64(t)
 		if ratio > bestRatio {
 			bestURL = ustr
+			bestRatio = ratio
 		}
 	}
 
