@@ -19,15 +19,16 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
     # Make page taller than window so it's scrollable.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript(
+        'document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     self._browser_info = browser_info_module.BrowserInfo(self._tab.browser)
-    self._window_height = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetWindowHeight()'))
+    self._window_height = int(
+        self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()'))
 
   # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Disabled('android')
@@ -45,9 +46,10 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     scroll_position = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollTop')
     # We can only expect the final scroll position to be approximatly equal.
-    self.assertTrue(abs(scroll_position - expected_scroll) < 20,
-                    msg='scroll_position=%d;expected %d' % (scroll_position,
-                                                            expected_scroll))
+    self.assertTrue(
+        abs(scroll_position - expected_scroll) < 20,
+        msg='scroll_position=%d;expected %d' % (scroll_position,
+                                                expected_scroll))
 
   # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Disabled('android')
@@ -57,9 +59,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
 
     expected_scroll = ((self._window_height / 2) - 1) * 3
 
-    i = repeatable_scroll.RepeatableScrollAction(y_scroll_distance_ratio=0.5,
-                                                 repeat_count=2,
-                                                 repeat_delay_ms=1)
+    i = repeatable_scroll.RepeatableScrollAction(
+        y_scroll_distance_ratio=0.5, repeat_count=2, repeat_delay_ms=1)
     i.WillRunAction(self._tab)
 
     i.RunAction(self._tab)
@@ -67,9 +68,10 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     scroll_position = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollTop')
     # We can only expect the final scroll position to be approximatly equal.
-    self.assertTrue(abs(scroll_position - expected_scroll) < 20,
-                    msg='scroll_position=%d;expected %d' % (scroll_position,
-                                                            expected_scroll))
+    self.assertTrue(
+        abs(scroll_position - expected_scroll) < 20,
+        msg='scroll_position=%d;expected %d' % (scroll_position,
+                                                expected_scroll))
 
   # Regression test for crbug.com/627166
   # TODO(ulan): enable for Android after catapult:#2475 is fixed.

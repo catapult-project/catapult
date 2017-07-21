@@ -22,14 +22,14 @@ class BrowserBackend(app_backend.AppBackend):
   def __init__(self, platform_backend, supports_extensions, browser_options,
                tab_list_backend):
     assert browser_options.browser_type
-    super(BrowserBackend, self).__init__(
-        browser_options.browser_type, platform_backend)
+    super(BrowserBackend, self).__init__(browser_options.browser_type,
+                                         platform_backend)
     self._supports_extensions = supports_extensions
     self.browser_options = browser_options
     self._tab_list_backend_class = tab_list_backend
     self._profiling_controller_backend = (
         profiling_controller_backend.ProfilingControllerBackend(
-          platform_backend, self))
+            platform_backend, self))
 
   def SetBrowser(self, browser):
     super(BrowserBackend, self).SetApp(app=browser)
@@ -102,7 +102,8 @@ class BrowserBackend(app_backend.AppBackend):
   def supports_system_info(self):
     return False
 
-  def StartTracing(self, trace_options,
+  def StartTracing(self,
+                   trace_options,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 

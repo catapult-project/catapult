@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Finds CrOS browsers that can be controlled by telemetry."""
 
 import logging
@@ -18,11 +17,12 @@ from telemetry.internal.platform import cros_device
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
+
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
     super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros', True)
     assert browser_type in FindAllBrowserTypes(finder_options), (
         'Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
-         browser_type)
+        browser_type)
     self._platform = cros_platform
     self._platform_backend = (
         cros_platform._platform_backend)  # pylint: disable=protected-access
@@ -45,17 +45,16 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self._is_guest)
     if browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
-          browser_backend,
-          self._platform_backend,
-          self._credentials_path)
-    return browser.Browser(
-        browser_backend, self._platform_backend, self._credentials_path)
+          browser_backend, self._platform_backend, self._credentials_path)
+    return browser.Browser(browser_backend, self._platform_backend,
+                           self._credentials_path)
 
   def SupportsOptions(self, browser_options):
     return (len(browser_options.extensions_to_load) == 0) or not self._is_guest
 
   def UpdateExecutableIfNeeded(self):
     pass
+
 
 def SelectDefaultBrowser(possible_browsers):
   if cros_device.IsRunningOnCrOS():
@@ -64,10 +63,11 @@ def SelectDefaultBrowser(possible_browsers):
         return b
   return None
 
+
 def CanFindAvailableBrowsers(finder_options):
-  return (cros_device.IsRunningOnCrOS() or
-          finder_options.cros_remote or
+  return (cros_device.IsRunningOnCrOS() or finder_options.cros_remote or
           cros_interface.HasSSH())
+
 
 def FindAllBrowserTypes(_):
   return [
@@ -77,6 +77,7 @@ def FindAllBrowserTypes(_):
       'system-guest',
   ]
 
+
 def FindAllAvailableBrowsers(finder_options, device):
   """Finds all available CrOS browsers, locally and remotely."""
   browsers = []
@@ -84,12 +85,18 @@ def FindAllAvailableBrowsers(finder_options, device):
     return browsers
 
   if cros_device.IsRunningOnCrOS():
-    browsers = [PossibleCrOSBrowser('system', finder_options,
-                                    platform_module.GetHostPlatform(),
-                                    is_guest=False),
-                PossibleCrOSBrowser('system-guest', finder_options,
-                                    platform_module.GetHostPlatform(),
-                                    is_guest=True)]
+    browsers = [
+        PossibleCrOSBrowser(
+            'system',
+            finder_options,
+            platform_module.GetHostPlatform(),
+            is_guest=False),
+        PossibleCrOSBrowser(
+            'system-guest',
+            finder_options,
+            platform_module.GetHostPlatform(),
+            is_guest=True)
+    ]
 
   # Check ssh
   try:
@@ -114,9 +121,10 @@ def FindAllAvailableBrowsers(finder_options, device):
       logging.warn('   -  chown 0600 /root/.ssh/authorized_keys')
     raise browser_finder_exceptions.BrowserFinderException(str(ex))
 
-  browsers.extend([PossibleCrOSBrowser('cros-chrome', finder_options,
-                                       platform, is_guest=False),
-                   PossibleCrOSBrowser('cros-chrome-guest',
-                                       finder_options, platform,
-                                       is_guest=True)])
+  browsers.extend([
+      PossibleCrOSBrowser(
+          'cros-chrome', finder_options, platform, is_guest=False),
+      PossibleCrOSBrowser(
+          'cros-chrome-guest', finder_options, platform, is_guest=True)
+  ])
   return browsers

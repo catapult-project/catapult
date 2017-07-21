@@ -8,10 +8,17 @@ from telemetry.util import js_template
 
 
 class ScrollBounceAction(page_action.PageAction):
-  def __init__(self, selector=None, text=None, element_function=None,
-               left_start_ratio=0.5, top_start_ratio=0.5,
-               direction='down', distance=100,
-               overscroll=10, repeat_count=10,
+
+  def __init__(self,
+               selector=None,
+               text=None,
+               element_function=None,
+               left_start_ratio=0.5,
+               top_start_ratio=0.5,
+               direction='down',
+               distance=100,
+               overscroll=10,
+               repeat_count=10,
                speed_in_pixels_per_second=400,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(ScrollBounceAction, self).__init__()
@@ -34,8 +41,8 @@ class ScrollBounceAction(page_action.PageAction):
     self._repeat_count = repeat_count
     # 7 pixels per frame should be plenty of frames.
     self._speed = speed_in_pixels_per_second
-    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
-                                      synthetic_gesture_source)
+    self._synthetic_gesture_source = (
+        'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
 
     if (self._selector is None and self._text is None and
         self._element_function is None):
@@ -57,8 +64,7 @@ class ScrollBounceAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Touch scroll not supported for this browser')
 
-    if (self._synthetic_gesture_source ==
-        'chrome.gpuBenchmarking.MOUSE_INPUT'):
+    if self._synthetic_gesture_source == 'chrome.gpuBenchmarking.MOUSE_INPUT':
       raise page_action.PageActionNotSupported(
           'ScrollBounce page action does not support mouse input')
 
@@ -68,7 +74,8 @@ class ScrollBounceAction(page_action.PageAction):
             function() { window.__scrollBounceActionDone = true; });""")
 
   def RunAction(self, tab):
-    code = js_template.Render('''
+    code = js_template.Render(
+        """
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
@@ -83,7 +90,7 @@ class ScrollBounceAction(page_action.PageAction):
             repeat_count: {{ repeat_count }},
             speed: {{ speed }}
           });
-        }''',
+        }""",
         left_start_ratio=self._left_start_ratio,
         top_start_ratio=self._top_start_ratio,
         direction=self._direction,
@@ -92,7 +99,10 @@ class ScrollBounceAction(page_action.PageAction):
         repeat_count=self._repeat_count,
         speed=self._speed)
     page_action.EvaluateCallbackWithElement(
-        tab, code, selector=self._selector, text=self._text,
+        tab,
+        code,
+        selector=self._selector,
+        text=self._text,
         element_function=self._element_function)
     tab.WaitForJavaScriptCondition(
         'window.__scrollBounceActionDone', timeout=60)

@@ -8,9 +8,16 @@ from telemetry.util import js_template
 
 
 class SwipeAction(page_action.PageAction):
-  def __init__(self, selector=None, text=None, element_function=None,
-               left_start_ratio=0.5, top_start_ratio=0.5,
-               direction='left', distance=100, speed_in_pixels_per_second=800,
+
+  def __init__(self,
+               selector=None,
+               text=None,
+               element_function=None,
+               left_start_ratio=0.5,
+               top_start_ratio=0.5,
+               direction='left',
+               distance=100,
+               speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(SwipeAction, self).__init__()
     if direction not in ['down', 'up', 'left', 'right']:
@@ -24,8 +31,8 @@ class SwipeAction(page_action.PageAction):
     self._direction = direction
     self._distance = distance
     self._speed = speed_in_pixels_per_second
-    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
-                                      synthetic_gesture_source)
+    self._synthetic_gesture_source = (
+        'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
 
   def WillRunAction(self, tab):
     utils.InjectJavaScript(tab, 'gesture_common.js')
@@ -36,8 +43,7 @@ class SwipeAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Synthetic swipe not supported for this browser')
 
-    if (self._synthetic_gesture_source ==
-        'chrome.gpuBenchmarking.MOUSE_INPUT'):
+    if self._synthetic_gesture_source == 'chrome.gpuBenchmarking.MOUSE_INPUT':
       raise page_action.PageActionNotSupported(
           'Swipe page action does not support mouse input')
 
@@ -55,7 +61,8 @@ class SwipeAction(page_action.PageAction):
     if (self._selector is None and self._text is None and
         self._element_function is None):
       self._element_function = '(document.scrollingElement || document.body)'
-    code = js_template.Render('''
+    code = js_template.Render(
+        """
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
@@ -68,13 +75,16 @@ class SwipeAction(page_action.PageAction):
             distance: {{ distance }},
             speed: {{ speed }}
           });
-        }''',
+        }""",
         left_start_ratio=self._left_start_ratio,
         top_start_ratio=self._top_start_ratio,
         direction=self._direction,
         distance=self._distance,
         speed=self._speed)
     page_action.EvaluateCallbackWithElement(
-        tab, code, selector=self._selector, text=self._text,
+        tab,
+        code,
+        selector=self._selector,
+        text=self._text,
         element_function=self._element_function)
     tab.WaitForJavaScriptCondition('window.__swipeActionDone', timeout=60)

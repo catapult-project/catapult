@@ -7,15 +7,19 @@ from telemetry.internal.actions import scroll
 from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
 
+
 class ScrollActionTest(tab_test_case.TabTestCase):
+
   def _MakePageVerticallyScrollable(self):
     # Make page taller than window so it's scrollable vertically.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript(
+        'document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
   def _MakePageHorizontallyScrollable(self):
     # Make page wider than window so it's scrollable horizontally.
-    self._tab.ExecuteJavaScript('document.body.style.width ='
+    self._tab.ExecuteJavaScript(
+        'document.body.style.width ='
         '(3 * __GestureCommon_GetWindowWidth() + 1) + "px";')
 
   def setUp(self):
@@ -46,8 +50,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     scroll_position = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollTop')
-    self.assertTrue(scroll_position != 0,
-                    msg='scroll_position=%d;' % (scroll_position))
+    self.assertTrue(
+        scroll_position != 0, msg='scroll_position=%d;' % (scroll_position))
 
   # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Disabled('android')
@@ -65,8 +69,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     self._MakePageHorizontallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'),
-        0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'), 0)
 
     i = scroll.ScrollAction(direction='downright')
     i.WillRunAction(self._tab)
@@ -96,35 +99,38 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     self._MakePageHorizontallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'),
-        0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'), 0)
 
     self._tab.ExecuteJavaScript("""
         window.scrollTo(__GestureCommon_GetWindowWidth(),
                         __GestureCommon_GetWindowHeight());""")
 
-    rect_top = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
-    rect_height = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetBoundingVisibleRect(document.body).height'))
+    rect_top = int(
+        self._tab.EvaluateJavaScript(
+            '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
+    rect_height = int(
+        self._tab.EvaluateJavaScript(
+            '__GestureCommon_GetBoundingVisibleRect(document.body).height'))
     rect_bottom = rect_top + rect_height
 
-    rect_left = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetBoundingVisibleRect(document.body).left'))
-    rect_width = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetBoundingVisibleRect(document.body).width'))
+    rect_left = int(
+        self._tab.EvaluateJavaScript(
+            '__GestureCommon_GetBoundingVisibleRect(document.body).left'))
+    rect_width = int(
+        self._tab.EvaluateJavaScript(
+            '__GestureCommon_GetBoundingVisibleRect(document.body).width'))
     rect_right = rect_left + rect_width
 
-    viewport_height = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetWindowHeight()'))
-    viewport_width = int(self._tab.EvaluateJavaScript(
-        '__GestureCommon_GetWindowWidth()'))
+    viewport_height = int(
+        self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()'))
+    viewport_width = int(
+        self._tab.EvaluateJavaScript('__GestureCommon_GetWindowWidth()'))
 
-    self.assertTrue(rect_top >= 0,
-        msg='%s >= %s' % (rect_top, 0))
-    self.assertTrue(rect_left >= 0,
-        msg='%s >= %s' % (rect_left, 0))
-    self.assertTrue(rect_bottom <= viewport_height,
+    self.assertTrue(rect_top >= 0, msg='%s >= %s' % (rect_top, 0))
+    self.assertTrue(rect_left >= 0, msg='%s >= %s' % (rect_left, 0))
+    self.assertTrue(
+        rect_bottom <= viewport_height,
         msg='%s + %s <= %s' % (rect_top, rect_height, viewport_height))
-    self.assertTrue(rect_right <= viewport_width,
+    self.assertTrue(
+        rect_right <= viewport_width,
         msg='%s + %s <= %s' % (rect_left, rect_width, viewport_width))

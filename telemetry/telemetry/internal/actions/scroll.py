@@ -10,14 +10,20 @@ from telemetry.util import js_template
 class ScrollAction(page_action.PageAction):
   # TODO(chrishenry): Ignore attributes, to be deleted when usage in
   # other repo is cleaned up.
-  def __init__(self, selector=None, text=None, element_function=None,
-               left_start_ratio=0.5, top_start_ratio=0.5, direction='down',
-               distance=None, distance_expr=None,
-               speed_in_pixels_per_second=800, use_touch=False,
+  def __init__(self,
+               selector=None,
+               text=None,
+               element_function=None,
+               left_start_ratio=0.5,
+               top_start_ratio=0.5,
+               direction='down',
+               distance=None,
+               distance_expr=None,
+               speed_in_pixels_per_second=800,
+               use_touch=False,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(ScrollAction, self).__init__()
-    if direction not in ('down', 'up', 'left', 'right',
-                         'downleft', 'downright',
+    if direction not in ('down', 'up', 'left', 'right', 'downleft', 'downright',
                          'upleft', 'upright'):
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
@@ -29,8 +35,8 @@ class ScrollAction(page_action.PageAction):
     self._direction = direction
     self._speed = speed_in_pixels_per_second
     self._use_touch = use_touch
-    self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
-                                      synthetic_gesture_source)
+    self._synthetic_gesture_source = (
+        'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
 
     self._distance_func = js_template.RenderValue(None)
     if distance:
@@ -47,14 +53,12 @@ class ScrollAction(page_action.PageAction):
           tab.browser._browser_backend.devtools_client.GetChromeBranchNumber())
       if branch_num < 2332:
         raise ValueError('Diagonal scrolling requires Chrome branch number'
-                         ' 2332 or later. Found branch number %d' %
-                         branch_num)
+                         ' 2332 or later. Found branch number %d' % branch_num)
     utils.InjectJavaScript(tab, 'gesture_common.js')
     utils.InjectJavaScript(tab, 'scroll.js')
 
     # Fail if browser doesn't support synthetic scroll gestures.
-    if not tab.EvaluateJavaScript(
-        'window.__ScrollAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript('window.__ScrollAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic scroll not supported for this browser')
 
@@ -69,7 +73,8 @@ class ScrollAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Scroll requires touch on this page but mouse input was requested')
 
-    tab.ExecuteJavaScript("""
+    tab.ExecuteJavaScript(
+        """
         window.__scrollActionDone = false;
         window.__scrollAction = new __ScrollAction(
             {{ @callback }}, {{ @distance }});""",
@@ -85,7 +90,8 @@ class ScrollAction(page_action.PageAction):
     if self._use_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
 
-    code = js_template.Render('''
+    code = js_template.Render(
+        """
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
@@ -98,7 +104,7 @@ class ScrollAction(page_action.PageAction):
             speed: {{ speed }},
             gesture_source_type: {{ @gesture_source_type }}
           });
-        }''',
+        }""",
         left_start_ratio=self._left_start_ratio,
         top_start_ratio=self._top_start_ratio,
         direction=self._direction,
