@@ -21,14 +21,16 @@ tr.exportTo('tr.v', function() {
       tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
 
+  const EXCLUDED_GROUPING_KEYS = [
+    tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
+    tr.v.HistogramGrouping.DISPLAY_LABEL.key,
+  ];
+  // HISTOGRAM_NAME is overridden.
+  // DISPLAY_LABEL is used to define the columns, so don't allow grouping rows
+  // by it.
   for (const group of tr.v.HistogramGrouping.BY_KEY.values()) {
-    // DISPLAY_LABEL is used to define the columns, so don't allow grouping
-    // rows by it.
-    // HISTOGRAM_NAME is overridden.
-    if (group !== tr.v.HistogramGrouping.DISPLAY_LABEL &&
-        group !== tr.v.HistogramGrouping.HISTOGRAM_NAME) {
-      DEFAULT_POSSIBLE_GROUPS.push(group);
-    }
+    if (EXCLUDED_GROUPING_KEYS.includes(group.key)) continue;
+    DEFAULT_POSSIBLE_GROUPS.push(group);
   }
 
   // This Processor collects various parameters from a set of Histograms such as
@@ -54,17 +56,22 @@ tr.exportTo('tr.v', function() {
     }
 
     process(histograms) {
+      const allStoryTags = new Set();
       for (const hist of histograms) {
         for (const statName of hist.statisticsNames) {
           this.statisticNames_.add(statName);
         }
 
+        let startTime = hist.diagnostics.get(
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START);
+        if (startTime !== undefined) startTime = startTime.minDate.getTime();
+
         const telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
 
-        let startTime = 0;
-        if (telemetry && telemetry.benchmarkStart) {
+        if (startTime === undefined && telemetry && telemetry.benchmarkStart) {
           startTime = telemetry.benchmarkStart.getTime();
         }
+
         const displayLabel = getDisplayLabel(hist);
 
         if (this.labelsToStartTimes_.has(displayLabel)) {
@@ -72,8 +79,6 @@ tr.exportTo('tr.v', function() {
               this.labelsToStartTimes_.get(displayLabel));
         }
         this.labelsToStartTimes_.set(displayLabel, startTime);
-
-        if (!telemetry) continue;
 
         for (const [groupingKey, values] of this.keysToValues_) {
           const grouping = this.keysToGroupings_.get(groupingKey);
@@ -90,6 +95,14 @@ tr.exportTo('tr.v', function() {
           }
         }
 
+        const storyTags = hist.diagnostics.get(
+            tr.v.d.RESERVED_NAMES.STORY_TAGS);
+        for (const tag of (storyTags || [])) {
+          allStoryTags.add(tag);
+        }
+
+        if (!telemetry) continue;
+
         // Translate storyGroupingKeys like {cache_temp: 'cold'} into
         // HistogramGroupings like {
         //     key: 'storyGroupingKey_cache_temp',
@@ -103,10 +116,23 @@ tr.exportTo('tr.v', function() {
           // keysToValues_
           const groupingKey = 'storyGroupingKey_' + key;
           if (this.keysToGroupings_.has(groupingKey)) continue;
+          const callback = tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
+              key);
           this.keysToGroupings_.set(groupingKey, new tr.v.HistogramGrouping(
-              groupingKey,
-              tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(key)));
-          this.keysToValues_.set(groupingKey, new Set([value]));
+              groupingKey, callback));
+          this.keysToValues_.set(groupingKey, new Set([callback(hist)]));
+        }
+      }
+
+      for (const tagGrouping of tr.v.HistogramGrouping.buildFromTags(
+          allStoryTags, tr.v.d.RESERVED_NAMES.STORY_TAGS)) {
+        const values = new Set();
+        for (const hist of histograms) {
+          values.add(tagGrouping.callback(hist));
+        }
+        if (values.size > 1) {
+          this.keysToGroupings_.set(tagGrouping.key, tagGrouping);
+          this.keysToValues_.set(tagGrouping.key, values);
         }
       }
     }

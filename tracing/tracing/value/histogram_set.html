@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/diagnostics/add_related_names.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_grouping.html">
 
 <script>
 'use strict';
@@ -342,6 +343,32 @@ tr.exportTo('tr.v', function() {
           }
         }
       }
+    }
+
+    /**
+     * @param {!Iterable.<string>} names of GenericSet diagnostics
+     * @return {!Array.<!tr.v.HistogramGrouping>}
+     */
+    buildGroupingsFromTags(names) {
+      const tags = new Map();  // name: Set<string>
+      for (const hist of this) {
+        for (const name of names) {
+          if (!hist.diagnostics.has(name)) continue;
+          if (!tags.has(name)) tags.set(name, new Set());
+          for (const tag of hist.diagnostics.get(name)) {
+            tags.get(name).add(tag);
+          }
+        }
+      }
+
+      const groupings = [];
+      for (const [name, values] of tags) {
+        const built = tr.v.HistogramGrouping.buildFromTags(values, name);
+        for (const grouping of built) {
+          groupings.push(grouping);
+        }
+      }
+      return groupings;
     }
 
     /*

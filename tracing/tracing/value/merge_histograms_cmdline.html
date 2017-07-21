@@ -12,14 +12,12 @@ found in the LICENSE file.
 'use strict';
 /* eslint-disable no-console */
 
-// TODO(benjhayden): Test after MergedTelemetryInfo.
-
 function findGrouping(key) {
-  if (tr.v.HistogramGrouping.BY_KEY.has(key)) {
-    return tr.v.HistogramGrouping.BY_KEY.get(key);
+  const grouping = tr.v.HistogramGrouping.BY_KEY.get(k);
+  if (grouping === undefined) {
+    throw new Error(`Could not find grouping "${k}"`);
   }
-  return new tr.v.HistogramGrouping(key,
-      tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(key));
+  return grouping;
 }
 
 function findMergeable(hist, candidates) {
@@ -71,6 +69,7 @@ function stripInternalDiagnostics(mergedHistograms) {
 if (tr.isHeadless) {
   const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
+  histograms.buildGroupingsFromTags([tr.v.d.RESERVED_NAMES.STORY_TAGS]);
   const groupingKeys = sys.argv.slice(2);
   const groupings = groupingKeys.map(findGrouping);
   const groupedHistograms = histograms.groupHistogramsRecursively(groupings);

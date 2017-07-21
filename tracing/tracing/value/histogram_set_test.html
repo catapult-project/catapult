@@ -364,5 +364,26 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         aHist2.diagnostics.get('date'), bHist2.diagnostics.get('date'));
   });
+
+  test('buildGroupingsFromTags', function() {
+    const histograms = new tr.v.HistogramSet();
+    const aHist = histograms.createHistogram('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['a'])],
+      ]),
+    });
+    const bHist = histograms.createHistogram('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['b'])],
+      ]),
+    });
+    const groupings = histograms.buildGroupingsFromTags([
+      tr.v.d.RESERVED_NAMES.STORY_TAGS]);
+    assert.lengthOf(groupings, 2);
+    assert.strictEqual(groupings[0].callback(aHist), 'a');
+    assert.strictEqual(groupings[0].callback(bHist), '~a');
+    assert.strictEqual(groupings[1].callback(aHist), '~b');
+    assert.strictEqual(groupings[1].callback(bHist), 'b');
+  });
 });
 </script>
