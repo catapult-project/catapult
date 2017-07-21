@@ -123,9 +123,10 @@ class MultipleExtensionTest(unittest.TestCase):
       shutil.copy(manifest_path, d)
       shutil.copy(script_path, d)
     options = options_for_unittests.GetCopy()
-    self._extensions_to_load = [extension_to_load.ExtensionToLoad(
-                                    d, options.browser_type)
-                                for d in self._extension_dirs]
+    self._extensions_to_load = [
+        extension_to_load.ExtensionToLoad(d, options.browser_type)
+        for d in self._extension_dirs
+    ]
     options.browser_options.extensions_to_load = self._extensions_to_load
     browser_to_create = browser_finder.FindBrowser(options)
     self._platform = None
@@ -184,8 +185,10 @@ class WebviewInExtensionTest(ExtensionTest):
     # Check that the context has the right url from the <webview> element.
     self.assertTrue(webview_context.GetUrl().startswith('data:'))
     # Check |test_input_id| element is accessible from the webview context.
-    self.assertTrue(webview_context.EvaluateJavaScript(
-                    'document.getElementById("test_input_id") != null'))
+    self.assertTrue(
+        webview_context.EvaluateJavaScript(
+            'document.getElementById("test_input_id") != null'))
     # Check that |test_input_id| is not accessible from outside webview context
-    self.assertFalse(self._extension.EvaluateJavaScript(
-                    'document.getElementById("test_input_id") != null'))
+    self.assertFalse(
+        self._extension.EvaluateJavaScript(
+            'document.getElementById("test_input_id") != null'))

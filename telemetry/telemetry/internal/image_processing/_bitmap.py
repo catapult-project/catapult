@@ -49,7 +49,7 @@ class _BitmapTools(object):
 
   def _RunCommand(self, *command):
     assert not self._popen.stdin.closed, (
-      'Exactly one command allowed per instance of tools.')
+        'Exactly one command allowed per instance of tools.')
     packed_command = struct.pack('i' * len(command), *command)
     self._popen.stdin.write(packed_command)
     self._popen.stdin.close()
@@ -70,8 +70,8 @@ class _BitmapTools(object):
     out.fromstring(response)
     assert len(out) == 768, (
         'The ColorHistogram has the wrong number of buckets: %s' % len(out))
-    return color_histogram.ColorHistogram(out[:256], out[256:512], out[512:],
-                                    ignore_color)
+    return color_histogram.ColorHistogram(
+        out[:256], out[256:512], out[512:], ignore_color)
 
   def BoundingBox(self, color, tolerance):
     response = self._RunCommand(_BitmapTools.BOUNDING_BOX, int(color),

@@ -78,8 +78,8 @@ class Video(object):
     Raises:
       BoundingBoxNotFoundException if the hightlight could not be found.
     """
-    content_box, pixel_count = image_util.GetBoundingBox(bmp, color,
-        tolerance=color_tolerance)
+    content_box, pixel_count = image_util.GetBoundingBox(
+        bmp, color, tolerance=color_tolerance)
 
     if not content_box:
       return None
