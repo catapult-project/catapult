@@ -20,11 +20,13 @@ class WebContents(object):
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
 
-    with open(os.path.join(os.path.dirname(__file__),
+    with open(os.path.join(
+        os.path.dirname(__file__),
         'network_quiescence.js')) as f:
       self._quiescence_js = f.read()
 
-    with open(os.path.join(os.path.dirname(__file__),
+    with open(os.path.join(
+        os.path.dirname(__file__),
         'wait_for_frame.js')) as f:
       self._wait_for_frame_js = f.read()
 
@@ -61,8 +63,8 @@ class WebContents(object):
       webviews.append(WebContents(inspector_backend))
     return webviews
 
-  def WaitForDocumentReadyStateToBeComplete(self,
-      timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+  def WaitForDocumentReadyStateToBeComplete(
+      self, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Waits for the document to finish loading.
 
     Raises:
@@ -73,8 +75,8 @@ class WebContents(object):
     self.WaitForJavaScriptCondition(
         'document.readyState == "complete"', timeout=timeout)
 
-  def WaitForDocumentReadyStateToBeInteractiveOrBetter(self,
-      timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+  def WaitForDocumentReadyStateToBeInteractiveOrBetter(
+      self, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Waits for the document to be interactive.
 
     Raises:
@@ -85,8 +87,7 @@ class WebContents(object):
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout=timeout)
 
-  def WaitForFrameToBeDisplayed(self,
-          timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+  def WaitForFrameToBeDisplayed(self, timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
     """Waits for a frame to be displayed before returning.
 
     Raises:

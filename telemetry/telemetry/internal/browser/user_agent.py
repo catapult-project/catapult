@@ -3,26 +3,26 @@
 # found in the LICENSE file.
 
 UA_TYPE_MAPPING = {
-  'chromeos':
-      'Mozilla/5.0 (X11; CrOS x86_64 9202.60.0) '
-      'AppleWebKit/537.36 (KHTML, like Gecko) '
-      'Chrome/57.0.2987.137 Safari/537.36',
-  'desktop':
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) '
-      'AppleWebKit/537.36 (KHTML, like Gecko) '
-      'Chrome/40.0.2194.2 Safari/537.36',
-  'mobile':
-      'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) '
-      'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 Mobile '
-      'Safari/535.36',
-  'tablet':
-      'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 7 Build/IMM76B) '
-      'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 '
-      'Safari/535.36',
-  'tablet_10_inch':
-      'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 10 Build/IMM76B) '
-      'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 '
-      'Safari/535.36',
+    'chromeos':
+        'Mozilla/5.0 (X11; CrOS x86_64 9202.60.0) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/57.0.2987.137 Safari/537.36',
+    'desktop':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/40.0.2194.2 Safari/537.36',
+    'mobile':
+        'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) '
+        'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 Mobile '
+        'Safari/535.36',
+    'tablet':
+        'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 7 Build/IMM76B) '
+        'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 '
+        'Safari/535.36',
+    'tablet_10_inch':
+        'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus 10 Build/IMM76B) '
+        'AppleWebKit/535.36 (KHTML, like Gecko) Chrome/40.0.2194.2 '
+        'Safari/535.36',
 }
 
 

@@ -263,10 +263,12 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
     while not done['done']:
       fake_time += 1
       if count > 0:
-        self._inspector_socket.AddAsyncResponse('IO.read', {'data': payload},
+        self._inspector_socket.AddAsyncResponse(
+            'IO.read', {'data': payload},
             fake_time)
       elif count == 0:
-        self._inspector_socket.AddAsyncResponse('IO.read',
+        self._inspector_socket.AddAsyncResponse(
+            'IO.read',
             {'data': payload + ']', 'eof': True}, fake_time)
       count -= 1
       self._inspector_socket.DispatchNotifications(10)
