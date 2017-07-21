@@ -45,8 +45,9 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     test_defined_js = "typeof(testVar) != 'undefined'"
     self._tab.WaitForJavaScriptCondition(test_defined_js, timeout=10)
 
-    py_utils.WaitFor(lambda: self._tab.EnableAllContexts() != starting_contexts,
-                 timeout=10)
+    py_utils.WaitFor(
+        lambda: self._tab.EnableAllContexts() != starting_contexts,
+        timeout=10)
 
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
@@ -77,6 +78,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
                      set(['iframe1', 'iframe2', 'iframe3']))
 
     # Accessing a non-existent iframe throws an exception.
-    self.assertRaises(exceptions.EvaluateException,
+    self.assertRaises(
+        exceptions.EvaluateException,
         lambda: self._tab.EvaluateJavaScript(
             '1+1', context_id=all_contexts + 1))

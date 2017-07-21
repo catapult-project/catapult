@@ -15,10 +15,10 @@ from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.platform import device_finder
 
 BROWSER_FINDERS = [
-  desktop_browser_finder,
-  android_browser_finder,
-  cros_browser_finder,
-  ]
+    desktop_browser_finder,
+    android_browser_finder,
+    cros_browser_finder,
+]
 
 
 def FindAllBrowserTypes(options):
@@ -76,13 +76,13 @@ def FindBrowser(options):
       default_browser = sorted(default_browsers,
                                key=lambda b: b.last_modification_time())[-1]
 
-      logging.warning('--browser omitted. Using most recent local build: %s' %
+      logging.warning('--browser omitted. Using most recent local build: %s',
                       default_browser.browser_type)
       default_browser.UpdateExecutableIfNeeded()
       return default_browser
 
     if len(browsers) == 1:
-      logging.warning('--browser omitted. Using only available browser: %s' %
+      logging.warning('--browser omitted. Using only available browser: %s',
                       browsers[0].browser_type)
       browsers[0].UpdateExecutableIfNeeded()
       return browsers[0]
@@ -104,7 +104,8 @@ def FindBrowser(options):
     else:
       return None
 
-  matching_browsers = [b for b in browsers
+  matching_browsers = [
+      b for b in browsers
       if b.browser_type == options.browser_type and
       b.SupportsOptions(options.browser_options)]
 
@@ -112,13 +113,13 @@ def FindBrowser(options):
   if len(matching_browsers) == 1:
     chosen_browser = matching_browsers[0]
   elif len(matching_browsers) > 1:
-    logging.warning('Multiple browsers of the same type found: %s' % (
-                    repr(matching_browsers)))
+    logging.warning('Multiple browsers of the same type found: %s',
+                    repr(matching_browsers))
     chosen_browser = sorted(matching_browsers,
                             key=lambda b: b.last_modification_time())[-1]
 
   if chosen_browser:
-    logging.info('Chose browser: %s' % (repr(chosen_browser)))
+    logging.info('Chose browser: %s', repr(chosen_browser))
     chosen_browser.UpdateExecutableIfNeeded()
 
   return chosen_browser
@@ -143,7 +144,7 @@ def GetAllAvailableBrowsers(options, device):
   possible_browsers = []
   for browser_finder in BROWSER_FINDERS:
     possible_browsers.extend(
-      browser_finder.FindAllAvailableBrowsers(options, device))
+        browser_finder.FindAllAvailableBrowsers(options, device))
   return possible_browsers
 
 

@@ -23,7 +23,8 @@ class ExtensionToLoad(object):
     # a remote CrOS or Android device. In this case, we need the
     # browser_type argument to determine how we should encode
     # the extension path.
-    self._is_win = (os.name == 'nt'
+    self._is_win = (
+        os.name == 'nt'
         and not (browser_type.startswith('android')
                  or browser_type.startswith('cros')))
 

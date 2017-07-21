@@ -177,7 +177,7 @@ class DevToolsClientBackend(object):
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
     return (self._devtools_http and
-        _IsDevToolsAgentAvailable(self._devtools_http))
+            _IsDevToolsAgentAvailable(self._devtools_http))
 
   def Close(self):
     if self._tracing_backend:
@@ -363,7 +363,8 @@ class DevToolsClientBackend(object):
           continue
         context_id = context['id']
         backend = context_map.GetInspectorBackend(context_id)
-        backend.EvaluateJavaScript("""
+        backend.EvaluateJavaScript(
+            """
             console.time({{ backend_id }});
             console.timeEnd({{ backend_id }});
             console.time.toString().indexOf('[native code]') != -1;
@@ -494,8 +495,8 @@ class _DevToolsContextMapBackend(object):
       context_id = context['id']
       if context_id not in self._inspector_backends_dict:
         if 'webSocketDebuggerUrl' not in context:
-          logging.debug('webSocketDebuggerUrl missing, removing %s'
-                        % context_id)
+          logging.debug('webSocketDebuggerUrl missing, removing %s',
+                        context_id)
           continue
       valid_contexts.append(context)
     self._contexts = valid_contexts
