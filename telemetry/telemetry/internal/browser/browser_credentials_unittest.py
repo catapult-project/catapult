@@ -36,8 +36,7 @@ class TestBrowserCredentials(unittest.TestCase):
     google_backend = BackendStub("google")
     othersite_backend = BackendStub("othersite")
     browser_cred = browser_credentials.BrowserCredentials(
-      [google_backend,
-       othersite_backend])
+        [google_backend, othersite_backend])
     try:
       with tempfile.NamedTemporaryFile(delete=False) as f:
         f.write(SIMPLE_CREDENTIALS_STRING)
@@ -51,9 +50,7 @@ class TestBrowserCredentials(unittest.TestCase):
       self.assertFalse(browser_cred.CanLogin('othersite'))
 
       # Should fail because it has no backend.
-      self.assertRaises(
-        Exception,
-        lambda: browser_cred.CanLogin('foobar'))
+      self.assertRaises(Exception, lambda: browser_cred.CanLogin("foobar"))
 
       class FakeTab(object):
         def __init__(self):

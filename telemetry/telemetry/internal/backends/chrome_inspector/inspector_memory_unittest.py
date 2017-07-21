@@ -23,13 +23,11 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
     # internal/testing/dom_counter_sample.html
     # Please contact kouhei@, hajimehoshi@ when rebaselining.
     counts = self._tab.dom_stats
-    self.assertEqual(counts['document_count'], 1,
-        'Document leak is detected! '+
-        'The previous document is likely retained unexpectedly.')
-    self.assertEqual(counts['node_count'], 14,
-        'Node leak is detected!')
+    self.assertEqual(counts['document_count'], 1, 'Document leak is detected! '
+                     + 'The previous document is likely retained unexpectedly.')
+    self.assertEqual(counts['node_count'], 14, 'Node leak is detected!')
     self.assertEqual(counts['event_listener_count'], 2,
-        'EventListener leak is detected!')
+                     'EventListener leak is detected!')
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):

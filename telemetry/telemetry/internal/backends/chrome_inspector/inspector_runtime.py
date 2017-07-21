@@ -33,12 +33,12 @@ class InspectorRuntime(object):
       socket.error
     """
     request = {
-      'method': 'Runtime.evaluate',
-      'params': {
-        'expression': expr,
-        'returnByValue': True
+        'method': 'Runtime.evaluate',
+        'params': {
+            'expression': expr,
+            'returnByValue': True
         }
-      }
+    }
     if context_id is not None:
       self.EnableAllContexts()
       request['params']['contextId'] = context_id

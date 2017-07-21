@@ -148,10 +148,10 @@ class TracingBackend(object):
   def RecordClockSyncMarker(self, sync_id):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'
     req = {
-      'method': 'Tracing.recordClockSyncMarker',
-      'params': {
-        'syncId': sync_id
-      }
+        'method': 'Tracing.recordClockSyncMarker',
+        'params': {
+            'syncId': sync_id
+        }
     }
     rc = self._inspector_websocket.SyncRequest(req, timeout=2)
     if 'error' in rc:
@@ -170,10 +170,7 @@ class TracingBackend(object):
         # Tracing is running but start was not issued so, startup tracing must
         # be in effect. Issue another Tracing.start to update the transfer mode.
         # TODO(caseq): get rid of it when streaming is the default.
-        params = {
-          'transferMode': 'ReturnAsStream',
-          'traceConfig': {}
-        }
+        params = {'transferMode': 'ReturnAsStream', 'traceConfig': {}}
         req = {'method': 'Tracing.start', 'params': params}
         self._inspector_websocket.SendAndIgnoreResponse(req)
 
@@ -200,9 +197,7 @@ class TracingBackend(object):
       TracingUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
-    request = {
-      'method': 'Tracing.requestMemoryDump'
-    }
+    request = {'method': 'Tracing.requestMemoryDump'}
     if timeout is None:
       timeout = 1200  # 20 minutes.
     try:
@@ -260,7 +255,7 @@ class TracingBackend(object):
         except (socket.error, websocket.WebSocketException):
           raise TracingUnrecoverableException(
               'Exception raised while collecting tracing data:\n' +
-                  traceback.format_exc())
+              traceback.format_exc())
 
         if self._has_received_all_tracing_data:
           break
@@ -277,8 +272,8 @@ class TracingBackend(object):
   def _NotificationHandler(self, res):
     if 'Tracing.dataCollected' == res.get('method'):
       value = res.get('params', {}).get('value')
-      self._trace_data_builder.AddTraceFor(
-        trace_data_module.CHROME_TRACE_PART, value)
+      self._trace_data_builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART,
+                                           value)
     elif 'Tracing.tracingComplete' == res.get('method'):
       stream_handle = res.get('params', {}).get('stream')
       if not stream_handle:

@@ -90,20 +90,20 @@ class MemoryBackendUnitTest(unittest.TestCase):
 
     # If the DevTools method is missing, the backend should fail silently.
     response_handler.return_value = {
-      'result': {},
-      'error': {
-        'code': -32601  # Method does not exist.
-      }
+        'result': {},
+        'error': {
+            'code': -32601  # Method does not exist.
+        }
     }
     backend.SetMemoryPressureNotificationsSuppressed(True)
     self.assertEqual(1, response_handler.call_count)
 
     # All other errors should raise an exception.
     response_handler.return_value = {
-      'result': {},
-      'error': {
-        'code': -32602  # Invalid method params.
-      }
+        'result': {},
+        'error': {
+            'code': -32602  # Invalid method params.
+        }
     }
     self.assertRaises(memory_backend.MemoryUnexpectedResponseException,
                       backend.SetMemoryPressureNotificationsSuppressed, True)
@@ -132,20 +132,20 @@ class MemoryBackendUnitTest(unittest.TestCase):
 
     # If the DevTools method is missing, the backend should fail silently.
     response_handler.return_value = {
-      'result': {},
-      'error': {
-        'code': -32601  # Method does not exist.
-      }
+        'result': {},
+        'error': {
+            'code': -32601  # Method does not exist.
+        }
     }
     backend.SimulateMemoryPressureNotification('critical')
     self.assertEqual(1, response_handler.call_count)
 
     # All other errors should raise an exception.
     response_handler.return_value = {
-      'result': {},
-      'error': {
-        'code': -32602  # Invalid method params.
-      }
+        'result': {},
+        'error': {
+            'code': -32602  # Invalid method params.
+        }
     }
     self.assertRaises(memory_backend.MemoryUnexpectedResponseException,
                       backend.SimulateMemoryPressureNotification, 'critical')
