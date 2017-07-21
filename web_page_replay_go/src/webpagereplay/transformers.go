@@ -209,9 +209,9 @@ func NewScriptInjectorFromFile(filename string, replacements map[string]string) 
 var (
 	jsMultilineCommentRE  = regexp.MustCompile(`(?is)/\*.*?\*/`)
 	jsSinglelineCommentRE = regexp.MustCompile(`(?i)//.*`)
-	doctypeRE             = regexp.MustCompile(`(?is)^.*(<!--.*-->)?.*<!doctype html>`)
-	htmlRE                = regexp.MustCompile(`(?is)^.*(<!--.*-->)?.*<html.*?>`)
-	headRE                = regexp.MustCompile(`(?is)^.*(<!--.*-->)?.*<head.*?>`)
+	doctypeRE             = regexp.MustCompile(`(?is)^.*?(<!--.*-->)?.*?<!doctype html>`)
+	htmlRE                = regexp.MustCompile(`(?is)^.*?(<!--.*-->)?.*?<html.*?>`)
+	headRE                = regexp.MustCompile(`(?is)^.*?(<!--.*-->)?.*?<head.*?>`)
 )
 
 type scriptInjector struct {
@@ -241,8 +241,8 @@ func (si *scriptInjector) Transform(_ *http.Request, resp *http.Response) {
 			idx = doctypeRE.FindIndex(body)
 		}
 		if idx == nil {
-			log.Printf("ScriptInjector(%s): no start tags found, injecting at the beginning", resp.Request.URL)
-			idx = []int{0, 0}
+			log.Printf("ScriptInjector(%s): no start tags found, skip injecting script", resp.Request.URL)
+			return body
 		}
 		n := idx[1]
 		newBody := make([]byte, 0, len(body)+len(si.script))

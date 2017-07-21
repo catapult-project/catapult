@@ -40,6 +40,52 @@ func TestReplaceTimeStamp(t *testing.T) {
 	}
 }
 
+// Regression test for https://github.com/catapult-project/catapult/issues/3726
+func TestInjectScript(t *testing.T) {
+	script := []byte("var foo = 1;")
+	transformer := NewScriptInjector(script, nil)
+	req := http.Request{}
+	responseHeader := http.Header{
+		"Content-Type": []string{"text/html"}}
+	resp := http.Response{
+		StatusCode: 200,
+		Header:     responseHeader,
+		Body:       ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>document.write('<head></head>');</script></head></html>")))}
+	transformer.Transform(&req, &resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedContent := []byte(fmt.Sprintf("<html><head><script>var foo = 1;</script><script>document.write('<head></head>');</script></head></html>"))
+	if !bytes.Equal(expectedContent, body) {
+		t.Fatal(fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
+	}
+}
+
+func TestNoTagFound(t *testing.T) {
+	script := []byte("var foo = 1;")
+	transformer := NewScriptInjector(script, nil)
+	req := http.Request{}
+	responseHeader := http.Header{
+		"Content-Type": []string{"text/html"}}
+	resp := http.Response{
+		StatusCode: 200,
+		Header:     responseHeader,
+		Body:       ioutil.NopCloser(bytes.NewReader([]byte("no tag random content")))}
+	resp.Request = &req
+	transformer.Transform(&req, &resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedContent := []byte(fmt.Sprintf("no tag random content"))
+	if !bytes.Equal(expectedContent, body) {
+		t.Fatal(fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
+	}
+}
+
 func TestInjectScriptToGzipResponse(t *testing.T) {
 	script := []byte("var foo = 1;")
 	transformer := NewScriptInjector(script, nil)
