@@ -51,7 +51,8 @@ class Browser(app.App):
         elif self.platform.SupportFlushEntireSystemCache():
           self.platform.FlushEntireSystemCache()
         else:
-          logging.warning('Flush system cache is not supported. ' +
+          logging.warning(
+              'Flush system cache is not supported. ' +
               'Did not flush system cache.')
 
       self._browser_backend.SetBrowser(self)
@@ -63,8 +64,8 @@ class Browser(app.App):
     except Exception:
       exc_info = sys.exc_info()
       logging.error(
-        'Failed with %s while starting the browser backend.',
-        exc_info[0].__name__)  # Show the exception name only.
+          'Failed with %s while starting the browser backend.',
+          exc_info[0].__name__)  # Show the exception name only.
       try:
         self._platform_backend.WillCloseBrowser(self, self._browser_backend)
       except Exception:

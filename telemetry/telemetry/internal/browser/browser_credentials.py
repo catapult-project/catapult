@@ -25,11 +25,11 @@ class BrowserCredentials(object):
 
     if backends is None:
       backends = [
-        codepen_credentials_backend.CodePenCredentialsBackend(),
-        facebook_credentials_backend.FacebookCredentialsBackend(),
-        facebook_credentials_backend.FacebookCredentialsBackend2(),
-        google_credentials_backend.GoogleCredentialsBackend(),
-        google_credentials_backend.GoogleCredentialsBackend2()]
+          codepen_credentials_backend.CodePenCredentialsBackend(),
+          facebook_credentials_backend.FacebookCredentialsBackend(),
+          facebook_credentials_backend.FacebookCredentialsBackend2(),
+          google_credentials_backend.GoogleCredentialsBackend(),
+          google_credentials_backend.GoogleCredentialsBackend2()]
 
     self._backends = {}
     for backend in backends:
@@ -61,7 +61,7 @@ class BrowserCredentials(object):
       return False
     runner = tab.action_runner
     return self._backends[credentials_type].LoginNeeded(
-      tab, runner, self._credentials[credentials_type])
+        tab, runner, self._credentials[credentials_type])
 
   def LoginNoLongerNeeded(self, tab, credentials_type):
     assert credentials_type in self._backends
@@ -113,14 +113,14 @@ class BrowserCredentials(object):
 
     self._credentials = {}
     all_keys = set(credentials.keys()).union(
-      homedir_credentials.keys()).union(
-      self._extra_credentials.keys())
+        homedir_credentials.keys()).union(
+            self._extra_credentials.keys())
 
     for k in all_keys:
       if k in credentials:
         self._credentials[k] = credentials[k]
       if k in homedir_credentials:
-        logging.info("Will use ~/.telemetry-credentials for %s logins." % k)
+        logging.info("Will use ~/.telemetry-credentials for %s logins.", k)
         self._credentials[k] = homedir_credentials[k]
       if k in self._extra_credentials:
         self._credentials[k] = self._extra_credentials[k]
@@ -145,5 +145,5 @@ class BrowserCredentials(object):
         or add your own credentials to:
             %s
         An example credentials file you can copy from is here:
-            %s\n""" % (page.credentials, page, ' or '.join(files_to_tweak),
-                       example_credentials_file))
+            %s\n""", page.credentials, page,
+            ' or '.join(files_to_tweak), example_credentials_file)

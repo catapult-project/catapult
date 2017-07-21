@@ -134,7 +134,8 @@ class Tab(web_contents.WebContents):
       exceptions.DevtoolsTargetCrashException
     """
     screen_save = 'window.__telemetry_screen_%d' % int(color)
-    self.ExecuteJavaScript("""
+    self.ExecuteJavaScript(
+        """
         (function() {
           var screen = document.createElement('div');
           screen.style.background = {{ color }};
