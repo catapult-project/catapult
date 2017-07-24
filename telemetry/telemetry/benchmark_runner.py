@@ -7,7 +7,6 @@ Handles benchmark configuration, but all the logic for
 actually running the benchmark is in Benchmark and PageRunner."""
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -20,7 +19,6 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
-from telemetry.util import bot_utils
 
 from py_utils import discover
 
@@ -131,11 +129,6 @@ class List(command_line.OptparseCommand):
     return parser
 
   @classmethod
-  def AddCommandLineArgs(cls, parser, _):
-    parser.add_option('-j', '--json-output-file', type='string')
-    parser.add_option('-n', '--num-shards', type='int', default=1)
-
-  @classmethod
   def ProcessCommandLineArgs(cls, parser, args, environment):
     if not args.positional_args:
       args.benchmarks = _Benchmarks(environment)
@@ -151,19 +144,7 @@ class List(command_line.OptparseCommand):
     # should be change to use verbose logging instead.
     logging.getLogger().setLevel(logging.INFO)
     possible_browser = browser_finder.FindBrowser(args)
-    if args.browser_type in ('release', 'release_x64', 'debug', 'debug_x64',
-                             'canary', 'android-chromium', 'android-chrome'):
-      args.browser_type = 'reference'
-      possible_reference_browser = browser_finder.FindBrowser(args)
-    else:
-      possible_reference_browser = None
-    if args.json_output_file:
-      with open(args.json_output_file, 'w') as f:
-        f.write(
-            _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
-                                  args.benchmarks, args.num_shards))
-    else:
-      PrintBenchmarkList(args.benchmarks, possible_browser)
+    PrintBenchmarkList(args.benchmarks, possible_browser)
     return 0
 
 
@@ -297,82 +278,6 @@ def GetBenchmarkByName(name, environment):
   if len(matched) == 0:
     return None
   return matched[0]
-
-
-def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
-                          benchmark_classes, num_shards):
-  """Returns a list of all enabled benchmarks in a JSON format expected by
-  buildbots.
-
-  JSON format:
-  { "version": <int>,
-    "steps": {
-      <string>: {
-        "device_affinity": <int>,
-        "cmd": <string>,
-        "perf_dashboard_id": <string>,
-      },
-      ...
-    }
-  }
-  """
-  # TODO(charliea): Remove this once we have more power perf bots.
-  only_run_battor_benchmarks = False
-  print 'Environment variables: ', os.environ
-  if os.environ.get('BUILDBOT_BUILDERNAME') in GOOD_POWER_PERF_BOT_WHITELIST:
-    only_run_battor_benchmarks = True
-
-  output = {'version': 1, 'steps': {}}
-  for benchmark_class in benchmark_classes:
-    # Filter out benchmarks in tools/perf/contrib/ directory
-    # This is a terrible hack but we should no longer need this
-    # _GetJsonBenchmarkList once all the perf bots are moved to swarming
-    # (crbug.com/715565)
-    if ('contrib' in os.path.abspath(
-        sys.modules[benchmark_class.__module__].__file__)):
-      continue
-
-    if not _IsBenchmarkEnabled(benchmark_class, possible_browser):
-      continue
-
-    base_name = benchmark_class.Name()
-    # TODO(charliea): Remove this once we have more power perf bots.
-    # Only run battor power benchmarks to reduce the cycle time of this bot.
-    # TODO(rnephew): Enable media.* and power.* tests when Mac BattOr issue
-    # is solved.
-    if only_run_battor_benchmarks and not base_name.startswith('battor'):
-      continue
-    base_cmd = [
-        sys.executable,
-        os.path.realpath(sys.argv[0]), '-v', '--output-format=chartjson',
-        '--upload-results', base_name
-    ]
-    perf_dashboard_id = base_name
-
-    device_affinity = bot_utils.GetDeviceAffinity(num_shards, base_name)
-
-    output['steps'][base_name] = {
-        'cmd':
-            ' '
-            .join(base_cmd + ['--browser=%s' % possible_browser.browser_type]),
-        'device_affinity':
-            device_affinity,
-        'perf_dashboard_id':
-            perf_dashboard_id,
-    }
-    if (possible_reference_browser and
-        _IsBenchmarkEnabled(benchmark_class, possible_reference_browser)):
-      output['steps'][base_name + '.reference'] = {
-          'cmd':
-              ' '.join(base_cmd +
-                       ['--browser=reference', '--output-trace-tag=_ref']),
-          'device_affinity':
-              device_affinity,
-          'perf_dashboard_id':
-              perf_dashboard_id,
-      }
-
-  return json.dumps(output, indent=2, sort_keys=True)
 
 
 def main(environment, extra_commands=None, **log_config_kwargs):
