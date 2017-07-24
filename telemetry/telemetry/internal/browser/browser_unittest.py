@@ -194,7 +194,7 @@ class BrowserLoggingTest(browser_test_case.BrowserTestCase):
   @decorators.Disabled('chromeos', 'android')
   def testLogFileExist(self):
     self.assertTrue(
-       os.path.isfile(self._browser._browser_backend.log_file_path))
+        os.path.isfile(self._browser._browser_backend.log_file_path))
 
 
 def _GenerateBrowserProfile(number_of_tabs):
@@ -234,8 +234,8 @@ class BrowserCreationTest(unittest.TestCase):
         IntentionalException('Boom!'))
     with self.assertRaises(IntentionalException):
       browser_module.Browser(
-         self.mock_browser_backend, self.mock_platform_backend,
-         credentials_path=None)
+          self.mock_browser_backend, self.mock_platform_backend,
+          credentials_path=None)
     self.assertTrue(self.mock_platform_backend.WillCloseBrowser.called)
 
   def testOriginalExceptionNotSwallow(self):
@@ -245,8 +245,8 @@ class BrowserCreationTest(unittest.TestCase):
         IntentionalException('Cannot close browser!'))
     with self.assertRaises(IntentionalException) as context:
       browser_module.Browser(
-         self.mock_browser_backend, self.mock_platform_backend,
-         credentials_path=None)
+          self.mock_browser_backend, self.mock_platform_backend,
+          credentials_path=None)
     self.assertIn('Boom!', context.exception.message)
 
 

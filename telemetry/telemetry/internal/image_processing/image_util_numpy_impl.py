@@ -178,8 +178,9 @@ def GetColorHistogram(image, ignore_color, tolerance):
                   (filtered[:, 2] < colorm[2]) | (filtered[:, 2] > colorp[2]))
       filtered = np.compress(in_range, filtered, axis=0)
     if len(filtered[:, 0]) == 0:
-      return color_histogram.ColorHistogram(np.zeros((256)), np.zeros((256)),
-                                      np.zeros((256)), ignore_color)
+      return color_histogram.ColorHistogram(
+          np.zeros((256)), np.zeros((256)),
+          np.zeros((256)), ignore_color)
     hist_b = np.bincount(filtered[:, 0], minlength=256)
     hist_g = np.bincount(filtered[:, 1], minlength=256)
     hist_r = np.bincount(filtered[:, 2], minlength=256)
