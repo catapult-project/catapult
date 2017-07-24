@@ -115,6 +115,13 @@ func (tp *tlsProxy) getReplayConfigForClient(clientHello *tls.ClientHelloInfo) (
 	}, nil
 }
 
+func buildNextProtos(negotiatedProtocol string) []string {
+	if negotiatedProtocol == "h2" {
+		return []string{"h2", "http/1.1"}
+	}
+	return []string{"http/1.1"}
+}
+
 func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (*tls.Config, error) {
 	h := clientHello.ServerName
 	if h == "" {
@@ -130,7 +137,7 @@ func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (
 					Certificate: [][]byte{derBytes},
 					PrivateKey:  tp.root.PrivateKey,
 				}},
-			NextProtos: []string{negotiatedProtocol},
+			NextProtos: buildNextProtos(negotiatedProtocol),
 		}, nil
 	}
 
@@ -146,6 +153,6 @@ func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (
 			tls.Certificate{
 				Certificate: [][]byte{derBytes},
 				PrivateKey:  tp.root.PrivateKey}},
-		NextProtos: []string{negotiatedProtocol},
+		NextProtos: buildNextProtos(negotiatedProtocol),
 	}, nil
 }

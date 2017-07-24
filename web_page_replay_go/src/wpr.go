@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"golang.org/x/net/http2"
 	"webpagereplay"
 )
 
@@ -188,33 +189,43 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 		})
 }
 
-func getAvailablePort() int {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+func getListener(port int) (net.Listener, error) {
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	listener, err := net.ListenTCP("tcp", addr)
+	return net.ListenTCP("tcp", addr)
+}
+
+// Copied from https://golang.org/src/net/http/server.go.
+// This is to make dead TCP connections to eventually go away.
+type tcpKeepAliveListener struct {
+	*net.TCPListener
+}
+
+func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
+	tc, err := ln.AcceptTCP()
 	if err != nil {
-		panic(err)
+		return
 	}
-	defer listener.Close()
-	return listener.Addr().(*net.TCPAddr).Port
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
+	return tc, nil
 }
 
 func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler, common *CommonConfig) {
 	type Server struct {
 		Scheme string
+		Port   int
 		*http.Server
 	}
 
 	servers := []*Server{}
 
 	if common.httpPort > -1 {
-		if common.httpPort == 0 {
-			common.httpPort = getAvailablePort()
-		}
 		servers = append(servers, &Server{
 			Scheme: "http",
+			Port:   common.httpPort,
 			Server: &http.Server{
 				Addr:    fmt.Sprintf("%v:%v", common.host, common.httpPort),
 				Handler: httpHandler,
@@ -222,11 +233,9 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 		})
 	}
 	if common.httpsPort > -1 {
-		if common.httpsPort == 0 {
-			common.httpsPort = getAvailablePort()
-		}
 		servers = append(servers, &Server{
 			Scheme: "https",
+			Port:   common.httpsPort,
 			Server: &http.Server{
 				Addr:      fmt.Sprintf("%v:%v", common.host, common.httpsPort),
 				Handler:   httpsHandler,
@@ -235,11 +244,9 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 		})
 	}
 	if common.httpSecureProxyPort > -1 {
-		if common.httpSecureProxyPort == 0 {
-			common.httpSecureProxyPort = getAvailablePort()
-		}
 		servers = append(servers, &Server{
 			Scheme: "https",
+			Port:   common.httpSecureProxyPort,
 			Server: &http.Server{
 				Addr:      fmt.Sprintf("%v:%v", common.host, common.httpSecureProxyPort),
 				Handler:   httpHandler, // this server proxies HTTP requests over an HTTPS connection
@@ -249,15 +256,26 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	}
 
 	for _, s := range servers {
-		log.Printf("Starting server on %s://%s", s.Scheme, s.Addr)
 		s := s
 		go func() {
 			var err error
 			switch s.Scheme {
 			case "http":
-				err = s.ListenAndServe()
+				ln, err := getListener(s.Port)
+				if err != nil {
+					break
+				}
+				logServeStarted(s.Scheme, ln)
+				err = s.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)})
 			case "https":
-				err = s.ListenAndServeTLS(common.certConfig.certFile, common.certConfig.keyFile)
+				ln, err := getListener(s.Port)
+				if err != nil {
+					break
+				}
+				logServeStarted(s.Scheme, ln)
+				http2.ConfigureServer(s.Server, &http2.Server{})
+				tlsListener := tls.NewListener(tcpKeepAliveListener{ln.(*net.TCPListener)}, s.TLSConfig)
+				err = s.Serve(tlsListener)
 			default:
 				panic(fmt.Sprintf("unknown s.Scheme: %s", s.Scheme))
 			}
@@ -269,6 +287,10 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 
 	log.Printf("Use Ctrl-C to exit.")
 	select {}
+}
+
+func logServeStarted(scheme string, ln net.Listener) {
+	log.Printf("Starting server on %s://%s", scheme, ln.Addr().String())
 }
 
 func (r *RecordCommand) Run(c *cli.Context) {
