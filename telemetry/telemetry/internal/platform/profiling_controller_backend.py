@@ -26,7 +26,8 @@ class ProfilingControllerBackend(object):
       self._profilers_states[profiler_class] = {}
 
     self._active_profilers.append(
-        profiler_class(self._browser_backend, self._platform_backend,
+        profiler_class(
+            self._browser_backend, self._platform_backend,
             base_output_file, self._profilers_states[profiler_class]))
 
   def Stop(self):
@@ -44,4 +45,4 @@ class ProfilingControllerBackend(object):
   def WillCloseBrowser(self):
     for profiler_class in self._profilers_states:
       profiler_class.WillCloseBrowser(
-        self._browser_backend, self._platform_backend)
+          self._browser_backend, self._platform_backend)

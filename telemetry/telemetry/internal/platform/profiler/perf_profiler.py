@@ -48,7 +48,8 @@ def _PrepareHostForPerf():
   kptr_file = '/proc/sys/kernel/kptr_restrict'
   with open(kptr_file) as f:
     if f.read().strip() != '0':
-      logging.warning('Making kernel symbols unrestricted. You might have to '
+      logging.warning(
+          'Making kernel symbols unrestricted. You might have to '
           'enter your password for "sudo".')
       with tempfile.NamedTemporaryFile() as zero:
         zero.write('0')
@@ -98,7 +99,8 @@ class _SingleProcessPerfProfiler(object):
     else:
       cmd_prefix = [perf_binary]
     perf_args += ['--output', output_file] + _PERF_OPTIONS
-    self._proc = subprocess.Popen(cmd_prefix + perf_args,
+    self._proc = subprocess.Popen(
+        cmd_prefix + perf_args,
         stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def CollectProfile(self):

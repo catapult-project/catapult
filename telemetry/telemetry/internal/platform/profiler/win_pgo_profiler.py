@@ -55,7 +55,8 @@ class WinPGOProfiler(profiler.Profiler):
     pgc_files = glob.glob(os.path.join(self._browser_dir,
                                        '%s!*.pgc' % dll_name))
     for pgc_file in pgc_files:
-      max_index = max(max_index,
+      max_index = max(
+          max_index,
           int(os.path.splitext(os.path.split(pgc_file)[1])[0].split('!')[1]))
     return max_index + 1
 

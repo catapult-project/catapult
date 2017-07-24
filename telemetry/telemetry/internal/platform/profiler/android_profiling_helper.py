@@ -103,8 +103,8 @@ def GetPerfhostName():
 
 # Ignored directories for libraries that aren't useful for symbolization.
 _IGNORED_LIB_PATHS = [
-  '/data/dalvik-cache',
-  '/tmp'
+    '/data/dalvik-cache',
+    '/tmp'
 ]
 
 
@@ -120,8 +120,10 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
   with open(os.devnull, 'w') as dev_null:
     perfhost_path = binary_manager.FetchPath(
         GetPerfhostName(), 'x86_64', 'linux')
-    perf = subprocess.Popen([perfhost_path, 'script', '-i', profile_file],
-                             stdout=dev_null, stderr=subprocess.PIPE)
+    perf = subprocess.Popen(
+        [perfhost_path, 'script', '-i', profile_file],
+        stdout=dev_null,
+        stderr=subprocess.PIPE)
     _, output = perf.communicate()
   missing_lib_re = re.compile(
       ('^Failed to open (.*), continuing without symbols|'
@@ -176,7 +178,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
   Returns:
     The absolute path to the kernel symbols within the created symfs.
   """
-  logging.info('Building symfs into %s.' % symfs_dir)
+  logging.info('Building symfs into %s.', symfs_dir)
 
   for lib in libraries:
     device_dir = os.path.dirname(lib)
@@ -190,7 +192,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
       # unstripped library under the out directory.
       unstripped_host_lib = _FindMatchingUnstrippedLibraryOnHost(device, lib)
       if not unstripped_host_lib:
-        logging.warning('Could not find symbols for %s.' % lib)
+        logging.warning('Could not find symbols for %s.', lib)
         logging.warning('Is the correct output directory selected '
                         '(CHROMIUM_OUTPUT_DIR)? Did you install the APK after '
                         'building?')
@@ -202,7 +204,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
       # Copy the unstripped library only if it has been changed to avoid the
       # delay.
       elif not _FileMetadataMatches(unstripped_host_lib, output_lib):
-        logging.info('Copying %s to %s' % (unstripped_host_lib, output_lib))
+        logging.info('Copying %s to %s', unstripped_host_lib, output_lib)
         shutil.copy2(unstripped_host_lib, output_lib)
     else:
       # Otherwise save a copy of the stripped system library under the symfs so
@@ -258,11 +260,11 @@ def GetToolchainBinaryPath(library_file, binary_name):
   """
   # Mapping from ELF machine identifiers to GNU toolchain names.
   toolchain_configs = {
-    'x86': 'i686-linux-android',
-    'MIPS': 'mipsel-linux-android',
-    'ARM': 'arm-linux-androideabi',
-    'x86-64': 'x86_64-linux-android',
-    'AArch64': 'aarch64-linux-android',
+      'x86': 'i686-linux-android',
+      'MIPS': 'mipsel-linux-android',
+      'ARM': 'arm-linux-androideabi',
+      'x86-64': 'x86_64-linux-android',
+      'AArch64': 'aarch64-linux-android',
   }
   toolchain_config = toolchain_configs[_ElfMachineId(library_file)]
   host_os = platform.uname()[0].lower()
