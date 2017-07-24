@@ -82,9 +82,9 @@ class TabTest(tab_test_case.TabTestCase):
       self._tab.WaitForJavaScriptCondition(
           'window.__one === 1', timeout=1)
       self.assertIn(
-        ("(error) :5: Uncaught TypeError: Cannot read property 'not_defined' "
-        'of undefined\n'),
-        context.exception.message)
+          ("(error) :5: Uncaught TypeError: Cannot read property 'not_defined' "
+           'of undefined\n'),
+          context.exception.message)
 
   @decorators.Enabled('has tabs')
   def testActivateTab(self):
@@ -192,7 +192,8 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self.assertTrue(self._tab.IsAlive())
 
-    self.assertRaises(exceptions.DevtoolsTargetCrashException,
+    self.assertRaises(
+        exceptions.DevtoolsTargetCrashException,
         lambda: self._tab.Navigate(self.UrlOfUnittestFile('chrome://crash')))
     self.assertFalse(self._tab.IsAlive())
 

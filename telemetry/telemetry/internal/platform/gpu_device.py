@@ -11,10 +11,10 @@ class GPUDevice(object):
   """
 
   _VENDOR_ID_MAP = {
-    0x1002: 'ATI',
-    0x8086: 'Intel',
-    0x10de: 'Nvidia',
-    }
+      0x1002: 'ATI',
+      0x8086: 'Intel',
+      0x10de: 'Nvidia',
+  }
 
   def __init__(self, vendor_id, device_id, vendor_string, device_string):
     self._vendor_id = vendor_id

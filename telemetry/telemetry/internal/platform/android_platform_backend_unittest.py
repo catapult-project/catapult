@@ -101,19 +101,19 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testAndroidParseCpuStates(self):
     cstate = {
-      'cpu0': 'C0\nC1\n103203424\n5342040\n300\n500\n1403232500',
-      'cpu1': 'C0\n124361858\n300\n1403232500'
+        'cpu0': 'C0\nC1\n103203424\n5342040\n300\n500\n1403232500',
+        'cpu1': 'C0\n124361858\n300\n1403232500'
     }
     expected_cstate = {
-      'cpu0': {
-        'WFI': 103203424,
-        'C0': 1403232391454536,
-        'C1': 5342040
-      },
-      'cpu1': {
-        'WFI': 124361858,
-        'C0': 1403232375638142
-      }
+        'cpu0': {
+            'WFI': 103203424,
+            'C0': 1403232391454536,
+            'C1': 5342040
+        },
+        'cpu1': {
+            'WFI': 124361858,
+            'C0': 1403232375638142
+        }
     }
     # Use mock start and end times to allow for the test to calculate C0.
     result = android_platform_backend.AndroidPlatformBackend.ParseCStateSample(

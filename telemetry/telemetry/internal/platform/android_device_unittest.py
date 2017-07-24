@@ -54,7 +54,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
     finder_options = browser_options.BrowserFinderOptions()
     with (
         mock.patch('os.path.isabs', return_value=True)), (
-        mock.patch('os.path.exists', return_value=False)):
+            mock.patch('os.path.exists', return_value=False)):
       self.assertEquals([], self._android_device_stub.logging.warnings)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
@@ -79,8 +79,8 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
       self.assertEquals([
           'Multiple devices attached. Please specify one of the following:\n'
           '  --device=015d14fec128220c\n'
-          '  --device=015d14fec128220d'],
-          self._android_device_stub.logging.warnings)
+          '  --device=015d14fec128220d'
+      ], self._android_device_stub.logging.warnings)
       self.assertIsNone(device)
 
   @decorators.Enabled('android')
