@@ -42,7 +42,7 @@ class TestPerfProfiler(unittest.TestCase):
          'v8::internal::Scanner::ScanIdentifierOrKeyword': 46054550,
          'sk_memset32_SSE2': 45121317,
          'v8::internal::HeapObject::Size': 39786862
-         })
+        })
     mock_popen.communicate.assert_called_once_with()
     mock_subprocess.Popen.assert_called_once_with(
         mock.ANY, stdout=mock.ANY, stderr=mock.ANY)

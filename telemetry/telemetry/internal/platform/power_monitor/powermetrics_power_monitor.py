@@ -284,9 +284,9 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
       if self._powermetrics_process.poll() is None:
         # terminate() can fail when Powermetrics does not have the SetUID set.
         self._backend.LaunchApplication(
-          '/usr/bin/pkill',
-          ['-SIGTERM', os.path.basename(self.binary_path)],
-          elevate_privilege=True)
+            '/usr/bin/pkill',
+            ['-SIGTERM', os.path.basename(self.binary_path)],
+            elevate_privilege=True)
 
   def StopMonitoringPower(self):
     self._CheckStop()

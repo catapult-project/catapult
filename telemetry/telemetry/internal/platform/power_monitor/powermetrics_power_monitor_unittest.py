@@ -18,7 +18,7 @@ def _parsePowerMetricsDataFromTestFile(output_file):
   with open(test_data_path, 'r') as f:
     process_output = f.read()
   return (powermetrics_power_monitor.PowerMetricsPowerMonitor.
-      ParsePowerMetricsOutput(process_output))
+          ParsePowerMetricsOutput(process_output))
 
 
 class PowerMetricsPowerMonitorTest(unittest.TestCase):
@@ -29,19 +29,21 @@ class PowerMetricsPowerMonitorTest(unittest.TestCase):
     mavericks_or_later = (
         backend.GetOSVersionName() >= os_version.MAVERICKS)
     # Should always be able to monitor power usage on OS Version >= 10.9 .
-    self.assertEqual(power_monitor.CanMonitorPower(), mavericks_or_later,
+    self.assertEqual(
+        power_monitor.CanMonitorPower(), mavericks_or_later,
         "Error checking powermetrics availability: '%s'" % '|'.join(os.uname()))
 
   @decorators.Enabled('mac')
   def testParseEmptyPowerMetricsOutput(self):
     # Important to handle zero length powermetrics outout - crbug.com/353250 .
     self.assertFalse(powermetrics_power_monitor.PowerMetricsPowerMonitor.
-        ParsePowerMetricsOutput(''))
+                     ParsePowerMetricsOutput(''))
 
   @decorators.Enabled('mac')
   def testParsePowerMetricsOutputFromVM(self):
     # Don't fail when running on VM - crbug.com/423688.
-    self.assertEquals({},
+    self.assertEquals(
+        {},
         _parsePowerMetricsDataFromTestFile('powermetrics_vmware.output'))
 
   @decorators.Enabled('mac')

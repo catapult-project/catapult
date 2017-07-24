@@ -37,7 +37,7 @@ class _SingleProcessSampleProfiler(object):
       if exit_code:
         raise Exception(
             'sample failed with exit code %d. Output:\n%s' % (
-            exit_code, self._GetStdOut()))
+                exit_code, self._GetStdOut()))
     finally:
       self._proc = None
       self._tmp_output_file.close()
