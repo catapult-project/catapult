@@ -388,8 +388,21 @@ func main() {
 		Action: removeroot.Remove,
 	}
 
+	// TODO(xunjieli): Remove ConvertorCommand once crbug.com/730036 is done.
+	type ConvertorCommand struct {
+		cfg webpagereplay.ConvertorConfig
+		cmd cli.Command
+	}
+	var convert ConvertorCommand
+	convert.cmd = cli.Command{
+		Name:   "convert",
+		Flags:  convert.cfg.Flags(),
+		Usage:  "Convert a legacy format to the new format",
+		Action: convert.cfg.Convert,
+	}
+
 	app := cli.NewApp()
-	app.Commands = []cli.Command{record.cmd, replay.cmd, installroot.cmd, removeroot.cmd}
+	app.Commands = []cli.Command{record.cmd, replay.cmd, installroot.cmd, removeroot.cmd, convert.cmd}
 	app.Usage = "Web Page Replay"
 	app.UsageText = fmt.Sprintf(longUsage, progName, progName)
 	app.HideVersion = true

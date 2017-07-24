@@ -5,6 +5,7 @@
 package webpagereplay
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
@@ -49,6 +50,36 @@ func getRootCert(root tls.Certificate) (*x509.Certificate, error) {
 	return root_cert, nil
 }
 
+// Returns DER encoded server cert.
+func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypto.PrivateKey) ([]byte, string, error) {
+	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", serverName), &tls.Config{
+		NextProtos: []string{"h2", "http/1.1"},
+	})
+	if err != nil {
+		return nil, "", fmt.Errorf("Couldn't reach host %s: %v", serverName, err)
+	}
+	defer conn.Close()
+	conn.Handshake()
+	template := conn.ConnectionState().PeerCertificates[0]
+
+	template.Subject.CommonName = serverName
+	template.NotBefore = time.Now()
+	template.NotAfter = template.NotBefore.Add(87658 * time.Hour)
+	template.PublicKey = rootCert.PublicKey
+	var buf [20]byte
+	if _, err := io.ReadFull(rand.Reader, buf[:]); err != nil {
+		return nil, "", err
+	}
+	template.SerialNumber.SetBytes(buf[:])
+	template.Issuer = rootCert.Subject
+	template.KeyUsage = x509.KeyUsageCertSign | x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign
+	template.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+
+	negotiatedProtocol := conn.ConnectionState().NegotiatedProtocol
+	derBytes, err := x509.CreateCertificate(rand.Reader, template, rootCert, template.PublicKey, rootKey)
+	return derBytes, negotiatedProtocol, err
+}
+
 type tlsProxy struct {
 	root             *tls.Certificate
 	root_cert        *x509.Certificate
@@ -70,14 +101,14 @@ func (tp *tlsProxy) getReplayConfigForClient(clientHello *tls.ClientHelloInfo) (
 		}, nil
 	}
 
-	der_bytes, negotiatedProtocol, err := tp.archive.FindHostTlsConfig(h)
-	if err != nil || der_bytes == nil {
+	derBytes, negotiatedProtocol, err := tp.archive.FindHostTlsConfig(h)
+	if err != nil || derBytes == nil {
 		return nil, fmt.Errorf("No archived cert for %s", h)
 	}
 	return &tls.Config{
 		Certificates: []tls.Certificate{
 			tls.Certificate{
-				Certificate: [][]byte{der_bytes},
+				Certificate: [][]byte{derBytes},
 				PrivateKey:  tp.root.PrivateKey,
 			}},
 		NextProtos: []string{negotiatedProtocol},
@@ -91,53 +122,29 @@ func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (
 			Certificates: []tls.Certificate{*tp.root},
 		}, nil
 	}
-	der_bytes, negotiatedProtocol, err := tp.writable_archive.Archive.FindHostTlsConfig(h)
-	if err == nil && der_bytes != nil {
+	derBytes, negotiatedProtocol, err := tp.writable_archive.Archive.FindHostTlsConfig(h)
+	if err == nil && derBytes != nil {
 		return &tls.Config{
 			Certificates: []tls.Certificate{
 				tls.Certificate{
-					Certificate: [][]byte{der_bytes},
+					Certificate: [][]byte{derBytes},
 					PrivateKey:  tp.root.PrivateKey,
 				}},
 			NextProtos: []string{negotiatedProtocol},
 		}, nil
 	}
 
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", h), &tls.Config{
-		NextProtos: []string{"h2", "http/1.1"},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't reach host %s: %v", h, err)
-	}
-	defer conn.Close()
-	conn.Handshake()
-	template := conn.ConnectionState().PeerCertificates[0]
-
-	template.Subject.CommonName = h
-	template.NotBefore = time.Now()
-	template.NotAfter = template.NotBefore.Add(87658 * time.Hour)
-	template.PublicKey = tp.root_cert.PublicKey
-	var buf [20]byte
-	if _, err := io.ReadFull(rand.Reader, buf[:]); err != nil {
-		return nil, err
-	}
-	template.SerialNumber.SetBytes(buf[:])
-	template.Issuer = tp.root_cert.Subject
-	template.KeyUsage = x509.KeyUsageCertSign | x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign
-	template.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
-
-	der_bytes, err = x509.CreateCertificate(rand.Reader, template, tp.root_cert, template.PublicKey, tp.root.PrivateKey)
+	derBytes, negotiatedProtocol, err = MintServerCert(h, tp.root_cert, tp.root.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("create cert failed: %v", err)
 	}
 
-	negotiatedProtocol = conn.ConnectionState().NegotiatedProtocol
-	tp.writable_archive.RecordTlsConfig(h, der_bytes, negotiatedProtocol)
+	tp.writable_archive.RecordTlsConfig(h, derBytes, negotiatedProtocol)
 
 	return &tls.Config{
 		Certificates: []tls.Certificate{
 			tls.Certificate{
-				Certificate: [][]byte{der_bytes},
+				Certificate: [][]byte{derBytes},
 				PrivateKey:  tp.root.PrivateKey}},
 		NextProtos: []string{negotiatedProtocol},
 	}, nil
