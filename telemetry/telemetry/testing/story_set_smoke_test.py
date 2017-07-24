@@ -115,19 +115,6 @@ class StorySetSmokeTest(unittest.TestCase):
         msg='page %s \'s make_javascript_deterministic must have type bool'
             % story.name)
 
-  def CheckSharedStates(self, story_set):
-    if not story_set.allow_mixed_story_states:
-      shared_state_class = (
-          story_set.stories[0].shared_state_class)
-      for story in story_set:
-        self.assertIs(
-            shared_state_class,
-            story.shared_state_class,
-            msg='story %s\'s shared_state_class field is different '
-            'from other story\'s shared_state_class whereas '
-            'story set %s disallows having mixed states' %
-            (story, story_set))
-
   def CheckPassingStoryRunnerValidation(self, story_set):
     errors = []
     for s in story_set:

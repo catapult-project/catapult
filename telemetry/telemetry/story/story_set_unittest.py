@@ -9,14 +9,19 @@ from telemetry import story
 
 
 # pylint: disable=abstract-method
+class SharedStateFoo(story.SharedState):
+  pass
+
+
 class SharedStateBar(story.SharedState):
   pass
 
 
 class StoryFoo(story.Story):
-  def __init__(self, name='', labels=None, grouping_keys=None):
+  def __init__(self, name='', labels=None, grouping_keys=None,
+               shared_state_class=SharedStateFoo):
     super(StoryFoo, self).__init__(
-        SharedStateBar, name, labels, grouping_keys=grouping_keys)
+        shared_state_class, name, labels, grouping_keys=grouping_keys)
 
 
 class StorySetFoo(story.StorySet):
@@ -78,6 +83,23 @@ class StorySetTest(unittest.TestCase):
 
     story_set.RemoveStory(foo_story)
     self.assertEqual([], story_set.stories)
+
+  def testSharedStateProperty(self):
+    story_set = story.StorySet()
+    foo_story = StoryFoo(name='foo')
+
+    self.assertIsNone(story_set.shared_state_class)
+    story_set.AddStory(foo_story)
+    self.assertEqual(SharedStateFoo, story_set.shared_state_class)
+
+  def testAddMixedSharedStatesRaises(self):
+    foo_story = StoryFoo(name='foo')
+    bar_story = StoryFoo(name='bar', shared_state_class=SharedStateBar)
+
+    story_set = story.StorySet()
+    story_set.AddStory(foo_story)
+    with self.assertRaises(AssertionError):
+      story_set.AddStory(bar_story)
 
   def testAddDuplicateDisplayNameWithoutGroupingKeysRaises(self):
     story_set = story.StorySet()

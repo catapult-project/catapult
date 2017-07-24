@@ -103,10 +103,6 @@ class FooStoryState(TestSharedPageState):
   pass
 
 
-class BarStoryState(TestSharedPageState):
-  pass
-
-
 class DummyTest(legacy_page_test.LegacyPageTest):
   def RunPage(self, *_):
     pass
@@ -138,22 +134,6 @@ class DummyLocalStory(story_module.Story):
   def url(self):
     return 'data:,'
 
-
-class MixedStateStorySet(story_module.StorySet):
-  @property
-  def allow_mixed_story_states(self):
-    return True
-
-
-def SetupStorySet(allow_multiple_story_states, story_state_list):
-  if allow_multiple_story_states:
-    story_set = MixedStateStorySet()
-  else:
-    story_set = story_module.StorySet()
-  for i, story_state in enumerate(story_state_list):
-    story_set.AddStory(DummyLocalStory(story_state,
-                                       name='story%d' % i))
-  return story_set
 
 class _DisableBenchmarkExpectations(
     story_module.expectations.StoryExpectations):
@@ -293,41 +273,17 @@ class StoryRunnerTest(unittest.TestCase):
       os.remove(results_file_path)
     self.RestoreExceptionFormatter()
 
-  def testStoriesGroupedByStateClass(self):
-    foo_states = [FooStoryState, FooStoryState, FooStoryState,
-                  FooStoryState, FooStoryState]
-    mixed_states = [FooStoryState, FooStoryState, FooStoryState,
-                    BarStoryState, FooStoryState]
-    # StorySet's are only allowed to have one SharedState.
-    story_set = SetupStorySet(False, foo_states)
-    story_groups = (
-        story_runner.StoriesGroupedByStateClass(
-            story_set, False))
-    self.assertEqual(len(story_groups), 1)
-    story_set = SetupStorySet(False, mixed_states)
-    self.assertRaises(
-        ValueError,
-        story_runner.StoriesGroupedByStateClass,
-        story_set, False)
-    # BaseStorySets are allowed to have multiple SharedStates.
-    mixed_story_set = SetupStorySet(True, mixed_states)
-    story_groups = (
-        story_runner.StoriesGroupedByStateClass(
-            mixed_story_set, True))
-    self.assertEqual(len(story_groups), 3)
-    self.assertEqual(story_groups[0].shared_state_class,
-                     FooStoryState)
-    self.assertEqual(story_groups[1].shared_state_class,
-                     BarStoryState)
-    self.assertEqual(story_groups[2].shared_state_class,
-                     FooStoryState)
-
-  def RunStoryTest(self, s, expected_successes):
+  def testRunStorySet(self):
+    number_stories = 3
+    story_set = story_module.StorySet()
+    for i in xrange(number_stories):
+      story_set.AddStory(DummyLocalStory(FooStoryState, name='story_%d' % i))
     test = DummyTest()
     story_runner.Run(
-        test, s, self.options, self.results, metadata=EmptyMetadataForTest())
+        test, story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(0, len(self.results.failures))
-    self.assertEquals(expected_successes,
+    self.assertEquals(number_stories,
                       GetNumberOfSuccessfulPageRuns(self.results))
 
   def testRunStoryWithMissingArchiveFile(self):
@@ -338,20 +294,6 @@ class StoryRunnerTest(unittest.TestCase):
     test = DummyTest()
     self.assertRaises(story_runner.ArchiveError, story_runner.Run, test,
                       story_set, self.options, self.results)
-
-  def testStoryTest(self):
-    all_foo = [FooStoryState, FooStoryState, FooStoryState]
-    one_bar = [FooStoryState, FooStoryState, BarStoryState]
-    story_set = SetupStorySet(True, one_bar)
-    self.RunStoryTest(story_set, 3)
-    story_set = SetupStorySet(True, all_foo)
-    self.RunStoryTest(story_set, 6)
-    story_set = SetupStorySet(False, all_foo)
-    self.RunStoryTest(story_set, 9)
-    story_set = SetupStorySet(False, one_bar)
-    test = DummyTest()
-    self.assertRaises(ValueError, story_runner.Run, test, story_set,
-                      self.options, self.results)
 
   def testRunStoryWithLongName(self):
     story_set = story_module.StorySet()
@@ -500,51 +442,6 @@ class StoryRunnerTest(unittest.TestCase):
                      tear_down_after_story_set=True,
                      metadata=EmptyMetadataForTest())
     self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 5)
-
-  def testTearDownIsCalledOnceForEachStoryGroupWithPageSetRepeat(self):
-    self.options.pageset_repeat = 3
-    fooz_init_call_counter = [0]
-    fooz_tear_down_call_counter = [0]
-    barz_init_call_counter = [0]
-    barz_tear_down_call_counter = [0]
-    class FoozStoryState(FooStoryState):
-      def __init__(self, test, options, storyz):
-        super(FoozStoryState, self).__init__(
-          test, options, storyz)
-        fooz_init_call_counter[0] += 1
-      def TearDownState(self):
-        fooz_tear_down_call_counter[0] += 1
-
-    class BarzStoryState(BarStoryState):
-      def __init__(self, test, options, storyz):
-        super(BarzStoryState, self).__init__(
-          test, options, storyz)
-        barz_init_call_counter[0] += 1
-      def TearDownState(self):
-        barz_tear_down_call_counter[0] += 1
-    def AssertAndCleanUpFoo():
-      self.assertEquals(1, fooz_init_call_counter[0])
-      self.assertEquals(1, fooz_tear_down_call_counter[0])
-      fooz_init_call_counter[0] = 0
-      fooz_tear_down_call_counter[0] = 0
-
-    story_set1_list = [FoozStoryState, FoozStoryState, FoozStoryState,
-                       BarzStoryState, BarzStoryState]
-    story_set1 = SetupStorySet(True, story_set1_list)
-    self.RunStoryTest(story_set1, 15)
-    AssertAndCleanUpFoo()
-    self.assertEquals(1, barz_init_call_counter[0])
-    self.assertEquals(1, barz_tear_down_call_counter[0])
-    barz_init_call_counter[0] = 0
-    barz_tear_down_call_counter[0] = 0
-
-    story_set2_list = [FoozStoryState, FoozStoryState, FoozStoryState,
-                       FoozStoryState]
-    story_set2 = SetupStorySet(False, story_set2_list)
-    self.RunStoryTest(story_set2, 27)
-    AssertAndCleanUpFoo()
-    self.assertEquals(0, barz_init_call_counter[0])
-    self.assertEquals(0, barz_tear_down_call_counter[0])
 
   def testAppCrashExceptionCausesFailureValue(self):
     self.SuppressExceptionFormatting()

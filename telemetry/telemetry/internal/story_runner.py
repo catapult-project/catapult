@@ -159,42 +159,6 @@ class StoryGroup(object):
     self._stories.append(story)
 
 
-def StoriesGroupedByStateClass(story_set, allow_multiple_groups):
-  """ Returns a list of story groups which each contains stories with
-  the same shared_state_class.
-
-  Example:
-    Assume A1, A2, A3 are stories with same shared story class, and
-    similar for B1, B2.
-    If their orders in story set is A1 A2 B1 B2 A3, then the grouping will
-    be [A1 A2] [B1 B2] [A3].
-
-  It's purposefully done this way to make sure that order of
-  stories are the same of that defined in story_set. It's recommended that
-  stories with the same states should be arranged next to each others in
-  story sets to reduce the overhead of setting up & tearing down the
-  shared story state.
-  """
-  story_groups = []
-  story_groups.append(
-      StoryGroup(story_set[0].shared_state_class))
-  for story in story_set:
-    if (story.shared_state_class is not
-        story_groups[-1].shared_state_class):
-      if not allow_multiple_groups:
-        raise ValueError('This StorySet is only allowed to have one '
-                         'SharedState but contains the following '
-                         'SharedState classes: %s, %s.\n Either '
-                         'remove the extra SharedStates or override '
-                         'allow_mixed_story_states.' % (
-                         story_groups[-1].shared_state_class,
-                         story.shared_state_class))
-      story_groups.append(
-          StoryGroup(story.shared_state_class))
-    story_groups[-1].AddStory(story)
-  return story_groups
-
-
 def Run(test, story_set, finder_options, results, max_failures=None,
         tear_down_after_story=False, tear_down_after_story_set=False,
         expectations=None, metadata=None):
@@ -229,87 +193,82 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   if effective_max_failures is None:
     effective_max_failures = max_failures
 
-  story_groups = StoriesGroupedByStateClass(
-      stories,
-      story_set.allow_mixed_story_states)
+  state = None
+  try:
+    for storyset_repeat_counter in xrange(finder_options.pageset_repeat):
+      for story in stories:
+        if not state:
+          # Construct shared state by using a copy of finder_options. Shared
+          # state may update the finder_options. If we tear down the shared
+          # state after this story run, we want to construct the shared
+          # state for the next story from the original finder_options.
+          state = story_set.shared_state_class(
+              test, finder_options.Copy(), story_set)
 
-  for group in story_groups:
-    state = None
-    try:
-      for storyset_repeat_counter in xrange(finder_options.pageset_repeat):
-        for story in group.stories:
-          if not state:
-            # Construct shared state by using a copy of finder_options. Shared
-            # state may update the finder_options. If we tear down the shared
-            # state after this story run, we want to construct the shared
-            # state for the next story from the original finder_options.
-            state = group.shared_state_class(
-                test, finder_options.Copy(), story_set)
+        results.WillRunPage(story, storyset_repeat_counter)
 
-          results.WillRunPage(story, storyset_repeat_counter)
+        if expectations:
+          disabled = expectations.IsStoryDisabled(
+              story, state.platform, finder_options)
+          if disabled and not finder_options.run_disabled_tests:
+            results.AddValue(skip.SkipValue(story, disabled))
+            results.DidRunPage(story)
+            continue
 
-          if expectations:
-            disabled = expectations.IsStoryDisabled(
-                story, state.platform, finder_options)
-            if disabled and not finder_options.run_disabled_tests:
-              results.AddValue(skip.SkipValue(story, disabled))
-              results.DidRunPage(story)
-              continue
-
-          try:
-            state.platform.WaitForBatteryTemperature(35)
-            _WaitForThermalThrottlingIfNeeded(state.platform)
-            _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
-          except exceptions.Error:
-            # Catch all Telemetry errors to give the story a chance to retry.
-            # The retry is enabled by tearing down the state and creating
-            # a new state instance in the next iteration.
-            try:
-              # If TearDownState raises, do not catch the exception.
-              # (The Error was saved as a failure value.)
-              state.TearDownState()
-            finally:
-              # Later finally-blocks use state, so ensure it is cleared.
-              state = None
-          finally:
-            has_existing_exception = sys.exc_info() != (None, None, None)
-            try:
-              if state:
-                _CheckThermalThrottling(state.platform)
-              results.DidRunPage(story)
-            except Exception:
-              if not has_existing_exception:
-                raise
-              # Print current exception and propagate existing exception.
-              exception_formatter.PrintFormattedException(
-                  msg='Exception from result processing:')
-            if state and tear_down_after_story:
-              state.TearDownState()
-              state = None
-          if (effective_max_failures is not None and
-              len(results.failures) > effective_max_failures):
-            logging.error('Too many failures. Aborting.')
-            return
-        if state and tear_down_after_story_set:
-          state.TearDownState()
-          state = None
-    finally:
-      results.PopulateHistogramSet(metadata)
-      tagmap = _GenerateTagMapFromStorySet(stories)
-      if tagmap.tags_to_story_names:
-        results.histograms.AddSharedDiagnostic(
-            reserved_infos.TAG_MAP.name, tagmap)
-
-      if state:
-        has_existing_exception = sys.exc_info() != (None, None, None)
         try:
-          state.TearDownState()
-        except Exception:
-          if not has_existing_exception:
-            raise
-          # Print current exception and propagate existing exception.
-          exception_formatter.PrintFormattedException(
-              msg='Exception from TearDownState:')
+          state.platform.WaitForBatteryTemperature(35)
+          _WaitForThermalThrottlingIfNeeded(state.platform)
+          _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
+        except exceptions.Error:
+          # Catch all Telemetry errors to give the story a chance to retry.
+          # The retry is enabled by tearing down the state and creating
+          # a new state instance in the next iteration.
+          try:
+            # If TearDownState raises, do not catch the exception.
+            # (The Error was saved as a failure value.)
+            state.TearDownState()
+          finally:
+            # Later finally-blocks use state, so ensure it is cleared.
+            state = None
+        finally:
+          has_existing_exception = sys.exc_info() != (None, None, None)
+          try:
+            if state:
+              _CheckThermalThrottling(state.platform)
+            results.DidRunPage(story)
+          except Exception:
+            if not has_existing_exception:
+              raise
+            # Print current exception and propagate existing exception.
+            exception_formatter.PrintFormattedException(
+                msg='Exception from result processing:')
+          if state and tear_down_after_story:
+            state.TearDownState()
+            state = None
+        if (effective_max_failures is not None and
+            len(results.failures) > effective_max_failures):
+          logging.error('Too many failures. Aborting.')
+          return
+      if state and tear_down_after_story_set:
+        state.TearDownState()
+        state = None
+  finally:
+    results.PopulateHistogramSet(metadata)
+    tagmap = _GenerateTagMapFromStorySet(stories)
+    if tagmap.tags_to_story_names:
+      results.histograms.AddSharedDiagnostic(
+          reserved_infos.TAG_MAP.name, tagmap)
+
+    if state:
+      has_existing_exception = sys.exc_info() != (None, None, None)
+      try:
+        state.TearDownState()
+      except Exception:
+        if not has_existing_exception:
+          raise
+        # Print current exception and propagate existing exception.
+        exception_formatter.PrintFormattedException(
+            msg='Exception from TearDownState:')
 
 
 def ValidateStory(story):
