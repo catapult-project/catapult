@@ -53,8 +53,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return process_statistic_timeline_data.IdleWakeupTimelineData(pid, 0)
     # Numbers reported by top may have a '+' appended.
     wakeup_count = int(top_output[-1].strip('+ '))
-    return process_statistic_timeline_data.IdleWakeupTimelineData(pid,
-        wakeup_count)
+    return process_statistic_timeline_data.IdleWakeupTimelineData(
+        pid, wakeup_count)
 
   def GetCpuStats(self, pid):
     """Returns a dict of cpu statistics for the process represented by |pid|."""

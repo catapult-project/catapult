@@ -20,8 +20,8 @@ from telemetry.internal.platform.power_monitor import msr_power_monitor
 
 
 _POSSIBLE_PERFHOST_APPLICATIONS = [
-  'perfhost_precise',
-  'perfhost_trusty',
+    'perfhost_precise',
+    'perfhost_trusty',
 ]
 
 
