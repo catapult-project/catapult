@@ -6,7 +6,7 @@ import unittest
 
 from telemetry.internal.platform import power_monitor as power_monitor
 from telemetry.internal.platform.power_monitor import (
-  android_power_monitor_controller)
+    android_power_monitor_controller)
 import mock
 from devil.android import battery_utils
 

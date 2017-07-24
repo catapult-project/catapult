@@ -11,19 +11,24 @@ from telemetry.internal.platform.power_monitor import pm_mock
 _PACKAGE = 'com.google.android.apps.chrome'
 
 _TYPICAL_POWER_DATA = {
-      'system_total': 2000.0,
-      'per_package': {
-        _PACKAGE: {'data': [23.9], 'uid': '12345'}
-      }
+    'system_total': 2000.0,
+    'per_package': {
+        _PACKAGE: {
+            'data': [23.9],
+            'uid': '12345'
+        }
     }
+}
 
 _TYPICAL_POWER_DATA_MULTISAMPLE = {
-      'system_total': 2000.0,
-      'per_package': {
-        _PACKAGE: {'data': [23.9, 26.1], 'uid': '12345'}
-      }
+    'system_total': 2000.0,
+    'per_package': {
+        _PACKAGE: {
+            'data': [23.9, 26.1],
+            'uid': '12345'
+        }
     }
-
+}
 
 class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
 
@@ -36,8 +41,8 @@ class DumpsysPowerMonitorMonitorTest(unittest.TestCase):
 
   def testSystemEnergyConsumption(self):
     power_data = {
-      'system_total': 2000.0,
-      'per_package': {}
+        'system_total': 2000.0,
+        'per_package': {}
     }
     results = (
         android_dumpsys_power_monitor.DumpsysPowerMonitor.ProcessPowerData(

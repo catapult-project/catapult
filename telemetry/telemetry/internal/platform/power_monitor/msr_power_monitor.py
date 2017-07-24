@@ -124,8 +124,9 @@ class MsrPowerMonitorLinux(MsrPowerMonitor):
 
 class MsrPowerMonitorWin(MsrPowerMonitor):
   def CanMonitorPower(self):
-    family, model = map(int, re.match('.+ Family ([0-9]+) Model ([0-9]+)',
-                        platform.processor()).groups())
+    family, model = map(int, re.match(
+        '.+ Family ([0-9]+) Model ([0-9]+)',
+        platform.processor()).groups())
     if not _IsSandyBridgeOrLater(platform.processor(), family, model):
       logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
       return False
