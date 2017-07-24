@@ -140,25 +140,6 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
           msg='Exception raised when cleaning story run: ')
 
 
-class StoryGroup(object):
-  def __init__(self, shared_state_class):
-    self._shared_state_class = shared_state_class
-    self._stories = []
-
-  @property
-  def shared_state_class(self):
-    return self._shared_state_class
-
-  @property
-  def stories(self):
-    return self._stories
-
-  def AddStory(self, story):
-    assert (story.shared_state_class is
-            self._shared_state_class)
-    self._stories.append(story)
-
-
 def Run(test, story_set, finder_options, results, max_failures=None,
         tear_down_after_story=False, tear_down_after_story_set=False,
         expectations=None, metadata=None):
