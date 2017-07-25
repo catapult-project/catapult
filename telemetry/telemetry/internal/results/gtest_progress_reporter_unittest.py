@@ -136,8 +136,9 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
-    results.AddValue(skip.SkipValue(test_story_set.stories[0],
-        'Page skipped for testing reason'))
+    results.AddValue(
+        skip.SkipValue(test_story_set.stories[0],
+                       'Page skipped for testing reason'))
     results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
@@ -239,7 +240,8 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
-    results.AddValue(skip.SkipValue(test_story_set.stories[0],
+    results.AddValue(skip.SkipValue(
+        test_story_set.stories[0],
         'Page skipped for testing reason'))
     results.DidRunPage(test_story_set.stories[0])
 

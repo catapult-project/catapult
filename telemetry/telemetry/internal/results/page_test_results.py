@@ -46,7 +46,7 @@ class TelemetryInfo(object):
   @benchmark_name.setter
   def benchmark_name(self, benchmark_name):
     assert self.benchmark_name is None, (
-      'benchmark_name must be set exactly once')
+        'benchmark_name must be set exactly once')
     self._benchmark_name = benchmark_name
 
   @property
@@ -56,7 +56,7 @@ class TelemetryInfo(object):
   @benchmark_start_ms.setter
   def benchmark_start_ms(self, benchmark_start_ms):
     assert self.benchmark_start_ms is None, (
-      'benchmark_start_ms must be set exactly once')
+        'benchmark_start_ms must be set exactly once')
     self._benchmark_start_ms = benchmark_start_ms
 
   @property
@@ -197,7 +197,7 @@ class PageTestResults(object):
 
     if vinn_result.returncode != 0:
       logging.error('Error converting chart json to Histograms:\n' +
-          vinn_result.stdout)
+                    vinn_result.stdout)
       return []
     self.histograms.ImportDicts(json.loads(vinn_result.stdout))
     self.histograms.ResolveRelatedHistograms()
@@ -329,7 +329,7 @@ class PageTestResults(object):
     assert self._benchmark_enabled, 'Cannot add value to disabled results'
     self._ValidateValue(value)
     is_first_result = (
-      self._current_page_run.story not in self._all_stories)
+        self._current_page_run.story not in self._all_stories)
 
     story_keys = self._current_page_run.story.grouping_keys
 
@@ -445,4 +445,4 @@ class PageTestResults(object):
           self._pages_to_profiling_files_cloud_url[page].append(cloud_url)
         except cloud_storage.PermissionError as e:
           logging.error('Cannot upload profiling files to cloud storage due to '
-                        ' permission error: %s' % e.message)
+                        ' permission error: %s', e.message)
