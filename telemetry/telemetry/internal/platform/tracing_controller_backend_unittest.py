@@ -73,24 +73,18 @@ class FakeTracingAgentStartAndClockSync(FakeTracingAgentBase):
 
 class FakeTracingAgentStartAndNoClockSync(FakeTracingAgentBase):
   def __init__(self, platform):
-    super(FakeTracingAgentStartAndNoClockSync, self).__init__(platform,
-                                                            start=True,
-                                                            clock_sync=False)
-
+    super(FakeTracingAgentStartAndNoClockSync, self).__init__(
+        platform, start=True, clock_sync=False)
 
 class FakeTracingAgentNoStartAndNoClockSync(FakeTracingAgentBase):
   def __init__(self, platform):
-    super(FakeTracingAgentNoStartAndNoClockSync, self).__init__(platform,
-                                                            start=False,
-                                                            clock_sync=False)
-
+    super(FakeTracingAgentNoStartAndNoClockSync, self).__init__(
+        platform, start=False, clock_sync=False)
 
 class FakeTracingAgentNoStartAndClockSync(FakeTracingAgentBase):
   def __init__(self, platform):
-    super(FakeTracingAgentNoStartAndClockSync, self).__init__(platform,
-                                                              start=False,
-                                                              clock_sync=True)
-
+    super(FakeTracingAgentNoStartAndClockSync, self).__init__(
+        platform, start=False, clock_sync=True)
 
 class TracingControllerBackendTest(unittest.TestCase):
   def _getControllerEventsAslist(self, data):

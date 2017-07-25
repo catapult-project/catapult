@@ -77,7 +77,7 @@ def LocalPath(binary_name, arch, os_name, os_version=None):
 
 
 def FetchBinaryDependencies(platform, client_configs,
-                          fetch_reference_chrome_binary):
+                            fetch_reference_chrome_binary):
   """ Fetch all binary dependenencies for the given |platform|.
 
   Note: we don't fetch browser binaries by default because the size of the
@@ -101,7 +101,8 @@ def FetchBinaryDependencies(platform, client_configs,
   host_platform = None
   fetch_devil_deps = False
   if platform.GetOSName() == 'android':
-    host_platform = '%s_%s' % (py_utils.GetHostOsName(),
+    host_platform = '%s_%s' % (
+        py_utils.GetHostOsName(),
         py_utils.GetHostArchName())
     dep_manager.PrefetchPaths(host_platform)
     # TODO(aiolos): this is a hack to prefetch the devil deps.
@@ -144,7 +145,7 @@ def _FetchReferenceBrowserBinary(platform):
   os_name = platform.GetOSName()
   arch_name = platform.GetArchName()
   manager = binary_manager.BinaryManager(
-             [CHROME_BINARY_CONFIG])
+      [CHROME_BINARY_CONFIG])
   if os_name == 'android':
     os_version = dependency_util.GetChromeApkOsVersion(
         platform.GetOSVersionName())
@@ -157,7 +158,8 @@ def _FetchReferenceBrowserBinary(platform):
 
 def UpdateDependency(dependency, dep_local_path, version,
                      os_name=None, arch_name=None):
-  config = os.path.join(util.GetTelemetryDir(), 'telemetry', 'internal',
+  config = os.path.join(
+      util.GetTelemetryDir(), 'telemetry', 'internal',
       'binary_dependencies.json')
 
   if not os_name:
@@ -176,7 +178,7 @@ def UpdateDependency(dependency, dep_local_path, version,
   except ValueError:
     raise RuntimeError(
         ('binary_dependencies.json entry for %s missing or invalid; please add '
-        'it first! (need download_path and path_within_archive)') %
+         'it first! (need download_path and path_within_archive)') %
         dep_platform)
 
   if dep_local_path:
