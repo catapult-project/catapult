@@ -1,4 +1,4 @@
-# Copyright 2017 The Chromium Authors. All rights reserved.
+  # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -29,11 +29,11 @@ def ResultsAsDict(page_test_results):
   """
   telemetry_info = page_test_results.telemetry_info
   result_dict = {
-    'interrupted': telemetry_info.benchmark_interrupted,
-    'path_delimiter': '/',
-    'version': 3,
-    'seconds_since_epoch': telemetry_info.benchmark_start_ms,
-    'tests': {},
+      'interrupted': telemetry_info.benchmark_interrupted,
+      'path_delimiter': '/',
+      'version': 3,
+      'seconds_since_epoch': telemetry_info.benchmark_start_ms,
+      'tests': {},
   }
   status_counter = collections.Counter()
   for run in page_test_results.all_page_runs:
@@ -73,6 +73,7 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
 
     See: https://www.chromium.org/developers/the-json-test-results-format
     """
-    json.dump(ResultsAsDict(page_test_results),
+    json.dump(
+        ResultsAsDict(page_test_results),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')

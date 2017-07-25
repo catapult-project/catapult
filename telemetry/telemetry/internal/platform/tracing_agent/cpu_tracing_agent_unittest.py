@@ -50,9 +50,9 @@ class CpuTracingAgentTest(unittest.TestCase):
   @decorators.Enabled('linux', 'mac', 'win')
   def testIsSupported(self):
     self.assertTrue(cpu_tracing_agent.CpuTracingAgent.IsSupported(
-      self._desktop_backend))
+        self._desktop_backend))
     self.assertFalse(cpu_tracing_agent.CpuTracingAgent.IsSupported(
-      FakeAndroidPlatformBackend()))
+        FakeAndroidPlatformBackend()))
 
   @decorators.Enabled('linux', 'mac', 'win')
   def testStartAgentTracing(self):
@@ -88,7 +88,7 @@ class CpuTracingAgentTest(unittest.TestCase):
   def testCollectAgentTraceDataBeforeStop(self):
     self._agent.StartAgentTracing(self._config, 0)
     self.assertRaises(AssertionError, self._agent.CollectAgentTraceData,
-        trace_data.TraceDataBuilder())
+                      trace_data.TraceDataBuilder())
     self._agent.StopAgentTracing()
 
   @decorators.Enabled('linux', 'mac', 'win')
@@ -152,7 +152,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     proc_collector = cpu_tracing_agent.WindowsProcessCollector()
     proc_collector.Init()
     proc = proc_collector._ParseProcessString(
-      '0 1 Multi Word Process 50 75')
+        '0 1 Multi Word Process 50 75')
     self.assertEquals(proc['ppid'], 0)
     self.assertEquals(proc['pid'], 1)
     self.assertEquals(proc['name'], 'Multi Word Process')

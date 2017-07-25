@@ -44,7 +44,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
 
     if vinn_result.returncode != 0:
       logging.error('Error converting chart json to Histograms:\n' +
-          vinn_result.stdout)
+                    vinn_result.stdout)
       return []
     return json.loads(vinn_result.stdout)
 
@@ -55,7 +55,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     if isinstance(histograms, histogram_set.HistogramSet):
       histograms = histograms.AsDicts()
 
-    results_renderer.RenderHTMLView(histograms,
+    results_renderer.RenderHTMLView(
+        histograms,
         self._output_stream, self._reset_results)
     file_path = os.path.abspath(self._output_stream.name)
     if self._upload_bucket:
