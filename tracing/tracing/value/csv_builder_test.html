@@ -18,13 +18,16 @@ tr.b.unittest.testSuite(function() {
       nans: true,
       percentile: [0.1, 0.9],
     });
-    new tr.v.d.TelemetryInfo({
-      benchmarkName: 'benchmark A',
-      storyDisplayName: 'story A',
-      benchmarkStartMs: 0,
-      storysetRepeatCounter: 0,
-      label: 'label A',
-    }).addToHistogram(hist0);
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARKS,
+        new tr.v.d.GenericSet(['benchmark A']));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.LABELS,
+        new tr.v.d.GenericSet(['label A']));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['story A']));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+        new tr.v.d.DateRange(0));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
+        new tr.v.d.GenericSet([0]));
     for (let i = 0; i <= 1e3; i += 10) {
       hist0.addSample(i);
     }
@@ -40,28 +43,27 @@ tr.b.unittest.testSuite(function() {
     });
 
     const hist2 = new tr.v.Histogram('hist2', tr.b.Unit.byName.count);
-    new tr.v.d.TelemetryInfo({
-      benchmarkName: 'benchmark A',
-      benchmarkStartMs: 1499726648646,
-    }).addToHistogram(hist2);
+    hist2.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARKS,
+        new tr.v.d.GenericSet(['benchmark A']));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+        new tr.v.d.DateRange(1499726648646));
 
     const histograms = new tr.v.HistogramSet([hist0, hist1, hist2]);
     let csv = new tr.v.CSVBuilder(histograms);
     csv.build();
     csv = csv.toString().split('\n');
     assert.lengthOf(csv, histograms.length + 2);
-    assert.strictEqual(
-        csv[0], 'name,unit,avg,nans,pct_010,pct_090,count,max,min,std,sum,' +
-        'benchmark,benchmarkStart,bot,build,label,master,' +
-        'story,storysetRepeat,tir,traceStart');
-    assert.strictEqual(
-        csv[1], 'hist0,B,500,1,150,950,,,,,,benchmark A,1970-01-01 00:00:00' +
-        ',,,label A,,story A,storyset repeat 0,,');
+    assert.strictEqual(csv[0],
+        'name,unit,avg,nans,pct_010,pct_090,count,max,min,std,sum,benchmark,' +
+        'benchmarkStart,bot,build,label,master,story,storysetRepeat,tir,' +
+        'traceStart');
+    assert.strictEqual(csv[1],
+        'hist0,B,500,1,150,950,,,,,,benchmark A,2017-07-10 22:44:08,,,label ' +
+        'A,,story A,0,,');
     assert.strictEqual(csv[2],
-        'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,Value,,,0,,');
-    assert.strictEqual(csv[3], 'hist2,,,,,,0,-Infinity,Infinity,,0,' +
-        'benchmark A,2017-07-10 22:44:08,,,benchmark A 2017-07-10 ' +
-        '22:44:08,,,storyset repeat undefined,,');
+        'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,Value,,,,,');
+    assert.strictEqual(csv[3],
+        'hist2,,,,,,0,-Infinity,Infinity,,0,benchmark A,,,,benchmark A,,,,,');
     assert.strictEqual(csv[4], '');
   });
 });

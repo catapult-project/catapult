@@ -23,22 +23,31 @@ tr.b.unittest.testSuite(function() {
     const collector = new tr.v.HistogramParameterCollector();
     collector.process([
       tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
-        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
-          label: 'A',
-          benchmarkStartMs: 1000,
-        })},
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(1000),
+          ],
+        ]),
       }),
       tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
-        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
-          label: 'B',
-          benchmarkStartMs: 3000,
-        })},
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(3000),
+          ],
+        ]),
       }),
       tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
-        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
-          label: 'C',
-          benchmarkStartMs: 2000,
-        })},
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['C']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(2000),
+          ],
+        ]),
       }),
     ]);
     const labels = collector.labels;
@@ -53,52 +62,29 @@ tr.b.unittest.testSuite(function() {
     collector.process([
       tr.v.Histogram.create('a', tr.b.Unit.byName.count, 0, {
         diagnostics: new Map([
-          [tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-            label: 'A',
-            benchmarkStartMs: 1000,
-            storysetRepeatCounter: 0,
-            storyDisplayName: 'R',
-            storyGroupingKeys: {'D': 'D0', 'G': 'G'},
-          })],
-          [tr.v.d.RESERVED_NAMES.BUILDBOT, new tr.v.d.BuildbotInfo({
-            buildbotMasterName: 'V',
-            buildNumber: 57,
-          })],
           [tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['F'])],
+          [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+          [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(1000)],
+          [tr.v.d.RESERVED_NAMES.STORYSET_REPEATS, new tr.v.d.GenericSet([0])],
+          [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['R'])],
         ]),
       }),
       tr.v.Histogram.create('b', tr.b.Unit.byName.count, 0, {
         diagnostics: new Map([
-          [tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-            label: 'B',
-            benchmarkStartMs: 3000,
-            benchmarkName: 'N',
-            storysetRepeatCounter: 1,
-            legacyTIRLabel: 'T',
-            storyGroupingKeys: {'D': 'D1', 'G': 'G'},
-          })],
-          [tr.v.d.RESERVED_NAMES.BUILDBOT, new tr.v.d.BuildbotInfo({
-            buildbotMasterName: 'W',
-            buildbotName: 'Y',
-          })],
           [tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['F'])],
+          [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+          [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(3000)],
+          [tr.v.d.RESERVED_NAMES.STORYSET_REPEATS, new tr.v.d.GenericSet([1])],
+          [tr.v.d.RESERVED_NAMES.BENCHMARKS, new tr.v.d.GenericSet(['N'])],
         ]),
       }),
       tr.v.Histogram.create('c', tr.b.Unit.byName.count, 0, {
         diagnostics: new Map([
-          [tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-            label: 'C',
-            benchmarkStartMs: 2000,
-            benchmarkName: 'M',
-            storyDisplayName: 'P',
-            legacyTIRLabel: 'S',
-            storyGroupingKeys: {'G': 'G'},
-          })],
-          [tr.v.d.RESERVED_NAMES.BUILDBOT, new tr.v.d.BuildbotInfo({
-            buildbotName: 'X',
-            buildNumber: 42,
-          })],
           [tr.v.d.RESERVED_NAMES.STORY_TAGS, new tr.v.d.GenericSet(['E', 'F'])],
+          [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['C'])],
+          [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(2000)],
+          [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['P'])],
+          [tr.v.d.RESERVED_NAMES.BENCHMARKS, new tr.v.d.GenericSet(['M'])],
         ]),
       }),
     ]);
@@ -113,23 +99,13 @@ tr.b.unittest.testSuite(function() {
         tr.v.HistogramGrouping.STORYSET_REPEAT.key));
     assert.isTrue(possibleGroupingKeys.has(
         tr.v.HistogramGrouping.STORY_NAME.key));
-    assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.LEGACY_TIR_LABEL.key));
-    assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.MASTER_NAME.key));
-    assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.SLAVE_NAME.key));
-    assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.BUILD_NUMBER.key));
     assert.isFalse(possibleGroupingKeys.has(
         tr.v.HistogramGrouping.DISPLAY_LABEL.key));
     assert.isFalse(possibleGroupingKeys.has(
         tr.v.HistogramGrouping.TRACE_START.key));
-    assert.isTrue(possibleGroupingKeys.has('storyGroupingKey_D'));
-    assert.isFalse(possibleGroupingKeys.has('storyGroupingKey_G'));
     assert.isTrue(possibleGroupingKeys.has('ETag'));
     assert.isFalse(possibleGroupingKeys.has('FTag'));
-    assert.strictEqual(possibleGroupingKeys.size, 11);
+    assert.strictEqual(possibleGroupingKeys.size, 6);
   });
 });
 </script>

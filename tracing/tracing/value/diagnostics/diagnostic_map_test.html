@@ -138,8 +138,7 @@ tr.b.unittest.testSuite(function() {
     const histograms0 = new tr.v.HistogramSet([aHist0, bHist0]);
 
     histograms0.addSharedDiagnostic(
-        tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({label: 'iteration 0'}));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0']));
 
     const aHist1 = new tr.v.Histogram('a', tr.b.Unit.byName.count);
     const bHist1 = new tr.v.Histogram('b', tr.b.Unit.byName.count);
@@ -157,8 +156,7 @@ tr.b.unittest.testSuite(function() {
     const histograms1 = new tr.v.HistogramSet([aHist1, bHist1]);
 
     histograms1.addSharedDiagnostic(
-        tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({label: 'iteration 1'}));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1']));
 
     const aMergedHist = aHist0.clone();
     aMergedHist.addHistogram(aHist1);

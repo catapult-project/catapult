@@ -110,16 +110,12 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
       diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'A',
-        }),
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])
       ]]),
     });
     histograms.createHistogram('b', tr.b.Unit.byName.count, [2], {
       diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'B',
-        }),
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])
       ]]),
     });
     const table = await buildTable(this, histograms);
@@ -141,16 +137,12 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, range(0, 10), {
       diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'A',
-        }),
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])
       ]]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, range(10, 20), {
       diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'B',
-        }),
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])
       ]]),
     });
     const table = await buildTable(this, histograms);
@@ -279,13 +271,13 @@ tr.b.unittest.testSuite(function() {
     const c1Hist = histograms1.createHistogram(
         'c', tr.b.Unit.byName.count, [3]);
     histograms0.addSharedDiagnostic(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'L0', benchmarkStartMs: 0,
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['L0']));
+    histograms0.addSharedDiagnostic(
+        tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(0));
     histograms1.addSharedDiagnostic(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'L1', benchmarkStartMs: 1,
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['L1']));
+    histograms1.addSharedDiagnostic(
+        tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(1));
 
     const table = await buildTable(this, new tr.v.HistogramSet(
         Array.from(histograms0).concat(Array.from(histograms1))));
@@ -351,11 +343,11 @@ tr.b.unittest.testSuite(function() {
   test('viewRowExpanded', async function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
-    aHist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({storyDisplayName: 'A'}));
+    aHist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['A']));
     const bHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
-    bHist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({storyDisplayName: 'B'}));
+    bHist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
@@ -373,11 +365,11 @@ tr.b.unittest.testSuite(function() {
   test('controlRowExpanded', async function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
-    aHist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({storyDisplayName: 'A'}));
+    aHist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['A']));
     const bHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
-    bHist.diagnostics.set(tr.v.d.RESERVED_NAMES.TELEMETRY,
-        new tr.v.d.TelemetryInfo({storyDisplayName: 'B'}));
+    bHist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
@@ -397,24 +389,24 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A', label: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B', label: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A', label: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B', label: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
@@ -435,32 +427,24 @@ tr.b.unittest.testSuite(function() {
   test('overviewSorted', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [4], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'D',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['D'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [2], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [3], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'C',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['C'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A'])],
+      ]),
     });
     const table = await buildTable(this, histograms);
     await table.viewState.update({
@@ -497,28 +481,24 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A',
-          label: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B',
-          label: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A',
-          label: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [2]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B',
-          label: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B']));
+    hist.diagnostics.set(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
@@ -540,36 +520,28 @@ tr.b.unittest.testSuite(function() {
   test('overviewStatistic', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'X',
-          label: 'A',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['X'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1, 1], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'Y',
-          label: 'A',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['Y'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1, 1, 1], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'X',
-          label: 'B',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['X'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1, 1, 1, 1], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'Y',
-          label: 'B',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['Y'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+      ]),
     });
     const table = await buildTable(this, histograms);
     await table.viewState.update({
@@ -634,14 +606,10 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
 
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('A')
@@ -677,19 +645,15 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, range(0, 100), {
       binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'A',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+      ]),
     });
     histograms.createHistogram('a', tr.b.Unit.byName.count, range(50, 150), {
       binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          label: 'B',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+      ]),
     });
     const table = await buildTable(this, histograms);
 
@@ -709,14 +673,10 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A']));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B',
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B']));
     const table = await buildTable(this, histograms);
     assert.lengthOf(table.leafHistograms, 1);
     await table.viewState.update({groupings: [
@@ -748,14 +708,12 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: '0'.repeat(100),
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['0'.repeat(100)]));
     hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
     hist.diagnostics.set(
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: '1'.repeat(100),
-        }));
+        tr.v.d.RESERVED_NAMES.STORIES,
+        new tr.v.d.GenericSet(['1'.repeat(100)]));
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
@@ -789,75 +747,59 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [0], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story0',
-          label: '0',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story0'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0'])],
+      ]),
     });
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [10], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story0',
-          label: '1',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story0'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1'])],
+      ]),
     });
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [100], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story1',
-          label: '0',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story1'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0'])],
+      ]),
     });
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [110], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story1',
-          label: '1',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story1'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1'])],
+      ]),
     });
     histograms.createHistogram('bar', tr.b.Unit.byName.count, [0], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story0',
-          label: '0',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story0'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0'])],
+      ]),
     });
     histograms.createHistogram('bar', tr.b.Unit.byName.count, [9], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story0',
-          label: '1',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story0'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1'])],
+      ]),
     });
     histograms.createHistogram('bar', tr.b.Unit.byName.count, [90], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story1',
-          label: '0',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story1'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0'])],
+      ]),
     });
     histograms.createHistogram('bar', tr.b.Unit.byName.count, [99], {
       binBoundaries,
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story1',
-          label: '1',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['story1'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1'])],
+      ]),
     });
     const now = new Date().getTime();
     const table = await buildTable(this, histograms);
@@ -924,37 +866,51 @@ tr.b.unittest.testSuite(function() {
 
     for (let i = 0; i < 2; ++i) {
       for (let j = 0; j < 2; ++j) {
-        const telemetry = new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'story' + i,
-          benchmarkName: 'bench' + j,
-          benchmarkStartMs,
-          label: 'Value',
-        });
-
         const sample = (i * 100) + (j * 10);
 
         const sourceHist = histograms.createHistogram(
             'source', tr.b.Unit.byName.count, [sample], {
               binBoundaries: boundaries,
-              diagnostics: new Map([[
-                tr.v.d.RESERVED_NAMES.TELEMETRY, telemetry,
-              ]]),
+              diagnostics: new Map([
+                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
+                  new tr.v.d.GenericSet(['bench' + j])],
+                [tr.v.d.RESERVED_NAMES.STORIES,
+                  new tr.v.d.GenericSet(['story' + i])],
+                [tr.v.d.RESERVED_NAMES.LABELS,
+                  new tr.v.d.GenericSet(['Value'])],
+                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                  new tr.v.d.DateRange(benchmarkStartMs)],
+              ]),
             });
 
         const aHist = histograms.createHistogram(
             'a', tr.b.Unit.byName.count, [sample / 10], {
               binBoundaries: boundaries,
-              diagnostics: new Map([[
-                tr.v.d.RESERVED_NAMES.TELEMETRY, telemetry,
-              ]]),
+              diagnostics: new Map([
+                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
+                  new tr.v.d.GenericSet(['bench' + j])],
+                [tr.v.d.RESERVED_NAMES.STORIES,
+                  new tr.v.d.GenericSet(['story' + i])],
+                [tr.v.d.RESERVED_NAMES.LABELS,
+                  new tr.v.d.GenericSet(['Value'])],
+                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                  new tr.v.d.DateRange(benchmarkStartMs)],
+              ]),
             });
 
         const bHist = histograms.createHistogram(
             'b', tr.b.Unit.byName.count, [sample * 9 / 10], {
               binBoundaries: boundaries,
-              diagnostics: new Map([[
-                tr.v.d.RESERVED_NAMES.TELEMETRY, telemetry,
-              ]]),
+              diagnostics: new Map([
+                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
+                  new tr.v.d.GenericSet(['bench' + j])],
+                [tr.v.d.RESERVED_NAMES.STORIES,
+                  new tr.v.d.GenericSet(['story' + i])],
+                [tr.v.d.RESERVED_NAMES.LABELS,
+                  new tr.v.d.GenericSet(['Value'])],
+                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                  new tr.v.d.DateRange(benchmarkStartMs)],
+              ]),
             });
 
         const breakdown = new tr.v.d.RelatedHistogramBreakdown();
@@ -967,56 +923,6 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     // TODO test
     // TODO move to histogram_set_table_row_test.html
-  });
-
-  test('regression3281', async function() {
-    // https://github.com/catapult-project/catapult/issues/3281
-    const histograms = new tr.v.HistogramSet();
-
-    const telemetryA = new tr.v.d.TelemetryInfo({label: 'A'});
-    const telemetryB = new tr.v.d.TelemetryInfo({label: 'B'});
-
-    tr.b.Settings.set(tr.v.ui.REFERENCE_DISPLAY_LABEL_KEY, telemetryA.label);
-    tr.b.Settings.set(tr.v.ui.DISPLAY_STATISTIC_KEY, 'z-score');
-
-    histograms.createHistogram(
-        'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, telemetryA,
-          ]]),
-        });
-
-    histograms.createHistogram(
-        'bar', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, telemetryA,
-          ]]),
-        });
-
-    histograms.createHistogram(
-        'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, telemetryB,
-          ]]),
-        });
-
-    histograms.createHistogram(
-        'bar', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, telemetryB,
-          ]]),
-        });
-
-    const table = await buildTable(this, histograms);
-    // TODO test
   });
 
   test('sortByDisplayStatistic', async function() {
@@ -1066,34 +972,28 @@ tr.b.unittest.testSuite(function() {
     const barHist = histograms.createHistogram(
         'a', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [1, 2, 3], {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'bar',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['bar'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
     const fooHist = histograms.createHistogram(
         'a', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [10, 20, 30], {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'foo',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['foo'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     // Add a Histogram with another name so that the table displays the scalars.
     const quxHist = histograms.createHistogram(
         'qux', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'foo',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['foo'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     const table = await buildTable(this, histograms);
@@ -1102,12 +1002,8 @@ tr.b.unittest.testSuite(function() {
       // This is not an exhaustive equality check. This only tests the fields
       // that are distinguishing for this test().
       if (a.name !== b.name) return false;
-      const aTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(a);
-      const bTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(b);
-      if (!aTelemetry || !bTelemetry) return false;
-      // In this test(), |a| is always a merged Histogram and |b| is never a
-      // merged Histogram.
-      return tr.b.getOnlyElement(aTelemetry.labels) === bTelemetry.label;
+      return tr.v.HistogramGrouping.DISPLAY_LABEL.callback(a) ===
+        tr.v.HistogramGrouping.DISPLAY_LABEL.callback(b);
     }
 
     let fooCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
@@ -1361,24 +1257,22 @@ tr.b.unittest.testSuite(function() {
         range(0, 100).map(i => Math.random() * 1e3), {
           binBoundaries: TEST_BOUNDARIES,
           shortName: 'short name',
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'iteration A',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS,
+              new tr.v.d.GenericSet(['iteration A'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     histograms.createHistogram(
         'short name', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         range(0, 100).map(i => Math.random() * 1e3), {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'iteration B',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS,
+              new tr.v.d.GenericSet(['iteration B'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     const table = await buildTable(this, histograms);
@@ -1401,35 +1295,32 @@ tr.b.unittest.testSuite(function() {
         'histogram A', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         range(0, 100).map(i => Math.random() * 1e3), {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'iteration A',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS,
+              new tr.v.d.GenericSet(['iteration A'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     const histB = histograms.createHistogram(
         'histogram B', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         range(0, 100).map(i => Math.random() * 1e3), {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'iteration B',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS,
+              new tr.v.d.GenericSet(['iteration B'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     const histC = histograms.createHistogram(
         'histogram A', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'iteration B',
-              benchmarkStartMs: now,
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS,
+              new tr.v.d.GenericSet(['iteration B'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
+          ]),
         });
 
     const table = await buildTable(this, histograms);
@@ -1464,21 +1355,17 @@ tr.b.unittest.testSuite(function() {
   test('merge_unmergeable', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [], {
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'A',
-          label: 'Value',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['A'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['Value'])],
+      ]),
     });
     histograms.createHistogram('foo', tr.b.Unit.byName.count, [], {
       binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 21),
-      diagnostics: new Map([[
-        tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-          storyDisplayName: 'B',
-          label: 'Value',
-        }),
-      ]]),
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['B'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['Value'])],
+      ]),
     });
     const table = await buildTable(this, histograms);
     assert.strictEqual(table.viewState.tableRowStates.size, 1);
@@ -1495,12 +1382,11 @@ tr.b.unittest.testSuite(function() {
           'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
           range(0, 100).map(i => Math.random() * 1e3), {
             binBoundaries: TEST_BOUNDARIES,
-            diagnostics: new Map([[
-              tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-                label: '' + i,
-                benchmarkStartMs: new Date().getTime(),
-              }),
-            ]]),
+            diagnostics: new Map([
+              [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['' + i])],
+              [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                new tr.v.d.DateRange(new Date().getTime())],
+            ]),
           });
     }
     const table = await buildTable(this, histograms);
@@ -1511,39 +1397,35 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('foo', tr.b.Unit.byName.count,
         range(0, 100).map(i => Math.random() * 1e3), {
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'A',
-              benchmarkStartMs: new Date().getTime(),
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+              new tr.v.d.DateRange(new Date().getTime())],
+          ]),
         });
     histograms.createHistogram('bar', tr.b.Unit.byName.count,
         range(0, 100).map(i => Math.random() * 1e3), {
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'A',
-              benchmarkStartMs: new Date().getTime(),
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+              new tr.v.d.DateRange(new Date().getTime())],
+          ]),
         });
     histograms.createHistogram('foo', tr.b.Unit.byName.count,
         range(0, 100).map(i => Math.random() * 1e3), {
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'B',
-              benchmarkStartMs: new Date().getTime(),
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+              new tr.v.d.DateRange(new Date().getTime())],
+          ]),
         });
     histograms.createHistogram('bar', tr.b.Unit.byName.count,
         range(0, 100).map(i => Math.random() * 1e3), {
-          diagnostics: new Map([[
-            tr.v.d.RESERVED_NAMES.TELEMETRY, new tr.v.d.TelemetryInfo({
-              label: 'B',
-              benchmarkStartMs: new Date().getTime(),
-            }),
-          ]]),
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+            [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+              new tr.v.d.DateRange(new Date().getTime())],
+          ]),
         });
     const table = await buildTable(this, histograms);
     const baseTable = getBaseTable(table);
@@ -1588,8 +1470,7 @@ tr.b.unittest.testSuite(function() {
   // histogram_set_view_test.html
   test('merged', async function() {
     const histograms = new tr.v.HistogramSet();
-    // Add 2^8=256 Histograms, all with the same name, with different
-    // TelemetryInfos.
+    // Add 2^8=256 Histograms, all with the same name, with different metadata.
     const benchmarkNames = ['bm A', 'bm B'];
     const storyGroupingKeys0 = ['A', 'B'];
     const storyGroupingKeys1 = ['C', 'D'];
@@ -1615,20 +1496,23 @@ tr.b.unittest.testSuite(function() {
                   });
                   histograms.createHistogram(name, unit, samples, {
                     description: 'The best description.',
-                    diagnostics: new Map([[
-                      tr.v.d.RESERVED_NAMES.TELEMETRY,
-                      new tr.v.d.TelemetryInfo({
-                        storyGroupingKeys: {
-                          storyGroupingKey0,
-                          storyGroupingKey1,
-                        },
-                        benchmarkName,
-                        storyDisplayName: storyName,
-                        benchmarkStartMs: startMs,
-                        storysetRepeatCounter: storysetCounter,
-                        label,
-                      }),
-                    ]]),
+                    diagnostics: new Map([
+                      [tr.v.d.RESERVED_NAMES.LABELS,
+                        new tr.v.d.GenericSet([label])],
+                      [tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
+                        new tr.v.d.GenericSet([storysetCounter])],
+                      [tr.v.d.RESERVED_NAMES.BENCHMARKS,
+                        new tr.v.d.GenericSet([benchmarkName])],
+                      [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                        new tr.v.d.DateRange(startMs)],
+                      [tr.v.d.RESERVED_NAMES.STORIES,
+                        new tr.v.d.GenericSet([storyName])],
+                      [tr.v.d.RESERVED_NAMES.STORY_TAGS,
+                        new tr.v.d.GenericSet([
+                          `storyGroupingKey0:${storyGroupingKey0}`,
+                          `storyGroupingKey1:${storyGroupingKey1}`,
+                        ])],
+                    ]),
                   });
                 }
               }
@@ -1637,17 +1521,14 @@ tr.b.unittest.testSuite(function() {
         }
       }
     }
+    histograms.buildGroupingsFromTags([tr.v.d.RESERVED_NAMES.STORY_TAGS]);
 
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
       tr.v.HistogramGrouping.BENCHMARK_NAME,
-      new tr.v.HistogramGrouping('storyGroupingKey_storyGroupingKey0',
-          tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
-              'storyGroupingKey0')),
-      new tr.v.HistogramGrouping('storyGroupingKey_storyGroupingKey1',
-          tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
-              'storyGroupingKey1')),
+      tr.v.HistogramGrouping.BY_KEY.get('storyGroupingKey0Tag'),
+      tr.v.HistogramGrouping.BY_KEY.get('storyGroupingKey1Tag'),
       tr.v.HistogramGrouping.STORY_NAME,
       tr.v.HistogramGrouping.BENCHMARK_START,
       tr.v.HistogramGrouping.STORYSET_REPEAT,
@@ -1698,14 +1579,13 @@ tr.b.unittest.testSuite(function() {
       for (let s = 0; s < storyGroupingKeys0.length; ++s) {
         subRowPath.push(s);
         assert.lengthOf(getSubRow().subRows, 2, subRowPath);
-        assert.strictEqual('storyGroupingKey0: ' + storyGroupingKeys0[s],
-            getSubRow().name, subRowPath);
+        assert.strictEqual(storyGroupingKeys0[s], getSubRow().name, subRowPath);
 
         for (let t = 0; t < storyGroupingKeys1.length; ++t) {
           subRowPath.push(t);
           assert.lengthOf(getSubRow().subRows, 2, subRowPath);
-          assert.strictEqual('storyGroupingKey1: ' + storyGroupingKeys1[t],
-              getSubRow().name, subRowPath);
+          assert.strictEqual(storyGroupingKeys1[t], getSubRow().name,
+              subRowPath);
 
           for (let j = 0; j < storyNames.length; ++j) {
             subRowPath.push(j);
@@ -1721,8 +1601,7 @@ tr.b.unittest.testSuite(function() {
               for (let l = 0; l < 2; ++l) {
                 subRowPath.push(l);
                 assert.lengthOf(getSubRow().subRows, 0, subRowPath);
-                assert.strictEqual('storyset repeat ' + l, getSubRow().name,
-                    subRowPath);
+                assert.strictEqual('' + l, getSubRow().name, subRowPath);
                 subRowPath.pop();
               }
               subRowPath.pop();

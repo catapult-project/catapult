@@ -135,7 +135,7 @@ tr.exportTo('tr.v', function() {
   HistogramGrouping.STORYSET_REPEAT = new HistogramGrouping('storysetRepeat',
       stringSetClosure(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
           h => tr.v.d.TelemetryInfo.getField(
-              h, 'storysetRepeatCounterLabel', 0)));
+              h, 'storysetRepeatCounterLabel', '')));
 
   HistogramGrouping.STORY_NAME = new HistogramGrouping('story',
       stringSetClosure(tr.v.d.RESERVED_NAMES.STORIES,
