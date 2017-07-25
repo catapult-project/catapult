@@ -73,38 +73,38 @@ class LegacyHtmlOutputFormatterTest(unittest.TestCase):
         output_file, FakeMetadataForTest(), False, 'browser_type')
     formatter.Format(results)
     expected = {
-      "platform": "browser_type",
-      "buildTime": "1998-09-04T13:00:00.007777",
-      "label": 'test_name (1998-09-04 13:00:00)',
-      "tests": {
-        "test_name": {
-          "metrics": {
-            "a": {
-              "current": [3, 7],
-              "std": 0.0,  # Only one sample per page.
-              "units": "seconds",
-              "important": True
-            },
-            "telemetry_page_measurement_results.num_failed": {
-              "current": [0],
-              "units": "count",
-              "important": False
-            },
-            "a.http://www.bar.com/": {
-              "current": [7],
-              "std": 0.0,
-              "units": "seconds",
-              "important": False
-            },
-            "a.http://www.foo.com/": {
-              "current": [3],
-              "std": 0.0,
-              "units": "seconds",
-              "important": False
+        "platform": "browser_type",
+        "buildTime": "1998-09-04T13:00:00.007777",
+        "label": "test_name (1998-09-04 13:00:00)",
+        "tests": {
+            "test_name": {
+                "metrics": {
+                    "a": {
+                        "current": [3, 7],
+                        "std": 0.0,  # Only one sample per page.
+                        "units": "seconds",
+                        "important": True
+                    },
+                    "telemetry_page_measurement_results.num_failed": {
+                        "current": [0],
+                        "units": "count",
+                        "important": False
+                    },
+                    "a.http://www.bar.com/": {
+                        "current": [7],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": False
+                    },
+                    "a.http://www.foo.com/": {
+                        "current": [3],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": False
+                    }
+                }
             }
-          }
-        }
-      },
+        },
     }
     self.assertEquals(expected, formatter.GetResults())
 
@@ -127,74 +127,75 @@ class LegacyHtmlOutputFormatterTest(unittest.TestCase):
         output_file, FakeMetadataForTest(), False, 'browser_type')
     formatter.Format(results)
     expected = [
-      {
-        "platform": "browser_type",
-        "buildTime": "1998-09-04T13:00:00.007777",
-        "label": 'test_name (1998-09-04 13:00:00)',
-        "tests": {
-          "test_name": {
-            "metrics": {
-              "a": {
-                "current": [3, 7],
-                "units": "seconds",
-                "std": 0.0,  # Only one sample per page.
-                "important": True
-              },
-              "telemetry_page_measurement_results.num_failed": {
-                "current": [0],
-                "units": "count",
-                "important": False
-              },
-              "a.http://www.bar.com/": {
-                "current": [7],
-                "std": 0.0,
-                "units": "seconds",
-                "important": False
-              },
-              "a.http://www.foo.com/": {
-                "current": [3],
-                "std": 0.0,
-                "units": "seconds",
-                "important": False
-              }
-            }
-          }
+        {
+            "platform": "browser_type",
+            "buildTime": "1998-09-04T13:00:00.007777",
+            "label": "test_name (1998-09-04 13:00:00)",
+            "tests": {
+                "test_name": {
+                    "metrics": {
+                        "a": {
+                            "current": [3, 7],
+                            "units": "seconds",
+                            "std": 0.0,  # Only one sample per page.
+                            "important": True
+                        },
+                        "telemetry_page_measurement_results.num_failed": {
+                            "current": [0],
+                            "units": "count",
+                            "important": False
+                        },
+                        "a.http://www.bar.com/": {
+                            "current": [7],
+                            "std": 0.0,
+                            "units": "seconds",
+                            "important": False
+                        },
+                        "a.http://www.foo.com/": {
+                            "current": [3],
+                            "std": 0.0,
+                            "units": "seconds",
+                            "important": False
+                        }
+                    }
+                }
+            },
         },
-      },
-      {
-        "platform": "browser_type",
-        "buildTime": "1998-09-04T13:00:00.007777",
-        "label": 'test_name (1998-09-04 13:00:00)',
-        "tests": {
-          "test_name": {
-            "metrics": {
-              "a": {
-                "current": [4, 8],
-                'std': 0.0,  # Only one sample per page.
-                "units": "seconds",
-                "important": True
-              },
-              "telemetry_page_measurement_results.num_failed": {
-                "current": [0],
-                "units": "count",
-                "important": False,
-              },
-              "a.http://www.bar.com/": {
-                "current": [8],
-                "std": 0.0,
-                "units": "seconds",
-                "important": False
-              },
-              "a.http://www.foo.com/": {
-                "current": [4],
-                "std": 0.0,
-                "units": "seconds",
-                "important": False
-              }
-            }
-          }
-        },
-      }]
+        {
+            "platform": "browser_type",
+            "buildTime": "1998-09-04T13:00:00.007777",
+            "label": "test_name (1998-09-04 13:00:00)",
+            "tests": {
+                "test_name": {
+                    "metrics": {
+                        "a": {
+                            "current": [4, 8],
+                            "std": 0.0,  # Only one sample per page.
+                            "units": "seconds",
+                            "important": True
+                        },
+                        "telemetry_page_measurement_results.num_failed": {
+                            "current": [0],
+                            "units": "count",
+                            "important": False,
+                        },
+                        "a.http://www.bar.com/": {
+                            "current": [8],
+                            "std": 0.0,
+                            "units": "seconds",
+                            "important": False
+                        },
+                        "a.http://www.foo.com/": {
+                            "current": [4],
+                            "std": 0.0,
+                            "units": "seconds",
+                            "important": False
+                        }
+                    }
+                }
+            },
+        }
+    ]
     self.assertEquals(expected, formatter.GetCombinedResults())
     last_output_len = len(output_file.getvalue())
 
@@ -216,53 +217,53 @@ class LegacyHtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-       output_file, FakeMetadataForTest(), True, 'browser_type')
+        output_file, FakeMetadataForTest(), True, 'browser_type')
     formatter.Format(results)
     expected = [{
-      "platform": "browser_type",
-      "buildTime": "1998-09-04T13:00:00.007777",
-      "label": 'test_name (1998-09-04 13:00:00)',
-      "tests": {
-        "test_name": {
-          "metrics": {
-            "a": {
-              "current": [5, 9],
-              'std': 0.0,  # Only one sample per page.
-              "units": "seconds",
-              "important": True
-            },
-            "telemetry_page_measurement_results.num_failed": {
-              "current": [0],
-              "units": "count",
-              "important": False
-            },
-            "a.http://www.bar.com/": {
-              "current": [9],
-              "std": 0.0,
-              "units": "seconds",
-              "important": False
-            },
-            "a.http://www.foo.com/": {
-              "current": [5],
-              "std": 0.0,
-              "units": "seconds",
-              "important": False
-            },
-            "foo-b.http://www.bar.com/": {
-              "current": [20],
-              "std": 0.0,
-              "units": "seconds",
-              "important": False
-            },
-            "foo-b": {
-              "current": [20],
-              "std": 0.0,
-              "units": "seconds",
-              "important": True
+        "platform": "browser_type",
+        "buildTime": "1998-09-04T13:00:00.007777",
+        "label": "test_name (1998-09-04 13:00:00)",
+        "tests": {
+            "test_name": {
+                "metrics": {
+                    "a": {
+                        "current": [5, 9],
+                        "std": 0.0,  # Only one sample per page.
+                        "units": "seconds",
+                        "important": True
+                    },
+                    "telemetry_page_measurement_results.num_failed": {
+                        "current": [0],
+                        "units": "count",
+                        "important": False
+                    },
+                    "a.http://www.bar.com/": {
+                        "current": [9],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": False
+                    },
+                    "a.http://www.foo.com/": {
+                        "current": [5],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": False
+                    },
+                    "foo-b.http://www.bar.com/": {
+                        "current": [20],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": False
+                    },
+                    "foo-b": {
+                        "current": [20],
+                        "std": 0.0,
+                        "units": "seconds",
+                        "important": True
+                    }
+                }
             }
-          }
-        }
-      },
+        },
     }]
     self.assertEquals(expected, formatter.GetCombinedResults())
     self.assertTrue(len(output_file.getvalue()) < last_output_len)
