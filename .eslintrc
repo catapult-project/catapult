@@ -124,7 +124,7 @@
       "one-var-declaration-per-line": "off",
       "operator-assignment": "off",
       "padded-blocks": ["error", "never"],
-      "quote-props": ["error", "consistent"], ## TODO(alexandermont): want to eventually make this disallowQuotedKeysInObjects
+      "quote-props": ["error", "consistent"],
       "quotes": ["error", "single", {"allowTemplateLiterals": true}],
       "radix": "off",
       "require-jsdoc": "off",
