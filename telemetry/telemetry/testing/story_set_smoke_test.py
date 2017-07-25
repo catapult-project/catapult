@@ -138,5 +138,4 @@ class StorySetSmokeTest(unittest.TestCase):
       self.CheckArchive(story_set)
       self.CheckCredentials(story_set)
       self.CheckAttributes(story_set)
-      self.CheckSharedStates(story_set)
       self.CheckPassingStoryRunnerValidation(story_set)
