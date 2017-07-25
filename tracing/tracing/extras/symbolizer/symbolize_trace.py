@@ -814,6 +814,7 @@ class Trace(NodeWrapper):
     self._is_64bit = False
     self._is_win = False
     self._is_mac = False
+    self._is_linux = False
     self._is_cros = False
 
     # Misc per-process information needed only during parsing.
@@ -836,6 +837,7 @@ class Trace(NodeWrapper):
       command_line = metadata['command_line']
       self._is_win = re.search('windows', metadata['os-name'], re.IGNORECASE)
       self._is_mac = re.search('mac', metadata['os-name'], re.IGNORECASE)
+      self._is_linux = re.search('linux', metadata['os-name'], re.IGNORECASE)
       self._is_cros = re.search('cros', metadata['os-name'], re.IGNORECASE)
 
       if self._is_win:
@@ -846,6 +848,11 @@ class Trace(NodeWrapper):
                           re.IGNORECASE))
       if self._is_mac:
         self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
+
+      if self._is_linux:
+        self._is_chromium = not re.search('/usr/bin/google-chrome',
+                                          command_line,
+                                          re.IGNORECASE)
 
       if self._is_cros:
         self._is_chromium = not re.search('/opt/google/chrome/chrome',
@@ -964,6 +971,11 @@ class Trace(NodeWrapper):
   @property
   def is_win(self):
     return self._is_win
+
+
+  @property
+  def is_linux(self):
+    return self._is_linux
 
   @property
   def is_64bit(self):
@@ -1410,6 +1422,8 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
       folder = 'win64-pgo' if trace.is_64bit else 'win-pgo'
     elif trace.is_mac:
       folder = 'mac64'
+    elif trace.is_linux:
+      folder = 'linux64'
     else:
       raise Exception('OS not supported for Breakpad symbolization (%s/%s)' %
                       (trace.os, trace.version))
@@ -1631,11 +1645,13 @@ def main(args):
         has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
                                                 trace.version,
                                                 options.cloud_storage_bucket)
-      if symbolizer.is_win:
+      elif symbolizer.is_win:
         has_symbols = FetchAndExtractSymbolsWin(options.symbol_base_directory,
                                                 trace.version, trace.is_64bit,
                                                 options.cloud_storage_bucket)
-
+      else:
+        raise Exception('OS not supported for native symbolization (%s/%s)' %
+                        (trace.os, trace.version))
     if not has_symbols:
       print 'Cannot fetch symbols from GCS'
       return False
