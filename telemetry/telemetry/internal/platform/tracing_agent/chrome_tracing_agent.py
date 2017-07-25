@@ -88,7 +88,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def _StartDevToolsTracing(self, config, timeout):
     if not chrome_tracing_devtools_manager.IsSupported(self._platform_backend):
       return False
-    devtools_clients = (chrome_tracing_devtools_manager
+    devtools_clients = (
+        chrome_tracing_devtools_manager
         .GetActiveDevToolsClients(self._platform_backend))
     if not devtools_clients:
       return False
@@ -142,7 +143,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         break
       except Exception:
         logging.exception('Failed to record clock sync marker with sync_id=%r '
-                          'via DevTools client %r:' % (sync_id, client))
+                          'via DevTools client %r:', sync_id, client)
     if not has_clock_synced:
       raise ChromeClockSyncError(
           'Failed to issue clock sync to devtools client')
@@ -163,7 +164,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         break
       except Exception:
         logging.exception('Failed to record clock sync marker with sync_id=%r '
-                          'via inspector backend %r:' % (sync_id, backend))
+                          'via inspector backend %r:', sync_id, backend)
     if not has_clock_synced:
       raise ChromeClockSyncError(
           'Failed to issue clock sync to devtools client')
@@ -172,7 +173,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def RecordClockSyncMarker(self, sync_id,
                             record_controller_clock_sync_marker_callback):
     devtools_clients = (chrome_tracing_devtools_manager
-        .GetActiveDevToolsClients(self._platform_backend))
+                        .GetActiveDevToolsClients(self._platform_backend))
     if not devtools_clients:
       raise ChromeClockSyncError('Cannot issue clock sync. No devtools clients')
     version = None
@@ -206,7 +207,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     # exception if there is a stale client. This is because we will potentially
     # lose data if there is a stale client.
     devtools_clients = (chrome_tracing_devtools_manager
-        .GetDevToolsClients(self._platform_backend))
+                        .GetDevToolsClients(self._platform_backend))
     raised_exception_messages = []
     assert len(self._previously_responsive_devtools) == 0
     for client in devtools_clients:
@@ -216,9 +217,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
       except Exception:
         raised_exception_messages.append(
-          'Error when trying to stop Chrome tracing on devtools at port %s:\n%s'
-          % (client.remote_port,
-             ''.join(traceback.format_exception(*sys.exc_info()))))
+            """Error when trying to stop Chrome tracing
+            on devtools at port %s:\n%s"""
+            % (client.remote_port,
+               ''.join(traceback.format_exception(*sys.exc_info()))))
 
     if (self._trace_config.enable_android_graphics_memtrack and
         self._platform_backend.GetOSName() == 'android'):
@@ -237,8 +239,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         client.CollectChromeTracingData(trace_data_builder)
       except Exception:
         raised_exception_messages.append(
-          'Error when collecting Chrome tracing on devtools at port %s:\n%s'
-          % (client.remote_port,
+            'Error when collecting Chrome tracing on devtools at port %s:\n%s' %
+            (client.remote_port,
              ''.join(traceback.format_exception(*sys.exc_info()))))
     self._previously_responsive_devtools = []
 
@@ -250,7 +252,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def _CreateTraceConfigFileString(self, config):
     # See src/components/tracing/trace_config_file.h for the format
     result = {
-      'trace_config':
+        'trace_config':
         config.chrome_trace_config.GetChromeTraceConfigForStartupTracing()
     }
     return json.dumps(result, sort_keys=True)
@@ -260,7 +262,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if self._platform_backend.GetOSName() == 'android':
       self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
-      self._platform_backend.device.WriteFile(self._trace_config_file,
+      self._platform_backend.device.WriteFile(
+          self._trace_config_file,
           self._CreateTraceConfigFileString(config), as_root=True)
       # The config file has fixed path on Android. We need to ensure it is
       # always cleaned up.

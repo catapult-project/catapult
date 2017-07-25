@@ -58,18 +58,18 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
     charts[chart_name][trace_name] = value.AsDict()
 
   result_dict = {
-    'format_version': '0.1',
-    'next_version': '0.2',
-    # TODO(sullivan): benchmark_name, benchmark_description, and
-    # trace_rerun_options should be removed when incrementing format_version
-    # to 0.1.
-    'benchmark_name': benchmark_metadata.name,
-    'benchmark_description': benchmark_metadata.description,
-    'trace_rerun_options': benchmark_metadata.rerun_options,
-    'benchmark_metadata': benchmark_metadata.AsDict(),
-    'charts': charts,
-    # Need to add this in for compatibility with disabled chartjson results.
-    'enabled': True
+      'format_version': '0.1',
+      'next_version': '0.2',
+      # TODO(sullivan): benchmark_name, benchmark_description, and
+      # trace_rerun_options should be removed when incrementing format_version
+      # to 0.1.
+      'benchmark_name': benchmark_metadata.name,
+      'benchmark_description': benchmark_metadata.description,
+      'trace_rerun_options': benchmark_metadata.rerun_options,
+      'benchmark_metadata': benchmark_metadata.AsDict(),
+      'charts': charts,
+      # Need to add this in for compatibility with disabled chartjson results.
+      'enabled': True
   }
 
   return result_dict
@@ -86,8 +86,8 @@ def DisabledResultsDict(benchmark_name):
     A Chart JSON dict corresponding to a disabled benchmark.
   """
   result_dict = {
-    'benchmark_name': benchmark_name,
-    'enabled': False
+      'benchmark_name': benchmark_name,
+      'enabled': False
   }
 
   return result_dict
@@ -104,11 +104,11 @@ class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
 
   def Format(self, page_test_results):
     self._Dump(ResultsAsChartDict(
-      self._benchmark_metadata,
-      page_test_results.all_page_specific_values,
-      page_test_results.all_summary_values))
+        self._benchmark_metadata,
+        page_test_results.all_page_specific_values,
+        page_test_results.all_summary_values))
 
   def _Dump(self, results):
     json.dump(results, self.output_stream, indent=2,
-      separators=(',', ': '))
+              separators=(',', ': '))
     self.output_stream.write('\n')

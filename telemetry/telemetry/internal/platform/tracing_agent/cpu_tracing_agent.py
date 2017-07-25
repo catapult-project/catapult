@@ -24,11 +24,11 @@ def _ParsePsProcessString(line):
     raise ValueError('Line has too few tokens: %s.' % token_list)
 
   return {
-    'pCpu': float(token_list[0]),
-    'pMem': float(token_list[1]),
-    'pid': int(token_list[2]),
-    'ppid': int(token_list[3]),
-    'name': ' '.join(token_list[4:])
+      'pCpu': float(token_list[0]),
+      'pMem': float(token_list[1]),
+      'pid': int(token_list[2]),
+      'ppid': int(token_list[3]),
+      'name': ' '.join(token_list[4:])
   }
 
 
@@ -78,28 +78,28 @@ class WindowsProcessCollector(ProcessCollector):
   '3644      832    chrome#2                 4           34872'
   """
   _GET_PERF_DATA_SHELL_COMMAND = [
-    'wmic',
-    'path', # Retrieve a WMI object from the following path.
-    'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
-    'get',
-    'CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet'
+      'wmic',
+      'path', # Retrieve a WMI object from the following path.
+      'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
+      'get',
+      'CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet'
   ]
 
   _GET_COMMANDS_SHELL_COMMAND = [
-    'wmic',
-    'Process',
-    'get',
-    'CommandLine,ProcessID',
-    # Formatting the result as a CSV means that if no CommandLine is available,
-    # we can at least tell by the lack of data between commas.
-    '/format:csv'
+      'wmic',
+      'Process',
+      'get',
+      'CommandLine,ProcessID',
+      # Formatting the result as a CSV means that if no CommandLine is available
+      # we can at least tell by the lack of data between commas.
+      '/format:csv'
   ]
 
   _GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND = [
-    'wmic',
-    'ComputerSystem',
-    'get',
-    'TotalPhysicalMemory'
+      'wmic',
+      'ComputerSystem',
+      'get',
+      'TotalPhysicalMemory'
   ]
 
   def __init__(self):
@@ -171,11 +171,11 @@ class WindowsProcessCollector(ProcessCollector):
     percent_memory = float(token_list[-1]) / self._physicalMemoryBytes * 100
 
     return {
-      'ppid': int(token_list[0]),
-      'pid': int(token_list[1]),
-      'name': name,
-      'pCpu': float(token_list[-2]),
-      'pMem': percent_memory
+        'ppid': int(token_list[0]),
+        'pid': int(token_list[1]),
+        'name': name,
+        'pCpu': float(token_list[-2]),
+        'pMem': percent_memory
     }
 
   def _GetPidToCommandDict(self):
@@ -200,9 +200,9 @@ class WindowsProcessCollector(ProcessCollector):
   def _ParseCommandString(self, command_string):
     groups = re.match(r'^([^,]+),(.*),([0-9]+)$', command_string).groups()
     return {
-      # Ignore groups[0]: it's the hostname.
-      'pid': int(groups[2]),
-      'command': groups[1]
+        # Ignore groups[0]: it's the hostname.
+        'pid': int(groups[2]),
+        'command': groups[1]
     }
 
 
@@ -213,11 +213,11 @@ class LinuxProcessCollector(ProcessCollector):
   '3.4 8.0 31887 31447 com.app.Webkit'
   """
   _SHELL_COMMAND = [
-    'ps',
-    '-a', # Include processes that aren't session leaders.
-    '-x', # List all processes, even those not owned by the user.
-    '-o', # Show the output in the specified format.
-    'pcpu,pmem,pid,ppid,cmd'
+      'ps',
+      '-a', # Include processes that aren't session leaders.
+      '-x', # List all processes, even those not owned by the user.
+      '-o', # Show the output in the specified format.
+      'pcpu,pmem,pid,ppid,cmd'
   ]
 
   def _GetProcessesAsStrings(self):
@@ -236,12 +236,12 @@ class MacProcessCollector(ProcessCollector):
   """
 
   _SHELL_COMMAND = [
-    'ps',
-    '-a', # Include all users' processes.
-    '-ww', # Don't limit the length of each line.
-    '-x', # Include processes that aren't associated with a terminal.
-    '-o', # Show the output in the specified format.
-    '%cpu %mem pid ppid command' # Put the command last to avoid truncation.
+      'ps',
+      '-a', # Include all users' processes.
+      '-ww', # Don't limit the length of each line.
+      '-x', # Include processes that aren't associated with a terminal.
+      '-o', # Show the output in the specified format.
+      '%cpu %mem pid ppid command' # Put the command last to avoid truncation.
   ]
 
   def _GetProcessesAsStrings(self):
@@ -254,11 +254,11 @@ class MacProcessCollector(ProcessCollector):
 
 class CpuTracingAgent(tracing_agent.TracingAgent):
   _SNAPSHOT_INTERVAL_BY_OS = {
-    # Sampling via wmic on Windows is about twice as expensive as sampling via
-    # ps on Linux and Mac, so we halve the sampling frequency.
-    'win': 2.0,
-    'mac': 1.0,
-    'linux': 1.0
+      # Sampling via wmic on Windows is about twice as expensive as sampling via
+      # ps on Linux and Mac, so we halve the sampling frequency.
+      'win': 2.0,
+      'mac': 1.0,
+      'linux': 1.0
   }
 
   def __init__(self, platform_backend):
@@ -280,7 +280,7 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
 
   def StartAgentTracing(self, config, timeout):
     assert not self._snapshot_ongoing, (
-           'Agent is already taking snapshots when tracing is started.')
+        'Agent is already taking snapshots when tracing is started.')
     if not config.enable_cpu_trace:
       return False
 
@@ -301,12 +301,12 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
 
   def StopAgentTracing(self):
     assert self._snapshot_ongoing, (
-           'Agent is not taking snapshots when tracing is stopped.')
+        'Agent is not taking snapshots when tracing is stopped.')
     self._snapshot_ongoing = False
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     assert not self._snapshot_ongoing, (
-           'Agent is still taking snapshots when data is collected.')
+        'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
     trace_data_builder.AddTraceFor(trace_data.CPU_TRACE_DATA, {
         "traceEvents": self._FormatSnapshotsData(),
@@ -319,16 +319,16 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     """Format raw data into Object Event specified in Trace Format document."""
     pid = os.getpid()
     return [{
-      'name': 'CPUSnapshots',
-      'ph': 'O',
-      'id': '0x1000',
-      'local': True,
-      'ts': timestamp,
-      'pid': pid,
-      'tid':None,
-      'args': {
-        'snapshot':{
-          'processes': snapshot
+        'name': 'CPUSnapshots',
+        'ph': 'O',
+        'id': '0x1000',
+        'local': True,
+        'ts': timestamp,
+        'pid': pid,
+        'tid': None,
+        'args': {
+            'snapshot': {
+                'processes': snapshot
+            }
         }
-      }
     } for snapshot, timestamp in self._snapshots]

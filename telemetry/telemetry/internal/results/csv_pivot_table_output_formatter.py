@@ -54,9 +54,9 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
         if (isinstance(value, scalar.ScalarValue) or
             isinstance(value, trace.TraceValue)):
           value_dict = {
-            'name': value.name,
-            'value': value.value,
-            'units': value.units,
+              'name': value.name,
+              'value': value.value,
+              'units': value.units,
           }
           value_dict.update(page_dict.items())
           csv_writer.writerow(
