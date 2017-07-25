@@ -21,16 +21,15 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
   @classmethod
   def IsSupported(cls, platform_backend):
     return (platform_backend.GetOSName() == 'android' and
-        platform_backend.device.build_version_sdk >
+            platform_backend.device.build_version_sdk >
             version_codes.JELLY_BEAN_MR1)
 
   def StartAgentTracing(self, config, timeout):
     if not config.enable_atrace_trace:
       return False
 
-    app_name = (','.join(config.atrace_config.app_name) if
-        isinstance(config.atrace_config.app_name, list) else
-        config.atrace_config.app_name)
+    app_name = (','.join(config.atrace_config.app_name) if isinstance(
+        config.atrace_config.app_name, list) else config.atrace_config.app_name)
     self._config = atrace_agent.AtraceConfig(
         config.atrace_config.categories,
         trace_buf_size=None, kfuncs=None, app_name=app_name,
@@ -47,7 +46,8 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
 
   def RecordClockSyncMarker(self, sync_id,
                             record_controller_clock_sync_marker_callback):
-    return self._atrace_agent.RecordClockSyncMarker(sync_id,
+    return self._atrace_agent.RecordClockSyncMarker(
+        sync_id,
         lambda t, sid: record_controller_clock_sync_marker_callback(sid, t))
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):

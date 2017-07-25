@@ -23,7 +23,7 @@ from telemetry.internal.platform.power_monitor import android_dumpsys_power_moni
 from telemetry.internal.platform.power_monitor import android_fuelgauge_power_monitor
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
 from telemetry.internal.platform.power_monitor import (
-  android_power_monitor_controller)
+    android_power_monitor_controller)
 from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import binary_manager
@@ -55,8 +55,8 @@ except Exception:
 
 
 _ARCH_TO_STACK_TOOL_ARCH = {
-  'armeabi-v7a': 'arm',
-  'arm64-v8a': 'arm64',
+    'armeabi-v7a': 'arm',
+    'arm64-v8a': 'arm64',
 }
 _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
@@ -87,14 +87,14 @@ class AndroidPlatformBackend(
         self._device.HasRoot() or self._device.NeedsSU())
     self._device_copy_script = None
     self._power_monitor = (
-      android_power_monitor_controller.AndroidPowerMonitorController([
-        android_temperature_monitor.AndroidTemperatureMonitor(self._device),
-        android_dumpsys_power_monitor.DumpsysPowerMonitor(
-          self._battery, self),
-        sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
-        android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
-            self._battery),
-    ], self._battery))
+        android_power_monitor_controller.AndroidPowerMonitorController([
+            android_temperature_monitor.AndroidTemperatureMonitor(self._device),
+            android_dumpsys_power_monitor.DumpsysPowerMonitor(
+                self._battery, self),
+            sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
+            android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
+                self._battery),
+        ], self._battery))
     self._video_recorder = None
     self._installed_applications = None
 
@@ -177,15 +177,17 @@ class AndroidPlatformBackend(
     events = []
     for ts in timestamps:
       events.append({
-        'cat': 'SurfaceFlinger',
-        'name': 'vsync_before',
-        'ts': ts,
-        'pid': pid,
-        'tid': pid,
-        'args': {'data': {
-          'frame_count': 1,
-          'refresh_period': refresh_period,
-        }}
+          'cat': 'SurfaceFlinger',
+          'name': 'vsync_before',
+          'ts': ts,
+          'pid': pid,
+          'tid': pid,
+          'args': {
+              'data': {
+                  'frame_count': 1,
+                  'refresh_period': refresh_period,
+              }
+          }
       })
     return events
 
@@ -234,8 +236,8 @@ class AndroidPlatformBackend(
         self._device, 'memtrack_helper'):
       raise Exception('Error installing memtrack_helper.')
     self._device.RunShellCommand([
-      android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper'),
-      '-d'], as_root=True, check_return=True)
+        android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper'),
+        '-d'], as_root=True, check_return=True)
 
   def EnsureBackgroundApkInstalled(self):
     app = 'push_apps_to_background_apk'
@@ -257,9 +259,9 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    output = self._device.RunShellCommand([
-      android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')],
-      check_return=True)
+    output = self._device.RunShellCommand(
+        [android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')],
+        check_return=True)
     for l in output:
       logging.info(l)
 
@@ -623,9 +625,9 @@ class AndroidPlatformBackend(
     if not self._device.PathExists(profile_dir):
       return
     files = [
-      posixpath.join(profile_dir, f)
-      for f in self._device.ListDirectory(profile_dir, as_root=True)
-      if f not in ignore_list]
+        posixpath.join(profile_dir, f)
+        for f in self._device.ListDirectory(profile_dir, as_root=True)
+        if f not in ignore_list]
     if not files:
       return
     self._device.RemovePath(files, recursive=True, as_root=True)

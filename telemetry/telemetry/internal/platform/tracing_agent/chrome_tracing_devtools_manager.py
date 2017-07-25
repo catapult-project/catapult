@@ -30,7 +30,7 @@ def RegisterDevToolsClient(devtools_client_backend, platform_backend):
   if platform_backend not in _platform_backends_to_devtools_clients_maps:
     _platform_backends_to_devtools_clients_maps[platform_backend] = {}
   devtools_clients_map = (
-    _platform_backends_to_devtools_clients_maps[platform_backend])
+      _platform_backends_to_devtools_clients_maps[platform_backend])
   devtools_clients_map[remote_port] = devtools_client_backend
 
 
