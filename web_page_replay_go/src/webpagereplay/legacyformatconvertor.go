@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,10 +28,27 @@ import (
 type ConvertorConfig struct {
 	inputFile, outputFile string
 	httpPort, httpsPort   int
+	keyFile, certFile     string
+
+	// Computed states
+	tlsCert  tls.Certificate
+	x509Cert *x509.Certificate
 }
 
 func (cfg *ConvertorConfig) Flags() []cli.Flag {
 	return []cli.Flag{
+		cli.StringFlag{
+			Name:        "https_cert_file",
+			Value:       "wpr_cert.pem",
+			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
+			Destination: &cfg.certFile,
+		},
+		cli.StringFlag{
+			Name:        "https_key_file",
+			Value:       "wpr_key.pem",
+			Usage:       "File containing a PEM-encoded private key to use with SSL.",
+			Destination: &cfg.keyFile,
+		},
 		cli.StringFlag{
 			Name:        "input_file",
 			Destination: &cfg.inputFile,
@@ -56,20 +72,15 @@ func (cfg *ConvertorConfig) Flags() []cli.Flag {
 	}
 }
 
-func recordServerCert(serverName string, archive *WritableArchive) error {
+func (r *ConvertorConfig) recordServerCert(scheme string, serverName string, archive *WritableArchive) error {
+	if scheme != "https" {
+		return nil
+	}
 	derBytes, negotiatedProtocol, err := archive.Archive.FindHostTlsConfig(serverName)
 	if err == nil && derBytes != nil {
 		return err
 	}
-	root, err := tls.LoadX509KeyPair("wpr_cert.pem", "wpr_key.pem")
-	if err != nil {
-		return nil
-	}
-	rootCert, err := x509.ParseCertificate(root.Certificate[0])
-	if err != nil {
-		return nil
-	}
-	derBytes, negotiatedProtocol, err = MintServerCert(serverName, rootCert, root.PrivateKey)
+	derBytes, negotiatedProtocol, err = MintServerCert(serverName, r.x509Cert, r.tlsCert.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -83,6 +94,16 @@ func (r *ConvertorConfig) Convert(c *cli.Context) {
 		os.Exit(0)
 	}
 	file, err := ioutil.ReadFile(r.inputFile)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Loading cert from %v\n", r.certFile)
+	fmt.Printf("Loading key from %v\n", r.keyFile)
+	r.tlsCert, err = tls.LoadX509KeyPair(r.certFile, r.keyFile)
+	if err != nil {
+		panic(fmt.Errorf("error opening cert or key files: %v", err))
+	}
+	r.x509Cert, err = x509.ParseCertificate(r.tlsCert.Certificate[0])
 	if err != nil {
 		panic(err)
 	}
@@ -165,7 +186,7 @@ func (r *ConvertorConfig) Convert(c *cli.Context) {
 		if err := archive.RecordRequest(url.Scheme, &httpReq, resp); err != nil {
 			panic(fmt.Sprintf("failed recording request: %v", err))
 		}
-		if err := recordServerCert(url.Host, archive); err != nil {
+		if err := r.recordServerCert(url.Scheme, url.Host, archive); err != nil {
 			// If cert fails to record, it usually because the host
 			// is no longer reachable. Do not error out here.
 			fmt.Printf("failed recording cert: %v", err)
@@ -173,6 +194,6 @@ func (r *ConvertorConfig) Convert(c *cli.Context) {
 	}
 
 	if err := archive.Close(); err != nil {
-		log.Printf("Error flushing archive: %v", err)
+		fmt.Printf("Error flushing archive: %v", err)
 	}
 }
