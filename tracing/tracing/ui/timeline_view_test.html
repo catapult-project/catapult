@@ -38,7 +38,6 @@ tr.b.unittest.testSuite(function() {
 
     const model = new tr.Model();
     const io = new tr.importer.ImportOptions();
-    io.showImportWarnings = false;
     model.importOptions = io;
 
     for (testIndex = 0; testIndex < numTests; ++testIndex) {
@@ -72,7 +71,8 @@ tr.b.unittest.testSuite(function() {
     // Add a known problematic piece of data to test the import errors UI.
     model.importWarning({
       type: 'test_error',
-      message: 'Synthetic Import Error'
+      message: 'Synthetic Import Error',
+      showToUser: true,
     });
     model.updateBounds();
 

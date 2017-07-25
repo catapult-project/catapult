@@ -422,12 +422,15 @@ Polymer({
     }
 
     if (model) {
-      model.importWarningsThatShouldBeShownToUser.forEach(
-          function(importWarning) {
-            importWarningsEl.addMessage(
-                'Import Warning: ' + importWarning.type + ': ' +
-                importWarning.message);
-          }, this);
+      for (const warning of model.importWarningsThatShouldBeShownToUser) {
+        importWarningsEl.addMessage(
+            `Import Warning: ${warning.type}: ${warning.message}`, [{
+              buttonText: 'Dismiss',
+              onClick(event, infobar) {
+                infobar.visible = false;
+              }
+            }]);
+      }
     }
 
     // Do things that are selection specific

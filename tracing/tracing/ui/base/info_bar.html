@@ -71,7 +71,7 @@ Polymer({
   addButton(text, clickCallback) {
     const button = document.createElement('button');
     Polymer.dom(button).textContent = text;
-    button.addEventListener('click', clickCallback);
+    button.addEventListener('click', event => clickCallback(event, this));
     Polymer.dom(this.buttonsEl_).appendChild(button);
     return button;
   }
