@@ -43,6 +43,13 @@ void ParseFullDumpConfig(const std::string& config, AtraceProcessDump* prog) {
 }  // namespace
 
 int main(int argc, char** argv) {
+  if (argc == 2 && !strcmp(argv[1], "--echo-ts")) {
+    // Used by clock sync marker to correct the difference between
+    // Linux monotonic clocks on the device and host.
+    printf("%llu\n", time_utils::GetTimestamp());
+    return 0;
+  }
+
   bool background = false;
   int dump_interval_ms = 5000;
   char out_file[PATH_MAX] = {};

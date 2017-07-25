@@ -21,6 +21,9 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
       this.importPriority = IMPORT_PRIORITY;
       this.model_ = model;
       this.raw_data_ = data;
+      this.clock_sync_markers_ = {};
+      this.snapshots_ = [];
+      this.processes_ = {};
     }
 
     static canImport(events) {
@@ -38,14 +41,104 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
       return this.model_;
     }
 
-    parseData() {
-      return JSON.parse(this.raw_data_.slice(HEADER.length + 1));
+    lazyParseData() {
+      if (this.raw_data_ === undefined) {
+        return;
+      }
+      const dump = JSON.parse(this.raw_data_.slice(HEADER.length + 1));
+      this.clock_sync_markers_ = dump.clock_sync_markers;
+      this.snapshots_ = dump.dump.snapshots;
+      this.processes_ = dump.dump.processes;
+      this.raw_data_ = undefined;
+    }
+
+    importClockSyncMarkers() {
+      this.lazyParseData();
+      for (const syncId in this.clock_sync_markers_) {
+        const ts = parseInt(this.clock_sync_markers_[syncId]);
+        this.model_.clockSyncManager.addClockSyncMarker(
+            tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC, syncId, ts);
+      }
+    }
+
+    setProcessMemoryDumpTotals_(pmd, processInfo) {
+      pmd.totals = {
+        'residentBytes': processInfo.rss * 1024,
+        'platformSpecific': {
+          'vm': processInfo.vm * 1024
+        }
+        // TODO(kraynov): Add OOM scores and make UI able to show it.
+      };
+      const totals = pmd.totals.platformSpecific;
+
+      function importGpuMetric(name) {
+        if (processInfo[name] !== undefined && processInfo[name] > 0) {
+          totals[name] = processInfo[name] * 1024;
+          totals[name + '_pss'] = processInfo[name + '_pss'] * 1024;
+        }
+      }
+      importGpuMetric('gpu_egl');
+      importGpuMetric('gpu_gl');
+      importGpuMetric('gpu_etc');
+
+      if (processInfo.pss !== undefined) {
+        // Full stats.
+        totals.pss = processInfo.pss * 1024;
+        totals.swp = processInfo.swp * 1024;
+        totals.pc = processInfo.pc * 1024;
+        totals.pd = processInfo.pd * 1024;
+        totals.sc = processInfo.sc * 1024;
+        totals.sd = processInfo.sd * 1024;
+        // TODO(kraynov): Add Memory maps.
+      }
     }
 
     importEvents() {
-      const dump = this.parseData();
-      // TODO(kraynov): Implement actual importer.
-      // console.log(dump);
+      this.lazyParseData();
+      // Assign process and thread names.
+      for (const [pid, process] of Object.entries(this.processes_)) {
+        const modelProcess = this.model_.getProcess(pid);
+        if (modelProcess === undefined) {
+          continue;
+        }
+        modelProcess.name = process.name;
+
+        const threads = process.threads;
+        if (threads === undefined) {
+          continue;
+        }
+        for (const [tid, thread] of Object.entries(threads)) {
+          const modelThread = modelProcess.threads[tid];
+          if (modelThread === undefined) {
+            continue;
+          }
+          modelThread.name = thread.name;
+        }
+      }
+
+      // Memory dumps.
+      for (const snapshot of this.snapshots_) {
+        const ts = parseInt(snapshot.ts);
+        const memoryDump = snapshot.memdump;
+
+        const gmd = new tr.model.GlobalMemoryDump(this.model_, ts);
+        this.model_.globalMemoryDumps.push(gmd);
+
+        for (const [pid, processInfo] of Object.entries(memoryDump)) {
+          if (processInfo.rss === undefined) {
+            // Memory stats aren't available.
+            continue;
+          }
+          const modelProcess = this.model_.getProcess(pid);
+          if (modelProcess === undefined) {
+            continue;
+          }
+          const pmd = new tr.model.ProcessMemoryDump(gmd, modelProcess, ts);
+          gmd.processMemoryDumps[pid] = pmd;
+          modelProcess.memoryDumps.push(pmd);
+          this.setProcessMemoryDumpTotals_(pmd, processInfo);
+        }
+      }
     }
   }
 

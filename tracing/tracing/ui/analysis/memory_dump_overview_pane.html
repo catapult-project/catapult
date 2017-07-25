@@ -318,6 +318,22 @@ tr.exportTo('tr.ui.analysis', function() {
     'peakResidentBytes': 'Peak total resident'
   };
 
+  // Map from ProcessMemoryDump platform-specific totals fields to column names.
+  UsedMemoryColumn.PLATFORM_SPECIFIC_TOTALS_MAP = {
+    'vm': 'Total virtual',
+    'swp': 'Swapped',
+    'pc': 'Private clean',
+    'pd': 'Private dirty',
+    'sc': 'Shared clean',
+    'sd': 'Shared dirty',
+    'gpu_egl': 'GPU EGL',
+    'gpu_egl_pss': 'GPU EGL PSS',
+    'gpu_gl': 'GPU GL',
+    'gpu_gl_pss': 'GPU GL PSS',
+    'gpu_etc': 'GPU Other',
+    'gpu_etc_pss': 'GPU Other PSS',
+  };
+
   // Map from VMRegionByteStats field names to column names.
   UsedMemoryColumn.BYTE_STAT_MAP = {
     'proportionalResident': 'PSS',
@@ -606,19 +622,23 @@ tr.exportTo('tr.ui.analysis', function() {
                 // Platform-specific totals (e.g. private resident on Mac).
                 const platformSpecific = totals.platformSpecific;
                 if (platformSpecific !== undefined) {
-                  for (const [name, size] of
-                      Object.entries(platformSpecific)) {
+                  for (const [name, size] of Object.entries(platformSpecific)) {
                     let newName = name;
-                    // Change raw OS-specific total name to a user-friendly
-                    // column title (e.g. 'private_bytes' -> 'Private').
-                    if (name.endsWith(
-                        PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
-                      newName = name.substring(0, name.length -
-                      PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
+                    if (UsedMemoryColumn.PLATFORM_SPECIFIC_TOTALS_MAP[name] ===
+                        undefined) {
+                      // Change raw OS-specific total name to a friendly
+                      // column title (e.g. 'private_bytes' -> 'Private').
+                      if (name.endsWith(PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
+                        newName = name.substring(0, name.length -
+                            PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
+                      }
+                      newName = newName.replace('_', ' ').trim();
+                      newName =
+                          newName.charAt(0).toUpperCase() + newName.slice(1);
+                    } else {
+                      newName =
+                          UsedMemoryColumn.PLATFORM_SPECIFIC_TOTALS_MAP[name];
                     }
-                    newName = newName.replace('_', ' ').trim();
-                    newName = newName.charAt(0).toUpperCase() +
-                      newName.slice(1);
                     sizes[newName] = new Scalar(
                     sizeInBytes_smallerIsBetter, size);
                   }

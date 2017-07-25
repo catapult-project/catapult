@@ -32,6 +32,12 @@ def try_create_agent(config):
     return None
   if config.from_file is not None:
     return None
+  if config.process_dump_enable:
+    # Since AtraceProcessDumpAgent was enabled it's unnecessary to collect ps
+    # data because each process memory dump updates information about processes
+    # and their threads. It's more complete data than two ps snapshots for an
+    # entire trace. However, that agent isn't enabled by default.
+    return None
   return AndroidProcessDataAgent()
 
 def get_config(options):

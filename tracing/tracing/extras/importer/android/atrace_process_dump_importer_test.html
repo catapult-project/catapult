@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/android/atrace_process_dump_importer.html">
+<link rel="import" href="/tracing/model/model.html">
 
 <script>
 'use strict';
@@ -17,6 +18,7 @@ tr.b.unittest.testSuite(function() {
 
   const TEST_DATA_TRIVIAL =
       'ATRACE_PROCESS_DUMP\n' +
+      '{"clock_sync_markers": {"very-unique-id": 1}, "dump":' +
       '{"start_ts": "21917568", "snapshots": [' +
       '{"ts": "21917568", "memdump": {' +
       '  "788": {' +
@@ -31,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       '  "threads": {' +
       '    "788": {"name": "system_server"},' +
       '    "793": {"name": "Signal Catcher"}' +
-      '}}}}';
+      '}}}}}';
 
   test('canImport', function() {
     const canImport = Importer.canImport;
@@ -39,20 +41,35 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(canImport('\n'));
   });
 
-  test('parseData', function() {
+  test('lazyParseData', function() {
     const importer = new Importer(null, TEST_DATA_TRIVIAL);
-    const result = importer.parseData();
-    assert.strictEqual(result.start_ts, '21917568');
-    assert.lengthOf(result.snapshots, 1);
-    assert.lengthOf(Object.keys(result.processes), 2);
-    assert.lengthOf(Object.keys(result.processes['37']), 1);
-    assert.lengthOf(Object.keys(result.processes['788']), 3);
-    assert.lengthOf(Object.keys(result.processes['788'].threads), 2);
+    importer.lazyParseData();
+    assert.isUndefined(importer.raw_data_);
+    assert.lengthOf(Object.keys(importer.clock_sync_markers_), 1);
+    assert.lengthOf(importer.snapshots_, 1);
+    assert.lengthOf(Object.keys(importer.processes_), 2);
+    assert.lengthOf(Object.keys(importer.processes_['37']), 1);
+    assert.lengthOf(Object.keys(importer.processes_['788']), 3);
+    assert.lengthOf(Object.keys(importer.processes_['788'].threads), 2);
 
-    const snapshot = result.snapshots[0];
+    const snapshot = importer.snapshots_[0];
     assert.strictEqual(snapshot.ts, '21917568');
     assert.lengthOf(Object.keys(snapshot.memdump), 1);
     assert.lengthOf(Object.keys(snapshot.memdump['788']), 8);
+  });
+
+  test('importEvents', function() {
+    const model = new tr.Model();
+    const proc788 = model.getOrCreateProcess(788);
+    const importer = new Importer(model, TEST_DATA_TRIVIAL);
+    importer.importEvents();
+    assert.strictEqual(proc788.name, 'system_server');
+    assert.lengthOf(model.globalMemoryDumps, 1);
+
+    const gmd = model.globalMemoryDumps[0];
+    assert.lengthOf(Object.keys(gmd.processMemoryDumps), 1);
+    const pmd = gmd.processMemoryDumps['788'];
+    assert.strictEqual(pmd.totals.residentBytes, 249348 * 1024);
   });
 });
 </script>
