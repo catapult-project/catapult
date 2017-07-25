@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 
@@ -76,7 +77,7 @@ class HistogramSet(object):
 
   def ImportDicts(self, dicts):
     for d in dicts:
-      if diagnostic.Diagnostic.GetDiagnosticType(d.get('type')):
+      if all_diagnostics.DIAGNOSTICS_BY_NAME.get(d.get('type')):
         diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:

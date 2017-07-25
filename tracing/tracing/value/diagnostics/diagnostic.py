@@ -2,17 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import uuid
 
-from py_utils import camel_case
-from py_utils import discover
-from tracing import tracing_project
+from tracing.value.diagnostics import all_diagnostics
 
 
 class Diagnostic(object):
-  _subtypes = None
-
   def __init__(self):
     self._guid = None
 
@@ -48,25 +43,13 @@ class Diagnostic(object):
 
   @staticmethod
   def FromDict(dct):
-    cls = Diagnostic.GetDiagnosticType(dct['type'])
+    cls = all_diagnostics.DIAGNOSTICS_BY_NAME.get(dct['type'])
     if not cls:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
     diagnostic = cls.FromDict(dct)
     if 'guid' in dct:
       diagnostic.guid = dct['guid']
     return diagnostic
-
-  @staticmethod
-  def GetDiagnosticType(typename):
-    if not Diagnostic._subtypes:
-      Diagnostic._subtypes = discover.DiscoverClasses(
-          os.path.join(tracing_project.TracingProject.tracing_src_path,
-                       'value'),
-          tracing_project.TracingProject.tracing_root_path,
-          Diagnostic, index_by_class_name=True)
-
-    # TODO(eakuefner): Add camelcase mode to discover.DiscoverClasses.
-    return Diagnostic._subtypes.get(camel_case.ToUnderscore(typename))
 
   def Inline(self):
     """Inlines a shared diagnostic.

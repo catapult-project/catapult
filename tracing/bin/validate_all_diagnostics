@@ -14,6 +14,13 @@ sys.path.insert(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
+
+from py_utils import camel_case
+from py_utils import discover
+
+from tracing.value.diagnostics import diagnostic
+from tracing.value.diagnostics import all_diagnostics
+
 import vinn
 
 
@@ -22,7 +29,7 @@ _DISCOVER_CMDLINE = os.path.join(
     'discover_cmdline.html')
 
 
-def DiscoverDiagnostics(project, js_args):
+def DiscoverJSDiagnostics(project, js_args):
   res = vinn.RunFile(_DISCOVER_CMDLINE, source_paths=list(project.source_paths),
       js_args=js_args)
   if res.returncode != 0:
@@ -31,14 +38,48 @@ def DiscoverDiagnostics(project, js_args):
     return set([str(m) for m in json.loads(res.stdout)])
 
 
-def Main():
+def DiscoverPythonDiagnostics():
+  return discover.DiscoverClasses(
+      os.path.join(tracing_project.TracingProject.tracing_src_path,
+                   'value'),
+      tracing_project.TracingProject.tracing_root_path,
+      diagnostic.Diagnostic, index_by_class_name=True)
+
+
+def CheckPythonDiagnostics():
+  discovered_diagnostics = DiscoverPythonDiagnostics()
+
+  registered_diagnostics = dict(
+      (camel_case.ToUnderscore(k), v)
+          for k, v in all_diagnostics.DIAGNOSTICS_BY_NAME.iteritems())
+
+  unregistered_diagnostics = (set(discovered_diagnostics.keys()) -
+      set(registered_diagnostics.keys()))
+
+  return_code = 0
+  if unregistered_diagnostics:
+    print ('These diagnostics are unregistered: %s. Please add them to '
+           'tracing/tracing/value/histogram.py.' %
+           ', '.join(unregistered_diagnostics))
+    return_code = 1
+
+  for name, diagnostic in all_diagnostics.DIAGNOSTICS_BY_NAME.iteritems():
+    if name != diagnostic.__name__:
+      print 'This diagnostic refers to the wrong class: %s: %s' % (
+          name, diagnostic.__name__)
+      return_code = 1
+
+  return return_code
+
+
+def CheckJSDiagnostics():
   project = tracing_project.TracingProject()
-  all_registered_diagnostics = DiscoverDiagnostics(
+  all_registered_diagnostics = DiscoverJSDiagnostics(
     project, ['registry', '/tracing/value/diagnostics/all_diagnostics.html'])
   all_modules = list(
       '/' + rel_path for rel_path in
       tracing_project.TracingProject().FindAllDiagnosticsModuleRelPaths())
-  all_possible_diagnostics = DiscoverDiagnostics(
+  all_possible_diagnostics = DiscoverJSDiagnostics(
     project, ['namespace'] + all_modules)
 
   unregistered_diagnostics = (all_possible_diagnostics -
@@ -60,6 +101,11 @@ def Main():
     return 1
 
   return 0
+
+
+def Main():
+  return (CheckJSDiagnostics() or CheckPythonDiagnostics())
+
 
 if __name__ == '__main__':
   sys.exit(Main())
