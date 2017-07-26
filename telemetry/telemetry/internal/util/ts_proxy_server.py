@@ -63,7 +63,7 @@ class TsProxyServer(object):
       cmd_line.append('--desthost=%s' % self._host_ip)
     if self._http_port:
       cmd_line.append(
-        '--mapports=443:%s,*:%s' % (self._https_port, self._http_port))
+          '--mapports=443:%s,*:%s' % (self._https_port, self._http_port))
     logging.info('Tsproxy commandline: %r' % cmd_line)
     self._proc = subprocess.Popen(
         cmd_line, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -85,7 +85,7 @@ class TsProxyServer(object):
       return False
     self._proc.stdout.flush()
     self._port = ParseTsProxyPortFromOutput(
-          output_line=self._proc.stdout.readline())
+        output_line=self._proc.stdout.readline())
     return self._port != None
 
 
@@ -114,7 +114,8 @@ class TsProxyServer(object):
     self._IssueCommand('set mapports 443:%i,*:%i' % (https_port, http_port),
                        timeout)
 
-  def UpdateTrafficSettings(self, round_trip_latency_ms=0,
+  def UpdateTrafficSettings(
+      self, round_trip_latency_ms=0,
       download_bandwidth_kbps=0, upload_bandwidth_kbps=0, timeout=5):
     self._IssueCommand('set rtt %s' % round_trip_latency_ms, timeout)
     self._IssueCommand('set inkbps %s' % download_bandwidth_kbps, timeout)

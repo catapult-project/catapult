@@ -69,7 +69,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
     if (previous_page is not None and
         previous_page.url == page.url and
         (previous_page.cache_temperature == PCV1_COLD or
-            previous_page.cache_temperature == PCV1_WARM)):
+         previous_page.cache_temperature == PCV1_WARM)):
       if '#' in page.url:
         # Navigate to inexistent URL to avoid in-page hash navigation.
         # Note: Unlike PCv1, PCv2 iterates the same URL for different cache

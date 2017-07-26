@@ -27,13 +27,13 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       self.assertIsNotNone(server.https_port)
 
       # Make sure that we can establish connection to HTTP port.
-      req = urllib2.Request('http://www.example.com/',
-          origin_req_host='127.0.0.1')
+      req = urllib2.Request(
+          'http://www.example.com/', origin_req_host='127.0.0.1')
       r = urllib2.urlopen(req)
       self.assertEquals(r.getcode(), 200)
 
       # Make sure that we can establish connection to HTTPS port.
-      req = urllib2.Request('https://www.example.com/',
-          origin_req_host='127.0.0.1')
+      req = urllib2.Request(
+          'https://www.example.com/', origin_req_host='127.0.0.1')
       r = urllib2.urlopen(req)
       self.assertEquals(r.getcode(), 200)

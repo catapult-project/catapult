@@ -98,11 +98,11 @@ class ReplayServer(object):
   @staticmethod
   def _GetLoggingLevel(log_level=None):
     return {
-      logging.DEBUG: 'debug',
-      logging.INFO: 'info',
-      logging.WARNING: 'warning',
-      logging.ERROR: 'error',
-      logging.CRITICAL: 'critical',
+        logging.DEBUG: 'debug',
+        logging.INFO: 'info',
+        logging.WARNING: 'warning',
+        logging.ERROR: 'error',
+        logging.CRITICAL: 'critical',
     }[log_level or logging.getLogger().level]
 
   @staticmethod
