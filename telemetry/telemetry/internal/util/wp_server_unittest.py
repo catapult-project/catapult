@@ -37,8 +37,8 @@ class ParseLogFilePortsTest(unittest.TestCase):
   def testEmptyLinesGivesEmptyDict(self):
     log_lines = iter([])
     self.assertEqual(
-      {},
-      wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
+        {},
+        wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
 
   def testSingleMatchGivesSingleElementDict(self):
     log_lines = iter([

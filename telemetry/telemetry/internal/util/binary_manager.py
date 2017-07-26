@@ -76,8 +76,8 @@ def LocalPath(binary_name, arch, os_name, os_version=None):
   return _binary_manager.LocalPath(binary_name, os_name, arch, os_version)
 
 
-def FetchBinaryDependencies(platform, client_configs,
-                            fetch_reference_chrome_binary):
+def FetchBinaryDependencies(
+    platform, client_configs, fetch_reference_chrome_binary):
   """ Fetch all binary dependenencies for the given |platform|.
 
   Note: we don't fetch browser binaries by default because the size of the
@@ -102,8 +102,7 @@ def FetchBinaryDependencies(platform, client_configs,
   fetch_devil_deps = False
   if platform.GetOSName() == 'android':
     host_platform = '%s_%s' % (
-        py_utils.GetHostOsName(),
-        py_utils.GetHostArchName())
+        py_utils.GetHostOsName(), py_utils.GetHostArchName())
     dep_manager.PrefetchPaths(host_platform)
     # TODO(aiolos): this is a hack to prefetch the devil deps.
     if host_platform == 'linux_x86_64':

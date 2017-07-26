@@ -9,17 +9,17 @@ from telemetry.internal.util import ts_proxy_server
 class TsProxyServerTest(unittest.TestCase):
   def testParseTsProxyPort(self):
     self.assertEquals(
-      ts_proxy_server.ParseTsProxyPortFromOutput(
-          'Started Socks5 proxy server on 127.0.0.1:54430 \n'),
-      54430)
+        ts_proxy_server.ParseTsProxyPortFromOutput(
+            'Started Socks5 proxy server on 127.0.0.1:54430 \n'),
+        54430)
     self.assertEquals(
-      ts_proxy_server.ParseTsProxyPortFromOutput(
-          'Started Socks5 proxy server on foo.bar.com:430 \n'),
-      430)
+        ts_proxy_server.ParseTsProxyPortFromOutput(
+            'Started Socks5 proxy server on foo.bar.com:430 \n'),
+        430)
     self.assertEquals(
-      ts_proxy_server.ParseTsProxyPortFromOutput(
-          'Failed to start sock5 proxy.'),
-      None)
+        ts_proxy_server.ParseTsProxyPortFromOutput(
+            'Failed to start sock5 proxy.'),
+        None)
 
   def testSmokeStartingTsProxyServer(self):
     with ts_proxy_server.TsProxyServer() as server:
