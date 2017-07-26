@@ -544,7 +544,6 @@
       'tracing/value/diagnostics/merged_device_info.html',
       'tracing/value/diagnostics/merged_revision_info.html',
       'tracing/value/diagnostics/merged_telemetry_info.html',
-      'tracing/value/diagnostics/ownership.html',
       'tracing/value/diagnostics/related_event_set.html',
       'tracing/value/diagnostics/related_histogram_breakdown.html',
       'tracing/value/diagnostics/related_histogram_map.html',

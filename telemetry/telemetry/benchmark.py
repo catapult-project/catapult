@@ -221,14 +221,26 @@ class Benchmark(command_line.Command):
     return BenchmarkMetadata(self.Name(), self.__doc__,
                              self.GetTraceRerunCommands())
 
-  def GetOwnership(self):
-    """Returns an Ownership Diagnostic containing the benchmark's information.
+  def GetBugComponents(self):
+    """Returns a GenericSet Diagnostic containing the benchmark's Monorail
+       component.
 
     Returns:
-      Diagnostic with the benchmark's owners' e-mails and component name
+      GenericSet Diagnostic with the benchmark's bug component name
     """
-    return histogram.Ownership(
-        decorators.GetEmails(self), decorators.GetComponent(self))
+    benchmark_component = decorators.GetComponent(self)
+    component_diagnostic_value = (
+        [benchmark_component] if benchmark_component else [])
+    return histogram.GenericSet(component_diagnostic_value)
+
+  def GetOwners(self):
+    """Returns a Generic Diagnostic containing the benchmark's owners' emails
+       in a list.
+
+    Returns:
+      Diagnostic with a list of the benchmark's owners' emails
+    """
+    return histogram.GenericSet(decorators.GetEmails(self) or [])
 
   @decorators.Deprecated(
       2017, 7, 29, 'Use CreateCoreTimelineBasedMeasurementOptions instead.')

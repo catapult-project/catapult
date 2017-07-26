@@ -37,6 +37,7 @@ MERGED_FROM = _Info('merged from', 'RelatedHistogramSet')
 MERGED_TO = _Info('merged to', 'RelatedHistogramSet')
 OS_NAMES = _Info('os names', 'GenericSet')
 OS_VERSIONS = _Info('os versions', 'GenericSet')
+OWNERS = _Info('owners', 'GenericSet')
 PRODUCT_VERSIONS = _Info('product versions', 'GenericSet')
 RELATED_NAMES = _Info('related names', 'GenericSet')
 SKIA_REVISIONS = _Info('skia revisions', 'GenericSet')
@@ -57,9 +58,6 @@ INTERACTION_RECORD = _Info('tir', 'GenericSet')
 ITERATION = _Info('iteration')  # Legacy name for TELEMETRY
 REVISIONS = _Info('revisions')  # RevisionInfo or MergedRevisionInfo
 TELEMETRY = _Info('telemetry')  # TelemetryInfo or MergedTelemetryInfo
-
-# TODO(#3507) Change OWNERS to GenericSet of email addresses.
-OWNERS = _Info('owners', 'Ownership')
 
 def GetTypeForName(name):
   for info in globals().itervalues():

@@ -38,6 +38,7 @@ tr.exportTo('tr.v.d', function() {
     MERGED_TO: {name: 'merged to', type: tr.v.d.RelatedHistogramSet},
     OS_NAMES: {name: 'os names', type: tr.v.d.GenericSet},
     OS_VERSIONS: {name: 'os versions', type: tr.v.d.GenericSet},
+    OWNERS: {name: 'owners', type: tr.v.d.GenericSet},
     PRODUCT_VERSIONS: {name: 'product versions', type: tr.v.d.GenericSet},
     RELATED_NAMES: {name: 'related names', type: tr.v.d.GenericSet},
     SKIA_REVISIONS: {name: 'skia revisions', type: tr.v.d.GenericSet},
@@ -58,9 +59,6 @@ tr.exportTo('tr.v.d', function() {
     ITERATION: {name: 'iteration'},  // Legacy name for TELEMETRY
     REVISIONS: {name: 'revisions'},  // RevisionInfo or MergedRevisionInfo
     TELEMETRY: {name: 'telemetry'},  // TelemetryInfo or MergedTelemetryInfo
-
-    // TODO(#3507) Change OWNERS to GenericSet of email addresses.
-    OWNERS: {name: 'owners', type: tr.v.d.Ownership},
   };
 
   const RESERVED_NAMES = {};

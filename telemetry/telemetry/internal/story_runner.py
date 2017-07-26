@@ -346,8 +346,17 @@ def RunBenchmark(benchmark, finder_options):
       exception_formatter.PrintFormattedException()
       return_code = 255
 
-    results.histograms.AddSharedDiagnostic(
-        reserved_infos.OWNERS.name, benchmark.GetOwnership())
+    benchmark_owners = benchmark.GetOwners()
+    benchmark_component = benchmark.GetBugComponents()
+
+    # TODO(#3734): Add a 'IsEmpty' method to GenericSet to replace this check.
+    if list(benchmark_owners):
+      results.histograms.AddSharedDiagnostic(
+          reserved_infos.OWNERS.name, benchmark_owners)
+
+    if list(benchmark_component):
+      results.histograms.AddSharedDiagnostic(
+          reserved_infos.BUG_COMPONENTS.name, benchmark_component)
 
     try:
       if finder_options.upload_results:

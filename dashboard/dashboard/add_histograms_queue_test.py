@@ -57,10 +57,10 @@ TEST_TELEMETRY_INFO = {
 }
 
 
-TEST_OWNERSHIP = {
+TEST_OWNERS = {
     'guid': '68e5b3bd-829c-4f4f-be3a-98a94279ccf0',
-    'emails': ['abc@chromium.org'],
-    'type': 'Ownership'
+    'values': ['abc@chromium.org'],
+    'type': 'GenericSet'
 }
 
 
@@ -146,7 +146,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERSHIP])
+        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERS])
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]
@@ -160,15 +160,19 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     telemetry_info_entity = ndb.Key(
         'SparseDiagnostic', TEST_TELEMETRY_INFO['guid']).get()
     ownership_entity = ndb.Key(
-        'SparseDiagnostic', TEST_OWNERSHIP['guid']).get()
+        'SparseDiagnostic', TEST_OWNERS['guid']).get()
     self.assertFalse(telemetry_info_entity.internal_only)
     self.assertFalse(ownership_entity.internal_only)
 
   def testPostHistogram_WithSameDiagnostic(self):
     diag_dict = {
         'guid': '05341937-1272-4214-80ce-43b2d03807f9',
-        'emails': ['abc@chromium.org'],
-        'type': 'Ownership'
+        'benchmarkName': 'myBenchmark',
+        'canonicalUrl': 'myCanonicalUrl',
+        'label': 'myLabel',
+        'legacyTIRLabel': 'myLegacyTIRLabel',
+        'storyDisplayName': 'myStoryDisplayName',
+        'type': 'TelemetryInfo'
     }
     diag = histogram.SparseDiagnostic(
         data=diag_dict, start_revision=1, end_revision=sys.maxint,
@@ -181,22 +185,22 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERSHIP])
+        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERS])
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
         '05341937-1272-4214-80ce-43b2d03807f9',
-        hist.diagnostics['owners'].guid)
+        hist.diagnostics['telemetry'].guid)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(len(diagnostics), 2)
 
   def testPostHistogram_WithDifferentDiagnostic(self):
     diag_dict = {
         'guid': 'c397a1a0-e289-45b2-abe7-29e638e09168',
-        'emails': ['def@chromium.org'],
-        'type': 'Ownership'
+        'values': ['def@chromium.org'],
+        'type': 'GenericSet'
     }
     diag = histogram.SparseDiagnostic(
         data=diag_dict, start_revision=1, end_revision=sys.maxint,
@@ -209,7 +213,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERSHIP])
+        'diagnostics': json.dumps([TEST_TELEMETRY_INFO, TEST_OWNERS])
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]

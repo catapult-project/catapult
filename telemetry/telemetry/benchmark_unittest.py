@@ -142,7 +142,41 @@ class BenchmarkTest(unittest.TestCase):
     self.assertIsInstance(
         b.GetExpectations(), story_module.expectations.StoryExpectations)
 
-  def testBenchmarkOwnership(self):
+  def testGetOwners(self):
+    @benchmark.Owner(emails=['alice@chromium.org'])
+    class FooBenchmark(benchmark.Benchmark):
+      @classmethod
+      def Name(cls):
+        return "foo"
+
+    @benchmark.Owner(emails=['bob@chromium.org', 'ben@chromium.org'],
+                     component='xyzzyx')
+    class BarBenchmark(benchmark.Benchmark):
+      @classmethod
+      def Name(cls):
+        return "bar"
+
+    @benchmark.Owner(component='xyzzyx')
+    class BazBenchmark(benchmark.Benchmark):
+      @classmethod
+      def Name(cls):
+        return "baz"
+
+    fooOwnersDiagnostic = FooBenchmark(None).GetOwners()
+    barOwnersDiagnostic = BarBenchmark(None).GetOwners()
+    bazOwnersDiagnostic = BazBenchmark(None).GetOwners()
+
+    self.assertIsInstance(fooOwnersDiagnostic, histogram.GenericSet)
+    self.assertIsInstance(barOwnersDiagnostic, histogram.GenericSet)
+    self.assertIsInstance(bazOwnersDiagnostic, histogram.GenericSet)
+
+    self.assertEqual(fooOwnersDiagnostic.AsDict()['values'],
+                     ['alice@chromium.org'])
+    self.assertEqual(barOwnersDiagnostic.AsDict()['values'],
+                     ['bob@chromium.org', 'ben@chromium.org'])
+    self.assertEqual(bazOwnersDiagnostic.AsDict()['values'], [])
+
+  def testGetBugComponents(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
     class FooBenchmark(benchmark.Benchmark):
       @classmethod
@@ -155,16 +189,14 @@ class BenchmarkTest(unittest.TestCase):
       def Name(cls):
         return "bar"
 
-    fooOwnerDiangostic = FooBenchmark(None).GetOwnership()
-    barOwnerDiangostic = BarBenchmark(None).GetOwnership()
+    fooBugComponentsDiagnostic = FooBenchmark(None).GetBugComponents()
+    barBugComponentsDiagnostic = BarBenchmark(None).GetBugComponents()
 
-    self.assertIsInstance(fooOwnerDiangostic, histogram.Ownership)
-    self.assertItemsEqual(fooOwnerDiangostic.emails, ['alice@chromium.org'])
-    self.assertIsNone(fooOwnerDiangostic.component)
+    self.assertIsInstance(fooBugComponentsDiagnostic, histogram.GenericSet)
+    self.assertIsInstance(barBugComponentsDiagnostic, histogram.GenericSet)
 
-    self.assertIsInstance(barOwnerDiangostic, histogram.Ownership)
-    self.assertItemsEqual(barOwnerDiangostic.emails, ['bob@chromium.org'])
-    self.assertEqual(barOwnerDiangostic.component, 'xyzzyx')
+    self.assertEqual(list(fooBugComponentsDiagnostic), [])
+    self.assertEqual(list(barBugComponentsDiagnostic), ['xyzzyx'])
 
   def testGetTBMOptionsSupportsLegacyName(self):
     class TbmBenchmark(benchmark.Benchmark):
@@ -257,4 +289,3 @@ class BenchmarkTest(unittest.TestCase):
     self.assertEqual(
         ['string', 'foo', 'stuff', 'bar'],
         tbm._tbm_options.config.atrace_config.categories)
-

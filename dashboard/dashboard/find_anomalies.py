@@ -9,9 +9,7 @@ points in a test for potential regressions or improvements, and creates
 new Anomaly entities.
 """
 
-import json
 import logging
-import sys
 
 from google.appengine.ext import ndb
 
@@ -23,6 +21,7 @@ from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import histogram
+from tracing.value.diagnostics import reserved_infos
 
 # Number of points to fetch and pass to FindChangePoints. A different number
 # may be used if a test has a "max_window_size" anomaly config parameter.
@@ -324,6 +323,17 @@ def _MakeAnomalyEntity(change_point, test, rows):
     display_start, display_end = _GetDisplayRange(change_point.x_value, rows)
   median_before = change_point.median_before
   median_after = change_point.median_after
+
+  queried_diagnostics = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+      test.key, set([reserved_infos.BUG_COMPONENTS.name,
+                     reserved_infos.OWNERS.name]))
+
+  bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name)
+
+  ownership_information = {
+      'emails': queried_diagnostics.get(reserved_infos.OWNERS.name),
+      'component': (bug_components[0] if bug_components else None)}
+
   return anomaly.Anomaly(
       start_revision=start_rev,
       end_revision=end_rev,
@@ -344,8 +354,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
       units=test.units,
       display_start=display_start,
       display_end=display_end,
-      ownership=GetMostRecentDiagnosticData(test.key, 'Ownership'))
-
+      ownership=ownership_information)
 
 def FindChangePointsForTest(rows, config_dict):
   """Gets the anomaly data from the anomaly detection module.
@@ -379,28 +388,3 @@ def _IsImprovement(test, median_before, median_after):
       test.improvement_direction == anomaly.DOWN):
     return True
   return False
-
-
-def GetMostRecentDiagnosticData(test_key, diagnostic_type):
-  """Gets the data in the latest sparse diagnostic for the given
-     diagnostic type.
-
-  Args:
-    test_key: The TestKey entity to lookup the diagnostics by
-    diagnostic_type: The type of the diagnostics being looked up
-
-  Returns:
-    A JSON containing the diagnostic's data.
-    None if no diagnostics of the given type are found.
-  """
-
-  diagnostics = histogram.SparseDiagnostic.query(ndb.AND(
-      histogram.SparseDiagnostic.end_revision == sys.maxint,
-      histogram.SparseDiagnostic.test == test_key)).fetch()
-
-  for diagnostic in diagnostics:
-    diagnostic_data = json.loads(diagnostic.data)
-    if diagnostic_data['type'] == diagnostic_type:
-      return diagnostic_data
-
-  return None

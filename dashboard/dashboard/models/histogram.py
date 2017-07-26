@@ -4,6 +4,9 @@
 
 """The datastore models for histograms and diagnostics."""
 
+import json
+import sys
+
 from google.appengine.ext import ndb
 
 from dashboard.models import graph_data
@@ -27,5 +30,33 @@ class Histogram(JsonModel):
 
 class SparseDiagnostic(JsonModel):
   # Need for intersecting range queries.
+  name = ndb.StringProperty(indexed=False)
   start_revision = ndb.IntegerProperty(indexed=True)
   end_revision = ndb.IntegerProperty(indexed=True)
+
+  @staticmethod
+  def GetMostRecentValuesByNames(test_key, diagnostic_names):
+    """Gets the data in the latests sparse diagnostics with the given
+       set of diagnostic names.
+
+    Args:
+      test_key: The TestKey entity to lookup the diagnotics by
+      diagnostic_names: Set of the names of the diagnostics to look up
+
+    Returns:
+      A dictionary where the keys are the given names, and the values are the
+      corresponding diagnostics' values.
+      None if no diagnostics are found with the given keys or type.
+    """
+    diagnostics = SparseDiagnostic.query(
+        ndb.AND(SparseDiagnostic.end_revision == sys.maxint,
+                SparseDiagnostic.test == test_key)).fetch()
+
+    diagnostic_map = {}
+
+    for diagnostic in diagnostics:
+      if diagnostic.name in diagnostic_names:
+        assert diagnostic_map.get(diagnostic.name) is None
+        diagnostic_data = json.loads(diagnostic.data)
+        diagnostic_map[diagnostic.name] = diagnostic_data.get('values')
+    return diagnostic_map

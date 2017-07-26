@@ -1193,7 +1193,7 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
-  def testRunBenchmark_AddsOwnership_WithoutComponent(self):
+  def testRunBenchmark_AddsOwners_NoComponent(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
     class FakeBenchmarkWithOwner(FakeBenchmark):
       def __init__(self):
@@ -1215,20 +1215,20 @@ class StoryRunnerTest(unittest.TestCase):
       hs = histogram_set.HistogramSet()
       hs.ImportDicts(data)
 
-      ownership_diagnostics = hs.GetSharedDiagnosticsOfType(
-        histogram_module.Ownership)
+      generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+        histogram_module.GenericSet)
 
-      self.assertGreater(len(ownership_diagnostics), 0)
+      self.assertGreater(len(generic_diagnostics), 0)
 
-      ownership_diagnostic = ownership_diagnostics[0]
+      generic_diagnostics_values = [
+          list(diagnostic) for diagnostic in generic_diagnostics]
 
-      self.assertIsInstance(ownership_diagnostic, histogram_module.Ownership)
-      self.assertIsNone(ownership_diagnostic.component)
-      self.assertItemsEqual(['alice@chromium.org'], ownership_diagnostic.emails)
+      self.assertIn(['alice@chromium.org'], generic_diagnostics_values)
+
     finally:
       shutil.rmtree(temp_path)
 
-  def testRunBenchmark_AddsOwnership_WithComponent(self):
+  def testRunBenchmark_AddsComponent(self):
     @benchmark.Owner(emails=['alice@chromium.org', 'bob@chromium.org'],
                      component='fooBar')
     class FakeBenchmarkWithOwner(FakeBenchmark):
@@ -1251,17 +1251,18 @@ class StoryRunnerTest(unittest.TestCase):
       hs = histogram_set.HistogramSet()
       hs.ImportDicts(data)
 
-      ownership_diagnostics = hs.GetSharedDiagnosticsOfType(
-        histogram_module.Ownership)
+      generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+        histogram_module.GenericSet)
 
-      self.assertGreater(len(ownership_diagnostics), 0)
+      self.assertGreater(len(generic_diagnostics), 0)
 
-      ownership_diagnostic = ownership_diagnostics[0]
+      generic_diagnostics_values = [
+          list(diagnostic) for diagnostic in generic_diagnostics]
 
-      self.assertIsInstance(ownership_diagnostic, histogram_module.Ownership)
-      self.assertEqual('fooBar', ownership_diagnostic.component)
-      self.assertItemsEqual(['alice@chromium.org', 'bob@chromium.org'],
-                            ownership_diagnostic.emails)
+      self.assertIn(['fooBar'], generic_diagnostics_values)
+      self.assertIn(['alice@chromium.org', 'bob@chromium.org'],
+                    generic_diagnostics_values)
+
     finally:
       shutil.rmtree(temp_path)
 

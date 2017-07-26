@@ -16,6 +16,7 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import sheriff
+from tracing.value.diagnostics import reserved_infos
 
 # Sample time series.
 _TEST_ROW_DATA = [
@@ -483,13 +484,19 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(alert.display_end, 302)
 
   def testMakeAnomalyEntity_AddsOwnership(self):
-    data = json.dumps({
-        'type': 'Ownership',
-        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-        'emails': ['alice@chromium.org', 'bob@chromium.org'],
-        'component': 'fooBar'
-    })
+    data_samples = [
+        {
+            'type': 'GenericSet',
+            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+            'values': ['alice@chromium.org', 'bob@chromium.org']
+        },
+        {
+            'type': 'GenericSet',
+            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+            'values': ['abc']
+        }]
 
+    test_key = utils.TestKey('ChromiumPerf/linux/page_cycler_v2/cnn')
     testing_common.AddTests(
         ['ChromiumPerf'],
         ['linux'], {
@@ -500,12 +507,19 @@ class ProcessAlertsTest(testing_common.TestCase):
                 'nytimes': {},
             },
         })
-    test_key = utils.TestKey('ChromiumPerf/linux/page_cycler_v2/cnn')
     test = test_key.get()
     testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+
     entity = histogram.SparseDiagnostic(
-        data=data, test=test_key, id='abc', start_revision=1,
-        end_revision=sys.maxint)
+        data=json.dumps(data_samples[0]), test=test_key, start_revision=1,
+        end_revision=sys.maxint, id=data_samples[0]['guid'],
+        name=reserved_infos.OWNERS.name)
+    entity.put()
+
+    entity = histogram.SparseDiagnostic(
+        data=json.dumps(data_samples[1]), test=test_key, start_revision=1,
+        end_revision=sys.maxint, id=data_samples[1]['guid'],
+        name=reserved_infos.BUG_COMPONENTS.name)
     entity.put()
 
     alert = find_anomalies._MakeAnomalyEntity(
@@ -513,119 +527,9 @@ class ProcessAlertsTest(testing_common.TestCase):
         test,
         list(graph_data.Row.query()))
 
-    self.assertEqual(alert.ownership['component'], 'fooBar')
+    self.assertEqual(alert.ownership['component'], 'abc')
     self.assertListEqual(alert.ownership['emails'],
                          ['alice@chromium.org', 'bob@chromium.org'])
-
-
-class GetMostRecentDiagnosticDataTest(testing_common.TestCase):
-  def setUp(self):
-    super(GetMostRecentDiagnosticDataTest, self).setUp()
-    self.SetCurrentUser('foo@bar.com', is_admin=True)
-
-  def testGetMostRecentDiagnosticData_ReturnsAllData(self):
-    data_samples = [
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'emails': ['alice@chromium.org', 'bob@chromium.org'],
-            'component': 'fooBar'
-        },
-        {
-            'guid': 'abc',
-            'osName': 'linux',
-            'type': 'DeviceInfo'
-        }]
-
-    test_key = utils.TestKey('Chromium/win7/foo')
-    for data in data_samples:
-      entity = histogram.SparseDiagnostic(
-          data=json.dumps(data), test=test_key, start_revision=1,
-          end_revision=sys.maxint, id='sample' + data.get('type'))
-      entity.put()
-
-    owner_lookup_result = find_anomalies.GetMostRecentDiagnosticData(
-        test_key, 'Ownership')
-    device_lookup_result = find_anomalies.GetMostRecentDiagnosticData(
-        test_key, 'DeviceInfo')
-
-    self.assertEqual(owner_lookup_result.get('component'), 'fooBar')
-    self.assertListEqual(owner_lookup_result.get('emails'),
-                         ['alice@chromium.org', 'bob@chromium.org'])
-
-    self.assertIsNone(device_lookup_result.get('component'))
-    self.assertEqual(device_lookup_result.get('osName'), 'linux')
-
-  def testGetMostRecentDiagnosticData_WithoutComponent(self):
-    data = json.dumps({
-        'type': 'Ownership',
-        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-        'emails': ['charlie@chromium.org']
-    })
-    test_key = utils.TestKey('Chromium/win7/foo')
-    entity = histogram.SparseDiagnostic(
-        data=data, test=test_key, start_revision=1, end_revision=sys.maxint,
-        id='abc')
-    entity.put()
-
-    lookup_result = find_anomalies.GetMostRecentDiagnosticData(test_key,
-                                                               'Ownership')
-
-    self.assertIsNone(lookup_result.get('component'))
-    self.assertListEqual(lookup_result.get('emails'), ['charlie@chromium.org'])
-
-  def testGetMostRecentDiagnosticData_ReturnsNoneIfNoneFound(self):
-    data = json.dumps({
-        'guid': 'abc',
-        'osName': 'linux',
-        'type': 'DeviceInfo'
-    })
-    test_key = utils.TestKey('Chromium/win7/foo')
-    entity = histogram.SparseDiagnostic(
-        data=data, test=test_key, start_revision=1, end_revision=sys.maxint,
-        id='abc')
-    entity.put()
-
-    lookup_result = find_anomalies.GetMostRecentDiagnosticData(test_key,
-                                                               'Ownership')
-    self.assertIsNone(lookup_result)
-
-  def testGetMostRecentDiagnosticData_LooksUpRightType(self):
-    data_samples = [
-        {
-            'buildNumber': 0,
-            'buildbotMasterName': '',
-            'buildbotName': '',
-            'displayBotName': 'bot',
-            'displayMasterName': 'master',
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'logUri': '',
-            'type': 'BuildbotInfo'
-        },
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'emails': ['charlie@chromium.org']
-        }
-    ]
-
-    test_key = utils.TestKey('Chromium/win7/foo')
-
-    for data in data_samples:
-      entity = histogram.SparseDiagnostic(
-          data=json.dumps(data), test=test_key, start_revision=1,
-          end_revision=sys.maxint, id='sample' + data.get('type'))
-      entity.put()
-
-    ownership_lookup_result = find_anomalies.GetMostRecentDiagnosticData(
-        test_key, 'Ownership')
-    buildbot_lookup_result = find_anomalies.GetMostRecentDiagnosticData(
-        test_key, 'BuildbotInfo')
-
-    self.assertIsNotNone(ownership_lookup_result)
-    self.assertEqual(ownership_lookup_result['type'], 'Ownership')
-    self.assertIsNotNone(buildbot_lookup_result)
-    self.assertEqual(buildbot_lookup_result['type'], 'BuildbotInfo')
 
 if __name__ == '__main__':
   unittest.main()

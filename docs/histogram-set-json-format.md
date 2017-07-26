@@ -137,7 +137,6 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RevisionInfo`
  * `BuildbotInfo`
  * `Scalar`
- * `Ownership`
 
 If a Diagnostic is in the root array of the JSON, then it is shared, so it may be
 referenced by multiple Histograms. Shared Diagnostics must contain a string
@@ -203,11 +202,6 @@ to compare or merge results across similar bots.
  * `buildbotName`: string
  * `buildNumber`: number
  * `logUri`: string
-
-### OwnershipInfo
-
- * `owners`: an array of strings containing email addresses
- * `component`: a string, a Monorail component
 
 ### GenericSet
 

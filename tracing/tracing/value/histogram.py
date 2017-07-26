@@ -331,50 +331,6 @@ class RunningStatistics(object):
          AsFloatOrNone(x) for x in dct[1:]]
     return result
 
-
-class Ownership(diagnostic.Diagnostic):
-
-  def __init__(self, emails, component=None):
-    super(Ownership, self).__init__()
-
-    emails = emails or []
-
-    self._emails = emails[:]
-
-    if (component is None) or isinstance(component, basestring):
-      self._component = component
-    else:
-      raise TypeError('component must be None or string')
-
-  def __eq__(self, other):
-    if self.component != other.component:
-      return False
-    if self.emails != other.emails:
-      return False
-
-    return True
-
-  def __ne__(self, other):
-    return not self == other
-
-  @property
-  def emails(self):
-    return self._emails[:]
-
-  @property
-  def component(self):
-    return self._component
-
-  def _AsDictInto(self, dct):
-    dct['emails'] = self.emails
-
-    if self.component is not None:
-      dct['component'] = self.component
-
-  @staticmethod
-  def FromDict(dct):
-    return Ownership(dct.get('emails'), dct.get('component'))
-
 class Breakdown(diagnostic.Diagnostic):
 
   def __init__(self):
@@ -1793,7 +1749,6 @@ all_diagnostics.DIAGNOSTICS_BY_NAME.update({
     'DateRange': DateRange,
     'DeviceInfo': DeviceInfo,
     'TagMap': TagMap,
-    'Ownership': Ownership,
     'RelatedHistogramBreakdown': RelatedHistogramBreakdown,
     'TelemetryInfo': TelemetryInfo,
     'RelatedHistogramMap': RelatedHistogramMap,
