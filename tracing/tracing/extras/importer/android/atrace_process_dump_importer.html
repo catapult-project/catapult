@@ -7,6 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
 <link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 
 <script>
 'use strict';
@@ -14,6 +16,14 @@ found in the LICENSE file.
 tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
   const IMPORT_PRIORITY = tr.e.importer.linux_perf.IMPORT_PRIORITY + 1;
   const HEADER = 'ATRACE_PROCESS_DUMP';
+
+  const PROTECTION_FLAG_LETTERS = {
+    '-': 0,
+    'r': tr.model.VMRegion.PROTECTION_FLAG_READ,
+    'w': tr.model.VMRegion.PROTECTION_FLAG_WRITE,
+    'x': tr.model.VMRegion.PROTECTION_FLAG_EXECUTE,
+    's': tr.model.VMRegion.PROTECTION_FLAG_MAYSHARE,
+  };
 
   class AtraceProcessDumpImporter extends tr.importer.Importer {
     constructor(model, data) {
@@ -89,8 +99,33 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
         totals.pd = processInfo.pd * 1024;
         totals.sc = processInfo.sc * 1024;
         totals.sd = processInfo.sd * 1024;
-        // TODO(kraynov): Add Memory maps.
       }
+    }
+
+    setProcessMemoryDumpVmRegions_(pmd, processInfo) {
+      if (processInfo.mmaps === undefined) {
+        return;
+      }
+      const vmRegions = [];
+      for (const memoryMap of processInfo.mmaps) {
+        const addr = memoryMap.vm.split('-').map(x => parseInt(x, 16));
+        let flags = 0;
+        for (const letter of memoryMap.flags) {
+          flags |= PROTECTION_FLAG_LETTERS[letter];
+        }
+        const totals = {
+          'proportionalResident': memoryMap.pss * 1024,
+          'privateCleanResident': memoryMap.pc * 1024,
+          'privateDirtyResident': memoryMap.pd * 1024,
+          'sharedCleanResident': memoryMap.sc * 1024,
+          'sharedDirtyResident': memoryMap.sd * 1024,
+          'swapped': memoryMap.swp * 1024,
+        };
+        vmRegions.push(new tr.model.VMRegion(
+            addr[0], addr[1] - addr[0], flags, memoryMap.file, totals));
+      }
+      pmd.vmRegions =
+          tr.model.VMRegionClassificationNode.fromRegions(vmRegions);
     }
 
     importEvents() {
@@ -137,6 +172,7 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
           gmd.processMemoryDumps[pid] = pmd;
           modelProcess.memoryDumps.push(pmd);
           this.setProcessMemoryDumpTotals_(pmd, processInfo);
+          this.setProcessMemoryDumpVmRegions_(pmd, processInfo);
         }
       }
     }
