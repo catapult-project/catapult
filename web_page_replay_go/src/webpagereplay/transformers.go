@@ -19,9 +19,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"gopkg.in/kothar/brotli-go.v0/dec"
-	"gopkg.in/kothar/brotli-go.v0/enc"
 )
 
 type readerWithError struct {
@@ -130,8 +127,7 @@ func decompressBody(ce string, compressed []byte) ([]byte, error) {
 		}
 	case "deflate":
 		r = flate.NewReader(bytes.NewReader(compressed))
-	case "br":
-		r = dec.NewBrotliReader(bytes.NewReader(compressed))
+	// TODO(catapult:3742): Implement Brotli support.
 	default:
 		// Unknown compression type or uncompressed.
 		return compressed, errors.New("unknown compression: " + ce)
@@ -154,11 +150,6 @@ func compressBody(ae string, uncompressed []byte) ([]byte, string, error) {
 	case strings.Contains(ae, "deflate"):
 		w, _ = flate.NewWriter(&buf, flate.DefaultCompression) // never fails
 		outCE = "deflate"
-	case strings.Contains(ae, "br"):
-		params := enc.NewBrotliParams()
-		params.SetQuality(0) // todo: we shold probably match the quality we got
-		w = enc.NewBrotliWriter(params, &buf)
-		outCE = "br"
 	default:
 		// Unknown compression type or compression not allowed.
 		return uncompressed, "identity", errors.New("unknown compression: " + ae)

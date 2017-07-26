@@ -3,7 +3,6 @@ Requires go 1.5. Not tested with earlier or later versions of go.
 REQUIRED PACKAGES
 
 $ go get github.com/codegangsta/cli
-$ go get gopkg.in/kothar/brotli-go.v0
 
 SETUP GOPATH
 

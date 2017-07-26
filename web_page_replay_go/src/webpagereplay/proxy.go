@@ -152,6 +152,11 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	if req.ContentLength == 0 {
 		req.Body = nil
 	}
+
+	// TODO(catapult:3742): Implement Brotli support. Remove br advertisement for now.
+	ce := req.Header.Get("Accept-Encoding")
+	req.Header.Set("Accept-Encoding", strings.TrimSuffix(ce, ", br"))
+
 	// Read the entire request body (for POST) before forwarding to the server
 	// so we can save the entire request in the archive.
 	var requestBody []byte
