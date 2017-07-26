@@ -47,6 +47,11 @@ found in the LICENSE file.
         text-decoration: none;
       }
 
+      #demo {
+        display: none;
+        background-color: #0f0;
+      }
+
       #navbar > ul > li, #navbar > ul > li > a {
         color: #ddd;
         font-weight: bold;
@@ -113,8 +118,10 @@ found in the LICENSE file.
         color: #dd4b39 !important;
       }
     </style>
+
     <nav id="navbar">
       <ul class="menu">
+        <li id="demo">Demo!</li>
         <li><a href="/">Home</a></li>
         <li><a href="/alerts">Alerts</a></li>
         <li><a href="/report">Browse Graphs</a></li>
@@ -188,6 +195,7 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
+
     Polymer({
       is: 'nav-bar',
       ready() {
@@ -198,7 +206,14 @@ found in the LICENSE file.
               this.displayUsername = response.display_username;
               this.isAdmin = response.is_admin;
             }.bind(this));
+
+        if (window.location.hostname !== 'chromeperf.appspot.com') {
+          this.$.demo.style.display = 'list-item';
+          this.$.demo.style.color = 'black';
+          window.document.body.style.border = '3px solid #0f0';
+        }
       },
+
       /**
        * Opens a window with new Chromium bug, pre-filled with some info.
        * @param {string} summary The title of the bug.
