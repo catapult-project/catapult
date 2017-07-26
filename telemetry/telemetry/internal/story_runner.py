@@ -58,7 +58,8 @@ def AddCommandLineArgs(parser):
 
   # WPR options
   group = optparse.OptionGroup(parser, 'Web Page Replay options')
-  group.add_option('--use-live-sites',
+  group.add_option(
+      '--use-live-sites',
       dest='use_live_sites', action='store_true',
       help='Run against live sites and ignore the Web Page Replay archives.')
   parser.add_option_group(group)
