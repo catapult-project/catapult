@@ -93,12 +93,8 @@ def BuildAndUpdateWPRGoBinary(os_name, arch_name):
 
 
 def main():
-  os_name = py_utils.GetHostOsName()
-  arch_name = py_utils.GetHostArchName()
-  BuildAndUpdateWPRGoBinary(os_name, arch_name)
-
-  if os_name == 'linux':
-    BuildAndUpdateWPRGoBinary('win', 'AMD64')
+  for os_name, arch_name in _SUPPORTED_PLATFORMS:
+    BuildAndUpdateWPRGoBinary(os_name, arch_name)
 
 
 if __name__ == "__main__":
