@@ -204,8 +204,8 @@ def Main(argv):
       chrome_process.kill()
     if server_process.returncode != 0:
       logging.error('Tests failed!')
-      logging.error('Server stderr:\n%s', server_err)
       logging.error('Server stdout:\n%s', server_out)
+      logging.error('Server stderr:\n%s', server_err)
     else:
       print server_out
     if args.presentation_json:
