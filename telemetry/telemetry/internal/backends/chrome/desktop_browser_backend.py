@@ -146,7 +146,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def is_logging_enabled(self):
     return self.browser_options.logging_verbosity in [
         self.browser_options.NON_VERBOSE_LOGGING,
-        self.browser_options.VERBOSE_LOGGING]
+        self.browser_options.VERBOSE_LOGGING,
+        self.browser_options.SUPER_VERBOSE_LOGGING]
 
   @property
   def log_file_path(self):

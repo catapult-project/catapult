@@ -113,6 +113,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     elif (self.browser_options.logging_verbosity ==
           self.browser_options.VERBOSE_LOGGING):
       args.extend(['--enable-logging', '--v=1'])
+    elif (self.browser_options.logging_verbosity ==
+          self.browser_options.SUPER_VERBOSE_LOGGING):
+      args.extend(['--enable-logging', '--v=2'])
 
     return args
 
