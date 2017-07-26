@@ -60,12 +60,14 @@ tr.exportTo('tr.ui.b', function() {
       if (this.enableHoverBox) {
         for (let index = 0; index < this.data_.length; ++index) {
           const datum = this.data_[index];
+          const x = this.getXForDatum_(datum, index);
           for (const [key, value] of Object.entries(datum)) {
             if (key === 'x') continue;
+            if (value === undefined) continue;
             const color = this.getDataSeries(key).color;
             const circle = document.createElementNS(
                 'http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', this.xScale_(index));
+            circle.setAttribute('cx', this.xScale_(x));
             circle.setAttribute('cy',
                 this.yScale_(this.dataRange.clamp(value)));
             circle.setAttribute('r', 5);
@@ -73,7 +75,7 @@ tr.exportTo('tr.ui.b', function() {
             circle.datum = datum;
             circle.key = key;
             circle.value = datum[key];
-            circle.leftPx = this.xScale_(index);
+            circle.leftPx = this.xScale_(x);
             circle.widthPx = 0;
             circle.color = color;
             circle.topPx = this.yScale_(this.dataRange.clamp(value));
