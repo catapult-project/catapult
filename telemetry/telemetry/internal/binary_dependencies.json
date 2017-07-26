@@ -385,6 +385,11 @@
           "cloud_storage_hash": "93884091f4fa18db1f0246bc56639d2b53e92e92",
           "download_path": "bin/win/AMD64/wpr.exe",
           "version_in_cs": "0b5405fba9e716cdd1e854f1b9d2cd5d99874ce1"
+        },
+        "win_x86": {
+          "cloud_storage_hash": "01d76fe002d624d68cdadc21c49e048e25a126fe",
+          "download_path": "bin/win/x86/wpr.exe",
+          "version_in_cs": "0b5405fba9e716cdd1e854f1b9d2cd5d99874ce1"
         }
       }
     }

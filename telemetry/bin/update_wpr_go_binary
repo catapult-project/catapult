@@ -41,6 +41,10 @@ def build_wpr_go(os_name, os_arch):
   # https://wiki.debian.org/DebianAMD64Faq?action=recall&rev=65
   if os_arch == 'x86_64' or os_arch == 'AMD64':
     os_arch = 'amd64'
+
+  if os_name  == 'win' or os_arch == 'x86':
+    os_arch = '386'
+
   # go build command recognizes 'darwin' but not 'mac'.
   if os_name == 'mac':
     os_name = 'darwin'
@@ -65,6 +69,7 @@ def build_wpr_go(os_name, os_arch):
 
 # TODO(nedn): support building other architectures & OSes.
 _SUPPORTED_PLATFORMS = (
+  ('win', 'x86'),
   ('mac', 'x86_64'),
   ('linux', 'x86_64'),
   ('win', 'AMD64'),
