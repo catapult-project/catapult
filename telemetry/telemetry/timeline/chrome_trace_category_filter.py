@@ -16,11 +16,11 @@ def CreateLowOverheadFilter():
   the ref builds are updated. crbug.com/386847
   """
   categories = [
-    "toplevel",
-    "benchmark",
-    "webkit.console",
-    "blink.console",
-    "trace_event_overhead"
+      "toplevel",
+      "benchmark",
+      "webkit.console",
+      "blink.console",
+      "trace_event_overhead"
   ]
   return ChromeTraceCategoryFilter(filter_string=','.join(categories))
 
@@ -149,7 +149,7 @@ class ChromeTraceCategoryFilter(object):
     result = {}
     if self._included_categories or self._disabled_by_default_categories:
       result[INCLUDED_CATEGORIES_PARAM] = list(
-        self._included_categories | self._disabled_by_default_categories)
+          self._included_categories | self._disabled_by_default_categories)
     if self._excluded_categories:
       result[EXCLUDED_CATEGORIES_PARAM] = list(self._excluded_categories)
     if self._synthetic_delays:

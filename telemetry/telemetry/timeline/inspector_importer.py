@@ -15,7 +15,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
                                                     trace_data,
                                                     import_order=1)
     traces = trace_data.GetTracesFor(
-      trace_data_module.INSPECTOR_TRACE_PART)
+        trace_data_module.INSPECTOR_TRACE_PART)
     assert len(traces) == 1
     self._events = traces[0]
 
@@ -48,11 +48,11 @@ class InspectorTimelineImporter(importer.TimelineImporter):
       end_time = raw_inspector_event.get('endTime', start_time)
 
       pending_slice = tracing_slice.Slice(
-        thread, 'inspector',
-        raw_inspector_event['type'],
-        start_time,
-        thread_timestamp=None,
-        args=args)
+          thread, 'inspector',
+          raw_inspector_event['type'],
+          start_time,
+          thread_timestamp=None,
+          args=args)
 
     for child in raw_inspector_event.get('children', []):
       InspectorTimelineImporter.AddRawEventToThreadRecursive(

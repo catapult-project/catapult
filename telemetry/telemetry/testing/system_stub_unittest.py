@@ -24,12 +24,12 @@ class CloudStorageTest(unittest.TestCase):
                          'preset_partner_file.wpr',
                          'preset_internal_file.wpr']
     self.remote_paths = {
-      self.cloud_storage.PUBLIC_BUCKET:
-        {'preset_public_file.wpr':CloudStorageTest.PUBLIC_FILE_HASH},
-      self.cloud_storage.PARTNER_BUCKET:
-        {'preset_partner_file.wpr':CloudStorageTest.PARTNER_FILE_HASH},
-      self.cloud_storage.INTERNAL_BUCKET:
-        {'preset_internal_file.wpr':CloudStorageTest.INTERNAL_FILE_HASH}}
+        self.cloud_storage.PUBLIC_BUCKET:
+            {'preset_public_file.wpr':CloudStorageTest.PUBLIC_FILE_HASH},
+        self.cloud_storage.PARTNER_BUCKET:
+            {'preset_partner_file.wpr':CloudStorageTest.PARTNER_FILE_HASH},
+        self.cloud_storage.INTERNAL_BUCKET:
+            {'preset_internal_file.wpr':CloudStorageTest.INTERNAL_FILE_HASH}}
 
     # Local data files and hashes.
     self.data_files = [

@@ -14,8 +14,8 @@ from telemetry.util import wpr_modes
 
 
 DEFAULT_LOG_FORMAT = (
-  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-  '%(message)s')
+    '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+    '%(message)s')
 
 
 class SeriallyExecutedBrowserTestCase(unittest.TestCase):

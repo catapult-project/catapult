@@ -44,8 +44,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
       else:
         for k in test_dict:
           node_queues.append(
-            ('%s%s%s' % (full_test_name, delimiter, k),
-             test_dict[k]))
+              ('%s%s%s' % (full_test_name, delimiter, k),
+               test_dict[k]))
     return successes, failures
 
   def baseTest(self, test_filter,
@@ -77,58 +77,58 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputFormatNegativeFilter(self):
     self.baseTest(
-      '^(add|multiplier).*',
-      ['browser_tests.simple_numeric_test.SimpleTest.add_1_and_2',
-       'browser_tests.simple_numeric_test.SimpleTest.add_7_and_3',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_2'],
-      ['browser_tests.simple_numeric_test.SimpleTest.add_2_and_3',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_3'])
+        '^(add|multiplier).*',
+        ['browser_tests.simple_numeric_test.SimpleTest.add_1_and_2',
+         'browser_tests.simple_numeric_test.SimpleTest.add_7_and_3',
+         'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_2'],
+        ['browser_tests.simple_numeric_test.SimpleTest.add_2_and_3',
+         'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple',
+         'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_3'])
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputWhenSetupClassFailed(self):
     self.baseTest(
-      '.*',
-      ['browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_0',
-       'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_1',
-       'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_2'],
-      [], test_name='SetUpClassFailedTest')
+        '.*',
+        ['browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_0',
+         'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_1',
+         'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_2'],
+        [], test_name='SetUpClassFailedTest')
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputWhenTearDownClassFailed(self):
     self.baseTest(
-      '.*',
-      ['browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_0',
-       'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_1',
-       'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_2'],
-      [], test_name='TearDownClassFailedTest')
+        '.*',
+        ['browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_0',
+         'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_1',
+         'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_2'],
+        [], test_name='TearDownClassFailedTest')
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSetUpProcessCalledOnce(self):
     self.baseTest(
-      '.*',
-      [],
-      ['browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_0',
-       'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_1',
-       'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_2'],
-      test_name='FailIfSetUpProcessCalledTwice')
+        '.*',
+        [],
+        ['browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_0',
+         'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_1',
+         'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_2'],
+        test_name='FailIfSetUpProcessCalledTwice')
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testTearDownProcessCalledOnce(self):
     self.baseTest(
-      '.*',
-      [],
-      ['browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_0',
-       'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_1',
-       'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_2'],
-      test_name='FailIfTearDownProcessCalledTwice')
+        '.*',
+        [],
+        ['browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_0',
+         'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_1',
+         'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_2'
+ ], test_name='FailIfTearDownProcessCalledTwice')
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputFormatPositiveFilter(self):
     self.baseTest(
-      '(TestSimple|TestException).*',
-      ['browser_tests.simple_numeric_test.SimpleTest.TestException',
-       'browser_tests.simple_numeric_test.SimpleTest.TestSimple'], [])
+        '(TestSimple|TestException).*',
+        ['browser_tests.simple_numeric_test.SimpleTest.TestException',
+         'browser_tests.simple_numeric_test.SimpleTest.TestSimple'], [])
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testExecutingTestsInSortedOrder(self):
@@ -148,7 +148,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     shard_ranges = []
     for shard_index in xrange(0, total_shards):
       shard_ranges.append(run_browser_tests._TestRangeForShard(
-        total_shards, shard_index, num_tests))
+          total_shards, shard_index, num_tests))
     # Make assertions about ranges
     num_tests_run = 0
     for i in xrange(0, len(shard_ranges)):
@@ -197,10 +197,10 @@ class BrowserTestRunnerTest(unittest.TestCase):
     opt_args = []
     if opt_abbr_input_json_file:
       opt_args += [
-        '--read-abbreviated-json-results-from=%s' % opt_abbr_input_json_file]
+          '--read-abbreviated-json-results-from=%s' % opt_abbr_input_json_file]
     if opt_test_filter:
       opt_args += [
-        '--test-filter=%s' % opt_test_filter]
+          '--test-filter=%s' % opt_test_filter]
     if opt_filter_tests_after_sharding:
       opt_args += ['--filter-tests-after-sharding']
     try:
@@ -221,59 +221,59 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShardedTestRun(self):
     self.baseShardingTest(3, 0, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
     ])
     self.baseShardingTest(3, 1, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
     ])
     self.baseShardingTest(3, 2, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9',
     ])
 
   def writeMockTestResultsFile(self):
     mock_test_results = {
-      'passes': [
-        'Test1',
-        'Test2',
-        'Test3',
-        'passing_test_0',
-        'passing_test_1',
-        'passing_test_2',
-        'passing_test_3',
-        'passing_test_4',
-        'passing_test_5',
-        'passing_test_6',
-        'passing_test_7',
-        'passing_test_8',
-        'passing_test_9',
-      ],
-      'failures': [],
-      'valid': True,
-      'times': {
-        'Test1': 3.0,
-        'Test2': 3.0,
-        'Test3': 3.0,
-        'passing_test_0': 3.0,
-        'passing_test_1': 2.0,
-        'passing_test_2': 2.0,
-        'passing_test_3': 2.0,
-        'passing_test_4': 2.0,
-        'passing_test_5': 1.0,
-        'passing_test_6': 1.0,
-        'passing_test_7': 1.0,
-        'passing_test_8': 1.0,
-        'passing_test_9': 0.5,
-      }
+        'passes': [
+            'Test1',
+            'Test2',
+            'Test3',
+            'passing_test_0',
+            'passing_test_1',
+            'passing_test_2',
+            'passing_test_3',
+            'passing_test_4',
+            'passing_test_5',
+            'passing_test_6',
+            'passing_test_7',
+            'passing_test_8',
+            'passing_test_9',
+        ],
+        'failures': [],
+        'valid': True,
+        'times': {
+            'Test1': 3.0,
+            'Test2': 3.0,
+            'Test3': 3.0,
+            'passing_test_0': 3.0,
+            'passing_test_1': 2.0,
+            'passing_test_2': 2.0,
+            'passing_test_3': 2.0,
+            'passing_test_4': 2.0,
+            'passing_test_5': 1.0,
+            'passing_test_6': 1.0,
+            'passing_test_7': 1.0,
+            'passing_test_8': 1.0,
+            'passing_test_9': 0.5,
+        }
     }
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.close()
@@ -292,31 +292,39 @@ class BrowserTestRunnerTest(unittest.TestCase):
     # not well defined, and the sorting is stable afterward.  The
     # expectations have been adjusted for this fact.
     try:
-      self.baseShardingTest(
-        4, 0, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9'
-        ], temp_file_name)
-      self.baseShardingTest(
-        4, 1, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6'
-        ], temp_file_name)
-      self.baseShardingTest(
-        4, 2, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7'
-        ], temp_file_name)
-      self.baseShardingTest(
-        4, 3, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8'
-        ], temp_file_name)
+      self.baseShardingTest(4, 0, [], [
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_0',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_1',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_5',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_9'
+      ], temp_file_name)
+      self.baseShardingTest(4, 1, [], [
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.Test1',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_2',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_6'
+      ], temp_file_name)
+      self.baseShardingTest(4, 2, [], [
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.Test2',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_3',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_7'
+      ], temp_file_name)
+      self.baseShardingTest(4, 3, [], [
+          'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_4',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_8'
+      ], temp_file_name)
     finally:
       os.remove(temp_file_name)
 
@@ -325,24 +333,26 @@ class BrowserTestRunnerTest(unittest.TestCase):
     temp_file_name = self.writeMockTestResultsFile()
     try:
       self.baseShardingTest(
-        4, 1, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6'
-        ], temp_file_name,
-        opt_test_filter='(Test1|passing_test_2|passing_test_6)',
-        opt_filter_tests_after_sharding=True)
+          4, 1, [],
+          ['browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
+           'browser_tests.simple_sharding_test' +
+           '.SimpleShardingTest.passing_test_2',
+           'browser_tests.simple_sharding_test' +
+           '.SimpleShardingTest.passing_test_6'
+          ], temp_file_name,
+          opt_test_filter='(Test1|passing_test_2|passing_test_6)',
+          opt_filter_tests_after_sharding=True)
     finally:
       os.remove(temp_file_name)
 
   def testMedianComputation(self):
     self.assertEquals(2.0, run_browser_tests._MedianTestTime(
-      {'test1': 2.0, 'test2': 7.0, 'test3': 1.0}))
+        {'test1': 2.0, 'test2': 7.0, 'test3': 1.0}))
     self.assertEquals(2.0, run_browser_tests._MedianTestTime(
-      {'test1': 2.0}))
+        {'test1': 2.0}))
     self.assertEquals(0.0, run_browser_tests._MedianTestTime({}))
     self.assertEqual(4.0, run_browser_tests._MedianTestTime(
-      {'test1': 2.0, 'test2': 6.0, 'test3': 1.0, 'test4': 8.0}))
+        {'test1': 2.0, 'test2': 6.0, 'test3': 1.0, 'test4': 8.0}))
 
 
 class Algebra(
@@ -382,9 +392,9 @@ class TestLoadAllTestModules(unittest.TestCase):
     context.finder_options = options_for_unittests.GetCopy()
     context.test_class = Algebra
     context.test_case_ids_to_run.add(
-      'telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber')
+        'telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber')
     context.test_case_ids_to_run.add(
-      'telemetry.testing.browser_test_runner_unittest.Algebra.testOne')
+        'telemetry.testing.browser_test_runner_unittest.Algebra.testOne')
     context.Freeze()
     browser_test_context._global_test_context = context
     try:
@@ -392,7 +402,8 @@ class TestLoadAllTestModules(unittest.TestCase):
       # otherwise that would throw Exception.
       tests = serially_executed_browser_test_case.LoadAllTestsInModule(
           sys.modules[__name__])
-      self.assertEquals(sorted([t.id() for t in tests]),
+      self.assertEquals(
+          sorted([t.id() for t in tests]),
           ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
            'telemetry.testing.browser_test_runner_unittest.Algebra.testOne'])
     finally:

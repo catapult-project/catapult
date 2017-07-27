@@ -56,8 +56,8 @@ def _TestRangeForShard(total_shards, shard_index, num_tests):
   assert num_tests >= 0
   assert total_shards >= 1
   assert shard_index >= 0 and shard_index < total_shards, (
-    'shard_index (%d) must be >= 0 and < total_shards (%d)' %
-    (shard_index, total_shards))
+      'shard_index (%d) must be >= 0 and < total_shards (%d)' %
+      (shard_index, total_shards))
   if num_tests == 0:
     return (0, 0)
   floored_tests_per_shard = num_tests // total_shards
@@ -69,10 +69,10 @@ def _TestRangeForShard(total_shards, shard_index, num_tests):
   # tests, and some will run 1 + floored_tests_per_shard.
   num_earlier_shards_with_one_extra_test = min(remaining_tests, shard_index)
   num_earlier_shards_with_no_extra_tests = max(
-    0, shard_index - num_earlier_shards_with_one_extra_test)
+      0, shard_index - num_earlier_shards_with_one_extra_test)
   num_earlier_tests = (
-    num_earlier_shards_with_one_extra_test * (floored_tests_per_shard + 1) +
-    num_earlier_shards_with_no_extra_tests * floored_tests_per_shard)
+      num_earlier_shards_with_one_extra_test * (floored_tests_per_shard + 1) +
+      num_earlier_shards_with_no_extra_tests * floored_tests_per_shard)
   tests_for_this_shard = floored_tests_per_shard
   if shard_index < remaining_tests:
     tests_for_this_shard += 1
@@ -185,29 +185,33 @@ def LoadTestCasesToBeRun(
 def _CreateTestArgParsers():
   parser = typ.ArgumentParser(discovery=False, reporting=True, running=True)
   parser.add_argument('test', type=str, help='Name of the test suite to run')
-  parser.add_argument('--test-filter', type=str, default='', action='store',
+  parser.add_argument(
+      '--test-filter', type=str, default='', action='store',
       help='Run only tests whose names match the given filter regexp.')
   parser.add_argument(
-    '--filter-tests-after-sharding', default=False, action='store_true',
-    help=('Apply the test filter after tests are split for sharding. Useful '
-          'for reproducing bugs related to the order in which tests run.'))
+      '--filter-tests-after-sharding', default=False, action='store_true',
+      help=('Apply the test filter after tests are split for sharding. Useful '
+            'for reproducing bugs related to the order in which tests run.'))
   parser.add_argument(
-      '--read-abbreviated-json-results-from', metavar='FILENAME',
-      action='store', help=(
-        'If specified, reads abbreviated results from that path in json form. '
-        'This information is used to more evenly distribute tests among '
-        'shards.'))
-  parser.add_argument('--debug-shard-distributions',
+      '--read-abbreviated-json-results-from',
+      metavar='FILENAME',
+      action='store',
+      help=(
+          'If specified, reads abbreviated results from that path in json '
+          'form. This information is used to more evenly distribute tests '
+          'among shards.'))
+  parser.add_argument(
+      '--debug-shard-distributions',
       action='store_true', default=False,
       help='Print debugging information about the shards\' test distributions')
 
   parser.add_argument('--default-chrome-root', type=str, default=None)
-  parser.add_argument('--client-config', dest='client_configs',
-                      action='append', default=[])
-  parser.add_argument('--start-dir', dest='start_dirs',
-                      action='append', default=[])
-  parser.add_argument('--skip', metavar='glob', default=[],
-      action='append',
+  parser.add_argument(
+      '--client-config', dest='client_configs', action='append', default=[])
+  parser.add_argument(
+      '--start-dir', dest='start_dirs', action='append', default=[])
+  parser.add_argument(
+      '--skip', metavar='glob', default=[], action='append',
       help=('Globs of test names to skip (defaults to %(default)s).'))
   return parser
 
@@ -221,7 +225,8 @@ def _GetClassifier(args):
     # Do not pick up tests that do not inherit from
     # serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase
     # class.
-    if not isinstance(test,
+    if not isinstance(
+        test,
         serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
       return
     name = test.id()
@@ -244,9 +249,10 @@ def RunTests(args):
 
   for start_dir in options.start_dirs:
     modules_to_classes = discover.DiscoverClasses(
-        start_dir, options.top_level_dir,
+        start_dir,
+        options.top_level_dir,
         base_class=serially_executed_browser_test_case.
-            SeriallyExecutedBrowserTestCase)
+        SeriallyExecutedBrowserTestCase)
     browser_test_classes = modules_to_classes.values()
 
   _ValidateDistinctNames(browser_test_classes)

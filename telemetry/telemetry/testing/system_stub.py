@@ -29,15 +29,16 @@ class Override(object):
     self.sys = None
     self.thermal_throttle = None
     self.logging = None
-    stubs = {'cloud_storage': CloudStorageModuleStub,
-             'open': OpenFunctionStub,
-             'os': OsModuleStub,
-             'perf_control': PerfControlModuleStub,
-             'raw_input': RawInputFunctionStub,
-             'subprocess': SubprocessModuleStub,
-             'sys': SysModuleStub,
-             'thermal_throttle': ThermalThrottleModuleStub,
-             'logging': LoggingStub,
+    stubs = {
+        'cloud_storage': CloudStorageModuleStub,
+        'open': OpenFunctionStub,
+        'os': OsModuleStub,
+        'perf_control': PerfControlModuleStub,
+        'raw_input': RawInputFunctionStub,
+        'subprocess': SubprocessModuleStub,
+        'sys': SysModuleStub,
+        'thermal_throttle': ThermalThrottleModuleStub,
+        'logging': LoggingStub,
     }
     self.adb_commands = None
     self.os = None
@@ -118,9 +119,9 @@ class CloudStorageModuleStub(object):
   PARTNER_BUCKET = 'chrome-partner-telemetry'
   INTERNAL_BUCKET = 'chrome-telemetry'
   BUCKET_ALIASES = {
-    'public': PUBLIC_BUCKET,
-    'partner': PARTNER_BUCKET,
-    'internal': INTERNAL_BUCKET,
+      'public': PUBLIC_BUCKET,
+      'partner': PARTNER_BUCKET,
+      'internal': INTERNAL_BUCKET,
   }
 
   # These are used to test for CloudStorage errors.
@@ -143,9 +144,9 @@ class CloudStorageModuleStub(object):
     pass
 
   def __init__(self):
-    self.default_remote_paths = {CloudStorageModuleStub.INTERNAL_BUCKET:{},
-                                 CloudStorageModuleStub.PARTNER_BUCKET:{},
-                                 CloudStorageModuleStub.PUBLIC_BUCKET:{}}
+    self.default_remote_paths = {CloudStorageModuleStub.INTERNAL_BUCKET: {},
+                                 CloudStorageModuleStub.PARTNER_BUCKET: {},
+                                 CloudStorageModuleStub.PUBLIC_BUCKET: {}}
     self.remote_paths = self.default_remote_paths
     self.local_file_hashes = {}
     self.local_hash_files = {}
@@ -216,7 +217,7 @@ class CloudStorageModuleStub(object):
       file_path_error = 'Local file path does not exist'
       raise CloudStorageModuleStub.CloudStorageError(file_path_error)
     self.remote_paths[bucket][remote_path] = (
-      CloudStorageModuleStub.CalculateHash(self, local_path))
+        CloudStorageModuleStub.CalculateHash(self, local_path))
     return remote_path
 
   def GetHelper(self, bucket, remote_path, local_path, only_if_changed):

@@ -212,8 +212,8 @@ def GetClassifier(args, possible_browser):
           typ.TestInput(name, 'skipped because matched --skip'))
       return
     if (not args.positional_args
-        or _MatchesSelectedTest(name, args.positional_args,
-                                  args.exact_test_filter)):
+        or _MatchesSelectedTest(
+            name, args.positional_args, args.exact_test_filter)):
       # TODO(telemetry-team): Make sure that all telemetry unittest that invokes
       # actual browser are subclasses of browser_test_case.BrowserTestCase
       # (crbug.com/537428)

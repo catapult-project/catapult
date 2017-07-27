@@ -17,10 +17,10 @@ RECORD_UNTIL_FULL = 'record-until-full'
 # Map telemetry's tracing record_mode to the DevTools API string.
 # (The keys happen to be the same as the values.)
 RECORD_MODE_MAP = {
-  RECORD_UNTIL_FULL: 'record-until-full',
-  RECORD_CONTINUOUSLY: 'record-continuously',
-  RECORD_AS_MUCH_AS_POSSIBLE: 'record-as-much-as-possible',
-  ECHO_TO_CONSOLE: 'trace-to-console'
+    RECORD_UNTIL_FULL: 'record-until-full',
+    RECORD_CONTINUOUSLY: 'record-continuously',
+    RECORD_AS_MUCH_AS_POSSIBLE: 'record-as-much-as-possible',
+    ECHO_TO_CONSOLE: 'trace-to-console'
 }
 
 

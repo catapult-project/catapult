@@ -48,8 +48,10 @@ class RunTestsUnitTest(unittest.TestCase):
     runner = run_tests.typ.Runner()
     host = runner.host
     runner.top_level_dir = util.GetTelemetryDir()
-    runner.args.tests = [host.join(util.GetTelemetryDir(),
-        'telemetry', 'testing', 'disabled_cases.py')]
+    runner.args.tests = [
+        host.join(util.GetTelemetryDir(), 'telemetry', 'testing',
+                  'disabled_cases.py')
+    ]
     possible_browser = MockPossibleBrowser(
         browser_type, os_name, os_version_name, supports_tab_control)
     runner.classifier = run_tests.GetClassifier(args, possible_browser)

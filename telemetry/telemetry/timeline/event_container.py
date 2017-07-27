@@ -88,49 +88,49 @@ class TimelineEventContainer(object):
   # optinal recurisve parameter and be implemented in terms fo IterAllEvents.
   def IterAllEventsOfName(self, name, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: True,
-      event_predicate=lambda e: e.name == name)
+        recursive=recursive,
+        event_type_predicate=lambda t: True,
+        event_predicate=lambda e: e.name == name)
 
   def IterAllSlices(self, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: t == slice_module.Slice)
+        recursive=recursive,
+        event_type_predicate=lambda t: t == slice_module.Slice)
 
   def IterAllSlicesInRange(self, start, end, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: t == slice_module.Slice,
-      event_predicate=lambda s: s.start >= start and s.end <= end)
+        recursive=recursive,
+        event_type_predicate=lambda t: t == slice_module.Slice,
+        event_predicate=lambda s: s.start >= start and s.end <= end)
 
   def IterAllSlicesOfName(self, name, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: t == slice_module.Slice,
-      event_predicate=lambda e: e.name == name)
+        recursive=recursive,
+        event_type_predicate=lambda t: t == slice_module.Slice,
+        event_predicate=lambda e: e.name == name)
 
   def IterAllToplevelSlicesOfName(self, name, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: t == slice_module.Slice,
-      event_predicate=lambda e: e.name == name and e.parent_slice == None)
+        recursive=recursive,
+        event_type_predicate=lambda t: t == slice_module.Slice,
+        event_predicate=lambda e: e.name == name and e.parent_slice == None)
 
   def IterAllAsyncSlicesOfName(self, name, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=self.IsAsyncSlice,
-      event_predicate=lambda e: e.name == name)
+        recursive=recursive,
+        event_type_predicate=self.IsAsyncSlice,
+        event_predicate=lambda e: e.name == name)
 
   def IterAllAsyncSlicesStartsWithName(self, name, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=self.IsAsyncSlice,
-      event_predicate=lambda e: e.name.startswith(name))
+        recursive=recursive,
+        event_type_predicate=self.IsAsyncSlice,
+        event_predicate=lambda e: e.name.startswith(name))
 
   def IterAllFlowEvents(self, recursive=True):
     return self.IterAllEvents(
-      recursive=recursive,
-      event_type_predicate=lambda t: t == flow_event_module.FlowEvent)
+        recursive=recursive,
+        event_type_predicate=lambda t: t == flow_event_module.FlowEvent)
 
   # List versions. These should always be simple expressions that list() on
   # an underlying iter method.

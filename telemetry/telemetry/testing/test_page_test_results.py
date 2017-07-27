@@ -17,8 +17,9 @@ class TestPageTestResults(
     self.WillRunPage(page)
 
   def GetPageSpecificValueNamed(self, name):
-    values = [value for value in self.all_page_specific_values
-         if value.name == name]
+    values = [
+        value for value in self.all_page_specific_values if value.name == name
+    ]
     assert len(values) == 1, 'Could not find value named %s' % name
     return values[0]
 
