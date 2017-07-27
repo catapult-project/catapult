@@ -524,7 +524,7 @@ class CrOSInterface(object):
     return False
 
   def GetArchName(self):
-    return self.RunCmdOnDevice(['uname', '-m'])[0]
+    return self.RunCmdOnDevice(['uname', '-m'])[0].rstrip()
 
   def IsRunningOnVM(self):
     return self.RunCmdOnDevice(['crossystem', 'inside_vm'])[0] != '0'
