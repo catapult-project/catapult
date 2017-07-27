@@ -143,7 +143,7 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     # pylint: disable=protected-access
     browser_pid = self._browser._browser_backend.pid
     pids = ([browser_pid] +
-        self._browser._platform_backend.GetChildPids(browser_pid))
+            self._browser._platform_backend.GetChildPids(browser_pid))
     libs = _GetLibrariesMappedIntoProcesses(self._device, pids)
     assert libs
 

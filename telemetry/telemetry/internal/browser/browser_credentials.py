@@ -145,5 +145,5 @@ class BrowserCredentials(object):
         or add your own credentials to:
             %s
         An example credentials file you can copy from is here:
-            %s\n""", page.credentials, page,
-            ' or '.join(files_to_tweak), example_credentials_file)
+            %s\n""", page.credentials, page, ' or '.join(files_to_tweak),
+                      example_credentials_file)

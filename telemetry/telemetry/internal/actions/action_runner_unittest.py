@@ -227,7 +227,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.WaitForElement(
         element_function='document.getElementById("test1")')
     action_runner.ExecuteJavaScript(
-      'window.setTimeout(function() {'
+        'window.setTimeout(function() {'
         '  var el = document.createElement("div");'
         '  el.id = "test2";'
         '  document.body.appendChild(el);'

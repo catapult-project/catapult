@@ -262,25 +262,29 @@ class TracingControllerBackend(object):
     assert not trace_event.trace_is_enabled(), 'Stop tracing before collection.'
     with open(self._trace_log, 'r') as fp:
       data = ast.literal_eval(fp.read() + ']')
-    trace_data_builder.AddTraceFor(trace_data_module.TELEMETRY_PART, {
-        "traceEvents": data,
-        "metadata": {
-            # TODO(charliea): For right now, we use "TELEMETRY" as the clock
-            # domain to guarantee that Telemetry is given its own clock
-            # domain. Telemetry isn't really a clock domain, though: it's a
-            # system that USES a clock domain like LINUX_CLOCK_MONOTONIC or
-            # WIN_QPC. However, there's a chance that a Telemetry controller
-            # running on Linux (using LINUX_CLOCK_MONOTONIC) is interacting with
-            # an Android phone (also using LINUX_CLOCK_MONOTONIC, but on a
-            # different machine). The current logic collapses clock domains
-            # based solely on the clock domain string, but we really should to
-            # collapse based on some (device ID, clock domain ID) tuple. Giving
-            # Telemetry its own clock domain is a work-around for this.
-            "clock-domain": "TELEMETRY",
-            "telemetry": (self._telemetry_info.AsDict()
-                if self._telemetry_info else {}),
-        }
-    })
+    trace_data_builder.AddTraceFor(
+        trace_data_module.TELEMETRY_PART,
+        {
+            "traceEvents": data,
+            "metadata": {
+                # TODO(charliea): For right now, we use "TELEMETRY" as the clock
+                # domain to guarantee that Telemetry is given its own clock
+                # domain. Telemetry isn't really a clock domain, though: it's a
+                # system that USES a clock domain like LINUX_CLOCK_MONOTONIC or
+                # WIN_QPC. However, there's a chance that a Telemetry controller
+                # running on Linux (using LINUX_CLOCK_MONOTONIC) is interacting
+                # with an Android phone (also using LINUX_CLOCK_MONOTONIC, but
+                # on a different machine). The current logic collapses clock
+                # domains based solely on the clock domain string, but we really
+                # should to collapse based on some (device ID, clock domain ID)
+                # tuple. Giving Telemetry its own clock domain is a work-around
+                # for this.
+                "clock-domain":
+                    "TELEMETRY",
+                "telemetry": (self._telemetry_info.AsDict()
+                              if self._telemetry_info else {}),
+            }
+        })
     try:
       os.remove(self._trace_log)
       self._trace_log = None
