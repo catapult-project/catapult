@@ -82,13 +82,13 @@ class MockObject(object):
   def _install_hook(self, func_name):
     def handler(*args, **_):
       got_call = MockFunctionCall(
-        func_name).WithArgs(*args).WillReturn(DONT_CARE)
+          func_name).WithArgs(*args).WillReturn(DONT_CARE)
       if self._trace.next_call_index >= len(self._trace.expected_calls):
         raise Exception(
-          'Call to %s was not expected, at end of programmed trace.' %
-          repr(got_call))
+            'Call to %s was not expected, at end of programmed trace.' %
+            repr(got_call))
       expected_call = self._trace.expected_calls[
-        self._trace.next_call_index]
+          self._trace.next_call_index]
       expected_call.VerifyEquals(got_call)
       self._trace.next_call_index += 1
       for h in expected_call.when_called_handlers:

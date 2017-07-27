@@ -178,8 +178,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = Test()
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     self.assertEquals(2, test.run_count)
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
@@ -214,8 +214,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = Test(needs_browser_restart_after_each_page=True)
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
@@ -269,8 +269,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.suppress_gtest_report = True
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results,
-          metadata=EmptyMetadataForTest())
+      story_runner.Run(
+          test, story_set, options, results, metadata=EmptyMetadataForTest())
     finally:
       os.remove(f.name)
 
@@ -304,8 +304,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
 
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
@@ -333,8 +333,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
 
   @decorators.Disabled('chromeos')  # crbug.com/652385
   def testTrafficSettings(self):
@@ -372,8 +372,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     # Slow page should be slower than fast page by at least 300 ms (roundtrip
     # time of 2G) - 2 ms (roundtrip time of Wifi)
     self.assertGreater(latencies_by_page_in_ms['slow'],
@@ -412,8 +412,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
 
   def testRunPageWithStartupUrl(self):
     num_times_browser_closed = [0]
@@ -448,8 +448,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = Measurement()
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     self.assertEquals('about:blank', options.browser_options.startup_url)
     # _StopBrowser should be called 2 times:
     # 1. browser restarts after page 1 run
@@ -483,8 +483,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
@@ -525,8 +525,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.skipped_values))
@@ -554,7 +554,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     try:
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(Measurement(), story_set, options, results,
+      story_runner.Run(
+          Measurement(), story_set, options, results,
           metadata=EmptyMetadataForTest())
       self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
       self.assertEquals(0, len(results.failures))
@@ -621,8 +622,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
 
-    story_runner.Run(test, story_set, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
 
     self.longMessage = True
     self.assertIn('Example Domain', body[0],
@@ -770,8 +771,9 @@ class FakePageRunEndToEndTests(unittest.TestCase):
         results.pages_to_profiling_files[failing_page][0].GetAbsPath())
     try:
       actual_screenshot_img = image_util.FromPngFile(screenshot_file_path)
-      self.assertTrue(image_util.AreEqual(
-                      image_util.FromBase64Png(expected_png_base64),
-                      actual_screenshot_img))
+      self.assertTrue(
+          image_util.AreEqual(
+              image_util.FromBase64Png(expected_png_base64),
+              actual_screenshot_img))
     finally:  # Must clean up screenshot file if exists.
       os.remove(screenshot_file_path)

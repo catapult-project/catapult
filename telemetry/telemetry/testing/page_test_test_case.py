@@ -46,8 +46,7 @@ class PageTestTestCase(unittest.TestCase):
     ps = story.StorySet(base_dir=base_dir)
     return ps
 
-  def RunMeasurement(self, measurement, ps,
-      options=None):
+  def RunMeasurement(self, measurement, ps, options=None):
     """Runs a measurement against a pageset, returning the rows its outputs."""
     if options is None:
       options = options_for_unittests.GetCopy()
@@ -68,8 +67,8 @@ class PageTestTestCase(unittest.TestCase):
     options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(measurement, ps, options, results,
-        metadata=EmptyMetadataForTest())
+    story_runner.Run(
+        measurement, ps, options, results, metadata=EmptyMetadataForTest())
     return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):
