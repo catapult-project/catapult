@@ -42,21 +42,27 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
   @classmethod
   def AddCommandLineArgs(cls, parser):
     group = optparse.OptionGroup(parser, 'User story filtering options')
-    group.add_option('--story-filter',
+    group.add_option(
+        '--story-filter',
         help='Use only stories whose names match the given filter regexp.')
-    group.add_option('--story-filter-exclude',
+    group.add_option(
+        '--story-filter-exclude',
         help='Exclude stories whose names match the given filter regexp.')
-    group.add_option('--story-tag-filter',
+    group.add_option(
+        '--story-tag-filter',
         help='Use only stories that have any of these tags')
-    group.add_option('--story-tag-filter-exclude',
+    group.add_option(
+        '--story-tag-filter-exclude',
         help='Exclude stories that have any of these tags')
     common_story_shard_help = (
         'Indices start at 0, and have the same rules as python slices,'
         ' e.g.  [4, 5, 6, 7, 8][0:3] -> [4, 5, 6])')
-    group.add_option('--experimental-story-shard-begin-index',
+    group.add_option(
+        '--experimental-story-shard-begin-index',
         help='EXPERIMENTAL. Beginning index of set of stories to run. ' +
-             common_story_shard_help)
-    group.add_option('--experimental-story-shard-end-index',
+        common_story_shard_help)
+    group.add_option(
+        '--experimental-story-shard-end-index',
         help='EXPERIMENTAL. End index of set of stories to run. Value will be'
              ' rounded down to the number of stories. Negative values not'
              ' allowed. ' + common_story_shard_help)
@@ -117,4 +123,3 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
       final_story_set.append(story)
 
     return final_story_set
-

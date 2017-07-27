@@ -167,9 +167,9 @@ class TestPage(unittest.TestCase):
     self.assertIn('id', named_dict)
     del named_dict['id']
     self.assertEquals({
-                      'url': 'http://example.com/',
-                      'name': 'Example'
-                      }, named_dict)
+        'url': 'http://example.com/',
+        'name': 'Example'
+    }, named_dict)
 
   def testIsLocal(self):
     p = page.Page('file://foo.html', name='foo.html')
@@ -191,17 +191,17 @@ class TestPageRun(unittest.TestCase):
     mock_shared_state = mock.Mock()
     p = page.Page('file://foo.html', name='foo.html')
     p.Run(mock_shared_state)
-    expected = [mock.call.current_tab.CollectGarbage(),
-                mock.call.current_tab.CollectGarbage(),
-                mock.call.current_tab.CollectGarbage(),
-                mock.call.current_tab.CollectGarbage(),
-                mock.call.current_tab.CollectGarbage(),
-                mock.call.page_test.WillNavigateToPage(
-                p, mock_shared_state.current_tab),
-                mock.call.page_test.RunNavigateSteps(
-                p, mock_shared_state.current_tab),
-                mock.call.page_test.DidNavigateToPage(
-                p, mock_shared_state.current_tab)]
+    expected = [
+        mock.call.current_tab.CollectGarbage(),
+        mock.call.current_tab.CollectGarbage(),
+        mock.call.current_tab.CollectGarbage(),
+        mock.call.current_tab.CollectGarbage(),
+        mock.call.current_tab.CollectGarbage(),
+        mock.call.page_test.WillNavigateToPage(
+            p, mock_shared_state.current_tab),
+        mock.call.page_test.RunNavigateSteps(p, mock_shared_state.current_tab),
+        mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab)
+    ]
     self.assertEquals(mock_shared_state.mock_calls, expected)
 
   def testNoGarbageCollectionCalls(self):
@@ -215,10 +215,10 @@ class TestPageRun(unittest.TestCase):
 
     p = NonGarbageCollectPage('file://foo.html')
     p.Run(mock_shared_state)
-    expected = [mock.call.page_test.WillNavigateToPage(
-                p, mock_shared_state.current_tab),
-                mock.call.page_test.RunNavigateSteps(
-                p, mock_shared_state.current_tab),
-                mock.call.page_test.DidNavigateToPage(
-                p, mock_shared_state.current_tab)]
+    expected = [
+        mock.call.page_test.WillNavigateToPage(
+            p, mock_shared_state.current_tab),
+        mock.call.page_test.RunNavigateSteps(p, mock_shared_state.current_tab),
+        mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab)
+    ]
     self.assertEquals(mock_shared_state.mock_calls, expected)

@@ -14,14 +14,14 @@ class FilterTest(unittest.TestCase):
   def setUp(self):
     story_set = story.StorySet()
     self.p1 = page.Page(
-      url='file://your/smile/widen.html', page_set=story_set,
-      name='MayYour.smile_widen', tags=['tag1', 'tag2'])
+        url='file://your/smile/widen.html', page_set=story_set,
+        name='MayYour.smile_widen', tags=['tag1', 'tag2'])
     self.p2 = page.Page(
-      url='file://share_a/smile/too.html', page_set=story_set,
-      name='ShareA.smiles_too', tags=['tag1'])
+        url='file://share_a/smile/too.html', page_set=story_set,
+        name='ShareA.smiles_too', tags=['tag1'])
     self.p3 = page.Page(
-      url='file://share_a/smile/too.html', page_set=story_set,
-      name='share_a/smile/too.html', tags=['tag2'])
+        url='file://share_a/smile/too.html', page_set=story_set,
+        name='share_a/smile/too.html', tags=['tag2'])
     self.pages = [self.p1, self.p2, self.p3]
 
   @staticmethod
