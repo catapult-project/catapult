@@ -108,7 +108,7 @@ class Story(object):
   def AsDict(self):
     """Converts a story object to a dict suitable for JSON output."""
     d = {
-      'id': self._id,
+        'id': self._id,
     }
     if self._name:
       d['name'] = self._name
