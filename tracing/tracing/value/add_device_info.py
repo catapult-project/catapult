@@ -2,23 +2,32 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
-import tempfile
+from tracing.value import histogram
+from tracing.value.diagnostics import reserved_infos
 
-from tracing.value import add_shared_diagnostic
-
-def AddDeviceInfo(histograms_json_filename, chrome_version, os_name, os_version,
+def AddDeviceInfo(histogram_set, chrome_version, os_name, os_version,
                   gpu_info, arch, ram):
+  """Adds a shared diagnostics containing pieces of device information to a
+     HistogramSet.
+
+  Args:
+    histograms_json_filename: a HistogramSet to add the diagnostics to.
+    chrome_version: name of the device's Chrome version.
+    os_name: name of the device's OS.
+    os_version: name of the device's OS version.
+    gpu_info: GPU information of the device
+    arch: name of the device's OS architecture.
+    ram: device's total available ram.
+  """
   device_info = {
-      'chromeVersion': chrome_version,
-      'osName': os_name,
-      'osVersion': os_version,
-      'gpuInfo': gpu_info,
-      'arch': arch,
-      'ram': ram,
+      reserved_infos.PRODUCT_VERSIONS.name: chrome_version,
+      reserved_infos.OS_NAMES.name: os_name,
+      reserved_infos.OS_VERSIONS.name: os_version,
+      reserved_infos.GPUS.name: gpu_info,
+      reserved_infos.ARCHITECTURES.name: arch,
+      reserved_infos.MEMORY_AMOUNTS.name: ram,
   }
 
-  with tempfile.NamedTemporaryFile() as diagnostic_file:
-    json.dump(device_info, diagnostic_file)
-    return add_shared_diagnostic.AddSharedDiagnostic(
-        histograms_json_filename, 'device', diagnostic_file.name)
+  for device_info_name, device_info_value in device_info.iteritems():
+    histogram_set.AddSharedDiagnostic(
+        device_info_name, histogram.GenericSet(device_info_value))

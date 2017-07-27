@@ -133,7 +133,6 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
  * `TelemetryInfo`
- * `DeviceInfo`
  * `RevisionInfo`
  * `BuildbotInfo`
  * `Scalar`
@@ -173,23 +172,6 @@ merge results across revisions.
  * `angle`: array of 1 or 2 strings
  * `skia`: array of 1 or 2 strings
  * `webrtc`: array of 1 or 2 strings
-
-### DeviceInfo
-
-This tracks information about the device that was used to produce the Histogram
-to allow users to compare or merge results across similar devices.
-
- * `chromeVersion`: string
- * `osName`: one of
-    * `mac`
-    * `android`
-    * `linux`
-    * `chrome`
-    * `win`
- * `osVersion`: string
- * `arch`: not yet specified, but will contain bittiness (32-bit vs 64-bit)
- * `gpuInfo`: not yet specified, but will contain information about the GPU
- * `ram`: number of bytes of RAM
 
 ### BuildbotInfo
 

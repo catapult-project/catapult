@@ -797,64 +797,6 @@ class TelemetryInfoUnittest(unittest.TestCase):
     self.assertNotEqual(info0, info1)
 
 
-class DeviceInfoUnittest(unittest.TestCase):
-  def testRoundtrip(self):
-    info = histogram.DeviceInfo()
-    info.chrome_version = '1.2.3.4'
-    info.os_name = 'linux'
-    info.os_version = '5.6.7'
-    info.gpu_info = {'some': 'stuff'}
-    info.arch = {'more': 'stuff'}
-    info.ram = 42
-    d = info.AsDict()
-    clone = diagnostic.Diagnostic.FromDict(d)
-    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
-    self.assertEqual(clone.chrome_version, '1.2.3.4')
-    self.assertEqual(clone.os_name, 'linux')
-    self.assertEqual(clone.os_version, '5.6.7')
-    self.assertEqual(clone.gpu_info['some'], 'stuff')
-    self.assertEqual(clone.arch['more'], 'stuff')
-    self.assertEqual(clone.ram, 42)
-
-  def testEquality(self):
-    info0 = histogram.DeviceInfo()
-    info0.chrome_version = '1.2.3.4'
-    info0.os_name = 'linux'
-    info0.os_version = '5.6.7'
-    info0.gpu_info = {'some': 'stuff'}
-    info0.arch = {'more': 'stuff'}
-    info0.ram = 42
-    info0.guid = 'abc'
-    info1 = histogram.DeviceInfo()
-    info1.chrome_version = '1.2.3.4'
-    info1.os_name = 'linux'
-    info1.os_version = '5.6.7'
-    info1.gpu_info = {'some': 'stuff'}
-    info1.arch = {'more': 'stuff'}
-    info1.ram = 42
-    info1.guid = 'def'
-    self.assertEqual(info0, info1)
-
-  def testInequality(self):
-    info0 = histogram.DeviceInfo()
-    info0.chrome_version = '1.2.3.4'
-    info0.os_name = 'linux'
-    info0.os_version = '5.6.7'
-    info0.gpu_info = {'some': 'stuff'}
-    info0.arch = {'more': 'stuff'}
-    info0.ram = 42
-    info0.guid = 'abc'
-    info1 = histogram.DeviceInfo()
-    info1.chrome_version = '1.2.3.4'
-    info1.os_name = 'mac'
-    info1.os_version = '5.6.7'
-    info1.gpu_info = {'some': 'stuff'}
-    info1.arch = {'more': 'stuff'}
-    info1.ram = 42
-    info1.guid = 'def'
-    self.assertNotEqual(info0, info1)
-
-
 class RelatedEventSetUnittest(unittest.TestCase):
   def testRoundtrip(self):
     events = histogram.RelatedEventSet()

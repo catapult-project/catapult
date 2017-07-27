@@ -585,9 +585,14 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testDeduplicateAndPut_Same(self):
     d = {
-        'guid': 'abc',
-        'osName': 'linux',
-        'type': 'DeviceInfo'
+        'buildNumber': 0,
+        'buildbotMasterName': '',
+        'buildbotName': '',
+        'displayBotName': 'bot',
+        'displayMasterName': 'master',
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'logUri': '',
+        'type': 'BuildbotInfo'
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
@@ -605,9 +610,14 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testDeduplicateAndPut_Different(self):
     d = {
-        'guid': 'abc',
-        'osName': 'linux',
-        'type': 'DeviceInfo'
+        'buildNumber': 0,
+        'buildbotMasterName': '',
+        'buildbotName': '',
+        'displayBotName': 'bot',
+        'displayMasterName': 'master',
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'logUri': '',
+        'type': 'BuildbotInfo'
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
@@ -616,7 +626,7 @@ class AddHistogramsTest(testing_common.TestCase):
     entity.put()
     d2 = d.copy()
     d2['guid'] = 'def'
-    d2['osName'] = 'mac'
+    d2['displayBotName'] = 'mac'
     entity2 = histogram.SparseDiagnostic(
         data=d2, test=test_key,
         start_revision=1, end_revision=sys.maxint, id='def')
@@ -626,9 +636,14 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testDeduplicateAndPut_New(self):
     d = {
-        'guid': 'abc',
-        'osName': 'linux',
-        'type': 'DeviceInfo'
+        'buildNumber': 0,
+        'buildbotMasterName': '',
+        'buildbotName': '',
+        'displayBotName': 'bot',
+        'displayMasterName': 'master',
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'logUri': '',
+        'type': 'BuildbotInfo'
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(

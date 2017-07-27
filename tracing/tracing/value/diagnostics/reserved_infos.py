@@ -53,7 +53,6 @@ WEBRTC_REVISIONS = _Info('webrtc revisions', 'GenericSet')
 
 # DEPRECATED https://github.com/catapult-project/catapult/issues/3507
 BUILDBOT = _Info('buildbot')  # BuildbotInfo or MergedBuildbotInfo
-DEVICE = _Info('device')  # DeviceInfo or MergedDeviceInfo
 INTERACTION_RECORD = _Info('tir', 'GenericSet')
 ITERATION = _Info('iteration')  # Legacy name for TELEMETRY
 REVISIONS = _Info('revisions')  # RevisionInfo or MergedRevisionInfo
