@@ -42,7 +42,7 @@ def build_wpr_go(os_name, os_arch):
   if os_arch == 'x86_64' or os_arch == 'AMD64':
     os_arch = 'amd64'
 
-  if os_name  == 'win' or os_arch == 'x86':
+  if os_arch == 'x86':
     os_arch = '386'
 
   # go build command recognizes 'darwin' but not 'mac'.
