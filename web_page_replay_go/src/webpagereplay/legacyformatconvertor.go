@@ -10,11 +10,14 @@ package webpagereplay
 
 import (
 	"bytes"
+	"crypto"
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -72,6 +75,29 @@ func (cfg *ConvertorConfig) Flags() []cli.Flag {
 	}
 }
 
+// Mints a dummy server cert to be used when the real server is not reachable.
+// This is used in the transition from the python wpr format to the new wprgo format where servers
+// from the old recordings (especially CDNs) have since become unreachable. crbug.com/730036
+func mintDummyCertificate(serverName string, rootCert *x509.Certificate, rootKey crypto.PrivateKey) ([]byte, string, error) {
+	template := rootCert
+	if ip := net.ParseIP(serverName); ip != nil {
+		template.IPAddresses = []net.IP{ip}
+	} else {
+		template.DNSNames = []string{serverName}
+	}
+	var buf [20]byte
+	if _, err := io.ReadFull(rand.Reader, buf[:]); err != nil {
+		return nil, "", fmt.Errorf("create cert failed: %v", err)
+	}
+	template.SerialNumber.SetBytes(buf[:])
+	template.Issuer = template.Subject
+	derBytes, err := x509.CreateCertificate(rand.Reader, template, template, template.PublicKey, rootKey)
+	if err != nil {
+		return nil, "", fmt.Errorf("create cert failed: %v", err)
+	}
+	return derBytes, "", err
+}
+
 func (r *ConvertorConfig) recordServerCert(scheme string, serverName string, archive *WritableArchive) error {
 	if scheme != "https" {
 		return nil
@@ -82,7 +108,10 @@ func (r *ConvertorConfig) recordServerCert(scheme string, serverName string, arc
 	}
 	derBytes, negotiatedProtocol, err = MintServerCert(serverName, r.x509Cert, r.tlsCert.PrivateKey)
 	if err != nil {
-		return err
+		derBytes, negotiatedProtocol, err = mintDummyCertificate(serverName, r.x509Cert, r.tlsCert.PrivateKey)
+		if err != nil {
+			return err
+		}
 	}
 	archive.RecordTlsConfig(serverName, derBytes, negotiatedProtocol)
 	return nil
