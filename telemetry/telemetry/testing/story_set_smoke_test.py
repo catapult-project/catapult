@@ -89,31 +89,34 @@ class StorySetSmokeTest(unittest.TestCase):
   def CheckAttributesOfStoryBasicAttributes(self, story):
     self.assertTrue(not hasattr(story, 'disabled'))
     self.assertTrue(
-       isinstance(story.name, str),
-       msg='story %s \'s name field must have type string' % story.name)
+        isinstance(story.name, str),
+        msg='story %s \'s name field must have type string' % story.name)
     self.assertTrue(
-       isinstance(story.tags, set),
-       msg='story %s \'s tags field must have type set' % story.name)
+        isinstance(story.tags, set),
+        msg='story %s \'s tags field must have type set' % story.name)
     for t in story.tags:
       self.assertTrue(
-         isinstance(t, str),
-         msg='tag %s in story %s \'s tags must have type string'
-         % (str(t), story.name))
+          isinstance(t, str),
+          msg='tag %s in story %s \'s tags must have type string'
+          % (str(t), story.name))
     if not isinstance(story, page.Page):
       return
     self.assertTrue(
-       # We use basestring instead of str because story's URL can be string of
-       # unicode.
-       isinstance(story.url, basestring),
-       msg='page %s \'s url must have type string' % story.name)
+        # We use basestring instead of str because story's URL can be string of
+        # unicode.
+        isinstance(story.url, basestring),
+        msg='page %s \'s url must have type string' % story.name)
     self.assertTrue(
         isinstance(story.startup_url, str),
-        msg=('page %s \'s startup_url field must have type string'
+        msg=(
+            'page %s \'s startup_url field must have type string'
             % story.name))
     self.assertIsInstance(
-        story.make_javascript_deterministic, bool,
-        msg='page %s \'s make_javascript_deterministic must have type bool'
-            % story.name)
+        story.make_javascript_deterministic,
+        bool,
+        msg=(
+            'page %s \'s make_javascript_deterministic must have type bool'
+            % story.name))
 
   def CheckPassingStoryRunnerValidation(self, story_set):
     errors = []
