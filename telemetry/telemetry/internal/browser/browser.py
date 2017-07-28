@@ -67,7 +67,7 @@ class Browser(app.App):
           'Failed with %s while starting the browser backend.',
           exc_info[0].__name__)  # Show the exception name only.
       try:
-        self._platform_backend.WillCloseBrowser(self, self._browser_backend)
+        self.Close()
       except Exception:
         exception_formatter.PrintFormattedException(
             msg='Exception raised while closing platform backend')
@@ -114,6 +114,7 @@ class Browser(app.App):
     return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
 
   def _LogBrowserInfo(self):
+    logging.info('Browser started (pid=%s).', self._browser_backend.pid)
     logging.info('OS: %s %s',
                  self._platform_backend.platform.GetOSName(),
                  self._platform_backend.platform.GetOSVersionName())
@@ -264,6 +265,7 @@ class Browser(app.App):
     """Closes this browser."""
     try:
       if self._browser_backend.IsBrowserRunning():
+        logging.info('Closing browser (pid=%s) ...', self._browser_backend.pid)
         self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
       self._browser_backend.profiling_controller_backend.WillCloseBrowser()
@@ -274,6 +276,11 @@ class Browser(app.App):
           logging.error('Cannot upload browser log: %s' % str(e))
     finally:
       self._browser_backend.Close()
+      if self._browser_backend.IsBrowserRunning():
+        logging.error(
+            'Browser is still running (pid=%s).', self._browser_backend.pid)
+      else:
+        logging.info('Browser is closed.')
       self.credentials = None
 
   def Foreground(self):
