@@ -197,6 +197,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri = None
 
   def IsBrowserRunning(self):
+    if not self._cri:
+      return False
     return bool(self.pid)
 
   def GetStandardOutput(self):
