@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/dashboard/static/memory_related_names.html">
 <link rel="import" href="/tracing/base/base.html">
 
 <script>
@@ -23,10 +24,35 @@ tr.exportTo('d', function() {
    * @return {boolean}
    */
   function shouldMerge(a, b) {
-    return a.testsuite === b.testsuite &&
-      rangeIntersects(
-          a.start_revision, a.end_revision,
-          b.start_revision, b.end_revision);
+    if (a.testsuite !== b.testsuite) return false;
+    if (!rangeIntersects(a.start_revision, a.end_revision,
+        b.start_revision, b.end_revision)) {
+      return false;
+    }
+    if (!a.relatedNames && !b.relatedNames) return true;
+    return isRelated(a, b);
+  }
+
+  /**
+   * Two Alerts are related if either
+   * A) their measurementNames are equal, or
+   * B) either's relatedNames contains the other's measurementName.
+   *
+   * @param {!Alert} a
+   * @param {!Alert} b
+   * @return {boolean}
+   */
+  function isRelated(a, b) {
+    if (a.measurementName === b.measurementName) return true;
+    if (a.relatedNames &&
+        a.relatedNames.has(b.measurementName)) {
+      return true;
+    }
+    if (b.relatedNames &&
+        b.relatedNames.has(a.measurementName)) {
+      return true;
+    }
+    return false;
   }
 
   function rangeIntersects(aMin, aMax, bMin, bMax) {
@@ -43,6 +69,9 @@ tr.exportTo('d', function() {
   function groupAlerts(alerts) {
     const groups = [];
     for (const alert of alerts) {
+      alert.measurementName = alert.test.split('/')[0];
+      alert.relatedNames = d.MEMORY_RELATED_NAMES.get(alert.measurementName);
+
       let merged = false;
       for (const group of groups) {
         let doMerge = true;
@@ -69,6 +98,8 @@ tr.exportTo('d', function() {
 
   return {
     groupAlerts,
+    shouldMerge,
+    isRelated,
   };
 });
 </script>
