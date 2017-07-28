@@ -52,6 +52,12 @@ def _ProcessTest(test_key):
     test_key: The ndb.Key for a TestMetadata.
   """
   test = yield test_key.get_async()
+
+  sheriff = yield _GetSheriffForTest(test)
+  if not sheriff:
+    logging.error('No sheriff for %s', test_key)
+    raise ndb.Return(None)
+
   config = anomaly_config.GetAnomalyConfigDict(test)
   max_num_rows = config.get('max_window_size', DEFAULT_NUM_POINTS)
   rows = yield GetRowsToAnalyzeAsync(test, max_num_rows)
@@ -67,11 +73,6 @@ def _ProcessTest(test_key):
       test.last_alerted_revision = None
       yield test.put_async()
     logging.error('No rows fetched for %s', test.test_path)
-    raise ndb.Return(None)
-
-  sheriff = yield _GetSheriffForTest(test)
-  if not sheriff:
-    logging.error('No sheriff for %s', test_key)
     raise ndb.Return(None)
 
   # Get anomalies and check if they happen in ref build also.

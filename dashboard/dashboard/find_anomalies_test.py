@@ -378,6 +378,10 @@ class ProcessAlertsTest(testing_common.TestCase):
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
+
+    sheriff.Sheriff(
+        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
+
     test.last_alerted_revision = 1234567890
     test.put()
     find_anomalies.ProcessTests([test.key])
