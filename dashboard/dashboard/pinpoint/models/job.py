@@ -23,8 +23,9 @@ from dashboard.services import issue_tracker_service
 _TASK_INTERVAL = 10
 
 
-_DEFAULT_MAX_ATTEMPTS = 2
-_SIGNIFICANCE_LEVEL = 0.5
+_DEFAULT_REPEAT_COUNT = 10
+_DEFAULT_ATTEMPT_COUNT = 1
+_SIGNIFICANCE_LEVEL = 0.01
 
 
 _DIFFERENT = 'different'
@@ -78,7 +79,8 @@ class Job(ndb.Model):
     # Get list of quests.
     quests = [quest_module.FindIsolate(configuration)]
     if test_suite:
-      quests.append(quest_module.RunTest(configuration, test_suite, test))
+      quests.append(quest_module.RunTest(configuration, test_suite, test,
+                                         _DEFAULT_REPEAT_COUNT))
     if metric:
       quests.append(quest_module.ReadValue(metric, test))
 
@@ -90,7 +92,7 @@ class Job(ndb.Model):
         metric=metric,
         auto_explore=auto_explore,
         bug_id=bug_id,
-        state=_JobState(quests, _DEFAULT_MAX_ATTEMPTS))
+        state=_JobState(quests, _DEFAULT_ATTEMPT_COUNT))
 
   @property
   def job_id(self):
@@ -178,12 +180,12 @@ class _JobState(object):
   anyway. Everything queryable should be on the Job object.
   """
 
-  def __init__(self, quests, max_attempts):
+  def __init__(self, quests, attempt_count):
     """Create a _JobState.
 
     Args:
       quests: A sequence of quests to run on each Change.
-      max_attempts: The max number of attempts to automatically run per Change.
+      attempt_count: The max number of attempts to automatically run per Change.
     """
     # _quests is mutable. Any modification should mutate the existing list
     # in-place rather than assign a new list, because every Attempt references
@@ -197,7 +199,7 @@ class _JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
-    self._max_attempts = max_attempts
+    self._attempt_count = attempt_count
 
   def AddAttempt(self, change):
     assert change in self._attempts
@@ -303,8 +305,8 @@ class _JobState(object):
     # Here, "the same" means that we fail to reject the null hypothesis. We can
     # never be completely sure that the two Changes have the same results, but
     # we've run everything that we planned to, and didn't detect any difference.
-    if (len(attempts_a) >= self._max_attempts and
-        len(attempts_b) >= self._max_attempts):
+    if (len(attempts_a) >= self._attempt_count and
+        len(attempts_b) >= self._attempt_count):
       return _SAME
 
     return _UNKNOWN

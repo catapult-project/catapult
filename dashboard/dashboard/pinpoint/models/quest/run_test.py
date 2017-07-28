@@ -64,10 +64,11 @@ class SwarmingTestError(RunTestError):
 
 class RunTest(quest.Quest):
 
-  def __init__(self, configuration, test_suite, test):
+  def __init__(self, configuration, test_suite, test, repeat_count):
     self._configuration = configuration
     self._test_suite = test_suite
     self._test = test
+    self._repeat_count = repeat_count
 
     # We want subsequent executions use the same bot as the first one.
     self._first_execution = None
@@ -85,7 +86,7 @@ class RunTest(quest.Quest):
 
   def Start(self, isolate_hash):
     execution = _RunTestExecution(self._configuration, self._test_suite,
-                                  self._test, isolate_hash,
+                                  self._test, self._repeat_count, isolate_hash,
                                   first_execution=self._first_execution)
 
     if not self._first_execution:
@@ -96,12 +97,13 @@ class RunTest(quest.Quest):
 
 class _RunTestExecution(execution_module.Execution):
 
-  def __init__(self, configuration, test_suite, test, isolate_hash,
-               first_execution=None):
+  def __init__(self, configuration, test_suite, test, repeat_count,
+               isolate_hash, first_execution=None):
     super(_RunTestExecution, self).__init__()
     self._configuration = configuration
     self._test_suite = test_suite
     self._test = test
+    self._repeat_count = repeat_count
     self._isolate_hash = isolate_hash
     self._first_execution = first_execution
 
@@ -151,8 +153,9 @@ class _RunTestExecution(execution_module.Execution):
     # TODO: Support non-Telemetry tests.
     extra_args = [self._test_suite]
     if self._test:
-      extra_args.append('--story-filter')
-      extra_args.append(self._test)
+      extra_args += ('--story-filter', self._test)
+    if self._repeat_count != 1:
+      extra_args += ('--pageset-repeat', str(self._repeat_count))
     # TODO: Use the correct browser for Android and 64-bit Windows.
     extra_args += [
         '-v', '--upload-results',

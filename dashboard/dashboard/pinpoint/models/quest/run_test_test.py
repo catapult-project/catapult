@@ -76,7 +76,7 @@ class RunTestFullTest(_RunTestTest):
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
     execution = quest.Start('input isolate hash')
 
     swarming_task_result.assert_not_called()
@@ -123,11 +123,20 @@ class RunTestFullTest(_RunTestTest):
 
 
 @mock.patch('dashboard.services.swarming_service.Tasks.New')
-@mock.patch('dashboard.services.swarming_service.Task.Result')
 class SwarmingTaskStartTest(_RunTestTest):
 
+  def testPagesetRepeat(self, swarming_tasks_new):
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 10)
+    execution = quest.Start('input isolate hash')
+    execution.Poll()
+
+    new_call_body = swarming_tasks_new.call_args[0][0]
+    self.assertIn('--pageset-repeat', new_call_body['properties']['extra_args'])
+    self.assertIn('10', new_call_body['properties']['extra_args'])
+
+  @mock.patch('dashboard.services.swarming_service.Task.Result')
   def testUnknownConfig(self, swarming_task_result, swarming_tasks_new):
-    quest = run_test.RunTest('configuration', 'test_suite', 'test')
+    quest = run_test.RunTest('configuration', 'test_suite', 'test', 1)
     execution = quest.Start('input isolate hash')
     execution.Poll()
 
@@ -148,7 +157,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -168,7 +177,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
     execution = quest.Start('isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -193,7 +202,7 @@ class BotIdHandlingTest(_RunTestTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -217,7 +226,7 @@ class BotIdHandlingTest(_RunTestTest):
                                  swarming_tasks_new):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test')
+    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
     execution_1 = quest.Start('input isolate hash')
     execution_2 = quest.Start('input isolate hash')
 
