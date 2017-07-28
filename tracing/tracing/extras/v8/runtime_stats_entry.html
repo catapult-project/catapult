@@ -72,6 +72,8 @@ tr.exportTo('tr.e.v8', function() {
         new RuntimeStatsGroup('Blink RCS', /Blink_(.*)/);
       this.blink_cpp_group_ =
         new RuntimeStatsGroup('Blink C++', /.*Callback.*/);
+      this.api_group_ = new RuntimeStatsGroup('API', /.*API.*/);
+
       this.groups_ = [
         new RuntimeStatsGroup('Total'),
         new RuntimeStatsGroup('IC', /.*IC_.*/),
@@ -83,7 +85,7 @@ tr.exportTo('tr.e.v8', function() {
         new RuntimeStatsGroup('Parse-Background', /.*ParseBackground.*/),
         new RuntimeStatsGroup('Parse', /.*Parse.*/),
         this.blink_cpp_group_,
-        new RuntimeStatsGroup('API', /.*API.*/),
+        this.api_group_,
         new RuntimeStatsGroup('GC', /GC|AllocateInTargetSpace/),
         new RuntimeStatsGroup('JavaScript', /JS_Execution/),
         new RuntimeStatsGroup('V8 C++', /.*/)
@@ -142,8 +144,9 @@ tr.exportTo('tr.e.v8', function() {
       return this.blink_rcs_group_;
     }
 
-    get blinkCppTime() {
-      return this.blink_cpp_group_.time;
+    get blinkCppTotalTime() {
+      // Include API time because Blink RCS times also include V8 API times
+      return this.blink_cpp_group_.time + this.api_group_.time;
     }
   }
 

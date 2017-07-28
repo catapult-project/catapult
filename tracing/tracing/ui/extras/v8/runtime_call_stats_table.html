@@ -158,12 +158,13 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.table_.subRowsPropertyName = 'values';
     },
 
-    constructBlinkRCSTable_(blinkCPPTime) {
+    constructBlinkRCSTable_(blinkCppTotalTime) {
       this.blink_rcs_table_.tableColumns = [
         nameColumn_(false, handleCodeSearchForBlink_, removeBlinkPrefix_),
         timeColumn_,
         countColumn_,
-        percentColumn_('Percent (of Blink C++)', blinkCPPTime)
+        percentColumn_('Percent (of \'Blink C++\' + \'API\')',
+            blinkCppTotalTime)
       ];
 
       initializeCommonOptions_(this.blink_rcs_table_);
@@ -180,9 +181,10 @@ tr.exportTo('tr.ui.e.v8', function() {
       }
 
       const blinkRCSGroup = runtimeGroupCollection.blinkRCSGroup;
-      if (runtimeGroupCollection.blinkCppTime > 0 && blinkRCSGroup.time > 0) {
+      if (runtimeGroupCollection.blinkCppTotalTime > 0 &&
+          blinkRCSGroup.time > 0) {
         this.$.blink_rcs_heading.textContent = 'Blink Runtime Call Stats';
-        this.constructBlinkRCSTable_(runtimeGroupCollection.blinkCppTime);
+        this.constructBlinkRCSTable_(runtimeGroupCollection.blinkCppTotalTime);
         const rows = blinkRCSGroup.values;
         rows.unshift(new tr.e.v8.RuntimeStatsEntry('Total',
                                                    blinkRCSGroup.count,
