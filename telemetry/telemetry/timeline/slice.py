@@ -45,7 +45,7 @@ class Slice(timeline_event.TimelineEvent):
   def self_time(self):
     """Time spent in this function less any time spent in child events."""
     child_total = sum(
-      [e.duration for e in self.sub_slices])
+        [e.duration for e in self.sub_slices])
     return self.duration - child_total
 
   @property

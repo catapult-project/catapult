@@ -233,9 +233,9 @@ class TimelineModel(event_container.TimelineEventContainer):
       return event.name in name_set
 
     events = list(self.IterAllEvents(
-      recursive=True,
-      event_type_predicate=IsSliceOrAsyncSlice,
-      event_predicate=IsEventNeeded))
+        recursive=True,
+        event_type_predicate=IsSliceOrAsyncSlice,
+        event_predicate=IsEventNeeded))
     events.sort(key=attrgetter('start'))
 
     # Check if the number and order of events matches the provided names,

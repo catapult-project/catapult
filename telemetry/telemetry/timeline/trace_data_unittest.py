@@ -69,7 +69,7 @@ class TraceDataBuilderTest(unittest.TestCase):
     telemetry_trace = {
         'traceEvents': [1, 2, 3],
         'metadata': {
-          'field1': 'value1'
+            'field1': 'value1'
         }
     }
 
@@ -89,12 +89,14 @@ class TraceDataBuilderTest(unittest.TestCase):
   def testSetTraceForRaisesWithInvalidTrace(self):
     builder = trace_data.TraceDataBuilder()
 
-    self.assertRaises(exceptions.AssertionError, lambda:
+    self.assertRaises(
+        exceptions.AssertionError, lambda:
         builder.AddTraceFor(trace_data.TELEMETRY_PART, datetime.time.min))
 
   def testSetTraceForRaisesAfterAsData(self):
     builder = trace_data.TraceDataBuilder()
     builder.AsData()
 
-    self.assertRaises(exceptions.Exception,
+    self.assertRaises(
+        exceptions.Exception,
         lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART, {}))

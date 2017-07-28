@@ -121,7 +121,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
         ['browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_0',
          'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_1',
          'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_2'
- ], test_name='FailIfTearDownProcessCalledTwice')
+        ], test_name='FailIfTearDownProcessCalledTwice')
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputFormatPositiveFilter(self):

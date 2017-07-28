@@ -82,8 +82,8 @@ class Thread(event_container.TimelineEventContainer):
     if len(self._samples) and timestamp < self._samples[-1].start:
       raise ValueError(
           'Samples must be added in increasing timestamp order')
-    sample = sample_module.Sample(self,
-        category, name, timestamp, args=args)
+    sample = sample_module.Sample(
+        self, category, name, timestamp, args=args)
     self._samples.append(sample)
 
   def AddAsyncSlice(self, async_slice):
@@ -111,8 +111,8 @@ class Thread(event_container.TimelineEventContainer):
       raise ValueError(
           'Slices must be added in increasing timestamp order')
     new_slice = slice_module.Slice(self, category, name, timestamp,
-                                    thread_timestamp=thread_timestamp,
-                                    args=args)
+                                   thread_timestamp=thread_timestamp,
+                                   args=args)
     self._open_slices.append(new_slice)
     new_slice.did_not_finish = True
     self.PushSlice(new_slice)
@@ -158,8 +158,8 @@ class Thread(event_container.TimelineEventContainer):
     self.PushSlice(new_slice)
     return new_slice
 
-  def PushMarkSlice(self, category, name, timestamp, thread_timestamp,
-        args=None):
+  def PushMarkSlice(
+      self, category, name, timestamp, thread_timestamp, args=None):
     new_slice = slice_module.Slice(self, category, name, timestamp,
                                    thread_timestamp=thread_timestamp,
                                    args=args)

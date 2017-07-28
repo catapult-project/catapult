@@ -52,66 +52,66 @@ class MmapCategory(object):
 
 
 ROOT_CATEGORY = MmapCategory('/', None, [
-  MmapCategory('Android', r'^\/dev\/ashmem(?!\/libc malloc)', [
-    MmapCategory('Java runtime', r'^\/dev\/ashmem\/dalvik-', [
-      MmapCategory('Spaces', r'\/dalvik-(alloc|main|large'
-                             r' object|non moving|zygote) space', [
-        MmapCategory('Normal', r'\/dalvik-(alloc|main)'),
-        MmapCategory('Large', r'\/dalvik-large object'),
-        MmapCategory('Zygote', r'\/dalvik-zygote'),
-        MmapCategory('Non-moving', r'\/dalvik-non moving')
-      ]),
-      MmapCategory('Linear Alloc', r'\/dalvik-LinearAlloc'),
-      MmapCategory('Indirect Reference Table', r'\/dalvik-indirect.ref'),
-      MmapCategory('Cache', r'\/dalvik-jit-code-cache'),
-      MmapCategory('Accounting', None)
+    MmapCategory('Android', r'^\/dev\/ashmem(?!\/libc malloc)', [
+        MmapCategory('Java runtime', r'^\/dev\/ashmem\/dalvik-', [
+            MmapCategory('Spaces', r'\/dalvik-(alloc|main|large'
+                         r' object|non moving|zygote) space', [
+                             MmapCategory('Normal', r'\/dalvik-(alloc|main)'),
+                             MmapCategory('Large', r'\/dalvik-large object'),
+                             MmapCategory('Zygote', r'\/dalvik-zygote'),
+                             MmapCategory('Non-moving', r'\/dalvik-non moving')
+                         ]),
+            MmapCategory('Linear Alloc', r'\/dalvik-LinearAlloc'),
+            MmapCategory('Indirect Reference Table', r'\/dalvik-indirect.ref'),
+            MmapCategory('Cache', r'\/dalvik-jit-code-cache'),
+            MmapCategory('Accounting', None)
+        ]),
+        MmapCategory('Cursor', r'\/CursorWindow'),
+        MmapCategory('Ashmem', None)
     ]),
-    MmapCategory('Cursor', r'\/CursorWindow'),
-    MmapCategory('Ashmem', None)
-  ]),
-  MmapCategory('Native heap',
-               r'^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)'),
-  MmapCategory('Stack', r'^\[stack'),
-  MmapCategory('Files',
-               r'\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(art))$)|(dex))', [
-    MmapCategory('so', r'\.so$'),
-    MmapCategory('jar', r'\.jar$'),
-    MmapCategory('apk', r'\.apk$'),
-    MmapCategory('ttf', r'\.ttf$'),
-    MmapCategory('dex', r'\.((dex)|(odex$))'),
-    MmapCategory('oat', r'\.oat$'),
-    MmapCategory('art', r'\.art$'),
-  ]),
-  MmapCategory('Devices', r'(^\/dev\/)|(anon_inode:dmabuf)', [
-    MmapCategory('GPU', r'\/((nv)|(mali)|(kgsl))'),
-    MmapCategory('DMA', r'anon_inode:dmabuf'),
-  ]),
-  MmapCategory('Discounted tracing overhead',
-               r'\[discounted tracing overhead\]')
+    MmapCategory('Native heap',
+                 r'^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)'),
+    MmapCategory('Stack', r'^\[stack'),
+    MmapCategory('Files',
+                 r'\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(art))$)|(dex))', [
+                     MmapCategory('so', r'\.so$'),
+                     MmapCategory('jar', r'\.jar$'),
+                     MmapCategory('apk', r'\.apk$'),
+                     MmapCategory('ttf', r'\.ttf$'),
+                     MmapCategory('dex', r'\.((dex)|(odex$))'),
+                     MmapCategory('oat', r'\.oat$'),
+                     MmapCategory('art', r'\.art$'),
+                 ]),
+    MmapCategory('Devices', r'(^\/dev\/)|(anon_inode:dmabuf)', [
+        MmapCategory('GPU', r'\/((nv)|(mali)|(kgsl))'),
+        MmapCategory('DMA', r'anon_inode:dmabuf'),
+    ]),
+    MmapCategory('Discounted tracing overhead',
+                 r'\[discounted tracing overhead\]')
 ])
 
 
 # Map long descriptive attribute names, as understood by MemoryBucket.GetValue,
 # to the short keys used by events in raw json traces.
 BUCKET_ATTRS = {
-  'proportional_resident': 'pss',
-  'private_dirty_resident': 'pd',
-  'private_clean_resident': 'pc',
-  'shared_dirty_resident': 'sd',
-  'shared_clean_resident': 'sc',
-  'swapped': 'sw'}
+    'proportional_resident': 'pss',
+    'private_dirty_resident': 'pd',
+    'private_clean_resident': 'pc',
+    'shared_dirty_resident': 'sd',
+    'shared_clean_resident': 'sc',
+    'swapped': 'sw'}
 
 
 # Map of {memory_key: (category_path, discount_tracing), ...}.
 # When discount_tracing is True, we have to discount the resident_size of the
 # tracing allocator to get the correct value for that key.
 MMAPS_METRICS = {
-  'mmaps_overall_pss': ('/.proportional_resident', True),
-  'mmaps_private_dirty' : ('/.private_dirty_resident', True),
-  'mmaps_java_heap': ('/Android/Java runtime/Spaces.proportional_resident',
-                      False),
-  'mmaps_ashmem': ('/Android/Ashmem.proportional_resident', False),
-  'mmaps_native_heap': ('/Native heap.proportional_resident', True)}
+    'mmaps_overall_pss': ('/.proportional_resident', True),
+    'mmaps_private_dirty' : ('/.private_dirty_resident', True),
+    'mmaps_java_heap': ('/Android/Java runtime/Spaces.proportional_resident',
+                        False),
+    'mmaps_ashmem': ('/Android/Ashmem.proportional_resident', False),
+    'mmaps_native_heap': ('/Native heap.proportional_resident', True)}
 
 
 class MemoryBucket(object):

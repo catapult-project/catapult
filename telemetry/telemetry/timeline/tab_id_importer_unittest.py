@@ -12,19 +12,20 @@ from tracing.trace_data import trace_data as trace_data_module
 class TabIdImporterUnitTest(unittest.TestCase):
   def testImportOverflowedTrace(self):
     builder = trace_data_module.TraceDataBuilder()
-    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {'traceEvents': [
-      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 7, 'cat': 'foo',
-       'tid': 1, 'ph': 'B'},
-      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 8, 'cat': 'foo',
-       'tid': 1, 'ph': 'E'},
-      {'name': 'b', 'args': {}, 'pid': 2, 'ts': 9, 'cat': 'foo',
-       'tid': 2, 'ph': 'B'},
-      {'name': 'b', 'args': {}, 'pid': 2, 'ts': 10, 'cat': 'foo',
-       'tid': 2, 'ph': 'E'},
-      {'name': 'trace_buffer_overflowed',
-       'args': {'overflowed_at_ts': 12},
-        'pid': 2, 'ts': 0, 'tid': 2, 'ph': 'M'}
-    ]})
+    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {
+        'traceEvents': [
+            {'name': 'a', 'args': {}, 'pid': 1, 'ts': 7, 'cat': 'foo',
+             'tid': 1, 'ph': 'B'},
+            {'name': 'a', 'args': {}, 'pid': 1, 'ts': 8, 'cat': 'foo',
+             'tid': 1, 'ph': 'E'},
+            {'name': 'b', 'args': {}, 'pid': 2, 'ts': 9, 'cat': 'foo',
+             'tid': 2, 'ph': 'B'},
+            {'name': 'b', 'args': {}, 'pid': 2, 'ts': 10, 'cat': 'foo',
+             'tid': 2, 'ph': 'E'},
+            {'name': 'trace_buffer_overflowed',
+             'args': {'overflowed_at_ts': 12},
+             'pid': 2, 'ts': 0, 'tid': 2, 'ph': 'M'}]
+    })
     builder.AddTraceFor(
         trace_data_module.TAB_ID_PART, ['tab-id-1', 'tab-id-2'])
 
@@ -37,26 +38,23 @@ class TabIdImporterUnitTest(unittest.TestCase):
 
   def testTraceEventsWithTabIdsMarkers(self):
     builder = trace_data_module.TraceDataBuilder()
-    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {'traceEvents': [
-      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10, 'cat': 'foo',
-       'tid': 1, 'ph': 'B'},
-      # tab-id-1
-      {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
-       'tid': 1,
-         'ph': 'S', 'id': 72},
-      {'name': 'a', 'args': {}, 'pid': 1, 'ts': 30, 'tts': 20, 'cat': 'foo',
-       'tid': 1, 'ph': 'E'},
-      {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 35, 'cat': 'foo',
-       'tid': 1,
-         'ph': 'F', 'id': 72},
-      # tab-id-2
-      {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
-       'tid': 2,
-         'ph': 'S', 'id': 72},
-      {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 26, 'cat': 'foo',
-       'tid': 2,
-         'ph': 'F', 'id': 72},
-     ]})
+    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {
+        'traceEvents': [
+            {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10,
+            'cat': 'foo', 'tid': 1, 'ph': 'B'},
+            # tab-id-1
+            {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
+             'tid': 1, 'ph': 'S', 'id': 72},
+            {'name': 'a', 'args': {}, 'pid': 1, 'ts': 30, 'tts': 20,
+            'cat': 'foo', 'tid': 1, 'ph': 'E'},
+            {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 35, 'cat': 'foo',
+             'tid': 1, 'ph': 'F', 'id': 72},
+            # tab-id-2
+            {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
+             'tid': 2, 'ph': 'S', 'id': 72},
+            {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 26, 'cat': 'foo',
+             'tid': 2, 'ph': 'F', 'id': 72}]
+    })
     builder.AddTraceFor(
         trace_data_module.TAB_ID_PART, ['tab-id-1', 'tab-id-2'])
 

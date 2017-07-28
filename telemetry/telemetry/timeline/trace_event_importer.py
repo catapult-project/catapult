@@ -61,7 +61,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     open slice.
     """
     thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     self._all_async_events.append({
         'event': event,
         'thread': thread})
@@ -76,14 +76,15 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       ctr_name = event['name']
 
     ctr = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateCounter(event['cat'], ctr_name))
+           .GetOrCreateCounter(event['cat'], ctr_name))
     # Initialize the counter's series fields if needed.
     if len(ctr.series_names) == 0:
       #TODO: implement counter object
       for series_name in event['args']:
         ctr.series_names.append(series_name)
       if len(ctr.series_names) == 0:
-        self._model.import_errors.append('Expected counter ' + event['name'] +
+        self._model.import_errors.append(
+            'Expected counter ' + event['name'] +
             ' to have at least one argument to use as a value.')
         # Drop the counter.
         del ctr.parent.counters[ctr.full_name]
@@ -99,14 +100,14 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
   def _ProcessObjectEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-      .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     self._all_object_events.append({
         'event': event,
         'thread': thread})
 
   def _ProcessDurationEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-      .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     if not thread.IsTimestampValidForBeginOrEnd(event['ts'] / 1000.0):
       self._model.import_errors.append(
           'Timestamps are moving backward.')
@@ -120,7 +121,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
                         event['args'])
     elif event['ph'] == 'E':
       thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+                .GetOrCreateThread(event['tid']))
       if not thread.IsTimestampValidForBeginOrEnd(event['ts'] / 1000.0):
         self._model.import_errors.append(
             'Timestamps are moving backward.')
@@ -143,7 +144,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
   def _ProcessCompleteEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     thread.PushCompleteSlice(
         event['cat'],
         event['name'],
@@ -155,7 +156,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
   def _ProcessMarkEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     thread.PushMarkSlice(
         event['cat'],
         event['name'],
@@ -166,7 +167,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
   def _ProcessMetadataEvent(self, event):
     if event['name'] == 'thread_name':
       thread = (self._GetOrCreateProcess(event['pid'])
-          .GetOrCreateThread(event['tid']))
+                .GetOrCreateThread(event['tid']))
       thread.name = event['args']['name']
     elif event['name'] == 'process_name':
       process = self._GetOrCreateProcess(event['pid'])
@@ -188,7 +189,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     # Treat an Instant event as a duration 0 slice.
     # SliceTrack's redraw() knows how to handle this.
     thread = (self._GetOrCreateProcess(event['pid'])
-      .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     thread.BeginSlice(event['cat'],
                       event['name'],
                       event['ts'] / 1000.0,
@@ -197,7 +198,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
   def _ProcessSampleEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     thread.AddSample(event['cat'],
                      event['name'],
                      event['ts'] / 1000.0,
@@ -205,7 +206,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
   def _ProcessFlowEvent(self, event):
     thread = (self._GetOrCreateProcess(event['pid'])
-        .GetOrCreateThread(event['tid']))
+              .GetOrCreateThread(event['tid']))
     self._all_flow_events.append({
         'event': event,
         'thread': thread})
@@ -263,8 +264,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       elif phase == 'R':
         self._ProcessMarkEvent(event)
       else:
-        self._model.import_errors.append('Unrecognized event phase: ' +
-            phase + '(' + event['name'] + ')')
+        self._model.import_errors.append(
+            'Unrecognized event phase: ' + phase + '(' + event['name'] + ')')
 
     # Memory dumps of a process with the same dump id need to be merged before
     # processing. So, memory dump events are processed all at once.
@@ -343,15 +344,16 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
               name,
               events[0]['event']['ts'] / 1000.0)
 
-          async_slice.duration = ((event['ts'] / 1000.0)
-              - (events[0]['event']['ts'] / 1000.0))
+          async_slice.duration = (
+              (event['ts'] / 1000.0) - (events[0]['event']['ts'] / 1000.0))
 
           async_slice.start_thread = events[0]['thread']
           async_slice.end_thread = async_event_state['thread']
           if async_slice.start_thread == async_slice.end_thread:
             if 'tts' in event and 'tts' in events[0]['event']:
               async_slice.thread_start = events[0]['event']['tts'] / 1000.0
-              async_slice.thread_duration = ((event['tts'] / 1000.0)
+              async_slice.thread_duration = (
+                  (event['tts'] / 1000.0)
                   - (events[0]['event']['tts'] / 1000.0))
           async_slice.id = event_id
           async_slice.args = events[0]['event']['args']
@@ -367,7 +369,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
                 events[j - 1]['event']['ts'] / 1000.0)
             sub_slice.parent_slice = async_slice
 
-            sub_slice.duration = ((events[j]['event']['ts'] / 1000.0)
+            sub_slice.duration = (
+                (events[j]['event']['ts'] / 1000.0)
                 - (events[j - 1]['event']['ts'] / 1000.0))
 
             sub_slice.start_thread = events[j - 1]['thread']
@@ -375,9 +378,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
             if sub_slice.start_thread == sub_slice.end_thread:
               if 'tts' in events[j]['event'] and \
                   'tts' in events[j - 1]['event']:
-                sub_slice.thread_duration = \
-                    ((events[j]['event']['tts'] / 1000.0)
-                        - (events[j - 1]['event']['tts'] / 1000.0))
+                sub_slice.thread_duration = (
+                    (events[j]['event']['tts'] / 1000.0)
+                    - (events[j - 1]['event']['tts'] / 1000.0))
 
             sub_slice.id = event_id
             sub_slice.args = events[j - 1]['event']['args']
@@ -413,11 +416,11 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       thread = data['thread']
       if 'name' not in event:
         self._model.import_errors.append(
-          'Flow events (ph: s, t or f) require a name parameter.')
+            'Flow events (ph: s, t or f) require a name parameter.')
         continue
       if 'id' not in event:
         self._model.import_errors.append(
-          'Flow events (ph: s, t or f) require an id parameter.')
+            'Flow events (ph: s, t or f) require an id parameter.')
         continue
 
       flow_event = tracing_flow_event.FlowEvent(
@@ -438,8 +441,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       elif event['ph'] == 't' or event['ph'] == 'f':
         if not event['id'] in flow_id_to_event:
           self._model.import_errors.append(
-            'Found flow phase %s for id: %s but no flow start found.' % (
-                event['ph'], event['id']))
+              'Found flow phase %s for id: %s but no flow start found.' % (
+                  event['ph'], event['id']))
           continue
         flow_position = flow_id_to_event[event['id']]
         self._model.flow_events.append([flow_position, flow_event])
