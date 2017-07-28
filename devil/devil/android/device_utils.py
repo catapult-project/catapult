@@ -189,6 +189,8 @@ Result: Parcel(
 """
 _PARCEL_RESULT_RE = re.compile(
     r'0x[0-9a-f]{8}\: (?:[0-9a-f]{8}\s+){1,4}\'(.{16})\'')
+_EBUSY_RE = re.compile(
+    r'mkdir failed for ([^,]*), Device or resource busy')
 
 
 @decorators.WithExplicitTimeoutAndRetries(
@@ -1355,8 +1357,23 @@ class DeviceUtils(object):
 
     if all_changed_files:
       if missing_dirs:
-        self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
-                             check_return=True)
+        try:
+          self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
+                               check_return=True)
+        except device_errors.AdbShellCommandFailedError as e:
+          # TODO(crbug.com/739899): This is attempting to diagnose flaky EBUSY
+          # errors that have been popping up in single-device scenarios.
+          # Remove it once we've figured out what's causing them and how best
+          # to handle them.
+          m = _EBUSY_RE.search(e.output)
+          if m:
+            logging.error(
+                'Hit EBUSY while attempting to make missing directories.')
+            logging.error('lsof output:')
+            for l in self._RunPipedShellCommand(
+                'lsof | grep %s' % cmd_helper.SingleQuote(m.group(1))):
+              logging.error('  %s', l)
+          raise
       self._PushFilesImpl(host_device_tuples, all_changed_files)
     for func in cache_commit_funcs:
       func()
