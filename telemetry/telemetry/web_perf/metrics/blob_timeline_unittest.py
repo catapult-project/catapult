@@ -79,7 +79,8 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
     # 48 - 40 = 8.
     # The ninth event starts after the last interaction, so it is ignored.
     # The rest of the events are not layout events, so they are ignored.
-    self.assertEqual({'blob-reads': None, 'blob-writes': [3, 4, 7, 8]},
+    self.assertEqual(
+        {'blob-reads': None, 'blob-writes': [3, 4, 7, 8]},
         GetBlobMetrics(events, interactions))
 
   def testReadMetric(self):
@@ -102,7 +103,8 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
     # event.
     # 18 - 10 = 8
     # 37 - 32 = 5
-    self.assertEqual({'blob-reads': [4, 2, 5], 'blob-writes': None},
+    self.assertEqual(
+        {'blob-reads': [4, 2, 5], 'blob-writes': None},
         GetBlobMetrics(events, interactions))
 
   def testReadAndWriteMetrics(self):
@@ -120,5 +122,6 @@ class BlobTimelineMetricUnitTest(unittest.TestCase):
                     TestInteraction(30, 35)]
 
     # We use the read events in the interactions, so the same as the test above.
-    self.assertEqual({'blob-reads': [3, 2], 'blob-writes': [3, 1]},
-      GetBlobMetrics(events, interactions))
+    self.assertEqual(
+        {'blob-reads': [3, 2], 'blob-writes': [3, 1]},
+        GetBlobMetrics(events, interactions))

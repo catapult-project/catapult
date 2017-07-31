@@ -14,26 +14,26 @@ _MAIN_ENTRY_POINT = 'Startup.BrowserMainEntryPoint'
 #  2. A tuple of two event names if the value to report is the time difference
 #     between starting these events
 _METRICS = {
-  'messageloop_start_time':
-      ('Startup.BrowserMessageLoopStartTimeFromMainEntry2',),
+    'messageloop_start_time':
+        ('Startup.BrowserMessageLoopStartTimeFromMainEntry2',),
 
-  'window_display_time':
-      ('Startup.BrowserWindowDisplay',),
+    'window_display_time':
+        ('Startup.BrowserWindowDisplay',),
 
-  'open_tabs_time':
-      ('Startup.BrowserOpenTabs',),
+    'open_tabs_time':
+        ('Startup.BrowserOpenTabs',),
 
-  'first_non_empty_paint_time':
-      ('Startup.FirstWebContents.NonEmptyPaint2',),
+    'first_non_empty_paint_time':
+        ('Startup.FirstWebContents.NonEmptyPaint2',),
 
-  'first_main_frame_load_time':
-      ('Startup.FirstWebContents.MainFrameLoad2',),
+    'first_main_frame_load_time':
+        ('Startup.FirstWebContents.MainFrameLoad2',),
 
-  'foreground_tab_load_complete':
-      (_MAIN_ENTRY_POINT, 'loadEventEnd'),
+    'foreground_tab_load_complete':
+        (_MAIN_ENTRY_POINT, 'loadEventEnd'),
 
-  'foreground_tab_request_start':
-      (_MAIN_ENTRY_POINT, 'requestStart'),
+    'foreground_tab_request_start':
+        (_MAIN_ENTRY_POINT, 'requestStart'),
 }
 
 _TRACKED_EVENT_NAMES = set()
@@ -61,9 +61,9 @@ class StartupTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     # Produce a map of events to track.
     tracked_events = {}
     for event in browser.parent.IterAllEvents(
-      event_predicate=lambda event: event.name in _TRACKED_EVENT_NAMES):
-      # In case of a begin/end trace event, only track the begin that contain
-      # the duration.
+        event_predicate=lambda event: event.name in _TRACKED_EVENT_NAMES):
+        # In case of a begin/end trace event, only track the begin that contain
+        # the duration.
       if event.name in tracked_events:
         continue
 
@@ -85,11 +85,11 @@ class StartupTimelineMetric(timeline_based_metric.TimelineBasedMetric):
           continue
 
         duration = (tracked_events[event_names[1]].start -
-            tracked_events[event_names[0]].start)
+                    tracked_events[event_names[0]].start)
 
       results.AddValue(value.scalar.ScalarValue(
-        page=results.current_page,
-        name=name,
-        units='ms',
-        value=duration,
-        improvement_direction=value.improvement_direction.DOWN))
+          page=results.current_page,
+          name=name,
+          units='ms',
+          value=duration,
+          improvement_direction=value.improvement_direction.DOWN))

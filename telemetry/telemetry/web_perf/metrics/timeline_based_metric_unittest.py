@@ -42,17 +42,17 @@ class TimelineBasedMetricTest(unittest.TestCase):
   def testIsEventInInteractions(self):
     self.assertFalse(
         tbm_module.IsEventInInteractions(
-        FakeEvent(0, 100),
-        [FakeRecord(5, 105), FakeRecord(50, 200), FakeRecord(300, 400)]))
+            FakeEvent(0, 100),
+            [FakeRecord(5, 105), FakeRecord(50, 200), FakeRecord(300, 400)]))
     self.assertFalse(
         tbm_module.IsEventInInteractions(
-        FakeEvent(50, 100),
-        [FakeRecord(105, 205), FakeRecord(0, 45), FakeRecord(0, 90)]))
+            FakeEvent(50, 100),
+            [FakeRecord(105, 205), FakeRecord(0, 45), FakeRecord(0, 90)]))
     self.assertTrue(
         tbm_module.IsEventInInteractions(
-        FakeEvent(50, 100),
-        [FakeRecord(5, 105), FakeRecord(0, 45), FakeRecord(0, 90)]))
+            FakeEvent(50, 100),
+            [FakeRecord(5, 105), FakeRecord(0, 45), FakeRecord(0, 90)]))
     self.assertTrue(
         tbm_module.IsEventInInteractions(
-        FakeEvent(50, 100),
-        [FakeRecord(5, 45), FakeRecord(0, 45), FakeRecord(0, 100)]))
+            FakeEvent(50, 100),
+            [FakeRecord(5, 45), FakeRecord(0, 45), FakeRecord(0, 100)]))

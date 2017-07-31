@@ -28,8 +28,8 @@ class _SingleEventMetric(timeline_based_metric.TimelineBasedMetric):
     events_found = []
     for event in events:
       if (event.name == self._TRACE_EVENT_NAME) and any(
-              interaction.start <= event.start <= interaction.end
-              for interaction in interactions):
+          interaction.start <= event.start <= interaction.end
+          for interaction in interactions):
         if event.has_thread_timestamps:
           events_found.append(event.thread_duration)
         else:
@@ -37,10 +37,10 @@ class _SingleEventMetric(timeline_based_metric.TimelineBasedMetric):
     if not events_found:
       return
     results.AddValue(list_of_scalar_values.ListOfScalarValues(
-      page=results.current_page,
-      tir_label=interactions[0].label,
-      name=self._metric_name,
-      units='ms',
-      values=events_found,
-      description=self._metric_description,
-      improvement_direction=improvement_direction.DOWN))
+        page=results.current_page,
+        tir_label=interactions[0].label,
+        name=self._metric_name,
+        units='ms',
+        values=events_found,
+        description=self._metric_description,
+        improvement_direction=improvement_direction.DOWN))

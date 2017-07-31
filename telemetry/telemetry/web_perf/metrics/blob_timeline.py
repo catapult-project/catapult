@@ -88,7 +88,7 @@ class BlobTimelineMetric(timeline_based_metric.TimelineBasedMetric):
     for event in events:
       if (not self.IsReadEvent(event) or
           not any(self.IsEventInInteraction(event, interaction)
-                 for interaction in interactions)):
+                  for interaction in interactions)):
         continue
       # Every blob has unique UUID.  To get the total time for reading
       # a blob, we add up the time of all events with the same blob UUID.

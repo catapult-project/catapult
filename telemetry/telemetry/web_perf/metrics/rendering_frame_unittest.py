@@ -45,7 +45,8 @@ class RenderingFrameTestData(object):
     self._renderer_process.FinalizeImport()
 
   def _CreateEvent(self, event_name, ts, duration):
-    event = tracing_slice.Slice(None, 'cc,benchmark', event_name, ts,
+    event = tracing_slice.Slice(
+        None, 'cc,benchmark', event_name, ts,
         duration=duration, args={'begin_frame_id': self._begin_frame_id})
     self._events.append(event)
     return event

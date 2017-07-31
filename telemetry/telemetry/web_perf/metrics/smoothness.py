@@ -14,13 +14,13 @@ from telemetry.web_perf.metrics import timeline_based_metric
 
 
 NOT_ENOUGH_FRAMES_MESSAGE = (
-  'Not enough frames for smoothness metrics (at least two are required).\n'
-  'Issues that have caused this in the past:\n'
-  '- Browser bugs that prevents the page from redrawing\n'
-  '- Bugs in the synthetic gesture code\n'
-  '- Page and benchmark out of sync (e.g. clicked element was renamed)\n'
-  '- Pages that render extremely slow\n'
-  '- Pages that can\'t be scrolled')
+    'Not enough frames for smoothness metrics (at least two are required).\n'
+    'Issues that have caused this in the past:\n'
+    '- Browser bugs that prevents the page from redrawing\n'
+    '- Bugs in the synthetic gesture code\n'
+    '- Page and benchmark out of sync (e.g. clicked element was renamed)\n'
+    '- Pages that render extremely slow\n'
+    '- Pages that can\'t be scrolled')
 
 
 class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
@@ -52,8 +52,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     self.VerifyNonOverlappedRecords(interaction_records)
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
-      renderer_process, model.browser_process, model.surface_flinger_process,
-      model.gpu_process, [r.GetBounds() for r in interaction_records])
+        renderer_process, model.browser_process, model.surface_flinger_process,
+        model.gpu_process, [r.GetBounds() for r in interaction_records])
     has_surface_flinger_stats = model.surface_flinger_process is not None
     self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats)
 
@@ -102,8 +102,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
         timestamps.extend(timestamp_range)
       else:
         for i in range(1, len(timestamp_range)):
-          timestamps.append(timestamps[-1] +
-              timestamp_range[i] - timestamp_range[i-1])
+          timestamps.append(
+              timestamps[-1] + timestamp_range[i] - timestamp_range[i-1])
     return timestamps
 
   def _ComputeSurfaceFlingerMetric(self, page, stats):
@@ -180,16 +180,16 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return (
-      scalar.ScalarValue(
-          page, 'mean_%s' % name, 'ms', mean_latency,
-          description='Arithmetic mean of the raw %s values' % name,
-          none_value_reason=none_value_reason,
-          improvement_direction=improvement_direction.DOWN),
-      scalar.ScalarValue(
-          page, '%s_discrepancy' % name, 'ms', latency_discrepancy,
-          description='Discrepancy of the raw %s values' % name,
-          none_value_reason=none_value_reason,
-          improvement_direction=improvement_direction.DOWN)
+        scalar.ScalarValue(
+            page, 'mean_%s' % name, 'ms', mean_latency,
+            description='Arithmetic mean of the raw %s values' % name,
+            none_value_reason=none_value_reason,
+            improvement_direction=improvement_direction.DOWN),
+        scalar.ScalarValue(
+            page, '%s_discrepancy' % name, 'ms', latency_discrepancy,
+            description='Discrepancy of the raw %s values' % name,
+            none_value_reason=none_value_reason,
+            improvement_direction=improvement_direction.DOWN)
     )
 
   def _ComputeFirstGestureScrollUpdateLatencies(self, page, stats):
@@ -199,7 +199,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     interaction record in |stats|.
     """
     none_value_reason = None
-    first_gesture_scroll_update_latencies = [round(latencies[0], 4)
+    first_gesture_scroll_update_latencies = [
+        round(latencies[0], 4)
         for latencies in stats.gesture_scroll_update_latency
         if len(latencies)]
     if (not self._HasEnoughFrames(stats.frame_timestamps) or

@@ -275,35 +275,35 @@ class RenderingStats(object):
       data = event.args['data']
       if VISIBLE_CONTENT_DATA not in data:
         self.errors[APPROXIMATED_PIXEL_ERROR] = (
-          'Calculating approximated_pixel_percentages not possible because '
-          'visible_content_area was missing.')
+            'Calculating approximated_pixel_percentages not possible because '
+            'visible_content_area was missing.')
         self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
-          'Calculating checkerboarded_pixel_percentages not possible because '
-          'visible_content_area was missing.')
+            'Calculating checkerboarded_pixel_percentages not possible '
+            'because visible_content_area was missing.')
         return
       visible_content_area = data[VISIBLE_CONTENT_DATA]
       if visible_content_area == 0:
         self.errors[APPROXIMATED_PIXEL_ERROR] = (
-          'Calculating approximated_pixel_percentages would have caused '
-          'a divide-by-zero')
+            'Calculating approximated_pixel_percentages would have caused '
+            'a divide-by-zero')
         self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
-          'Calculating checkerboarded_pixel_percentages would have caused '
-          'a divide-by-zero')
+            'Calculating checkerboarded_pixel_percentages would have caused '
+            'a divide-by-zero')
         return
       if APPROXIMATED_VISIBLE_CONTENT_DATA in data:
         self.approximated_pixel_percentages[-1].append(
-          round(float(data[APPROXIMATED_VISIBLE_CONTENT_DATA]) /
-                float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
+            round(float(data[APPROXIMATED_VISIBLE_CONTENT_DATA]) /
+                  float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
       else:
         self.errors[APPROXIMATED_PIXEL_ERROR] = (
-          'approximated_pixel_percentages was not recorded')
+            'approximated_pixel_percentages was not recorded')
       if CHECKERBOARDED_VISIBLE_CONTENT_DATA in data:
         self.checkerboarded_pixel_percentages[-1].append(
-          round(float(data[CHECKERBOARDED_VISIBLE_CONTENT_DATA]) /
-                float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
+            round(float(data[CHECKERBOARDED_VISIBLE_CONTENT_DATA]) /
+                  float(data[VISIBLE_CONTENT_DATA]) * 100.0, 3))
       else:
         self.errors[CHECKERBOARDED_PIXEL_ERROR] = (
-          'checkerboarded_pixel_percentages was not recorded')
+            'checkerboarded_pixel_percentages was not recorded')
 
   def _InitFrameQueueingDurationsFromTimeline(self, process, timeline_range):
     try:

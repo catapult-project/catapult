@@ -87,11 +87,8 @@ class TraceEventStats(object):
           p.IterAllEvents(
               recursive=True,
               event_type_predicate=lambda t: True,
-              event_predicate=
-                  lambda e, ids=input_ids: InputIdPredicate(e, ids)),
-          interactions,
-          results,
-          inputs)
+              event_predicate=lambda e, ids=input_ids: InputIdPredicate(e, ids)
+          ), interactions, results, inputs)
 
   # We assume events have been filtered already. 'events' is an iterator.
   def _AddResultsInternal(self, events, interactions, results, inputs):
@@ -108,24 +105,24 @@ class TraceEventStats(object):
       return
 
     inputs_by_event_id = dict([[input_obj.event_id, input_obj]
-                                for input_obj in inputs])
+                               for input_obj in inputs])
 
     for (event_name, times) in times_by_event_id.iteritems():
       input_for_event = inputs_by_event_id[event_name]
       name = input_for_event.metric_name
       results.AddValue(scalar.ScalarValue(
-        page=results.current_page,
-        tir_label=interactions[0].label,
-        name=name + '-count',
-        units='count',
-        value=len(times),
-        description='The number of times ' + name + ' was recorded.'))
+          page=results.current_page,
+          tir_label=interactions[0].label,
+          name=name + '-count',
+          units='count',
+          value=len(times),
+          description='The number of times ' + name + ' was recorded.'))
       if len(times) == 0:
         continue
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
-        page=results.current_page,
-        tir_label=interactions[0].label,
-        name=name,
-        units=input_for_event.units,
-        values=times,
-        description=input_for_event.metric_description))
+          page=results.current_page,
+          tir_label=interactions[0].label,
+          name=name,
+          units=input_for_event.units,
+          values=times,
+          description=input_for_event.metric_description))

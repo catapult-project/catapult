@@ -17,6 +17,7 @@ class LayoutMetric(single_event._SingleEventMetric):
   """
 
   def __init__(self):
-    super(LayoutMetric, self).__init__(EVENT_NAME, METRIC_NAME,
+    super(LayoutMetric, self).__init__(
+        EVENT_NAME, METRIC_NAME,
         metric_description=('List of durations of layouts that were caused by '
                             'and start during interactions'))
