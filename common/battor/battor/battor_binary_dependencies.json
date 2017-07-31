@@ -101,12 +101,12 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "default": {
-          "cloud_storage_hash": "2f7de0263bdabed82529f697b9cce19304389287",
+          "cloud_storage_hash": "804c943a04f22c871256c048e844fe9bdf23be5c",
           "download_path": "../bin/battor/battor_firmware.hex",
           "local_paths": [
             "../bin/override/battor_firmware.hex"
           ],
-          "version_in_cs": "3d63c69"
+          "version_in_cs": "3157c85"
         }
       }
     }
