@@ -7,7 +7,7 @@ disable=
   similarities,
 
   bad-builtin,
-  bad-continuation,
+  
   broad-except,
   fixme,
   global-statement,

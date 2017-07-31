@@ -8,5 +8,5 @@ from telemetry import story
 class TestSimpleTwoPageSet(story.StorySet):
   def __init__(self):
     super(TestSimpleTwoPageSet, self).__init__(
-      archive_data_file='data/archive_files/test.json',
-      credentials_path='data/credential')
+        archive_data_file='data/archive_files/test.json',
+        credentials_path='data/credential')

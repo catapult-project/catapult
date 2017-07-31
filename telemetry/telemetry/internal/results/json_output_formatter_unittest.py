@@ -59,8 +59,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
 
   def testAsDictBaseKeys(self):
     results = page_test_results.PageTestResults()
-    d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata)
+    d = json_output_formatter.ResultsAsDict(
+        results, self._formatter.benchmark_metadata)
 
     self.assertEquals(d['format_version'], '0.2')
     self.assertEquals(d['next_version'], '0.3')
@@ -74,8 +74,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
 
-    d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata)
+    d = json_output_formatter.ResultsAsDict(
+        results, self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
     self.assertTrue(_HasValueNamed(d['per_page_values'], 'foo'))
@@ -91,8 +91,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
       results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
       results._SerializeTracesToDirPath(tempdir)
-      d = json_output_formatter.ResultsAsDict(results,
-          self._formatter.benchmark_metadata)
+      d = json_output_formatter.ResultsAsDict(
+          results, self._formatter.benchmark_metadata)
 
       self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
       self.assertTrue(_HasValueNamed(d['per_page_values'], 'trace'))
@@ -117,8 +117,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
     results.AddValue(v1)
     results.DidRunPage(self._story_set[1])
 
-    d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata)
+    d = json_output_formatter.ResultsAsDict(
+        results, self._formatter.benchmark_metadata)
 
     self.assertTrue(_HasPage(d['pages'], self._story_set[0]))
     self.assertTrue(_HasPage(d['pages'], self._story_set[1]))
@@ -131,8 +131,8 @@ class JsonOutputFormatterTest(unittest.TestCase):
                            improvement_direction=improvement_direction.DOWN)
     results.AddSummaryValue(v)
 
-    d = json_output_formatter.ResultsAsDict(results,
-        self._formatter.benchmark_metadata)
+    d = json_output_formatter.ResultsAsDict(
+        results, self._formatter.benchmark_metadata)
 
     self.assertFalse(d['pages'])
     self.assertTrue(_HasValueNamed(d['summary_values'], 'baz'))

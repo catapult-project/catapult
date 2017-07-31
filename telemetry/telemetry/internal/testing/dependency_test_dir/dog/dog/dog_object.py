@@ -6,7 +6,7 @@ import os
 import sys
 
 sys.path.append(os.path.join(
-  os.path.dirname(__file__), '..', '..', 'other_animals', 'cat'))
+    os.path.dirname(__file__), '..', '..', 'other_animals', 'cat'))
 
 from cat import cat_object  # pylint: disable=import-error
 
