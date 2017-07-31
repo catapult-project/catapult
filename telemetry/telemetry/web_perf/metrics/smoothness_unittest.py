@@ -106,7 +106,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def testComputeLatencyMetric(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               input_event_latency=[[10, 20], [30, 40, 50]])
+                                input_event_latency=[[10, 20], [30, 40, 50]])
     # pylint: disable=unbalanced-tuple-unpacking
     mean_value, discrepancy_value = self.metric._ComputeLatencyMetric(
         self.page, stats, 'input_event_latency', stats.input_event_latency)
@@ -115,7 +115,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def testComputeLatencyMetricWithMissingData(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               input_event_latency=[[], []])
+                                input_event_latency=[[], []])
     value = self.metric._ComputeLatencyMetric(
         self.page, stats, 'input_event_latency', stats.input_event_latency)
     self.assertEquals((), value)
@@ -162,14 +162,14 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def testComputeQueueingDuration(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               frame_queueing_durations=[[10, 20], [30, 40]])
+                                frame_queueing_durations=[[10, 20], [30, 40]])
     list_of_scalar_values = self.metric._ComputeQueueingDuration(self.page,
-                                                                stats)
+                                                                 stats)
     self.assertEquals([10, 20, 30, 40], list_of_scalar_values.values)
 
   def testComputeQueueingDurationWithMissingData(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               frame_queueing_durations=[[], []])
+                                frame_queueing_durations=[[], []])
     list_of_scalar_values = self.metric._ComputeQueueingDuration(
         self.page, stats)
     self.assertEquals(None, list_of_scalar_values.values)
@@ -178,7 +178,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def testComputeQueueingDurationWithMissingDataAndErrorValue(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               frame_queueing_durations=[[], []])
+                                frame_queueing_durations=[[], []])
     stats.errors['frame_queueing_durations'] = (
         'Current chrome version does not support the queueing delay metric.')
     list_of_scalar_values = self.metric._ComputeQueueingDuration(
@@ -193,14 +193,14 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         frame_timestamps=self.not_enough_frames_timestamps,
         frame_queueing_durations=[[10, 20], [30, 40, 50]])
     list_of_scalar_values = self.metric._ComputeQueueingDuration(self.page,
-                                                                stats)
+                                                                 stats)
     self.assertEquals(None, list_of_scalar_values.values)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       list_of_scalar_values.none_value_reason)
 
   def testComputeFrameTimeMetric(self):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
-                               frame_times=[[10, 20], [30, 40, 50]])
+                                frame_times=[[10, 20], [30, 40, 50]])
     frame_times_value, mean_frame_time_value, percentage_smooth_value = (
         self.metric._ComputeFrameTimeMetric(self.page, stats))
     self.assertEquals([10, 20, 30, 40, 50], frame_times_value.values)

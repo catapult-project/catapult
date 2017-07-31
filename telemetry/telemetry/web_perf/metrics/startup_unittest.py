@@ -63,10 +63,10 @@ class StartupTimelineMetricTest(unittest.TestCase):
     self.AddEvent('requestStart', START1 + DURATION1 * 2)
 
     results = self.ComputeStartupMetrics()
-    results.AssertHasPageSpecificScalarValue('foreground_tab_load_complete',
-        'ms', DURATION0)
-    results.AssertHasPageSpecificScalarValue('foreground_tab_request_start',
-        'ms', DURATION0 * 2)
+    results.AssertHasPageSpecificScalarValue(
+        'foreground_tab_load_complete', 'ms', DURATION0)
+    results.AssertHasPageSpecificScalarValue(
+        'foreground_tab_request_start', 'ms', DURATION0 * 2)
 
   def testDurationEventsBasedValues(self):
     DURATION_EVENTS = set([

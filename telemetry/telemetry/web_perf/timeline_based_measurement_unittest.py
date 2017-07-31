@@ -97,7 +97,7 @@ class TimelineBasedMetricTestData(object):
   def FinalizeImport(self):
     self._model.FinalizeImport()
     self._threads_to_records_map = (
-      tbm_module._GetRendererThreadsToInteractionRecordsMap(self._model))
+        tbm_module._GetRendererThreadsToInteractionRecordsMap(self._model))
     self._story_set = story.StorySet(base_dir=os.path.dirname(__file__))
     self._story_set.AddStory(page_module.Page(
         'http://www.bar.com/', self._story_set, self._story_set.base_dir,

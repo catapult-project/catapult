@@ -23,10 +23,11 @@ SERIAL = 'Serial'
 class TimeStats(object):
   """Stats container for webrtc rendering metrics."""
 
-  def __init__(self, drift_time=None, mean_drift_time=None,
-    std_dev_drift_time=None, percent_badly_out_of_sync=None,
-    percent_out_of_sync=None, smoothness_score=None, freezing_score=None,
-    rendering_length_error=None, fps=None, frame_distribution=None):
+  def __init__(
+      self, drift_time=None, mean_drift_time=None,
+      std_dev_drift_time=None, percent_badly_out_of_sync=None,
+      percent_out_of_sync=None, smoothness_score=None, freezing_score=None,
+      rendering_length_error=None, fps=None, frame_distribution=None):
     self.drift_time = drift_time
     self.mean_drift_time = mean_drift_time
     self.std_dev_drift_time = std_dev_drift_time
@@ -59,7 +60,7 @@ class WebMediaPlayerMsRenderingStats(object):
     if not event.args:
       return False
     mandatory = [ACTUAL_RENDER_BEGIN, ACTUAL_RENDER_END,
-        IDEAL_RENDER_INSTANT, SERIAL]
+                 IDEAL_RENDER_INSTANT, SERIAL]
     for parameter in mandatory:
       if not parameter in event.args:
         return False
@@ -162,7 +163,7 @@ class WebMediaPlayerMsRenderingStats(object):
     """
     number_frames = sum(frame_distribution.values())
     number_vsyncs = sum([ticks * frame_distribution[ticks]
-       for ticks in frame_distribution])
+                         for ticks in frame_distribution])
     mean_ratio = float(number_vsyncs) / number_frames
     return DISPLAY_HERTZ / mean_ratio
 
@@ -183,9 +184,10 @@ class WebMediaPlayerMsRenderingStats(object):
     """
     frozen_frames = []
     frozen_frame_vsyncs = [ticks for ticks in frame_distribution if ticks >=
-        FROZEN_THRESHOLD]
+                           FROZEN_THRESHOLD]
     for frozen_frames_vsync in frozen_frame_vsyncs:
-      logging.debug('%s frames not updated after %s vsyncs',
+      logging.debug(
+          '%s frames not updated after %s vsyncs',
           frame_distribution[frozen_frames_vsync], frozen_frames_vsync)
       frozen_frames.append(
           {'frozen_frames': frozen_frames_vsync - 1,
@@ -207,15 +209,15 @@ class WebMediaPlayerMsRenderingStats(object):
     """
 
     penalty = {
-      0: 0,
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 1,
-      6: 5,
-      7: 15,
-      8: 25
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 1,
+        6: 5,
+        7: 15,
+        8: 25
     }
     weight = penalty.get(number_frozen_frames, 8 * (number_frozen_frames - 4))
     return weight
@@ -249,7 +251,8 @@ class WebMediaPlayerMsRenderingStats(object):
         continue
       actual_render_begin = event.args[ACTUAL_RENDER_BEGIN]
       drift_time.append(actual_render_begin - current_ideal_render)
-      discrepancy.append(abs(current_ideal_render - old_ideal_render
+      discrepancy.append(abs(
+          current_ideal_render - old_ideal_render
           - VSYNC_DURATION * cadence[index]))
       old_ideal_render = current_ideal_render
       index += 1
@@ -257,7 +260,7 @@ class WebMediaPlayerMsRenderingStats(object):
     last_ideal_render = relevant_events[-1].args[IDEAL_RENDER_INSTANT]
     first_ideal_render = relevant_events[0].args[IDEAL_RENDER_INSTANT]
     rendering_length_error = 100.0 * (sum([x for x in discrepancy]) /
-        (last_ideal_render - first_ideal_render))
+                                      (last_ideal_render - first_ideal_render))
 
     return drift_time, rendering_length_error
 
@@ -294,7 +297,8 @@ class WebMediaPlayerMsRenderingStats(object):
 
     # Calculate smoothness metric. From the formula, we can see that smoothness
     # score can be negative.
-    smoothness_score = 100.0 - 100.0 * (frames_oos_only_once +
+    smoothness_score = 100.0 - 100.0 * (
+        frames_oos_only_once +
         SEVERITY * frames_severely_out_of_sync) / len(norm_drift_time)
 
     # Minimum smoothness_score value allowed is zero.
@@ -307,8 +311,7 @@ class WebMediaPlayerMsRenderingStats(object):
     """Get the freezing score."""
 
     # The freezing score is based on the source to output distribution.
-    number_vsyncs = sum([n * frame_distribution[n]
-        for n in frame_distribution])
+    number_vsyncs = sum([n * frame_distribution[n] for n in frame_distribution])
     frozen_frames = self._GetFrozenFramesReports(frame_distribution)
 
     # Calculate freezing metric.
@@ -353,11 +356,12 @@ class WebMediaPlayerMsRenderingStats(object):
 
       smoothness_stats = self._GetSmoothnessStats(norm_drift_time)
       (percent_badly_oos, percent_out_of_sync,
-          smoothness_score) = smoothness_stats
+       smoothness_score) = smoothness_stats
 
       freezing_score = self._GetFreezingScore(frame_distribution)
 
-      stats = TimeStats(drift_time=drift_time,
+      stats = TimeStats(
+          drift_time=drift_time,
           percent_badly_out_of_sync=percent_badly_oos,
           percent_out_of_sync=percent_out_of_sync,
           smoothness_score=smoothness_score, freezing_score=freezing_score,

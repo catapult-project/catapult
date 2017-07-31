@@ -176,6 +176,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertGreater(v_ttfcp_max[0].value, 0)
 
     v_ttfmp_max = results.FindAllPageSpecificValuesNamed(
-       'timeToFirstMeaningfulPaint_max')
+        'timeToFirstMeaningfulPaint_max')
     self.assertEquals(len(v_ttfmp_max), 1)
     self.assertIsNotNone(v_ttfmp_max[0].page)

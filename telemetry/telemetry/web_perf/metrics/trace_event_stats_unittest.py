@@ -52,10 +52,9 @@ class TraceEventStatsUnittest(unittest.TestCase):
   def AddEvent(self, process_name, event_category, event_name,
                start, duration, thread_start, thread_duration):
     thread = self.GetThreadForProcessName(process_name)
-    record = slice_module.Slice(thread,
-                             event_category,
-                             event_name,
-                             start, duration, thread_start, thread_duration)
+    record = slice_module.Slice(
+        thread, event_category, event_name,
+        start, duration, thread_start, thread_duration)
     thread.PushSlice(record)
 
   def RunAggregator(self, aggregator, interactions):
@@ -71,17 +70,17 @@ class TraceEventStatsUnittest(unittest.TestCase):
 
     aggregator = TraceEventStats()
     aggregator.AddInput(TraceEventStatsInput(
-      EVENT_CATEGORY1,
-      EVENT_NAME1,
-      'metric-name',
-      'metric-description',
-      'units',
-      'Renderer'))
+        EVENT_CATEGORY1,
+        EVENT_NAME1,
+        'metric-name',
+        'metric-description',
+        'units',
+        'Renderer'))
 
     results = self.RunAggregator(aggregator, interactions)
     results.AssertHasPageSpecificScalarValue('metric-name-count', 'count', 2)
     results.AssertHasPageSpecificListOfScalarValues(
-      'metric-name', 'units', [5, 2])
+        'metric-name', 'units', [5, 2])
 
   def testFiltering(self):
     # These should be recorded.
@@ -100,16 +99,16 @@ class TraceEventStatsUnittest(unittest.TestCase):
     aggregator = TraceEventStats()
     # Test that we default to 'Renderer'
     aggregator.AddInput(TraceEventStatsInput(
-      EVENT_CATEGORY1,
-      EVENT_NAME1,
-      'metric-name',
-      'metric-description',
-      'units'))
+        EVENT_CATEGORY1,
+        EVENT_NAME1,
+        'metric-name',
+        'metric-description',
+        'units'))
 
     results = self.RunAggregator(aggregator, interactions)
     results.AssertHasPageSpecificScalarValue('metric-name-count', 'count', 3)
     results.AssertHasPageSpecificListOfScalarValues(
-      'metric-name', 'units', [5, 2, 1])
+        'metric-name', 'units', [5, 2, 1])
 
   def testNoInputs(self):
     # These should be recorded.
@@ -136,11 +135,11 @@ class TraceEventStatsUnittest(unittest.TestCase):
 
     aggregator = TraceEventStats()
     aggregator.AddInput(TraceEventStatsInput(
-      EVENT_CATEGORY1,
-      EVENT_NAME1,
-      'metric-name',
-      'metric-description',
-      'units'))
+        EVENT_CATEGORY1,
+        EVENT_NAME1,
+        'metric-name',
+        'metric-description',
+        'units'))
 
     results = self.RunAggregator(aggregator, interactions)
     self.assertEquals([], results.all_page_specific_values)

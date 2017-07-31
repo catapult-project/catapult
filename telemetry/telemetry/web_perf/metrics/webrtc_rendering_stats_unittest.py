@@ -41,38 +41,40 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
     self.remote_stream = 118626165
 
   def testInitialization(self):
-    event_local_stream = FakeEvent(actual_begin=1655987203306,
-        actual_end=1655987219972, ideal_instant=1655987154324,
-        serial=self.local_stream)
+    event_local_stream = FakeEvent(
+        actual_begin=1655987203306, actual_end=1655987219972,
+        ideal_instant=1655987154324, serial=self.local_stream)
 
-    event_remote_stream = FakeEvent(actual_begin=1655987203306,
-        actual_end=1655987219972, ideal_instant=1655987167999,
-        serial=self.remote_stream)
+    event_remote_stream = FakeEvent(
+        actual_begin=1655987203306, actual_end=1655987219972,
+        ideal_instant=1655987167999, serial=self.remote_stream)
 
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats(
         [event_local_stream, event_remote_stream])
 
     self.assertEqual(2, len(stats_parser.stream_to_events))
 
-    self.assertEqual(event_local_stream.args,
+    self.assertEqual(
+        event_local_stream.args,
         stats_parser.stream_to_events[self.local_stream][0].args)
 
-    self.assertEqual(event_remote_stream.args,
+    self.assertEqual(
+        event_remote_stream.args,
         stats_parser.stream_to_events[self.remote_stream][0].args)
 
   def testInvalidEvents(self):
-    event_missing_serial = FakeEvent(actual_begin=1655987244074,
-        actual_end=1655987260740, ideal_instant=1655987204839)
-
-    event_missing_actual_begin = FakeEvent(actual_end=1655987260740,
-        ideal_instant=1655987217999, serial=self.local_stream)
-
-    event_missing_actual_end = FakeEvent(actual_end=1655987260740,
-        ideal_instant=1655987217999, serial=self.remote_stream)
-
-    event_missing_ideal_instant = FakeEvent(actual_begin=1655987260740,
-        actual_end=1655987277406, serial=self.remote_stream)
-
+    event_missing_serial = FakeEvent(
+        actual_begin=1655987244074, actual_end=1655987260740,
+        ideal_instant=1655987204839)
+    event_missing_actual_begin = FakeEvent(
+        actual_end=1655987260740, ideal_instant=1655987217999,
+        serial=self.local_stream)
+    event_missing_actual_end = FakeEvent(
+        actual_end=1655987260740, ideal_instant=1655987217999,
+        serial=self.remote_stream)
+    event_missing_ideal_instant = FakeEvent(
+        actual_begin=1655987260740, actual_end=1655987277406,
+        serial=self.remote_stream)
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats(
         [event_missing_serial, event_missing_actual_begin,
          event_missing_actual_end, event_missing_ideal_instant])
@@ -82,35 +84,35 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
   def _GetFakeEvents(self):
     fake_events = [
         FakeEvent(actual_begin=1663780195583, actual_end=1663780212249,
-            ideal_instant=1663780179998, serial=self.remote_stream),
+                  ideal_instant=1663780179998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780212249, actual_end=1663780228915,
-            ideal_instant=1663780179998, serial=self.remote_stream),
+                  ideal_instant=1663780179998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780228915, actual_end=1663780245581,
-            ideal_instant=1663780197998, serial=self.remote_stream),
+                  ideal_instant=1663780197998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780245581, actual_end=1663780262247,
-            ideal_instant=1663780215998, serial=self.remote_stream),
+                  ideal_instant=1663780215998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780262247, actual_end=1663780278913,
-            ideal_instant=1663780215998, serial=self.remote_stream),
+                  ideal_instant=1663780215998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780278913, actual_end=1663780295579,
-            ideal_instant=1663780254998, serial=self.remote_stream),
+                  ideal_instant=1663780254998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780295579, actual_end=1663780312245,
-            ideal_instant=1663780254998, serial=self.remote_stream),
+                  ideal_instant=1663780254998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780312245, actual_end=1663780328911,
-           ideal_instant=1663780254998, serial=self.remote_stream),
+                  ideal_instant=1663780254998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780328911, actual_end=1663780345577,
-           ideal_instant=1663780310998, serial=self.remote_stream),
+                  ideal_instant=1663780310998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780345577, actual_end=1663780362243,
-            ideal_instant=1663780310998, serial=self.remote_stream),
+                  ideal_instant=1663780310998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780362243, actual_end=1663780378909,
-            ideal_instant=1663780310998, serial=self.remote_stream),
+                  ideal_instant=1663780310998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780378909, actual_end=1663780395575,
-            ideal_instant=1663780361998, serial=self.remote_stream),
+                  ideal_instant=1663780361998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780395575, actual_end=1663780412241,
-            ideal_instant=1663780361998, serial=self.remote_stream),
+                  ideal_instant=1663780361998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780412241, actual_end=1663780428907,
-            ideal_instant=1663780361998, serial=self.remote_stream),
+                  ideal_instant=1663780361998, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780428907, actual_end=1663780445573,
-            ideal_instant=1663780412998, serial=self.remote_stream)]
+                  ideal_instant=1663780412998, serial=self.remote_stream)]
 
     return fake_events
 
@@ -121,13 +123,13 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
     # when the frame should be rendered ideally.
     corrupt_events = [
         FakeEvent(actual_begin=1663780195583, actual_end=1663780212249,
-            ideal_instant=0, serial=self.remote_stream),
+                  ideal_instant=0, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780212249, actual_end=1663780228915,
-            ideal_instant=0, serial=self.remote_stream),
+                  ideal_instant=0, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780228915, actual_end=1663780245581,
-            ideal_instant=0, serial=self.remote_stream),
+                  ideal_instant=0, serial=self.remote_stream),
         FakeEvent(actual_begin=1663780245581, actual_end=1663780262247,
-            ideal_instant=0, serial=self.remote_stream)]
+                  ideal_instant=0, serial=self.remote_stream)]
     return corrupt_events
 
   def testGetCadence(self):
@@ -145,21 +147,24 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
     cadence = [2, 1, 2, 3, 3, 3, 1]
     expected_frame_distribution = {1: 2, 2: 2, 3: 3}
-    self.assertEqual(expected_frame_distribution,
+    self.assertEqual(
+        expected_frame_distribution,
         stats_parser._GetSourceToOutputDistribution(cadence))
 
   def testGetFpsFromCadence(self):
     frame_distribution = {1: 2, 2: 2, 3: 3}
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
     expected_frame_rate = 28.0
-    self.assertEqual(expected_frame_rate,
+    self.assertEqual(
+        expected_frame_rate,
         stats_parser._GetFpsFromCadence(frame_distribution))
 
   def testGetFrozenFramesReports(self):
     frame_distribution = {1: 2, 2: 2, 3: 569, 6: 1}
     expected_frozen_reports = [{'frozen_frames': 5, 'occurrences': 1}]
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
-    self.assertEqual(expected_frozen_reports,
+    self.assertEqual(
+        expected_frozen_reports,
         stats_parser._GetFrozenFramesReports(frame_distribution))
 
   def testIsRemoteStream(self):
@@ -173,42 +178,50 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
     expected_drift_time = [15585, 30917, 29583, 23915, 17913, 16911, 15909]
     expected_rendering_length_error = 29.613733905579398
 
-    self.assertEqual((expected_drift_time, expected_rendering_length_error),
+    self.assertEqual(
+        (expected_drift_time, expected_rendering_length_error),
         stats_parser._GetDrifTimeStats(fake_events, cadence))
 
   def testGetSmoothnessStats(self):
-    norm_drift_time = [5948.2857142857138, 9383.7142857142862,
-        8049.7142857142862, 2381.7142857142862, 3620.2857142857138,
-        4622.2857142857138, 5624.2857142857138]
+    norm_drift_time = [
+        5948.2857142857138, 9383.7142857142862, 8049.7142857142862,
+        2381.7142857142862, 3620.2857142857138, 4622.2857142857138,
+        5624.2857142857138]
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
     expected_percent_badly_oos = 0.0
     expected_percent_out_of_sync = 0.0
     expected_smoothness_score = 100.0
-    expected_smoothness_stats = (expected_percent_badly_oos,
-        expected_percent_out_of_sync, expected_smoothness_score)
+    expected_smoothness_stats = (
+        expected_percent_badly_oos, expected_percent_out_of_sync,
+        expected_smoothness_score)
 
-    self.assertEqual(expected_smoothness_stats,
+    self.assertEqual(
+        expected_smoothness_stats,
         stats_parser._GetSmoothnessStats(norm_drift_time))
 
   def testNegativeSmoothnessScoreChangedToZero(self):
-    norm_drift_time = [15948.285714285714, 9383.714285714286,
-        28049.714285714286, 72381.71428571429, 3620.2857142857138,
-        4622.285714285714, 35624.28571428572]
+    norm_drift_time = [
+        15948.285714285714, 9383.714285714286, 28049.714285714286,
+        72381.71428571429, 3620.2857142857138, 4622.285714285714,
+        35624.28571428572]
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
     expected_percent_badly_oos = 28.571428571428573
     expected_percent_out_of_sync = 42.857142857142854
     expected_smoothness_score = 0.0
-    expected_smoothness_stats = (expected_percent_badly_oos,
-        expected_percent_out_of_sync, expected_smoothness_score)
+    expected_smoothness_stats = (
+        expected_percent_badly_oos, expected_percent_out_of_sync,
+        expected_smoothness_score)
 
-    self.assertEqual(expected_smoothness_stats,
+    self.assertEqual(
+        expected_smoothness_stats,
         stats_parser._GetSmoothnessStats(norm_drift_time))
 
   def testGetFreezingScore(self):
     frame_distribution = {1: 2, 2: 2, 3: 569, 6: 1}
     stats_parser = stats_helper.WebMediaPlayerMsRenderingStats([])
     expected_freezing_score = 99.94182664339732
-    self.assertEqual(expected_freezing_score,
+    self.assertEqual(
+        expected_freezing_score,
         stats_parser._GetFreezingScore(frame_distribution))
 
   def testNegativeFrezingScoreChangedToZero(self):
@@ -245,16 +258,16 @@ class WebMediaPlayerMsRenderingStatsTest(unittest.TestCase):
 
     self.assertEqual(expected_stats.drift_time, stats.drift_time)
     self.assertEqual(expected_stats.percent_badly_out_of_sync,
-        stats.percent_badly_out_of_sync)
+                     stats.percent_badly_out_of_sync)
     self.assertEqual(expected_stats.percent_out_of_sync,
-        stats.percent_out_of_sync)
+                     stats.percent_out_of_sync)
     self.assertEqual(expected_stats.smoothness_score, stats.smoothness_score)
     self.assertEqual(expected_stats.freezing_score, stats.freezing_score)
     self.assertEqual(expected_stats.rendering_length_error,
-        stats.rendering_length_error)
+                     stats.rendering_length_error)
     self.assertEqual(expected_stats.fps, stats.fps)
     self.assertEqual(expected_stats.frame_distribution,
-        stats.frame_distribution)
+                     stats.frame_distribution)
 
   def testCorruptData(self):
     corrupt_events = self._GetCorruptEvents()
