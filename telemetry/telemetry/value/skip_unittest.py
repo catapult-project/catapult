@@ -50,10 +50,10 @@ class ValueTest(TestBase):
 
   def testFromDict(self):
     d = {
-      'type': 'skip',
-      'name': 'skip',
-      'units': '',
-      'reason': 'page skipped for testing reason'
+        'type': 'skip',
+        'name': 'skip',
+        'units': '',
+        'reason': 'page skipped for testing reason'
     }
     v = value.Value.FromDict(d, {})
     self.assertTrue(isinstance(v, skip.SkipValue))

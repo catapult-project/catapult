@@ -73,7 +73,7 @@ class ValueTest(TestBase):
   def testRepr(self):
     v = trace.TraceValue(
         self.pages[0], trace_data.CreateTraceDataFromRawData([{'test': 1}]),
-                         important=True, description='desc')
+        important=True, description='desc')
 
     self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
 
@@ -126,9 +126,9 @@ class ValueTest(TestBase):
 
   def testFindTraceParts(self):
     raw_data = {
-      'powerTraceAsString': 'BattOr Data',
-      'traceEvents': [{'trace': 1}],
-      'tabIds': 'Tab Data',
+        'powerTraceAsString': 'BattOr Data',
+        'traceEvents': [{'trace': 1}],
+        'tabIds': 'Tab Data',
     }
     data = trace_data.CreateTraceDataFromRawData(raw_data)
     v = trace.TraceValue(None, data)

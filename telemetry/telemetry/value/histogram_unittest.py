@@ -33,10 +33,10 @@ class ValueTest(TestBase):
   def testRepr(self):
     page = self.pages[0]
     v = histogram_module.HistogramValue(
-            page, 'x', 'counts',
-           raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-           important=True, description='desc', tir_label='my_ir',
-           improvement_direction=improvement_direction.UP)
+        page, 'x', 'counts',
+        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
+        important=True, description='desc', tir_label='my_ir',
+        improvement_direction=improvement_direction.UP)
     expected = ('HistogramValue(http://www.bar.com/, x, counts, '
                 'raw_json_string={"buckets": [{"low": 1, "high": 2, "count": '
                 '1}]}, important=True, description=desc, tir_label=my_ir, '
@@ -51,13 +51,13 @@ class ValueTest(TestBase):
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
         important=False, improvement_direction=improvement_direction.UP)
     self.assertEquals(
-      ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-      histogram.GetBuildbotValue())
+        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
+        histogram.GetBuildbotValue())
     self.assertEquals(1.5,
                       histogram.GetRepresentativeNumber())
     self.assertEquals(
-      ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-      histogram.GetBuildbotValue())
+        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
+        histogram.GetBuildbotValue())
 
     self.assertEquals(
         'unimportant-histogram',
@@ -72,10 +72,10 @@ class ValueTest(TestBase):
     d = bucket.AsDict()
 
     self.assertEquals(d, {
-          'low': 33,
-          'high': 45,
-          'count': 78
-        })
+        'low': 33,
+        'high': 45,
+        'count': 78
+    })
 
   def testAsDict(self):
     histogram = histogram_module.HistogramValue(
@@ -90,26 +90,26 @@ class ValueTest(TestBase):
 
   def testFromDict(self):
     d = {
-      'type': 'histogram',
-      'name': 'x',
-      'units': 'counts',
-      'buckets': [{'low': 1, 'high': 2, 'count': 1}],
-      'improvement_direction': 'down',
+        'type': 'histogram',
+        'name': 'x',
+        'units': 'counts',
+        'buckets': [{'low': 1, 'high': 2, 'count': 1}],
+        'improvement_direction': 'down',
     }
     v = value.Value.FromDict(d, {})
 
     self.assertTrue(isinstance(v, histogram_module.HistogramValue))
     self.assertEquals(
-      ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-      v.GetBuildbotValue())
+        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
+        v.GetBuildbotValue())
     self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
 
   def testFromDictWithoutImprovementDirection(self):
     d = {
-      'type': 'histogram',
-      'name': 'x',
-      'units': 'counts',
-      'buckets': [{'low': 1, 'high': 2, 'count': 1}],
+        'type': 'histogram',
+        'name': 'x',
+        'units': 'counts',
+        'buckets': [{'low': 1, 'high': 2, 'count': 1}],
     }
     v = value.Value.FromDict(d, {})
 
@@ -118,19 +118,19 @@ class ValueTest(TestBase):
 
   def testMergeLikeValuesFromSamePage(self):
     d1 = {
-      'type': 'histogram',
-      'name': 'x',
-      'units': 'counts',
-      'description': 'histogram-based metric',
-      'buckets': [{'low': 1, 'high': 3, 'count': 1}],
+        'type': 'histogram',
+        'name': 'x',
+        'units': 'counts',
+        'description': 'histogram-based metric',
+        'buckets': [{'low': 1, 'high': 3, 'count': 1}],
     }
 
     d2 = {
-      'type': 'histogram',
-      'name': 'x',
-      'units': 'counts',
-      'description': 'histogram-based metric',
-      'buckets': [{'low': 2, 'high': 4, 'count': 1}],
+        'type': 'histogram',
+        'name': 'x',
+        'units': 'counts',
+        'description': 'histogram-based metric',
+        'buckets': [{'low': 2, 'high': 4, 'count': 1}],
     }
 
     v0, v1 = value.Value.FromDict(d1, {}), value.Value.FromDict(d2, {})

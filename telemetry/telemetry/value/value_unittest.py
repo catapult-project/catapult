@@ -85,7 +85,7 @@ class ValueTest(TestBase):
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
                     tir_label='foo', grouping_keys=None)
     b = value.Value(page0, 'x', 'unit', important=False, description=None,
-                     tir_label='bar', grouping_keys=None)
+                    tir_label='bar', grouping_keys=None)
     self.assertTrue(b.IsMergableWith(a))
 
   def testIncompat(self):
@@ -145,13 +145,13 @@ class ValueTest(TestBase):
     d = v.AsDict()
 
     self.assertEquals(d, {
-          'name': 'x',
-          'type': 'baz',
-          'units': 'unit',
-          'important': True,
-          'tir_label': 'bar',
-          'grouping_keys': {'foo': 'baz'}
-        })
+        'name': 'x',
+        'type': 'baz',
+        'units': 'unit',
+        'important': True,
+        'tir_label': 'bar',
+        'grouping_keys': {'foo': 'baz'}
+    })
 
   def testAsDictWithPage(self):
     page0 = self.pages[0]
@@ -195,9 +195,9 @@ class ValueTest(TestBase):
 
   def testFromDictBaseKeys(self):
     d = {
-      'type': 'value_for_from_dict_test',
-      'name': 'x',
-      'units': 'unit'
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
     }
 
     v = value.Value.FromDict(d, None)
@@ -210,10 +210,10 @@ class ValueTest(TestBase):
     page_dict = {page0.id: page0}
 
     d = {
-      'type': 'value_for_from_dict_test',
-      'name': 'x',
-      'units': 'unit',
-      'page_id': page0.id
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit',
+        'page_id': page0.id
     }
 
     v = value.Value.FromDict(d, page_dict)
@@ -224,10 +224,10 @@ class ValueTest(TestBase):
     page_dict = {0: 'foo'}
 
     d = {
-      'type': 'value_for_from_dict_test',
-      'name': 'x',
-      'units': 'unit',
-      'page_id': 0
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit',
+        'page_id': 0
     }
 
     v = value.Value.FromDict(d, page_dict)
@@ -236,9 +236,9 @@ class ValueTest(TestBase):
 
   def testFromDictWithoutPage(self):
     d = {
-      'type': 'value_for_from_dict_test',
-      'name': 'x',
-      'units': 'unit'
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
     }
 
     v = value.Value.FromDict(d, {})
@@ -247,81 +247,81 @@ class ValueTest(TestBase):
 
   def testFromDictWithDescription(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit',
-          'description': 'foo'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit',
+        'description': 'foo'
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.description, 'foo')
 
   def testFromDictWithoutDescription(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.description, None)
 
   def testFromDictWithInteractionRecord(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit',
-          'description': 'foo',
-          'tir_label': 'bar'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit',
+        'description': 'foo',
+        'tir_label': 'bar'
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.tir_label, 'bar')
 
   def testFromDictWithoutInteractionRecord(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.tir_label, None)
 
   def testFromDictWithGroupingKeys(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit',
-          'description': 'foo',
-          'tir_label': 'bar',
-          'grouping_keys': {'foo': 'bar'}
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit',
+        'description': 'foo',
+        'tir_label': 'bar',
+        'grouping_keys': {'foo': 'bar'}
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.grouping_keys, {'foo': 'bar'})
 
   def testFromDictWithoutGroupingKeys(self):
     d = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
+    }
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.grouping_keys, {})
 
   def testListOfValuesFromListOfDicts(self):
     d0 = {
-          'type': 'value_for_from_dict_test',
-          'name': 'x',
-          'units': 'unit'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'x',
+        'units': 'unit'
+    }
     d1 = {
-          'type': 'value_for_from_dict_test',
-          'name': 'y',
-          'units': 'unit'
-        }
+        'type': 'value_for_from_dict_test',
+        'name': 'y',
+        'units': 'unit'
+    }
     vs = value.Value.ListOfValuesFromListOfDicts([d0, d1], {})
     self.assertEquals(vs[0].name, 'x')
     self.assertEquals(vs[1].name, 'y')

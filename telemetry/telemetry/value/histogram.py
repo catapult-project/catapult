@@ -17,16 +17,16 @@ class HistogramValueBucket(object):
 
   def AsDict(self):
     return {
-      'low': self.low,
-      'high': self.high,
-      'count': self.count
+        'low': self.low,
+        'high': self.high,
+        'count': self.count
     }
 
   def ToJSONString(self):
     return '{%s}' % ', '.join([
-      '"low": %i' % self.low,
-      '"high": %i' % self.high,
-      '"count": %i' % self.count])
+        '"low": %i' % self.low,
+        '"high": %i' % self.high,
+        '"count": %i' % self.count])
 
 class HistogramValue(summarizable.SummarizableValue):
   def __init__(self, page, name, units,
@@ -44,9 +44,9 @@ class HistogramValue(summarizable.SummarizableValue):
       self.buckets = []
       for bucket in histogram_util.GetHistogramBucketsFromRawValue(raw_value):
         self.buckets.append(HistogramValueBucket(
-          low=bucket['low'],
-          high=bucket['high'],
-          count=bucket['count']))
+            low=bucket['low'],
+            high=bucket['high'],
+            count=bucket['count']))
     else:
       self.buckets = []
 
@@ -87,7 +87,7 @@ class HistogramValue(summarizable.SummarizableValue):
     #
     # Sigh, buildbot, Y U gotta be that way.
     return '{"buckets": [%s]}' % (
-      ', '.join([b.ToJSONString() for b in self.buckets]))
+        ', '.join([b.ToJSONString() for b in self.buckets]))
 
   def GetRepresentativeNumber(self):
     (mean, _) = perf_tests_helper.GeomMeanAndStdDevFromHistogram(

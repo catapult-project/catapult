@@ -62,10 +62,10 @@ class ValueTest(TestBase):
     except Exception:
       exc_info = sys.exc_info()
     d = {
-      'type': 'failure',
-      'name': exc_info[0].__name__,
-      'units': '',
-      'value': ''.join(traceback.format_exception(*exc_info))
+        'type': 'failure',
+        'name': exc_info[0].__name__,
+        'units': '',
+        'value': ''.join(traceback.format_exception(*exc_info))
     }
     v = value.Value.FromDict(d, {})
 

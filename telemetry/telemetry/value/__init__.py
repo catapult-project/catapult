@@ -198,10 +198,10 @@ class Value(object):
 
   def _AsDictImpl(self):
     d = {
-      'name': self.name,
-      'type': self.GetJSONTypeName(),
-      'units': self.units,
-      'important': self.important
+        'name': self.name,
+        'type': self.GetJSONTypeName(),
+        'units': self.units,
+        'important': self.important
     }
 
     if self.description:
@@ -224,7 +224,7 @@ class Value(object):
 
     # Extracts only entries added by the subclass.
     return dict([(k, v) for (k, v) in full_dict.iteritems()
-                  if k not in base_dict_keys])
+                 if k not in base_dict_keys])
 
   @staticmethod
   def FromDict(value_dict, page_dict):
@@ -257,8 +257,8 @@ class Value(object):
         value_dir, util.GetTelemetryDir(),
         Value, index_by_class_name=True)
 
-    value_json_types = dict((value_classes[x].GetJSONTypeName(), x) for x in
-        value_classes)
+    value_json_types = dict(
+        (value_classes[x].GetJSONTypeName(), x) for x in value_classes)
 
     values = []
     for value_dict in value_dicts:
@@ -281,8 +281,8 @@ class Value(object):
     page_dict: a dictionary mapping IDs to page objects.
     """
     d = {
-      'name': value_dict['name'],
-      'units': value_dict['units']
+        'name': value_dict['name'],
+        'units': value_dict['units']
     }
 
     description = value_dict.get('description', None)
@@ -353,7 +353,8 @@ def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
   if chart_name:
     return '%s.%s' % (chart_name, trace_name)
   else:
-    assert '.' not in trace_name, ('Trace names cannot contain "." with an '
+    assert '.' not in trace_name, (
+        'Trace names cannot contain "." with an '
         'empty chart_name since this is used to delimit chart_name.trace_name.')
     return trace_name
 

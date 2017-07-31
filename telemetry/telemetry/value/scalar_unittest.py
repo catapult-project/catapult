@@ -133,9 +133,7 @@ class ValueTest(TestBase):
                            improvement_direction=improvement_direction.DOWN)
     d = v.AsDictWithoutBaseClassEntries()
 
-    self.assertEquals(d, {
-          'value': 42
-        })
+    self.assertEquals(d, {'value': 42})
 
   def testNoneValueAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', None, important=False,
@@ -143,18 +141,15 @@ class ValueTest(TestBase):
                            improvement_direction=improvement_direction.DOWN)
     d = v.AsDictWithoutBaseClassEntries()
 
-    self.assertEquals(d, {
-          'value': None,
-          'none_value_reason': 'n'
-        })
+    self.assertEquals(d, {'value': None, 'none_value_reason': 'n'})
 
   def testFromDictInt(self):
     d = {
-      'type': 'scalar',
-      'name': 'x',
-      'units': 'unit',
-      'value': 42,
-      'improvement_direction': improvement_direction.DOWN,
+        'type': 'scalar',
+        'name': 'x',
+        'units': 'unit',
+        'value': 42,
+        'improvement_direction': improvement_direction.DOWN,
     }
 
     v = value.Value.FromDict(d, {})
@@ -165,11 +160,11 @@ class ValueTest(TestBase):
 
   def testFromDictFloat(self):
     d = {
-      'type': 'scalar',
-      'name': 'x',
-      'units': 'unit',
-      'value': 42.4,
-      'improvement_direction': improvement_direction.UP,
+        'type': 'scalar',
+        'name': 'x',
+        'units': 'unit',
+        'value': 42.4,
+        'improvement_direction': improvement_direction.UP,
     }
 
     v = value.Value.FromDict(d, {})
@@ -179,10 +174,10 @@ class ValueTest(TestBase):
 
   def testFromDictWithoutImprovementDirection(self):
     d = {
-      'type': 'scalar',
-      'name': 'x',
-      'units': 'unit',
-      'value': 42,
+        'type': 'scalar',
+        'name': 'x',
+        'units': 'unit',
+        'value': 42,
     }
 
     v = value.Value.FromDict(d, {})
@@ -192,12 +187,12 @@ class ValueTest(TestBase):
 
   def testFromDictNoneValue(self):
     d = {
-      'type': 'scalar',
-      'name': 'x',
-      'units': 'unit',
-      'value': None,
-      'none_value_reason': 'n',
-      'improvement_direction': improvement_direction.UP,
+        'type': 'scalar',
+        'name': 'x',
+        'units': 'unit',
+        'value': None,
+        'none_value_reason': 'n',
+        'improvement_direction': improvement_direction.UP,
     }
 
     v = value.Value.FromDict(d, {})

@@ -186,7 +186,8 @@ class ListOfScalarValues(summarizable.SummarizableValue):
       if v.values is None:
         merged_values = None
         merged_none_values = [v for v in values if v.values is None]
-        none_value_reason = (none_values.MERGE_FAILURE_REASON +
+        none_value_reason = (
+            none_values.MERGE_FAILURE_REASON +
             ' None values: %s' % repr(merged_none_values))
         break
       merged_values.extend(v.values)

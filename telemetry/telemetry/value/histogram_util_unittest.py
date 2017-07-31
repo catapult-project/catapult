@@ -54,27 +54,25 @@ class TestHistogram(unittest.TestCase):
 
   def testGetHistogramBucketsFromRawValue_Max(self):
     raw_value = {'buckets': [
-      {'count': 4, 'low': 10, 'high': 15,},
-      {'count': 6, 'low': 16, 'high': 18,},
-      {'count': 8, 'low': 19},
+        {'count': 4, 'low': 10, 'high': 15,},
+        {'count': 6, 'low': 16, 'high': 18,},
+        {'count': 8, 'low': 19},
     ]}
     buckets = histogram_util.GetHistogramBucketsFromRawValue(raw_value)
     self.assertEquals([
-      {'count': 4, 'low': 10, 'high': 15,},
-      {'count': 6, 'low': 16, 'high': 18,},
-      {'count': 8, 'low': 19, 'high': 19},],
-      buckets)
+        {'count': 4, 'low': 10, 'high': 15,},
+        {'count': 6, 'low': 16, 'high': 18,},
+        {'count': 8, 'low': 19, 'high': 19},], buckets)
 
 
   def testGetHistogramBucketsFromJson(self):
     json_value = json.dumps({'buckets': [
-      {'count': 4, 'low': 10, 'high': 15,},
-      {'count': 6, 'low': 16, 'high': 18,},
-      {'count': 8, 'low': 19, 'high': 25},
+        {'count': 4, 'low': 10, 'high': 15,},
+        {'count': 6, 'low': 16, 'high': 18,},
+        {'count': 8, 'low': 19, 'high': 25},
     ]})
     buckets = histogram_util.GetHistogramBucketsFromJson(json_value)
     self.assertEquals([
-      {'count': 4, 'low': 10, 'high': 15,},
-      {'count': 6, 'low': 16, 'high': 18,},
-      {'count': 8, 'low': 19, 'high': 25},],
-      buckets)
+        {'count': 4, 'low': 10, 'high': 15,},
+        {'count': 6, 'low': 16, 'high': 18,},
+        {'count': 8, 'low': 19, 'high': 25},], buckets)
