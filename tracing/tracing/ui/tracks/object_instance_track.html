@@ -66,7 +66,7 @@ tr.exportTo('tr.ui.tracks', function() {
         this.objectSnapshots_ = [];
         return;
       }
-      this.heading = objectInstances[0].typeName;
+      this.heading = objectInstances[0].baseTypeName;
       this.objectInstances_ = objectInstances;
       this.objectSnapshots_ = [];
       this.objectInstances_.forEach(function(instance) {
