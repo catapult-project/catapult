@@ -270,7 +270,7 @@ def _PostSuccessfulResult(job, issue_tracker):
 
   comment_added = issue_tracker.AddBugComment(
       job.bug_id, comment, cc_list=authors_to_cc, merge_issue=merge_issue_id,
-      labels=labels, owner=owner)
+      labels=labels, owner=owner, status='Assigned')
   if not comment_added:
     raise BugUpdateFailure('Failed to update bug %s with comment %s'
                            % (job.bug_id, comment))

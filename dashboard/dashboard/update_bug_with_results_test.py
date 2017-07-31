@@ -321,7 +321,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
         cc_list=['author@email.com', 'prasadv@google.com'],
-        merge_issue=None, labels=None, owner='author@email.com')
+        merge_issue=None, labels=None, owner='author@email.com',
+        status='Assigned')
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -348,7 +349,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
-        cc_list=[], merge_issue='111222', labels=None, owner=None)
+        cc_list=[], merge_issue='111222', labels=None, owner=None,
+        status='Assigned')
     # Should have skipped updating cache.
     self.assertEqual(
         layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)
@@ -384,7 +386,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
         cc_list=['author@email.com', 'prasadv@google.com'],
-        merge_issue=None, labels=None, owner='author@email.com')
+        merge_issue=None, labels=None, owner='author@email.com',
+        status='Assigned')
     # Should have skipped updating cache.
     self.assertEqual(
         layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)
@@ -416,7 +419,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
                                                   'prasadv@google.com'],
                                          merge_issue=None,
                                          labels=None,
-                                         owner='author@email.com')
+                                         owner='author@email.com',
+                                         status='Assigned')
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -530,7 +534,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
         cc_list=mock.ANY,
-        merge_issue=None, labels=['Restrict-View-Google'], owner=mock.ANY)
+        merge_issue=None, labels=['Restrict-View-Google'], owner=mock.ANY,
+        status='Assigned')
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -729,7 +734,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
     mock_update_bug.assert_called_once_with(
         12345, mock.ANY, cc_list=mock.ANY, merge_issue=mock.ANY,
-        labels=mock.ANY, owner=mock.ANY)
+        labels=mock.ANY, owner=mock.ANY, status='Assigned')
 
   def testValidateBuildbucketResponse_Scheduled(self):
     job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
