@@ -27,6 +27,8 @@ _INTERNAL_ONLY_KINDS = [
     'Anomaly',
     'TryJob',
     'TableConfig',
+    'Histogram',
+    'SparseDiagnostic',
 ]
 
 # Permissions namespaces.
