@@ -283,6 +283,34 @@ class TestConditionTest(unittest.TestCase):
         expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
                                                    self._finder_options))
 
+  def testMac1011ReturnsTrueOnMac1011(self):
+    self._platform.SetOSName('mac')
+    self._platform.SetOsVersionDetailString('10.11')
+    self.assertTrue(
+        expectations.MAC_10_11.ShouldDisable(self._platform,
+                                             self._finder_options))
+
+  def testMac1011ReturnsFalseOnNotMac1011(self):
+    self._platform.SetOSName('mac')
+    self._platform.SetOsVersionDetailString('10.12')
+    self.assertFalse(
+        expectations.MAC_10_11.ShouldDisable(self._platform,
+                                             self._finder_options))
+
+  def testMac1012ReturnsTrueOnMac1012(self):
+    self._platform.SetOSName('mac')
+    self._platform.SetOsVersionDetailString('10.12')
+    self.assertTrue(
+        expectations.MAC_10_12.ShouldDisable(self._platform,
+                                             self._finder_options))
+
+  def testMac1012ReturnsFalseOnNotMac1012(self):
+    self._platform.SetOSName('mac')
+    self._platform.SetOsVersionDetailString('10.11')
+    self.assertFalse(
+        expectations.MAC_10_12.ShouldDisable(self._platform,
+                                             self._finder_options))
+
 
 class StoryExpectationsTest(unittest.TestCase):
   def setUp(self):

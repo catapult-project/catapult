@@ -31,6 +31,7 @@ class FakePlatform(object):
     self._device_type_name = 'abc'
     self._is_svelte = False
     self._is_aosp = True
+    self._get_os_version_detail_string = 'OsVersionString'
 
   @property
   def is_host_platform(self):
@@ -72,9 +73,6 @@ class FakePlatform(object):
   def GetOSVersionName(self):
     raise NotImplementedError
 
-  def GetOSVersionDetailString(self):
-    raise NotImplementedError
-
   def StopAllLocalServers(self):
     pass
 
@@ -110,6 +108,12 @@ class FakePlatform(object):
 
   def IsAosp(self):
     return self._is_aosp and self._os_name == 'android'
+
+  def SetOsVersionDetailString(self, v):
+    self._get_os_version_detail_string = v
+
+  def GetOSVersionDetailString(self):
+    return self._get_os_version_detail_string
 
 
 class FakeLinuxPlatform(FakePlatform):
