@@ -160,16 +160,18 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("error opening cert or key files: %v", err)
 	}
-	for _, scriptFile := range strings.Split(common.injectScripts, ",") {
-		log.Printf("Loading script from %v\n", scriptFile)
-		// Replace {{WPR_TIME_SEED_TIMESTAMP}} with current timestamp.
-		current_time_ms := time.Now().Unix() * 1000
-		replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(current_time_ms, 10)}
-		si, err := webpagereplay.NewScriptInjectorFromFile(scriptFile, replacements)
-		if err != nil {
-			return fmt.Errorf("error opening script %s: %v", scriptFile, err)
+	if common.injectScripts != "" {
+		for _, scriptFile := range strings.Split(common.injectScripts, ",") {
+			log.Printf("Loading script from %v\n", scriptFile)
+			// Replace {{WPR_TIME_SEED_TIMESTAMP}} with current timestamp.
+			current_time_ms := time.Now().Unix() * 1000
+			replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(current_time_ms, 10)}
+			si, err := webpagereplay.NewScriptInjectorFromFile(scriptFile, replacements)
+			if err != nil {
+				return fmt.Errorf("error opening script %s: %v", scriptFile, err)
+			}
+			common.transformers = append(common.transformers, si)
 		}
-		common.transformers = append(common.transformers, si)
 	}
 
 	return nil

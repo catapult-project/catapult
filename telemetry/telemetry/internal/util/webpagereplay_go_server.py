@@ -108,13 +108,14 @@ class ReplayServer(object):
   def _GetCommandLine(go_binary_path, http_port, https_port,
                       replay_options, archive_path):
     """Set WPR command-line options. Can be overridden if needed."""
+    for option in replay_options:
+      if option not in ['--record', '--replay', '--inject_scripts=']:
+        raise ValueError("Invalid replay options %s" % replay_options)
     cmd_line = [go_binary_path]
-    if replay_options == ['--record']:
+    if '--record' in replay_options:
       cmd_line.append('record')
-    elif replay_options == ['--replay'] or replay_options == []:
-      cmd_line.append('replay')
     else:
-      raise ValueError('Invalid replay options: %s' % replay_options)
+      cmd_line.append('replay')
     key_file = os.path.join(_WPR_DIR, 'wpr_key.pem')
     cert_file = os.path.join(_WPR_DIR, 'wpr_cert.pem')
     inject_script = os.path.join(_WPR_DIR, 'deterministic.js')
@@ -122,9 +123,11 @@ class ReplayServer(object):
         '--http_port=%s' % http_port,
         '--https_port=%s' % https_port,
         '--https_key_file=%s' % key_file,
-        '--https_cert_file=%s' % cert_file,
-        '--inject_scripts=%s' % inject_script,
-        ])
+        '--https_cert_file=%s' % cert_file])
+    if '--inject_scripts=' in replay_options:
+      cmd_line.append('--inject_scripts=')
+    else:
+      cmd_line.append('--inject_scripts=%s' % inject_script)
     cmd_line.append(archive_path)
     return cmd_line
 
