@@ -64,6 +64,6 @@ def Render(template, **kwargs):
 
   result = RE_REPLACEMENT_FIELD.sub(interpolate, template)
   if unused:
-    raise TypeError('Unexpected arguments not used in template: %s.' % (
-      ', '.join(repr(str(k)) for k in sorted(unused))))
+    raise TypeError('Unexpected arguments not used in template: %s.' %
+                    (', '.join(repr(str(k)) for k in sorted(unused))))
   return result

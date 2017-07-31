@@ -69,11 +69,9 @@ def TryCaptureScreenShotAndUploadToCloudStorage(platform, tab=None):
   return None
 
 def _GenerateRemotePath(fh):
-  return ('browser-screenshot_%s-%s%-d%s' % (
-          fh.id,
-          datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
-          random.randint(1, 100000),
-          fh.extension))
+  return ('browser-screenshot_%s-%s%-d%s' %
+          (fh.id, datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+           random.randint(1, 100000), fh.extension))
 
 def _UploadScreenShotToCloudStorage(fh):
   """ Upload the given screenshot image to cloud storage and return the
@@ -83,8 +81,8 @@ def _UploadScreenShotToCloudStorage(fh):
     return cloud_storage.Insert(cloud_storage.TELEMETRY_OUTPUT,
                                 _GenerateRemotePath(fh), fh.GetAbsPath())
   except cloud_storage.CloudStorageError as err:
-    logging.error('Cloud storage error while trying to upload screenshot: %s'
-                  % repr(err))
+    logging.error('Cloud storage error while trying to upload screenshot: %s',
+                  repr(err))
     return '<Missing link>'
   finally:  # Must clean up screenshot file if exists.
     os.remove(fh.GetAbsPath())

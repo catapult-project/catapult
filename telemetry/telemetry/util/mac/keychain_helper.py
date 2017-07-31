@@ -57,9 +57,7 @@ def _IsKeychainConfiguredForBots(service_name, account_name):
   return child.returncode == 0
 
 def IsKeychainConfiguredForBotsWithChrome():
-  return _IsKeychainConfiguredForBots("Chrome Safe Storage",
-      "Chrome")
+  return _IsKeychainConfiguredForBots("Chrome Safe Storage", "Chrome")
 
 def IsKeychainConfiguredForBotsWithChromium():
-  return _IsKeychainConfiguredForBots("Chromium Safe Storage",
-      "Chromium")
+  return _IsKeychainConfiguredForBots("Chromium Safe Storage", "Chromium")

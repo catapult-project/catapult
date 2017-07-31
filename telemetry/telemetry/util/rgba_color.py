@@ -20,7 +20,7 @@ class RgbaColor(collections.namedtuple('RgbaColor', ['r', 'g', 'b', 'a'])):
     b_diff = abs(self.b - expected_color.b)
     a_diff = abs(self.a - expected_color.a)
     return (r_diff <= tolerance and g_diff <= tolerance
-        and b_diff <= tolerance and a_diff <= tolerance)
+            and b_diff <= tolerance and a_diff <= tolerance)
 
   def AssertIsRGB(self, r, g, b, tolerance=0):
     assert self.IsEqual(RgbaColor(r, g, b), tolerance)

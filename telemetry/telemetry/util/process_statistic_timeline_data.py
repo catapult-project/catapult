@@ -25,9 +25,10 @@ class ProcessStatisticTimelineData(object):
     ret = self.__class__(0, 0)
     my_dict = self._value_by_pid
 
-    ret._value_by_pid = (
-        {k: my_dict[k] - other._value_by_pid.get(k, 0) for
-            k in my_dict.keys()})
+    ret._value_by_pid = ({
+        k: my_dict[k] - other._value_by_pid.get(k, 0)
+        for k in my_dict.keys()
+    })
     return ret
 
   def __add__(self, other):
@@ -35,7 +36,7 @@ class ProcessStatisticTimelineData(object):
     pids are found between objects, an error will occur. """
     # pylint: disable=protected-access
     intersecting_pids = (set(self._value_by_pid.keys()) &
-        set(other._value_by_pid.keys()))
+                         set(other._value_by_pid.keys()))
     assert len(intersecting_pids) == 0
 
     ret = self.__class__(0, 0)
