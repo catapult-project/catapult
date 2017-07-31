@@ -55,11 +55,11 @@ default_wpr_files = [
     'data_001.wpr', 'data_002.wpr', 'data_003.wpr', 'data_004.wpr',
     'data_005.wpr']
 _BASE_ARCHIVE = {
-        u'platform_specific': True,
-        u'description': (u'Describes the Web Page Replay archives for a'
-                         u' story set. Don\'t edit by hand! Use record_wpr for'
-                         u' updating.'),
-        u'archives': {},
+    u'platform_specific': True,
+    u'description': (u'Describes the Web Page Replay archives for a'
+                     u' story set. Don\'t edit by hand! Use record_wpr for'
+                     u' updating.'),
+    u'archives': {},
 }
 
 
@@ -285,11 +285,11 @@ class WprArchiveInfoTest(unittest.TestCase):
             _DEFAULT_PLATFORM: 'data_006.wpr'
         },
         page3.name: {
-           _DEFAULT_PLATFORM: u'data_006.wpr',
-           'linux': recording4,
-           'mac': recording3,
-           'win': recording2,
-           'android': recording5
+            _DEFAULT_PLATFORM: u'data_006.wpr',
+            'linux': recording4,
+            'mac': recording3,
+            'win': recording2,
+            'android': recording5
         }
     }
 
@@ -328,11 +328,11 @@ class WprArchiveInfoTest(unittest.TestCase):
             'android': 'data_006.wpr'
         },
         page3.name: {
-           _DEFAULT_PLATFORM: recording1,
-           'linux': recording4,
-           'mac': recording3,
-           'win': recording2,
-           'android': 'data_006.wpr'
+            _DEFAULT_PLATFORM: recording1,
+            'linux': recording4,
+            'mac': recording3,
+            'win': recording2,
+            'android': 'data_006.wpr'
         },
     }
 
@@ -383,18 +383,18 @@ class WprArchiveInfoTest(unittest.TestCase):
             _DEFAULT_PLATFORM: recording2,
         },
         page3.name: {
-           _DEFAULT_PLATFORM: recording1,
-           'linux': recording4,
-           'mac': recording3,
-           'win': recording2,
-           'android': recording5
+            _DEFAULT_PLATFORM: recording1,
+            'linux': recording4,
+            'mac': recording3,
+            'win': recording2,
+            'android': recording5
         },
         pageNew1.name: {
-          _DEFAULT_PLATFORM: 'data_006.wpr'
+            _DEFAULT_PLATFORM: 'data_006.wpr'
         },
         pageNew2.name: {
-          _DEFAULT_PLATFORM: 'data_007.wpr',
-          'android': 'data_007.wpr'
+            _DEFAULT_PLATFORM: 'data_007.wpr',
+            'android': 'data_007.wpr'
         }
     }
 

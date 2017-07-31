@@ -5,8 +5,9 @@
 from telemetry.core import platform as platform_module
 from telemetry.internal.util import binary_manager
 
-def FetchTelemetryDependencies(
-  platform=None, client_configs=None, chrome_reference_browser=False):
+def FetchTelemetryDependencies(platform=None,
+                               client_configs=None,
+                               chrome_reference_browser=False):
   if not platform:
     platform = platform_module.GetHostPlatform()
   if binary_manager.NeedsInit():
@@ -14,4 +15,4 @@ def FetchTelemetryDependencies(
   else:
     raise Exception('Binary manager already initialized with other configs.')
   binary_manager.FetchBinaryDependencies(
-    platform, client_configs, chrome_reference_browser)
+      platform, client_configs, chrome_reference_browser)

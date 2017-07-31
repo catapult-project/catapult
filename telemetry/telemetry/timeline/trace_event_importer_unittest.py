@@ -22,13 +22,13 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
   def testBasicSingleThreadNonnestedParsing(self):
     events = [
         {'name': 'a', 'args': {}, 'pid': 52, 'ts': 520, 'tts': 280,
-        'cat': 'foo', 'tid': 53, 'ph': 'B'},
+         'cat': 'foo', 'tid': 53, 'ph': 'B'},
         {'name': 'a', 'args': {}, 'pid': 52, 'ts': 560, 'tts': 310,
-        'cat': 'foo', 'tid': 53, 'ph': 'E'},
+         'cat': 'foo', 'tid': 53, 'ph': 'E'},
         {'name': 'b', 'args': {}, 'pid': 52, 'ts': 629, 'tts': 356,
-        'cat': 'bar', 'tid': 53, 'ph': 'B'},
+         'cat': 'bar', 'tid': 53, 'ph': 'B'},
         {'name': 'b', 'args': {}, 'pid': 52, 'ts': 631, 'tts': 357,
-        'cat': 'bar', 'tid': 53, 'ph': 'E'},
+         'cat': 'bar', 'tid': 53, 'ph': 'E'},
         {'name': 'c', 'args': {}, 'pid': 52, 'ts': 633, 'cat': 'baz',
          'tid': 53, 'ph': 'B'},
         {'name': 'c', 'args': {}, 'pid': 52, 'ts': 637, 'cat': 'baz',
@@ -901,7 +901,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
         {'name': 'b', 'args': {}, 'pid': 52, 'ts': 730, 'tts': 620, 'dur': 20,
          'tdur': 14, 'cat': 'foo', 'tid': 53, 'ph': 'X'},
         {'name': 'c', 'args': {}, 'pid': 52, 'ts': 740, 'tts': 625,
-        'cat': 'baz', 'tid': 53, 'ph': 'X'},
+         'cat': 'baz', 'tid': 53, 'ph': 'X'},
     ]
     trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)

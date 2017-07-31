@@ -41,12 +41,12 @@ class TabIdImporterUnitTest(unittest.TestCase):
     builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {
         'traceEvents': [
             {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10,
-            'cat': 'foo', 'tid': 1, 'ph': 'B'},
+             'cat': 'foo', 'tid': 1, 'ph': 'B'},
             # tab-id-1
             {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 25, 'cat': 'foo',
              'tid': 1, 'ph': 'S', 'id': 72},
             {'name': 'a', 'args': {}, 'pid': 1, 'ts': 30, 'tts': 20,
-            'cat': 'foo', 'tid': 1, 'ph': 'E'},
+             'cat': 'foo', 'tid': 1, 'ph': 'E'},
             {'name': 'tab-id-1', 'args': {}, 'pid': 1, 'ts': 35, 'cat': 'foo',
              'tid': 1, 'ph': 'F', 'id': 72},
             # tab-id-2

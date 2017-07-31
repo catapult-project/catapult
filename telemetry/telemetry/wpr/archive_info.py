@@ -223,7 +223,7 @@ class WprArchiveInfo(object):
 
     for wpr_file in wpr_files:
       pattern = r'(?P<BASE>.*)_(?P<NUMBER>[0-9]+).{extension}'.format(
-              extension=extension)
+          extension=extension)
       match = re.match(pattern, wpr_file)
       if not match:
         raise Exception('Illegal wpr file name ' + wpr_file)
