@@ -71,9 +71,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get userFriendlyName() {
-      return 'Snapshot of ' +
-             this.objectInstance.typeName + ' ' +
-             this.objectInstance.id + ' @ ' +
+      return 'Snapshot of ' + this.objectInstance.userFriendlyName + ' @ ' +
              tr.b.Unit.byName.timeStampInMs.format(this.ts);
     }
   };
