@@ -24,12 +24,11 @@ tr.exportTo('d', function() {
    * @return {boolean}
    */
   function shouldMerge(a, b) {
-    if (a.testsuite !== b.testsuite) return false;
     if (!rangeIntersects(a.start_revision, a.end_revision,
         b.start_revision, b.end_revision)) {
       return false;
     }
-    if (!a.relatedNames && !b.relatedNames) return true;
+    if (!a.relatedNames && !b.relatedNames) return a.testsuite === b.testsuite;
     return isRelated(a, b);
   }
 

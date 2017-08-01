@@ -153,6 +153,25 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(grouped[0], 2);
   });
 
+  test('relatedAcrossTestSuites', function() {
+    const grouped = d.groupAlerts([
+      {
+        testsuite: 'foo',
+        test: 'memory:chrome:all_processes:reported_by_os:gpu_memory:proportional_resident_size_avg',  // eslint-disable-line max-len
+        start_revision: 0,
+        end_revision: 2,
+      },
+      {
+        testsuite: 'bar',
+        test: 'memory:chrome:browser_process:reported_by_os:gpu_memory:proportional_resident_size_avg',  // eslint-disable-line max-len
+        start_revision: 1,
+        end_revision: 3,
+      },
+    ]);
+    assert.lengthOf(grouped, 1);
+    assert.lengthOf(grouped[0], 2);
+  });
+
   test('unrelated', function() {
     const grouped = d.groupAlerts([
       {
