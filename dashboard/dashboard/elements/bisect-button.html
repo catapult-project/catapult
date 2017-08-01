@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/bisect-form.html">
-<link rel="import" href="/dashboard/pinpoint/elements/new-job-dialog.html">
+<link rel="import" href="/dashboard/elements/pinpoint-job-dialog.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="bisect-button">
@@ -48,7 +48,7 @@ found in the LICENSE file.
         later-revision="{{bisectInfo.badRev}}"
         test-path="{{bisectInfo.testPath}}"
         bug-id="{{bugId}}"></bisect-form>
-    <new-job-dialog id="pinpoint" endpoint="/pinpoint/new"></new-job-dialog>
+    <pinpoint-job-dialog id="pinpoint"></pinpoint-job-dialog>
 
     <div id="toasts" hidden>
       <div id="jobsubmitted">
@@ -116,11 +116,12 @@ found in the LICENSE file.
           const PINPOINT_BOTS = [];
 
           if (PINPOINT_BOTS.indexOf(botName) != -1) {
-            this.$.pinpoint.test_suite = testPathParts[2];
-            this.$.pinpoint.metric = testPathParts[testPathParts.length - 1];
+            this.$.pinpoint.test_path = this.bisectInfo.testPath;
             this.$.pinpoint.start_git_hash = this.bisectInfo.goodRevHash;
+            this.$.pinpoint.start_repository = this.bisectInfo.goodRevRepo;
             this.$.pinpoint.end_git_hash = this.bisectInfo.badRevHash;
-            this.$.pinpoint.bugId = this.bugId;
+            this.$.pinpoint.end_repository = this.bisectInfo.badRevRepo;
+            this.$.pinpoint.bug_id = this.bugId;
             this.$.pinpoint.show();
           } else {
             this.$.bisect.show();

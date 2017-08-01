@@ -2173,6 +2173,10 @@ triaging functionality in the chart.
                 jsonSeriesIndex, dataIndex),
             goodRevHash: this.getDefaultRevisionGitHash(
                 jsonSeriesIndex, dataIndex - 1),
+            badRevRepo: this.getDefaultRevisionRepository(
+                jsonSeriesIndex, dataIndex),
+            goodRevRepo: this.getDefaultRevisionRepository(
+                jsonSeriesIndex, dataIndex - 1),
             testPath: series.path,
             traceRerunInfo
           };
@@ -2201,6 +2205,21 @@ triaging functionality in the chart.
           this.$.tooltip.recovered = null;
           this.$.tooltip.timestamp = null;
           this.$.tooltip.bisectInfo = null;
+        },
+
+        getDefaultRevisionRepository(jsonSeriesIndex, dataIndex) {
+          // If the data point contains a default revision type, use that.
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          if (!annotation) {
+            return null;
+          }
+
+          let defaultRevType = 'r_chromium';
+          if ('a_default_rev' in annotation) {
+            defaultRevType = annotation.defaultRevType;
+          }
+
+          return defaultRevType;
         },
 
         getDefaultRevisionGitHash(jsonSeriesIndex, dataIndex) {
