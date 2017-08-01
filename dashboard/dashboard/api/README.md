@@ -3,7 +3,7 @@
 ## Authenticating
 The perf dashboard API uses OAuth to authenticate. You must either have a
 Google account or a service account to access the API. See
-[examples](/dashboard/dashboard/examples/) directory
+[examples](/dashboard/dashboard/api/examples/) directory
 for examples of how to access the API.
 
 ## Alerts
