@@ -83,9 +83,10 @@ class BreakdownTableSummaryRow {
 }
 
 class BreakdownTableRow {
-  constructor(name, value, color) {
+  constructor(name, value, unit, color) {
     this.name_ = name;
     this.value = value;
+    this.unit = unit;
 
     if (!this.isHistogram && typeof value !== 'number') {
       throw new Error('unsupported value ' + value);
@@ -105,7 +106,7 @@ class BreakdownTableRow {
       });
     } else {
       this.displayElement_ = tr.ui.b.createSpan({
-        textContent: this.value.toString(),
+        textContent: this.stringValue,
       });
     }
   }
@@ -151,12 +152,20 @@ class BreakdownTableRow {
         (this.value !== Infinity) &&
         (this.value !== -Infinity) &&
         (this.value > 0)) return this.value;
+    // Prevent this row from appearing in the ColumnChart.
     return undefined;
   }
 
   get stringValue() {
-    if (this.numberValue === undefined) return this.value.toString();
-    return this.numberValue.toString();
+    if (!this.isHistogram &&
+        (isNaN(this.value) ||
+         this.value === Infinity ||
+         this.value === -Infinity)) {
+      return this.value.toString();
+    }
+    if (this.unit !== undefined) return this.unit.format(this.value);
+    if (this.isHistogram) return this.value.sum.toString();
+    return this.value.toString();
   }
 
   set tableSum(s) {
@@ -195,6 +204,7 @@ Polymer({
   is: 'tr-v-ui-breakdown-span',
 
   created() {
+    this.histogram_ = undefined;
     this.diagnostic_ = undefined;
     this.chart_ = new tr.ui.b.ColumnChart();
     this.chart_.graphHeight = 130;
@@ -249,6 +259,10 @@ Polymer({
     if (this.diagnostic_) this.updateContents_();
   },
 
+  set histogram(h) {
+    this.histogram_ = h;
+  },
+
   get diagnostic() {
     return this.diagnostic_;
   },
@@ -267,6 +281,8 @@ Polymer({
       this.chart_.data = [];
       return;
     }
+
+    if (this.histogram_) this.chart_.unit = this.histogram_.unit;
 
     let colorScheme = undefined;
     // https://github.com/catapult-project/catapult/issues/2970
@@ -287,22 +303,21 @@ Polymer({
     const tableRows = [];
     let tableSum = 0;
     const histogramNames = [];
-    let unit = undefined;
     for (const [name, value] of this.diagnostic) {
-      const row = new BreakdownTableRow(name, value, colorScheme(name));
+      const row = new BreakdownTableRow(
+          name, value, this.chart_.unit, colorScheme(name));
       tableRows.push(row);
       if (row.numberValue !== undefined) tableSum += row.numberValue;
       if (row.isHistogram) {
         histogramNames.push(value.name);
-        if (unit === undefined) unit = value.unit;
       }
     }
     tableRows.sort((x, y) => x.compare(y));
 
     if (tableSum > 0) {
       let summaryDisplayElement = tableSum;
-      if (unit !== undefined) {
-        summaryDisplayElement = unit.format(tableSum);
+      if (this.chart_.unit !== undefined) {
+        summaryDisplayElement = this.chart_.unit.format(tableSum);
       }
       summaryDisplayElement = tr.ui.b.createSpan({
         textContent: summaryDisplayElement,

@@ -584,6 +584,88 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(charts[2].data[1].y, 2);
   });
 
+  test('overviewUnits', async function() {
+    const histograms = new tr.v.HistogramSet();
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['X'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+      ]),
+    });
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [1, 1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['Y'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A'])],
+      ]),
+    });
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [1, 1, 1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['X'])],
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+      ]),
+    });
+    histograms.createHistogram(
+        'a', tr.b.Unit.byName.unitlessNumber, [1, 1, 1, 1], {
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['Y'])],
+            [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B'])],
+          ]),
+        });
+    const table = await buildTable(this, histograms);
+    await table.viewState.update({
+      displayStatisticName: 'count',
+      groupings: [
+        tr.v.HistogramGrouping.HISTOGRAM_NAME,
+        tr.v.HistogramGrouping.STORY_NAME,
+      ],
+    });
+    await table.viewState.tableRowStates.get('a').update({
+      isExpanded: true,
+      isOverviewed: true,
+    });
+    await table.viewState.tableRowStates.get('a').subRows.get('X').update({
+      isOverviewed: true,
+    });
+
+    const nameCells = getNameCells(table);
+
+    // Check there is no overviewChart in name-cell when column units mismatch.
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(nameCells[0],
+        '#overview_container svg'));
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(nameCells[2],
+        '#overview_container svg'));
+
+    // When column units match, the overview chart should exist and have the
+    // correct unit.
+    const nameOverviewChart = tr.ui.b.findDeepElementMatching(nameCells[1],
+        '#overview_container svg');
+    assert.isDefined(nameOverviewChart);
+    assert.strictEqual(nameOverviewChart.unit, tr.b.Unit.byName.count);
+
+    const cells = getTableCells(table);
+
+    // When subrow units match, the overview chart should exist and have the
+    // correct unit.
+    const overviewChart = tr.ui.b.findDeepElementMatching(cells[0],
+        '#overview_container svg');
+    assert.isDefined(overviewChart);
+    assert.strictEqual(overviewChart.unit, tr.b.Unit.byName.count);
+
+    // Check there is no overviewChart in table-cell when subrow units mismatch.
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(cells[1],
+        '#overview_container svg'));
+
+    // Check there is no overviewChart in table-cell when there are no subrows.
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(cells[2],
+        '#overview_container svg'));
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(cells[3],
+        '#overview_container svg'));
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(cells[4],
+        '#overview_container svg'));
+    assert.isUndefined(tr.ui.b.findDeepElementMatching(cells[5],
+        '#overview_container svg'));
+  });
+
   // TODO(benjhayden): Move this to a unit test for table-cell.
   test('viewCellOpen', async function() {
     const histograms = new tr.v.HistogramSet();

@@ -180,6 +180,8 @@ tr.exportTo('tr.v.ui', function() {
 
       if (this.row.overviewDataRange.isEmpty ||
           this.row.overviewDataRange.min === this.row.overviewDataRange.max) {
+        // TODO(#3744) Also hide this button when column or subrow units don't
+        // match.
         this.$.show_overview.style.display = 'none';
       }
 
@@ -251,11 +253,20 @@ tr.exportTo('tr.v.ui', function() {
         const displayStatisticName =
           this.row.rootViewState.displayStatisticName;
         const data = [];
-        let unitString;
+        let unit;
 
         for (const [displayLabel, hist] of this.row.columns) {
           if (!(hist instanceof tr.v.Histogram)) continue;
-          if (unitString === undefined) unitString = hist.unit.unitString;
+
+          if (unit === undefined) {
+            unit = hist.unit;
+          } else if (unit !== hist.unit) {
+            // The columns have different units, so the overview chart cannot
+            // use a single unit to format all of the values, so don't display
+            // an overview chart at all.
+            data.splice(0);
+            break;
+          }
 
           const statName = hist.getAvailableStatisticName(displayStatisticName);
           const statScalar = hist.getStatisticScalar(statName);
@@ -275,7 +286,7 @@ tr.exportTo('tr.v.ui', function() {
         this.$.overview_container.appendChild(this.overviewChart_);
         this.overviewChart_.displayXInHover = true;
         this.overviewChart_.hideLegend = true;
-        this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.unit = unit;
         this.overviewChart_.overrideDataRange = this.row.overviewDataRange;
         this.overviewChart_.data = data;
       }
@@ -308,8 +319,10 @@ tr.exportTo('tr.v.ui', function() {
       if (this.row.viewState.isOverviewed &&
           event.delta.displayStatisticName) {
         this.row.resetOverviewDataRange();
-        this.$.overview_container.removeChild(this.overviewChart_);
-        this.overviewChart_ = undefined;
+        if (this.overviewChart_ !== undefined) {
+          this.$.overview_container.removeChild(this.overviewChart_);
+          this.overviewChart_ = undefined;
+        }
         this.showOverview_();
       }
     },

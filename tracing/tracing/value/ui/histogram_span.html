@@ -322,6 +322,8 @@ tr.exportTo('tr.v.ui', function() {
     set histogram(histogram) {
       if (histogram === this.histogram_) return;
       this.histogram_ = histogram;
+      this.$.histogram_diagnostics.histogram = histogram;
+      this.$.sample_diagnostics.histogram = histogram;
       if (this.isAttached) this.updateContents_();
     },
 

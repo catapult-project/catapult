@@ -21,6 +21,11 @@ found in the LICENSE file.
 
     created() {
       this.diagnosticMaps_ = undefined;
+      this.histogram_ = undefined;
+    },
+
+    set histogram(h) {
+      this.histogram_ = h;
     },
 
     /**
@@ -56,7 +61,7 @@ found in the LICENSE file.
         }
       }
 
-      const columns = [];
+      const histogram = this.histogram_;
       function makeColumn(title) {
         return {
           title,
@@ -64,15 +69,12 @@ found in the LICENSE file.
             const diagnostic = map.get(title);
             if (!diagnostic) return '';
 
-            return tr.v.ui.createDiagnosticSpan(diagnostic);
+            return tr.v.ui.createDiagnosticSpan(diagnostic, histogram);
           }
         };
       }
-      for (const title of columnTitles) {
-        columns.push(makeColumn(title));
-      }
 
-      this.$.table.tableColumns = columns;
+      this.$.table.tableColumns = Array.from(columnTitles).map(makeColumn);
       this.$.table.tableRows = this.diagnosticMaps_;
       this.$.table.rebuild();
     }

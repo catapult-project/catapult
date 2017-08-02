@@ -4,10 +4,12 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/line_chart.html">
+
 <script>
 'use strict';
-
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
     const chart = new tr.ui.b.LineChart();
@@ -156,6 +158,22 @@ tr.b.unittest.testSuite(function() {
     chart.data = [
       {x: 0, value: 0},
       {x: 1, value: 50},
+    ];
+  });
+
+  test('sizeInBytes', function() {
+    const chart = new tr.ui.b.LineChart();
+    chart.unit = tr.b.Unit.byName.sizeInBytes;
+    chart.yLogScaleBase = 2;
+    chart.graphHeight = 400;
+    chart.isYLogScale = true;
+    chart.hideLegend = true;
+    this.addHTMLOutput(chart);
+    chart.data = [
+      {x: 0, value: 1},
+      {x: 1, value: 1 << 10},
+      {x: 2, value: 1 << 20},
+      {x: 3, value: 1 << 30},
     ];
   });
 });

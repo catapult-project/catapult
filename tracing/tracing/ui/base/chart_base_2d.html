@@ -52,6 +52,7 @@ tr.exportTo('tr.ui.b', function() {
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
       this.isYLogScale_ = false;
+      this.yLogScaleBase_ = 10;
       this.yLogScaleMin_ = undefined;
       this.autoDataRange_ = new tr.b.math.Range();
       this.overrideDataRange_ = undefined;
@@ -61,6 +62,7 @@ tr.exportTo('tr.ui.b', function() {
       this.xAxisLabel_ = '';
       this.yAxisLabel_ = '';
       this.textHeightPx_ = 0;
+      this.unit_ = undefined;
 
       d3.select(this.chartAreaElement)
           .append('g')
@@ -70,6 +72,23 @@ tr.exportTo('tr.ui.b', function() {
           .attr('id', 'series');
 
       this.addEventListener('mousedown', this.onMouseDown_.bind(this));
+    },
+
+    get yLogScaleBase() {
+      return this.yLogScaleBase_;
+    },
+
+    set yLogScaleBase(b) {
+      this.yLogScaleBase_ = b;
+    },
+
+    get unit() {
+      return this.unit_;
+    },
+
+    set unit(unit) {
+      this.unit_ = unit;
+      this.updateContents_();
     },
 
     get xAxisLabel() {
@@ -131,7 +150,7 @@ tr.exportTo('tr.ui.b', function() {
 
     set isYLogScale(logScale) {
       if (logScale) {
-        this.yScale_ = d3.scale.log(10);
+        this.yScale_ = d3.scale.log().base(this.yLogScaleBase);
       } else {
         this.yScale_ = d3.scale.linear();
       }
@@ -220,21 +239,31 @@ tr.exportTo('tr.ui.b', function() {
       if (this.data.length === 0) return 0;
 
       let tickValues = scale.ticks();
-      let format = scale.tickFormat();
+      let tickFormat = scale.tickFormat();
 
       if (this.isYLogScale_) {
         const enclosingPowers = this.dataRange.enclosingPowers();
-        tickValues = [
-          sanitizePower(enclosingPowers.min, 1),
-          sanitizePower(enclosingPowers.max, 10),
-        ];
-        format = v => v.toString();
+        tickValues = [];
+        const maxPower = sanitizePower(enclosingPowers.max, this.yLogScaleBase);
+        for (let power = sanitizePower(enclosingPowers.min, 1);
+             power <= maxPower;
+             power *= this.yLogScaleBase) {
+          tickValues.push(power);
+        }
+        tickFormat = v => v.toString();
       }
 
-      return D3_Y_AXIS_WIDTH_PX + Math.max(
-          tr.ui.b.getSVGTextSize(this, format(tickValues[0])).width,
-          tr.ui.b.getSVGTextSize(
-              this, format(tickValues[tickValues.length - 1])).width);
+      if (this.unit) {
+        tickFormat = v => this.unit.format(v);
+      }
+
+      let maxTickWidth = 0;
+      for (const tickValue of tickValues) {
+        maxTickWidth = Math.max(maxTickWidth,
+            tr.ui.b.getSVGTextSize(this, tickFormat(tickValue)).width);
+      }
+
+      return D3_Y_AXIS_WIDTH_PX + maxTickWidth;
     },
 
     get yAxisWidth() {
@@ -318,8 +347,8 @@ tr.exportTo('tr.ui.b', function() {
         }
       }
 
-      // Choose the closest power of 10, rounded down, as the smallest tick
-      // to display.
+      // Choose the closest power of yLogScaleBase, rounded down, as the
+      // smallest tick to display.
       this.yLogScaleMin_ = undefined;
       if (this.autoDataRange_.min !== undefined) {
         let minValue = this.autoDataRange_.min;
@@ -327,7 +356,8 @@ tr.exportTo('tr.ui.b', function() {
           minValue = 1;
         }
 
-        const onePowerLess = tr.b.math.lesserPower(minValue / 10);
+        const onePowerLess = tr.b.math.lesserPower(
+            minValue / this.yLogScaleBase);
         this.yLogScaleMin_ = onePowerLess;
       }
     },
@@ -349,14 +379,16 @@ tr.exportTo('tr.ui.b', function() {
         .scale(this.yScale_)
         .orient('left');
 
+      let tickFormat;
+
       if (this.isYLogScale_) {
         if (this.yLogScaleMin_ === undefined) return;
         const tickValues = [];
         const enclosingPowers = this.dataRange.enclosingPowers();
-        const maxPower = sanitizePower(enclosingPowers.max, 10);
+        const maxPower = sanitizePower(enclosingPowers.max, this.yLogScaleBase);
         for (let power = sanitizePower(enclosingPowers.min, 1);
              power <= maxPower;
-             power *= 10) {
+             power *= this.yLogScaleBase) {
           tickValues.push(power);
         }
 
@@ -365,9 +397,16 @@ tr.exportTo('tr.ui.b', function() {
         // scientific notation for extreme values, and uses decimal notation for
         // a broader range of values. Decimal notation is generally slightly
         // easier to skim than scientific notation in the context of chart axes.
-        axisModifier = axisModifier
-          .tickValues(tickValues)
-          .tickFormat(v => v.toString());
+        axisModifier = axisModifier.tickValues(tickValues);
+        tickFormat = v => v.toString();
+      }
+
+      if (this.unit) {
+        tickFormat = v => this.unit.format(v);
+      }
+
+      if (tickFormat) {
+        axisModifier = axisModifier.tickFormat(tickFormat);
       }
 
       yAxis.call(axisModifier);

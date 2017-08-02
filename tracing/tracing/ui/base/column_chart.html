@@ -185,8 +185,10 @@ tr.exportTo('tr.ui.b', function() {
         xLabelHeightPx = this.textHeightPx_;
       }
 
+      let value = rect.value;
+      if (this.unit) value = this.unit.format(value);
       const valueWidthPx = tr.ui.b.getSVGTextSize(
-          this.chartAreaElement, rect.value).width + 5;
+          this.chartAreaElement, value).width + 5;
       const valueHeightPx = this.textHeightPx_;
 
       const hoverWidthPx = Math.max(keyWidthPx, valueWidthPx, xLabelWidthPx);
@@ -239,7 +241,7 @@ tr.exportTo('tr.ui.b', function() {
           .attr('fill', rect.color)
           .attr('x', hoverLeftPx + 2)
           .attr('y', hoverTopPx + hoverHeightPx - 2)
-          .text(rect.value);
+          .text(value);
     },
 
     clearHoverValueBox_(rect) {

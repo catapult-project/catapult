@@ -63,11 +63,13 @@ tr.exportTo('tr.v.ui', function() {
    * Create a visualization for |diagnostic|.
    *
    * @param {!tr.v.d.Diagnostic} diagnostic
+   * @param {!tr.v.Histogram=} opt_histogram
    * @return {Element}
    */
-  function createDiagnosticSpan(diagnostic) {
+  function createDiagnosticSpan(diagnostic, opt_histogram) {
     const tagName = findElementNameForDiagnostic(diagnostic);
     const span = document.createElement(tagName);
+    span.histogram = opt_histogram;
     span.diagnostic = diagnostic;
     return span;
   }

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/fixed_color_scheme.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -32,13 +33,20 @@ tr.b.unittest.testSuite(function() {
     breakdown.add(bar);
 
     for (let i = 0; i < 1e2; ++i) {
-      foo.addSample(Math.random());
-      bar.addSample(Math.random());
+      foo.addSample(i);
+      bar.addSample(i);
     }
 
-    const span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const span = tr.v.ui.createDiagnosticSpan(
+        breakdown, new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs));
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '9,901.000 ms'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '4,950.000 ms'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '8,000.000 ms'));
   });
 
   test('instantiate_Breakdown', function() {

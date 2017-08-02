@@ -233,5 +233,34 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
     span.histogram = h;
   });
+
+  test('breakdownUnit', function() {
+    const root = new tr.v.Histogram('root', tr.b.Unit.byName.sizeInBytes);
+    const sampleBreakdown = new tr.v.d.Breakdown();
+    sampleBreakdown.set('x', 30 << 20);
+    sampleBreakdown.set('y', 70 << 20);
+    root.addSample(100 << 20, {sampleBreakdown});
+    const rhb = new tr.v.d.RelatedHistogramBreakdown();
+    root.diagnostics.set('rhb', rhb);
+    const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.sizeInBytes);
+    rhb.set('a', aHist);
+    aHist.addSample(10 << 20);
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.sizeInBytes);
+    rhb.set('b', bHist);
+    bHist.addSample(90 << 20);
+    const span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    span.histogram = root;
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '100.0 MiB'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '10.0 MiB'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '30.0 MiB'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '70.0 MiB'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '90.0 MiB'));
+  });
 });
 </script>
