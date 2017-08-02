@@ -6,7 +6,7 @@ disable=
   design,
   similarities,
 
-  bad-builtin,
+  
   
   broad-except,
   fixme,

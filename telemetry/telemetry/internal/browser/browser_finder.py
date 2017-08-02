@@ -5,7 +5,6 @@
 """Finds browsers that can be controlled by telemetry."""
 
 import logging
-import operator
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome import android_browser_finder
@@ -22,8 +21,10 @@ BROWSER_FINDERS = [
 
 
 def FindAllBrowserTypes(options):
-  return reduce(operator.add,
-                [bf.FindAllBrowserTypes(options) for bf in BROWSER_FINDERS])
+  browsers = []
+  for bf in BROWSER_FINDERS:
+    browsers.extend(bf.FindAllBrowserTypes(options))
+  return browsers
 
 
 @decorators.Cache

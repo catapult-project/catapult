@@ -197,9 +197,10 @@ def DurationsDiscrepancy(durations, absolute=True,
   if not durations:
     return 0.0
 
-  timestamps = reduce(lambda x, y: x + [x[-1] + y], durations, [0])
+  timestamps = [0]
+  for items in durations:
+    timestamps.append(timestamps[-1] + items)
   return TimestampsDiscrepancy(timestamps, absolute, location_count)
-
 
 def ArithmeticMean(data):
   """Calculates arithmetic mean.
