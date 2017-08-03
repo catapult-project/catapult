@@ -235,8 +235,12 @@ class WprRecorder(object):
   def Record(self, results):
     assert self._story_set.wpr_archive_info, (
         'Pageset archive_data_file path must be specified.')
-    self._story_set.wpr_archive_info.is_using_wpr_go_archives = \
-        self._options.use_wpr_go
+    if self._options.use_wpr_go:
+      print ('Recording now always use wpr_go, hence setting --use-wpr-go flag '
+             'explicitly is no longer necessary. Please file crbug against '
+             'xunjeli@ & nednguyen@ if you encounter issue with recording.')
+
+    self._story_set.wpr_archive_info.is_using_wpr_go_archives = True
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     story_runner.Run(
