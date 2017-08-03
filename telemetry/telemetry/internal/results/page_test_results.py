@@ -31,7 +31,7 @@ from tracing.value import histogram_set
 class TelemetryInfo(object):
   def __init__(self):
     self._benchmark_name = None
-    self._benchmark_start_ms = None
+    self._benchmark_start_epoch = None
     self._benchmark_interrupted = False
     self._label = None
     self._story_name = ''
@@ -50,14 +50,14 @@ class TelemetryInfo(object):
     self._benchmark_name = benchmark_name
 
   @property
-  def benchmark_start_ms(self):
-    return self._benchmark_start_ms
+  def benchmark_start_epoch(self):
+    return self._benchmark_start_epoch
 
-  @benchmark_start_ms.setter
-  def benchmark_start_ms(self, benchmark_start_ms):
-    assert self.benchmark_start_ms is None, (
-        'benchmark_start_ms must be set exactly once')
-    self._benchmark_start_ms = benchmark_start_ms
+  @benchmark_start_epoch.setter
+  def benchmark_start_epoch(self, benchmark_start_epoch):
+    assert self.benchmark_start_epoch is None, (
+        'benchmark_start_epoch must be set exactly once')
+    self._benchmark_start_epoch = benchmark_start_epoch
 
   @property
   def trace_start_ms(self):
@@ -101,11 +101,11 @@ class TelemetryInfo(object):
   def AsDict(self):
     assert self.benchmark_name is not None, (
         'benchmark_name must be set exactly once')
-    assert self.benchmark_start_ms is not None, (
-        'benchmark_start_ms must be set exactly once')
+    assert self.benchmark_start_epoch is not None, (
+        'benchmark_start_epoch must be set exactly once')
     d = {}
     d['benchmarkName'] = self.benchmark_name
-    d['benchmarkStartMs'] = self.benchmark_start_ms
+    d['benchmarkStartEpoch'] = self.benchmark_start_epoch
     if self.label:
       d['label'] = self.label
     d['storyDisplayName'] = self._story_name
@@ -185,7 +185,7 @@ class PageTestResults(object):
         self.all_summary_values)
     info = self.telemetry_info
     chart_json['label'] = info.label
-    chart_json['benchmarkStartMs'] = info.benchmark_start_ms
+    chart_json['benchmarkStartMs'] = info.benchmark_start_epoch * 1000.0
 
     file_descriptor, chart_json_path = tempfile.mkstemp()
     os.close(file_descriptor)
@@ -300,11 +300,19 @@ class PageTestResults(object):
           v.CleanUp()
           run.values.remove(v)
 
+  def CloseOutputFormatters(self):
+    """
+    Clean up any open output formatters contained within this results object
+    """
+    for output_formatter in self._output_formatters:
+      output_formatter.output_stream.close()
+
   def __enter__(self):
     return self
 
   def __exit__(self, _, __, ___):
     self.CleanUp()
+    self.CloseOutputFormatters()
 
   def WillRunPage(self, page, storyset_repeat_counter=0):
     assert not self._current_page_run, 'Did not call DidRunPage.'

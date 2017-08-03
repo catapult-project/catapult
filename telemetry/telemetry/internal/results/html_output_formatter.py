@@ -32,7 +32,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
         page_test_results.all_summary_values)
     info = page_test_results.telemetry_info
     chart_json['label'] = info.label
-    chart_json['benchmarkStartMs'] = info.benchmark_start_ms
+    chart_json['benchmarkStartMs'] = info.benchmark_start_epoch * 1000.0
 
     file_descriptor, chart_json_path = tempfile.mkstemp()
     os.close(file_descriptor)

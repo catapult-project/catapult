@@ -420,6 +420,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testAddSharedDiagnostic(self):
     results = page_test_results.PageTestResults()
+    results.telemetry_info.benchmark_start_epoch = 1501773200
     results.WillRunPage(self.pages[0])
     results.DidRunPage(self.pages[0])
     results.CleanUp()
@@ -439,6 +440,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testPopulateHistogramSet_UsesScalarValueData(self):
     results = page_test_results.PageTestResults()
+    results.telemetry_info.benchmark_start_epoch = 1501773200
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -460,6 +462,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     original_diagnostic = histogram_module.TelemetryInfo()
 
     results = page_test_results.PageTestResults()
+    results.telemetry_info.benchmark_start_epoch = 1501773200
     results.WillRunPage(self.pages[0])
     results.histograms.AddHistogram(histogram_module.Histogram('foo', 'count'))
     results.histograms.AddSharedDiagnostic(
