@@ -35,12 +35,14 @@ tr.exportTo('tr.v.ui', function() {
       this.define('isOverviewed', false);
       this.define('cells', new Map());
       this.define('subRows', new Map());
+      this.define('diagnosticsTab', '');
     }
 
     asCompactDict() {
       const result = {};
       if (this.isExpanded) result.e = '1';
       if (this.isOverviewed) result.o = '1';
+      if (this.diagnosticsTab) result.d = this.diagnosticsTab;
       const cells = {};
       for (const [name, cell] of this.cells) {
         const cellDict = cell.asCompactDict();
@@ -66,6 +68,7 @@ tr.exportTo('tr.v.ui', function() {
       await this.update({
         isExpanded: dict.e === '1',
         isOverviewed: dict.o === '1',
+        diagnosticsTab: dict.d || '',
       });
 
       for (const [name, cellDict] of Object.entries(dict.c || {})) {

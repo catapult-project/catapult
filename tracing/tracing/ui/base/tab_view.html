@@ -175,6 +175,10 @@ Polymer({
     this.updateFocusability_();
   },
 
+  get subViews() {
+    return this.subViews_;
+  },
+
   resetSubViews(subViews) {
     this.splice('subViews_', 0, this.subViews_.length);
     if (subViews.length) {

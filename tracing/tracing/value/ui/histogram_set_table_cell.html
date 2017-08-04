@@ -216,11 +216,12 @@ tr.exportTo('tr.v.ui', function() {
       // so that it can size its BarChart appropriately.
       if (open && this.histogramSpan_ === undefined) {
         this.histogramSpan_ = document.createElement('tr-v-ui-histogram-span');
-        this.$.histogram.appendChild(this.histogramSpan_);
+        this.histogramSpan_.rowState = this.row.viewState;
         this.histogramSpan_.viewState = this.viewState;
         this.histogramSpan_.referenceHistogram = this.referenceHistogram;
         this.histogramSpan_.histogram = this.histogram;
         this.histogramSpan_.alpha = this.row.rootViewState.alpha;
+        this.$.histogram.appendChild(this.histogramSpan_);
       }
 
       this.viewState.isOpen = open;

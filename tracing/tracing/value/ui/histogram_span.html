@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/box_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
+<link rel="import" href="/tracing/ui/base/tab_view.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
@@ -27,7 +28,7 @@ found in the LICENSE file.
       flex-grow: 1;
       display: none;
     }
-    #drag_handle, #sample_diagnostics_container {
+    #drag_handle, #diagnostics_tab_templates {
       display: none;
     }
     #chart svg {
@@ -43,14 +44,20 @@ found in the LICENSE file.
     </div>
     <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
 
-    <tr-v-ui-diagnostic-map-table id="histogram_diagnostics"></tr-v-ui-diagnostic-map-table>
+    <tr-ui-b-tab-view id="diagnostics"></tr-ui-b-tab-view>
 
-    <div id="sample_diagnostics_container">
-      <div id="merge_sample_diagnostics_container">
-        <input type="checkbox" id="merge_sample_diagnostics" checked on-change="updateDiagnostics_">
-        <label for="merge_sample_diagnostics">Merge Sample Diagnostics</label>
+    <div id="diagnostics_tab_templates">
+      <tr-v-ui-diagnostic-map-table id="metric_diagnostics"></tr-v-ui-diagnostic-map-table>
+
+      <tr-v-ui-diagnostic-map-table id="metadata_diagnostics"></tr-v-ui-diagnostic-map-table>
+
+      <div id="sample_diagnostics_container">
+        <div id="merge_sample_diagnostics_container">
+          <input type="checkbox" id="merge_sample_diagnostics" checked on-change="updateDiagnostics_">
+          <label for="merge_sample_diagnostics">Merge Sample Diagnostics</label>
+        </div>
+        <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
       </div>
-      <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
     </div>
   </template>
 </dom-module>
@@ -77,6 +84,8 @@ tr.exportTo('tr.v.ui', function() {
     created() {
       this.viewStateListener_ = this.onViewStateUpdate_.bind(this);
       this.viewState = new tr.v.ui.HistogramSetTableCellState();
+      this.rowStateListener_ = this.onRowStateUpdate_.bind(this);
+      this.rowState = new tr.v.ui.HistogramSetTableRowState();
 
       this.histogram_ = undefined;
       this.referenceHistogram_ = undefined;
@@ -84,8 +93,22 @@ tr.exportTo('tr.v.ui', function() {
       this.graphHeight_ = undefined;
       this.mouseDownBin_ = undefined;
       this.prevBrushedBinRange_ = new tr.b.math.Range();
+      this.anySampleDiagnostics_ = false;
       this.canMergeSampleDiagnostics_ = true;
       this.alpha_ = undefined;
+    },
+
+    get rowState() {
+      return this.rowState_;
+    },
+
+    set rowState(rs) {
+      if (this.rowState) {
+        this.rowState.removeUpdateListener(this.rowStateListener_);
+      }
+      this.rowState_ = rs;
+      this.rowState.addUpdateListener(this.rowStateListener_);
+      if (this.isAttached) this.updateContents_();
     },
 
     get viewState() {
@@ -119,7 +142,29 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
+    onRowStateUpdate_(event) {
+      if (event.delta.diagnosticsTab) {
+        if (this.rowState.diagnosticsTab ===
+            this.$.sample_diagnostics_container.tabLabel) {
+          this.updateDiagnostics_();
+        } else {
+          for (const tab of this.$.diagnostics.subViews) {
+            if (this.rowState.diagnosticsTab === tab.tabLabel) {
+              this.$.diagnostics.selectedSubView = tab;
+              break;
+            }
+          }
+        }
+      }
+    },
+
     ready() {
+      this.$.metric_diagnostics.tabLabel = 'histogram diagnostics';
+      this.$.sample_diagnostics_container.tabLabel = 'sample diagnostics';
+      this.$.metadata_diagnostics.tabLabel = 'metadata';
+      this.$.metadata_diagnostics.isMetadata = true;
+      this.$.diagnostics.addEventListener(
+          'selected-tab-change', this.onSelectedDiagnosticsChanged_.bind(this));
       this.$.drag_handle.target = this.$.container;
       this.$.drag_handle.addEventListener(
           'drag-handle-resize', this.onResize_.bind(this));
@@ -280,17 +325,29 @@ tr.exportTo('tr.v.ui', function() {
       this.mouseDownBinIndex_ = undefined;
     },
 
+    async onSelectedDiagnosticsChanged_() {
+      await this.rowState.update({
+        diagnosticsTab: this.$.diagnostics.selectedSubView.tabLabel,
+      });
+      if ((this.$.diagnostics.selectedSubView ===
+           this.$.sample_diagnostics_container) &&
+          this.histogram &&
+          this.viewState.brushedBinRange.isEmpty) {
+        // When the user selects the sample diagnostics tab, if they haven't
+        // already brushed any bins, then automatically brush all bins.
+        const brushedBinRange = tr.b.math.Range.fromExplicitRange(
+            0, this.histogram.allBins.length);
+        await this.viewState.update({brushedBinRange});
+        this.updateDiagnostics_();
+      }
+    },
+
     updateDiagnostics_() {
       let maps = [];
       for (const bin of this.brushedBins) {
         for (const map of bin.diagnosticMaps) {
           maps.push(map);
         }
-      }
-
-      if (maps.length === 0) {
-        this.$.sample_diagnostics_container.style.display = 'none';
-        return;
       }
 
       if (this.$.merge_sample_diagnostics.checked !==
@@ -310,9 +367,13 @@ tr.exportTo('tr.v.ui', function() {
       const mark = tr.b.Timing.mark('histogram-span',
           (this.viewState.mergeSampleDiagnostics ? 'merge' : 'split') +
            'SampleDiagnostics');
-      this.$.sample_diagnostics_container.style.display = 'block';
       this.$.sample_diagnostics.diagnosticMaps = maps;
       mark.end();
+
+      if (this.anySampleDiagnostics_) {
+        this.$.diagnostics.selectedSubView =
+          this.$.sample_diagnostics_container;
+      }
     },
 
     get histogram() {
@@ -322,8 +383,17 @@ tr.exportTo('tr.v.ui', function() {
     set histogram(histogram) {
       if (histogram === this.histogram_) return;
       this.histogram_ = histogram;
-      this.$.histogram_diagnostics.histogram = histogram;
+      this.$.metric_diagnostics.histogram = histogram;
       this.$.sample_diagnostics.histogram = histogram;
+
+      this.anySampleDiagnostics_ = false;
+      for (const bin of this.histogram.allBins) {
+        if (bin.diagnosticMaps.length > 0) {
+          this.anySampleDiagnostics_ = true;
+          break;
+        }
+      }
+
       if (this.isAttached) this.updateContents_();
     },
 
@@ -376,7 +446,6 @@ tr.exportTo('tr.v.ui', function() {
     async updateContents_() {
       this.$.chart.style.display = 'none';
       this.$.drag_handle.style.display = 'none';
-      this.$.sample_diagnostics_container.style.display = 'none';
       this.$.container.style.justifyContent = '';
 
       while (Polymer.dom(this.$.chart).lastChild) {
@@ -394,21 +463,34 @@ tr.exportTo('tr.v.ui', function() {
       }
       this.$.stats.scalarMap = scalarMap;
 
-      if (this.histogram.diagnostics.size > 0) {
-        const diagnosticMap = new tr.v.d.DiagnosticMap();
-        for (const [key, diagnostic] of this.histogram.diagnostics) {
-          // Hide the 'merged from' and 'merged to' diagnostics, which are
-          // implementation details.
-          if (key !== tr.v.d.RESERVED_NAMES.MERGED_FROM &&
-              key !== tr.v.d.RESERVED_NAMES.MERGED_TO) {
-            diagnosticMap.set(key, diagnostic);
-          }
+      const metricDiagnosticMap = new tr.v.d.DiagnosticMap();
+      const metadataDiagnosticMap = new tr.v.d.DiagnosticMap();
+      for (const [key, diagnostic] of this.histogram.diagnostics) {
+        // Hide the 'merged from' and 'merged to' diagnostics, which are
+        // implementation details.
+        if (key === tr.v.d.RESERVED_NAMES.MERGED_FROM) continue;
+        if (key === tr.v.d.RESERVED_NAMES.MERGED_TO) continue;
+        if (tr.v.d.RESERVED_NAMES_SET.has(key)) {
+          metadataDiagnosticMap.set(key, diagnostic);
+        } else {
+          metricDiagnosticMap.set(key, diagnostic);
         }
-        this.$.histogram_diagnostics.diagnosticMaps = [diagnosticMap];
-        this.$.histogram_diagnostics.style.display = 'block';
-      } else {
-        this.$.histogram_diagnostics.style.display = 'none';
       }
+
+      const diagnosticTabs = [];
+      if (metricDiagnosticMap.size) {
+        this.$.metric_diagnostics.diagnosticMaps = [metricDiagnosticMap];
+        diagnosticTabs.push(this.$.metric_diagnostics);
+      }
+      if (this.anySampleDiagnostics_) {
+        diagnosticTabs.push(this.$.sample_diagnostics_container);
+      }
+      if (metadataDiagnosticMap.size) {
+        this.$.metadata_diagnostics.diagnosticMaps = [metadataDiagnosticMap];
+        diagnosticTabs.push(this.$.metadata_diagnostics);
+      }
+      this.$.diagnostics.resetSubViews(diagnosticTabs);
+      this.$.diagnostics.set('tabsHidden', diagnosticTabs.length < 2);
 
       if (this.histogram.numValues <= 1) {
         await this.viewState.update({
@@ -460,7 +542,9 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.getDataSeries('y').color = 'blue';
       this.chart_.xAxisLabel = '#';
       this.chart_.brushedRange = this.viewState.brushedBinRange;
-      this.updateDiagnostics_();
+      if (!this.viewState.brushedBinRange.isEmpty) {
+        this.updateDiagnostics_();
+      }
 
       const chartData = [];
       const binCounts = [];

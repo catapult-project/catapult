@@ -51,7 +51,10 @@ tr.b.unittest.testSuite(function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = tr.v.Histogram.create('a', tr.b.Unit.byName.count,
-        [0, 1, 2, 3, 4]);
+        [0, 1, 2, 3, 4].map(value => {
+          return {value, diagnostics: new Map([
+            ['i', new tr.v.d.GenericSet([value])]])};
+        }));
     assert.isTrue(span.viewState.brushedBinRange.isEmpty);
 
     await span.viewState.update({
@@ -234,7 +237,7 @@ tr.b.unittest.testSuite(function() {
     span.histogram = h;
   });
 
-  test('breakdownUnit', function() {
+  test('breakdownUnit', async function() {
     const root = new tr.v.Histogram('root', tr.b.Unit.byName.sizeInBytes);
     const sampleBreakdown = new tr.v.d.Breakdown();
     sampleBreakdown.set('x', 30 << 20);
@@ -254,13 +257,54 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '100.0 MiB'));
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '10.0 MiB'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '30.0 MiB'));
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '70.0 MiB'));
+    await span.rowState.update({diagnosticsTab: 'histogram diagnostics'});
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
+        span, e => e.textContent === '10.0 MiB'));
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '90.0 MiB'));
+  });
+
+  test('diagnosticsTabs', async function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    span.histogram = tr.v.Histogram.create(
+        '', tr.b.Unit.byName.count, [
+          {value: 1, diagnostics: new Map([
+              ['sample diagnostic', new tr.v.d.GenericSet(['value1'])],
+          ])},
+          {value: 10, diagnostics: new Map([
+              ['sample diagnostic', new tr.v.d.GenericSet(['value10'])],
+          ])},
+        ], {
+          diagnostics: new Map([
+            [tr.v.d.RESERVED_NAMES.BENCHMARKS, new tr.v.d.GenericSet([
+              'system_health.common_desktop'])],
+            ['breakdown', new tr.v.d.RelatedHistogramBreakdown()],
+          ]),
+        });
+    this.addHTMLOutput(span);
+    const metric = tr.ui.b.findDeepElementMatching(
+        span, '#metric_diagnostics');
+    assert.strictEqual(span.rowState.diagnosticsTab, metric.tabLabel);
+    const tabs = tr.ui.b.findDeepElementMatching(
+        span, 'TR-UI-B-TAB-VIEW');
+    assert.strictEqual(tabs.selectedSubView, metric);
+
+    const sample = tr.ui.b.findDeepElementMatching(
+        span, '#sample_diagnostics_container');
+    await span.rowState.update({diagnosticsTab: sample.tabLabel});
+    // Need to wait an extra frame here because updateDiagnostics_ cannot await
+    // on onSelectedDiagnosticsChanged_, which is called via the
+    // selected-tab-change event.
+    await tr.b.animationFrame();
+    assert.strictEqual(tabs.selectedSubView, sample);
+
+    const metadata = tr.ui.b.findDeepElementMatching(
+        span, '#metadata_diagnostics');
+    await span.rowState.update({diagnosticsTab: metadata.tabLabel});
+    assert.strictEqual(tabs.selectedSubView, metadata);
   });
 });
 </script>
