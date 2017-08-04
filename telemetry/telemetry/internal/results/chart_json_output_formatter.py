@@ -99,7 +99,7 @@ class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
     super(ChartJsonOutputFormatter, self).__init__(output_stream)
     self._benchmark_metadata = benchmark_metadata
 
-  def FormatDisabled(self):
+  def FormatDisabled(self, page_test_results):
     self._Dump(DisabledResultsDict(self._benchmark_metadata.name))
 
   def Format(self, page_test_results):

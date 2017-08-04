@@ -52,7 +52,7 @@ class ChartJsonTest(unittest.TestCase):
     self.assertIn('foo', d['charts'])
 
   def testOutputAndParseDisabled(self):
-    self._formatter.FormatDisabled()
+    self._formatter.FormatDisabled(None)
     d = json.loads(self._output.getvalue())
     self.assertEquals(d['benchmark_name'], 'benchmark_name')
     self.assertFalse(d['enabled'])

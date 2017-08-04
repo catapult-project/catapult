@@ -208,6 +208,35 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(
         d['num_failures_by_type'], {'PASS': 2, 'FAIL': 1, 'SKIP': 1})
 
+  def testIntegrationCreateJsonTestResultsWithDisabledBenchmark(self):
+    benchmark_metadata = benchmark.BenchmarkMetadata('test_benchmark')
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['json-test-results']
+    options.upload_results = False
+    tempfile_dir = 'unittest_results'
+    options.output_dir = tempfile_dir
+    options.suppress_gtest_report = False
+    options.results_label = None
+    parser = options.CreateParser()
+    results_options.ProcessCommandLineArgs(parser, options)
+    results = results_options.CreateResults(
+        benchmark_metadata, options, benchmark_enabled=False)
+    results.PrintSummary()
+    results.CloseOutputFormatters()
+
+    tempfile_name = os.path.join(tempfile_dir, 'test-results.json')
+    with open(tempfile_name) as f:
+      json_test_results = json.load(f)
+    shutil.rmtree(tempfile_dir)
+
+    self.assertEquals(json_test_results['interrupted'], False)
+    self.assertEquals(json_test_results['num_failures_by_type'], {})
+    self.assertEquals(json_test_results['path_delimiter'], '/')
+    self.assertAlmostEqual(json_test_results['seconds_since_epoch'],
+                           time.time(), 1)
+    self.assertEquals(json_test_results['tests'], {})
+    self.assertEquals(json_test_results['version'], 3)
+
   def testIntegrationCreateJsonTestResults(self):
     benchmark_metadata = benchmark.BenchmarkMetadata('test_benchmark')
     options = options_for_unittests.GetCopy()

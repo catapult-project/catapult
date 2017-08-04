@@ -77,3 +77,10 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
         ResultsAsDict(page_test_results),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
+
+  def FormatDisabled(self, page_test_results):
+    """Serialize disabled benchmark in JSON Test Results format.
+
+    See: https://www.chromium.org/developers/the-json-test-results-format
+    """
+    self.Format(page_test_results)
