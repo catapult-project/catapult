@@ -13,6 +13,7 @@ displaying and analyzing performance data. This includes:
  * [Telemetry](/telemetry/README.md)
  * [Performance Dashboard](/dashboard/README.md)
  * [Systrace](/systrace/README.md)
+ * [Web Page Replay](/web_page_replay_go/README.md)
 
 These tools were created by Chromium developers for performance analysis,
 testing, and monitoring of Chrome, but they can also be used for analyzing and
