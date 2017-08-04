@@ -42,7 +42,8 @@ class AndroidProcess(object):
       if devtools_client_backend.IsDevToolsAgentAvailable(
           self._local_port, self._app_backend):
         self._devtools_client = devtools_client_backend.DevToolsClientBackend(
-            self._local_port, self._remote_devtools_port, self._app_backend)
+            self._local_port, '/devtools/browser', self._remote_devtools_port,
+            self._app_backend)
 
   def GetWebViews(self):
     webviews = []
