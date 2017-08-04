@@ -221,7 +221,8 @@ class BattOrWrapper(object):
     self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
     try:
       py_utils.WaitFor(lambda: self.GetShellReturnCode() != None, timeout)
-    except py_utils.TimeoutException:
+    except:
+      # If graceful shutdown failed, resort to a simple kill command.
       self.KillBattOrShell()
     finally:
       self._battor_shell = None
