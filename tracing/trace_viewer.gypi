@@ -116,6 +116,7 @@
       'tracing/extras/importer/etw/parser.html',
       'tracing/extras/importer/etw/process_parser.html',
       'tracing/extras/importer/etw/thread_parser.html',
+      'tracing/extras/importer/fuchsia_importer.html',
       'tracing/extras/importer/gcloud_trace/gcloud_trace_importer.html',
       'tracing/extras/importer/gzip_importer.html',
       'tracing/extras/importer/heap_dump_trace_event_importer.html',
