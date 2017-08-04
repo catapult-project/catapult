@@ -1525,10 +1525,15 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
         target = file(os.path.join(destination, filename), "wb")
         with source, target:
           shutil.copyfileobj(source, target)
-    os.remove(zip_path)
 
   folder = "win64" if is64bit else "win"
-  gcs_folder = "desktop-*/" + version + "/" + folder + "-pgo/"
+  # Clang build (M61+)
+  folder_suffix = "-clang"
+  gcs_folder = "desktop-*/" + version + "/" + folder + folder_suffix + "/"
+  if not cloud_storage.Exists(cloud_storage_bucket, gcs_folder):
+    # MSVC build (before M61)
+    folder_suffix = "-pgo"
+    gcs_folder = "desktop-*/" + version + "/" + folder + folder_suffix + "/"
 
   symbol_sub_dir = os.path.join(symbol_base_directory,
                                 "chrome-" + folder + "-" + version)
@@ -1544,7 +1549,7 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
   DownloadAndExtractZipFile(
       os.path.join(symbol_base_directory,
                    "chrome-" + folder + "-" + version + ".zip"),
-      gcs_folder + "chrome-" + folder + "-pgo.zip",
+      gcs_folder + "chrome-" + folder + folder_suffix + ".zip",
       symbol_sub_dir)
 
   return True
