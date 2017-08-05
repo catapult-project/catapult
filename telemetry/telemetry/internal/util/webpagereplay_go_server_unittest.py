@@ -7,6 +7,7 @@ import urllib2
 
 import py_utils
 
+from telemetry import decorators
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import webpagereplay_go_server
 
@@ -19,6 +20,7 @@ class WebPageReplayGoServerTest(unittest.TestCase):
         py_utils.GetHostArchName(),
         py_utils.GetHostOsName())
 
+  @decorators.Disabled('chromeos')  # crbug.com/750323
   def testSmokeStartingWebPageReplayGoServer(self):
     with webpagereplay_go_server.ReplayServer(
         self.archive_path, replay_host='127.0.0.1', http_port=0, https_port=0,
