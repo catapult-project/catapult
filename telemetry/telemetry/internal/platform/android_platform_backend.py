@@ -50,7 +50,7 @@ except ImportError:
 
 try:
   from devil.android.perf import surface_stats_collector
-except Exception:
+except Exception: # pylint: disable=broad-except
   surface_stats_collector = None
 
 
@@ -697,7 +697,7 @@ class AndroidPlatformBackend(
       try:
         uline = unicode(line, encoding='utf-8')
         return uline.encode('ascii', 'backslashreplace')
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.error('Error encoding UTF-8 logcat line as ASCII.')
         return '<MISSING LOGCAT LINE: FAILED TO ENCODE>'
 

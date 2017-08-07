@@ -141,7 +141,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         # We only need one successful clock sync.
         has_clock_synced = True
         break
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.exception('Failed to record clock sync marker with sync_id=%r '
                           'via DevTools client %r:', sync_id, client)
     if not has_clock_synced:
@@ -162,7 +162,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
             "console.timeEnd({{ event }});", event=event)
         has_clock_synced = True
         break
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.exception('Failed to record clock sync marker with sync_id=%r '
                           'via inspector backend %r:', sync_id, backend)
     if not has_clock_synced:
@@ -215,7 +215,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         client.StopChromeTracing()
         self._previously_responsive_devtools.append(client)
 
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             """Error when trying to stop Chrome tracing
             on devtools at port %s:\n%s"""
@@ -237,7 +237,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for client in self._previously_responsive_devtools:
       try:
         client.CollectChromeTracingData(trace_data_builder)
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             'Error when collecting Chrome tracing on devtools at port %s:\n%s' %
             (client.remote_port,

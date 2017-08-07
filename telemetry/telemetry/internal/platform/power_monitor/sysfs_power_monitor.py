@@ -126,7 +126,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
         continue
       try:
         stats[cpu] = self._platform.GetFileContents(cpu_freq_path)
-      except Exception as e:
+      except Exception as e: # pylint: disable=broad-except
         logging.warning(
             'Cannot read cpu frequency times in %s due to error: %s' %
             (cpu_freq_path, e.message))

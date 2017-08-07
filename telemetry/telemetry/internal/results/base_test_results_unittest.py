@@ -12,7 +12,7 @@ class BaseTestResultsUnittest(unittest.TestCase):
   def CreateException(self):
     try:
       raise exceptions.IntentionalException
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       return sys.exc_info()
 
   def assertEquals(self, ex, res):

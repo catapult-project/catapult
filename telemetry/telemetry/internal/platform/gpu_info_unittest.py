@@ -78,5 +78,5 @@ class TestGPUInfo(unittest.TestCase):
       self.fail('Should raise exception if devices array is empty')
     except AssertionError:
       raise
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       pass

@@ -29,7 +29,7 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
                         'Currently forwarded connections:')
         for line in self._device.adb.ForwardList().splitlines():
           logging.warning('  %s', line)
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.warning('Exception raised while listing forwarded connections.')
 
       logging.warning('Relevant device tcp sockets in use:')
@@ -39,7 +39,7 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
                                           force_pull=True).splitlines():
           if proc_net_tcp_target in line:
             logging.warning('  %s', line)
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.warning('Exception raised while listing tcp sockets.')
 
       logging.warning('Possibly relevant lsof entries:')
@@ -50,7 +50,7 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
         for line in lsof_output:
           if lsof_target in line:
             logging.warning('  %s', line)
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.warning('Exception raised running lsof.')
 
       logging.warning('Alive webpagereplay instances:')
@@ -58,7 +58,7 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
         for line in subprocess.check_output(['ps', '-ef']).splitlines():
           if 'webpagereplay' in line:
             logging.warning('  %s', line)
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.warning('Exception raised while listing WPR intances.')
 
       raise

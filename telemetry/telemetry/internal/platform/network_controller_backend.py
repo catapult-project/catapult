@@ -144,7 +144,7 @@ class NetworkControllerBackend(object):
                                     cert_path=self._wpr_ca_cert_path)
       self._platform_backend.InstallTestCa(self._wpr_ca_cert_path)
       logging.info('Test certificate authority installed on target platform.')
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       logging.exception(
           'Failed to install test certificate authority on target platform. '
           'Browsers may fall back to ignoring certificate errors.')
@@ -155,7 +155,7 @@ class NetworkControllerBackend(object):
       return
     try:
       self._platform_backend.RemoveTestCa()
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       # Best effort cleanup - show the error and continue.
       logging.exception(
           'Error trying to remove certificate authority from target platform.')

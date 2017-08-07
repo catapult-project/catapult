@@ -305,7 +305,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
         powermetrics_output = output_file.read()
       return PowerMetricsPowerMonitor.ParsePowerMetricsOutput(
           powermetrics_output)
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-except
       logging.warning(
           'Error when trying to collect power monitoring data: %s', repr(e))
       return PowerMetricsPowerMonitor.ParsePowerMetricsOutput('')

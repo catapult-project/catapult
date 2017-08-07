@@ -46,7 +46,7 @@ class TestSystemInfo(unittest.TestCase):
       self.assertEquals(info.model_name, '')
     except AssertionError:
       raise
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       self.fail('Should not raise exception for empty model_name string')
 
   def testMissingAttrsFromDict(self):
