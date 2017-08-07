@@ -585,6 +585,44 @@ found in the LICENSE file.
         this.recursingAlertListChanged = false;
       },
 
+      computeGroupingStatistics_(groupedAlerts) {
+        const bugsByGroup = new Map();
+        const groupsByBug = new Map();
+        for (const alertsInGroup of groupedAlerts) {
+          for (const alert of alertsInGroup) {
+            if (!alert.bug_id) continue;
+
+            if (!bugsByGroup.has(alert.group)) {
+              bugsByGroup.set(alert.group, new Set());
+            }
+            bugsByGroup.get(alert.group).add(alert.bug_id);
+
+            if (!groupsByBug.has(alert.bug_id)) {
+              groupsByBug.set(alert.bug_id, new Set());
+            }
+            groupsByBug.get(alert.bug_id).add(alert.group);
+          }
+        }
+
+        let bugsPerGroup = 0;
+        for (const bugIds of bugsByGroup.values()) {
+          bugsPerGroup += bugIds.size / bugsByGroup.size;
+        }
+        bugsPerGroup = Math.round(bugsPerGroup * 10) / 10;
+
+        let groupsPerBug = 0;
+        for (const groups of groupsByBug.values()) {
+          groupsPerBug += groups.size / groupsByBug.size;
+        }
+        groupsPerBug = Math.round(groupsPerBug * 10) / 10;
+
+        this.fire('groupingStatistics', {
+          groupCount: groupedAlerts.length,
+          bugsPerGroup,
+          groupsPerBug,
+        });
+      },
+
       /**
        * Displays alerts in groups.
        */
@@ -597,6 +635,8 @@ found in the LICENSE file.
             alert.group = 'group' + i;
           }
         }
+
+        this.computeGroupingStatistics_(groupedAlerts);
 
         const groupMap = {};
         const alertOrder = [];
@@ -629,8 +669,6 @@ found in the LICENSE file.
             alertOrder.push(i);
           }
         }
-
-        this.fire('groupCount', alertOrder.length);
 
         // Preserve expanded groups
         for (const k in groupMap) {
