@@ -180,11 +180,13 @@ def _GetParentTest(row_dict, bot_whitelist):
   improvement_direction = _ImprovementDirection(higher_is_better)
   internal_only = BotInternalOnly(bot_name, bot_whitelist)
   benchmark_description = row_dict.get('benchmark_description')
+  unescaped_story_name = row_dict.get('unescaped_story_name')
 
   parent_test = GetOrCreateAncestors(
       master_name, bot_name, test_name, internal_only=internal_only,
       benchmark_description=benchmark_description, units=units,
-      improvement_direction=improvement_direction)
+      improvement_direction=improvement_direction,
+      unescaped_story_name=unescaped_story_name)
 
   return parent_test
 
@@ -212,7 +214,8 @@ def BotInternalOnly(bot_name, bot_whitelist):
 
 def GetOrCreateAncestors(
     master_name, bot_name, test_name, internal_only=True,
-    benchmark_description='', units=None, improvement_direction=None):
+    benchmark_description='', units=None, improvement_direction=None,
+    unescaped_story_name=None):
   """Gets or creates all parent Master, Bot, TestMetadata entities for a Row."""
 
   master_entity = _GetOrCreateMaster(master_name)
@@ -233,6 +236,8 @@ def GetOrCreateAncestors(
     }
     if is_leaf_test and improvement_direction is not None:
       test_properties['improvement_direction'] = improvement_direction
+    if is_leaf_test and unescaped_story_name is not None:
+      test_properties['unescaped_story_name'] = unescaped_story_name
     ancestor_test = _GetOrCreateTest(
         ancestor_test_name, test_path, test_properties)
     if index == 0:
@@ -302,8 +307,6 @@ def _GetOrCreateTest(name, parent_test_path, properties):
       properties['improvement_direction'] = direction
     elif 'units' not in properties or properties['units'] is None:
       properties['improvement_direction'] = anomaly.UNKNOWN
-    else:
-      print properties
     new_entity = graph_data.TestMetadata(id=test_path, **properties)
     new_entity.put()
     # TODO(sullivan): Consider putting back Test entity in a scoped down

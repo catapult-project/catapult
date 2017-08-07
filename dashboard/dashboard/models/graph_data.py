@@ -172,6 +172,10 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # Command to run the test. Optional.
   command_line = ndb.StringProperty(indexed=False)
 
+  # Story names are escaped (slashes, colons). Store unescaped version
+  # for story filter flag.
+  unescaped_story_name = ndb.StringProperty(indexed=False)
+
   # Computed properties are treated like member variables, so they have
   # lowercase names, even though they look like methods to pylint.
   # pylint: disable=invalid-name

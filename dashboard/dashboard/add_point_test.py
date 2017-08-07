@@ -123,6 +123,42 @@ _SAMPLE_DASHBOARD_JSON_WITH_TRACE = {
     }
 }
 
+# Sample Dashboard JSON v1.0 point with a story name that should be escaped.
+_SAMPLE_DASHBOARD_JSON_ESCAPE_STORYNAME = {
+    'master': 'ChromiumPerf',
+    'bot': 'win7',
+    'point_id': '12345',
+    'test_suite_name': 'my_test_suite',
+    'supplemental': {
+        'os': 'mavericks',
+        'gpu_oem': 'intel'
+    },
+    'versions': {
+        'chrome': '12.3.45.6',
+    },
+    'chart_data': {
+        'benchmark_name': 'my_benchmark',
+        'benchmark_description': 'foo',
+        'format_version': '1.0',
+        'charts': {
+            'my_test': {
+                'http://www.cnn.com/story': {
+                    'type': 'scalar',
+                    'name': 'my_test1',
+                    'units': 'ms',
+                    'value': 22.4,
+                },
+                'http://www.yahoo.com/': {
+                    'type': 'scalar',
+                    'name': 'my_test2',
+                    'units': 'ms',
+                    'value': 33.2,
+                }
+            }
+        }
+    }
+}
+
 # Units to direction to use in the tests below.
 _UNITS_TO_DIRECTION_DICT = {
     'ms': {'improvement_direction': 'down'},
@@ -1165,6 +1201,40 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(33.2, rows[1].value)
     self.assertEqual('https://console.developer.google.com/m',
                      rows[1].a_tracing_uri)
+
+  def testPost_FormatV1_StoryNameEscaped(self):
+    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_ESCAPE_STORYNAME)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    k = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/win7/my_test_suite/my_test/http___www.cnn.com_story')
+    t = k.get()
+    self.assertEqual('http://www.cnn.com/story', t.unescaped_story_name)
+    k = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/win7/my_test_suite/my_test/http___www.yahoo.com_')
+    t = k.get()
+    self.assertEqual('http://www.yahoo.com/', t.unescaped_story_name)
+
+  def testPost_FormatV1_StoryNameEscapedUpdated(self):
+    t = graph_data.TestMetadata(
+        id='ChromiumPerf/win7/my_test_suite/my_test/http___www.cnn.com_story',
+        description='bar')
+    t.put()
+    self.assertEqual(None, t.unescaped_story_name)
+    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_ESCAPE_STORYNAME)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    k = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/win7/my_test_suite/my_test/http___www.cnn.com_story')
+    t = k.get()
+    self.assertEqual('http://www.cnn.com/story', t.unescaped_story_name)
 
   def testPost_FormatV1_BadMaster_Rejected(self):
     """Tests that attempting to post with no master name will error."""

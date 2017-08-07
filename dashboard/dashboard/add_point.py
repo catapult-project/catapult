@@ -367,6 +367,7 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
       'cloud_url' in tracing_links[trace_name]):
     tracing_uri = tracing_links[trace_name]['cloud_url'].replace('\\/', '/')
 
+  story_name = trace_name
   trace_name = _EscapeName(trace_name)
   if trace_name == 'summary':
     subtest_name = chart_name
@@ -394,6 +395,9 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
       raise BadRequestError('improvement_direction must not be None')
     row_dict['higher_is_better'] = _ImprovementDirectionToHigherIsBetter(
         improvement_direction_str)
+
+  if story_name != trace_name:
+    row_dict['unescaped_story_name'] = story_name
 
   return row_dict
 
