@@ -7,12 +7,16 @@
 import logging
 
 from dashboard import can_bisect
+from dashboard import pinpoint_request
 from dashboard import start_try_job
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import try_job
+from dashboard.services import pinpoint_service
+
+_PINPOINT_BOTS = []
 
 
 class NotBisectableError(Exception):
@@ -32,33 +36,13 @@ def StartNewBisectForBug(bug_id):
     of the reason why a job wasn't started.
   """
   try:
-    bisect_job = _MakeBisectTryJob(bug_id)
+    return _StartBisectForBug(bug_id)
   except NotBisectableError as e:
     logging.info('New bisect errored out with message: ' + e.message)
     return {'error': e.message}
-  bisect_job_key = bisect_job.put()
-
-  try:
-    bisect_result = start_try_job.PerformBisect(bisect_job)
-  except request_handler.InvalidInputError as e:
-    bisect_result = {'error': e.message}
-  if 'error' in bisect_result:
-    bisect_job_key.delete()
-  return bisect_result
 
 
-def _MakeBisectTryJob(bug_id):
-  """Tries to automatically select parameters for a bisect job.
-
-  Args:
-    bug_id: A bug ID which some alerts are associated with.
-
-  Returns:
-    A TryJob entity, which has not yet been put in the datastore.
-
-  Raises:
-    NotBisectableError: A valid bisect config could not be created.
-  """
+def _StartBisectForBug(bug_id):
   anomalies = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == bug_id).fetch()
   if not anomalies:
     raise NotBisectableError('No Anomaly alerts found for this bug.')
@@ -70,6 +54,87 @@ def _MakeBisectTryJob(bug_id):
   if not test or not can_bisect.IsValidTestForBisect(test.test_path):
     raise NotBisectableError('Could not select a test.')
 
+  if test.bot_name in _PINPOINT_BOTS:
+    return _StartPinpointBisect(bug_id, test_anomaly, test)
+
+  return _StartRecipeBisect(bug_id, test_anomaly, test)
+
+
+def _GetPinpointRevisionInfo(revision, test):
+  repo_to_default_rev = {
+      'ChromiumPerf': {'default_rev': 'r_chromium', 'pinpoint': 'chromium'}
+  }
+
+  row_parent_key = utils.GetTestContainerKey(test)
+  row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
+
+  if not row:
+    raise NotBisectableError('No row %s: %s' % (test.key.id(), str(revision)))
+
+  if not test.master_name in repo_to_default_rev:
+    raise NotBisectableError('Unsupported master: %s' % test.master_name)
+
+  rev_info = repo_to_default_rev[test.master_name]
+  if not hasattr(row, rev_info['default_rev']):
+    raise NotBisectableError('Row has no %s' % rev_info['default_rev'])
+
+  return getattr(row, row.a_default_rev), rev_info['pinpoint']
+
+
+def _StartPinpointBisect(bug_id, test_anomaly, test):
+  # Convert params to Pinpoint compatible
+  start_git_hash, start_repository = _GetPinpointRevisionInfo(
+      test_anomaly.start_revision - 1, test)
+  end_git_hash, end_repository = _GetPinpointRevisionInfo(
+      test_anomaly.end_revision, test)
+  params = {
+      'test_path': test.test_path,
+      'start_git_hash': start_git_hash,
+      'end_git_hash': end_git_hash,
+      'start_repository': start_repository,
+      'end_repository': end_repository,
+      'bug_id': bug_id,
+  }
+  results = pinpoint_service.NewJob(
+      pinpoint_request.PinpointParamsFromBisectParams(params))
+
+  # For compatibility with existing bisect, switch these to issueId/url
+  if 'jobId' in results:
+    results['issue_id'] = results['jobId']
+    del results['jobId']
+
+  if 'jobUrl' in results:
+    results['issue_url'] = results['jobUrl']
+    del results['jobUrl']
+
+  return results
+
+
+def _StartRecipeBisect(bug_id, test_anomaly, test):
+  bisect_job = _MakeBisectTryJob(bug_id, test_anomaly, test)
+  bisect_job_key = bisect_job.put()
+
+  try:
+    bisect_result = start_try_job.PerformBisect(bisect_job)
+  except request_handler.InvalidInputError as e:
+    bisect_result = {'error': e.message}
+  if 'error' in bisect_result:
+    bisect_job_key.delete()
+  return bisect_result
+
+
+def _MakeBisectTryJob(bug_id, test_anomaly, test):
+  """Tries to automatically select parameters for a bisect job.
+
+  Args:
+    bug_id: A bug ID which some alerts are associated with.
+
+  Returns:
+    A TryJob entity, which has not yet been put in the datastore.
+
+  Raises:
+    NotBisectableError: A valid bisect config could not be created.
+  """
   good_revision = _GetRevisionForBisect(test_anomaly.start_revision - 1, test)
   bad_revision = _GetRevisionForBisect(test_anomaly.end_revision, test)
   if not can_bisect.IsValidRevisionForBisect(good_revision):
