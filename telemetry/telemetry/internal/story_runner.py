@@ -350,12 +350,11 @@ def RunBenchmark(benchmark, finder_options):
     benchmark_owners = benchmark.GetOwners()
     benchmark_component = benchmark.GetBugComponents()
 
-    # TODO(#3734): Add a 'IsEmpty' method to GenericSet to replace this check.
-    if list(benchmark_owners):
+    if benchmark_owners:
       results.histograms.AddSharedDiagnostic(
           reserved_infos.OWNERS.name, benchmark_owners)
 
-    if list(benchmark_component):
+    if benchmark_component:
       results.histograms.AddSharedDiagnostic(
           reserved_infos.BUG_COMPONENTS.name, benchmark_component)
 
