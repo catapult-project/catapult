@@ -10,6 +10,8 @@ on a point on a graph. It shows more detailed information about the point that
 was just clicked.
 -->
 
+<link rel="import" href="/components/iron-icon/iron-icon.html">
+<link rel="import" href="/components/iron-icons/iron-icons.html">
 <link rel="import" href="/components/paper-card/paper-card.html">
 
 <link rel="import" href="/dashboard/elements/alert-remove-box.html">
@@ -35,6 +37,14 @@ was just clicked.
 
     #close-button {
       float: right;
+    }
+
+    iron-icon: {
+      color: black;
+    }
+
+    iron-icon:active {
+      color: #f09300;
     }
   </style>
 
@@ -108,9 +118,11 @@ was just clicked.
           </div>
 
           <div>
-            <span class="annotation-link"><a href="/group_report?rev={{pointId}}" target="_blank">See all performance changes at {{pointId}}</a></span><br />
+            <span class="annotation-link"><a href="/group_report?rev={{pointId}}" target="_blank">See all performance changes at {{pointId}}</a></span><br /><br />
             <template is="dom-repeat" items={{links}}>
-              <span class="annotation-link"><a href="{{item.url}}" target="_blank">{{item.text}}</a></span><br />
+              <span class="annotation-link"><a href="{{item.url}}" target="_blank">{{item.text}}</a>
+              <iron-icon icon="content-copy" title="Copy link" on-click="onCopyToClipboard"></iron-icon>
+              </span><br />
             </template>
           </div>
         </div>
@@ -187,6 +199,29 @@ was just clicked.
         window.open(
             event.currentTarget.href, 'changelog', 'width=1000,height=1000');
         event.preventDefault();
+      },
+
+      copyTextToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        let successful = false;
+        try {
+          successful = document.execCommand('copy');
+        } catch (e) {
+          successful = false;
+        }
+        document.body.removeChild(textArea);
+        return successful;
+      },
+
+      onCopyToClipboard(event) {
+        const link = event.model.item.url;
+        const success = this.copyTextToClipboard(link);
+        if (!success) {
+          window.prompt('Could not copy automatically, select and copy', link);
+        }
       },
 
       /**
