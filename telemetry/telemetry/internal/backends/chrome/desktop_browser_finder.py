@@ -75,7 +75,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
             browser_backend, self._platform_backend, self._credentials_path)
 
         return returned_browser
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         report = 'Browser creation failed (attempt %d of %d)' % (
             (x + 1), num_retries)
         if x < num_retries - 1:
@@ -85,7 +85,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         try:
           if returned_browser:
             returned_browser.Close()
-        except Exception:
+        except Exception: # pylint: disable=broad-except
           pass
         # Re-raise the exception the last time through.
         if x == num_retries - 1:

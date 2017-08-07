@@ -279,7 +279,7 @@ class InspectorBackend(object):
         debug_message = (
             'Console output:\n%s' %
             self.GetCurrentConsoleOutputBuffer())
-      except Exception as e:
+      except Exception as e: # pylint: disable=broad-except
         debug_message = (
             'Exception thrown when trying to capture console output: %s' %
             repr(e))

@@ -69,11 +69,11 @@ class AppCrashException(Error):
         self._is_valid_dump, trace_output = app.GetStackTrace()
         self._stack_trace = trace_output.splitlines()
         self._minidump_path = app.GetMostRecentMinidumpPath()
-      except Exception as err:
+      except Exception as err:  # pylint: disable=broad-except
         logging.error('Problem when trying to gather stack trace: %s' % err)
       try:
         self._app_stdout = app.GetStandardOutput().splitlines()
-      except Exception as err:
+      except Exception as err: # pylint: disable=broad-except
         logging.error('Problem when trying to gather standard output: %s' % err)
 
   @property

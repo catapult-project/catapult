@@ -61,7 +61,7 @@ def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port,
     logging.info(
         'Websocket at port %i not yet available: %s', port, exc)
     return False
-  except Exception as exc:
+  except Exception as exc: # pylint: disable=broad-except
     logging.exception(
         'Unidentified exception while checking if websocket at port %i is '
         'available.', port)

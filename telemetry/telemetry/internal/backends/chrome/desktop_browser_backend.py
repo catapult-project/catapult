@@ -182,7 +182,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if os.path.isfile(port_file):
       try:
         os.remove(port_file)
-      except Exception as e:
+      except IOError as e:
         logging.critical('Unable to remove DevToolsActivePort file: %s' % e)
         sys.exit(1)
 
@@ -242,7 +242,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           logging.info('Discovered ephemeral port %s', self._port)
           logging.info('Browser target: %s', self._browser_target)
           got_port = True
-    except Exception:
+    except IOError:
       # Both stat and open can throw exceptions.
       pass
     if not got_port:

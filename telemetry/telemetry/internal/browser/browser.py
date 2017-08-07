@@ -68,7 +68,7 @@ class Browser(app.App):
           exc_info[0].__name__)  # Show the exception name only.
       try:
         self.Close()
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         exception_formatter.PrintFormattedException(
             msg='Exception raised while closing platform backend')
       raise exc_info[0], exc_info[1], exc_info[2]
@@ -386,15 +386,15 @@ class Browser(app.App):
 
   def DumpStateUponFailure(self):
     logging.info('*************** BROWSER STANDARD OUTPUT ***************')
-    try:  # pylint: disable=broad-except
+    try:
       logging.info(self.GetStandardOutput())
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       logging.exception('Failed to get browser standard output:')
     logging.info('*********** END OF BROWSER STANDARD OUTPUT ************')
 
     logging.info('********************* BROWSER LOG *********************')
-    try:  # pylint: disable=broad-except
+    try:
       logging.info(self.GetLogFileContents())
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       logging.exception('Failed to get browser log:')
     logging.info('***************** END OF BROWSER LOG ******************')

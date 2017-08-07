@@ -171,7 +171,7 @@ class LocalServerController(object):
       server = self._local_servers_by_class.itervalues().next()
       try:
         server.Close()
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         import traceback
         traceback.print_exc()
 

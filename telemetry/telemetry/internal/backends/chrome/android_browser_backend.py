@@ -129,7 +129,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         try:
           for line in self.device.adb.ForwardList().splitlines():
             logging.warning('  %s', line)
-        except Exception:
+        except Exception: # pylint: disable=broad-except
           logging.warning('Exception raised while listing forwarded '
                           'connections.')
 
@@ -137,7 +137,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         try:
           for line in subprocess.check_output(['netstat', '-t']).splitlines():
             logging.warning('  %s', line)
-        except Exception:
+        except Exception: # pylint: disable=broad-except
           logging.warning('Exception raised while listing tcp ports.')
 
         logging.warning('Device unix domain sockets in use:')
@@ -145,7 +145,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           for line in self.device.ReadFile('/proc/net/unix', as_root=True,
                                            force_pull=True).splitlines():
             logging.warning('  %s', line)
-        except Exception:
+        except Exception: # pylint: disable=broad-except
           logging.warning('Exception raised while listing unix domain sockets.')
 
         raise
