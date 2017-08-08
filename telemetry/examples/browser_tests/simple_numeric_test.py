@@ -49,7 +49,7 @@ class SimpleTest(
 
   def AlphabeticalTest(self):
     test_name = self.id()
-    global _prev_test_name
+    global _prev_test_name # pylint: disable=global-statement
     self.assertLess(_prev_test_name, test_name)
     _prev_test_name = test_name
 

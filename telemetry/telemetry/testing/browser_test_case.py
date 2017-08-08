@@ -55,8 +55,8 @@ class _MetaBrowserTestCase(type):
 
 
 def teardown_browser():
-  global current_browser
-  global current_browser_options
+  global current_browser # pylint: disable=global-statement
+  global current_browser_options # pylint: disable=global-statement
 
   if current_browser:
     current_browser.Close()
@@ -71,8 +71,8 @@ class BrowserTestCase(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls._platform = None
-    global current_browser
-    global current_browser_options
+    global current_browser # pylint: disable=global-statement
+    global current_browser_options # pylint: disable=global-statement
 
     options = options_for_unittests.GetCopy()
 

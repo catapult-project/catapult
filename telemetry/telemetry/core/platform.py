@@ -21,7 +21,7 @@ _remote_platforms = {}
 
 
 def _InitHostPlatformIfNeeded():
-  global _host_platform
+  global _host_platform # pylint: disable=global-statement
   if _host_platform:
     return
   backend = None

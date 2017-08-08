@@ -51,7 +51,7 @@ class Story(object):
     assert name, 'All stories must be named.'
     self._name = name
     self._platform_specific = platform_specific
-    global _next_story_id
+    global _next_story_id # pylint: disable=global-statement
     self._id = _next_story_id
     _next_story_id += 1
     if tags is None:

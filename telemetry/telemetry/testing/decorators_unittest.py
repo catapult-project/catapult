@@ -12,7 +12,7 @@ _counter = 0
 class Foo(object):
   @decorators.Cache
   def GetCountCached(self, _):
-    global _counter
+    global _counter # pylint: disable=global-statement
     _counter = _counter + 1
     return _counter
 

@@ -42,7 +42,7 @@ def NeedsInit():
 
 
 def InitDependencyManager(client_configs):
-  global _binary_manager
+  global _binary_manager # pylint: disable=global-statement
   if _binary_manager:
     raise exceptions.InitializationError(
         'Trying to re-initialize the binary manager with config %s'

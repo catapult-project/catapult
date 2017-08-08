@@ -10,7 +10,7 @@ disable=
   
   
   fixme,
-  global-statement,
+  
   interface-not-implemented,
   invalid-name,
   locally-disabled,

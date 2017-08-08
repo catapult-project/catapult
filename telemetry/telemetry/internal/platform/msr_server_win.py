@@ -55,7 +55,7 @@ def _WinRing0Path():
 
 
 def _Initialize():
-  global _winring0
+  global _winring0 # pylint: disable=global-statement
   if not _winring0:
     winring0 = ctypes.WinDLL(_WinRing0Path())
     if not winring0.InitializeOls():
@@ -67,7 +67,7 @@ def _Initialize():
 
 
 def _Deinitialize():
-  global _winring0
+  global _winring0 # pylint: disable=global-statement
   if _winring0:
     _winring0.DeinitializeOls()
     _winring0 = None
