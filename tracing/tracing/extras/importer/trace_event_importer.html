@@ -1789,7 +1789,7 @@ tr.exportTo('tr.e.importer', function() {
               let subName = name;
               if (!events[j].event.argsStripped &&
                   (events[j].event.ph === 'T' || events[j].event.ph === 'p')) {
-                subName = subName + ':' + events[j].event.args.step;
+                subName = events[j].event.args.step;
               }
 
               const asyncSliceConstructor =

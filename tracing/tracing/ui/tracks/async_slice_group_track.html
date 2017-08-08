@@ -46,7 +46,23 @@ tr.exportTo('tr.ui.tracks', function() {
 
     set group(group) {
       this.group_ = group;
-      this.setItemsToGroup(this.group_.slices, this.group_);
+
+      // Hide top-level slices that contain 1 sub-slice, which are used to group
+      // the sub-slices into a single track, but provide no information
+      // themselves.
+      const slices = [];
+      for (const slice of this.group_.slices) {
+        if (slice.subSlices.length === 1 &&
+            tr.b.math.approximately(slice.subSlices[0].start, slice.start, 1) &&
+            tr.b.math.approximately(
+                slice.subSlices[0].duration, slice.duration, 1)) {
+          slices.push(slice.subSlices[0]);
+        } else {
+          slices.push(slice);
+        }
+      }
+
+      this.setItemsToGroup(slices, this.group_);
     },
 
     get eventContainer() {

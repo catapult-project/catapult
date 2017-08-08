@@ -48,10 +48,8 @@ tr.b.unittest.testSuite(function() {
     const track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = g;
     const subRows = track.subRows;
-    assert.strictEqual(subRows.length, 2);
+    assert.strictEqual(subRows.length, 1);
     assert.strictEqual(subRows[0].length, 2);
-    assert.strictEqual(subRows[1].length, 1);
-    assert.strictEqual(subRows[1][0], g.slices[0].subSlices[0]);
     assert.sameMembers(g.slices[1].subSlices, []);
   });
 
@@ -77,13 +75,10 @@ tr.b.unittest.testSuite(function() {
 
     const subRows = track.subRows;
 
-    assert.strictEqual(subRows.length, 4);
+    assert.strictEqual(subRows.length, 2);
     assert.strictEqual(subRows[0].length, 1);
     assert.strictEqual(subRows[1].length, 1);
-    assert.strictEqual(subRows[2].length, 1);
-    assert.strictEqual(subRows[3].length, 1);
-    assert.strictEqual(subRows[1][0], g.slices[0].subSlices[0]);
-    assert.strictEqual(subRows[3][0], g.slices[1].subSlices[0]);
+    assert.strictEqual(subRows[1][0], g.slices[1].subSlices[0]);
   });
 
   test('rebuildSubRows_threePartlyOverlappingSlices', function() {

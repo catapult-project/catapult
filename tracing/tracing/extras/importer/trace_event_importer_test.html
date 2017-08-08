@@ -1397,7 +1397,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(parentSlice.subSlices.length, 1);
 
       const subSlice = parentSlice.subSlices[0];
-      assert.strictEqual(subSlice.title, 'a:s1');
+      assert.strictEqual(subSlice.title, 's1');
       assert.strictEqual(subSlice.category, 'foo');
       assert.isFalse(subSlice.isTopLevel);
       assert.closeTo((548 - 524) / 1000, subSlice.start, 1e-5);
@@ -1465,7 +1465,7 @@ tr.b.unittest.testSuite(function() {
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 1);
       const subSlice = parentSlice.subSlices[0];
-      assert.strictEqual(subSlice.title, 'a:s1');
+      assert.strictEqual(subSlice.title, 's1');
       assert.strictEqual(subSlice.category, 'foo');
       assert.isFalse(subSlice.isTopLevel);
       assert.strictEqual(subSlice.start, 0);
