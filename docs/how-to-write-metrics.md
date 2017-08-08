@@ -188,16 +188,6 @@ histogram.addSample(number, {name: diagnostic})
 
    ![](/docs/images/how-to-write-metrics-telemetry.png)
 
- * [RevisionInfo](/tracing/tracing/value/diagnostics/revision_info.html):
-   This is automatically attached to every Histogram produced by telemetry.
-   Structurally, it's a class with explicit named fields. Conceptually, it
-   contains ranges of revisions of the software used to produce the trace that
-   was consumed by the metric that produced the Histogram, such as the Chromium
-   revision, v8 revision, and catapult revision. Visually, RevisionInfos are
-   displayed as a table.
-
-   ![](/docs/images/how-to-write-metrics-revision.png)
-
  * [BuildbotInfo](/tracing/tracing/value/diagnostics/buildbot_info.html):
    This is automatically attached to every Histogram produced by Chrome's
    performance testing buildbots. Structurally, it's a class with explicit named

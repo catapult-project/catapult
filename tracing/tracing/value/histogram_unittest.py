@@ -698,31 +698,6 @@ class BuildbotInfoUnittest(unittest.TestCase):
     self.assertNotEqual(info0, info1)
 
 
-class RevisionInfoUnittest(unittest.TestCase):
-  def testRoundtrip(self):
-    info = histogram.RevisionInfo({
-        'chromiumCommitPosition': 42,
-        'v8CommitPosition': 57,
-        'chromium': ['b10563e'],
-        'v8': ['0a12a6'],
-        'catapult': ['e6e086'],
-        'angle': ['d7b1ab', 'da9fb0'],
-        'skia': ['966bb3', 'db402c'],
-        'webrtc': ['277b25', 'f8b262'],
-    })
-    d = info.AsDict()
-    clone = diagnostic.Diagnostic.FromDict(d)
-    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
-    self.assertEqual(clone.chromium_commit_position, 42)
-    self.assertEqual(clone.v8_commit_position, 57)
-    self.assertEqual(clone.chromium[0], 'b10563e')
-    self.assertEqual(clone.v8[0], '0a12a6')
-    self.assertEqual(clone.catapult[0], 'e6e086')
-    self.assertEqual(clone.angle[1], 'da9fb0')
-    self.assertEqual(clone.skia[1], 'db402c')
-    self.assertEqual(clone.webrtc[1], 'f8b262')
-
-
 class TelemetryInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
     info = histogram.TelemetryInfo()

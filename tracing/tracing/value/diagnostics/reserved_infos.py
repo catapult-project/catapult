@@ -55,7 +55,6 @@ WEBRTC_REVISIONS = _Info('webrtc revisions', 'GenericSet')
 BUILDBOT = _Info('buildbot')  # BuildbotInfo or MergedBuildbotInfo
 INTERACTION_RECORD = _Info('tir', 'GenericSet')
 ITERATION = _Info('iteration')  # Legacy name for TELEMETRY
-REVISIONS = _Info('revisions')  # RevisionInfo or MergedRevisionInfo
 TELEMETRY = _Info('telemetry')  # TelemetryInfo or MergedTelemetryInfo
 
 def GetTypeForName(name):
