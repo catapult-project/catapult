@@ -82,7 +82,7 @@ def EnableListingStrayProcessesUponExitHook():
           else:
             cmdline = p.cmdline
           process_info += ' - %s' % cmdline
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
           logging.warning(str(e))
         leak_processes_info.append(process_info)
       logging.warning('Telemetry leaks these processes: %s',

@@ -45,7 +45,7 @@ def TryCaptureScreenShot(platform, tab=None):
           'Either tab has crashed or browser does not support taking tab '
           'screenshot. Skip taking screenshot on failure.')
       return None
-  except Exception as e:
+  except Exception as e: # pylint: disable=broad-except
     logging.warning('Exception when trying to capture screenshot: %s', repr(e))
     return None
 

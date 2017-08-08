@@ -132,7 +132,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         test.DidRunPage(state.platform)
       # And the following normally causes the browser to be closed.
       state.DidRunStory(results)
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       if not has_existing_exception:
         state.DumpStateUponFailure(story, results)
         raise
@@ -218,7 +218,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             if state:
               _CheckThermalThrottling(state.platform)
             results.DidRunPage(story)
-          except Exception:
+          except Exception: # pylint: disable=broad-except
             if not has_existing_exception:
               raise
             # Print current exception and propagate existing exception.
@@ -245,7 +245,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
       has_existing_exception = sys.exc_info() != (None, None, None)
       try:
         state.TearDownState()
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         if not has_existing_exception:
           raise
         # Print current exception and propagate existing exception.
@@ -342,7 +342,7 @@ def RunBenchmark(benchmark, finder_options):
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       results.telemetry_info.InterruptBenchmark()
       exception_formatter.PrintFormattedException()
       return_code = 255

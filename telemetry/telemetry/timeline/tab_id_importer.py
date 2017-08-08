@@ -55,7 +55,7 @@ class TabIdImporter(importer.TimelineImporter):
         timeline_markers = self._model.FindTimelineMarkers(tab_id)
       # If timeline_markers with name equals |tab_id| can't be found, it's
       # non-fatal.
-      except Exception:
+      except Exception: # pylint: disable=broad-except
         logging.warning('Cannot find timeline marker for tab with id=%s' %
                         tab_id)
         continue

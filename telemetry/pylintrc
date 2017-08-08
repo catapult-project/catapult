@@ -8,7 +8,7 @@ disable=
 
   
   
-  broad-except,
+  
   fixme,
   global-statement,
   interface-not-implemented,

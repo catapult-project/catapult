@@ -157,7 +157,7 @@ class SharedPageState(story.SharedState):
       if self._current_tab and self._current_tab.IsAlive():
         self._current_tab.CloseConnections()
       self._previous_page = self._current_page
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       if self._current_tab:
         self._current_tab.Close()
     finally:

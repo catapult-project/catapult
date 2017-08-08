@@ -39,7 +39,7 @@ class FailureValue(value_module.Value):
   def _GetExcInfoFromMessage(message):
     try:
       raise Exception(message)
-    except Exception:
+    except Exception: # pylint: disable=broad-except
       return sys.exc_info()
 
   def __repr__(self):
