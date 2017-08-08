@@ -129,6 +129,14 @@ class Job(ndb.Model):
         utils.ServiceAccountHttp())
     issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
 
+  def Fail(self, exception):
+    self.exception = str(exception)
+
+    comment = 'Pinpoint job failed!\n' + self.url
+    issue_tracker = issue_tracker_service.IssueTrackerService(
+        utils.ServiceAccountHttp())
+    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
+
   def Schedule(self):
     task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
                          countdown=_TASK_INTERVAL)
@@ -149,7 +157,7 @@ class Job(ndb.Model):
       else:
         self.Complete()
     except BaseException as e:
-      self.exception = str(e)
+      self.Fail(e)
       raise
 
   def AsDict(self):
