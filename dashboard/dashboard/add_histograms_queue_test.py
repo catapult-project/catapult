@@ -19,19 +19,21 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
-from tracing.value.diagnostics import reserved_infos
+
 
 TEST_HISTOGRAM = {
     'allBins': {'1': [1], '3': [1], '4': [1]},
     'binBoundaries': [1, [1, 1000, 20]],
     'diagnostics': {
-        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: {
-            'values': [123],
-            'type': 'GenericSet'
-        },
-        reserved_infos.V8_REVISIONS.name: {
-            'values': ['4cd34ad3320db114ad3a2bd2acc02aba004d0cb4'],
-            'type': 'GenericSet'
+        'revisions': {
+            'angle': [],
+            'catapult': [],
+            'chromium': [],
+            'chromiumCommitPosition': [123],
+            'skia': [],
+            'type': 'RevisionInfo',
+            'v8': ['4cd34ad3320db114ad3a2bd2acc02aba004d0cb4'],
+            'webrtc': []
         },
         'owners': '68e5b3bd-829c-4f4f-be3a-98a94279ccf0',
         'telemetry': 'ec2c0cdc-cd9f-4736-82b4-6ffc3d76e3eb'
@@ -349,8 +351,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
     hist = copy.deepcopy(TEST_HISTOGRAM)
-    hist['diagnostics']['catapult revisions'] = {
-        'type': 'GenericSet', 'values': [123, 456]}
+    hist['diagnostics']['revisions']['catapult'] = [123, 456]
 
     with self.assertRaises(add_histograms_queue.BadRequestError):
       add_histograms_queue.AddRow(hist, test_key, 123, test_path, False)

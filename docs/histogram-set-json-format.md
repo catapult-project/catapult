@@ -133,6 +133,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
  * `TelemetryInfo`
+ * `RevisionInfo`
  * `BuildbotInfo`
  * `Scalar`
 
@@ -157,6 +158,20 @@ to compare or merge results across similar telemetry story runs.
  * `storyDisplayName`: string
  * `storyGroupingKeys`: dictionary mapping from strings to strings
  * `storysetRepeatCounter`: number
+
+### RevisionInfo
+
+This tracks revisions of the software under test to allow users to compare or
+merge results across revisions.
+
+ * `chromiumCommitPosition`: optional integer
+ * `v8CommitPosition`: optional integer
+ * `chromium`: array of 1 or 2 strings
+ * `v8`: array of 1 or 2 strings
+ * `catapult`: array of 1 or 2 strings
+ * `angle`: array of 1 or 2 strings
+ * `skia`: array of 1 or 2 strings
+ * `webrtc`: array of 1 or 2 strings
 
 ### BuildbotInfo
 

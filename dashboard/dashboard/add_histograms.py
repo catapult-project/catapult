@@ -206,18 +206,19 @@ def _GetMasterBotBenchmarkFromHistogram(hist):
 def ComputeRevision(histograms):
   _CheckRequest(len(histograms) > 0, 'Must upload at least one histogram')
   diagnostics = histograms.GetFirstHistogram().diagnostics
-  _CheckRequest(reserved_infos.CHROMIUM_COMMIT_POSITIONS.name in diagnostics,
-                'Histograms must have Chromium commit position attached')
-  chromium_commit_position = list(diagnostics[
-      reserved_infos.CHROMIUM_COMMIT_POSITIONS.name])
+  _CheckRequest(reserved_infos.REVISIONS.name in diagnostics,
+                'Histograms must have RevisionInfo attached')
+  revision_info = diagnostics[reserved_infos.REVISIONS.name]
 
-  _CheckRequest(len(chromium_commit_position) == 1,
-                'Chromium commit position must have 1 value')
+  _CheckRequest(
+      isinstance(revision_info.chromium_commit_position, list) and
+      len(revision_info.chromium_commit_position) == 1,
+      'RevisionInfo chromium_commit_position must have 1 value')
 
   # TODO(eakuefner): Allow users to specify other types of revisions to be used
   # for computing revisions of dashboard points. See
   # https://github.com/catapult-project/catapult/issues/3623.
-  return chromium_commit_position[0]
+  return revision_info.chromium_commit_position[0]
 
 
 def InlineDenseSharedDiagnostics(histograms):

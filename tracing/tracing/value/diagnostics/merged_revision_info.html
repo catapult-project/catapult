@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  const REPO_NAMES = ['chromium', 'v8', 'catapult', 'angle', 'skia', 'webrtc'];
+
+  class MergedRevisionInfo extends tr.v.d.Diagnostic {
+    constructor(opt_info) {
+      super();
+      const info = opt_info || {};
+      this.chromiumCommitPositions_ = new Set(
+          info.chromiumCommitPositions || []);
+      this.v8CommitPositions_ = new Set(info.v8CommitPositions || []);
+      this.chromium_ = info.chromium || [];
+      this.v8_ = info.v8 || [];
+      this.catapult_ = info.catapult || [];
+      this.angle_ = info.angle || [];
+      this.skia_ = info.skia || [];
+      this.webrtc_ = info.webrtc || [];
+    }
+
+    clone() {
+      const clone = new MergedRevisionInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
+    addToHistogram(hist) {
+      hist.diagnostics.set(tr.v.d.RESERVED_NAMES.REVISIONS, this);
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return otherDiagnostic instanceof tr.v.d.RevisionInfo ||
+        otherDiagnostic instanceof MergedRevisionInfo;
+    }
+
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      if (otherDiagnostic instanceof MergedRevisionInfo) {
+        for (const pos of otherDiagnostic.chromiumCommitPositions) {
+          this.chromiumCommitPositions.add(pos);
+        }
+        for (const pos of otherDiagnostic.v8CommitPositions) {
+          this.v8CommitPositions.add(pos);
+        }
+        for (const repo of REPO_NAMES) {
+          for (const otherRevs of otherDiagnostic[repo]) {
+            let found = false;
+            for (const revs of this[repo]) {
+              if (otherRevs[0] === revs[0] &&
+                  otherRevs[1] === revs[1]) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              this[repo].push(otherRevs);
+            }
+          }
+        }
+        return this;
+      }
+
+      if (otherDiagnostic.chromiumCommitPosition !== undefined) {
+        this.chromiumCommitPositions.add(
+            otherDiagnostic.chromiumCommitPosition);
+      }
+      if (otherDiagnostic.v8CommitPosition !== undefined) {
+        this.v8CommitPositions.add(otherDiagnostic.v8CommitPosition);
+      }
+
+      for (const repo of REPO_NAMES) {
+        const otherRevs = otherDiagnostic[repo];
+        let found = false;
+        for (const revs of this[repo]) {
+          if (otherRevs[0] === revs[0] &&
+              otherRevs[1] === revs[1]) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          this[repo].push(otherRevs);
+        }
+      }
+      return this;
+    }
+
+    asDictInto_(d) {
+      d.chromiumCommitPositions = this.chromiumCommitPositions;
+      d.v8CommitPositions = this.v8CommitPositions;
+      d.chromium = this.chromium;
+      d.v8 = this.v8;
+      d.catapult = this.catapult;
+      d.angle = this.angle;
+      d.skia = this.skia;
+      d.webrtc = this.webrtc;
+    }
+
+    static fromDict(d) {
+      return new MergedRevisionInfo(d);
+    }
+
+    get chromiumCommitPositions() {
+      return this.chromiumCommitPositions_;
+    }
+
+    get v8CommitPositions() {
+      return this.v8CommitPositions_;
+    }
+
+    get chromium() {
+      return this.chromium_;
+    }
+
+    get v8() {
+      return this.v8_;
+    }
+
+    get catapult() {
+      return this.catapult_;
+    }
+
+    get angle() {
+      return this.angle_;
+    }
+
+    get skia() {
+      return this.skia_;
+    }
+
+    get webrtc() {
+      return this.webrtc_;
+    }
+  }
+
+  tr.v.d.Diagnostic.register(MergedRevisionInfo, {
+    elementName: 'tr-v-ui-merged-revision-info-span'
+  });
+
+  return {
+    MergedRevisionInfo,
+  };
+});
+</script>

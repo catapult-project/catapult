@@ -22,18 +22,18 @@ from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic_ref
-from tracing.value.diagnostics import reserved_infos
 
-DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
-    reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: 'r_chromium_commit_pos',
-    reserved_infos.V8_COMMIT_POSITIONS.name: 'r_v8_rev',
-    reserved_infos.CHROMIUM_REVISIONS.name: 'r_chromium_git',
-    reserved_infos.V8_REVISIONS.name: 'r_v8_git',
+
+REVISION_FIELDS_TO_ANNOTATION_NAMES = {
+    'chromium_commit_position': 'r_chromium_commit_pos',
+    'v8_commit_position': 'r_v8_rev',
+    'chromium': 'r_chromium_git',
+    'v8': 'r_v8_git',
     # TODO(eakuefner): Add r_catapult_git to Dashboard revision_info map (see
     # https://github.com/catapult-project/catapult/issues/3545).
-    reserved_infos.CATAPULT_REVISIONS.name: 'r_catapult_git',
-    reserved_infos.ANGLE_REVISIONS.name: 'r_angle_git',
-    reserved_infos.WEBRTC_REVISIONS.name: 'r_webrtc_git'
+    'catapult': 'r_catapult_git',
+    'angle': 'r_angle_git',
+    'webrtc': 'r_webrtc_git'
 }
 
 
@@ -170,16 +170,16 @@ def _MakeRowDict(revision, test_path, tracing_histogram):
   d['revision'] = revision
   d['supplemental_columns'] = {}
 
-  for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.iteritems():
-    revision_info = tracing_histogram.diagnostics.get(diag_name)
-    value = list(revision_info) if revision_info else None
+  revision_info = tracing_histogram.diagnostics['revisions']
+  for attribute, annotation in REVISION_FIELDS_TO_ANNOTATION_NAMES.iteritems():
+    value = getattr(revision_info, attribute)
     # TODO(eakuefner): Formalize unique-per-upload diagnostics to make this
     # check an earlier error. RevisionInfo's fields have to be lists, but there
     # should be only one revision of each type per upload.
     if not value:
       continue
     _CheckRequest(
-        len(value) == 1,
+        isinstance(value, list) and len(value) == 1,
         'RevisionInfo fields must contain at most one revision')
 
     d['supplemental_columns'][annotation] = value[0]

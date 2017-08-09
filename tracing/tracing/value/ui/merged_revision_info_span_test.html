@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/merged_revision_info.html">
+<link rel="import" href="/tracing/value/diagnostics/revision_info.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate', function() {
+    const aRevs = new tr.v.d.RevisionInfo({
+      chromium: ['b10563e'],
+      v8: ['0a12a6'],
+      catapult: ['e6e086'],
+      angle: ['d7b1ab'],
+      skia: ['966bb3'],
+      webrtc: ['277b25'],
+    });
+    const bRevs = new tr.v.d.RevisionInfo({
+      chromium: ['e2ebe328', 'b10563e'],
+      v8: ['0a12a6', '921d88'],
+      catapult: ['e6e086', 'bf0f62'],
+      angle: ['d7b1ab', 'da9fb0'],
+      skia: ['966bb3', 'db402c'],
+      webrtc: ['277b25', 'f8b262'],
+    });
+    const merged = aRevs.clone();
+    merged.addDiagnostic(bRevs);
+    const span = tr.v.ui.createDiagnosticSpan(merged);
+    assert.strictEqual('TR-V-UI-MERGED-REVISION-INFO-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+});
+</script>
