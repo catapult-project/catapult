@@ -53,19 +53,41 @@ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
 
   load the page
 
+## Running on Android
+
+You will need a Linux host machine and an android device.
+
+* Set up reverse port forwarding
+
+```
+adb reverse tcp:8080 tcp:8080
+adb reverse tcp:8081 tcp:8081
+```
+
+* Set up command line arguments
+
+```
+build/android/adb_chrome_public_command_line '--host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"'
+```
+
+* Run wpr.go as usual on the linux machine
+
 ### Installing test root CA
 
 WebPageReplay uses self signed certificates for Https requests. To make Chrome
 trust these certificates, you can install a test certificate authority as a
 local trust anchor. **Note:** Please do this with care because installing the
 test root CA compromises your machine. This is currently only supported on
-Linux.
+Linux and Android.
 
-Installing the test CA
+Installing the test CA. Specify a `--android_device_id` if you'd like to install
+the root CA on an android device.
 ```
 go run src/wpr.go installroot
 ```
-Uninstall the test CA
+Uninstall the test CA. Specify a `--android_device_id` if you'd like to remove
+the root CA from an android device.
+
 ```
 go run src/wpr.go removeroot
 ```
