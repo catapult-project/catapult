@@ -60,15 +60,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -82,7 +76,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
@@ -94,7 +89,6 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
-    # We expect to see BuildbotInfo/TelemetryInfo, RevisionInfo is inlined.
     self.assertEqual(2, len(diagnostics))
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
@@ -133,15 +127,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -155,7 +143,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
@@ -165,7 +154,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
@@ -201,15 +191,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -223,7 +207,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
@@ -233,7 +218,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
@@ -276,15 +262,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -298,7 +278,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
@@ -342,15 +323,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -364,7 +339,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
@@ -417,19 +393,14 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
@@ -439,7 +410,7 @@ class AddHistogramsTest(testing_common.TestCase):
     ])
     self.testapp.post('/add_histograms', {'data': data}, status=400)
 
-  def testPostHistogramFailsWithoutRevisionInfo(self):
+  def testPostHistogramFailsWithoutChromiumCommit(self):
     data = json.dumps([
         {
             'benchmarkName': 'benchmark',
@@ -473,15 +444,9 @@ class AddHistogramsTest(testing_common.TestCase):
   def testPostHistogramFailsWithoutTelemetryInfo(self):
     data = json.dumps([
         {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -495,7 +460,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160'
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
@@ -520,15 +486,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet',
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -542,9 +502,11 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                'owners': 'cabb59fe-4bcf-4512-881c-d038c7a80635'
+                reserved_infos.OWNERS.name:
+                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
@@ -580,15 +542,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet'
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -602,9 +558,11 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                'owners': 'cabb59fe-4bcf-4512-881c-d038c7a80635'
+                reserved_infos.OWNERS.name:
+                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
@@ -613,9 +571,11 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                'owners': 'cabb59fe-4bcf-4512-881c-d038c7a80635'
+                reserved_infos.OWNERS.name:
+                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
             'guid': '5239617a-14d6-4f80-8f75-dafda2ff13b1',
             'name': 'bar',
@@ -649,15 +609,9 @@ class AddHistogramsTest(testing_common.TestCase):
             'storyDisplayName': 'story',
             'type': 'TelemetryInfo'
         }, {
-            'angle': [],
-            'catapult': [],
-            'chromium': [],
-            'chromiumCommitPosition': [424242],
+            'values': [424242],
             'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'skia': [],
-            'type': 'RevisionInfo',
-            'v8': [],
-            'webrtc': []
+            'type': 'GenericSet'
         }, {
             'buildNumber': 0,
             'buildbotMasterName': '',
@@ -671,9 +625,11 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                'owners': 'cabb59fe-4bcf-4512-881c-d038c7a80635'
+                reserved_infos.OWNERS.name:
+                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
@@ -682,9 +638,11 @@ class AddHistogramsTest(testing_common.TestCase):
             'binBoundaries': [1, [1, 1000, 20]],
             'diagnostics': {
                 'buildbot': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-                'revisions': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
                 'telemetry': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                'owners': '7c5bd92f-4146-411b-9192-248ffc1be92c'
+                reserved_infos.OWNERS.name:
+                    '7c5bd92f-4146-411b-9192-248ffc1be92c'
             },
             'guid': 'bda61ae3-0178-43f8-8aec-3ab78b9a2e18',
             'name': 'foo',
@@ -745,19 +703,17 @@ class AddHistogramsTest(testing_common.TestCase):
   def testComputeRevision(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    revision_info = histogram_module.RevisionInfo({
-        'chromiumCommitPosition': [424242]
-    })
-    histograms.AddSharedDiagnostic('revisions', revision_info)
+    chromium_commit = histogram_module.GenericSet([424242])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     self.assertEqual(424242, add_histograms.ComputeRevision(histograms))
 
   def testComputeRevision_RaisesOnError(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    revision_info = histogram_module.RevisionInfo({
-        'chromiumCommitPosition': 424242
-    })
-    histograms.AddSharedDiagnostic('revisions', revision_info)
+    chromium_commit = histogram_module.GenericSet([424242, 0])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     with self.assertRaises(api_request_handler.BadRequestError):
       add_histograms.ComputeRevision(histograms)
 
