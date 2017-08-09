@@ -85,19 +85,6 @@ class LegacyPageTest(object):
     """
     return self._needs_browser_restart_after_each_page
 
-  def StopBrowserAfterPage(self, browser, page):
-    """Should the browser be stopped after the page is run?
-
-    This is called after a page is run to decide whether the browser needs to
-    be stopped to clean up its state. If it is stopped, then it will be
-    restarted to run the next page.
-
-    A test that overrides this can look at both the page and the browser to
-    decide whether it needs to stop the browser.
-    """
-    del browser, page  # unused
-    return False
-
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""
 

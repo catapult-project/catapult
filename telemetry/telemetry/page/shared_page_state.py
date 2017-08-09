@@ -164,10 +164,15 @@ class SharedPageState(story.SharedState):
       if self._current_page.credentials and self._did_login_for_current_page:
         self.browser.credentials.LoginNoLongerNeeded(
             self._current_tab, self._current_page.credentials)
-      if self._test.StopBrowserAfterPage(self.browser, self._current_page):
+      if self.ShouldStopBrowserAfterStoryRun():
         self._StopBrowser()
       self._current_page = None
       self._current_tab = None
+
+  def ShouldStopBrowserAfterStoryRun(self):
+    # TODO(crbug.com/748566): Provide a suitable implementation when not made
+    # redundant by the current tear down state after each story behavior.
+    return False
 
   @property
   def platform(self):
