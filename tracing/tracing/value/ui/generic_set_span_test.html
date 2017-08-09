@@ -18,5 +18,21 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
+
+  test('strings', function() {
+    const diagnostic = new tr.v.d.GenericSet([
+      'foo', 'bar', 1, 0, Infinity, NaN,
+    ]);
+    const span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+
+  test('numbers', function() {
+    const diagnostic = new tr.v.d.GenericSet([10, 1, 0, 2, 11]);
+    const span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
 });
 </script>

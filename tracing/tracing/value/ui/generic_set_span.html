@@ -10,12 +10,19 @@ found in the LICENSE file.
 <dom-module id="tr-v-ui-generic-set-span">
   <template>
     <tr-ui-a-generic-object-view id="generic"></tr-ui-a-generic-object-view>
+    <template is="dom-repeat" items="{{strings_}}">[[item]]<br></template>
   </template>
 
   <script>
   'use strict';
   Polymer({
     is: 'tr-v-ui-generic-set-span',
+
+    properties: {
+      strings_: {
+        type: Array,
+      },
+    },
 
     ready() {
       this.diagnostic_ = undefined;
@@ -35,8 +42,30 @@ found in the LICENSE file.
         this.$.generic.object = undefined;
         return;
       }
+      const values = Array.from(this.diagnostic);
 
-      this.$.generic.object = Array.from(this.diagnostic);
+      let areAllStrings = true;
+      let areAllNumbers = true;
+      for (const value of values) {
+        if (typeof value !== 'number') {
+          areAllNumbers = false;
+          if (typeof value !== 'string') {
+            areAllStrings = false;
+            break;
+          }
+        }
+      }
+
+      if (areAllStrings) {
+        if (areAllNumbers) {
+          values.sort((x, y) => x - y);
+        } else {
+          values.sort();
+        }
+        this.set('strings_', values);
+      } else {
+        this.$.generic.object = values;
+      }
     }
   });
   </script>
