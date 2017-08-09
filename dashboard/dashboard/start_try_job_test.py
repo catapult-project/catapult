@@ -65,6 +65,20 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
  }
 """
 
+_EXPECTED_PERF_CONFIG_TRACING_DIFF = """config = {
+-  'command': '',
+-  'metric': '',
+-  'repeat_count': '',
+-  'max_time_minutes': '',
++  "bad_revision": "215828",
++  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --pageset-repeat=1 --also-run-disabled-tests --extra-chrome-categories=toplevel --extra-atrace-categories=battor dromaeo.jslibstylejquery",
++  "good_revision": "215806",
++  "max_time_minutes": "60",
++  "repeat_count": "1",
++  "try_job_id": 1
+ }
+"""
+
 _FAKE_XSRF_TOKEN = '1234567890'
 
 _ISSUE_CREATED_RESPONSE = """Issue created. https://test-rietveld.appspot.com/33001
@@ -786,12 +800,38 @@ class StartBisectTest(testing_common.TestCase):
         'good_revision': '215806',
         'bad_revision': '215828',
         'step': 'perform-perf-try',
-        'rerun_option': '',
     }
     global _EXPECTED_CONFIG_DIFF
     global _TEST_EXPECTED_CONFIG_CONTENTS
     global _TEST_EXPECTED_BOT
     _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
+    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
+    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
+    response = self.testapp.post('/start_try_job', query_parameters)
+    self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
+      mock.MagicMock(side_effect=_MockMakeRequest))
+  def testPerformPerfTryWithTracing(self):
+    self.SetCurrentUser('foo@chromium.org')
+
+    query_parameters = {
+        'bisect_bot': 'linux_perf_bisect',
+        'suite': 'dromaeo.jslibstylejquery',
+        'good_revision': '215806',
+        'bad_revision': '215828',
+        'step': 'perform-perf-try',
+        'chrome_trace_filter_string': 'toplevel',
+        'atrace_filter_string': 'battor',
+    }
+    global _EXPECTED_CONFIG_DIFF
+    global _TEST_EXPECTED_CONFIG_CONTENTS
+    global _TEST_EXPECTED_BOT
+    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_TRACING_DIFF
     _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
     _TEST_EXPECTED_BOT = 'linux_perf_bisect'
     response = self.testapp.post('/start_try_job', query_parameters)
@@ -811,7 +851,6 @@ class StartBisectTest(testing_common.TestCase):
         'metric': 'jslib/jslib',
         'good_revision': '215806',
         'bad_revision': '215828',
-        'rerun_option': '',
     }
     global _EXPECTED_CONFIG_DIFF
     global _TEST_EXPECTED_CONFIG_CONTENTS
@@ -838,7 +877,6 @@ class StartBisectTest(testing_common.TestCase):
         'suite': 'dromaeo.jslibstylejquery',
         'good_revision': '215806',
         'bad_revision': '215828',
-        'rerun_option': '',
     }
     global _EXPECTED_CONFIG_DIFF
     global _TEST_EXPECTED_CONFIG_CONTENTS

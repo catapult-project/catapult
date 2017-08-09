@@ -212,7 +212,6 @@ def _DashboardJsonToRawRows(dash_json_dict):
   row_template = _MakeRowTemplate(dash_json_dict)
 
   benchmark_description = chart_data.get('benchmark_description', '')
-  trace_rerun_options = dict(chart_data.get('trace_rerun_options', []))
   is_ref = bool(dash_json_dict.get('is_ref'))
   rows = []
 
@@ -231,9 +230,6 @@ def _DashboardJsonToRawRows(dash_json_dict):
         if specific_vals['tracing_uri']:
           row['supplemental_columns']['a_tracing_uri'] = specific_vals[
               'tracing_uri']
-        if trace_rerun_options:
-          row['supplemental_columns']['a_trace_rerun_options'] = (
-              trace_rerun_options)
         row.update(specific_vals)
         rows.append(row)
 

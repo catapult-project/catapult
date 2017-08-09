@@ -68,8 +68,7 @@ class GraphJsonTest(testing_common.TestCase):
               parent=test_container_key, id=rev, value=float(i * 2),
               r_webkit=int(i * 0.25), a_str='some_string',
               buildnumber=i - start_rev,
-              a_tracing_uri='http://trace/%d' % i,
-              a_trace_rerun_options={'foo': '--foo'})
+              a_tracing_uri='http://trace/%d' % i)
           rows.append(row)
     ndb.put_multi(rows)
 
@@ -102,8 +101,7 @@ class GraphJsonTest(testing_common.TestCase):
             parent=test_container_key, id=i, value=float(i * 2),
             r_webkit=int(i * 0.25), a_str='some_string',
             buildnumber=i - start_rev,
-            a_tracing_uri='http://trace/%d' % i,
-            a_trace_rerun_options={'foo': '--foo'})
+            a_tracing_uri='http://trace/%d' % i)
         rows.append(row)
     ndb.put_multi(rows)
 
@@ -588,10 +586,6 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual('http://trace/15012',
                      annotations['0']['4']['a_tracing_uri'])
 
-    # Verify the tracing rerun options
-    self.assertEqual({'foo': '--foo'},
-                     annotations['0']['0']['a_trace_rerun_options'])
-
     # Verify the series annotations.
     self.assertEqual({
         '0': {
@@ -678,8 +672,7 @@ class GraphJsonTest(testing_common.TestCase):
             parent=sub_test_container_key, id=i, value=float(i * 2),
             r_webkit=int(i * 0.25), a_str='some_string',
             buildnumber=i - start_rev,
-            a_tracing_uri='http://trace/%d' % i,
-            a_trace_rerun_options={'foo': '--foo'})
+            a_tracing_uri='http://trace/%d' % i)
         rows.append(row)
     ndb.put_multi(rows)
 

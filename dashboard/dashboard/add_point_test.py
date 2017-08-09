@@ -1171,19 +1171,6 @@ class AddPointTest(testing_common.TestCase):
     self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
     self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
 
-  def testPost_WithBenchmarkRerunOptions_AddsTraceRerunOptions(self):
-    sample_json = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
-    sample_json['chart_data']['trace_rerun_options'] = [['foo', '--foo']]
-    data_param = json.dumps(sample_json)
-    self.testapp.post(
-        '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-
-    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-
-    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
-    self.assertEqual('--foo', rows[0].a_trace_rerun_options.foo)
-
   def testPost_FormatV1_CorrectlyAdded(self):
     """Tests that adding a chart causes the correct trace to be added."""
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_WITH_TRACE)

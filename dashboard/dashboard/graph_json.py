@@ -239,7 +239,6 @@ def _PointInfoDict(row, anomaly_annotation_map):
   """Makes a dict of properties of one Row."""
   point_info = {
       'value': row.value,
-      'a_trace_rerun_options': _GetTracingRerunOptions(row),
   }
 
   tracing_uri = _GetTracingUri(row)
@@ -382,20 +381,6 @@ def _GetTracingUri(point):
   if not hasattr(point, 'a_tracing_uri'):
     return None
   return point.a_tracing_uri
-
-
-def _GetTracingRerunOptions(point):
-  """Gets the trace rerun options, if available.
-
-  Args:
-    point: A Row entity.
-
-  Returns:
-    A dict of {description: params} strings, or None.
-  """
-  if not hasattr(point, 'a_trace_rerun_options'):
-    return None
-  return point.a_trace_rerun_options.to_dict()
 
 
 def _GetFlotJson(revision_map, tests):

@@ -37,14 +37,13 @@ See https://github.com/catapult-project/catapult/issues/1905
     <paper-button raised
         id="button"
         disabled$={{!traceInfo.canBisect}}
-        on-click="onTrace">Trace</paper-button>
+        on-click="onTrace">Request Debug Trace</paper-button>
     <trace-form
         id="trace"
         xsrf-token="{{xsrfToken}}"
         earlier-revision="{{traceInfo.goodRev}}"
         later-revision="{{traceInfo.badRev}}"
         test-path="{{traceInfo.testPath}}"
-        rerun-info="{{traceInfo.traceRerunInfo}}"
         bug-id="{{bugId}}"></trace-form>
   </template>
   <script>

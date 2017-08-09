@@ -2150,21 +2150,6 @@ triaging functionality in the chart.
             this.$.tooltip.recovered = annotation.g_anomaly.recovered;
           }
 
-          const traceRerunInfo = [];
-          if (annotation.a_trace_rerun_options) {
-            for (const i in annotation.a_trace_rerun_options) {
-              const currentOption = annotation.a_trace_rerun_options[i];
-              traceRerunInfo.push({
-                'name': i,
-                'option': currentOption
-              });
-            }
-          } else {
-            traceRerunInfo.push({
-              'name': 'Default Trace Profiler',
-              'option': '--profiler=trace'
-            });
-          }
           this.$.tooltip.bisectInfo = {
             canBisect: series.can_bisect,
             badRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex),
@@ -2177,8 +2162,7 @@ triaging functionality in the chart.
                 jsonSeriesIndex, dataIndex),
             goodRevRepo: this.getDefaultRevisionRepository(
                 jsonSeriesIndex, dataIndex - 1),
-            testPath: series.path,
-            traceRerunInfo
+            testPath: series.path
           };
 
           // Un-hide and position the tooltip box.

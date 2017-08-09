@@ -185,7 +185,9 @@ class StartBisectHandler(request_handler.RequestHandler):
         suite=self.request.get('suite'),
         good_revision=self.request.get('good_revision'),
         bad_revision=self.request.get('bad_revision'),
-        rerun_option=self.request.get('rerun_option'))
+        chrome_trace_filter_string=self.request.get(
+            'chrome_trace_filter_string'),
+        atrace_filter_string=self.request.get('atrace_filter_string'))
 
     if 'error' in perf_config:
       return perf_config
@@ -353,7 +355,8 @@ def GuessTargetArch(bisect_bot):
 
 
 def _GetPerfTryConfig(
-    bisect_bot, suite, good_revision, bad_revision, rerun_option=None):
+    bisect_bot, suite, good_revision, bad_revision,
+    chrome_trace_filter_string=None, atrace_filter_string=None):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
@@ -361,13 +364,16 @@ def _GetPerfTryConfig(
     suite: Test suite name.
     good_revision: Known good revision number.
     bad_revision: Known bad revision number.
-    rerun_option: Optional rerun command line parameter.
+    chrome_trace_filter_string: Argument to telemetry --extra-chrome-categories.
+    atrace_filter_string: Argument to telemetry --extra-atrace-categories.
 
   Returns:
     A dictionary with the result; if successful, this will contain "config",
     which is a config string; if there's an error, this will contain "error".
   """
-  command = GuessCommand(bisect_bot, suite, rerun_option=rerun_option)
+  command = GuessCommand(
+      bisect_bot, suite, chrome_trace_filter_string=chrome_trace_filter_string,
+      atrace_filter_string=atrace_filter_string)
   if not command:
     return {'error': 'Only Telemetry is supported at the moment.'}
 
@@ -431,11 +437,14 @@ def _IsNonTelemetrySuiteName(suite):
 
 
 def GuessCommand(
-    bisect_bot, suite, story_filter=None, rerun_option=None):
+    bisect_bot, suite, story_filter=None, chrome_trace_filter_string=None,
+    atrace_filter_string=None):
   """Returns a command to use in the bisect configuration."""
   if _IsNonTelemetrySuiteName(suite):
     return _GuessCommandNonTelemetry(suite, bisect_bot)
-  return _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option)
+  return _GuessCommandTelemetry(
+      suite, bisect_bot, story_filter, chrome_trace_filter_string,
+      atrace_filter_string)
 
 
 def _GuessCommandNonTelemetry(suite, bisect_bot):
@@ -468,7 +477,9 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
   return ' '.join(command)
 
 
-def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
+def _GuessCommandTelemetry(
+    suite, bisect_bot, story_filter, chrome_trace_filter_string,
+    atrace_filter_string):
   """Returns a command to use given that |suite| is a Telemetry benchmark."""
   command = []
 
@@ -492,6 +503,12 @@ def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
   if story_filter:
     command.append('--story-filter=%s' % pipes.quote(story_filter))
 
+  if chrome_trace_filter_string:
+    command.append('--extra-chrome-categories=%s' % chrome_trace_filter_string)
+
+  if atrace_filter_string:
+    command.append('--extra-atrace-categories=%s' % atrace_filter_string)
+
   # Test command might be a little different from the test name on the bots.
   if suite == 'blink_perf':
     test_name = 'blink_perf.all'
@@ -502,9 +519,6 @@ def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
   else:
     test_name = suite
   command.append(test_name)
-
-  if rerun_option:
-    command.append(rerun_option)
 
   return ' '.join(command)
 

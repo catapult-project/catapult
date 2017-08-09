@@ -10,7 +10,9 @@ the trace process after the user clicks on the trace button.
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
@@ -36,19 +38,14 @@ the trace process after the user clicks on the trace button.
           -webkit-justify-content: center;
         }
 
-        input[type=text], input[type=number] {
-          border-radius: 1px;
-          border: 1px solid #d9d9d9;
-          border-top: 1px solid #c0c0c0;
-          font-size: 13px;
-          height: 25px;  /* 29 px total height including padding + border */
-          width: 300px;
-          padding: 1px 2px;
-        }
-
         paper-button[dialog-confirm] {
           background: #4285f4;
           color: #fff;
+          margin-bottom: 5px;
+        }
+
+        paper-input {
+          width: 400px;
         }
       </style>
 
@@ -60,7 +57,7 @@ the trace process after the user clicks on the trace button.
           <tr>
             <td>Perf try bot:</td>
             <td>
-              <input type="text" list="bot-list" id="bot" value="{{bot::input}}">
+              <paper-input type="text" list="bot-list" id="bot" value="{{bot::input}}"></paper-input>
               <datalist id="bot-list">
                 <template is="dom-repeat" items="{{botList}}" as="name">
                   <option value="{{name}}"></option>
@@ -69,22 +66,26 @@ the trace process after the user clicks on the trace button.
             </td>
           </tr>
           <tr>
-            <td>Trace Options:</td>
+            <td><paper-checkbox checked="{{useChromeTraceFilterString::input}}"></paper-checkbox>Chrome trace <a href="https://cs.chromium.org/chromium/src/base/trace_event/trace_config.h?rcl=c8db6c6371ca047c24d41f3972d5819bc83d83ae&l=125" target="_blank">filter string</a>:</td>
             <td>
-              <select id="rerun-options">
-                <template is="dom-repeat" items="{{rerunInfo}}">
-                  <option value="{{item.option}}">{{item.name}}</option>
-                </template>
-              </select>
+               <paper-input value="{{chromeTraceFilterString::input}}"></paper-input>
             </td>
           </tr>
+          <template is="dom-if" if="{{computeIsAndroidBot(bot)}}">
+          <tr>
+            <td><paper-checkbox checked="{{useATraceFilterString::input}}"></paper-checkbox>Additional atrace categories (comma-separated):</td>
+            <td>
+               <paper-input value="{{aTraceFilterString::input}}"></paper-input>
+            </td>
+          </tr>
+          </template>
           <tr>
             <td>Earlier revision:</td>
-            <td><input type="text" value="{{earlierRevision::input}}"></td>
+            <td><paper-input type="text" value="{{earlierRevision::input}}"></paper-input></td>
           </tr>
           <tr>
             <td>Later revision:</td>
-            <td><input type="text" value="{{laterRevision::input}}"></td>
+            <td><paper-input type="text" value="{{laterRevision::input}}"></paper-input></td>
           </tr>
         </table>
       </form>
@@ -141,12 +142,12 @@ the trace process after the user clicks on the trace button.
             notify: true,
             observer: 'laterRevisionChanged'
           },
-          rerunInfo: { notify: true },
           testPath: { notify: true },
           xsrfToken: { notify: true }
         },
 
         computeHasError: errorMessage => !!errorMessage,
+        computeIsAndroidBot(bot) { return bot.indexOf('android') != -1; },
 
         /**
          * Initializes and shows the trace form.
@@ -162,12 +163,18 @@ the trace process after the user clicks on the trace button.
                 'xsrf_token': this.xsrfToken
               },
               function successCallback(info) {
+                this.aTraceFilterString =
+                  'sched,freq,gfx,view,dalvik,webview,input,disk,am,' +
+                  'wm,rs,binder_driver';
+                this.useATraceFilterString = false;
+                this.chromeTraceFilterString =
+                  'toplevel,disabled-by-default-toplevel.flow';
+                this.useChromeTraceFilterString = true;
                 this.bot = info.bisect_bot;
                 this.botList = info.all_bots;
 
                 Polymer.dom.flush();
 
-                this.email = info.email;
                 this.suite = info.suite;
                 this.page = info.page;
                 this.loading = false;
@@ -179,17 +186,6 @@ the trace process after the user clicks on the trace button.
                 });
                 this.close();
               }.bind(this));
-        },
-
-        /**
-         * Gets the currently selected rerun option from the select menu.
-         */
-        getRerunOptions() {
-          const selected = this.$['rerun-options'].selectedOptions[0];
-          if (selected) {
-            return selected.value;
-          }
-          return null;
         },
 
         /**
@@ -205,11 +201,16 @@ the trace process after the user clicks on the trace button.
             'good_revision': this.earlierRevision,
             'bad_revision': this.laterRevision,
             'page': this.page,
-            'rerun_option': this.getRerunOptions(),
-            'xsrf_token': this.xsrfToken
+            'xsrf_token': this.xsrfToken,
           };
           if (this.bugId) {
             params.bug_id = this.bugId;
+          }
+          if (this.useChromeTraceFilterString) {
+            params.chrome_trace_filter_string = this.chromeTraceFilterString;
+          }
+          if (this.useATraceFilterString) {
+            params.atrace_filter_string = this.aTraceFilterString;
           }
           simple_xhr.send(
               '/start_try_job', params,
