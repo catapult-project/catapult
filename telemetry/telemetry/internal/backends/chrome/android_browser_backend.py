@@ -151,8 +151,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         raise
 
       try:
-        self._WaitForBrowserToComeUp()
-        self._InitDevtoolsClientBackend(remote_devtools_port)
+        self._WaitForBrowserToComeUp(remote_devtools_port)
       except exceptions.BrowserGoneException:
         logging.critical('Failed to connect to browser.')
         if not (self.device.HasRoot() or self.device.NeedsSU()):

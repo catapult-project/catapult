@@ -168,7 +168,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Wait for new chrome and oobe.
     py_utils.WaitFor(lambda: pid != self.pid, 15)
     self._WaitForBrowserToComeUp()
-    self._InitDevtoolsClientBackend()
     py_utils.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:

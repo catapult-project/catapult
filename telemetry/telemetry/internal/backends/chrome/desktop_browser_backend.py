@@ -321,7 +321,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'osascript', '-e',
             ('tell application "%s" to activate' % self._executable)
         ])
-      self._InitDevtoolsClientBackend()
       if self._supports_extensions:
         self._WaitForExtensionsToLoad()
     except:
