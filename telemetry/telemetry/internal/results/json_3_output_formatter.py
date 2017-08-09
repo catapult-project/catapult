@@ -60,6 +60,11 @@ def ResultsAsDict(page_test_results):
       if expected not in test['expected']:
         test['expected'] += (' ' + expected)
 
+    if 'is_unexpected' not in test:
+      test['is_unexpected'] = status != expected
+    else:
+      test['is_unexpected'] = test['is_unexpected'] or status != expected
+
   result_dict['num_failures_by_type'] = dict(status_counter)
   return result_dict
 

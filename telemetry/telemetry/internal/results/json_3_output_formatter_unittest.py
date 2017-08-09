@@ -200,10 +200,12 @@ class Json3OutputFormatterTest(unittest.TestCase):
     foo_story_result = d['tests']['benchmark_name']['Foo']
     self.assertEquals(foo_story_result['actual'], 'PASS SKIP')
     self.assertEquals(foo_story_result['expected'], 'PASS SKIP')
+    self.assertFalse(foo_story_result['is_unexpected'])
 
     bar_story_result = d['tests']['benchmark_name']['Bar']
     self.assertEquals(bar_story_result['actual'], 'PASS FAIL')
     self.assertEquals(bar_story_result['expected'], 'PASS')
+    self.assertTrue(bar_story_result['is_unexpected'])
 
     self.assertEquals(
         d['num_failures_by_type'], {'PASS': 2, 'FAIL': 1, 'SKIP': 1})
@@ -279,7 +281,8 @@ class Json3OutputFormatterTest(unittest.TestCase):
         'test_benchmark': {
             'Foo': {
                 'actual': 'PASS',
-                'expected': 'PASS'
+                'expected': 'PASS',
+                'is_unexpected': False
             }
         }
     })
