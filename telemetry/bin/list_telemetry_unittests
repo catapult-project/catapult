@@ -21,6 +21,9 @@ def _ExtractPassedTestNameAndTime(line):
   return test_name, test_time
 
 
+def _ExtractSkippedTestName(line):
+  return line.split(' ')[1]
+
 def _IsQueued(line):
   return line.endswith(' queued')
 
@@ -29,9 +32,14 @@ def _IsPassed(line):
   return 'passed' in line.split(' ')
 
 
+def _IsSkipped(line):
+  return ' was skipped ' in line.strip()
+
+
 def _ProcessLogFile(file_path):
   passed_unittests = []
   queued_unittests = []
+  skipped_unittests = []
   with open(file_path, 'r') as f:
     for line in f:
       line = line.strip()
@@ -41,9 +49,12 @@ def _ProcessLogFile(file_path):
         queued_unittests.append(_ExtractQueuedTestName(line))
       elif _IsPassed(line):
         passed_unittests.append(_ExtractPassedTestNameAndTime(line))
+      elif _IsSkipped(line):
+        skipped_unittests.append(_ExtractSkippedTestName(line))
   queued_unittests.sort()
   passed_unittests.sort(key=lambda v: -v[1])
-  return queued_unittests, passed_unittests
+  skipped_unittests.sort()
+  return queued_unittests, passed_unittests, skipped_unittests
 
 
 def main(args):
@@ -52,17 +63,25 @@ def main(args):
                    'or queued tests.'))
   parser.add_argument(
       'filepath', help='path to log file of telemetry unittest')
-  parser.add_argument(
-      '-q', '--list-queued-tests', action='store_true',
-      help='Also list all the queued telemetry unittests')
   options = parser.parse_args(args)
-  queued_unittests, passed_unittests = _ProcessLogFile(options.filepath)
-  print 'All passed telemetry unittests:\n'
+  queued_unittests, passed_unittests, skipped_unittests = (
+      _ProcessLogFile(options.filepath))
+  print '********** All passed telemetry unittests:\n'
   for test, time in passed_unittests:
       print test, time
-  if options.list_queued_tests:
-    print 'All queued telemetry unittests:\n'
-    print '\n'.join(queued_unittests)
+  print
+  print '******** All skipped telemetry unittests:\n'
+  print '\n'.join(skipped_unittests)
+
+  unfinished_tests = []
+  passed_unittests_names = [t[0] for t in passed_unittests]
+  for t in queued_unittests:
+    if t not in skipped_unittests and t not in passed_unittests_names:
+      unfinished_tests.append(t)
+
+  print
+  print '******* Unfinished telemetry unittests:\n'
+  print '\n'.join(unfinished_tests)
   return 0
 
 
