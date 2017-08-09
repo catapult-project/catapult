@@ -209,13 +209,11 @@ class SharedPageState(story.SharedState):
 
     page_set = page.page_set
     self._current_page = page
-    if self._browser and (self._test.RestartBrowserBeforeEachPage()
-                          or page.startup_url):
+    if self._browser and page.startup_url:
       assert not self.platform.tracing_controller.is_tracing_running, (
           'Should not restart browser when tracing is already running. For '
           'TimelineBasedMeasurement (TBM) benchmarks, you should not use '
-          'startup_url. Use benchmark.ShouldTearDownStateAfterEachStoryRun '
-          'instead.')
+          'startup_url.')
       self._StopBrowser()
     started_browser = not self.browser
 

@@ -50,14 +50,10 @@ class LegacyPageTest(object):
 
   __metaclass__ = trace_event.TracedMetaClass
 
-  def __init__(self,
-               needs_browser_restart_after_each_page=False,
-               clear_cache_before_each_run=False):
+  def __init__(self, clear_cache_before_each_run=False):
     super(LegacyPageTest, self).__init__()
 
     self.options = None
-    self._needs_browser_restart_after_each_page = (
-        needs_browser_restart_after_each_page)
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
 
@@ -76,14 +72,6 @@ class LegacyPageTest(object):
   @close_tabs_before_run.setter
   def close_tabs_before_run(self, close_tabs):
     self._close_tabs_before_run = close_tabs
-
-  def RestartBrowserBeforeEachPage(self):
-    """ Should the browser be restarted for the page?
-
-    This returns true if the test needs to unconditionally restart the
-    browser for each page. It may be called before the browser is started.
-    """
-    return self._needs_browser_restart_after_each_page
 
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""

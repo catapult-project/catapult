@@ -141,51 +141,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                       msg='Full formatted exception: %s' % '\n   > '.join(
                           self.formatted_exception.split('\n')))
 
-  def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
-    self.CaptureFormattedException()
-    story_set = story.StorySet()
-    story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-        name='foo'))
-    story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-        name='bar'))
-    story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-        name='baz'))
-
-    class Test(legacy_page_test.LegacyPageTest):
-
-      def __init__(self, *args):
-        super(Test, self).__init__(
-            *args, needs_browser_restart_after_each_page=True)
-        self.run_count = 0
-
-      def RestartBrowserBeforeEachPage(self):
-        # This will only be called twice with 3 pages.
-        old_run_count = self.run_count
-        self.run_count += 1
-        if old_run_count == 1:
-          raise exceptions.BrowserGoneException(None)
-        return self._needs_browser_restart_after_each_page
-
-      def ValidateAndMeasurePage(self, page, tab, results):
-        pass
-
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    test = Test()
-    SetUpStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(
-        test, story_set, options, results, metadata=EmptyMetadataForTest())
-    self.assertEquals(2, test.run_count)
-    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(1, len(results.failures))
-    self.assertFormattedExceptionIsEmpty()
-
-  def testNeedsBrowserRestartAfterEachPage(self):
+  def testBrowserRestartsAfterEachPage(self):
     self.CaptureFormattedException()
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
@@ -211,11 +167,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    test = Test(needs_browser_restart_after_each_page=True)
+    test = Test()
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(
-        test, story_set, options, results, metadata=EmptyMetadataForTest())
+        test, story_set, options, results, tear_down_after_story=True,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
