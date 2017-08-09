@@ -15,8 +15,10 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -37,6 +39,82 @@ func TestMain(m *testing.M) {
 		os.RemoveAll(tmpdir)
 	}
 	os.Exit(ret)
+}
+
+func TestDoNotSaveDeterministicJS(t *testing.T) {
+	archiveFile := filepath.Join(tmpdir, "TestDoNotSaveDeterministicjs.json")
+	originalBody := "<html><head></head><p>hello!</p></html>"
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/":
+			w.Header().Set("Cache-Control", "public, max-age=3600")
+			w.Header().Set("Content-Type", "text/html")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, originalBody)
+		default:
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, "default response")
+		}
+	}))
+	defer origin.Close()
+
+	// Start a proxy for the origin server that will construct an archive file.
+	recordArchive, err := OpenWritableArchive(archiveFile)
+	if err != nil {
+		t.Fatalf("OpenWritableArchive: %v", err)
+	}
+	now := time.Now().AddDate(0, 0, -1).Unix() * 1000
+	replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(now, 10)}
+
+	si, err := NewScriptInjectorFromFile("../../deterministic.js", replacements)
+	if err != nil {
+		t.Fatalf("failed to create script injector: %v", err)
+	}
+	transformers := []ResponseTransformer{si}
+	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers))
+	recordTransport := &http.Transport{
+		Proxy: func(*http.Request) (*url.URL, error) {
+			return url.Parse(recordServer.URL)
+		},
+	}
+
+	u := origin.URL + "/"
+	req := httptest.NewRequest("GET", u, nil)
+	resp, err := recordTransport.RoundTrip(req)
+	if err != nil {
+		t.Fatalf("unexpected error : %v", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	fmt.Printf("body: %s", string(body))
+	if err != nil {
+		t.Fatalf("unexpected error : %v", err)
+	}
+	// Shutdown and flush the archive.
+	recordServer.Close()
+	if err := recordArchive.Close(); err != nil {
+		t.Fatalf("CloseArchive: %v", err)
+	}
+	// Open a replay server using the saved archive.
+	replayArchive, err := OpenArchive(archiveFile)
+	if err != nil {
+		t.Fatalf("OpenArchive: %v", err)
+	}
+	_, recordedResp, err := replayArchive.FindRequest(req, "http")
+	if err != nil {
+		t.Fatalf("unexpected error : %v", err)
+	}
+	defer recordedResp.Body.Close()
+	recordedBody, err := ioutil.ReadAll(recordedResp.Body)
+	if err != nil {
+		t.Fatalf("unexpected error : %v", err)
+	}
+	if got, want := string(recordedBody), originalBody; got != want {
+		t.Errorf("response doesn't match:\n%q\n%q", got, want)
+	}
+	if reflect.DeepEqual(body, recordedBody) {
+		t.Fatal("served response body and recorded response body should not be equal")
+	}
 }
 
 func TestEndToEnd(t *testing.T) {

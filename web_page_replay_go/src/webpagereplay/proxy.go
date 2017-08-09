@@ -108,7 +108,7 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	}
 
 	// Forward the response.
-	logf("serving %v response (http2: %v)", storedResp.StatusCode)
+	logf("serving %v response", storedResp.StatusCode)
 	for k, v := range storedResp.Header {
 		w.Header()[k] = append([]string{}, v...)
 	}
@@ -186,11 +186,6 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		}
 	}
 
-	// Transform.
-	for _, t := range proxy.transformers {
-		t.Transform(req, resp)
-	}
-
 	// Copy the entire response body.
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -198,23 +193,38 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	}
 	resp.Body.Close()
 
-	// Forward the response.
-	logf("serving %v, %v bytes", resp.StatusCode, len(responseBody))
-	for k, v := range resp.Header {
-		w.Header()[k] = append([]string{}, v...)
+	// Restore req body (which was consumed by RoundTrip) and record original response without transformation.
+	resp.Body = ioutil.NopCloser(bytes.NewReader(responseBody))
+	if req.Body != nil {
+		req.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 	}
-	w.WriteHeader(resp.StatusCode)
-	if n, err := io.Copy(w, bytes.NewReader(responseBody)); err != nil {
-		logf("warning: client response truncated (%d/%d bytes): %v", n, len(responseBody), err)
+	if err := proxy.a.RecordRequest(proxy.scheme, req, resp); err != nil {
+		logf("failed recording request: %v", err)
 	}
 
-	// Restore the req/resp body before archiving.
-	// The req body was consumed by RoundTrip, and the resp body was consumed by the above io.Copy.
+	// Restore req and response body which are consumed by RecordRequest.
 	if req.Body != nil {
 		req.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 	}
 	resp.Body = ioutil.NopCloser(bytes.NewReader(responseBody))
-	if err := proxy.a.RecordRequest(proxy.scheme, req, resp); err != nil {
-		logf("failed recording request: %v", err)
+
+	// Transform.
+	for _, t := range proxy.transformers {
+		t.Transform(req, resp)
+	}
+
+	responseBodyAfterTransform, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logf("warning: transformed response truncated: %v", err)
+	}
+
+	// Forward the response.
+	logf("serving %d, %d bytes", resp.StatusCode, len(responseBodyAfterTransform))
+	for k, v := range resp.Header {
+		w.Header()[k] = append([]string{}, v...)
+	}
+	w.WriteHeader(resp.StatusCode)
+	if n, err := io.Copy(w, bytes.NewReader(responseBodyAfterTransform)); err != nil {
+		logf("warning: client response truncated (%d/%d bytes): %v", n, len(responseBodyAfterTransform), err)
 	}
 }
