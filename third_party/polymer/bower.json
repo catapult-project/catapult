@@ -17,6 +17,7 @@
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.0.0",
     "paper-input": "PolymerElements/paper-input#^1.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0",
+    "paper-tabs": "PolymerElements/paper-tabs#^2.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-tooltip": "PolymerElements/paper-tooltip#^1.0.0",
     "polymer": "Polymer/polymer#^1.0.0",
