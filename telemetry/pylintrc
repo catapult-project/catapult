@@ -10,8 +10,8 @@ disable=
   
   
   fixme,
-  
-  interface-not-implemented,
+
+
   invalid-name,
   locally-disabled,
   locally-enabled,
