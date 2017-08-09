@@ -20,17 +20,9 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import reserved_infos
 
-SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set(
-    [reserved_infos.ARCHITECTURES.name,
-     reserved_infos.BUG_COMPONENTS.name,
-     reserved_infos.GPUS.name,
-     reserved_infos.MEMORY_AMOUNTS.name,
-     reserved_infos.OS_NAMES.name,
-     reserved_infos.OS_VERSIONS.name,
-     reserved_infos.OWNERS.name,
-     reserved_infos.PRODUCT_VERSIONS.name])
-# TODO(#3507): Make BuildbotInfo into GenericSet diagnostics and remove all
-# logic regarding picking diagnostics by type.
+# TODO(#3718): Use names along with types to create sparse diagnostics, add here
+# owners and bug components as sparse level diagnostics. Do the same for the
+# diagnostics describing device information.
 SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
     [histogram_module.BuildbotInfo])
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
@@ -76,27 +68,15 @@ def ProcessHistogramSet(histogram_dicts):
   suite_key = GetSuiteKey(histograms)
 
   suite_level_sparse_diagnostic_entities = []
-  diagnostic_names_added = {}
-
-  # We'll skip the histogram-level sparse diagnostics because we need to
-  # handle those with the histograms, below, so that we can properly assign
-  # test paths.
-  for hist in histograms:
-    for name, diag in hist.diagnostics.iteritems():
-      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
-        if diagnostic_names_added.get(name) is None:
-          diagnostic_names_added[name] = diag.guid
-
-        if diagnostic_names_added.get(name) != diag.guid:
-          raise ValueError(
-              name + ' diagnostics must be the same for all histograms')
-
-      if (name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES or
-          type(diag) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES):
-        suite_level_sparse_diagnostic_entities.append(
-            histogram.SparseDiagnostic(
-                id=diag.guid, data=diag.AsDict(), test=suite_key,
-                start_revision=revision, end_revision=sys.maxint, name=name))
+  for diag in histograms.shared_diagnostics:
+    # We'll skip the histogram-level sparse diagnostics because we need to
+    # handle those with the histograms, below, so that we can properly assign
+    # test paths.
+    if type(diag) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+      suite_level_sparse_diagnostic_entities.append(
+          histogram.SparseDiagnostic(
+              id=diag.guid, data=diag.AsDict(), test=suite_key,
+              start_revision=revision, end_revision=sys.maxint))
 
   # TODO(eakuefner): Refactor master/bot computation to happen above this line
   # so that we can replace with a DiagnosticRef rather than a full diagnostic.
@@ -244,7 +224,6 @@ def InlineDenseSharedDiagnostics(histograms):
   # TODO(eakuefner): Delete inlined diagnostics from the set
   for hist in histograms:
     diagnostics = hist.diagnostics
-    for name, diag in diagnostics.iteritems():
-      if (type(diag) not in SPARSE_DIAGNOSTIC_TYPES and
-          name not in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES):
+    for diag in diagnostics.itervalues():
+      if type(diag) not in SPARSE_DIAGNOSTIC_TYPES:
         diag.Inline()
