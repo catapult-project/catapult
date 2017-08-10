@@ -110,13 +110,13 @@ class BenchmarkTest(unittest.TestCase):
         return False
 
     original_run_fn = story_runner.Run
-    validPredicate = [False]
+    valid_predicate = [False]
 
     def RunStub(test, story_set_module, finder_options, results,
                 *args, **kwargs): # pylint: disable=unused-argument
       predicate = results._value_can_be_added_predicate
       valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate
-      validPredicate[0] = valid
+      valid_predicate[0] = valid
 
     story_runner.Run = RunStub
 
@@ -133,7 +133,7 @@ class BenchmarkTest(unittest.TestCase):
     finally:
       story_runner.Run = original_run_fn
 
-    self.assertTrue(validPredicate[0])
+    self.assertTrue(valid_predicate[0])
 
   def testBenchmarkExpectations(self):
     b = TestBenchmark(story_module.Story(
@@ -162,19 +162,19 @@ class BenchmarkTest(unittest.TestCase):
       def Name(cls):
         return "baz"
 
-    fooOwnersDiagnostic = FooBenchmark(None).GetOwners()
-    barOwnersDiagnostic = BarBenchmark(None).GetOwners()
-    bazOwnersDiagnostic = BazBenchmark(None).GetOwners()
+    foo_owners_diagnostic = FooBenchmark(None).GetOwners()
+    bar_owners_diagnostic = BarBenchmark(None).GetOwners()
+    baz_owners_diagnostic = BazBenchmark(None).GetOwners()
 
-    self.assertIsInstance(fooOwnersDiagnostic, histogram.GenericSet)
-    self.assertIsInstance(barOwnersDiagnostic, histogram.GenericSet)
-    self.assertIsInstance(bazOwnersDiagnostic, histogram.GenericSet)
+    self.assertIsInstance(foo_owners_diagnostic, histogram.GenericSet)
+    self.assertIsInstance(bar_owners_diagnostic, histogram.GenericSet)
+    self.assertIsInstance(baz_owners_diagnostic, histogram.GenericSet)
 
-    self.assertEqual(fooOwnersDiagnostic.AsDict()['values'],
+    self.assertEqual(foo_owners_diagnostic.AsDict()['values'],
                      ['alice@chromium.org'])
-    self.assertEqual(barOwnersDiagnostic.AsDict()['values'],
+    self.assertEqual(bar_owners_diagnostic.AsDict()['values'],
                      ['bob@chromium.org', 'ben@chromium.org'])
-    self.assertEqual(bazOwnersDiagnostic.AsDict()['values'], [])
+    self.assertEqual(baz_owners_diagnostic.AsDict()['values'], [])
 
   def testGetBugComponents(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
@@ -189,14 +189,14 @@ class BenchmarkTest(unittest.TestCase):
       def Name(cls):
         return "bar"
 
-    fooBugComponentsDiagnostic = FooBenchmark(None).GetBugComponents()
-    barBugComponentsDiagnostic = BarBenchmark(None).GetBugComponents()
+    foo_bug_components_diagnostic = FooBenchmark(None).GetBugComponents()
+    bar_bug_components_diagnostic = BarBenchmark(None).GetBugComponents()
 
-    self.assertIsInstance(fooBugComponentsDiagnostic, histogram.GenericSet)
-    self.assertIsInstance(barBugComponentsDiagnostic, histogram.GenericSet)
+    self.assertIsInstance(foo_bug_components_diagnostic, histogram.GenericSet)
+    self.assertIsInstance(bar_bug_components_diagnostic, histogram.GenericSet)
 
-    self.assertEqual(list(fooBugComponentsDiagnostic), [])
-    self.assertEqual(list(barBugComponentsDiagnostic), ['xyzzyx'])
+    self.assertEqual(list(foo_bug_components_diagnostic), [])
+    self.assertEqual(list(bar_bug_components_diagnostic), ['xyzzyx'])
 
   def testGetTBMOptionsSupportsLegacyName(self):
     class TbmBenchmark(benchmark.Benchmark):

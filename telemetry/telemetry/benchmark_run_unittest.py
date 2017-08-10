@@ -20,7 +20,7 @@ class DummyPageTest(legacy_page_test.LegacyPageTest):
     # Without disabling the above warning, this complains that
     # ValidateAndMeasurePage is abstract; but defining it complains
     # that its definition is overridden here.
-    self.ValidateAndMeasurePage = mock.Mock()
+    self.ValidateAndMeasurePage = mock.Mock() # pylint: disable=invalid-name
 
 
 # More end-to-end tests of Benchmark, shared_page_state and associated
@@ -36,8 +36,8 @@ class FakePage(page_module.Page):
         name='fake page',
         page_set=page_set,
         shared_page_state_class=fakes.FakeSharedPageState)
-    self.RunNavigateSteps = mock.Mock()
-    self.RunPageInteractions = mock.Mock()
+    self.RunNavigateSteps = mock.Mock() # pylint: disable=invalid-name
+    self.RunPageInteractions = mock.Mock() # pylint: disable=invalid-name
 
 
 class FakeBenchmark(benchmark_module.Benchmark):
@@ -78,7 +78,7 @@ class FailingPage(FakePage):
 
 class BenchmarkRunTest(unittest.TestCase):
 
-  def setupBenchmark(self):
+  def setupBenchmark(self): # pylint: disable=invalid-name
     finder_options = fakes.CreateBrowserFinderOptions()
     finder_options.browser_options.platform = fakes.FakeLinuxPlatform()
     finder_options.output_formats = ['none']

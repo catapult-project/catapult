@@ -12,12 +12,12 @@ import sys
 import telemetry
 from telemetry.core import util
 
-telemetry_dir = util.GetTelemetryDir()
-docs_dir = os.path.join(telemetry_dir, 'docs', 'pydoc')
+TELEMETRY_DIR = util.GetTelemetryDir()
+DOCS_DIR = os.path.join(TELEMETRY_DIR, 'docs', 'pydoc')
 
 
 def RemoveAllDocs():
-  for dirname, _, filenames in os.walk(docs_dir):
+  for dirname, _, filenames in os.walk(DOCS_DIR):
     for filename in filenames:
       os.remove(os.path.join(dirname, filename))
 
@@ -28,7 +28,7 @@ def GenerateHTMLForModule(module):
 
   # pydoc writes out html with links in a variety of funky ways. We need
   # to fix them up.
-  assert not telemetry_dir.endswith(os.sep)
+  assert not TELEMETRY_DIR.endswith(os.sep)
   links = re.findall('(<a href="(.+?)">(.+?)</a>)', html)
   for link_match in links:
     link, href, link_text = link_match
@@ -36,24 +36,24 @@ def GenerateHTMLForModule(module):
       continue
 
     new_href = href.replace('file:', '')
-    new_href = new_href.replace(telemetry_dir, '..')
+    new_href = new_href.replace(TELEMETRY_DIR, '..')
     new_href = new_href.replace(os.sep, '/')
 
-    new_link_text = link_text.replace(telemetry_dir + os.sep, '')
+    new_link_text = link_text.replace(TELEMETRY_DIR + os.sep, '')
 
     new_link = '<a href="%s">%s</a>' % (new_href, new_link_text)
     html = html.replace(link, new_link)
 
   # pydoc writes out html with absolute path file links. This is not suitable
   # for checked in documentation. So, fix up the HTML after it is generated.
-  #html = re.sub('href="file:%s' % telemetry_dir, 'href="..', html)
-  #html = re.sub(telemetry_dir + os.sep, '', html)
+  #html = re.sub('href="file:%s' % TELEMETRY_DIR, 'href="..', html)
+  #html = re.sub(TELEMETRY_DIR + os.sep, '', html)
   return html
 
 
 def WriteHTMLForModule(module):
   page = GenerateHTMLForModule(module)
-  path = os.path.join(docs_dir, '%s.html' % module.__name__)
+  path = os.path.join(DOCS_DIR, '%s.html' % module.__name__)
   with open(path, 'w') as f:
     sys.stderr.write('Wrote %s\n' % os.path.relpath(path))
     f.write(page)
@@ -95,7 +95,7 @@ class AlreadyDocumentedModule(object):
 
 def GetAlreadyDocumentedModules():
   modules = []
-  for dirname, _, filenames in os.walk(docs_dir):
+  for dirname, _, filenames in os.walk(DOCS_DIR):
     for filename in filenames:
       path = os.path.join(dirname, filename)
       modules.append(AlreadyDocumentedModule(path))
@@ -146,13 +146,13 @@ def Main(args):
   else:
     logging.getLogger().setLevel(logging.WARNING)
 
-  assert os.path.isdir(docs_dir), '%s does not exist' % docs_dir
+  assert os.path.isdir(DOCS_DIR), '%s does not exist' % DOCS_DIR
 
   RemoveAllDocs()
 
   old_cwd = os.getcwd()
   try:
-    os.chdir(telemetry_dir)
+    os.chdir(TELEMETRY_DIR)
     for module in GetAllModulesToDocument(telemetry):
       WriteHTMLForModule(module)
   finally:
