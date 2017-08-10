@@ -36,7 +36,7 @@ def _GetResults(trace_results, controller, output, compress, write_json,
   trace_results = output_generator.MergeTraceResultsIfNeeded(trace_results)
   if not write_json:
     ui.PrintMessage('Writing trace HTML...')
-    html_file = trace_results[0].source_name + '.html'
+    html_file = output or trace_results[0].source_name + '.html'
     result = output_generator.GenerateHTMLOutput(trace_results, html_file)
     ui.PrintMessage('\nWrote file://%s' % result)
   elif compress and len(trace_results) == 1:
