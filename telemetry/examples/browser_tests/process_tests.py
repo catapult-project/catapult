@@ -47,7 +47,7 @@ class FailIfTearDownProcessCalledTwice(
     pass
 
 
-def load_tests(loader, tests, pattern):
+def load_tests(loader, tests, pattern): # pylint: disable=invalid-name
   del loader, tests, pattern  # Unused.
   return serially_executed_browser_test_case.LoadAllTestsInModule(
       sys.modules[__name__])
