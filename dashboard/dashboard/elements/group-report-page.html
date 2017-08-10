@@ -215,6 +215,15 @@ found in the LICENSE file.
           value: true
         },
       },
+
+      listeners: {
+        openReportPage: 'openReportPage_',
+      },
+
+      openReportPage_(event) {
+        window.open(event.detail.url, '_blank');
+      },
+
       get alertsTable() {
         return this.$['alerts-table'];
       },

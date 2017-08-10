@@ -18,6 +18,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/uri.html">
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 
 <script>
 'use strict';
@@ -101,6 +102,26 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(chart.seriesGroupList[0].tests[0].displayName, 'dom');
     assert.strictEqual(chart.seriesGroupList[0].tests[1].displayName,
         'http___dromaeo.com?dom-attr');
+  }, testOptions);
+
+  test('populateTestPicker', function() {
+    testing_common.mockChartJson(dromaeoCharts);
+    const chart = createChart();
+    this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeoCharts.graphParams);
+    let ptpEventCount = 0;
+    chart.addEventListener('populateTestPicker', function() {
+      ++ptpEventCount;
+    });
+    let orpEventCount = 0;
+    chart.addEventListener('openReportPage', function() {
+      ++orpEventCount;
+    });
+    const ptpButton = tr.ui.b.findDeepElementMatching(chart,
+        'paper-button[title="Populate test picker"]');
+    ptpButton.click();
+    assert.strictEqual(ptpEventCount, 1);
+    assert.strictEqual(orpEventCount, 1);
   }, testOptions);
 });
 </script>

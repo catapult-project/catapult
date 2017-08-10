@@ -2695,8 +2695,52 @@ triaging functionality in the chart.
 
         listeners: {
           drop: 'onDrop',
-          dragover: 'allowDrop'
-        }
+          dragover: 'allowDrop',
+          populateTestPicker: 'populateTestPicker_',
+        },
+
+        populateTestPicker_(event) {
+          // chart-container is contained in both report-page, which has a
+          // test-picker, and group-report-page, which does not.
+          // Allow this event to bubble up to report-page to populate its
+          // test-picker.
+          // Also fire openReportPage to allow group-report-page to open /report
+          // in a new window.
+
+          const query = {
+            masters: new Set(),
+            bots: new Set(),
+            tests: new Set(),
+            checked: new Set(),
+          };
+
+          for (const testPath of event.srcElement.getTestPaths()) {
+            const parts = testPath.split('/');
+            query.masters.add(parts[0]);
+            query.bots.add(parts[1]);
+            query.tests.add(parts.slice(2).join('/'));
+          }
+
+          for (const seriesGroup of this.seriesGroupList) {
+            for (const test of seriesGroup.tests) {
+              if (!test.selected) continue;
+              query.checked.add(test.name);
+            }
+          }
+
+          query.start_rev = [this.$.slider.startrev];
+          query.end_rev = [this.$.slider.endrev];
+
+          const queryParts = [];
+          for (const [name, value] of Object.entries(query)) {
+            const encodedValue = window.encodeURIComponent(
+                Array.from(value).join(','));
+            queryParts.push(name + '=' + encodedValue);
+          }
+
+          const url = window.location.origin + '/report?' + queryParts.join('&');
+          this.fire('openReportPage', {url});
+        },
       });
     })();
   </script>
