@@ -14,6 +14,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/elements/chart-legend-tooltip.html">
 
+<link rel="import" href="/tracing/base/timing.html">
+
 <dom-module id="chart-legend">
   <template>
     <style include="iron-flex iron-flex-alignment">
@@ -302,6 +304,8 @@ found in the LICENSE file.
        * Event handler for the change event of any of the checkboxes.
        */
       onCheckboxClicked(event, detail) {
+        const onCheckboxClickedMark = tr.b.Timing.mark(
+            'chart-legend', 'onCheckboxClicked');
         const test = event.model.test;
         const seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
         const testIndex = this.getTestIndexInSeriesGroup(
@@ -315,6 +319,7 @@ found in the LICENSE file.
         this.updateSeriesGroupCheckedState(seriesGroupIndex);
         this.updateNumHidden(seriesGroupIndex);
         this.fireChartStateChangedEvent();
+        onCheckboxClickedMark.end();
       },
 
       /**

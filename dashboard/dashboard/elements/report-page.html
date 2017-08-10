@@ -11,6 +11,8 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
+<link rel="import" href="/tracing/base/timing.html">
+
 <dom-module id="report-page">
   <template>
     <style>
@@ -213,6 +215,7 @@ found in the LICENSE file.
       addChart(seriesGroups, isPrepend) {
         // TODO(sullivan): This should be done with a polymer template, not
         // JavaScript-built DOM!!
+        const addChartMark = tr.b.Timing.mark('report-page', 'addChart');
         const container = this.$['charts-container'];
         const chart = document.createElement('chart-container');
         if (isPrepend && Polymer.dom(container).children.length > 0) {
@@ -223,7 +226,7 @@ found in the LICENSE file.
           this.charts.push(chart);
           Polymer.dom(container).appendChild(chart);
         }
-
+        addChartMark.end();
         chart.addEventListener(
             'chartclosed', this.onChartClosed.bind(this), true);
         chart.addEventListener(
@@ -243,6 +246,8 @@ found in the LICENSE file.
        * On chart closed, update URI.
        */
       onChartClosed(event) {
+        const onChartClosedMark = tr.b.Timing.mark(
+            'report-page', 'onChartClosed');
         const chart = event.target;
         const index = this.charts.indexOf(chart);
         if (index > -1) {
@@ -250,6 +255,7 @@ found in the LICENSE file.
         }
 
         this.fireNumChartChangedEvent();
+        onChartClosedMark.end();
       },
 
       /**
@@ -279,6 +285,8 @@ found in the LICENSE file.
        * the graphs and the URI.
        */
       onRevisionRangeChanged(_, event) {
+        const onRevisionRangeChangedMark = tr.b.Timing.mark(
+            'report-page', 'onRevisionRangeChanged');
         for (let i = 0; i < this.charts.length; i++) {
           const chart = this.charts[i];
           if (chart == event.target) {
@@ -286,6 +294,7 @@ found in the LICENSE file.
           }
           chart.onRevisionRange(event, event.detail, null);
         }
+        onRevisionRangeChangedMark.end();
       },
 
       /**
