@@ -197,8 +197,8 @@ tr.b.unittest.testSuite(function() {
           tr.v.d.RESERVED_NAMES.GROUPING_PATH, new tr.v.d.GenericSet());
     }
     assert.throw(addInvalidDiagnosticType, Error,
-        'Diagnostics named "grouping path" must be GroupingPath, not ' +
-        'GenericSet');
+        `Diagnostics named "${tr.v.d.RESERVED_NAMES.GROUPING_PATH}" must be ` +
+        'GroupingPath, not GenericSet');
   });
 });
 </script>

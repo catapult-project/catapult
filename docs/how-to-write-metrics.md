@@ -143,7 +143,7 @@ histogram.addSample(number, {name: diagnostic})
  * [DateRange](/tracing/tracing/value/diagnostics/date_range.html):
    This is a Range of Dates. It cannot be empty, but the minDate could be the
    same as the maxDate. Telemetry automatically adds 2 shared DateRanges to all
-   results: 'benchmark start' and 'trace start'.
+   results: 'benchmarkStart' and 'traceStart'.
 
    ![](/docs/images/how-to-write-metrics-date-range.png)
 
@@ -162,7 +162,7 @@ histogram.addSample(number, {name: diagnostic})
    the link is the Map's string key instead of the Histogram's name. One example
    application is when a Histogram was produced not directly by a metric, but
    rather by merging together other Histograms, then it will have a
-   RelatedHistogramMap named 'merged from' that refers to the Histograms that were
+   RelatedHistogramMap named 'mergedFrom' that refers to the Histograms that were
    merged by their grouping key, e.g. the telemetry story name.
 
    ![](/docs/images/how-to-write-metrics-related-histogram-map.png)

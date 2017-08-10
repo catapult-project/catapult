@@ -77,7 +77,8 @@ tr.b.unittest.testSuite(function() {
       tr.metrics.metricMapFunction(result, m, {
         'metrics': ['invalidDiagnosticNameMetric'],
       });
-    }, Error, 'Illegal diagnostic name "grouping path" on Histogram "a"');
+    }, Error, 'Illegal diagnostic name ' +
+        `"${tr.v.d.RESERVED_NAMES.GROUPING_PATH}" on Histogram "a"`);
   });
 });
 </script>

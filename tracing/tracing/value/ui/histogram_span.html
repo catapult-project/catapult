@@ -466,7 +466,7 @@ tr.exportTo('tr.v.ui', function() {
       const metricDiagnosticMap = new tr.v.d.DiagnosticMap();
       const metadataDiagnosticMap = new tr.v.d.DiagnosticMap();
       for (const [key, diagnostic] of this.histogram.diagnostics) {
-        // Hide the 'merged from' and 'merged to' diagnostics, which are
+        // Hide the 'mergedFrom' and 'mergedTo' diagnostics, which are
         // implementation details.
         if (key === tr.v.d.RESERVED_NAMES.MERGED_FROM) continue;
         if (key === tr.v.d.RESERVED_NAMES.MERGED_TO) continue;

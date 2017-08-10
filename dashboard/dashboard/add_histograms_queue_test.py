@@ -349,7 +349,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
     hist = copy.deepcopy(TEST_HISTOGRAM)
-    hist['diagnostics']['catapult revisions'] = {
+    hist['diagnostics'][reserved_infos.CATAPULT_REVISIONS.name] = {
         'type': 'GenericSet', 'values': [123, 456]}
 
     with self.assertRaises(add_histograms_queue.BadRequestError):

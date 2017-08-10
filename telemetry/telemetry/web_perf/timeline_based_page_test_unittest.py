@@ -12,6 +12,7 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf.metrics import smoothness
 from tracing.value import histogram
+from tracing.value.diagnostics import reserved_infos
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
@@ -141,7 +142,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
                      telemetry_info.story_display_name)
     self.assertEqual(0, telemetry_info.storyset_repeat_counter)
     hist = list(results.histograms)[0]
-    trace_start = hist.diagnostics.get('trace start')
+    trace_start = hist.diagnostics.get(reserved_infos.TRACE_START.name)
     self.assertIsInstance(trace_start, histogram.DateRange)
 
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
