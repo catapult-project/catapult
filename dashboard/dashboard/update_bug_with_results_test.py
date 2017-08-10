@@ -350,7 +350,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
         cc_list=[], merge_issue='111222', labels=None, owner=None,
-        status='Assigned')
+        status=None)
     # Should have skipped updating cache.
     self.assertEqual(
         layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)

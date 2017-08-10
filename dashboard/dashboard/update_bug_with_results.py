@@ -264,13 +264,16 @@ def _PostSuccessfulResult(job, issue_tracker):
 
   # Add a friendly message to author of culprit CL.
   owner, comment = _GetCulpritCLOwnerAndComment(job, authors_to_cc)
+  status = None
+  if owner:
+    status = 'Assigned'
 
   # Set restrict view label if the bisect results are internal only.
   labels = ['Restrict-View-Google'] if job.internal_only else None
 
   comment_added = issue_tracker.AddBugComment(
       job.bug_id, comment, cc_list=authors_to_cc, merge_issue=merge_issue_id,
-      labels=labels, owner=owner, status='Assigned')
+      labels=labels, owner=owner, status=status)
   if not comment_added:
     raise BugUpdateFailure('Failed to update bug %s with comment %s'
                            % (job.bug_id, comment))
