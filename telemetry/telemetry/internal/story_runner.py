@@ -176,6 +176,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
     effective_max_failures = max_failures
 
   state = None
+  device_info_diags = {}
   try:
     for storyset_repeat_counter in xrange(finder_options.pageset_repeat):
       for story in stories:
@@ -201,6 +202,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           state.platform.WaitForBatteryTemperature(35)
           _WaitForThermalThrottlingIfNeeded(state.platform)
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
+          device_info_diags = _MakeDeviceInfoDiagnostics(state)
         except exceptions.Error:
           # Catch all Telemetry errors to give the story a chance to retry.
           # The retry is enabled by tearing down the state and creating
@@ -236,6 +238,10 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         state = None
   finally:
     results.PopulateHistogramSet(metadata)
+
+    for name, diag in device_info_diags.iteritems():
+      results.histograms.AddSharedDiagnostic(name, diag)
+
     tagmap = _GenerateTagMapFromStorySet(stories)
     if tagmap.tags_to_story_names:
       results.histograms.AddSharedDiagnostic(
@@ -457,3 +463,23 @@ def _CheckThermalThrottling(platform):
   if platform.HasBeenThermallyThrottled():
     logging.warning('Device has been thermally throttled during '
                     'performance tests, results will vary.')
+
+def _MakeDeviceInfoDiagnostics(state):
+  if not state or not state.platform:
+    return
+
+  device_info_data = {
+      reserved_infos.ARCHITECTURES.name: state.platform.GetArchName(),
+      reserved_infos.MEMORY_AMOUNTS.name:
+          state.platform.GetSystemTotalPhysicalMemory(),
+      reserved_infos.OS_NAMES.name: state.platform.GetOSName(),
+      reserved_infos.OS_VERSIONS.name: state.platform.GetOSVersionName(),
+  }
+
+  device_info_diangostics = {}
+
+  for name, value in device_info_data.iteritems():
+    if not value:
+      continue
+    device_info_diangostics[name] = histogram.GenericSet([value])
+  return device_info_diangostics

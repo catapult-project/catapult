@@ -40,7 +40,7 @@ from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
-
+from tracing.value.diagnostics import reserved_infos
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -55,7 +55,19 @@ class FakePlatform(object):
     pass
 
   def GetDeviceTypeName(self):
-    return "GetDeviceTypeName"
+    return 'GetDeviceTypeName'
+
+  def GetArchName(self):
+    return 'amd64'
+
+  def GetOSName(self):
+    return 'win'
+
+  def GetOSVersionName(self):
+    return 'win10'
+
+  def GetSystemTotalPhysicalMemory(self):
+    return 8 * (1024 ** 3)
 
 class TestSharedState(story_module.SharedState):
 
@@ -708,6 +720,107 @@ class StoryRunnerTest(unittest.TestCase):
     h = hs.GetFirstHistogram()
 
     self.assertEqual('hist', h.name)
+
+  def testRunStoryAddsDeviceInfo(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(FooStoryState, 'foo', ['bar']))
+    story_runner.Run(DummyTest(), story_set, self.options, self.results,
+                     metadata=EmptyMetadataForTest())
+
+    hs = self.results.histograms
+
+    generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+        histogram_module.GenericSet)
+
+    generic_diagnostics_values = [
+        list(diagnostic) for diagnostic in generic_diagnostics]
+
+    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertIn(['win10'], generic_diagnostics_values)
+    self.assertIn(['win'], generic_diagnostics_values)
+    self.assertIn(['amd64'], generic_diagnostics_values)
+    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
+
+  def testRunStoryAddsDeviceInfo_EvenInErrors(self):
+    class ErrorRaisingDummyLocalStory(DummyLocalStory):
+      def __init__(self, shared_state_class, name='', tags=None):
+        if name == '':
+          name = 'dummy local story'
+        super(ErrorRaisingDummyLocalStory, self).__init__(
+            shared_state_class, name=name, tags=tags)
+
+      def Run(self, shared_state):
+        raise BaseException('foo')
+
+      @property
+      def is_local(self):
+        return True
+
+      @property
+      def url(self):
+        return 'data:,'
+
+    story_set = story_module.StorySet()
+    story_set.AddStory(ErrorRaisingDummyLocalStory(
+        FooStoryState, 'foo', ['bar']))
+    story_runner.Run(DummyTest(), story_set, self.options, self.results,
+                     metadata=EmptyMetadataForTest())
+
+    hs = self.results.histograms
+
+    generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+        histogram_module.GenericSet)
+
+    generic_diagnostics_values = [
+        list(diagnostic) for diagnostic in generic_diagnostics]
+
+    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertIn(['win10'], generic_diagnostics_values)
+    self.assertIn(['win'], generic_diagnostics_values)
+    self.assertIn(['amd64'], generic_diagnostics_values)
+    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
+
+  def testRunStoryAddsDeviceInfo_OnePerStorySet(self):
+    class Test(legacy_page_test.LegacyPageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+
+      # pylint: disable=unused-argument
+      def RunPage(self, _, _2, results):
+        results.histograms.ImportDicts([
+            histogram_module.Histogram('hist', 'count').AsDict()])
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
+
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(FooStoryState, 'foo', ['bar']))
+    story_set.AddStory(DummyLocalStory(FooStoryState, 'abc', ['def']))
+    story_runner.Run(Test(), story_set, self.options, self.results,
+                     metadata=EmptyMetadataForTest())
+
+    hs = self.results.histograms
+
+    generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+        histogram_module.GenericSet)
+
+    generic_diagnostics_values = [
+        list(diagnostic) for diagnostic in generic_diagnostics]
+
+    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertIn(['win10'], generic_diagnostics_values)
+    self.assertIn(['win'], generic_diagnostics_values)
+    self.assertIn(['amd64'], generic_diagnostics_values)
+    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
+
+    self.assertEqual(1, len(
+        [value for value in generic_diagnostics_values if value == ['win']]))
+
+    first_histogram_diags = hs.GetFirstHistogram().diagnostics
+    self.assertIn(reserved_infos.ARCHITECTURES.name, first_histogram_diags)
+    self.assertIn(reserved_infos.MEMORY_AMOUNTS.name, first_histogram_diags)
+    self.assertIn(reserved_infos.OS_NAMES.name, first_histogram_diags)
+    self.assertIn(reserved_infos.OS_VERSIONS.name, first_histogram_diags)
 
   def testRunStoryAddsTagMap(self):
     story_set = story_module.StorySet()

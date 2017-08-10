@@ -133,6 +133,9 @@ class FakeLinuxPlatform(FakePlatform):
   def GetArchName(self):
     return 'x86_64'
 
+  def GetSystemTotalPhysicalMemory(self):
+    return 8 * (1024 ** 3)
+
   def GetOSName(self):
     return 'linux'
 
@@ -583,4 +586,3 @@ class FakeTimer(object):
       self._module.time = self._actual_time
       self._module = None
       self._actual_time = None
-
