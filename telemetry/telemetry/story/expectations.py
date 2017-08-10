@@ -41,6 +41,11 @@ class StoryExpectations(object):
 
   def _Freeze(self):
     self._frozen = True
+    self._disabled_platforms = tuple(self._disabled_platforms)
+
+  @property
+  def disabled_platforms(self):
+    return self._disabled_platforms
 
   def PermanentlyDisableBenchmark(self, conditions, reason):
     """Permanently Disable benchmark under the given conditions.
