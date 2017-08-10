@@ -39,6 +39,7 @@ from devil.android import device_utils
 from devil.android.perf import cache_control
 from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
+from devil.android.sdk import shared_prefs
 from devil.android.sdk import version_codes
 from devil.android.tools import video_recorder
 
@@ -136,6 +137,24 @@ class AndroidPlatformBackend(
     if self._system_ui is None:
       self._system_ui = app_ui.AppUi(self.device, 'com.android.systemui')
     return self._system_ui
+
+  def GetSharedPrefs(self, package, filename):
+    """Creates a Devil SharedPrefs instance.
+
+    See devil.android.sdk.shared_prefs for the documentation of the returned
+    object.
+
+    Args:
+      package: A string containing the package of the app that the SharedPrefs
+          instance will be for.
+      filename: A string containing the specific settings file of the app that
+          the SharedPrefs instance will be for.
+
+    Returns:
+      A reference to a SharedPrefs object for the given package and filename
+      on whatever device the platform backend has a reference to.
+    """
+    return shared_prefs.SharedPrefs(self._device, package, filename)
 
   def IsSvelte(self):
     description = self._device.GetProp('ro.build.description', cache=True)

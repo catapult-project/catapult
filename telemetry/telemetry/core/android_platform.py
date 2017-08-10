@@ -30,6 +30,24 @@ class AndroidPlatform(platform.Platform):
     """
     return self._platform_backend.GetSystemUi()
 
+  def GetSharedPrefs(self, package, filename):
+    """Retrieves a Devil SharedPrefs instance from the backend.
+
+    See devil.android.sdk.shared_prefs for the documentation of the returned
+    object.
+
+    Args:
+      package: A string containing the package of the app that the SharedPrefs
+          instance will be for.
+      filename: A string containing the specific settings file of the app that
+          the SharedPrefs instance will be for.
+
+    Returns:
+      A reference to a SharedPrefs object for the given package and filename
+      on whatever device this platform object refers to.
+    """
+    return self._platform_backend.GetSharedPrefs(package, filename)
+
   def IsSvelte(self):
     return self._platform_backend.IsSvelte()
 
