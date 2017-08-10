@@ -16,7 +16,7 @@ from devil.android import device_utils
 from devil.android import fastboot_utils
 from devil.android.tools import script_common
 from devil.constants import exit_codes
-from devil.utils import run_tests_helper
+from devil.utils import logging_common
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +24,12 @@ logger = logging.getLogger(__name__)
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('build_path', help='Path to android build.')
-  parser.add_argument('-v', '--verbose', default=0, action='count',
-                      help='Verbose level (multiple times for more)')
   parser.add_argument('-w', '--wipe', action='store_true',
                        help='If set, wipes user data')
+  logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
   args = parser.parse_args()
-  run_tests_helper.SetLogLevel(args.verbose)
+  logging_common.InitializeLogging(args)
 
   if args.blacklist_file:
     blacklist = device_blacklist.Blacklist(args.blacklist_file).Read()

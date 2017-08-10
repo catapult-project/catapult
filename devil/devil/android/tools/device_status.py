@@ -24,8 +24,8 @@ from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.tools import script_common
 from devil.constants import exit_codes
+from devil.utils import logging_common
 from devil.utils import lsusb
-from devil.utils import run_tests_helper
 
 logger = logging.getLogger(__name__)
 
@@ -238,8 +238,6 @@ def AddArguments(parser):
   parser.add_argument('--buildbot-path', '-b',
                       default='/home/chrome-bot/.adb_device_info',
                       help='Absolute path to buildbot file location')
-  parser.add_argument('-v', '--verbose', action='count', default=1,
-                      help='Log more information.')
   parser.add_argument('-w', '--overwrite-known-devices-files',
                       action='store_true',
                       help='If set, overwrites known devices files wiht new '
@@ -247,11 +245,12 @@ def AddArguments(parser):
 
 def main():
   parser = argparse.ArgumentParser()
+  logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   AddArguments(parser)
   args = parser.parse_args()
 
-  run_tests_helper.SetLogLevel(args.verbose)
+  logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)

@@ -15,6 +15,7 @@ if __name__ == '__main__':
       os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import device_utils
 from devil.android.tools import script_common
+from devil.utils import logging_common
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +23,17 @@ logger = logging.getLogger(__name__)
 def main():
   # Parse options.
   parser = argparse.ArgumentParser(description=__doc__)
+  logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
   parser.add_argument('-f', '--file', metavar='FILE',
                       help='Save result to file instead of generating a '
                            'timestamped file name.')
-  parser.add_argument('-v', '--verbose', action='store_true',
-                      help='Verbose logging.')
   parser.add_argument('host_file', nargs='?',
                       help='File to which the screenshot will be saved.')
 
   args = parser.parse_args()
-
   host_file = args.host_file or args.file
-
-  if args.verbose:
-    logging.getLogger().setLevel(logging.DEBUG)
+  logging_common.InitializeLogging(args)
 
   devices = script_common.GetDevices(args.devices, args.blacklist_file)
 
