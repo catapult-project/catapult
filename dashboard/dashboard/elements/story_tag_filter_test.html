@@ -32,7 +32,8 @@ tr.b.unittest.testSuite(function() {
     await tr.b.animationFrame();
     const checkboxes = tr.ui.b.findDeepElementsMatching(stf, 'paper-checkbox');
 
-    assert.deepEqual(stf.selectedStoryNames, []);
+    assert.deepEqual(stf.selectedStoryNames,
+      ['story0', 'story1', 'story2', 'story3']);
 
     checkboxes[0].click();
     assert.deepEqual(stf.selectedStoryNames, ['story0', 'story1', 'story2']);
@@ -70,7 +71,8 @@ tr.b.unittest.testSuite(function() {
     const newCheckboxes = tr.ui.b.findDeepElementsMatching(stf,
         'paper-checkbox');
 
-    assert.deepEqual(stf.selectedStoryNames, []);
+    assert.deepEqual(stf.selectedStoryNames, ['story0', 'story1', 'story2',
+      'story3', 'story4', 'story5', 'story6', 'story7']);
 
     newCheckboxes[4].click();
     assert.deepEqual(stf.selectedStoryNames,

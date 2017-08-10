@@ -130,13 +130,14 @@ found in the LICENSE file.
     get selectedStoryNames() {
       const storyNames = new Set();
       for (const tag of this.tags_) {
-        if (!this.isSelected_(tag)) continue;
+        // Returns all stories if no tags are selected
+        if (this.selectedTags_.length && !this.isSelected_(tag)) continue;
         for (const storyName of
             this.tagMap_.tagsToStoryNames.get(tag)) {
           storyNames.add(storyName);
         }
       }
-      return Array.from(storyNames);
+      return Array.from(storyNames).sort();
     },
 
     set tagMap(t) {
