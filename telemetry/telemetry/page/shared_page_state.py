@@ -17,7 +17,7 @@ from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
 from telemetry.page import traffic_setting
 from telemetry.page import legacy_page_test
-from telemetry import story
+from telemetry import story as story_module
 from telemetry.util import screenshot
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
@@ -35,7 +35,7 @@ def _PrepareFinderOptions(finder_options, test, device_type):
                                            finder_options)
 
 
-class SharedPageState(story.SharedState):
+class SharedPageState(story_module.SharedState):
   """
   This class contains all specific logic necessary to run a Chrome browser
   benchmark.
@@ -164,14 +164,15 @@ class SharedPageState(story.SharedState):
       if self._current_page.credentials and self._did_login_for_current_page:
         self.browser.credentials.LoginNoLongerNeeded(
             self._current_tab, self._current_page.credentials)
-      if self.ShouldStopBrowserAfterStoryRun():
+      if self.ShouldStopBrowserAfterStoryRun(self._current_page):
         self._StopBrowser()
       self._current_page = None
       self._current_tab = None
 
-  def ShouldStopBrowserAfterStoryRun(self):
+  def ShouldStopBrowserAfterStoryRun(self, story):
     # TODO(crbug.com/748566): Provide a suitable implementation when not made
     # redundant by the current tear down state after each story behavior.
+    del story
     return False
 
   @property
