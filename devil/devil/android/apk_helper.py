@@ -77,6 +77,44 @@ def _ParseManifestFromApk(apk_path):
   return parsed_manifest
 
 
+def _ParseNumericKey(obj, key, default=0):
+  val = obj.get(key)
+  if val is None:
+    return default
+  return int(val, 0)
+
+
+class _ExportedActivity(object):
+  def __init__(self, name):
+    self.name = name
+    self.actions = set()
+    self.categories = set()
+    self.schemes = set()
+
+
+def _IterateExportedActivities(manifest_info):
+  app_node = manifest_info['manifest'][0]['application'][0]
+  activities = app_node.get('activity', []) + app_node.get('activity-alias', [])
+  for activity_node in activities:
+    # Presence of intent filters make an activity exported by default.
+    has_intent_filter = 'intent-filter' in activity_node
+    if not _ParseNumericKey(
+        activity_node, 'android:exported', default=has_intent_filter):
+      continue
+
+    activity = _ExportedActivity(activity_node.get('android:name'))
+    # Merge all intent-filters into a single set because there is not
+    # currently a need to keep them separate.
+    for intent_filter in activity_node.get('intent-filter', []):
+      for action in intent_filter.get('action', []):
+        activity.actions.add(action.get('android:name'))
+      for category in intent_filter.get('category', []):
+        activity.categories.add(category.get('android:name'))
+      for data in intent_filter.get('data', []):
+        activity.schemes.add(data.get('android:scheme'))
+    yield activity
+
+
 class ApkHelper(object):
 
   def __init__(self, path):
@@ -88,19 +126,22 @@ class ApkHelper(object):
     return self._apk_path
 
   def GetActivityName(self):
-    """Returns the name of the Activity in the apk."""
+    """Returns the name of the first launcher Activity in the apk."""
     manifest_info = self._GetManifest()
-    try:
-      activity = (
-          manifest_info['manifest'][0]['application'][0]['activity'][0]
-              ['android:name'])
-    except KeyError:
-      return None
-    if '.' not in activity:
-      activity = '%s.%s' % (self.GetPackageName(), activity)
-    elif activity.startswith('.'):
-      activity = '%s%s' % (self.GetPackageName(), activity)
-    return activity
+    for activity in _IterateExportedActivities(manifest_info):
+      if ('android.intent.action.MAIN' in activity.actions and
+          'android.intent.category.LAUNCHER' in activity.categories):
+        return self._ResolveName(activity.name)
+    return None
+
+  def GetViewActivityName(self):
+    """Returns name of the first action=View Activity that can handle http."""
+    manifest_info = self._GetManifest()
+    for activity in _IterateExportedActivities(manifest_info):
+      if ('android.intent.action.VIEW' in activity.actions and
+          'http' in activity.schemes):
+        return self._ResolveName(activity.name)
+    return None
 
   def GetInstrumentationName(
       self, default='android.test.InstrumentationTestRunner'):
@@ -110,7 +151,7 @@ class ApkHelper(object):
       raise base_error.BaseError(
           'There is more than one instrumentation. Expected one.')
     else:
-      return all_instrumentations[0]['android:name']
+      return self._ResolveName(all_instrumentations[0]['android:name'])
 
   def GetAllInstrumentations(
       self, default='android.test.InstrumentationTestRunner'):
@@ -152,8 +193,7 @@ class ApkHelper(object):
       services = itertools.chain(
           *(application.get('service', []) for application in applications))
       return any(
-          int(s.get('android:isolatedProcess', '0'), 0)
-          for s in services)
+          _ParseNumericKey(s, 'android:isolatedProcess') for s in services)
     except KeyError:
       return False
 
@@ -162,3 +202,8 @@ class ApkHelper(object):
       self._manifest = _ParseManifestFromApk(self._apk_path)
     return self._manifest
 
+  def _ResolveName(self, name):
+    name = name.lstrip('.')
+    if '.' not in name:
+      return '%s.%s' % (self.GetPackageName(), name)
+    return name
