@@ -159,11 +159,11 @@ class Json3OutputFormatterTest(unittest.TestCase):
 
     d = json_3_output_formatter.ResultsAsDict(results)
     foo_story_result = d['tests']['benchmark_name']['Foo']
-    self.assertEquals(foo_story_result['actual'], 'PASS PASS')
+    self.assertEquals(foo_story_result['actual'], 'PASS')
     self.assertEquals(foo_story_result['expected'], 'PASS')
 
     bar_story_result = d['tests']['benchmark_name']['Bar']
-    self.assertEquals(bar_story_result['actual'], 'PASS PASS')
+    self.assertEquals(bar_story_result['actual'], 'PASS')
     self.assertEquals(bar_story_result['expected'], 'PASS')
 
     self.assertEquals(d['num_failures_by_type'], {'PASS': 4})

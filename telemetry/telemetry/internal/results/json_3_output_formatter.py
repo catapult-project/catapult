@@ -65,6 +65,17 @@ def ResultsAsDict(page_test_results):
     else:
       test['is_unexpected'] = test['is_unexpected'] or status != expected
 
+  # The following logic can interfere with calculating flakiness percentages.
+  # The logic does allow us to re-run tests without them automatically
+  # being marked as flaky by the flakiness dashboard and milo.
+  # Note that it does not change the total number of passes in
+  # num_failures_by_type
+  # crbug.com/754825
+  for _, stories in result_dict['tests'].iteritems():
+    for _, story_results in stories.iteritems():
+      if set(story_results['actual'].split(' ')) == {'PASS'}:
+        story_results['actual'] = 'PASS'
+
   result_dict['num_failures_by_type'] = dict(status_counter)
   return result_dict
 
