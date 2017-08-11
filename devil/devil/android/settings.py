@@ -71,6 +71,8 @@ DETERMINISTIC_DEVICE_SETTINGS = [
     ('stay_on_while_plugged_in', 3),
 
     ('verifier_verify_adb_installs', 0),
+
+    ('window_animation_scale', 0),
   ]),
   ('settings/secure', [
     ('allowed_geolocation_origins',
@@ -100,6 +102,8 @@ DETERMINISTIC_DEVICE_SETTINGS = [
     ('screen_brightness_mode', 0),
 
     ('user_rotation', 0),
+
+    ('window_animation_scale', 0),
   ]),
 ]
 
