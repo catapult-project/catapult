@@ -67,19 +67,17 @@ tr.exportTo('tr.metrics', function() {
    * @param {!tr.model.Model} model
    */
   function addTelemetryInfo(histograms, model) {
-    const telemetry = new tr.v.d.TelemetryInfo();
     for (const metadata of model.metadata) {
-      if (!metadata.value) continue;
+      if (!metadata.value || !metadata.value.telemetry) continue;
 
-      if (metadata.value.telemetry) {
-        telemetry.addInfo(metadata.value.telemetry);
-
-        histograms.addSharedDiagnostic(
-            tr.v.d.RESERVED_NAMES.TRACE_START,
-            new tr.v.d.DateRange(metadata.value.telemetry.traceStartMs));
+      for (const [name, value] of Object.entries(metadata.value.telemetry)) {
+        const type = tr.v.d.RESERVED_NAMES_TO_TYPES.get(name);
+        if (type === undefined) {
+          throw new Error(`Unexpected telemetry.${name}`);
+        }
+        histograms.addSharedDiagnostic(name, new type(value));
       }
     }
-    histograms.addSharedDiagnostic(tr.v.d.RESERVED_NAMES.TELEMETRY, telemetry);
   }
 
   /**

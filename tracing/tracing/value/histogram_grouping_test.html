@@ -89,53 +89,6 @@ tr.b.unittest.testSuite(function() {
         'name');
   });
 
-  test('benchmarkNameGrouping', function() {
-    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
-    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_NAME.callback(hist),
-        '');
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARKS,
-        new tr.v.d.GenericSet(['E']));
-    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_NAME.callback(hist),
-        'E');
-    assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
-        'E');
-
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-        new tr.v.d.DateRange(16e11));
-    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
-        'E'));
-  });
-
-  test('benchmarkStartGrouping', function() {
-    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
-    assert.strictEqual(tr.v.HistogramGrouping.BENCHMARK_START.callback(hist),
-        '');
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-        new tr.v.d.DateRange(16e11));
-    assert.isTrue(tr.v.HistogramGrouping.BENCHMARK_START.callback(hist)
-        .includes('2020-09-'));
-    assert.isTrue(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist).includes(
-        '2020-09-'));
-  });
-
-  test('storysetRepeatGrouping', function() {
-    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
-    assert.strictEqual(tr.v.HistogramGrouping.STORYSET_REPEAT.callback(hist),
-        '');
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
-        new tr.v.d.GenericSet([6]));
-    assert.strictEqual(tr.v.HistogramGrouping.STORYSET_REPEAT.callback(hist),
-        '6');
-  });
-
-  test('storyNameGrouping', function() {
-    const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
-    assert.strictEqual(tr.v.HistogramGrouping.STORY_NAME.callback(hist), '');
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
-        new tr.v.d.GenericSet(['F']));
-    assert.strictEqual(tr.v.HistogramGrouping.STORY_NAME.callback(hist), 'F');
-  });
-
   test('labelGrouping', function() {
     const hist = tr.v.Histogram.create('name', tr.b.Unit.byName.count, []);
     assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
@@ -144,6 +97,67 @@ tr.b.unittest.testSuite(function() {
         new tr.v.d.GenericSet(['H']));
     assert.strictEqual(tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist),
         'H');
+  });
+
+  test('genericSetGrouping', function() {
+    const grouping = new tr.v.GenericSetGrouping('foo');
+
+    const empty = tr.v.Histogram.create('', tr.b.Unit.byName.count, []);
+    assert.strictEqual(grouping.callback(empty), '');
+
+    const hist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([
+        ['foo', new tr.v.d.GenericSet(['baz', 'bar'])],
+      ]),
+    });
+    assert.strictEqual(grouping.callback(hist), 'bar,baz');
+  });
+
+  test('reservedGenericSetGroupings', function() {
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.ARCHITECTURES), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.BENCHMARKS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.BOTS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.BUILDS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.MASTERS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.MEMORY_AMOUNTS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.OS_NAMES), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.OS_VERSIONS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.PRODUCT_VERSIONS), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.STORIES), tr.v.GenericSetGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.STORYSET_REPEATS), tr.v.GenericSetGrouping);
+  });
+
+  test('dateRangeGrouping', function() {
+    const grouping = new tr.v.DateRangeGrouping('foo');
+
+    const empty = tr.v.Histogram.create('', tr.b.Unit.byName.count, []);
+    assert.strictEqual(grouping.callback(empty), '');
+
+    const hist = tr.v.Histogram.create('', tr.b.Unit.byName.count, [], {
+      diagnostics: new Map([
+        ['foo', new tr.v.d.DateRange(15e11)],
+      ]),
+    });
+    assert.strictEqual(grouping.callback(hist),
+        tr.b.formatDate(new Date(15e11)));
+  });
+
+  test('reservedDateRangeGroupings', function() {
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.BENCHMARK_START), tr.v.DateRangeGrouping);
+    assert.instanceOf(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.TRACE_START), tr.v.DateRangeGrouping);
   });
 });
 </script>

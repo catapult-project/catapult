@@ -12,8 +12,15 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   /*
-   * See tr.v.HistogramSet.groupHistogramsRecursively() and
-   * tr-ui-b-grouping-table-groupby-picker.
+   * HistogramGrouping objects are registered named functions that map from
+   * Histogram objects to strings.
+   *
+   * They are used to group Histograms by
+   * tr.v.HistogramSet.groupHistogramsRecursively()
+   *
+   * The tr-ui-b-grouping-table-groupby-picker module within the
+   * tr-v-ui-histogram-set-controls module allows users to select and reorder
+   * groupings.
    */
   class HistogramGrouping {
     /**
@@ -104,106 +111,91 @@ tr.exportTo('tr.v', function() {
 
   HistogramGrouping.BY_KEY = new Map();
 
-  function stringSetClosure(name, opt_fallback) {
-    return function(hist) {
-      const diag = hist.diagnostics.get(name);
-      if (diag === undefined) {
-        if (opt_fallback) return opt_fallback(hist);
-        return '';
-      }
+  HistogramGrouping.HISTOGRAM_NAME = new HistogramGrouping('name', h => h.name);
+
+  HistogramGrouping.DISPLAY_LABEL = new HistogramGrouping(
+      'displayLabel', hist => {
+        const labels = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.LABELS);
+        if (labels !== undefined && labels.size > 0) {
+          return Array.from(labels).join(',');
+        }
+
+        const benchmarks = hist.diagnostics.get(
+            tr.v.d.RESERVED_NAMES.BENCHMARKS);
+        const start = hist.diagnostics.get(
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START);
+        if (benchmarks === undefined) {
+          if (start === undefined) return 'Value';
+
+          return start.toString();
+        }
+        const benchmarksStr = Array.from(benchmarks).join('\n');
+
+        if (start === undefined) return benchmarksStr;
+
+        return benchmarksStr + '\n' + start.toString();
+      });
+
+  class GenericSetGrouping extends HistogramGrouping {
+    constructor(name) {
+      super(name, undefined);
+      this.callback_ = this.compute_.bind(this);
+    }
+
+    compute_(hist) {
+      const diag = hist.diagnostics.get(this.key);
+      if (diag === undefined) return '';
       const parts = Array.from(diag);
       parts.sort();
       return parts.join(',');
-    };
+    }
   }
 
-  function dateRangeClosure(name, fallback) {
-    return function(hist) {
-      const diag = hist.diagnostics.get(name);
-      if (diag === undefined) return fallback(hist);
+  GenericSetGrouping.NAMES = [
+    tr.v.d.RESERVED_NAMES.ARCHITECTURES,
+    tr.v.d.RESERVED_NAMES.BENCHMARKS,
+    tr.v.d.RESERVED_NAMES.BOTS,
+    tr.v.d.RESERVED_NAMES.BUILDS,
+    tr.v.d.RESERVED_NAMES.MASTERS,
+    tr.v.d.RESERVED_NAMES.MEMORY_AMOUNTS,
+    tr.v.d.RESERVED_NAMES.OS_NAMES,
+    tr.v.d.RESERVED_NAMES.OS_VERSIONS,
+    tr.v.d.RESERVED_NAMES.PRODUCT_VERSIONS,
+    tr.v.d.RESERVED_NAMES.STORIES,
+    tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
+  ];
+
+  for (const name of GenericSetGrouping.NAMES) {
+    // Instantiating a HistogramGrouping adds it to BY_KEY.
+    new GenericSetGrouping(name);
+  }
+
+  class DateRangeGrouping extends HistogramGrouping {
+    constructor(name) {
+      super(name, undefined);
+      this.callback_ = this.compute_.bind(this);
+    }
+
+    compute_(hist) {
+      const diag = hist.diagnostics.get(this.key);
+      if (diag === undefined) return '';
       return diag.toString();
-    };
+    }
   }
 
-  HistogramGrouping.HISTOGRAM_NAME = new HistogramGrouping('name', h => h.name);
+  DateRangeGrouping.NAMES = [
+    tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+    tr.v.d.RESERVED_NAMES.TRACE_START,
+  ];
 
-  HistogramGrouping.ARCHITECTURES = new HistogramGrouping('arch',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.ARCHITECTURES));
-
-  HistogramGrouping.MEMORY_AMOUNTS = new HistogramGrouping('ram',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.MEMORY_AMOUNTS));
-
-  HistogramGrouping.OS_NAMES = new HistogramGrouping('os',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.OS_NAMES));
-
-  HistogramGrouping.OS_VERSIONS = new HistogramGrouping('osVersion',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.OS_VERSION));
-
-  HistogramGrouping.PRODUCT_VERSIONS = new HistogramGrouping('version',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.PRODUCT_VERSIONS));
-
-  HistogramGrouping.BENCHMARK_NAME = new HistogramGrouping('benchmark',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.BENCHMARKS,
-          h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', '')));
-
-  HistogramGrouping.BENCHMARK_START = new HistogramGrouping('benchmarkStart',
-      dateRangeClosure(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-          h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', '')));
-
-  HistogramGrouping.STORYSET_REPEAT = new HistogramGrouping('storysetRepeat',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
-          h => tr.v.d.TelemetryInfo.getField(
-              h, 'storysetRepeatCounterLabel', '')));
-
-  HistogramGrouping.STORY_NAME = new HistogramGrouping('story',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.STORIES,
-          h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', '')));
-
-  HistogramGrouping.LEGACY_TIR_LABEL = new HistogramGrouping('tir',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.INTERACTION_RECORD,
-          h => tr.v.d.TelemetryInfo.getField(h, 'legacyTIRLabel', '')));
-
-  HistogramGrouping.MASTER_NAME = new HistogramGrouping('master',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.MASTERS, h =>
-        tr.v.d.BuildbotInfo.getField(h, 'buildbotMasterName', '')));
-
-  HistogramGrouping.SLAVE_NAME = new HistogramGrouping('bot',
-      stringSetClosure(tr.v.d.RESERVED_NAMES.BOTS, h =>
-        tr.v.d.BuildbotInfo.getField(h, 'buildbotName', '')));
-
-  HistogramGrouping.BUILD_NUMBER = new HistogramGrouping(
-      'build',
-      h => tr.v.d.BuildbotInfo.getField(h, 'buildNumber', ''));
-
-  HistogramGrouping.DISPLAY_LABEL = new HistogramGrouping('label', hist => {
-    const labels = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.LABELS);
-    if (labels !== undefined && labels.size > 0) {
-      return Array.from(labels).join(',');
-    }
-
-    const benchmarks = hist.diagnostics.get(
-        tr.v.d.RESERVED_NAMES.BENCHMARKS);
-    const start = hist.diagnostics.get(
-        tr.v.d.RESERVED_NAMES.BENCHMARK_START);
-    if (benchmarks === undefined) {
-      if (start === undefined) {
-        return tr.v.d.TelemetryInfo.getField(hist, 'displayLabel', 'Value');
-      }
-
-      return start.toString();
-    }
-    const benchmarksStr = Array.from(benchmarks).join('\n');
-
-    if (start === undefined) return benchmarksStr;
-
-    return benchmarksStr + '\n' + start.toString();
-  });
-
-  HistogramGrouping.TRACE_START = new HistogramGrouping('traceStart',
-      dateRangeClosure(tr.v.d.RESERVED_NAMES.TRACE_START, h => ''));
+  for (const name of DateRangeGrouping.NAMES) {
+    new DateRangeGrouping(name);
+  }
 
   return {
     HistogramGrouping,
+    GenericSetGrouping,
+    DateRangeGrouping,
   };
 });
 </script>

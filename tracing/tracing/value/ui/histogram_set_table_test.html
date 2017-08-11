@@ -351,7 +351,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
     assert.lengthOf(getTableCells(table), 1);
 
@@ -373,7 +373,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
     assert.isFalse(table.viewState.tableRowStates.get('a').isExpanded);
 
@@ -410,7 +410,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
 
     const nameCells = getNameCells(table);
@@ -450,7 +450,7 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.update({
       groupings: [
         tr.v.HistogramGrouping.HISTOGRAM_NAME,
-        tr.v.HistogramGrouping.STORY_NAME,
+        tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
       ],
       sortColumnIndex: 0,
       sortDescending: true,
@@ -502,7 +502,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
 
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
@@ -548,7 +548,7 @@ tr.b.unittest.testSuite(function() {
       displayStatisticName: 'count',
       groupings: [
         tr.v.HistogramGrouping.HISTOGRAM_NAME,
-        tr.v.HistogramGrouping.STORY_NAME,
+        tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
       ],
     });
     await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
@@ -616,7 +616,7 @@ tr.b.unittest.testSuite(function() {
       displayStatisticName: 'count',
       groupings: [
         tr.v.HistogramGrouping.HISTOGRAM_NAME,
-        tr.v.HistogramGrouping.STORY_NAME,
+        tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
       ],
     });
     await table.viewState.tableRowStates.get('a').update({
@@ -763,7 +763,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(table.leafHistograms, 1);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
     assert.lengthOf(table.leafHistograms, 2);
   });
@@ -799,7 +799,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
 
     const dots = tr.ui.b.findDeepElementMatchingPredicate(
@@ -887,7 +887,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.STORY_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
     ]});
 
     for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
@@ -1608,12 +1608,12 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       tr.v.HistogramGrouping.HISTOGRAM_NAME,
-      tr.v.HistogramGrouping.BENCHMARK_NAME,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.BENCHMARKS),
       tr.v.HistogramGrouping.BY_KEY.get('storyGroupingKey0Tag'),
       tr.v.HistogramGrouping.BY_KEY.get('storyGroupingKey1Tag'),
-      tr.v.HistogramGrouping.STORY_NAME,
-      tr.v.HistogramGrouping.BENCHMARK_START,
-      tr.v.HistogramGrouping.STORYSET_REPEAT,
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES),
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.BENCHMARK_START),
+      tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS),
     ]});
     const baseTable = getBaseTable(table);
 

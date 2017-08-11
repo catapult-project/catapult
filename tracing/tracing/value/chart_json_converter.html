@@ -51,13 +51,34 @@ tr.exportTo('tr.v', function() {
           hist.description = value.description || '';
           histograms.addHistogram(hist);
 
-          new tr.v.d.TelemetryInfo({
-            storyDisplayName: pageValuesCount > 1 ? storyName : '',
-            legacyTIRLabel: value.tir_label,
-            benchmarkName: charts.benchmark_name,
-            label: charts.label,
-            benchmarkStartMs: charts.benchmarkStartMs,
-          }).addToHistogram(hist);
+          if (pageValuesCount > 1) {
+            hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+                new tr.v.d.GenericSet([storyName]));
+          }
+
+          if (value.tir_label) {
+            hist.diagnostics.set(
+                tr.v.d.RESERVED_NAMES.STORY_TAGS,
+                new tr.v.d.GenericSet([`tir_label:${value.tir_label}`]));
+          }
+
+          if (charts.benchmark_name) {
+            hist.diagnostics.set(
+                tr.v.d.RESERVED_NAMES.BENCHMARKS,
+                new tr.v.d.GenericSet([charts.benchmark_name]));
+          }
+
+          if (charts.label) {
+            hist.diagnostics.set(
+                tr.v.d.RESERVED_NAMES.LABELS,
+                new tr.v.d.GenericSet([charts.label]));
+          }
+
+          if (charts.benchmarkStartMs) {
+            hist.diagnostics.set(
+                tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+                new tr.v.d.DateRange(charts.benchmarkStartMs));
+          }
 
           if (value.type === 'histogram') {
             for (const bucket of value.buckets) {

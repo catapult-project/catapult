@@ -27,6 +27,7 @@ from telemetry.value import trace
 
 from tracing.value import convert_chart_json
 from tracing.value import histogram_set
+from tracing.value.diagnostics import reserved_infos
 
 class TelemetryInfo(object):
   def __init__(self):
@@ -35,6 +36,7 @@ class TelemetryInfo(object):
     self._benchmark_interrupted = False
     self._label = None
     self._story_name = ''
+    self._story_tags = set()
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
     self._trace_start_ms = None
@@ -85,6 +87,10 @@ class TelemetryInfo(object):
     return self._story_grouping_keys
 
   @property
+  def story_tags(self):
+    return self._story_tags
+
+  @property
   def storyset_repeat_counter(self):
     return self._storyset_repeat_counter
 
@@ -94,8 +100,8 @@ class TelemetryInfo(object):
   def WillRunStory(self, story, storyset_repeat_counter):
     self._trace_start_ms = 1000 * time.time()
     self._story_name = story.name
-    if story.grouping_keys:
-      self._story_grouping_keys = story.grouping_keys
+    self._story_grouping_keys = story.grouping_keys
+    self._story_tags = story.tags
     self._storyset_repeat_counter = storyset_repeat_counter
 
   def AsDict(self):
@@ -104,14 +110,15 @@ class TelemetryInfo(object):
     assert self.benchmark_start_epoch is not None, (
         'benchmark_start_epoch must be set exactly once')
     d = {}
-    d['benchmarkName'] = self.benchmark_name
-    d['benchmarkStartEpoch'] = self.benchmark_start_epoch
+    d[reserved_infos.BENCHMARKS.name] = [self.benchmark_name]
+    d[reserved_infos.BENCHMARK_START.name] = self.benchmark_start_epoch * 1000
     if self.label:
-      d['label'] = self.label
-    d['storyDisplayName'] = self._story_name
-    d['storyGroupingKeys'] = self.story_grouping_keys
-    d['storysetRepeatCounter'] = self.storyset_repeat_counter
-    d['traceStartMs'] = self.trace_start_ms
+      d[reserved_infos.LABELS.name] = [self.label]
+    d[reserved_infos.STORIES.name] = [self._story_name]
+    d[reserved_infos.STORY_TAGS.name] = list(self.story_tags) + [
+        '%s:%s' % kv for kv in self.story_grouping_keys.iteritems()]
+    d[reserved_infos.STORYSET_REPEATS.name] = [self.storyset_repeat_counter]
+    d[reserved_infos.TRACE_START.name] = self.trace_start_ms
     return d
 
 

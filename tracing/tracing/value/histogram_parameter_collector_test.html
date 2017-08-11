@@ -94,15 +94,15 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(possibleGroupingKeys.has(
         tr.v.HistogramGrouping.HISTOGRAM_NAME.key));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.BENCHMARK_NAME.key));
+        tr.v.d.RESERVED_NAMES.BENCHMARKS));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.STORYSET_REPEAT.key));
+        tr.v.d.RESERVED_NAMES.STORYSET_REPEATS));
     assert.isTrue(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.STORY_NAME.key));
+        tr.v.d.RESERVED_NAMES.STORIES));
     assert.isFalse(possibleGroupingKeys.has(
         tr.v.HistogramGrouping.DISPLAY_LABEL.key));
     assert.isFalse(possibleGroupingKeys.has(
-        tr.v.HistogramGrouping.TRACE_START.key));
+        tr.v.d.RESERVED_NAMES.TRACE_START));
     assert.isTrue(possibleGroupingKeys.has('ETag'));
     assert.isFalse(possibleGroupingKeys.has('FTag'));
     assert.strictEqual(possibleGroupingKeys.size, 6);

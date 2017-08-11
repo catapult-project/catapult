@@ -133,14 +133,21 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(0, len(results.failures))
 
     self.assertEquals(1, len(results.histograms))
-    telemetry_infos = results.histograms.GetSharedDiagnosticsOfType(
-        histogram.TelemetryInfo)
-    self.assertEquals(1, len(telemetry_infos))
-    telemetry_info = telemetry_infos[0]
-    self.assertEqual('', telemetry_info.benchmark_name)
-    self.assertEqual('interaction_enabled_page.html',
-                     telemetry_info.story_display_name)
-    self.assertEqual(0, telemetry_info.storyset_repeat_counter)
+    foos = results.histograms.GetHistogramsNamed('foo')
+    self.assertEquals(1, len(foos))
+    hist = foos[0]
+    benchmarks = hist.diagnostics.get(reserved_infos.BENCHMARKS.name)
+    self.assertIsInstance(benchmarks, histogram.GenericSet)
+    self.assertEquals(1, len(benchmarks))
+    self.assertEquals('', list(benchmarks)[0])
+    stories = hist.diagnostics.get(reserved_infos.STORIES.name)
+    self.assertIsInstance(stories, histogram.GenericSet)
+    self.assertEquals(1, len(stories))
+    self.assertEquals('interaction_enabled_page.html', list(stories)[0])
+    repeats = hist.diagnostics.get(reserved_infos.STORYSET_REPEATS.name)
+    self.assertIsInstance(repeats, histogram.GenericSet)
+    self.assertEquals(1, len(repeats))
+    self.assertEquals(0, list(repeats)[0])
     hist = list(results.histograms)[0]
     trace_start = hist.diagnostics.get(reserved_infos.TRACE_START.name)
     self.assertIsInstance(trace_start, histogram.DateRange)
