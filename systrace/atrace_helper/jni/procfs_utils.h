@@ -5,6 +5,7 @@
 #ifndef PROCFS_UTILS_H_
 #define PROCFS_UTILS_H_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -21,6 +22,8 @@ void ReadProcessThreads(ProcessInfo* process);
 
 bool ReadOomStats(ProcessSnapshot* snapshot);
 bool ReadPageFaultsAndCpuTimeStats(ProcessSnapshot* snapshot);
+
+bool ReadMemInfoStats(std::map<std::string, uint64_t>* mem_info);
 
 }  // namespace procfs_utils
 

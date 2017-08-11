@@ -25,31 +25,6 @@ const char kSharedDirty[] = "Shared_Dirty";
 const char kPrivateClean[] = "Private_Clean";
 const char kPrivateDirty[] = "Private_Dirty";
 
-// Takes a C string buffer and chunks it into lines without creating any
-// copies. It modifies the original buffer, by replacing \n with \0.
-class LineReader {
- public:
-  LineReader(char* buf, size_t size) : ptr_(buf), end_(buf + size) {}
-
-  const char* NextLine() {
-    if (ptr_ >= end_)
-      return nullptr;
-    const char* cur = ptr_;
-    char* next = strchr(ptr_, '\n');
-    if (next) {
-      *next = '\0';
-      ptr_ = next + 1;
-    } else {
-      ptr_ = end_;
-    }
-    return cur;
-  }
-
- private:
-  char* ptr_;
-  char* end_;
-};
-
 bool ReadSmapsMetric(
     const char* line, const char* metric, int metric_size, uint64_t* res) {
   if (strncmp(line, metric, metric_size - 1))
@@ -87,7 +62,7 @@ bool ProcessMemoryStats::ReadFullStats(int pid) {
   CHECK(rss_kb_ == 0);
 
   // Iterate over all lines in /proc/PID/smaps.
-  LineReader rd(&buf[0], rsize);
+  file_utils::LineReader rd(&buf[0], rsize);
   for (const char* line = rd.NextLine(); line; line = rd.NextLine()) {
     if (!line[0])
       continue;

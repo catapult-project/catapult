@@ -93,4 +93,25 @@ bool ReadProcFileTrimmed(int pid,
   return ReadFileTrimmed(proc_path, buf, length);
 }
 
+LineReader::LineReader(char* buf, size_t size)
+    : ptr_(buf), end_(buf + size) {
+}
+
+LineReader::~LineReader() {
+}
+
+const char* LineReader::NextLine() {
+  if (ptr_ >= end_)
+    return nullptr;
+  const char* cur = ptr_;
+  char* next = strchr(ptr_, '\n');
+  if (next) {
+    *next = '\0';
+    ptr_ = next + 1;
+  } else {
+    ptr_ = end_;
+  }
+  return cur;
+}
+
 }  // namespace file_utils

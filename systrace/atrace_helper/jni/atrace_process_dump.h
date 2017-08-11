@@ -35,11 +35,11 @@ class AtraceProcessDump {
   void RunAndPrintJson(FILE* stream);
   void Stop();
 
+  void SetDumpInterval(int interval_ms);
+
+  // Negative number or zero means unlimited number of dumps.
   void set_dump_count(int count) { dump_count_ = count; }
-  void set_dump_interval(int interval_ms) {
-    dump_timer_ = std::unique_ptr<time_utils::PeriodicTimer>(
-        new time_utils::PeriodicTimer(interval_ms));
-  }
+
   void set_full_dump_mode(FullDumpMode mode) { full_dump_mode_ = mode; }
   void set_full_dump_whitelist(const std::set<std::string> &whitelist) {
     CHECK(full_dump_mode_ == FullDumpMode::kOnlyWhitelisted);
@@ -56,6 +56,7 @@ class AtraceProcessDump {
   using ProcessSnapshotMap = std::map<int, std::unique_ptr<ProcessSnapshot>>;
 
   void TakeGlobalSnapshot();
+  void TakeAndSerializeMemInfo();
   bool UpdatePersistentProcessInfo(int pid);
   bool ShouldTakeFullDump(const ProcessInfo* process);
   void SerializeSnapshot();
@@ -74,7 +75,8 @@ class AtraceProcessDump {
   ProcessSnapshotMap snapshot_;
   uint64_t snapshot_timestamp_;
   std::set<int> full_dump_whitelisted_pids_;
-  std::unique_ptr<time_utils::PeriodicTimer> dump_timer_;
+  std::unique_ptr<time_utils::PeriodicTimer> snapshot_timer_;
+  int dump_interval_in_timer_ticks_;
 };
 
 #endif  // ATRACE_PROCESS_DUMP_H_

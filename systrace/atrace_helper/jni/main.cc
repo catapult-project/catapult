@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <limits>
 #include <memory>
 #include <set>
 #include <string>
@@ -54,7 +53,7 @@ int main(int argc, char** argv) {
   int dump_interval_ms = 5000;
   char out_file[PATH_MAX] = {};
   bool dump_to_file = false;
-  int count = std::numeric_limits<int>::max();
+  int count = -1;
 
   AtraceProcessDump* prog = new AtraceProcessDump();
   g_prog = std::unique_ptr<AtraceProcessDump>(prog);
@@ -102,7 +101,7 @@ int main(int argc, char** argv) {
   }
 
   prog->set_dump_count(count);
-  prog->set_dump_interval(dump_interval_ms);
+  prog->SetDumpInterval(dump_interval_ms);
 
   FILE* out_stream = stdout;
   char tmp_file[PATH_MAX];

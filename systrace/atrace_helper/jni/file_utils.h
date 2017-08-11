@@ -39,7 +39,7 @@ ssize_t ReadFile(const char* path, char* buf, size_t length);
 
 // Reads a single-line file, stripping out any \0, \r, \n and replacing
 // non-printable charcters with '?'. |buf| is guaranteed to be null terminated.
-bool ReadFileTrimmed(int pid, const char* proc_file, char* buf, size_t length);
+bool ReadFileTrimmed(const char* path, char* buf, size_t length);
 
 // Convenience wrappers for /proc/|pid|/|proc_file| paths.
 ssize_t ReadProcFile(int pid, const char* proc_file, char* buf, size_t length);
@@ -47,6 +47,20 @@ bool ReadProcFileTrimmed(int pid,
                          const char* proc_file,
                          char* buf,
                          size_t length);
+
+// Takes a C string buffer and chunks it into lines without creating any
+// copies. It modifies the original buffer, by replacing \n with \0.
+class LineReader {
+ public:
+  LineReader(char* buf, size_t size);
+  ~LineReader();
+
+  const char* NextLine();
+
+ private:
+  char* ptr_;
+  char* end_;
+};
 
 }  // namespace file_utils
 

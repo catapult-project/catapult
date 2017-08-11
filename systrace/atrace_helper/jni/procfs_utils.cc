@@ -113,5 +113,24 @@ bool ReadPageFaultsAndCpuTimeStats(ProcessSnapshot* snapshot) {
   return true;
 }
 
+bool ReadMemInfoStats(std::map<std::string, uint64_t>* mem_info) {
+  char buf[1024];
+  ssize_t rsize = file_utils::ReadFile("/proc/meminfo", buf, sizeof(buf));
+  if (rsize <= 0)
+    return false;
+
+  file_utils::LineReader reader(buf, rsize);
+  for (const char* line = reader.NextLine();
+       line && line[0];
+       line = reader.NextLine()) {
+
+    const char* pos_colon = strstr(line, ":");
+    if (pos_colon == nullptr)
+      continue;  // Should not happen.
+    std::string name(line, pos_colon - line);
+    (*mem_info)[name] = strtoull(&pos_colon[1], nullptr, 10);
+  }
+  return true;
+}
 
 }  // namespace procfs_utils

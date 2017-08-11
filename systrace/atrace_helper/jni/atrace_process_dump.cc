@@ -6,9 +6,17 @@
 
 #include <stdint.h>
 
+#include <limits>
+
 #include "file_utils.h"
 #include "logging.h"
 #include "procfs_utils.h"
+
+namespace {
+
+const int kMemInfoIntervalMs = 100;  // 100ms-ish.
+
+}  // namespace
 
 AtraceProcessDump::AtraceProcessDump() {
   self_pid_ = static_cast<int>(getpid());
@@ -17,24 +25,43 @@ AtraceProcessDump::AtraceProcessDump() {
 AtraceProcessDump::~AtraceProcessDump() {
 }
 
+void AtraceProcessDump::SetDumpInterval(int interval_ms) {
+  CHECK(interval_ms >= kMemInfoIntervalMs);
+  dump_interval_in_timer_ticks_ = interval_ms / kMemInfoIntervalMs;
+  // Approximately equals to kMemInfoIntervalMs.
+  int tick_interval_ms = interval_ms / dump_interval_in_timer_ticks_;
+  snapshot_timer_ = std::unique_ptr<time_utils::PeriodicTimer>(
+      new time_utils::PeriodicTimer(tick_interval_ms));
+}
+
 void AtraceProcessDump::RunAndPrintJson(FILE* stream) {
   out_ = stream;
 
   fprintf(out_, "{\"start_ts\": \"%llu\", \"snapshots\":[\n",
       time_utils::GetTimestamp());
 
-  CHECK(dump_timer_);
-  dump_timer_->Start();
-  for (int dump_number = 0; dump_number < dump_count_; dump_number++) {
-    if (dump_number > 0) {
-      if (!dump_timer_->Wait())
+  CHECK(snapshot_timer_);
+  snapshot_timer_->Start();
+
+  int tick_count = std::numeric_limits<int>::max();
+  if (dump_count_ > 0)
+    tick_count = dump_count_ * dump_interval_in_timer_ticks_;
+
+  for (int tick = 0; tick < tick_count; tick++) {
+    if (tick > 0) {
+      if (!snapshot_timer_->Wait())
         break;  // Interrupted by signal.
       fprintf(out_, ",\n");
     }
-    TakeGlobalSnapshot();
-    SerializeSnapshot();
+    TakeAndSerializeMemInfo();
+    if (!(tick % dump_interval_in_timer_ticks_)) {
+      fprintf(out_, ",\n");
+      TakeGlobalSnapshot();
+      SerializeSnapshot();
+    }
     fflush(out_);
   }
+
   fprintf(out_, "],\n");
   SerializePersistentProcessInfo();
   fprintf(out_, "}\n");
@@ -43,8 +70,8 @@ void AtraceProcessDump::RunAndPrintJson(FILE* stream) {
 }
 
 void AtraceProcessDump::Stop() {
-  CHECK(dump_timer_);
-  dump_timer_->Stop();
+  CHECK(snapshot_timer_);
+  snapshot_timer_->Stop();
 }
 
 void AtraceProcessDump::TakeGlobalSnapshot() {
@@ -203,9 +230,21 @@ void AtraceProcessDump::SerializePersistentProcessInfo() {
   fprintf(out_, "}");
 }
 
+void AtraceProcessDump::TakeAndSerializeMemInfo() {
+  std::map<std::string, uint64_t> mem_info;
+  CHECK(procfs_utils::ReadMemInfoStats(&mem_info));
+  fprintf(out_, "{\"ts\":\"%llu\",\"meminfo\":{\n", time_utils::GetTimestamp());
+  for (auto it = mem_info.begin(); it != mem_info.end(); ++it) {
+    if (it != mem_info.begin())
+      fprintf(out_, ",");
+    fprintf(out_, "\"%s\":%llu", it->first.c_str(), it->second);
+  }
+  fprintf(out_, "}}");
+}
+
 void AtraceProcessDump::Cleanup() {
   processes_.clear();
   snapshot_.clear();
   full_dump_whitelisted_pids_.clear();
-  dump_timer_ = nullptr;
+  snapshot_timer_ = nullptr;
 }

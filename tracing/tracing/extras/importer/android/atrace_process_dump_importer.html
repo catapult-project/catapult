@@ -155,6 +155,10 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
       for (const snapshot of this.snapshots_) {
         const ts = parseInt(snapshot.ts);
         const memoryDump = snapshot.memdump;
+        if (memoryDump === undefined) {
+          // TODO(kraynov): Import /proc/meminfo snapshots.
+          continue;
+        }
 
         const gmd = new tr.model.GlobalMemoryDump(this.model_, ts);
         this.model_.globalMemoryDumps.push(gmd);
