@@ -21,10 +21,10 @@ from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import device_status
 from devil.android.tools import script_common
-from devil.utils import logging_common
 from devil.utils import lsusb
 # TODO(jbudorick): Resolve this after experimenting w/ disabling the USB reset.
 from devil.utils import reset_usb  # pylint: disable=unused-import
+from devil.utils import run_tests_helper
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,6 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
 
 def main():
   parser = argparse.ArgumentParser()
-  logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
   parser.add_argument('--known-devices-file', action='append', default=[],
@@ -182,9 +181,11 @@ def main():
                       help='Path to known device lists.')
   parser.add_argument('--enable-usb-reset', action='store_true',
                       help='Reset USB if necessary.')
+  parser.add_argument('-v', '--verbose', action='count', default=1,
+                      help='Log more information.')
 
   args = parser.parse_args()
-  logging_common.InitializeLogging(args)
+  run_tests_helper.SetLogLevel(args.verbose)
   script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)

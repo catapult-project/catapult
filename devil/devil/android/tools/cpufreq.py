@@ -18,7 +18,7 @@ if __name__ == '__main__':
 from devil.android import device_utils
 from devil.android.perf import perf_control
 from devil.android.tools import script_common
-from devil.utils import logging_common
+from devil.utils import run_tests_helper
 
 
 def SetScalingGovernor(device, args):
@@ -40,11 +40,13 @@ def ListAvailableGovernors(device, _args):
 
 def main(raw_args):
   parser = argparse.ArgumentParser()
-  logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument(
       '--device', dest='devices', action='append', default=[],
       help='Devices for which the governor should be set. Defaults to all.')
+  parser.add_argument(
+      '-v', '--verbose', action='count',
+      help='Log more.')
 
   subparsers = parser.add_subparsers()
 
@@ -62,7 +64,7 @@ def main(raw_args):
 
   args = parser.parse_args(raw_args)
 
-  logging_common.InitializeLogging(args)
+  run_tests_helper.SetLogLevel(args.verbose)
   script_common.InitializeEnvironment(args)
 
   devices = device_utils.DeviceUtils.HealthyDevices(device_arg=args.devices)

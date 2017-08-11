@@ -42,7 +42,7 @@ from devil.android.sdk import keyevent
 from devil.android.sdk import version_codes
 from devil.android.tools import script_common
 from devil.constants import exit_codes
-from devil.utils import logging_common
+from devil.utils import run_tests_helper
 from devil.utils import timeout_retry
 
 logger = logging.getLogger(__name__)
@@ -541,7 +541,6 @@ def main(raw_args):
 
   parser = argparse.ArgumentParser(
       description='Provision Android devices with settings required for bots.')
-  logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument(
@@ -598,6 +597,9 @@ def main(raw_args):
   parser.add_argument(
       '--skip-wipe', action='store_true', default=False,
       help='do not wipe device data during provisioning')
+  parser.add_argument(
+      '-v', '--verbose', action='count', default=1,
+      help='Log more information.')
 
   # No-op arguments for compatibility with build/android/provision_devices.py.
   # TODO(jbudorick): Remove these once all callers have stopped using them.
@@ -616,7 +618,7 @@ def main(raw_args):
 
   args = parser.parse_args(raw_args)
 
-  logging_common.InitializeLogging(args)
+  run_tests_helper.SetLogLevel(args.verbose)
   script_common.InitializeEnvironment(args)
 
   try:
