@@ -10,9 +10,10 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
+<link rel="import" href="/dashboard/elements/story_tag_filter.html">
 <link rel="import" href="/dashboard/static/async_map.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/tracing/base/timing.html">
+<link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 
 <dom-module id="test-picker">
   <template>
@@ -58,7 +59,7 @@ found in the LICENSE file.
                           placeholder="{{item.placeholder}}"
                           disabled="{{item.disabled}}"
                           on-dropdownselect="onDropdownSelect"
-                          id="selection-{{index}}"></autocomplete-box>
+                          id$="selection-{{index}}"></autocomplete-box>
       </template>
 
       <paper-spinner active$={{loading}}></paper-spinner>
@@ -107,8 +108,28 @@ found in the LICENSE file.
         }
       }
 
+      class TagMapCache extends d.AsyncMap {
+        async process_(path) {
+          const params = {
+            test_path: path,
+            end_revision: 'last',
+            name: tr.v.d.RESERVED_NAMES.TAG_MAP
+          };
+
+          try {
+            const diagnostics = await simple_xhr.asPromise(
+                '/get_diagnostics', params);
+          } catch (e) {
+            return undefined;
+          }
+          if (diagnostics.length === 0) return undefined;
+          return tr.v.d.Diagnostic.fromDict(diagnostics[0]);
+        }
+      }
+
       return {
         Subtests,
+        TagMapCache,
       };
     });
 
@@ -170,8 +191,17 @@ found in the LICENSE file.
           value: () => new d.Subtests()
         },
 
-        xsrfToken: { notify: true }
+        xsrfToken: { notify: true },
 
+        tagMapCache: {
+          type: tr.v.d.TagMap,
+          value: () => new d.TagMapCache()
+        },
+
+        storySet: {
+          type: Set,
+          value: undefined
+        },
       },
 
       computeAnd: (x, y) => x && y,
@@ -281,10 +311,23 @@ found in the LICENSE file.
           this.updateBotMenu();
           updateBotMenuMark.end();
         } else {
-          // Update all the next dropdown menus for subtests.
+          if (boxIndex == 1) {
+            const tagMap = await this.tagMapCache.get(
+                this.getCurrentSelectedPathUpTo(0));
+
+            if (tagMap) {
+              const tags = tagMap.tagsToStoryNames.keys();
+              const storySet = new Set();
+              for (const tag of tags) {
+                for (const story of tagMap.tagsToStoryNames.get(tag)) {
+                  storySet.add(story);
+                }
+              }
+              this.set('storySet', storySet);
+            }
+          }
           await this.updateSubtestMenus(boxIndex + 1);
         }
-
         // Focus the next menu so the user can go ahead and start typing in it.
         const nextMenu = this.getSelectionMenu(boxIndex + 1);
         if (nextMenu) nextMenu.focus();
@@ -339,6 +382,36 @@ found in the LICENSE file.
       },
 
       /**
+       * Checks to see if the current stories filtered by the tag filter match
+       * the contents of a subtest autocomplete box.
+       */
+      subtestsAreStories(subtests) {
+        const subtestSet = new Set(subtests.map(x => x.name));
+        if (!subtestSet || !this.storySet) return false;
+        for (const story of this.storySet) {
+          if (!subtestSet.has(story)) {
+            return false;
+          }
+        }
+        return true;
+      },
+
+      /**
+       * Updates the stories in the story autocomplete box when selected stories
+       * are changed.
+       */
+      onSelectedStoriesChanged(event) {
+        const tagFilter = event.target;
+        const selectedStories = [];
+
+        for (const story of tagFilter.selectedStoryNames) {
+          selectedStories.push({name: story});
+        }
+
+        tagFilter.nextSibling.items = selectedStories;
+      },
+
+      /**
        * Updates all subtest menus starting at 'startIndex'.
        */
       async updateSubtestMenus(startIndex) {
@@ -389,8 +462,20 @@ found in the LICENSE file.
           menu.set('items', subtests);
           this.updatingSubtestMenus = false;
         }
+
         this.updateAddButtonState();
-        updateSubtestMenusMark.end();
+
+        // Insert story tag filter if the box contains stories
+        if (this.subtestsAreStories(subtests)) {
+          const selectedBox = this.$$('#selection-' + startIndex);
+          const tagFilter = document.createElement('story-tag-filter');
+          tagFilter.addEventListener('selected-stories-changed',
+              this.onSelectedStoriesChanged.bind(this));
+          tagFilter.tagMap = await this.tagMapCache.get(
+              this.getCurrentSelectedPathUpTo(0));
+          selectedBox.parentNode.insertBefore(tagFilter, selectedBox);
+          selectedBox.set('placeholder', 'Story');
+        }
       },
 
       async updateAddButtonState() {
