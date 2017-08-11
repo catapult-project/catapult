@@ -4,30 +4,17 @@
 
 """Helper functions common to native, java and host-driven test runners."""
 
+import collections
 import logging
-import sys
-import time
+
+from devil.utils import logging_common
 
 
-class CustomFormatter(logging.Formatter):
-  """Custom log formatter."""
+CustomFormatter = logging_common.CustomFormatter
 
-  # override
-  def __init__(self, fmt='%(threadName)-4s  %(message)s'):
-    # Can't use super() because in older Python versions logging.Formatter does
-    # not inherit from object.
-    logging.Formatter.__init__(self, fmt=fmt)
-    self._creation_time = time.time()
 
-  # override
-  def format(self, record):
-    # Can't use super() because in older Python versions logging.Formatter does
-    # not inherit from object.
-    msg = logging.Formatter.format(self, record)
-    if 'MainThread' in msg[:19]:
-      msg = msg.replace('MainThread', 'Main', 1)
-    timediff = time.time() - self._creation_time
-    return '%s %8.3fs %s' % (record.levelname[0], timediff, msg)
+_WrappedLoggingArgs = collections.namedtuple(
+    '_WrappedLoggingArgs', ['verbose'])
 
 
 def SetLogLevel(verbose_count, add_handler=True):
@@ -37,14 +24,6 @@ def SetLogLevel(verbose_count, add_handler=True):
     verbose_count: Verbosity level.
     add_handler: If true, adds a handler with |CustomFormatter|.
   """
-  log_level = logging.WARNING  # Default.
-  if verbose_count == 1:
-    log_level = logging.INFO
-  elif verbose_count >= 2:
-    log_level = logging.DEBUG
-  logger = logging.getLogger()
-  logger.setLevel(log_level)
-  if add_handler:
-    custom_handler = logging.StreamHandler(sys.stdout)
-    custom_handler.setFormatter(CustomFormatter())
-    logging.getLogger().addHandler(custom_handler)
+  logging_common.InitializeLogging(
+      _WrappedLoggingArgs(verbose_count),
+      handler=None if add_handler else logging.NullHandler())

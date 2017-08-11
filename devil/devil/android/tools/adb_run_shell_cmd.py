@@ -15,23 +15,22 @@ if __name__ == '__main__':
 
 from devil.android import device_utils
 from devil.android.tools import script_common
-from devil.utils import run_tests_helper
+from devil.utils import logging_common
 
 
 def main():
   parser = argparse.ArgumentParser(
       'Run an adb shell command on selected devices')
   parser.add_argument('cmd', help='Adb shell command to run.', nargs="+")
+  logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--as-root', action='store_true', help='Run as root.')
   parser.add_argument('--json-output',
                       help='File to dump json output to.')
-  parser.add_argument('-v', '--verbose', default=0, action='count',
-                      help='Verbose level (multiple times for more)')
   args = parser.parse_args()
 
-  run_tests_helper.SetLogLevel(args.verbose)
+  logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
   devices = script_common.GetDevices(args.devices, args.blacklist_file)
