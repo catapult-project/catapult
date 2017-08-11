@@ -4,79 +4,37 @@
 # found in the LICENSE file.
 
 # This is intended to be a very trimmed down, single-file, hackable, and easy
-# to understand version of Telemetry. It's able to run a simple user story on
-# Android, grab a trace, and extract memory metrics from it. May be useful to
-# diagnose issues with Chrome or when trying to reproduce a regression.
+# to understand version of Telemetry. It's able to run simple user stories on
+# Android, grab traces, and extract metrics from them. May be useful to
+# diagnose issues with Chrome, reproduce regressions or prototype new user
+# stories.
 #
-# Known limitations: Does not use WPR, so it needs to hit the live network to
-# load pages. Does not install any apks.
+# Known limitations: Does not use WPR, so it does need to hit the live network
+# to load pages.
 
-import argparse
 import collections
 import contextlib
+import httplib
 import json
 import logging
+import os
 import pipes
 import posixpath
+import re
 import socket
 import subprocess
-import sys
+import tempfile
 import time
 import websocket  # pylint: disable=import-error
+from xml.etree import ElementTree as element_tree
 
 
-COMMAND_LINE_FILE = '/data/local/tmp/chrome-command-line'
-CHROME_PACKAGE = 'org.chromium.chrome'
-MAIN_ACTIVITY = 'com.google.android.apps.chrome.Main'
-STORY_URL = 'https://docs.google.com/document/d/1GvzDP-tTLmJ0myRhUAfTYWs3ZUFilUICg8psNHyccwQ/edit?usp=sharing'  # pylint: disable=line-too-long
-PROFILE_DIR = '/data/data/' + CHROME_PACKAGE
+# Parse rectangle bounds given as: '[left,top][right,bottom]'.
+RE_BOUNDS = re.compile(
+    r'\[(?P<left>\d+),(?P<top>\d+)\]\[(?P<right>\d+),(?P<bottom>\d+)\]')
 
-BROWSER_FLAGS = [
-    '--enable-heap-profiling',
-    '--enable-remote-debugging',
-    '--disable-fre',
-    '--no-default-browser-check',
-    '--no-first-run',
-]
-
-TRACE_CONFIG = {
-    'excludedCategories': ['*'],
-    'includedCategories': ['disabled-by-default-memory-infra'],
-    'memoryDumpConfig': {'triggers': []}
-}
-
-
-class AdbMini(object):
-  ADB_BIN = 'adb'
-
-  @classmethod
-  def RunBaseCommand(cls, *args):
-    cmd = [cls.ADB_BIN]
-    cmd.extend(args)
-    logging.info('$ adb %s', ' '.join(pipes.quote(a) for a in args))
-    return subprocess.check_output(cmd)
-
-  @classmethod
-  def GetDevices(cls):
-    for line in cls.RunBaseCommand('devices').splitlines()[1:]:
-      cols = line.split()
-      if cols and cols[-1] == 'device':
-        yield cls(cols[0])
-
-  def __init__(self, serial):
-    self._serial = serial
-
-  def RunCommand(self, *args):
-    return type(self).RunBaseCommand('-s', self._serial, *args)
-
-  def ListPath(self, path):
-    return [
-        line.split(' ')[-1]
-        for line in self.RunCommand('ls', path).splitlines()]
-
-  def WriteText(self, text, path):
-    self.RunCommand(
-        'shell', 'echo -n %s > %s' % (pipes.quote(text), pipes.quote(path)))
+# TODO: Maybe replace with a true on-device temp file.
+UI_DUMP_TEMP = '/data/local/tmp/tm_ui_dump.xml'
 
 
 def RetryOnException(exc, retries=5):
@@ -87,7 +45,9 @@ def RetryOnException(exc, retries=5):
         try:
           return f(*args, **kwargs)
         except exc:
-          logging.info('failed on %s, will retry ...', f.__name__)
+          logging.info(
+              '%s raised %s, will retry in %d seconds...',
+              f.__name__, exc.__name__, wait)
           time.sleep(wait)
           wait *= 2
       return f(*args, **kwargs)
@@ -95,19 +55,155 @@ def RetryOnException(exc, retries=5):
   return Decorator
 
 
-class DevtoolsMini(object):
-  def __init__(self, host, port):
-    self._host = host
-    self._port = port
+def RetryOnFalse(retries=5):
+  def Decorator(f):
+    def Wrapper(*args, **kwargs):
+      wait = 1
+      for _ in xrange(retries):
+        value = f(*args, **kwargs)
+        if value:
+          return value
+        logging.info(
+            '%s returned %r, will retry in %d seconds...',
+            f.__name__, value, wait)
+        time.sleep(wait)
+        wait *= 2
+      return f(*args, **kwargs)
+    return Wrapper
+  return Decorator
+
+
+class AdbCommandError(Exception):
+  pass
+
+
+class AdbMini(object):
+  ADB_BIN = 'adb'
+
+  @classmethod
+  def RunBaseCommand(cls, *args):
+    cmd = [cls.ADB_BIN]
+    cmd.extend(args)
+    logging.info('$ adb %s', ' '.join(pipes.quote(a) for a in args))
+    return subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+
+  @classmethod
+  def GetDevices(cls):
+    for line in cls.RunBaseCommand('devices').splitlines()[1:]:
+      cols = line.split()
+      if cols and cols[-1] == 'device':
+        yield cls(cols[0])
+
+  def __init__(self, serial):
+    self.serial = serial
+
+  def RunCommand(self, *args):
+    return type(self).RunBaseCommand('-s', self.serial, *args)
+
+  def RunShellCommand(self, *args):
+    return self.RunCommand('shell', *args)
+
+  def ListPath(self, path):
+    return [
+        line.split(' ')[-1]
+        for line in self.RunCommand('ls', path).splitlines()]
+
+  def WriteText(self, text, path):
+    self.RunShellCommand(
+        'echo -n %s > %s' % (pipes.quote(text), pipes.quote(path)))
+
+  def ListPackages(self, name_filter=None, only_enabled=False):
+    """Return a list of packages available on the device."""
+    args = ['pm', 'list', 'packages']
+    if only_enabled:
+      args.append('-e')
+    if name_filter:
+      args.append(name_filter)
+    lines = self.RunShellCommand(*args).splitlines()
+    prefix = 'package:'
+    return [line[len(prefix):] for line in lines if line.startswith(prefix)]
+
+  def ProcessStatus(self):
+    """Return a defaultdict mapping of {process_name: list_of_pids}."""
+    result = collections.defaultdict(list)
+    # TODO: May not work on earlier Android verions without -e support.
+    for line in self.RunShellCommand('ps', '-e').splitlines():
+      row = line.split(None, 8)
+      try:
+        pid = int(row[1])
+        process_name = row[-1]
+      except StandardError:
+        continue
+      result[process_name].append(pid)
+    return result
+
+  @RetryOnException(AdbCommandError)
+  def GetUiDump(self):
+    """Return the root XML node with screen captured from the device."""
+    self.RunShellCommand('rm', '-f', UI_DUMP_TEMP)
+    output = self.RunShellCommand('uiautomator', 'dump', UI_DUMP_TEMP).strip()
+
+    if output.startswith('ERROR:'):
+      # uiautomator may fail if device is not in idle state, e.g. animations
+      # or video playing. Retry if that's the case.
+      raise AdbCommandError(output)
+
+    with tempfile.NamedTemporaryFile(suffix='.xml') as f:
+      f.close()
+      self.RunCommand('pull', UI_DUMP_TEMP, f.name)
+      return element_tree.parse(f.name)
+
+  @RetryOnException(LookupError)
+  def FindUiNode(self, attr_values):
+    """Find a UI node on screen capture, retrying if not yet visible."""
+    root = self.GetUiDump()
+    for node in root.iter():
+      if all(node.get(k) == v for k, v in attr_values):
+        return node
+    raise LookupError('Specified UI node not found')
+
+  def TapUiNode(self, *args, **kwargs):
+    node = self.FindUiNode(*args, **kwargs)
+    m = RE_BOUNDS.match(node.get('bounds'))
+    left, top, right, bottom = (int(v) for v in m.groups())
+    x, y = (left + right) / 2, (top + bottom) / 2
+    self.RunShellCommand('input', 'tap', str(x), str(y))
+
+
+class DevToolsMini(object):
+  def __init__(self, netloc):
+    self._netloc = netloc
+
+  def OpenWebSocket(self, path):
+    if path.startswith('ws://'):
+      url = path
+    else:
+      url = ('ws://%s/devtools/' % self._netloc) + path
+    return DevToolsWebSocket(url)
+
+  def Request(self, path=''):
+    conn = httplib.HTTPConnection(self._netloc)
+    try:
+      url = '/json'
+      if path:
+        url = posixpath.join(url, path)
+      conn.request('GET', url)
+      response = conn.getresponse()
+      payload = response.read()
+      return json.loads(payload)
+    finally:
+      conn.close()
+
+
+class DevToolsWebSocket(object):
+  def __init__(self, url):
+    self._url = url
     self._socket = None
     self._cmdid = 0
 
-  @property
-  def url(self):
-    return 'ws://%s:%d/devtools/browser' % (self._host, self._port)
-
   def __enter__(self):
-    return self.Open()
+    self.Open()
+    return self
 
   def __exit__(self, *args, **kwargs):
     self.Close()
@@ -115,18 +211,16 @@ class DevtoolsMini(object):
   @RetryOnException(socket.error)
   def Open(self):
     assert self._socket is None
-    self._socket = websocket.create_connection(self.url)
-    logging.info('devtools connection established')
-    return self
+    self._socket = websocket.create_connection(self._url)
 
   def Close(self):
     if self._socket is not None:
       self._socket.close()
       self._socket = None
 
-  def RunCommand(self, method, **kwargs):
+  def Send(self, method, **kwargs):
     logging.info(
-        'devtools: %s(%s)', method,
+        '%s: %s(%s)', self._url, method,
         ', '.join('%s=%r' % (k, v) for k, v in sorted(kwargs.iteritems())))
     self._cmdid += 1
     self._socket.send(json.dumps(
@@ -135,46 +229,112 @@ class DevtoolsMini(object):
     assert resp['id'] == self._cmdid
     return resp.get('result')
 
-  def CollectTrace(self, f):
+  def CollectStream(self, method, f):
     resp = json.loads(self._socket.recv())
-    assert resp['method'] == 'Tracing.tracingComplete'
+    assert resp['method'] == method
     stream_handle = resp['params']['stream']
     resp = {'eof': False}
     while not resp['eof']:
-      resp = self.RunCommand('IO.read', handle=stream_handle)
+      resp = self.Send('IO.read', handle=stream_handle)
       f.write(resp['data'].encode('utf-8'))
-    self.RunCommand('IO.close', handle=stream_handle)
+    self.Send('IO.close', handle=stream_handle)
+
+  @contextlib.contextmanager
+  def Tracing(self, trace_config, trace_file):
+    self.Send('Tracing.start', transferMode='ReturnAsStream',
+              traceConfig=trace_config)
+    yield self
+    self.Send('Tracing.end')
+    with open(trace_file, 'wb') as f:
+      self.CollectStream('Tracing.tracingComplete', f)
+
+  def RequestMemoryDump(self):
+    resp = self.Send('Tracing.requestMemoryDump')
+    assert resp['success']
 
 
-@contextlib.contextmanager
-def PortForwarding(device, host_port, device_port):
-  device.RunCommand('forward', '--no-rebind', host_port, device_port)
-  try:
-    yield
-  finally:
-    device.RunCommand('forward', '--remove', host_port)
+class AndroidApp(object):
+  # Override this value with path to directory where APKs to install are found.
+  APKS_DIR = NotImplemented
+
+  PACKAGE_NAME = NotImplemented
+  APK_FILENAME = None
+
+  def __init__(self, device):
+    self.device = device
+
+  def ForceStop(self):
+    self.device.RunShellCommand('am', 'force-stop', self.PACKAGE_NAME)
+
+  def Install(self):
+    assert self.APK_FILENAME is not None, 'No APK to install available'
+    apk_path = os.path.join(self.APKS_DIR, self.APK_FILENAME)
+    logging.warning('Installing %s from %s', self.PACKAGE_NAME, apk_path)
+    assert os.path.isfile(apk_path), 'File not found: %s' % apk_path
+    self.device.RunCommand('install', '-r', '-d', apk_path)
+
+  def Uninstall(self):
+    logging.warning('Uninstalling %s', self.PACKAGE_NAME)
+    self.device.RunCommand('uninstall', self.PACKAGE_NAME)
 
 
-@contextlib.contextmanager
-def LaunchBrowser(device, startup_url):
-  # Ensure it's not running before we start.
-  device.RunCommand('shell', 'am', 'force-stop', CHROME_PACKAGE)
-  device.RunCommand(
-      'shell', 'am', 'start', '-W', '-d', startup_url,
-      '-n', '/'.join([CHROME_PACKAGE, MAIN_ACTIVITY]))
-  try:
-    yield
-  finally:
-    device.RunCommand('shell', 'am', 'force-stop', CHROME_PACKAGE)
+class ChromiumApp(AndroidApp):
+  PACKAGE_NAME = 'org.chromium.chrome'
+  APK_FILENAME = 'ChromePublic.apk'
+  COMMAND_LINE_FILE = '/data/local/tmp/chrome-command-line'
+
+  def RemoveProfile(self):
+    # TODO: Path to profile may need to be updated on newer Android versions.
+    profile_dir = posixpath.join('/data/data', self.PACKAGE_NAME)
+    filenames = self.device.ListPath(profile_dir)
+    args = ['rm', '-r']
+    args.extend(
+        posixpath.join(profile_dir, f)
+        for f in filenames if f not in ['.', '..', 'lib'])
+    self.device.RunShellCommand(*args)
+
+  @contextlib.contextmanager
+  def CommandLineFlags(self, flags):
+    self.device.WriteText(' '.join(['_'] + flags), self.COMMAND_LINE_FILE)
+    try:
+      yield
+    finally:
+      self.device.RunShellCommand('rm', self.COMMAND_LINE_FILE)
+
+  def GetDeviceDevToolsPort(self):
+    return 'localabstract:chrome_devtools_remote'
+
+  @contextlib.contextmanager
+  def DevTools(self, host, port):
+    """Setup and configure port forwarding for a DevTools instance."""
+    netloc = '%s:%d' % (host, port)
+    local = 'tcp:%d' % port
+    remote = self.GetDeviceDevToolsPort()
+    self.device.RunCommand('forward', '--no-rebind', local, remote)
+    try:
+      yield DevToolsMini(netloc)
+    finally:
+      self.device.RunCommand('forward', '--remove', local)
 
 
-@contextlib.contextmanager
-def CommandLineFlags(device, flags):
-  device.WriteText(' '.join(['_'] + flags), COMMAND_LINE_FILE)
-  try:
-    yield
-  finally:
-    device.RunCommand('shell', 'rm', COMMAND_LINE_FILE)
+class ChromeApp(ChromiumApp):
+  PACKAGE_NAME = 'com.google.android.apps.chrome'
+  APK_FILENAME = 'Chrome.apk'
+
+
+class SystemChromeApp(ChromiumApp):
+  PACKAGE_NAME = 'com.android.chrome'
+  APK_FILENAME = None
+
+  def Install(self):
+    # System Chrome app cannot be (un)installed, so we enable/disable instead.
+    logging.warning('Enabling %s', self.PACKAGE_NAME)
+    self.device.RunShellCommand('pm', 'enable', self.PACKAGE_NAME)
+
+  def Uninstall(self):
+    # System Chrome app cannot be (un)installed, so we enable/disable instead.
+    logging.warning('Disabling %s', self.PACKAGE_NAME)
+    self.device.RunShellCommand('pm', 'disable', self.PACKAGE_NAME)
 
 
 def ReadProcessMetrics(tracefile):
@@ -194,69 +354,3 @@ def ReadProcessMetrics(tracefile):
       processes[event['pid']]['name'] = event['args']['name']
 
   return processes.values()
-
-
-def RunStory(device, run_id, args):
-  tracefile = 'trace-%02d.json' % run_id
-
-  device.RunCommand('root')
-  device.RunCommand('wait-for-device')
-
-  # Remove Chrome profile.
-  remove_profile = ['shell', 'rm', '-r']
-  remove_profile.extend(
-      posixpath.join(PROFILE_DIR, f)
-      for f in device.ListPath(PROFILE_DIR) if f not in ['.', '..', 'lib'])
-  device.RunCommand(*remove_profile)
-
-  # Flush system caches.
-  device.RunCommand('shell', 'ndc', 'resolver', 'flushdefaultif')
-  device.RunCommand('shell', 'sync')
-  device.WriteText('3', '/proc/sys/vm/drop_caches')
-
-  with CommandLineFlags(device, BROWSER_FLAGS):
-    with LaunchBrowser(device, STORY_URL):
-      with PortForwarding(
-          device, 'tcp:%d' % args.port, 'localabstract:chrome_devtools_remote'):
-        with DevtoolsMini(args.host, args.port) as devtools:
-          devtools.RunCommand('Tracing.start', traceConfig=TRACE_CONFIG,
-                              transferMode='ReturnAsStream')
-          time.sleep(5)
-          resp = devtools.RunCommand('Tracing.requestMemoryDump')
-          assert resp['success']
-          devtools.RunCommand('Tracing.end')
-          with open(tracefile, 'wb') as f:
-            devtools.CollectTrace(f)
-
-  # Display metrics from any relevant process or processes.
-  for p in ReadProcessMetrics(tracefile):
-    if p['name'] == 'Renderer':
-      print '[%d] renderer:java_heap:allocated_objects: %.2f MiB' % (
-          run_id, p['java_heap'] / (1024.0 * 1024.0))
-
-
-def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--adb-bin', default='adb')
-  parser.add_argument('--serial')
-  parser.add_argument('--pageset-repeat', type=int, default=5)
-  parser.add_argument('--host', default='localhost')
-  parser.add_argument('--port', type=int, default=1234)
-  parser.add_argument('-v', '--verbose')
-  args = parser.parse_args()
-
-  logging.basicConfig()
-  if args.verbose:
-    logging.getLogger().setLevel(logging.INFO)
-
-  AdbMini.ADB_BIN = args.adb_bin
-  if args.serial is None:
-    device = next(AdbMini.GetDevices())  # Use first device found.
-  else:
-    device = AdbMini(args.serial)
-
-  for run_id in xrange(args.pageset_repeat):
-    RunStory(device, run_id + 1, args)
-
-if __name__ == '__main__':
-  sys.exit(main())
