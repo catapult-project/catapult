@@ -9,7 +9,6 @@ import vinn
 
 FORMAT_TO_METHOD = {
     'chartjson': 'compareCharts',
-    'valueset': 'compareValuesets',
     'buildbot': 'compareBuildbotOutputs'
 }
 

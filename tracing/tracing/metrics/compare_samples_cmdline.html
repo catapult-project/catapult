@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/xhr.html">
-<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -113,62 +112,6 @@ function valuesFromChartsWithFallback(listOfCharts, metricName) {
   return valuesFromCharts(listOfCharts, fullMetricName);
 }
 
-function rawValuesByMetricName(histograms, metricName) {
-  let interactionRecord;
-  let valueName;
-  const [itrPlusChart, story] = splitMetric(metricName);
-  if (itrPlusChart.indexOf('@@') > -1) {
-    [interactionRecord, valueName] = itrPlusChart.split('@@');
-  } else if (itrPlusChart.indexOf('-') > -1) {
-    [interactionRecord, ...valueName] = itrPlusChart.split('-');
-    valueName = valueName.join('');
-  } else {
-    valueName = itrPlusChart;
-  }
-  let values = histograms.getHistogramsNamed(valueName);
-  if (!values || values.length === 0) {
-    // If there was a dash in the chart name, but it wasn't an
-    // interaction record.
-    valueName = itrPlusChart;
-    values = histograms.getHistogramsNamed(valueName);
-    interactionRecord = undefined;
-    if (!values || values.length === 0) {
-      throw new Error('No values with name ' + valueName);
-    }
-  }
-  const filtered = [];
-  for (const value of values) {
-    if (value.name !== valueName) continue;
-    const ii = tr.v.d.TelemetryInfo.getFromHistogram(value);
-    if (interactionRecord) {
-      const irParts = [];
-      const keys = Array.from(ii.storyGroupingKeys.keys());
-      keys.sort();
-      for (const key of keys) {
-        irParts.push(ii.storyGroupingKeys.get(key));
-      }
-      if (interactionRecord === irParts.join('_') &&
-          escapeChars(ii.storyDisplayName) ===
-          escapeChars(story)) {
-        filtered.push(value);
-      }
-    } else if (escapeChars(ii.storyDisplayName) ===
-               escapeChars(story)) {
-      filtered.push(value);
-    }
-  }
-
-  let rawValues = [];
-  for (const val of filtered) {
-    if (val instanceof tr.v.Histogram) {
-      rawValues = rawValues.concat(val.sampleValues);
-    } else {
-      throw new Error('Only tr.v.Histogram values are supported');
-    }
-  }
-  return rawValues;
-}
-
 function parseFiles(files) {
   const results = [];
   for (const path of files) {
@@ -258,25 +201,6 @@ const SampleComparison = {
     const bPaths = buildbotOutputBPathList.split(',');
     const sampleA = parseMultipleBuildbotStreams(aPaths, metric);
     const sampleB = parseMultipleBuildbotStreams(bPaths, metric);
-    return buildComparisonResultOutput(sampleA, sampleB);
-  },
-
-  compareValuesets(histogramsAPathList, histogramsBPathList, metric) {
-    const aPaths = histogramsAPathList.split(',');
-    const bPaths = histogramsBPathList.split(',');
-    const histogramsA = new tr.v.HistogramSet();
-    const histogramsB = new tr.v.HistogramSet();
-    const dictsA = parseFiles(aPaths);
-    const dictsB = parseFiles(bPaths);
-    for (const d of dictsA) {
-      histogramsA.importDicts(d);
-    }
-    for (const d of dictsB) {
-      histogramsB.importDicts(d);
-    }
-
-    const sampleA = rawValuesByMetricName(histogramsA, metric);
-    const sampleB = rawValuesByMetricName(histogramsB, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 

@@ -292,17 +292,6 @@ class CompareSamplesUnittest(unittest.TestCase):
         lower_values, higher_values, '/'.join(metric)).stdout)
     self.assertEqual(result['result']['significance'], NEED_MORE_DATA)
 
-  def testCompareValuesets(self):
-    vs = os.path.join(os.path.dirname(__file__),
-                      'valueset_output_for_compare_samples_test.json')
-    result = compare_samples.CompareSamples(
-        vs, vs, 'timeToFirstContentfulPaint/pcv1-cold/'
-        'http___www.rambler.ru_', data_format='valueset')
-    result = json.loads(result.stdout)
-    self.assertEqual(result['result']['significance'], NEED_MORE_DATA)
-    self.assertAlmostEqual(Mean(result['sampleA']), 75.3177999958396)
-    self.assertAlmostEqual(Mean(result['sampleB']), 75.3177999958396)
-
   def testCompareBuildbotOutput(self):
     bb = os.path.join(os.path.dirname(__file__),
                       'buildbot_output_for_compare_samples_test.txt')

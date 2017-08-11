@@ -29,17 +29,11 @@ def Main(argv):
   parser.add_argument('--buildbot', dest='format', action='store_const',
                       const='buildbot',
                       help='assume buildbot result line format for the data')
-  parser.add_argument('--valueset', dest='format', action='store_const',
-                      const='valueset',
-                      help='assume valueset format for the input data')
   args = parser.parse_args(argv[1:])
 
   if not args.format:
     filename = os.path.basename(sample_a.split(',')[0])
-    if filename == 'results-valueset.json':
-      args.format = 'valueset'
-    else:
-      args.format = 'chartjson'
+    args.format = 'chartjson'
 
   vinn_result = compare_samples.CompareSamples(
       args.sample_a,
