@@ -98,7 +98,6 @@ class MRDeprecateTestsHandler(request_handler.RequestHandler):
   """Handler to run a deprecate tests mapper job."""
 
   def get(self):
-    # TODO(qyearsley): Add test coverage. See catapult:#1346.
     name = 'Update test deprecation status.'
     handler = ('dashboard.mr.DeprecateTestsMapper')
     reader = 'mapreduce.input_readers.DatastoreInputReader'

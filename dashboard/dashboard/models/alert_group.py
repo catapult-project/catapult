@@ -281,7 +281,6 @@ def _AddLogForBugAssociate(anomaly_entity):
   sheriff = anomaly_entity.GetTestMetadataKey().get().sheriff
   if not sheriff:
     return
-  # TODO(qyearsley): Add test coverage. See catapult:#1346.
   sheriff = sheriff.string_id()
   bug_url = ('https://chromeperf.appspot.com/group_report?bug_id=' +
              str(bug_id))

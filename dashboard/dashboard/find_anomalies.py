@@ -197,7 +197,6 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
   for c in change_points:
     # Log information about what anomaly got filtered and what did not.
     if not _IsAnomalyInRef(c, ref_change_points):
-      # TODO(qyearsley): Add test coverage. See catapult:#1346.
       logging.info('Nothing was filtered out for test %s, and revision %s',
                    test_path, c.x_value)
       change_points_filtered.append(c)
@@ -232,7 +231,6 @@ def _IsAnomalyInRef(change_point, ref_change_points):
   for ref_change_point in ref_change_points:
     if change_point.x_value == ref_change_point.x_value:
       return True
-  # TODO(qyearsley): Add test coverage. See catapult:#1346.
   return False
 
 
@@ -258,7 +256,6 @@ def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
   for row in reversed(rows):
     if row.revision < later_revision:
       return row.revision
-  # TODO(qyearsley): Add test coverage. See catapult:#1346.
   assert False, 'No matching revision found in |rows|.'
 
 
