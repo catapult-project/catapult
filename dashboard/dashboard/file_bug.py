@@ -55,14 +55,9 @@ class FileBugHandler(request_handler.RequestHandler):
       HTML, using the template 'bug_result.html'.
     """
     if not utils.IsValidSheriffUser():
-      # TODO(qyearsley): Simplify this message (after a couple months).
       self.RenderHtml('bug_result.html', {
-          'error': ('You must be logged in with a chromium.org account '
-                    'in order to file bugs here! This is the case ever '
-                    'since we switched to the Monorail issue tracker. '
-                    'Note, viewing internal data should work for Googlers '
-                    'that are logged in with the Chromium accounts. See '
-                    'https://github.com/catapult-project/catapult/issues/2042')
+          'error': 'You must be logged in with a chromium.org account '
+                   'to file bugs.'
       })
       return
 
