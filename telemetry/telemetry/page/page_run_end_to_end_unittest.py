@@ -171,8 +171,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(
-        test, story_set, options, results, tear_down_after_story=True,
-        metadata=EmptyMetadataForTest())
+        test, story_set, options, results, metadata=EmptyMetadataForTest())
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(2, test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
@@ -378,8 +377,9 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     class TestSharedState(shared_page_state.SharedPageState):
 
       def _StopBrowser(self):
+        if self._browser:
+          num_times_browser_closed[0] += 1
         super(TestSharedState, self)._StopBrowser()
-        num_times_browser_closed[0] += 1
 
     story_set = story.StorySet()
     page = page_module.Page(

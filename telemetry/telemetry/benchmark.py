@@ -105,43 +105,6 @@ class Benchmark(command_line.Command):
     return '%s.%s' % (cls.__module__.split('.')[-1], cls.__name__)
 
   @classmethod
-  def ShouldTearDownStateAfterEachStoryRun(cls):
-    """Override to specify whether to tear down state after each story run.
-
-    Tearing down all states after each story run, e.g., clearing profiles,
-    stopping the browser, stopping local server, etc. So the browser will not be
-    reused among multiple stories. This is particularly useful to get the
-    startup part of launching the browser in each story.
-
-    This should only be used by TimelineBasedMeasurement (TBM) benchmarks, but
-    not by PageTest based benchmarks.
-    """
-    return True
-
-  # NOTE: this is a temporary workaround for crbug.com/645329, do not rely on
-  # this as a stable public API as we may remove this without public notice.
-  @classmethod
-  def IsShouldTearDownStateAfterEachStoryRunOverriden(cls):
-    return (cls.ShouldTearDownStateAfterEachStoryRun.__func__ !=
-            Benchmark.ShouldTearDownStateAfterEachStoryRun.__func__)
-
-  @classmethod
-  def ShouldTearDownStateAfterEachStorySetRun(cls):
-    """Override to specify whether to tear down state after each story set run.
-
-    Defaults to True in order to reset the state and make individual story set
-    repeats more independent of each other. The intended effect is to average
-    out noise in measurements between repeats.
-
-    Long running benchmarks willing to stess test the browser and have it run
-    for long periods of time may switch this value to False.
-
-    This should only be used by TimelineBasedMeasurement (TBM) benchmarks, but
-    not by PageTest based benchmarks.
-    """
-    return True
-
-  @classmethod
   def AddCommandLineArgs(cls, parser):
     group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
     cls.AddBenchmarkCommandLineArgs(group)

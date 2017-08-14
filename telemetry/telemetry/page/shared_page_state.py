@@ -170,10 +170,16 @@ class SharedPageState(story_module.SharedState):
       self._current_tab = None
 
   def ShouldStopBrowserAfterStoryRun(self, story):
-    # TODO(crbug.com/748566): Provide a suitable implementation when not made
-    # redundant by the current tear down state after each story behavior.
+    """Specify whether the browser should be closed after running a story.
+
+    Defaults to always closing the browser on all platforms to help keeping
+    story runs independent of each other; except on ChromeOS where restarting
+    the browser is expensive.
+
+    Subclasses may override this method to change this behavior.
+    """
     del story
-    return False
+    return self.platform.GetOSName() != 'chromeos'
 
   @property
   def platform(self):

@@ -423,39 +423,6 @@ class StoryRunnerTest(unittest.TestCase):
     calls_in_order = GetCallsInOrder() # pylint: disable=no-value-for-parameter
     self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
-  def testTearDownStateAfterEachStoryOrStorySetRun(self):
-    class TestSharedStateForTearDown(TestSharedState):
-      num_of_tear_downs = 0
-
-      def RunStory(self, results):
-        pass
-
-      def TearDownState(self):
-        TestSharedStateForTearDown.num_of_tear_downs += 1
-
-    story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='foo'))
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='bar'))
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='baz'))
-
-    TestSharedStateForTearDown.num_of_tear_downs = 0
-    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     metadata=EmptyMetadataForTest())
-    self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 1)
-
-    TestSharedStateForTearDown.num_of_tear_downs = 0
-    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     tear_down_after_story=True,
-                     metadata=EmptyMetadataForTest())
-    self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 3)
-
-    self.options.pageset_repeat = 5
-    TestSharedStateForTearDown.num_of_tear_downs = 0
-    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     tear_down_after_story_set=True,
-                     metadata=EmptyMetadataForTest())
-    self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 5)
-
   def testAppCrashExceptionCausesFailureValue(self):
     self.SuppressExceptionFormatting()
     story_set = story_module.StorySet()

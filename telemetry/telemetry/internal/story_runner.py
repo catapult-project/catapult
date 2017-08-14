@@ -142,7 +142,6 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
 
 
 def Run(test, story_set, finder_options, results, max_failures=None,
-        tear_down_after_story=False, tear_down_after_story_set=False,
         expectations=None, metadata=None):
   """Runs a given test against a given page_set with the given options.
 
@@ -226,16 +225,10 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             # Print current exception and propagate existing exception.
             exception_formatter.PrintFormattedException(
                 msg='Exception from result processing:')
-          if state and tear_down_after_story:
-            state.TearDownState()
-            state = None
         if (effective_max_failures is not None and
             len(results.failures) > effective_max_failures):
           logging.error('Too many failures. Aborting.')
           return
-      if state and tear_down_after_story_set:
-        state.TearDownState()
-        state = None
   finally:
     results.PopulateHistogramSet(metadata)
 
@@ -327,22 +320,11 @@ def RunBenchmark(benchmark, finder_options):
           'PageTest must be used with StorySet containing only '
           'telemetry.page.Page stories.')
 
-  should_tear_down_state_after_each_story_run = (
-      benchmark.ShouldTearDownStateAfterEachStoryRun())
-  # HACK: restarting shared state has huge overhead on cros (crbug.com/645329),
-  # hence we default this to False when test is run against CrOS.
-  # TODO(cros-team): figure out ways to remove this hack.
-  if (possible_browser.platform.GetOSName() == 'chromeos' and
-      not benchmark.IsShouldTearDownStateAfterEachStoryRunOverriden()):
-    should_tear_down_state_after_each_story_run = False
-
   with results_options.CreateResults(
       benchmark_metadata, finder_options,
       benchmark.ValueCanBeAddedPredicate, benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
-          should_tear_down_state_after_each_story_run,
-          benchmark.ShouldTearDownStateAfterEachStorySetRun(),
           expectations=expectations, metadata=benchmark.GetMetadata())
       return_code = min(254, len(results.failures))
       # We want to make sure that all expectations are linked to real stories,
