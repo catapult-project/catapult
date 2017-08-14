@@ -13,7 +13,7 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 if (tr.isHeadless) {
-  const histograms = new tr.v.Histograms();
+  const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
   histograms.addSharedDiagnostic(sys.argv[2], tr.v.d.Diagnostic.fromDict(
       JSON.parse(tr.b.getSync('file://' + sys.argv[3]))));
