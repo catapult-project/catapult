@@ -72,7 +72,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
       self.assertIsNone(self.action_runner.MeasureMemory())
       self.assertFalse(mock_method.called)  # No-op with no tracing.
 
-  def _testWithTracing(self, deterministic_mode=False):
+  def _TestWithTracing(self, deterministic_mode=False):
     trace_memory = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         filter_string='-*,blink.console,disabled-by-default-memory-infra')
     config = tracing_config.TracingConfig()
@@ -95,7 +95,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
   # https://github.com/catapult-project/catapult/issues/2610
   @decorators.Disabled('reference')
   def testDeterministicMode(self):
-    self._testWithTracing(deterministic_mode=True)
+    self._TestWithTracing(deterministic_mode=True)
 
   # TODO(perezju): Enable when reference browser is >= M53
   # https://github.com/catapult-project/catapult/issues/2610
@@ -103,14 +103,14 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
   def testRealisticMode(self):
     with mock.patch.object(self.action_runner,
                            'ForceGarbageCollection') as mock_method:
-      self._testWithTracing(deterministic_mode=False)
+      self._TestWithTracing(deterministic_mode=False)
       self.assertFalse(mock_method.called)  # No forced GC in "realistic" mode.
 
   def testWithFailedDump(self):
     with mock.patch.object(self._tab.browser, 'DumpMemory') as mock_method:
       mock_method.return_value = False  # Dump fails!
       with self.assertRaises(exceptions.Error):
-        self._testWithTracing()
+        self._TestWithTracing()
 
 
 class ActionRunnerTest(tab_test_case.TabTestCase):
@@ -326,7 +326,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     off_screen_element = 'document.querySelectorAll("#off-screen")[0]'
     top_bottom_element = 'document.querySelector("#top-bottom")'
 
-    def viewport_comparator(element):
+    def viewport_comparator(element): # pylint: disable=invalid-name
       return action_runner.EvaluateJavaScript(
           """
           (function(elem) {
@@ -455,7 +455,7 @@ class InteractionTest(unittest.TestCase):
   def setUp(self):
     self.mock_action_runner = mock.Mock(action_runner_module.ActionRunner)
 
-    def expected_js_call(method):
+    def expected_js_call(method): # pylint: disable=invalid-name
       return mock.call.ExecuteJavaScript(
           '%s({{ marker }});' % method, marker='Interaction.ABC')
 

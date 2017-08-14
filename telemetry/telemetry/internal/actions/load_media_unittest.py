@@ -15,7 +15,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
-  def eventFired(self, selector, event):
+  def eventFired(self, selector, event): # pylint: disable=invalid-name
     return self._tab.EvaluateJavaScript(
         'window.__hasEventCompleted({{ selector }}, {{ event }});',
         selector=selector, event=event)

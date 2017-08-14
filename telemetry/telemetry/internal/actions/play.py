@@ -25,7 +25,8 @@ class PlayAction(media_action.MediaAction):
                ended_event_timeout_in_seconds=0):
     super(PlayAction, self).__init__()
     self._selector = selector if selector else ''
-    self._playing_event_timeout_in_seconds = playing_event_timeout_in_seconds
+    self._playing_event_timeout_in_seconds = ( # pylint: disable=invalid-name
+        playing_event_timeout_in_seconds)
     self._ended_event_timeout_in_seconds = ended_event_timeout_in_seconds
 
   def WillRunAction(self, tab):

@@ -66,7 +66,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
   @decorators.Isolated
   def testFlushTracing(self):
-    SUBTRACE_COUNT = 5
+    subtrace_count = 5
 
     tab = self._browser.tabs[0]
 
@@ -85,9 +85,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertTrue(tracing_controller.is_tracing_running)
     InjectMarker(0)
 
-    # Flush tracing |SUBTRACE_COUNT - 1| times and inject a unique marker into
+    # Flush tracing |subtrace_count - 1| times and inject a unique marker into
     # the sub-trace each time.
-    for i in xrange(1, SUBTRACE_COUNT):
+    for i in xrange(1, subtrace_count):
       tracing_controller.FlushTracing()
       self.assertTrue(tracing_controller.is_tracing_running)
       InjectMarker(i)
@@ -100,22 +100,22 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     model = model_module.TimelineModel(trace_data)
 
     # Check that the markers 'test-marker-0', 'flush-tracing', 'test-marker-1',
-    # ..., 'flush-tracing', 'test-marker-|SUBTRACE_COUNT - 1|' are monotonic.
+    # ..., 'flush-tracing', 'test-marker-|subtrace_count - 1|' are monotonic.
     custom_markers = [
         marker
-        for i in xrange(SUBTRACE_COUNT)
+        for i in xrange(subtrace_count)
         for marker in model.FindTimelineMarkers('test-marker-%d' % i)
     ]
     flush_markers = model.FindTimelineMarkers(['flush-tracing'] *
-                                              (SUBTRACE_COUNT - 1))
+                                              (subtrace_count - 1))
     markers = [
         marker for group in zip(custom_markers, flush_markers)
         for marker in group
     ] + custom_markers[-1:]
 
-    self.assertEquals(len(custom_markers), SUBTRACE_COUNT)
-    self.assertEquals(len(flush_markers), SUBTRACE_COUNT - 1)
-    self.assertEquals(len(markers), 2 * SUBTRACE_COUNT - 1)
+    self.assertEquals(len(custom_markers), subtrace_count)
+    self.assertEquals(len(flush_markers), subtrace_count - 1)
+    self.assertEquals(len(markers), 2 * subtrace_count - 1)
 
     for i in xrange(1, len(markers)):
       self.assertLess(markers[i - 1].end, markers[i].start)

@@ -19,7 +19,7 @@ class AndroidApp(app.App):
     self._app_backend.Start()
 
   @property
-  def ui(self):
+  def ui(self): # pylint: disable=invalid-name
     """Returns an AppUi object to interact with the app's UI.
 
     See devil.android.app_ui for the documentation of the API provided.
