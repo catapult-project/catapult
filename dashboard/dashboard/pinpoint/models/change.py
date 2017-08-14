@@ -291,6 +291,9 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
 
 
 def _Repository(repository_url):
+  if repository_url.endswith('.git'):
+    repository_url = repository_url[:-4]
+
   repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
   for repo_label, repo_info in repositories.iteritems():
     if repository_url == repo_info['repository_url']:
@@ -300,10 +303,11 @@ def _Repository(repository_url):
 
 
 def _AddRepository(repository_url):
+  if repository_url.endswith('.git'):
+    repository_url = repository_url[:-4]
+
   repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
   repository = repository_url.split('/')[-1]
-  if repository.endswith('.git'):
-    repository = repository[:-4]
 
   if repository in repositories:
     raise AssertionError("Attempted to add a repository that's already in the "

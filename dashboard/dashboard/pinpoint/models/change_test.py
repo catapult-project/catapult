@@ -109,7 +109,9 @@ class ChangeTest(testing_common.TestCase):
       del repository_url
       del path
       if git_hash == '0e57e2b':
-        return 'deps = {"src/catapult": "%s@0000000"}' % _CATAPULT_URL
+        # Also test the stripping of '.git' from repository URLs.
+        return 'deps = {"src/catapult": "%s@0000000"}' % (
+            _CATAPULT_URL + '.git')
       if git_hash == 'babe852':
         return 'deps = {"src/catapult": "%s@2222222"}' % _CATAPULT_URL
       raise NotImplementedError()
