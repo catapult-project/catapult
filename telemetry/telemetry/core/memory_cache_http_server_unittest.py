@@ -13,8 +13,8 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
   def setUp(self):
     super(MemoryCacheHTTPServerTest, self).setUp()
     self._test_filename = 'bear.webm'
-    _test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
-    self._test_file_size = os.stat(_test_file).st_size
+    test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
+    self._test_file_size = os.stat(test_file).st_size
 
   def testBasicHostingAndRangeRequests(self):
     self.Navigate('blank.html')

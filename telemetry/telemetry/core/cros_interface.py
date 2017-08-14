@@ -200,19 +200,19 @@ class CrOSInterface(object):
                                     dest,
                                     extra_scp_args=extra_scp_args)
 
-  def _RemoveSSHWarnings(self, toClean):
+  def _RemoveSSHWarnings(self, to_clean):
     """Removes specific ssh warning lines from a string.
 
     Args:
-      toClean: A string that may be containing multiple lines.
+      to_clean: A string that may be containing multiple lines.
 
     Returns:
-      A copy of toClean with all the Warning lines removed.
+      A copy of to_clean with all the Warning lines removed.
     """
     # Remove the Warning about connecting to a new host for the first time.
     return re.sub(
         r'Warning: Permanently added [^\n]* to the list of known hosts.\s\n',
-        '', toClean)
+        '', to_clean)
 
   def RunCmdOnDevice(self, args, cwd=None, quiet=False):
     stdout, stderr = GetAllCmdOutput(
@@ -509,15 +509,15 @@ class CrOSInterface(object):
     """Takes a screenshot, useful for debugging failures."""
     # TODO(achuith): Find a better location for screenshots. Cros autotests
     # upload everything in /var/log so use /var/log/screenshots for now.
-    SCREENSHOT_DIR = '/var/log/screenshots/'
-    SCREENSHOT_EXT = '.png'
+    screenshot_dir = '/var/log/screenshots/'
+    screenshot_ext = '.png'
 
-    self.RunCmdOnDevice(['mkdir', '-p', SCREENSHOT_DIR])
+    self.RunCmdOnDevice(['mkdir', '-p', screenshot_dir])
     # Large number of screenshots can increase hardware lab bandwidth
     # dramatically, so keep this number low. crbug.com/524814.
     for i in xrange(2):
       screenshot_file = ('%s%s-%d%s' %
-                         (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
+                         (screenshot_dir, screenshot_prefix, i, screenshot_ext))
       if not self.FileExistsOnDevice(screenshot_file):
         return self.TakeScreenshot(screenshot_file)
     logging.warning('screenshot directory full.')

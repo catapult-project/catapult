@@ -222,7 +222,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     #   /bin/df --someoption `cryptohome-path user $username`.
     # The following mock replaces RunCmdOnDevice() to return mocked mount states
     # from the command execution.
-    def mockRunCmdOnDevice(args):
+    def mockRunCmdOnDevice(args): # pylint: disable=invalid-name
       if args[0] == 'cryptohome-path':
         return ('/home/user/%s' % args[2], '')
       elif args[0] == '/bin/df':

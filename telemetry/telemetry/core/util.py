@@ -12,8 +12,9 @@ from telemetry import decorators
 import py_utils as catapult_util  # pylint: disable=import-error
 
 
-IsRunningOnCrosDevice = catapult_util.IsRunningOnCrosDevice
-GetCatapultDir = catapult_util.GetCatapultDir
+IsRunningOnCrosDevice = (
+    catapult_util.IsRunningOnCrosDevice) # pylint: disable=invalid-name
+GetCatapultDir = catapult_util.GetCatapultDir # pylint: disable=invalid-name
 
 
 def GetBaseDir():
@@ -45,12 +46,12 @@ def GetChromiumSrcDir():
   return os.path.normpath(os.path.join(GetTelemetryDir(), '..', '..', '..'))
 
 
-_counter = [0]
+_COUNTER = [0]
 
 
 def _GetUniqueModuleName():
-  _counter[0] += 1
-  return "page_set_module_" + str(_counter[0])
+  _COUNTER[0] += 1
+  return "page_set_module_" + str(_COUNTER[0])
 
 
 def GetPythonPageSetModule(file_path):
