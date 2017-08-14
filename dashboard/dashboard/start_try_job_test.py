@@ -24,8 +24,6 @@ from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 from dashboard.services import rietveld_service
 
-# TODO(qyearsley): Shorten this module.
-# See https://github.com/catapult-project/catapult/issues/1917
 # pylint: disable=too-many-lines
 
 # Below is a series of test strings which may contain long lines.

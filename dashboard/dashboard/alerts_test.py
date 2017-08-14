@@ -18,8 +18,6 @@ from dashboard.models import sheriff
 
 class AlertsTest(testing_common.TestCase):
 
-  # TODO(qyearsley): Simplify this unit test.
-
   def setUp(self):
     super(AlertsTest, self).setUp()
     app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])

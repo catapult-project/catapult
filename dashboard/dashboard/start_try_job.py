@@ -648,11 +648,6 @@ def PerformBisect(bisect_job):
 
   This creates a patch, uploads it, then tells Rietveld to try the patch.
 
-  TODO(qyearsley): If we want to use other tryservers sometimes in the future,
-  then we need to have some way to decide which one to use. This could
-  perhaps be passed as part of the bisect bot name, or guessed from the bisect
-  bot name.
-
   Args:
     bisect_job: A TryJob entity.
 

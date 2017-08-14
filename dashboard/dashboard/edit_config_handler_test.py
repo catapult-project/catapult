@@ -16,9 +16,6 @@ from dashboard.models import graph_data
 
 class EditConfigHandlerTest(testing_common.TestCase):
 
-  # TODO(qyearsley): Add a simple helper class and separate tests for
-  # EditConfigHandler.
-
   def setUp(self):
     super(EditConfigHandlerTest, self).setUp()
     app = webapp2.WSGIApplication([

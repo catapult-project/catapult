@@ -218,17 +218,12 @@ def _CompareAnomalyBisectability(a1, a2):
   """Compares two Anomalies to decide which Anomaly's TestMetadata is better to
      use.
 
-  TODO(qyearsley): Take other factors into account:
-   - Consider bisect bot queue length. Note: If there's a simple API to fetch
-     this from build.chromium.org, that would be best; even if there is not,
-     it would be possible to fetch the HTML page for the builder and check the
-     pending list from that.
-   - Prefer some platforms over others. For example, bisects on Linux may run
-     faster; also, if we fetch info from build.chromium.org, we can check recent
-     failures.
-   - Consider test run time. This may not be feasible without using a list
-     of approximate test run times for different test suites.
-   - Consider stddev of test; less noise -> more reliable bisect.
+  Note: Potentially, this could be made more sophisticated by using
+  more signals:
+   - Bisect bot queue length
+   - Platform
+   - Test run time
+   - Stddev of test
 
   Args:
     a1: The first Anomaly entity.
