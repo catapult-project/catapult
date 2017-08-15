@@ -195,6 +195,13 @@ class _TestConditionAndroidWebview(_TestCondition):
   def __str__(self):
     return 'Android Webview'
 
+class _TestConditionAndroidNotWebview(_TestCondition):
+  def ShouldDisable(self, platform, finder_options):
+    return (platform.GetOSName() == 'android' and not
+            finder_options.browser_type == 'android-webview')
+
+  def __str__(self):
+    return 'Android but not webview'
 
 class _TestConditionByMacVersion(_TestCondition):
   def __init__(self, version, name=None):
@@ -226,6 +233,7 @@ ANDROID_ONE = _TestConditionByAndroidModel(
     'W6210', 'Cherry Mobile Android One')
 ANDROID_SVELTE = _TestConditionAndroidSvelte()
 ANDROID_WEBVIEW = _TestConditionAndroidWebview()
+ANDROID_NOT_WEBVIEW = _TestConditionAndroidNotWebview()
 # MAC_10_11 Includes:
 #   Mac 10.11 Perf, Mac Retina Perf, Mac Pro 10.11 Perf, Mac Air 10.11 Perf
 MAC_10_11 = _TestConditionByMacVersion('10.11', 'Mac 10.11')

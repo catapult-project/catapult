@@ -272,7 +272,6 @@ class TestConditionTest(unittest.TestCase):
 
   def testAndroidWebviewReturnsFalseOnAndroidNotWebview(self):
     self._platform.SetOSName('android')
-    self._platform.SetIsAosp(False)
     self.assertFalse(
         expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
                                                    self._finder_options))
@@ -283,6 +282,25 @@ class TestConditionTest(unittest.TestCase):
         expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
                                                    self._finder_options))
 
+  def testAndroidNotWebviewReturnsTrueOnAndroidNotWebview(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android'
+    self.assertTrue(
+        expectations.ANDROID_NOT_WEBVIEW.ShouldDisable(self._platform,
+                                                       self._finder_options))
+
+  def testAndroidNotWebviewReturnsFalseOnAndroidWebview(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self.assertFalse(
+        expectations.ANDROID_NOT_WEBVIEW.ShouldDisable(self._platform,
+                                                       self._finder_options))
+
+  def testAndroidNotWebviewReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(
+        expectations.ANDROID_NOT_WEBVIEW.ShouldDisable(self._platform,
+                                                       self._finder_options))
   def testMac1011ReturnsTrueOnMac1011(self):
     self._platform.SetOSName('mac')
     self._platform.SetOsVersionDetailString('10.11')
