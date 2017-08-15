@@ -55,8 +55,9 @@ class ProcessWatcher(object):
     if isinstance(process_name, telemetry_mini.AndroidApp):
       process_name = process_name.PACKAGE_NAME
 
-    @telemetry_mini.RetryOnFalse()
+    @telemetry_mini.RetryOn(returns_falsy=True)
     def GetPids():
+      # Returns an empty list if the process name is not found.
       return self.device.ProcessStatus()[process_name]
 
     assert process_name not in self._process_pid

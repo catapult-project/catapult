@@ -14,6 +14,7 @@
 
 import collections
 import contextlib
+import functools
 import httplib
 import json
 import logging
@@ -37,38 +38,41 @@ RE_BOUNDS = re.compile(
 UI_DUMP_TEMP = '/data/local/tmp/tm_ui_dump.xml'
 
 
-def RetryOnException(exc, retries=5):
+def RetryOn(exc_type=(), returns_falsy=False, retries=5):
+  """Decorator to retry a function in case of errors or falsy values.
+
+  Implements exponential backoff between retries.
+
+  Args:
+    exc_type: Type of exceptions to catch and retry on. May also pass a tuple
+      of exceptions to catch and retry on any of them. Defaults to catching no
+      exceptions at all.
+    returns_falsy: If True then the function will be retried until it stops
+      returning a "falsy" value (e.g. None, False, 0, [], etc.).
+    retries: Max number of retry attempts. After exhausting that number of
+      attempts the function will be called with no safeguards: any exceptions
+      will be raised and falsy values returned to the caller.
+  """
   def Decorator(f):
+    @functools.wraps(f)
     def Wrapper(*args, **kwargs):
       wait = 1
       for _ in xrange(retries):
+        retry_reason = None
         try:
-          return f(*args, **kwargs)
-        except exc:
-          logging.info(
-              '%s raised %s, will retry in %d seconds...',
-              f.__name__, exc.__name__, wait)
-          time.sleep(wait)
-          wait *= 2
-      return f(*args, **kwargs)
-    return Wrapper
-  return Decorator
-
-
-def RetryOnFalse(retries=5):
-  def Decorator(f):
-    def Wrapper(*args, **kwargs):
-      wait = 1
-      for _ in xrange(retries):
-        value = f(*args, **kwargs)
-        if value:
-          return value
-        logging.info(
-            '%s returned %r, will retry in %d seconds...',
-            f.__name__, value, wait)
+          value = f(*args, **kwargs)
+        except exc_type as exc:
+          retry_reason = 'raised %s' % type(exc).__name__
+        if retry_reason is None:
+          if returns_falsy and not value:
+            retry_reason = 'returned %r' % value
+          else:
+            return value  # Success!
+        logging.info('%s %s, will retry in %d second%s ...',
+                     f.__name__, retry_reason, wait, '' if wait == 1 else 's')
         time.sleep(wait)
         wait *= 2
-      return f(*args, **kwargs)
+      return f(*args, **kwargs)  # Last try to run with no safeguards.
     return Wrapper
   return Decorator
 
@@ -137,7 +141,7 @@ class AdbMini(object):
       result[process_name].append(pid)
     return result
 
-  @RetryOnException(AdbCommandError)
+  @RetryOn(AdbCommandError)
   def GetUiDump(self):
     """Return the root XML node with screen captured from the device."""
     self.RunShellCommand('rm', '-f', UI_DUMP_TEMP)
@@ -153,7 +157,7 @@ class AdbMini(object):
       self.RunCommand('pull', UI_DUMP_TEMP, f.name)
       return element_tree.parse(f.name)
 
-  @RetryOnException(LookupError)
+  @RetryOn(LookupError)
   def FindUiNode(self, attr_values):
     """Find a UI node on screen capture, retrying if not yet visible."""
     root = self.GetUiDump()
@@ -208,7 +212,7 @@ class DevToolsWebSocket(object):
   def __exit__(self, *args, **kwargs):
     self.Close()
 
-  @RetryOnException(socket.error)
+  @RetryOn(socket.error)
   def Open(self):
     assert self._socket is None
     self._socket = websocket.create_connection(self._url)
