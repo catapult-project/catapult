@@ -141,6 +141,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                       msg='Full formatted exception: %s' % '\n   > '.join(
                           self.formatted_exception.split('\n')))
 
+  @decorators.Disabled('chromeos')  # crbug.com/755370.
   def testBrowserRestartsAfterEachPage(self):
     self.CaptureFormattedException()
     story_set = story.StorySet()
