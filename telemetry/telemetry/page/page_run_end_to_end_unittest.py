@@ -141,7 +141,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                       msg='Full formatted exception: %s' % '\n   > '.join(
                           self.formatted_exception.split('\n')))
 
-  @decorators.Disabled('chromeos')  # crbug.com/755370.
   def testBrowserRestartsAfterEachPage(self):
     self.CaptureFormattedException()
     story_set = story.StorySet()
@@ -157,10 +156,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       def __init__(self, *args, **kwargs):
         super(Test, self).__init__(*args, **kwargs)
         self.browser_starts = 0
+        self.platform_name = None
 
-      def DidStartBrowser(self, *args):
-        super(Test, self).DidStartBrowser(*args)
+      def DidStartBrowser(self, browser):
+        super(Test, self).DidStartBrowser(browser)
         self.browser_starts += 1
+        self.platform_name = browser.platform.GetOSName()
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -173,8 +174,13 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(
         test, story_set, options, results, metadata=EmptyMetadataForTest())
-    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(2, test.browser_starts)
+    self.assertEquals(len(story_set), len(GetSuccessfulPageRuns(results)))
+    # Browser is started once per story run, except in ChromeOS where a single
+    # instance is reused for all stories.
+    if test.platform_name == 'chromeos':
+      self.assertEquals(1, test.browser_starts)
+    else:
+      self.assertEquals(len(story_set), test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
 
   def testCredentialsWhenLoginFails(self):
