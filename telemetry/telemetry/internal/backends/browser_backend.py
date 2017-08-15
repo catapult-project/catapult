@@ -150,6 +150,7 @@ class BrowserBackend(app_backend.AppBackend):
   def DumpMemory(self, timeout=None):
     raise NotImplementedError()
 
+# pylint: disable=invalid-name
   @property
   def supports_overriding_memory_pressure_notifications(self):
     return False

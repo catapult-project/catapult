@@ -168,7 +168,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
                    self._webview_embedder_apk)
       self.platform.InstallApplication(self._webview_embedder_apk)
 
-  def last_modification_time(self):
+  def LastModificationTime(self):
     if self.HaveLocalAPK():
       return os.path.getmtime(self._local_apk)
     return -1
@@ -178,7 +178,7 @@ def SelectDefaultBrowser(possible_browsers):
   """Return the newest possible browser."""
   if not possible_browsers:
     return None
-  return max(possible_browsers, key=lambda b: b.last_modification_time())
+  return max(possible_browsers, key=lambda b: b.LastModificationTime())
 
 
 def CanFindAvailableBrowsers():

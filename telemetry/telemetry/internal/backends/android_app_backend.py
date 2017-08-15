@@ -40,7 +40,7 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   def _LaunchAndWaitForApplication(self):
     """Launch the app and wait for it to be ready."""
-    def is_app_ready():
+    def IsAppReady():
       return self._is_app_ready_predicate(self.app)
 
     # When "is_app_ready_predicate" is provided, we use it to wait for the
@@ -54,7 +54,7 @@ class AndroidAppBackend(app_backend.AppBackend):
         force_stop=True,  # Ensure app was not running.
     )
     if has_ready_predicate:
-      py_utils.WaitFor(is_app_ready, timeout=60)
+      py_utils.WaitFor(IsAppReady, timeout=60)
 
   def Start(self):
     """Start an Android app and wait for it to finish launching.

@@ -55,10 +55,6 @@ class FindTestBase(unittest.TestCase):
     return desktop_browser_finder.CanFindAvailableBrowsers()
 
 
-def has_type(array, browser_type):
-  return len([x for x in array if x.browser_type == browser_type]) != 0
-
-
 class FindSystemTest(FindTestBase):
   def setUp(self):
     super(FindSystemTest, self).setUp()

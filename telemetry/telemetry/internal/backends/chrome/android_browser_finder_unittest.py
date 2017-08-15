@@ -163,10 +163,10 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
 
 
 class FakePossibleBrowser(object):
-  def __init__(self, last_modification_time):
-    self._last_modification_time = last_modification_time
+  def __init__(self, LastModificationTime):
+    self._last_modification_time = LastModificationTime
 
-  def last_modification_time(self):
+  def LastModificationTime(self):
     return self._last_modification_time
 
 
@@ -175,16 +175,16 @@ class SelectDefaultBrowserTest(unittest.TestCase):
     self.assertIsNone(android_browser_finder.SelectDefaultBrowser([]))
 
   def testSinglePossibleReturnsSame(self):
-    possible_browsers = [FakePossibleBrowser(last_modification_time=1)]
+    possible_browsers = [FakePossibleBrowser(LastModificationTime=1)]
     self.assertIs(
         possible_browsers[0],
         android_browser_finder.SelectDefaultBrowser(possible_browsers))
 
   def testListGivesNewest(self):
     possible_browsers = [
-        FakePossibleBrowser(last_modification_time=2),
-        FakePossibleBrowser(last_modification_time=3),  # newest
-        FakePossibleBrowser(last_modification_time=1),
+        FakePossibleBrowser(LastModificationTime=2),
+        FakePossibleBrowser(LastModificationTime=3),  # newest
+        FakePossibleBrowser(LastModificationTime=1),
         ]
     self.assertIs(
         possible_browsers[1],
