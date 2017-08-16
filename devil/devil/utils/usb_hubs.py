@@ -149,11 +149,12 @@ def _is_via_hub(node):
   The topology of this device is a 4-port hub,
   with another 4-port hub connected on port 4.
   """
-  if '2109:2812' not in node.desc:
+  if '2109:2812' not in node.desc and '2109:0812' not in node.desc:
     return False
   if not node.HasPort(4):
     return False
-  return '2109:2812' in node.PortToDevice(4).desc
+  return ('2109:2812' in node.PortToDevice(4).desc or
+          '2109:0812' in node.PortToDevice(4).desc)
 
 
 PLUGABLE_7PORT = HubType(_is_plugable_7port_hub, PLUGABLE_7PORT_LAYOUT)
