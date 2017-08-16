@@ -13,6 +13,7 @@ from google.appengine.ext import testbed
 
 from dashboard.pinpoint.handlers import jobs
 from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import quest_generator
 
 
 class JobsTest(unittest.TestCase):
@@ -35,11 +36,15 @@ class JobsTest(unittest.TestCase):
 
   def testPost_ValidRequest(self):
     # Create job.
+    generator = quest_generator.QuestGenerator({
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+        'dimensions': '{}',
+        'benchmark': 'speedometer',
+    })
     job = job_module.Job.New(
-        configuration='Mac',
-        test_suite='suite',
-        test='filter',
-        metric='metric',
+        arguments=generator.AsDict(),
+        quests=generator.Quests(),
         auto_explore=True,
         bug_id=None)
     job.put()

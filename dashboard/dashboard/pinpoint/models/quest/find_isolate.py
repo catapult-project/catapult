@@ -20,6 +20,10 @@ class FindIsolate(quest.Quest):
   def __init__(self, configuration):
     self._builder_name = _BuilderNameForConfiguration(configuration)
 
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self._builder_name == other._builder_name)
+
   def __str__(self):
     return 'Build on ' + self._builder_name
 

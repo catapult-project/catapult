@@ -7,4 +7,4 @@ from dashboard.pinpoint.models.quest.execution import Execution
 
 from dashboard.pinpoint.models.quest.find_isolate import FindIsolate
 from dashboard.pinpoint.models.quest.run_test import RunTest
-from dashboard.pinpoint.models.quest.read_value import ReadValue
+from dashboard.pinpoint.models.quest.read_value import ReadChartJsonValue

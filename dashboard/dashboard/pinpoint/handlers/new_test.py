@@ -18,9 +18,23 @@ from dashboard.services import gitiles_service
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
 
-AUTHORIZED_USER = users.User(email='authorized_person@chromium.org',
-                             _auth_domain='google.com')
-UNAUTHORIZED_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
+
+_AUTHORIZED_USER = users.User(email='authorized_person@chromium.org',
+                              _auth_domain='google.com')
+_UNAUTHORIZED_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
+
+
+_BASE_REQUEST = {
+    'target': 'telemetry_perf_tests',
+    'configuration': 'chromium-rel-mac11-pro',
+    'benchmark': 'speedometer',
+    'auto_explore': '1',
+    'bug_id': '12345',
+    'start_repository': 'src',
+    'start_git_hash': '1',
+    'end_repository': 'src',
+    'end_git_hash': '3',
+}
 
 
 class NewTest(testing_common.TestCase):
@@ -41,7 +55,7 @@ class NewTest(testing_common.TestCase):
     })
 
   def _SetAuthorizedOAuth(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = AUTHORIZED_USER
+    mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
     mock_oauth.get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
@@ -49,7 +63,7 @@ class NewTest(testing_common.TestCase):
   @mock.patch.object(api_auth, 'oauth')
   def testPost_NoAccess_ShowsError(self, mock_oauth):
     self.SetCurrentUser('external@chromium.org')
-    mock_oauth.get_current_user.return_value = UNAUTHORIZED_USER
+    mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
     mock_oauth.get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     response = self.testapp.post('/api/new', status=200)
@@ -69,7 +83,7 @@ class NewTest(testing_common.TestCase):
   @mock.patch.object(api_auth, 'users')
   def testPost_BadOauthClientId(self, mock_users, mock_oauth):
     mock_users.get_current_user.return_value = None
-    mock_oauth.get_current_user.return_value = AUTHORIZED_USER
+    mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
     mock_oauth.get_client_id.return_value = 'invalid'
     response = self.testapp.post('/api/new', status=200)
     self.assertIn('error', json.loads(response.body))
@@ -86,76 +100,36 @@ class NewTest(testing_common.TestCase):
         {'commit': '2'},
         {'commit': '3'},
     ]
-    params = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'test_suite': 'speedometer',
-        'test': '',
-        'metric': 'Total',
-        'auto_explore': '1',
-        'bug_id': 12345,
-        'start_repository': 'src',
-        'start_git_hash': '1',
-        'end_repository': 'src',
-        'end_git_hash': '3'
-    }
-    response = self.testapp.post('/api/new', params, status=200)
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
 
-  def testPost_MetricButNoTestSuite(self):
-    params = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'test_suite': '',
-        'test': '',
-        'metric': 'Total',
-        'auto_explore': '1',
-        'bug_id': 12345,
-        'start_repository': 'src',
-        'start_git_hash': '1',
-        'end_repository': 'src',
-        'end_git_hash': '3'
-    }
-    response = self.testapp.post('/api/new', params, status=200)
-    self.assertEqual({'error': new._ERROR_METRIC_NO_TEST_SUITE},
-                     json.loads(response.body))
+  def testPost_MissingTarget(self):
+    request = dict(_BASE_REQUEST)
+    del request['target']
+    response = self.testapp.post('/api/new', request, status=200)
+    self.assertIn('error', json.loads(response.body))
+
+  def testPost_InvalidTestConfig(self):
+    request = dict(_BASE_REQUEST)
+    del request['configuration']
+    response = self.testapp.post('/api/new', request, status=200)
+    self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(
       gitiles_service, 'CommitInfo',
-      mock.MagicMock(side_effect=gitiles_service.NotFoundError))
+      mock.MagicMock(side_effect=gitiles_service.NotFoundError('message')))
   def testPost_InvalidChange(self):
-    params = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'test_suite': 'speedometer',
-        'test': '',
-        'metric': 'Total',
-        'auto_explore': '1',
-        'bug_id': 12345,
-        'start_repository': 'src',
-        'start_git_hash': '1',
-        'end_repository': 'src',
-        'end_git_hash': '3'
-    }
-    response = self.testapp.post('/api/new', params, status=200)
-    self.assertEqual({'error': 'NotFoundError()'},
-                     json.loads(response.body))
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    self.assertEqual({'error': 'message'}, json.loads(response.body))
 
   def testPost_InvalidBug(self):
-    params = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'test_suite': 'speedometer',
-        'test': '',
-        'metric': 'Total',
-        'auto_explore': '1',
-        'bug_id': 'not_an_int',
-        'start_repository': 'src',
-        'start_git_hash': '1',
-        'end_repository': 'src',
-        'end_git_hash': '3'
-    }
-    response = self.testapp.post('/api/new', params, status=200)
+    request = dict(_BASE_REQUEST)
+    request['bug_id'] = 'not_an_int'
+    response = self.testapp.post('/api/new', request, status=200)
     self.assertEqual({'error': new._ERROR_BUG_ID},
                      json.loads(response.body))
 
@@ -171,19 +145,9 @@ class NewTest(testing_common.TestCase):
         {'commit': '2'},
         {'commit': '3'},
     ]
-    params = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'test_suite': 'speedometer',
-        'test': '',
-        'metric': 'Total',
-        'auto_explore': '1',
-        'bug_id': '',
-        'start_repository': 'src',
-        'start_git_hash': '1',
-        'end_repository': 'src',
-        'end_git_hash': '3'
-    }
-    response = self.testapp.post('/api/new', params, status=200)
+    request = dict(_BASE_REQUEST)
+    request['bug_id'] = ''
+    response = self.testapp.post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(

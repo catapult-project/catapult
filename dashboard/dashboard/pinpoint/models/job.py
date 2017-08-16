@@ -13,7 +13,6 @@ from dashboard.common import utils
 from dashboard.pinpoint import mann_whitney_u
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
-from dashboard.pinpoint.models import quest as quest_module
 from dashboard.services import issue_tracker_service
 
 
@@ -58,10 +57,7 @@ class Job(ndb.Model):
   exception = ndb.StringProperty()
 
   # Request parameters.
-  configuration = ndb.StringProperty(required=True)
-  test_suite = ndb.StringProperty()
-  test = ndb.StringProperty()
-  metric = ndb.StringProperty()
+  arguments = ndb.JsonProperty(required=True)
 
   # If True, the service should pick additional Changes to run (bisect).
   # If False, only run the Changes explicitly added by the user.
@@ -74,21 +70,10 @@ class Job(ndb.Model):
   state = ndb.PickleProperty(required=True)
 
   @classmethod
-  def New(cls, configuration, test_suite, test, metric, auto_explore, bug_id):
-    # Get list of quests.
-    quests = [quest_module.FindIsolate(configuration)]
-    if test_suite:
-      quests.append(quest_module.RunTest(configuration, test_suite, test,
-                                         _DEFAULT_REPEAT_COUNT))
-    if metric:
-      quests.append(quest_module.ReadValue(metric, test))
-
+  def New(cls, arguments, quests, auto_explore, bug_id):
     # Create job.
     return cls(
-        configuration=configuration,
-        test_suite=test_suite,
-        test=test,
-        metric=metric,
+        arguments=arguments,
         auto_explore=auto_explore,
         bug_id=bug_id,
         state=_JobState(quests, _DEFAULT_ATTEMPT_COUNT))
@@ -163,10 +148,7 @@ class Job(ndb.Model):
     return {
         'job_id': self.job_id,
 
-        'configuration': self.configuration,
-        'test_suite': self.test_suite,
-        'test': self.test,
-        'metric': self.metric,
+        'arguments': self.arguments,
         'auto_explore': self.auto_explore,
 
         'created': self.created.strftime('%Y-%m-%d %H:%M:%S %Z'),

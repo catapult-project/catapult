@@ -9,8 +9,8 @@ import mock
 from dashboard.pinpoint.models.quest import run_test
 
 
-_SWARMING_TASK_EXTRA_ARGS = [
-    'test_suite', '--story-filter', 'test',
+_SWARMING_EXTRA_ARGS = [
+    'benchmark', '--story-filter', 'story',
     '-v', '--upload-results',
     '--output-format=chartjson', '--browser=release',
     '--isolated-script-test-output=${ISOLATED_OUTDIR}/output.json',
@@ -18,42 +18,41 @@ _SWARMING_TASK_EXTRA_ARGS = [
     '${ISOLATED_OUTDIR}/chartjson-output.json',
 ]
 
+_SWARMING_DIMENSIONS = [
+    {"key": "cores", "value": "8"},
+    {"key": "gpu", "value": "1002:6821"},
+    {"key": "os", "value": "Mac-10.11"},
+]
+
 
 class _RunTestTest(unittest.TestCase):
 
   def assertNewTaskHasDimensions(self, swarming_tasks_new):
     body = {
-        'name': 'Pinpoint job on chromium-rel-mac11-pro',
+        'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '600',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
-            'extra_args': _SWARMING_TASK_EXTRA_ARGS,
-            'dimensions': [
-                {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
-                {"key": "cores", "value": "8"},
-                {"key": "gpu", "value": "1002:6821"},
-                {"key": "os", "value": "Mac-10.11"},
-            ],
+            'extra_args': _SWARMING_EXTRA_ARGS,
+            'dimensions': [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}] +
+                          _SWARMING_DIMENSIONS,
             'execution_timeout_secs': '3600',
             'io_timeout_secs': '3600',
         },
-        'tags': [
-            'configuration:chromium-rel-mac11-pro',
-        ],
     }
     swarming_tasks_new.assert_called_with(body)
 
   def assertNewTaskHasBotId(self, swarming_tasks_new):
     body = {
-        'name': 'Pinpoint job on chromium-rel-mac11-pro',
+        'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '600',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
-            'extra_args': _SWARMING_TASK_EXTRA_ARGS,
+            'extra_args': _SWARMING_EXTRA_ARGS,
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'id', 'value': 'bot id'},
@@ -61,9 +60,6 @@ class _RunTestTest(unittest.TestCase):
             'execution_timeout_secs': '3600',
             'io_timeout_secs': '3600',
         },
-        'tags': [
-            'configuration:chromium-rel-mac11-pro',
-        ],
     }
     swarming_tasks_new.assert_called_with(body)
 
@@ -76,7 +72,7 @@ class RunTestFullTest(_RunTestTest):
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
+    quest = run_test.RunTest(_SWARMING_DIMENSIONS, _SWARMING_EXTRA_ARGS)
     execution = quest.Start('input isolate hash')
 
     swarming_task_result.assert_not_called()
@@ -123,34 +119,6 @@ class RunTestFullTest(_RunTestTest):
 
 
 @mock.patch('dashboard.services.swarming_service.Tasks.New')
-class SwarmingTaskStartTest(_RunTestTest):
-
-  def testPagesetRepeat(self, swarming_tasks_new):
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 10)
-    execution = quest.Start('input isolate hash')
-    execution.Poll()
-
-    new_call_body = swarming_tasks_new.call_args[0][0]
-    self.assertIn('--pageset-repeat', new_call_body['properties']['extra_args'])
-    self.assertIn('10', new_call_body['properties']['extra_args'])
-
-  @mock.patch('dashboard.services.swarming_service.Task.Result')
-  def testUnknownConfig(self, swarming_task_result, swarming_tasks_new):
-    quest = run_test.RunTest('configuration', 'test_suite', 'test', 1)
-    execution = quest.Start('input isolate hash')
-    execution.Poll()
-
-    swarming_task_result.assert_not_called()
-    swarming_tasks_new.assert_not_called()
-    self.assertTrue(execution.completed)
-    self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
-    self.assertTrue(last_exception_line.startswith('UnknownConfigError'))
-
-
-@mock.patch('dashboard.services.swarming_service.Tasks.New')
 @mock.patch('dashboard.services.swarming_service.Task.Result')
 class SwarmingTaskStatusTest(_RunTestTest):
 
@@ -158,7 +126,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
+    quest = run_test.RunTest(_SWARMING_DIMENSIONS, _SWARMING_EXTRA_ARGS)
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -179,7 +147,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
+    quest = run_test.RunTest(_SWARMING_DIMENSIONS, _SWARMING_EXTRA_ARGS)
     execution = quest.Start('isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -205,7 +173,7 @@ class BotIdHandlingTest(_RunTestTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
+    quest = run_test.RunTest(_SWARMING_DIMENSIONS, _SWARMING_EXTRA_ARGS)
     execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -231,7 +199,7 @@ class BotIdHandlingTest(_RunTestTest):
                                  swarming_tasks_new):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
-    quest = run_test.RunTest('chromium-rel-mac11-pro', 'test_suite', 'test', 1)
+    quest = run_test.RunTest(_SWARMING_DIMENSIONS, _SWARMING_EXTRA_ARGS)
     execution_1 = quest.Start('input isolate hash')
     execution_2 = quest.Start('input isolate hash')
 

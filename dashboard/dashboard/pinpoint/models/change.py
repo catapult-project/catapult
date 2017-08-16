@@ -235,7 +235,7 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     try:
       gitiles_service.CommitInfo(dep.repository_url, dep.git_hash)
     except gitiles_service.NotFoundError as e:
-      raise KeyError(e)
+      raise KeyError(str(e))
 
     return dep
 

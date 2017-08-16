@@ -9,23 +9,28 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import isolate_service
 
 
-class ReadValue(quest.Quest):
+class ReadChartJsonValue(quest.Quest):
 
   def __init__(self, metric, test):
     self._metric = metric
     self._test = test
 
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self._metric == other._metric and
+            self._test == other._test)
+
   def __str__(self):
     return 'Value of ' + self._metric
 
   def Start(self, isolate_hash):
-    return _ReadValueExecution(self._metric, self._test, isolate_hash)
+    return _ReadChartJsonValueExecution(self._metric, self._test, isolate_hash)
 
 
-class _ReadValueExecution(execution.Execution):
+class _ReadChartJsonValueExecution(execution.Execution):
 
   def __init__(self, metric, test, isolate_hash):
-    super(_ReadValueExecution, self).__init__()
+    super(_ReadChartJsonValueExecution, self).__init__()
     self._metric = metric
     self._test = test or 'summary'
     self._isolate_hash = isolate_hash

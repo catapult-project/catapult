@@ -11,9 +11,9 @@ from dashboard.pinpoint.models.quest import read_value
 
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')
-class ReadValueTest(unittest.TestCase):
+class ReadChartJsonValueTest(unittest.TestCase):
 
-  def testReadValue(self, retrieve):
+  def testReadChartJsonValue(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
         json.dumps({'charts': {'metric': {'test': {
@@ -22,7 +22,8 @@ class ReadValueTest(unittest.TestCase):
         }}}}),
     )
 
-    execution = read_value.ReadValue('metric', 'test').Start('output hash')
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start('output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -33,7 +34,7 @@ class ReadValueTest(unittest.TestCase):
     expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
     self.assertEqual(retrieve.mock_calls, expected_calls)
 
-  def testReadValueWithNoTest(self, retrieve):
+  def testReadChartJsonValueWithNoTest(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
         json.dumps({'charts': {'metric': {'summary': {
@@ -42,7 +43,8 @@ class ReadValueTest(unittest.TestCase):
         }}}}),
     )
 
-    execution = read_value.ReadValue('metric', None).Start('output hash')
+    quest = read_value.ReadChartJsonValue('metric', None)
+    execution = quest.Start('output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -65,7 +67,8 @@ class ReadValueTest(unittest.TestCase):
         }}}}),
     )
 
-    execution = read_value.ReadValue('metric', 'test').Start('output hash')
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start('output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, (0, 0, 1, 1, 1))
@@ -82,7 +85,8 @@ class ReadValueTest(unittest.TestCase):
         }}}}),
     )
 
-    execution = read_value.ReadValue('metric', 'test').Start('output hash')
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start('output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, tuple([0] * 4000 + [1] * 6000))
@@ -96,7 +100,8 @@ class ReadValueTest(unittest.TestCase):
         }}}}),
     )
 
-    execution = read_value.ReadValue('metric', 'test').Start('output hash')
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start('output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, (2.5,))
