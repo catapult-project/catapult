@@ -13,7 +13,6 @@ import telemetry_mini
 
 
 BROWSER_FLAGS = [
-    '--enable-heap-profiling',
     '--enable-remote-debugging',
     '--disable-fre',
     '--no-default-browser-check',
@@ -22,7 +21,7 @@ BROWSER_FLAGS = [
 
 TRACE_CONFIG = {
     'excludedCategories': ['*'],
-    'includedCategories': ['disabled-by-default-memory-infra'],
+    'includedCategories': ['rails', 'toplevel', 'startup', 'blink.user_timing'],
     'memoryDumpConfig': {'triggers': []}
 }
 
@@ -120,44 +119,38 @@ def EnsureSingleBrowser(device, browser_name, force_install=False):
   return browser
 
 
-def RunStory(browser, args):
+def RunStory(browser):
   tracefile = 'trace.json'
   device = browser.device
   twitter = TwitterApp(device)
   watcher = ProcessWatcher(device)
 
-  browser.RemoveProfile()
-  with browser.CommandLineFlags(BROWSER_FLAGS):
-    browser.ForceStop()
+  with browser.Session(BROWSER_FLAGS, TRACE_CONFIG):
     twitter.ForceStop()
     try:
-      with browser.DevTools(args.host, args.port) as devtools:
-        # Intent causes Twitter app to launch on Flipkart profile.
-        device.RunShellCommand(
-            'am', 'start', '-a', 'android.intent.action.VIEW',
-            '-d', 'https://twitter.com/flipkart')
-        watcher.StartWatching(twitter)
+      # Intent will launch Twitter app on Flipkart profile.
+      device.RunShellCommand(
+          'am', 'start', '-a', 'android.intent.action.VIEW',
+          '-d', 'https://twitter.com/flipkart')
+      watcher.StartWatching(twitter)
 
-        # Tap on Flikpart link found on Twitter app, this launches Chrome.
-        device.TapUiNode(FLIPKART_TWITTER_LINK)
-        start = time.time()
-        watcher.StartWatching(browser)
+      # Tapping on Flikpart link on Twitter app will launch Chrome.
+      device.TapUiNode(FLIPKART_TWITTER_LINK)
+      watcher.StartWatching(browser)
 
-        # TODO(crbug.com/753842): May need to be adjusted to include GUID.
-        with devtools.OpenWebSocket('browser') as browser_dev:
-          elapsed = time.time() - start
-          # TODO: Need to figure out a better way to estimate startup time.
-          print 'Time from tap to devtools connection: %.2f seconds' % elapsed
-          with browser_dev.Tracing(TRACE_CONFIG, tracefile):
-            time.sleep(5)
-            browser_dev.RequestMemoryDump()
-        watcher.AssertAllAlive()
+      time.sleep(4)
+      # Scroll content up a bit.
+      device.RunShellCommand(
+          'input', 'swipe', '240', '568', '240', '284', '400')
+      time.sleep(1)
 
-        # Go "Back" and return to Twitter app.
-        device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
-        time.sleep(3)
+      browser.CollectTrace(tracefile)
+      watcher.AssertAllAlive()
+
+      # Go "Back" and return to Twitter app.
+      device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
+      time.sleep(1)
     finally:
-      browser.ForceStop()
       twitter.ForceStop()
 
 
@@ -181,9 +174,6 @@ def main():
                       help='path where to find APKs to install')
   parser.add_argument('--port', type=int, default=1234,
                       help='port for connection with device'
-                      ' (default: %(default)s)')
-  parser.add_argument('--host', default='localhost',
-                      help='host for connection with device'
                       ' (default: %(default)s)')
   parser.add_argument('-v', '--verbose', action='store_true')
   args = parser.parse_args()
@@ -210,7 +200,8 @@ def main():
   device.RunCommand('wait-for-device')
 
   browser = EnsureSingleBrowser(device, args.browser, args.force_install)
-  RunStory(browser, args)
+  browser.SetDevToolsLocalPort(args.port)
+  RunStory(browser)
 
 if __name__ == '__main__':
   sys.exit(main())

@@ -174,31 +174,6 @@ class AdbMini(object):
     self.RunShellCommand('input', 'tap', str(x), str(y))
 
 
-class DevToolsMini(object):
-  def __init__(self, netloc):
-    self._netloc = netloc
-
-  def OpenWebSocket(self, path):
-    if path.startswith('ws://'):
-      url = path
-    else:
-      url = ('ws://%s/devtools/' % self._netloc) + path
-    return DevToolsWebSocket(url)
-
-  def Request(self, path=''):
-    conn = httplib.HTTPConnection(self._netloc)
-    try:
-      url = '/json'
-      if path:
-        url = posixpath.join(url, path)
-      conn.request('GET', url)
-      response = conn.getresponse()
-      payload = response.read()
-      return json.loads(payload)
-    finally:
-      conn.close()
-
-
 class DevToolsWebSocket(object):
   def __init__(self, url):
     self._url = url
@@ -229,32 +204,33 @@ class DevToolsWebSocket(object):
     self._cmdid += 1
     self._socket.send(json.dumps(
         {'id': self._cmdid, 'method': method, 'params': kwargs}))
-    resp = json.loads(self._socket.recv())
+    resp = self.Recv()
     assert resp['id'] == self._cmdid
     return resp.get('result')
 
-  def CollectStream(self, method, f):
-    resp = json.loads(self._socket.recv())
-    assert resp['method'] == method
-    stream_handle = resp['params']['stream']
-    resp = {'eof': False}
-    while not resp['eof']:
-      resp = self.Send('IO.read', handle=stream_handle)
-      f.write(resp['data'].encode('utf-8'))
-    self.Send('IO.close', handle=stream_handle)
-
-  @contextlib.contextmanager
-  def Tracing(self, trace_config, trace_file):
-    self.Send('Tracing.start', transferMode='ReturnAsStream',
-              traceConfig=trace_config)
-    yield self
-    self.Send('Tracing.end')
-    with open(trace_file, 'wb') as f:
-      self.CollectStream('Tracing.tracingComplete', f)
+  def Recv(self):
+    return json.loads(self._socket.recv())
 
   def RequestMemoryDump(self):
     resp = self.Send('Tracing.requestMemoryDump')
     assert resp['success']
+
+  def CollectTrace(self, trace_file):
+    """Stop tracing and collect the trace."""
+    with open(trace_file, 'wb') as f:
+      # Call to Tracing.start is needed to update the transfer mode.
+      self.Send('Tracing.start', transferMode='ReturnAsStream', traceConfig={})
+      self.Send('Tracing.end')
+      resp = self.Recv()
+      assert resp['method'] == 'Tracing.tracingComplete'
+      stream_handle = resp['params']['stream']
+      try:
+        resp = {'eof': False}
+        while not resp['eof']:
+          resp = self.Send('IO.read', handle=stream_handle)
+          f.write(resp['data'].encode('utf-8'))
+      finally:
+        self.Send('IO.close', handle=stream_handle)
 
 
 class AndroidApp(object):
@@ -286,6 +262,12 @@ class ChromiumApp(AndroidApp):
   PACKAGE_NAME = 'org.chromium.chrome'
   APK_FILENAME = 'ChromePublic.apk'
   COMMAND_LINE_FILE = '/data/local/tmp/chrome-command-line'
+  TRACE_CONFIG_FILE = '/data/local/chrome-trace-config.json'
+
+  def __init__(self, *args, **kwargs):
+    super(ChromiumApp, self).__init__(*args, **kwargs)
+    self._devtools_local_port = None
+    self.startup_time = None
 
   def RemoveProfile(self):
     # TODO: Path to profile may need to be updated on newer Android versions.
@@ -303,22 +285,89 @@ class ChromiumApp(AndroidApp):
     try:
       yield
     finally:
-      self.device.RunShellCommand('rm', self.COMMAND_LINE_FILE)
+      self.device.RunShellCommand('rm', '-f', self.COMMAND_LINE_FILE)
 
-  def GetDeviceDevToolsPort(self):
+  def SetDevToolsLocalPort(self, port):
+    self._devtools_local_port = port
+
+  def GetDevToolsLocalAddr(self, host='localhost'):
+    assert self._devtools_local_port is not None
+    return '%s:%d' % (host, self._devtools_local_port)
+
+  def GetDevToolsRemoteAddr(self):
     return 'localabstract:chrome_devtools_remote'
 
   @contextlib.contextmanager
-  def DevTools(self, host, port):
-    """Setup and configure port forwarding for a DevTools instance."""
-    netloc = '%s:%d' % (host, port)
-    local = 'tcp:%d' % port
-    remote = self.GetDeviceDevToolsPort()
+  def PortForwarding(self):
+    """Setup port forwarding to connect with DevTools on remote device."""
+    local = self.GetDevToolsLocalAddr('tcp')
+    remote = self.GetDevToolsRemoteAddr()
     self.device.RunCommand('forward', '--no-rebind', local, remote)
     try:
-      yield DevToolsMini(netloc)
+      yield
     finally:
       self.device.RunCommand('forward', '--remove', local)
+
+  @contextlib.contextmanager
+  def StartupTracing(self, trace_config):
+    self.device.WriteText(
+        json.dumps({'trace_config': trace_config}), self.TRACE_CONFIG_FILE)
+    try:
+      yield
+    finally:
+      self.device.RunShellCommand('rm', '-f', self.TRACE_CONFIG_FILE)
+
+  @contextlib.contextmanager
+  def Session(self, flags, trace_config):
+    """A context manager to guard the lifetime of a browser process.
+
+    Ensures that command line flags and port forwarding are ready, the browser
+    is not alive before starting, it has a clear profile to begin with, and is
+    finally closed when done.
+
+    It does not, however, launch the browser itself. This must be done by the
+    context managed code.
+
+    To the extent possible, measurements from browsers launched within
+    different sessions are meant to be independent of each other.
+    """
+    self.RemoveProfile()
+    with self.CommandLineFlags(flags):
+      with self.StartupTracing(trace_config):
+        # Ensure browser is closed after setting command line flags and
+        # trace config to ensure they are read on startup.
+        self.ForceStop()
+        with self.PortForwarding():
+          try:
+            yield
+          finally:
+            self.ForceStop()
+
+  def CollectTrace(self, trace_file):
+    with self.DevToolsSocket() as browser_dev:
+      browser_dev.CollectTrace(trace_file)
+
+  def DevToolsSocket(self, path='browser'):
+    # TODO(crbug.com/753842): Default browser path may need to be adjusted
+    # to include GUID.
+    if path.startswith('ws://'):
+      url = path
+    else:
+      url = ('ws://%s/devtools/' % self.GetDevToolsLocalAddr()) + path
+    return DevToolsWebSocket(url)
+
+  def DevToolsRequest(self, path=''):
+    conn = httplib.HTTPConnection(self.GetDevToolsLocalAddr())
+    try:
+      url = '/json'
+      if path:
+        url = posixpath.join(url, path)
+      conn.request('GET', url)
+      response = conn.getresponse()
+      payload = response.read()
+      return json.loads(payload)
+    finally:
+      conn.close()
 
 
 class ChromeApp(ChromiumApp):
@@ -341,9 +390,9 @@ class SystemChromeApp(ChromiumApp):
     self.device.RunShellCommand('pm', 'disable', self.PACKAGE_NAME)
 
 
-def ReadProcessMetrics(tracefile):
+def ReadProcessMetrics(trace_file):
   """Return a list of {"name": process_name, metric: value} dicts."""
-  with open(tracefile) as f:
+  with open(trace_file) as f:
     trace = json.load(f)
 
   processes = collections.defaultdict(dict)
