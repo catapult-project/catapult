@@ -110,7 +110,7 @@ class RunTestFullTest(_RunTestTest):
 
     self.assertTrue(execution.completed)
     self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (0,))
+    self.assertEqual(execution.result_values, (None,))
     self.assertEqual(execution.result_arguments,
                      {'isolate_hash': 'output isolate hash'})
 
@@ -145,8 +145,9 @@ class SwarmingTaskStartTest(_RunTestTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0],
-                          run_test.UnknownConfigError)
+    self.assertIsInstance(execution.result_values[0], basestring)
+    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith('UnknownConfigError'))
 
 
 @mock.patch('dashboard.services.swarming_service.Tasks.New')
@@ -165,8 +166,9 @@ class SwarmingTaskStatusTest(_RunTestTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0],
-                          run_test.SwarmingTaskError)
+    self.assertIsInstance(execution.result_values[0], basestring)
+    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
   def testTestError(self, swarming_task_result, swarming_tasks_new):
     swarming_task_result.return_value = {
@@ -185,8 +187,9 @@ class SwarmingTaskStatusTest(_RunTestTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0],
-                          run_test.SwarmingTestError)
+    self.assertIsInstance(execution.result_values[0], basestring)
+    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith('SwarmingTestError'))
 
 
 @mock.patch('dashboard.services.swarming_service.Tasks.New')
@@ -220,7 +223,9 @@ class BotIdHandlingTest(_RunTestTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], run_test.RunTestError)
+    self.assertIsInstance(execution.result_values[0], basestring)
+    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith('RunTestError'))
 
   def testSimultaneousExecutions(self, swarming_task_result,
                                  swarming_tasks_new):

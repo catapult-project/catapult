@@ -4,7 +4,6 @@
 
 import collections
 import logging
-import numbers
 import os
 
 from google.appengine.api import taskqueue
@@ -285,7 +284,7 @@ class _JobState(object):
 
       change_results_per_quest = _CombineResultsPerQuest(self._attempts[change])
       for quest in self._quests:
-        change_result_values.append(map(str, change_results_per_quest[quest]))
+        change_result_values.append(change_results_per_quest[quest])
 
       result_values.append(change_result_values)
 
@@ -336,9 +335,6 @@ def _CompareResults(results_a, results_b):
   if len(results_a) == 0 or len(results_b) == 0:
     return _UNKNOWN
 
-  results_a = map(_ConvertToNumber, results_a)
-  results_b = map(_ConvertToNumber, results_b)
-
   try:
     p_value = mann_whitney_u.MannWhitneyU(results_a, results_b)
   except ValueError:
@@ -348,16 +344,3 @@ def _CompareResults(results_a, results_b):
     return _DIFFERENT
   else:
     return _UNKNOWN
-
-
-def _ConvertToNumber(obj):
-  # We want the results_values to provide both a message that can be shown to
-  # the user for why something failed, and also something comparable that can
-  # be used for bisect. Therefore, they contain the thrown Exceptions. This
-  # function then converts them into comparable numbers for bisect.
-  if isinstance(obj, numbers.Number):
-    return obj
-  elif isinstance(obj, Exception):
-    return hash(obj.__class__)
-  else:
-    return hash(obj)

@@ -45,13 +45,15 @@ class _FindIsolateTest(unittest.TestCase):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], exception_class)
+    self.assertIsInstance(execution.result_values[0], basestring)
+    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith(exception_class.__name__))
     self.assertEqual(execution.result_arguments, {})
 
   def assertExecutionSuccess(self, execution):
     self.assertTrue(execution.completed)
     self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (0,))
+    self.assertEqual(execution.result_values, (None,))
 
 
 class IsolateLookupTest(_FindIsolateTest):
