@@ -18,10 +18,7 @@ from dashboard.models import page_state
 
 # This is the max number of alerts to query at once. This is used in cases
 # when we may want to query more many more alerts than actually get displayed.
-_QUERY_LIMIT = 2000
-
-# Maximum number of alerts that we might want to try display in one table.
-_DISPLAY_LIMIT = 500
+_QUERY_LIMIT = 5000
 
 
 class GroupReportHandler(chart_handler.ChartHandler):
@@ -75,7 +72,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
           [a for a in alert_list if a.key.kind() == 'Anomaly'])
 
       values = {
-          'alert_list': alert_dicts[:_DISPLAY_LIMIT],
+          'alert_list': alert_dicts,
           'test_suites': update_test_suites.FetchCachedTestSuites(),
       }
       if bug_id:
@@ -104,7 +101,7 @@ def GetAlertsWithBugId(bug_id):
   bug_id = int(bug_id)
   anomaly_query = anomaly.Anomaly.query(
       anomaly.Anomaly.bug_id == bug_id)
-  return anomaly_query.fetch(limit=_DISPLAY_LIMIT)
+  return anomaly_query.fetch(limit=_QUERY_LIMIT)
 
 
 def GetAlertsAroundRevision(rev):
@@ -181,10 +178,6 @@ def GetAlertsForKeys(keys):
 
     anomalies = [a for a in anomalies if _IsValidAlert(a)]
     anomalies = _GetOverlaps(anomalies, min_range[0], min_range[1])
-
-    # Make sure alerts in specified param "keys" are included.
-    # We actually only send the first _DISPLAY_LIMIT alerts to the UI, so we
-    # need to include those keys at the start of the list.
     anomalies = requested_anomalies + anomalies
   else:
     anomalies = requested_anomalies
