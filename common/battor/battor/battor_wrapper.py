@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
 import datetime
 import os
 import logging
@@ -15,6 +14,7 @@ import time
 
 from battor import battor_error
 import py_utils
+from py_utils import atexit_with_log
 from py_utils import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
@@ -152,7 +152,7 @@ class BattOrWrapper(object):
     self._target_platform = target_platform
     self._git_hash = None
 
-    atexit.register(self.KillBattOrShell)
+    atexit_with_log.Register(self.KillBattOrShell)
 
   def _FlashBattOr(self):
     assert self._battor_shell, (

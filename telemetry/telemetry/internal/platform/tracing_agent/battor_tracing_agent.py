@@ -6,11 +6,11 @@ import logging
 
 from battor import battor_error
 from battor import battor_wrapper
+from py_utils import atexit_with_log
 from py_utils import cloud_storage
 from devil.android import battery_utils
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
-from telemetry.internal.util import atexit_with_log
 from tracing.trace_data import trace_data
 
 

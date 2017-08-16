@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import ast
-from telemetry.internal.util import atexit_with_log
+from py_utils import atexit_with_log
 import contextlib
 import gc
 import logging

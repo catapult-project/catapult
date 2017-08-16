@@ -10,8 +10,8 @@ import re
 import subprocess
 import sys
 
+from py_utils import atexit_with_log
 from telemetry.core import util
-from telemetry.internal.util import atexit_with_log
 
 import py_utils
 

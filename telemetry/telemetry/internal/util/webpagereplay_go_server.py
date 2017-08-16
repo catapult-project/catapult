@@ -4,7 +4,7 @@
 
 """Start and stop Web Page Replay."""
 
-from telemetry.internal.util import atexit_with_log
+from py_utils import atexit_with_log
 import logging
 import os
 import re
