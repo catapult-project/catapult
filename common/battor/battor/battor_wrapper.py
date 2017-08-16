@@ -218,8 +218,8 @@ class BattOrWrapper(object):
     assert not self._tracing, 'Attempting to stop a BattOr shell while tracing.'
     timeout = timeout if timeout else DEFAULT_SHELL_CLOSE_TIMEOUT_S
 
-    self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
     try:
+      self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
       py_utils.WaitFor(lambda: self.GetShellReturnCode() != None, timeout)
     except:
       # If graceful shutdown failed, resort to a simple kill command.
