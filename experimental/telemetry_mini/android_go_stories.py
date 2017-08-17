@@ -40,10 +40,6 @@ BROWSERS = {
 }
 
 
-class TwitterApp(telemetry_mini.AndroidApp):
-  PACKAGE_NAME = 'com.twitter.android'
-
-
 class ProcessWatcher(object):
   def __init__(self, device):
     self.device = device
@@ -119,39 +115,41 @@ def EnsureSingleBrowser(device, browser_name, force_install=False):
   return browser
 
 
-def RunStory(browser):
-  tracefile = 'trace.json'
-  device = browser.device
-  twitter = TwitterApp(device)
-  watcher = ProcessWatcher(device)
+class TwitterApp(telemetry_mini.AndroidApp):
+  PACKAGE_NAME = 'com.twitter.android'
 
-  with browser.Session(BROWSER_FLAGS, TRACE_CONFIG):
-    twitter.ForceStop()
-    try:
-      # Intent will launch Twitter app on Flipkart profile.
-      device.RunShellCommand(
-          'am', 'start', '-a', 'android.intent.action.VIEW',
-          '-d', 'https://twitter.com/flipkart')
-      watcher.StartWatching(twitter)
 
-      # Tapping on Flikpart link on Twitter app will launch Chrome.
-      device.TapUiNode(FLIPKART_TWITTER_LINK)
-      watcher.StartWatching(browser)
+class TwitterFlipkartStory(telemetry_mini.UserStory):
+  def __init__(self, *args, **kwargs):
+    super(TwitterFlipkartStory, self).__init__(*args, **kwargs)
+    self.watcher = ProcessWatcher(self.device)
+    self.twitter = TwitterApp(self.device)
 
-      time.sleep(4)
-      # Scroll content up a bit.
-      device.RunShellCommand(
-          'input', 'swipe', '240', '568', '240', '284', '400')
-      time.sleep(1)
+  def GetExtraStoryApps(self):
+    return (self.twitter,)
 
-      browser.CollectTrace(tracefile)
-      watcher.AssertAllAlive()
+  def RunStorySteps(self):
+    # Intent will launch Twitter app on Flipkart profile.
+    self.device.RunShellCommand(
+        'am', 'start', '-a', 'android.intent.action.VIEW',
+        '-d', 'https://twitter.com/flipkart')
+    self.watcher.StartWatching(self.twitter)
 
-      # Go "Back" and return to Twitter app.
-      device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
-      time.sleep(1)
-    finally:
-      twitter.ForceStop()
+    # Tapping on Flikpart link on Twitter app will launch Chrome.
+    self.device.TapUiNode(FLIPKART_TWITTER_LINK)
+    self.watcher.StartWatching(self.browser)
+
+    time.sleep(10)  # TODO: Replace with wait until page loaded.
+    # Scroll content up a bit.
+    self.device.RunShellCommand(
+        'input', 'swipe', '240', '568', '240', '284', '400')
+    time.sleep(1)
+
+    # Go "Back" and return to Twitter app.
+    self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
+    time.sleep(1)
+
+    self.watcher.AssertAllAlive()
 
 
 def main():
@@ -201,7 +199,10 @@ def main():
 
   browser = EnsureSingleBrowser(device, args.browser, args.force_install)
   browser.SetDevToolsLocalPort(args.port)
-  RunStory(browser)
+
+  story = TwitterFlipkartStory(browser)
+  story.Run(BROWSER_FLAGS, TRACE_CONFIG, 'trace.json')
+
 
 if __name__ == '__main__':
   sys.exit(main())

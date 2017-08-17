@@ -390,6 +390,45 @@ class SystemChromeApp(ChromiumApp):
     self.device.RunShellCommand('pm', 'disable', self.PACKAGE_NAME)
 
 
+class UserStory(object):
+  def __init__(self, browser):
+    self.device = browser.device
+    self.browser = browser
+
+  def GetExtraStoryApps(self):
+    """Sequence of AndroidApp's, other than the browser, used in the story."""
+    return ()
+
+  def EnsureExtraStoryAppsClosed(self):
+    running_processes = self.device.ProcessStatus()
+    for app in self.GetExtraStoryApps():
+      if app.PACKAGE_NAME in running_processes:
+        app.ForceStop()
+
+  def Run(self, browser_flags, trace_config, trace_file):
+    with self.browser.Session(browser_flags, trace_config):
+      self.EnsureExtraStoryAppsClosed()
+      try:
+        self.RunStorySteps()
+        self.browser.CollectTrace(trace_file)
+      except Exception as exc:
+        # Helps to pin point in the logs the moment where the story failed,
+        # before any of the finally blocks get to be executed.
+        logging.error('Aborting story due to %s.', type(exc).__name__)
+        raise
+      finally:
+        self.EnsureExtraStoryAppsClosed()
+
+  def RunStorySteps(self):
+    """Subclasses should override this method to implement the story.
+
+    The steps must:
+    - at some point cause the browser to be launched, and
+    - make sure the browser remains alive when done (even if backgrounded).
+    """
+    raise NotImplementedError
+
+
 def ReadProcessMetrics(trace_file):
   """Return a list of {"name": process_name, metric: value} dicts."""
   with open(trace_file) as f:
