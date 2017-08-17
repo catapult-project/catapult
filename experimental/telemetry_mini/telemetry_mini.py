@@ -30,6 +30,8 @@ import websocket  # pylint: disable=import-error
 from xml.etree import ElementTree as element_tree
 
 
+KEYCODE_BACK = 4
+
 # Parse rectangle bounds given as: '[left,top][right,bottom]'.
 RE_BOUNDS = re.compile(
     r'\[(?P<left>\d+),(?P<top>\d+)\]\[(?P<right>\d+),(?P<bottom>\d+)\]')
@@ -142,7 +144,7 @@ class AdbMini(object):
     return result
 
   @RetryOn(AdbCommandError)
-  def GetUiDump(self):
+  def GetUiScreenDump(self):
     """Return the root XML node with screen captured from the device."""
     self.RunShellCommand('rm', '-f', UI_DUMP_TEMP)
     output = self.RunShellCommand('uiautomator', 'dump', UI_DUMP_TEMP).strip()
@@ -158,20 +160,78 @@ class AdbMini(object):
       return element_tree.parse(f.name)
 
   @RetryOn(LookupError)
-  def FindUiNode(self, attr_values):
-    """Find a UI node on screen capture, retrying if not yet visible."""
-    root = self.GetUiDump()
+  def FindUiElement(self, attr_values):
+    """Find a UI element on screen capture, retrying if not yet visible."""
+    root = self.GetUiScreenDump()
     for node in root.iter():
       if all(node.get(k) == v for k, v in attr_values):
         return node
-    raise LookupError('Specified UI node not found')
+    raise LookupError('Specified UI element not found')
 
-  def TapUiNode(self, *args, **kwargs):
-    node = self.FindUiNode(*args, **kwargs)
+  def TapUiElement(self, *args, **kwargs):
+    node = self.FindUiElement(*args, **kwargs)
     m = RE_BOUNDS.match(node.get('bounds'))
     left, top, right, bottom = (int(v) for v in m.groups())
     x, y = (left + right) / 2, (top + bottom) / 2
     self.RunShellCommand('input', 'tap', str(x), str(y))
+
+
+def _UserAction(f):
+  """Decorator to add repeat, and action_delay options to user action methods.
+
+  Note: The values (or their defaults) supplied for these extra options will
+  also be passed down to the decorated method. It's thus advisable to collect
+  them in a catch-all **kwargs, even if just to discard them immediately.
+
+  This is a workaround for https://github.com/PyCQA/pylint/issues/258 in which
+  decorators confuse pylint and trigger spurious 'unexpected-keyword-arg'
+  warnings on method calls that use the extra options.
+  """
+  @functools.wraps(f)
+  def Wrapper(self, *args, **kwargs):
+    repeat = kwargs.setdefault('repeat', 1)
+    action_delay = kwargs.setdefault('action_delay', None)
+    for _ in xrange(repeat):
+      f(self, *args, **kwargs)
+      self.Idle(action_delay)
+  return Wrapper
+
+
+class AndroidActions(object):
+  def __init__(self, device, user_action_delay=1):
+    self.device = device
+    self.user_action_delay = user_action_delay
+
+  def Idle(self, duration=None):
+    if duration is None:
+      duration = self.user_action_delay
+    if duration:
+      time.sleep(duration)
+
+  @_UserAction
+  def GoBack(self, **kwargs):
+    del kwargs
+    self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
+
+  @_UserAction
+  def StartActivity(
+      self, data_uri, action='android.intent.action.VIEW', **kwargs):
+    del kwargs
+    self.device.RunShellCommand('am', 'start', '-a', action, '-d', data_uri)
+
+  @_UserAction
+  def TapUiElement(self, attr_values, **kwargs):
+    del kwargs
+    self.device.TapUiElement(attr_values)
+
+  @_UserAction
+  def SwipeUp(self, **kwargs):
+    del kwargs
+    # Hardcoded values for 480x854 screen size; should work reasonably on
+    # other screen sizes.
+    # Command args: swipe <x1> <y1> <x2> <y2> [duration(ms)]
+    self.device.RunShellCommand(
+        'input', 'swipe', '240', '568', '240', '284', '400')
 
 
 class DevToolsWebSocket(object):
@@ -394,6 +454,7 @@ class UserStory(object):
   def __init__(self, browser):
     self.device = browser.device
     self.browser = browser
+    self.actions = AndroidActions(self.device)
 
   def GetExtraStoryApps(self):
     """Sequence of AndroidApp's, other than the browser, used in the story."""

@@ -25,14 +25,6 @@ TRACE_CONFIG = {
     'memoryDumpConfig': {'triggers': []}
 }
 
-FLIPKART_TWITTER_LINK = [
-    ('package', 'com.twitter.android'),
-    ('class', 'android.widget.TextView'),
-    ('text', 'flipkart.com')
-]
-
-KEYCODE_BACK = 4
-
 BROWSERS = {
     'android-chrome': telemetry_mini.ChromeApp,
     'android-chromium': telemetry_mini.ChromiumApp,
@@ -120,6 +112,12 @@ class TwitterApp(telemetry_mini.AndroidApp):
 
 
 class TwitterFlipkartStory(telemetry_mini.UserStory):
+  FLIPKART_TWITTER_LINK = [
+      ('package', 'com.twitter.android'),
+      ('class', 'android.widget.TextView'),
+      ('text', 'flipkart.com')
+  ]
+
   def __init__(self, *args, **kwargs):
     super(TwitterFlipkartStory, self).__init__(*args, **kwargs)
     self.watcher = ProcessWatcher(self.device)
@@ -129,26 +127,18 @@ class TwitterFlipkartStory(telemetry_mini.UserStory):
     return (self.twitter,)
 
   def RunStorySteps(self):
-    # Intent will launch Twitter app on Flipkart profile.
-    self.device.RunShellCommand(
-        'am', 'start', '-a', 'android.intent.action.VIEW',
-        '-d', 'https://twitter.com/flipkart')
+    # Activity will launch Twitter app on Flipkart profile.
+    self.actions.StartActivity('https://twitter.com/flipkart')
     self.watcher.StartWatching(self.twitter)
 
     # Tapping on Flikpart link on Twitter app will launch Chrome.
-    self.device.TapUiNode(FLIPKART_TWITTER_LINK)
+    self.actions.TapUiElement(self.FLIPKART_TWITTER_LINK)
     self.watcher.StartWatching(self.browser)
-
     time.sleep(10)  # TODO: Replace with wait until page loaded.
-    # Scroll content up a bit.
-    self.device.RunShellCommand(
-        'input', 'swipe', '240', '568', '240', '284', '400')
-    time.sleep(1)
+    self.actions.SwipeUp(repeat=3)
 
-    # Go "Back" and return to Twitter app.
-    self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
-    time.sleep(1)
-
+    # Return to Twitter app.
+    self.actions.GoBack()
     self.watcher.AssertAllAlive()
 
 
