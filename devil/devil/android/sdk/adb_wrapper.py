@@ -56,6 +56,12 @@ def VerifyLocalFileExists(path):
     raise IOError(errno.ENOENT, os.strerror(errno.ENOENT), path)
 
 
+def _CreateAdbEnvironment():
+  adb_env = dict(os.environ)
+  adb_env['ADB_LIBUSB'] = '0'
+  return adb_env
+
+
 def _FindAdb():
   try:
     return devil_env.config.LocalPath('adb')
@@ -113,6 +119,8 @@ def _IsExtraneousLine(line, send_cmd):
 class AdbWrapper(object):
   """A wrapper around a local Android Debug Bridge executable."""
 
+  _ADB_ENV = _CreateAdbEnvironment()
+
   _adb_path = lazy.WeakConstant(_FindAdb)
   _adb_version = lazy.WeakConstant(_GetVersion)
 
@@ -159,10 +167,12 @@ class AdbWrapper(object):
       """Start the shell."""
       if self._process is not None:
         raise RuntimeError('Persistent shell already running.')
+      # pylint: disable=protected-access
       self._process = subprocess.Popen(self._cmd,
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
-                                       shell=False)
+                                       shell=False,
+                                       env=AdbWrapper._ADB_ENV)
 
     def WaitForReady(self):
       """Wait for the shell to be ready after starting.
@@ -247,7 +257,8 @@ class AdbWrapper(object):
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
           cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
-          timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
+          timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime(),
+          env=cls._ADB_ENV)
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
         raise device_errors.NoAdbError(msg=str(e))
@@ -299,7 +310,8 @@ class AdbWrapper(object):
     return cmd_helper.IterCmdOutputLines(
         self._BuildAdbCmd(args, self._device_serial),
         iter_timeout=iter_timeout,
-        timeout=timeout)
+        timeout=timeout,
+        env=self._ADB_ENV)
 
   def __eq__(self, other):
     """Consider instances equal if they refer to the same device.
@@ -517,7 +529,8 @@ class AdbWrapper(object):
     """
     args = ['shell', command]
     return cmd_helper.IterCmdOutputLines(
-      self._BuildAdbCmd(args, self._device_serial), timeout=timeout)
+      self._BuildAdbCmd(args, self._device_serial), timeout=timeout,
+      env=self._ADB_ENV)
 
   def Ls(self, path, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """List the contents of a directory on the device.
