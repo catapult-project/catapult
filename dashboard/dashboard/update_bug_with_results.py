@@ -279,7 +279,7 @@ def _PostSuccessfulResult(job, issue_tracker):
                            % (job.bug_id, comment))
 
   logging.info('Updated bug %s with results from %s',
-               job.bug_id, job.rietveld_issue_id)
+               job.bug_id, job.buildbucket_job_id)
 
   # If the issue we were going to merge into was itself a duplicate, we don't
   # dup against it but we also don't merge existing anomalies to it or cache it.
