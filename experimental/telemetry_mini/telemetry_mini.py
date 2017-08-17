@@ -30,7 +30,9 @@ import websocket  # pylint: disable=import-error
 from xml.etree import ElementTree as element_tree
 
 
+KEYCODE_HOME = 3
 KEYCODE_BACK = 4
+KEYCODE_APP_SWITCH = 187
 
 # Parse rectangle bounds given as: '[left,top][right,bottom]'.
 RE_BOUNDS = re.compile(
@@ -159,16 +161,24 @@ class AdbMini(object):
       self.RunCommand('pull', UI_DUMP_TEMP, f.name)
       return element_tree.parse(f.name)
 
-  @RetryOn(LookupError)
-  def FindUiElement(self, attr_values):
-    """Find a UI element on screen capture, retrying if not yet visible."""
+  def HasUiElement(self, attr_values):
+    """Check whether a UI element is visible on the screen."""
     root = self.GetUiScreenDump()
     for node in root.iter():
       if all(node.get(k) == v for k, v in attr_values):
         return node
-    raise LookupError('Specified UI element not found')
+    return None
+
+  @RetryOn(LookupError)
+  def FindUiElement(self, *args, **kwargs):
+    """Find a UI element on the screen, retrying if not yet visible."""
+    node = self.HasUiElement(*args, **kwargs)
+    if node is None:
+      raise LookupError('Specified UI element not found')
+    return node
 
   def TapUiElement(self, *args, **kwargs):
+    """Tap on a UI element found on screen."""
     node = self.FindUiElement(*args, **kwargs)
     m = RE_BOUNDS.match(node.get('bounds'))
     left, top, right, bottom = (int(v) for v in m.groups())
@@ -198,6 +208,13 @@ def _UserAction(f):
 
 
 class AndroidActions(object):
+  APP_SWITCHER_CLEAR_ALL = [
+      ('resource-id', 'com.android.systemui:id/button'),
+      ('text', 'CLEAR ALL')]
+  APP_SWITCHER_NO_RECENT = [
+      ('package', 'com.android.systemui'),
+      ('text', 'No recent items')]
+
   def __init__(self, device, user_action_delay=1):
     self.device = device
     self.user_action_delay = user_action_delay
@@ -209,9 +226,19 @@ class AndroidActions(object):
       time.sleep(duration)
 
   @_UserAction
+  def GoHome(self, **kwargs):
+    del kwargs
+    self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_HOME))
+
+  @_UserAction
   def GoBack(self, **kwargs):
     del kwargs
     self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
+
+  @_UserAction
+  def GoAppSwitcher(self, **kwargs):
+    del kwargs
+    self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_APP_SWITCH))
 
   @_UserAction
   def StartActivity(
@@ -224,6 +251,22 @@ class AndroidActions(object):
     del kwargs
     self.device.TapUiElement(attr_values)
 
+  def TapHomeScreenShortcut(self, description, **kwargs):
+    self.TapUiElement([
+        ('package', 'com.android.launcher3'),
+        ('class', 'android.widget.TextView'),
+        ('content-desc', description)
+    ], **kwargs)
+
+  def TapAppSwitcherTitle(self, text, **kwargs):
+    self.TapUiElement([
+        ('resource-id', 'com.android.systemui:id/title'),
+        ('text', text)
+    ], **kwargs)
+
+  def TapAppSwitcherClearAll(self, **kwargs):
+    self.TapUiElement(self.APP_SWITCHER_CLEAR_ALL, **kwargs)
+
   @_UserAction
   def SwipeUp(self, **kwargs):
     del kwargs
@@ -232,6 +275,23 @@ class AndroidActions(object):
     # Command args: swipe <x1> <y1> <x2> <y2> [duration(ms)]
     self.device.RunShellCommand(
         'input', 'swipe', '240', '568', '240', '284', '400')
+
+  @_UserAction
+  def SwipeDown(self, **kwargs):
+    del kwargs
+    # Hardcoded values for 480x854 screen size; should work reasonably on
+    # other screen sizes.
+    # Command args: swipe <x1> <y1> <x2> <y2> [duration(ms)]
+    self.device.RunShellCommand(
+        'input', 'swipe', '240', '284', '240', '568', '400')
+
+  def ClearRecentApps(self):
+    self.GoAppSwitcher()
+    if self.device.HasUiElement(self.APP_SWITCHER_NO_RECENT):
+      self.GoHome()
+    else:
+      self.SwipeDown()
+      self.TapAppSwitcherClearAll()
 
 
 class DevToolsWebSocket(object):
@@ -391,7 +451,10 @@ class ChromiumApp(AndroidApp):
     To the extent possible, measurements from browsers launched within
     different sessions are meant to be independent of each other.
     """
-    self.RemoveProfile()
+    # Removing the profile breaks Chrome Shortcuts on the Home Screen.
+    # TODO: Figure out a way to automatically create the shortcuts before
+    # running the story.
+    # self.RemoveProfile()
     with self.CommandLineFlags(flags):
       with self.StartupTracing(trace_config):
         # Ensure browser is closed after setting command line flags and
@@ -456,19 +519,9 @@ class UserStory(object):
     self.browser = browser
     self.actions = AndroidActions(self.device)
 
-  def GetExtraStoryApps(self):
-    """Sequence of AndroidApp's, other than the browser, used in the story."""
-    return ()
-
-  def EnsureExtraStoryAppsClosed(self):
-    running_processes = self.device.ProcessStatus()
-    for app in self.GetExtraStoryApps():
-      if app.PACKAGE_NAME in running_processes:
-        app.ForceStop()
-
   def Run(self, browser_flags, trace_config, trace_file):
     with self.browser.Session(browser_flags, trace_config):
-      self.EnsureExtraStoryAppsClosed()
+      self.RunPrepareSteps()
       try:
         self.RunStorySteps()
         self.browser.CollectTrace(trace_file)
@@ -478,7 +531,11 @@ class UserStory(object):
         logging.error('Aborting story due to %s.', type(exc).__name__)
         raise
       finally:
-        self.EnsureExtraStoryAppsClosed()
+        self.RunCleanupSteps()
+
+  def RunPrepareSteps(self):
+    """Subclasses may override to perform actions before running the story."""
+    pass
 
   def RunStorySteps(self):
     """Subclasses should override this method to implement the story.
@@ -488,6 +545,14 @@ class UserStory(object):
     - make sure the browser remains alive when done (even if backgrounded).
     """
     raise NotImplementedError
+
+  def RunCleanupSteps(self):
+    """Subclasses may override to perform actions after running the story.
+
+    Note: This will be called even if an exception was raised during the
+    execution of RunStorySteps (but not for errors in RunPrepareSteps).
+    """
+    pass
 
 
 def ReadProcessMetrics(trace_file):

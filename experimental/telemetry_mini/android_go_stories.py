@@ -111,6 +111,10 @@ class TwitterApp(telemetry_mini.AndroidApp):
   PACKAGE_NAME = 'com.twitter.android'
 
 
+class InstagramApp(telemetry_mini.AndroidApp):
+  PACKAGE_NAME = 'com.instagram.android'
+
+
 class TwitterFlipkartStory(telemetry_mini.UserStory):
   FLIPKART_TWITTER_LINK = [
       ('package', 'com.twitter.android'),
@@ -123,8 +127,8 @@ class TwitterFlipkartStory(telemetry_mini.UserStory):
     self.watcher = ProcessWatcher(self.device)
     self.twitter = TwitterApp(self.device)
 
-  def GetExtraStoryApps(self):
-    return (self.twitter,)
+  def RunPrepareSteps(self):
+    self.twitter.ForceStop()
 
   def RunStorySteps(self):
     # Activity will launch Twitter app on Flipkart profile.
@@ -140,6 +144,48 @@ class TwitterFlipkartStory(telemetry_mini.UserStory):
     # Return to Twitter app.
     self.actions.GoBack()
     self.watcher.AssertAllAlive()
+
+  def RunCleanupSteps(self):
+    self.twitter.ForceStop()
+
+
+class FlipkartInstagramStory(telemetry_mini.UserStory):
+  def __init__(self, *args, **kwargs):
+    super(FlipkartInstagramStory, self).__init__(*args, **kwargs)
+    self.watcher = ProcessWatcher(self.device)
+    self.instagram = InstagramApp(self.device)
+
+  def RunPrepareSteps(self):
+    self.instagram.ForceStop()
+    self.actions.ClearRecentApps()
+
+  def RunStorySteps(self):
+    # Tap on home screen shortcut to open Flipkart PWA.
+    self.actions.TapHomeScreenShortcut('Flipkart Lite')
+    self.watcher.StartWatching(self.browser)
+    time.sleep(5)  # TODO: Replace with wait until page loaded.
+    self.actions.SwipeUp(repeat=2)
+
+    # Go back home, then launch Instagram app.
+    self.actions.GoHome()
+    self.actions.TapHomeScreenShortcut('Instagram')
+    self.watcher.StartWatching(self.instagram)
+    self.actions.SwipeUp(repeat=5)
+
+    # Go to app switcher and return to Flipkart PWA.
+    self.actions.GoAppSwitcher()
+    self.actions.TapAppSwitcherTitle('Flipkart Lite')
+    self.actions.SwipeDown()
+
+    # Go back home, then open Cricbuzz shortcut.
+    self.actions.GoHome()
+    self.actions.TapHomeScreenShortcut('Cricbuzz')
+    time.sleep(5)  # TODO: Replace with wait until page loaded.
+    self.actions.SwipeUp()
+    self.watcher.AssertAllAlive()
+
+  def RunCleanupSteps(self):
+    self.instagram.ForceStop()
 
 
 def main():
@@ -190,7 +236,7 @@ def main():
   browser = EnsureSingleBrowser(device, args.browser, args.force_install)
   browser.SetDevToolsLocalPort(args.port)
 
-  story = TwitterFlipkartStory(browser)
+  story = FlipkartInstagramStory(browser)
   story.Run(BROWSER_FLAGS, TRACE_CONFIG, 'trace.json')
 
 
