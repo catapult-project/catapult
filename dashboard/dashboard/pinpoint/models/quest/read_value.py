@@ -63,3 +63,37 @@ def _ResultValuesFromHistogram(buckets):
     result_values += [bucket_mean] * bucket_count
 
   return tuple(result_values)
+
+
+class ReadGraphJsonValue(quest.Quest):
+
+  def __init__(self, chart, trace):
+    self._chart = chart
+    self._trace = trace
+
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self._chart == other._chart and
+            self._trace == other._trace)
+
+  def __str__(self):
+    return 'Value'
+
+  def Start(self, isolate_hash):
+    return _ReadGraphJsonValueExecution(self._chart, self._trace, isolate_hash)
+
+
+class _ReadGraphJsonValueExecution(execution.Execution):
+
+  def __init__(self, chart, trace, isolate_hash):
+    super(_ReadGraphJsonValueExecution, self).__init__()
+    self._chart = chart
+    self._trace = trace
+    self._isolate_hash = isolate_hash
+
+  def _Poll(self):
+    test_output = isolate_service.Retrieve(self._isolate_hash)
+    graphjson_isolate_hash = test_output['files']['chartjson-output.json']['h']
+    graphjson = json.loads(isolate_service.Retrieve(graphjson_isolate_hash))
+    result_values = (float(graphjson[self._chart]['traces'][self._trace][0]),)
+    self._Complete(result_values=result_values)

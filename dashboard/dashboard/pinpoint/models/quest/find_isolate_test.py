@@ -60,7 +60,8 @@ class IsolateLookupTest(_FindIsolateTest):
 
   def testIsolateLookupSuccess(self):
     change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
-    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution = quest.Start(change)
     execution.Poll()
 
     self.assertExecutionSuccess(execution)
@@ -86,7 +87,8 @@ class BuilderLookupTest(_FindIsolateTest):
         for builder, _ in builder_testers)
 
     for builder, tester in builder_testers:
-      execution = find_isolate.FindIsolate(tester).Start(change)
+      quest = find_isolate.FindIsolate(tester, 'telemetry_perf_tests')
+      execution = quest.Start(change)
       execution.Poll()
 
       self.assertExecutionSuccess(execution)
@@ -95,7 +97,7 @@ class BuilderLookupTest(_FindIsolateTest):
 
   def testUnknownBuilder(self):
     with self.assertRaises(NotImplementedError):
-      find_isolate.FindIsolate('Unix Perf')
+      find_isolate.FindIsolate('Unix Perf', 'telemetry_perf_tests')
 
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
@@ -107,7 +109,8 @@ class BuildTest(_FindIsolateTest):
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution = quest.Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -148,7 +151,8 @@ class BuildTest(_FindIsolateTest):
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution = quest.Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -171,7 +175,8 @@ class BuildTest(_FindIsolateTest):
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution = quest.Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -194,7 +199,8 @@ class BuildTest(_FindIsolateTest):
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution = quest.Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}

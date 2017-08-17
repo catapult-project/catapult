@@ -17,8 +17,9 @@ class BuildError(Exception):
 
 class FindIsolate(quest.Quest):
 
-  def __init__(self, configuration):
+  def __init__(self, configuration, target):
     self._builder_name = _BuilderNameForConfiguration(configuration)
+    self._target = target
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
@@ -32,23 +33,22 @@ class FindIsolate(quest.Quest):
     return 1
 
   def Start(self, change):
-    return _FindIsolateExecution(self._builder_name, change)
+    return _FindIsolateExecution(self._builder_name, self._target, change)
 
 
 class _FindIsolateExecution(execution.Execution):
 
-  def __init__(self, builder_name, change):
+  def __init__(self, builder_name, target, change):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
+    self._target = target
     self._change = change
     self._build = None
 
   def _Poll(self):
     # Look for the .isolate in our cache.
-    # TODO: Support other isolate targets.
-    target = 'telemetry_perf_tests'
     try:
-      isolate_hash = isolate.Get(self._builder_name, self._change, target)
+      isolate_hash = isolate.Get(self._builder_name, self._change, self._target)
     except KeyError:
       isolate_hash = None
 

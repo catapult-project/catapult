@@ -105,3 +105,25 @@ class ReadChartJsonValueTest(unittest.TestCase):
     execution.Poll()
 
     self.assertEqual(execution.result_values, (2.5,))
+
+
+@mock.patch('dashboard.services.isolate_service.Retrieve')
+class ReadGraphJsonValueTest(unittest.TestCase):
+
+  def testReadGraphJsonValue(self, retrieve):
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'graphjson hash'}}},
+        json.dumps({'chart': {'traces': {'trace': ['126444.869721', '0.0']}}}),
+    )
+
+    quest = read_value.ReadGraphJsonValue('chart', 'trace')
+    execution = quest.Start('output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (126444.869721,))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('graphjson hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)

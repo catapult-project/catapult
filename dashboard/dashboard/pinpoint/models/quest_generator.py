@@ -39,6 +39,7 @@ class TelemetryQuestGenerator(object):
 
   def __init__(self, request):
     self.configuration = request.get('configuration')
+    self.target = request.get('target')
     self.dimensions = request.get('dimensions')
     # TODO: Use the correct browser for Android and 64-bit Windows.
     self.browser = 'release'
@@ -54,13 +55,16 @@ class TelemetryQuestGenerator(object):
     if not self.configuration:
       raise TypeError('Missing "configuration" argument.')
 
+    if not self.target:
+      raise TypeError('Missing "target" argument.')
+
     if self.dimensions:
       self.dimensions = json.loads(self.dimensions)
       if not self.benchmark:
         raise TypeError('Missing "benchmark" argument.')
 
   def Quests(self):
-    quests = [quest_module.FindIsolate(self.configuration)]
+    quests = [quest_module.FindIsolate(self.configuration, self.target)]
 
     if not self.dimensions:
       return quests
@@ -76,8 +80,9 @@ class TelemetryQuestGenerator(object):
 
   def AsDict(self):
     return {
-        'dimensions': self.dimensions,
         'configuration': self.configuration,
+        'target': self.target,
+        'dimensions': self.dimensions,
         'browser': self.browser,
         'benchmark': self.benchmark,
         'story': self.story,

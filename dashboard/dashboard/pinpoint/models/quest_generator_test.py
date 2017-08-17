@@ -27,8 +27,6 @@ class QuestGeneratorTest(unittest.TestCase):
     request = {
         'target': 'telemetry_perf_tests',
         'configuration': 'chromium-rel-mac11-pro',
-        'dimensions': '{}',
-        'benchmark': 'speedometer',
     }
     self.assertIsInstance(
         quest_generator.QuestGenerator(request),
@@ -55,11 +53,12 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
   def testMissingArguments(self):
     base_request = {
         'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
         'dimensions': '{}',
         'benchmark': 'speedometer',
     }
 
-    for argument_name in ('configuration', 'benchmark'):
+    for argument_name in ('configuration', 'target', 'benchmark'):
       request = dict(base_request)
       del request[argument_name]
       with self.assertRaises(TypeError):
@@ -69,6 +68,7 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
     with self.assertRaises(ValueError):
       quest_generator.TelemetryQuestGenerator({
           'configuration': 'chromium-rel-mac11-pro',
+          'target': 'telemetry_perf_tests',
           'dimensions': 'invalid json',
           'benchmark': 'speedometer',
       })
@@ -76,6 +76,7 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
     with self.assertRaises(ValueError):
       quest_generator.TelemetryQuestGenerator({
           'configuration': 'chromium-rel-mac11-pro',
+          'target': 'telemetry_perf_tests',
           'dimensions': '{}',
           'benchmark': 'speedometer',
           'repeat_count': 'not a number',
@@ -83,8 +84,9 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
 
   def testQuests(self):
     request = {
-        'dimensions': '{"key": "value"}',
         'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'benchmark_name',
         'story': 'story_name',
         'metric': 'metric_name',
@@ -93,7 +95,7 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
     generator = quest_generator.TelemetryQuestGenerator(request)
 
     expected_quests = [
-        quest.FindIsolate('chromium-rel-mac11-pro'),
+        quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({'key': 'value'}, _RUN_TEST_ARGUMENTS),
         quest.ReadChartJsonValue('metric_name', 'story_name'),
     ]
@@ -101,8 +103,9 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
 
   def testAsDict(self):
     request = {
-        'dimensions': '{"key": "value"}',
         'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'page_cycler_v2_site_isolation.basic_oopif',
         'story': 'http://www.fifa.com/',
         'metric': 'pcv1-cold@@timeToFirstMeaningfulPaint_avg',
@@ -111,8 +114,9 @@ class TelemetryQuestGeneratorTest(unittest.TestCase):
     generator = quest_generator.TelemetryQuestGenerator(request)
 
     expected_dict = {
-        'dimensions': {'key': 'value'},
         'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+        'dimensions': {'key': 'value'},
         'browser': 'release',
         'benchmark': 'page_cycler_v2_site_isolation.basic_oopif',
         'story': 'http://www.fifa.com/',
