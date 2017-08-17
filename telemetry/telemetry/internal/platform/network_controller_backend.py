@@ -4,16 +4,11 @@
 
 import logging
 import os
-import shutil
-import tempfile
 
 from telemetry.internal.util import wpr_server
 from telemetry.internal.util import webpagereplay_go_server
 from telemetry.internal.util import ts_proxy_server
 from telemetry.util import wpr_modes
-
-import certutils
-import platformsettings
 
 
 class ArchiveDoesNotExistError(Exception):
@@ -41,7 +36,7 @@ class NetworkControllerBackend(object):
     self._archive_path = None
     self._make_javascript_deterministic = None
     self._forwarder = None
-    self._wpr_ca_cert_path = None
+    self._is_test_ca_installed = None
     self._wpr_server = None
     self._ts_proxy_server = None
     self._port_pair = None
@@ -84,10 +79,6 @@ class NetworkControllerBackend(object):
     except AttributeError:
       return None
 
-  @property
-  def is_test_ca_installed(self):
-    return self._wpr_ca_cert_path is not None
-
   def Open(self, wpr_mode, extra_wpr_args, use_wpr_go=False):
     """Configure and prepare target platform for network control.
 
@@ -124,25 +115,10 @@ class NetworkControllerBackend(object):
     self._wpr_mode = None
 
   def _InstallTestCa(self):
-    if not self._platform_backend.supports_test_ca:
+    if not self._platform_backend.supports_test_ca or not self._use_wpr_go:
       return
-    assert not self.is_test_ca_installed, 'Test CA is already installed'
-    if certutils.openssl_import_error:
-      logging.warning(
-          'The OpenSSL module is unavailable. '
-          'Browsers may fall back to ignoring certificate errors.')
-      return
-    if not platformsettings.HasSniSupport():
-      logging.warning(
-          'Web Page Replay requires SNI support (pyOpenSSL 0.13 or greater) '
-          'to generate certificates from a test CA. '
-          'Browsers may fall back to ignoring certificate errors.')
-      return
-    self._wpr_ca_cert_path = os.path.join(tempfile.mkdtemp(), 'testca.pem')
     try:
-      certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
-                                    cert_path=self._wpr_ca_cert_path)
-      self._platform_backend.InstallTestCa(self._wpr_ca_cert_path)
+      self._platform_backend.InstallTestCa()
       logging.info('Test certificate authority installed on target platform.')
     except Exception: # pylint: disable=broad-except
       logging.exception(
@@ -150,8 +126,12 @@ class NetworkControllerBackend(object):
           'Browsers may fall back to ignoring certificate errors.')
       self._RemoveTestCa()
 
+  @property
+  def is_test_ca_installed(self):
+    return self._is_test_ca_installed
+
   def _RemoveTestCa(self):
-    if not self.is_test_ca_installed:
+    if not self._is_test_ca_installed:
       return
     try:
       self._platform_backend.RemoveTestCa()
@@ -159,10 +139,8 @@ class NetworkControllerBackend(object):
       # Best effort cleanup - show the error and continue.
       logging.exception(
           'Error trying to remove certificate authority from target platform.')
-    try:
-      shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors=True)
     finally:
-      self._wpr_ca_cert_path = None
+      self._is_test_ca_installed = False
 
   def StartReplay(self, archive_path, make_javascript_deterministic=False):
     """Start web page replay from a given replay archive.
@@ -268,10 +246,6 @@ class NetworkControllerBackend(object):
       wpr_args.append('--record')
     if not self._make_javascript_deterministic:
       wpr_args.append('--inject_scripts=')
-    if self._wpr_ca_cert_path:
-      wpr_args.extend([
-          '--should_generate_certs',
-          '--https_root_ca_cert_path=%s' % self._wpr_ca_cert_path])
     return wpr_args
 
   def _StartTsProxyServer(self, use_live_traffic):

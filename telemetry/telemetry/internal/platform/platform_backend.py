@@ -254,7 +254,7 @@ class PlatformBackend(object):
     """Indicates whether the platform supports installing test CA."""
     return False
 
-  def InstallTestCa(self, ca_cert_path):
+  def InstallTestCa(self):
     """Install a test CA on the platform."""
     raise NotImplementedError()
 

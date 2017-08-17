@@ -123,17 +123,6 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         self.assertAlmostEqual(result[cpu][state], expected_cstate[cpu][state])
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testInstallTestCaSuccess(self):
-    backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'))
-    with mock.patch('adb_install_cert.AndroidCertInstaller'):
-      backend.InstallTestCa('testca.pem')
-      self.assertIsNotNone(backend._device_cert_util)
-
-      backend.RemoveTestCa()
-      self.assertIsNone(backend._device_cert_util)
-
-  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
     backend = android_platform_backend.AndroidPlatformBackend(

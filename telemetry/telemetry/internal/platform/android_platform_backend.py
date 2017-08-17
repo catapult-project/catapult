@@ -28,9 +28,9 @@ from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
+from telemetry.internal.util import webpagereplay_go_server
 
 psutil = external_modules.ImportOptionalModule('psutil')
-import adb_install_cert
 
 from devil.android import app_ui
 from devil.android import battery_utils
@@ -99,7 +99,7 @@ class AndroidPlatformBackend(
     self._video_recorder = None
     self._installed_applications = None
 
-    self._device_cert_util = None
+    self._test_ca_installed = None
     self._system_ui = None
 
     _FixPossibleAdbInstability()
@@ -552,7 +552,7 @@ class AndroidPlatformBackend(
     # return self._device.build_version_sdk <= version_codes.LOLLIPOP_MR1
     return False
 
-  def InstallTestCa(self, ca_cert_path):
+  def InstallTestCa(self):
     """Install a randomly generated root CA on the android device.
 
     This allows transparent HTTPS testing with WPR server without need
@@ -561,13 +561,12 @@ class AndroidPlatformBackend(
     Note: If this method fails with any exception, then RemoveTestCa will be
     automatically called by the network_controller_backend.
     """
-    if self._device_cert_util is not None:
+    if self._test_ca_installed is not None:
       logging.warning('Test certificate authority is already installed.')
       return
-    self._device_cert_util = adb_install_cert.AndroidCertInstaller(
-        self._device.adb.GetDeviceSerial(), None, ca_cert_path,
+    webpagereplay_go_server.ReplayServer.InstallRootCertificate(
+        android_device_id=self._device.adb.GetDeviceSerial(),
         adb_path=self._device.adb.GetAdbPath())
-    self._device_cert_util.install_cert(overwrite_cert=True)
 
   def RemoveTestCa(self):
     """Remove root CA from device installed by InstallTestCa.
@@ -575,11 +574,13 @@ class AndroidPlatformBackend(
     Note: Any exceptions raised by this method will be logged but dismissed by
     the network_controller_backend.
     """
-    if self._device_cert_util is not None:
+    if self._test_ca_installed is not None:
       try:
-        self._device_cert_util.remove_cert()
+        webpagereplay_go_server.ReplayServer.RemoveRootCertificate(
+            android_device_id=self._device.adb.GetDeviceSerial(),
+            adb_path=self._device.adb.GetAdbPath())
       finally:
-        self._device_cert_util = None
+        self._test_ca_installed = None
 
   def PushProfile(self, package, new_profile_dir):
     """Replace application profile with files found on host machine.

@@ -57,6 +57,8 @@ class ReplayServer(object):
        self.WaitUntil(...)
   """
 
+  _go_binary_path = None
+
   def __init__(self, archive_path, replay_host, http_port, https_port,
                replay_options):
     """Initialize ReplayServer.
@@ -78,12 +80,9 @@ class ReplayServer(object):
     # subprocess.
     self._temp_log_file_path = None
 
-    go_binary_path = binary_manager.FetchPath('wpr_go',
-                                              py_utils.GetHostArchName(),
-                                              py_utils.GetHostOsName())
-
     self._cmd_line = self._GetCommandLine(
-        go_binary_path, http_port, https_port, replay_options, archive_path)
+        self._GetGoBinaryPath(), http_port, https_port, replay_options,
+        archive_path)
 
     if 'record' in replay_options:
       self._CheckPath('archive directory', os.path.dirname(self.archive_path))
@@ -91,6 +90,59 @@ class ReplayServer(object):
       self._CheckPath('archive file', self.archive_path)
 
     self.replay_process = None
+
+
+  @classmethod
+  def _GetGoBinaryPath(cls):
+    if not cls._go_binary_path:
+      cls._go_binary_path = binary_manager.FetchPath(
+          'wpr_go', py_utils.GetHostArchName(), py_utils.GetHostOsName())
+    return cls._go_binary_path
+
+  @classmethod
+  def InstallRootCertificate(cls, android_device_id=None, adb_path=None):
+    """Install root certificate on the host machine or on remote Android device.
+
+      Args:
+        android_device_id: a string id of the Android device.
+        adb_path: path to adb binary to use for issuing commands to the device.
+          This is specified iff android_device_id is specified.
+    """
+    assert ((android_device_id is None and adb_path is None) or
+            (android_device_id is not None and adb_path is not None)), (
+                'android_device_id and adb_path must be both specified or '
+                'not specified')
+    go_binary_path = cls._GetGoBinaryPath()
+    if android_device_id is None:
+      subprocess.check_call([go_binary_path, 'installroot'])
+    else:
+      subprocess.check_call(
+          [go_binary_path, 'installroot',
+           '--android_device_id=%s' % android_device_id,
+           '--adb_binary_path=%s' % adb_path])
+
+  @classmethod
+  def RemoveRootCertificate(cls, android_device_id=None, adb_path=None):
+    """Remove installed root certificate on the host machine or on remote
+    Android device.
+
+      Args:
+        android_device_id: a string id of the Android device.
+        adb_path: path to adb binary to use for issuing commands to the device.
+          This is specified iff android_device_id is specified.
+    """
+    assert ((android_device_id is None and adb_path is None) or
+            (android_device_id is not None and adb_path is not None)), (
+                'android_device_id and adb_path must be both specified or '
+                'not specified')
+    go_binary_path = cls._GetGoBinaryPath()
+    if android_device_id is None:
+      subprocess.check_call([go_binary_path, 'removeroot'])
+    else:
+      subprocess.check_call(
+          [go_binary_path, 'removeroot',
+           '--android_device_id=%s' % android_device_id,
+           '--adb_binary_path=%s' % adb_path])
 
   @property
   def http_port(self):
