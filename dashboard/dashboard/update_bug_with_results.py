@@ -271,6 +271,9 @@ def _PostSuccessfulResult(job, issue_tracker):
   # Set restrict view label if the bisect results are internal only.
   labels = ['Restrict-View-Google'] if job.internal_only else None
 
+  # TODO(sullivan): Remove this after monorail issue 2984 is resolved.
+  # https://github.com/catapult-project/catapult/issues/3781
+  logging.info('Adding comment to bug %s: %s', job.bug_id, comment)
   comment_added = issue_tracker.AddBugComment(
       job.bug_id, comment, cc_list=authors_to_cc, merge_issue=merge_issue_id,
       labels=labels, owner=owner, status=status)
