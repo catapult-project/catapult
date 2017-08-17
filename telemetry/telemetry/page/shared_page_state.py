@@ -151,21 +151,28 @@ class SharedPageState(story_module.SharedState):
     if self._finder_options.profiler:
       self._StopProfiling(results)
     self._AllowInteractionForStage('after-run-story')
-    # We might hang while trying to close the connection, and need to guarantee
-    # the page will get cleaned up to avoid future tests failing in weird ways.
     try:
-      if self._current_tab and self._current_tab.IsAlive():
-        self._current_tab.CloseConnections()
-      self._previous_page = self._current_page
-    except Exception: # pylint: disable=broad-except
-      if self._current_tab:
-        self._current_tab.Close()
-    finally:
-      if self._current_page.credentials and self._did_login_for_current_page:
-        self.browser.credentials.LoginNoLongerNeeded(
-            self._current_tab, self._current_page.credentials)
+      self._previous_page = None
       if self.ShouldStopBrowserAfterStoryRun(self._current_page):
         self._StopBrowser()
+      elif self._current_tab:
+        # We might hang while trying to close the connection, and need to
+        # guarantee the page will get cleaned up to avoid future tests failing
+        # in weird ways.
+        try:
+          if self._current_tab.IsAlive():
+            self._current_tab.CloseConnections()
+          if (self._current_page.credentials and
+              self._did_login_for_current_page):
+            self.browser.credentials.LoginNoLongerNeeded(
+                self._current_tab, self._current_page.credentials)
+          self._previous_page = self._current_page
+        except Exception as exc: # pylint: disable=broad-except
+          logging.warning(
+              '%s raised while closing tab connections; tab will be closed.',
+              type(exc).__name__)
+          self._current_tab.Close()
+    finally:
       self._current_page = None
       self._current_tab = None
 

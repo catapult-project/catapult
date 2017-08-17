@@ -204,9 +204,15 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     did_run = [False]
 
     try:
+      class TestSharedState(shared_page_state.SharedPageState):
+        def ShouldStopBrowserAfterStoryRun(self, _):
+          # Do not close browser for LoginNoLongerNeeded to get called.
+          return False
+
       with tempfile.NamedTemporaryFile(delete=False) as f:
         page = page_module.Page(
             'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+            shared_page_state_class=TestSharedState,
             credentials_path=f.name,
             name='blank.html')
         page.credentials = "test"
