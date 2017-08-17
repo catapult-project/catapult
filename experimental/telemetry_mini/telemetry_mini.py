@@ -294,6 +294,10 @@ class AndroidActions(object):
       self.TapAppSwitcherClearAll()
 
 
+class JavaScriptError(Exception):
+  pass
+
+
 class DevToolsWebSocket(object):
   def __init__(self, url):
     self._url = url
@@ -331,6 +335,17 @@ class DevToolsWebSocket(object):
   def Recv(self):
     return json.loads(self._socket.recv())
 
+  def EvaluateJavaScript(self, expression):
+    resp = self.Send(
+        'Runtime.evaluate', expression=expression, returnByValue=True)
+    if 'exceptionDetails' in resp:
+      raise JavaScriptError(resp['result']['description'])
+    return resp['result'].get('value')
+
+  @RetryOn(returns_falsy=True)
+  def WaitForJavaScriptCondition(self, *args, **kwargs):
+    return self.EvaluateJavaScript(*args, **kwargs)
+
   def RequestMemoryDump(self):
     resp = self.Send('Tracing.requestMemoryDump')
     assert resp['success']
@@ -346,9 +361,14 @@ class DevToolsWebSocket(object):
       stream_handle = resp['params']['stream']
       try:
         resp = {'eof': False}
+        num_bytes = 0
         while not resp['eof']:
           resp = self.Send('IO.read', handle=stream_handle)
-          f.write(resp['data'].encode('utf-8'))
+          data = resp['data'].encode('utf-8')
+          f.write(data)
+          num_bytes += len(data)
+        logging.info(
+            'Collected trace of %.1f MiB', float(num_bytes) / (1024 * 1024))
       finally:
         self.Send('IO.close', handle=stream_handle)
 
@@ -466,6 +486,24 @@ class ChromiumApp(AndroidApp):
           finally:
             self.ForceStop()
 
+  def WaitForCurrentPageReady(self):
+    with self.CurrentPage() as page_dev:
+      page_dev.WaitForJavaScriptCondition('document.readyState == "complete"')
+
+  def IterPages(self):
+    """Iterate over inspectable pages available through DevTools.
+
+    Note: does not actually connect to the page until you "enter" it within
+    a managed context.
+    """
+    for page in self.DevToolsRequest():
+      if page['type'] == 'page':
+        yield self.DevToolsSocket(page['webSocketDebuggerUrl'])
+
+  def CurrentPage(self):
+    """Get a DevToolsWebSocket to the current page on the browser."""
+    return next(self.IterPages())
+
   def CollectTrace(self, trace_file):
     with self.DevToolsSocket() as browser_dev:
       browser_dev.CollectTrace(trace_file)
@@ -479,16 +517,16 @@ class ChromiumApp(AndroidApp):
       url = ('ws://%s/devtools/' % self.GetDevToolsLocalAddr()) + path
     return DevToolsWebSocket(url)
 
+  @RetryOn(socket.error)
   def DevToolsRequest(self, path=''):
+    url = '/json'
+    if path:
+      url = posixpath.join(url, path)
+
     conn = httplib.HTTPConnection(self.GetDevToolsLocalAddr())
     try:
-      url = '/json'
-      if path:
-        url = posixpath.join(url, path)
       conn.request('GET', url)
-      response = conn.getresponse()
-      payload = response.read()
-      return json.loads(payload)
+      return json.load(conn.getresponse())
     finally:
       conn.close()
 

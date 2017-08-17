@@ -7,7 +7,6 @@ import argparse
 import logging
 import os
 import sys
-import time
 
 import telemetry_mini
 
@@ -138,7 +137,7 @@ class TwitterFlipkartStory(telemetry_mini.UserStory):
     # Tapping on Flikpart link on Twitter app will launch Chrome.
     self.actions.TapUiElement(self.FLIPKART_TWITTER_LINK)
     self.watcher.StartWatching(self.browser)
-    time.sleep(10)  # TODO: Replace with wait until page loaded.
+    self.browser.WaitForCurrentPageReady()
     self.actions.SwipeUp(repeat=3)
 
     # Return to Twitter app.
@@ -163,7 +162,7 @@ class FlipkartInstagramStory(telemetry_mini.UserStory):
     # Tap on home screen shortcut to open Flipkart PWA.
     self.actions.TapHomeScreenShortcut('Flipkart Lite')
     self.watcher.StartWatching(self.browser)
-    time.sleep(5)  # TODO: Replace with wait until page loaded.
+    self.browser.WaitForCurrentPageReady()
     self.actions.SwipeUp(repeat=2)
 
     # Go back home, then launch Instagram app.
@@ -180,7 +179,7 @@ class FlipkartInstagramStory(telemetry_mini.UserStory):
     # Go back home, then open Cricbuzz shortcut.
     self.actions.GoHome()
     self.actions.TapHomeScreenShortcut('Cricbuzz')
-    time.sleep(5)  # TODO: Replace with wait until page loaded.
+    self.browser.WaitForCurrentPageReady()
     self.actions.SwipeUp()
     self.watcher.AssertAllAlive()
 
