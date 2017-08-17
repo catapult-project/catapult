@@ -45,9 +45,10 @@ found in the LICENSE file.
       <form>
         <paper-input id="bug-id" label="Bug ID" value="{{bugId::input}}"></paper-input>
         <paper-input id="configuration" label="configuration" value="{{configuration::input}}" required auto-validate></paper-input>
-        <paper-input id="test_suite" label="test_suite" value="{{test_suite::input}}" required auto-validate></paper-input>
+        <paper-input id="benchmark" label="benchmark" value="{{benchmark::input}}" required auto-validate></paper-input>
         <paper-input id="test" label="test" value="{{test::input}}"></paper-input>
         <paper-input id="metric" label="metric" value="{{metric::input}}" required auto-validate></paper-input>
+        <paper-input id="target" label="target" value="{{target::input}}" required auto-validate></paper-input>
         <paper-input id="start_repository" label="start_repository" value="{{start_repository::input}}" required auto-validate></paper-input>
         <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_repository" label="end_repository" value="{{end_repository::input}}" required auto-validate></paper-input>
@@ -81,15 +82,16 @@ found in the LICENSE file.
 
       properties: {
         bugId: {
-          type: Number,
+          type: String,
+          value: '',
         },
         configuration: {
           type: String,
           value: 'chromium-rel-mac11-pro',
         },
-        test_suite: {
+        benchmark: {
           type: String,
-          value: 'speedometer',
+          value: 'blink_perf.events',
         },
         test: {
           type: String,
@@ -97,7 +99,11 @@ found in the LICENSE file.
         },
         metric: {
           type: String,
-          value: '',
+          value: 'hit-test-lots-of-layers',
+        },
+        target: {
+          type: String,
+          value: 'telemetry_perf_tests',
         },
         start_repository: {
           type: String,
@@ -105,7 +111,7 @@ found in the LICENSE file.
         },
         start_git_hash: {
           type: String,
-          value: '2c1f8ed028edcb44c954cb2a0625a8f278933481',
+          value: 'f3dd555910d1e01f09f27c44cab8223fe8c27334',
         },
         end_repository: {
           type: String,
@@ -113,7 +119,7 @@ found in the LICENSE file.
         },
         end_git_hash: {
           type: String,
-          value: '858ceafc7cf4f11a6549b8c1ace839a45d943d68',
+          value: '2c0dbb478638cebb3606d74a69696e63d62529bd',
         },
         create_disabled: {
           type: Boolean,
@@ -146,8 +152,14 @@ found in the LICENSE file.
 
       async onCreateJob(e) {
         const params = {
+          dimensions: JSON.stringify([
+            {key: 'cores', value: '8'},
+            {key: 'gpu', value: '1002:6821'},
+            {key: 'os', value: 'Mac-10.11'}
+          ]),
+          target: this.target,
           configuration: this.configuration,
-          test_suite: this.test_suite,
+          benchmark: this.benchmark,
           test: this.test,
           metric: this.metric,
           auto_explore: this.$.auto_explore.checked ? '1' : '0',

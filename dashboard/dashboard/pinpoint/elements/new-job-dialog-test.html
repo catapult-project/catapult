@@ -91,9 +91,10 @@ tr.b.unittest.testSuite(function() {
 
     page.bugId = 123;
     page.configuration = 'Test Config';
-    page.test_suite = 'Test Suite';
+    page.benchmark = 'Test Suite';
     page.test = 'Test';
     page.metric = 'metric';
+    page.target = 'telemetry_perf_tests';
     page.auto_explore = true;
     page.start_repository = 'chromium';
     page.end_repository = 'v8';
@@ -114,9 +115,10 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(params.bug_id, 123);
     assert.strictEqual(params.configuration, 'Test Config');
-    assert.strictEqual(params.test_suite, 'Test Suite');
+    assert.strictEqual(params.benchmark, 'Test Suite');
     assert.strictEqual(params.test, 'Test');
     assert.strictEqual(params.metric, 'metric');
+    assert.strictEqual(params.target, 'telemetry_perf_tests');
     assert.strictEqual(params.auto_explore, '1');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'v8');
