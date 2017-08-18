@@ -146,6 +146,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       remote_devtools_port: The remote devtools port, if
           any. Otherwise assumed to be the same as self._port.
     """
+    if self._devtools_client:
+      # In case we are launching a second browser instance (as is done by
+      # the CrOS backend), ensure that the old devtools_client is closed,
+      # otherwise re-creating it will fail.
+      self._devtools_client.Close()
+      self._devtools_client = None
     try:
       timeout = self.browser_options.browser_startup_timeout
       py_utils.WaitFor(self.HasBrowserFinishedLaunching, timeout=timeout)
