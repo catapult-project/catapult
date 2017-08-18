@@ -407,6 +407,8 @@ class ChromiumApp(AndroidApp):
   def __init__(self, *args, **kwargs):
     super(ChromiumApp, self).__init__(*args, **kwargs)
     self._devtools_local_port = None
+    self._browser_flags = None
+    self._trace_config = None
     self.startup_time = None
 
   def RemoveProfile(self):
@@ -420,12 +422,19 @@ class ChromiumApp(AndroidApp):
     self.device.RunShellCommand(*args)
 
   @contextlib.contextmanager
-  def CommandLineFlags(self, flags):
-    self.device.WriteText(' '.join(['_'] + flags), self.COMMAND_LINE_FILE)
+  def CommandLineFlags(self):
+    command_line = ' '.join(['_'] + self._browser_flags)
+    self.device.WriteText(command_line, self.COMMAND_LINE_FILE)
     try:
       yield
     finally:
       self.device.RunShellCommand('rm', '-f', self.COMMAND_LINE_FILE)
+
+  def SetBrowserFlags(self, browser_flags):
+    self._browser_flags = browser_flags
+
+  def SetTraceConfig(self, trace_config):
+    self._trace_config = trace_config
 
   def SetDevToolsLocalPort(self, port):
     self._devtools_local_port = port
@@ -449,16 +458,17 @@ class ChromiumApp(AndroidApp):
       self.device.RunCommand('forward', '--remove', local)
 
   @contextlib.contextmanager
-  def StartupTracing(self, trace_config):
+  def StartupTracing(self):
     self.device.WriteText(
-        json.dumps({'trace_config': trace_config}), self.TRACE_CONFIG_FILE)
+        json.dumps({'trace_config': self._trace_config}),
+        self.TRACE_CONFIG_FILE)
     try:
       yield
     finally:
       self.device.RunShellCommand('rm', '-f', self.TRACE_CONFIG_FILE)
 
   @contextlib.contextmanager
-  def Session(self, flags, trace_config):
+  def Session(self):
     """A context manager to guard the lifetime of a browser process.
 
     Ensures that command line flags and port forwarding are ready, the browser
@@ -475,8 +485,8 @@ class ChromiumApp(AndroidApp):
     # TODO: Figure out a way to automatically create the shortcuts before
     # running the story.
     # self.RemoveProfile()
-    with self.CommandLineFlags(flags):
-      with self.StartupTracing(trace_config):
+    with self.CommandLineFlags():
+      with self.StartupTracing():
         # Ensure browser is closed after setting command line flags and
         # trace config to ensure they are read on startup.
         self.ForceStop()
@@ -557,8 +567,8 @@ class UserStory(object):
     self.browser = browser
     self.actions = AndroidActions(self.device)
 
-  def Run(self, browser_flags, trace_config, trace_file):
-    with self.browser.Session(browser_flags, trace_config):
+  def Run(self, trace_file):
+    with self.browser.Session():
       self.RunPrepareSteps()
       try:
         self.RunStorySteps()
@@ -610,3 +620,21 @@ def ReadProcessMetrics(trace_file):
       processes[event['pid']]['name'] = event['args']['name']
 
   return processes.values()
+
+
+def RunStories(browser, stories, repeat, output_dir):
+  for repeat_idx in range(1, repeat + 1):
+    for story_cls in stories:
+      trace_file = os.path.join(
+          output_dir, 'trace_%s_%d.json' % (story_cls.NAME, repeat_idx))
+      print '[ RUN      ]', story_cls.NAME
+      status = '[       OK ]'
+      start = time.time()
+      try:
+        story_cls(browser).Run(trace_file)
+      except Exception:  # pylint: disable=broad-except
+        logging.exception('Exception raised while running story')
+        status = '[  FAILED  ]'
+      finally:
+        elapsed = '(%.1f secs)' % (time.time() - start)
+        print status, story_cls.NAME, elapsed

@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import argparse
+import fnmatch
 import logging
 import os
 import sys
@@ -29,6 +30,111 @@ BROWSERS = {
     'android-chromium': telemetry_mini.ChromiumApp,
     'android-system-chrome': telemetry_mini.SystemChromeApp,
 }
+
+
+class TwitterApp(telemetry_mini.AndroidApp):
+  PACKAGE_NAME = 'com.twitter.android'
+
+
+class InstagramApp(telemetry_mini.AndroidApp):
+  PACKAGE_NAME = 'com.instagram.android'
+
+
+class TwitterFlipkartStory(telemetry_mini.UserStory):
+  """Load Chrome Custom Tab from another application.
+
+  The flow of the story is:
+  - Start Twitter app to view the @flipkart profile.
+  - Tap on a link to open Flipkart in a Chrome Custom Tab.
+  - Return to Twitter app.
+  """
+  NAME = 'twitter_flipkart'
+  FLIPKART_TWITTER_LINK = [
+      ('package', 'com.twitter.android'),
+      ('class', 'android.widget.TextView'),
+      ('text', 'flipkart.com')
+  ]
+
+  def __init__(self, *args, **kwargs):
+    super(TwitterFlipkartStory, self).__init__(*args, **kwargs)
+    self.watcher = ProcessWatcher(self.device)
+    self.twitter = TwitterApp(self.device)
+
+  def RunPrepareSteps(self):
+    self.twitter.ForceStop()
+
+  def RunStorySteps(self):
+    # Activity will launch Twitter app on Flipkart profile.
+    self.actions.StartActivity('https://twitter.com/flipkart')
+    self.watcher.StartWatching(self.twitter)
+
+    # Tapping on Flikpart link on Twitter app will launch Chrome.
+    self.actions.TapUiElement(self.FLIPKART_TWITTER_LINK)
+    self.watcher.StartWatching(self.browser)
+    self.browser.WaitForCurrentPageReady()
+    self.actions.SwipeUp(repeat=3)
+
+    # Return to Twitter app.
+    self.actions.GoBack()
+    self.watcher.AssertAllAlive()
+
+  def RunCleanupSteps(self):
+    self.twitter.ForceStop()
+
+
+class FlipkartInstagramStory(telemetry_mini.UserStory):
+  """Interaction between Chrome, PWAs and a WebView-based app.
+
+  The flow of the story is:
+  - Launch the Flipkart PWA.
+  - Go back home and launch the Instagram app.
+  - Use the app switcher to return to Flipkart.
+  - Go back home and launch Cricbuzz from a shortcut.
+  """
+  NAME = 'flipkart_instagram'
+
+  def __init__(self, *args, **kwargs):
+    super(FlipkartInstagramStory, self).__init__(*args, **kwargs)
+    self.watcher = ProcessWatcher(self.device)
+    self.instagram = InstagramApp(self.device)
+
+  def RunPrepareSteps(self):
+    self.instagram.ForceStop()
+    self.actions.ClearRecentApps()
+
+  def RunStorySteps(self):
+    # Tap on home screen shortcut to open Flipkart PWA.
+    self.actions.TapHomeScreenShortcut('Flipkart Lite')
+    self.watcher.StartWatching(self.browser)
+    self.browser.WaitForCurrentPageReady()
+    self.actions.SwipeUp(repeat=2)
+
+    # Go back home, then launch Instagram app.
+    self.actions.GoHome()
+    self.actions.TapHomeScreenShortcut('Instagram')
+    self.watcher.StartWatching(self.instagram)
+    self.actions.SwipeUp(repeat=5)
+
+    # Go to app switcher and return to Flipkart PWA.
+    self.actions.GoAppSwitcher()
+    self.actions.TapAppSwitcherTitle('Flipkart Lite')
+    self.actions.SwipeDown()
+
+    # Go back home, then open Cricbuzz shortcut.
+    self.actions.GoHome()
+    self.actions.TapHomeScreenShortcut('Cricbuzz')
+    self.browser.WaitForCurrentPageReady()
+    self.actions.SwipeUp()
+    self.watcher.AssertAllAlive()
+
+  def RunCleanupSteps(self):
+    self.instagram.ForceStop()
+
+
+STORIES = (
+    TwitterFlipkartStory,
+    FlipkartInstagramStory
+)
 
 
 class ProcessWatcher(object):
@@ -106,87 +212,6 @@ def EnsureSingleBrowser(device, browser_name, force_install=False):
   return browser
 
 
-class TwitterApp(telemetry_mini.AndroidApp):
-  PACKAGE_NAME = 'com.twitter.android'
-
-
-class InstagramApp(telemetry_mini.AndroidApp):
-  PACKAGE_NAME = 'com.instagram.android'
-
-
-class TwitterFlipkartStory(telemetry_mini.UserStory):
-  FLIPKART_TWITTER_LINK = [
-      ('package', 'com.twitter.android'),
-      ('class', 'android.widget.TextView'),
-      ('text', 'flipkart.com')
-  ]
-
-  def __init__(self, *args, **kwargs):
-    super(TwitterFlipkartStory, self).__init__(*args, **kwargs)
-    self.watcher = ProcessWatcher(self.device)
-    self.twitter = TwitterApp(self.device)
-
-  def RunPrepareSteps(self):
-    self.twitter.ForceStop()
-
-  def RunStorySteps(self):
-    # Activity will launch Twitter app on Flipkart profile.
-    self.actions.StartActivity('https://twitter.com/flipkart')
-    self.watcher.StartWatching(self.twitter)
-
-    # Tapping on Flikpart link on Twitter app will launch Chrome.
-    self.actions.TapUiElement(self.FLIPKART_TWITTER_LINK)
-    self.watcher.StartWatching(self.browser)
-    self.browser.WaitForCurrentPageReady()
-    self.actions.SwipeUp(repeat=3)
-
-    # Return to Twitter app.
-    self.actions.GoBack()
-    self.watcher.AssertAllAlive()
-
-  def RunCleanupSteps(self):
-    self.twitter.ForceStop()
-
-
-class FlipkartInstagramStory(telemetry_mini.UserStory):
-  def __init__(self, *args, **kwargs):
-    super(FlipkartInstagramStory, self).__init__(*args, **kwargs)
-    self.watcher = ProcessWatcher(self.device)
-    self.instagram = InstagramApp(self.device)
-
-  def RunPrepareSteps(self):
-    self.instagram.ForceStop()
-    self.actions.ClearRecentApps()
-
-  def RunStorySteps(self):
-    # Tap on home screen shortcut to open Flipkart PWA.
-    self.actions.TapHomeScreenShortcut('Flipkart Lite')
-    self.watcher.StartWatching(self.browser)
-    self.browser.WaitForCurrentPageReady()
-    self.actions.SwipeUp(repeat=2)
-
-    # Go back home, then launch Instagram app.
-    self.actions.GoHome()
-    self.actions.TapHomeScreenShortcut('Instagram')
-    self.watcher.StartWatching(self.instagram)
-    self.actions.SwipeUp(repeat=5)
-
-    # Go to app switcher and return to Flipkart PWA.
-    self.actions.GoAppSwitcher()
-    self.actions.TapAppSwitcherTitle('Flipkart Lite')
-    self.actions.SwipeDown()
-
-    # Go back home, then open Cricbuzz shortcut.
-    self.actions.GoHome()
-    self.actions.TapHomeScreenShortcut('Cricbuzz')
-    self.browser.WaitForCurrentPageReady()
-    self.actions.SwipeUp()
-    self.watcher.AssertAllAlive()
-
-  def RunCleanupSteps(self):
-    self.instagram.ForceStop()
-
-
 def main():
   browser_names = sorted(BROWSERS)
   default_browser = 'android-chrome'
@@ -201,6 +226,15 @@ def main():
                       help='one of: %s' % ', '.join(
                           '%s (default)' % b if b == default_browser else b
                           for b in browser_names))
+  parser.add_argument('--story-filter', metavar='PATTERN', default='*',
+                      help='run the matching stories only (allows Unix'
+                      ' shell-style wildcards)')
+  parser.add_argument('--repeat', metavar='NUM', type=int, default=1,
+                      help='repeat the story set a number of times'
+                      ' (default: %(default)d)')
+  parser.add_argument('--output-dir', metavar='PATH',
+                      help='path to directory for placing output trace files'
+                      ' (defaults to current directory)')
   parser.add_argument('--force-install', action='store_true',
                       help='install APK even if browser is already available')
   parser.add_argument('--apks-dir', metavar='PATH',
@@ -214,6 +248,17 @@ def main():
   logging.basicConfig()
   if args.verbose:
     logging.getLogger().setLevel(logging.INFO)
+
+  stories = [s for s in STORIES if fnmatch.fnmatch(s.NAME, args.story_filter)]
+  if not stories:
+    return 'No matching stories'
+
+  if args.output_dir is None:
+    args.output_dir = os.getcwd()
+  else:
+    args.output_dir = os.path.realpath(args.output_dir)
+  if not os.path.isdir(args.output_dir):
+    return 'Output directory does not exit'
 
   if args.apks_dir is None:
     args.apks_dir = os.path.realpath(os.path.join(
@@ -233,10 +278,10 @@ def main():
   device.RunCommand('wait-for-device')
 
   browser = EnsureSingleBrowser(device, args.browser, args.force_install)
+  browser.SetBrowserFlags(BROWSER_FLAGS)
+  browser.SetTraceConfig(TRACE_CONFIG)
   browser.SetDevToolsLocalPort(args.port)
-
-  story = FlipkartInstagramStory(browser)
-  story.Run(BROWSER_FLAGS, TRACE_CONFIG, 'trace.json')
+  telemetry_mini.RunStories(browser, stories, args.repeat, args.output_dir)
 
 
 if __name__ == '__main__':
