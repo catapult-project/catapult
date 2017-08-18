@@ -223,12 +223,11 @@ def _GetMergeIssue(issue_tracker, commit_cache_key):
 
 def _GetCulpritCLOwnerAndComment(job, authors_to_cc):
   """Get's the owner for a CL and the comment to update the bug with."""
-  report = bisect_report.GetReport(job)
+  comment = bisect_report.GetReport(job)
   owner = None
-  comment = None
   if authors_to_cc:
     message = _AUTO_ASSIGN_MSG % {'author': authors_to_cc[0]}
-    comment = '{0}{1}'.format(message, report)
+    comment = '{0}{1}'.format(message, comment)
     owner = authors_to_cc[0]
   return owner, comment
 
