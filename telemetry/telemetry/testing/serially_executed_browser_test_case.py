@@ -91,7 +91,9 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     assert not cls.browser, 'WPR must be started prior to browser being started'
 
     cloud_storage.GetIfChanged(archive_path, archive_bucket)
-    cls.platform.network_controller.Open(wpr_modes.WPR_REPLAY, [])
+    use_wpr_go = archive_path.endswith('.wprgo')
+    cls.platform.network_controller.Open(wpr_modes.WPR_REPLAY, [],
+                                         use_wpr_go=use_wpr_go)
     cls.platform.network_controller.StartReplay(archive_path=archive_path)
 
   @classmethod
