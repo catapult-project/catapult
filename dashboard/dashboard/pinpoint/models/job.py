@@ -272,7 +272,7 @@ class _JobState(object):
 
     return {
         'quests': map(str, self._quests),
-        'changes': map(str, self._changes),
+        'changes': [change.AsDict() for change in self._changes],
         'comparisons': comparisons,
         'result_values': result_values,
     }

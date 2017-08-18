@@ -52,6 +52,13 @@ class Change(collections.namedtuple('Change',
   def all_deps(self):
     return tuple([self.base_commit] + sorted(self.deps))
 
+  def AsDict(self):
+    return {
+        'base_commit': self.base_commit.AsDict(),
+        'deps': [dep.AsDict() for dep in sorted(self.deps)],
+        'patch': self.patch.AsDict(),
+    }
+
   @classmethod
   def FromDict(cls, data):
     base_commit = Dep.FromDict(data['base_commit'])
@@ -212,6 +219,9 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
 
     return frozenset(deps)
 
+  def AsDict(self):
+    return self._asdict()
+
   @classmethod
   def FromDict(cls, data):
     """Create a Dep from a dict.
@@ -283,6 +293,9 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
   @property
   def id_string(self):
     return '%s/%d/%d' % (self.server, self.issue, self.patchset)
+
+  def AsDict(self):
+    return self._asdict()
 
   @classmethod
   def FromDict(cls, data):

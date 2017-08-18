@@ -49,6 +49,23 @@ class ChangeTest(testing_common.TestCase):
     self.assertEqual(c.all_deps, (base_commit, dep))
     self.assertEqual(c.patch, patch)
 
+  def testAsDict(self):
+    base_commit = change.Dep('chromium', 'aaa7336c82')
+    dep = change.Dep('catapult', 'e0a2efbb3d')
+    patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
+    c = change.Change(base_commit, [dep], patch)
+
+    expected = {
+        'base_commit': {'repository': 'chromium', 'git_hash': 'aaa7336c82'},
+        'deps': [{'repository': 'catapult', 'git_hash': 'e0a2efbb3d'}],
+        'patch': {
+            'server': 'https://codereview.chromium.org',
+            'issue': 2565263002,
+            'patchset': 20001,
+        },
+    }
+    self.assertEqual(c.AsDict(), expected)
+
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDictWithJustBaseCommit(self, _):
     c = change.Change.FromDict({
@@ -263,6 +280,14 @@ deps_os = {
     ))
     self.assertEqual(dep.Deps(), expected)
 
+  def testAsDict(self):
+    dep = change.Dep('chromium', 'aaa7336')
+    expected = {
+        'repository': 'chromium',
+        'git_hash': 'aaa7336',
+    }
+    self.assertEqual(dep.AsDict(), expected)
+
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDict(self, _):
     dep = change.Dep.FromDict({
@@ -349,6 +374,15 @@ class PatchTest(unittest.TestCase):
     string = 'https://codereview.chromium.org/2851943002/40001'
     self.assertEqual(str(patch), string)
     self.assertEqual(patch.id_string, string)
+
+  def testAsDict(self):
+    patch = change.Patch('https://codereview.chromium.org', 2851943002, 40001)
+    expected = {
+        'server': 'https://codereview.chromium.org',
+        'issue': 2851943002,
+        'patchset': 40001,
+    }
+    self.assertEqual(patch.AsDict(), expected)
 
   def testFromDict(self):
     patch = change.Patch.FromDict({
