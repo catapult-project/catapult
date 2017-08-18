@@ -61,7 +61,8 @@ def RetryOn(exc_type=(), returns_falsy=False, retries=5):
     @functools.wraps(f)
     def Wrapper(*args, **kwargs):
       wait = 1
-      for _ in xrange(retries):
+      this_retries = kwargs.pop('retries', retries)
+      for _ in xrange(this_retries):
         retry_reason = None
         try:
           value = f(*args, **kwargs)
@@ -189,18 +190,17 @@ class AdbMini(object):
 def _UserAction(f):
   """Decorator to add repeat, and action_delay options to user action methods.
 
-  Note: The values (or their defaults) supplied for these extra options will
-  also be passed down to the decorated method. It's thus advisable to collect
-  them in a catch-all **kwargs, even if just to discard them immediately.
+  Note: It's advisable for decorated methods to include a catch-all **kwargs,
+  even if just to check it's empty.
 
   This is a workaround for https://github.com/PyCQA/pylint/issues/258 in which
   decorators confuse pylint and trigger spurious 'unexpected-keyword-arg'
-  warnings on method calls that use the extra options.
+  on method calls that use the extra options provided by this decorator.
   """
   @functools.wraps(f)
   def Wrapper(self, *args, **kwargs):
-    repeat = kwargs.setdefault('repeat', 1)
-    action_delay = kwargs.setdefault('action_delay', None)
+    repeat = kwargs.pop('repeat', 1)
+    action_delay = kwargs.pop('action_delay', None)
     for _ in xrange(repeat):
       f(self, *args, **kwargs)
       self.Idle(action_delay)
@@ -227,29 +227,28 @@ class AndroidActions(object):
 
   @_UserAction
   def GoHome(self, **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_HOME))
 
   @_UserAction
   def GoBack(self, **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_BACK))
 
   @_UserAction
   def GoAppSwitcher(self, **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     self.device.RunShellCommand('input', 'keyevent', str(KEYCODE_APP_SWITCH))
 
   @_UserAction
   def StartActivity(
       self, data_uri, action='android.intent.action.VIEW', **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     self.device.RunShellCommand('am', 'start', '-a', action, '-d', data_uri)
 
   @_UserAction
   def TapUiElement(self, attr_values, **kwargs):
-    del kwargs
-    self.device.TapUiElement(attr_values)
+    self.device.TapUiElement(attr_values, **kwargs)
 
   def TapHomeScreenShortcut(self, description, **kwargs):
     self.TapUiElement([
@@ -269,7 +268,7 @@ class AndroidActions(object):
 
   @_UserAction
   def SwipeUp(self, **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     # Hardcoded values for 480x854 screen size; should work reasonably on
     # other screen sizes.
     # Command args: swipe <x1> <y1> <x2> <y2> [duration(ms)]
@@ -278,7 +277,7 @@ class AndroidActions(object):
 
   @_UserAction
   def SwipeDown(self, **kwargs):
-    del kwargs
+    assert not kwargs  # See @_UserAction
     # Hardcoded values for 480x854 screen size; should work reasonably on
     # other screen sizes.
     # Command args: swipe <x1> <y1> <x2> <y2> [duration(ms)]
@@ -290,8 +289,15 @@ class AndroidActions(object):
     if self.device.HasUiElement(self.APP_SWITCHER_NO_RECENT):
       self.GoHome()
     else:
-      self.SwipeDown()
-      self.TapAppSwitcherClearAll()
+      # Sometimes we need to swipe down several times until the "Clear All"
+      # button becomes visible.
+      for _ in xrange(5):
+        try:
+          self.TapAppSwitcherClearAll(retries=0)  # If not found raise error.
+          return  # Success!
+        except LookupError:
+          self.SwipeDown()  # Swipe down a bit more.
+      self.TapAppSwitcherClearAll()  # Last try! If not found raises error.
 
 
 class JavaScriptError(Exception):
