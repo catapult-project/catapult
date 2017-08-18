@@ -151,7 +151,7 @@ class RenderingStats(object):
                gpu_process, timeline_ranges):
     """
     Utility class for extracting rendering statistics from the timeline (or
-    other loggin facilities), and providing them in a common format to classes
+    other logging facilities), and providing them in a common format to classes
     that compute benchmark metrics from this data.
 
     Stats are lists of lists of numbers. The outer list stores one list per
