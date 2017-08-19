@@ -19,7 +19,8 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 
 class AdbWrapperTest(unittest.TestCase):
   def setUp(self):
-    self.adb = adb_wrapper.AdbWrapper('ABC12345678')
+    self.device_serial = 'ABC12345678'
+    self.adb = adb_wrapper.AdbWrapper(self.device_serial)
 
   def _MockRunDeviceAdbCmd(self, return_value):
     return mock.patch.object(
@@ -57,3 +58,15 @@ class AdbWrapperTest(unittest.TestCase):
       self.assertRaises(
           device_errors.AdbCommandFailedError, self.adb.DisableVerity)
 
+  @mock.patch('devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout')
+  def testDeviceUnreachable(self, get_cmd_mock):
+    get_cmd_mock.return_value = (
+        1, "error: device '%s' not found" % self.device_serial)
+    self.assertRaises(
+        device_errors.DeviceUnreachableError, self.adb.Shell, '/bin/true')
+
+  @mock.patch('devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout')
+  def testWaitingForDevice(self, get_cmd_mock):
+    get_cmd_mock.return_value = (1, '- waiting for device - ')
+    self.assertRaises(
+        device_errors.DeviceUnreachableError, self.adb.Shell, '/bin/true')

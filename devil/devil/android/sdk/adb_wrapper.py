@@ -41,6 +41,7 @@ _DEVICE_NOT_FOUND_RE = re.compile(r"error: device '(?P<serial>.+)' not found")
 _READY_STATE = 'device'
 _VERITY_DISABLE_RE = re.compile(r'Verity (already )?disabled')
 _VERITY_ENABLE_RE = re.compile(r'Verity (already )?enabled')
+_WAITING_FOR_DEVICE_RE = re.compile(r'- waiting for device -')
 
 
 def VerifyLocalFileExists(path):
@@ -269,8 +270,11 @@ class AdbWrapper(object):
     # inconsistent with error reporting so many command failures present
     # differently.
     if status != 0 or (check_error and output.startswith('error:')):
-      m = _DEVICE_NOT_FOUND_RE.match(output)
-      if m is not None and m.group('serial') == device_serial:
+      not_found_m = _DEVICE_NOT_FOUND_RE.match(output)
+      device_waiting_m = _WAITING_FOR_DEVICE_RE.match(output)
+      if (device_waiting_m is not None
+          or (not_found_m is not None and
+              not_found_m.group('serial') == device_serial)):
         raise device_errors.DeviceUnreachableError(device_serial)
       else:
         raise device_errors.AdbCommandFailedError(
