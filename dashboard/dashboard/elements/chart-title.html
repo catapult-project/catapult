@@ -32,26 +32,33 @@ found in the LICENSE file.
         background: #4285f4;
         font-size: 18px;
       }
+      #container {
+        white-space: nowrap;
+      }
       h3 {
         display: inline-block;
+        white-space: initial;
       }
     </style>
 
-    <paper-button raised on-click="populateTestPicker_"
-        title="Populate test picker">
-      &#8632;
-    </paper-button>
+    <div id="container">
+      <paper-button raised on-click="populateTestPicker_"
+          title="Populate test picker">
+        &#8632;
+      </paper-button>
 
-    <h3>
-      <template is="dom-repeat" items="{{titleParts}}">
-        <a class="title disabled" href="javascript:void(0);"
-           on-click="onClicked" disabled$="{{computeStrictEqual(index, currentIndex)}}"
-           class="title">
-          {{item}}
-        </a>
-        <span hidden$="{{computeIsLast(index, titleParts)}}">/</span>
-      </template>
-    </h3>
+      <h3>
+        <template is="dom-repeat" items="{{titleParts}}">
+          <a class="title disabled" href="javascript:void(0);"
+            on-click="onClicked" disabled$="{{computeStrictEqual(index, currentIndex)}}"
+            class="title">
+            {{item}}
+          </a>
+          <span hidden$="{{computeIsLast(index, titleParts)}}">/</span>
+        </template>
+      </h3>
+    </div>
+
     <div>
       <template is="dom-repeat" items="{{suiteDescriptions}}" as="info">
         <div><b>{{info.suite}}</b>: {{info.description}}</div>
