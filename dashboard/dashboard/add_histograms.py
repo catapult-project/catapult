@@ -15,28 +15,37 @@ from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 from dashboard.models import histogram
-from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import reserved_infos
 
-SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set(
-    [reserved_infos.ARCHITECTURES.name,
-     reserved_infos.BUG_COMPONENTS.name,
-     reserved_infos.GPUS.name,
-     reserved_infos.MEMORY_AMOUNTS.name,
-     reserved_infos.OS_NAMES.name,
-     reserved_infos.OS_VERSIONS.name,
-     reserved_infos.OWNERS.name,
-     reserved_infos.PRODUCT_VERSIONS.name])
-# TODO(#3507): Make BuildbotInfo into GenericSet diagnostics and remove all
-# logic regarding picking diagnostics by type.
-SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
-    [histogram_module.BuildbotInfo])
-HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
-    [histogram_module.TelemetryInfo])
-SPARSE_DIAGNOSTIC_TYPES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES.union(
-    HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES)
+SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+    reserved_infos.ARCHITECTURES.name,
+    reserved_infos.BENCHMARKS.name,
+    reserved_infos.BOTS.name,
+    reserved_infos.BUG_COMPONENTS.name,
+    reserved_infos.GPUS.name,
+    reserved_infos.MASTERS.name,
+    reserved_infos.MEMORY_AMOUNTS.name,
+    reserved_infos.OS_NAMES.name,
+    reserved_infos.OS_VERSIONS.name,
+    reserved_infos.OWNERS.name,
+    reserved_infos.PRODUCT_VERSIONS.name,
+    reserved_infos.TAG_MAP.name,
+])
+
+HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+    reserved_infos.GPUS.name,
+    reserved_infos.MEMORY_AMOUNTS.name,
+    reserved_infos.PRODUCT_VERSIONS.name,
+    reserved_infos.RELATED_NAMES.name,
+    reserved_infos.STORIES.name,
+    reserved_infos.STORYSET_REPEATS.name,
+    reserved_infos.STORY_TAGS.name,
+])
+
+SPARSE_DIAGNOSTIC_NAMES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES.union(
+    HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES)
 
 
 TASK_QUEUE_NAME = 'histograms-queue'
@@ -91,8 +100,7 @@ def ProcessHistogramSet(histogram_dicts):
           raise ValueError(
               name + ' diagnostics must be the same for all histograms')
 
-      if (name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES or
-          type(diag) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES):
+      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
         suite_level_sparse_diagnostic_entities.append(
             histogram.SparseDiagnostic(
                 id=diag.guid, data=diag.AsDict(), test=suite_key,
@@ -175,8 +183,8 @@ def _IsDifferent(diagnostic_a, diagnostic_b):
 def FindHistogramLevelSparseDiagnostics(guid, histograms):
   hist = histograms.LookupHistogram(guid)
   diagnostics = []
-  for diag in hist.diagnostics.itervalues():
-    if type(diag) in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+  for name, diag in hist.diagnostics.iteritems():
+    if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
       diagnostics.append(diag)
   return diagnostics
 
@@ -196,29 +204,42 @@ def GetSuiteKey(histograms):
 def ComputeTestPath(guid, histograms):
   hist = histograms.LookupHistogram(guid)
   suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
-  telemetry_info = hist.diagnostics[reserved_infos.TELEMETRY.name]
-  story_display_name = telemetry_info.story_display_name
-
   path = '%s/%s' % (suite_path, hist.name)
 
-  if story_display_name != '':
-    path += '/%s' % story_display_name
+  story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
+  if story_name and len(story_name) == 1:
+    path += '/' + list(story_name)[0]
 
   return path
 
 
 def _GetMasterBotBenchmarkFromHistogram(hist):
-  _CheckRequest(reserved_infos.BUILDBOT.name in hist.diagnostics,
-                'Histograms must have BuildbotInfo attached')
-  buildbot_info = hist.diagnostics[reserved_infos.BUILDBOT.name]
   _CheckRequest(
-      reserved_infos.TELEMETRY.name in hist.diagnostics,
-      'Histograms must have TelemetryInfo attached')
-  telemetry_info = hist.diagnostics[reserved_infos.TELEMETRY.name]
+      reserved_infos.MASTERS.name in hist.diagnostics,
+      'Histograms must have "%s" diagnostic' % reserved_infos.MASTERS.name)
+  master = hist.diagnostics[reserved_infos.MASTERS.name]
+  _CheckRequest(
+      len(master) == 1,
+      'Histograms must have exactly 1 "%s"' % reserved_infos.MASTERS.name)
+  master = list(master)[0]
 
-  master = buildbot_info.display_master_name
-  bot = buildbot_info.display_bot_name
-  benchmark = telemetry_info.benchmark_name
+  _CheckRequest(
+      reserved_infos.BOTS.name in hist.diagnostics,
+      'Histograms must have "%s" diagnostic' % reserved_infos.BOTS.name)
+  bot = hist.diagnostics[reserved_infos.BOTS.name]
+  _CheckRequest(
+      len(bot) == 1,
+      'Histograms must have exactly 1 "%s"' % reserved_infos.BOTS.name)
+  bot = list(bot)[0]
+
+  _CheckRequest(
+      reserved_infos.BENCHMARKS.name in hist.diagnostics,
+      'Histograms must have "%s" diagnostic' % reserved_infos.BENCHMARKS.name)
+  benchmark = hist.diagnostics[reserved_infos.BENCHMARKS.name]
+  _CheckRequest(
+      len(benchmark) == 1,
+      'Histograms must have exactly 1 "%s"' % reserved_infos.BENCHMARKS.name)
+  benchmark = list(benchmark)[0]
 
   return master, bot, benchmark
 
@@ -245,6 +266,5 @@ def InlineDenseSharedDiagnostics(histograms):
   for hist in histograms:
     diagnostics = hist.diagnostics
     for name, diag in diagnostics.iteritems():
-      if (type(diag) not in SPARSE_DIAGNOSTIC_TYPES and
-          name not in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES):
+      if name not in SPARSE_DIAGNOSTIC_NAMES:
         diag.Inline()
