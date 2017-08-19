@@ -34,6 +34,9 @@ found in the LICENSE file.
     #chart svg {
       display: block;
     }
+    #stats_container {
+      overflow-y: auto;
+    }
     </style>
 
     <div id="container">
@@ -194,6 +197,8 @@ tr.exportTo('tr.v.ui', function() {
       }
       this.chart_.graphHeight = heightPx - (this.chart_.margin.top +
           this.chart_.margin.bottom);
+      this.$.stats_container.style.maxHeight =
+        this.chart_.getBoundingClientRect().height + 'px';
     },
 
     /**
@@ -522,6 +527,8 @@ tr.exportTo('tr.v.ui', function() {
             }
           ];
         }
+        this.$.stats_container.style.maxHeight =
+          this.chart_.getBoundingClientRect().height + 'px';
         await this.viewState.update({
           brushedBinRange: tr.b.math.Range.fromExplicitRange(
               0, this.histogram.allBins.length)});
@@ -574,6 +581,8 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.overrideDataRange = dataRange;
 
       this.chart_.data = chartData;
+      this.$.stats_container.style.maxHeight =
+        this.chart_.getBoundingClientRect().height + 'px';
     }
   });
 });

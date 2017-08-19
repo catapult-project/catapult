@@ -237,6 +237,19 @@ tr.b.unittest.testSuite(function() {
     span.histogram = h;
   });
 
+  test('referenceHistogram', function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.unitlessNumber,
+        [1, 10, 100], {
+          binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+        });
+    span.referenceHistogram = tr.v.Histogram.create('',
+        tr.b.Unit.byName.unitlessNumber, [2, 20, 200], {
+          binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+        });
+    this.addHTMLOutput(span);
+  });
+
   test('breakdownUnit', async function() {
     const root = new tr.v.Histogram('root', tr.b.Unit.byName.sizeInBytes);
     const sampleBreakdown = new tr.v.d.Breakdown();
