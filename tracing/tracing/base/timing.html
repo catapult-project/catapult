@@ -78,17 +78,22 @@ tr.exportTo('tr.b', function() {
 
     static instant(groupName, functionName, opt_value) {
       const valueString = opt_value === undefined ? '' : ' ' + opt_value;
-      // eslint-disable-next-line no-console
-      console.timeStamp(`${groupName} ${functionName}${valueString}`);
 
-      if (!(window.ga instanceof Function)) return;
+      /* eslint-disable no-console */
+      if (console && console.timeStamp) {
+        console.timeStamp(`${groupName} ${functionName}${valueString}`);
+      }
+      /* eslint-enable no-console */
+
       // Google Analytics
-      ga('send', {
-        hitType: 'event',
-        eventCategory: groupName,
-        eventAction: functionName,
-        eventValue: opt_value,
-      });
+      if (window && window.ga instanceof Function) {
+        ga('send', {
+          hitType: 'event',
+          eventCategory: groupName,
+          eventAction: functionName,
+          eventValue: opt_value,
+        });
+      }
     }
   }
 

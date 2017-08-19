@@ -73,3 +73,5 @@ Both measures and instant events are recorded as Events in Google Analytics.
      sample diagnostics.
    * `splitSampleDiagnostics` measures latency of displaying the table of
      unmerged sample diagnostics.
+ * HistogramParameterCollector
+   * `maxSampleCount` instant event records maximum Histogram.numValues

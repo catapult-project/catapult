@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/value/histogram_grouping.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -57,7 +58,10 @@ tr.exportTo('tr.v', function() {
 
     process(histograms) {
       const allStoryTags = new Set();
+      let maxSampleCount = 0;
       for (const hist of histograms) {
+        maxSampleCount = Math.max(maxSampleCount, hist.numValues);
+
         for (const statName of hist.statisticsNames) {
           this.statisticNames_.add(statName);
         }
@@ -123,6 +127,8 @@ tr.exportTo('tr.v', function() {
           this.keysToValues_.set(groupingKey, new Set([callback(hist)]));
         }
       }
+      tr.b.Timing.instant(
+          'HistogramParameterCollector', 'maxSampleCount', maxSampleCount);
 
       for (const tagGrouping of tr.v.HistogramGrouping.buildFromTags(
           allStoryTags, tr.v.d.RESERVED_NAMES.STORY_TAGS)) {
