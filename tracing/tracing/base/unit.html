@@ -234,7 +234,7 @@ tr.exportTo('tr.b', function() {
     if (u) {
       return u;
     }
-    throw new Error('Unrecognized unit');
+    throw new Error(`Unrecognized unit "${object}"`);
   };
 
   /**
