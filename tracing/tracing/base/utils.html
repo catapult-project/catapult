@@ -13,18 +13,6 @@ found in the LICENSE file.
 tr.exportTo('tr.b', function() {
   const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
 
-  /**
-   * Adds a {@code getInstance} static method that always return the same
-   * instance object.
-   * @param {!Function} ctor The constructor for the class to add the static
-   *     method to.
-   */
-  function addSingletonGetter(ctor) {
-    ctor.getInstance = function() {
-      return ctor.instance_ || (ctor.instance_ = new ctor());
-    };
-  }
-
   function deepCopy(value) {
     if (!(value instanceof Object)) {
       if (value === undefined || value === null) return value;
@@ -189,7 +177,6 @@ tr.exportTo('tr.b', function() {
   }
 
   return {
-    addSingletonGetter,
     deepCopy,
     formatDate,
     getUsingPath,
