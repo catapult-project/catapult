@@ -78,7 +78,13 @@ func formatCert(certPath string) (string, error) {
 func (i *Installer) AdbInstallRoot(certPath string) error {
 	var err error
 	issuerHashFileName, err := getIssuerHashFileName(certPath)
+	if err != nil {
+		return fmt.Errorf("cannot create issuer hash: %v", err)
+	}
 	newCert, err := formatCert(certPath)
+	if err != nil {
+		return fmt.Errorf("cannot format cert: %v", err)
+	}
 	tmpdir, err := ioutil.TempDir("", "adb_install_root")
 	if err != nil {
 		return fmt.Errorf("cannot make tempdir: %v", err)
