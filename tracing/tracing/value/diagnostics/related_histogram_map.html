@@ -42,13 +42,13 @@ tr.exportTo('tr.v.d', function() {
         RelatedHistogramMap.
 
         otherParentHist -----------------------------> parentHist
-        |               merged to RelatedHistogramSet   |
+        |               merged to RelatedHistogramMap   |
         |                                               |
         | otherDiagnostic                               | this
         | RelatedHistogramMap                           | RelatedHistogramMap
         v                                               v
         otherRelatedHist -----------------------------> relatedHist
-                         merged to RelatedHistogramSet
+                         merged to RelatedHistogramMap
 
         However, |otherRelatedHist| may have been merged to Histograms using
         different grouping keys, so if |relatedHist|'s merge path is different
@@ -64,7 +64,7 @@ tr.exportTo('tr.v.d', function() {
             tr.v.d.RESERVED_NAMES.MERGED_TO);
         if (mergedTo === undefined) continue;
 
-        for (const relatedHist of mergedTo) {
+        for (const relatedHist of mergedTo.histogramsByName_.values()) {
           const relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
               relatedHist);
           if (relatedGroupingPath === undefined) continue;

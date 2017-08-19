@@ -175,17 +175,16 @@ tr.exportTo('tr.v.d', function() {
      */
     mergeRelationships(parentHist) {
       for (const [name, diagnostic] of this) {
-        if (!(diagnostic instanceof tr.v.d.RelatedHistogramSet) &&
-            !(diagnostic instanceof tr.v.d.RelatedHistogramMap) &&
+        if (!(diagnostic instanceof tr.v.d.RelatedHistogramMap) &&
             !(diagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&
             !(diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet)) {
           continue;
         }
 
-        for (const otherHist of this.get(tr.v.d.RESERVED_NAMES.MERGED_FROM)) {
+        for (const [unusedName, otherHist] of
+            this.get(tr.v.d.RESERVED_NAMES.MERGED_FROM)) {
           const otherDiagnostic = otherHist.diagnostics.get(name);
-          if (!(otherDiagnostic instanceof tr.v.d.RelatedHistogramSet) &&
-              !(otherDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
+          if (!(otherDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
               !(otherDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&
               !(otherDiagnostic instanceof tr.v.d.UnmergeableDiagnosticSet)) {
             continue;

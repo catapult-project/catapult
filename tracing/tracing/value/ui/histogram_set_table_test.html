@@ -96,7 +96,9 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
-    aHist.diagnostics.set('r', new tr.v.d.RelatedHistogramSet([bHist]));
+    const related = new tr.v.d.RelatedHistogramMap();
+    related.set('0', bHist);
+    aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
       {isOpen: true});
@@ -164,7 +166,9 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
-    aHist.diagnostics.set('r', new tr.v.d.RelatedHistogramSet([bHist]));
+    const related = new tr.v.d.RelatedHistogramMap();
+    related.set('0', bHist);
+    aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
 
     let cells = getNameCells(table);

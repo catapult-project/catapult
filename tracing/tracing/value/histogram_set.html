@@ -152,8 +152,7 @@ tr.exportTo('tr.v', function() {
     resolveRelatedHistograms() {
       const handleDiagnosticMap = dm => {
         for (const [name, diagnostic] of dm) {
-          if ((diagnostic instanceof tr.v.d.RelatedHistogramSet) ||
-              (diagnostic instanceof tr.v.d.RelatedHistogramMap)) {
+          if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
             diagnostic.resolve(this);
           }
         }
@@ -178,7 +177,7 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Convert dicts to either Histograms or shared Diagnostics.
-     * Does not resolve RelatedHistogramSet/RelatedHistogramMap diagnostics. See
+     * Does not resolve RelatedHistogramMap diagnostics. See
      * resolveRelatedHistograms().
      *
      * @param {!Object} dicts
@@ -213,22 +212,18 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Find the Histograms that are not contained in any other Histograms'
-     * RelatedHistogramSet or RelatedHistogramMap diagnostics.
+     * RelatedHistogramMap diagnostics.
      *
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceHistograms() {
       const sourceHistograms = new Map(this.histogramsByGuid_);
-      // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
+      // If a Histogram is in a RelatedHistogramMap,
       // which can be owned either by Histograms or by numeric samples, then it
       // is not a source Histogram.
       function deleteSourceHistograms(diagnosticMap) {
         for (const [name, diagnostic] of diagnosticMap) {
-          if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
-            for (const relatedHist of diagnostic) {
-              sourceHistograms.delete(relatedHist.guid);
-            }
-          } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
+          if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
             for (const [name, relatedHist] of diagnostic) {
               sourceHistograms.delete(relatedHist.guid);
             }

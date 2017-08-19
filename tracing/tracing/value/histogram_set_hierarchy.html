@@ -162,7 +162,7 @@ tr.exportTo('tr.v', function() {
           const mergedFrom = existing.diagnostics.get(
               tr.v.d.RESERVED_NAMES.MERGED_FROM);
           if (mergedFrom !== undefined) {
-            for (const origHist of mergedFrom) {
+            for (const [unusedName, origHist] of mergedFrom) {
               unmergeableHistograms.addHistogram(origHist);
             }
           }
@@ -258,7 +258,7 @@ tr.exportTo('tr.v', function() {
             const mergedFrom = testHist.diagnostics.get(
                 tr.v.d.RESERVED_NAMES.MERGED_FROM);
             if (mergedFrom !== undefined) {
-              for (const origHist of mergedFrom) {
+              for (const [unusedName, origHist] of mergedFrom) {
                 if (histograms.lookupHistogram(origHist.guid) !== undefined) {
                   found = true;
                   break;

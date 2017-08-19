@@ -954,9 +954,8 @@ class DiagnosticMapUnittest(unittest.TestCase):
     })
     generic = histogram.GenericSet(['generic diagnostic'])
     generic2 = histogram.GenericSet(['generic diagnostic 2'])
-    related_set = histogram.RelatedHistogramSet([
-        histogram.Histogram('histogram', 'count'),
-    ])
+    related_map = histogram.RelatedHistogramMap()
+    related_map.Set('a', histogram.Histogram('histogram', 'count'))
 
     hist = histogram.Histogram('', 'count')
 
@@ -977,13 +976,13 @@ class DiagnosticMapUnittest(unittest.TestCase):
     # Merging unmergeable diagnostics should produce an
     # UnmergeableDiagnosticSet.
     hist4 = histogram.Histogram('', 'count')
-    hist4.diagnostics['a'] = related_set
+    hist4.diagnostics['a'] = related_map
     hist.diagnostics.Merge(hist4.diagnostics, hist, hist4)
     self.assertIsInstance(
         hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
     diagnostics = list(hist.diagnostics['a'])
     self.assertIs(generic, diagnostics[0])
-    self.assertIs(related_set, diagnostics[1])
+    self.assertIs(related_map, diagnostics[1])
 
     # UnmergeableDiagnosticSets are mergeable.
     hist5 = histogram.Histogram('', 'count')
@@ -994,6 +993,6 @@ class DiagnosticMapUnittest(unittest.TestCase):
         hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
     diagnostics = list(hist.diagnostics['a'])
     self.assertIs(generic, diagnostics[0])
-    self.assertIs(related_set, diagnostics[1])
+    self.assertIs(related_map, diagnostics[1])
     self.assertIs(events, diagnostics[2])
     self.assertIs(generic2, diagnostics[3])

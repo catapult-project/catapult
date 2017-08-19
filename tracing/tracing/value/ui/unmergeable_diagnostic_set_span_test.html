@@ -27,9 +27,7 @@ tr.b.unittest.testSuite(function() {
     };
     const diagnostics = new tr.v.d.UnmergeableDiagnosticSet([
       new tr.v.d.GenericSet(['generic diagnostic']),
-      new tr.v.d.RelatedHistogramSet([
-        new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
-      ]),
+      new tr.v.d.RelatedHistogramMap(),
       new tr.v.d.RelatedEventSet([
         event,
       ]),

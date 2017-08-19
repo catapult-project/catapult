@@ -149,21 +149,14 @@ histogram.addSample(number, {name: diagnostic})
 
 ### Histogram Relationship Diagnostics
 
- * [RelatedHistogramSet](/tracing/tracing/value/diagnostics/related_histogram_set.html):
-   These are Sets of references to other Histograms. Visually, they are a set
-   of HTML links which, when clicked, select the contained Histograms. The text
-   content of the HTML link is the name of the referenced Histogram.
-
-   ![](/docs/images/how-to-write-metrics-related-histogram-set.png)
-
  * [RelatedHistogramMap](/tracing/tracing/value/diagnostics/related_histogram_map.html):
    These are Maps from strings to references to other Histograms. Visually, they
-   are a set of HTML links similar to RelatedHistogramSet, but the text content of
-   the link is the Map's string key instead of the Histogram's name. One example
-   application is when a Histogram was produced not directly by a metric, but
-   rather by merging together other Histograms, then it will have a
-   RelatedHistogramMap named 'mergedFrom' that refers to the Histograms that were
-   merged by their grouping key, e.g. the telemetry story name.
+   are a set of HTML links where the text content of the link is the Map's
+   string key instead of the Histogram's name. One example application is when a
+   Histogram was produced not directly by a metric, but rather by merging
+   together other Histograms, then it will have a RelatedHistogramMap named
+   'mergedFrom' that refers to the Histograms that were merged by their grouping
+   key, e.g. the telemetry story name.
 
    ![](/docs/images/how-to-write-metrics-related-histogram-map.png)
 
@@ -204,9 +197,9 @@ histogram.addSample(number, {name: diagnostic})
    unitted number. This is only to allow Histograms in other parts of the trace
    viewer to display number sample diagnostics more intelligently than
    GenericSet can. If a metric wants to display number sample diagnostics
-   intelligently, then it should use RelatedHistogramSet or RelatedHistogramMap;
-   if it does not want to monitor changes in those numbers, then the TBM2
-   maintainers can add a HistogramDiagnostic that supports merging.
+   intelligently, then it should use RelatedHistogramMap; if it does not want to
+   monitor changes in those numbers, then the TBM2 maintainers can add a
+   HistogramDiagnostic that supports merging.
 
 
 ## Consumers of Histograms

@@ -67,8 +67,7 @@ tr.exportTo('tr.v.d', function() {
         return;
       }
       for (const subDiagnostic of this) {
-        if (!(subDiagnostic instanceof tr.v.d.RelatedHistogramSet) &&
-            !(subDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
+        if (!(subDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
             !(subDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown)) {
           continue;
         }

@@ -575,17 +575,17 @@ tr.exportTo('tr.v', function() {
 
       let mergedFrom = this.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_FROM);
       if (!mergedFrom) {
-        mergedFrom = new tr.v.d.RelatedHistogramSet();
+        mergedFrom = new tr.v.d.RelatedHistogramMap();
         this.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_FROM, mergedFrom);
       }
-      mergedFrom.add(other);
+      mergedFrom.set(mergedFrom.length, other);
 
       let mergedTo = other.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_TO);
       if (!mergedTo) {
-        mergedTo = new tr.v.d.RelatedHistogramSet();
+        mergedTo = new tr.v.d.RelatedHistogramMap();
         other.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_TO, mergedTo);
       }
-      mergedTo.add(this);
+      mergedTo.set(mergedTo.length, this);
 
       this.diagnostics.addDiagnostics(other.diagnostics);
 

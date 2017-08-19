@@ -11,59 +11,6 @@ from tracing.value.diagnostics import diagnostic_ref
 
 class HistogramSetUnittest(unittest.TestCase):
 
-  def testRelatedHistogramSet(self):
-    a = histogram.Histogram('a', 'unitless')
-    b = histogram.Histogram('b', 'unitless')
-    c = histogram.Histogram('c', 'unitless')
-    a.diagnostics['rhs'] = histogram.RelatedHistogramSet([b, c])
-
-    # Don't serialize c yet.
-    hists = histogram_set.HistogramSet([a, b])
-    hists2 = histogram_set.HistogramSet()
-    hists2.ImportDicts(hists.AsDicts())
-    hists2.ResolveRelatedHistograms()
-    a2 = hists2.GetHistogramsNamed('a')
-    self.assertEqual(len(a2), 1)
-    a2 = a2[0]
-    self.assertEqual(a2.guid, a.guid)
-    self.assertIsInstance(a2, histogram.Histogram)
-    self.assertIsNot(a2, a)
-    b2 = hists2.GetHistogramsNamed('b')
-    self.assertEqual(len(b2), 1)
-    b2 = b2[0]
-    self.assertEqual(b2.guid, b.guid)
-    self.assertIsInstance(b2, histogram.Histogram)
-    self.assertIsNot(b2, b)
-    rhs2 = a2.diagnostics['rhs']
-    self.assertIsInstance(rhs2, histogram.RelatedHistogramSet)
-    self.assertEqual(len(rhs2), 2)
-
-    # Assert that b and c are in a2's RelatedHistogramSet, rhs2.
-    rhs2hs = list(rhs2)
-    rhs2guids = [h.guid for h in rhs2hs]
-    b2i = rhs2guids.index(b.guid)
-    self.assertIs(rhs2hs[b2i], b2)
-
-    c2i = rhs2guids.index(c.guid)
-    self.assertIsInstance(rhs2hs[c2i], histogram.HistogramRef)
-
-    # Now serialize c and add it to hists2.
-    hists2.ImportDicts([c.AsDict()])
-    hists2.ResolveRelatedHistograms()
-
-    c2 = hists2.GetHistogramsNamed('c')
-    self.assertEqual(len(c2), 1)
-    c2 = c2[0]
-    self.assertEqual(c2.guid, c.guid)
-    self.assertIsNot(c2, c)
-
-    rhs2hs = list(rhs2)
-    rhs2guids = [h.guid for h in rhs2hs]
-    b2i = rhs2guids.index(b.guid)
-    c2i = rhs2guids.index(c.guid)
-    self.assertIs(b2, rhs2hs[b2i])
-    self.assertIs(c2, rhs2hs[c2i])
-
   def testRelatedHistogramMap(self):
     a = histogram.Histogram('a', 'unitless')
     b = histogram.Histogram('b', 'unitless')

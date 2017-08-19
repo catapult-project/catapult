@@ -496,50 +496,6 @@ class HistogramRef(object):
     return self._guid
 
 
-class RelatedHistogramSet(diagnostic.Diagnostic):
-
-  def __init__(self, histograms=()):
-    super(RelatedHistogramSet, self).__init__()
-    self._histograms_by_guid = {}
-    for hist in histograms:
-      self.Add(hist)
-
-  def Add(self, hist):
-    assert isinstance(hist, (Histogram, HistogramRef))
-    assert not self.Has(hist)
-    self._histograms_by_guid[hist.guid] = hist
-
-  def Has(self, hist):
-    return hist.guid in self._histograms_by_guid
-
-  def __len__(self):
-    return len(self._histograms_by_guid)
-
-  def __iter__(self):
-    for hist in self._histograms_by_guid.itervalues():
-      yield hist
-
-  def Resolve(self, histograms, required=False):
-    for hist in self:
-      if isinstance(hist, Histogram):
-        continue
-      guid = hist.guid
-      hist = histograms.LookupHistogram(guid)
-      if isinstance(hist, Histogram):
-        self._histograms_by_guid[guid] = hist
-      else:
-        assert not required, guid
-
-  def _AsDictInto(self, d):
-    d['guids'] = []
-    for hist in self:
-      d['guids'].append(hist.guid)
-
-  @staticmethod
-  def FromDict(d):
-    return RelatedHistogramSet(HistogramRef(guid) for guid in d['guids'])
-
-
 class RelatedHistogramMap(diagnostic.Diagnostic):
 
   def __init__(self):
@@ -954,9 +910,9 @@ class DiagnosticMap(dict):
   def Merge(self, other, parent_hist, other_parent_hist):
     merged_from = self.get(reserved_infos.MERGED_FROM.name)
     if merged_from is None:
-      merged_from = RelatedHistogramSet()
+      merged_from = RelatedHistogramMap()
       self[reserved_infos.MERGED_FROM.name] = merged_from
-    merged_from.Add(other_parent_hist)
+    merged_from.Set(len(merged_from), other_parent_hist)
 
     for name, other_diagnostic in other.iteritems():
       if name not in self:
@@ -1584,7 +1540,6 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
 all_diagnostics.DIAGNOSTICS_BY_NAME.update({
     'Breakdown': Breakdown,
     'GenericSet': GenericSet,
-    'RelatedHistogramSet': RelatedHistogramSet,
     'UnmergeableDiagnosticSet': UnmergeableDiagnosticSet,
     'RelatedEventSet': RelatedEventSet,
     'BuildbotInfo': BuildbotInfo,

@@ -42,69 +42,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.getOnlyElement(dm.get('bar')), 'baz');
   });
 
-  test('relatedHistogramSetDiagnostic', function() {
-    const unit = tr.b.Unit.byName.unitlessNumber;
-    const a = new tr.v.Histogram('a', unit);
-    const b = new tr.v.Histogram('b', unit);
-    const c = new tr.v.Histogram('c', unit);
-    a.diagnostics.set('rvs', new tr.v.d.RelatedHistogramSet([b, c]));
-
-    // Don't serialize c just yet.
-    const histograms = new tr.v.HistogramSet([a, b]);
-
-    const sourceHistograms = histograms.sourceHistograms;
-    assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
-
-    const histograms2 = new tr.v.HistogramSet();
-    histograms2.importDicts(histograms.asDicts());
-    histograms2.resolveRelatedHistograms();
-
-    const a2 = histograms2.getHistogramNamed('a');
-    assert.isDefined(a2);
-    assert.strictEqual(a2.guid, a.guid);
-    assert.instanceOf(a2, tr.v.Histogram);
-    assert.notStrictEqual(a2, a);
-
-    const b2 = histograms2.getHistogramNamed('b');
-    assert.isDefined(b2);
-    assert.strictEqual(b2.guid, b.guid);
-    assert.instanceOf(b2, tr.v.Histogram);
-    assert.notStrictEqual(b2, b);
-
-    const rvs2 = a2.diagnostics.get('rvs');
-    assert.instanceOf(rvs2, tr.v.d.RelatedHistogramSet);
-    assert.lengthOf(rvs2, 2);
-
-    // Assert that b and c are in a2's RelatedHistogramSet.
-    let rvs2vs = [...rvs2];
-    let rvs2guids = rvs2vs.map(v => v.guid);
-    let b2i = rvs2guids.indexOf(b.guid);
-    assert.strictEqual(rvs2vs[b2i], b2);
-
-    let c2i = rvs2guids.indexOf(c.guid);
-    assert.strictEqual(rvs2vs[c2i].guid, c.guid);
-    assert.instanceOf(rvs2vs[c2i], tr.v.d.HistogramRef);
-
-    // Now serialize c and add it to histograms2.
-    // Related Histogram resolution is idempotent.
-    // Old histograms can refer to new histograms.
-    histograms2.importDicts([c.asDict()]);
-    histograms2.resolveRelatedHistograms();
-
-    const c2 = histograms2.getHistogramNamed('c');
-    assert.isDefined(c2);
-    assert.strictEqual(c2.guid, c.guid);
-    assert.notStrictEqual(c2, c);
-
-    // Now a real c2 Histogram should be in a2's RelatedHistogramSet.
-    rvs2vs = [...rvs2];
-    rvs2guids = rvs2vs.map(v => v.guid);
-    b2i = rvs2guids.indexOf(b.guid);
-    c2i = rvs2guids.indexOf(c.guid);
-    assert.strictEqual(b2, rvs2vs[b2i]);
-    assert.strictEqual(c2, rvs2vs[c2i]);
-  });
-
   test('relatedHistogramMapDiagnostic', function() {
     const unit = tr.b.Unit.byName.unitlessNumber;
     const a = new tr.v.Histogram('a', unit);
@@ -171,7 +108,9 @@ tr.b.unittest.testSuite(function() {
     aHist.addSample(1);
 
     const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
-    bHist.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
+    const related = new tr.v.d.RelatedHistogramMap();
+    related.set('0', aHist);
+    bHist.addSample(1, {related});
 
     const histograms = new tr.v.HistogramSet([aHist, bHist]);
     assert.strictEqual(tr.b.getOnlyElement(histograms.sourceHistograms), bHist);

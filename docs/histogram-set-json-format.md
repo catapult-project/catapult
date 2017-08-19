@@ -129,7 +129,6 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `GenericSet`
  * `RelatedEventSet`
  * `Breakdown`
- * `RelatedHistogramSet`
  * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
  * `TelemetryInfo`
@@ -189,13 +188,6 @@ categories.
 
  * `values`: required dictionary mapping from a string category name to number values
  * `colorScheme`: optional string specifying how the bar chart should be colored
-
-### RelatedHistogramSet
-
-This allows metrics to annotate which Histograms are related to other
-Histograms.
-
- * `guids`: list of guids of related Histograms
 
 ### RelatedHistogramMap
 

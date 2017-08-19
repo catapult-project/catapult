@@ -54,9 +54,7 @@ class HistogramSet(object):
     histograms = self
     def HandleDiagnosticMap(dm):
       for diag in dm.itervalues():
-        if isinstance(
-            diag, (histogram_module.RelatedHistogramSet,
-                   histogram_module.RelatedHistogramMap)):
+        if isinstance(diag, histogram_module.RelatedHistogramMap):
           diag.Resolve(histograms)
 
     for hist in self:

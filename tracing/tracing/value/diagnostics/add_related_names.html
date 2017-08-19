@@ -20,11 +20,6 @@ tr.exportTo('tr.v.d', function() {
     for (const hist of histograms) {
       const relatedNames = new Set();
       for (const [name, diagnostic] of hist.diagnostics) {
-        if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
-          for (const relatedHist of diagnostic) {
-            relatedNames.add(relatedHist.name);
-          }
-        }
         if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
           for (const [relationshipName, relatedHist] of diagnostic) {
             relatedNames.add(relatedHist.name);
