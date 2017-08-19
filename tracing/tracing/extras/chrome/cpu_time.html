@@ -20,7 +20,7 @@ tr.exportTo('tr.e.chrome', function() {
      */
     static getCpuTimeForThread(thread, range) {
       let totalCpuTime = 0;
-      tr.b.math.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           thread.sliceGroup.topLevelSlices,
           slice => slice.start, slice => slice.end,
           range.min, range.max,

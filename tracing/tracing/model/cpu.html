@@ -159,7 +159,7 @@ tr.exportTo('tr.model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf(cpuSlice) {
-      const i = tr.b.math.findLowIndexInSortedArray(
+      const i = tr.b.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -250,7 +250,7 @@ tr.exportTo('tr.model', function() {
         const freqSeries = freqCounter.getSeries(0);
         if (!freqSeries) return;
 
-        tr.b.math.iterateOverIntersectingIntervals(freqSeries.samples_,
+        tr.b.iterateOverIntersectingIntervals(freqSeries.samples_,
             function(x) { return x.timestamp; },
             function(x, index) {
               if (index < freqSeries.length - 1) {

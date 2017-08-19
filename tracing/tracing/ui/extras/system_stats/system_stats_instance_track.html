@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="stylesheet"
       href="/tracing/ui/extras/system_stats/system_stats_instance_track.css">
 
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/ui/tracks/object_instance_track.html">
@@ -217,7 +217,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       const maxStats = this.maxStats_;
 
       const objectSnapshots = this.objectInstance_.snapshots;
-      let lowIndex = tr.b.math.findLowIndexInSortedArray(
+      let lowIndex = tr.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;

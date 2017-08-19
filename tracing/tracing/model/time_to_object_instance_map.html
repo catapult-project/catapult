@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 
 <script>
 'use strict';
@@ -59,7 +59,7 @@ tr.exportTo('tr.model', function() {
             this.parent, this.scopedId, category, name, ts, opt_baseTypeName));
       }
 
-      const i = tr.b.math.findIndexInSortedIntervals(
+      const i = tr.b.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
@@ -155,7 +155,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getInstanceAt(ts) {
-      const i = tr.b.math.findIndexInSortedIntervals(
+      const i = tr.b.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },

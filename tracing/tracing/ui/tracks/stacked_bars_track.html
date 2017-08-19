@@ -65,7 +65,7 @@ tr.exportTo('tr.ui.tracks', function() {
       const snapshots = this.objectInstance_.snapshots;
       const maxBounds = this.objectInstance_.parent.model.bounds.max;
 
-      tr.b.math.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           snapshots,
           function(x) { return x.ts; },
           function(x, i) {
@@ -112,7 +112,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      const snapshot = tr.b.math.findClosestElementInSortedArray(
+      const snapshot = tr.b.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           worldX,

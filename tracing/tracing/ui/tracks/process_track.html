@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.tracks', function() {
         selection.push(instantEvent);
       }
       const instantEventWidth = 2 * viewPixWidthWorld;
-      tr.b.math.iterateOverIntersectingIntervals(this.processBase.instantEvents,
+      tr.b.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration + instantEventWidth; },
           loWX, hiWX,

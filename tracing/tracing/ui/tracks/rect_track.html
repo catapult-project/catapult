@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/tracing/ui/tracks/rect_track.css">
 
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/proxy_selectable_item.html">
 <link rel="import" href="/tracing/ui/base/draw_helpers.html">
 <link rel="import" href="/tracing/ui/base/fast_rect_renderer.html">
@@ -161,7 +161,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
       onRect = onRect.bind(this);
       const instantEventWidth = 2 * viewPixWidthWorld;
-      tr.b.math.iterateOverIntersectingIntervals(this.rects_,
+      tr.b.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) {
             return x.duration === 0 ?
@@ -209,7 +209,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      const rect = tr.b.math.findClosestIntervalInSortedIntervals(
+      const rect = tr.b.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },

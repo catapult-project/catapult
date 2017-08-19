@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/ui/tracks/object_instance_track.css">
 
 <link rel="import" href="/tracing/base/extension_registry.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/ui/base/heading.html">
@@ -114,7 +114,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Instances
       const objectInstances = this.objectInstances_;
-      let loI = tr.b.math.findLowIndexInSortedArray(
+      let loI = tr.b.findLowIndexInSortedArray(
           objectInstances,
           function(instance) {
             return instance.deletionTs;
@@ -138,7 +138,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
       const objectSnapshots = this.objectSnapshots_;
-      loI = tr.b.math.findLowIndexInSortedArray(
+      loI = tr.b.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts + snapshotRadiusWorld;
@@ -215,7 +215,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
       const snapshotRadiusView = this.snapshotRadiusView;
       const snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
-      tr.b.math.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.objectSnapshots_,
           function(x) { return x.ts - snapshotRadiusWorld; },
           function(x) { return 2 * snapshotRadiusWorld; },
@@ -224,7 +224,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (foundSnapshot) return;
 
       // Try picking instances.
-      tr.b.math.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.objectInstances_,
           function(x) { return x.creationTs; },
           function(x) { return x.deletionTs - x.creationTs; },
@@ -266,7 +266,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      const snapshot = tr.b.math.findClosestElementInSortedArray(
+      const snapshot = tr.b.findClosestElementInSortedArray(
           this.objectSnapshots_,
           function(x) { return x.ts; },
           worldX,

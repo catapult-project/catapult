@@ -78,7 +78,7 @@ tr.exportTo('tr.e.importer', function() {
       // empty list and bail early.
       if (this.entries_.length === 0) return undefined;
 
-      const index = tr.b.math.findLowIndexInSortedArray(
+      const index = tr.b.findLowIndexInSortedArray(
           this.entries_, function(entry) { return entry.address; }, address);
       const entry = this.entries_[index];
       if (!entry || entry.address !== address) return undefined;
@@ -88,7 +88,7 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     lookupEntry(address) {
-      const index = tr.b.math.findHighIndexInSortedArray(
+      const index = tr.b.findHighIndexInSortedArray(
           this.entries_, function(e) { return address - e.address; }) - 1;
       const entry = this.entries_[index];
       return entry &&
@@ -103,7 +103,7 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       const endAddress = newEntry.address + newEntry.size;
-      const lastIndex = tr.b.math.findLowIndexInSortedArray(
+      const lastIndex = tr.b.findLowIndexInSortedArray(
           this.entries_, function(entry) { return entry.address; }, endAddress);
       let index;
       for (index = lastIndex - 1; index >= 0; --index) {

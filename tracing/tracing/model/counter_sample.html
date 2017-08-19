@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event.html">
@@ -69,7 +68,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getSampleIndex() {
-      return tr.b.math.findLowIndexInSortedArray(
+      return tr.b.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);

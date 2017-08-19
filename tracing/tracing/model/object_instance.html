@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/object_snapshot.html">
 
@@ -150,7 +150,7 @@ tr.exportTo('tr.model', function() {
       }
 
       const snapshots = this.snapshots;
-      const i = tr.b.math.findIndexInSortedIntervals(
+      const i = tr.b.findIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {

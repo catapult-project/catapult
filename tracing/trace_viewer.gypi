@@ -53,7 +53,6 @@
       'tracing/base/math/range_utils.html',
       'tracing/base/math/rect.html',
       'tracing/base/math/running_statistics.html',
-      'tracing/base/math/sorted_array_utils.html',
       'tracing/base/math/statistics.html',
       'tracing/base/multi_dimensional_view.html',
       'tracing/base/raf.html',

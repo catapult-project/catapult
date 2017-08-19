@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/math/range_utils.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/frame.html">
 
 <script>
@@ -68,7 +68,7 @@ tr.exportTo('tr.model.helpers', function() {
     // of all top level renderthread slices, find the one that has a 'sync'
     // within the uiDrawSlice
     let overlappingDrawFrame;
-    const slices = tr.b.math.iterateOverIntersectingIntervals(
+    const slices = tr.b.iterateOverIntersectingIntervals(
         renderThread.sliceGroup.slices,
         function(range) { return range.start; },
         function(range) { return range.end; },
@@ -128,7 +128,7 @@ tr.exportTo('tr.model.helpers', function() {
 
   function getFrameStartTime(traversalStart, preTraversalWorkRanges) {
     const preTraversalWorkRange =
-      tr.b.math.findClosestIntervalInSortedIntervals(
+      tr.b.findClosestIntervalInSortedIntervals(
           preTraversalWorkRanges,
           function(range) { return range.start; },
           function(range) { return range.end; },

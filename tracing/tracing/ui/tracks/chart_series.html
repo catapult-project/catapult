@@ -171,11 +171,11 @@ tr.exportTo('tr.ui.tracks', function() {
       const rightTimestamp = transform.rightTimestamp + extraPixels;
 
       // Find the index of the first and last (partially) visible points.
-      const firstVisibleIndex = tr.b.math.findLowIndexInSortedArray(
+      const firstVisibleIndex = tr.b.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           leftTimestamp);
-      let lastVisibleIndex = tr.b.math.findLowIndexInSortedArray(
+      let lastVisibleIndex = tr.b.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           rightTimestamp);
@@ -520,7 +520,7 @@ tr.exportTo('tr.ui.tracks', function() {
         point.addToSelection(selection);
       }
 
-      tr.b.math.iterateOverIntersectingIntervals(
+      tr.b.iterateOverIntersectingIntervals(
           this.points,
           function(point) { return point.x; },
           getPointWidth,
@@ -546,7 +546,7 @@ tr.exportTo('tr.ui.tracks', function() {
         selection) {
       if (this.points === undefined) return;
 
-      const item = tr.b.math.findClosestElementInSortedArray(
+      const item = tr.b.findClosestElementInSortedArray(
           this.points,
           function(point) { return point.x; },
           worldX,

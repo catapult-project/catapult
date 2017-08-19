@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.tracks', function() {
     if (times.length === 0) return [];
 
     // Find the lowest and highest index within the viewport.
-    const lowIndex = tr.b.math.findLowIndexInSortedArray(
+    const lowIndex = tr.b.findLowIndexInSortedArray(
         times, (x => x), minTime);
     let highIndex = lowIndex - 1;
     while (times[highIndex + 1] <= maxTime) {
@@ -504,7 +504,7 @@ tr.exportTo('tr.ui.tracks', function() {
         selection.push(instantEvent);
       }
       const instantEventWidth = 3 * viewPixWidthWorld;
-      tr.b.math.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tr.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration + instantEventWidth; },
           loWX, hiWX,

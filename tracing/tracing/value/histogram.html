@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/math/running_statistics.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
@@ -442,7 +441,7 @@ tr.exportTo('tr.v', function() {
 
     getBinIndexForValue(value) {
       // Don't use subtraction to avoid arithmetic overflow.
-      const i = tr.b.math.findHighIndexInSortedArray(
+      const i = tr.b.findHighIndexInSortedArray(
           this.allBins, b => ((value < b.range.max) ? -1 : 1));
       if (0 <= i && i < this.allBins.length) return i;
       return this.allBins.length - 1;

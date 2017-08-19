@@ -226,7 +226,7 @@ tr.exportTo('tr.model', function() {
      * Returns the index of the slice in the timeSlices array, or undefined.
      */
     indexOfTimeSlice(timeSlice) {
-      const i = tr.b.math.findLowIndexInSortedArray(
+      const i = tr.b.findLowIndexInSortedArray(
           this.timeSlices,
           function(slice) { return slice.start; },
           timeSlice.start);
@@ -264,7 +264,7 @@ tr.exportTo('tr.model', function() {
         }
       }
 
-      tr.b.math.iterateOverIntersectingIntervals(this.timeSlices,
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
           function(x) { return x.start; },
           function(x) { return x.end; },
           range.min,
@@ -287,7 +287,7 @@ tr.exportTo('tr.model', function() {
         stats[schedulingState] += overlapEnd - overlapStart;
       }
 
-      tr.b.math.iterateOverIntersectingIntervals(this.timeSlices,
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
           function(x) { return x.start; },
           function(x) { return x.end; },
           start,
