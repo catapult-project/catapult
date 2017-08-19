@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/column_chart.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span_behavior.html">
 
 <dom-module id="tr-v-ui-breakdown-span">
   <template>
@@ -42,318 +43,304 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-const DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
+tr.exportTo('tr.v.ui', function() {
+  const DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
 
-class BreakdownTableSummaryRow {
-  constructor(displayElement, histogramNames) {
-    this.displayElement_ = displayElement;
-    this.histogramNames_ = histogramNames;
-    this.keySpan_ = undefined;
-  }
+  class BreakdownTableSummaryRow {
+    constructor(displayElement, histogramNames) {
+      this.displayElement_ = displayElement;
+      this.histogramNames_ = histogramNames;
+      this.keySpan_ = undefined;
+    }
 
-  get numberValue() {
-    // Prevent this row from appearing in the ColumnChart.
-    return undefined;
-  }
+    get numberValue() {
+      // Prevent this row from appearing in the ColumnChart.
+      return undefined;
+    }
 
-  get keySpan() {
-    if (this.keySpan_ === undefined) {
-      if (this.histogramNames_.length) {
-        this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
-        this.keySpan_.setSelectionAndContent(
-            this.histogramNames_, 'Select All');
-      } else {
-        this.keySpan_ = 'Sum';
+    get keySpan() {
+      if (this.keySpan_ === undefined) {
+        if (this.histogramNames_.length) {
+          this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
+          this.keySpan_.setSelectionAndContent(
+              this.histogramNames_, 'Select All');
+        } else {
+          this.keySpan_ = 'Sum';
+        }
       }
-    }
-    return this.keySpan_;
-  }
-
-  get name() {
-    return 'Sum';
-  }
-
-  get displayElement() {
-    return this.displayElement_;
-  }
-
-  get stringPercent() {
-    return '100%';
-  }
-}
-
-class BreakdownTableRow {
-  constructor(name, value, unit, color) {
-    this.name_ = name;
-    this.value = value;
-    this.unit = unit;
-
-    if (!this.isHistogram && typeof value !== 'number') {
-      throw new Error('unsupported value ' + value);
+      return this.keySpan_;
     }
 
-    this.tableSum_ = undefined;
-    this.keySpan_ = undefined;
+    get name() {
+      return 'Sum';
+    }
 
-    this.color_ = color;
-    const hsl = this.color.toHSL();
-    hsl.l *= 0.85;
-    this.highlightedColor_ = tr.b.Color.fromHSL(hsl);
+    get displayElement() {
+      return this.displayElement_;
+    }
 
-    if (this.isHistogram) {
-      this.displayElement_ = tr.v.ui.createScalarSpan(this.numberValue, {
-        unit: this.value.unit,
-      });
-    } else {
-      this.displayElement_ = tr.ui.b.createSpan({
-        textContent: this.stringValue,
-      });
+    get stringPercent() {
+      return '100%';
     }
   }
 
-  get isHistogram() {
-    return this.value instanceof tr.v.Histogram;
-  }
+  class BreakdownTableRow {
+    constructor(name, value, unit, color) {
+      this.name_ = name;
+      this.value = value;
+      this.unit = unit;
 
-  get name() {
-    return this.name_;
-  }
+      if (!this.isHistogram && typeof value !== 'number') {
+        throw new Error('unsupported value ' + value);
+      }
 
-  get color() {
-    return this.color_;
-  }
+      this.tableSum_ = undefined;
+      this.keySpan_ = undefined;
 
-  get highlightedColor() {
-    return this.highlightedColor_;
-  }
+      this.color_ = color;
+      const hsl = this.color.toHSL();
+      hsl.l *= 0.85;
+      this.highlightedColor_ = tr.b.Color.fromHSL(hsl);
 
-  get keySpan() {
-    if (this.keySpan_ === undefined) {
       if (this.isHistogram) {
-        this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
-        this.keySpan_.setSelectionAndContent([this.value.name], this.name);
-        this.keySpan_.color = this.color;
-        this.keySpan_.title = this.value.name;
+        this.displayElement_ = tr.v.ui.createScalarSpan(this.numberValue, {
+          unit: this.value.unit,
+        });
       } else {
-        this.keySpan_ = document.createElement('span');
-        this.keySpan_.innerText = this.name;
-        this.keySpan_.style.color = this.color;
+        this.displayElement_ = tr.ui.b.createSpan({
+          textContent: this.stringValue,
+        });
       }
     }
-    return this.keySpan_;
-  }
 
-  /**
-   * @return {number|undefined}
-   */
-  get numberValue() {
-    if (this.isHistogram) return this.value.sum;
-    if (!isNaN(this.value) &&
-        (this.value !== Infinity) &&
-        (this.value !== -Infinity) &&
-        (this.value > 0)) return this.value;
-    // Prevent this row from appearing in the ColumnChart.
-    return undefined;
-  }
+    get isHistogram() {
+      return this.value instanceof tr.v.Histogram;
+    }
 
-  get stringValue() {
-    if (!this.isHistogram &&
-        (isNaN(this.value) ||
-         this.value === Infinity ||
-         this.value === -Infinity)) {
+    get name() {
+      return this.name_;
+    }
+
+    get color() {
+      return this.color_;
+    }
+
+    get highlightedColor() {
+      return this.highlightedColor_;
+    }
+
+    get keySpan() {
+      if (this.keySpan_ === undefined) {
+        if (this.isHistogram) {
+          this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
+          this.keySpan_.setSelectionAndContent([this.value.name], this.name);
+          this.keySpan_.color = this.color;
+          this.keySpan_.title = this.value.name;
+        } else {
+          this.keySpan_ = document.createElement('span');
+          this.keySpan_.innerText = this.name;
+          this.keySpan_.style.color = this.color;
+        }
+      }
+      return this.keySpan_;
+    }
+
+    /**
+    * @return {number|undefined}
+    */
+    get numberValue() {
+      if (this.isHistogram) return this.value.sum;
+      if (!isNaN(this.value) &&
+          (this.value !== Infinity) &&
+          (this.value !== -Infinity) &&
+          (this.value > 0)) return this.value;
+      // Prevent this row from appearing in the ColumnChart.
+      return undefined;
+    }
+
+    get stringValue() {
+      if (!this.isHistogram &&
+          (isNaN(this.value) ||
+          this.value === Infinity ||
+          this.value === -Infinity)) {
+        return this.value.toString();
+      }
+      if (this.unit !== undefined) return this.unit.format(this.value);
+      if (this.isHistogram) return this.value.sum.toString();
       return this.value.toString();
     }
-    if (this.unit !== undefined) return this.unit.format(this.value);
-    if (this.isHistogram) return this.value.sum.toString();
-    return this.value.toString();
-  }
 
-  set tableSum(s) {
-    this.tableSum_ = s;
-  }
+    set tableSum(s) {
+      this.tableSum_ = s;
+    }
 
-  get stringPercent() {
-    if (this.tableSum_ === undefined) return '';
-    const num = this.numberValue;
-    if (num === undefined) return '';
-    return Math.floor(num * 100.0 / this.tableSum_) + '%';
-  }
+    get stringPercent() {
+      if (this.tableSum_ === undefined) return '';
+      const num = this.numberValue;
+      if (num === undefined) return '';
+      return Math.floor(num * 100.0 / this.tableSum_) + '%';
+    }
 
-  get displayElement() {
-    return this.displayElement_;
-  }
+    get displayElement() {
+      return this.displayElement_;
+    }
 
-  compare(other) {
-    if (this.numberValue === undefined) {
+    compare(other) {
+      if (this.numberValue === undefined) {
+        if (other.numberValue === undefined) {
+          return this.name.localeCompare(other.name);
+        }
+        return 1;
+      }
       if (other.numberValue === undefined) {
+        return -1;
+      }
+      if (this.numberValue === other.numberValue) {
         return this.name.localeCompare(other.name);
       }
-      return 1;
+      return other.numberValue - this.numberValue;
     }
-    if (other.numberValue === undefined) {
-      return -1;
-    }
-    if (this.numberValue === other.numberValue) {
-      return this.name.localeCompare(other.name);
-    }
-    return other.numberValue - this.numberValue;
   }
-}
 
-Polymer({
-  is: 'tr-v-ui-breakdown-span',
+  Polymer({
+    is: 'tr-v-ui-breakdown-span',
+    behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
-  created() {
-    this.histogram_ = undefined;
-    this.diagnostic_ = undefined;
-    this.chart_ = new tr.ui.b.ColumnChart();
-    this.chart_.graphHeight = 130;
-    this.chart_.isStacked = true;
-    this.chart_.hideXAxis = true;
-    this.chart_.hideLegend = true;
-    this.chart_.enableHoverBox = false;
-    this.chart_.addEventListener('rect-mouseenter',
-        event => this.onRectMouseEnter_(event));
-    this.chart_.addEventListener('rect-mouseleave',
-        event => this.onRectMouseLeave_(event));
-  },
+    created() {
+      this.chart_ = new tr.ui.b.ColumnChart();
+      this.chart_.graphHeight = 130;
+      this.chart_.isStacked = true;
+      this.chart_.hideXAxis = true;
+      this.chart_.hideLegend = true;
+      this.chart_.enableHoverBox = false;
+      this.chart_.addEventListener('rect-mouseenter',
+          event => this.onRectMouseEnter_(event));
+      this.chart_.addEventListener('rect-mouseleave',
+          event => this.onRectMouseLeave_(event));
+    },
 
-  onRectMouseEnter_(event) {
-    for (const row of this.$.table.tableRows) {
-      if (row.name === event.rect.key) {
-        row.displayElement.style.background = event.rect.color;
-        row.keySpan.scrollIntoViewIfNeeded();
-      } else {
+    onRectMouseEnter_(event) {
+      for (const row of this.$.table.tableRows) {
+        if (row.name === event.rect.key) {
+          row.displayElement.style.background = event.rect.color;
+          row.keySpan.scrollIntoViewIfNeeded();
+        } else {
+          row.displayElement.style.background = '';
+        }
+      }
+    },
+
+    onRectMouseLeave_(event) {
+      for (const row of this.$.table.tableRows) {
         row.displayElement.style.background = '';
       }
-    }
-  },
+    },
 
-  onRectMouseLeave_(event) {
-    for (const row of this.$.table.tableRows) {
-      row.displayElement.style.background = '';
-    }
-  },
+    ready() {
+      Polymer.dom(this.$.container).appendChild(this.chart_);
 
-  ready() {
-    Polymer.dom(this.$.container).appendChild(this.chart_);
+      this.$.table.zebra = true;
+      this.$.table.showHeader = false;
+      this.$.table.tableColumns = [
+        {
+          value: row => row.keySpan,
+        },
+        {
+          value: row => row.displayElement,
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+        },
+        {
+          value: row => row.stringPercent,
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+        },
+      ];
+    },
 
-    this.$.table.zebra = true;
-    this.$.table.showHeader = false;
-    this.$.table.tableColumns = [
-      {
-        value: row => row.keySpan,
-      },
-      {
-        value: row => row.displayElement,
-        align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-      },
-      {
-        value: row => row.stringPercent,
-        align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-      },
-    ];
-  },
+    updateContents_() {
+      this.$.container.style.display = 'none';
+      this.$.table.style.display = 'none';
+      this.$.empty.style.display = 'block';
 
-  attached() {
-    if (this.diagnostic_) this.updateContents_();
-  },
+      if (!this.diagnostic_) {
+        this.chart_.data = [];
+        return;
+      }
 
-  set histogram(h) {
-    this.histogram_ = h;
-  },
+      if (this.histogram_) this.chart_.unit = this.histogram_.unit;
 
-  get diagnostic() {
-    return this.diagnostic_;
-  },
+      let colorScheme = undefined;
+      // https://github.com/catapult-project/catapult/issues/2970
+      if (this.diagnostic.colorScheme ===
+          tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER) {
+        colorScheme = (name) => {
+          let cat = name.split(' ');
+          cat = cat[cat.length - 1];
+          return tr.e.chrome.ChromeUserFriendlyCategoryDriver.getColor(cat);
+        };
+      } else if (this.diagnostic.colorScheme !== undefined) {
+        colorScheme = (name) => tr.b.FixedColorSchemeRegistry.lookUp(
+            this.diagnostic.colorScheme).getColor(name);
+      } else {
+        colorScheme = (name) => DEFAULT_COLOR_SCHEME.colorForKey(name);
+      }
 
-  set diagnostic(d) {
-    this.diagnostic_ = d;
-    if (this.isAttached) this.updateContents_();
-  },
+      const tableRows = [];
+      let tableSum = 0;
+      const histogramNames = [];
+      for (const [name, value] of this.diagnostic) {
+        const row = new BreakdownTableRow(
+            name, value, this.chart_.unit, colorScheme(name));
+        tableRows.push(row);
+        if (row.numberValue !== undefined) tableSum += row.numberValue;
+        if (row.isHistogram) {
+          histogramNames.push(value.name);
+        }
+      }
+      tableRows.sort((x, y) => x.compare(y));
 
-  updateContents_() {
-    this.$.container.style.display = 'none';
-    this.$.table.style.display = 'none';
-    this.$.empty.style.display = 'block';
+      if (tableSum > 0) {
+        let summaryDisplayElement = tableSum;
+        if (this.chart_.unit !== undefined) {
+          summaryDisplayElement = this.chart_.unit.format(tableSum);
+        }
+        summaryDisplayElement = tr.ui.b.createSpan({
+          textContent: summaryDisplayElement,
+        });
+        tableRows.unshift(new BreakdownTableSummaryRow(
+            summaryDisplayElement, histogramNames));
+      }
 
-    if (!this.diagnostic_) {
-      this.chart_.data = [];
-      return;
-    }
+      const chartData = {x: 0};
+      for (const row of tableRows) {
+        if (row.numberValue === undefined) continue;
 
-    if (this.histogram_) this.chart_.unit = this.histogram_.unit;
+        // Let the row compute its percentage.
+        row.tableSum = tableSum;
 
-    let colorScheme = undefined;
-    // https://github.com/catapult-project/catapult/issues/2970
-    if (this.diagnostic.colorScheme ===
-        tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER) {
-      colorScheme = (name) => {
-        let cat = name.split(' ');
-        cat = cat[cat.length - 1];
-        return tr.e.chrome.ChromeUserFriendlyCategoryDriver.getColor(cat);
-      };
-    } else if (this.diagnostic.colorScheme !== undefined) {
-      colorScheme = (name) => tr.b.FixedColorSchemeRegistry.lookUp(
-          this.diagnostic.colorScheme).getColor(name);
-    } else {
-      colorScheme = (name) => DEFAULT_COLOR_SCHEME.colorForKey(name);
-    }
+        // Add it to the chart.
+        chartData[row.name] = row.numberValue;
 
-    const tableRows = [];
-    let tableSum = 0;
-    const histogramNames = [];
-    for (const [name, value] of this.diagnostic) {
-      const row = new BreakdownTableRow(
-          name, value, this.chart_.unit, colorScheme(name));
-      tableRows.push(row);
-      if (row.numberValue !== undefined) tableSum += row.numberValue;
-      if (row.isHistogram) {
-        histogramNames.push(value.name);
+        // Configure the colors.
+        const dataSeries = this.chart_.getDataSeries(row.name);
+        dataSeries.color = row.color;
+        dataSeries.highlightedColor = row.highlightedColor;
+      }
+
+      if (tableRows.length > 0) {
+        this.$.table.style.display = 'block';
+        this.$.empty.style.display = 'none';
+        this.$.table.tableRows = tableRows;
+        this.$.table.rebuild();
+      }
+
+      if (Object.keys(chartData).length > 1) {
+        this.$.container.style.display = 'block';
+        this.$.empty.style.display = 'none';
+        this.chart_.data = [chartData];
       }
     }
-    tableRows.sort((x, y) => x.compare(y));
+  });
 
-    if (tableSum > 0) {
-      let summaryDisplayElement = tableSum;
-      if (this.chart_.unit !== undefined) {
-        summaryDisplayElement = this.chart_.unit.format(tableSum);
-      }
-      summaryDisplayElement = tr.ui.b.createSpan({
-        textContent: summaryDisplayElement,
-      });
-      tableRows.unshift(new BreakdownTableSummaryRow(
-          summaryDisplayElement, histogramNames));
-    }
-
-    const chartData = {x: 0};
-    for (const row of tableRows) {
-      if (row.numberValue === undefined) continue;
-
-      // Let the row compute its percentage.
-      row.tableSum = tableSum;
-
-      // Add it to the chart.
-      chartData[row.name] = row.numberValue;
-
-      // Configure the colors.
-      const dataSeries = this.chart_.getDataSeries(row.name);
-      dataSeries.color = row.color;
-      dataSeries.highlightedColor = row.highlightedColor;
-    }
-
-    if (tableRows.length > 0) {
-      this.$.table.style.display = 'block';
-      this.$.empty.style.display = 'none';
-      this.$.table.tableRows = tableRows;
-      this.$.table.rebuild();
-    }
-
-    if (Object.keys(chartData).length > 1) {
-      this.$.container.style.display = 'block';
-      this.$.empty.style.display = 'none';
-      this.chart_.data = [chartData];
-    }
-  }
+  return {};
 });
 </script>

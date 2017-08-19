@@ -5,35 +5,28 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/value/ui/diagnostic_span_behavior.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
 <dom-module id="tr-v-ui-scalar-diagnostic-span">
   <template>
     <tr-v-ui-scalar-span id="scalar"></tr-v-ui-scalar-span>
   </template>
+</dom-module>
 
-  <script>
-  'use strict';
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-scalar-diagnostic-span',
-
-    ready() {
-      this.diagnostic_ = undefined;
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
+    behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
     updateContents_() {
       this.$.scalar.setValueAndUnit(this.diagnostic.value.value,
           this.diagnostic.value.unit);
     }
   });
-  </script>
-</dom-module>
+
+  return {};
+});
+</script>

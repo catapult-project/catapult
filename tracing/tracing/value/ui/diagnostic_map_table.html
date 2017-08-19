@@ -24,7 +24,7 @@ tr.exportTo('tr.v.ui', function() {
       value(map) {
         const diagnostic = map.get(title);
         if (!diagnostic) return '';
-        return tr.v.ui.createDiagnosticSpan(diagnostic, histogram);
+        return tr.v.ui.createDiagnosticSpan(diagnostic, title, histogram);
       }
     };
   }
@@ -102,7 +102,7 @@ tr.exportTo('tr.v.ui', function() {
             value(name) {
               const diagnostic = diagnosticMap.get(name.name);
               if (!diagnostic) return '';
-              return tr.v.ui.createDiagnosticSpan(diagnostic, histogram);
+              return tr.v.ui.createDiagnosticSpan(diagnostic, name, histogram);
             }
           },
         ];

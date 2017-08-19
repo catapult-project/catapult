@@ -5,39 +5,31 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/base.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span_behavior.html">
 
 <dom-module id="tr-v-ui-date-range-span">
   <template>
     <content></content>
   </template>
+</dom-module>
 
-  <script>
-  'use strict';
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-date-range-span',
-
-    ready() {
-      this.diagnostic_ = undefined;
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
+    behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
     updateContents_() {
       if (this.diagnostic === undefined) {
-        this.textContent = '';
+        Polymer.dom(this).textContent = '';
         return;
       }
 
-      this.textContent = this.diagnostic.toString();
+      Polymer.dom(this).textContent = this.diagnostic.toString();
     }
   });
-  </script>
-</dom-module>
+
+  return {};
+});
+</script>

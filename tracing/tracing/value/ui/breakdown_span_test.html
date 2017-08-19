@@ -37,8 +37,8 @@ tr.b.unittest.testSuite(function() {
       bar.addSample(i);
     }
 
-    const span = tr.v.ui.createDiagnosticSpan(
-        breakdown, new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs));
+    const span = tr.v.ui.createDiagnosticSpan(breakdown, '', new tr.v.Histogram(
+        '', tr.b.Unit.byName.timeDurationInMs));
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(

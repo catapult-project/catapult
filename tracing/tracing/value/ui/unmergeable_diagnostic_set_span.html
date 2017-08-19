@@ -12,32 +12,29 @@ found in the LICENSE file.
   just not import anything.
 -->
 
+<link rel="import" href="/tracing/value/ui/diagnostic_span_behavior.html">
+
 <dom-module id="tr-v-ui-unmergeable-diagnostic-set-span">
-  <script>
-  'use strict';
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-unmergeable-diagnostic-set-span',
-
-    ready() {
-      this.diagnostic_ = undefined;
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
+    behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
     updateContents_() {
       Polymer.dom(this).textContent = '';
       for (const diagnostic of this.diagnostic) {
-        Polymer.dom(this).appendChild(tr.v.ui.createDiagnosticSpan(diagnostic));
-        Polymer.dom(this).appendChild(document.createElement('br'));
+        const div = document.createElement('div');
+        div.appendChild(tr.v.ui.createDiagnosticSpan(
+            diagnostic, this.name_, this.histogram_));
+        Polymer.dom(this).appendChild(div);
       }
     }
   });
-  </script>
-</dom-module>
+
+  return {};
+});
+</script>

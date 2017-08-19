@@ -561,6 +561,7 @@
       'tracing/value/ui/date_range_span.html',
       'tracing/value/ui/diagnostic_map_table.html',
       'tracing/value/ui/diagnostic_span.html',
+      'tracing/value/ui/diagnostic_span_behavior.html',
       'tracing/value/ui/generic_set_span.html',
       'tracing/value/ui/histogram_set_controls.html',
       'tracing/value/ui/histogram_set_table.html',

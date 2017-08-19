@@ -7,25 +7,17 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span_behavior.html">
 
 <dom-module id="tr-v-ui-related-event-set-span">
-  <script>
-  'use strict';
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-related-event-set-span',
-
-    ready() {
-      this.diagnostic_ = undefined;
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
+    behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
     updateContents_() {
       Polymer.dom(this).textContent = '';
@@ -42,5 +34,7 @@ found in the LICENSE file.
       Polymer.dom(this).appendChild(link);
     }
   });
-  </script>
-</dom-module>
+
+  return {};
+});
+</script>
