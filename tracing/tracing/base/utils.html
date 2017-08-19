@@ -176,15 +176,171 @@ tr.exportTo('tr.b', function() {
     return typeof(s) === 'string' && s.match(URL_REGEX) !== null;
   }
 
+  /**
+   * Returns the only element in the iterable. If the iterable is empty or has
+   * more than one element, an error is thrown.
+   */
+  function getOnlyElement(iterable) {
+    const iterator = iterable[Symbol.iterator]();
+
+    const firstIteration = iterator.next();
+    if (firstIteration.done) {
+      throw new Error('getOnlyElement was passed an empty iterable.');
+    }
+
+    const secondIteration = iterator.next();
+    if (!secondIteration.done) {
+      throw new Error(
+          'getOnlyElement was passed an iterable with multiple elements.');
+    }
+
+    return firstIteration.value;
+  }
+
+  /**
+   * Returns the first element in the iterable. If the iterable is empty, an
+   * error is thrown.
+   */
+  function getFirstElement(iterable) {
+    const iterator = iterable[Symbol.iterator]();
+    const result = iterator.next();
+    if (result.done) {
+      throw new Error('getFirstElement was passed an empty iterable.');
+    }
+
+    return result.value;
+  }
+
+  function compareArrays(x, y, elementCmp) {
+    const minLength = Math.min(x.length, y.length);
+    let i;
+    for (i = 0; i < minLength; i++) {
+      const tmp = elementCmp(x[i], y[i]);
+      if (tmp) return tmp;
+    }
+    if (x.length === y.length) return 0;
+
+    if (x[i] === undefined) return -1;
+
+    return 1;
+  }
+
+  /**
+   * Returns a new Map with items grouped by the return value of the
+   * specified function being called on each item.
+   * @param {!Array.<!*>} ary The array being iterated through
+   * @param {!function(!*):!*} callback The mapping function between the array
+   * value and the map key.
+   * @param {*=} opt_this
+   */
+  function groupIntoMap(ary, callback, opt_this, opt_arrayConstructor) {
+    const arrayConstructor = opt_arrayConstructor || Array;
+    const results = new Map();
+    for (const element of ary) {
+      const key = callback.call(opt_this, element);
+      let items = results.get(key);
+      if (items === undefined) {
+        items = new arrayConstructor();
+        results.set(key, items);
+      }
+      items.push(element);
+    }
+    return results;
+  }
+
+  function inPlaceFilter(array, predicate, opt_this) {
+    opt_this = opt_this || this;
+    let nextPosition = 0;
+    for (let i = 0; i < array.length; i++) {
+      if (!predicate.call(opt_this, array[i], i)) continue;
+      if (nextPosition < i) {
+        array[nextPosition] = array[i];  // Move elements only if necessary.
+      }
+      nextPosition++;
+    }
+
+    if (nextPosition < array.length) {
+      array.length = nextPosition;  // Truncate the array only if necessary.
+    }
+  }
+
+  /**
+   * Convert an array of dictionaries to a dictionary of arrays.
+   *
+   * The keys of the resulting dictionary are a union of the keys of all
+   * dictionaries in the provided array. Each array in the resulting dictionary
+   * has the same length as the provided array and contains the values of its
+   * key in the dictionaries in the provided array. Example:
+   *
+   *   INPUT:
+   *
+   *     [
+   *       {a: 6, b: 5      },
+   *       undefined,
+   *       {a: 4, b: 3, c: 2},
+   *       {      b: 1, c: 0}
+   *     ]
+   *
+   *   OUTPUT:
+   *
+   *     {
+   *       a: [6,         undefined, 4, undefined],
+   *       b: [5,         undefined, 3, 1        ],
+   *       c: [undefined, undefined, 2, 0        ]
+   *     }
+   *
+   * @param {!Array} array Array of items to be inverted. If opt_dictGetter
+   *     is not provided, all elements of the array must be either undefined,
+   *     or dictionaries.
+   * @param {?(function(*): (!Object|undefined))=} opt_dictGetter Optional
+   *     function mapping defined elements of array to dictionaries.
+   * @param {*=} opt_this Optional 'this' context for opt_dictGetter.
+   */
+  function invertArrayOfDicts(array, opt_dictGetter, opt_this) {
+    opt_this = opt_this || this;
+    const result = {};
+    for (let i = 0; i < array.length; i++) {
+      const item = array[i];
+      if (item === undefined) continue;
+      const dict = opt_dictGetter ? opt_dictGetter.call(opt_this, item) : item;
+      if (dict === undefined) continue;
+      for (const key in dict) {
+        let valueList = result[key];
+        if (valueList === undefined) {
+          result[key] = valueList = new Array(array.length);
+        }
+        valueList[i] = dict[key];
+      }
+    }
+    return result;
+  }
+
+  function setsEqual(a, b) {
+    if (!(a instanceof Set) || !(b instanceof Set)) return false;
+    if (a.size !== b.size) return false;
+    // Avoid Array.from() here -- it creates garbage.
+    for (const x of a) {
+      if (!b.has(x)) return false;
+    }
+    return true;
+  }
+
   return {
+    compareArrays,
     deepCopy,
     formatDate,
+    getFirstElement,
+    getOnlyElement,
     getUsingPath,
+    groupIntoMap,
+    inPlaceFilter,
+    invertArrayOfDicts,
     isUrl,
     normalizeException,
     numberFromJson,
     numberToJson,
     runLengthEncoding,
+    setsEqual,
     stackTrace,
     stackTraceAsString,
   };

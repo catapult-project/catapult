@@ -45,7 +45,6 @@
       'tracing/base/guid.html',
       'tracing/base/in_memory_trace_stream.html',
       'tracing/base/interval_tree.html',
-      'tracing/base/iteration_helpers.html',
       'tracing/base/math/bbox2.html',
       'tracing/base/math/math.html',
       'tracing/base/math/piecewise_linear_function.html',

@@ -58,5 +58,128 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(tr.b.isUrl('http://google.com/'));
     assert.isTrue(tr.b.isUrl('https://www.google.com/'));
   });
+
+  test('setsEqual', function() {
+    assert.isTrue(tr.b.setsEqual(new Set(), new Set()));
+    assert.isTrue(tr.b.setsEqual(new Set(['a']), new Set(['a'])));
+    assert.isFalse(tr.b.setsEqual(new Set(), undefined));
+    assert.isFalse(tr.b.setsEqual(new Set(), new Set(['a'])));
+    assert.isFalse(tr.b.setsEqual(new Set(['a']), new Set(['b'])));
+  });
+
+  test('compareArrays', function() {
+    function cmp(x, y) {
+      assert.isDefined(x);
+      assert.isDefined(y);
+      return x - y;
+    }
+
+    assert.isBelow(tr.b.compareArrays([1], [2], cmp), 0);
+    assert.isAbove(tr.b.compareArrays([2], [1], cmp), 0);
+
+    assert.isBelow(tr.b.compareArrays([1], [1, 2], cmp), 0);
+    assert.isAbove(tr.b.compareArrays([1, 2], [1], cmp), 0);
+
+    assert.isBelow(tr.b.compareArrays([], [1], cmp), 0);
+    assert.isAbove(tr.b.compareArrays([1], [], cmp), 0);
+
+    assert.isAbove(tr.b.compareArrays([2], [1], cmp), 0);
+
+    assert.strictEqual(tr.b.compareArrays([], [], cmp), 0);
+    assert.strictEqual(tr.b.compareArrays([1], [1], cmp), 0);
+  });
+
+  test('getOnlyElement_throwsIfEmpty', function() {
+    assert.throws(() => tr.b.getOnlyElement([]),
+        'getOnlyElement was passed an empty iterable.');
+  });
+
+  test('getOnlyElement_oneItem', function() {
+    assert.strictEqual(tr.b.getOnlyElement([1]), 1);
+  });
+
+  test('getOnlyElement_twoItems', function() {
+    assert.throws(() => tr.b.getOnlyElement([1, 2]),
+        'getOnlyElement was passed an iterable with multiple elements.');
+  });
+
+  test('getFirstElement_throwsIfEmpty', function() {
+    assert.throws(() => tr.b.getFirstElement([]),
+        'getFirstElement was passed an empty iterable.');
+  });
+
+  test('getFirstElement_oneItem', function() {
+    assert.strictEqual(tr.b.getFirstElement([1]), 1);
+  });
+
+  test('getFirstElement_twoItems', function() {
+    assert.strictEqual(tr.b.getFirstElement([1, 2]), 1);
+  });
+
+  test('groupIntoMap', function() {
+    // Empty array
+    let srcArray = [];
+    const fn = function(curr) { return (curr % 2); };
+    const dstDict = {};
+
+    assert.deepEqual(tr.b.groupIntoMap(srcArray, fn), dstDict);
+
+    // Non-empty array
+    srcArray = [0, 1, 2, 3, 4, 5, 6];
+    const dstMap = new Map([
+      [0, [0, 2, 4, 6]],
+      [1, [1, 3, 5]]
+    ]);
+
+    assert.deepEqual(tr.b.groupIntoMap(srcArray, fn), dstMap);
+  });
+
+  test('inPlaceFilter_simple', function() {
+    const someThisArg = {};
+    const list = [1, 2, 3, 4];
+    tr.b.inPlaceFilter(list, function(item) {
+      assert.strictEqual(this, someThisArg);
+      return item % 2 === 0;
+    }, someThisArg);
+    assert.deepEqual(list, [2, 4]);
+  });
+
+  test('invertArrayOfDicts_defaultGetter', function() {
+    const array = [
+      {a: 6, b: 5},
+      undefined,
+      {a: 4, b: 3, c: 2},
+      {b: 1, c: 0}
+    ];
+    const dict = tr.b.invertArrayOfDicts(array);
+    assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
+    assert.deepEqual(Array.from(dict.a), [6, undefined, 4, undefined]);
+    assert.deepEqual(Array.from(dict.b), [5, undefined, 3, 1]);
+    assert.deepEqual(Array.from(dict.c), [undefined, undefined, 2, 0]);
+  });
+
+  test('invertArrayOfDicts_customGetter', function() {
+    const fakeThis = { itemToDict: JSON.parse };
+    const array = [
+      '{"a": "test", "b": true}',
+      '{}',
+      '{invalid-json}',
+      '{"a": 42, "c": false}'
+    ];
+    const dict = tr.b.invertArrayOfDicts(array, function(item) {
+      try {
+        return this.itemToDict(item);
+      } catch (e) {
+        return undefined;
+      }
+    }, fakeThis);
+    assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
+    assert.deepEqual(
+        Array.from(dict.a), ['test', undefined, undefined, 42]);
+    assert.deepEqual(
+        Array.from(dict.b), [true, undefined, undefined, undefined]);
+    assert.deepEqual(
+        Array.from(dict.c), [undefined, undefined, undefined, false]);
+  });
 });
 </script>

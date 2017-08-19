@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/fixed_color_scheme.html">
-<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
@@ -99,7 +99,6 @@ tr.exportTo('tr.ui.analysis', function() {
   const UNMARRIED_PARTNERSHIP_SYMBOL = String.fromCharCode(0x26AF);
   const TRIGRAM_FOR_HEAVEN = String.fromCharCode(0x2630);
 
-  // TODO(petrcermak): Move this to iteration_helpers.html.
   function lazyMap(list, fn, opt_this) {
     opt_this = opt_this || this;
     let result = undefined;
