@@ -106,13 +106,43 @@ Histogram:
  * Histogram bin count bar chart (if the Histogram has only a single bin, then
    it will be a box chart),
  * summary statistics as configured by the metric,
- * Diagnostics
+ * Up to 3 groups of diagnostics may be available in tabs:
+    * Metadata
+    * Sample diagnostics
+    * Other diagnostics added to Histograms by metrics
+
+![Diagnostics tabs
+](/docs/images/metrics-results-ui-diagnostics-tabs.png)
+
+Metadata may contain
+ * Information about the device that produced the results
+ * Telemetry context
+ * Source control revisions
+ * Links to logs and traces
+These metadata diagnostics are added to Histograms by telemetry or other
+processes outside of metrics.
+
+Metrics can add diagnostics either to samples within Histograms or to Histograms
+themselves.
 
 Click and drag the mouse around the bar chart in order to display sample
 diagnostics for the selected Histogram bins.
 
 ![Show full Histogram data for a cell.
 ](/docs/images/metrics-results-ui-show-histogram.png)
+
+Sample diagnostics may include Breakdown diagnostics, which indicate relative
+sizes of component metrics for the selected samples.
+
+![Breakdowns](/docs/images/how-to-write-metrics-breakdown.png)
+
+Other Histogram diagnostics may include RelatedHistogramBreakdown diagnostics,
+which indicate relative sizes of component metrics over all samples.
+
+![RelatedHistogramBreakdowns](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
+
+For more about summation metrics, see [Diagnostic
+Metrics](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/speed/diagnostic_metrics.md#Summation-Diagnostics).
 
 ## The Groupby-picker
 
