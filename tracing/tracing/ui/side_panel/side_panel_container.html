@@ -48,7 +48,9 @@ found in the LICENSE file.
     }
 
     tab-strip > tab-strip-label {
+      flex-shrink: 0;
       -webkit-writing-mode: vertical-rl;
+      white-space: nowrap;
       display: inline;
       margin-right: 1px;
       min-height: 20px;
@@ -113,6 +115,9 @@ Polymer({
           'change', this.onSelectionChanged_);
       this.brushingStateController_.addEventListener(
           'model-changed', this.onModelChanged_);
+      if (this.model) {
+        this.onModelChanged_();
+      }
     }
   },
 
@@ -211,9 +216,11 @@ Polymer({
 
     Polymer.dom(this.tabStrip_).textContent = '';
     const supportedPanelTypes = [];
+    const panelTypeInfos =
+      tr.ui.side_panel.SidePanelRegistry.getAllRegisteredTypeInfos();
+    const unsupportedLabelEls = [];
 
-    for (const panelTypeInfo of
-        tr.ui.side_panel.SidePanelRegistry.getAllRegisteredTypeInfos()) {
+    for (const panelTypeInfo of panelTypeInfos) {
       const labelEl = document.createElement('tab-strip-label');
       const panel = panelTypeInfo.constructor();
       const panelType = panel.tagName;
@@ -229,12 +236,21 @@ Polymer({
           this.activePanelType =
               this.activePanelType === panelType ? undefined : panelType;
         }.bind(this, panelType));
+        Polymer.dom(this.tabStrip_).appendChild(labelEl);
       } else {
         if (this.activePanel) {
           this.activePanelContainer_.removeChild(this.activePanel);
         }
         this.removeAttribute('expanded');
+        unsupportedLabelEls.push(labelEl);
       }
+    }
+
+    // Labels do not shrink, so when the user drags the analysis-view up, the
+    // bottom labels are obscured first.
+    // Append all unsupported panel labels after all supported panel labels so
+    // that unsupported panel labels are obscured first.
+    for (const labelEl of unsupportedLabelEls) {
       Polymer.dom(this.tabStrip_).appendChild(labelEl);
     }
 
