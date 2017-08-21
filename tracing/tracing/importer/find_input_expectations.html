@@ -548,8 +548,8 @@ tr.exportTo('tr.importer', function() {
           if (currentPE) {
             warn({
               type: 'UserModelBuilder',
-              message: 'Please file a bug with this trace: FlingStart',
-              showToUser: true
+              message: 'Unexpected FlingStart',
+              showToUser: false,
             });
             currentPE.pushEvent(event);
           } else {
@@ -730,8 +730,8 @@ tr.exportTo('tr.importer', function() {
           if (!currentPE) {
             warn({
               type: 'UserModelBuilder',
-              message: 'Please file a bug with this trace: ScrollEnd',
-              showToUser: true
+              message: 'Unexpected ScrollEnd',
+              showToUser: false,
             });
             const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
@@ -1226,9 +1226,8 @@ tr.exportTo('tr.importer', function() {
             (event.title !== tr.model.helpers.IMPL_RENDERING_STATS)) {
           warn({
             type: 'UserModelBuilder',
-            message: 'Please file a bug with this trace: ' +
-                `double-handled event: ${event.typeName} @ ${event.start}`,
-            showToUser: true
+            message: `double-handled event: ${event.typeName} @ ${event.start}`,
+            showToUser: false,
           });
           return;
         }
@@ -1240,9 +1239,8 @@ tr.exportTo('tr.importer', function() {
       if (handledEvents.indexOf(event) < 0) {
         warn({
           type: 'UserModelBuilder',
-          message: 'Please file a bug with this trace: ' +
-              `double-handled event: ${event.typeName} @ ${event.start}`,
-          showToUser: true
+          message: `double-handled event: ${event.typeName} @ ${event.start}`,
+          showToUser: false,
         });
       }
     });
