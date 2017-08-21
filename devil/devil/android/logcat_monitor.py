@@ -26,7 +26,7 @@ class LogcatMonitor(object):
   _RECORD_ITER_TIMEOUT = 0.2
   _RECORD_THREAD_JOIN_WAIT = 5.0
   _WAIT_TIME = 0.2
-  _THREADTIME_RE_FORMAT = (
+  THREADTIME_RE_FORMAT = (
       r'(?P<date>\S*) +(?P<time>\S*) +(?P<proc_id>%s) +(?P<thread_id>%s) +'
       r'(?P<log_level>%s) +(?P<component>%s) *: +(?P<message>%s)$')
 
@@ -146,7 +146,7 @@ class LogcatMonitor(object):
       component = r'[^\s:]+'
     # pylint: disable=protected-access
     threadtime_re = re.compile(
-        type(self)._THREADTIME_RE_FORMAT % (
+        type(self).THREADTIME_RE_FORMAT % (
             proc_id, thread_id, log_level, component, message_regex))
 
     with open(self._record_file.name, 'r') as f:
