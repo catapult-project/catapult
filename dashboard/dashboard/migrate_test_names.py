@@ -60,6 +60,7 @@ _TEST_DEPRECATED_PROPERTIES = [
     'units_x',
     'buildername',
     'masterid',
+    'stoppage_alert'
 ]
 _TEST_EXCLUDE = _TEST_COMPUTED_PROPERTIES + _TEST_DEPRECATED_PROPERTIES
 
