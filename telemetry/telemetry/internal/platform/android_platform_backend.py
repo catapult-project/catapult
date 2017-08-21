@@ -78,6 +78,8 @@ class AndroidPlatformBackend(
         self._device.EnableRoot()
       except device_errors.CommandFailedError:
         logging.warning('Unable to root %s', str(self._device))
+    assert self._device.HasRoot(), (
+        'Android device must be rooted to run Telemetry')
     self._battery = battery_utils.BatteryUtils(self._device)
     self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
