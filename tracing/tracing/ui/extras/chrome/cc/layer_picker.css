@@ -4,12 +4,12 @@
  */
 
 * /deep/ tr-ui-e-chrome-cc-layer-picker {
-  -webkit-flex-direction: column;
-  display: -webkit-flex;
+  flex-direction: column;
+  display: flex;
 }
 
 * /deep/ tr-ui-e-chrome-cc-layer-picker > top-controls {
-  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
   background-image: -webkit-gradient(linear,
                                      0 0, 100% 0,
                                      from(#E5E5E5),
@@ -26,13 +26,13 @@
 }
 
 * /deep/ tr-ui-e-chrome-cc-layer-picker > .x-list-view {
-  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
   font-family: monospace;
   overflow: auto;
 }
 
 * /deep/ tr-ui-e-chrome-cc-layer-picker > tr-ui-a-generic-object-view {
-  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
   height: 200px;
   overflow: auto;
 }

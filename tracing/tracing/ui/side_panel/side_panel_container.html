@@ -14,15 +14,15 @@ found in the LICENSE file.
     <style>
     :host {
       align-items: stretch;
-      display: -webkit-flex;
+      display: flex;
       background-color: white;
     }
 
     :host([expanded]) > #side_panel_drag_handle,
     :host([expanded]) > active-panel-container {
-      -webkit-flex: 1 1 auto;
+      flex: 1 1 auto;
       border-left: 1px solid black;
-      display: -webkit-flex;
+      display: flex;
     }
 
     :host(:not([expanded])) > #side_panel_drag_handle,
@@ -35,13 +35,13 @@ found in the LICENSE file.
     }
 
     tab-strip {
-      -webkit-flex: 0 0 auto;
-      -webkit-flex-direction: column;
+      flex: 0 0 auto;
+      flex-direction: column;
       -webkit-user-select: none;
       background-color: rgb(236, 236, 236);
       border-left: 1px solid black;
       cursor: default;
-      display: -webkit-flex;
+      display: flex;
       min-width: 18px; /* workaround for flexbox and writing-mode mixing bug */
       padding: 10px 0 10px 0;
       font-size: 12px;

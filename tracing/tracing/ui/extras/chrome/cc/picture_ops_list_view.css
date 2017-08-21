@@ -4,13 +4,13 @@
  */
 
 * * /deep/ tr-ui-e-chrome-cc-picture-ops-list-view {
-  -webkit-flex-direction: column;
+  flex-direction: column;
   border-top: 1px solid grey;
-  display: -webkit-flex;
+  display: flex;
 }
 
 * /deep/ tr-ui-e-chrome-cc-picture-ops-list-view > .x-list-view {
-  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
   overflow: auto;
 }
 

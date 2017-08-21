@@ -4,8 +4,8 @@
  */
 
 * /deep/ x-list-and-associated-view {
-  -webkit-flex-direction: row;
-  display: -webkit-flex;
+  flex-direction: row;
+  display: flex;
 }
 
 * /deep/ x-list-and-associated-view > .x-list-view {
@@ -13,5 +13,5 @@
 }
 
 * /deep/ x-list-and-associated-view > :nth-child(2) {
-  -webkit-flex: 1;
+  flex: 1;
 }

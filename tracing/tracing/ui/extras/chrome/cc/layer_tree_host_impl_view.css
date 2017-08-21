@@ -4,15 +4,15 @@
  */
 
 * /deep/ .tr-ui-e-chrome-cc-lthi-s-view {
-  -webkit-flex: 1 1 auto !important;
-  -webkit-flex-direction: row;
-  display: -webkit-flex;
+  flex: 1 1 auto !important;
+  flex-direction: row;
+  display: flex;
 }
 
 * /deep/ .tr-ui-e-chrome-cc-lthi-s-view > tr-ui-e-chrome-cc-layer-picker {
-  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
 }
 
 * /deep/ .tr-ui-e-chrome-cc-lthi-s-view > tr-ui-b-drag-handle {
-  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
 }

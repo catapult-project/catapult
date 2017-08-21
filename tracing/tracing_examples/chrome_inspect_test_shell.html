@@ -18,12 +18,12 @@ found in the LICENSE file.
     padding: 0;
     width: 100%;
     height: 100%;
-    display: -webkit-flex;
-    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
   }
 
   body > x-profiling-view {
-    -webkit-flex: 1 1 auto;
+    flex: 1 1 auto;
     overflow: hidden;
     position: absolute;
     top: 0px;
@@ -38,7 +38,7 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  var profilingViewEl;
+  let profilingViewEl;
 
   function onLoad() {
     if (window.DevToolsHost === undefined) {
@@ -53,7 +53,7 @@ found in the LICENSE file.
       return;
     }
 
-    var tracingControllerClient = new tr.ui.e.about_tracing.InspectorTracingControllerClient(); // @suppress longLineCheck
+    const tracingControllerClient = new tr.ui.e.about_tracing.InspectorTracingControllerClient(); // @suppress longLineCheck
     profilingViewEl = new tr.ui.e.about_tracing.ProfilingView(tracingControllerClient); // @suppress longLineCheck
     document.body.appendChild(profilingViewEl);
   }

@@ -40,8 +40,8 @@ found in the LICENSE file.
   <template>
     <style>
     :host {
-      -webkit-box-orient: vertical;
-      display: -webkit-box;
+      flex-direction: column;
+      display: flex;
       position: relative;
     }
 
@@ -94,6 +94,8 @@ Polymer({
         new tr.ui.tracks.DrawingContainer(this.viewport_);
     Polymer.dom(this).appendChild(this.rulerTrackContainer_);
     this.rulerTrackContainer_.invalidate();
+    this.rulerTrackContainer_.style.overflowY = 'hidden';
+    this.rulerTrackContainer_.style.flexShrink = '0';
 
     this.rulerTrack_ = new tr.ui.tracks.XAxisTrack(this.viewport_);
     Polymer.dom(this.rulerTrackContainer_).appendChild(this.rulerTrack_);
@@ -106,6 +108,7 @@ Polymer({
         new tr.ui.tracks.DrawingContainer(this.viewport_);
     Polymer.dom(this).appendChild(this.modelTrackContainer_);
     this.modelTrackContainer_.style.display = 'block';
+    this.modelTrackContainer_.style.flexGrow = '1';
     this.modelTrackContainer_.invalidate();
 
     this.viewport_.modelTrackContainer = this.modelTrackContainer_;

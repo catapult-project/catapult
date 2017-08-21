@@ -4,7 +4,7 @@
  */
 
 .thread-track {
-  -webkit-box-orient: vertical;
-  display: -webkit-box;
+  flex-direction: column;
+  display: flex;
   position: relative;
 }

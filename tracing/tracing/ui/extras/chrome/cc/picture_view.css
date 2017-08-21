@@ -4,6 +4,6 @@
  */
 
 * /deep/ .tr-ui-e-chrome-cc-picture-snapshot-view {
-  -webkit-flex: 0 1 auto !important;
-  display: -webkit-flex;
+  flex: 0 1 auto !important;
+  display: flex;
 }

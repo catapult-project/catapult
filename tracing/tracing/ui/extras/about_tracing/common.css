@@ -8,14 +8,14 @@ body {
 }
 
 body {
-  -webkit-flex-direction: column;
-  display: -webkit-flex;
+  flex-direction: column;
+  display: flex;
   margin: 0;
   padding: 0;
 }
 
 body > x-profiling-view {
-  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
 }
 

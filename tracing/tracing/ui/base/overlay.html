@@ -21,7 +21,7 @@ found in the LICENSE file.
       font-family: sans-serif;
       -webkit-justify-content: center;
       background: rgba(0, 0, 0, 0.8);
-      display: -webkit-flex;
+      display: flex;
       height: 100%;
       left: 0;
       position: fixed;
@@ -33,32 +33,31 @@ found in the LICENSE file.
     }
     overlay-vertical-centering-container {
       -webkit-justify-content: center;
-      -webkit-flex-direction: column;
-      display: -webkit-flex;
+      flex-direction: column;
+      display: flex;
     }
     overlay-frame {
       z-index: 1100;
       background: rgb(255, 255, 255);
       border: 1px solid #ccc;
       margin: 75px;
-      display: -webkit-flex;
-      -webkit-flex-direction: column;
+      display: flex;
+      flex-direction: column;
       min-height: 0;
     }
     title-bar {
       -webkit-align-items: center;
-      -webkit-flex-direction: row;
+      flex-direction: row;
       border-bottom: 1px solid #ccc;
       background-color: #ddd;
-      display: -webkit-flex;
+      display: flex;
       padding: 5px;
-      -webkit-flex: 0 0 auto;
+      flex: 0 0 auto;
     }
     title {
       display: inline;
       font-weight: bold;
-      -webkit-box-flex: 1;
-      -webkit-flex: 1 1 auto;
+      flex: 1 1 auto;
     }
     close-button {
       -webkit-align-self: flex-end;
@@ -76,9 +75,9 @@ found in the LICENSE file.
       cursor: pointer;
     }
     overlay-content {
-      display: -webkit-flex;
-      -webkit-flex: 1 1 auto;
-      -webkit-flex-direction: column;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
       overflow-y: auto;
       padding: 10px;
       min-width: 300px;
@@ -87,9 +86,9 @@ found in the LICENSE file.
     button-bar {
       -webkit-align-items: baseline;
       border-top: 1px solid #ccc;
-      display: -webkit-flex;
-      -webkit-flex: 0 0 auto;
-      -webkit-flex-direction: row-reverse;
+      display: flex;
+      flex: 0 0 auto;
+      flex-direction: row-reverse;
       padding: 4px;
     }
   </style>

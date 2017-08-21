@@ -4,7 +4,6 @@
  */
 
 .drawing-container {
-  -webkit-box-flex: 1;
   display: inline;
   overflow: auto;
   overflow-x: hidden;
@@ -12,7 +11,6 @@
 }
 
 .drawing-container-canvas {
-  -webkit-box-flex: 1;
   display: block;
   pointer-events: none;
   position: absolute;
