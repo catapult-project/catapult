@@ -52,10 +52,13 @@ def RetryOn(exc_type=(), returns_falsy=False, retries=5):
       of exceptions to catch and retry on any of them. Defaults to catching no
       exceptions at all.
     returns_falsy: If True then the function will be retried until it stops
-      returning a "falsy" value (e.g. None, False, 0, [], etc.).
+      returning a "falsy" value (e.g. None, False, 0, [], etc.). If equal to
+      'raise' and the function keeps returning falsy values after all retries,
+      then the decorator will raise a ValueError.
     retries: Max number of retry attempts. After exhausting that number of
       attempts the function will be called with no safeguards: any exceptions
-      will be raised and falsy values returned to the caller.
+      will be raised and falsy values returned to the caller (except when
+      returns_falsy='raise').
   """
   def Decorator(f):
     @functools.wraps(f)
@@ -77,7 +80,10 @@ def RetryOn(exc_type=(), returns_falsy=False, retries=5):
                      f.__name__, retry_reason, wait, '' if wait == 1 else 's')
         time.sleep(wait)
         wait *= 2
-      return f(*args, **kwargs)  # Last try to run with no safeguards.
+      value = f(*args, **kwargs)  # Last try to run with no safeguards.
+      if returns_falsy == 'raise' and not value:
+        raise ValueError('%s returned %r' % (f.__name__, value))
+      return value
     return Wrapper
   return Decorator
 
@@ -348,7 +354,7 @@ class DevToolsWebSocket(object):
       raise JavaScriptError(resp['result']['description'])
     return resp['result'].get('value')
 
-  @RetryOn(returns_falsy=True)
+  @RetryOn(returns_falsy='raise')
   def WaitForJavaScriptCondition(self, *args, **kwargs):
     return self.EvaluateJavaScript(*args, **kwargs)
 
