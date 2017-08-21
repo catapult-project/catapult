@@ -5,6 +5,7 @@
 """Send alert summary emails to sheriffs on duty."""
 
 import datetime
+import logging
 import sys
 
 from google.appengine.api import mail
@@ -65,10 +66,14 @@ def _SendSummaryEmail(sheriff_entity, start_time):
   """
   receivers = email_template.GetSheriffEmails(sheriff_entity)
   anomalies = _RecentUntriagedAnomalies(sheriff_entity, start_time)
+  logging.info('_SendSummaryEmail: %s', str(sheriff_entity.key))
+  logging.info(' - receivers: %s', str(receivers))
+  logging.info(' - anomalies: %d', len(anomalies))
   if not anomalies:
     return
   subject = _EmailSubject(sheriff_entity, anomalies)
   html, text = _EmailBody(anomalies)
+  logging.info(' - body: %s', text)
   mail.send_mail(
       sender='gasper-alerts@google.com', to=receivers,
       subject=subject, body=text, html=html)
