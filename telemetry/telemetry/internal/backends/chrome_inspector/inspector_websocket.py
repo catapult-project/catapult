@@ -61,7 +61,12 @@ class InspectorWebsocket(object):
       socket.error
     """
     assert not self._socket
-    self._socket = websocket.create_connection(url, timeout=timeout)
+
+    # websocket-client uses a custom UTF8 validation implementation which is
+    # immensely slow. Profiling shows validation of 15MB of tracing data takes
+    # ~3min. https://crbug.com/753591.
+    self._socket = websocket.create_connection(url, timeout=timeout,
+                                               skip_utf8_validation=True)
     self._cur_socket_timeout = 0
     self._next_request_id = 0
 
