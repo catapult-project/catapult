@@ -40,6 +40,10 @@ class InstagramApp(telemetry_mini.AndroidApp):
   PACKAGE_NAME = 'com.instagram.android'
 
 
+class HangoutsApp(telemetry_mini.AndroidApp):
+  PACKAGE_NAME = 'com.google.android.talk'
+
+
 class TwitterFlipkartStory(telemetry_mini.UserStory):
   """Load Chrome Custom Tab from another application.
 
@@ -131,9 +135,63 @@ class FlipkartInstagramStory(telemetry_mini.UserStory):
     self.instagram.ForceStop()
 
 
+class HangoutsIndiaTimesStory(telemetry_mini.UserStory):
+  """Interaction between Chrome and a non-WebView-based app.
+
+  TODO: Not sure if Hangouts is a non-WebView app. Consider using another app
+  if needed.
+
+  The flow of the story is:
+  - Launch the Hangouts app.
+  - Open a conversation with a link to an IndiaTimes article.
+  - Click on the link to launch Chrome.
+  - Go back to the conversation.
+  """
+  NAME = 'hangouts_indiatimes'
+  # TODO: Maybe use more specific targets, e.g. check url is in message.
+  FIRST_CONVERSATION = [
+      ('resource-id', 'com.google.android.talk:id/conversationContent'),
+      ('index', '0'),
+  ]
+  SECOND_MESSAGE = [
+      ('resource-id', 'com.google.android.talk:id/message_root'),
+      ('index', '1'),
+  ]
+
+  def __init__(self, *args, **kwargs):
+    super(HangoutsIndiaTimesStory, self).__init__(*args, **kwargs)
+    self.watcher = ProcessWatcher(self.device)
+    self.hangouts = HangoutsApp(self.device)
+
+  def RunPrepareSteps(self):
+    self.hangouts.ForceStop()
+
+  def RunStorySteps(self):
+    # Tap on home screen shortcut to open Hangouts app.
+    self.actions.TapHomeScreenShortcut('Hangouts')
+    self.watcher.StartWatching(self.hangouts)
+
+    # Find conversation with link to IndiaTimes and tap to launch Chrome.
+    self.actions.TapUiElement(self.FIRST_CONVERSATION)
+    self.actions.TapUiElement(self.SECOND_MESSAGE)
+    self.watcher.StartWatching(self.browser)
+    self.browser.WaitForCurrentPageReady()
+    self.actions.SwipeUp(repeat=4)
+
+    # Go back to Hangouts, then back Home.
+    self.actions.GoBack()
+    self.actions.Idle(2)
+    self.actions.GoHome()
+    self.watcher.AssertAllAlive()
+
+  def RunCleanupSteps(self):
+    self.hangouts.ForceStop()
+
+
 STORIES = (
     TwitterFlipkartStory,
-    FlipkartInstagramStory
+    FlipkartInstagramStory,
+    HangoutsIndiaTimesStory,
 )
 
 
@@ -269,7 +327,8 @@ def main():
   telemetry_mini.AdbMini.ADB_BIN = args.adb_bin
   if args.serial is None:
     device = next(telemetry_mini.AdbMini.GetDevices())
-    logging.warning('Connected to first device found: %s', device.serial)
+    logging.warning(
+        'Connected to first device found: --serial %s', device.serial)
   else:
     device = telemetry_mini.AdbMini(args.serial)
 
