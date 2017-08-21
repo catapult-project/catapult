@@ -16,9 +16,7 @@ body {
   margin: 0;
   padding: 0 10px;
   display: flex;
-  display: -webkit-flex;
   flex-direction: column;
-  -webkit-flex-direction: column;
   min-height: 100%;
 }
 
@@ -28,7 +26,6 @@ nav-bar {
 
 h1 {
   align-self: center;
-  -webkit-align-self: center;
 }
 
 a:link {
@@ -82,7 +79,7 @@ iframe {
   height: 27px;
   line-height: 27px;
   padding: 0px 8px;
-  -webkit-user-select: none;
+  user-select: none;
 }
 
 .kennedy-button {
