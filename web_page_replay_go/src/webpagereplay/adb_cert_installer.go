@@ -52,10 +52,12 @@ func (i *Installer) adbShell(args ...string) error {
 func getIssuerHashFileName(certPath string) (string, error) {
 	cmd := exec.Command("openssl", "x509", "-in", certPath, "-issuer_hash_old", "-noout")
 	var out bytes.Buffer
+	var stderr bytes.Buffer
 	cmd.Stdout = &out
+	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%v : %s", err, stderr.String())
 	}
 	fmt.Print(out.String())
 	return strings.Trim(out.String(), "\r\n") + ".0", nil

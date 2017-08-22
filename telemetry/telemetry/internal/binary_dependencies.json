@@ -372,24 +372,24 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "70b5a04316110caff1e69ab4373dc92b4db434e0",
+          "cloud_storage_hash": "278678f72d183da54edd10fe62dbc499420bb886",
           "download_path": "bin/linux/x86_64/wpr",
-          "version_in_cs": "0eeb5baed7a4417ac083221805842019185ccec0"
+          "version_in_cs": "d2ffc23f1e05ee72a2fbb6afdd60db51351247e5"
         },
         "mac_x86_64": {
-          "cloud_storage_hash": "3c69e3fe621cc858e1cbe152093263fa7b98824a",
+          "cloud_storage_hash": "2254486cd3513866ffe2d2e96c3c01d790795894",
           "download_path": "bin/mac/x86_64/wpr",
-          "version_in_cs": "0eeb5baed7a4417ac083221805842019185ccec0"
+          "version_in_cs": "d2ffc23f1e05ee72a2fbb6afdd60db51351247e5"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "785178e16460743766bf510ecc53c16b2c6da30b",
+          "cloud_storage_hash": "347900c3706ebbcf2227774cae97f9987aaa8e2c",
           "download_path": "bin/win/AMD64/wpr.exe",
-          "version_in_cs": "0eeb5baed7a4417ac083221805842019185ccec0"
+          "version_in_cs": "d2ffc23f1e05ee72a2fbb6afdd60db51351247e5"
         },
         "win_x86": {
-          "cloud_storage_hash": "ad531f23d07c1e064676892cac705293e26d5499",
+          "cloud_storage_hash": "4b87c3e04ba9d6d5fe4cf47fc11dcf92d0ea9457",
           "download_path": "bin/win/x86/wpr.exe",
-          "version_in_cs": "0eeb5baed7a4417ac083221805842019185ccec0"
+          "version_in_cs": "d2ffc23f1e05ee72a2fbb6afdd60db51351247e5"
         }
       }
     }
