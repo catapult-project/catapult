@@ -143,12 +143,12 @@ class _RunTestExecution(execution_module.Execution):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '600',
+        'expiration_secs': '36000',  # 10 hours.
         'properties': {
             'inputs_ref': {'isolated': self._isolate_hash},
             'extra_args': self._extra_args,
             'dimensions': dimensions,
-            'execution_timeout_secs': '3600',
+            'execution_timeout_secs': '7200',  # 2 hours.
             'io_timeout_secs': '3600',
         },
     }

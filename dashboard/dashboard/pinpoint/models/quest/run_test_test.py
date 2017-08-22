@@ -32,13 +32,13 @@ class _RunTestTest(unittest.TestCase):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '600',
+        'expiration_secs': '36000',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _SWARMING_EXTRA_ARGS,
             'dimensions': [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}] +
                           _SWARMING_DIMENSIONS,
-            'execution_timeout_secs': '3600',
+            'execution_timeout_secs': '7200',
             'io_timeout_secs': '3600',
         },
     }
@@ -49,7 +49,7 @@ class _RunTestTest(unittest.TestCase):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '600',
+        'expiration_secs': '36000',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _SWARMING_EXTRA_ARGS,
@@ -57,7 +57,7 @@ class _RunTestTest(unittest.TestCase):
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'id', 'value': 'bot id'},
             ],
-            'execution_timeout_secs': '3600',
+            'execution_timeout_secs': '7200',
             'io_timeout_secs': '3600',
         },
     }
