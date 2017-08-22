@@ -90,40 +90,44 @@ class _RunTestExecution(execution_module.Execution):
     self._isolate_hash = isolate_hash
     self._first_execution = first_execution
 
-    self._task_id = None
-    self._bot_id = None
+    self._task_ids = []
+    self._bot_ids = []
 
   @property
-  def bot_id(self):
-    return self._bot_id
+  def bot_ids(self):
+    return tuple(self._bot_ids)
 
   def _Poll(self):
-    if not self._task_id:
+    if not self._task_ids:
       self._StartTask()
       return
 
-    result = swarming_service.Task(self._task_id).Result()
+    isolate_hashes = []
+    for task_id in self._task_ids:
+      result = swarming_service.Task(task_id).Result()
 
-    if 'bot_id' in result:
-      # Set bot_id to pass the info back to the Quest.
-      self._bot_id = result['bot_id']
+      if 'bot_id' in result:
+        # Set bot_id to pass the info back to the Quest.
+        self._bot_ids.append(result['bot_id'])
 
-    if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
-      return
+      if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
+        return
 
-    if result['state'] != 'COMPLETED':
-      raise SwarmingTaskError(self._task_id, result['state'])
+      if result['state'] != 'COMPLETED':
+        raise SwarmingTaskError(task_id, result['state'])
 
-    if result['failure']:
-      raise SwarmingTestError(self._task_id, result['exit_code'])
+      if result['failure']:
+        raise SwarmingTestError(task_id, result['exit_code'])
 
-    result_arguments = {'isolate_hash': result['outputs_ref']['isolated']}
+      isolate_hashes.append(result['outputs_ref']['isolated'])
+
+    result_arguments = {'isolate_hashes': tuple(isolate_hashes)}
     self._Complete(result_arguments=result_arguments)
 
 
   def _StartTask(self):
     """Kick off a Swarming task to run a test."""
-    if self._first_execution and not self._first_execution._bot_id:
+    if self._first_execution and not self._first_execution.bot_ids:
       if self._first_execution.failed:
         # If the first Execution fails before it gets a bot ID, it's likely it
         # couldn't find any device to run on. Subsequent Executions probably
@@ -135,7 +139,11 @@ class _RunTestExecution(execution_module.Execution):
 
     dimensions = [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}]
     if self._first_execution:
-      dimensions.append({'key': 'id', 'value': self._first_execution.bot_id})
+      dimensions.append({
+          'key': 'id',
+          # TODO: Use all the bot ids.
+          'value': self._first_execution.bot_ids[0]
+      })
     else:
       dimensions += self._dimensions
 
@@ -154,4 +162,4 @@ class _RunTestExecution(execution_module.Execution):
     }
     response = swarming_service.Tasks().New(body)
 
-    self._task_id = response['task_id']
+    self._task_ids.append(response['task_id'])

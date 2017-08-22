@@ -108,7 +108,7 @@ class RunTestFullTest(_RunTestTest):
     self.assertFalse(execution.failed)
     self.assertEqual(execution.result_values, (None,))
     self.assertEqual(execution.result_arguments,
-                     {'isolate_hash': 'output isolate hash'})
+                     {'isolate_hashes': ('output isolate hash',)})
 
     # Start a second Execution to check bot_id handling. We get a bot_id from
     # Swarming from the first Execution and reuse it in subsequent Executions.

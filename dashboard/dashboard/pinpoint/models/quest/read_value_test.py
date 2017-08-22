@@ -23,7 +23,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -44,7 +44,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadChartJsonValue('metric', None)
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -68,7 +68,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertEqual(execution.result_values, (0, 0, 1, 1, 1))
@@ -86,7 +86,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertEqual(execution.result_values, tuple([0] * 4000 + [1] * 6000))
@@ -101,7 +101,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertEqual(execution.result_values, (2.5,))
@@ -117,7 +117,7 @@ class ReadGraphJsonValueTest(unittest.TestCase):
     )
 
     quest = read_value.ReadGraphJsonValue('chart', 'trace')
-    execution = quest.Start('output hash')
+    execution = quest.Start(('output hash',))
     execution.Poll()
 
     self.assertTrue(execution.completed)
