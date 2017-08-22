@@ -65,6 +65,17 @@ class Execution(object):
     assert self.completed
     return self._result_arguments
 
+  def AsDict(self):
+    d = {
+        'result_arguments': self.result_arguments if self.completed else {},
+        'result_values': self.result_values if self.completed else None,
+    }
+    d.update(self._AsDict())
+    return d
+
+  def _AsDict(self):
+    raise NotImplementedError()
+
   def Poll(self):
     """Update the Execution status."""
     assert not self.completed

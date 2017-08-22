@@ -97,6 +97,13 @@ class _RunTestExecution(execution_module.Execution):
   def bot_ids(self):
     return tuple(self._bot_ids)
 
+  def _AsDict(self):
+    return {
+        'bot_ids': self._bot_ids,
+        'task_ids': self._task_ids,
+        'input_isolate_hash': self._isolate_hash,
+    }
+
   def _Poll(self):
     if not self._task_ids:
       self._StartTask()

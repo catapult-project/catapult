@@ -52,6 +52,9 @@ class Attempt(object):
   def _last_execution(self):
     return self._executions[-1]
 
+  def AsDict(self):
+    return {'executions': [e.AsDict() for e in self._executions]}
+
   def ScheduleWork(self):
     """Run this Attempt and update its status."""
     assert not self.completed

@@ -45,6 +45,11 @@ class _FindIsolateExecution(execution.Execution):
     self._change = change
     self._build = None
 
+  def _AsDict(self):
+    return {
+        'build': self._build,
+    }
+
   def _Poll(self):
     # Look for the .isolate in our cache.
     try:
@@ -53,7 +58,8 @@ class _FindIsolateExecution(execution.Execution):
       isolate_hash = None
 
     if isolate_hash:
-      self._Complete(result_arguments={'isolate_hash': isolate_hash})
+      self._Complete(
+          result_arguments={'isolate_hash': isolate_hash})
       return
 
     # Check the status of a previously requested build.

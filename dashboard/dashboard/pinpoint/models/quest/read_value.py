@@ -36,6 +36,11 @@ class _ReadChartJsonValueExecution(execution.Execution):
     self._test = test or 'summary'
     self._isolate_hashes = isolate_hashes
 
+  def _AsDict(self):
+    return {
+        'isolate_hash': self._isolate_hash
+    }
+
   def _Poll(self):
     result_values = []
 
@@ -96,6 +101,11 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     self._chart = chart
     self._trace = trace
     self._isolate_hashes = isolate_hashes
+
+  def _AsDict(self):
+    return {
+        'isolate_hash': self._isolate_hash
+    }
 
   def _Poll(self):
     result_values = []

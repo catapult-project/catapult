@@ -66,6 +66,13 @@ class IsolateLookupTest(_FindIsolateTest):
 
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_arguments, {'isolate_hash': '7c7e90be'})
+    self.assertEqual(
+        {
+            'build': None,
+            'result_arguments': {'isolate_hash': u'7c7e90be'},
+            'result_values': (None,)
+        },
+        execution.AsDict())
 
 
 class BuilderLookupTest(_FindIsolateTest):

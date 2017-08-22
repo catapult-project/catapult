@@ -270,11 +270,16 @@ class _JobState(object):
 
       result_values.append(change_result_values)
 
+    attempts = []
+    for c in self._changes:
+      attempts.append([a.AsDict() for a in self._attempts[c]])
+
     return {
         'quests': map(str, self._quests),
         'changes': [change.AsDict() for change in self._changes],
         'comparisons': comparisons,
         'result_values': result_values,
+        'attempts': attempts,
     }
 
   def _Compare(self, change_a, change_b):
