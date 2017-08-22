@@ -44,7 +44,7 @@ def RunMetricOnTraces(filenames, metrics,
   job = _GetMetricRunnerHandle(metrics)
   with open(os.devnull, 'w') as devnull_f:
     o_stream = sys.stdout
-    if report_progress:
+    if not report_progress:
       o_stream = devnull_f
 
     runner = map_runner.MapRunner(
