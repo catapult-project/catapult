@@ -1252,6 +1252,22 @@ class StoryRunnerTest(unittest.TestCase):
     options.run_disabled_tests = False
     return options
 
+  def testRunBenchmarkDisabledBenchmarkViaCanRunonPlatform(self):
+    fake_benchmark = FakeBenchmark()
+    fake_benchmark.SUPPORTED_PLATFORMS = []
+    options = self._GenerateBaseBrowserFinderOptions()
+    tmp_path = tempfile.mkdtemp()
+    try:
+      options.output_dir = tmp_path
+      story_runner.RunBenchmark(fake_benchmark, options)
+      with open(os.path.join(tmp_path, 'results-chart.json')) as f:
+        data = json.load(f)
+      self.assertFalse(data['enabled'])
+    finally:
+      shutil.rmtree(tmp_path)
+
+  # TODO(rnephew): Refactor this test when we no longer use
+  # expectations.PermanentlyDisableBenchmark() to disable benchmarks.
   def testRunBenchmarkDisabledBenchmark(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True
@@ -1266,6 +1282,8 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(tmp_path)
 
+  # TODO(rnephew): Refactor this test when we no longer use
+  # expectations.PermanentlyDisableBenchmark() to disable benchmarks.
   def testRunBenchmarkDisabledBenchmarkCannotOverriddenByCommandLine(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True

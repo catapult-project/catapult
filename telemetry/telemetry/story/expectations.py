@@ -135,6 +135,9 @@ class StoryExpectations(object):
     return None
 
 
+# TODO(rnephew): Since TestConditions are being used for more than
+# just story expectations now, this should be decoupled and refactored
+# to be clearer.
 class _TestCondition(object):
   def ShouldDisable(self, platform, finder_options):
     raise NotImplementedError

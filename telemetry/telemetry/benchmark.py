@@ -63,6 +63,7 @@ class Benchmark(command_line.Command):
   options = {}
   page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
+  SUPPORTED_PLATFORMS = [expectations.ALL]
 
   def __init__(self, max_failures=None):
     """Creates a new Benchmark.
@@ -81,6 +82,16 @@ class Benchmark(command_line.Command):
     #   Benchmark.test set.
     # See https://github.com/catapult-project/catapult/issues/3708
 
+
+  def _CanRunOnPlatform(self, platform, finder_options):
+    for p in self.SUPPORTED_PLATFORMS:
+      # This is reusing StoryExpectation code, so it is a bit unintuitive. We
+      # are trying to detect the opposite of the usual case in StoryExpectations
+      # so we want to return True when ShouldDisable returns true, even though
+      # we do not want to disable.
+      if p.ShouldDisable(platform, finder_options):
+        return True
+    return False
 
   # pylint: disable=unused-argument
   @classmethod

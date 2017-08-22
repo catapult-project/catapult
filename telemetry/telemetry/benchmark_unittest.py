@@ -289,3 +289,20 @@ class BenchmarkTest(unittest.TestCase):
     self.assertEqual(
         ['string', 'foo', 'stuff', 'bar'],
         tbm._tbm_options.config.atrace_config.categories)
+
+  def testCanRunOnPlatformReturnTrue(self):
+    b = TestBenchmark(story_module.Story(
+        name='test name',
+        shared_state_class=shared_page_state.SharedPageState))
+    # We can pass None for both arguments because it defaults to ALL for
+    # supported platforms, which always returns true.
+    self.assertTrue(b._CanRunOnPlatform(None, None))
+
+  def testCanRunOnPlatformReturnFalse(self):
+    b = TestBenchmark(story_module.Story(
+        name='test name',
+        shared_state_class=shared_page_state.SharedPageState))
+    b.SUPPORTED_PLATFORMS = []
+    # We can pass None for both arguments because we select no platforms as
+    # supported, which always returns false.
+    self.assertFalse(b._CanRunOnPlatform(None, None))
