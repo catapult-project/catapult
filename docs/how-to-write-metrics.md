@@ -202,6 +202,71 @@ histogram.addSample(number, {name: diagnostic})
    HistogramDiagnostic that supports merging.
 
 
+### Reserved Names
+
+Metrics may not use the following names for Histogram-level Diagnostics.
+
+ * angleRevisions is a GenericSet of strings containing
+   [Angle](https://chromium.googlesource.com/angle/angle/) git hashes.
+ * architectures is a GenericSet of strings containing [CPU
+   architectures](https://en.wikipedia.org/wiki/List_of_CPU_architectures).
+ * benchmarks is a GenericSet of strings containing Telemetry benchmark names.
+ * benchmarkStart is a DateRange containing timestamps of Telemetry benchmark
+   runs.
+ * bots is a GenericSet of strings containing bot hostnames.
+ * bugComponents is a GenericSet of strings containing [Monorail
+   components](https://bugs.chromium.org/p/chromium/issues/advsearch).
+ * builds is a GenericSet of numbers containing Chromium build numbers.
+ * catapultRevisions is a GenericSet of strings containing
+   [Catapult](https://github.com/catapult-project/catapult) git hashes.
+ * chromiumCommitPositions is a GenericSet of numbers containing Chromium commit
+   positions.
+ * chromiumRevisions is a GenericSet of strings containing
+   [Chromium](https://chromium.googlesource.com/chromium/src/) git hashes.
+ * gpus is a GenericSet of objects containing metadata about GPUs.
+ * groupingPath is an implementation detail of merging Histograms.
+ * labels is a GenericSet of strings containing [user-defined
+   labels](https://github.com/catapult-project/catapult/blob/b0f1e24d4686b3ce46667c0124a186e414fbd006/telemetry/telemetry/internal/results/results_options.py#L82)
+   for Telemetry results.
+ * logUrls is a GenericSet of strings containing URLs pointing to human-readable
+   logs.
+ * masters is a GenericSet of strings containing bot master hostnames.
+ * memoryAmounts is a GenericSet of numbers containing the total amount of RAM
+   in the device that recorded the Chromium trace.
+ * mergedFrom is an implementation detail of merging Histograms.
+ * mergedTo is an implementation detail of merging Histograms.
+ * osNames is a GenericSet of strings containing names of OSs like 'linux' and
+   'mac'.
+ * osVersions is a GenericSet of strings containing OS versions.
+ * owners is a GenericSet of strings containing email addresses of owners of
+   Telemetry benchmarks.
+ * productVersions is a GenericSet of strings containing Chromium product
+   versions like '60.0.9999.0'.
+ * relatedNames is a GenericSet of strings containing names of related
+   Histograms.
+ * skiaRevisions is a GenericSet of strings containing
+   [Skia](https://chromium.googlesource.com/skia/) git hashes.
+ * stories is a GenericSet of strings containing Telemetry story names.
+ * storysetRepeats is a GenericSet of numbers containing Telemetry storyset
+   repetition counters.
+ * storyTags is a GenericSet of strings containing Telemetry story tags.
+ * tagmap maps from Telemetry story tags to story names.
+ * traceStart is a DateRange containing timestamps of Chromium traces.
+ * traceUrls is a GenericSet of strings containing URLs pointing to Chromium
+   traces.
+ * v8CommitPositions is a GenericSet of numbers containing V8 commit positions.
+ * v8Revisions is a GenericSet of strings containing
+   [V8](https://chromium.googlesource.com/v8/v8/) git hashes.
+ * webrtcRevisions is a GenericSet of strings containing
+   [webrtc](https://chromium.googlesource.com/external/webrtc/) git hashes.
+
+Consumers of metrics results generally cannot rely on the presence or absence of
+any of these metadata diagnostics.
+Consumers can rely on the presence of Telemetry metadata for results produced by
+Telemetry.
+If present, they may contain a single value or multiple values.
+
+
 ## Consumers of Histograms
 
 Histograms are consumed by
