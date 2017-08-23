@@ -329,6 +329,54 @@ class TestConditionTest(unittest.TestCase):
         expectations.MAC_10_12.ShouldDisable(self._platform,
                                              self._finder_options))
 
+  def testNexus5XWebviewFalseOnNotWebview(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android'
+    self._platform.SetDeviceTypeName('Nexus 5X')
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5X_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testNexus5XWebviewFalseOnNotNexus5X(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('Nexus 5')
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5X_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testNexus5XWebviewReturnsTrue(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('Nexus 5X')
+    self.assertTrue(
+        expectations.ANDROID_NEXUS5X_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testNexus6WebviewFalseOnNotWebview(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android'
+    self._platform.SetDeviceTypeName('Nexus 6')
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testNexus6WebviewFalseOnNotNexus6(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('Nexus 5X')
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testNexus6WebviewReturnsTrue(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('Nexus 6')
+    self.assertTrue(
+        expectations.ANDROID_NEXUS6_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
 
 class StoryExpectationsTest(unittest.TestCase):
   def setUp(self):

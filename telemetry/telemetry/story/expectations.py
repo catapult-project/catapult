@@ -219,6 +219,20 @@ class _TestConditionByMacVersion(_TestCondition):
       return False
     return platform.GetOSVersionDetailString().startswith(self._version)
 
+
+class _TestConditionLogicalAndConditions(_TestCondition):
+  def __init__(self, conditions, name):
+    self._conditions = conditions
+    self._name = name
+
+  def __str__(self):
+    return self._name
+
+  def ShouldDisable(self, platform, finder_options):
+    return all(
+        c.ShouldDisable(platform, finder_options) for c in self._conditions)
+
+
 ALL = _AllTestCondition()
 ALL_MAC = _TestConditionByPlatformList(['mac'], 'Mac Platforms')
 ALL_WIN = _TestConditionByPlatformList(['win'], 'Win Platforms')
@@ -243,3 +257,8 @@ MAC_10_11 = _TestConditionByMacVersion('10.11', 'Mac 10.11')
 # Mac 10_12 Includes:
 #   Mac 10.12 Perf, Mac Mini 8GB 10.12 Perf
 MAC_10_12 = _TestConditionByMacVersion('10.12', 'Mac 10.12')
+
+ANDROID_NEXUS6_WEBVIEW = _TestConditionLogicalAndConditions(
+    [ANDROID_NEXUS6, ANDROID_WEBVIEW], 'Nexus6 Webview')
+ANDROID_NEXUS5X_WEBVIEW = _TestConditionLogicalAndConditions(
+    [ANDROID_NEXUS5X, ANDROID_WEBVIEW], 'Nexus5X Webview')
