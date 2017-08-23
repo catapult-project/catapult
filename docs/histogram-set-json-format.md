@@ -132,7 +132,6 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
  * `TelemetryInfo`
- * `BuildbotInfo`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared, so it may be
@@ -156,18 +155,6 @@ to compare or merge results across similar telemetry story runs.
  * `storyDisplayName`: string
  * `storyGroupingKeys`: dictionary mapping from strings to strings
  * `storysetRepeatCounter`: number
-
-### BuildbotInfo
-
-This tracks buildbot parameters when the Histogram was produced to allow users
-to compare or merge results across similar bots.
-
- * `displayMasterName`: string
- * `displayBotName`: string
- * `buildbotMasterName`: string
- * `buildbotName`: string
- * `buildNumber`: number
- * `logUri`: string
 
 ### GenericSet
 

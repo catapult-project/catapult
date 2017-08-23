@@ -635,69 +635,6 @@ class TagMapUnittest(unittest.TestCase):
         set(['story3', 'story4', 'story5']))
 
 
-class BuildbotInfoUnittest(unittest.TestCase):
-  def testRoundtrip(self):
-    info = histogram.BuildbotInfo({
-        'displayMasterName': 'dmn',
-        'displayBotName': 'dbn',
-        'buildbotMasterName': 'bbmn',
-        'buildbotName': 'bbn',
-        'buildNumber': 42,
-        'logUri': 'uri',
-    })
-    d = info.AsDict()
-    clone = diagnostic.Diagnostic.FromDict(d)
-    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
-    self.assertEqual(clone.display_master_name, 'dmn')
-    self.assertEqual(clone.display_bot_name, 'dbn')
-    self.assertEqual(clone.buildbot_master_name, 'bbmn')
-    self.assertEqual(clone.buildbot_name, 'bbn')
-    self.assertEqual(clone.build_number, 42)
-    self.assertEqual(clone.log_uri, 'uri')
-
-  def testEquality(self):
-    info0 = histogram.BuildbotInfo({
-        'displayMasterName': 'dmn',
-        'displayBotName': 'dbn',
-        'buildbotMasterName': 'bbmn',
-        'buildbotName': 'bbn',
-        'buildNumber': 42,
-        'logUri': 'uri',
-        'guid': 'abc'
-    })
-    info1 = histogram.BuildbotInfo({
-        'displayMasterName': 'dmn',
-        'displayBotName': 'dbn',
-        'buildbotMasterName': 'bbmn',
-        'buildbotName': 'bbn',
-        'buildNumber': 42,
-        'logUri': 'uri',
-        'guid': 'def'
-    })
-    self.assertEqual(info0, info1)
-
-  def testInequality(self):
-    info0 = histogram.BuildbotInfo({
-        'displayMasterName': 'dmn0',
-        'displayBotName': 'dbn',
-        'buildbotMasterName': 'bbmn',
-        'buildbotName': 'bbn',
-        'buildNumber': 42,
-        'logUri': 'uri',
-        'guid': 'abc'
-    })
-    info1 = histogram.BuildbotInfo({
-        'displayMasterName': 'dmn1',
-        'displayBotName': 'dbn',
-        'buildbotMasterName': 'bbmn',
-        'buildbotName': 'bbn',
-        'buildNumber': 42,
-        'logUri': 'uri',
-        'guid': 'def'
-    })
-    self.assertNotEqual(info0, info1)
-
-
 class TelemetryInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
     info = histogram.TelemetryInfo()

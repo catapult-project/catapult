@@ -616,72 +616,6 @@ class TagMap(diagnostic.Diagnostic):
         self.tags_to_story_names[name].add(t)
 
 
-class BuildbotInfo(diagnostic.Diagnostic):
-
-  def __init__(self, info):
-    super(BuildbotInfo, self).__init__()
-    self._display_master_name = info.get('displayMasterName', '')
-    self._display_bot_name = info.get('displayBotName', '')
-    self._buildbot_master_name = info.get('buildbotMasterName', '')
-    self._buildbot_name = info.get('buildbotName', '')
-    self._build_number = info.get('buildNumber', 0)
-    self._log_uri = info.get('logUri', '')
-
-  def __eq__(self, other):
-    if self.display_master_name != other.display_master_name:
-      return False
-    if self.display_bot_name != other.display_bot_name:
-      return False
-    if self.buildbot_master_name != other.buildbot_master_name:
-      return False
-    if self.buildbot_name != other.buildbot_name:
-      return False
-    if self.build_number != other.build_number:
-      return False
-    if self.log_uri != other.log_uri:
-      return False
-    return True
-
-  def __ne__(self, other):
-    return not self == other
-
-  def _AsDictInto(self, d):
-    d['displayMasterName'] = self.display_master_name
-    d['displayBotName'] = self.display_bot_name
-    d['buildbotMasterName'] = self.buildbot_master_name
-    d['buildbotName'] = self.buildbot_name
-    d['buildNumber'] = self.build_number
-    d['logUri'] = self.log_uri
-
-  @staticmethod
-  def FromDict(d):
-    return BuildbotInfo(d)
-
-  @property
-  def display_master_name(self):
-    return self._display_master_name
-
-  @property
-  def display_bot_name(self):
-    return self._display_bot_name
-
-  @property
-  def buildbot_master_name(self):
-    return self._buildbot_master_name
-
-  @property
-  def buildbot_name(self):
-    return self._buildbot_name
-
-  @property
-  def build_number(self):
-    return self._build_number
-
-  @property
-  def log_uri(self):
-    return self._log_uri
-
-
 # TODO(benjhayden): Unify this with telemetry's IterationInfo.
 class TelemetryInfo(diagnostic.Diagnostic):
 
@@ -1542,7 +1476,6 @@ all_diagnostics.DIAGNOSTICS_BY_NAME.update({
     'GenericSet': GenericSet,
     'UnmergeableDiagnosticSet': UnmergeableDiagnosticSet,
     'RelatedEventSet': RelatedEventSet,
-    'BuildbotInfo': BuildbotInfo,
     'DateRange': DateRange,
     'TagMap': TagMap,
     'RelatedHistogramBreakdown': RelatedHistogramBreakdown,

@@ -181,14 +181,6 @@ histogram.addSample(number, {name: diagnostic})
 
    ![](/docs/images/how-to-write-metrics-telemetry.png)
 
- * [BuildbotInfo](/tracing/tracing/value/diagnostics/buildbot_info.html):
-   This is automatically attached to every Histogram produced by Chrome's
-   performance testing buildbots. Structurally, it's a class with explicit named
-   fields. Conceptually, it contains information about the buildbot process that
-   ran telemetry. Visually, it is displayed as a table.
-
-   ![](/docs/images/how-to-write-metrics-buildbot.png)
-
 ### Other Diagnostics
 
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):

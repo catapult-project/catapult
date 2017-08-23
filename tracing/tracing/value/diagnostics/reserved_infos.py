@@ -52,7 +52,6 @@ V8_REVISIONS = _Info('v8Revisions', 'GenericSet')
 WEBRTC_REVISIONS = _Info('webrtcRevisions', 'GenericSet')
 
 # DEPRECATED https://github.com/catapult-project/catapult/issues/3507
-BUILDBOT = _Info('buildbot')  # BuildbotInfo or MergedBuildbotInfo
 INTERACTION_RECORD = _Info('tir', 'GenericSet')
 ITERATION = _Info('iteration')  # Legacy name for TELEMETRY
 TELEMETRY = _Info('telemetry')  # TelemetryInfo or MergedTelemetryInfo
