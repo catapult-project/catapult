@@ -330,7 +330,7 @@ The columns will contain
  * Histogram name and units
  * summary statistics as configured by the metrics that produced the Histograms
    (avg, stddev, min, max, etc.),
- * TelemetryInfo fields (benchmarkName, storyName, etc.).
+ * HistogramGrouping values.
 
 ![Download leaf Histograms as CSV.
 ](/docs/images/metrics-results-ui-download-csv.png)

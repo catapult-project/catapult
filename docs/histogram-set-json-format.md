@@ -21,7 +21,7 @@ dictionary represents either a Histogram or a Diagnostic.
     "shortName": "my metric",
     "description": "this is my awesome amazing metric",
     "diagnostics": {
-      "telemetry": "923e4567-e89b-12d3-a456-426655440000",
+      "stories": "923e4567-e89b-12d3-a456-426655440000",
     },
     "sampleValues": [0, 1, 42, -999999999.99999, null],
     "maxNumSampleValues": 1000,
@@ -50,13 +50,8 @@ dictionary represents either a Histogram or a Diagnostic.
   },
   {
     "guid": "923e4567-e89b-12d3-a456-426655440000",
-    "type": "TelemetryInfo",
-    "benchmarkName": "memory",
-    "benchmarkStartMs": 1234567890,
-    "label": "abc",
-    "storyDisplayName": "my story",
-    "storyGroupingKeys": {"state": "pre"},
-    "storysetRepeatCounter": 0,
+    "type": "GenericSet",
+    "values": ["browse:news:cnn"],
   },
 ]
 ```
@@ -131,7 +126,6 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `Breakdown`
  * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
- * `TelemetryInfo`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared, so it may be
@@ -142,19 +136,6 @@ If a Diagnostic is contained in a Histogram, then it must not have a `guid`
 field.
 
 The other fields of Diagnostic dictionaries depend on `type`.
-
-### TelemetryInfo
-
-This tracks telemetry parameters when the Histogram was produced to allow users
-to compare or merge results across similar telemetry story runs.
-
- * `benchmarkName`: string
- * `benchmarkStartMs`: number of ms since unix epoch
- * `label`: string
- * `legacyTIRLabel`: string
- * `storyDisplayName`: string
- * `storyGroupingKeys`: dictionary mapping from strings to strings
- * `storysetRepeatCounter`: number
 
 ### GenericSet
 

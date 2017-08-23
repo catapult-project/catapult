@@ -51,11 +51,6 @@ tr.exportTo('tr.v.d', function() {
     V8_COMMIT_POSITIONS: {name: 'v8CommitPositions', type: tr.v.d.DateRange},
     V8_REVISIONS: {name: 'v8Revisions', type: tr.v.d.GenericSet},
     WEBRTC_REVISIONS: {name: 'webrtcRevisions', type: tr.v.d.GenericSet},
-
-    // DEPRECATED https://github.com/catapult-project/catapult/issues/3507
-    INTERACTION_RECORD: {name: 'tir', type: tr.v.d.GenericSet},
-    ITERATION: {name: 'iteration'},  // Legacy name for TELEMETRY
-    TELEMETRY: {name: 'telemetry'},  // TelemetryInfo or MergedTelemetryInfo
   };
 
   const RESERVED_NAMES = {};

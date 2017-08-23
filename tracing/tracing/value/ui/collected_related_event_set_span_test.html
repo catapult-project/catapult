@@ -42,14 +42,6 @@ tr.b.unittest.testSuite(function() {
     aHist.diagnostics.set('events', new tr.v.d.RelatedEventSet(aSlice));
     bHist.diagnostics.set('events', new tr.v.d.RelatedEventSet(bSlice));
 
-    new tr.v.d.TelemetryInfo({
-      canonicalUrl: 'http://a',
-    }).addToHistogram(aHist);
-
-    new tr.v.d.TelemetryInfo({
-      canonicalUrl: 'http://b',
-    }).addToHistogram(bHist);
-
     let mergedHist = aHist.clone();
     mergedHist.addHistogram(bHist);
     mergedHist = tr.v.Histogram.fromDict(mergedHist.asDict());

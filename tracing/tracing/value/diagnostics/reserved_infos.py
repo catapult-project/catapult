@@ -51,11 +51,6 @@ V8_COMMIT_POSITIONS = _Info('v8CommitPositions', 'DateRange')
 V8_REVISIONS = _Info('v8Revisions', 'GenericSet')
 WEBRTC_REVISIONS = _Info('webrtcRevisions', 'GenericSet')
 
-# DEPRECATED https://github.com/catapult-project/catapult/issues/3507
-INTERACTION_RECORD = _Info('tir', 'GenericSet')
-ITERATION = _Info('iteration')  # Legacy name for TELEMETRY
-TELEMETRY = _Info('telemetry')  # TelemetryInfo or MergedTelemetryInfo
-
 def GetTypeForName(name):
   for info in globals().itervalues():
     if isinstance(info, _Info) and info.name == name:

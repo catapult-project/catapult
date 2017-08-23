@@ -60,7 +60,7 @@ class HistogramSetUnittest(unittest.TestCase):
 
   def testGetSharedDiagnosticsOfType(self):
     d0 = histogram.GenericSet(['foo'])
-    d1 = histogram.TelemetryInfo()
+    d1 = histogram.DateRange(0)
     hs = histogram_set.HistogramSet()
     hs.AddSharedDiagnostic('generic', d0)
     hs.AddSharedDiagnostic('generic', d1)

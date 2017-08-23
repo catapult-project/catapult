@@ -425,8 +425,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
     results.CleanUp()
     results.histograms.AddSharedDiagnostic(
-        reserved_infos.TELEMETRY.name,
-        histogram_module.TelemetryInfo())
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark_name']))
 
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
@@ -436,7 +436,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals(1, len(histogram_dicts))
 
     diag = diagnostic.Diagnostic.FromDict(histogram_dicts[0])
-    self.assertIsInstance(diag, histogram_module.TelemetryInfo)
+    self.assertIsInstance(diag, histogram_module.GenericSet)
 
   def testPopulateHistogramSet_UsesScalarValueData(self):
     results = page_test_results.PageTestResults()
@@ -459,14 +459,14 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals('a', h.name)
 
   def testPopulateHistogramSet_UsesHistogramSetData(self):
-    original_diagnostic = histogram_module.TelemetryInfo()
+    original_diagnostic = histogram_module.GenericSet(['benchmark_name'])
 
     results = page_test_results.PageTestResults()
     results.telemetry_info.benchmark_start_epoch = 1501773200
     results.WillRunPage(self.pages[0])
     results.histograms.AddHistogram(histogram_module.Histogram('foo', 'count'))
     results.histograms.AddSharedDiagnostic(
-        reserved_infos.TELEMETRY.name, original_diagnostic)
+        reserved_infos.BENCHMARKS.name, original_diagnostic)
     results.DidRunPage(self.pages[0])
     results.CleanUp()
 
@@ -481,7 +481,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     hs.ImportDicts(histogram_dicts)
 
     diag = hs.LookupDiagnostic(original_diagnostic.guid)
-    self.assertIsInstance(diag, histogram_module.TelemetryInfo)
+    self.assertIsInstance(diag, histogram_module.GenericSet)
 
 
 class PageTestResultsFilterTest(unittest.TestCase):

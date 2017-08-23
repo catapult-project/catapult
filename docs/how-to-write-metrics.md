@@ -169,17 +169,6 @@ histogram.addSample(number, {name: diagnostic})
 
    ![](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
 
-### Environment Information Diagnostics
-
- * [TelemetryInfo](/tracing/tracing/value/diagnostics/telemetry_info.html):
-   This is automatically attached to every Histogram produced by telemetry.
-   Structurally, it's a class with explicit named fields.
-   Conceptually, it contains information about the origins of the trace that was
-   consumed by the metric that produced the Histogram, such as the benchmark
-   name, story name, benchmark start timestamp, etc.
-   Visually, TelemetryInfos are displayed as a table.
-
-   ![](/docs/images/how-to-write-metrics-telemetry.png)
 
 ### Other Diagnostics
 
@@ -289,18 +278,18 @@ default options are as follows:
      metric would call `histogram.customizeSummaryOptions({percentile: [0.5]})`.
 
 
-## How histogram-set-table Uses Merging and TelemetryInfo
+## How histogram-set-table Uses Merging
 
-The histogram-set-table element uses the fields of TelemetryInfo, along with the
-merging capabilities of Histograms, to allow dynamic, hierarchical
-organization of histograms:
+The histogram-set-table element uses the predefined
+[HistogramGroupings](/tracing/tracing/value/histogram_set.html), along with the
+merging capabilities of Histograms, to allow dynamic, hierarchical organization
+of histograms:
 
-* TelemetryInfo has mostly string/number (story name, story/set repeat count,
-  etc.) fields and one dict field that specifies the names of any story grouping
-  keys together with their histogram.
+* Predefined HistogramGroupings specify how to find the benchmark, story, etc.
+  that produced the Histogram.
 * After loading histograms, histogram-set-table computes categories to be
   displayed by the groupby picker at the top of the UI:
-  * Categories are fields of TelemetryInfo that have more than one value across
+  * Categories are HistogramGroupings that have more than one value across
     all histograms in the HistogramSet.
   * Instead of having one category for all story grouping keys, each grouping
     individual grouping key may be listed as a category. For example, in Page
@@ -310,5 +299,5 @@ organization of histograms:
   histograms from the bottom up. Expanding the rows of histogram-set-table, any
   leaf nodes are histograms that were loaded, and their ancestors are computed by
   merging.
-* histogram-set-table uses the "label" property of TelemetryInfo to define the
-  columns of the table.
+* histogram-set-table uses the "label" HistogramGrouping to define the columns
+  of the table.
