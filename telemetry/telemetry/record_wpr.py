@@ -240,6 +240,8 @@ class WprRecorder(object):
              'explicitly is no longer necessary. Please file crbug against '
              'xunjeli@ & nednguyen@ if you encounter issue with recording.')
 
+    # Always record the benchmark one time only.
+    self._options.pageset_repeat = 1
     self._story_set.wpr_archive_info.is_using_wpr_go_archives = True
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
