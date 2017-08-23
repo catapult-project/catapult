@@ -46,8 +46,7 @@ _PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
 
 # Remove a channal name from this list to disable updating it.
 # Add one to enable updating it.
-_CHANNELS_TO_UPDATE = [#'canary', 'dev']#,
-    'stable']
+_CHANNELS_TO_UPDATE = ['canary', 'dev', 'stable']
 
 
 # Omaha is Chrome's autoupdate server. It reports the current versions used
@@ -77,8 +76,8 @@ _PLATFORM_MAP = { 'mac_x86_64': UpdateInfo(omaha='mac',
                                           zip_name='chrome-win64-pgo.zip'),
                   'linux_x86_64': UpdateInfo(omaha='linux',
                                              gs_folder='desktop-*',
-                                             gs_build='precise64',
-                                             zip_name='chrome-precise64.zip'),
+                                             gs_build='linux64',
+                                             zip_name='chrome-linux64.zip'),
                   'android_k_armeabi-v7a': UpdateInfo(omaha='android',
                                                       gs_folder='android-*',
                                                       gs_build='arm',
