@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 
@@ -19,20 +21,39 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
-  test('strings', function() {
+  test('strings', async function() {
     const diagnostic = new tr.v.d.GenericSet([
       'foo', 'bar', 1, 0, Infinity, NaN,
     ]);
     const span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
+    await tr.b.animationFrame();
+    assert.lengthOf(tr.ui.b.findDeepElementsMatchingPredicate(
+        span, e => e.tagName === 'DIV' && e.id === ''), diagnostic.size);
   });
 
-  test('numbers', function() {
+  test('numbers', async function() {
     const diagnostic = new tr.v.d.GenericSet([10, 1, 0, 2, 11]);
     const span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
+    await tr.b.animationFrame();
+    assert.lengthOf(tr.ui.b.findDeepElementsMatchingPredicate(
+        span, e => e.tagName === 'DIV' && e.id === ''), diagnostic.size);
+  });
+
+  test('urls', async function() {
+    const diagnostic = new tr.v.d.GenericSet([
+      'http://cnn.com/',
+      'http://google.com/',
+    ]);
+    const span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+    await tr.b.animationFrame();
+    assert.lengthOf(tr.ui.b.findDeepElementsMatching(span, 'a'),
+        diagnostic.size);
   });
 });
 </script>
