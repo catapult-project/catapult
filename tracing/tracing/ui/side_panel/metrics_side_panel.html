@@ -63,6 +63,8 @@ tr.exportTo('tr.ui', function() {
             });
           }, this);
 
+      this.metrics_.sort((x, y) => x.label.localeCompare(y.label));
+
       this.settingsKey_ = 'metrics-side-panel-metric-name';
       this.currentMetricName_ = 'responsivenessMetric';
       const metricSelector = tr.ui.b.createSelector(
