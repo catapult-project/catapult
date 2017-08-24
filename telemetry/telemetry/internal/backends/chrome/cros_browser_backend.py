@@ -221,6 +221,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     self._cri = None
 
+  def WaitForBrowserToComeUp(self):
+    """If a restart is triggered, wait for the browser to come up, and reconnect
+    to devtools.
+    """
+    self._WaitForBrowserToComeUp()
+
   def IsBrowserRunning(self):
     if not self._cri:
       return False
