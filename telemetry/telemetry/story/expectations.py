@@ -11,7 +11,7 @@ class StoryExpectations(object):
   Example Usage:
   class FooBenchmarkExpectations(expectations.StoryExpectations):
     def SetExpectations(self):
-      self.PermanentlyDisableBenchmark(
+      self.DisableBenchmark(
           [expectations.ALL_MOBILE], 'Desktop Benchmark')
       self.DisableStory('story_name1', [expectations.ALL_MAC], 'crbug.com/456')
       self.DisableStory('story_name2', [expectations.ALL], 'crbug.com/789')
@@ -47,8 +47,8 @@ class StoryExpectations(object):
   def disabled_platforms(self):
     return self._disabled_platforms
 
-  def PermanentlyDisableBenchmark(self, conditions, reason):
-    """Permanently Disable benchmark under the given conditions.
+  def DisableBenchmark(self, conditions, reason):
+    """Temporarily disable failing benchmarks under the given conditions.
 
     This means that even if --also-run-disabled-tests is passed, the benchmark
     will not run. Some benchmarks (such as system_health.mobile_* benchmarks)
@@ -56,7 +56,7 @@ class StoryExpectations(object):
     platforms under any condition.
 
     Example:
-      PermanentlyDisableBenchmark(
+      DisableBenchmark(
           [expectations.ALL_MOBILE], 'Desktop benchmark')
 
     Args:
@@ -70,6 +70,10 @@ class StoryExpectations(object):
       assert isinstance(condition, _TestCondition)
 
     self._disabled_platforms.append((conditions, reason))
+
+  # TODO(rnephew): Remove this when all chromium instances are moved to
+  # DisableBenchmark.
+  PermanentlyDisableBenchmark = DisableBenchmark
 
   def IsBenchmarkDisabled(self, platform, finder_options):
     """Returns the reason the benchmark was disabled, or None if not disabled.

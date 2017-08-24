@@ -386,15 +386,14 @@ class StoryExpectationsTest(unittest.TestCase):
   def testCantDisableAfterInit(self):
     e = expectations.StoryExpectations()
     with self.assertRaises(AssertionError):
-      e.PermanentlyDisableBenchmark(['test'], 'test')
+      e.DisableBenchmark(['test'], 'test')
     with self.assertRaises(AssertionError):
       e.DisableStory('story', ['platform'], 'reason')
 
-  def testPermanentlyDisableBenchmark(self):
+  def testDisableBenchmark(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
-        self.PermanentlyDisableBenchmark(
-            [expectations.ALL_WIN], 'crbug.com/123')
+        self.DisableBenchmark([expectations.ALL_WIN], 'crbug.com/123')
 
     e = FooExpectations()
     self.platform.SetOSName('win')
