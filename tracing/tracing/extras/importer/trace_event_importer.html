@@ -1144,6 +1144,10 @@ tr.exportTo('tr.e.importer', function() {
         }
       }
 
+      // Import calls importEvents then autoCloseOpenSlices then finalizeImport.
+      // AsyncSlices must be created in importEvents so they can be auto-closed.
+      this.createAsyncSlices_();
+
       this.processV8Events();
 
       // Remove all the root stack frame children as they should
@@ -1482,7 +1486,6 @@ tr.exportTo('tr.e.importer', function() {
         this.model_.kernel.softwareMeasuredCpuCount =
             this.softwareMeasuredCpuCount_;
       }
-      this.createAsyncSlices_();
       this.createFlowSlices_();
       this.createExplicitObjects_();
       this.createImplicitObjects_();
@@ -1663,6 +1666,122 @@ tr.exportTo('tr.e.importer', function() {
       this.createNestableAsyncSlices_(nestableAsyncEventsByKey);
     },
 
+    createLegacyAsyncSlice_(events) {
+      const asyncEventState = events[events.length - 1];
+      const event = asyncEventState.event;
+      const name = event.name;
+      const id = TraceEventImporter.scopedIdForEvent_(event);
+      const key = id.toStringWithDelimiter(':');
+      const asyncSliceConstructor = tr.model.AsyncSlice.subTypes.getConstructor(
+          events[0].event.cat, name);
+      let duration;
+      if (event.ts !== undefined) {
+        duration = this.toModelTimeFromUs_(event.ts - events[0].event.ts);
+      }
+      const slice = new asyncSliceConstructor(
+          events[0].event.cat,
+          name,
+          getEventColor(events[0].event),
+          this.toModelTimeFromUs_(events[0].event.ts),
+          Object.assign({}, events[0].event.args, event.args),
+          duration || 0,
+          true,
+          undefined,
+          undefined,
+          events[0].event.argsStripped);
+      if (duration === undefined) {
+        slice.didNotFinish = true;
+        slice.error = 'Slice has no matching END. End time has been adjusted.';
+        // End time will be adjusted by AsyncSliceGroup.autoCloseOpenSlices().
+        this.model_.importWarning({
+          type: 'async_slice_parse_error',
+          message: 'Legacy async BEGIN event at ' +
+            events[0].event.ts + ' with name="' +
+            name + '" and id=' + key + ' was unmatched.'
+        });
+      }
+      slice.startThread = events[0].thread;
+      slice.endThread = asyncEventState.thread;
+      slice.id = key;
+
+      const stepType = events[1].event.ph;
+      let isValid = true;
+
+      // Create subSlices for each step. Skip the start and finish events,
+      // which are always first and last respectively.
+      for (let j = 1; j < events.length - 1; ++j) {
+        if (events[j].event.ph === 'T' || events[j].event.ph === 'p') {
+          isValid = this.assertStepTypeMatches_(stepType, events[j]);
+          if (!isValid) break;
+        }
+
+        if (events[j].event.ph === 'S') {
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'At ' + events[j].event.ts + ', a slice named "' +
+                name + '" with id=' + id +
+                ' had a step before the start event.'
+          });
+          continue;
+        }
+
+        if (events[j].event.ph === 'F') {
+          this.model_.importWarning({
+            type: 'async_slice_parse_error',
+            message: 'At ' + events[j].event.ts + ', a slice named ' +
+                name + ' with id=' + id +
+                ' had a step after the finish event.'
+          });
+          continue;
+        }
+
+        const startIndex = j + (stepType === 'T' ? 0 : -1);
+        const endIndex = startIndex + 1;
+
+        let subName = name;
+        if (!events[j].event.argsStripped &&
+            (events[j].event.ph === 'T' || events[j].event.ph === 'p')) {
+          subName = events[j].event.args.step;
+        }
+
+        const asyncSliceConstructor =
+            tr.model.AsyncSlice.subTypes.getConstructor(
+                events[0].event.cat,
+                subName);
+        let duration;
+        if (events[endIndex].event.ts !== undefined) {
+          duration = this.toModelTimeFromUs_(
+              events[endIndex].event.ts - events[startIndex].event.ts);
+        }
+        const subSlice = new asyncSliceConstructor(
+            events[0].event.cat,
+            subName,
+            getEventColor(events[0].event, subName + j),
+            this.toModelTimeFromUs_(events[startIndex].event.ts),
+            this.deepCopyIfNeeded_(events[j].event.args),
+            duration || 0,
+            undefined,
+            undefined,
+            events[startIndex].event.argsStripped);
+        if (duration === undefined) {
+          subSlice.didNotFinish = true;
+          subSlice.error =
+              'Slice has no matching END. End time has been adjusted.';
+          // End time will be adjusted by AsyncSliceGroup.autoCloseOpenSlices().
+        }
+        subSlice.startThread = events[startIndex].thread;
+        subSlice.endThread = events[endIndex].thread;
+        subSlice.id = key;
+
+        slice.subSlices.push(subSlice);
+      }
+
+      if (isValid) {
+        // Add |slice| to the start-thread's asyncSlices.
+        slice.startThread.asyncSliceGroup.push(slice);
+      }
+    },
+
     createLegacyAsyncSlices_(legacyEvents) {
       if (legacyEvents.length === 0) return;
 
@@ -1717,16 +1836,16 @@ tr.exportTo('tr.e.importer', function() {
           if (asyncEventStatesByNameThenID[name] === undefined) {
             this.model_.importWarning({
               type: 'async_slice_parse_error',
-              message: 'At ' + event.ts + ', no slice named ' + name +
-                  ' was open.'
+              message: `At ${event.ts}, no slice named "${name}" was open.`,
             });
             continue;
           }
           if (asyncEventStatesByNameThenID[name][key] === undefined) {
             this.model_.importWarning({
               type: 'async_slice_parse_error',
-              message: 'At ' + event.ts + ', no slice named ' + name +
-                  ' with id=' + id + ' was open.'
+              message:
+                `At ${event.ts}, no slice named "${name}" with id=${id} was ` +
+                'open.',
             });
             continue;
           }
@@ -1734,92 +1853,38 @@ tr.exportTo('tr.e.importer', function() {
           events.push(asyncEventState);
 
           if (event.ph === 'F') {
-            // Create a slice from start to end.
-            const asyncSliceConstructor =
-               tr.model.AsyncSlice.subTypes.getConstructor(
-                   events[0].event.cat,
-                   name);
-            const slice = new asyncSliceConstructor(
-                events[0].event.cat,
-                name,
-                getEventColor(events[0].event),
-                this.toModelTimeFromUs_(events[0].event.ts),
-                Object.assign({}, events[0].event.args,
-                    events[events.length - 1].event.args),
-                this.toModelTimeFromUs_(event.ts - events[0].event.ts),
-                true, undefined, undefined, events[0].event.argsStripped);
-            slice.startThread = events[0].thread;
-            slice.endThread = asyncEventState.thread;
-            slice.id = key;
-
-            const stepType = events[1].event.ph;
-            let isValid = true;
-
-            // Create subSlices for each step. Skip the start and finish events,
-            // which are always first and last respectively.
-            for (let j = 1; j < events.length - 1; ++j) {
-              if (events[j].event.ph === 'T' || events[j].event.ph === 'p') {
-                isValid = this.assertStepTypeMatches_(stepType, events[j]);
-                if (!isValid) break;
-              }
-
-              if (events[j].event.ph === 'S') {
-                this.model_.importWarning({
-                  type: 'async_slice_parse_error',
-                  message: 'At ' + events[j].event.ts + ', a slice named ' +
-                      name + ' with id=' + id +
-                      ' had a step before the start event.'
-                });
-                continue;
-              }
-
-              if (events[j].event.ph === 'F') {
-                this.model_.importWarning({
-                  type: 'async_slice_parse_error',
-                  message: 'At ' + events[j].event.ts + ', a slice named ' +
-                      name + ' with id=' + id +
-                      ' had a step after the finish event.'
-                });
-                continue;
-              }
-
-              const startIndex = j + (stepType === 'T' ? 0 : -1);
-              const endIndex = startIndex + 1;
-
-              let subName = name;
-              if (!events[j].event.argsStripped &&
-                  (events[j].event.ph === 'T' || events[j].event.ph === 'p')) {
-                subName = events[j].event.args.step;
-              }
-
-              const asyncSliceConstructor =
-                 tr.model.AsyncSlice.subTypes.getConstructor(
-                     events[0].event.cat,
-                     subName);
-              const subSlice = new asyncSliceConstructor(
-                  events[0].event.cat,
-                  subName,
-                  getEventColor(event, subName + j),
-                  this.toModelTimeFromUs_(events[startIndex].event.ts),
-                  this.deepCopyIfNeeded_(events[j].event.args),
-                  this.toModelTimeFromUs_(
-                      events[endIndex].event.ts - events[startIndex].event.ts),
-                      undefined, undefined,
-                      events[startIndex].event.argsStripped);
-              subSlice.startThread = events[startIndex].thread;
-              subSlice.endThread = events[endIndex].thread;
-              subSlice.id = key;
-
-              slice.subSlices.push(subSlice);
-            }
-
-            if (isValid) {
-              // Add |slice| to the start-thread's asyncSlices.
-              slice.startThread.asyncSliceGroup.push(slice);
-            }
-
+            this.createLegacyAsyncSlice_(events);
             delete asyncEventStatesByNameThenID[name][key];
           }
+        }
+      }
+
+      // Auto-close unmatched S events by creating a fake F event.
+      for (const [name, statesByID] of
+          Object.entries(asyncEventStatesByNameThenID)) {
+        for (const [id, states] of Object.entries(statesByID)) {
+          const startEvent = states[0].event;
+          // Don't set 'ts' in the fake 'F' event. createLegacyAsyncSlice_ will
+          // set duration=undefined and didNotFinish=true.
+          // AsyncSliceGroup.autoCloseOpenSlices() will set duration so that the
+          // AsyncSlice ends when the trace ends.
+          states.push({
+            sequenceNumber: 1 + states[states.length - 1].sequenceNumber,
+            event: {
+              ph: 'F',
+              name,
+              id: startEvent.id,
+              id2: startEvent.id2,
+              scope: startEvent.scope,
+              pid: startEvent.pid,
+              tid: startEvent.tid,
+              cat: startEvent.cat,
+              args: {},
+            },
+            thread: this.model_.getOrCreateProcess(startEvent.pid).
+                getOrCreateThread(startEvent.tid),
+          });
+          this.createLegacyAsyncSlice_(states);
         }
       }
     },
@@ -1889,8 +1954,8 @@ tr.exportTo('tr.e.importer', function() {
               this.model_.importWarning({
                 type: 'async_slice_parse_error',
                 message: 'Nestable async BEGIN event at ' +
-                  eventStateEntry.event.ts + ' with name=' +
-                  eventStateEntry.event.name + ' and id=' + id +
+                  eventStateEntry.event.ts + ' with name="' +
+                  eventStateEntry.event.name + '" and id=' + id +
                   ' was unmatched.'
               });
             } else {

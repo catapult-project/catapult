@@ -1432,18 +1432,46 @@ tr.b.unittest.testSuite(function() {
     checkParsedAndStreamInput(events, checkModel);
   });
 
-  test('asyncStepsMissingFinish', function() {
+  test('autoClosingAsyncStepsMissingFinish', function() {
     function checkModel(m) {
       const t = m.processes[52].threads[53];
-      assert.isUndefined(t);
+      assert.isDefined(t);
+      assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
+      const parentSlice = t.asyncSliceGroup.slices[0];
+      assert.strictEqual(parentSlice.title, 'a');
+      assert.strictEqual(parentSlice.category, 'foo');
+      assert.isTrue(parentSlice.isTopLevel);
+      assert.strictEqual(parentSlice.start, 0);
+      assert.strictEqual(parentSlice.duration, 2);
+      assert.isTrue(parentSlice.didNotFinish);
+      assert.isDefined(parentSlice.error);
+      assert.isUndefined(parentSlice.args.y);
+      assert.strictEqual(parentSlice.args.z, 3);
+
+      assert.isDefined(parentSlice.subSlices);
+      assert.strictEqual(parentSlice.subSlices.length, 1);
+      const subSlice = parentSlice.subSlices[0];
+      assert.strictEqual(subSlice.title, 's1');
+      assert.strictEqual(subSlice.category, 'foo');
+      assert.isFalse(subSlice.isTopLevel);
+      assert.strictEqual(subSlice.start, 0);
+      assert.strictEqual(subSlice.duration, 2);
+      assert.isUndefined(subSlice.args.x);
+      assert.strictEqual(subSlice.args.y, 2);
+      assert.isUndefined(subSlice.args.z);
+      assert.isTrue(subSlice.didNotFinish);
+      assert.isDefined(subSlice.error);
     }
 
     const events = [
-      // Time is intentionally out of order.
-      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 548, cat: 'foo',
+      {name: 'a', args: {z: 3}, pid: 52, ts: 0, cat: 'foo', tid: 53,
+        ph: 'S', id: 72},
+      {name: 'a', args: {step: 's1', y: 2}, pid: 52, ts: 0, cat: 'foo',
         tid: 53, ph: 'T', id: 72},
-      {name: 'a', args: {z: 3}, pid: 52, ts: 560, cat: 'foo', tid: 53,
-        ph: 'S', id: 72}
+
+      // Slice that does finish to give an 'end time' to make autoclosing work.
+      {name: 'b', args: {}, pid: 1, ts: 1000, cat: 'bar', tid: 2, ph: 'B'},
+      {name: 'b', args: {}, pid: 1, ts: 2000, cat: 'bar', tid: 2, ph: 'E'}
     ];
     checkParsedAndStreamInput(events, checkModel);
   });

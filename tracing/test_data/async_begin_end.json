@@ -1,4 +1,7 @@
 [
+{"cat":"r","pid":1,"tid":1,"ts":0,"ph":"S","name":"S","args":{},"id":"us"},
+{"cat":"r","pid":1,"tid":1,"ts":0,"ph":"T","name":"S","args":{"step":"T"},"id":"us"},
+{"cat":"r","pid":1,"tid":1,"ts":0,"ph":"b","name":"b","args":{},"id":"ub"},
 {"cat":"r","pid":1,"tid":1,"ts":50,"ph":"S","name":"A","args":{},"id":"1a"},
 {"cat":"r","pid":1,"tid":1,"ts":100,"ph":"S","name":"B","args":{},"id":"1"},
 {"cat":"r","pid":1,"tid":1,"ts":120,"ph":"B","name":"BE1","args":{}},

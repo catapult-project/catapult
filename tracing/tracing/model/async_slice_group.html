@@ -100,6 +100,27 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
+     * Closes any open slices.
+     * @param {Number=} opt_maxTimestamp The end time to use for the closed
+     * slices. If not provided,
+     * the max timestamp for this slice is provided.
+     */
+    autoCloseOpenSlices() {
+      const maxTimestamp = this.parentContainer_.parent.model.bounds.max;
+      function autoClose(slice) {
+        slice.duration = maxTimestamp - slice.start;
+        for (const sub of slice.subSlices) {
+          autoClose(sub);
+        }
+      }
+      for (let i = 0; i < this.slices.length; i++) {
+        const slice = this.slices[i];
+        if (!slice.didNotFinish) continue;
+        autoClose(slice);
+      }
+    },
+
+    /**
      * Gets the sub-groups in this A-S-G defined by the group titles.
      *
      * @return {Array} An array of AsyncSliceGroups where each group has
