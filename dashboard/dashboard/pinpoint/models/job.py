@@ -21,7 +21,6 @@ from dashboard.services import issue_tracker_service
 _TASK_INTERVAL = 10
 
 
-_DEFAULT_REPEAT_COUNT = 10
 _DEFAULT_ATTEMPT_COUNT = 1
 _SIGNIFICANCE_LEVEL = 0.01
 

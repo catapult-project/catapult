@@ -6,9 +6,9 @@ import json
 import webapp2
 
 from dashboard.api import api_auth
+from dashboard.pinpoint.handlers import quest_generator
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
-from dashboard.pinpoint.models import quest_generator as quest_generator_module
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -47,14 +47,14 @@ class New(webapp2.RequestHandler):
     }
 
     # Validate arguments and convert them to canonical internal representation.
-    quest_generator = quest_generator_module.QuestGenerator(self.request)
-    bug_id = self._ValidateBugId(bug_id)
-    changes = self._ValidateChanges(change_1, change_2)
+    arguments, quests = quest_generator.GenerateQuests(self.request)
+    bug_id = _ValidateBugId(bug_id)
+    changes = _ValidateChanges(change_1, change_2)
 
     # Create job.
     job = job_module.Job.New(
-        arguments=quest_generator.AsDict(),
-        quests=quest_generator.Quests(),
+        arguments=arguments,
+        quests=quests,
         auto_explore=auto_explore,
         bug_id=bug_id)
 
@@ -76,14 +76,16 @@ class New(webapp2.RequestHandler):
         'jobUrl': job.url
     }))
 
-  def _ValidateBugId(self, bug_id):
-    if not bug_id:
-      return None
 
-    try:
-      return int(bug_id)
-    except ValueError:
-      raise ValueError(_ERROR_BUG_ID)
+def _ValidateBugId(bug_id):
+  if not bug_id:
+    return None
 
-  def _ValidateChanges(self, change_1, change_2):
-    return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
+  try:
+    return int(bug_id)
+  except ValueError:
+    raise ValueError(_ERROR_BUG_ID)
+
+
+def _ValidateChanges(change_1, change_2):
+  return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
