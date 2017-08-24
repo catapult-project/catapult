@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
     });
   };
 
-  test('instantiate', function() {
+  test('instantiate', async function() {
     const model11 = createFullyPopulatedModel(true, true);
 
     const view = setupTimeline();
@@ -119,9 +119,10 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(view.leftControls).appendChild(simpleButton2);
 
     this.addHTMLOutput(view);
+    await view.builtPromise;
   });
 
-  test('changeModelToSomethingDifferent', function() {
+  test('changeModelToSomethingDifferent', async function() {
     const model00 = createFullyPopulatedModel(false, false);
     const model11 = createFullyPopulatedModel(true, true);
 
@@ -131,13 +132,17 @@ tr.b.unittest.testSuite(function() {
     view.model = undefined;
     view.model = model11;
     view.model = model00;
+
+    this.addHTMLOutput(view);
+    await view.builtPromise;
   });
 
-  test('setModelToSameThingAgain', function() {
+  test('setModelToSameThingAgain', async function() {
     const model = createFullyPopulatedModel(false, false);
 
-    // Create a view with am model.
+    // Create a view with a model.
     const view = setupTimeline();
+    this.addHTMLOutput(view);
     view.style.height = '400px';
     view.model = model;
     const sc = view.brushingStateController;
@@ -148,6 +153,8 @@ tr.b.unittest.testSuite(function() {
         {title: 'somethingUnusual', start: 0, duration: 5}));
     view.model = model;
 
+    await view.builtPromise;
+
     // Verify that the new bits of the model show up in the view.
     const selection = new tr.model.EventSet();
     const filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
@@ -155,6 +162,18 @@ tr.b.unittest.testSuite(function() {
         filter, selection);
     Task.RunSynchronously(filterTask);
     assert.strictEqual(selection.length, 1);
+  });
+
+  test('setModelBeforeAttached', async function() {
+    const view = document.createElement('tr-ui-timeline-view');
+    view.style.height = '400px';
+    view.model = createFullyPopulatedModel(false, false);
+
+    const container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+    Polymer.dom(view).appendChild(container);
+    this.addHTMLOutput(view);
+    await view.builtPromise;
   });
 });
 </script>

@@ -140,6 +140,15 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-timeline-view',
 
+  created() {
+    this.trackViewContainer_ = undefined;
+
+    this.queuedModel_ = undefined;
+
+    this.builtPromise_ = undefined;
+    this.doneBuilding_ = undefined;
+  },
+
   attached() {
     this.async(function() {
       this.trackViewContainer_ = Polymer.dom(this).querySelector(
@@ -147,6 +156,8 @@ Polymer({
       if (!this.trackViewContainer_) {
         throw new Error('missing trackviewContainer');
       }
+
+      if (this.queuedModel_) this.updateContents_();
     });
   },
 
@@ -374,6 +385,30 @@ Polymer({
   },
 
   set model(model) {
+    this.build(model);
+  },
+
+  async build(model) {
+    this.queuedModel_ = model;
+    this.builtPromise_ = new Promise((resolve, reject) => {
+      this.doneBuilding_ = resolve;
+    });
+    if (this.trackViewContainer_) await this.updateContents_();
+  },
+
+  get builtPromise() {
+    return this.builtPromise_;
+  },
+
+  async updateContents_() {
+    if (this.trackViewContainer_ === undefined) {
+      throw new Error(
+          'timeline-view.updateContents_ requires trackViewContainer_');
+    }
+
+    const model = this.queuedModel_;
+    this.queuedModel_ = undefined;
+
     const modelInstanceChanged = model !== this.model;
     const modelValid = model && !model.bounds.isEmpty;
 
@@ -439,6 +474,8 @@ Polymer({
       this.brushingStateController_.modelDidChange();
       this.onViewportChanged_();
     }
+
+    this.doneBuilding_();
   },
 
   get brushingStateController() {
