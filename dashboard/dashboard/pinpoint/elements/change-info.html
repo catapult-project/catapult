@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="dep-info">
+  <style>
+  #title {
+    display: inline-flex;
+  }
+  </style>
+  <template>
+    <div>
+      <div id="title">
+        <p>[[title]]</p>
+      </div>
+      <div id="info">
+        <table>
+          <tr><td>Subject</td><td>[[subject]]</td></tr>
+          <tr><td>Author</td><td>[[author]]</td></tr>
+          <tr><td>Timestamp</td><td>[[timestamp]]</td></tr>
+        </table>
+      </div>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'dep-info',
+      properties: {
+        dep: {
+          type: Object,
+          observer: '_depChanged'
+        },
+        expanded: {
+          type: Boolean,
+          value: false,
+        },
+      },
+
+      ready() {
+      },
+
+      async _depChanged() {
+        const response = await this.sendGitilesRequestForDep(this.dep);
+
+        this.subject = response.message.split('\n')[0];
+
+        this.title = this.dep.repository + '@' + this.dep.git_hash;
+        this.author = response.author.email;
+        this.timestamp = response.author.time;
+      },
+
+      async sendGitilesRequestForDep(dep, success, error) {
+        const params = {
+          repository: dep.repository,
+          git_hash_1: dep.git_hash
+        };
+
+        return simple_xhr.asPromise('/api/gitiles', params);
+      }
+    });
+  </script>
+</dom-module>
+
+<dom-module id="change-info">
+  <style>
+  #deps {
+    table-layout: fixed;
+    width: 100%;
+  }
+  </style>
+  <template>
+    <div>
+      <dep-info dep="[[change.base_commit]]"></dep-info>
+      <template is="dom-repeat" items="[[change.deps]]">
+        <dep-info dep="[[item]]"></dep-info>
+      </template>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'change-info',
+      properties: {
+        change: {
+          type: Object,
+        }
+      },
+
+      ready() {
+      }
+    });
+  </script>
+</dom-module>

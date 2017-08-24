@@ -38,7 +38,7 @@ class _ReadChartJsonValueExecution(execution.Execution):
 
   def _AsDict(self):
     return {
-        'isolate_hash': self._isolate_hash
+        'isolate_hashes': self._isolate_hashes
     }
 
   def _Poll(self):

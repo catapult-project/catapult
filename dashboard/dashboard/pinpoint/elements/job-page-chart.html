@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/jquery/jquery-2.1.4.min.js"></script>
+<script src="/flot/jquery.flot.min.js"></script>
+<script src="/flot/jquery.flot.crosshair.min.js"></script>
+<script src="/flot/jquery.flot.errorbars.js"></script>
+<script src="/flot/jquery.flot.fillbetween.min.js"></script>
+<script src="/flot/jquery.flot.selection.min.js"></script>
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/app-route/app-route.html">
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
+
+<dom-module id="job-page-chart">
+  <template>
+    <style>
+    #plots-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #plot {
+      flex-grow: 1;
+      height: 240px;
+      min-width: 500px;
+    }
+    </style>
+
+    <div id="plots-container">
+      <div id="plot">
+      </div>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+
+      is: 'job-page-chart',
+      properties: {
+        jobInfo: {
+          type: Object,
+          observer: '_jobInfoChanged',
+        },
+        pointSelectedIndex: {
+          type: Number,
+          value: -1,
+          notify: true
+        },
+
+        // The Flot Plot object, returned by $.plot.
+        chart: {
+          value: null
+        },
+
+        // Chart options to be given when initializing the Flot chart.
+        // See: https://github.com/flot/flot/blob/master/API.md#plot-options
+        chartOptions: {
+          type: Object,
+          value: () => {
+            return {
+              grid: {
+                hoverable: true,
+                clickable: true,
+                borderWidth: 1,
+                borderColor: 'rgba(0, 0, 0, 0.5)'
+              },
+              crosshair: {
+                mode: 'xy',
+                color: 'rgba(34, 34, 34, 0.3)',
+                lineWidth: 0.3
+              },
+              series: {
+                lines: {
+                  show: false
+                }
+              },
+              xaxis: {},
+              yaxis: {},
+              selection: {
+                mode: 'y'
+              }
+            };
+          }
+        },
+      },
+
+      ready() {
+        this.chartOptions.xaxis.tickFormatter = this.formatXAxis.bind(this);
+        this.initializePlotEventListeners();
+      },
+
+      initializePlotEventListeners() {
+        const plot = $(this.$.plot);
+        plot.bind('plotclick', this.onPlotClick.bind(this));
+      },
+
+      onPlotClick(event, pos, item) {
+        if (item == null) {
+          this.set('pointSelectedIndex', -1);
+          return;
+        }
+
+        this.set('pointSelectedIndex', item.datapoint[0]);
+      },
+
+      onBuildStatusClick(index) {
+        this.set('pointSelectedIndex', index);
+      },
+
+      formatXAxis(val, axis) {
+        const index = Math.round(Math.max(val, 0));
+        if (index != val) {
+          return '';
+        }
+        if (index < 0 || index >= this.jobInfo.changes.length) {
+          return '';
+        }
+
+        const change = this.jobInfo.changes[index];
+        const repository = change.base_commit.repository;
+        const gitHash = change.base_commit.git_hash;
+        const label = document.createElement('div');
+        label.innerText = repository + '@' + gitHash.slice(0, 7);
+        label.style.transform = 'translateY(10px) rotate(15deg)';
+        return label.outerHTML;
+      },
+
+      _jobInfoChanged() {
+        if (this.jobInfo == null) {
+          this.set('chart', null);
+          return;
+        }
+
+        let data = [[]];
+        let absMin = undefined;
+        let absMax = absMin;
+
+        for (let i = 0; i < this.jobInfo.resultValues.length; i++) {
+          const pts = this.jobInfo.resultValues[i][2].map(function(i) {
+            return parseFloat(i);
+          });
+          if (pts.length == 0) {
+            data.push([[i]]);
+            data.push([]);
+            continue;
+          }
+          const dataMin = Math.min(...pts);
+          const dataMax = Math.max(...pts);
+
+          if (absMin == undefined) {
+            absMin = dataMin;
+          }
+          if (absMax == undefined) {
+            absMax = dataMax;
+          }
+
+          absMin = Math.min(absMin, dataMin);
+          absMax = Math.max(absMax, dataMax);
+
+          const sum = pts.reduce(function(a, b) { return a + b; });
+          const avg = sum / pts.length;
+
+          const di = data.length - 1;
+          data[di].push([i, avg, avg - dataMin, dataMax - avg]);
+
+          if (this.jobInfo.comparisons[i] !== 'same') {
+            data.push([]);
+          }
+        }
+
+        if (absMin == undefined) {
+          absMin = 0;
+        }
+        if (absMax == undefined) {
+          absMax = 1;
+        }
+
+        const GENERATOR = new tr.b.SinebowColorGenerator();
+        data = data.filter(d => d.length > 0);
+
+        const paramsList = [];
+
+        for (let i = 0; i < data.length; i++) {
+          const c = GENERATOR.nextColor();
+          const params = {
+            color: c.toString(),
+            data: data[i],
+            lines: {
+              show: true
+            },
+            points: {
+              show: true,
+              radius: 3,
+              fillColor: c.toString(),
+              errorbars: 'y',
+              yerr: {
+                show: true,
+                asymmetric: true,
+                upperCap: '-',
+                lowerCap: '-',
+                radius: 3
+              }
+            },
+            id: 'good',
+          };
+          paramsList.push(params);
+        }
+
+        // TODO: Hack the bounds a bit
+        const absRange = (absMax - absMin);
+        this.chartOptions.yaxis.min = absMin - absRange * 0.75;
+        this.chartOptions.yaxis.max = absMax + absRange * 0.5;
+        this.chartOptions.xaxis.min = -0.25;
+        this.chartOptions.xaxis.max = this.jobInfo.resultValues.length - 1 + 0.25;
+
+        this.chart = $.plot(
+            this.$.plot, paramsList, this.chartOptions);
+
+        for (let i = 0; i < this.jobInfo.resultValues.length; i++) {
+          const o = this.chart.pointOffset(
+              {
+                x: i,
+                y: (this.chartOptions.yaxis.max +
+                    this.chartOptions.yaxis.min) * 0.5
+              });
+
+          const status = document.createElement('job-page-chart-icon');
+          status.setPosition(o.top, o.left);
+          status.setData(this.jobInfo, i);
+          status.onclick = this.onBuildStatusClick.bind(this, i);
+          this.$.plot.appendChild(status);
+        }
+      }
+    });
+  </script>
+</dom-module>

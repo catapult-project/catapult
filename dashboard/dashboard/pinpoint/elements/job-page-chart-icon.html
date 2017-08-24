@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/iron-icon/iron-icon.html">
+<link rel="import" href="/components/iron-icons/iron-icons.html">
+<link rel="import" href="/components/polymer/polymer.html">
+
+<dom-module id="job-page-chart-icon">
+  <template>
+    <style>
+      #icon {
+        position: absolute;
+        width: 24;
+        height: 24;
+      }
+
+      #icon:hover {
+        transform: scale(1.2);
+      }
+    </style>
+
+    <div>
+      <iron-icon id="icon" icon="[[icon]]" hidden$="[[hidden]]"></iron-icon>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'job-page-chart-icon',
+      properties: {
+        icon: {
+          type: String,
+          value: '',
+        },
+        hidden: {
+          type: Boolean,
+          value: false,
+        }
+      },
+
+      ready() {
+      },
+
+      setPosition(x, y) {
+        this.$.icon.style.top = (x - 12) + 'px';
+        this.$.icon.style.left = (y - 12) + 'px';
+      },
+
+      setData(jobResults, changeIndex) {
+        // Have result values, so display the actual point on the graph.
+        if (jobResults.resultValues[changeIndex][2].length > 0) {
+          this.set('hidden', true);
+          return;
+        }
+
+        // Check if this is pending build
+        const index = Math.max(changeIndex - 1, 0);
+        if (jobResults.comparisons[index] == 'pending') {
+          this.set('icon', 'watch-later');
+          this.$.icon.style.color = 'blue';
+          return;
+        }
+
+        this.set('icon', 'error');
+        this.$.icon.style.color = 'red';
+      }
+    });
+  </script>
+</dom-module>

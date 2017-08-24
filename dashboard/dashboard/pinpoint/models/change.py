@@ -56,7 +56,7 @@ class Change(collections.namedtuple('Change',
     return {
         'base_commit': self.base_commit.AsDict(),
         'deps': [dep.AsDict() for dep in sorted(self.deps)],
-        'patch': self.patch.AsDict(),
+        'patch': self.patch.AsDict() if self.patch else None,
     }
 
   @classmethod

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/pinpoint/elements/change-info.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="job-page-change-table">
+  <template>
+    <style>
+      #data {
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: small;
+        table-layout: fixed;
+      }
+
+      #data tbody td {
+        border: 1px solid #BBBBBB;
+        padding: 5px;
+      }
+
+      #data tbody td:first-child {
+        font-weight: bold;
+        width: 200px;
+      }
+    </style>
+    <template is="dom-if" if="[[isShowing(index)]]">
+      <table id="data">
+        <tr>
+            <td>[[buildTitle]]</td>
+            <td><change-info change=[[change]]></change-info></td>
+        </tr>
+        <tr>
+          <td>Status</td>
+          <td>[[buildStatus]]</td>
+        </tr>
+        <tr>
+          <td>Buildbucket</td>
+          <td><a href="https://buildbucket/[[buildbucketIds]]" target="_blank">[[buildbucketIds]]</a></td>
+        </tr>
+        <tr>
+          <td>Test Isolate</td>
+          <td><a href="https://isolateserver.appspot.com/browse?hash=[[inputIsolateHashes]]" target="_blank">[[inputIsolateHashes]]</a></td>
+        </tr>
+
+        <tr><td></td></tr>
+
+        <tr><td>[[runTitle]]</td></tr>
+        <tr>
+          <td>Status</td>
+          <td>[[runStatus]]</td>
+        </tr>
+        <tr>
+          <td>Swarming Task</td>
+          <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a></td>
+        </tr>
+        <tr>
+          <td>Output Isolate</td>
+          <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a></td>
+        </tr>
+
+        <tr><td></td></tr>
+
+        <tr><td>[[testTitle]]</td></tr>
+        <tr>
+          <td>Values</td>
+          <td>[[formatValues(resultValues)]]</td>
+        </tr>
+
+      </table>
+
+    </template>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'job-page-change-table',
+
+      properties: {
+        index: {
+          type: Object,
+          observer: '_indexChanged'
+        },
+
+        change: {
+          type: Object,
+        },
+      },
+
+      ready() {
+      },
+
+      getStatus(values) {
+        if (values.filter(x => x == 0).length == values.length) {
+          return 'Passed';
+        }
+
+        return 'Failed?';
+      },
+
+      _indexChanged() {
+        if (this.index == -1) {
+          return;
+        }
+
+        this.buildTitle = this.jobInfo.quests[0];
+        this.runTitle = this.jobInfo.quests[1];
+        this.testTitle = this.jobInfo.quests[2];
+
+        this.buildStatus = this.jobInfo.getStatusString(this.index, 0);
+        this.runStatus = this.jobInfo.getStatusString(this.index, 1);
+
+        this.buildbucketIds = this.jobInfo.getAttemptData(
+            this.index, 0, 'build');
+
+        // Task ID is actually an array of arrays of ids, so flatten it for
+        // viewing purposes.
+        const taskIds = this.jobInfo.getAttemptData(
+            this.index, 1, 'task_ids');
+        this.taskIds = [].concat.apply([], taskIds);
+
+        this.inputIsolateHashes = this.jobInfo.getAttemptData(
+            this.index, 1, 'input_isolate_hash');
+        this.outputIsolateHashes = this.jobInfo.getAttemptData(
+            this.index, 1, 'isolate_hashes');
+        this.resultValues = this.jobInfo.resultValues[this.index][2];
+
+        this.change = this.jobInfo.changes[this.index];
+      },
+
+      formatValues(values) {
+        return values.join(', ');
+      },
+
+      isShowing(index) {
+        return index >= 0;
+      }
+    });
+  </script>
+</dom-module>

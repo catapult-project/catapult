@@ -10,9 +10,101 @@ found in the LICENSE file.
 <link rel="import" href="/components/app-route/app-route.html">
 <link rel="import" href="/components/polymer/polymer.html">
 
-<link rel="import" href="/dashboard/pinpoint/elements/jobs-table.html">
+<link rel="import" href="/dashboard/pinpoint/elements/job-page-change-table.html">
+<link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
+<link rel="import" href="/dashboard/pinpoint/elements/job-page-chart.html">
+<link rel="import" href="/dashboard/pinpoint/elements/job-page-header.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
+
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
+
+<script>
+'use strict';
+
+tr.exportTo('d', function() {
+  class JobResults {
+    constructor(data) {
+      this.data_ = data;
+    }
+
+    get data() {
+      return this.data_;
+    }
+
+    get resultValues() {
+      return this.data_.state.result_values;
+    }
+
+    get comparisons() {
+      return this.data_.state.comparisons;
+    }
+
+    get changes() {
+      return this.data_.state.changes;
+    }
+
+    get quests() {
+      return this.data_.state.quests;
+    }
+
+    get status() {
+      return this.data_.status;
+    }
+
+    get created() {
+      return this.data_.created;
+    }
+
+    get updated() {
+      return this.data_.updated;
+    }
+
+    get arguments() {
+      return this.data_.arguments;
+    }
+
+    getAttemptData(changeIndex, questIndex, dataName) {
+      const result = [];
+      const attempts = this.data_.state.attempts[changeIndex];
+
+      for (let i = 0; i < attempts.length; i++) {
+        const execution = attempts[i].executions[questIndex];
+        if (!execution) {
+          continue;
+        }
+
+        if (dataName in execution) {
+          result.push(execution[dataName]);
+        } else if (dataName in execution.result_arguments) {
+          result.push(execution.result_arguments[dataName]);
+        }
+      }
+      return result;
+    }
+
+    getStatusString(changeIndex, questIndex) {
+      const passed = this.valuesAllPassed(
+          this.data_.state.result_values[changeIndex][questIndex]);
+      if (passed) {
+        return 'PASSED';
+      }
+
+      return 'FAILED';
+    }
+
+    valuesAllPassed(values) {
+      const numPass = values.filter(x => (x == 0 || x == null)).length;
+
+      return numPass == values.length;
+    }
+  }
+
+  return {
+    JobResults,
+  };
+});
+</script>
 
 <dom-module id="job-page">
   <template>
@@ -46,60 +138,52 @@ found in the LICENSE file.
       width: 100px;
       height: 100px;
     }
+
     .pass {
       background-color: #7b7;
       width: 100%;
     }
+
     .fail {
       background-color: #d66;
       width: 100%;
+    }
+
+    #plots-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #plot {
+      flex-grow: 1;
+      height: 240px;
+      min-width: 500px;
     }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{data}}"></app-route>
 
-    <template is="dom-if" if="{{loading}}">
+    <template is="dom-if" if="[[loading]]">
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
-    <template is="dom-if" if="{{!loading}}">
+    <template is="dom-if" if="[[!loading]]">
       <div id="content">
         <h1>Pinpoint Job Status</h1>
-        <template is="dom-if" if="{{error}}">
+        <template is="dom-if" if="[[error]]">
           <div class="error">{{error}}</div>
         </template>
-        <template is="dom-if" if="{{!error}}">
-        <table>
-          <template is="dom-repeat" items="{{jobProperties}}">
-            <tr>
-              <td>{{item.name}}</td>
-              <td>{{item.value}}</td>
-            <tr>
-          </template>
-        </table>
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              <template is="dom-repeat" items="{{jobInfo.state.changes}}">
-                <th>{{item}}</th>
-              </template>
-            </tr>
-          </thead>
-          <template is="dom-repeat" items="{{jobInfo.state.quests}}" as="quest" index-as="questIndex">
-            <tr>
-              <th>{{quest(questIndex)}}</th>
-              <template is="dom-repeat" items="{{jobInfo.state.changes}}" as="change" index-as="changeIndex">
-                <td class="bar">
-                  <div class="pass" style="height: {{passPercent(changeIndex, questIndex)}}%"></div>
-                  <div class="fail" style="height: {{failPercent(changeIndex, questIndex)}}%"></div>
-                </td>
-              </template>
-            <tr>
-          </template>
-        </table>
+        <template is="dom-if" if="[[!error]]">
+          <job-page-header job-info="[[jobInfo]]"></job-page-header>
+          <div style="height: 32px;"></div>
         </template>
       </div>
     </template>
+    <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
+
+    <div style='height: 32px;'></div>
+    <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
+    <div style='height: 32px;'></div>
   </template>
   <script>
     'use strict';
@@ -109,11 +193,8 @@ found in the LICENSE file.
       properties: {
         jobInfo: {
           type: Object,
-          value: () => {}
-        },
-        jobProperties: {
-          type: Array,
-          value: () => []
+          value: () => {},
+          notify: true,
         },
         loading: {
           type: Boolean,
@@ -125,29 +206,18 @@ found in the LICENSE file.
           value: '',
           notify: true
         },
-        xsrfToken: {
-          type: String,
-          value: ''
+        pointSelectedIndex: {
+          type: Number,
+          value: -1,
+          notify: true
         }
       },
 
-      quest(questIndex) {
-        return this.jobInfo.state.quests[questIndex];
-      },
-
-      passPercent(changeIndex, questIndex) {
-        const allResultValues = this.jobInfo.state.result_values;
-        const values = allResultValues[changeIndex][questIndex];
-        return 100 * values.filter(x => x == 0).length / values.length;
-      },
-
-      failPercent(changeIndex, questIndex) {
-        return 100 - this.passPercent(changeIndex, questIndex);
+      ready() {
       },
 
       deselected() {
-        this.set('jobProperties', []);
-        this.set('jobInfo', {});
+        this.set('jobInfo', null);
       },
 
       selected() {
@@ -156,15 +226,7 @@ found in the LICENSE file.
         const params = {job_id: this.data.jobId};
         simple_xhr.send('/api/job', params,
             function(response) {
-              const jobInfo = response.data;
-              this.set('jobInfo', jobInfo);
-
-              const jobProperties = [];
-              for (const key in jobInfo) {
-                jobProperties.push({name: key, value: jobInfo[key]});
-              }
-              this.set('jobProperties', jobProperties);
-
+              this.set('jobInfo', new d.JobResults(response.data));
               this.loading = false;
             }.bind(this),
             function(msg) {

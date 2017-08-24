@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="job-page-header">
+  <template>
+    <style>
+      #data {
+        border-collapse: collapse;
+        border-spacing: 0;
+        font-size: small;
+        table-layout: fixed;
+      }
+
+      #data tbody td {
+        border: 1px solid #BBBBBB;
+        padding: 5px;
+        font-size: small;
+      }
+
+      #data tbody tr:first-child {
+        font-weight: bold;
+      }
+    </style>
+
+    <div id="content">
+      <table id="data">
+        <tbody>
+          <tr>
+            <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
+              <td>[[item.name]]</td>
+            </template>
+          </tr>
+          <tr>
+            <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
+              <td>[[item.value]]</td>
+            </template>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'job-page-header',
+
+      ready() {
+      },
+
+      getDisplayItems(jobInfo) {
+        let tuples = [];
+        for (const key in jobInfo) {
+          if (jobInfo[key] instanceof Object) {
+            if (key == 'arguments') {
+              tuples = tuples.concat(this.getDisplayItems(jobInfo[key]));
+            }
+            continue;
+          }
+          tuples.push({name: key, value: jobInfo[key]});
+        }
+        tuples.sort(function(a, b) {
+          if (a.name < b.name) return -1;
+          if (a.name > b.name) return 1;
+          return 0;
+        });
+        return tuples;
+      }
+    });
+  </script>
+</dom-module>
