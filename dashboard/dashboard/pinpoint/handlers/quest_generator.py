@@ -29,38 +29,25 @@ def GenerateQuests(request):
     A tuple of (arguments, quests), where arguments is a dict containing the
     request arguments that were used, and quests is a list of Quests.
   """
+  target = request.get('target')
+  if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
+    quest_functions = (_FindIsolate, _TelemetryRunTest, _ReadChartJsonValue)
+  else:
+    quest_functions = (_FindIsolate, _GTestRunTest, _ReadGraphJsonValue)
+
   arguments = {}
   quests = []
-
-  quest_arguments, quest = _FindIsolateQuest(request)
-  arguments.update(quest_arguments)
-  quests.append(quest)
-
-  dimensions = request.get('dimensions')
-  if not dimensions:
-    return arguments, quests
-  dimensions = json.loads(dimensions)
-  arguments['dimensions'] = json.dumps(dimensions)
-
-  if arguments['target'] in ('telemetry_perf_tests',
-                             'telemetry_perf_webview_tests'):
-    quest_arguments, quest = _TelemetryRunTestQuest(request, dimensions)
+  for quest_function in quest_functions:
+    quest_arguments, quest = quest_function(request)
+    if not quest:
+      return arguments, quests
     arguments.update(quest_arguments)
     quests.append(quest)
-
-    metric = request.get('metric')
-    if not metric:
-      return arguments, quests
-    arguments['metric'] = metric
-
-    quests.append(quest_module.ReadChartJsonValue(metric, request.get('story')))
-  else:
-    raise NotImplementedError()
 
   return arguments, quests
 
 
-def _FindIsolateQuest(request):
+def _FindIsolate(request):
   arguments = {}
 
   configuration = request.get('configuration')
@@ -76,9 +63,15 @@ def _FindIsolateQuest(request):
   return arguments, quest_module.FindIsolate(configuration, target)
 
 
-def _TelemetryRunTestQuest(request, dimensions):
+def _TelemetryRunTest(request):
   arguments = {}
   swarming_extra_args = []
+
+  dimensions = request.get('dimensions')
+  if not dimensions:
+    return {}, None
+  dimensions = json.loads(dimensions)
+  arguments['dimensions'] = json.dumps(dimensions)
 
   benchmark = request.get('benchmark')
   if not benchmark:
@@ -95,7 +88,7 @@ def _TelemetryRunTestQuest(request, dimensions):
   if repeat_count:
     arguments['repeat_count'] = repeat_count
   else:
-    repeat_count = '20'
+    repeat_count = str(_DEFAULT_REPEAT_COUNT)
   swarming_extra_args += ('--pageset-repeat', repeat_count)
 
   browser = request.get('browser')
@@ -109,3 +102,62 @@ def _TelemetryRunTestQuest(request, dimensions):
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
   return arguments, quest_module.RunTest(dimensions, swarming_extra_args)
+
+
+def _GTestRunTest(request):
+  arguments = {}
+  swarming_extra_args = []
+
+  dimensions = request.get('dimensions')
+  if not dimensions:
+    return {}, None
+  dimensions = json.loads(dimensions)
+  arguments['dimensions'] = json.dumps(dimensions)
+
+  test = request.get('test')
+  if test:
+    arguments['test'] = test
+    swarming_extra_args += ('--gtest_filter', test)
+
+  repeat_count = request.get('repeat_count')
+  if repeat_count:
+    arguments['repeat_count'] = repeat_count
+  else:
+    repeat_count = str(_DEFAULT_REPEAT_COUNT)
+  swarming_extra_args += ('--gtest_repeat', repeat_count)
+
+  swarming_extra_args += _SWARMING_EXTRA_ARGS
+
+  return arguments, quest_module.RunTest(dimensions, swarming_extra_args)
+
+
+def _ReadChartJsonValue(request):
+  arguments = {}
+
+  metric = request.get('metric')
+  if not metric:
+    return {}, None
+  arguments['metric'] = metric
+
+  story = request.get('story')
+  if story:
+    arguments['story'] = story
+
+  return arguments, quest_module.ReadChartJsonValue(metric, story)
+
+
+def _ReadGraphJsonValue(request):
+  arguments = {}
+
+  chart = request.get('chart')
+  trace = request.get('trace')
+  if not (chart or trace):
+    return {}, None
+  if chart and not trace:
+    raise TypeError('"chart" specified but no "trace" given.')
+  if trace and not chart:
+    raise TypeError('"trace" specified but no "chart" given.')
+  arguments['chart'] = chart
+  arguments['trace'] = trace
+
+  return arguments, quest_module.ReadGraphJsonValue(chart, trace)

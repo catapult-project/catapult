@@ -8,7 +8,7 @@ from dashboard.pinpoint.handlers import quest_generator
 from dashboard.pinpoint.models import quest
 
 
-_MIN_RUN_TEST_ARGUMENTS = [
+_MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '20', '--browser', 'release',
     '-v', '--upload-results', '--output-format', 'chartjson',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
@@ -17,10 +17,26 @@ _MIN_RUN_TEST_ARGUMENTS = [
 ]
 
 
-_ALL_RUN_TEST_ARGUMENTS = [
+_ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--story-filter', 'http://www.fifa.com/',
     '--pageset-repeat', '50', '--browser', 'release',
     '-v', '--upload-results', '--output-format', 'chartjson',
+    '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
+    '--isolated-script-test-chartjson-output',
+    '${ISOLATED_OUTDIR}/chartjson-output.json',
+]
+
+
+_MIN_GTEST_RUN_TEST_ARGUMENTS = [
+    '--gtest_repeat', '20',
+    '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
+    '--isolated-script-test-chartjson-output',
+    '${ISOLATED_OUTDIR}/chartjson-output.json',
+]
+
+
+_ALL_GTEST_RUN_TEST_ARGUMENTS = [
+    '--gtest_filter', 'test_name', '--gtest_repeat', '50',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -52,7 +68,7 @@ class FindIsolateTest(unittest.TestCase):
                      (arguments, expected_quests))
 
 
-class TelemetryRunTestQuest(unittest.TestCase):
+class TelemetryRunTest(unittest.TestCase):
 
   def testMissingArguments(self):
     arguments = {
@@ -86,7 +102,7 @@ class TelemetryRunTestQuest(unittest.TestCase):
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
-        quest.RunTest({}, _MIN_RUN_TEST_ARGUMENTS),
+        quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
@@ -104,13 +120,48 @@ class TelemetryRunTestQuest(unittest.TestCase):
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
-        quest.RunTest({'key': 'value'}, _ALL_RUN_TEST_ARGUMENTS),
+        quest.RunTest({'key': 'value'}, _ALL_TELEMETRY_RUN_TEST_ARGUMENTS),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
 
 
-class ReadChartJsonValueQuest(unittest.TestCase):
+class GTestRunTest(unittest.TestCase):
+
+  def testMinimumArguments(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'net_perftests',
+        'dimensions': '{}',
+    }
+
+    expected_quests = [
+        quest.FindIsolate('chromium-rel-mac11-pro', 'net_perftests'),
+        quest.RunTest({}, _MIN_GTEST_RUN_TEST_ARGUMENTS),
+    ]
+    print quest_generator.GenerateQuests(arguments)[1][1]._extra_args
+    self.assertEqual(quest_generator.GenerateQuests(arguments),
+                     (arguments, expected_quests))
+
+  def testAllArguments(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'net_perftests',
+        'dimensions': '{"key": "value"}',
+        'test': 'test_name',
+        'repeat_count': '50',
+    }
+
+    expected_quests = [
+        quest.FindIsolate('chromium-rel-mac11-pro', 'net_perftests'),
+        quest.RunTest({'key': 'value'}, _ALL_GTEST_RUN_TEST_ARGUMENTS),
+    ]
+    print quest_generator.GenerateQuests(arguments)[1][1]._extra_args
+    self.assertEqual(quest_generator.GenerateQuests(arguments),
+                     (arguments, expected_quests))
+
+
+class ReadChartJsonValue(unittest.TestCase):
 
   def testMinimumArguments(self):
     arguments = {
@@ -124,7 +175,7 @@ class ReadChartJsonValueQuest(unittest.TestCase):
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
-        quest.RunTest({}, _MIN_RUN_TEST_ARGUMENTS),
+        quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
         quest.ReadChartJsonValue('pcv1-cold@@timeToFirst', None),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
@@ -144,8 +195,55 @@ class ReadChartJsonValueQuest(unittest.TestCase):
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
-        quest.RunTest({'key': 'value'}, _ALL_RUN_TEST_ARGUMENTS),
+        quest.RunTest({'key': 'value'}, _ALL_TELEMETRY_RUN_TEST_ARGUMENTS),
         quest.ReadChartJsonValue('pcv1-cold@@timeTo', 'http://www.fifa.com/'),
+    ]
+    self.assertEqual(quest_generator.GenerateQuests(arguments),
+                     (arguments, expected_quests))
+
+
+class ReadGraphJsonValue(unittest.TestCase):
+
+  def testMissingArguments(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'net_perftests',
+        'dimensions': '{"key": "value"}',
+        'test': 'test_name',
+        'repeat_count': '50',
+        'trace': 'trace_name',
+    }
+
+    with self.assertRaises(TypeError):
+      quest_generator.GenerateQuests(arguments)
+
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'net_perftests',
+        'dimensions': '{"key": "value"}',
+        'test': 'test_name',
+        'repeat_count': '50',
+        'chart': 'chart_name',
+    }
+
+    with self.assertRaises(TypeError):
+      quest_generator.GenerateQuests(arguments)
+
+  def testAllArguments(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'net_perftests',
+        'dimensions': '{"key": "value"}',
+        'test': 'test_name',
+        'repeat_count': '50',
+        'chart': 'chart_name',
+        'trace': 'trace_name',
+    }
+
+    expected_quests = [
+        quest.FindIsolate('chromium-rel-mac11-pro', 'net_perftests'),
+        quest.RunTest({'key': 'value'}, _ALL_GTEST_RUN_TEST_ARGUMENTS),
+        quest.ReadGraphJsonValue('chart_name', 'trace_name'),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
