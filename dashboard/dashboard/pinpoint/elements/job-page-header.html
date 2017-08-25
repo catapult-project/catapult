@@ -28,7 +28,7 @@ found in the LICENSE file.
         font-size: small;
       }
 
-      #data tbody tr:first-child {
+      #data tbody td:first-child {
         font-weight: bold;
       }
     </style>
@@ -36,16 +36,12 @@ found in the LICENSE file.
     <div id="content">
       <table id="data">
         <tbody>
-          <tr>
-            <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
+          <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
+            <tr>
               <td>[[item.name]]</td>
-            </template>
-          </tr>
-          <tr>
-            <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
               <td>[[item.value]]</td>
-            </template>
-          </tr>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
