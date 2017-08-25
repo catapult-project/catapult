@@ -26,7 +26,7 @@ class FindIsolate(quest.Quest):
             self._builder_name == other._builder_name)
 
   def __str__(self):
-    return 'Build on ' + self._builder_name
+    return 'Build'
 
   @property
   def retry_count(self):

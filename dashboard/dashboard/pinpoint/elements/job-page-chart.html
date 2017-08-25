@@ -12,10 +12,7 @@ found in the LICENSE file.
 <script src="/flot/jquery.flot.fillbetween.min.js"></script>
 <script src="/flot/jquery.flot.selection.min.js"></script>
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
 <link rel="import" href="/components/app-route/app-route.html">
-<link rel="import" href="/components/polymer/polymer.html">
 
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
@@ -24,23 +21,14 @@ found in the LICENSE file.
 <dom-module id="job-page-chart">
   <template>
     <style>
-    #plots-container {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #plot {
-      flex-grow: 1;
-      height: 240px;
-      min-width: 500px;
-    }
+      #plot {
+        height: 240px;
+        min-width: 500px;
+        margin: 1em 0 3em 0;
+      }
     </style>
 
-    <div id="plots-container">
-      <div id="plot">
-      </div>
-    </div>
+    <div id="plot"></div>
   </template>
   <script>
     'use strict';
@@ -186,13 +174,12 @@ found in the LICENSE file.
           absMax = 1;
         }
 
-        const GENERATOR = new tr.b.SinebowColorGenerator();
         data = data.filter(d => d.length > 0);
 
         const paramsList = [];
 
         for (let i = 0; i < data.length; i++) {
-          const chartColor = 'black';
+          const chartColor = '#ff4081';
           const params = {
             color: chartColor,
             data: data[i],
@@ -218,14 +205,13 @@ found in the LICENSE file.
         }
 
         // TODO: Hack the bounds a bit
-        const absRange = (absMax - absMin);
-        this.chartOptions.yaxis.min = absMin - absRange * 0.75;
-        this.chartOptions.yaxis.max = absMax + absRange * 0.5;
+        const absRange = absMax - absMin;
+        this.chartOptions.yaxis.min = absMin - absRange * 0.1;
+        this.chartOptions.yaxis.max = absMax + absRange * 0.1;
         this.chartOptions.xaxis.min = -0.25;
         this.chartOptions.xaxis.max = this.jobInfo.resultValues.length - 1 + 0.25;
 
-        this.chart = $.plot(
-            this.$.plot, paramsList, this.chartOptions);
+        this.chart = $.plot(this.$.plot, paramsList, this.chartOptions);
 
         for (let i = 0; i < this.jobInfo.resultValues.length; i++) {
           const o = this.chart.pointOffset(

@@ -12,89 +12,34 @@ found in the LICENSE file.
 <dom-module id="navigation-bar">
   <template>
     <style>
-      #navbar {
+      nav {
         width: 100%;
-      }
-
-      #navbar ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        border: 0;
-        font-size: 100%;
-        font: inherit;
-        vertical-align: baseline;
-        z-index: 1000;
-        margin-left: -10px; /* Ignore body's padding left. */
-        padding-right: 20px; /* Ignore body's padding right. */
-      }
-
-      #navbar > ul {
         display: flex;
-        width: 100%;
-        background-color: #2D2D2D;
-        border-bottom: black;
-        margin-bottom: 6px;
-      }
-
-      #navbar li {
-        padding: 6px 10px;
-      }
-
-      #navbar li > a {
-        cursor: pointer;
-        text-decoration: none;
-      }
-
-      #navbar > ul > li, #navbar > ul > li > a {
-        color: #ddd;
         font-weight: bold;
+        background-color: var(--paper-indigo-500);
       }
 
-      /* The addition of the icons to the <iron-icon> elements to the submenus
-       * makes the submenu title text lower; the below style rule is intended
-       * to align the other menu items. */
-      #navbar .menu > li a {
-        display: inline-block;
-        padding-top: 3px;
+      a {
+        color: var(--paper-indigo-50);
+        text-decoration: none;
+        padding: 0.8em;
       }
 
-      /* This is a spacer in the navbar list that pushes the items after it
-       * all the way to the right side. */
-      .spacer {
-        flex: 100;
-      }
-
-      #navbar .menu li:hover > ul {
-        margin-top: 6px;
-        background-color: #2D2D2D;
-        border: 1px solid rgba(0, 0, 0, .2);
-      }
-
-      #navbar li:hover, #navbar a:hover {
+      a:hover {
         color: white;
       }
 
-      /* Basic select menus. */
-      .menu ul {
-        display: none;
-      }
-
-      .menu li:hover > ul {
-        display: block;
-        position: absolute;
+      .spacer {
+        flex: 1;
       }
     </style>
     <nav id="navbar">
-      <ul class="menu">
-        <li><a href="/">Pinpoint</a></li>
-        <li><a href="/jobs">Jobs</a></li>
-        <li><a href="/new">Create Job</a></li>
-        <li><a href="https://github.com/catapult-project/catapult/tree/master/dashboard/dashboard/pinpoint">Pinpoint in Github</a></li>
-
-        <li class="spacer"></li>
-        <li><a href$="{{loginUrl}}" title="switch user">{{displayUsername}}</a></li>
-      </ul>
+      <a href="/">Pinpoint</a>
+      <a href="/jobs">Jobs</a>
+      <a href="/new">Create job</a>
+      <a href="https://github.com/catapult-project/catapult/tree/master/dashboard/dashboard/pinpoint">Documentation</a>
+      <span class="spacer"></span>
+      <a href$="{{loginUrl}}" title="switch user">{{displayUsername}}</a>
     </nav>
   </template>
   <script>

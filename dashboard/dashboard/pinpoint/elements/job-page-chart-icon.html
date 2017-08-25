@@ -5,11 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
 <link rel="import" href="/components/iron-icon/iron-icon.html">
 <link rel="import" href="/components/iron-icons/iron-icons.html">
-<link rel="import" href="/components/polymer/polymer.html">
 
 <dom-module id="job-page-chart-icon">
   <template>
@@ -21,13 +18,11 @@ found in the LICENSE file.
       }
 
       #icon:hover {
-        transform: scale(1.2);
+        fill: var(--paper-pink-a200);
       }
     </style>
 
-    <div>
-      <iron-icon id="icon" icon="[[icon]]" hidden$="[[hidden]]"></iron-icon>
-    </div>
+    <iron-icon id="icon" icon="[[icon]]" hidden$="[[hidden]]"></iron-icon>
   </template>
   <script>
     'use strict';
@@ -63,12 +58,14 @@ found in the LICENSE file.
         const index = Math.max(changeIndex - 1, 0);
         if (jobResults.comparisons[index] == 'pending') {
           this.set('icon', 'watch-later');
-          this.$.icon.style.color = 'blue';
+          this.$.icon.customStyle['--iron-icon-fill-color'] =
+              'var(--paper-indigo-100)';
           return;
         }
 
-        this.set('icon', 'error');
-        this.$.icon.style.color = 'red';
+        this.set('icon', 'clear');
+        this.$.icon.customStyle['--iron-icon-fill-color'] =
+            'var(--paper-red-500)';
       }
     });
   </script>

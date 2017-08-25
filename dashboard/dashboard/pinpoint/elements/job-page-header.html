@@ -5,44 +5,50 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
-<link rel="import" href="/components/polymer/polymer.html">
-
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
-
 <dom-module id="job-page-header">
   <template>
     <style>
-      #data {
-        border-collapse: collapse;
-        border-spacing: 0;
-        font-size: small;
-        table-layout: fixed;
+      #content {
+        column-count: 3;
+        column-gap: 0;
       }
 
-      #data tbody td {
-        border: 1px solid #BBBBBB;
-        padding: 5px;
-        font-size: small;
+      table {
+        width: 100%;
       }
 
-      #data tbody td:first-child {
-        font-weight: bold;
+      tr:nth-child(odd) {
+        background: var(--paper-indigo-50);
+      }
+
+      th {
+        text-align: right;
+        color: var(--paper-indigo-50);
+        background: var(--paper-indigo-500);
+        width: 8em;
+      }
+
+      th, td {
+        padding: 0.5em 1em;
       }
     </style>
 
     <div id="content">
-      <table id="data">
-        <tbody>
-          <template is="dom-repeat" items="[[getDisplayItems(jobInfo.data)]]" as="item">
-            <tr>
-              <td>[[item.name]]</td>
-              <td>[[item.value]]</td>
-            </tr>
-          </template>
-        </tbody>
+      <table>
+        <template is="dom-repeat" items="[[getStatus(jobInfo.data)]]">
+          <tr>
+            <th>[[item.key]]</th>
+            <td>[[item.value]]</td>
+          </tr>
+        </template>
+      </table>
+      <table>
+        <template is="dom-repeat" items="[[getArguments(jobInfo.data)]]">
+          <tr>
+            <th>[[item.key]]</th>
+            <td>[[item.value]]</td>
+          </tr>
+        </template>
       </table>
     </div>
   </template>
@@ -51,23 +57,23 @@ found in the LICENSE file.
     Polymer({
       is: 'job-page-header',
 
-      ready() {
+      getStatus(jobInfo) {
+        return [
+          {key: 'status', value: jobInfo.status},
+          {key: 'created', value: jobInfo.created},
+          {key: 'updated', value: jobInfo.updated},
+          {key: 'auto_explore', value: jobInfo.auto_explore}
+        ];
       },
 
-      getDisplayItems(jobInfo) {
-        let tuples = [];
-        for (const key in jobInfo) {
-          if (jobInfo[key] instanceof Object) {
-            if (key == 'arguments') {
-              tuples = tuples.concat(this.getDisplayItems(jobInfo[key]));
-            }
-            continue;
-          }
-          tuples.push({name: key, value: jobInfo[key]});
+      getArguments(jobInfo) {
+        const tuples = [];
+        for (const key in jobInfo.arguments) {
+          tuples.push({key, value: jobInfo.arguments[key]});
         }
         tuples.sort(function(a, b) {
-          if (a.name < b.name) return -1;
-          if (a.name > b.name) return 1;
+          if (a.key < b.key) return -1;
+          if (a.key > b.key) return 1;
           return 0;
         });
         return tuples;

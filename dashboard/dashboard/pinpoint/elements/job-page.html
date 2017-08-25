@@ -5,10 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
 <link rel="import" href="/components/app-route/app-route.html">
-<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-change-table.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
@@ -87,10 +85,10 @@ tr.exportTo('d', function() {
       const passed = this.valuesAllPassed(
           this.data_.state.result_values[changeIndex][questIndex]);
       if (passed) {
-        return 'PASSED';
+        return 'Passed';
       }
 
-      return 'FAILED';
+      return 'Failed';
     }
 
     valuesAllPassed(values) {
@@ -109,81 +107,47 @@ tr.exportTo('d', function() {
 <dom-module id="job-page">
   <template>
     <style>
-    .error {
-      color: #dd4b39;
-      font-weight: bold;
-    }
+      .error {
+        color: var(--paper-red-500);
+        font-weight: bold;
+      }
 
-    .center {
-      margin: auto;
-      padding: 10px;
-    }
+      #content {
+        margin: 1em;
+      }
 
-    /* The content container contains everything below the sheriff select menu.
-     */
-    #content {
-      width: 100%;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
+      #loading-spinner {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
 
-    #loading-spinner {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-
-    .bar {
-      width: 100px;
-      height: 100px;
-    }
-
-    .pass {
-      background-color: #7b7;
-      width: 100%;
-    }
-
-    .fail {
-      background-color: #d66;
-      width: 100%;
-    }
-
-    #plots-container {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #plot {
-      flex-grow: 1;
-      height: 240px;
-      min-width: 500px;
-    }
+      h1 {
+        font-weight: lighter;
+        color: var(--paper-indigo-500);
+      }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{data}}"></app-route>
 
-    <template is="dom-if" if="[[loading]]">
-      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
-    </template>
-    <template is="dom-if" if="[[!loading]]">
-      <div id="content">
-        <h1>Pinpoint Job Status</h1>
+    <div id="content">
+      <template is="dom-if" if="[[loading]]">
+        <div id="loading-spinner">
+          <paper-spinner active></paper-spinner>
+        </div>
+      </template>
+      <template is="dom-if" if="[[!loading]]">
         <template is="dom-if" if="[[error]]">
-          <div class="error">{{error}}</div>
+          <p class="error">{{error}}</p>
         </template>
         <template is="dom-if" if="[[!error]]">
+          <h1>Job [[jobInfo.data.job_id]]</h1>
           <job-page-header job-info="[[jobInfo]]"></job-page-header>
-          <div style="height: 32px;"></div>
         </template>
-      </div>
-    </template>
-    <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
-
-    <div style='height: 32px;'></div>
-    <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
-    <div style='height: 32px;'></div>
+      </template>
+      <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
+      <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
+    </div>
   </template>
   <script>
     'use strict';

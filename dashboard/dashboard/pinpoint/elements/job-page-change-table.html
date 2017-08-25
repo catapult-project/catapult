@@ -5,10 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
-<link rel="import" href="/components/polymer/polymer.html">
-
 <link rel="import" href="/dashboard/pinpoint/elements/change-info.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -16,68 +12,97 @@ found in the LICENSE file.
 <dom-module id="job-page-change-table">
   <template>
     <style>
-      #data {
-        border-collapse: collapse;
-        border-spacing: 0;
-        font-size: small;
-        table-layout: fixed;
+      .columns {
+        display: flex;
       }
 
-      #data tbody td {
-        border: 1px solid #BBBBBB;
-        padding: 5px;
+      .column {
+        flex: 1 1 0;
       }
 
-      #data tbody td:first-child {
-        font-weight: bold;
-        width: 200px;
+      h2 {
+        font-weight: lighter;
+        color: var(--paper-indigo-500);
+      }
+
+      table {
+        width: 100%;
+      }
+
+      tr:nth-child(odd) {
+        background: var(--paper-indigo-50);
+      }
+
+      th {
+        text-align: right;
+        color: var(--paper-indigo-50);
+        background: var(--paper-indigo-500);
+        width: 8em;
+      }
+
+      th, td {
+        padding: 0.5em 1em;
+      }
+
+      a {
+        color: var(--paper-pink-a200);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
       }
     </style>
     <template is="dom-if" if="[[isShowing(index)]]">
-      <table id="data">
-        <tr>
-            <td>[[buildTitle]]</td>
-            <td><change-info change=[[change]]></change-info></td>
-        </tr>
-        <tr>
-          <td>Status</td>
-          <td>[[buildStatus]]</td>
-        </tr>
-        <tr>
-          <td>Buildbucket</td>
-          <td><a href="https://buildbucket/[[buildbucketIds]]" target="_blank">[[buildbucketIds]]</a></td>
-        </tr>
-        <tr>
-          <td>Test Isolate</td>
-          <td><a href="https://isolateserver.appspot.com/browse?hash=[[inputIsolateHashes]]" target="_blank">[[inputIsolateHashes]]</a></td>
-        </tr>
+      <change-info change=[[change]]></change-info>
 
-        <tr><td></td></tr>
+      <div class="columns">
+        <div class="column">
+          <h2>[[buildTitle]]</h2>
+          <table>
+            <tr>
+              <th>Status</th>
+              <td>[[buildStatus]]</td>
+            </tr>
+            <tr>
+              <th>Buildbucket</th>
+              <td><a href="https://buildbucket/[[buildbucketIds]]" target="_blank">[[buildbucketIds]]</a></td>
+            </tr>
+            <tr>
+              <th>Test Isolate</th>
+              <td><a href="https://isolateserver.appspot.com/browse?hash=[[inputIsolateHashes]]" target="_blank">[[inputIsolateHashes]]</a></td>
+            </tr>
+          </table>
+        </div>
 
-        <tr><td>[[runTitle]]</td></tr>
-        <tr>
-          <td>Status</td>
-          <td>[[runStatus]]</td>
-        </tr>
-        <tr>
-          <td>Swarming Task</td>
-          <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a></td>
-        </tr>
-        <tr>
-          <td>Output Isolate</td>
-          <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a></td>
-        </tr>
+        <div class="column">
+          <h2>[[runTitle]]</h2>
+          <table>
+            <tr>
+              <th>Status</th>
+              <td>[[runStatus]]</td>
+            </tr>
+            <tr>
+              <th>Swarming Task</th>
+              <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a></td>
+            </tr>
+            <tr>
+              <th>Output Isolate</th>
+              <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a></td>
+            </tr>
+          </table>
+        </div>
 
-        <tr><td></td></tr>
-
-        <tr><td>[[testTitle]]</td></tr>
-        <tr>
-          <td>Values</td>
-          <td>[[formatValues(resultValues)]]</td>
-        </tr>
-
-      </table>
-
+        <div class="column">
+          <h2>[[testTitle]]</h2>
+          <table>
+            <tr>
+              <th>Values</th>
+              <td>[[formatValues(resultValues)]]</td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </template>
   </template>
   <script>

@@ -5,39 +5,45 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-
-<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
 <dom-module id="dep-info">
-  <style>
-  #loading-spinner {
-    display: flex;
-    justify-content: left;
-  }
-  #info {
-    min-height: 80px;
-  }
-  </style>
   <template>
+    <style>
+      h2 {
+        font-weight: lighter;
+        color: var(--paper-indigo-500);
+      }
+
+      tr:nth-child(odd) {
+        background: var(--paper-indigo-50);
+      }
+
+      th {
+        text-align: right;
+        color: var(--paper-indigo-50);
+        background: var(--paper-indigo-500);
+        width: 8em;
+      }
+
+      th, td {
+        padding: 0.5em 1em;
+      }
+    </style>
     <div>
-      <div>
-        <p>[[title]]</p>
-      </div>
+      <h2>[[title]]</h2>
       <template is="dom-if" if="[[loading]]">
-        <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+        <paper-spinner active></paper-spinner>
       </template>
       <template is="dom-if" if="[[!loading]]">
-        <div id="info">
-          <table>
-            <tr><td>Subject</td><td>[[subject]]</td></tr>
-            <tr><td>Author</td><td>[[author]]</td></tr>
-            <tr><td>Timestamp</td><td>[[timestamp]]</td></tr>
-          </table>
-        </div>
+        <table>
+          <tr><th>Subject</th><td>[[subject]]</td></tr>
+          <tr><th>Author</th><td>[[author]]</td></tr>
+          <tr><th>Timestamp</th><td>[[timestamp]]</td></tr>
+        </table>
       </template>
     </div>
   </template>
@@ -85,19 +91,11 @@ found in the LICENSE file.
 </dom-module>
 
 <dom-module id="change-info">
-  <style>
-  #deps {
-    table-layout: fixed;
-    width: 100%;
-  }
-  </style>
   <template>
-    <div>
-      <dep-info dep="[[change.base_commit]]"></dep-info>
-      <template is="dom-repeat" items="[[change.deps]]">
-        <dep-info dep="[[item]]"></dep-info>
-      </template>
-    </div>
+    <dep-info dep="[[change.base_commit]]"></dep-info>
+    <template is="dom-repeat" items="[[change.deps]]">
+      <dep-info dep="[[item]]"></dep-info>
+    </template>
   </template>
   <script>
     'use strict';

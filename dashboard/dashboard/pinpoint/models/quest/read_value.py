@@ -21,7 +21,7 @@ class ReadChartJsonValue(quest.Quest):
             self._test == other._test)
 
   def __str__(self):
-    return 'Value of ' + self._metric
+    return 'Value'
 
   def Start(self, isolate_hashes):
     return _ReadChartJsonValueExecution(self._metric, self._test,
