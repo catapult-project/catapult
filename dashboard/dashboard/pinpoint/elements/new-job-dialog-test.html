@@ -95,6 +95,7 @@ tr.b.unittest.testSuite(function() {
     page.test = 'Test';
     page.metric = 'metric';
     page.target = 'telemetry_perf_tests';
+    page.browser = 'release';
     page.auto_explore = true;
     page.start_repository = 'chromium';
     page.end_repository = 'v8';
@@ -119,6 +120,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.test, 'Test');
     assert.strictEqual(params.metric, 'metric');
     assert.strictEqual(params.target, 'telemetry_perf_tests');
+    assert.strictEqual(params.browser, 'release');
     assert.strictEqual(params.auto_explore, '1');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'v8');
