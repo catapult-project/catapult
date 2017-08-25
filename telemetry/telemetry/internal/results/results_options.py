@@ -12,12 +12,13 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
-from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import json_3_output_formatter
+from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import legacy_html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
@@ -25,18 +26,28 @@ from telemetry.internal.results import progress_reporter
 # Allowed output formats. The default is the first item in the list.
 
 _OUTPUT_FORMAT_CHOICES = (
-    'html', 'gtest', 'json', 'json-test-results',
-    'chartjson', 'csv-pivot-table', 'histograms', 'legacy-html', 'none')
+    'chartjson',
+    'csv',
+    'csv-pivot-table',
+    'gtest',
+    'histograms',
+    'html',
+    'json',
+    'json-test-results',
+    'legacy-html',
+    'none',
+    )
 
 
 # Filenames to use for given output formats.
 _OUTPUT_FILENAME_LOOKUP = {
+    'chartjson': 'results-chart.json',
+    'csv': 'results.csv',
+    'csv-pivot-table': 'results-pivot-table.csv',
+    'histograms': 'histograms.json',
     'html': 'results.html',
     'json': 'results.json',
     'json-test-results': 'test-results.json',
-    'chartjson': 'results-chart.json',
-    'csv-pivot-table': 'results-pivot-table.csv',
-    'histograms': 'histograms.json',
     'legacy-html': 'legacy-results.html'
 }
 
@@ -116,7 +127,7 @@ def _GetOutputStream(output_format, output_dir):
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
 
   # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
-  if output_format == 'html' or output_format == 'legacy-html':
+  if output_format in ['html', 'legacy-html', 'csv']:
     open(output_file, 'a').close() # Create file if it doesn't exist.
     return codecs.open(output_file, mode='r+', encoding='utf-8')
   else:
@@ -171,6 +182,10 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
               output_stream, benchmark_metadata))
+    elif output_format == 'csv':
+      output_formatters.append(
+          csv_output_formatter.CsvOutputFormatter(
+              output_stream, options.reset_results))
     elif output_format == 'histograms':
       output_formatters.append(
           histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(

@@ -54,18 +54,18 @@ tr.b.unittest.testSuite(function() {
     csv = csv.toString().split('\n');
     assert.lengthOf(csv, histograms.length + 2);
     assert.strictEqual(csv[0],
-        'name,unit,avg,nans,pct_010,pct_090,count,max,min,std,sum,' +
+        'name,unit,avg,count,max,min,nans,pct_010,pct_090,std,sum,' +
         'architectures,benchmarks,benchmarkStart,bots,builds,displayLabel,' +
         'masters,memoryAmounts,osNames,osVersions,productVersions,stories,' +
         'storysetRepeats,traceStart');
     assert.strictEqual(csv[1],
-        'hist0,B,500,1,150,950,,,,,,,benchmark A,2017-07-10 22:44:08,,,' +
+        'hist0,B,500,,,,1,150,950,,,,benchmark A,2017-07-10 22:44:08,,,' +
         'label A,,,,,,story A,0,');
     assert.strictEqual(csv[2],
-        'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,,Value,,,,,,,,');
+        'hist1,σ,,0,-Infinity,Infinity,,,,,0,,,,,,Value,,,,,,,,');
     assert.strictEqual(csv[3],
-        'hist2,,,,,,0,-Infinity,Infinity,,0,,benchmark A,,,,' +
-        'benchmark A,,,,,,,,');
+        'hist2,,,0,-Infinity,Infinity,,,,,0,,benchmark A,,,,benchmark A' +
+        ',,,,,,,,');
     assert.strictEqual(csv[4], '');
   });
 });

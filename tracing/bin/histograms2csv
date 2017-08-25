@@ -14,11 +14,8 @@ tracing_path = os.path.abspath(os.path.join(
 sys.path.append(tracing_path)
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
-import vinn
 
-
-_HISTOGRAMS_TO_CSV_CMD_LINE = os.path.join(
-    tracing_path, 'tracing', 'value', 'histograms_to_csv_cmdline.html')
+from tracing.value import histograms_to_csv
 
 
 def main():
@@ -32,10 +29,7 @@ def main():
   parser.add_argument('-h', '--help', action='help',
                       help='Show this help message and exit.')
   args = parser.parse_args()
-  result = vinn.RunFile(
-      _HISTOGRAMS_TO_CSV_CMD_LINE,
-      source_paths=list(tracing_project.TracingProject().source_paths),
-      js_args=[os.path.abspath(args.json_path)])
+  result = histograms_to_csv.HistogramsToCsv(args.json_path)
   if result.returncode != 0:
     sys.stderr.write(result.stdout)
   else:

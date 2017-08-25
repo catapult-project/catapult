@@ -15,6 +15,7 @@ found in the LICENSE file.
 if (tr.isHeadless) {
   const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
+  histograms.resolveRelatedHistograms();
   histograms.addSharedDiagnostic(sys.argv[2], tr.v.d.Diagnostic.fromDict(
       JSON.parse(tr.b.getSync('file://' + sys.argv[3]))));
   console.log(JSON.stringify(histograms.asDicts()));

@@ -131,7 +131,7 @@ tr.exportTo('tr.b', function() {
         throw new Error(
             'A UnitScale could not be found for Unit ' + this.unitName);
       }
-      return scale[0].baseSymbol || scale[0].symbol;
+      return scale[0].symbol;
     },
 
     /**

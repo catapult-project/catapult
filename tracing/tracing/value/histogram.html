@@ -644,20 +644,22 @@ tr.exportTo('tr.v', function() {
      */
     getStatisticScalar(statName, opt_referenceHistogram, opt_mwu) {
       if (statName === 'avg') {
-        if (this.running_ === undefined) return undefined;
+        if (typeof(this.average) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, this.average);
       }
       if (statName === 'std') {
-        if (this.standardDeviation === undefined) return undefined;
+        if (typeof(this.standardDeviation) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, this.standardDeviation);
       }
       if (statName === 'geometricMean') {
+        if (typeof(this.geometricMean) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, this.geometricMean);
       }
       if (statName === 'min' || statName === 'max' || statName === 'sum') {
         if (this.running_ === undefined) {
           this.running_ = new tr.b.math.RunningStatistics();
         }
+        if (typeof(this.running_[statName]) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, this.running_[statName]);
       }
       if (statName === 'nans') {
@@ -672,6 +674,7 @@ tr.exportTo('tr.v', function() {
         const percent = percentFromString(statName.substr(4));
         if (this.numValues === 0) return undefined;
         const percentile = this.getApproximatePercentile(percent);
+        if (typeof(percentile) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, percentile);
       }
       if (statName.substr(0, 4) === 'ipr_') {
@@ -682,7 +685,9 @@ tr.exportTo('tr.v', function() {
         }
         lower = this.getApproximatePercentile(lower);
         upper = this.getApproximatePercentile(upper);
-        return new tr.b.Scalar(this.unit, upper - lower);
+        const ipr = upper - lower;
+        if (typeof(ipr) !== 'number') return undefined;
+        return new tr.b.Scalar(this.unit, ipr);
       }
 
       if (!this.canCompare(opt_referenceHistogram)) {
