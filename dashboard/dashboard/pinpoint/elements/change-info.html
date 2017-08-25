@@ -14,22 +14,31 @@ found in the LICENSE file.
 
 <dom-module id="dep-info">
   <style>
-  #title {
-    display: inline-flex;
+  #loading-spinner {
+    display: flex;
+    justify-content: left;
+  }
+  #info {
+    min-height: 80px;
   }
   </style>
   <template>
     <div>
-      <div id="title">
+      <div>
         <p>[[title]]</p>
       </div>
-      <div id="info">
-        <table>
-          <tr><td>Subject</td><td>[[subject]]</td></tr>
-          <tr><td>Author</td><td>[[author]]</td></tr>
-          <tr><td>Timestamp</td><td>[[timestamp]]</td></tr>
-        </table>
-      </div>
+      <template is="dom-if" if="[[loading]]">
+        <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+      </template>
+      <template is="dom-if" if="[[!loading]]">
+        <div id="info">
+          <table>
+            <tr><td>Subject</td><td>[[subject]]</td></tr>
+            <tr><td>Author</td><td>[[author]]</td></tr>
+            <tr><td>Timestamp</td><td>[[timestamp]]</td></tr>
+          </table>
+        </div>
+      </template>
     </div>
   </template>
   <script>
@@ -41,7 +50,7 @@ found in the LICENSE file.
           type: Object,
           observer: '_depChanged'
         },
-        expanded: {
+        loading: {
           type: Boolean,
           value: false,
         },
@@ -51,13 +60,16 @@ found in the LICENSE file.
       },
 
       async _depChanged() {
+        this.loading = true;
+        this.title = this.dep.repository + '@' + this.dep.git_hash;
+
         const response = await this.sendGitilesRequestForDep(this.dep);
 
         this.subject = response.message.split('\n')[0];
 
-        this.title = this.dep.repository + '@' + this.dep.git_hash;
         this.author = response.author.email;
         this.timestamp = response.author.time;
+        this.loading = false;
       },
 
       async sendGitilesRequestForDep(dep, success, error) {
