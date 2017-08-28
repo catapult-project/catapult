@@ -17,6 +17,12 @@ tr.exportTo('tr.metrics.sh', function() {
   // Number of requests tolerated before network is considered busy.
   const ACTIVE_REQUEST_TOLERANCE = 2;
 
+  // Minimum gap between task clusters for determining First Interactive.
+  const FI_MIN_CLUSTER_SEPARATION_MS = 1000;
+
+  // Minimum duration of a task cluster to consider it heavy.
+  const TASK_CLUSTER_HEAVINESS_THRESHOLD_MS = 250;
+
   /**
    * Enum for endpoint types.
    * @enum {string}
@@ -104,18 +110,18 @@ tr.exportTo('tr.metrics.sh', function() {
    * in-flight network requests. FCI 'candidate' is defined as end of the last
    * long task before this quiet window, or as |searchBegin| if there is no long
    * task before that window. We define FCI as max of FCI candidate and
-   * DOMContentLoadedEnd.
+   * domContentLoadedEnd.
    *
    * Returns undefined if no suitable quiet window is found.
    *
    * @param {number} searchBegin - The left boundary for our search for quiet
    * window. Ideally, this is First Meaningful Paint, but if FMP is not
-   * available, First Contentful Paint or DOMContentLoadedEnd may be used as an
+   * available, First Contentful Paint or domContentLoadedEnd may be used as an
    * approximation.
    * @param {number} searchEnd - The right boundary for our search for quiet
    * window. This is either the start of next navigationStart request, or end of
    * traces.
-   * @param {number} DOMContentLoadedEnd - Timestamp of DOMContentLoadedEnd
+   * @param {number} domContentLoadedEnd - Timestamp of domContentLoadedEnd
    * event for the main loading frame.
    * @param {Array.<!tr.model.TimedEvent>} longTasks - Main thread tasks longer
    * than 50ms overlapping with the search window.
@@ -124,7 +130,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @returns {number|undefined}
    */
   function findConsistentlyInteractiveTimestamp(searchBegin, searchEnd,
-      DOMContentLoadedEnd, longTasksInWindow, networkRequests) {
+      domContentLoadedEnd, longTasksInWindow, networkRequests) {
     // It is sufficient to only look at the end points of long tasks and network
     // requests. These are the points where any meaningful changes happen.
     const longTaskEndpoints = getEndpoints_(longTasksInWindow,
@@ -179,11 +185,208 @@ tr.exportTo('tr.metrics.sh', function() {
 
     if (fciCandidate === undefined) return undefined;
 
-    return Math.max(fciCandidate, DOMContentLoadedEnd);
+    return Math.max(fciCandidate, domContentLoadedEnd);
+  }
+
+  /**
+   * Returns the required quiet window size for FirstInteractive at
+   * |timeSinceSearchBeginMs| after searchBegin.
+   *
+   * Required quiet window size is modeled as an exponential decay. See
+   * https://goo.gl/kQXGLW for development of the exact equation used here.
+   *
+   * @param {number} timeSinceSearchBeginMs - Time since the beginning of search
+   *     window for FirstInteractive.
+   */
+  function requiredFIWindowSizeMs(timeSinceSearchBeginMs) {
+    const timeCoefficient = 1 / 15 * Math.log(2);
+
+    const timeSinceSearchBeginSeconds = tr.b.convertUnit(timeSinceSearchBeginMs,
+        tr.b.UnitPrefixScale.METRIC.MILLI, tr.b.UnitPrefixScale.METRIC.NONE);
+    const windowSizeSeconds =
+        4 * Math.exp(- timeCoefficient * timeSinceSearchBeginSeconds) + 1;
+    return tr.b.convertUnit(windowSizeSeconds,
+        tr.b.UnitPrefixScale.METRIC.NONE, tr.b.UnitPrefixScale.METRIC.MILLI);
+  }
+
+  /**
+   * TaskCluster represents a group of long tasks such that they are at least 1s
+   * away from any other long task that is not in the group.
+   *
+   * A TaskCluster instance is meant to be immutable once constructed.
+   */
+  class TaskCluster {
+    /**
+     * Create a TaskCluster.
+     * @param {Array.<!tr.model.TimedEvent>} tasksInClusterSorted - Tasks in the
+     *     cluster. Assumed sorted by start time.
+     */
+    constructor(tasksInClusterSorted) {
+      if (tasksInClusterSorted.length === 0) {
+        throw new Error('Internal Error: TaskCluster must have non zero tasks');
+      }
+
+      for (let i = 0; i < tasksInClusterSorted.length - 1; i++) {
+        const durationBetweenTasks = tasksInClusterSorted[i + 1].start -
+            tasksInClusterSorted[i].end;
+        if (durationBetweenTasks >= FI_MIN_CLUSTER_SEPARATION_MS) {
+          throw new Error('Internal Error: Tasks in a TaskCluster cannot be ' +
+                          'more than ' + FI_MIN_CLUSTER_SEPARATION_MS +
+                          ' miliseconds apart');
+        }
+
+        if (durationBetweenTasks < 0) {
+          throw new Error('Internal Error: List of tasks used to construct ' +
+                          'TaskCluster must be sorted.');
+        }
+      }
+
+      this._clusterTasks = tasksInClusterSorted;
+    }
+
+    /**
+     * @type{number}
+     */
+    get start() {
+      return this._clusterTasks[0].start;
+    }
+
+    /**
+     * @type{number}
+     */
+    get end() {
+      return this._clusterTasks[this._clusterTasks.length - 1].end;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    isHeavy() {
+      return this.end - this.start > TASK_CLUSTER_HEAVINESS_THRESHOLD_MS;
+    }
+  }
+
+
+  /**
+   * Returns all the task clusters of |sortedLongTasks|.
+   *
+   * @param {Array.<!tr.model.TimedEvent>} sortedLongTasks - Main thread tasks
+   *     longer than 50ms, sorted by task start time.
+   * @returns {Array.<!TaskCluster>}
+   */
+  function findFITaskClusters(sortedLongTasks) {
+    const clusters = [];
+    if (sortedLongTasks.length === 0) return clusters;
+
+    const firstTask = sortedLongTasks[0];
+    const restOfTasks = sortedLongTasks.slice(1);
+
+    let currentClusterTasks = [firstTask];
+
+    for (const currTask of restOfTasks) {
+      const prevTask = currentClusterTasks[currentClusterTasks.length - 1];
+      if (currTask.start - prevTask.end < FI_MIN_CLUSTER_SEPARATION_MS) {
+        // Add task to current task cluster.
+        currentClusterTasks.push(currTask);
+      } else {
+        // Wrap up the current cluster and add task to a fresh cluster.
+        clusters.push(new TaskCluster(currentClusterTasks));
+        currentClusterTasks = [currTask];
+      }
+    }
+
+    clusters.push(new TaskCluster(currentClusterTasks));
+
+    return clusters;
+  }
+
+  /**
+   * Returns true if at time |timestamp|, assuming |timestamp| is not in the
+   * middle of a heavy task cluster, we have a long enough quiet window for
+   * determining Time to First Interactive.
+   *
+   * @param {number} timestamp - Timestamp of interest. We assume |timestamp| is
+   *     not in the middle of a heavy task cluster.
+   * @param {number} mainThreadQuietWindowStart - Most recent timestamp when we
+   *     considered the main thread to be quiet. Usually end of most recent
+   *     heavy task cluster or |searchBegin| where there are no heavy task
+   *     cluster.
+   * @param {number} searchBegin - Left boundary for quiet window search.
+   * @returns {boolean}
+   */
+  function reachedFIQuiescense_(timestamp, mainThreadQuietWindowStart,
+      searchBegin) {
+    const quietWindowSize = timestamp - mainThreadQuietWindowStart;
+    const timeSinceSearchBegin = mainThreadQuietWindowStart - searchBegin;
+    const requiredWindowSize = requiredFIWindowSizeMs(timeSinceSearchBegin);
+    return quietWindowSize > requiredWindowSize;
+  }
+
+  /**
+   * Returns the timestamp for First Interactive for a page.
+   *
+   * See https://goo.gl/1a1XwZ for definition, and https://goo.gl/IN68jL for an
+   * explanation of how the definition was developed. To summarize, in order to
+   * find First Interactive we look for a long enough window between
+   * |searchBegin| and |searchEnd| such that it doesn't contain a heavy task
+   * cluster. The required length of the window decreases the further we move
+   * away from |searchBegin|. A "task cluster" is defined as a group of long
+   * tasks such that they are at least 1s away from any other long task that is
+   * not in the group. A task cluster is considered "heavy" if the duration of
+   * the task cluster (the time interval from the beginning of first task to the
+   * end of last task) is longer than 250ms. We call the beginning of the quiet
+   * window FI candidate, and define First Interactive as max of FI candidate
+   * and domContentLoadedEnd.
+   *
+   * Returns undefined if no suitable quiet window is found.
+   *
+   * @param {number} searchBegin - The left boundary for our search for quiet
+   *     window. Ideally, this is First Meaningful Paint, but if FMP is not
+   *     available, First Contentful Paint or domContentLoadedEnd may be used as
+   *     an approximation.
+   * @param {number} searchEnd - The right boundary for our search for quiet
+   *     window. This is either the start of next navigationStart request, or
+   *     end of traces.
+   * @param {number} domContentLoadedEnd - Timestamp of domContentLoadedEnd
+   *     event for the main loading frame.
+   * @param {Array.<!tr.model.TimedEvent>} longTasks - Main thread tasks longer
+   *     than 50ms overlapping with the search window.
+   * @returns {number|undefined}
+   */
+  function findFirstInteractiveTimestamp(searchBegin, searchEnd,
+      domContentLoadedEnd, longTasksInWindow) {
+    const sortedLongTasks = longTasksInWindow.sort((a, b) => a.start - b.start);
+    const taskClusters = findFITaskClusters(sortedLongTasks);
+    const heavyTaskClusters = taskClusters.filter(cluster => cluster.isHeavy());
+
+    let quietWindowBegin = searchBegin;
+    let fiCandidate = undefined;
+    for (const cluster of heavyTaskClusters) {
+      if (reachedFIQuiescense_(cluster.start, quietWindowBegin, searchBegin)) {
+        fiCandidate = quietWindowBegin;
+        break;
+      }
+      quietWindowBegin = cluster.end;
+    }
+
+    if (fiCandidate === undefined) {
+      // Check if quiescence was reached at the end of the search window.
+      if (reachedFIQuiescense_(searchEnd, quietWindowBegin, searchBegin)) {
+        fiCandidate = quietWindowBegin;
+      } else {
+        // We never reached quiescence.
+        return undefined;
+      }
+    }
+
+    return Math.max(fiCandidate, domContentLoadedEnd);
   }
 
   return {
     findConsistentlyInteractiveTimestamp,
+    findFirstInteractiveTimestamp,
+    requiredFIWindowSizeMs,
+    findFITaskClusters,
   };
 });
 </script>

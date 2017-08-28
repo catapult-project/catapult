@@ -14,6 +14,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const findConsistentlyInteractiveTimestamp =
       tr.metrics.sh.findConsistentlyInteractiveTimestamp;
+  const findFirstInteractiveTimestamp =
+      tr.metrics.sh.findFirstInteractiveTimestamp;
+  const requiredFIWindowSizeMs =
+        tr.metrics.sh.requiredFIWindowSizeMs;
+  const findFITaskClusters = tr.metrics.sh.findFITaskClusters;
 
   test('findConsistentlyInteractiveTimestamp_' +
        'doesNotWaitForTasksFarAwayWithoutNetworkRequests', () => {
@@ -158,6 +163,170 @@ tr.b.unittest.testSuite(function() {
     // windowStart, but should still manage to block netowrk 2-quiet.
     assert.closeTo(findConsistentlyInteractiveTimestamp(
         1000, 20000, 1050, longTasks, networkRequests), 7200, 1e-7);
+  });
+
+  test('requiredFIWindowSizeMs', () => {
+    // The required window size function is an exponential decay, and is
+    // uniquely determined by values at three points.
+    assert.closeTo(requiredFIWindowSizeMs(0), 5000, 1e-7);
+    assert.closeTo(requiredFIWindowSizeMs(15000), 3000, 1e-7);
+    assert.closeTo(requiredFIWindowSizeMs(Infinity), 1000, 1e-7);
+  });
+
+  test('findFITaskClusters_MultipleLongTasks', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 500, end: 700},
+      {start: 1710, end: 1800},
+      {start: 1900, end: 2000},
+      {start: 2200, end: 2300},
+      {start: 5000, end: 5100},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    const clusters = findFITaskClusters(longTasks);
+    assert.strictEqual(clusters.length, 3);
+    assert.strictEqual(clusters[0].start, 50);
+    assert.strictEqual(clusters[0].end, 700);
+    assert.strictEqual(clusters[1].start, 1710);
+    assert.strictEqual(clusters[1].end, 2300);
+    assert.strictEqual(clusters[2].start, 5000);
+    assert.strictEqual(clusters[2].end, 5100);
+  });
+
+  test('findFIfTaskClusters_NoLongTasks', () => {
+    const clusters = findFITaskClusters([]);
+    assert.strictEqual(clusters.length, 0);
+  });
+
+  test('findFirstInteractiveTimestamp_noLongTasks', () => {
+    const searchBegin = 0;
+    const searchEnd = 20000;
+    const dclEnd = 0;
+    const longTasks = [];
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 0, 1e-7);
+  });
+
+  test('findFirstInteractiveTimestamp_' +
+       'firstInteractiveReachedInBetweenTaskClusters', () => {
+    const searchBegin = 0;
+    const searchEnd = 20000;
+    const dclEnd = 0;
+    const longTasks = [
+      // Cluster 1.
+      {start: 50, end: 150},
+      {start: 200, end: 300},
+      {start: 500, end: 700},
+      // Cluster 2.
+      {start: 2000, end: 2100},
+      {start: 2900, end: 3000},
+      // Cluster 3.
+      {start: 8000, end: 8100},
+      {start: 8200, end: 8500},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 3000, 1e-7);
+  });
+
+  test('findFirstInteractiveTimestamp_' +
+       'FirstInteractiveReachedAfterLastHeavyCluster', () => {
+    const searchBegin = 0;
+    const searchEnd = 20000;
+    const dclEnd = 0;
+    const longTasks = [
+      // Cluster 1.
+      {start: 1000, end: 1100},
+      {start: 1150, end: 1350},
+      // Cluster 2.
+      {start: 4000, end: 4400},
+      // Cluster 3.
+      {start: 7000, end: 7400}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 7400, 1e-7);
+  });
+
+
+  test('findFirstInteractiveTimestamp_noFirstInteractiveReached', () => {
+    const searchBegin = 0;
+    const searchEnd = 10000;
+    const dclEnd = 0;
+    const longTasks = [
+      // Four spaced out heavy task clusters.
+      {start: 2000, end: 2300},
+      {start: 4000, end: 4300},
+      {start: 6000, end: 6300},
+      {start: 8000, end: 8300}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.isUndefined(findFirstInteractiveTimestamp(searchBegin, searchEnd,
+        dclEnd, longTasks));
+  });
+
+  test('findFirstInteractiveTimestamp_lowerBoundedAtDCL', () => {
+    const searchBegin = 0;
+    const searchEnd = 10000;
+    const dclEnd = 8500;
+    const longTasks = [
+      {start: 2000, end: 2100},
+      {start: 4000, end: 4100}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), dclEnd, 1e-7);
+  });
+
+  test('findFirstInteractiveTimestamp_doesNotAssumeLongTasksAreSorted', () => {
+    const searchBegin = 0;
+    const searchEnd = 20000;
+    const dclEnd = 0;
+    const longTasks = [
+      {start: 2000, end: 2400},
+      {start: 1000, end: 1400}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 2400, 1e-7);
+  });
+
+  test('findFirstInteractiveTimestamp_' +
+      'lightTaskClustersDoesNotBlockFirstInteractive', () => {
+    const searchBegin = 0;
+    const searchEnd = 20000;
+    const dclEnd = 0;
+    const longTasks = [
+      // Cluster 1 - heavy (duration 350ms).
+      {start: 1000, end: 1100},
+      {start: 1150, end: 1350},
+      // Cluster 2 - light (duration 200ms).
+      {start: 4000, end: 4200},
+      // Cluster 3 - heavy (duration 400ms).
+      {start: 7000, end: 7400}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 1350, 1e-7);
+  });
+
+  test('findFirstInteractiveTimestamp_' +
+       'requiredWindowSizeIsAtLeast5sAtTheBeginning', () => {
+    // Search begin intentionally not 0 to catch errors in calculating
+    // timeSinceSearchBegin.
+    const searchBegin = 10000;
+    const searchEnd = 30000;
+    const dclEnd = 5000;
+    const longTasks = [
+      // Heavy Task Cluster (duration 501ms). Starts 4999 ms after
+      // |searchBegin|.
+      {start: 14999, end: 15100},
+      {start: 15200, end: 15500},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+        longTasks), 15500, 1e-7);
   });
 });
 </script>
