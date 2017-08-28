@@ -21,7 +21,6 @@ body {
 <link rel="import" href="/dashboard/pinpoint/elements/error-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/jobs-page.html">
-<link rel="import" href="/dashboard/pinpoint/elements/main-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/navigation-bar.html">
 <link rel="import" href="/dashboard/pinpoint/elements/new-page.html">
 
@@ -47,11 +46,10 @@ body {
     the <iron-pages> element via routeData.page.
     -->
     <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
-      <main-page name=""></main-page>
+      <jobs-page name="" route="{{tail}}"></jobs-page>
       <error-page name="error"></error-page>
 
       <job-page name="job" route="{{tail}}"></job-page>
-      <jobs-page name="jobs" route="{{tail}}"></jobs-page>
       <new-page name="new" abs-route="{{route}}"></new-page>
     </iron-pages>
 

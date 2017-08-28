@@ -128,9 +128,10 @@ tr.exportTo('d', function() {
       }
     </style>
 
-    <app-route route="{{route}}" pattern="/:jobId" data="{{data}}"></app-route>
+    <app-route route="{{route}}" pattern="/:jobId" data="{{routeData}}"></app-route>
 
     <div id="content">
+      <h1>Job [[routeData.jobId]]</h1>
       <template is="dom-if" if="[[loading]]">
         <div id="loading-spinner">
           <paper-spinner active></paper-spinner>
@@ -141,7 +142,6 @@ tr.exportTo('d', function() {
           <p class="error">{{error}}</p>
         </template>
         <template is="dom-if" if="[[!error]]">
-          <h1>Job [[jobInfo.data.job_id]]</h1>
           <job-page-header job-info="[[jobInfo]]"></job-page-header>
         </template>
       </template>
@@ -187,7 +187,7 @@ tr.exportTo('d', function() {
       selected() {
         this.loading = true;
 
-        const params = {job_id: this.data.jobId};
+        const params = {job_id: this.routeData.jobId};
         simple_xhr.send('/api/job', params,
             function(response) {
               this.set('jobInfo', new d.JobResults(response.data));
