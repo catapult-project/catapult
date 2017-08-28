@@ -15,139 +15,82 @@ found in the LICENSE file.
 <dom-module id="jobs-table">
   <template>
     <style>
-      #jobs {
-        border-collapse: collapse;
-        border-spacing: 0;
-        font-size: small;
-        table-layout: fixed;
+      .error {
+        color: var(--paper-red-500);
+        font-weight: bold;
+      }
+
+      table {
         width: 100%;
       }
 
-      #jobs thead {
+      tr:nth-child(even) {
+        background: var(--paper-indigo-50);
+      }
+
+      th {
+        color: var(--paper-indigo-50);
+        background-color: var(--paper-indigo-500);
+        background-size: 0.8em;
+        background-position: right 0.5em center;
+        background-repeat: no-repeat;
         cursor: pointer;
       }
 
-      #jobs thead th {
-        font-weight: bold;
-        text-align: left;
+      th, td {
+        padding: 0.5em 1em;
       }
 
-      #jobs thead th,
-      #jobs thead td {
-        border-bottom: 1px solid #8c8b8b;
-        padding: 10px;
+      th:not([data-sort-direction]) {
+        background-image: url("/dashboard/static/sort-up-down.svg");
       }
 
-      #jobs thead th:active,
-      #jobs thead td:active {
-        outline: none;
+      th[data-sort-direction=true] {
+        color: white;
+        background-image: url("/dashboard/static/sort-up.svg");
       }
 
-      #jobs #groupheader {
-        padding: 3px;
-        width: 23px;
+      th[data-sort-direction=false] {
+        color: white;
+        background-image: url("/dashboard/static/sort-down.svg");
       }
 
-      #jobs .width100 {
-        width: 100px;
+      a {
+        color: var(--paper-pink-a200);
+        text-decoration: none;
       }
 
-      #jobs .width130 {
-        width: 130px;
-      }
-
-      #jobs .width160 {
-        width: 160px;
-      }
-
-      #jobs .width20p {
-        max-width: 20%;
-        min-width: 15%;
-        width: 20%;
-      }
-
-      #jobs tbody tr {
-        background-color: white;
-        height: 26px;
-      }
-
-      #jobs tbody tr.selected {
-        background-color: #b0bed9;
-      }
-
-      #jobs tbody td {
-        padding: 3px 5px 3px 5px;
-        position: relative;
-        word-wrap: break-word;
-      }
-
-      #jobs tbody td:first-child {
-        text-align: center;
-        padding-right: 3px;
-        padding-left: 3px;
-      }
-
-      #jobs tbody th, #jobs tbody td {
-        border-bottom: 1px solid #ddd;
-      }
-
-      #jobs tbody tr:first-child th,
-      #jobs tbody tr:first-child td {
-        border-top: none;
-      }
-
-      #jobs tbody tr:not(.group-member):hover {
-        background-color: whitesmoke;
-      }
-
-      #jobs tbody tr td:first-child, #jobs thead th:first-child {
-        border-right: 1px solid transparent;
-      }
-
-      #jobs tbody td:last-child, #jobs thead th:last-child {
-        padding: 0;
-      }
-
-      th[data-sort-direction=true]::after {
-        content: " ▼";
-      }
-
-      th[data-sort-direction=false]::after {
-        content: " ▲";
-      }
-
-      .error {
-        color: #dd4b39;
-        font-weight: bold;
+      a:hover {
+        text-decoration: underline;
       }
     </style>
     <template is="dom-if" if="{{error}}">
-      <div class="error">{{error}}</div>
+      <p class="error">{{error}}</p>
     </template>
     <table id="jobs">
       <thead>
-      <tr>
-        <th class="width130" id="job_id" on-click="columnHeaderClicked">Job ID</th>
-        <th class="width100" id="status" on-click="columnHeaderClicked">Status</th>
-        <th class="width130" id="created" on-click="columnHeaderClicked">Created</th>
-        <th class="width130" id="configuration" on-click="columnHeaderClicked">Configuration</th>
-        <th class="width160" id="benchmark" on-click="columnHeaderClicked">Test Suite</th>
-        <th class="width160" id="story" on-click="columnHeaderClicked">Test</th>
-        <th class="width20p" id="metric" on-click="columnHeaderClicked">Metric</th>
-      </tr>
+        <tr>
+          <th id="job_id" on-click="columnHeaderClicked">Job ID</th>
+          <th id="status" on-click="columnHeaderClicked">Status</th>
+          <th id="created" on-click="columnHeaderClicked">Created</th>
+          <th id="configuration" on-click="columnHeaderClicked">Configuration</th>
+          <th id="benchmark" on-click="columnHeaderClicked">Benchmark</th>
+          <th id="story" on-click="columnHeaderClicked">Story</th>
+          <th id="metric" on-click="columnHeaderClicked">Metric</th>
+        </tr>
       </thead>
       <tbody>
-      <template is="dom-repeat" items="{{jobsList}}">
-        <tr class$="group-header">
-          <td class="width130"><a href='/job/{{item.job_id}}'>{{item.job_id}}</a></td>
-          <td class="width100">{{item.status}}</td>
-          <td class="width130">{{item.created}}</td>
-          <td class="width130">{{item.configuration}}</td>
-          <td class="width160">{{item.test_suite}}</td>
-          <td class="width160">{{item.test}}</td>
-          <td class="width20p">{{item.metric}}</td>
-        </tr>
-      </template>
+        <template is="dom-repeat" items="{{jobsList}}">
+          <tr>
+            <td><a href='/job/{{item.job_id}}'>{{item.job_id}}</a></td>
+            <td>{{item.status}}</td>
+            <td>{{item.created}}</td>
+            <td>{{item.arguments.configuration}}</td>
+            <td>{{item.arguments.benchmark}}</td>
+            <td>{{item.arguments.story}}</td>
+            <td>{{item.arguments.metric}}</td>
+          </tr>
+        </template>
       </tbody>
     </table>
   </template>
@@ -174,7 +117,7 @@ found in the LICENSE file.
          */
         sortBy: {
           type: String,
-          value: 'job_id',
+          value: 'created',
           notify: true,
           observer: 'sortByChanged'
         },
@@ -184,7 +127,7 @@ found in the LICENSE file.
          */
         sortDescending: {
           type: Boolean,
-          value: false,
+          value: true,
           notify: true,
           observer: 'sortDirectionChanged'
         },

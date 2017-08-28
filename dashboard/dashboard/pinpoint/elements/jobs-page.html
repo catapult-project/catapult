@@ -16,20 +16,31 @@ found in the LICENSE file.
   <template>
     <style>
       .error {
-        color: #dd4b39;
+        color: var(--paper-red-500);
         font-weight: bold;
       }
 
       #content {
-        display: inline-flex;
-        flex-direction: column;
-        align-items: flex-start;
+        margin: 1em;
       }
 
       #loading-spinner {
         width: 100%;
         display: flex;
         justify-content: center;
+      }
+
+      h1 {
+        font-weight: lighter;
+        color: var(--paper-indigo-500);
+      }
+
+      #job-count {
+        font-size: 0.6em;
+        background: #E8EAF6;
+        border-radius: 1em;
+        padding: 0.2em 0.5em;
+        vertical-align: middle;
       }
     </style>
 
@@ -43,16 +54,15 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="{{!loading}}">
         <template is="dom-if" if="{{error}}">
-          <div class="error">{{error}}</div>
+          <p class="error">{{error}}</p>
         </template>
         <template is="dom-if" if="{{!error}}">
-          <h1>Pinpoint Jobs</h1>
-          <div id="action-bar">
-          </div>
-          <h2>Running Jobs</h2>
-          <p id='num-alerts'>
-            {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
-          </p>
+          <h1>
+            Jobs
+            <span id="job-count">
+              {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
+            </span>
+          </h1>
           <jobs-table id="jobs-table"
               xsrf-token="{{xsrfToken}}"
               jobs-list="{{jobs}}"
@@ -96,20 +106,11 @@ found in the LICENSE file.
         }
       },
 
-      computeIsSingular: count => count === 1,
-
       computeJobCountString() {
-        if (this.totalJobsCount === 1) {
-          return '1 job';
+        if (this.totalJobsCount >= this.totalJobsCountMax) {
+          return String(this.totalJobsCountMax) + '+';
         }
-        if (this.totalJobsCount < this.totalJobsCountMax) {
-          return String(this.totalJobsCount) + ' jobs.';
-        }
-        return String(this.totalJobsCountMax) + ' or more jobs.';
-      },
-
-      getJobCount() {
-        return this.jobs.length;
+        return String(this.totalJobsCount);
       },
 
       deselected() {
