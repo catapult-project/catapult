@@ -63,7 +63,7 @@ class New(webapp2.RequestHandler):
       job.AddChange(c)
 
     # Put job into datastore.
-    job_id = job.put().urlsafe()
+    job.put()
 
     # Start job.
     job.Start()
@@ -72,8 +72,8 @@ class New(webapp2.RequestHandler):
     # TODO: Figure out if these should be underscores or lowerCamelCase.
     # TODO: They should match the input arguments.
     self.response.out.write(json.dumps({
-        'jobId': job_id,
-        'jobUrl': job.url
+        'jobId': job.job_id,
+        'jobUrl': job.url,
     }))
 
 

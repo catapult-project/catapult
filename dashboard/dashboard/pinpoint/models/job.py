@@ -32,12 +32,12 @@ _UNKNOWN = 'unknown'
 
 
 def JobFromId(job_id):
-  """Get a Job object from its ID. Its ID is just its urlsafe key.
+  """Get a Job object from its ID. Its ID is just its key as a hex string.
 
   Users of Job should not have to import ndb. This function maintains an
   abstraction layer that separates users from the Datastore details.
   """
-  job_key = ndb.Key(urlsafe=job_id)
+  job_key = ndb.Key('Job', int(job_id, 16))
   return job_key.get()
 
 
@@ -79,7 +79,7 @@ class Job(ndb.Model):
 
   @property
   def job_id(self):
-    return self.key.urlsafe()
+    return '%x' % self.key.id()
 
   @property
   def status(self):
