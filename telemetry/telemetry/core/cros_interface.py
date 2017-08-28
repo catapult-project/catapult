@@ -142,7 +142,7 @@ class CrOSInterface(object):
   def ssh_port(self):
     return self._ssh_port
 
-  def FormSSHCommandLine(self, args, extra_ssh_args=None):
+  def FormSSHCommandLine(self, args, extra_ssh_args=None, port_forward=False):
     """Constructs a subprocess-suitable command line for `ssh'.
     """
     if self.local:
@@ -152,8 +152,12 @@ class CrOSInterface(object):
       # connection to run remote commands (crbug.com/239607).
       return ['sh', '-c', " ".join(args)]
 
-    full_args = ['ssh', '-o ForwardX11=no', '-o ForwardX11Trusted=no', '-n',
-                 '-S', self._ssh_control_file] + self._ssh_args
+    full_args = ['ssh', '-o ForwardX11=no', '-o ForwardX11Trusted=no', '-n']
+    # As remote port forwarding might conflict with the control socket
+    # sharing, skip the control socket args if it is for remote port forwarding.
+    if not port_forward:
+      full_args += ['-S', self._ssh_control_file]
+    full_args += self._ssh_args
     if self._ssh_identity is not None:
       full_args.extend(['-i', self._ssh_identity])
     if extra_ssh_args:

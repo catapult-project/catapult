@@ -109,6 +109,20 @@ class PlatformBackend(object):
 
     self._running_browser_backends.discard(browser_backend)
 
+  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding):
+    """Use forwarder_factory to create a port forwarder."""
+    raise NotImplementedError()
+
+  def IsRemoteDevice(self):
+    """Check if target platform is on remote device.
+
+    Returns True if device is remote, i.e. android
+    device connected via adb or running a test with
+    remote option specifying the ip address of a cros device.
+    Return False for other platforms.
+    """
+    return False
+
   def IsDisplayTracingSupported(self):
     return False
 

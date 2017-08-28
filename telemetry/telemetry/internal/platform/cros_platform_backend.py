@@ -55,6 +55,13 @@ class CrosPlatformBackend(
       return port
     return self._cri.GetRemotePort()
 
+  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding=False):
+    return self.forwarder_factory.Create(port_pair, use_remote_port_forwarding)
+
+  def IsRemoteDevice(self):
+    # Check if CrOS device is remote.
+    return self._cri and not self._cri.local
+
   def IsThermallyThrottled(self):
     raise NotImplementedError()
 

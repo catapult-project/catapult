@@ -10,6 +10,7 @@ from telemetry.core import memory_cache_http_server
 from telemetry.core import network_controller
 from telemetry.core import tracing_controller
 from telemetry.core import util
+from telemetry.internal import forwarders
 from telemetry.internal.platform import (platform_backend as
                                          platform_backend_module)
 
@@ -88,6 +89,7 @@ class Platform(object):
     self._local_server_controller = local_server.LocalServerController(
         self._platform_backend)
     self._is_monitoring_power = False
+    self._forwarder = None
 
   @property
   def is_host_platform(self):
@@ -410,10 +412,22 @@ class Platform(object):
 
     server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
     self.StartLocalServer(server)
+
+    # Requires port forwarding if platform is on ChromeOS, and
+    # replaces the http_server port number with the one resolved by
+    # remote machine with ssh/adb remote port forwarding.
+    if (self.GetOSName() == 'chromeos' and
+        self._platform_backend.IsRemoteDevice()):
+      self._forwarder = self._platform_backend.CreatePortForwarder(
+          forwarders.PortPair(self.http_server.port, 0),
+          use_remote_port_forwarding=True)
+      self.http_server.port = self._forwarder.host_port
     return True
 
   def StopAllLocalServers(self):
     self._local_server_controller.Close()
+    if self._forwarder:
+      self._forwarder.Close()
 
   @property
   def local_servers(self):

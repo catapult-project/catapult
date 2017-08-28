@@ -174,6 +174,15 @@ class AndroidPlatformBackend(
   def GetRemotePort(self, port):
     return forwarder.Forwarder.DevicePortForHostPort(port) or 0
 
+  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding):
+    # use_remote_port_forwarding is ignored as it is always true for
+    # Android device.
+    return self.forwarder_factory.Create(port_pair)
+
+  def IsRemoteDevice(self):
+    # Android device is connected via adb which is on remote.
+    return True
+
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
 
