@@ -54,40 +54,7 @@ class NewTest(testing_common.TestCase):
         'src': {'repository_url': 'http://src'},
     })
 
-  def _SetAuthorizedOAuth(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-
-  @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoAccess_ShowsError(self, mock_oauth):
-    self.SetCurrentUser('external@chromium.org')
-    mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    response = self.testapp.post('/api/new', status=200)
-    self.assertIn('error', json.loads(response.body))
-
-  @mock.patch.object(api_auth, 'oauth')
-  @mock.patch.object(api_auth, 'users')
-  def testPost_NoOauthUser(self, mock_users, mock_oauth):
-    mock_users.get_current_user.return_value = None
-    mock_oauth.get_current_user.return_value = None
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    response = self.testapp.post('/api/new', status=200)
-    self.assertIn('error', json.loads(response.body))
-
-  @mock.patch.object(api_auth, 'oauth')
-  @mock.patch.object(api_auth, 'users')
-  def testPost_BadOauthClientId(self, mock_users, mock_oauth):
-    mock_users.get_current_user.return_value = None
-    mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
-    mock_oauth.get_client_id.return_value = 'invalid'
-    response = self.testapp.post('/api/new', status=200)
-    self.assertIn('error', json.loads(response.body))
-
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   @mock.patch(
       'dashboard.services.issue_tracker_service.IssueTrackerService',
       mock.MagicMock())
@@ -107,6 +74,7 @@ class NewTest(testing_common.TestCase):
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
 
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   def testPost_MissingTarget(self):
     request = dict(_BASE_REQUEST)
     del request['target']
@@ -119,6 +87,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', request, status=200)
     self.assertIn('error', json.loads(response.body))
 
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   @mock.patch.object(
       gitiles_service, 'CommitInfo',
       mock.MagicMock(side_effect=gitiles_service.NotFoundError('message')))
@@ -126,6 +95,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
     self.assertEqual({'error': 'message'}, json.loads(response.body))
 
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   def testPost_InvalidBug(self):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = 'not_an_int'
@@ -133,6 +103,7 @@ class NewTest(testing_common.TestCase):
     self.assertEqual({'error': new._ERROR_BUG_ID},
                      json.loads(response.body))
 
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   @mock.patch(
       'dashboard.services.issue_tracker_service.IssueTrackerService',
       mock.MagicMock())

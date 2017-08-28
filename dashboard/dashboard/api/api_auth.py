@@ -5,7 +5,6 @@ import functools
 import logging
 
 from google.appengine.api import oauth
-from google.appengine.api import users
 
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
@@ -62,27 +61,10 @@ def _AuthorizeOauthUser():
     datastore_hooks.SetPrivilegedRequest()
 
 
-def _AuthorizeAppEngineUser():
-  user = users.get_current_user()
-  if not user:
-    raise NotLoggedInError
-
-  # For now we only allow internal users access to the API.
-  if not datastore_hooks.IsUnalteredQueryPermitted():
-    raise InternalOnlyError
-
-
-def TryAuthorize():
-  try:
-    _AuthorizeAppEngineUser()
-  except NotLoggedInError:
-    _AuthorizeOauthUser()
-
-
 def Authorize(function_to_wrap):
   @functools.wraps(function_to_wrap)
   def Wrapper(*args, **kwargs):
-    TryAuthorize()
+    _AuthorizeOauthUser()
 
     return function_to_wrap(*args, **kwargs)
   return Wrapper

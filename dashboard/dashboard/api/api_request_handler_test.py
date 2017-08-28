@@ -28,7 +28,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         [(r'/api/test', TestApiRequestHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(api_auth, 'TryAuthorize')
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
   def testPost_Authorized_AuthorizedPostCalled(self, mock_authorize):
     response = self.testapp.post('/api/test')
     self.assertEqual(
@@ -37,7 +37,9 @@ class ApiRequestHandlerTest(testing_common.TestCase):
     self.assertTrue(mock_authorize.called)
 
   @mock.patch.object(
-      api_auth, 'TryAuthorize', mock.MagicMock(side_effect=api_auth.OAuthError))
+      api_auth,
+      '_AuthorizeOauthUser',
+      mock.MagicMock(side_effect=api_auth.OAuthError))
   @mock.patch.object(
       TestApiRequestHandler, 'AuthorizedPost')
   def testPost_Unauthorized_AuthorizedPostNotCalled(self, mock_post):
@@ -48,7 +50,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
     self.assertFalse(mock_post.called)
 
   @mock.patch.object(
-      api_auth, 'TryAuthorize',
+      api_auth, '_AuthorizeOauthUser',
       mock.MagicMock(side_effect=api_request_handler.BadRequestError('foo')))
   def testPost_BadRequest_400(self):
     response = self.testapp.post('/api/test', status=400)
@@ -57,7 +59,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         json.loads(response.body))
 
   @mock.patch.object(
-      api_auth, 'TryAuthorize',
+      api_auth, '_AuthorizeOauthUser',
       mock.MagicMock(side_effect=api_auth.OAuthError))
   def testPost_OAuthError_403(self):
     response = self.testapp.post('/api/test', status=403)
@@ -66,7 +68,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         json.loads(response.body))
 
   @mock.patch.object(
-      api_auth, 'TryAuthorize',
+      api_auth, '_AuthorizeOauthUser',
       mock.MagicMock(side_effect=api_auth.NotLoggedInError))
   def testPost_NotLoggedInError_403(self):
     response = self.testapp.post('/api/test', status=403)

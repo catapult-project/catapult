@@ -122,35 +122,6 @@ class ApiAuthTest(testing_common.TestCase):
 
     self.assertTrue(self.mock_set_privileged_request.called)
 
-  @mock.patch.object(api_auth, 'users')
-  @mock.patch(
-      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
-      mock.MagicMock(return_value=True))
-  def testPost_AppengineUser(self, mock_users):
-    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
-    mock_users.get_current_user.return_value = _AUTHORIZED_USER
-
-    @api_auth.Authorize
-    def FuncThatNeedsAuth():
-      pass
-
-    FuncThatNeedsAuth()
-
-  @mock.patch.object(api_auth, 'users')
-  @mock.patch(
-      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
-      mock.MagicMock(return_value=False))
-  def testPost_AppengineUser_Unauthorized(self, mock_users):
-    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
-    mock_users.get_current_user.return_value = _UNAUTHORIZED_USER
-
-    @api_auth.Authorize
-    def FuncThatNeedsAuth():
-      pass
-
-    with self.assertRaises(api_auth.InternalOnlyError):
-      FuncThatNeedsAuth()
-
   def testPost_OauthUser_Unauthorized(self):
     self.mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
 
@@ -161,21 +132,6 @@ class ApiAuthTest(testing_common.TestCase):
     with self.assertRaises(api_auth.OAuthError):
       FuncThatNeedsAuth()
     self.assertFalse(self.mock_set_privileged_request.called)
-
-  @mock.patch.object(api_auth, 'users')
-  @mock.patch(
-      'dashboard.common.datastore_hooks.IsUnalteredQueryPermitted',
-      mock.MagicMock(return_value=True))
-  def testPost_NoOAuthUser_NoAppengineUser(self, mock_users):
-    self.mock_oauth.get_current_user.side_effect = api_auth.OAuthError
-    mock_users.get_current_user.return_value = None
-
-    @api_auth.Authorize
-    def FuncThatNeedsAuth():
-      pass
-
-    with self.assertRaises(api_auth.OAuthError):
-      FuncThatNeedsAuth()
 
 
 if __name__ == '__main__':
