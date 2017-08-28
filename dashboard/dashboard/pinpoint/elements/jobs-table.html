@@ -5,13 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/iron-icon/iron-icon.html">
-<link rel="import" href="/components/iron-icons/iron-icons.html">
-<link rel="import" href="/components/paper-button/paper-button.html">
-
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
-
 <dom-module id="jobs-table">
   <template>
     <style>
@@ -105,10 +98,6 @@ found in the LICENSE file.
         jobsList: {
           type: Array,
           value: () => []
-        },
-
-        xsrfToken: {
-          type: String
         },
 
         /**

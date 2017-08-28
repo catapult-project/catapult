@@ -6,14 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/components/app-route/app-route.html">
-<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-change-table.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-header.html">
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
+<link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
 <link rel="import" href="/tracing/base/sinebow_color_generator.html">
 
@@ -107,19 +105,8 @@ tr.exportTo('d', function() {
 <dom-module id="job-page">
   <template>
     <style>
-      .error {
-        color: var(--paper-red-500);
-        font-weight: bold;
-      }
-
       #content {
         margin: 1em;
-      }
-
-      #loading-spinner {
-        width: 100%;
-        display: flex;
-        justify-content: center;
       }
 
       h1 {
@@ -132,19 +119,9 @@ tr.exportTo('d', function() {
 
     <div id="content">
       <h1>Job [[routeData.jobId]]</h1>
-      <template is="dom-if" if="[[loading]]">
-        <div id="loading-spinner">
-          <paper-spinner active></paper-spinner>
-        </div>
-      </template>
-      <template is="dom-if" if="[[!loading]]">
-        <template is="dom-if" if="[[error]]">
-          <p class="error">{{error}}</p>
-        </template>
-        <template is="dom-if" if="[[!error]]">
-          <job-page-header job-info="[[jobInfo]]"></job-page-header>
-        </template>
-      </template>
+      <loading-wrapper id="loader">
+        <job-page-header job-info="[[jobInfo]]"></job-page-header>
+      </loading-wrapper>
       <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
       <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
     </div>
@@ -152,24 +129,15 @@ tr.exportTo('d', function() {
   <script>
     'use strict';
     Polymer({
-
       is: 'job-page',
+
       properties: {
         jobInfo: {
           type: Object,
           value: () => {},
           notify: true,
         },
-        loading: {
-          type: Boolean,
-          value: true,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
+
         pointSelectedIndex: {
           type: Number,
           value: -1,
@@ -177,26 +145,16 @@ tr.exportTo('d', function() {
         }
       },
 
-      ready() {
-      },
-
       deselected() {
         this.set('jobInfo', null);
       },
 
-      selected() {
-        this.loading = true;
-
+      async selected() {
         const params = {job_id: this.routeData.jobId};
-        simple_xhr.send('/api/job', params,
-            function(response) {
-              this.set('jobInfo', new d.JobResults(response.data));
-              this.loading = false;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
+        const response = await this.$.loader.load('/api/job', params);
+        if (response) {
+          this.set('jobInfo', new d.JobResults(response.data));
+        }
       }
     });
   </script>

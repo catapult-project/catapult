@@ -5,10 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/paper-spinner/paper-spinner.html">
-
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
+<link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
 <dom-module id="dep-info">
   <template>
@@ -35,56 +32,40 @@ found in the LICENSE file.
     </style>
     <div>
       <h2>[[title]]</h2>
-      <template is="dom-if" if="[[loading]]">
-        <paper-spinner active></paper-spinner>
-      </template>
-      <template is="dom-if" if="[[!loading]]">
+      <loading-wrapper id="loader">
         <table>
           <tr><th>Subject</th><td>[[subject]]</td></tr>
           <tr><th>Author</th><td>[[author]]</td></tr>
           <tr><th>Timestamp</th><td>[[timestamp]]</td></tr>
         </table>
-      </template>
+      </loading-wrapper>
     </div>
   </template>
   <script>
     'use strict';
     Polymer({
       is: 'dep-info',
+
       properties: {
         dep: {
           type: Object,
           observer: '_depChanged'
         },
-        loading: {
-          type: Boolean,
-          value: false,
-        },
-      },
-
-      ready() {
       },
 
       async _depChanged() {
-        this.loading = true;
         this.title = this.dep.repository + '@' + this.dep.git_hash;
 
-        const response = await this.sendGitilesRequestForDep(this.dep);
-
-        this.subject = response.message.split('\n')[0];
-
-        this.author = response.author.email;
-        this.timestamp = response.author.time;
-        this.loading = false;
-      },
-
-      async sendGitilesRequestForDep(dep, success, error) {
         const params = {
-          repository: dep.repository,
-          git_hash_1: dep.git_hash
+          repository: this.dep.repository,
+          git_hash_1: this.dep.git_hash
         };
-
-        return simple_xhr.asPromise('/api/gitiles', params);
+        const response = await this.$.loader.load('/api/gitiles', params);
+        if (response) {
+          this.subject = response.message.split('\n')[0];
+          this.author = response.author.email;
+          this.timestamp = response.author.time;
+        }
       }
     });
   </script>
@@ -105,9 +86,6 @@ found in the LICENSE file.
         change: {
           type: Object,
         }
-      },
-
-      ready() {
       }
     });
   </script>

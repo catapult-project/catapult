@@ -6,28 +6,15 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/components/app-route/app-route.html">
-<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/pinpoint/elements/jobs-table.html">
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
+<link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
 <dom-module id="jobs-page">
   <template>
     <style>
-      .error {
-        color: var(--paper-red-500);
-        font-weight: bold;
-      }
-
       #content {
         margin: 1em;
-      }
-
-      #loading-spinner {
-        width: 100%;
-        display: flex;
-        justify-content: center;
       }
 
       h1 {
@@ -47,62 +34,39 @@ found in the LICENSE file.
     <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
 
     <div id="content">
-      <template is="dom-if" if="{{loading}}">
-        <div id="loading-spinner">
-          <paper-spinner active></paper-spinner>
-        </div>
-      </template>
-      <template is="dom-if" if="{{!loading}}">
-        <template is="dom-if" if="{{error}}">
-          <p class="error">{{error}}</p>
-        </template>
-        <template is="dom-if" if="{{!error}}">
-          <h1>
-            Jobs
-            <span id="job-count">
-              {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
-            </span>
-          </h1>
-          <jobs-table id="jobs-table"
-              xsrf-token="{{xsrfToken}}"
-              jobs-list="{{jobs}}"
-              sort-by="{{queryParams.sortBy}}"
-              sort-descending="{{queryParams.sortDescending}}">
-          </jobs-table>
-        </template>
-      </template>
+      <loading-wrapper id="loader">
+        <h1>
+          Jobs
+          <span id="job-count">
+            {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
+          </span>
+        </h1>
+        <jobs-table id="jobs-table"
+            jobs-list="{{jobs}}"
+            sort-by="{{queryParams.sortBy}}"
+            sort-descending="{{queryParams.sortDescending}}">
+        </jobs-table>
+      </loading-wrapper>
     </div>
   </template>
   <script>
     'use strict';
     Polymer({
-
       is: 'jobs-page',
+
       properties: {
         totalJobsCount: {
           type: Number,
           value: 0
         },
+
         totalJobsCountMax: {
           type: Number
         },
+
         jobs: {
           type: Array,
           value: () => []
-        },
-        loading: {
-          type: Boolean,
-          value: true,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        xsrfToken: {
-          type: String,
-          value: ''
         }
       },
 
@@ -117,21 +81,13 @@ found in the LICENSE file.
         this.jobs = [];
       },
 
-      selected() {
-        this.loading = true;
-        const params = {};
-        simple_xhr.send('/api/jobs', params,
-            function(response) {
-              this.jobs = response.jobs_list;
-              this.totalJobsCount = response.jobs_count;
-              this.totalJobsCountMax = response.jobs_count_max;
-              this.xsrfToken = response.xsrf_token;
-              this.loading = false;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
+      async selected() {
+        const response = await this.$.loader.load('/api/jobs', {});
+        if (response) {
+          this.jobs = response.jobs_list;
+          this.totalJobsCount = response.jobs_count;
+          this.totalJobsCountMax = response.jobs_count_max;
+        }
       }
     });
   </script>
