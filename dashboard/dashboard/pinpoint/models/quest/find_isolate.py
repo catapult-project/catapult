@@ -28,10 +28,6 @@ class FindIsolate(quest.Quest):
   def __str__(self):
     return 'Build'
 
-  @property
-  def retry_count(self):
-    return 1
-
   def Start(self, change):
     return _FindIsolateExecution(self._builder_name, self._target, change)
 

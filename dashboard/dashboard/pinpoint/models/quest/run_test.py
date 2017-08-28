@@ -65,10 +65,6 @@ class RunTest(quest.Quest):
   def __str__(self):
     return 'Test'
 
-  @property
-  def retry_count(self):
-    return 4
-
   def Start(self, isolate_hash):
     execution = _RunTestExecution(
         self._dimensions, self._extra_args, isolate_hash,

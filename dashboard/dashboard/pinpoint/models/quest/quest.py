@@ -19,8 +19,3 @@ class Quest(object):
 
   def __str__(self):
     raise NotImplementedError()
-
-  @property
-  def retry_count(self):
-    """Returns the number of retries to run if the Quest fails."""
-    return 0
