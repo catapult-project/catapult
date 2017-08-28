@@ -16,17 +16,25 @@ found in the LICENSE file.
         width: 8em;
       }
     </style>
+
     <div>
       <h2>[[title]]</h2>
       <loading-wrapper id="loader">
         <table>
-          <tr><th>Subject</th><td>[[subject]]</td></tr>
-          <tr><th>Author</th><td>[[author]]</td></tr>
-          <tr><th>Timestamp</th><td>[[timestamp]]</td></tr>
+          <tr>
+            <th>Subject
+            <td>[[subject]]
+          <tr>
+            <th>Author
+            <td>[[author]]
+          <tr>
+            <th>Timestamp
+            <td>[[timestamp]]
         </table>
       </loading-wrapper>
     </div>
   </template>
+
   <script>
     'use strict';
     Polymer({
@@ -64,10 +72,12 @@ found in the LICENSE file.
       <dep-info dep="[[item]]"></dep-info>
     </template>
   </template>
+
   <script>
     'use strict';
     Polymer({
       is: 'change-info',
+
       properties: {
         change: {
           type: Object,

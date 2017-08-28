@@ -28,21 +28,20 @@ found in the LICENSE file.
       <table>
         <template is="dom-repeat" items="[[getStatus(jobInfo.data)]]">
           <tr>
-            <th>[[item.key]]</th>
-            <td>[[item.value]]</td>
-          </tr>
+            <th>[[item.key]]
+            <td>[[item.value]]
         </template>
       </table>
       <table>
         <template is="dom-repeat" items="[[getArguments(jobInfo.data)]]">
           <tr>
-            <th>[[item.key]]</th>
-            <td>[[item.value]]</td>
-          </tr>
+            <th>[[item.key]]
+            <td>[[item.value]]
         </template>
       </table>
     </div>
   </template>
+
   <script>
     'use strict';
     Polymer({

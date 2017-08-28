@@ -15,9 +15,9 @@ found in the LICENSE file.
   <template>
     <style include="base-style">
       #job-count {
-        font-size: 0.6em;
-        background: #E8EAF6;
+        background: var(--paper-indigo-50);
         border-radius: 1em;
+        font-size: 0.6em;
         padding: 0.2em 0.5em;
         vertical-align: middle;
       }
@@ -25,32 +25,33 @@ found in the LICENSE file.
 
     <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
 
+    <h1>
+      Jobs
+      <span id="job-count">
+        [[computeJobCountString(jobCount, jobCountMax)]]
+      </span>
+    </h1>
     <loading-wrapper id="loader">
-      <h1>
-        Jobs
-        <span id="job-count">
-          {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
-        </span>
-      </h1>
       <jobs-table id="jobs-table"
-          jobs-list="{{jobs}}"
-          sort-by="{{queryParams.sortBy}}"
-          sort-descending="{{queryParams.sortDescending}}">
+          jobs-list="[[jobs]]"
+          sort-by="[[queryParams.sortBy]]"
+          sort-descending="[[queryParams.sortDescending]]">
       </jobs-table>
     </loading-wrapper>
   </template>
+
   <script>
     'use strict';
     Polymer({
       is: 'jobs-page',
 
       properties: {
-        totalJobsCount: {
+        jobCount: {
           type: Number,
           value: 0
         },
 
-        totalJobsCountMax: {
+        jobCountMax: {
           type: Number
         },
 
@@ -60,11 +61,11 @@ found in the LICENSE file.
         }
       },
 
-      computeJobCountString() {
-        if (this.totalJobsCount >= this.totalJobsCountMax) {
-          return String(this.totalJobsCountMax) + '+';
+      computeJobCountString(jobCount, jobCountMax) {
+        if (jobCount >= jobCountMax) {
+          return String(jobCountMax) + '+';
         }
-        return String(this.totalJobsCount);
+        return String(jobCount);
       },
 
       deselected() {
@@ -75,8 +76,8 @@ found in the LICENSE file.
         const response = await this.$.loader.load('/api/jobs', {});
         if (response) {
           this.jobs = response.jobs_list;
-          this.totalJobsCount = response.jobs_count;
-          this.totalJobsCountMax = response.jobs_count_max;
+          this.jobCount = response.jobs_count;
+          this.jobCountMax = response.jobs_count_max;
         }
       }
     });

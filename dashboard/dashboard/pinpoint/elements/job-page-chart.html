@@ -12,34 +12,32 @@ found in the LICENSE file.
 <script src="/flot/jquery.flot.fillbetween.min.js"></script>
 <script src="/flot/jquery.flot.selection.min.js"></script>
 
-<link rel="import" href="/components/app-route/app-route.html">
-
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
 
 <dom-module id="job-page-chart">
   <template>
     <style>
       #plot {
         height: 240px;
-        min-width: 500px;
         margin: 1em 0 3em 0;
+        min-width: 500px;
       }
     </style>
 
     <div id="plot"></div>
   </template>
+
   <script>
     'use strict';
     Polymer({
-
       is: 'job-page-chart',
+
       properties: {
         jobInfo: {
           type: Object,
           observer: '_jobInfoChanged',
         },
+
         pointSelectedIndex: {
           type: Number,
           value: -1,

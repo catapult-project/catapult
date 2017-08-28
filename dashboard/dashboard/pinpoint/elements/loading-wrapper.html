@@ -34,7 +34,7 @@ found in the LICENSE file.
     </template>
     <template is="dom-if" if="[[!loading]]">
       <template is="dom-if" if="[[error]]">
-        <p class="error">[[error]]</p>
+        <p class="error">[[error]]
       </template>
       <template is="dom-if" if="[[!error]]">
         <div>
@@ -43,6 +43,7 @@ found in the LICENSE file.
       </template>
     </template>
   </template>
+
   <script>
     'use strict';
     Polymer({

@@ -10,20 +10,15 @@ found in the LICENSE file.
 <dom-module id="jobs-table">
   <template>
     <style include="base-style">
-      .error {
-        color: var(--paper-red-500);
-        font-weight: bold;
-      }
-
       table {
         width: 100%;
       }
 
       th {
         background-color: var(--paper-indigo-50);
-        background-size: 0.8em;
         background-position: right 0.5em center;
         background-repeat: no-repeat;
+        background-size: 0.8em;
         cursor: pointer;
       }
 
@@ -43,39 +38,36 @@ found in the LICENSE file.
         background-image: url("/dashboard/static/sort-down.svg");
       }
     </style>
-    <template is="dom-if" if="{{error}}">
-      <p class="error">{{error}}</p>
-    </template>
+
     <table id="jobs">
-      <tr>
-        <th id="job_id" on-click="columnHeaderClicked">Job ID</th>
-        <th id="status" on-click="columnHeaderClicked">Status</th>
-        <th id="created" on-click="columnHeaderClicked">Created</th>
-        <th id="configuration" on-click="columnHeaderClicked">Configuration</th>
-        <th id="benchmark" on-click="columnHeaderClicked">Benchmark</th>
-        <th id="story" on-click="columnHeaderClicked">Story</th>
-        <th id="metric" on-click="columnHeaderClicked">Metric</th>
-      </tr>
-      <template is="dom-repeat" items="{{jobsList}}">
+      <thead>
         <tr>
-          <td><a href='/job/{{item.job_id}}'>{{item.job_id}}</a></td>
-          <td>{{item.status}}</td>
-          <td>{{item.created}}</td>
-          <td>{{item.arguments.configuration}}</td>
-          <td>{{item.arguments.benchmark}}</td>
-          <td>{{item.arguments.story}}</td>
-          <td>{{item.arguments.metric}}</td>
-        </tr>
-      </template>
+          <th id="job_id" on-click="columnHeaderClicked">Job ID
+          <th id="status" on-click="columnHeaderClicked">Status
+          <th id="created" on-click="columnHeaderClicked">Created
+          <th id="configuration" on-click="columnHeaderClicked">Configuration
+          <th id="benchmark" on-click="columnHeaderClicked">Benchmark
+          <th id="story" on-click="columnHeaderClicked">Story
+          <th id="metric" on-click="columnHeaderClicked">Metric
+      <tbody>
+        <template is="dom-repeat" items="[[jobsList]]">
+          <tr>
+            <td><a href='/job/[[item.job_id]]'>[[item.job_id]]</a>
+            <td>[[item.status]]
+            <td>[[item.created]]
+            <td>[[item.arguments.configuration]]
+            <td>[[item.arguments.benchmark]]
+            <td>[[item.arguments.story]]
+            <td>[[item.arguments.metric]]
+        </template>
     </table>
   </template>
+
   <script>
-  'use strict';
-
-  (function() {
+    'use strict';
     Polymer({
-
       is: 'jobs-table',
+
       properties: {
         jobsList: {
           type: Array,
@@ -171,6 +163,5 @@ found in the LICENSE file.
         this.updateHeaders();
       }
     });
-  })();
   </script>
 </dom-module>

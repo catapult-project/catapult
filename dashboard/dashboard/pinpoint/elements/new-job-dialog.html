@@ -19,22 +19,25 @@ found in the LICENSE file.
 <dom-module id="new-job-dialog">
   <template>
     <style>
-    form > paper-button {
-      margin-top: 20px;
-    }
-    form > paper-button:not([disabled]) {
-      background: var(--paper-green-700);
-      color: white;
-    }
-    .close-icon {
-      cursor: pointer;
-      position: absolute;
-      top: 12px;
-      right: 12px;
-    }
-    .error {
-      color: var(--paper-red-500);
-    }
+      form > paper-button {
+        margin-top: 20px;
+      }
+
+      form > paper-button:not([disabled]) {
+        background: var(--paper-green-700);
+        color: white;
+      }
+
+      .close-icon {
+        cursor: pointer;
+        position: absolute;
+        right: 12px;
+        top: 12px;
+      }
+
+      .error {
+        color: var(--paper-red-500);
+      }
     </style>
 
     <paper-dialog id="container" autoCloseDisabled="true">
@@ -56,18 +59,18 @@ found in the LICENSE file.
         </paper-radio-group>
         <paper-checkbox id="auto_explore" checked>Automatically explore</paper-checkbox><br>
         <div>
-          <paper-button raised disabled disabled$="{{create_disabled}}" on-click="onCreateJob">Create</paper-button>
+          <paper-button raised disabled disabled$="[[create_disabled]]" on-click="onCreateJob">Create</paper-button>
         </div>
-        <p class="error">{{error}}</p>
+        <p class="error">[[error]]
         <div class="close-icon" on-click="close">
           ❌ <!-- cross mark U+274C -->
         </div>
       </form>
     </paper-dialog>
   </template>
+
   <script>
     'use strict';
-
     Polymer({
       is: 'new-job-dialog',
 
@@ -197,7 +200,6 @@ found in the LICENSE file.
       close() {
         this.$.container.close();
       }
-
     });
   </script>
 </dom-module>

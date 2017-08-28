@@ -12,9 +12,9 @@ found in the LICENSE file.
   <template>
     <style>
       #icon {
+        height: 24;
         position: absolute;
         width: 24;
-        height: 24;
       }
 
       #icon:hover {
@@ -24,22 +24,22 @@ found in the LICENSE file.
 
     <iron-icon id="icon" icon="[[icon]]" hidden$="[[hidden]]"></iron-icon>
   </template>
+
   <script>
     'use strict';
     Polymer({
       is: 'job-page-chart-icon',
+
       properties: {
         icon: {
           type: String,
           value: '',
         },
+
         hidden: {
           type: Boolean,
           value: false,
         }
-      },
-
-      ready() {
       },
 
       setPosition(x, y) {
@@ -58,14 +58,14 @@ found in the LICENSE file.
         const index = Math.max(changeIndex - 1, 0);
         if (jobResults.comparisons[index] == 'pending') {
           this.set('icon', 'watch-later');
-          this.$.icon.customStyle['--iron-icon-fill-color'] =
-              'var(--paper-indigo-100)';
+          this.$.icon.updateStyles(
+              {'--iron-icon-fill-color': 'var(--paper-indigo-100)'});
           return;
         }
 
         this.set('icon', 'clear');
-        this.$.icon.customStyle['--iron-icon-fill-color'] =
-            'var(--paper-red-500)';
+        this.$.icon.updateStyles(
+            {'--iron-icon-fill-color': 'var(--paper-red-500)'});
       }
     });
   </script>

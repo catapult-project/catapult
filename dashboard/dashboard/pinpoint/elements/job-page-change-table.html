@@ -8,9 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/change-info.html">
 
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
-
 <dom-module id="job-page-change-table">
   <template>
     <style include="base-style">
@@ -20,7 +17,7 @@ found in the LICENSE file.
       }
 
       .column {
-        flex: 1 1 0;
+        flex: 1;
         margin: 0.5em;
       }
 
@@ -33,6 +30,7 @@ found in the LICENSE file.
         width: 8em;
       }
     </style>
+
     <template is="dom-if" if="[[isShowing(index)]]">
       <change-info change=[[change]]></change-info>
 
@@ -41,17 +39,14 @@ found in the LICENSE file.
           <h2>[[buildTitle]]</h2>
           <table>
             <tr>
-              <th>Status</th>
-              <td>[[buildStatus]]</td>
-            </tr>
+              <th>Status
+              <td>[[buildStatus]]
             <tr>
-              <th>Buildbucket</th>
-              <td><a href="https://buildbucket/[[buildbucketIds]]" target="_blank">[[buildbucketIds]]</a></td>
-            </tr>
+              <th>Buildbucket
+              <td><a href="https://buildbucket/[[buildbucketIds]]" target="_blank">[[buildbucketIds]]</a>
             <tr>
-              <th>Test Isolate</th>
-              <td><a href="https://isolateserver.appspot.com/browse?hash=[[inputIsolateHashes]]" target="_blank">[[inputIsolateHashes]]</a></td>
-            </tr>
+              <th>Test Isolate
+              <td><a href="https://isolateserver.appspot.com/browse?hash=[[inputIsolateHashes]]" target="_blank">[[inputIsolateHashes]]</a>
           </table>
         </div>
 
@@ -59,17 +54,14 @@ found in the LICENSE file.
           <h2>[[runTitle]]</h2>
           <table>
             <tr>
-              <th>Status</th>
-              <td>[[runStatus]]</td>
-            </tr>
+              <th>Status
+              <td>[[runStatus]]
             <tr>
-              <th>Swarming Task</th>
-              <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a></td>
-            </tr>
+              <th>Swarming Task
+              <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a>
             <tr>
-              <th>Output Isolate</th>
-              <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a></td>
-            </tr>
+              <th>Output Isolate
+              <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a>
           </table>
         </div>
 
@@ -77,14 +69,14 @@ found in the LICENSE file.
           <h2>[[testTitle]]</h2>
           <table>
             <tr>
-              <th>Values</th>
-              <td>[[formatValues(resultValues)]]</td>
-            </tr>
+              <th>Values
+              <td>[[formatValues(resultValues)]]
           </table>
         </div>
       </div>
     </template>
   </template>
+
   <script>
     'use strict';
     Polymer({
@@ -99,9 +91,6 @@ found in the LICENSE file.
         change: {
           type: Object,
         },
-      },
-
-      ready() {
       },
 
       getStatus(values) {
