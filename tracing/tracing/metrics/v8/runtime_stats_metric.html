@@ -121,8 +121,10 @@ tr.exportTo('tr.metrics.v8', function() {
     for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
       addHistogramsForRuntimeGroup(runtimeGroup);
     }
-    if (runtimeGroupCollection.blinkRCSGroup.count > 0) {
-      addHistogramsForRuntimeGroup(runtimeGroupCollection.blinkRCSGroup);
+
+    const blinkGroupCollection = runtimeGroupCollection.blinkRCSGroupCollection;
+    if (blinkGroupCollection.totalTime > 0) {
+      blinkGroupCollection.runtimeGroups.forEach(addHistogramsForRuntimeGroup);
     }
   }
 

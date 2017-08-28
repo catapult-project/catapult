@@ -119,7 +119,7 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeGroup_(groups[11], 'V8 C++', 5, 55);
   });
 
-  test('RuntimeStatsGroupCollection_WithBlinkRCS', function() {
+  test('BlinkRuntimeStatsGroupCollection', function() {
     const slices = [];
     slices.push(tr.c.TestUtils.newSliceEx({
       title: 'V8.Execute',
@@ -171,8 +171,11 @@ tr.b.unittest.testSuite(function() {
       cat: 'disabled-by-default-v8.runtime_stats',
       args: {
         'runtime-call-stats': {
-          Blink_UpdateLayout: [10, 25],
-          Blink_CollectGarbage: [10, 20],
+          Blink_Layout_UpdateLayout: [10, 25],
+          Blink_GC_CollectGarbage: [10, 20],
+          Blink_Style_UpdateStyle: [15, 30],
+          Blink_Parsing_ParseHTML: [5, 60],
+          Blink_WindowSetTimeout: [10, 15],
           Blink_V8: [5, 100],
         }
       }
@@ -185,8 +188,11 @@ tr.b.unittest.testSuite(function() {
       cat: 'disabled-by-default-v8.runtime_stats',
       args: {
         'runtime-call-stats': {
-          Blink_UpdateLayout: [5, 10],
-          Blink_CollectGarbage: [20, 50],
+          Blink_Layout_UpdateLayout: [5, 10],
+          Blink_GC_CollectGarbage: [20, 50],
+          Blink_Parsing_ParseHTML: [10, 60],
+          Blink_Bindings_CreateWrapper: [100, 5],
+          Blink_NodeAppendChild: [20, 20],
           Blink_V8: [2, 50],
         }
       }
@@ -210,7 +216,21 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeGroup_(groups[9], 'GC', 17, 187);
     checkRuntimeGroup_(groups[10], 'JavaScript', 3, 33);
     checkRuntimeGroup_(groups[11], 'V8 C++', 5, 55);
-    checkRuntimeGroup_(groupCollection.blinkRCSGroup, 'Blink RCS', 45, 105);
+
+    const blinkGroupCollection = groupCollection.blinkRCSGroupCollection;
+    const blinkGroups = blinkGroupCollection.runtimeGroups;
+    checkRuntimeGroup_(blinkGroups[0], 'Blink_Bindings', 100, 5);
+    checkRuntimeGroup_(blinkGroups[1], 'Blink_GC', 30, 70);
+    checkRuntimeGroup_(blinkGroups[2], 'Blink_Layout', 15, 35);
+    checkRuntimeGroup_(blinkGroups[3], 'Blink_Parsing', 15, 120);
+    checkRuntimeGroup_(blinkGroups[4], 'Blink_Style', 15, 30);
+    checkRuntimeGroup_(blinkGroups[5], 'Blink_Callbacks', 30, 35);
+
+    assert.strictEqual(205, blinkGroupCollection.totalCount);
+    assert.strictEqual(295, blinkGroupCollection.totalTime);
+
+    assert.strictEqual('Blink_UpdateLayout', blinkGroups[2].values[0].name);
+    assert.strictEqual('Blink_CollectGarbage', blinkGroups[1].values[0].name);
   });
 });
 </script>

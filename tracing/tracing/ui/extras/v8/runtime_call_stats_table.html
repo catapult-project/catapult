@@ -110,7 +110,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     };
   }
 
-  function nameColumn_(showExpandButtons, handleCodeSearch, modifyName) {
+  function nameColumn_(handleCodeSearch, modifyName) {
     return {
       title: 'Name',
       value(row) {
@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         return typeEl;
       },
       width: '200px',
-      showExpandButtons
+      showExpandButtons: true
     };
   }
 
@@ -135,6 +135,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     table.sortColumnIndex = 1;
     table.sortDescending = true;
+    table.subRowsPropertyName = 'values';
   }
 
   Polymer({
@@ -148,19 +149,18 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     constructV8RCSTable_(totalTime) {
       this.table_.tableColumns = [
-        nameColumn_(true, handleCodeSearchForV8_),
+        nameColumn_(handleCodeSearchForV8_),
         timeColumn_,
         countColumn_,
         percentColumn_('Percent', totalTime)
       ];
 
       initializeCommonOptions_(this.table_);
-      this.table_.subRowsPropertyName = 'values';
     },
 
     constructBlinkRCSTable_(blinkCppTotalTime) {
       this.blink_rcs_table_.tableColumns = [
-        nameColumn_(false, handleCodeSearchForBlink_, removeBlinkPrefix_),
+        nameColumn_(handleCodeSearchForBlink_, removeBlinkPrefix_),
         timeColumn_,
         countColumn_,
         percentColumn_('Percent (of \'Blink C++\' + \'API\')',
@@ -180,16 +180,13 @@ tr.exportTo('tr.ui.e.v8', function() {
         this.table_.rebuild();
       }
 
-      const blinkRCSGroup = runtimeGroupCollection.blinkRCSGroup;
+      const blinkRCSGroupCollection =
+        runtimeGroupCollection.blinkRCSGroupCollection;
       if (runtimeGroupCollection.blinkCppTotalTime > 0 &&
-          blinkRCSGroup.time > 0) {
+          blinkRCSGroupCollection.totalTime > 0) {
         this.$.blink_rcs_heading.textContent = 'Blink Runtime Call Stats';
         this.constructBlinkRCSTable_(runtimeGroupCollection.blinkCppTotalTime);
-        const rows = blinkRCSGroup.values;
-        rows.unshift(new tr.e.v8.RuntimeStatsEntry('Total',
-                                                   blinkRCSGroup.count,
-                                                   blinkRCSGroup.time));
-        this.blink_rcs_table_.tableRows = rows;
+        this.blink_rcs_table_.tableRows = blinkRCSGroupCollection.runtimeGroups;
         this.blink_rcs_table_.rebuild();
       }
     }
