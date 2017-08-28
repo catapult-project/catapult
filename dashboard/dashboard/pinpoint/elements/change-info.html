@@ -5,29 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
 <dom-module id="dep-info">
   <template>
-    <style>
-      h2 {
-        font-weight: lighter;
-        color: var(--paper-indigo-500);
-      }
-
-      tr:nth-child(odd) {
-        background: var(--paper-indigo-50);
-      }
-
+    <style include="base-style">
       th {
         text-align: right;
-        color: var(--paper-indigo-50);
-        background: var(--paper-indigo-500);
         width: 8em;
-      }
-
-      th, td {
-        padding: 0.5em 1em;
       }
     </style>
     <div>

@@ -7,21 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/components/app-route/app-route.html">
 
+<link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/jobs-table.html">
 <link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
 <dom-module id="jobs-page">
   <template>
-    <style>
-      #content {
-        margin: 1em;
-      }
-
-      h1 {
-        font-weight: lighter;
-        color: var(--paper-indigo-500);
-      }
-
+    <style include="base-style">
       #job-count {
         font-size: 0.6em;
         background: #E8EAF6;
@@ -33,21 +25,19 @@ found in the LICENSE file.
 
     <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
 
-    <div id="content">
-      <loading-wrapper id="loader">
-        <h1>
-          Jobs
-          <span id="job-count">
-            {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
-          </span>
-        </h1>
-        <jobs-table id="jobs-table"
-            jobs-list="{{jobs}}"
-            sort-by="{{queryParams.sortBy}}"
-            sort-descending="{{queryParams.sortDescending}}">
-        </jobs-table>
-      </loading-wrapper>
-    </div>
+    <loading-wrapper id="loader">
+      <h1>
+        Jobs
+        <span id="job-count">
+          {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
+        </span>
+      </h1>
+      <jobs-table id="jobs-table"
+          jobs-list="{{jobs}}"
+          sort-by="{{queryParams.sortBy}}"
+          sort-descending="{{queryParams.sortDescending}}">
+      </jobs-table>
+    </loading-wrapper>
   </template>
   <script>
     'use strict';

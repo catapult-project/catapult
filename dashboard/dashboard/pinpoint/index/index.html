@@ -26,6 +26,12 @@ body {
 
 <dom-module id="index-page">
   <template>
+    <style>
+      #content {
+        margin: 1em;
+      }
+    </style>
+
     <!--
     The <app-location> element is what provides the sync between the
     url and the app via the "route" object. This is passed to the
@@ -41,17 +47,19 @@ body {
     <navigation-bar></navigation-bar>
 
     <!--
-    The <iron-pages> element can be used as a simpe content switcher. We have a
+    The <iron-pages> element can be used as a simple content switcher. We have a
     single <app-route> defined which matches to a page, which is passed to
     the <iron-pages> element via routeData.page.
     -->
-    <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
-      <jobs-page name="" route="{{tail}}"></jobs-page>
-      <error-page name="error"></error-page>
+    <div id="content">
+      <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
+        <jobs-page name="" route="{{tail}}"></jobs-page>
+        <error-page name="error"></error-page>
 
-      <job-page name="job" route="{{tail}}"></job-page>
-      <new-page name="new" abs-route="{{route}}"></new-page>
-    </iron-pages>
+        <job-page name="job" route="{{tail}}"></job-page>
+        <new-page name="new" abs-route="{{route}}"></new-page>
+      </iron-pages>
+    </div>
 
     <load-analytics></load-analytics>
   </template>

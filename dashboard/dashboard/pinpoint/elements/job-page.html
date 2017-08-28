@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/components/app-route/app-route.html">
 
+<link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-change-table.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart-icon.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart.html">
@@ -104,27 +105,16 @@ tr.exportTo('d', function() {
 
 <dom-module id="job-page">
   <template>
-    <style>
-      #content {
-        margin: 1em;
-      }
-
-      h1 {
-        font-weight: lighter;
-        color: var(--paper-indigo-500);
-      }
-    </style>
+    <style include="base-style"></style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{routeData}}"></app-route>
 
-    <div id="content">
-      <h1>Job [[routeData.jobId]]</h1>
-      <loading-wrapper id="loader">
-        <job-page-header job-info="[[jobInfo]]"></job-page-header>
-      </loading-wrapper>
-      <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
-      <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
-    </div>
+    <h1>Job [[routeData.jobId]]</h1>
+    <loading-wrapper id="loader">
+      <job-page-header job-info="[[jobInfo]]"></job-page-header>
+    </loading-wrapper>
+    <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
+    <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
   </template>
   <script>
     'use strict';

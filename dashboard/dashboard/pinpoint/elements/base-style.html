@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<dom-module id="base-style">
+  <template>
+    <style>
+      h1, h2 {
+        font-weight: lighter;
+        color: var(--paper-indigo-500);
+      }
+
+      table {
+        border-collapse: collapse;
+      }
+
+      th, td {
+        padding: 0.5em;
+      }
+
+      tr:nth-child(odd) {
+        background: rgba(232, 234, 246, 0.5);
+      }
+
+      a {
+        color: var(--paper-pink-a200);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </template>
+</dom-module>
