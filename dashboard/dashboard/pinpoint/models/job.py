@@ -150,8 +150,8 @@ class Job(ndb.Model):
         'arguments': self.arguments,
         'auto_explore': self.auto_explore,
 
-        'created': self.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
-        'updated': self.updated.strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'created': self.created.isoformat(),
+        'updated': self.updated.isoformat(),
         'status': self.status,
 
         'state': self.state.AsDict(),
