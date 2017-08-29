@@ -14,95 +14,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-header.html">
 <link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
-<link rel="import" href="/tracing/base/sinebow_color_generator.html">
-
-<script>
-'use strict';
-
-tr.exportTo('d', function() {
-  class JobResults {
-    constructor(data) {
-      this.data_ = data;
-    }
-
-    get data() {
-      return this.data_;
-    }
-
-    get resultValues() {
-      return this.data_.state.result_values;
-    }
-
-    get comparisons() {
-      return this.data_.state.comparisons;
-    }
-
-    get changes() {
-      return this.data_.state.changes;
-    }
-
-    get quests() {
-      return this.data_.state.quests;
-    }
-
-    get status() {
-      return this.data_.status;
-    }
-
-    get created() {
-      return this.data_.created;
-    }
-
-    get updated() {
-      return this.data_.updated;
-    }
-
-    get arguments() {
-      return this.data_.arguments;
-    }
-
-    getAttemptData(changeIndex, questIndex, dataName) {
-      const result = [];
-      const attempts = this.data_.state.attempts[changeIndex];
-
-      for (let i = 0; i < attempts.length; i++) {
-        const execution = attempts[i].executions[questIndex];
-        if (!execution) {
-          continue;
-        }
-
-        if (dataName in execution) {
-          result.push(execution[dataName]);
-        } else if (dataName in execution.result_arguments) {
-          result.push(execution.result_arguments[dataName]);
-        }
-      }
-      return result;
-    }
-
-    getStatusString(changeIndex, questIndex) {
-      const passed = this.valuesAllPassed(
-          this.data_.state.result_values[changeIndex][questIndex]);
-      if (passed) {
-        return 'Passed';
-      }
-
-      return 'Failed';
-    }
-
-    valuesAllPassed(values) {
-      const numPass = values.filter(x => (x == 0 || x == null)).length;
-
-      return numPass == values.length;
-    }
-  }
-
-  return {
-    JobResults,
-  };
-});
-</script>
-
 <dom-module id="job-page">
   <template>
     <style include="base-style"></style>
@@ -144,9 +55,86 @@ tr.exportTo('d', function() {
         const params = {job_id: this.routeData.jobId};
         const response = await this.$.loader.load('/api/job', params);
         if (response) {
-          this.set('jobInfo', new d.JobResults(response.data));
+          this.set('jobInfo', new JobResults(response.data));
         }
       }
     });
+
+    class JobResults {
+      constructor(data) {
+        this.data_ = data;
+      }
+
+      get data() {
+        return this.data_;
+      }
+
+      get resultValues() {
+        return this.data_.state.result_values;
+      }
+
+      get comparisons() {
+        return this.data_.state.comparisons;
+      }
+
+      get changes() {
+        return this.data_.state.changes;
+      }
+
+      get quests() {
+        return this.data_.state.quests;
+      }
+
+      get status() {
+        return this.data_.status;
+      }
+
+      get created() {
+        return this.data_.created;
+      }
+
+      get updated() {
+        return this.data_.updated;
+      }
+
+      get arguments() {
+        return this.data_.arguments;
+      }
+
+      getAttemptData(changeIndex, questIndex, dataName) {
+        const result = [];
+        const attempts = this.data_.state.attempts[changeIndex];
+
+        for (let i = 0; i < attempts.length; i++) {
+          const execution = attempts[i].executions[questIndex];
+          if (!execution) {
+            continue;
+          }
+
+          if (dataName in execution) {
+            result.push(execution[dataName]);
+          } else if (dataName in execution.result_arguments) {
+            result.push(execution.result_arguments[dataName]);
+          }
+        }
+        return result;
+      }
+
+      getStatusString(changeIndex, questIndex) {
+        const passed = this.valuesAllPassed(
+            this.data_.state.result_values[changeIndex][questIndex]);
+        if (passed) {
+          return 'Passed';
+        }
+
+        return 'Failed';
+      }
+
+      valuesAllPassed(values) {
+        const numPass = values.filter(x => (x == 0 || x == null)).length;
+
+        return numPass == values.length;
+      }
+    }
   </script>
 </dom-module>
