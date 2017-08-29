@@ -28,12 +28,12 @@ found in the LICENSE file.
       }
     </style>
 
-    <template is="dom-if" if="[[loading]]">
+    <div hidden$="[[!loading]]">
       <div id="loading-spinner">
         <paper-spinner active></paper-spinner>
       </div>
-    </template>
-    <template is="dom-if" if="[[!loading]]">
+    </div>
+    <div hidden$="[[loading]]">
       <template is="dom-if" if="[[error]]">
         <p class="error">[[error]]
       </template>
@@ -42,7 +42,7 @@ found in the LICENSE file.
           <slot></slot>
         </div>
       </template>
-    </template>
+    </div>
   </template>
 
   <script>
@@ -54,13 +54,11 @@ found in the LICENSE file.
         loading: {
           type: Boolean,
           value: true,
-          notify: true
         },
 
         error: {
           type: String,
           value: '',
-          notify: true
         },
 
         xsrfToken: {
