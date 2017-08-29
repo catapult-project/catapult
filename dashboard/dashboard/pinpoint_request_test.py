@@ -40,6 +40,11 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'v8': {'more': 'params'}
     })
 
+    namespaced_stored_object.Set('bot_browser_map', [
+        ['android-webview', 'webview'],
+        ['', 'release']
+    ])
+
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=False))
   def testPost_NotSheriff(self):
@@ -95,6 +100,10 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
+    self.assertEqual('mac', results['configuration'])
+    self.assertEqual('release', results['browser'])
+    self.assertEqual('cc_perftests', results['benchmark'])
+    self.assertEqual('foo', results['metric'])
     self.assertEqual('cc_perftests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])
@@ -120,6 +129,10 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
+    self.assertEqual('mac', results['configuration'])
+    self.assertEqual('release', results['browser'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('foo', results['metric'])
     self.assertEqual('telemetry_perf_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])
@@ -145,6 +158,10 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
+    self.assertEqual('android-webview-nexus5x', results['configuration'])
+    self.assertEqual('webview', results['browser'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('foo', results['metric'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])

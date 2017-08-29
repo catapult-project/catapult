@@ -39,14 +39,17 @@ found in the LICENSE file.
     .error {
       color: #dd4b39;
     }
+    #container {
+      width: 500px;
+    }
     </style>
 
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
         <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
         <paper-input id="test" label="test" value="{{test::input}}"></paper-input>
-        <paper-input id="start_commit" label="start_commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
-        <paper-input id="end_commit" label="end_commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="end_git_hash" label="end_git_hash" value="{{end_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-radio-group id="bisect-mode" selected="performance">
           <paper-radio-button id="performance" name="performance" on-change="onBisectModeChanged">Performance</paper-radio-button>
           <paper-radio-button id="functional" name="functional" on-change="onBisectModeChanged">Functional</paper-radio-button>

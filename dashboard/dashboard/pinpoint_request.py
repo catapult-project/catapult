@@ -8,6 +8,7 @@ import json
 
 from google.appengine.api import users
 
+from dashboard import start_try_job
 from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -65,7 +66,7 @@ def PinpointParamsFromBisectParams(params):
   test_path_parts = test_path.split('/')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
-  metric = test_path[-1]
+  metric = test_path_parts[-1]
 
   dimensions = bots_to_dimensions.get(bot_name)
   if not dimensions:
@@ -107,8 +108,12 @@ def PinpointParamsFromBisectParams(params):
   email = users.get_current_user().email()
   job_name = 'Job on [%s/%s/%s] for [%s]' % (bot_name, suite, metric, email)
 
+  browser = start_try_job.GuessBrowserName(bot_name)
+
   return {
-      'test_suite': suite,
+      'configuration': bot_name,
+      'browser': browser,
+      'benchmark': suite,
       'test': params.get('test'),
       'metric': metric,
       'start_repository': start_repository,

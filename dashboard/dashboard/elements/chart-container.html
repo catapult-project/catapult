@@ -2191,7 +2191,7 @@ triaging functionality in the chart.
             defaultRevType = annotation.defaultRevType;
           }
 
-          return defaultRevType;
+          return defaultRevType.split('r_')[1];
         },
 
         getDefaultRevisionGitHash(jsonSeriesIndex, dataIndex) {

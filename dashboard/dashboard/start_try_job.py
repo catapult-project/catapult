@@ -468,7 +468,7 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
   # For Windows x64, the compilation output is put in "out/Release_x64".
   # Note that the legacy bisect script always extracts binaries into Release
   # regardless of platform, so this change is only necessary for recipe bisect.
-  if _GuessBrowserName(bisect_bot) == 'release_x64':
+  if GuessBrowserName(bisect_bot) == 'release_x64':
     command[0] = command[0].replace('/Release/', '/Release_x64/')
 
   if bisect_bot.startswith('win') or bisect_bot.startswith('staging_win'):
@@ -494,7 +494,7 @@ def _GuessCommandTelemetry(
   command.extend([
       test_cmd,
       '-v',
-      '--browser=%s' % _GuessBrowserName(bisect_bot),
+      '--browser=%s' % GuessBrowserName(bisect_bot),
       '--output-format=chartjson',
       '--upload-results',
       '--pageset-repeat=%d' % pageset_repeat,
@@ -523,7 +523,7 @@ def _GuessCommandTelemetry(
   return ' '.join(command)
 
 
-def _GuessBrowserName(bisect_bot):
+def GuessBrowserName(bisect_bot):
   """Returns a browser name string for Telemetry to use."""
   default = 'release'
   browser_map = namespaced_stored_object.Get(_BOT_BROWSER_MAP_KEY)
