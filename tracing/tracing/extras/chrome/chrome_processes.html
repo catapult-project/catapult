@@ -55,9 +55,7 @@ tr.exportTo('tr.e.chrome.chrome_processes', function() {
       return baseCanonicalName;
     }
 
-    throw new Error(
-        `Unknown process name "${baseCanonicalName}".` +
-        ' Please add it to |CHROME_PROCESS_NAMES|.');
+    return CHROME_PROCESS_NAMES.UNKNOWN;
   }
 
   return {
