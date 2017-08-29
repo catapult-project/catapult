@@ -132,7 +132,7 @@ found in the LICENSE file.
       },
 
       formatValues(values) {
-        return values.join(', ');
+        return values.map(value => value.toPrecision(4)).join(', ');
       },
 
       isShowing(index) {
