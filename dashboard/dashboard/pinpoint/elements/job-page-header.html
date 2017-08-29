@@ -6,16 +6,23 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
+<link rel="import" href="/dashboard/pinpoint/elements/change-info.html">
 
 <dom-module id="job-page-header">
   <template>
     <style include="base-style">
-      #content {
-        column-count: 3;
+      .columns {
+        display: flex;
+        margin: 0 -0.5em;
       }
 
-      table {
-        width: 100%;
+      .column {
+        flex: 1;
+        margin: 0 0.5em;
+      }
+
+      h2 {
+        margin-top: 0;
       }
 
       th {
@@ -24,21 +31,33 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="content">
-      <table>
-        <template is="dom-repeat" items="[[getStatus(jobInfo.data)]]">
-          <tr>
-            <th>[[item.key]]
-            <td>[[item.value]]
+    <div class="columns">
+      <div class="column">
+        <h2>Changes</h2>
+        <template is="dom-repeat" items="[[getDifferences(jobInfo.data)]]">
+          <change-info change=[[item]]></change-info>
         </template>
-      </table>
-      <table>
-        <template is="dom-repeat" items="[[getArguments(jobInfo.data)]]">
-          <tr>
-            <th>[[item.key]]
-            <td>[[item.value]]
-        </template>
-      </table>
+      </div>
+      <div class="column">
+        <h2>Status</h2>
+        <table>
+          <template is="dom-repeat" items="[[getStatus(jobInfo.data)]]">
+            <tr>
+              <th>[[item.key]]
+              <td>[[item.value]]
+          </template>
+        </table>
+      </div>
+      <div class="column">
+        <h2>Arguments</h2>
+        <table>
+          <template is="dom-repeat" items="[[getArguments(jobInfo.data)]]">
+            <tr>
+              <th>[[item.key]]
+              <td>[[item.value]]
+          </template>
+        </table>
+      </div>
     </div>
   </template>
 
@@ -46,6 +65,16 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'job-page-header',
+
+      getDifferences(jobInfo) {
+        const differences = [];
+        for (let i = 0; i < jobInfo.state.comparisons.length; ++i) {
+          if (jobInfo.state.comparisons[i] === 'different') {
+            differences.push(jobInfo.state.changes[i + 1]);
+          }
+        }
+        return differences;
+      },
 
       getStatus(jobInfo) {
         const created = new Date(jobInfo.created + 'Z').toLocaleString();

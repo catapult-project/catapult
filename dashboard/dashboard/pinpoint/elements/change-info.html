@@ -18,15 +18,15 @@ found in the LICENSE file.
     </style>
 
     <div>
-      <h2>[[title]]</h2>
       <loading-wrapper id="loader">
+        <h3>[[subject]]</h3>
         <table>
-          <tr>
-            <th>Subject
-            <td>[[subject]]
           <tr>
             <th>Author
             <td>[[author]]
+          <tr>
+            <th>Git hash
+            <td>[[gitHash]]
           <tr>
             <th>Time
             <td>[[time]]
@@ -48,7 +48,8 @@ found in the LICENSE file.
       },
 
       async _depChanged() {
-        this.title = this.dep.repository + '@' + this.dep.git_hash;
+        this.gitHash =
+          this.dep.repository + '@' + this.dep.git_hash.slice(0, 16);
 
         const params = {
           repository: this.dep.repository,
