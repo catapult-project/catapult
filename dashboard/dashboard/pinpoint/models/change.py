@@ -220,7 +220,11 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     return frozenset(deps)
 
   def AsDict(self):
-    return self._asdict()
+    return {
+        'repository': self.repository,
+        'git_hash': self.git_hash,
+        'url': self.repository_url + '/+/' + self.git_hash,
+    }
 
   @classmethod
   def FromDict(cls, data):

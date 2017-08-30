@@ -13,7 +13,7 @@ from dashboard.pinpoint.models import change
 
 _CATAPULT_URL = ('https://chromium.googlesource.com/'
                  'external/github.com/catapult-project/catapult')
-_SRC_URL = 'https://chromium.googlesource.com/chromium/src'
+_CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
 
 
 class ChangeTest(testing_common.TestCase):
@@ -25,11 +25,11 @@ class ChangeTest(testing_common.TestCase):
 
     namespaced_stored_object.Set('repositories', {
         'catapult': {'repository_url': _CATAPULT_URL},
-        'src': {'repository_url': _SRC_URL},
+        'chromium': {'repository_url': _CHROMIUM_URL},
     })
 
   def testChange(self):
-    base_commit = change.Dep('src', 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+    base_commit = change.Dep('chromium', 'aaa7336c821888839f759c6c0a36b56c6678')
     dep = change.Dep('catapult', 'e0a2efbb3d1a81aac3c90041eefec24f066d26ba')
     patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
 
@@ -37,9 +37,9 @@ class ChangeTest(testing_common.TestCase):
     c = change.Change(base_commit, [dep], patch)
 
     self.assertEqual(c, change.Change(base_commit, (dep,), patch))
-    string = ('src@aaa7336 catapult@e0a2efb + '
+    string = ('chromium@aaa7336 catapult@e0a2efb + '
               'https://codereview.chromium.org/2565263002/20001')
-    id_string = ('src@aaa7336c821888839f759c6c0a36b56c6678bbc0 '
+    id_string = ('chromium@aaa7336c821888839f759c6c0a36b56c6678 '
                  'catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba + '
                  'https://codereview.chromium.org/2565263002/20001')
     self.assertEqual(str(c), string)
@@ -56,8 +56,16 @@ class ChangeTest(testing_common.TestCase):
     c = change.Change(base_commit, [dep], patch)
 
     expected = {
-        'base_commit': {'repository': 'chromium', 'git_hash': 'aaa7336c82'},
-        'deps': [{'repository': 'catapult', 'git_hash': 'e0a2efbb3d'}],
+        'base_commit': {
+            'repository': 'chromium',
+            'git_hash': 'aaa7336c82',
+            'url': _CHROMIUM_URL + '/+/aaa7336c82',
+        },
+        'deps': [{
+            'repository': 'catapult',
+            'git_hash': 'e0a2efbb3d',
+            'url': _CATAPULT_URL + '/+/e0a2efbb3d',
+        }],
         'patch': {
             'server': 'https://codereview.chromium.org',
             'issue': 2565263002,
@@ -69,16 +77,16 @@ class ChangeTest(testing_common.TestCase):
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDictWithJustBaseCommit(self, _):
     c = change.Change.FromDict({
-        'base_commit': {'repository': 'src', 'git_hash': 'aaa7336'},
+        'base_commit': {'repository': 'chromium', 'git_hash': 'aaa7336'},
     })
 
-    expected = change.Change(change.Dep('src', 'aaa7336'))
+    expected = change.Change(change.Dep('chromium', 'aaa7336'))
     self.assertEqual(c, expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDictWithAllFields(self, _):
     c = change.Change.FromDict({
-        'base_commit': {'repository': 'src', 'git_hash': 'aaa7336'},
+        'base_commit': {'repository': 'chromium', 'git_hash': 'aaa7336'},
         'deps': ({'repository': 'catapult', 'git_hash': 'e0a2efb'},),
         'patch': {
             'server': 'https://codereview.chromium.org',
@@ -87,7 +95,7 @@ class ChangeTest(testing_common.TestCase):
         },
     })
 
-    base_commit = change.Dep('src', 'aaa7336')
+    base_commit = change.Dep('chromium', 'aaa7336')
     deps = (change.Dep('catapult', 'e0a2efb'),)
     patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
     expected = change.Change(base_commit, deps, patch)
@@ -102,12 +110,12 @@ class ChangeTest(testing_common.TestCase):
         {'commit': '1ef4789'},
     ]
 
-    change_a = change.Change(change.Dep('src', '0e57e2b'),
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'),
                              (change.Dep('catapult', 'e0a2efb'),))
-    change_b = change.Change(change.Dep('src', 'babe852'),
+    change_b = change.Change(change.Dep('chromium', 'babe852'),
                              (change.Dep('catapult', 'e0a2efb'),))
     self.assertEqual(change.Change.Midpoint(change_a, change_b),
-                     change.Change(change.Dep('src', '949b36d'),
+                     change.Change(change.Dep('chromium', '949b36d'),
                                    (change.Dep('catapult', 'e0a2efb'),)))
 
   @mock.patch('dashboard.services.gitiles_service.FileContents')
@@ -127,16 +135,16 @@ class ChangeTest(testing_common.TestCase):
       del path
       if git_hash == '0e57e2b':
         # Also test the stripping of '.git' from repository URLs.
-        return 'deps = {"src/catapult": "%s@0000000"}' % (
+        return 'deps = {"chromium/catapult": "%s@0000000"}' % (
             _CATAPULT_URL + '.git')
       if git_hash == 'babe852':
-        return 'deps = {"src/catapult": "%s@2222222"}' % _CATAPULT_URL
+        return 'deps = {"chromium/catapult": "%s@2222222"}' % _CATAPULT_URL
       raise NotImplementedError()
     file_contents.side_effect = _FileContents
 
-    change_a = change.Change(change.Dep('src', '0e57e2b'))
-    change_b = change.Change(change.Dep('src', 'babe852'))
-    expected = change.Change(change.Dep('src', '0e57e2b'),
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'))
+    change_b = change.Change(change.Dep('chromium', 'babe852'))
+    expected = change.Change(change.Dep('chromium', '0e57e2b'),
                              (change.Dep('catapult', '1111111'),))
 
     self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
@@ -163,25 +171,25 @@ class ChangeTest(testing_common.TestCase):
       raise NotImplementedError()
     file_contents.side_effect = _FileContents
 
-    change_a = change.Change(change.Dep('src', '0e57e2b'),
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'),
                              (change.Dep('catapult', '1111111'),))
-    change_b = change.Change(change.Dep('src', 'babe852'))
-    expected = change.Change(change.Dep('src', '0e57e2b'),
+    change_b = change.Change(change.Dep('chromium', 'babe852'))
+    expected = change.Change(change.Dep('chromium', '0e57e2b'),
                              (change.Dep('catapult', '2222222'),))
 
     self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
 
   def testMidpointRaisesWithDifferingPatch(self):
-    change_a = change.Change(change.Dep('src', '0e57e2b'))
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'))
     change_b = change.Change(
-        change.Dep('src', 'babe852'),
+        change.Dep('chromium', 'babe852'),
         patch=change.Patch('https://codereview.chromium.org', 2565263002, 20001))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
   def testMidpointRaisesWithDifferingRepository(self):
-    change_a = change.Change(change.Dep('src', '0e57e2b'))
-    change_b = change.Change(change.Dep('not_src', 'babe852'))
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'))
+    change_b = change.Change(change.Dep('not_chromium', 'babe852'))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
@@ -208,16 +216,16 @@ class ChangeTest(testing_common.TestCase):
       raise NotImplementedError()
     file_contents.side_effect = _FileContents
 
-    change_a = change.Change(change.Dep('src', '0e57e2b'),
+    change_a = change.Change(change.Dep('chromium', '0e57e2b'),
                              (change.Dep('catapult', '1111111'),))
-    change_b = change.Change(change.Dep('src', 'babe852'),
+    change_b = change.Change(change.Dep('chromium', 'babe852'),
                              (change.Dep('catapult', '3333333'),))
 
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
   def testMidpointReturnsNoneWithTheSameChange(self):
-    c = change.Change(change.Dep('src', '0e57e2b'))
+    c = change.Change(change.Dep('chromium', '0e57e2b'))
     self.assertIsNone(change.Change.Midpoint(c, c))
 
   @mock.patch('dashboard.services.gitiles_service.FileContents')
@@ -227,8 +235,8 @@ class ChangeTest(testing_common.TestCase):
     commit_range.return_value = [{'commit': 'b57345e'}]
     file_contents.return_value = 'deps = {}'
 
-    change_a = change.Change(change.Dep('src', '949b36d'))
-    change_b = change.Change(change.Dep('src', 'b57345e'))
+    change_a = change.Change(change.Dep('chromium', '949b36d'))
+    change_b = change.Change(change.Dep('chromium', 'b57345e'))
     self.assertIsNone(change.Change.Midpoint(change_a, change_b))
 
 
@@ -240,19 +248,19 @@ class DepTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
     namespaced_stored_object.Set('repositories', {
-        'src': {'repository_url': _SRC_URL},
+        'chromium': {'repository_url': _CHROMIUM_URL},
     })
 
   def testDep(self):
-    dep = change.Dep('src', 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+    dep = change.Dep('chromium', 'aaa7336c821888839f759c6c0a36b56c6678')
 
-    other_dep = change.Dep(u'src', u'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+    other_dep = change.Dep(u'chromium', u'aaa7336c821888839f759c6c0a36b56c6678')
     self.assertEqual(dep, other_dep)
-    self.assertEqual(str(dep), 'src@aaa7336')
+    self.assertEqual(str(dep), 'chromium@aaa7336')
     self.assertEqual(dep.id_string,
-                     'src@aaa7336c821888839f759c6c0a36b56c6678bbc0')
-    self.assertEqual(dep.repository, 'src')
-    self.assertEqual(dep.git_hash, 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+                     'chromium@aaa7336c821888839f759c6c0a36b56c6678')
+    self.assertEqual(dep.repository, 'chromium')
+    self.assertEqual(dep.git_hash, 'aaa7336c821888839f759c6c0a36b56c6678')
     self.assertEqual(dep.repository_url,
                      'https://chromium.googlesource.com/chromium/src')
 
@@ -273,7 +281,7 @@ deps_os = {
 }
     """
 
-    dep = change.Dep('src', 'aaa7336')
+    dep = change.Dep('chromium', 'aaa7336')
     expected = frozenset((
         change.Dep('cygwin', 'c89e446'),
         change.Dep('v8', 'c092edb'),
@@ -285,17 +293,18 @@ deps_os = {
     expected = {
         'repository': 'chromium',
         'git_hash': 'aaa7336',
+        'url': _CHROMIUM_URL + '/+/aaa7336',
     }
     self.assertEqual(dep.AsDict(), expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDict(self, _):
     dep = change.Dep.FromDict({
-        'repository': 'src',
+        'repository': 'chromium',
         'git_hash': 'aaa7336',
     })
 
-    expected = change.Dep('src', 'aaa7336')
+    expected = change.Dep('chromium', 'aaa7336')
     self.assertEqual(dep, expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
@@ -305,7 +314,7 @@ deps_os = {
         'git_hash': 'aaa7336',
     })
 
-    expected = change.Dep('src', 'aaa7336')
+    expected = change.Dep('chromium', 'aaa7336')
     self.assertEqual(dep, expected)
 
   def testFromDictFailureFromUnknownRepo(self):
@@ -321,7 +330,7 @@ deps_os = {
 
     with self.assertRaises(KeyError):
       change.Dep.FromDict({
-          'repository': 'src',
+          'repository': 'chromium',
           'git_hash': 'unknown git hash',
       })
 
@@ -334,14 +343,14 @@ deps_os = {
         {'commit': '1ef4789'},
     ]
 
-    dep_a = change.Dep('src', '0e57e2b')
-    dep_b = change.Dep('src', 'babe852')
+    dep_a = change.Dep('chromium', '0e57e2b')
+    dep_b = change.Dep('chromium', 'babe852')
     self.assertEqual(change.Dep.Midpoint(dep_a, dep_b),
-                     change.Dep('src', '949b36d'))
+                     change.Dep('chromium', '949b36d'))
 
   def testMidpointRaisesWithDifferingRepositories(self):
-    dep_a = change.Dep('src', '0e57e2b')
-    dep_b = change.Dep('not_src', 'babe852')
+    dep_a = change.Dep('chromium', '0e57e2b')
+    dep_b = change.Dep('not_chromium', 'babe852')
 
     with self.assertRaises(ValueError):
       change.Dep.Midpoint(dep_a, dep_b)
@@ -350,16 +359,16 @@ deps_os = {
   def testMidpointReturnsNoneWithAdjacentCommits(self, commit_range):
     commit_range.return_value = [{'commit': 'b57345e'}]
 
-    dep_a = change.Dep('src', '949b36d')
-    dep_b = change.Dep('src', 'b57345e')
+    dep_a = change.Dep('chromium', '949b36d')
+    dep_b = change.Dep('chromium', 'b57345e')
     self.assertIsNone(change.Dep.Midpoint(dep_a, dep_b))
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testMidpointReturnsNoneWithEmptyRange(self, commit_range):
     commit_range.return_value = []
 
-    dep_b = change.Dep('src', 'b57345e')
-    dep_a = change.Dep('src', '949b36d')
+    dep_b = change.Dep('chromium', 'b57345e')
+    dep_a = change.Dep('chromium', '949b36d')
     self.assertIsNone(change.Dep.Midpoint(dep_a, dep_b))
 
 
