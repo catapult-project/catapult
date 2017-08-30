@@ -105,6 +105,7 @@ class _RunTestExecution(execution_module.Execution):
       self._StartTask()
       return
 
+    self._bot_ids = []
     isolate_hashes = []
     for task_id in self._task_ids:
       result = swarming_service.Task(task_id).Result()
