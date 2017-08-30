@@ -22,7 +22,7 @@ found in the LICENSE file.
       }
     </style>
 
-    <iron-icon id="icon" icon="[[icon]]" hidden$="[[hidden]]"></iron-icon>
+    <iron-icon id="icon" icon="[[icon]]"></iron-icon>
   </template>
 
   <script>
@@ -34,38 +34,24 @@ found in the LICENSE file.
         icon: {
           type: String,
           value: '',
-        },
-
-        hidden: {
-          type: Boolean,
-          value: false,
         }
       },
 
       setPosition(x, y) {
-        this.$.icon.style.top = (x - 12) + 'px';
-        this.$.icon.style.left = (y - 12) + 'px';
+        this.$.icon.style.left = (x - 12) + 'px';
+        this.$.icon.style.top = (y - 12) + 'px';
       },
 
-      setData(jobResults, changeIndex) {
-        // Have result values, so display the actual point on the graph.
-        if (jobResults.resultValues[changeIndex][2].length > 0) {
-          this.set('hidden', true);
-          return;
-        }
-
-        // Check if this is pending build
-        const index = Math.max(changeIndex - 1, 0);
-        if (jobResults.comparisons[index] == 'pending') {
+      setType(type) {
+        if (type == 'pending') {
           this.set('icon', 'watch-later');
           this.$.icon.updateStyles(
               {'--iron-icon-fill-color': 'var(--paper-indigo-100)'});
-          return;
+        } else {
+          this.set('icon', 'clear');
+          this.$.icon.updateStyles(
+              {'--iron-icon-fill-color': 'var(--paper-red-500)'});
         }
-
-        this.set('icon', 'clear');
-        this.$.icon.updateStyles(
-            {'--iron-icon-fill-color': 'var(--paper-red-500)'});
       }
     });
   </script>

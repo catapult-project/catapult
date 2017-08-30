@@ -19,7 +19,7 @@ found in the LICENSE file.
     <style>
       #plot {
         height: 240px;
-        margin: 1em 0 3em 0;
+        margin: 1em 0;
         min-width: 500px;
       }
     </style>
@@ -47,42 +47,10 @@ found in the LICENSE file.
         // The Flot Plot object, returned by $.plot.
         chart: {
           value: null
-        },
-
-        // Chart options to be given when initializing the Flot chart.
-        // See: https://github.com/flot/flot/blob/master/API.md#plot-options
-        chartOptions: {
-          type: Object,
-          value: () => {
-            return {
-              grid: {
-                hoverable: true,
-                clickable: true,
-                borderWidth: 1,
-                borderColor: 'rgba(0, 0, 0, 0.5)'
-              },
-              crosshair: {
-                mode: 'xy',
-                color: 'rgba(34, 34, 34, 0.3)',
-                lineWidth: 0.3
-              },
-              series: {
-                lines: {
-                  show: false
-                }
-              },
-              xaxis: {},
-              yaxis: {},
-              selection: {
-                mode: 'y'
-              }
-            };
-          }
-        },
+        }
       },
 
       ready() {
-        this.chartOptions.xaxis.tickFormatter = this.formatXAxis.bind(this);
         this.initializePlotEventListeners();
       },
 
@@ -104,127 +72,138 @@ found in the LICENSE file.
         this.set('pointSelectedIndex', index);
       },
 
-      formatXAxis(val, axis) {
-        const index = Math.round(Math.max(val, 0));
-        if (index != val) {
-          return '';
-        }
-        if (index < 0 || index >= this.jobInfo.changes.length) {
-          return '';
-        }
-
-        const change = this.jobInfo.changes[index];
-        const repository = change.base_commit.repository;
-        const gitHash = change.base_commit.git_hash;
-        const label = document.createElement('div');
-        label.innerText = repository + '@' + gitHash.slice(0, 7);
-        label.style.transform = 'translateY(10px) rotate(15deg)';
-        return label.outerHTML;
-      },
-
       _jobInfoChanged() {
-        if (this.jobInfo == null) {
-          return;
+        const valuesByChange = this.jobInfo.resultValues.map(
+            valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
+
+        let min = 0;
+        let max = 1;
+
+        const allNumbers = valuesByChange.every(row => row.every(
+            value => typeof(value) === 'number'));
+        if (allNumbers) {
+          // Numeric data. Set the bounds based on the data.
+          min = Math.min(...valuesByChange.map(
+              values => Math.min(...values)));
+          max = Math.max(...valuesByChange.map(
+              values => Math.max(...values)));
+          if (!(isFinite(min) && isFinite(max))) {
+            min = 0;
+            max = 0;
+          }
+          if (min == max) {
+            min -= 1;
+            max += 1;
+          }
+        } else {
+          // Pass-fail data. Convert the results to "failure rate".
+          for (let i = 0; i < valuesByChange.length; ++i) {
+            const values = valuesByChange[i];
+            const sum = values.filter(value => value).length;
+            valuesByChange[i] = [sum / values.length];
+          }
         }
 
-        let data = [[]];
-        let absMin = undefined;
-        let absMax = absMin;
+        // Calculate the error bars.
+        const data = [];
 
-        for (let i = 0; i < this.jobInfo.resultValues.length; i++) {
-          const pts = this.jobInfo.resultValues[i][2].map(function(i) {
-            return parseFloat(i);
-          });
-          if (pts.length == 0) {
-            data.push([[i]]);
-            data.push([]);
+        let seriesData = [];
+        for (let i = 0; i < valuesByChange.length; ++i) {
+          const values = valuesByChange[i];
+          if (!values.length) {
             continue;
           }
-          const dataMin = Math.min(...pts);
-          const dataMax = Math.max(...pts);
 
-          if (absMin == undefined) {
-            absMin = dataMin;
-          }
-          if (absMax == undefined) {
-            absMax = dataMax;
-          }
-
-          absMin = Math.min(absMin, dataMin);
-          absMax = Math.max(absMax, dataMax);
-
-          const sum = pts.reduce(function(a, b) { return a + b; });
-          const avg = sum / pts.length;
-
-          const di = data.length - 1;
-          data[di].push([i, avg, avg - dataMin, dataMax - avg]);
+          const mid = median(values);
+          const lowError = mid - Math.min(...values);
+          const highError = Math.max(...values) - mid;
+          seriesData.push([i, mid, lowError, highError]);
 
           if (this.jobInfo.comparisons[i] !== 'same') {
-            data.push([]);
+            if (seriesData.length) {
+              data.push(annotateSeries(seriesData));
+              seriesData = [];
+            }
           }
         }
 
-        if (absMin == undefined) {
-          absMin = 0;
-        }
-        if (absMax == undefined) {
-          absMax = 1;
-        }
+        // Chart options to be given when initializing the Flot chart.
+        // See: https://github.com/flot/flot/blob/master/API.md#plot-options
+        const options = {
+          grid: {
+            clickable: true,
+            hoverable: true,
+            borderWidth: 1,
+            borderColor: 'rgba(0, 0, 0, 0.5)'
+          },
+          xaxis: {
+            min: -0.5,
+            max: valuesByChange.length - 0.5,
+            show: false
+          },
+          yaxis: {
+            min: min - 0.05 * (max - min),
+            max: max + 0.05 * (max - min)
+          }
+        };
 
-        data = data.filter(d => d.length > 0);
+        // Plot the chart!
+        this.chart = $.plot(this.$.plot, data, options);
 
-        const paramsList = [];
+        // Draw icons for failed and pending attempts.
+        for (let i = 0; i < valuesByChange.length; ++i) {
+          if (valuesByChange[i].length) {
+            continue;
+          }
 
-        for (let i = 0; i < data.length; i++) {
-          const chartColor = '#ff4081';
-          const params = {
-            color: chartColor,
-            data: data[i],
-            lines: {
-              show: true
-            },
-            points: {
-              show: true,
-              radius: 3,
-              fillColor: chartColor,
-              errorbars: 'y',
-              yerr: {
-                show: true,
-                asymmetric: true,
-                upperCap: '-',
-                lowerCap: '-',
-                radius: 3
-              }
-            },
-            id: 'good',
-          };
-          paramsList.push(params);
-        }
-
-        // TODO: Hack the bounds a bit
-        const absRange = absMax - absMin;
-        this.chartOptions.yaxis.min = absMin - absRange * 0.1;
-        this.chartOptions.yaxis.max = absMax + absRange * 0.1;
-        this.chartOptions.xaxis.min = -0.25;
-        this.chartOptions.xaxis.max = this.jobInfo.resultValues.length - 1 + 0.25;
-
-        this.chart = $.plot(this.$.plot, paramsList, this.chartOptions);
-
-        for (let i = 0; i < this.jobInfo.resultValues.length; i++) {
-          const o = this.chart.pointOffset(
-              {
-                x: i,
-                y: (this.chartOptions.yaxis.max +
-                    this.chartOptions.yaxis.min) * 0.5
-              });
+          const o = this.chart.pointOffset({
+            x: i,
+            y: 0.5 * (options.yaxis.max + options.yaxis.min)
+          });
 
           const status = document.createElement('job-page-chart-icon');
-          status.setPosition(o.top, o.left);
-          status.setData(this.jobInfo, i);
+          status.setPosition(o.left, o.top);
+          const index = Math.max(i - 1, 0);
+          if (this.jobInfo.comparisons[index] == 'pending') {
+            status.setType('pending');
+          } else {
+            status.setType('failed');
+          }
           status.onclick = this.onBuildStatusClick.bind(this, i);
           this.$.plot.appendChild(status);
         }
       }
     });
+
+    function annotateSeries(data) {
+      const color = '#ff4081';
+      return {
+        color,
+        data,
+        lines: {
+          show: true
+        },
+        points: {
+          errorbars: 'y',
+          fillColor: color,
+          show: true,
+          yerr: {
+            asymmetric: true,
+            upperCap: '-',
+            lowerCap: '-',
+            show: true
+          }
+        }
+      };
+    }
+
+    function median(values) {
+      values.sort(function(a, b) {return a - b;});
+      const half = Math.floor(values.length / 2);
+      if (values.length % 2) {
+        return values[half];
+      }
+      return (values[half - 1] + values[half]) / 2;
+    }
   </script>
 </dom-module>

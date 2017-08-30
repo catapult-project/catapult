@@ -47,27 +47,31 @@ found in the LICENSE file.
         </div>
 
         <div class="column">
-          <h2>[[runTitle]]</h2>
-          <table>
-            <tr>
-              <th>Status
-              <td>[[runStatus]]
-            <tr>
-              <th>Swarming Task
-              <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a>
-            <tr>
-              <th>Output Isolate
-              <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a>
-          </table>
+          <template is="dom-if" if="[[runTitle]]">
+            <h2>[[runTitle]]</h2>
+            <table>
+              <tr>
+                <th>Status
+                <td>[[runStatus]]
+              <tr>
+                <th>Swarming Task
+                <td><a href="https://chromium-swarm.appspot.com/user/task/[[taskIds]]" target="_blank">[[taskIds]]</a>
+              <tr>
+                <th>Output Isolate
+                <td><a href="https://isolateserver.appspot.com/browse?hash=[[outputIsolateHashes]]" target="_blank">[[outputIsolateHashes]]</a>
+            </table>
+          </template>
         </div>
 
         <div class="column">
-          <h2>[[testTitle]]</h2>
-          <table>
-            <tr>
-              <th>Values
-              <td>[[formatValues(resultValues)]]
-          </table>
+          <template is="dom-if" if="[[testTitle]]">
+            <h2>[[testTitle]]</h2>
+            <table>
+              <tr>
+                <th>Values
+                <td>[[formatValues(resultValues)]]
+            </table>
+          </template>
         </div>
       </div>
     </template>
