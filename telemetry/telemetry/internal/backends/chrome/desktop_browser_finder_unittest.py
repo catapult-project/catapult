@@ -7,6 +7,7 @@ import unittest
 
 from pyfakefs import fake_filesystem_unittest
 
+from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.backends.chrome import desktop_browser_finder
@@ -211,14 +212,18 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
     self._finder_options.browser_executable = '/foo/chrome'
     self.assertIn('exact', self.DoFindAllTypes())
 
-  def testFindWithProvidedApk(self):
+  def testErrorWithNonExistent(self):
     self._finder_options.browser_executable = '/foo/chrome.apk'
-    self.assertNotIn('exact', self.DoFindAllTypes())
+    with self.assertRaises(exceptions.PathMissingError) as cm:
+      self.DoFindAllTypes()
+    self.assertIn('does not exist or is not executable', str(cm.exception))
 
-  def testNoErrorWithNonChromeExecutableName(self):
+  def testErrorWithNonExecutable(self):
     self.fs.CreateFile('/foo/another_browser')
     self._finder_options.browser_executable = '/foo/another_browser'
-    self.assertNotIn('exact', self.DoFindAllTypes())
+    with self.assertRaises(exceptions.PathMissingError) as cm:
+      self.DoFindAllTypes()
+    self.assertIn('does not exist or is not executable', str(cm.exception))
 
   def testFindAllWithInstalled(self):
     official_names = ['chrome', 'chrome-beta', 'chrome-unstable']

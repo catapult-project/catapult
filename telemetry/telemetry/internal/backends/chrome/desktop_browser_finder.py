@@ -117,14 +117,6 @@ def SelectDefaultBrowser(possible_browsers):
 def CanFindAvailableBrowsers():
   return not platform_module.GetHostPlatform().GetOSName() == 'chromeos'
 
-def CanPossiblyHandlePath(target_path):
-  _, extension = os.path.splitext(target_path.lower())
-  if sys.platform == 'darwin' or sys.platform.startswith('linux'):
-    return not extension
-  elif sys.platform.startswith('win'):
-    return extension == '.exe'
-  return False
-
 def FindAllBrowserTypes(_):
   return [
       'exact',
@@ -185,31 +177,25 @@ def FindAllAvailableBrowsers(finder_options, device):
     raise Exception('Platform not recognized')
 
   # Add the explicit browser executable if given and we can handle it.
-  if (finder_options.browser_executable and
-      CanPossiblyHandlePath(finder_options.browser_executable)):
+  if finder_options.browser_executable:
     is_content_shell = finder_options.browser_executable.endswith(
         content_shell_app_name)
-    is_chrome_or_chromium = len([
-        x for x in chromium_app_names
-        if finder_options.browser_executable.endswith(x)
-    ]) != 0
 
     # It is okay if the executable name doesn't match any of known chrome
     # browser executables, since it may be of a different browser.
-    if is_chrome_or_chromium or is_content_shell:
-      normalized_executable = os.path.expanduser(
-          finder_options.browser_executable)
-      if path_module.IsExecutable(normalized_executable):
-        browser_directory = os.path.dirname(finder_options.browser_executable)
-        browsers.append(PossibleDesktopBrowser(
-            'exact', finder_options, normalized_executable, flash_path,
-            is_content_shell,
-            browser_directory))
-      else:
-        raise exceptions.PathMissingError(
-            '%s specified by --browser-executable does not exist or is not '
-            'executable' %
-            normalized_executable)
+    normalized_executable = os.path.expanduser(
+        finder_options.browser_executable)
+    if path_module.IsExecutable(normalized_executable):
+      browser_directory = os.path.dirname(finder_options.browser_executable)
+      browsers.append(PossibleDesktopBrowser(
+          'exact', finder_options, normalized_executable, flash_path,
+          is_content_shell,
+          browser_directory))
+    else:
+      raise exceptions.PathMissingError(
+          '%s specified by --browser-executable does not exist or is not '
+          'executable' %
+          normalized_executable)
 
   def AddIfFound(browser_type, build_path, app_name, content_shell):
     app = os.path.join(build_path, app_name)
