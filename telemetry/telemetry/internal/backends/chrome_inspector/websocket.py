@@ -12,7 +12,7 @@ from websocket import WebSocketException
 from websocket import WebSocketTimeoutException
 
 
-def create_connection(*args, **kwargs):
+def CreateConnection(*args, **kwargs):
   sockopt = kwargs.get('sockopt', [])
 
   # By default, we set SO_REUSEADDR on all websockets used by Telemetry.

@@ -32,7 +32,7 @@ class _FakeWebSocketHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 class TestWebSocket(unittest.TestCase):
   def testExports(self):
-    self.assertNotEqual(websocket.create_connection, None)
+    self.assertNotEqual(websocket.CreateConnection, None)
     self.assertNotEqual(websocket.WebSocketException, None)
     self.assertNotEqual(websocket.WebSocketTimeoutException, None)
 
@@ -41,7 +41,7 @@ class TestWebSocket(unittest.TestCase):
     ws_url = 'ws://127.0.0.1:%d' % httpd.server_port
 
     threading.Thread(target=httpd.handle_request).start()
-    ws = websocket.create_connection(ws_url)
+    ws = websocket.CreateConnection(ws_url)
     try:
       self.assertNotEquals(
           ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
@@ -49,7 +49,7 @@ class TestWebSocket(unittest.TestCase):
       ws.close()
 
     threading.Thread(target=httpd.handle_request).start()
-    ws = websocket.create_connection(
+    ws = websocket.CreateConnection(
         ws_url,
         sockopt=[(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)])
     try:

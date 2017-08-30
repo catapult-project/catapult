@@ -326,7 +326,7 @@ class DevToolsWebSocket(object):
   @RetryOn(socket.error)
   def Open(self):
     assert self._socket is None
-    self._socket = websocket.create_connection(self._url)
+    self._socket = websocket.CreateConnection(self._url)
 
   def Close(self):
     if self._socket is not None:

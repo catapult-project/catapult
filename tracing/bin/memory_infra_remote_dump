@@ -49,7 +49,7 @@ class TracingDevtoolsClient(object):
   def __init__(self, host, port):
     url = 'ws://%s:%s/devtools/browser' % (host, port)
     print 'Connecting to ' + url
-    self.ws = websocket.create_connection(url)
+    self.ws = websocket.CreateConnection(url)
     self.cmd = 0
 
   def send(self, method, params={}):
