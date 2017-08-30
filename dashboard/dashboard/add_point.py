@@ -362,7 +362,7 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
     tracing_uri = tracing_links[trace_name]['cloud_url'].replace('\\/', '/')
 
   story_name = trace_name
-  trace_name = _EscapeName(trace_name)
+  trace_name = EscapeName(trace_name)
   if trace_name == 'summary':
     subtest_name = chart_name
   else:
@@ -452,7 +452,7 @@ def _IsNumber(v):
   return isinstance(v, float) or isinstance(v, int) or isinstance(v, long)
 
 
-def _EscapeName(name):
+def EscapeName(name):
   """Escapes a trace name so it can be stored in a row.
 
   Args:

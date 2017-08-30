@@ -10,6 +10,7 @@ import sys
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
+from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
@@ -208,7 +209,8 @@ def ComputeTestPath(guid, histograms):
 
   story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
   if story_name and len(story_name) == 1:
-    path += '/' + list(story_name)[0]
+    escaped_story_name = add_point.EscapeName(list(story_name)[0])
+    path += '/' + escaped_story_name
 
   return path
 

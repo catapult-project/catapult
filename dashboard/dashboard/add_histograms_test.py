@@ -693,10 +693,10 @@ class AddHistogramsTest(testing_common.TestCase):
         histogram_module.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['story']))
+        histogram_module.GenericSet(['http://story']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
-    self.assertEqual('master/bot/benchmark/hist/story', test_path)
+    self.assertEqual('master/bot/benchmark/hist/http___story', test_path)
 
   def testComputeTestPathWithoutStory(self):
     hist = histogram_module.Histogram('hist', 'count')
