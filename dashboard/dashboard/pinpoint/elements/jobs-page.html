@@ -16,10 +16,6 @@ found in the LICENSE file.
     <style include="base-style">
       #job-count {
         background: var(--paper-indigo-50);
-        border-radius: 1em;
-        font-size: 0.6em;
-        padding: 0.2em 0.5em;
-        vertical-align: middle;
       }
     </style>
 
@@ -27,7 +23,7 @@ found in the LICENSE file.
 
     <h1>
       Jobs
-      <span id="job-count">
+      <span id="job-count" class="chip">
         [[computeJobCountString(jobCount, jobCountMax)]]
       </span>
     </h1>

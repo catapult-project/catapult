@@ -80,7 +80,6 @@ found in the LICENSE file.
         const created = new Date(jobInfo.created + 'Z').toLocaleString();
         const updated = new Date(jobInfo.updated + 'Z').toLocaleString();
         return [
-          {key: 'status', value: jobInfo.status},
           {key: 'created', value: created},
           {key: 'updated', value: updated},
           {key: 'auto_explore', value: jobInfo.auto_explore}

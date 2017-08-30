@@ -152,6 +152,7 @@ class Job(ndb.Model):
 
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
+        'exception': self.exception,
         'status': self.status,
 
         'state': self.state.AsDict(),
