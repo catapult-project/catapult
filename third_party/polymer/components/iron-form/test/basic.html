@@ -41,6 +41,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <form is="iron-form">
         <input name="foo" value="bar">
         <input name="foo" value="barbar">
+        <input name="empty" value="">
+        <input name="empty" value="">
         <simple-element name="zig" value="zig"></simple-element>
         <simple-element name="zig" value="zag"></simple-element>
         <simple-element name="zig" value="zug"></simple-element>
@@ -84,6 +86,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <input name="foo" value="bar1">
         <input name="foo" value="bar2" disabled>
         <input type="checkbox" name="zig" value="zag" disabled checked>
+      </form>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="FormUnsetMethod">
+    <template>
+      <form is="iron-form" action="/responds_with_json">
+        <simple-element name="zig" value="zag"></simple-element>
       </form>
     </template>
   </test-fixture>
@@ -367,13 +377,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       f = fixture('Dupes');
 
       assert.equal(f._customElements.length, 3);
-      assert.equal(f.elements.length, 2);
+      assert.equal(f.elements.length, 4);
 
       var json = f.serialize();
-      assert.equal(Object.keys(json).length, 2);
+      assert.equal(Object.keys(json).length, 3);
       assert.equal(json['foo'].length, 2);
       assert.equal(json['foo'][0], 'bar');
       assert.equal(json['foo'][1], 'barbar');
+      assert.equal(json['empty'].length, 2);
+      assert.equal(json['empty'][0], '');
+      assert.equal(json['empty'][1], '');
       assert.equal(json['zig'].length, 3);
       assert.equal(json['zig'][0], 'zig');
       assert.equal(json['zig'][1], 'zag');
@@ -732,6 +745,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       form.submit();
+    });
+
+    test('can submit with method unset, defaults to method=get', function(done) {
+      form = fixture('FormUnsetMethod');
+
+      var submitted = false;
+      form.addEventListener('iron-form-submit', function() {
+        submitted = true;
+      });
+
+      form.addEventListener('iron-form-response', function(event) {
+        expect(this.request.method).to.be.equal('GET');
+        expect(submitted).to.be.equal(true);
+        expect(event.detail.url).to.contain('zig=zag');
+
+        var response = event.detail.response;
+        expect(response).to.be.ok;
+        expect(response).to.be.an('object');
+        expect(response.success).to.be.equal(true);
+        done();
+      });
+
+      form.submit();
+      server.respond();
     });
 
     test('can submit with method=get', function(done) {

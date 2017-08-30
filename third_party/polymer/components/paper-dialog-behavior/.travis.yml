@@ -6,18 +6,19 @@ before_script:
   - polylint
 env:
   global:
-    - secure: ZBrrZGA8OWY95x8yHSsKUNrQfowhRe/s/pMZhHgnoppnZ1+bDfpoms+ggOdvH0TgURAAdF+1Wq1mTCgNp0FYLJ3Oe34XseDIxiA3wXSQO/E2m4Cfj/w4fRvaSy8ikdz5urQJET33SjDKdggm1FmWmnt6vSVgW/mg8M7AW2KWDcE=
-    - secure: P5UKkTar39Q1k0VwtF5LhOphqNiW3r+DSnN1vRNA4oKZPrt6l3dJE1hpA9+1x1m6SryG856lLekPM6/fVZuC7nyDKFLz4vU/EWhiGdyWN1lHhE2MDh281TsCtzK56S0uJxdmlIpSiWTFWIrrEiiewN2b8dXy3FSPfy0Fo1sGn54=
-node_js: stable
+    - secure: >-
+        TJSGIyeS77tnbqO9zSa5jAThGUOwhfDTdMBXIVkjDwPqtB2u8y6QB6rerGvNpDLdWTZh6dNUByc4vHJLGKmTArbWc/XH90H7msZs3OxMlXjgILX4//QSxM4uwBwfTh44PVb/wDJxgX950qXyF646Lo9A8UwKk2JL9LBeuiO+tQs=
+    - secure: >-
+        QXJDFGdZ+94ktzeT8u1TjkgCSbku5UT+YIyOOyw4yrphg/0HSnlZ8bu5i3z9iPJu3mzxNdIXCAW7dLKfYgKK6S21o/3QWlMDuAt11wnSZLW/GWrLDTQNotFN+cLFghGuZkM3bsMp+CLjvvjZZwyK3B340g1gP66DbUQuoUYaRao=
+node_js: '6'
 addons:
-  firefox: '46.0'
+  firefox: latest
   apt:
     sources:
       - google-chrome
     packages:
       - google-chrome-stable
-  sauce_connect: true
 script:
   - xvfb-run wct
-  - "if [ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ]; then wct -s 'default'; fi"
+  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s ''default''; fi'
 dist: trusty

@@ -125,6 +125,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             });
           });
         });
+
+        suite('on blur', function() {
+          test('the pressed property becomes false', function() {
+            MockInteractions.focus(activeTarget);
+            MockInteractions.down(activeTarget);
+            expect(activeTarget.hasAttribute('pressed')).to.be.eql(true);
+            MockInteractions.blur(activeTarget);
+            expect(activeTarget.hasAttribute('pressed')).to.be.eql(false);
+          });
+        });
       });
 
       suite('without toggles attribute', function() {

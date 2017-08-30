@@ -90,7 +90,11 @@ Custom property | Description | Default
 `--paper-input-container-label-focus` | Mixin applied to the label when the input is focused | `{}`
 `--paper-input-container-label-floating` | Mixin applied to the label when floating | `{}`
 `--paper-input-container-input` | Mixin applied to the input | `{}`
+`--paper-input-container-input-focus` | Mixin applied to the input when focused | `{}`
+`--paper-input-container-input-invalid` | Mixin applied to the input when invalid | `{}`
 `--paper-input-container-input-webkit-spinner` | Mixin applied to the webkit spinner | `{}`
+`--paper-input-container-input-webkit-clear` | Mixin applied to the webkit clear button | `{}`
+`--paper-input-container-ms-clear` | Mixin applied to the Internet Explorer clear button | `{}`
 `--paper-input-container-underline` | Mixin applied to the underline | `{}`
 `--paper-input-container-underline-focus` | Mixin applied to the underline when the input is focused | `{}`
 `--paper-input-container-underline-disabled` | Mixin applied to the underline when the input is disabled | `{}`
@@ -275,6 +279,20 @@ This element is `display:block` by default, but you can set the `inline` attribu
 
         @apply(--paper-font-subhead);
         @apply(--paper-input-container-input);
+      }
+
+      .input-content.focused ::content input,
+      .input-content.focused ::content textarea,
+      .input-content.focused ::content iron-autogrow-textarea,
+      .input-content.focused ::content .paper-input-input {
+        @apply(--paper-input-container-input-focus);
+      }
+
+      .input-content.is-invalid ::content input,
+      .input-content.is-invalid ::content textarea,
+      .input-content.is-invalid ::content iron-autogrow-textarea,
+      .input-content.is-invalid ::content .paper-input-input {
+        @apply(--paper-input-container-input-invalid);
       }
 
       .input-content ::content input::-webkit-outer-spin-button,
@@ -594,11 +612,20 @@ This element is `display:block` by default, but you can set the `inline` attribu
           if (label) {
             this.$.labelAndInputContainer.style.position = 'relative';
           }
+          if (invalid) {
+            cls += ' is-invalid';
+          }
         }
       } else {
         if (_inputHasContent) {
           cls += ' label-is-hidden';
         }
+        if (invalid) {
+          cls += ' is-invalid';
+        }
+      }
+      if (focused) {
+        cls += ' focused';
       }
       return cls;
     },

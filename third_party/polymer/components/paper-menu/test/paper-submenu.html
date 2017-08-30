@@ -65,6 +65,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="opened">
+      <template>
+        <paper-menu>
+          <paper-submenu class="menu-content" opened>
+            <paper-item class="menu-trigger">My submenu is opened to start!</paper-item>
+            <paper-menu class="menu-content">
+              <paper-item>Triggered item</paper-item>
+            </paper-menu>
+          </paper-submenu>
+        </paper-menu>
+      </template>
+    </test-fixture>
+
     <script>
 
       suite('<paper-submenu>', function() {
@@ -197,6 +210,75 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      suite('<paper-submenu opened>', function() {
+        var opened;
+        var submenu;
+        var collapse;
+
+        var fail = function(msg) {
+          return function() {
+            throw new Error(msg);
+          };
+        };
+
+        setup(function() {
+          opened = fixture('opened');
+          submenu = opened.querySelector('paper-submenu');
+          collapse = Polymer.dom(submenu.root).querySelector('iron-collapse');
+        });
+
+        test('opened binding + .menu-trigger tap', function() {
+          assert.isTrue(submenu.opened);
+
+          var trigger = submenu.querySelector('.menu-trigger');
+          MockInteractions.tap(trigger);
+          assert.isFalse(submenu.opened);
+
+          MockInteractions.tap(trigger);
+          assert.isTrue(submenu.opened);
+        });
+
+        test('opened binding + open()/close()', function() {
+          assert.isTrue(submenu.opened);
+
+          submenu.close();
+          assert.isFalse(submenu.opened);
+          assert.isFalse(collapse.opened);
+
+          submenu.open();
+          assert.isTrue(submenu.opened);
+          assert.isTrue(collapse.opened);
+        });
+
+        test('opened binding + toggle()', function() {
+          assert.isTrue(submenu.opened);
+
+          submenu.toggle();
+          assert.isFalse(submenu.opened);
+          assert.isFalse(collapse.opened);
+
+          submenu.toggle();
+          assert.isTrue(submenu.opened);
+          assert.isTrue(collapse.opened);
+        });
+
+        test('opened binding + open() x 2', function() {
+          assert.isTrue(submenu.opened);
+
+          opened.addEventListener('paper-submenu-open', fail('duplicate open'));
+
+          submenu.open();  // Opening when already opened should not fire().
+        });
+
+        test('opened binding + close() x 2', function() {
+          submenu.close();
+          assert.isFalse(submenu.opened);
+
+          opened.addEventListener('paper-submenu-close', fail('duplicate close'));
+
+          submenu.close();  // Closing again when !opened should not fire().
+        });
+      });
     </script>
 
   </body>

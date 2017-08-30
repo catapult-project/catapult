@@ -45,7 +45,7 @@ from the icon set to use.
 <paper-icon-button icon="star"></paper-icon-button>
 ```
 
-See [`iron-iconset`](iron-iconset) for more information about
+See [`iron-iconset`](https://github.com/PolymerElements/iron-iconset) for more information about
 how to use a custom icon set.
 
 Example:

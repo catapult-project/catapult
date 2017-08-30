@@ -1,6 +1,6 @@
 {
   "name": "iron-flex-layout",
-  "version": "1.3.2",
+  "version": "1.3.7",
   "description": "Provide flexbox-based layouts",
   "keywords": [
     "web-components",
@@ -26,6 +26,9 @@
     "test-fixture": "PolymerElements/test-fixture#^1.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
     "web-component-tester": "^4.0.0"
+  },
+  "pages": {
+    "Flexbox layout guide": "GUIDE.md"
   },
   "ignore": []
 }

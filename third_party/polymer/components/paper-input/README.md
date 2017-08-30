@@ -1,7 +1,7 @@
 [![Build status](https://travis-ci.org/PolymerElements/paper-input.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-input)
 [![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://beta.webcomponents.org/element/PolymerElements/paper-input)
 
-##&lt;paper-input&gt;
+## &lt;paper-input&gt;
 
 Material design: [Text fields](https://www.google.com/design/spec/components/text-fields.html)
 

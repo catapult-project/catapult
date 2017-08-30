@@ -31,6 +31,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     var lastScrollableNodes = [];
 
+    var scrollEvents = [
+      // Modern `wheel` event for mouse wheel scrolling:
+      'wheel',
+      // Older, non-standard `mousewheel` event for some FF:
+      'mousewheel',
+      // IE:
+      'DOMMouseScroll',
+      // Touch enabled devices
+      'touchstart',
+      'touchmove'
+    ];
+
     /**
      * The IronDropdownScrollManager is intended to provide a central source
      * of authority and control over which elements in a document are currently
@@ -199,24 +211,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _lockScrollInteractions: function() {
         this._boundScrollHandler = this._boundScrollHandler ||
           this._scrollInteractionHandler.bind(this);
-        // Modern `wheel` event for mouse wheel scrolling:
-        document.addEventListener('wheel', this._boundScrollHandler, true);
-        // Older, non-standard `mousewheel` event for some FF:
-        document.addEventListener('mousewheel', this._boundScrollHandler, true);
-        // IE:
-        document.addEventListener('DOMMouseScroll', this._boundScrollHandler, true);
-        // Save the lastScrollableNodes on touchstart, to be used on touchmove.
-        document.addEventListener('touchstart', this._boundScrollHandler, true);
-        // Mobile devices can scroll on touch move:
-        document.addEventListener('touchmove', this._boundScrollHandler, true);
+        for (var i = 0, l = scrollEvents.length; i < l; i++) {
+          // NOTE: browsers that don't support objects as third arg will
+          // interpret it as boolean, hence useCapture = true in this case. 
+          document.addEventListener(scrollEvents[i], this._boundScrollHandler, {
+            capture: true,
+            passive: false
+          });
+        }
       },
 
       _unlockScrollInteractions: function() {
-        document.removeEventListener('wheel', this._boundScrollHandler, true);
-        document.removeEventListener('mousewheel', this._boundScrollHandler, true);
-        document.removeEventListener('DOMMouseScroll', this._boundScrollHandler, true);
-        document.removeEventListener('touchstart', this._boundScrollHandler, true);
-        document.removeEventListener('touchmove', this._boundScrollHandler, true);
+        for (var i = 0, l = scrollEvents.length; i < l; i++) {
+          // NOTE: browsers that don't support objects as third arg will
+          // interpret it as boolean, hence useCapture = true in this case.
+          document.removeEventListener(scrollEvents[i], this._boundScrollHandler, {
+            capture: true,
+            passive: false
+          });
+        }
       },
 
       /**

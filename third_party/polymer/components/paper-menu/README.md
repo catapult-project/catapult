@@ -12,9 +12,9 @@ thing! https://github.com/PolymerLabs/tedium/issues
 
 -->
 
-[![Build Status](https://travis-ci.org/PolymerElements/paper-menu.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-menu)
+[![Build status](https://travis-ci.org/PolymerElements/paper-menu.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-menu)
 
-_[Demo and API Docs](https://elements.polymer-project.org/elements/paper-menu)_
+_[Demo and API docs](https://elements.polymer-project.org/elements/paper-menu)_
 
 
 ##&lt;paper-menu&gt;

@@ -17,8 +17,8 @@
 
 <!-- Example
 1. Put a `paper-foo` element in the page.
-2. Open the page in a web browser.
-3. Click the `paper-foo` element.
+* Open the page in a web browser.
+* Click the `paper-foo` element.
 -->
 
 ### Browsers Affected

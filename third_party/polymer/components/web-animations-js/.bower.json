@@ -16,7 +16,6 @@
     "node_modules",
     "templates",
     "test",
-    "src",
     "Gruntfile.js",
     "package.json",
     "target-config.js",
@@ -28,12 +27,12 @@
     "web-animations-next-lite.dev.html",
     "web-animations-next-lite.dev.js"
   ],
-  "version": "2.2.2",
-  "_release": "2.2.2",
+  "version": "2.3.1",
+  "_release": "2.3.1",
   "_resolution": {
     "type": "version",
-    "tag": "2.2.2",
-    "commit": "8cf9e3567c8a30e905e6a2aefb2ebf4120da6859"
+    "tag": "2.3.1",
+    "commit": "a2dddad1c210c8abe5bc1c5a5e126e9946d44252"
   },
   "_source": "https://github.com/web-animations/web-animations-js.git",
   "_target": "^2.2.0",

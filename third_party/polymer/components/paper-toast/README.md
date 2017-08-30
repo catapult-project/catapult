@@ -19,7 +19,7 @@ _[Demo and API docs](https://elements.polymer-project.org/elements/paper-toast)_
 
 ##&lt;paper-toast&gt;
 
-Material design: [Snackbards & toasts](https://www.google.com/design/spec/components/snackbars-toasts.html)
+Material design: [Snackbars & toasts](https://www.google.com/design/spec/components/snackbars-toasts.html)
 
 `paper-toast` provides a subtle notification toast. Only one `paper-toast` will
 be visible on screen.

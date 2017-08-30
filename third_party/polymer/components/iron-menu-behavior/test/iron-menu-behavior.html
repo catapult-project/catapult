@@ -544,31 +544,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('A disabled menu will not have a tab index.', function() {
           var menu = fixture('countries');
-          assert.equal(menu.tabIndex, 0);
+          assert.equal(menu.getAttribute('tabindex'), '0');
           menu.disabled = true;
-          assert.equal(menu.tabIndex, -1);
+          assert.equal(menu.getAttribute('tabindex'), null);
           menu.disabled = false;
-          assert.equal(menu.tabIndex, 0);
+          assert.equal(menu.getAttribute('tabindex'), '0');
         });
 
         test('Updated tab index of disabled element should remain.', function() {
           var menu = fixture('countries');
-          assert.equal(menu.tabIndex, 0);
+          assert.equal(menu.getAttribute('tabindex'), '0');
           menu.disabled = true;
-          assert.equal(menu.tabIndex, -1);
+          assert.equal(menu.getAttribute('tabindex'), null);
           menu.setAttribute('tabindex', 15);
-          assert.equal(menu.tabIndex, 15);
+          assert.equal(menu.getAttribute('tabindex'), '15');
           menu.disabled = false;
-          assert.equal(menu.tabIndex, 15);
+          assert.equal(menu.getAttribute('tabindex'), '15');
         });
 
         test('A disabled menu will regain its non-zero tab index when re-enabled.', function() {
           var menu = fixture('nonzero-tabindex');
-          assert.equal(menu.tabIndex, 32);
+          assert.equal(menu.getAttribute('tabindex'), '32');
           menu.disabled = true;
-          assert.equal(menu.tabIndex, -1);
+          assert.equal(menu.getAttribute('tabindex'), null);
           menu.disabled = false;
-          assert.equal(menu.tabIndex, 32);
+          assert.equal(menu.getAttribute('tabindex'), '32');
         });
 
         test('`tabIndex` properties of all items are updated when items change', function(done) {

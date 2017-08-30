@@ -1,6 +1,6 @@
 {
   "name": "paper-toast",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "A material design notification toast",
   "private": true,
   "license": "http://polymer.github.io/LICENSE.txt",
@@ -33,13 +33,13 @@
   },
   "ignore": [],
   "homepage": "https://github.com/PolymerElements/paper-toast",
-  "_release": "1.3.0",
+  "_release": "1.3.1",
   "_resolution": {
     "type": "version",
-    "tag": "v1.3.0",
-    "commit": "f20ce41a3b4a81a9d277d1ed33f1621cf3e42ec0"
+    "tag": "v1.3.1",
+    "commit": "832ba27b6446711bc703717afdae2ac6485568ef"
   },
-  "_source": "git://github.com/PolymerElements/paper-toast.git",
+  "_source": "https://github.com/PolymerElements/paper-toast.git",
   "_target": "^1.0.0",
   "_originalSource": "PolymerElements/paper-toast"
 }

@@ -1,6 +1,6 @@
 {
   "name": "iron-dropdown",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "An unstyled element that works similarly to a native browser select",
   "authors": [
     "The Polymer Authors"

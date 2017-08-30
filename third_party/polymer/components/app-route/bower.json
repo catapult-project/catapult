@@ -1,6 +1,6 @@
 {
   "name": "app-route",
-  "version": "0.9.3",
+  "version": "1.0.1",
   "authors": [
     "The Polymer Authors"
   ],
@@ -29,7 +29,7 @@
     "paper-spinner": "PolymerElements/paper-spinner#^1.1.1"
   },
   "dependencies": {
-    "polymer": "polymer/polymer#^1.3.1",
-    "iron-location": "polymerelements/iron-location#^0.8.1"
+    "polymer": "Polymer/polymer#^1.3.1",
+    "iron-location": "PolymerElements/iron-location#^0.8.1"
   }
 }

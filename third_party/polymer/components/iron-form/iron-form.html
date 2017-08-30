@@ -234,7 +234,7 @@ event and do your own custom submission:
       // this up if I tried) so we need to get the correct attributes, not the
       // elements with those names.
       this.request.url = this.getAttribute('action');
-      this.request.method = this.getAttribute('method');
+      this.request.method = this.getAttribute('method') || 'GET';
       this.request.contentType = this.contentType;
       this.request.withCredentials = this.withCredentials;
       this.request.headers = this.headers;
@@ -292,7 +292,7 @@ event and do your own custom submission:
       function addSerializedElement(name, value) {
         // If the name doesn't exist, add it. Otherwise, serialize it to
         // an array,
-        if (!json[name]) {
+        if (json[name] === undefined) {
           json[name] = value;
         } else {
           if (!Array.isArray(json[name])) {

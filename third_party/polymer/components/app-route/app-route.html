@@ -100,7 +100,7 @@ the `app-route` will update `route.path`. This in-turn will update the
         },
 
         /**
-         * The pattern of slash-separated segments to match `path` against.
+         * The pattern of slash-separated segments to match `route.path` against.
          *
          * For example the pattern "/foo" will match "/foo" or "/foo/bar"
          * but not "/foobar".
@@ -133,7 +133,7 @@ the `app-route` will update `route.path`. This in-turn will update the
         },
 
         /**
-         * The part of `path` NOT consumed by `pattern`.
+         * The part of `route.path` NOT consumed by `pattern`.
          */
         tail: {
           type: Object,
@@ -141,6 +141,10 @@ the `app-route` will update `route.path`. This in-turn will update the
           notify: true
         },
 
+        /**
+         * Whether the current route is active. True if `route.path` matches the 
+         * `pattern`, false otherwise.
+         */
         active: {
           type: Boolean,
           notify: true,
