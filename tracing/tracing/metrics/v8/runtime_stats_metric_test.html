@@ -397,6 +397,19 @@ tr.b.unittest.testSuite(function() {
           }
         }
       }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 350,
+        duration: 400,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [30, 150],
+            Blink_Style_UpdateStyle: [20, 100],
+          }
+        }
+      }));
 
       // Add V8 Thread slices corresponding to Response UE
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -416,6 +429,19 @@ tr.b.unittest.testSuite(function() {
             FunctionCallback: [7, 77],
             AllocateInTargetSpace: [8, 88],
             API_Object_Get: [9, 99]
+          }
+        }
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 1100,
+        duration: 600,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [10, 300],
+            Blink_Style_UpdateStyle: [15, 200],
           }
         }
       }));
@@ -441,6 +467,19 @@ tr.b.unittest.testSuite(function() {
           }
         }
       }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 2010,
+        duration: 79,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [1, 10],
+            Blink_Style_UpdateStyle: [1, 10],
+          }
+        }
+      }));
 
       // V8 slices in animation UE range.
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -460,6 +499,19 @@ tr.b.unittest.testSuite(function() {
             FunctionCallback: [7, 7],
             AllocateInTargetSpace: [8, 8],
             API_Object_Get: [9, 9]
+          }
+        }
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 2300,
+        duration: 600,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [20, 200],
+            Blink_Style_UpdateStyle: [15, 150],
           }
         }
       }));
@@ -485,11 +537,24 @@ tr.b.unittest.testSuite(function() {
           }
         }
       }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 3100,
+        duration: 300,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [1, 10],
+            Blink_Style_UpdateStyle: [10, 100],
+          }
+        }
+      }));
     });
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 130);
+    assert.strictEqual(histograms.length, 200);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
@@ -497,22 +562,27 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeHistogram_(histograms, 'Total', 225, 1.21);
     checkRuntimeHistogram_(histograms, 'Blink C++', 35, 0.184);
     checkRuntimeHistogram_(histograms, 'V8-Only', 190, 1.026);
+    checkRuntimeHistogram_(histograms, 'Blink_Layout', 62, 0.67);
 
     // Check Load bucket:
     checkRuntimeHistogram_(histograms, 'Load_Parse', 5, 0.014);
     checkRuntimeHistogram_(histograms, 'Load_JavaScript', 1, 0.01);
     checkRuntimeHistogram_(histograms, 'Load_Blink C++', 7, 0.016);
     checkRuntimeHistogram_(histograms, 'Load_V8-Only', 38, 0.11);
+    checkRuntimeHistogram_(histograms, 'Load_Blink_Style', 20, 0.1);
 
     // Check Response bucket:
     checkRuntimeHistogram_(histograms, 'Response_Parse', 10, 0.06);
     checkRuntimeHistogram_(histograms, 'Response_Compile', 6, 0.04);
+    checkRuntimeHistogram_(histograms, 'Response_Blink_Layout', 11, 0.31);
 
     // Check Animation bucket:
     checkRuntimeHistogram_(histograms, 'Animation_Parse', 10, 0.01);
+    checkRuntimeHistogram_(histograms, 'Animation_Blink_Style', 16, 0.16);
 
     // Check Idle bucket:
     checkRuntimeHistogram_(histograms, 'Idle_Parse', 5, 0.055);
+    checkRuntimeHistogram_(histograms, 'Idle_Blink_Parsing', 0, 0);
   });
 
   test('runtimeStatsMetricTotalNoUE', function() {
@@ -560,6 +630,20 @@ tr.b.unittest.testSuite(function() {
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 350,
+        duration: 400,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [5, 100],
+            Blink_Style_UpdateStyle: [2, 50],
+          }
+        }
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
         title: 'V8.Execute',
         type: tr.e.v8.V8ThreadSlice,
         start: 1100,
@@ -578,11 +662,25 @@ tr.b.unittest.testSuite(function() {
           }
         }
       }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'disabled-by-default-v8.runtime_stats',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 1200,
+        duration: 500,
+        args: {
+          'runtime-call-stats': {
+            Blink_Layout_UpdateLayout: [10, 200],
+            Blink_Style_UpdateStyle: [10, 100],
+          }
+        }
+      }));
     });
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 26);
+    assert.strictEqual(histograms.length, 40);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);
@@ -591,6 +689,8 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeHistogram_(histograms, 'Total', 90, 0.621);
     checkRuntimeHistogram_(histograms, 'Blink C++', 14, 0.093);
     checkRuntimeHistogram_(histograms, 'V8-Only', 76, 0.528);
+    checkRuntimeHistogram_(histograms, 'Blink_Layout', 15, 0.3);
+    checkRuntimeHistogram_(histograms, 'Blink_Style', 12, 0.15);
   });
 });
 </script>

@@ -250,6 +250,18 @@ tr.exportTo('tr.metrics.v8', function() {
           overallV8Count -= runtimeGroup.count;
         }
       }
+
+      if (runtimeGroupCollection.blinkRCSGroupCollection.totalTime > 0) {
+        const blinkRCSGroupCollection =
+            runtimeGroupCollection.blinkRCSGroupCollection;
+        for (const group of blinkRCSGroupCollection.runtimeGroups) {
+          addDurationHistogram(name, group.name, group.time,
+              histograms, durationRelatedHistsByGroupName);
+          addCountHistogram(name, group.name, group.count,
+              histograms, countRelatedHistsByGroupName);
+        }
+      }
+
       // Add V8 only time that is Total - Blink C++ duration.
       addDurationHistogram(name, 'V8-Only', overallV8Time, histograms,
           durationRelatedHistsByGroupName);
@@ -278,6 +290,18 @@ tr.exportTo('tr.metrics.v8', function() {
         overallV8Count -= runtimeGroup.count;
       }
     }
+
+    if (runtimeGroupCollection.blinkRCSGroupCollection.totalTime > 0) {
+      const blinkRCSGroupCollection =
+        runtimeGroupCollection.blinkRCSGroupCollection;
+      for (const group of blinkRCSGroupCollection.runtimeGroups) {
+        addTotalDurationHistogram(group.name, group.time,
+            histograms, durationRelatedHistsByGroupName);
+        addTotalCountHistogram(group.name, group.count,
+            histograms, countRelatedHistsByGroupName);
+      }
+    }
+
     // Add V8 only time that is Total - Blink C++ duration.
     addTotalDurationHistogram('V8-Only', overallV8Time, histograms,
         durationRelatedHistsByGroupName);
