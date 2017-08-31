@@ -7,7 +7,7 @@ import json
 from dashboard.pinpoint.models import quest as quest_module
 
 
-_DEFAULT_REPEAT_COUNT = 20
+_DEFAULT_REPEAT_COUNT = 10
 
 _SWARMING_EXTRA_ARGS = (
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',

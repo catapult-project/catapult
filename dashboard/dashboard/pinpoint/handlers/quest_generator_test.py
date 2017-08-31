@@ -9,7 +9,7 @@ from dashboard.pinpoint.models import quest
 
 
 _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
-    'speedometer', '--pageset-repeat', '20', '--browser', 'release',
+    'speedometer', '--pageset-repeat', '10', '--browser', 'release',
     '-v', '--upload-results', '--output-format', 'chartjson',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
@@ -28,7 +28,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
 
 
 _MIN_GTEST_RUN_TEST_ARGUMENTS = [
-    '--gtest_repeat', '20',
+    '--gtest_repeat', '10',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
