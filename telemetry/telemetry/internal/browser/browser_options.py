@@ -498,6 +498,12 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     # Disable GAIA/enterprise services.
     self.disable_gaia_services = True
 
+    # TODO(cywang): crbug.com/760414
+    # Add login delay for ARC container boot time measurement for now.
+    # Should actually simulate username/password typing in the login
+    # screen instead or make the wait time fixed for cros login.
+    self.login_delay = 0
+
     self.auto_login = True
     self.gaia_login = False
     self.username = 'test@test.test'
