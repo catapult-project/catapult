@@ -11,26 +11,28 @@ found in the LICENSE file.
 <dom-module id="dep-info">
   <template>
     <style include="base-style">
-      th {
-        text-align: right;
-        width: 8em;
+      h3 {
+        font-weight: normal;
+        margin-bottom: 0.2em;
+      }
+
+      p {
+        color: #888;
+        margin-top: 0;
+      }
+
+      span::after {
+        content: "•";
+        padding: 0 0.8em;
       }
     </style>
 
     <div>
       <loading-wrapper id="loader">
-        <h3>[[subject]]</h3>
-        <table>
-          <tr>
-            <th>Author
-            <td>[[author]]
-          <tr>
-            <th>Git hash
-            <td>[[gitHash]]
-          <tr>
-            <th>Time
-            <td>[[time]]
-        </table>
+        <h3>
+          <a href="[[dep.url]]" target="_blank">[[subject]]</a>
+        </h3>
+        <p>By <span>[[author]]</span>[[time]]</p>
       </loading-wrapper>
     </div>
   </template>
@@ -48,9 +50,6 @@ found in the LICENSE file.
       },
 
       async _depChanged() {
-        this.gitHash =
-          this.dep.repository + '@' + this.dep.git_hash.slice(0, 16);
-
         const params = {
           repository: this.dep.repository,
           git_hash_1: this.dep.git_hash
