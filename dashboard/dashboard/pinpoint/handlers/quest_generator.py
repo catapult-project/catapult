@@ -134,16 +134,20 @@ def _GTestRunTest(request):
 def _ReadChartJsonValue(request):
   arguments = {}
 
-  metric = request.get('metric')
-  if not metric:
+  chart = request.get('chart')
+  if not chart:
     return {}, None
-  arguments['metric'] = metric
+  arguments['chart'] = chart
 
-  story = request.get('story')
-  if story:
-    arguments['story'] = story
+  tir_label = request.get('tir_label')
+  if tir_label:
+    arguments['tir_label'] = tir_label
 
-  return arguments, quest_module.ReadChartJsonValue(metric, story)
+  trace = request.get('trace')
+  if trace:
+    arguments['trace'] = trace
+
+  return arguments, quest_module.ReadChartJsonValue(chart, tir_label, trace)
 
 
 def _ReadGraphJsonValue(request):

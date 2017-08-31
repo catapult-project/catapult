@@ -170,13 +170,13 @@ class ReadChartJsonValue(unittest.TestCase):
         'dimensions': '{}',
         'benchmark': 'speedometer',
         'browser': 'release',
-        'metric': 'pcv1-cold@@timeToFirst',
+        'chart': 'timeToFirst',
     }
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
-        quest.ReadChartJsonValue('pcv1-cold@@timeToFirst', None),
+        quest.ReadChartJsonValue('timeToFirst', None, None),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
@@ -190,13 +190,15 @@ class ReadChartJsonValue(unittest.TestCase):
         'browser': 'release',
         'story': 'http://www.fifa.com/',
         'repeat_count': '50',
-        'metric': 'pcv1-cold@@timeTo',
+        'tir_label': 'pcv1-cold',
+        'chart': 'timeToFirst',
+        'trace': 'trace_name',
     }
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({'key': 'value'}, _ALL_TELEMETRY_RUN_TEST_ARGUMENTS),
-        quest.ReadChartJsonValue('pcv1-cold@@timeTo', 'http://www.fifa.com/'),
+        quest.ReadChartJsonValue('timeToFirst', 'pcv1-cold', 'trace_name'),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))

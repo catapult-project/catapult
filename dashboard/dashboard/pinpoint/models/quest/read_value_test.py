@@ -16,13 +16,34 @@ class ReadChartJsonValueTest(unittest.TestCase):
   def testReadChartJsonValue(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'metric': {'test': {
+        json.dumps({'charts': {'tir_label@@chart': {'trace': {
             'type': 'list_of_scalar_values',
             'values': [0, 1, 2],
         }}}}),
     )
 
-    quest = read_value.ReadChartJsonValue('metric', 'test')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
+    execution = quest.Start(('output hash',))
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadChartJsonValueWithNoTirLabel(self, retrieve):
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
+        json.dumps({'charts': {'chart': {'trace': {
+            'type': 'list_of_scalar_values',
+            'values': [0, 1, 2],
+        }}}}),
+    )
+
+    quest = read_value.ReadChartJsonValue('chart', None, 'trace')
     execution = quest.Start(('output hash',))
     execution.Poll()
 
@@ -37,13 +58,13 @@ class ReadChartJsonValueTest(unittest.TestCase):
   def testReadChartJsonValueWithNoTest(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'metric': {'summary': {
+        json.dumps({'charts': {'tir_label@@chart': {'summary': {
             'type': 'list_of_scalar_values',
             'values': [0, 1, 2],
         }}}}),
     )
 
-    quest = read_value.ReadChartJsonValue('metric', None)
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
     execution = quest.Start(('output hash',))
     execution.Poll()
 
@@ -58,7 +79,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
   def testHistogram(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'metric': {'test': {
+        json.dumps({'charts': {'tir_label@@chart': {'trace': {
             'type': 'histogram',
             'buckets': [
                 {'low': 0, 'count': 2},
@@ -67,7 +88,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
         }}}}),
     )
 
-    quest = read_value.ReadChartJsonValue('metric', 'test')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
     execution = quest.Start(('output hash',))
     execution.Poll()
 
@@ -76,7 +97,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
   def testHistogramWithLargeSample(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'metric': {'test': {
+        json.dumps({'charts': {'tir_label@@chart': {'trace': {
             'type': 'histogram',
             'buckets': [
                 {'low': 0, 'count': 20000},
@@ -85,7 +106,7 @@ class ReadChartJsonValueTest(unittest.TestCase):
         }}}}),
     )
 
-    quest = read_value.ReadChartJsonValue('metric', 'test')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
     execution = quest.Start(('output hash',))
     execution.Poll()
 
@@ -94,13 +115,13 @@ class ReadChartJsonValueTest(unittest.TestCase):
   def testScalar(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'metric': {'test': {
+        json.dumps({'charts': {'tir_label@@chart': {'trace': {
             'type': 'scalar',
             'value': 2.5,
         }}}}),
     )
 
-    quest = read_value.ReadChartJsonValue('metric', 'test')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
     execution = quest.Start(('output hash',))
     execution.Poll()
 
