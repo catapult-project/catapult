@@ -149,11 +149,11 @@ class AndroidActionRunner(object):
       Timeout: If the screen is on and device fails to turn screen off.
     """
 
-    def is_screen_off():
+    def IsScreenOff():
       return not self._platform_backend.device.IsScreenOn()
 
     self._platform_backend.device.SetScreen(False)
-    py_utils.WaitFor(is_screen_off, 5)
+    py_utils.WaitFor(IsScreenOff, 5)
 
   def UnlockScreen(self):
     """If device screen is locked, unlocks it.
@@ -163,7 +163,7 @@ class AndroidActionRunner(object):
       Timeout: If device fails to unlock screen.
     """
 
-    def is_screen_unlocked():
+    def IsScreenUnlocked():
       return not self._platform_backend.IsScreenLocked()
 
     if self._platform_backend.IsScreenLocked():
@@ -172,4 +172,4 @@ class AndroidActionRunner(object):
       logging.warning('Screen not locked when expected.')
       return
 
-    py_utils.WaitFor(is_screen_unlocked, 5)
+    py_utils.WaitFor(IsScreenUnlocked, 5)

@@ -12,8 +12,8 @@ from telemetry import decorators
 import py_utils as catapult_util  # pylint: disable=import-error
 
 
-IsRunningOnCrosDevice = (
-    catapult_util.IsRunningOnCrosDevice) # pylint: disable=invalid-name
+IsRunningOnCrosDevice = ( # pylint: disable=invalid-name
+    catapult_util.IsRunningOnCrosDevice)
 GetCatapultDir = catapult_util.GetCatapultDir # pylint: disable=invalid-name
 
 

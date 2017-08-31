@@ -302,7 +302,7 @@ class BenchmarkTest(unittest.TestCase):
     b = TestBenchmark(story_module.Story(
         name='test name',
         shared_state_class=shared_page_state.SharedPageState))
-    b.SUPPORTED_PLATFORMS = []
+    b.SUPPORTED_PLATFORMS = [] # pylint: disable=invalid-name
     # We can pass None for both arguments because we select no platforms as
     # supported, which always returns false.
     self.assertFalse(b._CanRunOnPlatform(None, None))
