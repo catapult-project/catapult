@@ -201,6 +201,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     args.append('--enable-remote-debugging')
     args.append('--disable-fre')
     args.append('--disable-external-intent-requests')
+    # Specifies the user profile directory, a prerequisite for
+    # --ignore-certificate-errors-spki-list, which allows Chrome to selectively
+    # bypass cert errors while exercising HTTP disk cache and avoiding
+    # re-establishing socket connections.
+    args.append('--user-data-dir=' +
+                self.platform_backend.GetProfileDir(
+                    self._backend_settings.package))
     return args
 
   def ForceJavaHeapGarbageCollection(self):

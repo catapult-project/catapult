@@ -615,7 +615,7 @@ class AndroidPlatformBackend(
     saved_profile_location = '/sdcard/profile/%s' % profile_base
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)])
 
-    profile_dir = self._GetProfileDir(package)
+    profile_dir = self.GetProfileDir(package)
     self._EfficientDeviceDirectoryCopy(
         saved_profile_location, profile_dir)
     dumpsys = self._device.RunShellCommand(
@@ -652,7 +652,7 @@ class AndroidPlatformBackend(
         profile is to be deleted.
       ignore_list: List of files to keep.
     """
-    profile_dir = self._GetProfileDir(package)
+    profile_dir = self.GetProfileDir(package)
     if not self._device.PathExists(profile_dir):
       return
     files = [
@@ -671,7 +671,7 @@ class AndroidPlatformBackend(
         profile is to be copied.
       output_profile_dir: Location where profile to be stored on host machine.
     """
-    profile_dir = self._GetProfileDir(package)
+    profile_dir = self.GetProfileDir(package)
     logging.info("Pulling profile directory from device: '%s'->'%s'.",
                  profile_dir, output_profile_path)
     # To minimize bandwidth it might be good to look at whether all the data
@@ -697,7 +697,7 @@ class AndroidPlatformBackend(
       for filepath in problem_files:
         logging.warning('- %s', filepath)
 
-  def _GetProfileDir(self, package):
+  def GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored
     based on Android convention.
 
