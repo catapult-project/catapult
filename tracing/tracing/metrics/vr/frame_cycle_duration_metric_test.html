@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/vr/frame_cycle_duration_metric.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  const TOLERANCE = 1e-6;
+
+  function createSubSlices(durations, currentTime, sliceGroup) {
+    if (durations === undefined) {
+      return [];
+    }
+    const slices = [];
+    for (const duration of durations) {
+      const option = {
+        cat: 'gpu',
+        title: duration.title,
+        start: currentTime,
+        end: currentTime + duration.wall,
+        cpuStart: currentTime,
+        cpuEnd: currentTime + duration.cpu,
+      };
+      const slice = tr.c.TestUtils.newSliceEx(option);
+      currentTime += Math.max(duration.wall, duration.cpu) + 1;
+      slice.subSlices = createSubSlices(duration.sub, currentTime, sliceGroup);
+      sliceGroup.pushSlice(slice);
+      slices.push(slice);
+    }
+    return slices;
+  }
+
+  test('frameCycleDurationMetric', function() {
+    const durations = [
+      {
+        title: 'VrShellGl::DrawFrame',
+        wall: 25,
+        cpu: 12,
+        sub: [
+          {title: 'VrShellGl::AcquireFrame', wall: 2, cpu: 2},
+          {title: 'VrShellGl::AcquireFrame', wall: 2.5, cpu: 1.5},
+          {title: 'VrShellGl::UpdateController', wall: 1, cpu: 0.5},
+          {title: 'VrShellGl::UpdateController', wall: 0.5, cpu: 0.4},
+          {
+            title: 'VrShellGl::DrawWorldElements',
+            wall: 5,
+            cpu: 3,
+            sub: [
+              {title: 'VrShellGl::DrawUiView', wall: 1.5, cpu: 1},
+              {title: 'VrShellGl::DrawUiView', wall: 2, cpu: 1.5},
+            ]
+          },
+          {title: 'VrShellGl::DrawWorldElements', wall: 6, cpu: 3},
+          {title: 'VrShellGl::DrawFrameSubmitWhenReady', wall: 3, cpu: 0.5},
+          {
+            title: 'VrShellGl::DrawFrameSubmitWhenReady',
+            wall: 3.5,
+            cpu: 0.5
+          },
+        ]
+      },
+      {title: 'VrShellGl::DrawFrame', wall: 20, cpu: 10},
+    ];
+    const histograms = new tr.v.HistogramSet();
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const browserProcess = model.getOrCreateProcess(0);
+      const browserMainThread = browserProcess.getOrCreateThread(0);
+      browserMainThread.name = 'CrBrowserMain';
+      const browserGlThread = browserProcess.getOrCreateThread(1);
+      const group = browserGlThread.sliceGroup;
+      createSubSlices(durations, 0, group);
+      group.createSubSlices();
+    });
+
+    tr.metrics.vr.frameCycleDurationMetric(histograms, model);
+
+    assert.closeTo(histograms.getHistogramNamed('draw_frame_wall').average,
+        22.5, TOLERANCE);
+    assert.closeTo(histograms.getHistogramNamed('draw_frame_cpu').average,
+        11, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('acquire_frame_wall').average,
+        2.25, TOLERANCE);
+    assert.closeTo(histograms.getHistogramNamed('acquire_frame_cpu').average,
+        1.75, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('update_controller_wall').average,
+        0.75, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('update_controller_cpu').average,
+        0.45, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_world_elements_wall').average,
+        5.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_world_elements_cpu').average,
+        3, TOLERANCE);
+
+    assert.closeTo(histograms.getHistogramNamed('submit_frame_wall').average,
+        3.25, TOLERANCE);
+    assert.closeTo(histograms.getHistogramNamed('submit_frame_cpu').average,
+        0.5, TOLERANCE);
+
+    assert.closeTo(histograms.getHistogramNamed('draw_ui_wall').average,
+        1.75, TOLERANCE);
+    assert.closeTo(histograms.getHistogramNamed('draw_ui_cpu').average,
+        1.25, TOLERANCE);
+  });
+});
+</script>

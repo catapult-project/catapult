@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.vr', function() {
+  function createHistograms(histograms, name, options) {
+    return {
+      wall: histograms.createHistogram(name + '_wall',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], options),
+      cpu: histograms.createHistogram(name + '_cpu',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], options),
+    };
+  }
+
+  function frameCycleDurationMetric(histograms, model) {
+    const histogramsByEventTitle = new Map();
+    histogramsByEventTitle.set('VrShellGl::DrawFrame',
+        createHistograms(histograms, 'draw_frame',
+          {description: 'Duration to render one frame'}));
+    histogramsByEventTitle.set('VrShellGl::AcquireFrame',
+        createHistograms(histograms, 'acquire_frame',
+          {description: 'Duration acquire a frame from GVR'}));
+    histogramsByEventTitle.set('VrShellGl::UpdateController',
+        createHistograms(histograms, 'update_controller',
+          {description: 'Duration to query input from the controller'}));
+    histogramsByEventTitle.set('VrShellGl::DrawWorldElements',
+        createHistograms(histograms, 'draw_world_elements',
+          {description: 'Duration to draw world UI elements'}));
+    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitWhenReady',
+        createHistograms(histograms, 'submit_frame',
+          {description: 'Duration to submit a frame to GVR'}));
+    histogramsByEventTitle.set('VrShellGl::DrawUiView',
+        createHistograms(histograms, 'draw_ui',
+          {description: 'Duration to draw the UI'}));
+
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+
+    for (const helper of chromeHelper.browserHelpers) {
+      // The events are traced on the GL thread in the browser process.
+      // Unfortunately, this thread has no name.
+      // TODO(tiborg): Give GL thread a name and reference the thread by
+      // the given name.
+      const glThreads = helper.process.findAllThreadsMatching(
+          thread => !thread.name);
+
+      for (const glThread of glThreads) {
+        for (const event of glThread.getDescendantEvents()) {
+          if (!(histogramsByEventTitle.has(event.title))) {
+            continue;
+          }
+
+          const {wall: wallHist, cpu: cpuHist} =
+            histogramsByEventTitle.get(event.title);
+          wallHist.addSample(event.duration);
+          cpuHist.addSample(event.cpuDuration);
+        }
+      }
+    }
+  }
+
+  tr.metrics.MetricRegistry.register(frameCycleDurationMetric);
+
+  return {
+    frameCycleDurationMetric,
+  };
+});
+</script>

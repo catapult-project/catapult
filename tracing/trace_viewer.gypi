@@ -218,6 +218,7 @@
       'tracing/metrics/v8/runtime_stats_metric.html',
       'tracing/metrics/v8/utils.html',
       'tracing/metrics/v8/v8_metrics.html',
+      'tracing/metrics/vr/frame_cycle_duration_metric.html',
       'tracing/metrics/vr/webvr_metric.html',
       'tracing/metrics/webrtc/webrtc_rendering_metric.html',
       'tracing/model/activity.html',
