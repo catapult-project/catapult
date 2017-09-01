@@ -64,16 +64,24 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendUsedMemoryTrack_() {
-      const series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(
-          this.memoryDumps_);
-      if (!series) return;
+      const tracks = [];
+      const perProcessSeries =
+          tr.ui.tracks.buildGlobalUsedMemoryChartSeries(this.memoryDumps_);
+      if (perProcessSeries !== undefined) {
+        tracks.push({name: 'Memory per process', series: perProcessSeries});
+      } else {
+        tracks.push.apply(tracks, tr.ui.tracks.buildSystemMemoryChartSeries(
+            this.memoryDumps_[0].model));
+      }
 
-      const track = new tr.ui.tracks.ChartTrack(this.viewport);
-      track.heading = 'Memory per process';
-      track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
-      track.series = series;
-      track.autoSetAllAxes({expandMax: true});
-      Polymer.dom(this).appendChild(track);
+      for (const {name, series} of tracks) {
+        const track = new tr.ui.tracks.ChartTrack(this.viewport);
+        track.heading = name;
+        track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
+        track.series = series;
+        track.autoSetAllAxes({expandMax: true});
+        Polymer.dom(this).appendChild(track);
+      }
     },
 
     appendAllocatedMemoryTrack_() {

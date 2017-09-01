@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
@@ -26,6 +27,13 @@ tr.exportTo('tr.ui.tracks', function() {
   const BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
   const LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   const DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+
+  const SYSTEM_MEMORY_CHART_RENDERING_CONFIG = {
+    chartType: tr.ui.tracks.ChartSeriesType.AREA,
+    colorId: ColorScheme.getColorIdForGeneralPurposeString('systemMemory'),
+    backgroundOpacity: 0.8
+  };
+  const SYSTEM_MEMORY_SERIES_NAMES = ['Used (KB)', 'Swapped (KB)'];
 
   /** Extract PSS values of processes in a global memory dump. */
   function extractGlobalMemoryDumpUsedSizes(globalMemoryDump, addSize) {
@@ -199,11 +207,47 @@ tr.exportTo('tr.ui.tracks', function() {
         extractGlobalMemoryDumpAllocatorSizes);
   }
 
+  /**
+   * Converts system memory counters in the model to a list of
+   * {'name': trackName, 'series': ChartSeries}.
+   */
+  function buildSystemMemoryChartSeries(model) {
+    if (model.kernel.counters === undefined) return;
+    const memoryCounter = model.kernel.counters['global.SystemMemory'];
+    if (memoryCounter === undefined) return;
+
+    const tracks = [];
+    for (const name of SYSTEM_MEMORY_SERIES_NAMES) {
+      const series = memoryCounter.series.find(series => series.name === name);
+      if (series === undefined || series.samples.length === 0) return;
+
+      const chartPoints = [];
+      const valueRange = new tr.b.math.Range();
+      for (const sample of series.samples) {
+        chartPoints.push(new tr.ui.tracks.ChartPoint(
+                         sample, sample.timestamp, sample.value, 0));
+        valueRange.addValue(sample.value);
+      }
+      // Stretch min to max range over the top half of a chart for readability.
+      const baseLine = Math.max(0, valueRange.min - valueRange.range);
+      const axisY = new tr.ui.tracks.ChartSeriesYAxis(baseLine, valueRange.max);
+      const chartSeries =
+          [new tr.ui.tracks.ChartSeries(chartPoints, axisY,
+                                        SYSTEM_MEMORY_CHART_RENDERING_CONFIG)];
+      tracks.push({
+        name: 'System Memory ' + name,
+        series: chartSeries
+      });
+    }
+    return tracks;
+  }
+
   return {
     buildMemoryLetterDots,
     buildGlobalUsedMemoryChartSeries,
     buildProcessAllocatedMemoryChartSeries,
     buildGlobalAllocatedMemoryChartSeries,
+    buildSystemMemoryChartSeries,
   };
 });
 </script>

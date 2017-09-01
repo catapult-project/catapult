@@ -152,11 +152,36 @@ tr.exportTo('tr.e.importer.android.atrace_process_dump', function() {
       }
 
       // Memory dumps.
+      const memCounter =
+          this.model_.kernel.getOrCreateCounter('global', 'SystemMemory');
+      const memUsedSeries = new tr.model.CounterSeries('Used (KB)', 0);
+      const memSwappedSeries = new tr.model.CounterSeries('Swapped (KB)', 0);
+      memCounter.addSeries(memUsedSeries);
+      memCounter.addSeries(memSwappedSeries);
+
       for (const snapshot of this.snapshots_) {
         const ts = parseInt(snapshot.ts);
         const memoryDump = snapshot.memdump;
+
         if (memoryDump === undefined) {
-          // TODO(kraynov): Import /proc/meminfo snapshots.
+          const memInfo = snapshot.meminfo;
+          if (memInfo === undefined) {
+            continue;
+          }
+
+          // See Android com.android.server.am.ActivityManagerService class
+          // for calculation formula in 'dumpsys meminfo'.
+          //
+          // The formula below excludes Cached PSS because it's too expensive
+          // to calculate and it's not volatile during short systrace run.
+          // Cached PSS is a total PSS of apps being primary targets for
+          // OOM killer and treated by 'dumpsys meminfo' as a free memory.
+          const memCaches = memInfo.Buffers + memInfo.Cached - memInfo.Mapped;
+          const memUsed = memInfo.MemTotal - memInfo.MemFree - memCaches;
+          const memSwapped = memInfo.SwapTotal - memInfo.SwapFree;
+
+          memUsedSeries.addCounterSample(ts, memUsed);
+          memSwappedSeries.addCounterSample(ts, memSwapped);
           continue;
         }
 
