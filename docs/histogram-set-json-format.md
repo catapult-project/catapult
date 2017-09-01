@@ -121,11 +121,12 @@ DiagnosticMap is a dictionary mapping strings to Diagnostic dictionaries.
 ## Diagnostics
 
 The only field that is required for all Diagnostics, `type`, must be one of
+ * `Breakdown`
+ * `DateRange`
  * `GenericSet`
  * `RelatedEventSet`
- * `Breakdown`
- * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
+ * `RelatedHistogramMap`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared, so it may be
@@ -137,18 +138,6 @@ field.
 
 The other fields of Diagnostic dictionaries depend on `type`.
 
-### GenericSet
-
-This allows metrics to store arbitrary untyped data in Histograms.
-
- * `values`: array of any JSON data.
-
-### Scalar
-
-Metrics should not use Scalar diagnostics since they cannot be safely merged.
-
- * `value`: a dictionary containing a string `unit` and a number `value`
-
 ### Breakdown
 
 This allows metrics to explain the magnitude of a sample as composed of various
@@ -156,6 +145,27 @@ categories.
 
  * `values`: required dictionary mapping from a string category name to number values
  * `colorScheme`: optional string specifying how the bar chart should be colored
+
+### DateRange
+
+This is a Range of Dates.
+
+ * `min`: Unix timestamp in ms
+ * `max`: optional Unix timestamp in ms
+
+### GenericSet
+
+This allows metrics to store arbitrary untyped data in Histograms.
+
+ * `values`: array of any JSON data.
+
+### RelatedEventSet
+
+This allows metrics to explain the magnitude of a sample as a parameter of a
+specific event or set of events in a trace.
+
+ * `events`: array of dictionaries containing `stableId`, `title`, `start`,
+   `duration` fields of Events
 
 ### RelatedHistogramMap
 
@@ -174,17 +184,8 @@ collectively as composed of various categories.
  * `values`: dictionary mapping from custom string name to the related
    Histogram's string guid
 
-### RelatedEventSet
+### Scalar
 
-This allows metrics to explain the magnitude of a sample as a parameter of a
-specific event or set of events in a trace.
+Metrics should not use Scalar diagnostics since they cannot be safely merged.
 
- * `events`: array of dictionaries containing `stableId`, `title`, `start`,
-   `duration` fields of Events
-
-### DateRange
-
-This is a Range of Dates.
-
- * `min`: Unix timestamp in ms
- * `max`: optional Unix timestamp in ms
+ * `value`: a dictionary containing a string `unit` and a number `value`
