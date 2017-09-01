@@ -14,7 +14,6 @@ from telemetry.timeline import tracing_config
 from telemetry.value import trace
 from telemetry.value import common_value_helpers
 from telemetry.web_perf.metrics import timeline_based_metric
-from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf.metrics import indexeddb_timeline
 from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import smoothness
@@ -43,7 +42,6 @@ def _GetAllLegacyTimelineBasedMetrics():
   # This cannot be done until crbug.com/460208 is fixed.
   return (smoothness.SmoothnessMetric(),
           layout.LayoutMetric(),
-          blob_timeline.BlobTimelineMetric(),
           indexeddb_timeline.IndexedDBTimelineMetric())
 
 
