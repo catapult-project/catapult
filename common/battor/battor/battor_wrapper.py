@@ -244,8 +244,7 @@ class BattOrWrapper(object):
     self._trace_results_path = temp_file.name
     temp_file.close()
     self._SendBattOrCommand(
-        '%s %s' % (self._STOP_TRACING_CMD, self._trace_results_path),
-        check_return=False)
+        '%s %s' % (self._STOP_TRACING_CMD, self._trace_results_path))
     self._tracing = False
     self._stop_tracing_time = int(time.time())
 
