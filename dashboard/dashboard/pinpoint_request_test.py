@@ -12,6 +12,7 @@ from dashboard import pinpoint_request
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import graph_data
 from dashboard.services import pinpoint_service
 
 
@@ -103,7 +104,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('mac', results['configuration'])
     self.assertEqual('release', results['browser'])
     self.assertEqual('cc_perftests', results['benchmark'])
-    self.assertEqual('foo', results['metric'])
+    self.assertEqual('foo', results['chart'])
     self.assertEqual('cc_perftests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])
@@ -132,7 +133,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('mac', results['configuration'])
     self.assertEqual('release', results['browser'])
     self.assertEqual('system_health', results['benchmark'])
-    self.assertEqual('foo', results['metric'])
+    self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])
@@ -161,7 +162,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('android-webview-nexus5x', results['configuration'])
     self.assertEqual('webview', results['browser'])
     self.assertEqual('system_health', results['benchmark'])
-    self.assertEqual('foo', results['metric'])
+    self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['email'])
     self.assertEqual('chromium', results['start_repository'])
@@ -173,6 +174,69 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual(
         [{'key': 'foo', 'value': 'android_dimensions'}],
         json.loads(results['dimensions']))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.start_try_job, 'GuessStoryFilter')
+  def testPinpointParams_Metric_TopLevelOnly(self, mock_story_filter):
+    params = {
+        'test_path': 'ChromiumPerf/mac/blink_perf/foo',
+        'start_git_hash': 'abcd1234',
+        'end_git_hash': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'bug_id': 1
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('', results['tir_label'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('', results['trace'])
+    mock_story_filter.assert_called_once_with(params['test_path'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.start_try_job, 'GuessStoryFilter')
+  def testPinpointParams_Metric_ChartAndTrace(self, mock_story_filter):
+    params = {
+        'test_path': 'ChromiumPerf/mac/blink_perf/foo/http___bar.html',
+        'start_git_hash': 'abcd1234',
+        'end_git_hash': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'bug_id': 1
+    }
+    graph_data.TestMetadata(
+        id=params['test_path'], unescaped_story_name='http://bar.html').put()
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('', results['tir_label'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('http://bar.html', results['trace'])
+    mock_story_filter.assert_called_once_with(params['test_path'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.start_try_job, 'GuessStoryFilter')
+  def testPinpointParams_Metric_TIRLabelChartAndTrace(self, mock_story_filter):
+    params = {
+        'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
+        'start_git_hash': 'abcd1234',
+        'end_git_hash': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'bug_id': 1
+    }
+    graph_data.TestMetadata(id=params['test_path'],).put()
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('label', results['tir_label'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('bar.html', results['trace'])
+    mock_story_filter.assert_called_once_with(params['test_path'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))

@@ -47,7 +47,6 @@ found in the LICENSE file.
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
         <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
-        <paper-input id="test" label="test" value="{{test::input}}"></paper-input>
         <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_git_hash" label="end_git_hash" value="{{end_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-radio-group id="bisect-mode" selected="performance">
@@ -81,10 +80,6 @@ found in the LICENSE file.
           type: Number,
         },
         test_path: {
-          type: String,
-          value: '',
-        },
-        test: {
           type: String,
           value: '',
         },
@@ -131,7 +126,6 @@ found in the LICENSE file.
       async onCreateJob(e) {
         const params = {
           test_path: this.test_path,
-          test: this.test,
           start_git_hash: this.start_git_hash,
           end_git_hash: this.end_git_hash,
           start_repository: this.start_repository,

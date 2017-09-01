@@ -91,7 +91,6 @@ tr.b.unittest.testSuite(function() {
 
     page.bug_id = 123;
     page.test_path = 'master/bot/suite/foo';
-    page.test = 'Test';
     page.start_git_hash = '1234567890';
     page.end_git_hash = '0987654321';
     page.start_repository = 'chromium';
@@ -111,7 +110,6 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(params.bug_id, 123);
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
-    assert.strictEqual(params.test, 'Test');
     assert.strictEqual(params.start_git_hash, '1234567890');
     assert.strictEqual(params.end_git_hash, '0987654321');
     assert.strictEqual(params.start_repository, 'chromium');

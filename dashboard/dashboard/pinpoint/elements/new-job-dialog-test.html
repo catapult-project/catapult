@@ -92,8 +92,9 @@ tr.b.unittest.testSuite(function() {
     page.bugId = 123;
     page.configuration = 'Test Config';
     page.benchmark = 'Test Suite';
-    page.test = 'Test';
-    page.metric = 'metric';
+    page.tir_label = 'tir_label';
+    page.trace = 'trace';
+    page.chart = 'chart';
     page.target = 'telemetry_perf_tests';
     page.browser = 'release';
     page.auto_explore = true;
@@ -117,8 +118,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.bug_id, 123);
     assert.strictEqual(params.configuration, 'Test Config');
     assert.strictEqual(params.benchmark, 'Test Suite');
-    assert.strictEqual(params.test, 'Test');
-    assert.strictEqual(params.metric, 'metric');
+    assert.strictEqual(params.tir_label, 'tir_label');
+    assert.strictEqual(params.trace, 'trace');
+    assert.strictEqual(params.chart, 'chart');
     assert.strictEqual(params.target, 'telemetry_perf_tests');
     assert.strictEqual(params.browser, 'release');
     assert.strictEqual(params.auto_explore, '1');

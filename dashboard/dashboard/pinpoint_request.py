@@ -7,6 +7,7 @@
 import json
 
 from google.appengine.api import users
+from google.appengine.ext import ndb
 
 from dashboard import start_try_job
 from dashboard.common import namespaced_stored_object
@@ -34,6 +35,34 @@ class PinpointNewRequestHandler(request_handler.RequestHandler):
       return
 
     self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
+
+
+def ParseMetricParts(test_path_parts):
+  metric_parts = test_path_parts[3:]
+
+  # Normal test path structure, ie. M/B/S/foo/bar.html
+  if len(metric_parts) == 2:
+    return '', metric_parts[0], metric_parts[1]
+
+  # 3 part structure, so there's a TIR label in there.
+  # ie. M/B/S/timeToFirstMeaningfulPaint_avg/load_tools/load_tools_weather
+  if len(metric_parts) == 3:
+    return metric_parts[1], metric_parts[0], metric_parts[2]
+
+  # Should be something like M/B/S/EventsDispatching where the trace_name is
+  # left empty and implied to be summary.
+  assert len(metric_parts) == 1
+  return '', metric_parts[0], ''
+
+
+def ParseTIRLabelChartNameAndTraceName(test_path_parts):
+  """Returns tir_label, chart_name, trace_name from a test path."""
+  test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
+
+  tir_label, chart_name, trace_name = ParseMetricParts(test_path_parts)
+  if trace_name and test.unescaped_story_name:
+    trace_name = test.unescaped_story_name
+  return tir_label, chart_name, trace_name
 
 
 def PinpointParamsFromBisectParams(params):
@@ -66,7 +95,9 @@ def PinpointParamsFromBisectParams(params):
   test_path_parts = test_path.split('/')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
-  metric = test_path_parts[-1]
+
+  tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
+      test_path_parts)
 
   dimensions = bots_to_dimensions.get(bot_name)
   if not dimensions:
@@ -106,7 +137,7 @@ def PinpointParamsFromBisectParams(params):
     raise InvalidParamsError('Only chromium bisects supported currently.')
 
   email = users.get_current_user().email()
-  job_name = 'Job on [%s/%s/%s] for [%s]' % (bot_name, suite, metric, email)
+  job_name = 'Job on [%s/%s/%s] for [%s]' % (bot_name, suite, chart_name, email)
 
   browser = start_try_job.GuessBrowserName(bot_name)
 
@@ -114,8 +145,10 @@ def PinpointParamsFromBisectParams(params):
       'configuration': bot_name,
       'browser': browser,
       'benchmark': suite,
-      'test': params.get('test'),
-      'metric': metric,
+      'trace': trace_name,
+      'chart': chart_name,
+      'tir_label': tir_label,
+      'story': start_try_job.GuessStoryFilter(test_path),
       'start_repository': start_repository,
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,

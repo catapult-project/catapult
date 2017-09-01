@@ -45,8 +45,9 @@ found in the LICENSE file.
         <paper-input id="bug-id" label="Bug ID" value="{{bugId::input}}"></paper-input>
         <paper-input id="configuration" label="configuration" value="{{configuration::input}}" required auto-validate></paper-input>
         <paper-input id="benchmark" label="benchmark" value="{{benchmark::input}}" required auto-validate></paper-input>
-        <paper-input id="test" label="test" value="{{test::input}}"></paper-input>
-        <paper-input id="metric" label="metric" value="{{metric::input}}" required auto-validate></paper-input>
+        <paper-input id="tir_label" label="tir_label" value="{{tir_label::input}}"></paper-input>
+        <paper-input id="chart" label="chart" value="{{chart::input}}" required auto-validate></paper-input>
+        <paper-input id="trace" label="trace" value="{{trace::input}}"></paper-input>
         <paper-input id="browser" label="browser" value="{{browser::input}}" required auto-validate></paper-input>
         <paper-input id="target" label="target" value="{{target::input}}" required auto-validate></paper-input>
         <paper-input id="start_repository" label="start_repository" value="{{start_repository::input}}" required auto-validate></paper-input>
@@ -91,11 +92,15 @@ found in the LICENSE file.
           type: String,
           value: 'blink_perf.events',
         },
-        test: {
+        tir_label: {
           type: String,
           value: '',
         },
-        metric: {
+        trace: {
+          type: String,
+          value: '',
+        },
+        chart: {
           type: String,
           value: 'hit-test-lots-of-layers',
         },
@@ -142,9 +147,13 @@ found in the LICENSE file.
 
       onBisectModeChanged(e) {
         if (e.target.name == this.$.performance.name) {
-          this.$.metric.hidden = false;
+          this.$.chart.hidden = false;
+          this.$.trace.hidden = false;
+          this.$.tir_label.hidden = false;
         } else {
-          this.$.metric.hidden = true;
+          this.$.chart.hidden = true;
+          this.$.trace.hidden = true;
+          this.$.tir_label.hidden = true;
         }
       },
 
@@ -158,8 +167,9 @@ found in the LICENSE file.
           target: this.target,
           configuration: this.configuration,
           benchmark: this.benchmark,
-          test: this.test,
-          metric: this.metric,
+          tir_label: this.tir_label,
+          trace: this.trace,
+          chart: this.chart,
           browser: this.browser,
           auto_explore: this.$.auto_explore.checked ? '1' : '0',
           start_repository: this.start_repository,
