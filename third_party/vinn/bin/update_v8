@@ -24,6 +24,7 @@ import subprocess
 import sys
 import tempfile
 import urllib2
+import distutils.spawn
 
 OMAHAPROXY_VERSION_MAP_URL = 'https://omahaproxy.appspot.com/all.json'
 
@@ -44,12 +45,20 @@ V8_GN_GEN_ARM_CMD = ('gn gen ' +
     r' --args="target_cpu=\"arm\" is_debug=false v8_use_snapshot=false' +
     ' v8_use_external_startup_data=false v8_static_library=true' +
     ' icu_use_data_file=false"')
+V8_GN_GEN_MIPS_CMD = ('gn gen ' +
+    os.path.join('out_mips', 'Default') +
+    r' --args="target_cpu=\"mipsel\" is_debug=false v8_use_snapshot=false' +
+    ' v8_use_external_startup_data=false v8_static_library=true' +
+    ' icu_use_data_file=false"')
 V8_COMPILE_CMD = 'ninja -C {out} d8'
 V8_STRIP_CMD = '{strip} -x {d8}'
 
 V8_INSTALL_SYSROOT_CMD = (
     os.path.join('build', 'linux', 'sysroot_scripts', 'install-sysroot.py') +
     ' --arch="arm"')
+V8_INSTALL_SYSROOT_MIPS_CMD = (
+    os.path.join('build', 'linux', 'sysroot_scripts', 'install-sysroot.py') +
+    ' --arch="mips"')
 
 VALID_CHANNEL_LIST = ['stable', 'canary', 'beta', 'dev']
 # Dict from the acceptable return values for Python's platform.system() to the
@@ -154,6 +163,18 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
               V8_STRIP_CMD.format(strip='arm-linux-gnueabihf-strip',
                                   d8=os.path.join('out_arm', 'Default', 'd8')))
 
+        # Build the cross compiled version for 32-bit MIPS. mipsel toolchain
+        # must be present in PATH.
+        mipsel_gcc_exec = distutils.spawn.find_executable('mipsel-linux-gnu-gcc')
+        if (target_os == 'linux' and os.path.isfile(mipsel_gcc_exec)):
+          _RunCommand(V8_INSTALL_SYSROOT_MIPS_CMD)
+          _RunCommand(V8_GN_GEN_MIPS_CMD)
+          _RunCommand(
+              V8_COMPILE_CMD.format(out=os.path.join('out_mips', 'Default')))
+          _RunCommand(
+              V8_STRIP_CMD.format(strip=distutils.spawn.find_executable('mipsel-linux-gnu-strip'),
+                                  d8=os.path.join('out_mips', 'Default', 'd8')))
+
     # Copy the d8 binary into place.
     d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
                                                 out='out')
@@ -174,9 +195,14 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
     # If the 32-bit ARM d8 binary exists, use it for both aarch64 and armv7l
     arm_d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
                                                     out='out_arm')
+    mips_d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
+                                                    out='out_mips')
     if os.path.isfile(arm_d8_bin_src):
         shutil.copy(arm_d8_bin_src,
                     V8_DST_PATH.format(os=target_os, arch='arm'))
+    if os.path.isfile(mips_d8_bin_src):
+        shutil.copy(mips_d8_bin_src,
+                    V8_DST_PATH.format(os=target_os, arch='mips'))
 
 def UpdateReadmeFile(v8_version, target_os):
   """Updates the V8 version number in the V8 README.chromium file."""
