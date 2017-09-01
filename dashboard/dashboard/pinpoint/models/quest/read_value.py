@@ -9,6 +9,11 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import isolate_service
 
 
+class ReadValueError(Exception):
+
+  pass
+
+
 class ReadChartJsonValue(quest.Quest):
 
   def __init__(self, chart, tir_label=None, trace=None):
@@ -48,15 +53,18 @@ class _ReadChartJsonValueExecution(execution.Execution):
     result_values = []
 
     for isolate_hash in self._isolate_hashes:
-      output = isolate_service.Retrieve(isolate_hash)
-
-      chartjson_isolate_hash = output['files']['chartjson-output.json']['h']
-      chartjson = json.loads(isolate_service.Retrieve(chartjson_isolate_hash))
+      chartjson = _RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
 
       if self._tir_label:
         chart_name = '@@'.join((self._tir_label, self._chart))
       else:
         chart_name = self._chart
+      if chart_name not in chartjson['charts']:
+        raise ReadValueError('The chart "%s" is not in the results.' %
+                             chart_name)
+      if self._trace not in chartjson['charts'][chart_name]:
+        raise ReadValueError('The trace "%s" is not in the results.' %
+                             self._trace)
       chart = chartjson['charts'][chart_name][self._trace]
 
       if chart['type'] == 'list_of_scalar_values':
@@ -121,12 +129,24 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     result_values = []
 
     for isolate_hash in self._isolate_hashes:
-      output = isolate_service.Retrieve(isolate_hash)
+      graphjson = _RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
 
-      graphjson_isolate_hash = output['files']['chartjson-output.json']['h']
-      graphjson = json.loads(isolate_service.Retrieve(graphjson_isolate_hash))
-
+      if self._chart not in graphjson:
+        raise ReadValueError('The chart "%s" is not in the results.' %
+                             self._chart)
+      if self._trace not in graphjson[self._chart]['traces']:
+        raise ReadValueError('The trace "%s" is not in the results.' %
+                             self._trace)
       result_value = float(graphjson[self._chart]['traces'][self._trace][0])
       result_values.append(result_value)
 
     self._Complete(result_values=tuple(result_values))
+
+
+def _RetrieveOutputJson(isolate_hash, filename):
+  output_files = isolate_service.Retrieve(isolate_hash)['files']
+
+  if filename not in output_files:
+    raise ReadValueError("The test didn't produce %s." % filename)
+  output_json_isolate_hash = output_files[filename]['h']
+  return json.loads(isolate_service.Retrieve(output_json_isolate_hash))

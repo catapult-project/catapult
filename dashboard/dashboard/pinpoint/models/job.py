@@ -5,6 +5,7 @@
 import collections
 import logging
 import os
+import traceback
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -112,8 +113,8 @@ class Job(ndb.Model):
         utils.ServiceAccountHttp())
     issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
 
-  def Fail(self, exception):
-    self.exception = str(exception)
+  def Fail(self):
+    self.exception = traceback.format_exc()
 
     comment = 'Pinpoint job failed!\n' + self.url
     issue_tracker = issue_tracker_service.IssueTrackerService(
@@ -139,8 +140,8 @@ class Job(ndb.Model):
         self.Schedule()
       else:
         self.Complete()
-    except BaseException as e:
-      self.Fail(e)
+    except BaseException:
+      self.Fail()
       raise
 
   def AsDict(self):

@@ -91,6 +91,10 @@ class Execution(object):
       # display it in the UI.
       self._completed = True
       self._failed = True
+      # TODO: If the Execution normally returns a number, it will be a string in
+      # this case. This works fine in CPython 2.0, where any number is less than
+      # any string. But it may not work in other Python implementations. The
+      # same is true for "None" below.
       self._result_values = (traceback.format_exc(),)
 
 
