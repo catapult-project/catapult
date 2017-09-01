@@ -93,14 +93,6 @@ found in the LICENSE file.
         },
       },
 
-      getStatus(values) {
-        if (values.filter(x => x == 0).length == values.length) {
-          return 'Passed';
-        }
-
-        return 'Failed?';
-      },
-
       _indexChanged() {
         if (this.index == -1) {
           return;

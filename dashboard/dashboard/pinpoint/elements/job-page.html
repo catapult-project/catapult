@@ -160,19 +160,20 @@ found in the LICENSE file.
       }
 
       getStatusString(changeIndex, questIndex) {
-        const passed = this.valuesAllPassed(
-            this.data_.state.result_values[changeIndex][questIndex]);
-        if (passed) {
-          return 'Passed';
+        const resultValues =
+          this.data_.state.result_values[changeIndex][questIndex];
+
+        if (!resultValues.length) {
+          return 'Running';
         }
 
-        return 'Failed';
-      }
+        // This is only correct for pass/fail resultValues.
+        const failureCount = resultValues.filter(e => e !== null).length;
+        if (failureCount) {
+          return 'Failed';
+        }
 
-      valuesAllPassed(values) {
-        const numPass = values.filter(x => (x == 0 || x == null)).length;
-
-        return numPass == values.length;
+        return 'Passed';
       }
     }
   </script>
