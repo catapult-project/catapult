@@ -5,11 +5,8 @@
 """A script to generate the benchmark health report.
 
 Getting set up:
-1. Install httplib2and oauth2client python modules:
-`pip install httplib2`
-`pip install oauth2client`
-`pip install --upgrade google-api-python-client`
-`pip install dateutil`
+1. Install the python dependencies:
+`$ pip install -r experimental/benchmark_health_report/requirements.txt`
 
 2. Download the service account credentials and update _PATH_TO_JSON_KEYFILE
    in both drive_api.py and dashboard_api.py (can use different credentials)
