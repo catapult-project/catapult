@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.b.unittest.testSuite(function() {
-  // TODO(benjhayden): use table-cell and name-cell APIs, don't pierce them.
+  // TODO(#3811) Clean up these tests.
 
   const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 20);
 
@@ -123,16 +123,12 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     const baseTable = getBaseTable(table);
     assert.isUndefined(baseTable.selectedTableColumnIndex);
-    // TODO assert cell.referenceHistogram
 
     await table.viewState.update({referenceDisplayLabel: 'A'});
     assert.strictEqual(1, baseTable.selectedTableColumnIndex);
-    // TODO assert cell.referenceHistogram
 
     await table.viewState.update({referenceDisplayLabel: 'B'});
     assert.strictEqual(2, baseTable.selectedTableColumnIndex);
-    // TODO assert delta statistics
-    // TODO assert cell.referenceHistogram
   });
 
   test('viewDisplayStatisticName', async function() {
@@ -188,13 +184,9 @@ tr.b.unittest.testSuite(function() {
     histograms.createHistogram('b', tr.b.Unit.byName.count, [2]);
     const table = await buildTable(this, histograms);
 
-    // TODO assert sorting
-
     await table.viewState.update({sortColumnIndex: 0});
-    // TODO assert sorting
 
     await table.viewState.update({sortColumnIndex: 1});
-    // TODO assert sorting
   });
 
   test('controlSortColumnIndex', async function() {
@@ -221,13 +213,10 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
 
     await table.viewState.update({sortColumnIndex: 0});
-    // TODO assert sorting
 
     await table.viewState.update({sortDescending: true});
-    // TODO assert sorting
 
     await table.viewState.update({sortDescending: false});
-    // TODO assert sorting
   });
 
   test('controlSortDescending', async function() {
@@ -670,7 +659,6 @@ tr.b.unittest.testSuite(function() {
         '#overview_container svg'));
   });
 
-  // TODO(benjhayden): Move this to a unit test for table-cell.
   test('viewCellOpen', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
@@ -687,7 +675,6 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(cell.isHistogramOpen);
   });
 
-  // TODO(benjhayden): Move this to a unit test for table-cell.
   test('controlCellOpen', async function() {
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
@@ -1007,8 +994,6 @@ tr.b.unittest.testSuite(function() {
     }
 
     const table = await buildTable(this, histograms);
-    // TODO test
-    // TODO move to histogram_set_table_row_test.html
   });
 
   test('sortByDisplayStatistic', async function() {
@@ -1138,8 +1123,6 @@ tr.b.unittest.testSuite(function() {
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
-    // TODO(benjhayden): Test that histogram-set-controls automatically prepend
-    // DELTA when a reference columns is selected.
     await table.viewState.update({displayStatisticName: `${tr.v.DELTA}avg`});
     assert.strictEqual('20.000 ms', fooContent.textContent);
     assert.strictEqual('-18.000 ms', barContent.textContent);
@@ -1362,15 +1345,15 @@ tr.b.unittest.testSuite(function() {
         });
 
     const table = await buildTable(this, histograms);
+    await table.viewState.update({groupings: [
+      new tr.v.HistogramGrouping(
+            tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
+            h => h.shortName || h.name)]});
 
-    // TODO(benjhayden): The shortName version of GROUPINGS.HISTOGRAM_NAME moved
-    // to histogram_set_view. Move this test to histogram_set_view_test.
-    /*
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === 'short name'));
     assert.isUndefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === 'long name'));
-    */
   });
 
   test('emptyAndMissing', async function() {
@@ -1459,7 +1442,6 @@ tr.b.unittest.testSuite(function() {
         tr.v.HistogramSet);
   });
 
-  // TODO(benjhayden): Merge this with the pure instantiation 'merged' test.
   test('instantiate_1x5', async function() {
     const histograms = new tr.v.HistogramSet();
 
@@ -1478,7 +1460,6 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
   });
 
-  // TODO(benjhayden): Merge this with the pure instantiation 'merged' test.
   test('instantiate_2x2', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('foo', tr.b.Unit.byName.count,
@@ -1552,8 +1533,6 @@ tr.b.unittest.testSuite(function() {
     assert.notEqual(originalFirstRow, nameCell.row.name);
   });
 
-  // TODO(benjhayden): Move this to a pure instantiation test in
-  // histogram_set_view_test.html
   test('merged', async function() {
     const histograms = new tr.v.HistogramSet();
     // Add 2^8=256 Histograms, all with the same name, with different metadata.

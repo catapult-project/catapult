@@ -27,6 +27,7 @@ tr.exportTo('tr.v.d', function() {
     constructor(opt_events) {
       super();
       this.eventsByStableId_ = new Map();
+      // TODO(#2431) Plumb canonicalUrl from event.model.
       this.canonicalUrl_ = undefined;
 
       if (opt_events) {
@@ -51,15 +52,6 @@ tr.exportTo('tr.v.d', function() {
      * @param {!(tr.v.d.EventRef|tr.model.Event)} event
      */
     add(event) {
-      // TODO(benjhayden): Copy event.model.canonicalUrl to |this| and ensure
-      // that all events have the same canonicalUrl.
-      // https://github.com/catapult-project/catapult/issues/2842
-      // Model.canonicalUrl is currently set to a file:/// URL, which is not
-      // useful. Leave RelatedEventSet.canonicalUrl unset so that
-      // CollectedRelatedEventSets will be empty until Telemetry reserves a
-      // cloud url and plumbs it correctly.
-      // https://github.com/catapult-project/catapult/issues/2431
-
       this.eventsByStableId_.set(event.stableId, event);
     }
 

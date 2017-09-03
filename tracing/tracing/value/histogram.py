@@ -15,7 +15,7 @@ from tracing.value.diagnostics import reserved_infos
 
 
 # pylint: disable=too-many-lines
-# TODO(benjhayden): Split this file up.
+# TODO(#3613) Split this file.
 
 
 # This should be equal to sys.float_info.max, but that value might differ
@@ -807,7 +807,7 @@ class HistogramBin(object):
     return [self.count, [d.AsDict() for d in self._diagnostic_maps]]
 
 
-# TODO(benjhayden): Presubmit to compare with unit.html.
+# TODO(#3814) Presubmit to compare with unit.html.
 UNIT_NAMES = [
     'ms',
     'tsMs',

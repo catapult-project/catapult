@@ -58,8 +58,7 @@ tr.exportTo('tr.v', function() {
   });
   LEGACY_UNIT_INFO.set('bit/s', {
     name: 'unitlessNumber',
-    // TODO(benjhayden): Which metrics use this? It's the opposite direction
-    // from 'chars/s'.
+    // TODO(#3815) Reconcile with char/s.
     defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
   });
   LEGACY_UNIT_INFO.set('bytes', {
@@ -68,8 +67,7 @@ tr.exportTo('tr.v', function() {
   });
   LEGACY_UNIT_INFO.set('chars/s', {
     name: 'unitlessNumber',
-    // TODO(benjhayden): Which metrics use this? It's the opposite direction
-    // from 'bit/s'.
+    // TODO(#3815) Reconcile with bit/s.
     defaultImprovementDirection: tr.b.ImprovementDirection.BIGGER_IS_BETTER,
   });
   LEGACY_UNIT_INFO.set('commit_count', {

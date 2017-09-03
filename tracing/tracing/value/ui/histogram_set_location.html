@@ -18,9 +18,7 @@ tr.exportTo('tr.v.ui', function() {
   // and omit them if not.
   // There is no specification for maximum URL length, so it is typically
   // limited by hosts, not browsers.
-  // TODO(benjhayden): Tune this number so that the URL survives redirects
-  // through the redirectors that our users typically encounter such as google
-  // signin.
+  // TODO(#3816) Tune this number.
   const MAX_URL_LENGTH = 2048;
 
   // This class wraps |window.location| and |window.history| to allow tests to
@@ -39,7 +37,7 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     pushState(url) {
-      // TODO(#3755) Use pushState at the right times.
+      // TODO(#3837) When should this actually call pushState()?
       window.history.replaceState(null, null, url);
     }
 

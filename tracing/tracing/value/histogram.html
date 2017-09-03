@@ -1175,7 +1175,6 @@ tr.exportTo('tr.v', function() {
       // It would be nice to Object.freeze() the bins in order to catch bugs
       // when we forget to copy a bin before writing to it, but that would slow
       // down buildBins_ by 55%: https://jsperf.com/new-vs-new-freeze/1
-      // TODO(benjhayden): How often is buildBins_ called?
     }
 
     /**

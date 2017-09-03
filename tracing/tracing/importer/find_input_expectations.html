@@ -99,7 +99,7 @@ tr.exportTo('tr.importer', function() {
    */
   const MOUSE_MOVE_THRESHOLD_MS = 40;
 
-  // TODO(benjhayden) Find a better home for this.
+  // TODO(#3813) Move this.
   function compareEvents(x, y) {
     if (x.start !== y.start) {
       return x.start - y.start;
@@ -147,8 +147,6 @@ tr.exportTo('tr.importer', function() {
 
       if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice)) continue;
 
-      // TODO(beaudoin): This should never happen but it does. Investigate
-      // the trace linked at in #1567 and remove that when it's fixed.
       if (isNaN(slice.start) ||
           isNaN(slice.duration) ||
           isNaN(slice.end)) {
@@ -1178,7 +1176,6 @@ tr.exportTo('tr.importer', function() {
       }
 
       const frameEvents = [];
-      // TODO(benjhayden): Use frame blame contexts here.
       for (const pid of Object.keys(modelHelper.rendererHelpers)) {
         const range = tr.b.math.Range.fromExplicitRange(pe.start, pe.end);
         frameEvents.push.apply(frameEvents,
@@ -1192,8 +1189,6 @@ tr.exportTo('tr.importer', function() {
       // there are no frames in an AnimationExpectation.
       // Since WebGL animations don't generate this type of frame event,
       // don't remove them if it's a WebGL animation.
-      // TODO(alexandermont): Identify what the correct frame event to
-      // use here is.
       if (frameEvents.length === 0 &&
               !(pe.initiatorType === INITIATOR_TYPE.WEBGL)) {
         pe.type = ProtoExpectation.IGNORED_TYPE;
