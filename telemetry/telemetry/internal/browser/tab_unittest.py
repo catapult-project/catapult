@@ -8,6 +8,7 @@ import time
 
 from telemetry.core import exceptions
 from telemetry import decorators
+from telemetry.internal.browser.web_contents import ServiceWorkerState
 from telemetry.internal.image_processing import video
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
@@ -247,3 +248,17 @@ class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
       time.sleep(1)
     self.assertEquals(len(self.tabs), 2)
     self.assertEquals(self.tabs[1].url, 'chrome://media-router/')
+
+class ServiceWorkerTabTest(tab_test_case.TabTestCase):
+  def testIsServiceWorkerActivatedOrNotRegistered(self):
+    self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
+    self.assertEquals(self._tab.QueryServiceWorkerState(),
+                      ServiceWorkerState.NOT_REGISTERED)
+    self._tab.ExecuteJavaScript(
+        'if ("serviceWorker" in navigator) { \
+            navigator.serviceWorker.register("{{ @scriptURL }}") };',
+        scriptURL=self.UrlOfUnittestFile('blank.js'))
+    py_utils.WaitFor(self._tab.IsServiceWorkerActivatedOrNotRegistered,
+                     timeout=5)
+    self.assertEquals(self._tab.QueryServiceWorkerState(),
+                      ServiceWorkerState.ACTIVATED)
