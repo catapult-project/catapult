@@ -21,7 +21,7 @@ _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go')
 _GO_LIB_DIR = os.path.expanduser('~/go')
 
 
-_SUPPORTED_GO_VERSIONS = ('go1.8',)
+_SUPPORTED_GO_VERSIONS = ('go1.8', 'go1.9')
 
 
 def check_go_version():
