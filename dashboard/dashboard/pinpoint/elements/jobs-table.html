@@ -22,10 +22,6 @@ found in the LICENSE file.
         background-color: var(--paper-indigo-100);
       }
 
-      th:not([data-sort-direction]) {
-        background-image: url("/dashboard/static/sort-up-down.svg");
-      }
-
       th[data-sort-direction=true] {
         background-image: url("/dashboard/static/sort-up.svg");
       }
@@ -46,7 +42,7 @@ found in the LICENSE file.
           <th id="story" on-click="columnHeaderClicked">Story
           <th id="metric" on-click="columnHeaderClicked">Metric
       <tbody>
-        <template is="dom-repeat" items="[[jobs]]">
+        <template is="dom-repeat" items="[[jobs]]" sort="[[jobSorter(sortBy, sortDescending)]]">
           <tr>
             <td><a href='/job/[[item.job_id]]'>[[item.job_id]]</a>
             <td>[[item.status]]
@@ -76,9 +72,7 @@ found in the LICENSE file.
          */
         sortBy: {
           type: String,
-          value: 'created',
-          notify: true,
-          observer: 'sortByChanged'
+          value: 'created'
         },
 
         /**
@@ -86,9 +80,7 @@ found in the LICENSE file.
          */
         sortDescending: {
           type: Boolean,
-          value: true,
-          notify: true,
-          observer: 'sortDirectionChanged'
+          value: true
         },
       },
 
@@ -96,17 +88,7 @@ found in the LICENSE file.
        * Custom element lifecycle callback, called once this element is ready.
        */
       ready() {
-        // You can't actually manipulate the array until after initialization,
-        // none of the changes persist.
-        this.async(() => this.sort());
-      },
-
-      sortByChanged() {
-        this.sort();
-      },
-
-      sortDirectionChanged() {
-        this.sort();
+        this.updateHeaders();
       },
 
       /**
@@ -121,6 +103,7 @@ found in the LICENSE file.
           this.sortBy = event.currentTarget.id;
           this.sortDescending = false;
         }
+        this.updateHeaders();
       },
 
       /**
@@ -142,21 +125,16 @@ found in the LICENSE file.
        * Sorts the jobs list according to the current values of the properties
        * sortDirection and sortBy.
        */
-      sort() {
-        const sortBy = this.sortBy;
-
-        const jobs = this.jobs.slice();
-        jobs.sort(function(a, b) {
-          const valA = String(a[sortBy]).toLowerCase();
-          const valB = String(b[sortBy]).toLowerCase();
-          return valA.localeCompare(valB);
-        });
-        if (this.sortDescending) {
-          jobs.reverse();
-        }
-
-        this.set('jobs', jobs);
-        this.updateHeaders();
+      jobSorter(sortBy, sortDescending) {
+        return (a, b) => {
+          const valA = a[sortBy] || a.arguments[sortBy] || '';
+          const valB = b[sortBy] || b.arguments[sortBy] || '';
+          let comparison = valA.localeCompare(valB);
+          if (sortDescending) {
+            comparison = -comparison;
+          }
+          return comparison;
+        };
       },
 
       formatDate(dateString) {
