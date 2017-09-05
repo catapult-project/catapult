@@ -117,14 +117,14 @@ def _GTestRunTest(request):
   test = request.get('test')
   if test:
     arguments['test'] = test
-    swarming_extra_args += ('--gtest_filter', test)
+    swarming_extra_args.append('--gtest_filter=' + test)
 
   repeat_count = request.get('repeat_count')
   if repeat_count:
     arguments['repeat_count'] = repeat_count
   else:
     repeat_count = str(_DEFAULT_REPEAT_COUNT)
-  swarming_extra_args += ('--gtest_repeat', repeat_count)
+  swarming_extra_args.append('--gtest_repeat=' + repeat_count)
 
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 

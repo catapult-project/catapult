@@ -28,7 +28,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
 
 
 _MIN_GTEST_RUN_TEST_ARGUMENTS = [
-    '--gtest_repeat', '10',
+    '--gtest_repeat=10',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -36,7 +36,7 @@ _MIN_GTEST_RUN_TEST_ARGUMENTS = [
 
 
 _ALL_GTEST_RUN_TEST_ARGUMENTS = [
-    '--gtest_filter', 'test_name', '--gtest_repeat', '50',
+    '--gtest_filter=test_name', '--gtest_repeat=50',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
