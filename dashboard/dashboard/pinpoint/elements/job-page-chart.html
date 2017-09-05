@@ -77,27 +77,10 @@ found in the LICENSE file.
         const valuesByChange = this.jobInfo.resultValues.map(
             valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
 
-        let min = 0;
-        let max = 1;
-
         const allNumbers = valuesByChange.every(row => row.every(
             value => typeof(value) === 'number'));
-        if (allNumbers) {
-          // Numeric data. Set the bounds based on the data.
-          min = Math.min(...valuesByChange.map(
-              values => Math.min(...values)));
-          max = Math.max(...valuesByChange.map(
-              values => Math.max(...values)));
-          if (!(isFinite(min) && isFinite(max))) {
-            min = 0;
-            max = 0;
-          }
-          if (min == max) {
-            min -= 1;
-            max += 1;
-          }
-        } else {
-          // Pass-fail data. Convert the results to "failure rate".
+        // Pass-fail data. Convert the results to "failure rate".
+        if (!allNumbers) {
           for (let i = 0; i < valuesByChange.length; ++i) {
             const values = valuesByChange[i];
             const sum = values.filter(value => value).length;
@@ -105,7 +88,30 @@ found in the LICENSE file.
           }
         }
 
-        // Calculate the error bars.
+        // Calculate the chart bounds.
+        let lowerBound = 0;
+        let upperBound = 1;
+
+        if (allNumbers) {
+          // Numeric data. Set the bounds based on the data.
+          const flatValues = [].concat(...valuesByChange);
+          lowerBound = percentile(flatValues, 0.1);
+          upperBound = percentile(flatValues, 0.9);
+          if (!(isFinite(lowerBound) && isFinite(upperBound))) {
+            lowerBound = 0;
+            upperBound = 0;
+          }
+          if (lowerBound == upperBound) {
+            lowerBound -= 1;
+            upperBound += 1;
+          }
+        }
+
+        const padding = 0.2 * (upperBound - lowerBound);
+        lowerBound -= padding;
+        upperBound += padding;
+
+        // Calculate the data series, points, and error bars.
         const data = [];
 
         let seriesData = [];
@@ -115,7 +121,7 @@ found in the LICENSE file.
             continue;
           }
 
-          const mid = median(values);
+          const mid = percentile(values, 0.5);
           const lowError = mid - Math.min(...values);
           const highError = Math.max(...values) - mid;
           seriesData.push([i, mid, lowError, highError]);
@@ -143,8 +149,8 @@ found in the LICENSE file.
             show: false
           },
           yaxis: {
-            min: min - 0.05 * (max - min),
-            max: max + 0.05 * (max - min)
+            min: lowerBound,
+            max: upperBound
           }
         };
 
@@ -153,10 +159,10 @@ found in the LICENSE file.
 
         // Draw overlays.
         for (let i = 0; i < valuesByChange.length; ++i) {
-          const offset = this.chart.pointOffset({
-            x: i,
-            y: median(valuesByChange[i]) || (max + min) / 2
-          });
+          const y = valuesByChange[i].length ?
+            percentile(valuesByChange[i], 0.5) :
+            (lowerBound + upperBound) / 2;
+          const offset = this.chart.pointOffset({x: i, y});
 
           if (valuesByChange[i].length) {
             // Draw pulsing dots for important points.
@@ -205,13 +211,13 @@ found in the LICENSE file.
       };
     }
 
-    function median(values) {
+    function percentile(values, p) {
       values.sort(function(a, b) {return a - b;});
-      const half = Math.floor(values.length / 2);
-      if (values.length % 2) {
-        return values[half];
-      }
-      return (values[half - 1] + values[half]) / 2;
+      const index = (values.length - 1) * p;
+      const lower = Math.floor(index);
+      const upper = Math.ceil(index);
+      const weight = index % 1;
+      return values[lower] * (1 - weight) + values[upper] * weight;
     }
   </script>
 </dom-module>
