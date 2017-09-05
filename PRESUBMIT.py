@@ -31,6 +31,7 @@ _EXCLUDED_PATHS = (
     r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',
     r'^perf_insights[\\/]test_data[\\/].*',
     r'^perf_insights[\\/]third_party[\\/].*',
+    r'^telemetry[\\/]third_party[\\/].*',
     r'^third_party[\\/].*',
     r'^tracing[\\/]\.allow-devtools-save$',
     r'^tracing[\\/]bower\.json$',
