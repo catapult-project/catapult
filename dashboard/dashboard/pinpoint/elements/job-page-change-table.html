@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/change-info.html">
+<link rel="import" href="/dashboard/pinpoint/elements/values-histogram.html">
 
 <dom-module id="job-page-change-table">
   <template>
@@ -64,13 +65,9 @@ found in the LICENSE file.
         </div>
 
         <div class="column">
-          <template is="dom-if" if="[[testTitle]]">
+          <template is="dom-if" if="[[resultValues.length]]">
             <h2>[[testTitle]]</h2>
-            <table>
-              <tr>
-                <th>Values
-                <td>[[formatValues(resultValues)]]
-            </table>
+            <values-histogram values="[[resultValues]]"></values-histogram>
           </template>
         </div>
       </div>
@@ -121,10 +118,6 @@ found in the LICENSE file.
         this.resultValues = this.jobInfo.resultValues[this.index][2];
 
         this.change = this.jobInfo.changes[this.index];
-      },
-
-      formatValues(values) {
-        return values.map(value => value.toPrecision(4)).join(', ');
       },
 
       isShowing(index) {

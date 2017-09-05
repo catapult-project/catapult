@@ -28,7 +28,7 @@ class ReadChartJsonValue(quest.Quest):
             self._trace == other._trace)
 
   def __str__(self):
-    return 'Value'
+    return 'Values'
 
   def Start(self, isolate_hashes):
     return _ReadChartJsonValueExecution(self._chart, self._tir_label,
@@ -105,7 +105,7 @@ class ReadGraphJsonValue(quest.Quest):
             self._trace == other._trace)
 
   def __str__(self):
-    return 'Value'
+    return 'Values'
 
   def Start(self, isolate_hashes):
     return _ReadGraphJsonValueExecution(self._chart, self._trace,

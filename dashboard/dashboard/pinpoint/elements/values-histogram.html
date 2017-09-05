@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/jquery/jquery-2.1.4.min.js"></script>
+<script src="/flot/jquery.flot.min.js"></script>
+
+<dom-module id="values-histogram">
+  <template>
+    <style>
+      #plot {
+        min-height: 200px;
+        width: 100%;
+      }
+    </style>
+
+    <div id="plot"></div>
+  </template>
+
+  <script>
+    'use strict';
+    Polymer({
+      is: 'values-histogram',
+
+      properties: {
+        values: {
+          type: Array,
+          observer: '_valuesChanged'
+        },
+
+        // The Flot Plot object, returned by $.plot.
+        chart: {
+          value: null
+        }
+      },
+
+      _valuesChanged() {
+        this.async(this.draw);
+      },
+
+      draw() {
+        const values = this.values;
+
+        // Calculate bounds.
+        let min = 0;
+        let max = 1;
+
+        min = Math.min(...values);
+        max = Math.max(...values);
+        if (min == max) {
+          min -= 1;
+          max += 1;
+        }
+
+        // Calculate buckets.
+        const bucketCount = Math.round(Math.log(values.length) * 4 + 1);
+        const buckets = new Array(bucketCount).fill(0);
+        for (const value of values) {
+          let index = Math.floor((value - min) / (max - min) * buckets.length);
+          if (index == buckets.length) {
+            index -= 1;
+          }
+          buckets[index] += 1;
+        }
+
+        // Convert buckets to a format that flot likes.
+        const seriesData = [];
+        for (let i = 0; i < buckets.length; ++i) {
+          seriesData.push([i * (max - min) / bucketCount + min, buckets[i]]);
+        }
+
+        const data = [{
+          bars: {
+            barWidth: (max - min) / bucketCount,
+            show: true
+          },
+          color: '#3f51b5',
+          data: seriesData
+        }];
+
+        // Chart options to be given when initializing the Flot chart.
+        // See: https://github.com/flot/flot/blob/master/API.md#plot-options
+        const options = {
+          grid: {
+            borderWidth: 1,
+            borderColor: 'rgba(0, 0, 0, 0.5)'
+          },
+          xaxis: {min, max}
+        };
+
+        // Plot the chart!
+        this.chart = $.plot(this.$.plot, data, options);
+      }
+    });
+  </script>
+</dom-module>
