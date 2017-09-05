@@ -98,7 +98,7 @@ def _FirstStatement(contents):
   stripped_contents = strip_js_comments.StripJSComments(contents).strip()
   matches = re.match('^(.*?);', stripped_contents, re.DOTALL)
   if not matches:
-    return contents
+    return ''
   return matches.group(1).strip()
 
 
