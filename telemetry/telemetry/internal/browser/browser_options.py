@@ -324,6 +324,11 @@ class BrowserOptions(object):
     # profiling results.
     self.take_screenshot_for_failed_page = False
 
+    # TODO(crbug.com/760319): This is a hack to temporarily disable modal
+    # permission prompts on Android. Remove after implementing a longer term
+    # solution.
+    self.block_modal_permission_prompts = True
+
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
     # circular reference with _finder_options.
