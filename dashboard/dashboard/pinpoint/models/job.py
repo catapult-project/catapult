@@ -144,7 +144,8 @@ class Job(ndb.Model):
       self.Fail()
       raise
 
-  def AsDict(self):
+  def StatusDict(self):
+    """A shorter version of AsDict() for faster Jobs list loading."""
     return {
         'job_id': self.job_id,
 
@@ -155,9 +156,12 @@ class Job(ndb.Model):
         'updated': self.updated.isoformat(),
         'exception': self.exception,
         'status': self.status,
-
-        'state': self.state.AsDict(),
     }
+
+  def AsDict(self):
+    d = self.StatusDict()
+    d['state'] = self.state.AsDict()
+    return d
 
 
 class _JobState(object):

@@ -33,6 +33,6 @@ class Jobs(webapp2.RequestHandler):
 
     jobs = job_future.get_result()
     for job in jobs:
-      result['jobs_list'].append(job.AsDict())
+      result['jobs_list'].append(job.StatusDict())
 
     return result
