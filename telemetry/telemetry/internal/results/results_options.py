@@ -38,6 +38,8 @@ _OUTPUT_FORMAT_CHOICES = (
     'none',
     )
 
+_DEFAULT_OUTPUT_FORMAT = 'html'
+
 
 # Filenames to use for given output formats.
 _OUTPUT_FILENAME_LOOKUP = {
@@ -150,7 +152,7 @@ def CreateResults(benchmark_metadata, options,
     options: Contains the options specified in AddResultsOptions.
   """
   if not options.output_formats:
-    options.output_formats = [_OUTPUT_FORMAT_CHOICES[0]]
+    options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
   upload_bucket = None
   if options.upload_results:
