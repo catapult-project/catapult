@@ -76,6 +76,69 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         {'error': 'User not authenticated'},
         json.loads(response.body))
 
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  def testOptions_NoOrigin_HeadersNotSet(self, _):
+    response = self.testapp.options('/api/test')
+    self.assertListEqual(
+        [('Content-Type', 'text/html; charset=utf-8'),
+         ('Content-Length', '0'),
+         ('Cache-Control', 'no-cache')],
+        response.headerlist)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  def testOptions_InvalidOrigin_HeadersNotSet(self, _):
+    api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
+    response = self.testapp.options(
+        '/api/test', headers={'origin': 'https://bar.appspot.com'})
+    self.assertListEqual(
+        [('Content-Type', 'text/html; charset=utf-8'),
+         ('Content-Length', '0'),
+         ('Cache-Control', 'no-cache')],
+        response.headerlist)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  def testPost_ValidProdOrigin_HeadersSet(self, _):
+    api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
+    response = self.testapp.post(
+        '/api/test', headers={'origin': 'https://foo.appspot.com'})
+    self.assertListEqual(
+        [('Content-Type', 'text/html; charset=utf-8'),
+         ('Cache-Control', 'no-cache'),
+         ('Access-Control-Allow-Origin', 'https://foo.appspot.com'),
+         ('Access-Control-Allow-Credentials', 'true'),
+         ('Access-Control-Allow-Methods', 'GET,OPTIONS,POST'),
+         ('Access-Control-Allow-Headers', 'Accept,Authorization,Content-Type'),
+         ('Access-Control-Max-Age', '3600'),
+         ('Content-Length', '14')],
+        response.headerlist)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  def testPost_ValidDevOrigin_HeadersSet(self, _):
+    api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
+    response = self.testapp.post(
+        '/api/test',
+        headers={'origin': 'https://123jkjasdf-dot-foo.appspot.com'})
+    self.assertListEqual(
+        [('Content-Type', 'text/html; charset=utf-8'),
+         ('Cache-Control', 'no-cache'),
+         ('Access-Control-Allow-Origin',
+          'https://123jkjasdf-dot-foo.appspot.com'),
+         ('Access-Control-Allow-Credentials', 'true'),
+         ('Access-Control-Allow-Methods', 'GET,OPTIONS,POST'),
+         ('Access-Control-Allow-Headers', 'Accept,Authorization,Content-Type'),
+         ('Access-Control-Max-Age', '3600'),
+         ('Content-Length', '14')],
+        response.headerlist)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  def testPost_InvalidOrigin_HeadersNotSet(self, _):
+    response = self.testapp.post('/api/test')
+    self.assertListEqual(
+        [('Content-Type', 'text/html; charset=utf-8'),
+         ('Cache-Control', 'no-cache'),
+         ('Content-Length', '14')],
+        response.headerlist)
+
 
 if __name__ == '__main__':
   unittest.main()

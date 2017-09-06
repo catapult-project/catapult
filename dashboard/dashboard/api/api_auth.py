@@ -13,6 +13,8 @@ from dashboard.common import utils
 OAUTH_CLIENT_ID_WHITELIST = [
     # This oauth client id is from the 'chromeperf' API console.
     '62121018386-h08uiaftreu4dr3c4alh3l7mogskvb7i.apps.googleusercontent.com',
+    # This oauth client id is from chromiumdash.
+    '377415874083-slpqb5ur4h9sdfk8anlq4qct9imivnmt.apps.googleusercontent.com',
 ]
 OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
