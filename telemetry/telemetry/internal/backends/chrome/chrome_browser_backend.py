@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import pprint
 import re
 import shlex
@@ -140,9 +141,18 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     proxy_port = network_backend.forwarder.port_pair.remote_port
     replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)
     if not network_backend.is_test_ca_installed:
-      # Ignore certificate errors if the platform backend has not created
-      # and installed a root certificate.
-      replay_args.append('--ignore-certificate-errors')
+      # Ignore certificate errors for certs that are signed with Wpr's root.
+      # For more details on this flag, see crbug.com/753948.
+      wpr_public_hash_file = os.path.join(util.GetCatapultDir(),
+                                          'web_page_replay_go',
+                                          'wpr_public_hash.txt')
+      if not os.path.exists(wpr_public_hash_file):
+        raise exceptions.PathMissingError('Unable to find %s' %
+                                          wpr_public_hash_file)
+      with open(wpr_public_hash_file) as f:
+        wpr_public_hash = f.readline().strip()
+        replay_args.append('--ignore-certificate-errors-spki-list=' +
+                           wpr_public_hash)
     return replay_args
 
   def HasBrowserFinishedLaunching(self):

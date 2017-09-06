@@ -75,7 +75,8 @@ class ReplayStartupArgsTest(unittest.TestCase):
         remote_port=789,
         is_running_locally=is_running_locally)
     expected_args = [
-        '--ignore-certificate-errors',
+        '--ignore-certificate-errors-spki-list='
+        'PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=',
         '--proxy-server=socks://localhost:789',
         ]
     self.assertEqual(

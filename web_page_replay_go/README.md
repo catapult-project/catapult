@@ -33,6 +33,7 @@ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
   ```
   google-chrome-beta --user-data-dir=$foo \
    --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"
+   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
   ```
   ... wait for record servers to start
 
@@ -47,7 +48,8 @@ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
 * Terminal 2:
   ```
   google-chrome-beta --user-data-dir=$bar \
-   --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"`
+   --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"
+   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
   ```
   ... wait for replay servers to start
 
@@ -67,18 +69,20 @@ adb reverse tcp:8081 tcp:8081
 * Set up command line arguments
 
 ```
-build/android/adb_chrome_public_command_line '--host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"'
+build/android/adb_chrome_public_command_line --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost" \
+  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
 ```
 
 * Run wpr.go as usual on the linux machine
 
-### Installing test root CA
+### (Optional) Installing test root CA
 
 WebPageReplay uses self signed certificates for Https requests. To make Chrome
-trust these certificates, you can install a test certificate authority as a
-local trust anchor. **Note:** Please do this with care because installing the
-test root CA compromises your machine. This is currently only supported on
-Linux and Android.
+trust these certificates, you can use --ignore-certificate-errors-spki-list
+like above. If that doesn't work, you may try installing a test certificate
+authority as a local trust anchor. **Note:** Please do this with care because
+installing the test root CA compromises your machine. This is currently only
+supported on Linux and Android.
 
 Installing the test CA. Specify a `--android_device_id` if you'd like to install
 the root CA on an android device.
@@ -106,6 +110,7 @@ go run src/wpr.go replay --https_port=8081 --https_to_http_port=8082 \
 ```
 google-chrome-beta --user-data-dir=$foo \
   --host-resolver-rules="MAP *:443 127.0.0.1:8081,EXCLUDE localhost" \
+  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I= \
   --proxy-server=http=https://127.0.0.1:8082 \
   --trusted-spdy-proxy=127.0.0.1:8082
 ```
@@ -131,6 +136,15 @@ go test transformer_test.go transformer.go
 Run all tests in `webpagereplay` module.
 ```
 go test webpagereplay -run ''
+```
+
+## Generate public key hash for --ignore-certificate-errors-spki-list
+wpr_public_hash.txt is generated from wpr_cert.pem using the command below.
+```
+openssl x509 -noout -pubkey -in wpr_cert.pem | \
+openssl pkey -pubin -outform der | \
+openssl dgst -sha256 -binary | \
+base64
 ```
 
 ## Contribute
