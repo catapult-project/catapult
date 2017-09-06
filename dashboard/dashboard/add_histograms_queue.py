@@ -7,11 +7,15 @@
 import json
 import sys
 
+from google.appengine.ext import ndb
+
 # TODO(eakuefner): Move these helpers so we don't have to import add_point or
 # add_point_queue directly.
 from dashboard import add_histograms
 from dashboard import add_point
 from dashboard import add_point_queue
+from dashboard import find_anomalies
+from dashboard import graph_revisions
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import stored_object
@@ -92,8 +96,12 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     extra_args = {} if is_diagnostic else GetUnitArgs(data_dict['unit'])
     # TDOO(eakuefner): Populate benchmark_description once it appears in
     # diagnostics.
-    test_key = add_point_queue.GetOrCreateAncestors(
-        master, bot, test_name, internal_only, **extra_args).key
+    parent_test = add_point_queue.GetOrCreateAncestors(
+        master, bot, test_name, internal_only, **extra_args)
+    test_key = parent_test.key
+
+    added_rows = []
+    monitored_test_keys = []
 
     if is_diagnostic:
       entity = histogram.SparseDiagnostic(
@@ -126,9 +134,26 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
       entity = histogram.Histogram(
           id=guid, data=data, test=test_key, revision=revision,
           internal_only=internal_only)
-      AddRow(data_dict, test_key, revision, test_path, internal_only)
+      row = AddRow(data_dict, test_key, revision, test_path, internal_only)
+      added_rows.append(row)
+
+      is_monitored = parent_test.sheriff and parent_test.has_rows
+      if is_monitored:
+        monitored_test_keys.append(parent_test.key)
+
 
     entity.put()
+
+    tests_keys = [
+        k for k in monitored_test_keys if not add_point_queue.IsRefBuild(k)]
+
+    # Updating of the cached graph revisions should happen after put because
+    # it requires the new row to have a timestamp, which happens upon put.
+    futures = [
+        graph_revisions.AddRowsToCacheAsync(added_rows),
+        find_anomalies.ProcessTestsAsync(tests_keys)]
+    ndb.Future.wait_all(futures)
+
 
 def GetUnitArgs(unit):
   unit_args = {
@@ -152,13 +177,14 @@ def AddRow(histogram_dict, test_metadata_key, revision, test_path,
   # know that it's okay to put rows that don't have a value/error (see
   # https://github.com/catapult-project/catapult/issues/3564).
   if h.num_values == 0:
-    return
+    return None
   row_dict = _MakeRowDict(revision, test_path, h)
   properties = add_point.GetAndValidateRowProperties(row_dict)
   test_container_key = utils.GetTestContainerKey(test_metadata_key)
   row = graph_data.Row(id=revision, parent=test_container_key,
                        internal_only=internal_only, **properties)
   row.put()
+  return row
 
 def _MakeRowDict(revision, test_path, tracing_histogram):
   d = {}

@@ -71,7 +71,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
-    tests_keys = [k for k in monitored_test_keys if not _IsRefBuild(k)]
+    tests_keys = [k for k in monitored_test_keys if not IsRefBuild(k)]
 
     # Updating of the cached graph revisions should happen after put because
     # it requires the new row to have a timestamp, which happens upon put.
@@ -344,7 +344,7 @@ def _GetOrCreateTest(name, parent_test_path, properties):
   return existing
 
 
-def _IsRefBuild(test_key):
+def IsRefBuild(test_key):
   """Checks whether a TestMetadata is for a reference build test run."""
   test_parts = test_key.id().split('/')
   return test_parts[-1] == 'ref' or test_parts[-1].endswith('_ref')

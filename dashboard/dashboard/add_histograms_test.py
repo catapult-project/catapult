@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import base64
+import copy
 import json
 import mock
 import sys
@@ -18,14 +19,53 @@ from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import graph_data
 from dashboard.models import histogram
+from dashboard.models import sheriff
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
 
 
-GOOGLER_USER = users.User(email='sullivan@chromium.org',
+GOOGLER_USER = users.User(email='authorized@chromium.org',
                           _auth_domain='google.com')
+
+_SAMPLE_HISTOGRAM_END_TO_END = [
+    {
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
+        'name': 'foo2',
+        'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
+        'sampleValues': [1, 2, 3],
+        'unit': 'count'
+    }
+]
 
 
 def SetGooglerOAuth(mock_oauth):
@@ -49,41 +89,14 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     mock_oauth = oauth_patcher.start()
     SetGooglerOAuth(mock_oauth)
 
-  def testPostHistogramEndToEnd(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
-            'name': 'foo2',
-            'unit': 'count'
-        }
-    ])
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_Succeeds(self, mock_process_test, mock_graph_revisions):
+    data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo2']).put()
+
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -91,6 +104,44 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.assertEqual(3, len(diagnostics))
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
+
+    tests = graph_data.TestMetadata.query().fetch()
+    # Verify that an anomaly processing was called.
+    mock_process_test.assert_called_once_with([tests[1].key])
+
+    rows = graph_data.Row.query().fetch()
+    mock_graph_revisions.assert_called_once_with(rows)
+
+  def _SetupRefTest(self, ref_name):
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
+    data = copy.deepcopy(_SAMPLE_HISTOGRAM_END_TO_END)
+    data[4]['name'] = ref_name
+    data = json.dumps(data)
+    self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
+      self, mock_process_test):
+    """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
+    self._SetupRefTest('abcd_ref')
+    mock_process_test.assert_called_once_with([])
+
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
+      self, mock_process_test):
+    """Tests that leaf tests named ref aren't added to the task queue."""
+    self._SetupRefTest('ref')
+    mock_process_test.assert_called_once_with([])
+
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
+      self, mock_process_test):
+    self._SetupRefTest('_ref_abcd')
+    self.assertTrue(mock_process_test.called)
+
 
 class AddHistogramsTest(testing_common.TestCase):
 
