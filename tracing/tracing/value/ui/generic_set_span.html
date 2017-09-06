@@ -19,15 +19,7 @@ found in the LICENSE file.
 
     <tr-ui-a-generic-object-view id="generic"></tr-ui-a-generic-object-view>
 
-    <template is="dom-repeat" items="{{strings_}}">
-      <template is="dom-if" if="[[isUrl_(item)]]">
-        <a href="[[item]]">[[item]]</a>
-      </template>
-
-      <template is="dom-if" if="[[!isUrl_(item)]]">
-        <div>[[item]]</div>
-      </template>
-    </template>
+    <div id="links"></div>
   </template>
 </dom-module>
 
@@ -38,21 +30,10 @@ tr.exportTo('tr.v.ui', function() {
     is: 'tr-v-ui-generic-set-span',
     behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
 
-    properties: {
-      strings_: {
-        type: Array,
-      },
-    },
-
-    isUrl_(s) {
-      return tr.b.isUrl(s);
-    },
-
     updateContents_() {
-      if (this.diagnostic === undefined) {
-        this.$.generic.object = undefined;
-        return;
-      }
+      this.$.generic.style.display = 'none';
+      this.$.links.textContent = '';
+      if (this.diagnostic === undefined) return;
       const values = Array.from(this.diagnostic);
 
       let areAllStrings = true;
@@ -67,15 +48,33 @@ tr.exportTo('tr.v.ui', function() {
         }
       }
 
-      if (areAllStrings) {
-        if (areAllNumbers) {
-          values.sort((x, y) => x - y);
-        } else {
-          values.sort();
-        }
-        this.set('strings_', values);
-      } else {
+      if (!areAllStrings) {
+        this.$.generic.style.display = '';
         this.$.generic.object = values;
+        return;
+      }
+
+      if (areAllNumbers) {
+        values.sort((x, y) => x - y);
+      } else {
+        values.sort();
+      }
+
+      for (const value of values) {
+        const link = {textContent: '' + value};
+        if (tr.b.isUrl(value)) link.href = value;
+        if (this.name_ === tr.v.d.RESERVED_NAMES.TRACE_URLS) {
+          link.textContent = value.substr(1 + value.lastIndexOf('/'));
+        }
+        const linkEl = tr.ui.b.createLink(link);
+        if (link.href) {
+          linkEl.target = '_blank';
+          // In case there's a listener in the hierarchy that calls
+          // preventDefault(), stop the event from propagating to it so that
+          // clicking the link always opens it in a new tab.
+          linkEl.addEventListener('click', e => e.stopPropagation());
+        }
+        this.$.links.appendChild(linkEl);
       }
     }
   });

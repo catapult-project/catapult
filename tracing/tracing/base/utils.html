@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
+  const URL_REGEX = /^(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b|file:\/\/)([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
