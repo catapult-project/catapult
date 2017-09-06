@@ -44,8 +44,8 @@ def GetSymbolBinaries(minidump, arch_name, os_name):
 
   minidump_cmd = [minidump_dump, minidump]
   try:
-    with open(os.devnull, 'wb') as DEVNULL:
-      minidump_output = subprocess.check_output(minidump_cmd, stderr=DEVNULL)
+    with open(os.devnull, 'wb') as dev_null:
+      minidump_output = subprocess.check_output(minidump_cmd, stderr=dev_null)
   except subprocess.CalledProcessError as e:
     # For some reason minidump_dump always fails despite successful dumping.
     minidump_output = e.output
@@ -114,8 +114,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._proc = None
     self._tmp_profile_dir = None
     self._tmp_output_file = None
+    # pylint: disable=invalid-name
     self._most_recent_symbolized_minidump_paths = set([])
     self._minidump_path_crashpad_retrieval = {}
+    # pylint: enable=invalid-name
 
     self._executable = executable
     if not self._executable:

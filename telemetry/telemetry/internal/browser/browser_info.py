@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-_check_webgl_supported_script = """
+_CHECK_WEBGL_SUPPORTED_SCRIPT = """
 (function () {
   var c = document.createElement('canvas');
   var gl = c.getContext('webgl', { failIfMajorPerformanceCaveat: true });
@@ -27,15 +27,15 @@ class BrowserInfo(object):
   def HasWebGLSupport(self):
     result = False
     # If no tab is opened, open one and close it after evaluate
-    # _check_webgl_supported_script
+    # _CHECK_WEBGL_SUPPORTED_SCRIPT
     if len(self._browser.tabs) == 0 and self._browser.supports_tab_control:
       self._browser.tabs.New()
       tab = self._browser.tabs[0]
-      result = tab.EvaluateJavaScript(_check_webgl_supported_script)
+      result = tab.EvaluateJavaScript(_CHECK_WEBGL_SUPPORTED_SCRIPT)
       tab.Close()
     elif len(self._browser.tabs) > 0:
       tab = self._browser.tabs[0]
-      result = tab.EvaluateJavaScript(_check_webgl_supported_script)
+      result = tab.EvaluateJavaScript(_CHECK_WEBGL_SUPPORTED_SCRIPT)
     return result
 
   def HasFlingGestureSupport(self):

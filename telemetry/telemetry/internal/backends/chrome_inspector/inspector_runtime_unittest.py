@@ -21,7 +21,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
 
   def testRuntimeEvaluateOfSomethingThatCantJSONize(self):
 
-    def test():
+    def Test():
       self._tab.EvaluateJavaScript("""
         var cur = {};
         var root = {next: cur};
@@ -31,7 +31,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
           cur = next;
         }
         root;""")
-    self.assertRaises(exceptions.EvaluateException, test)
+    self.assertRaises(exceptions.EvaluateException, Test)
 
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
     self._tab.ExecuteJavaScript('window')
