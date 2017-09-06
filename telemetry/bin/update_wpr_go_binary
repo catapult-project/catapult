@@ -30,7 +30,7 @@ def check_go_version():
   except subprocess.CalledProcessError:
     out = 'no go binary found'
   assert any(v in out for v in _SUPPORTED_GO_VERSIONS), (
-      'Require go version 1.5 or higher. Found: %s' % out)
+      'Require go version 1.8 or higher. Found: %s' % out)
 
 
 def build_wpr_go(os_name, os_arch):
