@@ -60,9 +60,13 @@ tr.exportTo('tr.v', function() {
         const row = [hist.name, hist.unit.unitString];
         this.table_.push(row);
 
-        const stats = hist.statisticsScalars;
         for (const name of this.statisticsNames_) {
-          row.push(stats.has(name) ? stats.get(name).value : '');
+          const stat = hist.getStatisticScalar(name);
+          if (stat) {
+            row.push(stat.value);
+          } else {
+            row.push('');
+          }
         }
 
         for (const grouping of this.groupings_) {
