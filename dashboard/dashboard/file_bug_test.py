@@ -264,32 +264,6 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @unittest.skip('Flaky; see #1555.')
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, json.dumps([
-              {
-                  'versions': [
-                      {'branch_base_position': '111999',
-                       'current_version': '3.0.1234.32'},
-                      {'branch_base_position': '112000',
-                       'current_version': '2.0'},
-                      {'branch_base_position': '111990',
-                       'current_version': '1.0'}
-                  ]
-              }
-          ]))))
-  def testGet_WithFinish_LabelsBugWithLowestMilestonePossible(self):
-    # Here, we expect the bug to have the following start revisions:
-    # [111995, 112005] and the milestones are M-1 for rev 111990, M-2
-    # for 112000 and M-3 for 111999. Hence the expected behavior is to
-    # label the bug M-2 since 111995 is less than 112000 (M-2) and 111999
-    # (M-3) AND M-2 is lower than M-3.
-    self._PostSampleBug()
-    self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
-
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
