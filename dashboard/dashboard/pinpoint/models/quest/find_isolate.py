@@ -34,6 +34,8 @@ class FindIsolate(quest.Quest):
 
 class _FindIsolateExecution(execution.Execution):
 
+  _previous_builds = {}
+
   def __init__(self, builder_name, target, change):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
@@ -78,8 +80,14 @@ class _FindIsolateExecution(execution.Execution):
         raise BuildError('Buildbucket says the build completed successfully, '
                          "but Pinpoint can't find the isolate hash.")
 
-    # Request a build!
-    self._build = _RequestBuild(self._builder_name, self._change)['build']['id']
+    if self._change in self._previous_builds:
+      # If another Execution already requested a build, reuse that one.
+      self._build = self._previous_builds[self._change]
+    else:
+      # Request a build!
+      buildbucket_info = _RequestBuild(self._builder_name, self._change)
+      self._build = buildbucket_info['build']['id']
+      self._previous_builds[self._change] = self._build
 
 
 def _BuilderNameForConfiguration(configuration):

@@ -34,7 +34,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -55,7 +55,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', None, 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -70,7 +70,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     retrieve.return_value = {'files': {}}
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)
@@ -82,7 +82,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)
@@ -94,7 +94,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)
@@ -109,7 +109,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -133,7 +133,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, (0, 0, 1, 1, 1))
@@ -151,7 +151,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, tuple([0] * 4000 + [1] * 6000))
@@ -166,7 +166,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertEqual(execution.result_values, (2.5,))
@@ -182,7 +182,7 @@ class ReadGraphJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadGraphJsonValue('chart', 'trace')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -197,7 +197,7 @@ class ReadGraphJsonValueTest(_ReadValueTest):
     retrieve.return_value = {'files': {}}
 
     quest = read_value.ReadGraphJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)
@@ -209,7 +209,7 @@ class ReadGraphJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadGraphJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)
@@ -221,7 +221,7 @@ class ReadGraphJsonValueTest(_ReadValueTest):
     )
 
     quest = read_value.ReadGraphJsonValue('metric', 'test')
-    execution = quest.Start(('output hash',))
+    execution = quest.Start(None, 'output hash')
     execution.Poll()
 
     self.assertReadValueError(execution)

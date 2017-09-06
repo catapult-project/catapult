@@ -22,7 +22,7 @@ from dashboard.services import issue_tracker_service
 _TASK_INTERVAL = 10
 
 
-_DEFAULT_ATTEMPT_COUNT = 1
+_DEFAULT_REPEAT_COUNT = 10
 _SIGNIFICANCE_LEVEL = 0.0005
 
 
@@ -59,6 +59,8 @@ class Job(ndb.Model):
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
 
+  repeat_count = ndb.IntegerProperty(required=True)
+
   # If True, the service should pick additional Changes to run (bisect).
   # If False, only run the Changes explicitly added by the user.
   auto_explore = ndb.BooleanProperty(required=True)
@@ -70,13 +72,16 @@ class Job(ndb.Model):
   state = ndb.PickleProperty(required=True)
 
   @classmethod
-  def New(cls, arguments, quests, auto_explore, bug_id):
+  def New(cls, arguments, quests, auto_explore,
+          repeat_count=_DEFAULT_REPEAT_COUNT, bug_id=None):
+    repeat_count = repeat_count or _DEFAULT_REPEAT_COUNT
     # Create job.
     return cls(
         arguments=arguments,
         auto_explore=auto_explore,
+        repeat_count=repeat_count,
         bug_id=bug_id,
-        state=_JobState(quests, _DEFAULT_ATTEMPT_COUNT))
+        state=_JobState(quests, repeat_count))
 
   @property
   def job_id(self):
@@ -174,12 +179,12 @@ class _JobState(object):
   anyway. Everything queryable should be on the Job object.
   """
 
-  def __init__(self, quests, attempt_count):
+  def __init__(self, quests, repeat_count):
     """Create a _JobState.
 
     Args:
       quests: A sequence of quests to run on each Change.
-      attempt_count: The max number of attempts to automatically run per Change.
+      repeat_count: The number of attempts to automatically run per Change.
     """
     # _quests is mutable. Any modification should mutate the existing list
     # in-place rather than assign a new list, because every Attempt references
@@ -193,7 +198,7 @@ class _JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
-    self._attempt_count = attempt_count
+    self._repeat_count = repeat_count
 
   def AddAttempt(self, change):
     assert change in self._attempts
@@ -204,8 +209,10 @@ class _JobState(object):
       self._changes.insert(index, change)
     else:
       self._changes.append(change)
+
     self._attempts[change] = []
-    self.AddAttempt(change)
+    for _ in xrange(self._repeat_count):
+      self.AddAttempt(change)
 
   def Explore(self):
     """Compare Changes and bisect by adding additional Changes as needed.

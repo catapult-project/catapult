@@ -153,6 +153,41 @@ class BuildTest(_FindIsolateTest):
 
     self.assertExecutionSuccess(execution)
 
+  def testSimultaneousBuilds(self, put, get_job_status):
+    # Two builds started at the same time on the same Change should reuse the
+    # same build request.
+    change = change_module.Change(change_module.Dep('src', 'base git hash'))
+    quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
+    execution_1 = quest.Start(change)
+    execution_2 = quest.Start(change)
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertFalse(execution_1.completed)
+    self.assertFalse(execution_2.completed)
+    self.assertEqual(put.call_count, 1)
+
+    # Check build status.
+    get_job_status.return_value = {'build': {'status': 'STARTED'}}
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertFalse(execution_1.completed)
+    self.assertFalse(execution_2.completed)
+    self.assertEqual(get_job_status.call_count, 2)
+
+    # Look up isolate hash.
+    isolate.Put((('Mac Builder', change,
+                  'telemetry_perf_tests', 'isolate git hash'),))
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertExecutionSuccess(execution_1)
+    self.assertExecutionSuccess(execution_2)
+
   def testBuildFailure(self, put, get_job_status):
     change = change_module.Change(
         change_module.Dep('src', 'base git hash'),

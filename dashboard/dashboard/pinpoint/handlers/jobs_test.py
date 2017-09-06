@@ -38,8 +38,7 @@ class JobsTest(unittest.TestCase):
     job = job_module.Job.New(
         arguments={},
         quests=(),
-        auto_explore=True,
-        bug_id=None)
+        auto_explore=True)
     job.put()
 
     data = json.loads(self.testapp.post('/jobs').body)

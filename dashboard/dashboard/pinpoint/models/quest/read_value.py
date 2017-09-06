@@ -30,49 +30,47 @@ class ReadChartJsonValue(quest.Quest):
   def __str__(self):
     return 'Values'
 
-  def Start(self, isolate_hashes):
+  def Start(self, change, isolate_hash):
+    del change
     return _ReadChartJsonValueExecution(self._chart, self._tir_label,
-                                        self._trace, isolate_hashes)
+                                        self._trace, isolate_hash)
 
 
 class _ReadChartJsonValueExecution(execution.Execution):
 
-  def __init__(self, chart, tir_label, trace, isolate_hashes):
+  def __init__(self, chart, tir_label, trace, isolate_hash):
     super(_ReadChartJsonValueExecution, self).__init__()
     self._chart = chart
     self._tir_label = tir_label
     self._trace = trace or 'summary'
-    self._isolate_hashes = isolate_hashes
+    self._isolate_hash = isolate_hash
 
   def _AsDict(self):
     return {
-        'isolate_hashes': self._isolate_hashes
+        'isolate_hash': self._isolate_hash
     }
 
   def _Poll(self):
-    result_values = []
+    chartjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
 
-    for isolate_hash in self._isolate_hashes:
-      chartjson = _RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
+    if self._tir_label:
+      chart_name = '@@'.join((self._tir_label, self._chart))
+    else:
+      chart_name = self._chart
+    if chart_name not in chartjson['charts']:
+      raise ReadValueError('The chart "%s" is not in the results.' %
+                           chart_name)
+    if self._trace not in chartjson['charts'][chart_name]:
+      raise ReadValueError('The trace "%s" is not in the results.' %
+                           self._trace)
+    chart = chartjson['charts'][chart_name][self._trace]
 
-      if self._tir_label:
-        chart_name = '@@'.join((self._tir_label, self._chart))
-      else:
-        chart_name = self._chart
-      if chart_name not in chartjson['charts']:
-        raise ReadValueError('The chart "%s" is not in the results.' %
-                             chart_name)
-      if self._trace not in chartjson['charts'][chart_name]:
-        raise ReadValueError('The trace "%s" is not in the results.' %
-                             self._trace)
-      chart = chartjson['charts'][chart_name][self._trace]
-
-      if chart['type'] == 'list_of_scalar_values':
-        result_values += chart['values']
-      elif chart['type'] == 'histogram':
-        result_values += _ResultValuesFromHistogram(chart['buckets'])
-      elif chart['type'] == 'scalar':
-        result_values.append(chart['value'])
+    if chart['type'] == 'list_of_scalar_values':
+      result_values = chart['values']
+    elif chart['type'] == 'histogram':
+      result_values = _ResultValuesFromHistogram(chart['buckets'])
+    elif chart['type'] == 'scalar':
+      result_values = [chart['value']]
 
     self._Complete(result_values=tuple(result_values))
 
@@ -107,18 +105,18 @@ class ReadGraphJsonValue(quest.Quest):
   def __str__(self):
     return 'Values'
 
-  def Start(self, isolate_hashes):
-    return _ReadGraphJsonValueExecution(self._chart, self._trace,
-                                        isolate_hashes)
+  def Start(self, change, isolate_hash):
+    del change
+    return _ReadGraphJsonValueExecution(self._chart, self._trace, isolate_hash)
 
 
 class _ReadGraphJsonValueExecution(execution.Execution):
 
-  def __init__(self, chart, trace, isolate_hashes):
+  def __init__(self, chart, trace, isolate_hash):
     super(_ReadGraphJsonValueExecution, self).__init__()
     self._chart = chart
     self._trace = trace
-    self._isolate_hashes = isolate_hashes
+    self._isolate_hash = isolate_hash
 
   def _AsDict(self):
     return {
@@ -126,21 +124,17 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     }
 
   def _Poll(self):
-    result_values = []
+    graphjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
 
-    for isolate_hash in self._isolate_hashes:
-      graphjson = _RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
+    if self._chart not in graphjson:
+      raise ReadValueError('The chart "%s" is not in the results.' %
+                           self._chart)
+    if self._trace not in graphjson[self._chart]['traces']:
+      raise ReadValueError('The trace "%s" is not in the results.' %
+                           self._trace)
+    result_value = float(graphjson[self._chart]['traces'][self._trace][0])
 
-      if self._chart not in graphjson:
-        raise ReadValueError('The chart "%s" is not in the results.' %
-                             self._chart)
-      if self._trace not in graphjson[self._chart]['traces']:
-        raise ReadValueError('The trace "%s" is not in the results.' %
-                             self._trace)
-      result_value = float(graphjson[self._chart]['traces'][self._trace][0])
-      result_values.append(result_value)
-
-    self._Complete(result_values=tuple(result_values))
+    self._Complete(result_values=(result_value,))
 
 
 def _RetrieveOutputJson(isolate_hash, filename):

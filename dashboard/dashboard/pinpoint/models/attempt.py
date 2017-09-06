@@ -73,9 +73,8 @@ class Attempt(object):
       return
 
     next_quest = self._quests[len(self._executions)]
+    arguments = {'change': self._change}
     if self._executions:
-      arguments = self._last_execution.result_arguments
-    else:
-      arguments = {'change': self._change}
+      arguments.update(self._last_execution.result_arguments)
 
     self._executions.append(next_quest.Start(**arguments))

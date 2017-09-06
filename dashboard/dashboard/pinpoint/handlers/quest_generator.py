@@ -84,12 +84,12 @@ def _TelemetryRunTest(request):
     arguments['story'] = story
     swarming_extra_args += ('--story-filter', story)
 
-  repeat_count = request.get('repeat_count')
-  if repeat_count:
-    arguments['repeat_count'] = repeat_count
+  # TODO: Workaround for crbug.com/677843.
+  if (benchmark.startswith('startup.warm') or
+      benchmark.startswith('start_with_url.warm')):
+    swarming_extra_args += ('--pageset-repeat', '2')
   else:
-    repeat_count = str(_DEFAULT_REPEAT_COUNT)
-  swarming_extra_args += ('--pageset-repeat', repeat_count)
+    swarming_extra_args += ('--pageset-repeat', '1')
 
   browser = request.get('browser')
   if not browser:
@@ -119,12 +119,7 @@ def _GTestRunTest(request):
     arguments['test'] = test
     swarming_extra_args.append('--gtest_filter=' + test)
 
-  repeat_count = request.get('repeat_count')
-  if repeat_count:
-    arguments['repeat_count'] = repeat_count
-  else:
-    repeat_count = str(_DEFAULT_REPEAT_COUNT)
-  swarming_extra_args.append('--gtest_repeat=' + repeat_count)
+  swarming_extra_args.append('--gtest_repeat=1')
 
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
