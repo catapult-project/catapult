@@ -150,8 +150,7 @@ class DummyLocalStory(story_module.Story):
 class _DisableBenchmarkExpectations(
     story_module.expectations.StoryExpectations):
   def SetExpectations(self):
-    self.PermanentlyDisableBenchmark(
-        [story_module.expectations.ALL], 'crbug.com/123')
+    self.DisableBenchmark([story_module.expectations.ALL], 'crbug.com/123')
 
 class _DisableStoryExpectations(story_module.expectations.StoryExpectations):
   def SetExpectations(self):

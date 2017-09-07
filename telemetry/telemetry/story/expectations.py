@@ -71,10 +71,6 @@ class StoryExpectations(object):
 
     self._disabled_platforms.append((conditions, reason))
 
-  # TODO(rnephew): Remove this when all chromium instances are moved to
-  # DisableBenchmark.
-  PermanentlyDisableBenchmark = DisableBenchmark
-
   def IsBenchmarkDisabled(self, platform, finder_options):
     """Returns the reason the benchmark was disabled, or None if not disabled.
 
