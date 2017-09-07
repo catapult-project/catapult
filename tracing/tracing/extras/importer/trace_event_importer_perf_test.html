@@ -17,20 +17,47 @@ tr.b.unittest.testSuite(function() {
   const eventStrings = {};
 
   // @const
-  const TEST_NAMES = ['simple_trace', 'lthi_cats'];
-  // @const
-  const TEST_FILES_PATHS = ['/test_data/simple_trace.json',
-    '/test_data/lthi_cats.json.gz'];
+  const N_ITERATIONS = 200;
 
-  function getEvents(url) {
-    if (url in eventStrings) {
-      return eventStrings[url];
+  // @const
+  const TEST_NAMES = [
+    'simple_trace',
+    'flow',
+  ];
+  // @const
+  const TEST_FILES_PATHS = [
+    '/test_data/simple_trace.json',
+    '/test_data/flow.json',
+  ];
+
+  function stringToStream(str) {
+    const buffer = new ArrayBuffer(str.length);
+    const bufferView = new Uint8Array(buffer);
+    for (let i = 0; i < bufferView.length; i++) {
+      bufferView[i] = str.charCodeAt(i);
     }
-    eventStrings[url] = tr.b.getSync(url);
-    return eventStrings[url];
+    const stream = new tr.b.InMemoryTraceStream(bufferView, false);
+    return stream;
   }
 
-  function timedPerfTestWithEvents(name, testFn, initialOptions) {
+  function getEvents(url, asStream) {
+    if (url in eventStrings && asStream in eventStrings[url]) {
+      return eventStrings[url][asStream];
+    }
+    if (!(url in eventStrings)) {
+      eventStrings[url] = {};
+    }
+    // TODO(ehmaldonado): See catapult:#3845.
+    // tr.b.getSync does not return a trace stream in browser mode, so we
+    // convert to stream manually.
+    eventStrings[url][asStream] = tr.b.getSync(url);
+    if (asStream) {
+      eventStrings[url][asStream] = stringToStream(eventStrings[url][asStream]);
+    }
+    return eventStrings[url][asStream];
+  }
+
+  function timedPerfTestWithEvents(name, testFn, initialOptions, asStream) {
     if (initialOptions.setUp) {
       throw new Error(
           'Per-test setUp not supported. Trivial to fix if needed.');
@@ -43,30 +70,34 @@ tr.b.unittest.testSuite(function() {
     options.setUp = function() {
       TEST_FILES_PATHS.forEach(
           function warmup(url) {
-            getEvents(url);
+            getEvents(url, asStream);
           });
     };
     timedPerfTest(name, testFn, options);
   }
 
-  const n110100 = [1, 10, 100];
-  n110100.forEach(function(val) {
-    timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
-      const events = getEvents(TEST_FILES_PATHS[0]);
+  for (let i = 0; i < TEST_NAMES.length; ++i) {
+    const testName = TEST_NAMES[i];
+    const testFilePath = TEST_FILES_PATHS[i];
+
+    // Import trace as a string.
+    timedPerfTestWithEvents(testName + '_string', function() {
+      const events = getEvents(testFilePath, false);
       const m = tr.c.TestUtils.newModelWithEvents([events], {
         shiftWorldToZero: false,
         pruneContainers: false
       });
-    }, {iterations: val});
-  });
+    }, {iterations: N_ITERATIONS}, false);
 
-  timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
-    const events = getEvents(TEST_FILES_PATHS[1]);
-    const m = tr.c.TestUtils.newModelWithEvents([events], {
-      shiftWorldToZero: false,
-      pruneContainers: false
-    });
-  }, {iterations: 1});
+    // Import trace as a stream.
+    timedPerfTestWithEvents(testName + '_stream', function() {
+      const events = getEvents(testFilePath, true);
+      const m = tr.c.TestUtils.newModelWithEvents([events], {
+        shiftWorldToZero: false,
+        pruneContainers: false
+      });
+    }, {iterations: N_ITERATIONS}, true);
+  }
 });
 </script>
 
