@@ -33,6 +33,9 @@ tr.exportTo('tr.v', function() {
         if (key === 'name') continue;
         this.groupings_.push(grouping);
       }
+      this.groupings_.push(new tr.v.GenericSetGrouping(
+          tr.v.d.RESERVED_NAMES.TRACE_URLS));
+
       this.groupings_.sort((a, b) => a.key.localeCompare(b.key));
 
       for (const hist of this.histograms_) {

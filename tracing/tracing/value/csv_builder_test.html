@@ -24,6 +24,8 @@ tr.b.unittest.testSuite(function() {
         new tr.v.d.GenericSet(['label A']));
     hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
         new tr.v.d.GenericSet(['story A']));
+    hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.TRACE_URLS,
+        new tr.v.d.GenericSet(['file://a/b.html']));
     hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.BENCHMARK_START,
         new tr.v.d.DateRange(0));
     hist0.diagnostics.set(tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
@@ -57,15 +59,16 @@ tr.b.unittest.testSuite(function() {
         'name,unit,avg,count,max,min,nans,pct_010,pct_090,std,sum,' +
         'architectures,benchmarks,benchmarkStart,bots,builds,displayLabel,' +
         'masters,memoryAmounts,osNames,osVersions,productVersions,stories,' +
-        'storysetRepeats,traceStart');
+        'storysetRepeats,traceStart,traceUrls');
     assert.strictEqual(csv[1],
         'hist0,B,500,101,1000,0,1,150,950,293.00170647967224,50500,,' +
-        'benchmark A,2017-07-10 22:44:08,,,label A,,,,,,story A,0,');
+        'benchmark A,2017-07-10 22:44:08,,,label A,,,,,,story A,' +
+        '0,,file://a/b.html');
     assert.strictEqual(csv[2],
-        'hist1,σ,,0,-Infinity,Infinity,0,,,,0,,,,,,Value,,,,,,,,');
+        'hist1,σ,,0,-Infinity,Infinity,0,,,,0,,,,,,Value,,,,,,,,,');
     assert.strictEqual(csv[3],
         'hist2,,,0,-Infinity,Infinity,0,,,,0,,benchmark A,,,,benchmark A' +
-        ',,,,,,,,');
+        ',,,,,,,,,');
     assert.strictEqual(csv[4], '');
   });
 });

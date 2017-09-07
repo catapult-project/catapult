@@ -70,9 +70,10 @@ class CsvOutputFormatterTest(unittest.TestCase):
     expected = '\r\n'.join([
         'name,unit,avg,count,max,min,std,sum,architectures,benchmarks,' +
         'benchmarkStart,bots,builds,displayLabel,masters,memoryAmounts,' +
-        'osNames,osVersions,productVersions,stories,storysetRepeats,traceStart',
+        'osNames,osVersions,productVersions,stories,storysetRepeats,' +
+        'traceStart,traceUrls',
         'foo,ms,3000,1,3000,3000,0,3000,,benchmark,2017-07-14 02:40:00,,,' +
-        'benchmark 2017-07-14 02:40:00,,,,,,http://www.foo.com/,,',
+        'benchmark 2017-07-14 02:40:00,,,,,,http://www.foo.com/,,,',
         ''])
 
     self.assertEqual(expected, self.Format())
@@ -112,4 +113,4 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self.assertEquals(values[2], [
         'foo', 'ms', '3400', '1', '3400', '3400', '0', '3400', '', 'benchmark',
         '2017-07-14 02:40:00', '', '', 'benchmark 2017-07-14 02:40:00', '', '',
-        '', '', '', 'http://www.bar.com/', '', ''])
+        '', '', '', 'http://www.bar.com/', '', '', ''])
