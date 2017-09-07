@@ -85,6 +85,16 @@ class TestConditionTest(unittest.TestCase):
     self.assertFalse(expectations.ALL_MAC.ShouldDisable(self._platform,
                                                         self._finder_options))
 
+  def testAllChromeOSReturnsTrueOnChromeOS(self):
+    self._platform.SetOSName('chromeos')
+    self.assertTrue(expectations.ALL_CHROMEOS.ShouldDisable(
+        self._platform, self._finder_options))
+
+  def testAllChromeOSReturnsFalseOnOthers(self):
+    self._platform.SetOSName('not_chromeos')
+    self.assertFalse(expectations.ALL_CHROMEOS.ShouldDisable(
+        self._platform, self._finder_options))
+
   def testAllAndroidReturnsTrueOnAndroid(self):
     self._platform.SetOSName('android')
     self.assertTrue(
@@ -106,7 +116,7 @@ class TestConditionTest(unittest.TestCase):
                                                  self._finder_options))
 
   def testAllDesktopReturnsTrueOnDesktop(self):
-    true_platforms = ['win', 'mac', 'linux']
+    true_platforms = ['win', 'mac', 'linux', 'chromeos']
     for plat in true_platforms:
       self._platform.SetOSName(plat)
       self.assertTrue(
@@ -114,7 +124,7 @@ class TestConditionTest(unittest.TestCase):
                                                  self._finder_options))
 
   def testAllMobileReturnsFalseOnNonMobile(self):
-    false_platforms = ['win', 'mac', 'linux']
+    false_platforms = ['win', 'mac', 'linux', 'chromeos']
     for plat in false_platforms:
       self._platform.SetOSName(plat)
       self.assertFalse(
