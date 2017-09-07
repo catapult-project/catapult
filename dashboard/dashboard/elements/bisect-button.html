@@ -117,9 +117,9 @@ found in the LICENSE file.
 
           if (PINPOINT_BOTS.indexOf(botName) != -1) {
             this.$.pinpoint.test_path = this.bisectInfo.testPath;
-            this.$.pinpoint.start_git_hash = this.bisectInfo.goodRevHash;
+            this.$.pinpoint.start_commit = this.bisectInfo.goodRev;
             this.$.pinpoint.start_repository = this.bisectInfo.goodRevRepo;
-            this.$.pinpoint.end_git_hash = this.bisectInfo.badRevHash;
+            this.$.pinpoint.end_commit = this.bisectInfo.badRev;
             this.$.pinpoint.end_repository = this.bisectInfo.badRevRepo;
             this.$.pinpoint.bug_id = this.bugId;
             this.$.pinpoint.show();

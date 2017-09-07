@@ -54,8 +54,8 @@ found in the LICENSE file.
       <form>
         <paper-input id="test-path" label="Test Path" value="{{test_path::input}}" disabled></paper-input>
         <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
-        <paper-input id="start_git_hash" label="start_git_hash" value="{{start_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
-        <paper-input id="end_git_hash" label="end_git_hash" value="{{end_git_hash::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="start_commit" label="start_commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="end_commit" label="end_commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="story-filter" label="Story Filter" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
         <paper-radio-group id="bisect-mode" selected="performance">
           <paper-radio-button id="performance" name="performance" on-change="onBisectModeChanged">Performance</paper-radio-button>
@@ -94,11 +94,11 @@ found in the LICENSE file.
           type: String,
           value: '',
         },
-        start_git_hash: {
+        start_commit: {
           type: String,
           value: '',
         },
-        end_git_hash: {
+        end_commit: {
           type: String,
           value: '',
         },
@@ -139,8 +139,8 @@ found in the LICENSE file.
       async onCreateJob(e) {
         const params = {
           test_path: this.test_path,
-          start_git_hash: this.start_git_hash,
-          end_git_hash: this.end_git_hash,
+          start_commit: this.start_commit,
+          end_commit: this.end_commit,
           start_repository: this.start_repository,
           end_repository: this.end_repository,
           bug_id: this.bug_id

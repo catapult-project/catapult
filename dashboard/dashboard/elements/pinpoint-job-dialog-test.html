@@ -115,8 +115,8 @@ tr.b.unittest.testSuite(function() {
 
     page.bug_id = 123;
     page.test_path = 'master/bot/suite/foo';
-    page.start_git_hash = '1234567890';
-    page.end_git_hash = '0987654321';
+    page.start_commit = '1234567890';
+    page.end_commit = '0987654321';
     page.start_repository = 'chromium';
     page.end_repository = 'chromium';
     await page.show();
@@ -134,8 +134,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(params.bug_id, 123);
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
-    assert.strictEqual(params.start_git_hash, '1234567890');
-    assert.strictEqual(params.end_git_hash, '0987654321');
+    assert.strictEqual(params.start_commit, '1234567890');
+    assert.strictEqual(params.end_commit, '0987654321');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'chromium');
   }, testOptionsOverwriteSimpleXhr);

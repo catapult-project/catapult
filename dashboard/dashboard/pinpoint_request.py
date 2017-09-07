@@ -13,6 +13,7 @@ from dashboard import start_try_job
 from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
 _BOTS_TO_DIMENSIONS = 'bot_dimensions_map'
@@ -59,6 +60,29 @@ def ParseMetricParts(test_path_parts):
   # left empty and implied to be summary.
   assert len(metric_parts) == 1
   return '', metric_parts[0], ''
+
+
+def ResolveToGitHash(commit_position, repository):
+  try:
+    int(commit_position)
+    if repository != 'chromium':
+      raise InvalidParamsError(
+          'Repository %s commit positions not supported.' % repository)
+    result = crrev_service.GetNumbering(
+        number=commit_position,
+        numbering_identifier='refs/heads/master',
+        numbering_type='COMMIT_POSITION',
+        project='chromium',
+        repo='chromium/src')
+    if 'error' in result:
+      raise InvalidParamsError(
+          'Error retrieving commit info: %s' % result['error'].get('message'))
+    return result['git_sha']
+  except ValueError:
+    pass
+
+  # It was probably a git hash, so just return as is
+  return commit_position
 
 
 def ParseTIRLabelChartNameAndTraceName(test_path_parts):
@@ -127,8 +151,11 @@ def PinpointParamsFromBisectParams(params):
 
   start_repository = params.get('start_repository')
   end_repository = params.get('end_repository')
-  start_git_hash = params.get('start_git_hash')
-  end_git_hash = params.get('end_git_hash')
+  start_commit = params.get('start_commit')
+  end_commit = params.get('end_commit')
+
+  start_git_hash = ResolveToGitHash(start_commit, start_repository)
+  end_git_hash = ResolveToGitHash(end_commit, end_repository)
 
   supported_repositories = namespaced_stored_object.Get(_PINPOINT_REPOSITORIES)
 

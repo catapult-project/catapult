@@ -89,8 +89,8 @@ def _StartPinpointBisect(bug_id, test_anomaly, test):
       test_anomaly.end_revision, test)
   params = {
       'test_path': test.test_path,
-      'start_git_hash': start_git_hash,
-      'end_git_hash': end_git_hash,
+      'start_commit': start_git_hash,
+      'end_commit': end_git_hash,
       'start_repository': start_repository,
       'end_repository': end_repository,
       'bug_id': bug_id,
