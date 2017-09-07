@@ -106,16 +106,17 @@ class RunTestFullTest(_RunTestTest):
 
     self.assertTrue(execution.completed)
     self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (None,))
+    self.assertEqual(execution.result_values, ())
     self.assertEqual(execution.result_arguments,
                      {'isolate_hash': 'output isolate hash'})
     self.assertEqual(
         {
+            'exception': None,
             'bot_id': 'bot id',
             'input_isolate_hash': 'input isolate hash',
             'task_id': 'task id',
             'result_arguments': {'isolate_hash': 'output isolate hash'},
-            'result_values': (None,),
+            'result_values': (),
         },
         execution.AsDict())
 
@@ -148,9 +149,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
+    last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
   def testTestError(self, swarming_task_result, swarming_tasks_new):
@@ -169,9 +168,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
+    last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTestError'))
 
 
@@ -205,9 +202,7 @@ class BotIdHandlingTest(_RunTestTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
+    last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('RunTestError'))
 
   def testSimultaneousExecutions(self, swarming_task_result,

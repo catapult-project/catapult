@@ -15,9 +15,8 @@ class _ReadValueTest(unittest.TestCase):
   def assertReadValueError(self, execution):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertIsInstance(execution.exception, basestring)
+    last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('ReadValueError'))
 
 

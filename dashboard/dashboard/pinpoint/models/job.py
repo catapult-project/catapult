@@ -284,7 +284,7 @@ class _JobState(object):
 
     attempts = []
     for c in self._changes:
-      attempts.append([a.AsDict() for a in self._attempts[c]])
+      attempts.append([attempt.AsDict() for attempt in self._attempts[c]])
 
     return {
         'quests': map(str, self._quests),
@@ -301,10 +301,18 @@ class _JobState(object):
     if any(not attempt.completed for attempt in attempts_a + attempts_b):
       return _PENDING
 
+    # Compare exceptions.
+    exceptions_a = tuple(attempt.exception or '' for attempt in attempts_a)
+    exceptions_b = tuple(attempt.exception or '' for attempt in attempts_b)
+
+    if _CompareValues(exceptions_a, exceptions_b) == _DIFFERENT:
+      return _DIFFERENT
+
+    # Compare values.
     results_a = _CombineResultsPerQuest(attempts_a)
     results_b = _CombineResultsPerQuest(attempts_b)
 
-    if any(_CompareResults(results_a[quest], results_b[quest]) == _DIFFERENT
+    if any(_CompareValues(results_a[quest], results_b[quest]) == _DIFFERENT
            for quest in self._quests):
       return _DIFFERENT
 
@@ -330,12 +338,12 @@ def _CombineResultsPerQuest(attempts):
   return aggregate_results
 
 
-def _CompareResults(results_a, results_b):
-  if len(results_a) == 0 or len(results_b) == 0:
+def _CompareValues(values_a, values_b):
+  if not (values_a and values_b):
     return _UNKNOWN
 
   try:
-    p_value = mann_whitney_u.MannWhitneyU(results_a, results_b)
+    p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
   except ValueError:
     return _UNKNOWN
 

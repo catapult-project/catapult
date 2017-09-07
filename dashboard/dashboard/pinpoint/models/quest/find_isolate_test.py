@@ -44,16 +44,15 @@ class _FindIsolateTest(unittest.TestCase):
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], basestring)
-    last_exception_line = execution.result_values[0].splitlines()[-1]
+    self.assertIsInstance(execution.exception, basestring)
+    last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith(exception_class.__name__))
     self.assertEqual(execution.result_arguments, {})
 
   def assertExecutionSuccess(self, execution):
     self.assertTrue(execution.completed)
     self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (None,))
+    self.assertIsNone(execution.exception)
 
 
 class IsolateLookupTest(_FindIsolateTest):
@@ -65,12 +64,14 @@ class IsolateLookupTest(_FindIsolateTest):
     execution.Poll()
 
     self.assertExecutionSuccess(execution)
+    self.assertEqual(execution.result_values, ())
     self.assertEqual(execution.result_arguments, {'isolate_hash': '7c7e90be'})
     self.assertEqual(
         {
+            'exception': None,
             'build': None,
             'result_arguments': {'isolate_hash': u'7c7e90be'},
-            'result_values': (None,)
+            'result_values': (),
         },
         execution.AsDict())
 

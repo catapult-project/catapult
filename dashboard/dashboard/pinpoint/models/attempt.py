@@ -43,6 +43,11 @@ class Attempt(object):
         len(self._quests) == len(self._executions))
 
   @property
+  def exception(self):
+    assert self.completed
+    return self._last_execution.exception
+
+  @property
   def result_values(self):
     assert self.completed
     return dict((quest, execution.result_values)
