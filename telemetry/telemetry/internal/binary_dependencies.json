@@ -218,7 +218,7 @@
           "download_path": "bin/android/arm64-v8a/memtrack_helper"
         },
         "android_armeabi-v7a": {
-          "cloud_storage_hash": "cb4437cd23e4e34fbf7930c02da496975c281004",
+          "cloud_storage_hash": "3add8b8d122af3099f4efd5e33c2c0d733dfe13c",
           "download_path": "bin/android/armeabi-v7a/memtrack_helper"
         }
       }
