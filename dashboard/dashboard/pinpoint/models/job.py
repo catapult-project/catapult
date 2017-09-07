@@ -319,8 +319,8 @@ class _JobState(object):
     # Here, "the same" means that we fail to reject the null hypothesis. We can
     # never be completely sure that the two Changes have the same results, but
     # we've run everything that we planned to, and didn't detect any difference.
-    if (len(attempts_a) >= self._attempt_count and
-        len(attempts_b) >= self._attempt_count):
+    if (len(attempts_a) >= self._repeat_count and
+        len(attempts_b) >= self._repeat_count):
       return _SAME
 
     return _UNKNOWN
