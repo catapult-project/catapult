@@ -113,6 +113,8 @@ _URL_MAPPING = [
     ('/navbar', navbar.NavbarHandler),
     ('/new_points', new_points.NewPointsHandler),
     ('/pinpoint/new', pinpoint_request.PinpointNewRequestHandler),
+    ('/pinpoint/new/prefill',
+     pinpoint_request.PinpointNewPrefillRequestHandler),
     ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),

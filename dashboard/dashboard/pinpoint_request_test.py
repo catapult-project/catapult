@@ -16,6 +16,26 @@ from dashboard.models import graph_data
 from dashboard.services import pinpoint_service
 
 
+class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(PinpointNewPrefillRequestHandlerTest, self).setUp()
+
+    app = webapp2.WSGIApplication(
+        [(r'/pinpoint/new/prefill',
+          pinpoint_request.PinpointNewPrefillRequestHandler)])
+    self.testapp = webtest.TestApp(app)
+
+  @mock.patch.object(
+      pinpoint_request.start_try_job, 'GuessStoryFilter')
+  def testPost_CallsGuessStoryFilter(self, mock_story_filter):
+    mock_story_filter.return_value = 'bar'
+    response = self.testapp.post('/pinpoint/new/prefill', {'test_path': 'foo'})
+    self.assertEqual(
+        {'story_filter': 'bar'}, json.loads(response.body))
+    mock_story_filter.assert_called_with('foo')
+
+
 class PinpointNewRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
@@ -127,6 +147,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'chromium',
         'end_repository': 'chromium',
         'bug_id': 1,
+        'story_filter': 'foo',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -142,6 +163,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('1', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
+    self.assertEqual('foo', results['story'])
     self.assertEqual(
         [{'key': 'foo', 'value': 'mac_dimensions'}],
         json.loads(results['dimensions']))
@@ -177,9 +199,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.start_try_job, 'GuessStoryFilter')
-  def testPinpointParams_Metric_TopLevelOnly(self, mock_story_filter):
+  def testPinpointParams_Metric_TopLevelOnly(self):
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo',
         'start_git_hash': 'abcd1234',
@@ -193,13 +213,10 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('', results['tir_label'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('', results['trace'])
-    mock_story_filter.assert_called_once_with(params['test_path'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.start_try_job, 'GuessStoryFilter')
-  def testPinpointParams_Metric_ChartAndTrace(self, mock_story_filter):
+  def testPinpointParams_Metric_ChartAndTrace(self):
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/http___bar.html',
         'start_git_hash': 'abcd1234',
@@ -215,13 +232,10 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('', results['tir_label'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('http://bar.html', results['trace'])
-    mock_story_filter.assert_called_once_with(params['test_path'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.start_try_job, 'GuessStoryFilter')
-  def testPinpointParams_Metric_TIRLabelChartAndTrace(self, mock_story_filter):
+  def testPinpointParams_Metric_TIRLabelChartAndTrace(self):
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
         'start_git_hash': 'abcd1234',
@@ -236,7 +250,6 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('label', results['tir_label'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('bar.html', results['trace'])
-    mock_story_filter.assert_called_once_with(params['test_path'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))

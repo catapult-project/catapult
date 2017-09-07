@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
     const page = document.createElement('pinpoint-job-dialog');
     this.addHTMLOutput(page);
 
-    page.show();
+    await page.show();
 
     let fired = false;
     page.fire = function(eventName) {
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     const page = document.createElement('pinpoint-job-dialog');
     this.addHTMLOutput(page);
 
-    page.show();
+    await page.show();
 
     let fired = false;
     page.fire = function(eventName) {
@@ -73,6 +73,30 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(page.error, 'foo');
     assert.isFalse(fired);
+  }, testOptions);
+
+  test('show prefills info', async function() {
+    const mockResponse = {
+      'jobId': 12345
+    };
+    const page = document.createElement('pinpoint-job-dialog');
+    this.addHTMLOutput(page);
+
+    testing_common.addXhrMock(
+        '/pinpoint/new/prefill?test_path=master%2Fbot%2Fsuite%2Ffoo',
+        JSON.stringify({story_filter: 'foo'}));
+
+    page.bug_id = 123;
+    page.test_path = 'master/bot/suite/foo';
+    page.start_git_hash = '1234567890';
+    page.end_git_hash = '0987654321';
+    page.start_repository = 'chromium';
+    page.end_repository = 'chromium';
+    await page.show();
+
+    page.close();
+
+    assert.strictEqual(page.story_filter, 'foo');
   }, testOptions);
 
   const originalAsPromise = simple_xhr.asPromise;
@@ -95,7 +119,7 @@ tr.b.unittest.testSuite(function() {
     page.end_git_hash = '0987654321';
     page.start_repository = 'chromium';
     page.end_repository = 'chromium';
-    page.show();
+    await page.show();
 
     let params;
     simple_xhr.asPromise = function(_, p) {

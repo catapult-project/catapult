@@ -23,6 +23,12 @@ class InvalidParamsError(Exception):
   pass
 
 
+class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
+  def post(self):
+    story_filter = start_try_job.GuessStoryFilter(self.request.get('test_path'))
+    self.response.write(json.dumps({'story_filter': story_filter}))
+
+
 class PinpointNewRequestHandler(request_handler.RequestHandler):
   def post(self):
     job_params = dict(
@@ -95,6 +101,7 @@ def PinpointParamsFromBisectParams(params):
   test_path_parts = test_path.split('/')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
+  story_filter = params.get('story_filter')
 
   tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
       test_path_parts)
@@ -148,7 +155,7 @@ def PinpointParamsFromBisectParams(params):
       'trace': trace_name,
       'chart': chart_name,
       'tir_label': tir_label,
-      'story': start_try_job.GuessStoryFilter(test_path),
+      'story': story_filter,
       'start_repository': start_repository,
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,
