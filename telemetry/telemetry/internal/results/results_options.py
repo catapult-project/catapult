@@ -19,7 +19,6 @@ from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import json_output_formatter
-from telemetry.internal.results import legacy_html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
 
@@ -34,7 +33,6 @@ _OUTPUT_FORMAT_CHOICES = (
     'html',
     'json',
     'json-test-results',
-    'legacy-html',
     'none',
     )
 
@@ -50,7 +48,6 @@ _OUTPUT_FILENAME_LOOKUP = {
     'html': 'results.html',
     'json': 'results.json',
     'json-test-results': 'test-results.json',
-    'legacy-html': 'legacy-results.html'
 }
 
 
@@ -129,7 +126,7 @@ def _GetOutputStream(output_format, output_dir):
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
 
   # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
-  if output_format in ['html', 'legacy-html', 'csv']:
+  if output_format in ['html', 'csv']:
     open(output_file, 'a').close() # Create file if it doesn't exist.
     return codecs.open(output_file, mode='r+', encoding='utf-8')
   else:
@@ -192,11 +189,6 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
               output_stream, benchmark_metadata, options.reset_results))
-    elif output_format == 'legacy-html':
-      output_formatters.append(
-          legacy_html_output_formatter.LegacyHtmlOutputFormatter(
-              output_stream, benchmark_metadata, options.reset_results,
-              options.browser_type, options.results_label))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
