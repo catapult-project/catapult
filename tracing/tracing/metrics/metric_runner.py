@@ -32,15 +32,17 @@ def _GetMetricRunnerHandle(metrics):
   return job_module.Job(map_function_handle, None)
 
 def RunMetric(filename, metrics, extra_import_options=None,
-              report_progress=True):
-  result = RunMetricOnTraces(
-      [filename], metrics, extra_import_options, report_progress)
-  return result[filename]
+              report_progress=True, canonical_url=None):
+  filename_url = 'file://' + filename
+  if canonical_url is None:
+    canonical_url = filename_url
+  trace_handle = file_handle.URLFileHandle(canonical_url, filename_url)
+  result = RunMetricOnTraceHandles(
+      [trace_handle], metrics, extra_import_options, report_progress)
+  return result[canonical_url]
 
-def RunMetricOnTraces(filenames, metrics,
-                      extra_import_options=None, report_progress=True):
-  trace_handles = [
-      file_handle.URLFileHandle(f, 'file://%s' % f) for f in filenames]
+def RunMetricOnTraceHandles(trace_handles, metrics, extra_import_options=None,
+                            report_progress=True):
   job = _GetMetricRunnerHandle(metrics)
   with open(os.devnull, 'w') as devnull_f:
     o_stream = sys.stdout
@@ -54,3 +56,13 @@ def RunMetricOnTraces(filenames, metrics,
     map_results = runner.RunMapper()
 
   return map_results
+
+def RunMetricOnTraces(filenames, metrics,
+                      extra_import_options=None, report_progress=True):
+  trace_handles = []
+  for filename in filenames:
+    filename_url = 'file://' + filename
+    trace_handles.append(file_handle.URLFileHandle(filename_url, filename_url))
+
+  return RunMetricOnTraceHandles(trace_handles, metrics, extra_import_options,
+                                 report_progress)

@@ -352,11 +352,8 @@ def RunBenchmark(benchmark, finder_options):
 
     try:
       if finder_options.upload_results:
-        bucket = finder_options.upload_bucket
-        if bucket in cloud_storage.BUCKET_ALIASES:
-          bucket = cloud_storage.BUCKET_ALIASES[bucket]
-        results.UploadTraceFilesToCloud(bucket)
-        results.UploadProfilingFilesToCloud(bucket)
+        results.UploadTraceFilesToCloud()
+        results.UploadProfilingFilesToCloud()
     finally:
       duration = time.time() - start
       results.AddSummaryValue(scalar.ScalarValue(
