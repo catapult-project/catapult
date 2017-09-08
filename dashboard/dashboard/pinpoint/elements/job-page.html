@@ -39,7 +39,7 @@ found in the LICENSE file.
     <h1 id="testing">
       Job [[routeData.jobId]]
       <template is="dom-if" if="[[failed(jobInfo)]]">
-        <span id="failed" class="chip">Failed</span>
+        <span id="failed" class="chip">Error</span>
         <paper-tooltip for="failed" animation-delay="0">
           <div id="failed-tooltip">[[jobInfo.exception]]</div>
         </paper-tooltip>

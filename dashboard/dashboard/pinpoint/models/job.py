@@ -14,6 +14,7 @@ from dashboard.common import utils
 from dashboard.pinpoint import mann_whitney_u
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
+from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 
 
@@ -30,6 +31,10 @@ _DIFFERENT = 'different'
 _PENDING = 'pending'
 _SAME = 'same'
 _UNKNOWN = 'unknown'
+
+
+_ROUND_PUSHPIN = u'\U0001f4cd'
+_MIDDLE_DOT = u'\xb7'
 
 
 def JobFromId(job_id):
@@ -106,25 +111,14 @@ class Job(ndb.Model):
 
   def Start(self):
     self.Schedule()
-
-    comment = 'Pinpoint job started.\n' + self.url
-    issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
+    self._PostBugComment('started')
 
   def Complete(self):
-    comment = 'Pinpoint job complete!\n' + self.url
-    issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
+    self._PostBugComment('completed')
 
   def Fail(self):
     self.exception = traceback.format_exc()
-
-    comment = 'Pinpoint job failed!\n' + self.url
-    issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
+    self._PostBugComment('stopped with an error')
 
   def Schedule(self):
     task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
@@ -167,6 +161,34 @@ class Job(ndb.Model):
     d = self.StatusDict()
     d['state'] = self.state.AsDict()
     return d
+
+  def _PostBugComment(self, status):
+    if not self.bug_id:
+      return
+
+    title = '%s Pinpoint job %s.' % (_ROUND_PUSHPIN, status)
+    header = '\n'.join((title, self.url))
+
+    # Include list of Changes.
+    change_details = []
+    for _, change in self.state.Differences():
+      # TODO: Only show the most specific Dep.
+      # TODO: Store the commit info in the Dep.
+      for dep in change.all_deps:
+        commit_info = gitiles_service.CommitInfo(dep.repository, dep.git_hash)
+        subject = commit_info['message'].split('\n', 1)[0]
+        author = commit_info['author']['email']
+        time = commit_info['committer']['time']
+
+        byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
+        git_link = dep.repository + '@' + dep.git_hash
+        change_details.append('\n'.join((subject, byline, git_link)))
+
+    comment = '\n\n'.join([header] + change_details)
+
+    issue_tracker = issue_tracker_service.IssueTrackerService(
+        utils.ServiceAccountHttp())
+    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
 
 
 class _JobState(object):
@@ -229,6 +251,7 @@ class _JobState(object):
     """
     # Compare every pair of Changes.
     # TODO: The list may Change while iterating through it.
+    # TODO: Use JobState.Differences().
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
@@ -263,6 +286,13 @@ class _JobState(object):
 
     return work_left
 
+  def Differences(self):
+    for index in xrange(1, len(self._changes)):
+      change_a = self._changes[index - 1]
+      change_b = self._changes[index]
+      if self._Compare(change_a, change_b) == _DIFFERENT:
+        yield index, change_b
+
   def AsDict(self):
     comparisons = []
     for index in xrange(1, len(self._changes)):
@@ -289,6 +319,7 @@ class _JobState(object):
     return {
         'quests': map(str, self._quests),
         'changes': [change.AsDict() for change in self._changes],
+        # TODO: Use JobState.Differences().
         'comparisons': comparisons,
         'result_values': result_values,
         'attempts': attempts,
