@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<!--
+media_metrics uses Chrome trace events to calculate metrics about video
+and audio playback. It is meant to be used for pages with a <video> or
+<audio> element. It is used by videostack-eng@google.com team for
+regression testing.
+
+This metric currently supports the following measurement:
+* time_to_video_play calculates how long after a video is requested to
+  start playing before the video actually starts. If time_to_video_play
+  regresses, then users will click to play videos and then have
+  to wait longer before the videos start actually playing.
+* time_to_audio_play is similar to time_to_video_play, but measures the
+  time delay before audio starts playing.
+
+More measurements are expected to be added in the near future, such as:
+* buffering_time
+* seek_time
+* dropped_frame_count
+
+Please inform crouleau@chromium.org and johnchen@chromium.org about
+changes to this file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics', function() {
+  function mediaMetric(histograms, model) {
+    let playStart;
+    let timeToAudioPlay;
+    let timeToVideoPlay;
+
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (chromeHelper === undefined) return;
+
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      // Find the threads we're interested in, and if a needed thread
+      // is missing, no need to look further in this process.
+      const mainThread = rendererHelper.mainThread;
+      if (mainThread === undefined) continue;
+
+      const compositorThread = rendererHelper.compositorThread;
+      const audioThread =
+        rendererHelper.process.findAtMostOneThreadNamed('AudioOutputDevice');
+      if (compositorThread === undefined && audioThread === undefined) continue;
+
+      // Look for the media player DoLoad event on main thread.
+      for (const event of mainThread.getDescendantEvents()) {
+        if (event.title === 'WebMediaPlayerImpl::DoLoad') {
+          // TODO(johnchen@chromium.org): Support multiple audio/video
+          // elements per page. Currently, we only support a single
+          // audio or video element, so we can store the start time in
+          // a simple variable, and exit the loop.
+          if (playStart !== undefined) {
+            throw new Error(
+                'Loading multiple audio/video elements not yet supported');
+          }
+          playStart = event.start;
+          break;
+        }
+      }
+      if (playStart === undefined) continue;
+
+      // Look for video render event.
+      if (compositorThread !== undefined) {
+        for (const event of compositorThread.getDescendantEvents()) {
+          if (event.title === 'VideoRendererImpl::Render') {
+            timeToVideoPlay = event.start - playStart;
+            break;
+          }
+        }
+      }
+
+      // Look for audio render event.
+      if (audioThread !== undefined) {
+        for (const event of audioThread.getDescendantEvents()) {
+          if (event.title === 'AudioRendererImpl::Render') {
+            timeToAudioPlay = event.start - playStart;
+            break;
+          }
+        }
+      }
+      if (timeToVideoPlay !== undefined) break;
+      if (timeToAudioPlay !== undefined) break;
+    }
+
+    if (timeToVideoPlay !== undefined) {
+      histograms.createHistogram('time_to_video_play',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, timeToVideoPlay);
+    }
+    if (timeToAudioPlay !== undefined) {
+      histograms.createHistogram('time_to_audio_play',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, timeToAudioPlay);
+    }
+  }
+
+  tr.metrics.MetricRegistry.register(mediaMetric);
+
+  return {
+    mediaMetric,
+  };
+});
+</script>

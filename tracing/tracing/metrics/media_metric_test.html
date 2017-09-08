@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/metrics/media_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function makeModel(events) {
+    return tr.c.TestUtils.newModelWithEvents([events]);
+  }
+
+  test('mediaMetric_noData', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    assert.lengthOf(histograms, 0);
+  });
+
+  test('mediaMetric_videoTimeToPlay', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      {name: 'WebMediaPlayerImpl::DoLoad', args: {},
+        pid: 52, ts: 524, cat: 'media', tid: 1, ph: 'X'},
+      {name: 'VideoRendererImpl::Render', args: {},
+        pid: 52, ts: 560, cat: 'media', tid: 53, ph: 'X'},
+      {name: 'VideoRendererImpl::Render', args: {},
+        pid: 52, ts: 580, cat: 'media', tid: 53, ph: 'X'},
+      {name: 'thread_name', args: {name: 'CrRendererMain'},
+        pid: 52, ts: 0, cat: '__metadata', tid: 1, ph: 'M'},
+      {name: 'thread_name', args: {name: 'Compositor'},
+        pid: 52, ts: 0, cat: '__metadata', tid: 53, ph: 'M'},
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+
+    assert.isDefined(histograms.getHistogramNamed('time_to_video_play'));
+    const ttpValue = histograms.getHistogramNamed('time_to_video_play');
+    const ttpStatistics = ttpValue.running;
+    assert.strictEqual(ttpStatistics.count, 1);
+    assert.closeTo(ttpStatistics.mean, 0.036, 1e-5);
+    assert.closeTo(ttpStatistics.max, 0.036, 1e-5);
+  });
+
+  test('mediaMetric_audioTimeToPlay', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      {name: 'thread_name', args: {name: 'CrRendererMain'},
+        pid: 52, ts: 0, cat: '__metadata', tid: 1, ph: 'M'},
+      {name: 'thread_name', args: {name: 'AudioOutputDevice'},
+        pid: 52, ts: 0, cat: '__metadata', tid: 53, ph: 'M'},
+      {name: 'WebMediaPlayerImpl::DoLoad', args: {},
+        pid: 52, ts: 1234, cat: 'media', tid: 1, ph: 'X'},
+      {name: 'AudioRendererImpl::Render', args: {},
+        pid: 52, ts: 4321, cat: 'media', tid: 53, ph: 'X'},
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+
+    assert.isDefined(histograms.getHistogramNamed('time_to_audio_play'));
+    const ttpValue = histograms.getHistogramNamed('time_to_audio_play');
+    const ttpStatistics = ttpValue.running;
+    assert.strictEqual(ttpStatistics.count, 1);
+    assert.closeTo(ttpStatistics.mean, 3.087, 1e-5);
+    assert.closeTo(ttpStatistics.max, 3.087, 1e-5);
+  });
+});
+</script>
