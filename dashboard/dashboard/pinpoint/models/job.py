@@ -59,7 +59,7 @@ class Job(ndb.Model):
 
   # The string contents of any Exception that was thrown to the top level.
   # If it's present, the job failed.
-  exception = ndb.StringProperty()
+  exception = ndb.TextProperty()
 
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
