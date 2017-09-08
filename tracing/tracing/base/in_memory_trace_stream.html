@@ -93,6 +93,10 @@ tr.exportTo('tr.b', function() {
     }
 
     static uint8ArrayToString_(arr) {
+      if (typeof TextDecoder !== 'undefined') {
+        const decoder = new TextDecoder('utf-8');
+        return decoder.decode(arr);
+      }
       const c = [];
       for (let i = 0; i < arr.length; i += MAX_FUNCTION_ARGS_COUNT) {
         c.push(String.fromCharCode(...arr.subarray(
