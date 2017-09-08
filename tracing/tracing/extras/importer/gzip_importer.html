@@ -143,8 +143,8 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     if (inflatedData.length > 0 && string.length === 0) {
-      throw new RangeError('Inflated gzip data too long to fit into a string' +
-          ' (' + inflatedData.length + ').');
+      // Try transforming to a trace stream.
+      return GzipImporter.transformToStream(inflatedData);
     }
 
     return string;
