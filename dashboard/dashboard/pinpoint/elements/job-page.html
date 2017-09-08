@@ -108,6 +108,10 @@ found in the LICENSE file.
         return this.data_.exception;
       }
 
+      get attempts() {
+        return this.data_.state.attempts;
+      }
+
       get resultValues() {
         return this.data_.state.result_values;
       }

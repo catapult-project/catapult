@@ -74,17 +74,23 @@ found in the LICENSE file.
       },
 
       _jobInfoChanged() {
-        const valuesByChange = this.jobInfo.resultValues.map(
+        let valuesByChange = this.jobInfo.resultValues.map(
             valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
 
-        const allNumbers = valuesByChange.every(row => row.every(
-            value => typeof(value) === 'number'));
-        // Pass-fail data. Convert the results to "failure rate".
-        if (!allNumbers) {
-          for (let i = 0; i < valuesByChange.length; ++i) {
-            const values = valuesByChange[i];
-            const sum = values.filter(value => value).length;
-            valuesByChange[i] = [sum / values.length];
+        const anyNumbers = valuesByChange.some(row => row.length);
+        // No numeric data. Show "success rate" instead.
+        if (!anyNumbers) {
+          valuesByChange = [];
+          // TODO: Create a MergeAttempts helper function.
+          for (const attempts of this.jobInfo.attempts) {
+            const exceptions = [];
+            for (const attempt of attempts) {
+              const lastExecution =
+                attempt.executions[attempt.executions.length - 1];
+              exceptions.push(lastExecution.exception);
+            }
+            const sum = exceptions.filter(exception => !exception).length;
+            valuesByChange.push([sum / exceptions.length]);
           }
         }
 
@@ -92,7 +98,7 @@ found in the LICENSE file.
         let lowerBound = 0;
         let upperBound = 1;
 
-        if (allNumbers) {
+        if (anyNumbers) {
           // Numeric data. Set the bounds based on the data.
           const flatValues = [].concat(...valuesByChange);
           lowerBound = percentile(flatValues, 0.1);
