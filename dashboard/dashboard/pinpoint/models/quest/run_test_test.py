@@ -111,6 +111,7 @@ class RunTestFullTest(_RunTestTest):
                      {'isolate_hash': 'output isolate hash'})
     self.assertEqual(
         {
+            'completed': True,
             'exception': None,
             'bot_id': 'bot id',
             'input_isolate_hash': 'input isolate hash',

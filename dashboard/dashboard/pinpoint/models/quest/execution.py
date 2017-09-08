@@ -72,6 +72,7 @@ class Execution(object):
 
   def AsDict(self):
     d = {
+        'completed': self._completed,
         'exception': self._exception,
         'result_arguments': self._result_arguments,
         'result_values': self._result_values,
