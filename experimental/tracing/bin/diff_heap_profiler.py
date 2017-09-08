@@ -48,10 +48,16 @@ class GraphDump(object):
     self.leak_objects = 0
 
 
+def OpenTraceFile(file_path, mode):
+  if file_path.endswith('.gz'):
+    return gzip.open(file_path, mode + 'b')
+  else:
+    return open(file_path, mode + 't')
+
 def FindMemoryDumps(filename):
   processes = {}
 
-  with gzip.open(filename, 'rb') as f:
+  with OpenTraceFile(filename, 'r') as f:
     data = json.loads(f.read().decode('ascii'))
 
     for event in data['traceEvents']:
