@@ -46,6 +46,15 @@ found in the LICENSE file.
         background-color: var(--paper-red-700);
       }
 
+      .pending {
+        border: solid 1px var(--paper-grey-500);
+      }
+
+      .pending:hover,
+      .pending.iron-selected {
+        background-color: var(--paper-grey-200);
+      }
+
       .running {
         background-color: var(--paper-grey-500);
       }
@@ -109,6 +118,9 @@ found in the LICENSE file.
 
       status(attempt, questIndex) {
         const execution = attempt.executions[questIndex];
+        if (!execution) {
+          return 'pending';
+        }
         if (execution.exception) {
           return 'failed';
         }
@@ -119,11 +131,19 @@ found in the LICENSE file.
       },
 
       exception(attemptIndex, questIndex) {
+        const execution = this.attempts[attemptIndex].executions[questIndex];
+        if (!execution) {
+          return null;
+        }
         return this.attempts[attemptIndex].executions[questIndex].exception;
       },
 
       executionDetails(attemptIndex, questIndex) {
         const execution = this.attempts[attemptIndex].executions[questIndex];
+        if (!execution) {
+          return [];
+        }
+
         const details =
           Object.assign(execution.details, execution.result_arguments);
 
