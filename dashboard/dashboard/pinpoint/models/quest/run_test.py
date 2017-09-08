@@ -106,7 +106,6 @@ class _RunTestExecution(execution_module.Execution):
     return {
         'bot_id': self._bot_id,
         'task_id': self._task_id,
-        'input_isolate_hash': self._isolate_hash,
     }
 
   def _Poll(self):

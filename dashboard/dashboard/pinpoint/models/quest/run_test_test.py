@@ -113,9 +113,10 @@ class RunTestFullTest(_RunTestTest):
         {
             'completed': True,
             'exception': None,
-            'bot_id': 'bot id',
-            'input_isolate_hash': 'input isolate hash',
-            'task_id': 'task id',
+            'details': {
+                'bot_id': 'bot id',
+                'task_id': 'task id',
+            },
             'result_arguments': {'isolate_hash': 'output isolate hash'},
             'result_values': (),
         },

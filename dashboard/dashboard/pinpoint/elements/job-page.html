@@ -51,7 +51,7 @@ found in the LICENSE file.
     <loading-wrapper id="loader">
       <job-page-header job-info="[[jobInfo]]"></job-page-header>
       <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
-      <job-page-change-table job-info="[[jobInfo]]" index="[[pointSelectedIndex]]"></job-page-change-table>
+      <job-page-change-table job-info="[[jobInfo]]" change-index="[[pointSelectedIndex]]"></job-page-change-table>
     </loading-wrapper>
   </template>
 
@@ -69,13 +69,13 @@ found in the LICENSE file.
 
         pointSelectedIndex: {
           type: Number,
-          value: -1,
+          value: null,
           notify: true
         }
       },
 
       deselected() {
-        this.set('pointSelectedIndex', -1);
+        this.set('pointSelectedIndex', null);
       },
 
       async selected() {

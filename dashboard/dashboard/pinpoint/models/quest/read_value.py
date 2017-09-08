@@ -46,9 +46,7 @@ class _ReadChartJsonValueExecution(execution.Execution):
     self._isolate_hash = isolate_hash
 
   def _AsDict(self):
-    return {
-        'isolate_hash': self._isolate_hash
-    }
+    return {}
 
   def _Poll(self):
     chartjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
@@ -119,9 +117,7 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     self._isolate_hash = isolate_hash
 
   def _AsDict(self):
-    return {
-        'isolate_hash': self._isolate_hash
-    }
+    return {}
 
   def _Poll(self):
     graphjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')

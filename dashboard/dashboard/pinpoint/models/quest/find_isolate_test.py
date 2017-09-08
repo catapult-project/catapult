@@ -70,7 +70,7 @@ class IsolateLookupTest(_FindIsolateTest):
         {
             'completed': True,
             'exception': None,
-            'build': None,
+            'details': {'build': None},
             'result_arguments': {'isolate_hash': u'7c7e90be'},
             'result_values': (),
         },

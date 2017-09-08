@@ -74,10 +74,10 @@ class Execution(object):
     d = {
         'completed': self._completed,
         'exception': self._exception,
+        'details': self._AsDict(),
         'result_arguments': self._result_arguments,
         'result_values': self._result_values,
     }
-    d.update(self._AsDict())
     return d
 
   def _AsDict(self):
