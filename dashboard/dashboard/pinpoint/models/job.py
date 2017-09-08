@@ -172,7 +172,7 @@ class Job(ndb.Model):
       # TODO: Only show the most specific Dep.
       # TODO: Store the commit info in the Dep.
       for dep in change.all_deps:
-        commit_info = gitiles_service.CommitInfo(dep.repository, dep.git_hash)
+        commit_info = gitiles_service.CommitInfo(dep.repository_url, dep.git_hash)
         subject = commit_info['message'].split('\n', 1)[0]
         author = commit_info['author']['email']
         time = commit_info['committer']['time']
