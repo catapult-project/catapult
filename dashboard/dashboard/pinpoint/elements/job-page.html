@@ -109,23 +109,23 @@ found in the LICENSE file.
       }
 
       get attempts() {
-        return this.data_.state.attempts;
+        return this.data_.attempts;
       }
 
       get resultValues() {
-        return this.data_.state.result_values;
+        return this.data_.result_values;
       }
 
       get comparisons() {
-        return this.data_.state.comparisons;
+        return this.data_.comparisons;
       }
 
       get changes() {
-        return this.data_.state.changes;
+        return this.data_.changes;
       }
 
       get quests() {
-        return this.data_.state.quests;
+        return this.data_.quests;
       }
 
       get status() {
@@ -146,7 +146,7 @@ found in the LICENSE file.
 
       getAttemptData(changeIndex, questIndex, dataName) {
         const result = [];
-        const attempts = this.data_.state.attempts[changeIndex];
+        const attempts = this.data_.attempts[changeIndex];
 
         for (let i = 0; i < attempts.length; i++) {
           const execution = attempts[i].executions[questIndex];
@@ -165,7 +165,7 @@ found in the LICENSE file.
 
       getStatusString(changeIndex, questIndex) {
         const resultValues =
-          this.data_.state.result_values[changeIndex][questIndex];
+          this.data_.result_values[changeIndex][questIndex];
 
         if (!resultValues.length) {
           return 'Running';

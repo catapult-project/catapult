@@ -68,9 +68,9 @@ found in the LICENSE file.
 
       getDifferences(jobInfo) {
         const differences = [];
-        for (let i = 0; i < jobInfo.state.comparisons.length; ++i) {
-          if (jobInfo.state.comparisons[i] === 'different') {
-            differences.push(jobInfo.state.changes[i + 1]);
+        for (let i = 0; i < jobInfo.comparisons.length; ++i) {
+          if (jobInfo.comparisons[i] === 'different') {
+            differences.push(jobInfo.changes[i + 1]);
           }
         }
         return differences;

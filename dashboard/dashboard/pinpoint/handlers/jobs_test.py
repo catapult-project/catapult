@@ -45,4 +45,4 @@ class JobsTest(unittest.TestCase):
 
     self.assertEqual(1, data['jobs_count'])
     self.assertEqual(1, len(data['jobs_list']))
-    self.assertEqual(job.StatusDict(), data['jobs_list'][0])
+    self.assertEqual(job.AsDict(include_state=False), data['jobs_list'][0])

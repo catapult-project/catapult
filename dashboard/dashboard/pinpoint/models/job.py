@@ -143,9 +143,8 @@ class Job(ndb.Model):
       self.Fail()
       raise
 
-  def StatusDict(self):
-    """A shorter version of AsDict() for faster Jobs list loading."""
-    return {
+  def AsDict(self, include_state=True):
+    d = {
         'job_id': self.job_id,
 
         'arguments': self.arguments,
@@ -156,10 +155,8 @@ class Job(ndb.Model):
         'exception': self.exception,
         'status': self.status,
     }
-
-  def AsDict(self):
-    d = self.StatusDict()
-    d['state'] = self.state.AsDict()
+    if include_state:
+      d.update(self.state.AsDict())
     return d
 
   def _PostBugComment(self, status):
