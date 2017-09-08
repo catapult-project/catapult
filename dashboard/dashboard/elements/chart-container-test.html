@@ -72,7 +72,8 @@ tr.b.unittest.testSuite(function() {
     return new Promise(function(resolve) {
       function check() {
         assert.lengthOf(chart.warnings, 1);
-        assert.notEqual(-1, chart.warnings[0].indexOf('Graph out of date!'));
+        assert.notEqual(-1, chart.warnings[0].value.indexOf(
+            'Graph out of date!'));
         resolve();
       }
       requestAnimationFrame(check);

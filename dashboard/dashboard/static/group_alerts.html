@@ -69,7 +69,17 @@ tr.exportTo('d', function() {
     const groups = [];
     for (const alert of alerts) {
       alert.measurementName = alert.test.split('/')[0];
-      alert.relatedNames = d.MEMORY_RELATED_NAMES.get(alert.measurementName);
+      if (d.MEMORY_PROCESS_RELATED_NAMES.has(alert.measurementName)) {
+        alert.relatedNames = d.MEMORY_PROCESS_RELATED_NAMES.get(
+            alert.measurementName);
+      }
+      if (d.MEMORY_COMPONENT_RELATED_NAMES.has(alert.measurementName)) {
+        alert.relatedNames = new Set(alert.relatedNames);
+        for (const name of d.MEMORY_COMPONENT_RELATED_NAMES.get(
+            alert.measurementName)) {
+          alert.relatedNames.add(name);
+        }
+      }
 
       let merged = false;
       for (const group of groups) {

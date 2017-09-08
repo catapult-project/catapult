@@ -102,16 +102,17 @@ tr.exportTo('d', function() {
   }
   /* eslint-enable max-len */
 
-  const MEMORY_RELATED_NAMES = new Map();
+  const MEMORY_PROCESS_RELATED_NAMES = new Map();
+  const MEMORY_COMPONENT_RELATED_NAMES = new Map();
 
   const ALL_PROCESSES = 'all_processes';
   const REPORTED_BY_CHROME = 'reported_by_chrome';
 
   for (const name of MEMORY_NAMES) {
-    let relatedNames = MEMORY_RELATED_NAMES.get(name);
-    if (relatedNames === undefined) {
-      relatedNames = new Set();
-      MEMORY_RELATED_NAMES.set(name, relatedNames);
+    let processRelatedNames = MEMORY_PROCESS_RELATED_NAMES.get(name);
+    if (processRelatedNames === undefined) {
+      processRelatedNames = new Set();
+      MEMORY_PROCESS_RELATED_NAMES.set(name, processRelatedNames);
     }
 
     // Each 'all_processes' name is related to all ${process} variants of that
@@ -122,7 +123,7 @@ tr.exportTo('d', function() {
       const suffix = name.slice(index + ALL_PROCESSES.length);
       for (const other of MEMORY_NAMES) {
         if (other.includes(suffix)) {
-          relatedNames.add(other);
+          processRelatedNames.add(other);
         }
       }
     }
@@ -134,15 +135,16 @@ tr.exportTo('d', function() {
       const prefix = parts.slice(0, end).join(':');
       const suffix = parts[parts.length - 1];
       const sansComponent = `${prefix}:${suffix}`;
-      if (!MEMORY_RELATED_NAMES.has(sansComponent)) {
-        MEMORY_RELATED_NAMES.set(sansComponent, new Set());
+      if (!MEMORY_COMPONENT_RELATED_NAMES.has(sansComponent)) {
+        MEMORY_COMPONENT_RELATED_NAMES.set(sansComponent, new Set());
       }
-      MEMORY_RELATED_NAMES.get(sansComponent).add(name);
+      MEMORY_COMPONENT_RELATED_NAMES.get(sansComponent).add(name);
     }
   }
 
   return {
-    MEMORY_RELATED_NAMES,
+    MEMORY_PROCESS_RELATED_NAMES,
+    MEMORY_COMPONENT_RELATED_NAMES,
   };
 });
 </script>

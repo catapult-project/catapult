@@ -14,13 +14,16 @@ triaging functionality in the chart.
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/iron-icon/iron-icon.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-tabs/paper-tabs.html">
 
 <link rel="import" href="/dashboard/elements/alert-icon.html">
 <link rel="import" href="/dashboard/elements/chart-legend.html">
 <link rel="import" href="/dashboard/elements/chart-slider.html">
+<link rel="import" href="/dashboard/elements/chart-sparkline.html">
 <link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
 <link rel="import" href="/dashboard/static/events.html">
+<link rel="import" href="/dashboard/static/related_timeseries.html">
 <link rel="import" href="/dashboard/static/series_group.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
@@ -64,6 +67,10 @@ triaging functionality in the chart.
       z-index: 1000;
     }
 
+    #vline-container {
+      display: flex;
+      width: 100%;
+    }
     #plots-container {
       flex-grow: 1;
       display: flex;
@@ -134,6 +141,53 @@ triaging functionality in the chart.
     #top-bar {
       width: 100%;
     }
+
+    #related-tabs-container {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    #related-tabs {
+      margin-left: 1em;
+      flex-grow: 1;
+      --paper-tabs-selection-bar-color: black;
+      --paper-tabs: {
+        background-color: #ccc;
+        height: 2em;
+      };
+    }
+    #related-sparkline-container {
+      width: 100%;
+      max-height: 290px;
+      overflow-y: scroll;
+    }
+    #related-sparkline-container chart-sparkline {
+      margin-top: 0.5em;
+    }
+    paper-tab {
+      flex-grow: 0;
+      color: #555;
+    }
+    paper-tab:last-of-type {
+      flex-grow: 1;
+    }
+    paper-tab:last-of-type {
+      --paper-tab-content: {
+        justify-content: flex-end;
+      };
+    }
+    paper-tab.iron-selected {
+      color: black;
+    }
+
+    #vline {
+      width: 0;
+      height: 214px;
+      position: relative;
+      top: 8px;
+      border-left: 1px solid black;
+      display: none;
+    }
     </style>
 
     <div id="container" compact$="{{showCompact}}">
@@ -156,13 +210,17 @@ triaging functionality in the chart.
         <chart-tooltip id="tooltip"
                        xsrf-token="{{xsrfToken}}"></chart-tooltip>
 
-        <div id="plots-container" on-mouseleave="onMouseLeave">
-          <div id="plot">
-            <div id="loading-div">
-              <img src="//www.google.com/images/loading.gif">
+        <div id="vline-container">
+          <div id="vline">&nbsp;</div>
+          <div id="plots-container" on-mouseleave="onMouseLeave">
+            <div id="plot">
+              <div id="loading-div">
+                <!-- TODO(#3803): Use paper spinner. -->
+                <img src="//www.google.com/images/loading.gif">
+              </div>
             </div>
+            <chart-slider id="slider" on-revisionrange="onRevisionRange"></chart-slider>
           </div>
-          <chart-slider id="slider" on-revisionrange="onRevisionRange"></chart-slider>
         </div>
 
         <div id="warning">
@@ -188,8 +246,31 @@ triaging functionality in the chart.
 
       <canvas hidden id="text_measurement"></canvas>
 
+      <div hidden$="[[!showRelatedTabs_(relatedTabs)]]" style="width: 100%">
+        <div id="related-tabs-container">
+          <div>Related</div>
+          <paper-tabs id="related-tabs" selected="{{selectedRelatedTabIndex}}">
+            <template is="dom-repeat" items="[[relatedTabs]]">
+              <paper-tab>[[item.name]]</paper-tab>
+            </template>
+          </paper-tabs>
+        </div>
+        <div id="related-sparkline-container">
+          <template is="dom-repeat" items="[[selectedRelatedTab]]">
+            <chart-sparkline name="[[item.name]]"
+                        chart-options="[[getSparklineChartOptions()]]"
+                        revision-map="[[revisionMap]]"
+                        start-rev="[[sliderStartRev]]"
+                        end-rev="[[sliderEndRev]]"
+                        vline-point-id="[[vlinePointId]]"
+                        testpaths="[[item.testpaths]]">
+            </chart-sparkline>
+          </template>
+        </div>
+      </div>
     </div>
   </template>
+
   <script>
     'use strict';
     (function() {
@@ -498,8 +579,37 @@ triaging functionality in the chart.
           revisionInfo: { notify: true },
           showCompact: { notify: true },
           testSuites: { notify: true },
-          xsrfToken: { notify: true }
+          xsrfToken: { notify: true },
+
+          relatedTabs: {
+            type: Array,
+            value: () => [],
+          },
+
+          selectedRelatedTab: {
+            type: Array,
+            value: () => [],
+          },
+
+          selectedRelatedTabIndex: {
+            type: Number,
+            value: -1,
+            observer: 'onSelectedRelatedTabIndexChange_',
+          },
+
+          vlinePointId: {
+            type: Number,
+          },
+
+          sliderStartRev: {
+            type: String,
+          },
+
+          sliderEndRev: {
+            type: String,
+          },
         },
+
         observers: [
           'indicesToGraphChanged(indicesToGraph.splices)'
         ],
@@ -672,6 +782,7 @@ triaging functionality in the chart.
           }
 
           this.updateSeriesGroupDisplayNames();
+          this.buildRelatedTabs_();
 
           if (Object.keys(selectedTestPathDict).length > 0) {
             this.sendGraphJsonRequest(selectedTestPathDict, true);
@@ -857,7 +968,7 @@ triaging functionality in the chart.
               return;
             }
           }
-          this.push('warnings', {'value': warning});
+          this.push('warnings', {value: warning});
         },
 
         /**
@@ -865,15 +976,15 @@ triaging functionality in the chart.
          */
         updateWarningsForSelectedSeries() {
           this.warnings = this.warnings.filter(function(value) {
-            return (value.indexOf('Graph out of date!') == -1 &&
-                    value.indexOf('No data available.') == -1);
+            return (value.value.indexOf('Graph out of date!') == -1 &&
+                    value.value.indexOf('No data available.') == -1);
           });
 
           for (let i = 0; i < this.indicesToGraph.length; i++) {
             const index = this.indicesToGraph[i];
             const series = this.json.annotations[index];
             if (!series) {
-              this.warnings.push('No data available.');
+              this.warnings.push({value: 'No data available.'});
             }
           }
 
@@ -889,8 +1000,10 @@ triaging functionality in the chart.
             if (timestamp != null) {
               const currentTime = new Date().getTime();
               if (timestamp < currentTime - this.STALE_DATA_DELTA_MS) {
-                this.warnings.push('Graph out of date! Last data received: ' +
-                                   new Date(timestamp).toISOString());
+                this.warnings.push({value:
+                  'Graph out of date! Last data received: ' +
+                  new Date(timestamp).toISOString(),
+                });
                 break;
               }
             }
@@ -1007,6 +1120,7 @@ triaging functionality in the chart.
           this.updateSlider();
           this.updateYAxisLabel();
           this.updateSmartAutoscaleMap();
+          this.buildRelatedTabs_();
 
           if (isSelected) {
             this.updateIndicesToGraph();
@@ -1273,6 +1387,8 @@ triaging functionality in the chart.
           this.graphParams = newGraphParams;
           this.reloadChart();
           this.fireChartStateChangedEvent(null);
+          this.set('sliderStartRev', detail.start_rev);
+          this.set('sliderEndRev', detail.end_rev);
         },
 
         /**
@@ -1529,8 +1645,8 @@ triaging functionality in the chart.
           const endRev = uri.getParameter('end_rev');
           const firstSeriesIsEmpty = data[0].data.length == 0;
           if (startRev && endRev && firstSeriesIsEmpty) {
-            this.warnings.push('Data not available for revision range ' +
-                               startRev + ':' + endRev + '.');
+            this.warnings.push({value: 'Data not available for revision range ' +
+              startRev + ':' + endRev + '.'});
           }
 
           const isNotZoomedIn = this.$.original.hidden;
@@ -1635,6 +1751,8 @@ triaging functionality in the chart.
           }
           this.$.slider.startrev = orderedRevisions[0];
           this.$.slider.endrev = orderedRevisions[orderedRevisions.length - 1];
+          this.set('sliderStartRev', this.$.slider.startrev);
+          this.set('sliderEndRev', this.$.slider.endrev);
 
           // We keep a map of the ordered revision index to the [revision,
           // series index, data index] so that it's easy to show the right
@@ -2151,9 +2269,17 @@ triaging functionality in the chart.
 
           // Un-hide and position the tooltip box.
           const top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
-          const left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
+          let left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
               this.chartOptions.yaxis.labelWidth;
           this.$.tooltip.openAtPosition(top, left);
+
+          // The tooltip doesn't need to be positioned exactly on the point, but
+          // the vertical line does. Flot's xaxis.p2c() above seems to be off by
+          // a few pixels for some reason.
+          left += 6.5;
+          this.$.vline.style.display = 'block';
+          this.$.vline.style.left = left + 'px';
+          this.set('vlinePointId', pointId);
         },
 
         /**
@@ -2662,6 +2788,12 @@ triaging functionality in the chart.
           drop: 'onDrop',
           dragover: 'allowDrop',
           populateTestPicker: 'populateTestPicker_',
+          chartstatechanged: 'onChartStateChanged_',
+        },
+
+        onChartStateChanged_(event) {
+          this.buildRelatedTabs_();
+          this.onSelectedRelatedTabIndexChange_();
         },
 
         populateTestPicker_(event) {
@@ -2705,6 +2837,88 @@ triaging functionality in the chart.
 
           const url = window.location.origin + '/report?' + queryParts.join('&');
           this.fire('openReportPage', {url});
+        },
+
+        buildRelatedTabs_() {
+          if (uri.getParameter('3405') === null) return;
+
+          const sourceTestPaths = [];
+          for (const seriesGroup of this.seriesGroupList) {
+            for (const test of seriesGroup.tests) {
+              if (!test.selected) continue;
+              // `test.path` is set in the addSeriesGroup2() path.
+              // This method needs to handle the old SeriesGroup.path/test.name
+              // form for the addSeriesGroup() path.
+              const testpath = test.path || seriesGroup.path + '/' + test.name;
+              sourceTestPaths.push({
+                testpath,
+                color: GENERATOR.colorForKey(testpath).toString(),
+              });
+            }
+          }
+
+          const relatedTabs = d.buildRelatedTimeseries(sourceTestPaths);
+
+          // The last tab is actually a button to unset the tab to hide the
+          // sparklines.
+          relatedTabs.push({
+            name: String.fromCharCode(8212),
+            sparklines: [],
+          });
+
+          this.set('relatedTabs', relatedTabs);
+        },
+
+        getSparklineChartOptions() {
+          return {
+            crosshair: {
+            },
+            grid: {
+              borderWidth: 0,
+            },
+            xaxis: {
+              ticks: [],
+            },
+            yaxis: {
+              ticks: [],
+              max: parseFloat(uri.getParameter('slyamax') || 0) ||
+                this.chartOptions.yaxis.max,
+              min: Number.MAX_VALUE,
+            },
+            selection: {
+            },
+          };
+        },
+
+        showRelatedTabs_(relatedTabs) {
+          return relatedTabs.length > 1;
+        },
+
+        onSelectedRelatedTabIndexChange_() {
+          // The last tab is actually a button to unset the tab to hide the
+          // sparklines.
+          if (this.selectedRelatedTabIndex === this.relatedTabs.length - 1) {
+            this.set('selectedRelatedTabIndex', -1);
+          }
+
+          // It seems that setting this from one Array directly to another
+          // doesn't always make Polymer clear the old chart-sparklines and
+          // build new ones, so explicitly clear this to force it to clear the
+          // old chart-sparklines.
+          this.set('selectedRelatedTab', []);
+
+          if (this.selectedRelatedTabIndex < 0 ||
+              this.selectedRelatedTabIndex >= this.relatedTabs.length) {
+            return;
+          }
+
+          // Wait for Polymer to clear out the sparklines in response to
+          // clearing the selectedRelatedTab.
+          // TODO(#3841): Use dom-change or observeNodes instead of async().
+          this.async(() => {
+            this.set('selectedRelatedTab',
+                this.relatedTabs[this.selectedRelatedTabIndex].sparklines);
+          });
         },
       });
     })();

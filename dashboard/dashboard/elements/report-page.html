@@ -67,6 +67,7 @@ found in the LICENSE file.
 
       listeners: {
         populateTestPicker: 'populateTestPicker_',
+        promoteSparkLine: 'promoteSparkLine_',
       },
 
       properties: {
@@ -150,6 +151,11 @@ found in the LICENSE file.
       async populateTestPicker_(event) {
         this.testPicker.scrollIntoViewIfNeeded();
         await this.testPicker.setCurrentSelectedPath(event.detail.testPath);
+      },
+
+      promoteSparkLine_(event) {
+        this.addChart(event.detail.testpaths.map(t =>
+            new d.SeriesGroup(t.testpath, [t.testpath], [])));
       },
 
       /**
@@ -284,7 +290,7 @@ found in the LICENSE file.
        * When the revision range changes for one graph, update the rest of
        * the graphs and the URI.
        */
-      onRevisionRangeChanged(_, event) {
+      onRevisionRangeChanged(event) {
         const onRevisionRangeChangedMark = tr.b.Timing.mark(
             'report-page', 'onRevisionRangeChanged');
         for (let i = 0; i < this.charts.length; i++) {

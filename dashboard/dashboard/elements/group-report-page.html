@@ -213,10 +213,26 @@ found in the LICENSE file.
 
       listeners: {
         openReportPage: 'openReportPage_',
+        promoteSparkLine: 'promoteSparkLine_',
       },
 
       openReportPage_(event) {
         window.open(event.detail.url, '_blank');
+      },
+
+      promoteSparkLine_(event) {
+        const chart = document.createElement('chart-container');
+        const containerElement = this.$['charts-container'];
+        Polymer.dom(containerElement).appendChild(chart);
+        chart.graphParams = {
+          start_rev: event.detail.startRev,
+          end_rev: event.detail.endRev,
+        };
+        for (const testpath of event.detail.testpaths) {
+          chart.addSeriesGroup2(new d.SeriesGroup(
+            testpath.testpath, [testpath.testpath], []), true);
+        }
+        this.setChartData(chart);
       },
 
       get alertsTable() {
