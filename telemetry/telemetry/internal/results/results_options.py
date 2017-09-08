@@ -206,8 +206,7 @@ def CreateResults(benchmark_metadata, options,
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
       value_can_be_added_predicate=value_can_be_added_predicate,
-      benchmark_enabled=benchmark_enabled,
-      upload_bucket=upload_bucket)
+      benchmark_enabled=benchmark_enabled)
 
   results.telemetry_info.benchmark_name = benchmark_metadata.name
   results.telemetry_info.benchmark_start_epoch = time.time()

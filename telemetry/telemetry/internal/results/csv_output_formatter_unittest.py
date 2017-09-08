@@ -82,9 +82,8 @@ class CsvOutputFormatterTest(unittest.TestCase):
   def testMultiplePagesAndValues(self, cs_insert_mock):
     cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
     trace_value = trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData('{"traceEvents": []}'),
-        remote_path='rp', upload_bucket='foo', cloud_url='http://google.com')
-    trace_value.UploadToCloud()
+        None, trace_data.CreateTraceDataFromRawData('{"traceEvents": []}'))
+    trace_value.UploadToCloud(bucket='foo')
     self.SimulateBenchmarkRun([
         (self._story_set[0], [
             scalar.ScalarValue(

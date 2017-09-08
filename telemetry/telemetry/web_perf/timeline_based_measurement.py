@@ -279,12 +279,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Collect all possible metrics and added them to results."""
     platform.tracing_controller.telemetry_info = results.telemetry_info
     trace_result = platform.tracing_controller.StopTracing()
-    trace_value = trace.TraceValue(
-        results.current_page, trace_result,
-        file_path=results.telemetry_info.trace_local_path,
-        remote_path=results.telemetry_info.trace_remote_path,
-        upload_bucket=results.telemetry_info.upload_bucket,
-        cloud_url=results.telemetry_info.trace_remote_url)
+    trace_value = trace.TraceValue(results.current_page, trace_result)
     results.AddValue(trace_value)
 
     try:
@@ -309,12 +304,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
       trace_result = platform.tracing_controller.StopTracing()
-      trace_value = trace.TraceValue(
-          results.current_page, trace_result,
-          file_path=results.telemetry_info.trace_local_path,
-          remote_path=results.telemetry_info.trace_remote_path,
-          upload_bucket=results.telemetry_info.upload_bucket,
-          cloud_url=results.telemetry_info.trace_remote_url)
+      trace_value = trace.TraceValue(results.current_page, trace_result)
       results.AddValue(trace_value)
 
   def _ComputeTimelineBasedMetrics(self, results, trace_value):
@@ -326,7 +316,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     start = time.time()
     mre_result = metric_runner.RunMetric(
         trace_value.filename, metrics, extra_import_options,
-        report_progress=False, canonical_url=results.telemetry_info.trace_url)
+        report_progress=False)
     logging.warning('Processing resulting traces took %.3f seconds' % (
         time.time() - start))
     page = results.current_page
