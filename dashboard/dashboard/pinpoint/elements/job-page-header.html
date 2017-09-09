@@ -34,14 +34,14 @@ found in the LICENSE file.
     <div class="columns">
       <div class="column">
         <h2>Changes</h2>
-        <template is="dom-repeat" items="[[getDifferences(jobInfo.data)]]">
+        <template is="dom-repeat" items="[[getDifferences(jobInfo)]]">
           <change-info change=[[item]]></change-info>
         </template>
       </div>
       <div class="column">
         <h2>Status</h2>
         <table>
-          <template is="dom-repeat" items="[[getStatus(jobInfo.data)]]">
+          <template is="dom-repeat" items="[[getStatus(jobInfo)]]">
             <tr>
               <th>[[item.key]]
               <td>[[item.value]]
@@ -51,7 +51,7 @@ found in the LICENSE file.
       <div class="column">
         <h2>Arguments</h2>
         <table>
-          <template is="dom-repeat" items="[[getArguments(jobInfo.data)]]">
+          <template is="dom-repeat" items="[[getArguments(jobInfo)]]">
             <tr>
               <th>[[item.key]]
               <td>[[item.value]]

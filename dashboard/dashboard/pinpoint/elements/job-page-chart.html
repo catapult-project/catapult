@@ -74,7 +74,7 @@ found in the LICENSE file.
       },
 
       _jobInfoChanged() {
-        let valuesByChange = this.jobInfo.resultValues.map(
+        let valuesByChange = this.jobInfo.result_values.map(
             valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
 
         const anyNumbers = valuesByChange.some(row => row.length);

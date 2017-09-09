@@ -82,7 +82,7 @@ found in the LICENSE file.
         const params = {job_id: this.routeData.jobId};
         const response = await this.$.loader.load('/api/job', params);
         if (response) {
-          this.set('jobInfo', new JobResults(response.data));
+          this.set('jobInfo', response.data);
         }
       },
 
@@ -94,91 +94,5 @@ found in the LICENSE file.
         return jobInfo.status.toLowerCase() === 'running';
       }
     });
-
-    class JobResults {
-      constructor(data) {
-        this.data_ = data;
-      }
-
-      get data() {
-        return this.data_;
-      }
-
-      get exception() {
-        return this.data_.exception;
-      }
-
-      get attempts() {
-        return this.data_.attempts;
-      }
-
-      get resultValues() {
-        return this.data_.result_values;
-      }
-
-      get comparisons() {
-        return this.data_.comparisons;
-      }
-
-      get changes() {
-        return this.data_.changes;
-      }
-
-      get quests() {
-        return this.data_.quests;
-      }
-
-      get status() {
-        return this.data_.status;
-      }
-
-      get created() {
-        return this.data_.created;
-      }
-
-      get updated() {
-        return this.data_.updated;
-      }
-
-      get arguments() {
-        return this.data_.arguments;
-      }
-
-      getAttemptData(changeIndex, questIndex, dataName) {
-        const result = [];
-        const attempts = this.data_.attempts[changeIndex];
-
-        for (let i = 0; i < attempts.length; i++) {
-          const execution = attempts[i].executions[questIndex];
-          if (!execution) {
-            continue;
-          }
-
-          if (dataName in execution) {
-            result.push(execution[dataName]);
-          } else if (dataName in execution.result_arguments) {
-            result.push(execution.result_arguments[dataName]);
-          }
-        }
-        return result;
-      }
-
-      getStatusString(changeIndex, questIndex) {
-        const resultValues =
-          this.data_.result_values[changeIndex][questIndex];
-
-        if (!resultValues.length) {
-          return 'Running';
-        }
-
-        // This is only correct for pass/fail resultValues.
-        const failureCount = resultValues.filter(e => e !== null).length;
-        if (failureCount) {
-          return 'Failed';
-        }
-
-        return 'Passed';
-      }
-    }
   </script>
 </dom-module>
