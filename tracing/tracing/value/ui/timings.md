@@ -64,7 +64,8 @@ Both measures and instant events are recorded as Events in Google Analytics.
      relationship graphical model.
    * `collectParameters` measures latency to collect display labels, statistic
      names, and possible groupings.
-   * `downloadCSV` measures latency to build a CSV file and download it.
+   * `export{Raw,Merged}{CSV,JSON}` measures latency to download a CSV/JSON file
+     of raw/merged Histograms.
  * histogram-span
    * `brushBins` instant event recorded when the user finishes brushing bins.
    * `clearBrushedBins` instant event recorded when the user clears brushed

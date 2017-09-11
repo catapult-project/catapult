@@ -51,6 +51,10 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-view',
 
+    listeners: {
+      export: 'onExport_',
+    },
+
     created() {
       this.brushingStateController_ = new tr.ui.NullBrushingStateController();
       this.viewState_ = new tr.v.ui.HistogramSetViewState();
@@ -59,8 +63,6 @@ tr.exportTo('tr.v.ui', function() {
     ready() {
       this.$.table.viewState = this.viewState;
       this.$.controls.viewState = this.viewState;
-      this.$.controls.addEventListener(
-          'download-csv', this.downloadCSV_.bind(this));
     },
 
     attached() {
@@ -133,23 +135,34 @@ tr.exportTo('tr.v.ui', function() {
       buildMark.end();
     },
 
-    downloadCSV_() {
-      const downloadCSVMark = tr.b.Timing.mark(
-          'histogram-set-view', 'downloadCSV');
-      const anchor = document.createElement('a');
+    onExport_(event) {
+      const mark = tr.b.Timing.mark('histogram-set-view', 'export' +
+          (event.merged ? 'Merged' : 'Raw') + event.format.toUpperCase());
+
+      const histograms = event.merged ? this.$.table.leafHistograms :
+        this.histograms;
+
+      let blob;
+      if (event.format === 'csv') {
+        const csv = new tr.v.CSVBuilder(histograms);
+        csv.build();
+        blob = new window.Blob([csv.toString()], {type: 'text/csv'});
+      } else if (event.format === 'json') {
+        blob = new window.Blob([JSON.stringify(histograms.asDicts())],
+            {type: 'text/json'});
+      } else {
+        throw new Error(`Unable to export format "${event.format}"`);
+      }
 
       const path = window.location.pathname.split('/');
       const basename = path[path.length - 1].split('.')[0] || 'histograms';
-      anchor.download = basename + '.csv';
 
-      const csv = new tr.v.CSVBuilder(this.$.table.leafHistograms);
-      csv.build();
-      const blob = new window.Blob([csv.toString()], {type: 'text/csv'});
+      const anchor = document.createElement('a');
+      anchor.download = `${basename}.${event.format}`;
       anchor.href = window.URL.createObjectURL(blob);
-
       anchor.click();
-      downloadCSVMark.end();
-    }
+      mark.end();
+    },
   });
 
   return {

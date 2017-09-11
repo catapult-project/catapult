@@ -91,8 +91,22 @@ found in the LICENSE file.
       margin-right: 20px;
     }
 
-    #download_csv {
+    #export {
       margin-right: 20px;
+    }
+
+    #export_menu {
+      background: white;
+      border: 1px solid black;
+      display: flex;
+      flex-direction: column;
+      padding: 0.5em;
+      position: absolute;
+      visibility: hidden;
+      z-index: 9999;
+    }
+    #export_menu:focus {
+      outline: none;
     }
     </style>
 
@@ -100,13 +114,13 @@ found in the LICENSE file.
       <input id="search" value="{{searchQuery::keyup}}" placeholder="Find Histogram name">
 
       <svg viewbox="0 0 128 128" id="show_overview"
-        on-click="toggleOverviewLineCharts_">
+        on-tap="toggleOverviewLineCharts_">
         <line x1="19" y1="109" x2="49" y2="49"/>
         <line x1="49" y1="49" x2="79" y2="79"/>
         <line x1="79" y1="79" x2="109" y2="19"/>
       </svg>
       <svg viewbox="0 0 128 128" id="hide_overview"
-        on-click="toggleOverviewLineCharts_">
+        on-tap="toggleOverviewLineCharts_">
         <line x1="28" y1="28" x2="100" y2="100"/>
         <line x1="28" y1="100" x2="100" y2="28"/>
       </svg>
@@ -115,7 +129,7 @@ found in the LICENSE file.
         <option value="">Select a reference column</option>
       </select>
 
-      <button id="alpha" on-click="openAlphaSlider_">&#945;=[[alphaString]]</button>
+      <button id="alpha" on-tap="openAlphaSlider_">&#945;=[[alphaString]]</button>
       <div id="alpha_slider_container">
         <input type="range" id="alpha_slider" value="{{alphaIndex::change}}" min="0" max="18" on-blur="closeAlphaSlider_" on-input="updateAlpha_">
       </div>
@@ -123,7 +137,14 @@ found in the LICENSE file.
       <select id="statistic" value="{{displayStatisticName::change}}">
       </select>
 
-      <button id="download_csv" on-click="downloadCSV_">&#11015; CSV</button>
+      <button id="export" on-tap="toggleExportMenu_">Export</button>
+
+      <div id="export_menu" tabindex="0" on-blur="maybeHideExportMenu_">
+        <button on-tap="exportRawCsv_">raw CSV</button>
+        <button on-tap="exportRawJson_">raw JSON</button>
+        <button on-tap="exportMergedCsv_">merged CSV</button>
+        <button on-tap="exportMergedJson_">merged JSON</button>
+      </div>
 
       <input type="checkbox" id="show_all" checked="{{showAll::change}}" title="When unchecked, less important histograms are hidden.">
       <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
@@ -456,8 +477,54 @@ tr.exportTo('tr.v.ui', function() {
       this.$.feedback.style.display = 'inline';
     },
 
-    downloadCSV_(event) {
-      this.dispatchEvent(new tr.b.Event('download-csv'));
+    showExportMenu_() {
+      this.$.export_menu.style.visibility = 'visible';
+      const rect = this.$.export.getBoundingClientRect();
+      this.$.export_menu.style.left = rect.left + 'px';
+      this.$.export_menu.focus();
+    },
+
+    maybeHideExportMenu_(event) {
+      if (event &&
+          (event.relatedTarget !== null) &&
+          (event.relatedTarget.id === 'export' ||
+           event.relatedTarget.parentNode.id === 'export_menu')) {
+        return;
+      }
+      this.hideExportMenu_();
+    },
+
+    hideExportMenu_() {
+      this.$.export_menu.style.visibility = 'hidden';
+    },
+
+    toggleExportMenu_() {
+      if (this.$.export_menu.style.visibility === 'visible') {
+        this.hideExportMenu_();
+      } else {
+        this.showExportMenu_();
+      }
+    },
+
+    exportRawCsv_() {
+      this.export_(false, 'csv');
+    },
+
+    exportRawJson_() {
+      this.export_(false, 'json');
+    },
+
+    exportMergedCsv_() {
+      this.export_(true, 'csv');
+    },
+
+    exportMergedJson_() {
+      this.export_(true, 'json');
+    },
+
+    export_(merged, format) {
+      tr.b.dispatchSimpleEvent(this, 'export', true, true, {merged, format});
+      this.hideExportMenu_();
     },
 
     getAlphaString_(alphaIndex) {
