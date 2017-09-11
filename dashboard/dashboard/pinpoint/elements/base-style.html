@@ -8,10 +8,23 @@ found in the LICENSE file.
 <dom-module id="base-style">
   <template>
     <style>
+      a {
+        color: var(--paper-pink-a200);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
       h1,
       h2 {
         color: var(--paper-indigo-500);
         font-weight: lighter;
+      }
+
+      p {
+        margin: 0;
       }
 
       table {
@@ -28,20 +41,20 @@ found in the LICENSE file.
         background: rgba(232, 234, 246, 0.5);
       }
 
-      a {
-        color: var(--paper-pink-a200);
-        text-decoration: none;
-      }
-
-      a:hover {
-        text-decoration: underline;
-      }
-
-      .chip {
+      .badge {
         border-radius: 1em;
         font-size: 0.5em;
         padding: 0.25em 0.5em;
         vertical-align: middle;
+      }
+
+      .byline {
+        color: var(--paper-grey-500);
+      }
+
+      .middle-dot::after {
+        content: "·";
+        padding: 0 0.8em;
       }
     </style>
   </template>

@@ -15,16 +15,6 @@ found in the LICENSE file.
         font-weight: normal;
         margin-bottom: 0.2em;
       }
-
-      p {
-        color: #888;
-        margin-top: 0;
-      }
-
-      span::after {
-        content: "·";
-        padding: 0 0.8em;
-      }
     </style>
 
     <div>
@@ -32,7 +22,9 @@ found in the LICENSE file.
         <h3>
           <a href="[[dep.url]]" target="_blank">[[subject]]</a>
         </h3>
-        <p>By <span>[[author]]</span>[[time]]</p>
+        <p class="byline">
+          By [[author]]<span class="middle-dot"></span>[[time]]
+        </p>
       </loading-wrapper>
     </div>
   </template>

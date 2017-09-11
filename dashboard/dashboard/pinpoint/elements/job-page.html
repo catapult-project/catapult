@@ -32,6 +32,14 @@ found in the LICENSE file.
       #running {
         background: var(--paper-indigo-50);
       }
+
+      h1 {
+        margin-bottom: 0.1em;
+      }
+
+      p {
+        color: var(--paper-grey-500);
+      }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{routeData}}"></app-route>
@@ -39,16 +47,19 @@ found in the LICENSE file.
     <h1 id="testing">
       Job [[routeData.jobId]]
       <template is="dom-if" if="[[failed(job)]]">
-        <span id="failed" class="chip">Error</span>
+        <span id="failed" class="badge">Error</span>
         <paper-tooltip for="failed" animation-delay="0">
           <div id="failed-tooltip">[[job.exception]]</div>
         </paper-tooltip>
       </template>
       <template is="dom-if" if="[[running(job)]]">
-        <span id="running" class="chip">Running</span>
+        <span id="running" class="badge">Running</span>
       </template>
     </h1>
     <loading-wrapper id="loader">
+      <p class="byline">
+        [[duration(job)]]<span class="middle-dot"></span>[[start(job)]]
+      </p>
       <job-page-header job="[[job]]"></job-page-header>
       <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>
       <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
@@ -90,7 +101,30 @@ found in the LICENSE file.
 
       running(job) {
         return job.status.toLowerCase() === 'running';
-      }
+      },
+
+      start(job) {
+        return new Date(job.created + 'Z').toLocaleString();
+      },
+
+      duration(job) {
+        const created = new Date(job.created + 'Z');
+        const updated = new Date(job.updated + 'Z');
+        const durationMs = updated - created;
+
+        const seconds = durationMs / 1000;
+        if (seconds < 60) {
+          return seconds.toFixed(1) + ' seconds';
+        }
+
+        const minutes = durationMs / (1000 * 60);
+        if (minutes < 60) {
+          return minutes.toFixed(1) + ' minutes';
+        }
+
+        const hours = durationMs / (1000 * 60 * 60);
+        return hours.toFixed(1) + ' hours';
+      },
     });
   </script>
 </dom-module>

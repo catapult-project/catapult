@@ -14,6 +14,7 @@ found in the LICENSE file.
     <style include="base-style">
       #exception {
         font-size: 0.5em;
+        margin: 1em 0;
         white-space: pre-wrap;
       }
 
@@ -77,23 +78,25 @@ found in the LICENSE file.
         </div>
       </template>
     </iron-selector>
+    <template is="dom-if" if="[[hasExecutionDetails(attempts, attemptIndex, questIndex)]]">
+      <table>
+        <template is="dom-repeat" items="[[executionDetails(attempts, attemptIndex, questIndex)]]">
+          <tr>
+            <th>[[item.key]]
+            <td>
+              <template is="dom-if" if="[[item.url]]">
+                <a href="[[item.url]]" target="_blank">[[item.value]]</a>
+              </template>
+              <template is="dom-if" if="[[!item.url]]">
+                [[item.value]]
+              </template>
+          </tr>
+        </template>
+      </table>
+    </template>
     <template is="dom-if" if="[[exception(attempts, attemptIndex, questIndex)]]">
       <p id="exception">[[exception(attempts, attemptIndex, questIndex)]]</p>
     </template>
-    <table>
-      <template is="dom-repeat" items="[[executionDetails(attempts, attemptIndex, questIndex)]]">
-        <tr>
-          <th>[[item.key]]
-          <td>
-            <template is="dom-if" if="[[item.url]]">
-              <a href="[[item.url]]" target="_blank">[[item.value]]</a>
-            </template>
-            <template is="dom-if" if="[[!item.url]]">
-              [[item.value]]
-            </template>
-        </tr>
-      </template>
-    </table>
   </template>
 
   <script>
@@ -136,6 +139,10 @@ found in the LICENSE file.
           return null;
         }
         return this.attempts[attemptIndex].executions[questIndex].exception;
+      },
+
+      hasExecutionDetails(attempts, attemptIndex, questIndex) {
+        return this.executionDetails(attempts, attemptIndex, questIndex).length;
       },
 
       executionDetails(attempts, attemptIndex, questIndex) {
