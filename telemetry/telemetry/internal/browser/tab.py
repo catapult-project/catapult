@@ -67,6 +67,10 @@ class Tab(web_contents.WebContents):
                                              'event_listener_count']]))
     return dom_counters
 
+  def PrepareForLeakDetection(self):
+    self._inspector_backend.PrepareForLeakDetection(
+        timeout=DEFAULT_TAB_TIMEOUT)
+
   def Activate(self):
     """Brings this tab to the foreground asynchronously.
 

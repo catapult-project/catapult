@@ -51,3 +51,15 @@ class InspectorMemory(object):
         'documents': res['result']['documents'],
         'jsEventListeners': res['result']['jsEventListeners']
     }
+
+  def PrepareForLeakDetection(self, timeout):
+    """Prepares for Leak Detection by terminating workers, stopping
+       spellcheckers, running garbage collections etc.
+
+    Args:
+      timeout: The number of seconds to wait for the inspector backend to
+          service the request before timing out.
+    """
+    self._inspector_websocket.SyncRequest({
+        'method': 'Memory.prepareForLeakDetection'
+    }, timeout)

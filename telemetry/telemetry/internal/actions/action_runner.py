@@ -157,6 +157,13 @@ class ActionRunner(object):
       raise exceptions.StoryActionError('Unable to obtain memory dump')
     return dump_id
 
+  def PrepareForLeakDetection(self):
+    """Prepares for Leak Detection.
+
+    Terminate workers, stopping spellcheckers, running GC etc.
+    """
+    self._tab.PrepareForLeakDetection()
+
   def Navigate(self, url, script_to_evaluate_on_commit=None,
                timeout_in_seconds=60):
     """Navigates to |url|.

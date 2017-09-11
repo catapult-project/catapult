@@ -32,3 +32,6 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
   @classmethod
   def CustomizeBrowserOptions(cls, options):
     options.AppendExtraBrowserArgs('--js-flags=--expose-gc')
+
+  def testPrepareForLeakDetection(self):
+    self._browser.tabs.New().PrepareForLeakDetection()

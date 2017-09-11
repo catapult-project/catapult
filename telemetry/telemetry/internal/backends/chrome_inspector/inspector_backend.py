@@ -159,6 +159,10 @@ class InspectorBackend(object):
         'event_listener_count': dom_counters['jsEventListeners']
     }
 
+  @_HandleInspectorWebSocketExceptions
+  def PrepareForLeakDetection(self, timeout):
+    self._memory.PrepareForLeakDetection(timeout)
+
   # Page public methods.
 
   @_HandleInspectorWebSocketExceptions
