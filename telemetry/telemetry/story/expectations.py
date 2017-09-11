@@ -24,6 +24,13 @@ class StoryExpectations(object):
     self.SetExpectations()
     self._Freeze()
 
+  def AsDict(self):
+    """Returns information on disabled stories/benchmarks as a dictionary"""
+    return {
+        'platforms': self._disabled_platforms,
+        'stories': self._expectations
+    }
+
   def GetBrokenExpectations(self, story_set):
     story_set_story_names = [s.name for s in story_set.stories]
     invalid_story_names = []
