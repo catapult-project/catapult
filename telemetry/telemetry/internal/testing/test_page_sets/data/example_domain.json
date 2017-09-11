@@ -3,10 +3,10 @@
     "platform_specific": true,
     "archives": {
         "http://www.example.com": {
-          "DEFAULT": "example_domain_001.wpr"
+          "DEFAULT": "example_domain_001.wprgo"
         },
         "https://www.example.com":{
-          "DEFAULT": "example_domain_001.wpr"
+          "DEFAULT": "example_domain_001.wprgo"
         }
     }
 }

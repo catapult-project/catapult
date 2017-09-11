@@ -6,20 +6,20 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "5e49b8152e40b5df427a8e73062045ddde2edcb8",
-          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wpr"
+          "cloud_storage_hash": "8178b3e2aeedf03500cfd94ae89793f2d0799e92",
+          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wprgo"
         },
         "mac_x86_64": {
-          "cloud_storage_hash": "5e49b8152e40b5df427a8e73062045ddde2edcb8",
-          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wpr"
+          "cloud_storage_hash": "8178b3e2aeedf03500cfd94ae89793f2d0799e92",
+          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wprgo"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "5e49b8152e40b5df427a8e73062045ddde2edcb8",
-          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wpr"
+          "cloud_storage_hash": "8178b3e2aeedf03500cfd94ae89793f2d0799e92",
+          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wprgo"
         },
         "win_x86": {
-          "cloud_storage_hash": "5e49b8152e40b5df427a8e73062045ddde2edcb8",
-          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wpr"
+          "cloud_storage_hash": "8178b3e2aeedf03500cfd94ae89793f2d0799e92",
+          "download_path": "internal/testing/test_page_sets/data/example_domain_001.wprgo"
         }
       }
     },
