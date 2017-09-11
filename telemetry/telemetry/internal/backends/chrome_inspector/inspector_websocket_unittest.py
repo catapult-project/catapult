@@ -25,10 +25,10 @@ class FakeSocket(object):
           'Current response is scheduled earlier than previous response.')
     self._responses.append((response, time))
 
-  def send(self, data):
+  def send(self, data): # pylint: disable=invalid-name
     pass
 
-  def recv(self):
+  def recv(self): # pylint: disable=invalid-name
     if not self._responses:
       raise Exception('No more recorded responses.')
 
@@ -43,7 +43,7 @@ class FakeSocket(object):
       raise response
     return response
 
-  def settimeout(self, timeout):
+  def settimeout(self, timeout): # pylint: disable=invalid-name
     self._timeout = timeout
 
 
@@ -132,20 +132,20 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     inspector._socket = fake_socket
     response_count = [0]
 
-    def callback0(response):
+    def Callback0(response):
       response_count[0] += 1
       self.assertEqual(2, response_count[0])
       self.assertEqual('response1', response['result']['data'])
 
-    def callback1(response):
+    def Callback1(response):
       response_count[0] += 1
       self.assertEqual(1, response_count[0])
       self.assertEqual('response2', response['result']['data'])
 
     request1 = {'method': 'Test.foo'}
-    inspector.AsyncRequest(request1, callback0)
+    inspector.AsyncRequest(request1, Callback0)
     request2 = {'method': 'Test.foo'}
-    inspector.AsyncRequest(request2, callback1)
+    inspector.AsyncRequest(request2, Callback1)
     fake_socket.AddResponse('{"id": 5555555, "result": {}}', 1)
     inspector.DispatchNotifications(10)
     self.assertEqual(0, response_count[0])

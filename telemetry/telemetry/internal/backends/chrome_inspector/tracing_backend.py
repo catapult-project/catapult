@@ -98,6 +98,7 @@ class TracingBackend(object):
     self._start_issued = False
     self._can_collect_data = False
     self._has_received_all_tracing_data = False
+    # pylint: disable=invalid-name
     self._support_modern_devtools_tracing_start_api = (
         support_modern_devtools_tracing_start_api)
     self._trace_data_builder = None
