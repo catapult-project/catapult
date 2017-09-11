@@ -614,7 +614,7 @@ class BatteryUtils(object):
       return self.GetCharging() == enabled
 
     self._device.RunShellCommand(
-        command, check_return=True, as_root=True, large_output=True)
+        command, shell=True, check_return=True, as_root=True, large_output=True)
     timeout_retry.WaitFor(verify_charging, wait_period=1)
 
   @contextlib.contextmanager

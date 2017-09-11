@@ -494,7 +494,8 @@ class AndroidPlatformBackend(
     return output
 
   def RunCommand(self, command):
-    return '\n'.join(self._device.RunShellCommand(command, check_return=True))
+    return '\n'.join(self._device.RunShellCommand(
+        command, shell=isinstance(command, basestring), check_return=True))
 
   @staticmethod
   def ParseCStateSample(sample):
