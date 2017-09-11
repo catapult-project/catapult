@@ -34,21 +34,16 @@ found in the LICENSE file.
       is: 'job-page-chart',
 
       properties: {
-        jobInfo: {
+        job: {
           type: Object,
-          observer: '_jobInfoChanged',
+          observer: '_jobChanged',
         },
 
-        pointSelectedIndex: {
+        changeIndex: {
           type: Number,
-          value: -1,
+          value: null,
           notify: true
         },
-
-        // The Flot Plot object, returned by $.plot.
-        chart: {
-          value: null
-        }
       },
 
       ready() {
@@ -62,19 +57,19 @@ found in the LICENSE file.
 
       onPlotClick(event, pos, item) {
         if (item == null) {
-          this.set('pointSelectedIndex', -1);
+          this.set('changeIndex', null);
           return;
         }
 
-        this.set('pointSelectedIndex', item.datapoint[0]);
+        this.set('changeIndex', item.datapoint[0]);
       },
 
       onBuildStatusClick(index) {
-        this.set('pointSelectedIndex', index);
+        this.set('changeIndex', index);
       },
 
-      _jobInfoChanged() {
-        let valuesByChange = this.jobInfo.result_values.map(
+      _jobChanged() {
+        let valuesByChange = this.job.result_values.map(
             valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
 
         const anyNumbers = valuesByChange.some(row => row.length);
@@ -82,7 +77,7 @@ found in the LICENSE file.
         if (!anyNumbers) {
           valuesByChange = [];
           // TODO: Create a MergeAttempts helper function.
-          for (const attempts of this.jobInfo.attempts) {
+          for (const attempts of this.job.attempts) {
             const exceptions = [];
             for (const attempt of attempts) {
               const lastExecution =
@@ -132,7 +127,7 @@ found in the LICENSE file.
           const highError = Math.max(...values) - mid;
           seriesData.push([i, mid, lowError, highError]);
 
-          if (this.jobInfo.comparisons[i] !== 'same') {
+          if (this.job.comparisons[i] !== 'same') {
             if (seriesData.length) {
               data.push(annotateSeries(seriesData));
               seriesData = [];
@@ -161,18 +156,18 @@ found in the LICENSE file.
         };
 
         // Plot the chart!
-        this.chart = $.plot(this.$.plot, data, options);
+        const chart = $.plot(this.$.plot, data, options);
 
         // Draw overlays.
         for (let i = 0; i < valuesByChange.length; ++i) {
           const y = valuesByChange[i].length ?
             percentile(valuesByChange[i], 0.5) :
             (lowerBound + upperBound) / 2;
-          const offset = this.chart.pointOffset({x: i, y});
+          const offset = chart.pointOffset({x: i, y});
 
           if (valuesByChange[i].length) {
             // Draw pulsing dots for important points.
-            if (this.jobInfo.comparisons[i - 1] === 'different') {
+            if (this.job.comparisons[i - 1] === 'different') {
               const dot = document.createElement('job-page-chart-dot');
               dot.setPosition(offset.left, offset.top);
               this.$.plot.appendChild(dot);
@@ -182,8 +177,8 @@ found in the LICENSE file.
             const status = document.createElement('job-page-chart-icon');
             status.setPosition(offset.left, offset.top);
             // TODO: Plumb through real "pending" information from the Job.
-            if (this.jobInfo.comparisons[i] === 'pending' ||
-                this.jobInfo.comparisons[i - 1] === 'pending') {
+            if (this.job.comparisons[i] === 'pending' ||
+                this.job.comparisons[i - 1] === 'pending') {
               status.setType('pending');
             } else {
               status.setType('failed');

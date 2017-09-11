@@ -7,10 +7,10 @@ found in the LICENSE file.
 <meta charset="utf-8">
 <title>Pinpoint</title>
 <style type="text/css">
-body {
-  font: 0.8em helvetica,arial,sans-serif;
-  margin: 0;
-}
+  body {
+    font: 0.8em helvetica,arial,sans-serif;
+    margin: 0;
+  }
 </style>
 <script src="/components/webcomponentsjs/webcomponents-lite.min.js"></script>
 
@@ -44,7 +44,7 @@ body {
     that route matches and is active.
     -->
     <app-location route="{{route}}"></app-location>
-    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{tail}}"></app-route>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
     <navigation-bar></navigation-bar>
 
@@ -55,10 +55,10 @@ body {
     -->
     <div id="content">
       <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
-        <jobs-page name="" route="{{tail}}"></jobs-page>
+        <jobs-page name="" route="{{subroute}}"></jobs-page>
         <error-page name="error"></error-page>
 
-        <job-page name="job" route="{{tail}}"></job-page>
+        <job-page name="job" route="{{subroute}}"></job-page>
         <new-page name="new" abs-route="{{route}}"></new-page>
       </iron-pages>
     </div>

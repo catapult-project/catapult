@@ -77,11 +77,11 @@ found in the LICENSE file.
         </div>
       </template>
     </iron-selector>
-    <template is="dom-if" if="[[exception(attemptIndex, questIndex)]]">
-      <p id="exception">[[exception(attemptIndex, questIndex)]]</p>
+    <template is="dom-if" if="[[exception(attempts, attemptIndex, questIndex)]]">
+      <p id="exception">[[exception(attempts, attemptIndex, questIndex)]]</p>
     </template>
     <table>
-      <template is="dom-repeat" items="[[executionDetails(attemptIndex, questIndex)]]">
+      <template is="dom-repeat" items="[[executionDetails(attempts, attemptIndex, questIndex)]]">
         <tr>
           <th>[[item.key]]
           <td>
@@ -130,16 +130,16 @@ found in the LICENSE file.
         return 'running';
       },
 
-      exception(attemptIndex, questIndex) {
-        const execution = this.attempts[attemptIndex].executions[questIndex];
+      exception(attempts, attemptIndex, questIndex) {
+        const execution = attempts[attemptIndex].executions[questIndex];
         if (!execution) {
           return null;
         }
         return this.attempts[attemptIndex].executions[questIndex].exception;
       },
 
-      executionDetails(attemptIndex, questIndex) {
-        const execution = this.attempts[attemptIndex].executions[questIndex];
+      executionDetails(attempts, attemptIndex, questIndex) {
+        const execution = attempts[attemptIndex].executions[questIndex];
         if (!execution) {
           return [];
         }

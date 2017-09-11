@@ -57,7 +57,7 @@ found in the LICENSE file.
       is: 'job-page-change-table',
 
       properties: {
-        jobInfo: {
+        job: {
           type: Object,
         },
 
@@ -71,27 +71,27 @@ found in the LICENSE file.
 
         changeIndex: {
           type: Number,
-          observer: '_indexChanged'
+          observer: '_changeIndexChanged'
         },
       },
 
       change(changeIndex) {
-        return this.jobInfo.changes[changeIndex];
+        return this.job.changes[changeIndex];
       },
 
-      _indexChanged() {
+      _changeIndexChanged() {
         if (this.changeIndex === null) {
           return;
         }
 
         // TODO: Do this with data binding instead.
-        this.buildTitle = this.jobInfo.quests[0];
-        this.runTitle = this.jobInfo.quests[1];
-        this.testTitle = this.jobInfo.quests[2];
+        this.buildTitle = this.job.quests[0];
+        this.runTitle = this.job.quests[1];
+        this.testTitle = this.job.quests[2];
 
-        this.attempts = this.jobInfo.attempts[this.changeIndex];
+        this.attempts = this.job.attempts[this.changeIndex];
 
-        this.resultValues = this.jobInfo.result_values[this.changeIndex][2];
+        this.resultValues = this.job.result_values[this.changeIndex][2];
       },
 
       isShowing(changeIndex) {

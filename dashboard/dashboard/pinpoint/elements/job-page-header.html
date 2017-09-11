@@ -34,14 +34,14 @@ found in the LICENSE file.
     <div class="columns">
       <div class="column">
         <h2>Changes</h2>
-        <template is="dom-repeat" items="[[getDifferences(jobInfo)]]">
+        <template is="dom-repeat" items="[[getDifferences(job)]]">
           <change-info change=[[item]]></change-info>
         </template>
       </div>
       <div class="column">
         <h2>Status</h2>
         <table>
-          <template is="dom-repeat" items="[[getStatus(jobInfo)]]">
+          <template is="dom-repeat" items="[[getStatus(job)]]">
             <tr>
               <th>[[item.key]]
               <td>[[item.value]]
@@ -51,7 +51,7 @@ found in the LICENSE file.
       <div class="column">
         <h2>Arguments</h2>
         <table>
-          <template is="dom-repeat" items="[[getArguments(jobInfo)]]">
+          <template is="dom-repeat" items="[[getArguments(job)]]">
             <tr>
               <th>[[item.key]]
               <td>[[item.value]]
@@ -66,30 +66,30 @@ found in the LICENSE file.
     Polymer({
       is: 'job-page-header',
 
-      getDifferences(jobInfo) {
+      getDifferences(job) {
         const differences = [];
-        for (let i = 0; i < jobInfo.comparisons.length; ++i) {
-          if (jobInfo.comparisons[i] === 'different') {
-            differences.push(jobInfo.changes[i + 1]);
+        for (let i = 0; i < job.comparisons.length; ++i) {
+          if (job.comparisons[i] === 'different') {
+            differences.push(job.changes[i + 1]);
           }
         }
         return differences;
       },
 
-      getStatus(jobInfo) {
-        const created = new Date(jobInfo.created + 'Z').toLocaleString();
-        const updated = new Date(jobInfo.updated + 'Z').toLocaleString();
+      getStatus(job) {
+        const created = new Date(job.created + 'Z').toLocaleString();
+        const updated = new Date(job.updated + 'Z').toLocaleString();
         return [
           {key: 'created', value: created},
           {key: 'updated', value: updated},
-          {key: 'auto_explore', value: jobInfo.auto_explore}
+          {key: 'auto_explore', value: job.auto_explore}
         ];
       },
 
-      getArguments(jobInfo) {
+      getArguments(job) {
         const tuples = [];
-        for (const key in jobInfo.arguments) {
-          tuples.push({key, value: jobInfo.arguments[key]});
+        for (const key in job.arguments) {
+          tuples.push({key, value: job.arguments[key]});
         }
         tuples.sort(function(a, b) {
           if (a.key < b.key) return -1;

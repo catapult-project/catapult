@@ -38,20 +38,20 @@ found in the LICENSE file.
 
     <h1 id="testing">
       Job [[routeData.jobId]]
-      <template is="dom-if" if="[[failed(jobInfo)]]">
+      <template is="dom-if" if="[[failed(job)]]">
         <span id="failed" class="chip">Error</span>
         <paper-tooltip for="failed" animation-delay="0">
-          <div id="failed-tooltip">[[jobInfo.exception]]</div>
+          <div id="failed-tooltip">[[job.exception]]</div>
         </paper-tooltip>
       </template>
-      <template is="dom-if" if="[[running(jobInfo)]]">
+      <template is="dom-if" if="[[running(job)]]">
         <span id="running" class="chip">Running</span>
       </template>
     </h1>
     <loading-wrapper id="loader">
-      <job-page-header job-info="[[jobInfo]]"></job-page-header>
-      <job-page-chart job-info="[[jobInfo]]" point-selected-index="{{pointSelectedIndex}}"></job-page-chart>
-      <job-page-change-table job-info="[[jobInfo]]" change-index="[[pointSelectedIndex]]"></job-page-change-table>
+      <job-page-header job="[[job]]"></job-page-header>
+      <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>
+      <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
     </loading-wrapper>
   </template>
 
@@ -61,37 +61,35 @@ found in the LICENSE file.
       is: 'job-page',
 
       properties: {
-        jobInfo: {
+        job: {
           type: Object,
           value: () => {},
-          notify: true,
         },
 
-        pointSelectedIndex: {
+        changeIndex: {
           type: Number,
           value: null,
-          notify: true
         }
       },
 
       deselected() {
-        this.set('pointSelectedIndex', null);
+        this.set('changeIndex', null);
       },
 
       async selected() {
         const params = {job_id: this.routeData.jobId};
         const response = await this.$.loader.load('/api/job', params);
         if (response) {
-          this.set('jobInfo', response.data);
+          this.set('job', response.data);
         }
       },
 
-      failed(jobInfo) {
-        return jobInfo.status.toLowerCase() === 'failed';
+      failed(job) {
+        return job.status.toLowerCase() === 'failed';
       },
 
-      running(jobInfo) {
-        return jobInfo.status.toLowerCase() === 'running';
+      running(job) {
+        return job.status.toLowerCase() === 'running';
       }
     });
   </script>
