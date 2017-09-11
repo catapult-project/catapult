@@ -9,6 +9,7 @@ from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
 from telemetry.core import util
+from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
@@ -47,6 +48,12 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
+
+  @property
+  def is_webview(self):
+    return isinstance(
+        self._backend_settings,
+        android_browser_backend_settings.WebviewBackendSettings)
 
   @property
   def log_file_path(self):
