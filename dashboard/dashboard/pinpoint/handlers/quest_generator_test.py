@@ -10,7 +10,7 @@ from dashboard.pinpoint.models import quest
 
 _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
-    '-v', '--upload-results', '--output-format', 'chartjson',
+    '-v', '--upload-results', '--output-format=chartjson',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -20,7 +20,7 @@ _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
 _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--story-filter', 'http://www.fifa.com/',
     '--pageset-repeat', '1', '--browser', 'release',
-    '-v', '--upload-results', '--output-format', 'chartjson',
+    '-v', '--upload-results', '--output-format=chartjson',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -30,7 +30,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
 _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS = [
     'start_with_url.warm.startup_pages',
     '--pageset-repeat', '2', '--browser', 'release',
-    '-v', '--upload-results', '--output-format', 'chartjson',
+    '-v', '--upload-results', '--output-format=chartjson',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',

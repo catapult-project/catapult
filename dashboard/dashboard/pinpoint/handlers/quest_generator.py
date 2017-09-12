@@ -97,8 +97,9 @@ def _TelemetryRunTest(request):
   arguments['browser'] = browser
   swarming_extra_args += ('--browser', browser)
 
-  swarming_extra_args += ('-v', '--upload-results',
-                          '--output-format', 'chartjson')
+  # TODO: Remove `=` in 2018. It was fixed on the chromium side in r496979,
+  # but any bisects on commit ranges older than August 25 will still fail.
+  swarming_extra_args += ('-v', '--upload-results', '--output-format=chartjson')
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
   return arguments, quest_module.RunTest(dimensions, swarming_extra_args)
