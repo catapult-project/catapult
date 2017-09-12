@@ -196,7 +196,11 @@ tr.exportTo('tr.metrics.sh', function() {
       const timeToEvent = ev.start - navigationStartEvent.start;
       samples.push({
         value: timeToEvent,
-        diagnostics: {url: new tr.v.d.GenericSet([url])}
+        diagnostics: {
+          url: new tr.v.d.GenericSet([url]),
+          Start: new RelatedEventSet(navigationStartEvent),
+          End: new RelatedEventSet(ev)
+        }
       });
     }
     return samples;
