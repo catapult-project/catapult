@@ -326,6 +326,7 @@ class DevToolsWebSocket(object):
   @RetryOn(socket.error)
   def Open(self):
     assert self._socket is None
+    # pylint: disable=no-member
     self._socket = websocket.CreateConnection(self._url)
 
   def Close(self):
