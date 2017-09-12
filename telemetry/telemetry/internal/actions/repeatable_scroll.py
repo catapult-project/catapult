@@ -39,12 +39,12 @@ class RepeatableScrollAction(page_action.PageAction):
     tab.SynthesizeScrollGesture(
         x=int(self._windowsize[0] / 2),
         y=int(self._windowsize[1] / 2),
-        xDistance=int(self._x_scroll_distance_ratio * self._windowsize[0]),
-        yDistance=int(-self._y_scroll_distance_ratio * self._windowsize[1]),
-        preventFling=self._prevent_fling,
+        x_distance=int(self._x_scroll_distance_ratio * self._windowsize[0]),
+        y_distance=int(-self._y_scroll_distance_ratio * self._windowsize[1]),
+        prevent_fling=self._prevent_fling,
         speed=self._speed,
-        repeatCount=self._repeat_count,
-        repeatDelayMs=self._repeat_delay_ms,
-        interactionMarkerName=timeline_interaction_record.GetJavaScriptMarker(
+        repeat_count=self._repeat_count,
+        repeat_delay_ms=self._repeat_delay_ms,
+        interaction_marker_name=timeline_interaction_record.GetJavaScriptMarker(
             'Gesture_ScrollAction', [timeline_interaction_record.REPEATABLE]),
         timeout=self._timeout)

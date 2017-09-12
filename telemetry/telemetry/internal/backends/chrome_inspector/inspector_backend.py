@@ -31,14 +31,14 @@ def _HandleInspectorWebSocketExceptions(func):
   information.
   """
   @functools.wraps(func)
-  def inner(inspector_backend, *args, **kwargs):
+  def Inner(inspector_backend, *args, **kwargs):
     try:
       return func(inspector_backend, *args, **kwargs)
     except (socket.error, websocket.WebSocketException,
             inspector_websocket.WebSocketDisconnected) as e:
       inspector_backend._ConvertExceptionFromInspectorWebsocket(e)
 
-  return inner
+  return Inner
 
 
 class InspectorBackend(object):
@@ -101,7 +101,7 @@ class InspectorBackend(object):
     return self._devtools_client.GetUrl(self.id)
 
   @property
-  def id(self):
+  def id(self): # pylint: disable=invalid-name
     return self._context['id']
 
   @property
@@ -302,12 +302,13 @@ class InspectorBackend(object):
     return self._runtime.EnableAllContexts()
 
   @_HandleInspectorWebSocketExceptions
-  def SynthesizeScrollGesture(self, x=100, y=800, xDistance=0, yDistance=-500,
-                              xOverscroll=None, yOverscroll=None,
-                              preventFling=None, speed=None,
-                              gestureSourceType=None, repeatCount=None,
-                              repeatDelayMs=None, interactionMarkerName=None,
-                              timeout=60):
+  def SynthesizeScrollGesture(
+      self, x=100, y=800, x_distance=0, y_distance=-500,
+      x_overscroll=None, y_overscroll=None,
+      prevent_fling=None, speed=None,
+      gesture_source_type=None, repeat_count=None,
+      repeat_delay_ms=None, interaction_marker_name=None,
+      timeout=60):
     """Runs an inspector command that causes a repeatable browser driven scroll.
 
     Args:
@@ -315,14 +316,14 @@ class InspectorBackend(object):
       y: Y coordinate of the start of the gesture in CSS pixels.
       xDistance: Distance to scroll along the X axis (positive to scroll left).
       yDistance: Distance to scroll along the Y axis (positive to scroll up).
-      xOverscroll: Number of additional pixels to scroll back along the X axis.
-      xOverscroll: Number of additional pixels to scroll back along the Y axis.
+      x_overscroll: Number of additional pixels to scroll back along the X axis.
+      yOverscroll: Number of additional pixels to scroll back along the Y axis.
       preventFling: Prevents a fling gesture.
       speed: Swipe speed in pixels per second.
-      gestureSourceType: Which type of input events to be generated.
-      repeatCount: Number of additional repeats beyond the first scroll.
-      repeatDelayMs: Number of milliseconds delay between each repeat.
-      interactionMarkerName: The name of the interaction markers to generate.
+      gesture_source_type: Which type of input events to be generated.
+      repeat_count: Number of additional repeats beyond the first scroll.
+      repeat_delay_ms: Number of milliseconds delay between each repeat.
+      interaction_marker_name: The name of the interaction markers to generate.
 
     Raises:
       exceptions.TimeoutException
@@ -331,33 +332,33 @@ class InspectorBackend(object):
     params = {
         'x': x,
         'y': y,
-        'xDistance': xDistance,
-        'yDistance': yDistance
+        'xDistance': x_distance,
+        'yDistance': y_distance
     }
 
-    if preventFling is not None:
-      params['preventFling'] = preventFling
+    if prevent_fling is not None:
+      params['preventFling'] = prevent_fling
 
-    if xOverscroll is not None:
-      params['xOverscroll'] = xOverscroll
+    if x_overscroll is not None:
+      params['xOverscroll'] = x_overscroll
 
-    if yOverscroll is not None:
-      params['yOverscroll'] = yOverscroll
+    if y_overscroll is not None:
+      params['yOverscroll'] = y_overscroll
 
     if speed is not None:
       params['speed'] = speed
 
-    if repeatCount is not None:
-      params['repeatCount'] = repeatCount
+    if repeat_count is not None:
+      params['repeatCount'] = repeat_count
 
-    if gestureSourceType is not None:
-      params['gestureSourceType'] = gestureSourceType
+    if gesture_source_type is not None:
+      params['gestureSourceType'] = gesture_source_type
 
-    if repeatDelayMs is not None:
-      params['repeatDelayMs'] = repeatDelayMs
+    if repeat_delay_ms is not None:
+      params['repeatDelayMs'] = repeat_delay_ms
 
-    if interactionMarkerName is not None:
-      params['interactionMarkerName'] = interactionMarkerName
+    if interaction_marker_name is not None:
+      params['interactionMarkerName'] = interaction_marker_name
 
     scroll_command = {
         'method': 'Input.synthesizeScrollGesture',
@@ -366,12 +367,13 @@ class InspectorBackend(object):
     return self._runtime.RunInspectorCommand(scroll_command, timeout)
 
   @_HandleInspectorWebSocketExceptions
-  def DispatchKeyEvent(self, keyEventType='char', modifiers=None,
-                       timestamp=None, text=None, unmodifiedText=None,
-                       keyIdentifier=None, domCode=None, domKey=None,
-                       windowsVirtualKeyCode=None, nativeVirtualKeyCode=None,
-                       autoRepeat=None, isKeypad=None, isSystemKey=None,
-                       timeout=60):
+  def DispatchKeyEvent(
+      self, key_event_type='char', modifiers=None,
+      timestamp=None, text=None, unmodified_text=None,
+      key_identifier=None, dom_code=None, dom_key=None,
+      windows_virtual_key_code=None, native_virtual_key_code=None,
+      auto_repeat=None, is_keypad=None, is_system_key=None,
+      timeout=60):
     """Dispatches a key event to the page.
 
     Args:
@@ -383,24 +385,24 @@ class InspectorBackend(object):
           seconds since January 1, 1970 (default: current time).
       text: Text as generated by processing a virtual key code with a keyboard
           layout. Not needed for for keyUp and rawKeyDown events (default: '').
-      unmodifiedText: Text that would have been generated by the keyboard if no
+      unmodified_text: Text that would have been generated by the keyboard if no
           modifiers were pressed (except for shift). Useful for shortcut
           (accelerator) key handling (default: "").
-      keyIdentifier: Unique key identifier (e.g., 'U+0041') (default: '').
-      windowsVirtualKeyCode: Windows virtual key code (default: 0).
-      nativeVirtualKeyCode: Native virtual key code (default: 0).
-      autoRepeat: Whether the event was generated from auto repeat (default:
+      key_identifier: Unique key identifier (e.g., 'U+0041') (default: '').
+      windows_virtual_key_code: Windows virtual key code (default: 0).
+      native_virtual_key_code: Native virtual key code (default: 0).
+      auto_repeat: Whether the event was generated from auto repeat (default:
           False).
-      isKeypad: Whether the event was generated from the keypad (default:
+      is_keypad: Whether the event was generated from the keypad (default:
           False).
-      isSystemKey: Whether the event was a system key event (default: False).
+      is_system_key: Whether the event was a system key event (default: False).
 
     Raises:
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
     params = {
-        'type': keyEventType,
+        'type': key_event_type,
     }
 
     if modifiers is not None:
@@ -409,24 +411,24 @@ class InspectorBackend(object):
       params['timestamp'] = timestamp
     if text is not None:
       params['text'] = text
-    if unmodifiedText is not None:
-      params['unmodifiedText'] = unmodifiedText
-    if keyIdentifier is not None:
-      params['keyIdentifier'] = keyIdentifier
-    if domCode is not None:
-      params['code'] = domCode
-    if domKey is not None:
-      params['key'] = domKey
-    if windowsVirtualKeyCode is not None:
-      params['windowsVirtualKeyCode'] = windowsVirtualKeyCode
-    if nativeVirtualKeyCode is not None:
-      params['nativeVirtualKeyCode'] = nativeVirtualKeyCode
-    if autoRepeat is not None:
-      params['autoRepeat'] = autoRepeat
-    if isKeypad is not None:
-      params['isKeypad'] = isKeypad
-    if isSystemKey is not None:
-      params['isSystemKey'] = isSystemKey
+    if unmodified_text is not None:
+      params['unmodifiedText'] = unmodified_text
+    if key_identifier is not None:
+      params['keyIdentifier'] = key_identifier
+    if dom_code is not None:
+      params['code'] = dom_code
+    if dom_key is not None:
+      params['key'] = dom_key
+    if windows_virtual_key_code is not None:
+      params['windowsVirtualKeyCode'] = windows_virtual_key_code
+    if native_virtual_key_code is not None:
+      params['nativeVirtualKeyCode'] = native_virtual_key_code
+    if auto_repeat is not None:
+      params['autoRepeat'] = auto_repeat
+    if is_keypad is not None:
+      params['isKeypad'] = is_keypad
+    if is_system_key is not None:
+      params['isSystemKey'] = is_system_key
 
     key_command = {
         'method': 'Input.dispatchKeyEvent',

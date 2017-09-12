@@ -80,17 +80,20 @@ class KeyPressAction(page_action.PageAction):
     self._timeout = timeout
 
   def RunAction(self, tab):
-    tab.DispatchKeyEvent(keyEventType='rawKeyDown',
-                         domKey=self._dom_key,
-                         windowsVirtualKeyCode=self._windows_virtual_key_code,
-                         timeout=self._timeout)
+    tab.DispatchKeyEvent(
+        key_event_type='rawKeyDown',
+        dom_key=self._dom_key,
+        windows_virtual_key_code=self._windows_virtual_key_code,
+        timeout=self._timeout)
     if self._text:
-      tab.DispatchKeyEvent(keyEventType='char',
-                           text=self._text,
-                           domKey=self._dom_key,
-                           windowsVirtualKeyCode=ord(self._text),
-                           timeout=self._timeout)
-    tab.DispatchKeyEvent(keyEventType='keyUp',
-                         domKey=self._dom_key,
-                         windowsVirtualKeyCode=self._windows_virtual_key_code,
-                         timeout=self._timeout)
+      tab.DispatchKeyEvent(
+          key_event_type='char',
+          text=self._text,
+          dom_key=self._dom_key,
+          windows_virtual_key_code=ord(self._text),
+          timeout=self._timeout)
+    tab.DispatchKeyEvent(
+        key_event_type='keyUp',
+        dom_key=self._dom_key,
+        windows_virtual_key_code=self._windows_virtual_key_code,
+        timeout=self._timeout)
