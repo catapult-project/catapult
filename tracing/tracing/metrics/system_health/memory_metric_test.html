@@ -398,7 +398,8 @@ tr.b.unittest.testSuite(function() {
     ];
     pmdBrowser1.totals = {
       residentBytes: 200,
-      peakResidentBytes: 230
+      peakResidentBytes: 230,
+      privateFootprintBytes: 240,
     };
     const pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
     pmdRendererA1.memoryAllocatorDumps = (function() {
@@ -645,13 +646,19 @@ tr.b.unittest.testSuite(function() {
     'memory:chrome:all_processes:reported_by_os:resident_size': {
       value: [200, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
-      description: 'total resident set size (RSS) reported by the OS for all ' +
-          'processes in Chrome'
+      description: 'total resident set size (RSS) reported by the OS for all' +
+          ' processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_os:peak_resident_size': {
       value: [230, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total peak resident set size reported by the OS for all ' +
+          'processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:private_footprint_size': {
+      value: [240, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private footprint size reported by the OS for all ' +
           'processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_os:system_memory:resident_size': {
@@ -666,6 +673,12 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'total peak resident set size of system memory (RAM) ' +
               'used by all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:system_memory:private_footprint_size': { // eslint-disable-line max-len
+      value: [240, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private footprint size of system memory (RAM) ' +
+          'used by all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:gpu:effective_size': {
       value: [30, 0, 300, 0],
@@ -855,6 +868,19 @@ tr.b.unittest.testSuite(function() {
       value: [230, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total peak resident set size of system memory (RAM) ' +
+              'used by the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:private_footprint_size': {
+      value: [240, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private footprint size reported by the OS for the ' +
+          'browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:private_footprint_size':
+    {
+      value: [240, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private footprint size of system memory (RAM) ' +
               'used by the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:resident_size': {

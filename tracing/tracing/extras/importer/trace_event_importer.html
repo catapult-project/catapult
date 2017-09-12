@@ -2777,6 +2777,12 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         }
 
+        // Private footprint
+        if (rawTotalName === 'private_footprint_bytes') {
+          totals.privateFootprintBytes = parseInt(rawTotalValue, 16);
+          continue;
+        }
+
         // OS-specific totals (e.g. private resident on Mac).
         if (platformSpecificTotals === undefined) {
           platformSpecificTotals = {};

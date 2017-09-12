@@ -257,6 +257,12 @@ tr.exportTo('tr.metrics.sh', function() {
               component: ['system_memory'],
               value: processDump.totals.peakResidentBytes
             });
+            addProcessScalar({
+              source: 'reported_by_os',
+              property: PRIVATE_FOOTPRINT_SIZE,
+              component: ['system_memory'],
+              value: processDump.totals.privateFootprintBytes,
+            });
           }
 
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:...
@@ -557,6 +563,15 @@ tr.exportTo('tr.metrics.sh', function() {
     buildDescriptionPrefix(componentPath, processName) {
       return buildOsValueDescriptionPrefix(componentPath, processName,
           'private dirty size');
+    }
+  };
+
+  const PRIVATE_FOOTPRINT_SIZE = {
+    name: 'private_footprint_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'private footprint size');
     }
   };
 
