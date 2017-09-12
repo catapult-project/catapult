@@ -247,6 +247,14 @@ Consumers can rely on the presence of Telemetry metadata for results produced by
 Telemetry.
 If present, they may contain a single value or multiple values.
 
+If uploading to the ChromePerf dashboard, the following diagnostics are required
+to be shared by all Histograms, and must all contain exactly one value:
+
+ * bots
+ * benchmarks
+ * chromiumCommitPositions
+ * masters
+
 
 ## Consumers of Histograms
 
