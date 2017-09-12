@@ -16,13 +16,14 @@ from systrace import tracing_agents
 
 
 class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
-  def __init__(self, device, package_info, cold, url):
+  def __init__(self, device, package_info, cold, url, trace_time=None):
     tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package_info = package_info
     self._cold = cold
     self._logcat_monitor = self._device.GetLogcatMonitor()
     self._url = url
+    self._trace_time = trace_time
     self._trace_file = None
     self._trace_finish_re = re.compile(r' Completed startup tracing to (.*)')
     self._flag_changer = flag_changer.FlagChanger(
@@ -34,7 +35,10 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def _SetupTracing(self):
     # TODO(lizeb): Figure out how to clean up the command-line file when
     # _TearDownTracing() is not executed in StopTracing().
-    self._flag_changer.AddFlags(['--trace-startup'])
+    flags = ['--trace-startup']
+    if self._trace_time is not None:
+      flags.append('--trace-startup-duration={}'.format(self._trace_time))
+    self._flag_changer.AddFlags(flags)
     self._device.ForceStop(self._package_info.package)
     if self._cold:
       self._device.EnableRoot()
@@ -93,18 +97,20 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
 
 
 class ChromeStartupConfig(tracing_agents.TracingConfig):
-  def __init__(self, device, package_info, cold, url, chrome_categories):
+  def __init__(self, device, package_info, cold, url, chrome_categories,
+               trace_time):
     tracing_agents.TracingConfig.__init__(self)
     self.device = device
     self.package_info = package_info
     self.cold = cold
     self.url = url
     self.chrome_categories = chrome_categories
+    self.trace_time = trace_time
 
 
 def try_create_agent(config):
   return ChromeStartupTracingAgent(config.device, config.package_info,
-                                   config.cold, config.url)
+                                   config.cold, config.url, config.trace_time)
 
 def add_options(parser):
   options = optparse.OptionGroup(parser, 'Chrome startup tracing')
@@ -120,4 +126,4 @@ def add_options(parser):
 def get_config(options):
   return ChromeStartupConfig(options.device, options.package_info,
                              options.cold, options.url,
-                             options.chrome_categories)
+                             options.chrome_categories, options.trace_time)
