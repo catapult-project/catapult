@@ -63,3 +63,8 @@ def GetTypeForName(name):
   for info in globals().itervalues():
     if isinstance(info, _Info) and info.name == name:
       return info.type
+
+def AllInfos():
+  for info in globals().itervalues():
+    if isinstance(info, _Info):
+      yield info

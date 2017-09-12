@@ -46,7 +46,7 @@ class AddSharedDiagnosticTest(unittest.TestCase):
     json.dump(hs.AsDicts(), hf)
     hf.close()
 
-    new_hs_data = add_shared_diagnostics.AddValueDiagnostic(
+    new_hs_data = add_shared_diagnostics.AddValueDiagnostics(
         hf.name, {'foo': 'bar', 'baz': 'qux'})
     new_hs = histogram_set.HistogramSet()
     new_hs.ImportDicts(json.loads(new_hs_data))

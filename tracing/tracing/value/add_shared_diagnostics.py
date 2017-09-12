@@ -32,7 +32,7 @@ def AddSharedDiagnostics(
   return json.dumps(histograms.AsDicts())
 
 
-def AddValueDiagnostic(
+def AddValueDiagnostics(
     histograms_json_filename, diagnostic_names_to_values):
   """Adds shared GenericSets containing values to a set of histograms.
 
