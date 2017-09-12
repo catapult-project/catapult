@@ -120,6 +120,7 @@ tr.b.unittest.testSuite(function() {
     page.start_repository = 'chromium';
     page.end_repository = 'chromium';
     await page.show();
+    page.story_filter = 'foo';
 
     let params;
     simple_xhr.asPromise = function(_, p) {
@@ -138,6 +139,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.end_commit, '0987654321');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'chromium');
+    assert.strictEqual(params.story_filter, 'foo');
   }, testOptionsOverwriteSimpleXhr);
 });
 </script>
