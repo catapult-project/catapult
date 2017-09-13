@@ -2,11 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
 import unittest
-
-from google.appengine.api import memcache
-from google.appengine.ext import ndb
 
 from dashboard.common import stored_object
 from dashboard.common import testing_common
@@ -29,35 +25,11 @@ class SampleSerializableClass(object):
 
 class StoredObjectTest(testing_common.TestCase):
 
-  def _GetCachedValues(self, key):
-    keys = stored_object.MultipartCache._GetCacheKeyList(key)
-    cache_values = memcache.get_multi(keys)
-    return [v for v in cache_values.values() if v is not None]
-
   def testSetAndGet(self):
     new_account = SampleSerializableClass('Some account data.')
     stored_object.Set('chris', new_account)
     chris_account = stored_object.Get('chris')
     self.assertEqual(new_account, chris_account)
-
-  @mock.patch.object(stored_object.MultipartCache, 'GetAsync')
-  def testSetAndGet_NoMemcache(self, async_mock):
-    async_mock.return_value = ndb.Future()
-    async_mock.return_value.set_result(None)
-
-    new_account = SampleSerializableClass('Some account data.')
-    stored_object.Set('chris', new_account)
-    chris_account = stored_object.Get('chris')
-    self.assertEqual(new_account, chris_account)
-
-  def testSetAndGet_CacheNotExist_CacheSet(self):
-    new_account = SampleSerializableClass('Some account data.')
-    stored_object.Set('chris', new_account)
-    stored_object.MultipartCache.Delete('chris')
-    chris_account = stored_object.Get('chris')
-    self.assertEqual(new_account, chris_account)
-    cache_values = self._GetCachedValues('chris')
-    self.assertGreater(len(cache_values), 0)
 
   def testSetAndGet_LargeObject(self):
     a_large_string = '0' * 2097152
@@ -72,10 +44,6 @@ class StoredObjectTest(testing_common.TestCase):
     # chris_account object should be stored over 3 PartEntity entities.
     self.assertEqual(3, len(part_entities))
 
-    # Stored over 4 caches here, one extra for the head cache.
-    cache_values = self._GetCachedValues('chris')
-    self.assertEqual(4, len(cache_values))
-
   def testDelete_LargeObject_AllEntitiesDeleted(self):
     a_large_string = '0' * 2097152
     new_account = SampleSerializableClass(a_large_string)
@@ -87,8 +55,6 @@ class StoredObjectTest(testing_common.TestCase):
     self.assertEqual(0, len(multipart_entities))
     part_entities = stored_object.PartEntity.query().fetch()
     self.assertEqual(0, len(part_entities))
-    cache_values = self._GetCachedValues('chris')
-    self.assertEqual(0, len(cache_values))
 
 
 if __name__ == '__main__':
