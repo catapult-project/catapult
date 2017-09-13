@@ -359,6 +359,28 @@ class BattOrWrapperTest(unittest.TestCase):
     dependency_manager.DependencyManager._version_return = 'cbaa843'
     self.assertTrue(self._battor._FlashBattOr())
 
+  def testCollectTraceDataNoStartTime(self):
+    self._battor = battor_wrapper.BattOrWrapper('linux')
+    self._DefaultBattOrReplacements()
+    self._battor.StartShell()
+    self._battor.StartTracing()
+    self._battor.GetShellReturnCode = lambda *unused: 0
+    self._battor.StopTracing()
+    self._battor._start_tracing_time = None
+    with self.assertRaises(battor_error.BattOrError):
+      self._battor.CollectTraceData()
+
+  def testCollectTraceDataNoStopTime(self):
+    self._battor = battor_wrapper.BattOrWrapper('linux')
+    self._DefaultBattOrReplacements()
+    self._battor.StartShell()
+    self._battor.StartTracing()
+    self._battor.GetShellReturnCode = lambda *unused: 0
+    self._battor.StopTracing()
+    self._battor._stop_tracing_time = None
+    with self.assertRaises(battor_error.BattOrError):
+      self._battor.CollectTraceData()
+
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

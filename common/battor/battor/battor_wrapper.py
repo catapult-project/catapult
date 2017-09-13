@@ -255,6 +255,12 @@ class BattOrWrapper(object):
         seconds.
     Returns: Trace data in form of a list.
     """
+    if not self._stop_tracing_time or not self._start_tracing_time:
+      raise battor_error.BattOrError(
+          'No start or stop time detected when collecting BattOr trace.\n'
+          'Start: %s \n Stop: %s' % (self._start_tracing_time,
+                                     self._stop_tracing_time))
+
     # The BattOr shell terminates after returning the results.
     if timeout is None:
       timeout = self._stop_tracing_time - self._start_tracing_time
