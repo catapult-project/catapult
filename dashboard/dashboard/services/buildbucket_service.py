@@ -6,42 +6,28 @@
 
 import json
 
-from apiclient import discovery
+from dashboard.services import request
 
-from dashboard.common import utils
 
-_DISCOVERY_URL = (
-    'https://cr-buildbucket.appspot.com'
-    '/api/discovery/v1/apis/{api}/{apiVersion}/rest')
+API_BASE_URL = 'https://cr-buildbucket.appspot.com/api/buildbucket/v1/'
 
 # Default Buildbucket bucket name.
 _BUCKET_NAME = 'master.tryserver.chromium.perf'
 
 
-def _DiscoverService(http):
-  return discovery.build('buildbucket', 'v1',
-                         discoveryServiceUrl=_DISCOVERY_URL, http=http)
-
-
 def Put(bucket, parameters):
-  service = _DiscoverService(utils.ServiceAccountHttp())
-  request = service.put(body={
+  body = {
       'bucket': bucket,
-      'parameters_json': json.dumps(parameters)})
-  return request.execute()
+      'parameters_json': json.dumps(parameters, separators=(',', ':')),
+  }
+  return request.RequestJson(API_BASE_URL + 'builds', method='PUT', body=body)
 
 
 # TODO: Deprecated. Use Put() instead.
 def PutJob(job, bucket=_BUCKET_NAME):
   """Creates a job via buildbucket's API."""
   parameters = job.GetBuildParameters()
-  service = _DiscoverService(utils.ServiceAccountHttp())
-  request = service.put(
-      body={
-          'bucket': bucket,
-          'parameters_json': json.dumps(parameters),
-      })
-  response_content = request.execute()
+  response_content = Put(bucket, parameters)
   job.response_fields = response_content.get('build')
   return job.response_fields.get('id')
 
@@ -49,8 +35,7 @@ def PutJob(job, bucket=_BUCKET_NAME):
 # TODO: Rename to Get().
 def GetJobStatus(job_id):
   """Gets the details of a job via buildbucket's API."""
-  service = _DiscoverService(utils.ServiceAccountHttp())
-  request = service.get(id=job_id)
-  return request.execute()
+  return request.RequestJson(API_BASE_URL + 'builds/%s' % (job_id))
+
 
 # TODO(robertocn): Implement CancelJobByID
