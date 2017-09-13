@@ -251,15 +251,15 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
     payload = ','.join(['{}'] * 5000)
     self._inspector_socket.AddAsyncResponse('IO.read', {'data': '[' + payload},
                                             fake_time)
-    startClock = timeit.default_timer()
+    start_clock = timeit.default_timer()
 
     done = {'done': False}
-    def mark_done(data):
+    def MarkDone(data):
       del data  # unused
       done['done'] = True
 
     reader = _DevToolsStreamReader(self._inspector_socket, 'dummy')
-    reader.Read(mark_done)
+    reader.Read(MarkDone)
     while not done['done']:
       fake_time += 1
       if count > 0:
@@ -272,7 +272,7 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
             {'data': payload + ']', 'eof': True}, fake_time)
       count -= 1
       self._inspector_socket.DispatchNotifications(10)
-    return timeit.default_timer() - startClock
+    return timeit.default_timer() - start_clock
 
   def testReadTime(self):
     n1 = 1000
@@ -283,5 +283,5 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
       n1 *= 5
     t2 = self._MeasureReadTime(n1 * 10)
     # Time is an illusion, CPU time is doubly so, allow great deal of tolerance.
-    toleranceFactor = 5
-    self.assertLess(t2, t1 * 10 * toleranceFactor)
+    tolerance_factor = 5
+    self.assertLess(t2, t1 * 10 * tolerance_factor)

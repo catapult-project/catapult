@@ -298,11 +298,13 @@ class BrowserOptions(object):
     self.disable_background_networking = True
     self.browser_user_agent_type = None
 
+    # pylint: disable=invalid-name
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
     self.startup_url = 'about:blank'
 
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
+    # pylint: disable=invalid-name
     self.disable_component_extensions_with_background_pages = True
     # Disable default apps.
     self.disable_default_apps = True

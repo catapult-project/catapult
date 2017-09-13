@@ -117,7 +117,7 @@ def FindBrowser(options):
     logging.warning('Multiple browsers of the same type found: %s',
                     repr(matching_browsers))
     chosen_browser = sorted(matching_browsers,
-                            key=lambda b: b.last_modification_time())[-1]
+                            key=lambda b: b.last_modification_time)[-1]
 
   if chosen_browser:
     logging.info('Chose browser: %s', repr(chosen_browser))

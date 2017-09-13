@@ -14,7 +14,7 @@ from telemetry.internal.backends.chrome_inspector import websocket
 
 # Minimal handler for a local websocket server.
 class _FakeWebSocketHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-  def do_GET(self):
+  def do_GET(self): # pylint: disable=invalid-name
     key = self.headers.getheader('Sec-WebSocket-Key')
 
     value = key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'

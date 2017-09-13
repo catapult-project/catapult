@@ -350,7 +350,8 @@ class Browser(app.App):
     return self._browser_backend.DumpMemory(timeout=timeout)
 
   @property
-  def supports_java_heap_garbage_collection(self):
+  def supports_java_heap_garbage_collection( # pylint: disable=invalid-name
+      self):
     return hasattr(self._browser_backend, 'ForceJavaHeapGarbageCollection')
 
   def ForceJavaHeapGarbageCollection(self):
@@ -358,7 +359,9 @@ class Browser(app.App):
     return self._browser_backend.ForceJavaHeapGarbageCollection()
 
   @property
+  # pylint: disable=invalid-name
   def supports_overriding_memory_pressure_notifications(self):
+    # pylint: enable=invalid-name
     return (
         self._browser_backend.supports_overriding_memory_pressure_notifications)
 

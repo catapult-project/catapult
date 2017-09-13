@@ -47,6 +47,7 @@ class PossibleBrowser(possible_app.PossibleApp):
   def UpdateExecutableIfNeeded(self):
     pass
 
+  @property
   def last_modification_time(self):
     return -1
 
