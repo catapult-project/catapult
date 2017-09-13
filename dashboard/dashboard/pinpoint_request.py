@@ -127,8 +127,18 @@ def PinpointParamsFromBisectParams(params):
   suite = test_path_parts[2]
   story_filter = params.get('story_filter')
 
-  tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
-      test_path_parts)
+  # If functional bisects are speciied, Pinpoint expects these parameters to be
+  # empty.
+  bisect_mode = params.get('bisect_mode')
+  if bisect_mode != 'performance' and bisect_mode != 'functional':
+    raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
+
+  tir_label = ''
+  chart_name = ''
+  trace_name = ''
+  if bisect_mode == 'performance':
+    tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
+        test_path_parts)
 
   dimensions = bots_to_dimensions.get(bot_name)
   if not dimensions:

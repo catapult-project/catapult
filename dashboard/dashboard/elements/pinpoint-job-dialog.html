@@ -57,9 +57,9 @@ found in the LICENSE file.
         <paper-input id="start_commit" label="start_commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_commit" label="end_commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="story-filter" label="Story Filter" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
-        <paper-radio-group id="bisect-mode" selected="performance">
-          <paper-radio-button id="performance" name="performance" on-change="onBisectModeChanged">Performance</paper-radio-button>
-          <paper-radio-button id="functional" name="functional" on-change="onBisectModeChanged">Functional</paper-radio-button>
+        <paper-radio-group id="bisect_mode" selected="performance">
+          <paper-radio-button id="performance" name="performance">Performance</paper-radio-button>
+          <paper-radio-button id="functional" name="functional">Functional</paper-radio-button>
         </paper-radio-group>
         <div>
           <paper-button raised disabled$="[[getCreateDisabled(create_disabled, loading)]]" on-click="onCreateJob">Create</paper-button>
@@ -128,14 +128,6 @@ found in the LICENSE file.
         return !!e;
       },
 
-      onBisectModeChanged(e) {
-        if (e.target.name == this.$.performance.name) {
-          this.$.metric.hidden = false;
-        } else {
-          this.$.metric.hidden = true;
-        }
-      },
-
       async onCreateJob(e) {
         const params = {
           test_path: this.test_path,
@@ -144,7 +136,8 @@ found in the LICENSE file.
           start_repository: this.start_repository,
           end_repository: this.end_repository,
           bug_id: this.bug_id,
-          story_filter: this.story_filter
+          story_filter: this.story_filter,
+          bisect_mode: this.$.bisect_mode.selected
         };
 
         try {

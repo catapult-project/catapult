@@ -118,6 +118,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'chromium',
         'end_repository': 'chromium',
         'bug_id': 1,
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -148,6 +149,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'story_filter': 'foo',
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -177,7 +179,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'bug_id': 1
+        'bug_id': 1,
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -206,7 +209,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'bug_id': 1
+        'bug_id': 1,
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -223,7 +227,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'bug_id': 1
+        'bug_id': 1,
+        'bisect_mode': 'performance',
     }
     graph_data.TestMetadata(
         id=params['test_path'], unescaped_story_name='http://bar.html').put()
@@ -242,7 +247,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'bug_id': 1
+        'bug_id': 1,
+        'bisect_mode': 'performance',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -253,6 +259,41 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_BisectMode_Invalid_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'bug_id': 1,
+        'bisect_mode': 'foo'
+    }
+    graph_data.TestMetadata(id=params['test_path'],).put()
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromBisectParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_BisectMode_Functional(self):
+    params = {
+        'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'bug_id': 1,
+        'bisect_mode': 'functional'
+    }
+    graph_data.TestMetadata(id=params['test_path'],).put()
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('', results['tir_label'])
+    self.assertEqual('', results['chart'])
+    self.assertEqual('', results['trace'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_StartRepositoryInvalid_RaisesError(self):
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
@@ -260,6 +301,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'foo',
         'end_repository': 'chromium',
+        'bisect_mode': 'performance',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -273,6 +315,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'v8',
         'end_repository': 'chromium',
+        'bisect_mode': 'performance',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -286,6 +329,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'v8',
+        'bisect_mode': 'performance',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -302,6 +346,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': '5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -319,6 +364,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
+        'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -335,6 +381,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': '456',
         'start_repository': 'v8',
         'end_repository': 'v8',
+        'bisect_mode': 'performance',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -351,6 +398,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': '456',
         'start_repository': 'v8',
         'end_repository': 'v8',
+        'bisect_mode': 'performance',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
