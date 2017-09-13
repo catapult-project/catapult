@@ -18,7 +18,7 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
 
   def __init__(self, ps, base_dir, trigger_animation=False,
                trigger_jank=False, trigger_slow=False,
-               trigger_scroll_gesture=False):
+               trigger_scroll_gesture=False, measure_memory=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
         'file://interaction_enabled_page.html', ps, base_dir,
         name='interaction_enabled_page.html')
@@ -26,8 +26,11 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     self._trigger_jank = trigger_jank
     self._trigger_slow = trigger_slow
     self._trigger_scroll_gesture = trigger_scroll_gesture
+    self._measure_memory = measure_memory
 
   def RunPageInteractions(self, action_runner):
+    if self._measure_memory:
+      action_runner.MeasureMemory()
     if self._trigger_animation:
       action_runner.TapElement('#animating-button')
       action_runner.WaitForJavaScriptCondition('window.animationDone')
@@ -56,8 +59,12 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
   def setUp(self):
     browser_test_case.teardown_browser()
-    self._options = options_for_unittests.GetCopy()
-    self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
+    self._options = self.createDefaultRunnerOptions()
+
+  def createDefaultRunnerOptions(self):
+    runner_options = options_for_unittests.GetCopy()
+    runner_options.browser_options.wpr_mode = wpr_modes.WPR_OFF
+    return runner_options
 
   # This test is flaky when run in parallel on the mac: crbug.com/426676
   # Also, fails on android: crbug.com/437057, and chromeos: crbug.com/483212
@@ -156,6 +163,38 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
+
+  @decorators.Disabled('reference')
+  @decorators.Disabled('chromeos')
+  @decorators.Isolated
+  def testHeapProfilerForSmoke(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddStory(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir, measure_memory=True, trigger_slow=True))
+
+    cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
+        filter_string='-*,disabled-by-default-memory-infra')
+    options = tbm_module.Options(overhead_level=cat_filter)
+    options.config.enable_chrome_trace = True
+    options.SetTimelineBasedMetrics(['memoryMetric'])
+
+    runner_options = self.createDefaultRunnerOptions()
+    runner_options.browser_options.AppendExtraBrowserArgs(
+        ['--enable-heap-profiling'])
+    tbm = tbm_module.TimelineBasedMeasurement(options)
+    results = self.RunMeasurement(tbm, ps, runner_options)
+
+    self.assertEquals(0, len(results.failures))
+
+    DUMP_COUNT_METRIC = 'memory:chrome:all_processes:dump_count'
+    dumps_detailed = results.FindAllPageSpecificValuesNamed(
+        DUMP_COUNT_METRIC + ':detailed_avg')
+    dumps_heap_profiler = results.FindAllPageSpecificValuesNamed(
+        DUMP_COUNT_METRIC + ':heap_profiler_avg')
+    self.assertEquals(1, len(dumps_detailed))
+    self.assertEquals(1, len(dumps_heap_profiler))
+    self.assertGreater(dumps_detailed[0].value, 0)
+    self.assertEquals(dumps_detailed[0].value, dumps_heap_profiler[0].value)
 
 
   # TODO(ksakamoto): enable this in reference once the reference build of
