@@ -2,10 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
 import logging
 import os
-import random
 import shutil
 import sys
 import tempfile
@@ -19,7 +17,9 @@ from tracing.trace_data import trace_data as trace_data_module
 
 
 class TraceValue(value_module.Value):
-  def __init__(self, page, trace_data, important=False, description=None):
+  def __init__(self, page, trace_data, important=False, description=None,
+               file_path=None, remote_path=None, upload_bucket=None,
+               cloud_url=None):
     """A value that contains a TraceData object and knows how to
     output it.
 
@@ -31,7 +31,10 @@ class TraceValue(value_module.Value):
         page, name='trace', units='', important=important,
         description=description, tir_label=None, grouping_keys=None)
     self._temp_file = self._GetTempFileHandle(trace_data)
-    self._cloud_url = None
+    self._file_path = file_path
+    self._remote_path = remote_path
+    self._upload_bucket = upload_bucket
+    self._cloud_url = cloud_url
     self._serialized_file_handle = None
 
   @property
@@ -122,22 +125,16 @@ class TraceValue(value_module.Value):
       d['cloud_url'] = self._cloud_url
     return d
 
-  def Serialize(self, dir_path):
+  def Serialize(self):
     if self._temp_file is None:
       raise ValueError('Tried to serialize nonexistent trace.')
-    if self.page:
-      file_name = self.page.file_safe_name
-    else:
-      file_name = ''
-    file_name += str(self._temp_file.id)
-    file_name += datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    file_name += self._temp_file.extension
-    file_path = os.path.abspath(os.path.join(dir_path, file_name))
-    shutil.copy(self._temp_file.GetAbsPath(), file_path)
-    self._serialized_file_handle = file_handle.FromFilePath(file_path)
+    if self._file_path is None:
+      raise ValueError('Serialize requires file_path.')
+    shutil.copy(self._temp_file.GetAbsPath(), self._file_path)
+    self._serialized_file_handle = file_handle.FromFilePath(self._file_path)
     return self._serialized_file_handle
 
-  def UploadToCloud(self, bucket):
+  def UploadToCloud(self):
     if self._temp_file is None:
       raise ValueError('Tried to upload nonexistent trace to Cloud Storage.')
     try:
@@ -145,13 +142,8 @@ class TraceValue(value_module.Value):
         fh = self._serialized_file_handle
       else:
         fh = self._temp_file
-      remote_path = ('trace-file-id_%s-%s-%d%s' % (
-          fh.id,
-          datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
-          random.randint(1, 100000),
-          fh.extension))
-      self._cloud_url = cloud_storage.Insert(
-          bucket, remote_path, fh.GetAbsPath())
+      cloud_storage.Insert(
+          self._upload_bucket, self._remote_path, fh.GetAbsPath())
       sys.stderr.write(
           'View generated trace files online at %s for story %s\n' %
           (self._cloud_url, self.page.name if self.page else 'unknown'))

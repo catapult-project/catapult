@@ -79,8 +79,9 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
   def testMultiplePagesAndValues(self, cs_insert_mock):
     cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
     trace_value = trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData('{"traceEvents": []}'))
-    trace_value.UploadToCloud(bucket='foo')
+        None, trace_data.CreateTraceDataFromRawData('{"traceEvents": []}'),
+        remote_path='rp', upload_bucket='foo', cloud_url='http://google.com')
+    trace_value.UploadToCloud()
     self.SimulateBenchmarkRun([
         (self._story_set[0], [
             scalar.ScalarValue(
@@ -108,7 +109,7 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
     self.assertEquals(len(set((v[2] for v in values))), 4)  # 4 value names.
     self.assertEquals(values[2],
                       ['story_set', 'http://www.bar.com/', 'trace',
-                       'https://cloud_storage_url/foo', '', '1'])
+                       'http://google.com', '', '1'])
 
   def testTraceTag(self):
     self.MakeFormatter(trace_tag='date,option')

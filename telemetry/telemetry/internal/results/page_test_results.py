@@ -31,7 +31,7 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
 
 class TelemetryInfo(object):
-  def __init__(self):
+  def __init__(self, upload_bucket=None, output_dir=None):
     self._benchmark_name = None
     self._benchmark_start_epoch = None
     self._benchmark_interrupted = False
@@ -41,6 +41,14 @@ class TelemetryInfo(object):
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
     self._trace_start_ms = None
+    self._upload_bucket = upload_bucket
+    self._trace_remote_path = None
+    self._output_dir = output_dir
+    self._trace_local_path = None
+
+  @property
+  def upload_bucket(self):
+    return self._upload_bucket
 
   @property
   def benchmark_name(self):
@@ -105,6 +113,46 @@ class TelemetryInfo(object):
     self._story_tags = story.tags
     self._storyset_repeat_counter = storyset_repeat_counter
 
+    trace_name = '%s_%s_%s.html' % (
+        story.file_safe_name,
+        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
+        random.randint(1, 1e5))
+
+    if self._upload_bucket:
+      self._trace_remote_path = trace_name
+
+    if self._output_dir:
+      self._trace_local_path = os.path.abspath(os.path.join(
+          self._output_dir, trace_name))
+
+  @property
+  def trace_local_path(self):
+    return self._trace_local_path
+
+  @property
+  def trace_local_url(self):
+    if self._trace_local_path:
+      return 'file://' + self._trace_local_path
+    return None
+
+  @property
+  def trace_remote_path(self):
+    return self._trace_remote_path
+
+  @property
+  def trace_remote_url(self):
+    if self._trace_remote_path:
+      return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
+          self._upload_bucket, self._trace_remote_path)
+    return None
+
+  @property
+  def trace_url(self):
+    # This is MRE's canonicalUrl.
+    if self._upload_bucket is None:
+      return self.trace_local_url
+    return self.trace_remote_url
+
   def AsDict(self):
     assert self.benchmark_name is not None, (
         'benchmark_name must be set exactly once')
@@ -120,6 +168,7 @@ class TelemetryInfo(object):
         '%s:%s' % kv for kv in self.story_grouping_keys.iteritems()]
     d[reserved_infos.STORYSET_REPEATS.name] = [self.storyset_repeat_counter]
     d[reserved_infos.TRACE_START.name] = self.trace_start_ms
+    d[reserved_infos.TRACE_URLS.name] = [self.trace_url]
     return d
 
 
@@ -127,7 +176,7 @@ class PageTestResults(object):
   def __init__(self, output_formatters=None,
                progress_reporter=None, trace_tag='', output_dir=None,
                value_can_be_added_predicate=lambda v, is_first: True,
-               benchmark_enabled=True):
+               benchmark_enabled=True, upload_bucket=None):
     """
     Args:
       output_formatters: A list of output formatters. The output
@@ -168,7 +217,8 @@ class PageTestResults(object):
 
     self._histograms = histogram_set.HistogramSet()
 
-    self._telemetry_info = TelemetryInfo()
+    self._telemetry_info = TelemetryInfo(
+        upload_bucket=upload_bucket, output_dir=output_dir)
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
@@ -399,7 +449,7 @@ class PageTestResults(object):
           any(isinstance(o, (json_output_formatter.JsonOutputFormatter,
                              html_output_formatter.HtmlOutputFormatter))
               for o in self._output_formatters)):
-        self._SerializeTracesToDirPath(self._output_dir)
+        self._SerializeTracesToDirPath()
       for output_formatter in self._output_formatters:
         output_formatter.Format(self)
         output_formatter.PrintViewResults()
@@ -434,18 +484,19 @@ class PageTestResults(object):
   def FindAllTraceValues(self):
     return self.FindValues(lambda v: isinstance(v, trace.TraceValue))
 
-  def _SerializeTracesToDirPath(self, dir_path):
+  def _SerializeTracesToDirPath(self):
     """ Serialize all trace values to files in dir_path and return a list of
     file handles to those files. """
     for value in self.FindAllTraceValues():
-      fh = value.Serialize(dir_path)
+      fh = value.Serialize()
       self._serialized_trace_file_ids_to_paths[fh.id] = fh.GetAbsPath()
 
-  def UploadTraceFilesToCloud(self, bucket):
+  def UploadTraceFilesToCloud(self):
     for value in self.FindAllTraceValues():
-      value.UploadToCloud(bucket)
+      value.UploadToCloud()
 
-  def UploadProfilingFilesToCloud(self, bucket):
+  def UploadProfilingFilesToCloud(self):
+    bucket = self.telemetry_info.upload_bucket
     for page, file_handle_list in self._pages_to_profiling_files.iteritems():
       for file_handle in file_handle_list:
         remote_path = ('profiler-file-id_%s-%s%-d%s' % (

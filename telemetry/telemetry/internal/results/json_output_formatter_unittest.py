@@ -87,10 +87,11 @@ class JsonOutputFormatterTest(unittest.TestCase):
       results.WillRunPage(self._story_set[0])
       v0 = trace.TraceValue(
           results.current_page,
-          trace_data.CreateTraceDataFromRawData([{'event': 'test'}]))
+          trace_data.CreateTraceDataFromRawData([{'event': 'test'}]),
+          file_path=os.path.join(tempdir, 'testAsDictWithTraceValue.html'))
       results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
-      results._SerializeTracesToDirPath(tempdir)
+      results._SerializeTracesToDirPath()
       d = json_output_formatter.ResultsAsDict(
           results, self._formatter.benchmark_metadata)
 

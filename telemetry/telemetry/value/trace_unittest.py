@@ -77,29 +77,21 @@ class ValueTest(TestBase):
 
     self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
 
-  def testTraceSerializationContainStoryName(self):
-    tempdir = tempfile.mkdtemp()
-    try:
-      v = trace.TraceValue(self.pages[0],
-                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
-      fh = v.Serialize(tempdir)
-      self.assertTrue(os.path.basename(fh.GetAbsPath()).startswith(
-          'http___www_bar_com'))
-    finally:
-      shutil.rmtree(tempdir)
-
   def testAsDictWhenTraceSerializedAndUploaded(self):
     tempdir = tempfile.mkdtemp()
     try:
-      v = trace.TraceValue(None,
-                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
-      fh = v.Serialize(tempdir)
+      v = trace.TraceValue(
+          None, trace_data.CreateTraceDataFromRawData([{'test': 1}]),
+          file_path=os.path.join(tempdir, 'test.html'),
+          upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
+          remote_path='a.html',
+          cloud_url='http://example.com/a.html')
+      fh = v.Serialize()
       # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
           {fh.GetAbsPath(): 123})
       # pylint: enable=no-member
-      bucket = trace.cloud_storage.PUBLIC_BUCKET
-      cloud_url = v.UploadToCloud(bucket)
+      cloud_url = v.UploadToCloud()
       d = v.AsDict()
       self.assertEqual(d['file_id'], fh.id)
       self.assertEqual(d['cloud_url'], cloud_url)
@@ -109,14 +101,16 @@ class ValueTest(TestBase):
   def testAsDictWhenTraceIsNotSerializedAndUploaded(self):
     test_temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-      v = trace.TraceValue(None,
-                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
+      v = trace.TraceValue(
+          None, trace_data.CreateTraceDataFromRawData([{'test': 1}]),
+          upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
+          remote_path='a.html',
+          cloud_url='http://example.com/a.html')
       # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
           TestDefaultDict(123))
       # pylint: enable=no-member
-      bucket = trace.cloud_storage.PUBLIC_BUCKET
-      cloud_url = v.UploadToCloud(bucket)
+      cloud_url = v.UploadToCloud()
       d = v.AsDict()
       self.assertEqual(d['cloud_url'], cloud_url)
     finally:
