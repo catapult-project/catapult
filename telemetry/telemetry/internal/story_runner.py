@@ -456,6 +456,7 @@ def _MakeDeviceInfoDiagnostics(state):
 
   device_info_data = {
       reserved_infos.ARCHITECTURES.name: state.platform.GetArchName(),
+      reserved_infos.DEVICE_IDS.name: state.platform.GetDeviceId(),
       reserved_infos.MEMORY_AMOUNTS.name:
           state.platform.GetSystemTotalPhysicalMemory(),
       reserved_infos.OS_NAMES.name: state.platform.GetOSName(),

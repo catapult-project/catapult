@@ -36,6 +36,7 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
 ])
 
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+    reserved_infos.DEVICE_IDS.name,
     reserved_infos.GPUS.name,
     reserved_infos.MEMORY_AMOUNTS.name,
     reserved_infos.PRODUCT_VERSIONS.name,

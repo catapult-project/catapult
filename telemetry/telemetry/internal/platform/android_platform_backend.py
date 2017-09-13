@@ -334,6 +334,9 @@ class AndroidPlatformBackend(
   def GetOSName(self):
     return 'android'
 
+  def GetDeviceId(self):
+    return self._device.serial
+
   def GetDeviceTypeName(self):
     return self._device.product_model
 

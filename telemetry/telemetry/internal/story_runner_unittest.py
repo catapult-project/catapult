@@ -69,6 +69,9 @@ class FakePlatform(object):
   def GetSystemTotalPhysicalMemory(self):
     return 8 * (1024 ** 3)
 
+  def GetDeviceId(self):
+    return None
+
 class TestSharedState(story_module.SharedState):
 
   _platform = FakePlatform()

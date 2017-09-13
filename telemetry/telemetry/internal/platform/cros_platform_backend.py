@@ -27,6 +27,9 @@ class CrosPlatformBackend(
       self._cri = cros_interface.CrOSInterface()
     self._powermonitor = cros_power_monitor.CrosPowerMonitor(self)
 
+  def GetDeviceId(self):
+    return self._cri.hostname
+
   @classmethod
   def IsPlatformBackendForHost(cls):
     return util.IsRunningOnCrosDevice()

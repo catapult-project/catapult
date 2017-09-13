@@ -184,6 +184,9 @@ class PlatformBackend(object):
   def GetOSName(self):
     raise NotImplementedError()
 
+  def GetDeviceId(self):
+    return None
+
   def GetOSVersionName(self):
     raise NotImplementedError()
 

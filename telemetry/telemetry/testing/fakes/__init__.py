@@ -73,6 +73,9 @@ class FakePlatform(object):
   def GetOSVersionName(self):
     raise NotImplementedError
 
+  def GetDeviceId(self):
+    return None
+
   def StopAllLocalServers(self):
     pass
 

@@ -145,6 +145,12 @@ class Platform(object):
     Examples: WIN, MAC, LINUX, CHROMEOS"""
     return self._platform_backend.GetOSName()
 
+  def GetDeviceId(self):
+    """Returns a string identifying the device.
+
+    Examples: 0123456789abcdef"""
+    return self._platform_backend.GetDeviceId()
+
   def GetOSVersionName(self):
     """Returns a logically sortable, string-like description of the Platform OS
     version.
