@@ -11,8 +11,8 @@ from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import isolate
 
 
-_CHANGE_1 = change.Change(change.Dep('chromium', 'f9f2b720'))
-_CHANGE_2 = change.Change(change.Dep('chromium', 'f35be4f1'))
+_CHANGE_1 = change.Change((change.Commit('chromium', 'f9f2b720'),))
+_CHANGE_2 = change.Change((change.Commit('chromium', 'f35be4f1'),))
 
 
 class IsolateTest(unittest.TestCase):

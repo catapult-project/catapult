@@ -34,17 +34,17 @@ class New(webapp2.RequestHandler):
     bug_id = self.request.get('bug_id')
 
     change_1 = {
-        'base_commit': {
+        'commits': [{
             'repository': self.request.get('start_repository'),
             'git_hash': self.request.get('start_git_hash')
-        }
+        }]
     }
 
     change_2 = {
-        'base_commit': {
+        'commits': [{
             'repository': self.request.get('end_repository'),
             'git_hash': self.request.get('end_git_hash')
-        }
+        }]
     }
 
     # Validate arguments and convert them to canonical internal representation.

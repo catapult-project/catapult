@@ -24,7 +24,7 @@ class _FindIsolateTest(unittest.TestCase):
     self.testbed.init_memcache_stub()
     ndb.get_context().clear_cache()
 
-    change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
+    change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
     isolate.Put((
         ('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),
     ))
@@ -58,7 +58,7 @@ class _FindIsolateTest(unittest.TestCase):
 class IsolateLookupTest(_FindIsolateTest):
 
   def testIsolateLookupSuccess(self):
-    change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
+    change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
     execution.Poll()
@@ -90,7 +90,7 @@ class BuilderLookupTest(_FindIsolateTest):
         ('Win x64 Builder', 'Win Zenbook Perf'),
     )
 
-    change = change_module.Change(change_module.Dep('src', 'git hash'))
+    change = change_module.Change((change_module.Commit('src', 'git hash'),))
     isolate.Put(
         (builder, change, 'telemetry_perf_tests', hex(hash(builder)))
         for builder, _ in builder_testers)
@@ -115,8 +115,8 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_module.Change(
-        change_module.Dep('src', 'base git hash'),
-        (change_module.Dep('v8', 'dep git hash'),),
+        (change_module.Commit('src', 'base git hash'),
+         change_module.Commit('v8', 'dep git hash')),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
@@ -158,7 +158,8 @@ class BuildTest(_FindIsolateTest):
   def testSimultaneousBuilds(self, put, get_job_status):
     # Two builds started at the same time on the same Change should reuse the
     # same build request.
-    change = change_module.Change(change_module.Dep('src', 'base git hash'))
+    change = change_module.Change(
+        (change_module.Commit('src', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution_1 = quest.Start(change)
     execution_2 = quest.Start(change)
@@ -192,8 +193,8 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildFailure(self, put, get_job_status):
     change = change_module.Change(
-        change_module.Dep('src', 'base git hash'),
-        (change_module.Dep('v8', 'dep git hash'),),
+        (change_module.Commit('src', 'base git hash'),
+         change_module.Commit('v8', 'dep git hash')),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
@@ -216,8 +217,8 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildCanceled(self, put, get_job_status):
     change = change_module.Change(
-        change_module.Dep('src', 'base git hash'),
-        (change_module.Dep('v8', 'dep git hash'),),
+        (change_module.Commit('src', 'base git hash'),
+         change_module.Commit('v8', 'dep git hash')),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
@@ -240,8 +241,8 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     change = change_module.Change(
-        change_module.Dep('src', 'base git hash'),
-        (change_module.Dep('v8', 'dep git hash'),),
+        (change_module.Commit('src', 'base git hash'),
+         change_module.Commit('v8', 'dep git hash')),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)

@@ -169,17 +169,17 @@ class Job(ndb.Model):
     # Include list of Changes.
     change_details = []
     for _, change in self.state.Differences():
-      # TODO: Only show the most specific Dep.
-      # TODO: Store the commit info in the Dep.
-      for dep in change.all_deps:
-        commit_info = gitiles_service.CommitInfo(dep.repository_url, dep.git_hash)
-        subject = commit_info['message'].split('\n', 1)[0]
-        author = commit_info['author']['email']
-        time = commit_info['committer']['time']
+      # TODO: Store the commit info in the Commit.
+      commit = change.last_commit
+      commit_info = gitiles_service.CommitInfo(commit.repository_url,
+                                               commit.git_hash)
+      subject = commit_info['message'].split('\n', 1)[0]
+      author = commit_info['author']['email']
+      time = commit_info['committer']['time']
 
-        byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
-        git_link = dep.repository + '@' + dep.git_hash
-        change_details.append('\n'.join((subject, byline, git_link)))
+      byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
+      git_link = commit.repository + '@' + commit.git_hash
+      change_details.append('\n'.join((subject, byline, git_link)))
 
     comment = '\n\n'.join([header] + change_details)
 
@@ -259,10 +259,9 @@ class _JobState(object):
         try:
           midpoint = change_module.Change.Midpoint(change_a, change_b)
         except change_module.NonLinearError:
-          midpoint = None
-        if midpoint:
-          logging.info('Adding Change %s.', midpoint)
-          self.AddChange(midpoint, index)
+          continue
+        logging.info('Adding Change %s.', midpoint)
+        self.AddChange(midpoint, index)
       elif comparison_result == _SAME:
         # The same: Do nothing.
         continue

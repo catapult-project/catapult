@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 <link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
 
-<dom-module id="dep-info">
+<dom-module id="change-info">
   <template>
     <style include="base-style">
       h3 {
@@ -20,7 +20,7 @@ found in the LICENSE file.
     <div>
       <loading-wrapper id="loader">
         <h3>
-          <a href="[[dep.url]]" target="_blank">[[subject]]</a>
+          <a href="[[url(change)]]" target="_blank">[[subject]]</a>
         </h3>
         <p class="byline">
           By [[author]]<span class="middle-dot"></span>[[time]]
@@ -32,19 +32,28 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer({
-      is: 'dep-info',
+      is: 'change-info',
 
       properties: {
-        dep: {
+        change: {
           type: Object,
-          observer: '_depChanged'
-        },
+          observer: '_changeChanged'
+        }
       },
 
-      async _depChanged() {
+      lastCommit(change) {
+        return change.commits[change.commits.length - 1];
+      },
+
+      url(change) {
+        return this.lastCommit(change).url;
+      },
+
+      async _changeChanged() {
+        const commit = this.lastCommit(this.change);
         const params = {
-          repository: this.dep.repository,
-          git_hash_1: this.dep.git_hash
+          repository: commit.repository,
+          git_hash_1: commit.git_hash
         };
         const response = await this.$.loader.load('/api/gitiles', params);
         if (response) {
@@ -52,29 +61,7 @@ found in the LICENSE file.
           this.author = response.author.email;
           this.time = new Date(response.committer.time + 'Z').toLocaleString();
         }
-      }
-    });
-  </script>
-</dom-module>
-
-<dom-module id="change-info">
-  <template>
-    <dep-info dep="[[change.base_commit]]"></dep-info>
-    <template is="dom-repeat" items="[[change.deps]]">
-      <dep-info dep="[[item]]"></dep-info>
-    </template>
-  </template>
-
-  <script>
-    'use strict';
-    Polymer({
-      is: 'change-info',
-
-      properties: {
-        change: {
-          type: Object,
-        }
-      }
+      },
     });
   </script>
 </dom-module>

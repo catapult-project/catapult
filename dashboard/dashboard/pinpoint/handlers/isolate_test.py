@@ -43,7 +43,7 @@ class FunctionalityTest(_IsolateTest):
     testing_common.SetIpWhitelist(['remote_ip'])
 
     builder_name = 'Mac Builder'
-    change = '{"base_commit": {"repository": "src", "git_hash": "git hash"}}'
+    change = '{"commits": [{"repository": "src", "git_hash": "git hash"}]}'
     target = 'telemetry_perf_tests'
     isolate_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
 
@@ -65,7 +65,7 @@ class FunctionalityTest(_IsolateTest):
   def testGetUnknownIsolate(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
         'target': 'not a real target',
     }
     self.testapp.get('/isolate', params, status=404)
@@ -80,7 +80,7 @@ class ParameterValidationTest(_IsolateTest):
   def testExtraParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
         'target': 'telemetry_perf_tests',
         'extra_parameter': '',
     }
@@ -89,14 +89,14 @@ class ParameterValidationTest(_IsolateTest):
   def testMissingParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
     }
     self.testapp.get('/isolate', params, status=400)
 
   def testEmptyParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
         'target': '',
     }
     self.testapp.get('/isolate', params, status=400)
@@ -112,7 +112,7 @@ class ParameterValidationTest(_IsolateTest):
   def testBadChange(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {}}',
+        'change': '{"commits": [{}]}',
         'target': 'telemetry_perf_tests',
     }
     self.testapp.get('/isolate', params, status=400)
@@ -120,7 +120,7 @@ class ParameterValidationTest(_IsolateTest):
   def testGetInvalidChangeBecauseOfUnknownRepository(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "foo", "git_hash": "hash"}]}',
         'target': 'telemetry_perf_tests',
     }
     self.testapp.get('/isolate', params, status=400)
@@ -130,7 +130,7 @@ class ParameterValidationTest(_IsolateTest):
 
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
+        'change': '{"commits": [{"repository": "foo", "git_hash": "hash"}]}',
         'isolate_map': '{"telemetry_perf_tests": "a0c28d9"}',
     }
     self.testapp.post('/isolate', params, status=400)
