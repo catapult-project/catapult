@@ -8,6 +8,7 @@ tested with earlier versions of go. It is supported on Windows, MacOS and Linux.
 
 ```
 go get github.com/codegangsta/cli
+go get golang.org/x/net/http2
 ```
 ## Set up GOPATH
 ```
@@ -42,6 +43,7 @@ export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
 
   Start wpr in replay mode.
   ```
+  cd path/to/web_page_replay_go
   go run src/wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.wprgo
   ```
 
