@@ -571,7 +571,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(2, len(results.failures))  # max_failures + 1
     self.assertFormattedExceptionIsEmpty()
 
-  @decorators.Disabled('chromeos')  # crbug.com/762819
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()
     body = []
