@@ -22,7 +22,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 type ConvertorConfig struct {

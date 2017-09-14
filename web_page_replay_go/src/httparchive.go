@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 const usage = "%s [ls|cat|edit] [options] archive_file [output_file]"
