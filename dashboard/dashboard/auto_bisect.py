@@ -16,7 +16,10 @@ from dashboard.models import graph_data
 from dashboard.models import try_job
 from dashboard.services import pinpoint_service
 
-_PINPOINT_BOTS = []
+_PINPOINT_BOTS = [
+    'chromium-rel-mac11-air',
+    'chromium-rel-mac11-pro'
+]
 
 
 class NotBisectableError(Exception):

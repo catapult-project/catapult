@@ -113,7 +113,10 @@ found in the LICENSE file.
         onBisect() {
           const testPathParts = this.bisectInfo.testPath.split('/');
           const botName = testPathParts[1];
-          const PINPOINT_BOTS = [];
+          const PINPOINT_BOTS = [
+            'chromium-rel-mac11-air',
+            'chromium-rel-mac11-pro'
+          ];
 
           if (PINPOINT_BOTS.indexOf(botName) != -1) {
             this.$.pinpoint.test_path = this.bisectInfo.testPath;
