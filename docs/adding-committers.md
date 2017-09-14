@@ -1,7 +1,7 @@
 # Adding contributors
 
-Admins (nduca, sullivan) can add contributors to the project. There are three
-steps:
+Admins (sullivan, benhenry, nednguyen) can add contributors to the project.
+There are three steps:
 
 1.  Check that the person has signed the Contributor License Agreement.
     You can check [here](http://go/check-cla). If they have not signed, please
