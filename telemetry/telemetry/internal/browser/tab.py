@@ -5,6 +5,7 @@
 from telemetry.internal.actions import action_runner
 from telemetry.internal.browser import web_contents
 from telemetry.internal.image_processing import video
+from telemetry.core import exceptions
 
 DEFAULT_TAB_TIMEOUT = 60
 
@@ -272,3 +273,24 @@ class Tab(web_contents.WebContents):
     """)
     if force:
       self.Navigate('about:blank')
+
+  def ClearDataForOrigin(self, url, timeout=DEFAULT_TAB_TIMEOUT):
+    """Clears storage data for the origin of url.
+
+    With assigning 'all' to params.storageTypes, Storage.clearDataForOrigin
+    clears all storage of app cache, cookies, file systems, indexed db,
+    local storage, shader cache, web sql, service workers and cache storage.
+    See StorageHandler::ClearDataForOrigin() for more details.
+
+    Raises:
+      exceptions.StoryActionError
+    """
+    res = self._inspector_backend._websocket.SyncRequest({
+        'method': 'Storage.clearDataForOrigin',
+        'params': {
+            'origin': url,
+            'storageTypes': 'all'
+        }
+    }, timeout)
+    if 'error' in res:
+      raise exceptions.StoryActionError(res['error']['message'])

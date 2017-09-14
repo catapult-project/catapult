@@ -263,3 +263,24 @@ class ServiceWorkerTabTest(tab_test_case.TabTestCase):
                      timeout=10)
     self.assertEquals(self._tab._GetServiceWorkerState(),
                       ServiceWorkerState.ACTIVATED)
+
+  def testClearDataForOrigin(self):
+    self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
+    self._tab.ExecuteJavaScript(
+        'var isServiceWorkerRegisteredForThisOrigin = false; \
+         navigator.serviceWorker.register("{{ @scriptURL }}");',
+        scriptURL=self.UrlOfUnittestFile('blank.js'))
+    check_registration = 'isServiceWorkerRegisteredForThisOrigin = false; \
+        navigator.serviceWorker.getRegistration().then( \
+            (reg) => { \
+                isServiceWorkerRegisteredForThisOrigin = reg ? true : false;});'
+    self._tab.ExecuteJavaScript(check_registration)
+    self.assertTrue(self._tab.EvaluateJavaScript(
+        'isServiceWorkerRegisteredForThisOrigin;'))
+    py_utils.WaitFor(self._tab.IsServiceWorkerActivatedOrNotRegistered,
+                     timeout=10)
+    self._tab.ClearDataForOrigin(self.UrlOfUnittestFile(''))
+    time.sleep(1)
+    self._tab.ExecuteJavaScript(check_registration)
+    self.assertFalse(self._tab.EvaluateJavaScript(
+        'isServiceWorkerRegisteredForThisOrigin;'))
