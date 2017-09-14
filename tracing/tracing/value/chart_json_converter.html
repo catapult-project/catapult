@@ -20,6 +20,7 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.HistogramSet} histograms
      */
     static convertChartJson(charts, histograms) {
+      const traceValues = charts.charts.trace;
       for (const [name, pageValues] of Object.entries(charts.charts)) {
         if (name === 'trace') continue;
 
@@ -50,6 +51,18 @@ tr.exportTo('tr.v', function() {
               tr.v.HistogramBinBoundaries.SINGULAR);
           hist.description = value.description || '';
           histograms.addHistogram(hist);
+
+          if (traceValues) {
+            const traceValue = traceValues[storyName] || {};
+            let traceUrl = traceValue.cloud_url;
+            if (!traceUrl && traceValue.file_path) {
+              traceUrl = 'file://' + traceValue.file_path;
+            }
+            if (traceUrl) {
+              hist.diagnostics.set(tr.v.d.RESERVED_NAMES.TRACE_URLS,
+                  new tr.v.d.GenericSet([traceUrl]));
+            }
+          }
 
           if (pageValuesCount > 1) {
             hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,

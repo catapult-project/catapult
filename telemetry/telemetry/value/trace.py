@@ -121,6 +121,8 @@ class TraceValue(value_module.Value):
     d = super(TraceValue, self).AsDict()
     if self._serialized_file_handle:
       d['file_id'] = self._serialized_file_handle.id
+    if self._file_path:
+      d['file_path'] = self._file_path
     if self._cloud_url:
       d['cloud_url'] = self._cloud_url
     return d

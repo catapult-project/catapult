@@ -114,4 +114,4 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self.assertEquals(values[2], [
         'foo', 'ms', '3400', '1', '3400', '3400', '0', '3400', '', 'benchmark',
         '2017-07-14 02:40:00', '', '', '', 'benchmark 2017-07-14 02:40:00', '',
-        '', '', '', '', 'http://www.bar.com/', '', '', ''])
+        '', '', '', '', 'http://www.bar.com/', '', '', 'http://google.com'])

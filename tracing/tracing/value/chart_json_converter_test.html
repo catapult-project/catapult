@@ -24,7 +24,6 @@ tr.b.unittest.testSuite(function() {
             name: 'mean_frame_time',
             type: 'list_of_scalar_values',
             improvement_direction: 'down',
-            important: true,
             units: 'ms',
             page_id: 16,
             description: 'Arithmetic mean of frame times.'
@@ -33,7 +32,6 @@ tr.b.unittest.testSuite(function() {
             std: 0.0,
             name: 'mean_frame_time',
             improvement_direction: 'down',
-            important: true,
             units: 'ms',
             type: 'list_of_scalar_values',
             description: 'Arithmetic mean of frame times.'
@@ -68,7 +66,6 @@ tr.b.unittest.testSuite(function() {
             name: 'mean_frame_time',
             type: 'list_of_scalar_values',
             improvement_direction: 'down',
-            important: true,
             values: [42],
             units: 'ms',
             page_id: 16,
@@ -78,7 +75,6 @@ tr.b.unittest.testSuite(function() {
             std: 0.0,
             name: 'mean_frame_time',
             improvement_direction: 'down',
-            important: true,
             values: [
               16.693,
               16.646,
@@ -182,6 +178,53 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(4, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         hist.unit);
+  });
+
+  test('traceUrls', function() {
+    const charts = {
+      charts: {
+        measurementA: {
+          storyA: {
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            values: [100],
+            name: 'measurementA',
+          },
+          storyB: {
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            values: [200],
+            name: 'measurementA',
+          },
+        },
+        trace: {
+          storyA: {
+            name: 'trace',
+            type: 'trace',
+            file_path: '/home/user/storyA_1900-01-01_00-00-00.html',
+          },
+          storyB: {
+            name: 'trace',
+            type: 'trace',
+            cloud_url: 'https://console.developers.google.com/m/cloudstorage/chromium-telemetry/o/storyB_1900-01-01_00-00-00.html',
+          },
+        },
+      },
+    };
+    let histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    histograms = [...histograms];
+    assert.lengthOf(histograms, 2);
+    assert.strictEqual(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.STORIES).callback(histograms[0]), 'storyA');
+    assert.strictEqual(tr.v.HistogramGrouping.BY_KEY.get(
+        tr.v.d.RESERVED_NAMES.STORIES).callback(histograms[1]), 'storyB');
+    assert.strictEqual(tr.b.getOnlyElement(histograms[0].diagnostics.get(
+        tr.v.d.RESERVED_NAMES.TRACE_URLS)),
+        'file:///home/user/storyA_1900-01-01_00-00-00.html');
+    assert.strictEqual(tr.b.getOnlyElement(histograms[1].diagnostics.get(
+        tr.v.d.RESERVED_NAMES.TRACE_URLS)),
+        'https://console.developers.google.com/m/cloudstorage/chromium-telemetry/o/storyB_1900-01-01_00-00-00.html');
   });
 });
 </script>
