@@ -10,6 +10,16 @@ from py_trace_event import trace_event
 
 DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 
+class ServiceWorkerState(object):
+  # These strings should exactly match strings used in
+  # wait_for_serviceworker_registration.js
+  # The page did not call register().
+  NOT_REGISTERED = 'not registered'
+  # The page called register(), but there is not an activated service worker.
+  INSTALLING = 'installing'
+  # The page called register(), and has an activated service worker.
+  ACTIVATED = 'activated'
+
 # TODO(achuith, dtu, nduca): Add unit tests specifically for WebContents,
 # independent of Tab.
 class WebContents(object):
@@ -24,6 +34,11 @@ class WebContents(object):
         os.path.dirname(__file__),
         'network_quiescence.js')) as f:
       self._quiescence_js = f.read()
+
+    with open(os.path.join(
+        os.path.dirname(__file__),
+        'wait_for_serviceworker_registration.js')) as f:
+      self._wait_for_serviceworker_js = f.read()
 
     with open(os.path.join(
         os.path.dirname(__file__),
@@ -120,6 +135,38 @@ class WebContents(object):
     return self.EvaluateJavaScript(
         '{{ @script }}; window.__telemetry_testHasReachedNetworkQuiescence()',
         script=self._quiescence_js)
+
+  def _GetServiceWorkerState(self):
+    """Returns service worker registration state.
+
+    Returns:
+      ServiceWorkerState if service worker registration state is not unexpected.
+    Raises:
+      exceptions.EvaluateException
+      exceptions.Error: See EvaluateJavaScript() for a detailed list of
+      possible exceptions.
+    """
+    state = self.EvaluateJavaScript(
+        '{{ @script }}; window.__telemetry_getServiceWorkerState()',
+        script=self._wait_for_serviceworker_js)
+    if state in {ServiceWorkerState.NOT_REGISTERED,
+                 ServiceWorkerState.INSTALLING, ServiceWorkerState.ACTIVATED}:
+      return state
+    else:
+      raise exceptions.EvaluateException(state)
+
+  def IsServiceWorkerActivatedOrNotRegistered(self):
+    """Returns whether service worker is ready or not.
+
+    Returns:
+      True if the page registered a service worker and has an activated service
+      worker. Also returns true if the page does not register service worker.
+    Raises:
+      exceptions.Error: See EvaluateJavaScript() for a detailed list of
+      possible exceptions.
+    """
+    return self._GetServiceWorkerState() in {ServiceWorkerState.NOT_REGISTERED,
+                                             ServiceWorkerState.ACTIVATED}
 
   def ExecuteJavaScript(self, *args, **kwargs):
     """Executes a given JavaScript statement. Does not return the result.
@@ -229,7 +276,8 @@ class WebContents(object):
     if not script_to_evaluate_on_commit:
       script_to_evaluate_on_commit = ''
     script_to_evaluate_on_commit = (
-        self._quiescence_js + ';' + script_to_evaluate_on_commit)
+        self._quiescence_js + self._wait_for_serviceworker_js +
+        script_to_evaluate_on_commit)
     self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
 
   def IsAlive(self):
