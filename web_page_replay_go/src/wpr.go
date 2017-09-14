@@ -19,9 +19,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay"
 	"github.com/codegangsta/cli"
 	"golang.org/x/net/http2"
-	"webpagereplay"
 )
 
 const longUsage = `

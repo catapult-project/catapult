@@ -4,15 +4,37 @@ recording and replaying web pages. WprGo is currently used in Telemetry for
 Chrome benchmarking purposes. This requires go 1.8 and above. This has not been
 tested with earlier versions of go. It is supported on Windows, MacOS and Linux.
 
-## Required packages
+## Set up GOPATH
+
+There are two ways to setup your GOPATH. The first is to use the `go get`
+command to fetch this directory. This will use your default GOPATH, which
+is typically `$HOME/go`:
+
+```
+go get github.com/catapult-project/catapult/web_page_replay_go
+```
+
+You can then find this directory in:
+
+```
+$HOME/go/src/github.com/catapult-project/catapult/web_page_replay_go
+```
+
+The second approach is to use your current catapult checkout. Assuming your
+"catapult" directory is located at `$CATAPULT`, and assuming `$HOME/go` is in
+your GOPATH, create the following symbolic link:
+
+```
+mkdir -p $HOME/go/src/github.com/catapult-project
+ln -s $CATAPULT $HOME/go/src/github.com/catapult-project/catapult
+```
+
+If you take this second approach, you will need to manually fetch the required
+packages:
 
 ```
 go get github.com/codegangsta/cli
 go get golang.org/x/net/http2
-```
-## Set up GOPATH
-```
-export GOPATH=/path/to/web_page_replay_go:"$HOME/go"
 ```
 
 ## Sample usage

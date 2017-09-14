@@ -18,8 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay"
 	"github.com/codegangsta/cli"
-	"webpagereplay"
 )
 
 const usage = "%s [ls|cat|edit] [options] archive_file [output_file]"

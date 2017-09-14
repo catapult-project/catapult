@@ -4,8 +4,10 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 import sys
 import subprocess
+import tempfile
 import platform
 
 TELEMETRY_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
@@ -17,8 +19,7 @@ from telemetry.internal.util import binary_manager
 import py_utils
 
 
-_WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go')
-_GO_LIB_DIR = os.path.expanduser('~/go')
+_WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
 
 
 _SUPPORTED_GO_VERSIONS = ('go1.8', 'go1.9')
@@ -59,15 +60,36 @@ def build_wpr_go(os_name, os_arch):
     os_name = 'windows'
 
   check_go_version()
-  env = os.environ.copy()
-  env['GOPATH'] = '%s:%s' % (_WPR_GO_DIR, _GO_LIB_DIR)
-  env['GOOS'] = os_name
-  env['GOARCH'] = os_arch
-  env['CGO_ENABLED'] = '0'
 
-  build_cmd = ['go', 'build', '-v', os.path.join('src', 'wpr.go')]
-  print 'Running build command: %s' % ' '.join(build_cmd)
-  subprocess.check_call(build_cmd, env=env, cwd=_WPR_GO_DIR)
+  try:
+    # We want to build wpr from the local source. We do this by
+    # making a temporary GOPATH that symlinks to our local directory.
+    go_path_dir = tempfile.mkdtemp()
+    repo_dir = os.path.join(go_path_dir, 'src/github.com/catapult-project')
+    os.makedirs(repo_dir)
+    os.symlink(util.GetCatapultDir(), os.path.join(repo_dir, 'catapult'))
+
+    env = os.environ.copy()
+    env['GOPATH'] = go_path_dir
+    env['GOOS'] = os_name
+    env['GOARCH'] = os_arch
+    env['CGO_ENABLED'] = '0'
+
+    print 'GOPATH=%s' % go_path_dir
+    print 'CWD=%s' % _WPR_GO_DIR
+
+    get_cmd = ['go', 'get', '-d', './...']
+    print 'Running get command: %s' % ' '.join(get_cmd)
+    subprocess.check_call(get_cmd, env=env, cwd=_WPR_GO_DIR)
+
+    build_cmd = ['go', 'build', '-v', 'wpr.go']
+    print 'Running build command: %s' % ' '.join(build_cmd)
+    subprocess.check_call(build_cmd, env=env, cwd=_WPR_GO_DIR)
+
+  finally:
+    if go_path_dir:
+      shutil.rmtree(go_path_dir)
+
   if os_name == 'windows':
     return os.path.join(_WPR_GO_DIR, 'wpr.exe')
   return os.path.join(_WPR_GO_DIR, 'wpr')
