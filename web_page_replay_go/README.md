@@ -33,7 +33,7 @@ If you take this second approach, you will need to manually fetch the required
 packages:
 
 ```
-go get github.com/codegangsta/cli
+go get github.com/urfave/cli
 go get golang.org/x/net/http2
 ```
 
