@@ -22,7 +22,7 @@ def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
   assert datastore_hooks.IsUnalteredQueryPermitted()
 
-  http_auth = utils.ServiceAccountHttp()
+  http_auth = utils.ServiceAccountHttp(timeout=30)
   _, content = http_auth.request(
       _PINPOINT_URL + endpoint,
       method='POST',
