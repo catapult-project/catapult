@@ -164,8 +164,9 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
 
+  # Disabled flags: crbug.com/765114.
   @decorators.Disabled('reference')
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('win', 'chromeos')
   @decorators.Isolated
   def testHeapProfilerForSmoke(self):
     ps = self.CreateEmptyPageSet()
