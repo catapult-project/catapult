@@ -47,9 +47,6 @@ def Put(isolate_infos):
   for isolate_info in isolate_infos:
     builder_name, change, target, isolate_hash = isolate_info
     entity = Isolate(
-        builder_name=builder_name,
-        change=change,
-        target=target,
         isolate_hash=isolate_hash,
         id=_Key(builder_name, change, target))
     entities.append(entity)
@@ -57,10 +54,7 @@ def Put(isolate_infos):
 
 
 class Isolate(ndb.Model):
-  builder_name = ndb.StringProperty(required=True)
-  change = ndb.PickleProperty(required=True)
-  target = ndb.StringProperty(required=True)
-  isolate_hash = ndb.StringProperty(required=True)
+  isolate_hash = ndb.StringProperty(indexed=False, required=True)
 
 
 def _Key(builder_name, change, target):
