@@ -329,8 +329,8 @@ class _JobState(object):
       return _PENDING
 
     # Compare exceptions.
-    exceptions_a = tuple(attempt.exception or '' for attempt in attempts_a)
-    exceptions_b = tuple(attempt.exception or '' for attempt in attempts_b)
+    exceptions_a = tuple(bool(attempt.exception) for attempt in attempts_a)
+    exceptions_b = tuple(bool(attempt.exception) for attempt in attempts_b)
 
     if _CompareValues(exceptions_a, exceptions_b) == _DIFFERENT:
       return _DIFFERENT
