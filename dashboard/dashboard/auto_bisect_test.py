@@ -180,6 +180,44 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     self.assertEqual(
         {'issue_id': 123, 'issue_url': 'http://pinpoint/123'}, result)
 
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      auto_bisect.pinpoint_service, 'NewJob',
+      mock.MagicMock(
+          return_value={'jobId': 123, 'jobUrl': 'http://pinpoint/123'}))
+  def testStartNewBisectForBug_Pinpoint_No_a_default_rev_Succeeds(self):
+    namespaced_stored_object.Set('bot_dimensions_map', {
+        'linux-pinpoint': [
+            {'key': 'foo', 'value': 'bar'}
+        ],
+    })
+
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {'some': 'params'},
+    })
+
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-pinpoint'], {'sunspider': {'score': {}}})
+    test_key = utils.TestKey('ChromiumPerf/linux-pinpoint/sunspider/score')
+    testing_common.AddRows(
+        'ChromiumPerf/linux-pinpoint/sunspider/score',
+        {
+            11999: {
+                'r_chromium': '9e29b5bcd08357155b2859f87227d50ed60cf857'
+            },
+            12500: {
+                'r_chromium': 'fc34e5346446854637311ad7793a95d56e314042'
+            }
+        })
+    anomaly.Anomaly(
+        bug_id=333, test=test_key,
+        start_revision=12000, end_revision=12500,
+        median_before_anomaly=100, median_after_anomaly=200).put()
+    result = auto_bisect.StartNewBisectForBug(333)
+    self.assertEqual(
+        {'issue_id': 123, 'issue_url': 'http://pinpoint/123'}, result)
+
   def testStartNewBisectForBug_Pinpoint_UnsupportedRepo_Error(self):
     testing_common.AddTests(
         ['ChromiumPerf'], ['linux-pinpoint'], {'sunspider': {'score': {}}})

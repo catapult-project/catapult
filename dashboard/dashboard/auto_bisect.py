@@ -65,7 +65,7 @@ def _StartBisectForBug(bug_id):
 
 def _GetPinpointRevisionInfo(revision, test):
   repo_to_default_rev = {
-      'ChromiumPerf': {'default_rev': 'r_chromium', 'pinpoint': 'chromium'}
+      'ChromiumPerf': {'default_rev': 'r_chromium', 'depot': 'chromium'}
   }
 
   row_parent_key = utils.GetTestContainerKey(test)
@@ -81,7 +81,7 @@ def _GetPinpointRevisionInfo(revision, test):
   if not hasattr(row, rev_info['default_rev']):
     raise NotBisectableError('Row has no %s' % rev_info['default_rev'])
 
-  return getattr(row, row.a_default_rev), rev_info['pinpoint']
+  return getattr(row, rev_info['default_rev']), rev_info['depot']
 
 
 def _StartPinpointBisect(bug_id, test_anomaly, test):
