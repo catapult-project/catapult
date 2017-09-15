@@ -124,7 +124,7 @@ def main():
                       help='Verbose logging.')
   parser.add_argument('-b', '--bitrate', default=4, type=float,
                       help='Bitrate in megabits/s, from 0.1 to 100 mbps, '
-                           '%default mbps by default.')
+                           '%(default)d mbps by default.')
   parser.add_argument('-r', '--rotate', action='store_true',
                       help='Rotate video by 90 degrees.')
   parser.add_argument('-s', '--size', metavar='WIDTHxHEIGHT',
