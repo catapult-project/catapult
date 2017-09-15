@@ -103,7 +103,9 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_BotUndefined_ReturnsError(self):
     params = {
-        'test_path': 'ChromiumPerf/foo/blah/foo'
+        'test_path': 'ChromiumPerf/foo/blah/foo',
+        'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -119,6 +121,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -181,6 +184,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -211,6 +215,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -229,6 +234,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     graph_data.TestMetadata(
         id=params['test_path'], unescaped_story_name='http://bar.html').put()
@@ -249,6 +255,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -267,7 +274,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'chromium',
         'end_repository': 'chromium',
         'bug_id': 1,
-        'bisect_mode': 'foo'
+        'bisect_mode': 'foo',
+        'story_filter': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     with self.assertRaises(pinpoint_request.InvalidParamsError):
@@ -283,7 +291,8 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'chromium',
         'end_repository': 'chromium',
         'bug_id': 1,
-        'bisect_mode': 'functional'
+        'bisect_mode': 'functional',
+        'story_filter': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -302,6 +311,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'foo',
         'end_repository': 'chromium',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -316,6 +326,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'v8',
         'end_repository': 'chromium',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -330,6 +341,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'chromium',
         'end_repository': 'v8',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -346,7 +358,9 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': '5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
+        'bug_id': '',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -364,7 +378,9 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
+        'bug_id': '',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -382,6 +398,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'v8',
         'end_repository': 'v8',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -399,6 +416,7 @@ class PinpointNewRequestHandlerTest(testing_common.TestCase):
         'start_repository': 'v8',
         'end_repository': 'v8',
         'bisect_mode': 'performance',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)

@@ -98,6 +98,7 @@ def _StartPinpointBisect(bug_id, test_anomaly, test):
       'end_repository': end_repository,
       'bug_id': bug_id,
       'bisect_mode': 'performance',
+      'story_filter': start_try_job.GuessStoryFilter(test.test_path),
   }
   results = pinpoint_service.NewJob(
       pinpoint_request.PinpointParamsFromBisectParams(params))

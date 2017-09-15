@@ -121,15 +121,15 @@ def PinpointParamsFromBisectParams(params):
   bots_to_dimensions = namespaced_stored_object.Get(_BOTS_TO_DIMENSIONS)
 
   # Pinpoint takes swarming dimensions, so we need to map bot name to those.
-  test_path = params.get('test_path')
+  test_path = params['test_path']
   test_path_parts = test_path.split('/')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
-  story_filter = params.get('story_filter')
+  story_filter = params['story_filter']
 
   # If functional bisects are speciied, Pinpoint expects these parameters to be
   # empty.
-  bisect_mode = params.get('bisect_mode')
+  bisect_mode = params['bisect_mode']
   if bisect_mode != 'performance' and bisect_mode != 'functional':
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
 
@@ -159,10 +159,10 @@ def PinpointParamsFromBisectParams(params):
   elif 'webview' in bot_name:
     target = 'telemetry_perf_webview_tests'
 
-  start_repository = params.get('start_repository')
-  end_repository = params.get('end_repository')
-  start_commit = params.get('start_commit')
-  end_commit = params.get('end_commit')
+  start_repository = params['start_repository']
+  end_repository = params['end_repository']
+  start_commit = params['start_commit']
+  end_commit = params['end_commit']
 
   start_git_hash = ResolveToGitHash(start_commit, start_repository)
   end_git_hash = ResolveToGitHash(end_commit, end_repository)
@@ -197,7 +197,7 @@ def PinpointParamsFromBisectParams(params):
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
-      'bug_id': params.get('bug_id'),
+      'bug_id': params['bug_id'],
       'auto_explore': '1',
       'target': target,
       'dimensions': json.dumps(dimensions),

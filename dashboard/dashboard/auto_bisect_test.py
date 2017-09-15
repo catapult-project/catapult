@@ -146,7 +146,9 @@ class StartNewBisectForBugTest(testing_common.TestCase):
       auto_bisect.pinpoint_service, 'NewJob',
       mock.MagicMock(
           return_value={'jobId': 123, 'jobUrl': 'http://pinpoint/123'}))
-  def testStartNewBisectForBug_Pinpoint_Succeeds(self):
+  @mock.patch.object(
+      auto_bisect.start_try_job, 'GuessStoryFilter')
+  def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_guess):
     namespaced_stored_object.Set('bot_dimensions_map', {
         'linux-pinpoint': [
             {'key': 'foo', 'value': 'bar'}
@@ -179,6 +181,8 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     result = auto_bisect.StartNewBisectForBug(333)
     self.assertEqual(
         {'issue_id': 123, 'issue_url': 'http://pinpoint/123'}, result)
+    mock_guess.assert_called_once_with(
+        'ChromiumPerf/linux-pinpoint/sunspider/score')
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
