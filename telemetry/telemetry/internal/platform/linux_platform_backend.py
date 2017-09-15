@@ -100,7 +100,9 @@ class LinuxPlatformBackend(
           'Please teach Telemetry how to install ' + application)
 
   def CanMonitorPower(self):
-    return self._power_monitor.CanMonitorPower()
+    # TODO(charliea): This is a stopgap until all desktop power monitoring code
+    # can be removed. (crbug.com/763263)
+    return False
 
   def CanMeasurePerApplicationPower(self):
     return self._power_monitor.CanMeasurePerApplicationPower()
