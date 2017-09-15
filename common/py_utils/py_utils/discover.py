@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import fnmatch
+import importlib
 import inspect
 import os
 import re
@@ -54,7 +55,7 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
         # there are naming conflict in module parts.
         original_sys_path = sys.path[:]
         sys.path.insert(0, top_level_dir)
-        module = __import__(module_name, fromlist=[True])
+        module = importlib.import_module(module_name)
         modules.append(module)
       finally:
         sys.path = original_sys_path
