@@ -182,7 +182,7 @@ handlers:
 
 - url: /pinpoint/.*
   script: dashboard.dispatcher.APP
-  login: admin
+  login: required
   secure: always
 
 - url: /put_entities_task
