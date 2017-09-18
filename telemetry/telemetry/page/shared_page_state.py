@@ -88,10 +88,9 @@ class SharedPageState(story_module.SharedState):
     self.platform.network_controller.InitializeIfNeeded(
         use_live_traffic=use_live_traffic)
     use_wpr_go = False
+    # Always uses wpr go for recording mode.
     if wpr_mode == wpr_modes.WPR_RECORD:
-      use_wpr_go = self._finder_options.use_wpr_go
-    elif self._finder_options.use_wpr_go:
-      raise ValueError('Cannot set --use-wpr-go for non recording mode')
+      use_wpr_go = True
     elif wpr_mode == wpr_modes.WPR_REPLAY:
       use_wpr_go = (story_set.wpr_archive_info and
                     story_set.wpr_archive_info.is_using_wpr_go_archives)
