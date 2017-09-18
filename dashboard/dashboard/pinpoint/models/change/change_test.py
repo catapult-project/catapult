@@ -27,6 +27,10 @@ class _ChangeTest(testing_common.TestCase):
         'catapult': {'repository_url': _CATAPULT_URL},
         'chromium': {'repository_url': _CHROMIUM_URL},
     })
+    namespaced_stored_object.Set('repository_urls_to_names', {
+        _CATAPULT_URL: 'catapult',
+        _CHROMIUM_URL: 'chromium',
+    })
 
 
 class ChangeTest(_ChangeTest):

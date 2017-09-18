@@ -5,12 +5,12 @@
 import json
 import webapp2
 
-from dashboard.common import namespaced_stored_object
+from dashboard.pinpoint.models.change import repository
 from dashboard.services import gitiles_service
 
-_REPOSITORIES_KEY = 'repositories'
 
-
+# TODO: Remove this module. Cache commit git details in the Datastore and
+# include them in Commit.AsDict().
 class Gitiles(webapp2.RequestHandler):
   """Handler that exposes gitiles service to UI."""
 
@@ -19,13 +19,12 @@ class Gitiles(webapp2.RequestHandler):
     git_hash_1 = self.request.get('git_hash', self.request.get('git_hash_1'))
     git_hash_2 = self.request.get('git_hash_2')
 
-    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-    if repo not in repositories:
+    try:
+      repository_url = repository.RepositoryUrl(repo)
+    except KeyError:
       self.response.out.write(json.dumps(
           {'error': 'Unknown repository: %s' % repo}))
       return
-
-    repository_url = repositories[repo]['repository_url']
 
     if not git_hash_1:
       self.response.out.write(json.dumps(

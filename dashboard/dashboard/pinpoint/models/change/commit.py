@@ -4,11 +4,8 @@
 
 import collections
 
-from dashboard.common import namespaced_stored_object
+from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
-
-
-_REPOSITORIES_KEY = 'repositories'
 
 
 class NonLinearError(Exception):
@@ -30,8 +27,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   @property
   def repository_url(self):
     """The HTTPS URL of the repository as passed to `git clone`."""
-    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-    return repositories[self.repository]['repository_url']
+    return repository_module.RepositoryUrl(self.repository)
 
   def Deps(self):
     """Return the DEPS of this Commit as a frozenset of Commits."""
@@ -56,10 +52,8 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         raise NotImplementedError('Unknown DEP format: ' + dep_string)
 
       repository_url, git_hash = dep_string_parts
-      try:
-        repository = _Repository(repository_url)
-      except KeyError:
-        repository = _AddRepository(repository_url)
+      repository = repository_module.Repository(repository_url,
+                                                add_if_missing=True)
       commits.append(Commit(repository, git_hash))
 
     return frozenset(commits)
@@ -86,7 +80,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     # Translate repository if it's a URL.
     if repository.startswith('https://'):
-      repository = _Repository(repository)
+      repository = repository_module.Repository(repository)
 
     commit = cls(repository, data['git_hash'])
 
@@ -135,32 +129,3 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     commits.pop(0)  # Remove commit_b from the range.
 
     return cls(commit_a.repository, commits[len(commits) / 2]['commit'])
-
-
-def _Repository(repository_url):
-  if repository_url.endswith('.git'):
-    repository_url = repository_url[:-4]
-
-  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-  for repo_label, repo_info in repositories.iteritems():
-    if repository_url == repo_info['repository_url']:
-      return repo_label
-
-  raise KeyError('Unknown repository URL: ' + repository_url)
-
-
-def _AddRepository(repository_url):
-  if repository_url.endswith('.git'):
-    repository_url = repository_url[:-4]
-
-  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-  repository = repository_url.split('/')[-1]
-
-  if repository in repositories:
-    raise AssertionError("Attempted to add a repository that's already in the "
-                         'Datastore: %s: %s' % (repository, repository_url))
-
-  repositories[repository] = {'repository_url': repository_url}
-  namespaced_stored_object.Set(_REPOSITORIES_KEY, repositories)
-
-  return repository

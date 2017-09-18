@@ -22,6 +22,9 @@ class _CommitTest(testing_common.TestCase):
     namespaced_stored_object.Set('repositories', {
         'chromium': {'repository_url': _CHROMIUM_URL},
     })
+    namespaced_stored_object.Set('repository_urls_to_names', {
+        _CHROMIUM_URL: 'chromium',
+    })
 
 
 class CommitTest(_CommitTest):

@@ -4,7 +4,6 @@
 
 import json
 import mock
-import unittest
 
 import webapp2
 import webtest
@@ -114,7 +113,3 @@ class GitilesTest(testing_common.TestCase):
     response = self.testapp.post('/api/gitiles', params)
     result = json.loads(response.body)
     self.assertEqual({'foo': 'bar'}, result)
-
-
-if __name__ == '__main__':
-  unittest.main()
