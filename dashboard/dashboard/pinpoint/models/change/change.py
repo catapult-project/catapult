@@ -36,8 +36,12 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
 
   @property
   def id_string(self):
-    """Returns a string that is unique to this list of commits and patch."""
-    string = ' '.join(commit.id_string for commit in self.commits)
+    """Returns a string that is unique to this set of commits and patch.
+
+    This method treats the commits as unordered. chromium@a v8@b is the same as
+    v8@b chromium@a. This is useful for looking up a build with this Change.
+    """
+    string = ' '.join(commit.id_string for commit in sorted(self.commits))
     if self.patch:
       string += ' + ' + self.patch.id_string
     return string

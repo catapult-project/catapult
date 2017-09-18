@@ -46,8 +46,8 @@ class ChangeTest(_ChangeTest):
     self.assertEqual(c, change.Change((base_commit, dep), p))
     string = ('chromium@aaa7336 catapult@e0a2efb + '
               'https://codereview.chromium.org/2565263002/20001')
-    id_string = ('chromium@aaa7336c821888839f759c6c0a36b56c '
-                 'catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba + '
+    id_string = ('catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba '
+                 'chromium@aaa7336c821888839f759c6c0a36b56c + '
                  'https://codereview.chromium.org/2565263002/20001')
     self.assertEqual(str(c), string)
     self.assertEqual(c.id_string, id_string)
