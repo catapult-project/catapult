@@ -32,8 +32,12 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   def Deps(self):
     """Return the DEPS of this Commit as a frozenset of Commits."""
     # Download and execute DEPS file.
-    deps_file_contents = gitiles_service.FileContents(
-        self.repository_url, self.git_hash, 'DEPS')
+    try:
+      deps_file_contents = gitiles_service.FileContents(
+          self.repository_url, self.git_hash, 'DEPS')
+    except gitiles_service.NotFoundError:
+      return frozenset()  # No DEPS file => no DEPS.
+
     deps_data = {'Var': lambda variable: deps_data['vars'][variable]}
     exec deps_file_contents in deps_data  # pylint: disable=exec-used
 
