@@ -58,7 +58,13 @@ found in the LICENSE file.
     </h1>
     <loading-wrapper id="loader">
       <p class="byline">
-        [[duration(job)]]<span class="middle-dot"></span>[[start(job)]]
+        <template is="dom-if" if="[[job.bug_id]]">
+          <a href="https://crbug.com/[[job.bug_id]]">Issue [[job.bug_id]]</a>
+          <span class="middle-dot"></span>
+        </template>
+        [[duration(job)]]
+        <span class="middle-dot"></span>
+        [[start(job)]]
       </p>
       <job-page-header job="[[job]]"></job-page-header>
       <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>

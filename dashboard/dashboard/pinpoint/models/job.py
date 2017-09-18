@@ -149,6 +149,7 @@ class Job(ndb.Model):
 
         'arguments': self.arguments,
         'auto_explore': self.auto_explore,
+        'bug_id': self.bug_id,
 
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
