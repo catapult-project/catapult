@@ -96,32 +96,6 @@ class MsrPowerMonitor(power_monitor.PowerMonitor):
     return True
 
 
-class MsrPowerMonitorLinux(MsrPowerMonitor):
-  def CanMonitorPower(self):
-    vendor = None
-    family = None
-    model = None
-    cpuinfo = open('/proc/cpuinfo').read().splitlines()
-    for line in cpuinfo:
-      if vendor and family and model:
-        break
-      if line.startswith('vendor_id'):
-        vendor = line.split('\t')[1]
-      elif line.startswith('cpu family'):
-        family = int(line.split(' ')[2])
-      elif line.startswith('model\t\t'):
-        model = int(line.split(' ')[1])
-    if not _IsSandyBridgeOrLater(vendor, family, model):
-      logging.info('Cannot monitor power: pre-Sandy Bridge CPU.')
-      return False
-
-    if not self._CheckMSRs():
-      logging.info('Try running tools/telemetry/build/linux_setup_msr.py.')
-      return False
-
-    return True
-
-
 class MsrPowerMonitorWin(MsrPowerMonitor):
   def CanMonitorPower(self):
     family, model = map(int, re.match(
