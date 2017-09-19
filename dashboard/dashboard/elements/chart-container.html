@@ -2499,6 +2499,10 @@ triaging functionality in the chart.
             url = urlTemplate.replace('{{R1}}', start).replace('{{R2}}', end);
           }
 
+          if (urlTemplate.indexOf('{{n}}') != -1) {
+            url = url.replace('{{n}}', '1000');
+          }
+
           if (start == end || !start) {
             start = false;
           }
