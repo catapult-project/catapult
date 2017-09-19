@@ -86,8 +86,6 @@ _NON_TELEMETRY_TEST_COMMANDS = {
 }
 _DISABLE_STORY_FILTER_SUITE_LIST = set([
     'octane',  # Has a single story.
-    'memory.top_10_mobile',  # Stories are not independent.
-    'memory.top_10_mobile_stress',  # Stories are not independent.
 ])
 
 _DISABLE_STORY_FILTER_STORY_LIST = set([
@@ -563,6 +561,14 @@ def GuessStoryFilter(test_path):
     pass
   if subtest_keys:  # Stories do not have subtests.
     return ''
+
+  # memory.top_10_mobile runs pairs of "{url}" and "after_{url}" stories to
+  # gather foreground and background measurements. Story filters may be used,
+  # but we need to strip off the "after_" prefix so that both stories in the
+  # pair are always run together.
+  # TODO(crbug.com/761014): Remove when benchmark is deprecated.
+  if suite_name == 'memory.top_10_mobile' and story_name.startswith('after_'):
+    story_name = story_name[len('after_'):]
 
   # During import, some chars in story names got replaced by "_" so they
   # could be safely included in the test_path. At this point we don't know

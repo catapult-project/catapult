@@ -382,6 +382,14 @@ class StartBisectTest(testing_common.TestCase):
                     'garden2_10s.webm_seek_warm': {},
                     'video.html?src_garden2_10s.webm': {}
                 }
+            },
+            'memory.top_10_mobile': {
+                'foreground': {
+                    'http_en_m_wikipedia_org': {}
+                },
+                'background': {
+                    'after_http_en_m_wikipedia_org': {}
+                }
             }
         })
     tests = graph_data.TestMetadata.query().fetch()
@@ -489,6 +497,16 @@ class StartBisectTest(testing_common.TestCase):
     info = json.loads(response.body)
     # No story filter used for non-page leaf metrics.
     self.assertEqual(info['story_filter'], '')
+
+    response = self.testapp.post('/start_try_job', {
+        'test_path': (
+            'ChromiumPerf/android-nexus7/memory.top_10_mobile'
+            '/background/after_http_en_m_wikipedia_org'),
+        'step': 'prefill-info',
+    })
+    info = json.loads(response.body)
+    # Special story filter for memory.top_10_mobile.
+    self.assertEqual(info['story_filter'], 'http.en.m.wikipedia.org')
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/chromium-rel-win8-dual/'
