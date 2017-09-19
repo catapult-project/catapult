@@ -95,9 +95,15 @@ found in the LICENSE file.
 
         if (anyNumbers) {
           // Numeric data. Set the bounds based on the data.
-          const flatValues = [].concat(...valuesByChange);
-          lowerBound = percentile(flatValues, 0.1);
-          upperBound = percentile(flatValues, 0.9);
+          // The bounds are the interquartile range of all points, but at the
+          // same time ensuring that every median point shows up on the graph.
+          const allValues = [].concat(...valuesByChange);
+          const changeMedians =
+            valuesByChange.filter(v => v.length).map(v => percentile(v, 0.5));
+          lowerBound =
+            Math.min(percentile(allValues, 0.25), Math.min(...changeMedians));
+          upperBound =
+            Math.max(percentile(allValues, 0.75), Math.max(...changeMedians));
           if (!(isFinite(lowerBound) && isFinite(upperBound))) {
             lowerBound = 0;
             upperBound = 0;
