@@ -146,7 +146,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return []
     proxy_port = network_backend.forwarder.port_pair.remote_port
     replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)
-    if not network_backend.is_test_ca_installed and not self.is_webview:
+    if not self.is_webview:
       # Ignore certificate errors for certs that are signed with Wpr's root.
       # For more details on this flag, see crbug.com/753948.
       wpr_public_hash_file = os.path.join(util.GetCatapultDir(),
@@ -159,7 +159,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         wpr_public_hash = f.readline().strip()
         replay_args.append('--ignore-certificate-errors-spki-list=' +
                            wpr_public_hash)
-    elif not network_backend.is_test_ca_installed and self.is_webview:
+    elif self.is_webview:
       # --ignore-certificate-errors-spki-list doesn't work with webview yet
       # (crbug.com/753948)
       replay_args.append('--ignore-certificate-errors')

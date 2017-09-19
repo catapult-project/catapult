@@ -28,7 +28,6 @@ from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
-from telemetry.internal.util import webpagereplay_go_server
 
 psutil = external_modules.ImportOptionalModule('psutil')
 
@@ -101,7 +100,6 @@ class AndroidPlatformBackend(
     self._video_recorder = None
     self._installed_applications = None
 
-    self._test_ca_installed = None
     self._system_ui = None
 
     _FixPossibleAdbInstability()
@@ -558,44 +556,6 @@ class AndroidPlatformBackend(
       process_name: The full package name string of the process.
     """
     return bool(self._device.GetPids(process_name))
-
-  @property
-  def supports_test_ca(self):
-    # TODO(nednguyen): figure out how to install certificate on Android M
-    # crbug.com/593152
-    # TODO(crbug.com/716084): enable support for test CA
-    # return self._device.build_version_sdk <= version_codes.LOLLIPOP_MR1
-    return False
-
-  def InstallTestCa(self):
-    """Install a randomly generated root CA on the android device.
-
-    This allows transparent HTTPS testing with WPR server without need
-    to tweak application network stack.
-
-    Note: If this method fails with any exception, then RemoveTestCa will be
-    automatically called by the network_controller_backend.
-    """
-    if self._test_ca_installed is not None:
-      logging.warning('Test certificate authority is already installed.')
-      return
-    webpagereplay_go_server.ReplayServer.InstallRootCertificate(
-        android_device_id=self._device.adb.GetDeviceSerial(),
-        adb_path=self._device.adb.GetAdbPath())
-
-  def RemoveTestCa(self):
-    """Remove root CA from device installed by InstallTestCa.
-
-    Note: Any exceptions raised by this method will be logged but dismissed by
-    the network_controller_backend.
-    """
-    if self._test_ca_installed is not None:
-      try:
-        webpagereplay_go_server.ReplayServer.RemoveRootCertificate(
-            android_device_id=self._device.adb.GetDeviceSerial(),
-            adb_path=self._device.adb.GetAdbPath())
-      finally:
-        self._test_ca_installed = None
 
   def PushProfile(self, package, new_profile_dir):
     """Replace application profile with files found on host machine.

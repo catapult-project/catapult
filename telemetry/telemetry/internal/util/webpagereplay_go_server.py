@@ -99,51 +99,6 @@ class ReplayServer(object):
           'wpr_go', py_utils.GetHostArchName(), py_utils.GetHostOsName())
     return cls._go_binary_path
 
-  @classmethod
-  def InstallRootCertificate(cls, android_device_id=None, adb_path=None):
-    """Install root certificate on the host machine or on remote Android device.
-
-      Args:
-        android_device_id: a string id of the Android device.
-        adb_path: path to adb binary to use for issuing commands to the device.
-          This is specified iff android_device_id is specified.
-    """
-    assert ((android_device_id is None and adb_path is None) or
-            (android_device_id is not None and adb_path is not None)), (
-                'android_device_id and adb_path must be both specified or '
-                'not specified')
-    go_binary_path = cls._GetGoBinaryPath()
-    if android_device_id is None:
-      subprocess.check_call([go_binary_path, 'installroot'])
-    else:
-      subprocess.check_call(
-          [go_binary_path, 'installroot',
-           '--android_device_id=%s' % android_device_id,
-           '--adb_binary_path=%s' % adb_path])
-
-  @classmethod
-  def RemoveRootCertificate(cls, android_device_id=None, adb_path=None):
-    """Remove installed root certificate on the host machine or on remote
-    Android device.
-
-      Args:
-        android_device_id: a string id of the Android device.
-        adb_path: path to adb binary to use for issuing commands to the device.
-          This is specified iff android_device_id is specified.
-    """
-    assert ((android_device_id is None and adb_path is None) or
-            (android_device_id is not None and adb_path is not None)), (
-                'android_device_id and adb_path must be both specified or '
-                'not specified')
-    go_binary_path = cls._GetGoBinaryPath()
-    if android_device_id is None:
-      subprocess.check_call([go_binary_path, 'removeroot'])
-    else:
-      subprocess.check_call(
-          [go_binary_path, 'removeroot',
-           '--android_device_id=%s' % android_device_id,
-           '--adb_binary_path=%s' % adb_path])
-
   @property
   def http_port(self):
     if not self._IsStarted():

@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import os
 
 from telemetry.internal.util import wpr_server
@@ -36,7 +35,6 @@ class NetworkControllerBackend(object):
     self._archive_path = None
     self._make_javascript_deterministic = None
     self._forwarder = None
-    self._is_test_ca_installed = None
     self._wpr_server = None
     self._ts_proxy_server = None
     self._port_pair = None
@@ -97,7 +95,6 @@ class NetworkControllerBackend(object):
     self._wpr_mode = wpr_mode
     self._extra_wpr_args = extra_wpr_args
     self._use_wpr_go = use_wpr_go
-    self._InstallTestCa()
 
   def Close(self):
     """Undo changes in the target platform used for network control.
@@ -107,40 +104,11 @@ class NetworkControllerBackend(object):
     self.StopReplay()
     self._StopForwarder()
     self._StopTsProxyServer()
-    self._RemoveTestCa()
     self._make_javascript_deterministic = None
     self._archive_path = None
     self._extra_wpr_args = None
     self._use_wpr_go = False
     self._wpr_mode = None
-
-  def _InstallTestCa(self):
-    if not self._platform_backend.supports_test_ca or not self._use_wpr_go:
-      return
-    try:
-      self._platform_backend.InstallTestCa()
-      logging.info('Test certificate authority installed on target platform.')
-    except Exception: # pylint: disable=broad-except
-      logging.exception(
-          'Failed to install test certificate authority on target platform. '
-          'Browsers may fall back to ignoring certificate errors.')
-      self._RemoveTestCa()
-
-  @property
-  def is_test_ca_installed(self):
-    return self._is_test_ca_installed
-
-  def _RemoveTestCa(self):
-    if not self._is_test_ca_installed:
-      return
-    try:
-      self._platform_backend.RemoveTestCa()
-    except Exception: # pylint: disable=broad-except
-      # Best effort cleanup - show the error and continue.
-      logging.exception(
-          'Error trying to remove certificate authority from target platform.')
-    finally:
-      self._is_test_ca_installed = False
 
   def StartReplay(self, archive_path, make_javascript_deterministic=False):
     """Start web page replay from a given replay archive.

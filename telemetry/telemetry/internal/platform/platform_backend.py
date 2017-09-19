@@ -266,19 +266,6 @@ class PlatformBackend(object):
     """
     raise NotImplementedError()
 
-  @property
-  def supports_test_ca(self):
-    """Indicates whether the platform supports installing test CA."""
-    return False
-
-  def InstallTestCa(self):
-    """Install a test CA on the platform."""
-    raise NotImplementedError()
-
-  def RemoveTestCa(self):
-    """Remove a previously installed test CA from the platform."""
-    raise NotImplementedError()
-
   def CanTakeScreenshot(self):
     return False
 
