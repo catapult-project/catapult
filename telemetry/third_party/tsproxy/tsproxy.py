@@ -157,11 +157,12 @@ class TSPipe():
 #   Threaded DNS resolver
 ########################################################################################################################
 class AsyncDNS(threading.Thread):
-  def __init__(self, client_id, hostname, port, result_pipe):
+  def __init__(self, client_id, hostname, port, is_localhost, result_pipe):
     threading.Thread.__init__(self)
     self.hostname = hostname
     self.port = port
     self.client_id = client_id
+    self.is_localhost = is_localhost
     self.result_pipe = result_pipe
 
   def run(self):
@@ -173,7 +174,7 @@ class AsyncDNS(threading.Thread):
     except:
       addresses = ()
       logging.info('[{0:d}] Resolving {1}:{2:d} Failed'.format(self.client_id, self.hostname, self.port))
-    message = {'message': 'resolved', 'connection': self.client_id, 'addresses': addresses}
+    message = {'message': 'resolved', 'connection': self.client_id, 'addresses': addresses, 'localhost': self.is_localhost}
     self.result_pipe.SendMessage(message, False)
     lock.acquire()
     if background_activity_count > 0:
@@ -207,7 +208,6 @@ class TCPConnection(asyncore.dispatcher):
     self.port = None
     self.needs_config = True
     self.needs_close = False
-    self.is_localhost = False
     self.did_resolve = False
 
   def SendMessage(self, type, message):
@@ -292,6 +292,7 @@ class TCPConnection(asyncore.dispatcher):
   def HandleResolve(self, message):
     global in_pipe,  map_localhost, lock, background_activity_count
     self.did_resolve = True
+    is_localhost = False
     if 'hostname' in message:
       self.hostname = message['hostname']
     self.port = 0
@@ -302,32 +303,35 @@ class TCPConnection(asyncore.dispatcher):
       self.hostname = '127.0.0.1'
     if self.hostname == '127.0.0.1':
       logging.info('[{0:d}] Connection to localhost detected'.format(self.client_id))
-      self.is_localhost = True
-    if (dest_addresses is not None) and (not self.is_localhost or map_localhost):
+      is_localhost = True
+    if (dest_addresses is not None) and (not is_localhost or map_localhost):
       logging.info('[{0:d}] Resolving {1}:{2:d} to mapped address {3}'.format(self.client_id, self.hostname, self.port, dest_addresses))
-      self.SendMessage('resolved', {'addresses': dest_addresses})
+      self.SendMessage('resolved', {'addresses': dest_addresses, 'localhost': False})
     else:
       lock.acquire()
       background_activity_count += 1
       lock.release()
       self.state = self.STATE_RESOLVING
-      self.dns_thread = AsyncDNS(self.client_id, self.hostname, self.port, in_pipe)
+      self.dns_thread = AsyncDNS(self.client_id, self.hostname, self.port, is_localhost, in_pipe)
       self.dns_thread.start()
 
   def HandleConnect(self, message):
     global map_localhost
     if 'addresses' in message and len(message['addresses']):
       self.state = self.STATE_CONNECTING
-      if not self.did_resolve and message['addresses'][0] == '127.0.0.1':
+      is_localhost = False
+      if 'localhost' in message:
+        is_localhost = message['localhost']
+      elif not self.did_resolve and message['addresses'][0] == '127.0.0.1':
         logging.info('[{0:d}] Connection to localhost detected'.format(self.client_id))
-        self.is_localhost = True
-      if (dest_addresses is not None) and (not self.is_localhost or map_localhost):
+        is_localhost = True
+      if (dest_addresses is not None) and (not is_localhost or map_localhost):
         self.addr = dest_addresses[0]
       else:
         self.addr = message['addresses'][0]
       self.create_socket(self.addr[0], socket.SOCK_STREAM)
       addr = self.addr[4][0]
-      if not self.is_localhost or map_localhost:
+      if not is_localhost or map_localhost:
         port = GetDestPort(message['port'])
       else:
         port = message['port']
@@ -484,8 +488,9 @@ class Socks5Connection(asyncore.dispatcher):
                   if self.ip is None and self.hostname is not None:
                     if self.hostname in dns_cache:
                       self.state = self.STATE_CONNECTING
-                      self.addresses = dns_cache[self.hostname]
-                      self.SendMessage('connect', {'addresses': self.addresses, 'port': self.port})
+                      cache_entry = dns_cache[self.hostname]
+                      self.addresses = cache_entry['addresses']
+                      self.SendMessage('connect', {'addresses': self.addresses, 'port': self.port, 'localhost': cache_entry['localhost']})
                     else:
                       self.state = self.STATE_RESOLVING
                       self.SendMessage('resolve', {'hostname': self.hostname, 'port': self.port})
@@ -520,9 +525,9 @@ class Socks5Connection(asyncore.dispatcher):
       if 'addresses' in message and len(message['addresses']):
         self.state = self.STATE_CONNECTING
         self.addresses = message['addresses']
-        dns_cache[self.hostname] = self.addresses
+        dns_cache[self.hostname] = {'addresses': self.addresses, 'localhost': message['localhost']}
         logging.debug('[{0:d}] Resolved {1}, Connecting'.format(self.client_id, self.hostname))
-        self.SendMessage('connect', {'addresses': self.addresses, 'port': self.port})
+        self.SendMessage('connect', {'addresses': self.addresses, 'port': self.port, 'localhost': message['localhost']})
       else:
         # Send host unreachable error
         self.state = self.STATE_ERROR

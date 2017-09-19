@@ -5,18 +5,18 @@ tsproxy provides basic latency, download and upload traffic shaping while only r
 
 tsproxy is monolithic and all of the functionality is in tsproxy.py.  It is written expecting Python 2.7.
 
-#Usage
+# Usage
 ```bash
 $ python tsproxy.py --rtt=<latency> --inkbps=<download bandwidth> --outkbps=<upload bandwidth>
 ```
 Hit `ctrl-C` (or send a `SIGINT`) to exit
 
-#Example
+# Example
 ```bash
 $ python tsproxy.py --rtt=200 --inkbps=1600 --outkbps=768
 ```
 
-#Command-line Options
+# Command-line Options
 
 
 | Option            | Alias    | Description                              |
@@ -33,7 +33,7 @@ $ python tsproxy.py --rtt=200 --inkbps=1600 --outkbps=768
 | **`--verbose`**   | **`-v`** | Increase verbosity (specify multiple times for more). `-vvvv` for full debug output. |
 
 
-#Runtime Options
+# Runtime Options
 The traffic shaping configuration can be changed dynamically at runtime by passing commands in through the console (or stdin).  Each command is on a line, terminated with an end-of-line (`\n`).
 
 
@@ -51,12 +51,12 @@ The traffic shaping configuration can be changed dynamically at runtime by passi
 All bandwidth and latency changes also carry an implied flush and clear out any pending data.
 
 
-#Configuring Chrome to use tsproxy
+# Configuring Chrome to use tsproxy
 Add a --proxy-server command-line option.
 ```bash
 --proxy-server="socks://localhost:1080"
 ```
 
-#Known Shortcomings/Issues
+# Known Shortcomings/Issues
 * DNS lookups on OSX (and FreeBSD) will block each other when it comes to actually resolving.  DNS in Python on most platforms is allowed to run concurrently in threads (which tsproxy does) but on OSX and FreeBSD it is not thread-safe and there is a lock around the actual lookups.  For most cases this isn't an issue because the latency isn't added on the actual DNS lookup (it is from the browser perspective but it is added outside of the actual lookup). This is also not an issue when desthost is used to override the destination address since dns lookups will be disabled.
 * QUIC support. Chrome [doesn't currently support QUIC proxies](https://bugs.chromium.org/p/chromium/issues/detail?id=335275), and further work would be neccessary to correctly handle UDP traffic in tsproxy.
