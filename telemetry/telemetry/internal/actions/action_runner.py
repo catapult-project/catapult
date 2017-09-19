@@ -35,7 +35,14 @@ from py_trace_event import trace_event
 import py_utils
 
 
-_DUMP_WAIT_TIME = 3
+# Time to wait in seconds before requesting a memory dump in deterministic
+# mode, thus allowing metric values to stabilize a bit.
+_MEMORY_DUMP_WAIT_TIME = 3
+
+# Time to wait in seconds after forcing garbage collection to allow its
+# effects to propagate. Experimentally determined on an Android One device
+# that Java Heap garbage collection can take ~5 seconds to complete.
+_GARBAGE_COLLECTION_WAIT_TIME = 6
 
 
 class ActionRunner(object):
@@ -149,9 +156,8 @@ class ActionRunner(object):
       logging.warning('Tracing is off. No memory dumps are being recorded.')
       return None
     if deterministic_mode:
-      self.Wait(_DUMP_WAIT_TIME)
+      self.Wait(_MEMORY_DUMP_WAIT_TIME)
       self.ForceGarbageCollection()
-      self.Wait(_DUMP_WAIT_TIME)
     dump_id = self.tab.browser.DumpMemory()
     if not dump_id:
       raise exceptions.StoryActionError('Unable to obtain memory dump')
@@ -805,6 +811,8 @@ class ActionRunner(object):
     self._tab.CollectGarbage()
     if self._tab.browser.platform.SupportFlushEntireSystemCache():
       self._tab.browser.platform.FlushEntireSystemCache()
+    self.Wait(_GARBAGE_COLLECTION_WAIT_TIME)
+
 
   def SimulateMemoryPressureNotification(self, pressure_level):
     """Simulate memory pressure notification.
