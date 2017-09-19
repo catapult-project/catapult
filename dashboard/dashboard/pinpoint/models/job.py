@@ -174,7 +174,7 @@ class Job(ndb.Model):
       commit = change.last_commit
       commit_info = gitiles_service.CommitInfo(commit.repository_url,
                                                commit.git_hash)
-      subject = commit_info['message'].split('\n', 1)[0]
+      subject = '<b>%s</b>' % commit_info['message'].split('\n', 1)[0]
       author = commit_info['author']['email']
       time = commit_info['committer']['time']
 
