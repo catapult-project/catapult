@@ -17,12 +17,17 @@ import py_utils
 # Default Cache Temperature. The page doesn't care which browser cache state
 # it is run on.
 ANY = 'any'
-# Emulates PageCycler V1 cold runs. Clears system DNS cache, browser DiskCache,
-# net/ predictor cache, and net/ host resolver cache.
-PCV1_COLD = 'pcv1-cold'
-# Emulates PageCycler V1 warm runs. Ensures that the page was visited at least
-# once just before the run.
-PCV1_WARM = 'pcv1-warm'
+# Emulates cold runs. Clears various caches and data with using tab.ClearCache()
+# and tab.ClearDataForOrigin().
+COLD = 'cold'
+# Emulates warm runs. Ensures that the page was visited at least once just
+# before the run.
+WARM = 'warm'
+
+# These regacy states will be removed after chromium test scripts are adapted
+# to new states.
+PCV1_COLD = COLD
+PCV1_WARM = WARM
 
 class MarkTelemetryInternal(object):
 
@@ -56,7 +61,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
   if temperature == ANY:
     return
 
-  if temperature == PCV1_COLD:
+  if temperature == COLD:
     if previous_page is None:
       with MarkTelemetryInternal(browser, 'ensure_diskcache'):
         tab = browser.tabs[0]
@@ -65,11 +70,11 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
 
     any_tab = browser.tabs[0]
     any_tab.ClearCache(force=True)
-  elif temperature == PCV1_WARM:
+  elif temperature == WARM:
     if (previous_page is not None and
         previous_page.url == page.url and
-        (previous_page.cache_temperature == PCV1_COLD or
-         previous_page.cache_temperature == PCV1_WARM)):
+        (previous_page.cache_temperature == COLD or
+         previous_page.cache_temperature == WARM)):
       if '#' in page.url:
         # Navigate to inexistent URL to avoid in-page hash navigation.
         # Note: Unlike PCv1, PCv2 iterates the same URL for different cache
