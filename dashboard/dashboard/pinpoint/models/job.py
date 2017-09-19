@@ -238,38 +238,27 @@ class _JobState(object):
     """Compare Changes and bisect by adding additional Changes as needed.
 
     For every pair of adjacent Changes, compare their results as probability
-    distributions. If more information is needed to establish statistical
-    confidence, add an additional Attempt. If the results are different, find
-    the midpoint of the Changes and add it to the Job.
+    distributions. If the results are different, find the midpoint of the
+    Changes and add it to the Job.
 
     The midpoint can only be added if the second Change represents a commit that
     comes after the first Change. Otherwise, this method won't explore further.
     For example, if Change A is repo@abc, and Change B is repo@abc + patch,
     there's no way to pick additional Changes to try.
     """
-    # Compare every pair of Changes.
-    # TODO: The list may Change while iterating through it.
-    # TODO: Use JobState.Differences().
-    for index in xrange(1, len(self._changes)):
+    # This loop adds Changes to the _changes list while looping through it.
+    # However, the loop index goes in reverse order and Changes are only added
+    # after the loop index, so the loop never encounters the modified items.
+    for index, change_b in reversed(tuple(self.Differences())):
       change_a = self._changes[index - 1]
-      change_b = self._changes[index]
 
-      comparison_result = self._Compare(change_a, change_b)
-      if comparison_result == _DIFFERENT:
-        # Different: Bisect and add an additional Change to the job.
-        try:
-          midpoint = change_module.Change.Midpoint(change_a, change_b)
-        except change_module.NonLinearError:
-          continue
-        logging.info('Adding Change %s.', midpoint)
-        self.AddChange(midpoint, index)
-      elif comparison_result == _SAME:
-        # The same: Do nothing.
+      try:
+        midpoint = change_module.Change.Midpoint(change_a, change_b)
+      except change_module.NonLinearError:
         continue
-      elif comparison_result == _UNKNOWN:
-        # Unknown: Add an Attempt to the Change with the fewest Attempts.
-        change = min(change_a, change_b, key=lambda c: len(self._attempts[c]))
-        self.AddAttempt(change)
+
+      logging.info('Adding Change %s.', midpoint)
+      self.AddChange(midpoint, index)
 
   def ScheduleWork(self):
     work_left = False
@@ -284,6 +273,15 @@ class _JobState(object):
     return work_left
 
   def Differences(self):
+    """Compares every pair of Changes and yields ones with different results.
+
+    This method loops through every pair of adjacent Changes. If they have
+    statistically different results, this method yields the latter one (which is
+    assumed to have caused the difference).
+
+    Yields:
+      Tuples of (change_index, Change).
+    """
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
