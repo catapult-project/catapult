@@ -2246,6 +2246,9 @@ triaging functionality in the chart.
             opt_triaged = null;
           }
           this.$.tooltip.triagedAlerts = opt_triaged;
+
+          const uriBugId = uri.getParameter('bug_id');
+
           if (annotation.g_anomaly) {
             if (annotation.g_anomaly.bug_id) {
               this.$.tooltip.bugId = annotation.g_anomaly.bug_id;
@@ -2254,6 +2257,8 @@ triaging functionality in the chart.
               this.$.tooltip.alertKey = annotation.g_anomaly.key;
             }
             this.$.tooltip.recovered = annotation.g_anomaly.recovered;
+          } else if (uriBugId !== null) {
+            this.$.tooltip.bugId = uriBugId;
           }
 
           this.$.tooltip.bisectInfo = {
