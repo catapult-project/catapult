@@ -17,11 +17,11 @@
 }
 
 .timeline-view-rotateleft {
-  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .timeline-view-rotateright {
-  -webkit-transform: rotate(270deg);
+  transform: rotate(270deg);
 }
 
 #timeline-view-selection-div ul {

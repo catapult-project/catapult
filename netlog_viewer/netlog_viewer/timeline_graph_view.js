@@ -47,18 +47,14 @@ var TimelineGraphView = (function() {
   // Which side of the canvas y-axis labels should go on, for a given Graph.
   // TODO(mmenke):  Figure out a reasonable way to handle more than 2 sets
   //                of labels.
-  var LabelAlign = {
-    LEFT: 0,
-    RIGHT: 1
-  };
+  var LabelAlign = {LEFT: 0, RIGHT: 1};
 
   /**
    * @constructor
    */
   function TimelineGraphView(divId, canvasId, scrollbarId, scrollbarInnerId) {
-    this.scrollbar_ = new HorizontalScrollbarView(scrollbarId,
-                                                  scrollbarInnerId,
-                                                  this.onScroll_.bind(this));
+    this.scrollbar_ = new HorizontalScrollbarView(
+        scrollbarId, scrollbarInnerId, this.onScroll_.bind(this));
     // Call superclass's constructor.
     superClass.call(this, null, new DivView(divId), this.scrollbar_);
 
@@ -113,10 +109,10 @@ var TimelineGraphView = (function() {
       // |height| properties, which do not take padding into account, so we
       // need to use them ourselves.
       var style = getComputedStyle(this.canvas_);
-      var horizontalPadding = parseInt(style.paddingRight) +
-                                  parseInt(style.paddingLeft);
-      var verticalPadding = parseInt(style.paddingTop) +
-                                parseInt(style.paddingBottom);
+      var horizontalPadding =
+          parseInt(style.paddingRight) + parseInt(style.paddingLeft);
+      var verticalPadding =
+          parseInt(style.paddingTop) + parseInt(style.paddingBottom);
       var canvasWidth =
           parseInt(this.graphDiv_.style.width) - horizontalPadding;
       // For unknown reasons, there's an extra 3 pixels border between the
@@ -267,10 +263,11 @@ var TimelineGraphView = (function() {
     onMouseWheel_: function(event) {
       event.preventDefault();
       this.horizontalScroll_(
-          MOUSE_WHEEL_SCROLL_RATE *
-              -event.wheelDeltaX / MOUSE_WHEEL_UNITS_PER_CLICK);
-      this.zoom_(Math.pow(MOUSE_WHEEL_ZOOM_RATE,
-                 -event.wheelDeltaY / MOUSE_WHEEL_UNITS_PER_CLICK));
+          MOUSE_WHEEL_SCROLL_RATE * -event.wheelDeltaX /
+          MOUSE_WHEEL_UNITS_PER_CLICK);
+      this.zoom_(Math.pow(
+          MOUSE_WHEEL_ZOOM_RATE,
+          -event.wheelDeltaY / MOUSE_WHEEL_UNITS_PER_CLICK));
     },
 
     onMouseDown_: function(event) {
@@ -366,8 +363,8 @@ var TimelineGraphView = (function() {
 
       // Layout graphs and have them draw their tick marks.
       for (var i = 0; i < this.graphs_.length; ++i) {
-        this.graphs_[i].layout(width, height, fontHeight, visibleStartTime,
-                               this.scale_);
+        this.graphs_[i].layout(
+            width, height, fontHeight, visibleStartTime, this.scale_);
         this.graphs_[i].drawTicks(context);
       }
 
@@ -393,18 +390,16 @@ var TimelineGraphView = (function() {
 
       // The desired spacing for text labels.
       var targetSpacing = context.measureText(sampleText).width +
-                              LABEL_LABEL_HORIZONTAL_SPACING;
+          LABEL_LABEL_HORIZONTAL_SPACING;
 
       // The allowed time step values between adjacent labels.  Anything much
       // over a couple minutes isn't terribly realistic, given how much memory
       // we use, and how slow a lot of the net-internals code is.
       var timeStepValues = [
         1000,  // 1 second
-        1000 * 5,
-        1000 * 30,
+        1000 * 5, 1000 * 30,
         1000 * 60,  // 1 minute
-        1000 * 60 * 5,
-        1000 * 60 * 30,
+        1000 * 60 * 5, 1000 * 60 * 30,
         1000 * 60 * 60,  // 1 hour
         1000 * 60 * 60 * 5
       ];

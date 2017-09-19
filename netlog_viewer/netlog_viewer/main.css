@@ -29,10 +29,10 @@ ul {
 /* This class is used to create the splitter widget in
  * ResizbleVerticalSplitView. */
 .vertical-splitter {
-  -webkit-user-select: none;
   border-left: 1px solid #afafaf;
   cursor: ew-resize;
   position: absolute;
+  user-select: none;
   width: 10px;
 }
 

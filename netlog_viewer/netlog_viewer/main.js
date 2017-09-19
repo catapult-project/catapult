@@ -20,7 +20,6 @@ var LoadFlag = null;
 var CertStatusFlag = null;
 var LoadState = null;
 var AddressFamily = null;
-var SdchProblemCode = null;
 var DataReductionProxyBypassEventType = null;
 
 /**
@@ -71,8 +70,8 @@ var MainView = (function() {
     // a high level status (i.e. if we are displaying a log file or not).
     // Below it we will position the main tabs and their content area.
     this.topBarView_ = TopBarView.getInstance(this);
-    var verticalSplitView = new VerticalSplitView(
-        this.topBarView_, this.tabSwitcher_);
+    var verticalSplitView =
+        new VerticalSplitView(this.topBarView_, this.tabSwitcher_);
 
     superClass.call(this, verticalSplitView);
 
@@ -179,7 +178,6 @@ var MainView = (function() {
       addTab(AltSvcView);
       addTab(SpdyView);
       addTab(QuicView);
-      addTab(SdchView);
       addTab(HttpCacheView);
       addTab(ModulesView);
       addTab(BandwidthView);
@@ -300,7 +298,6 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
   QuicRstStreamError = Constants.quicRstStreamError;
   AddressFamily = Constants.addressFamily;
   LoadState = Constants.loadState;
-  SdchProblemCode = Constants.sdchProblemCode;
   DataReductionProxyBypassEventType =
       Constants.dataReductionProxyBypassEventType;
   DataReductionProxyBypassActionType =
@@ -321,15 +318,15 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
  */
 function areValidConstants(receivedConstants) {
   return typeof(receivedConstants) == 'object' &&
-         typeof(receivedConstants.logEventTypes) == 'object' &&
-         typeof(receivedConstants.clientInfo) == 'object' &&
-         typeof(receivedConstants.logEventPhase) == 'object' &&
-         typeof(receivedConstants.logSourceType) == 'object' &&
-         typeof(receivedConstants.loadFlag) == 'object' &&
-         typeof(receivedConstants.netError) == 'object' &&
-         typeof(receivedConstants.addressFamily) == 'object' &&
-         typeof(receivedConstants.timeTickOffset) == 'string' &&
-         typeof(receivedConstants.logFormatVersion) == 'number';
+      typeof(receivedConstants.logEventTypes) == 'object' &&
+      typeof(receivedConstants.clientInfo) == 'object' &&
+      typeof(receivedConstants.logEventPhase) == 'object' &&
+      typeof(receivedConstants.logSourceType) == 'object' &&
+      typeof(receivedConstants.loadFlag) == 'object' &&
+      typeof(receivedConstants.netError) == 'object' &&
+      typeof(receivedConstants.addressFamily) == 'object' &&
+      typeof(receivedConstants.timeTickOffset) == 'string' &&
+      typeof(receivedConstants.logFormatVersion) == 'number';
 }
 
 /**
@@ -379,16 +376,3 @@ function addressFamilyToString(family) {
   // Strip that prefix since it is redundant and only clutters the output.
   return str.replace(/^ADDRESS_FAMILY_/, '');
 }
-
-/**
- * Returns the name for sdchProblemCode.
- *
- * Example: sdchProblemCodeToString(5) should return
- * "DECODE_BODY_ERROR".
- * @param {number} sdchProblemCode The SDCH problem code.
- * @return {string} The name of the given problem code.
- */
-function sdchProblemCodeToString(sdchProblemCode) {
-  return getKeyWithValue(SdchProblemCode, sdchProblemCode);
-}
-

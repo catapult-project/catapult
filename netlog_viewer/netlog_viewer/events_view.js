@@ -42,8 +42,8 @@ var EventsView = (function() {
     superClass.call(this);
 
     // Initialize the sub-views.
-    var leftPane = new VerticalSplitView(new DivView(EventsView.TOPBAR_ID),
-                                         new DivView(EventsView.LIST_BOX_ID));
+    var leftPane = new VerticalSplitView(
+        new DivView(EventsView.TOPBAR_ID), new DivView(EventsView.LIST_BOX_ID));
 
     this.detailsView_ = new DetailsView(EventsView.DETAILS_LOG_BOX_ID);
 
@@ -57,23 +57,23 @@ var EventsView = (function() {
     this.filterInput_ = $(EventsView.FILTER_INPUT_ID);
     this.filterCount_ = $(EventsView.FILTER_COUNT_ID);
 
-    this.filterInput_.addEventListener('search',
-        this.onFilterTextChanged_.bind(this), true);
+    this.filterInput_.addEventListener(
+        'search', this.onFilterTextChanged_.bind(this), true);
 
-    $(EventsView.SELECT_ALL_ID).addEventListener(
-        'click', this.selectAll_.bind(this), true);
+    $(EventsView.SELECT_ALL_ID)
+        .addEventListener('click', this.selectAll_.bind(this), true);
 
-    $(EventsView.SORT_BY_ID_ID).addEventListener(
-        'click', this.sortById_.bind(this), true);
+    $(EventsView.SORT_BY_ID_ID)
+        .addEventListener('click', this.sortById_.bind(this), true);
 
-    $(EventsView.SORT_BY_SOURCE_TYPE_ID).addEventListener(
-        'click', this.sortBySourceType_.bind(this), true);
+    $(EventsView.SORT_BY_SOURCE_TYPE_ID)
+        .addEventListener('click', this.sortBySourceType_.bind(this), true);
 
-    $(EventsView.SORT_BY_DESCRIPTION_ID).addEventListener(
-        'click', this.sortByDescription_.bind(this), true);
+    $(EventsView.SORT_BY_DESCRIPTION_ID)
+        .addEventListener('click', this.sortByDescription_.bind(this), true);
 
-    new MouseOverHelp(EventsView.FILTER_HELP_ID,
-                      EventsView.FILTER_HELP_HOVER_ID);
+    new MouseOverHelp(
+        EventsView.FILTER_HELP_ID, EventsView.FILTER_HELP_HOVER_ID);
 
     // Sets sort order and filter.
     this.setFilter_('');
@@ -232,8 +232,8 @@ var EventsView = (function() {
           break;
         var prevSourceRow = this.sourceIdToRowMap_[prevSourceId];
         if (this.comparisonFuncWithReversing_(
-                sourceRow.getSourceEntry(),
-                prevSourceRow.getSourceEntry()) >= 0) {
+                sourceRow.getSourceEntry(), prevSourceRow.getSourceEntry()) >=
+            0) {
           break;
         }
         sourceRowAfter = prevSourceRow;
@@ -250,8 +250,8 @@ var EventsView = (function() {
           break;
         var nextSourceRow = this.sourceIdToRowMap_[nextSourceId];
         if (this.comparisonFuncWithReversing_(
-                sourceRow.getSourceEntry(),
-                nextSourceRow.getSourceEntry()) <= 0) {
+                sourceRow.getSourceEntry(), nextSourceRow.getSourceEntry()) <=
+            0) {
           break;
         }
         sourceRowBefore = nextSourceRow;
@@ -472,16 +472,17 @@ var EventsView = (function() {
     invalidateFilterCounter_: function() {
       if (!this.outstandingRepaintFilterCounter_) {
         this.outstandingRepaintFilterCounter_ = true;
-        window.setTimeout(this.repaintFilterCounter_.bind(this),
-                          REPAINT_FILTER_COUNTER_TIMEOUT_MS);
+        window.setTimeout(
+            this.repaintFilterCounter_.bind(this),
+            REPAINT_FILTER_COUNTER_TIMEOUT_MS);
       }
     },
 
     repaintFilterCounter_: function() {
       this.outstandingRepaintFilterCounter_ = false;
       this.filterCount_.innerHTML = '';
-      addTextNode(this.filterCount_,
-                  this.numPostfilter_ + ' of ' + this.numPrefilter_);
+      addTextNode(
+          this.filterCount_, this.numPostfilter_ + ' of ' + this.numPrefilter_);
     }
   };  // end of prototype.
 

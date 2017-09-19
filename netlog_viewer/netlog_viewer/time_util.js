@@ -132,14 +132,12 @@ var timeutil = (function() {
    * @return {string} A string representation of |date|.
    */
   function dateToString(date) {
-    var dateStr = date.getFullYear() + '-' +
-                  zeroPad_(date.getMonth() + 1, 2) + '-' +
-                  zeroPad_(date.getDate(), 2);
+    var dateStr = date.getFullYear() + '-' + zeroPad_(date.getMonth() + 1, 2) +
+        '-' + zeroPad_(date.getDate(), 2);
 
     var timeStr = zeroPad_(date.getHours(), 2) + ':' +
-                  zeroPad_(date.getMinutes(), 2) + ':' +
-                  zeroPad_(date.getSeconds(), 2) + '.' +
-                  zeroPad_(date.getMilliseconds(), 3);
+        zeroPad_(date.getMinutes(), 2) + ':' + zeroPad_(date.getSeconds(), 2) +
+        '.' + zeroPad_(date.getMilliseconds(), 3);
 
     return dateStr + ' ' + timeStr;
   }

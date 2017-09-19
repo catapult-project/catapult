@@ -65,9 +65,8 @@ var SocketPoolWrapper = (function() {
     socketPoolList.push(socketPool);
     if (origPool.nested_pools) {
       for (var i = 0; i < origPool.nested_pools.length; ++i) {
-        addSocketPoolsToList(socketPoolList,
-                              origPool.nested_pools[i],
-                              socketPool);
+        addSocketPoolsToList(
+            socketPoolList, origPool.nested_pools[i], socketPool);
       }
     }
   }

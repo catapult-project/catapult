@@ -5,10 +5,7 @@
 /**
  * Different data types that each require their own labelled axis.
  */
-var TimelineDataType = {
-  SOURCE_COUNT: 0,
-  BYTES_PER_SECOND: 1
-};
+var TimelineDataType = {SOURCE_COUNT: 0, BYTES_PER_SECOND: 1};
 
 /**
  * A TimelineDataSeries collects an ordered series of (time, value) pairs,

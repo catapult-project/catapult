@@ -7,14 +7,32 @@ Introduction
 This is a WebApp that allows someone to perform post-mortem analysis of a
 saved NetLog dump. The initial code was taken out of Chromium.
 The code should contain all changes made to net-internals up to chromium commit
-8491b5b9060b61c2b06f51bb5dfcc8098c0cbad1.
-The full design doc can be found
+0036296a1128ac9cbefeaff51c8df831ec421c36. The full design doc can be found
 [here](https://docs.google.com/document/d/1Ll7T5cguj5m2DqkUTad5DWRCqtbQ3L1q9FRvTN5-Y28/edit#).
+
+Suggested merge steps:
+
+1.
+```
+git diff --relative --src-prefix="a/netlog_viewer/netlog_viewer/"\
+--dst-prefix="b/netlog_viewer/netlog_viewer/"\
+R1 R2 . > diff.txt
+```
+where R1 and R2 are Chromium commit hashes.
+
+2.
+```
+cd CATAPULT_DIR;
+git apply --reject --whitespace=fix diff.txt
+```
+
+3.
+Manually merge any rejected chunks in `*.rej` files.
 
 Motivation
 ------------
 There are a few problems with the current system of logging network events
-within Chromium (see chrome://net-internals) that motivated the design and 
+within Chromium (see chrome://net-internals) that motivated the design and
 creation of this new project:
 - Attempting to add new and improved functionalities to network logging within
 Chromium comes at the cost of bloating the Chromium binaries.

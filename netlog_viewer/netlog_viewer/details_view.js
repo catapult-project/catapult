@@ -41,8 +41,7 @@ var DetailsView = (function() {
       // Repaint the view.
       if (this.isVisible() && !this.outstandingRepaint_) {
         this.outstandingRepaint_ = true;
-        window.setTimeout(this.repaint.bind(this),
-                          REPAINT_TIMEOUT_MS);
+        window.setTimeout(this.repaint.bind(this), REPAINT_TIMEOUT_MS);
       }
     },
 
@@ -62,9 +61,10 @@ var DetailsView = (function() {
         div.className = 'log-source-entry';
 
         var p = addNode(div, 'p');
-        addNodeWithText(p, 'h4',
-                        sourceEntry.getSourceId() + ': ' +
-                            sourceEntry.getSourceTypeString());
+        addNodeWithText(
+            p, 'h4',
+            sourceEntry.getSourceId() + ': ' +
+                sourceEntry.getSourceTypeString());
 
         if (sourceEntry.getDescription())
           addNodeWithText(p, 'h4', sourceEntry.getDescription());

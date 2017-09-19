@@ -69,8 +69,7 @@ var LogGroupEntry = (function() {
       if (groupEntry.isEnd()) {
         // Walk up the parent stack to find the corresponding BEGIN for this
         // END.
-        var parentIndex =
-            findParentIndex(parentStack, groupEntry.orig.type);
+        var parentIndex = findParentIndex(parentStack, groupEntry.orig.type);
 
         if (parentIndex == -1) {
           // Unmatched end.

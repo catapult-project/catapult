@@ -18,9 +18,8 @@ var CrosView = (function() {
    */
   function clearFileInput_() {
     $(CrosView.IMPORT_DIV_ID).innerHTML = $(CrosView.IMPORT_DIV_ID).innerHTML;
-    $(CrosView.IMPORT_ONC_ID).addEventListener('change',
-                                               handleFileChangeEvent_,
-                                               false);
+    $(CrosView.IMPORT_ONC_ID)
+        .addEventListener('change', handleFileChangeEvent_, false);
   }
 
   /**
@@ -74,10 +73,10 @@ var CrosView = (function() {
     // Ignore any parse errors: they'll get handled in the C++ import code.
     try {
       jsonObject = JSON.parse(fileContent);
-    } catch (error) {}
+    } catch (error) {
+    }
     // Check if file is encrypted.
-    if (jsonObject &&
-        jsonObject.hasOwnProperty('Type') &&
+    if (jsonObject && jsonObject.hasOwnProperty('Type') &&
         jsonObject.Type == 'EncryptedConfiguration') {
       promptForPasscode_();
     } else {
@@ -104,8 +103,8 @@ var CrosView = (function() {
   function setParseStatus_(error) {
     var parseStatus = $(CrosView.PARSE_STATUS_ID);
     parseStatus.hidden = false;
-    parseStatus.textContent = error ?
-        'ONC file parse failed: ' + error : 'ONC file successfully parsed';
+    parseStatus.textContent = error ? 'ONC file parse failed: ' + error :
+                                      'ONC file successfully parsed';
     reset_();
   }
 
@@ -150,9 +149,8 @@ var CrosView = (function() {
    *  @private
    */
   function addEventListeners_() {
-    $(CrosView.IMPORT_ONC_ID).addEventListener('change',
-                                               handleFileChangeEvent_,
-                                               false);
+    $(CrosView.IMPORT_ONC_ID)
+        .addEventListener('change', handleFileChangeEvent_, false);
 
     $(CrosView.PASSCODE_INPUT_ID).addEventListener('change', function(event) {
       setPasscode_(this.value);
@@ -164,19 +162,19 @@ var CrosView = (function() {
     }, false);
 
     $(CrosView.DEBUG_WIFI_ID).addEventListener('click', function(event) {
-        setNetworkDebugMode_('wifi');
+      setNetworkDebugMode_('wifi');
     }, false);
     $(CrosView.DEBUG_ETHERNET_ID).addEventListener('click', function(event) {
-        setNetworkDebugMode_('ethernet');
+      setNetworkDebugMode_('ethernet');
     }, false);
     $(CrosView.DEBUG_CELLULAR_ID).addEventListener('click', function(event) {
-        setNetworkDebugMode_('cellular');
+      setNetworkDebugMode_('cellular');
     }, false);
     $(CrosView.DEBUG_WIMAX_ID).addEventListener('click', function(event) {
-        setNetworkDebugMode_('wimax');
+      setNetworkDebugMode_('wimax');
     }, false);
     $(CrosView.DEBUG_NONE_ID).addEventListener('click', function(event) {
-        setNetworkDebugMode_('none');
+      setNetworkDebugMode_('none');
     }, false);
   }
 

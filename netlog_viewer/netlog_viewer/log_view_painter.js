@@ -13,19 +13,17 @@ var stripPrivacyInfo;
 'use strict';
 
 function canCollapseBeginWithEnd(beginEntry) {
-  return beginEntry &&
-         beginEntry.isBegin() &&
-         beginEntry.end &&
-         beginEntry.end.index == beginEntry.index + 1 &&
-         (!beginEntry.orig.params || !beginEntry.end.orig.params);
+  return beginEntry && beginEntry.isBegin() && beginEntry.end &&
+      beginEntry.end.index == beginEntry.index + 1 &&
+      (!beginEntry.orig.params || !beginEntry.end.orig.params);
 }
 
 /**
  * Creates a TablePrinter for use by the above two functions.  baseTime is
  * the time relative to which other times are displayed.
  */
-createLogEntryTablePrinter = function(logEntries, privacyStripping,
-                                      baseTime, logCreationTime) {
+createLogEntryTablePrinter = function(
+    logEntries, privacyStripping, baseTime, logCreationTime) {
   var entries = LogGroupEntry.createArrayFrom(logEntries);
   var tablePrinter = new TablePrinter();
   var parameterOutputter = new ParameterOutputter(tablePrinter);
@@ -81,9 +79,8 @@ createLogEntryTablePrinter = function(logEntries, privacyStripping,
   // still active.
   var isSourceActive = lastEntry.getDepth() != 0 || lastEntry.isBegin();
   if (logCreationTime != undefined && isSourceActive) {
-    addRowWithTime(tablePrinter,
-                   logCreationTime - baseTime,
-                   startTime - baseTime);
+    addRowWithTime(
+        tablePrinter, logCreationTime - baseTime, startTime - baseTime);
   }
 
   return tablePrinter;
@@ -92,7 +89,8 @@ createLogEntryTablePrinter = function(logEntries, privacyStripping,
 /**
  * Adds a new row to the given TablePrinter, and adds five cells containing
  * information about the time an event occured.
- * Format is '[t=<time of the event in ms>] [st=<ms since the source started>]'.
+ * Format is '[t=<time of the event in ms>] [st=<ms since the source
+ * started>]'.
  * @param {TablePrinter} tablePrinter The table printer to add the cells to.
  * @param {number} eventTime The time the event occured, in milliseconds,
  *     relative to some base time.
@@ -148,14 +146,15 @@ function writeHexString(hexString, out) {
 
     // Make the ASCII text for the last line of output align with the previous
     // lines.
-    hexLine += makeRepeatedString(' ',
-                                  3 * asciiCharsPerLine + 1 - hexLine.length);
+    hexLine +=
+        makeRepeatedString(' ', 3 * asciiCharsPerLine + 1 - hexLine.length);
     out.writeLine('   ' + hexLine + '  ' + asciiLine);
   }
 }
 
 /**
- * Wrapper around a TablePrinter to simplify outputting lines of text for event
+ * Wrapper around a TablePrinter to simplify outputting lines of text for
+ * event
  * parameters.
  */
 var ParameterOutputter = (function() {
@@ -246,7 +245,8 @@ function writeParameters(entry, privacyStripping, out) {
     // If privacy stripping is enabled, remove data as needed.
     entry = stripPrivacyInfo(entry);
   } else {
-    // If headers are in an object, convert them to an array for better display.
+    // If headers are in an object, convert them to an array for better
+    // display.
     entry = reformatHeaders(entry);
   }
 
@@ -290,9 +290,6 @@ function getParameterWriterForEventType(eventType) {
     case EventType.CERT_CT_COMPLIANCE_CHECKED:
     case EventType.EV_CERT_CT_COMPLIANCE_CHECKED:
       return writeParamsForCheckedCertificates;
-
-    case EventType.SSL_VERSION_FALLBACK:
-      return writeParamsForSSLVersionFallback;
   }
   return null;
 }
@@ -359,12 +356,6 @@ function defaultWriteParameter(key, value, out) {
     return;
   }
 
-  if (key == 'sdch_problem_code' && typeof value == 'number') {
-    var valueStr = value + ' (' + sdchProblemCodeToString(value) + ')';
-    out.writeArrowKeyValue(key, valueStr);
-    return;
-  }
-
   // Otherwise just default to JSON formatting of the value.
   out.writeArrowKeyValue(key, JSON.stringify(value));
 }
@@ -374,13 +365,13 @@ function defaultWriteParameter(key, value, out) {
  * For example: getLoadFlagSymbolicString(
  */
 function getLoadFlagSymbolicString(loadFlag) {
-
-  return getSymbolicString(loadFlag, LoadFlag,
-                           getKeyWithValue(LoadFlag, loadFlag));
+  return getSymbolicString(
+      loadFlag, LoadFlag, getKeyWithValue(LoadFlag, loadFlag));
 }
 
 /**
- * Returns the set of CertStatusFlags that make up the integer |certStatusFlag|
+ * Returns the set of CertStatusFlags that make up the integer
+ * |certStatusFlag|
  */
 function getCertStatusFlagSymbolicString(certStatusFlag) {
   return getSymbolicString(certStatusFlag, CertStatusFlag, '');
@@ -405,34 +396,6 @@ function getSymbolicString(bitmask, valueToName, zeroName) {
 }
 
 /**
- * Converts an SSL version number to a textual representation.
- * For instance, SSLVersionNumberToName(0x0301) returns 'TLS 1.0'.
- */
-function SSLVersionNumberToName(version) {
-  if ((version & 0xFFFF) != version) {
-    // If the version number is more than 2 bytes long something is wrong.
-    // Print it as hex.
-    return 'SSL 0x' + version.toString(16);
-  }
-
-  // See if it is a known TLS name.
-  var kTLSNames = {
-    0x0301: 'TLS 1.0',
-    0x0302: 'TLS 1.1',
-    0x0303: 'TLS 1.2'
-  };
-  var name = kTLSNames[version];
-  if (name)
-    return name;
-
-  // Otherwise label it as an SSL version.
-  var major = (version & 0xFF00) >> 8;
-  var minor = version & 0x00FF;
-
-  return 'SSL ' + major + '.' + minor;
-}
-
-/**
  * TODO(eroman): get rid of this, as it is only used by 1 callsite.
  *
  * Indent |lines| by |start|.
@@ -449,7 +412,8 @@ function indentLines(start, lines) {
 }
 
 /**
- * If entry.param.headers exists and is an object other than an array, converts
+ * If entry.param.headers exists and is an object other than an array,
+ * converts
  * it into an array and returns a new entry.  Otherwise, just returns the
  * original entry.
  */
@@ -462,7 +426,8 @@ function reformatHeaders(entry) {
     return entry;
   }
 
-  // Duplicate the top level object, and |entry.params|, so the original object
+  // Duplicate the top level object, and |entry.params|, so the original
+  // object
   // will not be modified.
   entry = shallowCloneObject(entry);
   entry.params = shallowCloneObject(entry.params);
@@ -486,17 +451,16 @@ function reformatHeaders(entry) {
  */
 function stripCookieOrLoginInfo(line) {
   var patterns = [
-      // Cookie patterns
-      /^set-cookie: /i,
-      /^set-cookie2: /i,
-      /^cookie: /i,
+    // Cookie patterns
+    /^set-cookie: /i, /^set-cookie2: /i, /^cookie: /i,
 
-      // Unencrypted authentication patterns
-      /^authorization: \S*\s*/i,
-      /^proxy-authorization: \S*\s*/i];
+    // Unencrypted authentication patterns
+    /^authorization: \S*\s*/i, /^proxy-authorization: \S*\s*/i
+  ];
 
   // Prefix will hold the first part of the string that contains no private
-  // information.  If null, no part of the string contains private information.
+  // information.  If null, no part of the string contains private
+  // information.
   var prefix = null;
   for (var i = 0; i < patterns.length; i++) {
     var match = patterns[i].exec(line);
@@ -509,9 +473,8 @@ function stripCookieOrLoginInfo(line) {
   // Look for authentication information from data received from the server in
   // multi-round Negotiate authentication.
   if (prefix === null) {
-    var challengePatterns = [
-        /^www-authenticate: (\S*)\s*/i,
-        /^proxy-authenticate: (\S*)\s*/i];
+    var challengePatterns =
+        [/^www-authenticate: (\S*)\s*/i, /^proxy-authenticate: (\S*)\s*/i];
     for (var i = 0; i < challengePatterns.length; i++) {
       var match = challengePatterns[i].exec(line);
       if (!match)
@@ -549,7 +512,8 @@ function stripCookieOrLoginInfo(line) {
 }
 
 /**
- * Remove debug data from HTTP/2 GOAWAY frame due to privacy considerations, see
+ * Remove debug data from HTTP/2 GOAWAY frame due to privacy considerations,
+ * see
  * https://httpwg.github.io/specs/rfc7540.html#GOAWAY.
  *
  * Note: this logic should be kept in sync with
@@ -561,7 +525,8 @@ function stripGoAwayDebugData(value) {
 
 /**
  * If |entry| has headers, returns a copy of |entry| with all cookie and
- * unencrypted login text removed.  Otherwise, returns original |entry| object.
+ * unencrypted login text removed.  Otherwise, returns original |entry|
+ * object.
  * This is needed so that JSON log dumps can be made without affecting the
  * source data.  Converts headers stored in objects to arrays.
  */
@@ -572,13 +537,13 @@ stripPrivacyInfo = function(entry) {
 
   if (entry.type == EventType.HTTP2_SESSION_GOAWAY &&
       entry.params.debug_data != undefined) {
-    // Duplicate the top level object, and |entry.params|.  All other fields are
+    // Duplicate the top level object, and |entry.params|.  All other fields
+    // are
     // just pointers to the original values, as they won't be modified, other
     // than |entry.params.debug_data|.
     entry = shallowCloneObject(entry);
     entry.params = shallowCloneObject(entry.params);
-    entry.params.debug_data =
-        stripGoAwayDebugData(entry.params.debug_data);
+    entry.params.debug_data = stripGoAwayDebugData(entry.params.debug_data);
     return entry;
   }
 
@@ -591,7 +556,8 @@ stripPrivacyInfo = function(entry) {
   entry = reformatHeaders(entry);
 
   // Duplicate the top level object, and |entry.params|.  All other fields are
-  // just pointers to the original values, as they won't be modified, other than
+  // just pointers to the original values, as they won't be modified, other
+  // than
   // |entry.params.headers|.
   entry = shallowCloneObject(entry);
   entry.params = shallowCloneObject(entry.params);
@@ -622,8 +588,8 @@ function writeParamsForRequestHeaders(entry, out, consumedParams) {
 function writeCertificateParam(
     certs_container, out, consumedParams, paramName) {
   if (certs_container.certificates instanceof Array) {
-    var certs = certs_container.certificates.reduce(
-        function(previous, current) {
+    var certs =
+        certs_container.certificates.reduce(function(previous, current) {
           return previous.concat(current.split('\n'));
         }, new Array());
     out.writeArrowKey(paramName);
@@ -648,34 +614,12 @@ function writeParamsForCertificates(entry, out, consumedParams) {
     out.writeArrowKeyValue('cert_status', valueStr);
     consumedParams.cert_status = true;
   }
-
 }
 
 function writeParamsForCheckedCertificates(entry, out, consumedParams) {
   if (typeof(entry.params.certificate) == 'object')
     writeCertificateParam(
         entry.params.certificate, out, consumedParams, 'certificate');
-}
-
-/**
- * Outputs the SSL version fallback parameters of |entry| to |out|.
- */
-function writeParamsForSSLVersionFallback(entry, out, consumedParams) {
-  var params = entry.params;
-
-  if (typeof params.version_before != 'number' ||
-      typeof params.version_after != 'number') {
-    // Unrecognized params.
-    return;
-  }
-
-  var line = SSLVersionNumberToName(params.version_before) +
-             ' ==> ' +
-             SSLVersionNumberToName(params.version_after);
-  out.writeArrowIndentedLines([line]);
-
-  consumedParams.version_before = true;
-  consumedParams.version_after = true;
 }
 
 function writeParamsForProxyConfigChanged(entry, out, consumedParams) {
@@ -730,7 +674,8 @@ proxySettingsToString = function(config) {
   //               rather than hide them.
 
   function getProxyListString(proxies) {
-    // Older versions of Chrome would set these values as strings, whereas newer
+    // Older versions of Chrome would set these values as strings, whereas
+    // newer
     // logs use arrays.
     // TODO(eroman): This behavior changed in M27. Support for older logs can
     //               safely be removed circa M29.
@@ -763,13 +708,15 @@ proxySettingsToString = function(config) {
     } else if (config.proxy_per_scheme) {
       for (var urlScheme in config.proxy_per_scheme) {
         if (urlScheme != 'fallback') {
-          lines.push('Proxy server for ' + urlScheme.toUpperCase() + ': ' +
-                     getProxyListString(config.proxy_per_scheme[urlScheme]));
+          lines.push(
+              'Proxy server for ' + urlScheme.toUpperCase() + ': ' +
+              getProxyListString(config.proxy_per_scheme[urlScheme]));
         }
       }
       if (config.proxy_per_scheme.fallback) {
-        lines.push('Proxy server for everything else: ' +
-                   getProxyListString(config.proxy_per_scheme.fallback));
+        lines.push(
+            'Proxy server for everything else: ' +
+            getProxyListString(config.proxy_per_scheme.fallback));
       }
     }
 

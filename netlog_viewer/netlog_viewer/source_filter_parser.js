@@ -41,13 +41,13 @@ var SourceFilterParser = (function() {
       if (filter) {
         if (negated) {
           filter = (function(func, sourceEntry) {
-            return !func(sourceEntry);
-          }).bind(null, filter);
+                     return !func(sourceEntry);
+                   }).bind(null, filter);
         }
         filterFunctions.push(filter);
         continue;
       }
-      textFilters.push({ text: filterElement, negated: negated });
+      textFilters.push({text: filterElement, negated: negated});
     }
 
     // Create a single filter for all text filters, so they can share a
@@ -73,7 +73,7 @@ var SourceFilterParser = (function() {
     var match = /^sort:(.*)$/.exec(filterElement);
     if (!match)
       return null;
-    return { method: match[1], backwards: backwards };
+    return {method: match[1], backwards: backwards};
   }
 
   /**
@@ -85,10 +85,14 @@ var SourceFilterParser = (function() {
     if (!match)
       return null;
     if (match[1] == 'active') {
-      return function(sourceEntry) { return !sourceEntry.isInactive(); };
+      return function(sourceEntry) {
+        return !sourceEntry.isInactive();
+      };
     }
     if (match[1] == 'error') {
-      return function(sourceEntry) { return sourceEntry.isError(); };
+      return function(sourceEntry) {
+        return sourceEntry.isError();
+      };
     }
     return null;
   }
@@ -149,8 +153,7 @@ var SourceFilterParser = (function() {
       while (position < filterText.length) {
         var nextCharacter = filterText[position];
         ++position;
-        if (nextCharacter == '\\' &&
-            position < filterText.length) {
+        if (nextCharacter == '\\' && position < filterText.length) {
           // If there's a backslash, skip the backslash and add the next
           // character to the element.
           filterElement += filterText[position];

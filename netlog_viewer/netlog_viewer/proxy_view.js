@@ -53,7 +53,7 @@ var ProxyView = (function() {
 
     onLoadLogFinish: function(data) {
       return this.onProxySettingsChanged(data.proxySettings) &&
-             this.onBadProxiesChanged(data.badProxies);
+          this.onBadProxiesChanged(data.badProxies);
     },
 
     onProxySettingsChanged: function(proxySettings) {
@@ -72,8 +72,8 @@ var ProxyView = (function() {
       var originalStr = proxySettingsToString(original);
       var effectiveStr = proxySettingsToString(effective);
 
-      setNodeDisplay($(ProxyView.ORIGINAL_CONTENT_DIV_ID),
-                     originalStr != effectiveStr);
+      setNodeDisplay(
+          $(ProxyView.ORIGINAL_CONTENT_DIV_ID), originalStr != effectiveStr);
 
       $(ProxyView.ORIGINAL_SETTINGS_DIV_ID).innerText = originalStr;
       $(ProxyView.EFFECTIVE_SETTINGS_DIV_ID).innerText = effectiveStr;
@@ -85,8 +85,8 @@ var ProxyView = (function() {
 
     onBadProxiesChanged: function(badProxies) {
       $(ProxyView.BAD_PROXIES_TBODY_ID).innerHTML = '';
-      setNodeDisplay($(ProxyView.BAD_PROXIES_DIV_ID),
-                     badProxies && badProxies.length > 0);
+      setNodeDisplay(
+          $(ProxyView.BAD_PROXIES_DIV_ID), badProxies && badProxies.length > 0);
 
       if (!badProxies)
         return false;
@@ -122,8 +122,8 @@ var ProxyView = (function() {
       // proxy settings include proxy bypasses the user may need to expand the
       // exclusions for host resolving.
       var hostResolverRules = 'MAP * ~NOTFOUND , EXCLUDE ' + socksProxy.host;
-      var hostResolverRulesFlag = '--host-resolver-rules="' +
-                                  hostResolverRules + '"';
+      var hostResolverRulesFlag =
+          '--host-resolver-rules="' + hostResolverRules + '"';
 
       // TODO(eroman): On Linux the ClientInfo.command_line is wrong in that it
       // doesn't include any quotes around the parameters. This means the

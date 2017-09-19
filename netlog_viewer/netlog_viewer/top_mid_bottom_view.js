@@ -61,11 +61,11 @@ var TopMidBottomView = (function() {
       // Position the boxes using calculated split points.
       if (this.topView_)
         this.topView_.setGeometry(left, top, width, topbarHeight);
-      this.midView_.setGeometry(left, top + topbarHeight, width,
-                                middleboxHeight);
+      this.midView_.setGeometry(
+          left, top + topbarHeight, width, middleboxHeight);
       if (this.bottomView_) {
-        this.bottomView_.setGeometry(left, top + topbarHeight + middleboxHeight,
-                                     width, bottombarHeight);
+        this.bottomView_.setGeometry(
+            left, top + topbarHeight + middleboxHeight, width, bottombarHeight);
       }
     },
 

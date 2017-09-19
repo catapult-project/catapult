@@ -58,8 +58,8 @@ var ResizableVerticalSplitView = (function() {
     node.addEventListener('touchstart', this.onTouchDragSizerStart_.bind(this));
     window.addEventListener('touchmove', this.onTouchDragSizer_.bind(this));
     window.addEventListener('touchend', this.onTouchDragSizerEnd_.bind(this));
-    window.addEventListener('touchcancel',
-                            this.onTouchDragSizerEnd_.bind(this));
+    window.addEventListener(
+        'touchcancel', this.onTouchDragSizerEnd_.bind(this));
   }
 
   ResizableVerticalSplitView.prototype = {
@@ -97,10 +97,10 @@ var ResizableVerticalSplitView = (function() {
 
       // Position the boxes using calculated split points.
       this.leftView_.setGeometry(left, top, leftboxWidth, height);
-      this.sizerView_.setGeometry(this.leftView_.getRight(), top,
-                                  sizerWidth, height);
-      this.rightView_.setGeometry(this.sizerView_.getRight(), top,
-                                  rightboxWidth, height);
+      this.sizerView_.setGeometry(
+          this.leftView_.getRight(), top, sizerWidth, height);
+      this.rightView_.setGeometry(
+          this.sizerView_.getRight(), top, rightboxWidth, height);
     },
 
     show: function(isVisible) {
@@ -182,8 +182,8 @@ var ResizableVerticalSplitView = (function() {
       // Avoid shrinking the left box too much.
       this.leftSplit_ = Math.max(this.leftSplit_, MIN_PANEL_WIDTH);
       // Avoid shrinking the right box too much.
-      this.leftSplit_ = Math.min(
-          this.leftSplit_, this.getWidth() - MIN_PANEL_WIDTH);
+      this.leftSplit_ =
+          Math.min(this.leftSplit_, this.getWidth() - MIN_PANEL_WIDTH);
 
       // Force a layout with the new |leftSplit_|.
       this.setGeometry(

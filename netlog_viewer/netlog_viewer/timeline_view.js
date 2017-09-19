@@ -20,10 +20,8 @@ var TimelineView = (function() {
     assertFirstConstructorCall(TimelineView);
 
     this.graphView_ = new TimelineGraphView(
-        TimelineView.GRAPH_DIV_ID,
-        TimelineView.GRAPH_CANVAS_ID,
-        TimelineView.SCROLLBAR_DIV_ID,
-        TimelineView.SCROLLBAR_INNER_DIV_ID);
+        TimelineView.GRAPH_DIV_ID, TimelineView.GRAPH_CANVAS_ID,
+        TimelineView.SCROLLBAR_DIV_ID, TimelineView.SCROLLBAR_INNER_DIV_ID);
 
     // Call superclass's constructor.
 
@@ -74,8 +72,7 @@ var TimelineView = (function() {
   TimelineView.DNS_JOBS_ID = 'timeline-view-dns-jobs';
   TimelineView.BYTES_RECEIVED_ID = 'timeline-view-bytes-received';
   TimelineView.BYTES_SENT_ID = 'timeline-view-bytes-sent';
-  TimelineView.DISK_CACHE_BYTES_READ_ID =
-      'timeline-view-disk-cache-bytes-read';
+  TimelineView.DISK_CACHE_BYTES_READ_ID = 'timeline-view-disk-cache-bytes-read';
   TimelineView.DISK_CACHE_BYTES_WRITTEN_ID =
       'timeline-view-disk-cache-bytes-written';
 
@@ -178,8 +175,8 @@ var TimelineView = (function() {
       dataSeries.setColor(getComputedStyle(listItem).color);
 
       this.updateDataSeriesVisibility_(dataSeries, listItem, checkBox);
-      checkBox.onclick = this.dataSeriesClicked_.bind(this, dataSeries,
-                                                      listItem, checkBox);
+      checkBox.onclick =
+          this.dataSeriesClicked_.bind(this, dataSeries, listItem, checkBox);
     },
 
     /**
@@ -190,41 +187,42 @@ var TimelineView = (function() {
       this.graphRangeInitialized_ = false;
       this.dataSeries_ = [];
 
-      this.addDataSeries_(new SourceCountDataSeries(
-                              EventSourceType.SOCKET,
-                              EventType.SOCKET_ALIVE),
-                          TimelineView.OPEN_SOCKETS_ID);
+      this.addDataSeries_(
+          new SourceCountDataSeries(
+              EventSourceType.SOCKET, EventType.SOCKET_ALIVE),
+          TimelineView.OPEN_SOCKETS_ID);
 
-      this.addDataSeries_(new SocketsInUseDataSeries(),
-                          TimelineView.IN_USE_SOCKETS_ID);
+      this.addDataSeries_(
+          new SocketsInUseDataSeries(), TimelineView.IN_USE_SOCKETS_ID);
 
-      this.addDataSeries_(new SourceCountDataSeries(
-                              EventSourceType.URL_REQUEST,
-                              EventType.REQUEST_ALIVE),
-                          TimelineView.URL_REQUESTS_ID);
+      this.addDataSeries_(
+          new SourceCountDataSeries(
+              EventSourceType.URL_REQUEST, EventType.REQUEST_ALIVE),
+          TimelineView.URL_REQUESTS_ID);
 
-      this.addDataSeries_(new SourceCountDataSeries(
-                              EventSourceType.HOST_RESOLVER_IMPL_JOB,
-                              EventType.HOST_RESOLVER_IMPL_JOB),
-                          TimelineView.DNS_JOBS_ID);
+      this.addDataSeries_(
+          new SourceCountDataSeries(
+              EventSourceType.HOST_RESOLVER_IMPL_JOB,
+              EventType.HOST_RESOLVER_IMPL_JOB),
+          TimelineView.DNS_JOBS_ID);
 
-      this.addDataSeries_(new NetworkTransferRateDataSeries(
-                              EventType.SOCKET_BYTES_RECEIVED,
-                              EventType.UDP_BYTES_RECEIVED),
-                          TimelineView.BYTES_RECEIVED_ID);
+      this.addDataSeries_(
+          new NetworkTransferRateDataSeries(
+              EventType.SOCKET_BYTES_RECEIVED, EventType.UDP_BYTES_RECEIVED),
+          TimelineView.BYTES_RECEIVED_ID);
 
-      this.addDataSeries_(new NetworkTransferRateDataSeries(
-                              EventType.SOCKET_BYTES_SENT,
-                              EventType.UDP_BYTES_SENT),
-                          TimelineView.BYTES_SENT_ID);
+      this.addDataSeries_(
+          new NetworkTransferRateDataSeries(
+              EventType.SOCKET_BYTES_SENT, EventType.UDP_BYTES_SENT),
+          TimelineView.BYTES_SENT_ID);
 
-      this.addDataSeries_(new DiskCacheTransferRateDataSeries(
-                              EventType.ENTRY_READ_DATA),
-                          TimelineView.DISK_CACHE_BYTES_READ_ID);
+      this.addDataSeries_(
+          new DiskCacheTransferRateDataSeries(EventType.ENTRY_READ_DATA),
+          TimelineView.DISK_CACHE_BYTES_READ_ID);
 
-      this.addDataSeries_(new DiskCacheTransferRateDataSeries(
-                              EventType.ENTRY_WRITE_DATA),
-                          TimelineView.DISK_CACHE_BYTES_WRITTEN_ID);
+      this.addDataSeries_(
+          new DiskCacheTransferRateDataSeries(EventType.ENTRY_WRITE_DATA),
+          TimelineView.DISK_CACHE_BYTES_WRITTEN_ID);
 
       this.graphView_.setDataSeries(this.dataSeries_);
     },
@@ -279,8 +277,8 @@ var TimelineView = (function() {
       var shouldCollapse = toggle.className == 'timeline-view-rotateleft';
 
       setNodeDisplay($(TimelineView.SELECTION_UL_ID), !shouldCollapse);
-      toggle.className = shouldCollapse ?
-          'timeline-view-rotateright' : 'timeline-view-rotateleft';
+      toggle.className = shouldCollapse ? 'timeline-view-rotateright' :
+                                          'timeline-view-rotateleft';
 
       // Figure out the appropriate width for the selection div.
       var newWidth;
@@ -295,8 +293,8 @@ var TimelineView = (function() {
       this.leftView_.setGeometry(0, 0, newWidth, 100);
 
       // Force a re-layout now that the left view has changed width.
-      this.setGeometry(this.getLeft(), this.getTop(), this.getWidth(),
-                       this.getHeight());
+      this.setGeometry(
+          this.getLeft(), this.getTop(), this.getWidth(), this.getHeight());
     }
   };
 

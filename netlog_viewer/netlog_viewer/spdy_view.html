@@ -3,25 +3,9 @@
     <div id=spdy-view-tab-content class=content-box>
       <h4>HTTP/2 status</h4>
       <ul id=spdy-view-status style='margin-top:0'>
-        <!-- "enable_http2" and "enable_spdy31" are used since release 50, see
-             https://crrev.com/1651123002.  "spdy_enabled" is here to support
-             importing netlog json files from earlier browsers.
-             TODO(bnc): Deprecate around 2016 July. -->
         <li>HTTP/2 Enabled: <span id=spdy-view-http2-enabled></span></li>
-        <li>SPDY/3.1 Enabled: <span id=spdy-view-spdy31-enabled></span></li>
-        <!-- "use_alternative_service" is used here since release 46, see
-             https://crrev.com/1268313004.  "use_alternate_protocols" is here to
-             support importing netlog json files from earlier browsers.
-             TODO(bnc): Deprecate around 2016 February. -->
-        <li>Use Alternative Service: <span id=spdy-view-alternate-service></span></li>
-        <!-- "alpn_protos" and "npn_protos" are used here since release 48, see
-             https://crrev.com/1387363004.  "next_protos" is here to support
-             importing netlog json files from earlier browsers.
-             TODO(bnc): Deprecate around 2016 April. -->
         <li>ALPN Protocols: <span id=spdy-view-alpn-protocols></span></li>
-        <li>NPN Protocols: <span id=spdy-view-npn-protocols></span></li>
       </ul>
-    
       <h4>HTTP/2 sessions</h4>
       <div id=spdy-view-session-info>
         <!-- Only one of these two are shown -->

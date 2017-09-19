@@ -119,7 +119,7 @@ var ImportView = (function() {
       // http://crbug.com/115433. TODO(dbeam): Remove when standardized more.
       var indexOf = Array.prototype.indexOf;
       return indexOf.call(event.dataTransfer.types, 'Files') == -1 ||
-             event.dataTransfer.files.length > 1;
+          event.dataTransfer.files.length > 1;
     },
 
     /**

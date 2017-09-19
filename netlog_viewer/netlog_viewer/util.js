@@ -164,8 +164,9 @@ function shallowCloneObject(object) {
 function assertFirstConstructorCall(ctor) {
   // This is the variable which is set by cr.addSingletonGetter().
   if (ctor.hasCreateFirstInstance_) {
-    throw Error('The class ' + ctor.name + ' is a singleton, and should ' +
-                'only be accessed using ' + ctor.name + '.getInstance().');
+    throw Error(
+        'The class ' + ctor.name + ' is a singleton, and should ' +
+        'only be accessed using ' + ctor.name + '.getInstance().');
   }
   ctor.hasCreateFirstInstance_ = true;
 }

@@ -46,8 +46,8 @@ var AltSvcView = (function() {
     onLoadLogFinish: function(data) {
       // TODO(rch): Remove the check for spdyAlternateProtocolMappings after
       // M53 (It was renamed to altSvcMappings in M50).
-      return this.onAltSvcMappingsChanged(data.altSvcMappings ||
-                                          data.spdyAlternateProtocolMappings);
+      return this.onAltSvcMappingsChanged(
+          data.altSvcMappings || data.spdyAlternateProtocolMappings);
     },
 
     /**

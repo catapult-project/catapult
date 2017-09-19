@@ -30,37 +30,44 @@ var QuicView = (function() {
 
   // IDs for special HTML elements in quic_view.html
   QuicView.MAIN_BOX_ID = 'quic-view-tab-content';
-  QuicView.STATUS_QUIC_ENABLED = 'quic-view-quic-enabled';
+
+  QuicView.QUIC_ENABLED_CONTENT_ID =
+      'quic-view-quic-enabled-content';
+  QuicView.QUIC_ENABLED_NO_CONTENT_ID =
+      'quic-view-quic-enabled-no-content';
+
+  QuicView.STATUS_SUPPORTED_VERSIONS = 'quic-view-supported-versions';
+  QuicView.STATUS_CONNECTION_OPTIONS = 'quic-view-connection-options';
+  QuicView.STATUS_MAX_PACKET_LENGTH = 'quic-view-max-packet-length';
+  QuicView.STATUS_IDLE_CONNECTION_TIMEOUTS_SECONDS= 'quic-view-idle-connection-timeout-seconds';
+  QuicView.STATUS_REDUCED_PING_TIMEOUTS_SECONDS  = 'quic-view-reduced-ping-timeout-seconds';
+  QuicView.STATUS_PACKET_READER_YIELD =
+      'quic-view-packet-reader-yield-after-duration-milliseconds';
+  QuicView.STATUS_MARK_QUIC_BROKEN =
+      'quic-view-mark-quic-broken-when-network-blackholes';
+  QuicView.STATUS_DO_NOT_MARK_AS_BROKEN =
+      'quic-view-do-not-mark-as-broken-on-network-change';
+  QuicView.STATUS_RETRY_WITHOUT_ALT =
+      'quic-view-retry-without-alt-svc-on-quic-errors';
+  QuicView.STATUS_DO_NOT_FRAGMENT = 'quic-view-do-not-fragment';
+  QuicView.STATUS_ALLOW_SERVER_MIGRATION = 'quic-view-allow-server-migration';
+  QuicView.STATUS_MIGRATE_SESSIONS_EARLY = 'quic-view-migrate-sessions-early';
+  QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE =
+      'quic-view-migrate-sessions-on-network-change';
+  QuicView.STATUS_CLOSE_SESSIONS_ON_IP_CHANGE =
+      'quic-view-close-sessions-on-ip-change';
+  QuicView.STATUS_DISABLE_BIDIRECTIONAL_STREAMS =
+      'quic-view-disable-bidirectional-streams';
+  QuicView.STATUS_RACE_CERT_VERIFICATION = 'quic-view-race-cert-verification';
+  QuicView.STATUS_ESTIMATE_INITIAL_RTT = 'quic-view-estimate-initial-rtt';
+  QuicView.STATUS_FORCE_HOL_BLOCKING = 'quic-view-force-hol-blocking';
+  QuicView.STATUS_MAX_SERVER_CONFIGS_STORED_IN_PROPERTIES =
+      'quic-view-max-server-configs-stored-in-properties';
   QuicView.STATUS_ORIGINS_TO_FORCE_QUIC_ON =
       'quic-view-origins-to-force-quic-on';
-  QuicView.STATUS_CONNECTION_OPTIONS =
-      'quic-view-connection-options';
-  QuicView.STATUS_LOAD_SERVER_INFO_TIMEOUT_MULTIPLIER =
-      'quic-view-server-info-timeout-mult';
-  QuicView.STATUS_ENABLE_CONNECTION_RACING =
-      'quic-view-enable-connection-racing';
-  QuicView.STATUS_DISABLE_DISK_CACHE =
-      'quic-view-disable-disk-cache';
-  QuicView.STATUS_PREFER_AES =
-      'quic-view-prefer-aes';
-  QuicView.STATUS_MAX_NUM_OF_LOSSY_CONNECTIONS =
-      'quic-view-max-num-lossy-connections';
-  QuicView.STATUS_PACKET_LOSS_THRESHOLD =
-      'quic-view-packet-loss-threshold';
-  QuicView.STATUS_DELAY_TCP_RACE = 'quic-view-delay-tcp-race';
-  QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERTIES_FILE =
-      'quic-view-configs-in-file';
-  QuicView.STATUS_IDLE_CONNECTION_TIMEOUT_IN_SECS =
-      'quic-view-connection-timeout-in-secs';
-  QuicView.STATUS_DISABLE_PRECONNECT_IF_ORTT =
-      'quic-view-disable-preconnect-if-ortt';
-  QuicView.STATUS_DISABLE_QUIC_ON_TIMEOUT_WITH_OPEN_STREAMS =
-      'quic-view-disable-quic-on-timeout-with-open-streams';
-  QuicView.STATUS_RACE_CERT_VERIFICATION = 'quic-view-race-cert-verification';
-  QuicView.STATUS_DYNAMICALLY_DISABLED_BULLET_POINT =
-      'quic-view-dynamically-disabled-bullet-point';
-  QuicView.STATUS_DYNAMICALLY_DISABLED_SPAN =
-      'quic-view-dynamically-disabled-span';
+  QuicView.STATUS_SERVER_PUSH_CANCELLATION =
+      'quic-view-server-push-cancellation';
+
   QuicView.SESSION_INFO_CONTENT_ID =
       'quic-view-session-info-content';
   QuicView.SESSION_INFO_NO_CONTENT_ID =
@@ -85,58 +92,53 @@ var QuicView = (function() {
       if (!quicInfo)
         return false;
 
-      $(QuicView.STATUS_QUIC_ENABLED).textContent =
-          !!quicInfo.quic_enabled;
+      setNodeDisplay($(QuicView.QUIC_ENABLED_NO_CONTENT_ID),
+          !quicInfo.quic_enabled);
+      setNodeDisplay($(QuicView.QUIC_ENABLED_CONTENT_ID),
+          !!quicInfo.quic_enabled);
 
-      $(QuicView.STATUS_ORIGINS_TO_FORCE_QUIC_ON).textContent =
-          quicInfo.origins_to_force_quic_on;
-
+      $(QuicView.STATUS_SUPPORTED_VERSIONS).textContent =
+          quicInfo.supported_versions;
       $(QuicView.STATUS_CONNECTION_OPTIONS).textContent =
           quicInfo.connection_options;
-
-      $(QuicView.STATUS_LOAD_SERVER_INFO_TIMEOUT_MULTIPLIER).
-          textContent = quicInfo.load_server_info_timeout_srtt_multiplier;
-
-      $(QuicView.STATUS_ENABLE_CONNECTION_RACING).textContent =
-          !!quicInfo.enable_connection_racing;
-
-      $(QuicView.STATUS_DISABLE_DISK_CACHE).textContent =
-          !!quicInfo.disable_disk_cache;
-
-      $(QuicView.STATUS_PREFER_AES).textContent =
-          !!quicInfo.prefer_aes;
-
-      $(QuicView.STATUS_MAX_NUM_OF_LOSSY_CONNECTIONS).textContent =
-          quicInfo.max_number_of_lossy_connections;
-
-      $(QuicView.STATUS_PACKET_LOSS_THRESHOLD).textContent =
-          quicInfo.packet_loss_threshold;
-
-      $(QuicView.STATUS_DELAY_TCP_RACE).textContent =
-          !!quicInfo.delay_tcp_race;
-
-      $(QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERTIES_FILE).
-          textContent = !!quicInfo.store_server_configs_in_properties;
-
-      $(QuicView.STATUS_IDLE_CONNECTION_TIMEOUT_IN_SECS).textContent =
+      $(QuicView.STATUS_MAX_PACKET_LENGTH).textContent =
+          quicInfo.max_packet_length;
+      $(QuicView.STATUS_IDLE_CONNECTION_TIMEOUTS_SECONDS).textContent =
           quicInfo.idle_connection_timeout_seconds;
-
-      $(QuicView.STATUS_DISABLE_PRECONNECT_IF_ORTT).textContent =
-          quicInfo.disable_preconnect_if_0rtt;
-
-      $(QuicView.STATUS_DISABLE_QUIC_ON_TIMEOUT_WITH_OPEN_STREAMS).
-          textContent =
-              quicInfo.disable_quic_on_timeout_with_open_streams;
-
+      $(QuicView.STATUS_REDUCED_PING_TIMEOUTS_SECONDS).textContent =
+          quicInfo.reduced_ping_timeout_seconds;
+      $(QuicView.STATUS_PACKET_READER_YIELD).textContent =
+          quicInfo.packet_reader_yield_after_duration_milliseconds;
+      $(QuicView.STATUS_MARK_QUIC_BROKEN).textContent =
+          !!quicInfo.mark_quic_broken_when_network_blackholes;
+      $(QuicView.STATUS_DO_NOT_MARK_AS_BROKEN).textContent =
+          !!quicInfo.do_not_mark_as_broken_on_network_change;
+      $(QuicView.STATUS_RETRY_WITHOUT_ALT).textContent =
+          !!quicInfo.retry_without_alt_svc_on_quic_errors;
+      $(QuicView.STATUS_DO_NOT_FRAGMENT).textContent =
+          !!quicInfo.do_not_fragment;
+      $(QuicView.STATUS_ALLOW_SERVER_MIGRATION).textContent =
+          !!quicInfo.allow_server_migration;
+      $(QuicView.STATUS_MIGRATE_SESSIONS_EARLY).textContent =
+          !!quicInfo.migrate_sessions_early;
+      $(QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE).textContent =
+          !!quicInfo.migrate_sessions_on_network_change;
+      $(QuicView.STATUS_CLOSE_SESSIONS_ON_IP_CHANGE).textContent =
+          !!quicInfo.close_sessions_on_ip_change;
+      $(QuicView.STATUS_DISABLE_BIDIRECTIONAL_STREAMS).textContent =
+          !!quicInfo.disable_bidirectional_streams;
       $(QuicView.STATUS_RACE_CERT_VERIFICATION).textContent =
           !!quicInfo.race_cert_verification;
-
-      setNodeDisplay($(QuicView.STATUS_DYNAMICALLY_DISABLED_BULLET_POINT),
-                     !!quicInfo.is_quic_disabled);
-      if (!!quicInfo.is_quic_disabled) {
-        $(QuicView.STATUS_DYNAMICALLY_DISABLED_SPAN).textContent =
-            'QUIC Dynamically Disabled: ' + !!quicInfo.is_quic_disabled;
-      }
+      $(QuicView.STATUS_ESTIMATE_INITIAL_RTT).textContent =
+          !!quicInfo.estimate_initial_rtt;
+      $(QuicView.STATUS_FORCE_HOL_BLOCKING).textContent =
+          !!quicInfo.force_hol_blocking;
+      $(QuicView.STATUS_MAX_SERVER_CONFIGS_STORED_IN_PROPERTIES).textContent =
+          quicInfo.max_server_configs_stored_in_properties;
+      $(QuicView.STATUS_ORIGINS_TO_FORCE_QUIC_ON).textContent =
+          quicInfo.origins_to_force_quic_on;
+      $(QuicView.STATUS_SERVER_PUSH_CANCELLATION).textContent =
+          !!quicInfo.server_push_cancellation;
 
       var sessions = quicInfo.sessions;
 

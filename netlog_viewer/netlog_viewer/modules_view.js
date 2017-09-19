@@ -25,10 +25,8 @@ var ModulesView = (function() {
     // Call superclass's constructor.
     superClass.call(this, ModulesView.MAIN_BOX_ID);
 
-    this.serviceProvidersTbody_ =
-        $(ModulesView.SERVICE_PROVIDERS_TBODY_ID);
-    this.namespaceProvidersTbody_ =
-        $(ModulesView.NAMESPACE_PROVIDERS_TBODY_ID);
+    this.serviceProvidersTbody_ = $(ModulesView.SERVICE_PROVIDERS_TBODY_ID);
+    this.namespaceProvidersTbody_ = $(ModulesView.NAMESPACE_PROVIDERS_TBODY_ID);
 
     g_browser.addServiceProvidersObserver(this, false);
     g_browser.addExtensionInfoObserver(this, true);
@@ -176,8 +174,8 @@ var ModulesView = (function() {
   /**
    * Returns protocol type of a layered service provider as a string.
    */
-  ModulesView.getLayeredServiceProviderProtocolType =
-      function(serviceProvider) {
+  ModulesView.getLayeredServiceProviderProtocolType = function(
+      serviceProvider) {
     return tryGetValueWithKey(PROTOCOL_TYPE, serviceProvider.socket_protocol);
   };
 
@@ -195,8 +193,7 @@ var ModulesView = (function() {
    * Returns the type of a namespace provider as a string.
    */
   ModulesView.getNamespaceProviderType = function(namespaceProvider) {
-    return tryGetValueWithKey(NAMESPACE_PROVIDER_PTYPE,
-                              namespaceProvider.type);
+    return tryGetValueWithKey(NAMESPACE_PROVIDER_PTYPE, namespaceProvider.type);
   };
 
   return ModulesView;

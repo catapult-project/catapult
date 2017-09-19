@@ -306,7 +306,6 @@ var NetInternalsTest = (function() {
       http2: SpdyView.TAB_ID,
       'alt-svc': AltSvcView.TAB_ID,
       quic: QuicView.TAB_ID,
-      sdch: SdchView.TAB_ID,
       httpCache: HttpCacheView.TAB_ID,
       modules: ModulesView.TAB_ID,
       prerender: PrerenderView.TAB_ID,

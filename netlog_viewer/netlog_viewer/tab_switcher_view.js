@@ -70,8 +70,8 @@ var TabSwitcherView = (function() {
       // Position each of the tab's content areas.
       for (var tabId in this.tabIdToView_) {
         var view = this.tabIdToView_[tabId];
-        view.setGeometry(left + tabListWidth, top, width - tabListWidth,
-                         height);
+        view.setGeometry(
+            left + tabListWidth, top, width - tabListWidth, height);
       }
     },
 

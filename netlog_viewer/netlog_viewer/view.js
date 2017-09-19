@@ -82,8 +82,7 @@ var View = (function() {
      * values.  It's included separately so most views don't have to depend on
      * its specifics.
      */
-    onLoadLogStart: function(polledData, tabData, logDump) {
-    },
+    onLoadLogStart: function(polledData, tabData, logDump) {},
 
     /**
      * Called as the final step of loading a log file.  Arguments are the same
@@ -193,8 +192,9 @@ var WindowView = (function() {
     },
 
     resetGeometry: function() {
-      this.setGeometry(0, 0, document.documentElement.clientWidth,
-                       document.documentElement.clientHeight);
+      this.setGeometry(
+          0, 0, document.documentElement.clientWidth,
+          document.documentElement.clientHeight);
     }
   };
 

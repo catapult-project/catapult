@@ -26,6 +26,7 @@ var BrowserBridge = (function() {
     // List of observers for various bits of browser state.
     this.connectionTestsObservers_ = [];
     this.hstsObservers_ = [];
+    this.expectCTObservers_ = [];
     this.constantsObservers_ = [];
     this.crosONCFileParseObservers_ = [];
     this.storeDebugLogsObservers_ = [];
@@ -39,44 +40,40 @@ var BrowserBridge = (function() {
 
     // Add PollableDataHelpers for NetInfoSources, which retrieve information
     // directly from the network stack.
-    this.addNetInfoPollableDataHelper('proxySettings',
-                                      'onProxySettingsChanged');
+    this.addNetInfoPollableDataHelper(
+        'proxySettings', 'onProxySettingsChanged');
     this.addNetInfoPollableDataHelper('badProxies', 'onBadProxiesChanged');
-    this.addNetInfoPollableDataHelper('hostResolverInfo',
-                                      'onHostResolverInfoChanged');
-    this.addNetInfoPollableDataHelper('socketPoolInfo',
-                                      'onSocketPoolInfoChanged');
-    this.addNetInfoPollableDataHelper('spdySessionInfo',
-                                      'onSpdySessionInfoChanged');
+    this.addNetInfoPollableDataHelper(
+        'hostResolverInfo', 'onHostResolverInfoChanged');
+    this.addNetInfoPollableDataHelper(
+        'socketPoolInfo', 'onSocketPoolInfoChanged');
+    this.addNetInfoPollableDataHelper(
+        'spdySessionInfo', 'onSpdySessionInfoChanged');
     this.addNetInfoPollableDataHelper('spdyStatus', 'onSpdyStatusChanged');
-    this.addNetInfoPollableDataHelper('altSvcMappings',
-                                      'onAltSvcMappingsChanged');
+    this.addNetInfoPollableDataHelper(
+        'altSvcMappings', 'onAltSvcMappingsChanged');
     this.addNetInfoPollableDataHelper('quicInfo', 'onQuicInfoChanged');
-    this.addNetInfoPollableDataHelper('sdchInfo', 'onSdchInfoChanged');
-    this.addNetInfoPollableDataHelper('httpCacheInfo',
-                                      'onHttpCacheInfoChanged');
+    this.addNetInfoPollableDataHelper(
+        'httpCacheInfo', 'onHttpCacheInfoChanged');
 
     // Add other PollableDataHelpers.
-    this.pollableDataHelpers_.sessionNetworkStats =
-        new PollableDataHelper('onSessionNetworkStatsChanged',
-                               this.sendGetSessionNetworkStats.bind(this));
-    this.pollableDataHelpers_.historicNetworkStats =
-        new PollableDataHelper('onHistoricNetworkStatsChanged',
-                               this.sendGetHistoricNetworkStats.bind(this));
+    this.pollableDataHelpers_.sessionNetworkStats = new PollableDataHelper(
+        'onSessionNetworkStatsChanged',
+        this.sendGetSessionNetworkStats.bind(this));
+    this.pollableDataHelpers_.historicNetworkStats = new PollableDataHelper(
+        'onHistoricNetworkStatsChanged',
+        this.sendGetHistoricNetworkStats.bind(this));
     if (cr.isWindows) {
-      this.pollableDataHelpers_.serviceProviders =
-          new PollableDataHelper('onServiceProvidersChanged',
-                                 this.sendGetServiceProviders.bind(this));
+      this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
+          'onServiceProvidersChanged', this.sendGetServiceProviders.bind(this));
     }
-    this.pollableDataHelpers_.prerenderInfo =
-        new PollableDataHelper('onPrerenderInfoChanged',
-                               this.sendGetPrerenderInfo.bind(this));
-    this.pollableDataHelpers_.extensionInfo =
-        new PollableDataHelper('onExtensionInfoChanged',
-                               this.sendGetExtensionInfo.bind(this));
-    this.pollableDataHelpers_.dataReductionProxyInfo =
-        new PollableDataHelper('onDataReductionProxyInfoChanged',
-                               this.sendGetDataReductionProxyInfo.bind(this));
+    this.pollableDataHelpers_.prerenderInfo = new PollableDataHelper(
+        'onPrerenderInfoChanged', this.sendGetPrerenderInfo.bind(this));
+    this.pollableDataHelpers_.extensionInfo = new PollableDataHelper(
+        'onExtensionInfoChanged', this.sendGetExtensionInfo.bind(this));
+    this.pollableDataHelpers_.dataReductionProxyInfo = new PollableDataHelper(
+        'onDataReductionProxyInfoChanged',
+        this.sendGetDataReductionProxyInfo.bind(this));
 
     // Setting this to true will cause messages from the browser to be ignored,
     // and no messages will be sent to the browser, either.  Intended for use
@@ -133,9 +130,8 @@ var BrowserBridge = (function() {
       }
 
       if (intervalMs > 0) {
-        this.pollIntervalId_ =
-            window.setInterval(this.checkForUpdatedInfo.bind(this, false),
-                               intervalMs);
+        this.pollIntervalId_ = window.setInterval(
+            this.checkForUpdatedInfo.bind(this, false), intervalMs);
       }
     },
 
@@ -174,14 +170,23 @@ var BrowserBridge = (function() {
       this.send('hstsQuery', [domain]);
     },
 
-    sendHSTSAdd: function(domain, sts_include_subdomains,
-                          pkp_include_subdomains, pins) {
-      this.send('hstsAdd', [domain, sts_include_subdomains,
-                            pkp_include_subdomains, pins]);
+    sendHSTSAdd: function(
+        domain, sts_include_subdomains, pkp_include_subdomains, pins) {
+      this.send(
+          'hstsAdd',
+          [domain, sts_include_subdomains, pkp_include_subdomains, pins]);
     },
 
-    sendHSTSDelete: function(domain) {
-      this.send('hstsDelete', [domain]);
+    sendDomainSecurityPolicyDelete: function(domain) {
+      this.send('domainSecurityPolicyDelete', [domain]);
+    },
+
+    sendExpectCTQuery: function(domain) {
+      this.send('expectCTQuery', [domain]);
+    },
+
+    sendExpectCTAdd: function(domain, report_uri, enforce) {
+      this.send('expectCTAdd', [domain, report_uri, enforce]);
     },
 
     sendGetSessionNetworkStats: function() {
@@ -244,7 +249,7 @@ var BrowserBridge = (function() {
       // If no constants have been received, and params does not contain the
       // constants, delay handling the data.
       if (Constants == null && command != 'receivedConstants') {
-        this.earlyReceivedData_.push({ command: command, params: params });
+        this.earlyReceivedData_.push({command: command, params: params});
         return;
       }
 
@@ -326,6 +331,11 @@ var BrowserBridge = (function() {
         this.hstsObservers_[i].onHSTSQueryResult(info);
     },
 
+    receivedExpectCTResult: function(info) {
+      for (var i = 0; i < this.expectCTObservers_.length; i++)
+        this.expectCTObservers_[i].onExpectCTQueryResult(info);
+    },
+
     receivedONCFileParse: function(error) {
       for (var i = 0; i < this.crosONCFileParseObservers_.length; i++)
         this.crosONCFileParseObservers_[i].onONCFileParse(error);
@@ -392,8 +402,8 @@ var BrowserBridge = (function() {
      * If it's false, data is sent whenever it's received from the browser.
      */
     addProxySettingsObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.proxySettings.addObserver(observer,
-                                                          ignoreWhenUnchanged);
+      this.pollableDataHelpers_.proxySettings.addObserver(
+          observer, ignoreWhenUnchanged);
     },
 
     /**
@@ -408,8 +418,8 @@ var BrowserBridge = (function() {
      *                            bad. Note the time is in time ticks.
      */
     addBadProxiesObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.badProxies.addObserver(observer,
-                                                       ignoreWhenUnchanged);
+      this.pollableDataHelpers_.badProxies.addObserver(
+          observer, ignoreWhenUnchanged);
     },
 
     /**
@@ -430,8 +440,8 @@ var BrowserBridge = (function() {
      *   observer.onSocketPoolInfoChanged(socketPoolInfo)
      */
     addSocketPoolInfoObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.socketPoolInfo.addObserver(observer,
-                                                           ignoreWhenUnchanged);
+      this.pollableDataHelpers_.socketPoolInfo.addObserver(
+          observer, ignoreWhenUnchanged);
     },
 
     /**
@@ -485,8 +495,8 @@ var BrowserBridge = (function() {
      *   observer.onSpdyStatusChanged(spdyStatus)
      */
     addSpdyStatusObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.spdyStatus.addObserver(observer,
-                                                       ignoreWhenUnchanged);
+      this.pollableDataHelpers_.spdyStatus.addObserver(
+          observer, ignoreWhenUnchanged);
     },
 
     /**
@@ -548,6 +558,16 @@ var BrowserBridge = (function() {
      */
     addHSTSObserver: function(observer) {
       this.hstsObservers_.push(observer);
+    },
+
+    /**
+     * Adds a listener for the results of Expect-CT queries. The observer will
+     * be called back with:
+     *
+     *   observer.onExpectCTQueryResult(result);
+     */
+    addExpectCTObserver: function(observer) {
+      this.expectCTObservers_.push(observer);
     },
 
     /**
@@ -620,17 +640,6 @@ var BrowserBridge = (function() {
      */
     addDataReductionProxyInfoObserver: function(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.dataReductionProxyInfo.addObserver(
-          observer, ignoreWhenUnchanged);
-    },
-
-    /**
-     * Adds a listener of SDCH information. |observer| will be called
-     * back when data is received, through:
-     *
-     *   observer.onSdchInfoChanged(sdchInfo)
-     */
-    addSdchInfoObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.sdchInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
 

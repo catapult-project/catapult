@@ -31,8 +31,9 @@ log_util = (function() {
    * |polledData| and |tabData| may be empty objects, or may be missing data for
    * tabs not present on the OS the log is from.
    */
-  function createLogDump(userComments, constants, events, polledData, tabData,
-                         numericDate, privacyStripping) {
+  function createLogDump(
+      userComments, constants, events, polledData, tabData, numericDate,
+      privacyStripping) {
     if (privacyStripping)
       events = events.map(stripPrivacyInfo);
 
@@ -53,41 +54,15 @@ log_util = (function() {
   }
 
   /**
-   * Returns a new log dump created using the polled data and date from the
-   * |oldLogDump|.  The other parts of the log dump come from current
-   * net-internals state.
-   */
-  function createUpdatedLogDump(userComments, oldLogDump, privacyStripping) {
-    var numericDate = null;
-    if (oldLogDump.constants.clientInfo &&
-        oldLogDump.constants.clientInfo.numericDate) {
-      numericDate = oldLogDump.constants.clientInfo.numericDate;
-    }
-    var logDump = createLogDump(
-        userComments,
-        Constants,
-        EventsTracker.getInstance().getAllCapturedEvents(),
-        oldLogDump.polledData,
-        getTabData_(),
-        numericDate,
-        privacyStripping);
-    return JSON.stringify(logDump);
-  }
-
-  /**
    * Creates a full log dump using |polledData| and the return value of each
    * tab's saveState function and passes it to |callback|.
    */
-  function onUpdateAllCompleted(userComments, callback, privacyStripping,
-                                polledData) {
+  function onUpdateAllCompleted(
+      userComments, callback, privacyStripping, polledData) {
     var logDump = createLogDump(
-        userComments,
-        Constants,
-        EventsTracker.getInstance().getAllCapturedEvents(),
-        polledData,
-        getTabData_(),
-        timeutil.getCurrentTime(),
-        privacyStripping);
+        userComments, Constants,
+        EventsTracker.getInstance().getAllCapturedEvents(), polledData,
+        getTabData_(), timeutil.getCurrentTime(), privacyStripping);
     callback(JSON.stringify(logDump));
   }
 
@@ -97,9 +72,8 @@ log_util = (function() {
    * text as a string.
    */
   function createLogDumpAsync(userComments, callback, privacyStripping) {
-    g_browser.updateAllInfo(
-        onUpdateAllCompleted.bind(null, userComments, callback,
-                                  privacyStripping));
+    g_browser.updateAllInfo(onUpdateAllCompleted.bind(
+        null, userComments, callback, privacyStripping));
   }
 
   /**
@@ -165,8 +139,8 @@ log_util = (function() {
 
     if (logDump.constants.logFormatVersion != kSupportedLogFormatVersion) {
       return 'Unable to load different log version.' +
-             ' Found ' + logDump.constants.logFormatVersion +
-             ', Expected ' + kSupportedLogFormatVersion;
+          ' Found ' + logDump.constants.logFormatVersion + ', Expected ' +
+          Constants.logFormatVersion;
     }
 
     g_browser.receivedConstants(logDump.constants);
@@ -178,8 +152,7 @@ log_util = (function() {
     var numDeprecatedPassiveEvents = 0;
     for (var eventIndex = 0; eventIndex < logDump.events.length; ++eventIndex) {
       var event = logDump.events[eventIndex];
-      if (typeof event == 'object' &&
-          typeof event.source == 'object' &&
+      if (typeof event == 'object' && typeof event.source == 'object' &&
           typeof event.time == 'string' &&
           typeof EventTypeNames[event.type] == 'string' &&
           typeof EventSourceTypeNames[event.source.type] == 'string' &&
@@ -195,20 +168,29 @@ log_util = (function() {
       }
     }
 
-    // Make sure the loaded log contained an export date. If not we will
-    // synthesize one. This can legitimately happen for dump files created
-    // via command line flag, or for older dump formats (before Chrome 17).
+    // Determine the export date for the loaded log.
+    //
+    // Dumps created from chrome://net-internals (Chrome 17 - Chrome 59) will
+    // have this set in constants.clientInfo.numericDate.
+    //
+    // However more recent dumping mechanisms (chrome://net-export/ and
+    // --log-net-log) write the constants object directly to a file when the
+    // dump is *started* so lack this ability.
+    //
+    // In this case, we will synthesize this field by looking at the timestamp
+    // of the last event logged. In practice this works fine since there tend
+    // to be lots of events logged.
+    //
+    // TODO(eroman): Fix the log format / writers to avoid this problem. Dumps
+    // *should* contain the time when capturing started, and when capturing
+    // ended.
     if (typeof logDump.constants.clientInfo.numericDate != 'number') {
-      errorString += 'The log file is missing clientInfo.numericDate.\n';
-
       if (validEvents.length > 0) {
-        errorString +=
-            'Synthesizing export date as time of last event captured.\n';
         var lastEvent = validEvents[validEvents.length - 1];
         ClientInfo.numericDate =
             timeutil.convertTimeTicksToDate(lastEvent.time).getTime();
       } else {
-        errorString += 'Can\'t guess export date!\n';
+        errorString += 'Can\'t guess export date as there are no events.\n';
         ClientInfo.numericDate = 0;
       }
     }
@@ -235,7 +217,7 @@ log_util = (function() {
         (validEvents.length + numDeprecatedPassiveEvents);
     if (numInvalidEvents > 0) {
       errorString += 'Unable to load ' + numInvalidEvents +
-                     ' events, due to invalid data.\n\n';
+          ' events, due to invalid data.\n\n';
     }
 
     if (numDeprecatedPassiveEvents > 0) {
@@ -252,14 +234,13 @@ log_util = (function() {
       // The try block eliminates the need for checking every single value
       // before trying to access it.
       try {
-        if (view.onLoadLogFinish(logDump.polledData,
-                                 logDump.tabData[tabId],
-                                 logDump)) {
+        if (view.onLoadLogFinish(
+                logDump.polledData, logDump.tabData[tabId], logDump)) {
           showView = true;
         }
       } catch (error) {
-        errorString += 'Caught error while calling onLoadLogFinish: ' +
-                       error + '\n\n';
+        errorString +=
+            'Caught error while calling onLoadLogFinish: ' + error + '\n\n';
       }
       tabSwitcher.showTabLink(tabId, showView);
     }
@@ -284,14 +265,14 @@ log_util = (function() {
       try {
         // We may have a --log-net-log=blah log dump.  If so, remove the comma
         // after the final good entry, and add the necessary close brackets.
-        var end = Math.max(logFileContents.lastIndexOf(',\n'),
-                           logFileContents.lastIndexOf(',\r'));
+        var end = Math.max(
+            logFileContents.lastIndexOf(',\n'),
+            logFileContents.lastIndexOf(',\r'));
         if (end != -1) {
           parsedDump = JSON.parse(logFileContents.substring(0, end) + ']}');
           errorString += 'Log file truncated.  Events may be missing.\n';
         }
-      }
-      catch (error2) {
+      } catch (error2) {
       }
     }
 
@@ -301,10 +282,6 @@ log_util = (function() {
   }
 
   // Exports.
-  return {
-    createUpdatedLogDump: createUpdatedLogDump,
-    createLogDumpAsync: createLogDumpAsync,
-    loadLogFile: loadLogFile
-  };
+  return {createLogDumpAsync: createLogDumpAsync, loadLogFile: loadLogFile};
 })();
 
