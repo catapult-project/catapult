@@ -12,7 +12,6 @@ import time
 from telemetry.core import os_version as os_version_module
 from telemetry import decorators
 from telemetry.internal.platform import posix_platform_backend
-from telemetry.internal.platform.power_monitor import powermetrics_power_monitor
 from telemetry.util import process_statistic_timeline_data
 
 try:
@@ -26,8 +25,6 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def __init__(self):
     super(MacPlatformBackend, self).__init__()
     self.libproc = None
-    self._power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
-        self)
 
   def GetSystemLog(self):
     # Since the log file can be very large, only show the last 200 lines.
@@ -190,15 +187,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     assert p.returncode == 0, 'Failed to flush system cache'
 
   def CanMonitorPower(self):
-    # TODO(charliea): This is a stopgap until all desktop power monitoring code
-    # can be removed. (crbug.com/763263)
     return False
 
   def CanMeasurePerApplicationPower(self):
-    return self._power_monitor.CanMeasurePerApplicationPower()
-
-  def StartMonitoringPower(self, browser):
-    self._power_monitor.StartMonitoringPower(browser)
-
-  def StopMonitoringPower(self):
-    return self._power_monitor.StopMonitoringPower()
+    return False
