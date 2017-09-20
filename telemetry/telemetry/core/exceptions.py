@@ -132,6 +132,10 @@ class BrowserConnectionGoneException(BrowserGoneException):
     super(BrowserConnectionGoneException, self).__init__(app, msg)
 
 
+class TabMissingError(Error):
+  """Represents an error when an expected browser tab is not found."""
+
+
 class ProcessGoneException(Error):
   """Represents a process that no longer exists for an unknown reason."""
 

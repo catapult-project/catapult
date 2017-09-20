@@ -103,7 +103,7 @@ class Browser(app.App):
       # tab is always tab 0, which will be the first one that isn't hidden
       if self._tabs[i].EvaluateJavaScript('!document.hidden'):
         return self._tabs[i]
-    raise Exception("No foreground tab found")
+    raise exceptions.TabMissingError("No foreground tab found")
 
   @property
   @decorators.Cache
