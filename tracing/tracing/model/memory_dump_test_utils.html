@@ -124,6 +124,8 @@ tr.exportTo('tr.model', function() {
         dump.addNumeric(numericName, castToScalar(value));
       }
     }
+    const children = getOption(opt_options, 'children');
+    if (children) dump.children = children;
     return dump;
   };
 
