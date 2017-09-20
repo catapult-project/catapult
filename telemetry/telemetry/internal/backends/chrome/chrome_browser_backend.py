@@ -84,6 +84,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           args[i] = re.sub(r',\w+<PermissionPromptUIAndroidModal\b', '', arg)
         elif arg.startswith('--force-fieldtrials='):
           args[i] = re.sub(r'\bPermissionPromptUIAndroidModal/\w+/', '', arg)
+        elif arg.startswith('--disable-features='):
+          args[i] = ','.join([
+              args[i], 'ModalPermissionPrompts<PermissionPromptUIAndroidModal'])
 
     args.append('--enable-net-benchmarking')
     args.append('--metrics-recording-only')
