@@ -2,29 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import atexit_with_log
 import collections
 import contextlib
 import ctypes
 import logging
-import os
 import platform
 import re
-import socket
-import struct
 import subprocess
 import sys
 import time
-import zipfile
-
-from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.core import os_version as os_version_module
 from telemetry import decorators
 from telemetry.internal.platform import desktop_platform_backend
-from telemetry.internal.platform.power_monitor import msr_power_monitor
-from telemetry.internal.util import path
 
 try:
   import pywintypes  # pylint: disable=import-error
@@ -32,9 +23,7 @@ try:
   from win32com.shell import shell  # pylint: disable=no-name-in-module
   from win32com.shell import shellcon  # pylint: disable=no-name-in-module
   import win32con  # pylint: disable=import-error
-  import win32file  # pylint: disable=import-error
   import win32gui  # pylint: disable=import-error
-  import win32pipe  # pylint: disable=import-error
   import win32process  # pylint: disable=import-error
   import winerror  # pylint: disable=import-error
   try:
@@ -57,83 +46,13 @@ except ImportError:
   winreg = None
 
 
-def _InstallWinRing0():
-  """WinRing0 is used for reading MSRs."""
-  executable_dir = os.path.dirname(sys.executable)
-
-  python_is_64_bit = sys.maxsize > 2 ** 32
-  dll_file_name = 'WinRing0x64.dll' if python_is_64_bit else 'WinRing0.dll'
-  dll_path = os.path.join(executable_dir, dll_file_name)
-
-  os_is_64_bit = platform.machine().endswith('64')
-  driver_file_name = 'WinRing0x64.sys' if os_is_64_bit else 'WinRing0.sys'
-  driver_path = os.path.join(executable_dir, driver_file_name)
-
-  # Check for WinRing0 and download if needed.
-  if not (os.path.exists(dll_path) and os.path.exists(driver_path)):
-    win_binary_dir = os.path.join(
-        path.GetTelemetryDir(), 'bin', 'win', 'AMD64')
-    zip_path = os.path.join(win_binary_dir, 'winring0.zip')
-    cloud_storage.GetIfChanged(zip_path, bucket=cloud_storage.PUBLIC_BUCKET)
-    try:
-      with zipfile.ZipFile(zip_path, 'r') as zip_file:
-        error_message = (
-            'Failed to extract %s into %s. If python claims that '
-            'the zip file is locked, this may be a lie. The problem may be '
-            'that python does not have write permissions to the destination '
-            'directory.'
-        )
-        # Install DLL.
-        if not os.path.exists(dll_path):
-          try:
-            zip_file.extract(dll_file_name, executable_dir)
-          except:
-            logging.error(error_message % (dll_file_name, executable_dir))
-            raise
-
-        # Install kernel driver.
-        if not os.path.exists(driver_path):
-          try:
-            zip_file.extract(driver_file_name, executable_dir)
-          except:
-            logging.error(error_message % (driver_file_name, executable_dir))
-            raise
-    finally:
-      os.remove(zip_path)
-
-
-def TerminateProcess(process_handle):
-  if not process_handle:
-    return
-  if win32process.GetExitCodeProcess(process_handle) == win32con.STILL_ACTIVE:
-    win32process.TerminateProcess(process_handle, 0)
-  process_handle.close()
-
-
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def __init__(self):
     super(WinPlatformBackend, self).__init__()
-    self._msr_server_handle = None
-    self._msr_server_port = None
-    self._power_monitor = msr_power_monitor.MsrPowerMonitorWin(self)
 
   @classmethod
   def IsPlatformBackendForHost(cls):
     return sys.platform == 'win32'
-
-  def __del__(self):
-    self.close()
-
-  def close(self):
-    self.CloseMsrServer()
-
-  def CloseMsrServer(self):
-    if not self._msr_server_handle:
-      return
-
-    TerminateProcess(self._msr_server_handle)
-    self._msr_server_handle = None
-    self._msr_server_port = None
 
   def IsThermallyThrottled(self):
     raise NotImplementedError()
@@ -359,61 +278,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       return handle
 
   def CanMonitorPower(self):
-    # TODO(charliea): This is a stopgap until all desktop power monitoring code
-    # can be removed. (crbug.com/763263)
     return False
 
   def CanMeasurePerApplicationPower(self):
-    return self._power_monitor.CanMeasurePerApplicationPower()
-
-  def StartMonitoringPower(self, browser):
-    self._power_monitor.StartMonitoringPower(browser)
-
-  def StopMonitoringPower(self):
-    return self._power_monitor.StopMonitoringPower()
-
-  def _StartMsrServerIfNeeded(self):
-    if self._msr_server_handle:
-      return
-
-    _InstallWinRing0()
-
-    pipe_name = r"\\.\pipe\msr_server_pipe_{}".format(os.getpid())
-    # Try to open a named pipe to receive a msr port number from server process.
-    pipe = win32pipe.CreateNamedPipe(
-        pipe_name,
-        win32pipe.PIPE_ACCESS_INBOUND,
-        win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT,
-        1, 32, 32, 300, None)
-    parameters = (
-        os.path.join(os.path.dirname(__file__), 'msr_server_win.py'),
-        pipe_name,
-    )
-    self._msr_server_handle = self.LaunchApplication(
-        sys.executable, parameters, elevate_privilege=True)
-    if pipe != win32file.INVALID_HANDLE_VALUE:
-      if win32pipe.ConnectNamedPipe(pipe, None) == 0:
-        self._msr_server_port = int(win32file.ReadFile(pipe, 32)[1])
-      win32api.CloseHandle(pipe)
-    # Wait for server to start.
-    try:
-      socket.create_connection(('127.0.0.1', self._msr_server_port), 5).close()
-    except socket.error:
-      self.CloseMsrServer()
-    atexit_with_log.Register(TerminateProcess, self._msr_server_handle)
-
-  def ReadMsr(self, msr_number, start=0, length=64):
-    self._StartMsrServerIfNeeded()
-    if not self._msr_server_handle:
-      raise OSError('Unable to start MSR server.')
-
-    sock = socket.create_connection(('127.0.0.1', self._msr_server_port), 5)
-    try:
-      sock.sendall(struct.pack('I', msr_number))
-      response = sock.recv(8)
-    finally:
-      sock.close()
-    return struct.unpack('Q', response)[0] >> start & ((1 << length) - 1)
+    return False
 
   def IsCooperativeShutdownSupported(self):
     return True
