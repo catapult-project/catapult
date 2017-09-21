@@ -25,7 +25,8 @@ class Page(story.Story):
                grouping_keys=None,
                cache_temperature=cache_temperature_module.ANY,
                traffic_setting=traffic_setting_module.NONE,
-               platform_specific=False):
+               platform_specific=False,
+               extra_browser_args=None):
     self._url = url
 
     super(Page, self).__init__(
@@ -69,6 +70,7 @@ class Page(story.Story):
     self.skip_waits = False
     self.script_to_evaluate_on_commit = None
     self._SchemeErrorCheck()
+    self._extra_browser_args = extra_browser_args or []
 
   @property
   def credentials_path(self):
@@ -85,6 +87,10 @@ class Page(story.Story):
   @property
   def startup_url(self):
     return self._startup_url
+
+  @property
+  def extra_browser_args(self):
+    return self._extra_browser_args
 
   def _SchemeErrorCheck(self):
     if not self._scheme:

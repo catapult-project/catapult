@@ -204,6 +204,8 @@ class SharedPageState(story_module.SharedState):
     self._test.WillStartBrowser(self.platform)
     if page.startup_url:
       self._finder_options.browser_options.startup_url = page.startup_url
+    self._finder_options.browser_options.AppendExtraBrowserArgs(
+        page.extra_browser_args)
     self._browser = self._possible_browser.Create(self._finder_options)
     self._test.DidStartBrowser(self.browser)
 
