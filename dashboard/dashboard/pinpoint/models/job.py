@@ -114,11 +114,11 @@ class Job(ndb.Model):
     self._PostBugComment('started')
 
   def Complete(self):
-    self._PostBugComment('completed')
+    self._PostBugComment('completed', include_differences=True)
 
   def Fail(self):
     self.exception = traceback.format_exc()
-    self._PostBugComment('stopped with an error')
+    self._PostBugComment('stopped with an error', include_differences=True)
 
   def Schedule(self):
     task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
@@ -160,27 +160,29 @@ class Job(ndb.Model):
       d.update(self.state.AsDict())
     return d
 
-  def _PostBugComment(self, status):
+  def _PostBugComment(self, status, include_differences=False):
     if not self.bug_id:
       return
 
     title = '%s Pinpoint job %s.' % (_ROUND_PUSHPIN, status)
     header = '\n'.join((title, self.url))
 
-    # Include list of Changes.
     change_details = []
-    for _, change in self.state.Differences():
-      # TODO: Store the commit info in the Commit.
-      commit = change.last_commit
-      commit_info = gitiles_service.CommitInfo(commit.repository_url,
-                                               commit.git_hash)
-      subject = '<b>%s</b>' % commit_info['message'].split('\n', 1)[0]
-      author = commit_info['author']['email']
-      time = commit_info['committer']['time']
-
-      byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
-      git_link = commit.repository + '@' + commit.git_hash
-      change_details.append('\n'.join((subject, byline, git_link)))
+    if include_differences:
+      # Include list of Changes.
+      differences = tuple(self.state.Differences())
+      if differences:
+        if len(differences) == 1:
+          change_details.append(
+              '<b>Found significant differences after 1 commit:</b>')
+        else:
+          change_details.append(
+              '<b>Found significant differences after each of %d commits:</b>' %
+              len(differences))
+        for _, change in differences:
+          change_details.append(_FormatChangeForBug(change))
+      else:
+        change_details.append("<b>Couldn't reproduce a difference.</b>")
 
     comment = '\n\n'.join([header] + change_details)
 
@@ -350,6 +352,20 @@ class _JobState(object):
       return _SAME
 
     return _UNKNOWN
+
+
+def _FormatChangeForBug(change):
+  # TODO: Store the commit info in the Commit.
+  commit = change.last_commit
+  commit_info = gitiles_service.CommitInfo(commit.repository_url,
+                                           commit.git_hash)
+  subject = '<b>%s</b>' % commit_info['message'].split('\n', 1)[0]
+  author = commit_info['author']['email']
+  time = commit_info['committer']['time']
+
+  byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
+  git_link = commit.repository + '@' + commit.git_hash
+  return '\n'.join((subject, byline, git_link))
 
 
 def _CombineResultsPerQuest(attempts):
