@@ -19,6 +19,7 @@ if __name__ == '__main__':
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
+from devil.android.sdk import adb_wrapper
 from devil.android.tools import device_status
 from devil.android.tools import script_common
 from devil.utils import logging_common
@@ -149,6 +150,8 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
 
   if should_restart_adb:
     KillAllAdb()
+    adb_wrapper.AdbWrapper.StartServer()
+
   for serial in should_restart_usb:
     try:
       # TODO(crbug.com/642194): Resetting may be causing more harm
