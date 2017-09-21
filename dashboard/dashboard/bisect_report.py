@@ -23,18 +23,35 @@ Debug information about this bisect:
   %(issue_url)s
 """
 
-_MEMORY_BENCHMARKS = [
-    'system_health.memory_',
-    'memory.top_10_mobile'
-]
+_BENCHMARK_DOC_URLS = {
+    'memory': {
+        'benchmarks': [
+            'system_health.memory_',
+            'memory.top_10_mobile'
+        ],
+        'url': ('https://chromium.googlesource.com/chromium/src/+/'\
+            'master/docs/memory-infra/memory_benchmarks.md'),
+    },
+    'blink_perf': {
+        'benchmarks': [
+            'blink_perf.',
+        ],
+        'url': ('https://chromium.googlesource.com/chromium/src/+/'\
+            'master/docs/speed/benchmark_harnesses/blink_perf.md'),
+    },
+    'webrtc': {
+        'benchmarks': [
+            'webrtc.',
+        ],
+        'url': ('https://chromium.googlesource.com/chromium/src/+/'\
+            'master/docs/speed/benchmark_harnesses/webrtc_perf.md'),
+    },
+}
 
-_MEMORY_DOC_URL = ('https://chromium.googlesource.com/chromium/src/+/'\
-    'master/docs/memory-infra/memory_benchmarks.md')
-
-_BISECT_MEMORY_DOC_INFO = """
-Please refer to the following doc on diagnosing memory regressions:
-  %s
-""" % _MEMORY_DOC_URL
+_BENCHMARK_DOC_INFO = """
+Please refer to the following doc on diagnosing %(name)s regressions:
+  %(url)s
+"""
 
 _BISECT_ADDRESSING_DOC_URL = ('http://g.co/ChromePerformanceRegressions')
 
@@ -337,11 +354,14 @@ def _GenerateReport(results_data):
   # and how to contact the team.
   result += '\n'
 
-  # (github:3128): Requested that all memory benchmarks include a doc url.
   # TODO(eakuefner): Replace this with a generic property in TestMetadata
   # when data pipe is available.
-  if any(results_data['benchmark'].startswith(b) for b in _MEMORY_BENCHMARKS):
-    result += _BISECT_MEMORY_DOC_INFO
+  # github:3690: Include doc url for benchmarks if available.
+  for benchmark, benchmark_details in _BENCHMARK_DOC_URLS.iteritems():
+    benchmark_names = benchmark_details['benchmarks']
+    if any(results_data['benchmark'].startswith(b) for b in benchmark_names):
+      result += _BENCHMARK_DOC_INFO % {
+          'name': benchmark, 'url': benchmark_details['url']}
 
   result += _BISECT_TO_RUN % results_data
   result += _BISECT_ADDRESSING_DOC_INFO

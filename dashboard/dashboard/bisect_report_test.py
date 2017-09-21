@@ -219,6 +219,46 @@ Debug information about this bisect:
 For feedback, file a bug with component Speed>Bisection"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
+  def testGetReport_CompletedWithCulprit_WebRTC(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        command='src/tools/perf/run_benchmark webrtc.foo',
+        culprit_data=self._Culprit(cl=102),
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    webrtc_doc_link = """
+Please refer to the following doc on diagnosing webrtc regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/benchmark_harnesses/webrtc_perf.md"""
+
+    self.assertIn(webrtc_doc_link, bisect_report.GetReport(job))
+
+  def testGetReport_CompletedWithCulprit_BlinkPerf(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        command='src/tools/perf/run_benchmark blink_perf.foo',
+        culprit_data=self._Culprit(cl=102),
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    webrtc_doc_link = """
+Please refer to the following doc on diagnosing blink_perf regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/benchmark_harnesses/blink_perf.md"""
+
+    self.assertIn(webrtc_doc_link, bisect_report.GetReport(job))
+
   def testGetReport_CompletedWithCulpritReturnCode(self):
     results_data = self._BisectResults(
         revision_data=self._Revisions(
