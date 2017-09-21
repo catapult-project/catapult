@@ -111,7 +111,7 @@ class Job(ndb.Model):
 
   def Start(self):
     self.Schedule()
-    self._PostBugComment('started')
+    self._PostBugComment('started', send_email=False)
 
   def Complete(self):
     self._PostBugComment('completed', include_differences=True)
@@ -160,7 +160,7 @@ class Job(ndb.Model):
       d.update(self.state.AsDict())
     return d
 
-  def _PostBugComment(self, status, include_differences=False):
+  def _PostBugComment(self, status, include_differences=False, send_email=True):
     if not self.bug_id:
       return
 
@@ -188,7 +188,7 @@ class Job(ndb.Model):
 
     issue_tracker = issue_tracker_service.IssueTrackerService(
         utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, comment, send_email=False)
+    issue_tracker.AddBugComment(self.bug_id, comment, send_email=send_email)
 
 
 class _JobState(object):
