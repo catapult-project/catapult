@@ -50,7 +50,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
 
     markers = self.traceMarkers()
     self.assertNotIn('telemetry.internal.ensure_diskcache.start', markers)
-    self.assertNotIn('telemetry.internal.warmCache.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.start', markers)
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')
@@ -83,7 +83,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
           page, self._browser, previous_page)
 
     markers = self.traceMarkers()
-    self.assertNotIn('telemetry.internal.warmCache.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.start', markers)
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')
@@ -96,5 +96,5 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.traceMarkers()
-    self.assertIn('telemetry.internal.warmCache.start', markers)
-    self.assertIn('telemetry.internal.warmCache.end', markers)
+    self.assertIn('telemetry.internal.warm_cache.start', markers)
+    self.assertIn('telemetry.internal.warm_cache.end', markers)

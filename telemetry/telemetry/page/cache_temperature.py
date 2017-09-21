@@ -67,7 +67,6 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
         tab = browser.tabs[0]
         tab.Navigate("http://does.not.exist")
         tab.WaitForDocumentReadyStateToBeComplete()
-
     any_tab = browser.tabs[0]
     any_tab.ClearCache(force=True)
   elif temperature == WARM:
@@ -86,7 +85,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
           tab.WaitForDocumentReadyStateToBeComplete()
       return
 
-    with MarkTelemetryInternal(browser, 'warmCache'):
+    with MarkTelemetryInternal(browser, 'warm_cache'):
       tab = browser.tabs[0]
       tab.Navigate(page.url)
       py_utils.WaitFor(tab.HasReachedQuiescence, 60)
