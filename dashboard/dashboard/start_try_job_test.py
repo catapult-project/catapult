@@ -246,7 +246,8 @@ _TEST_EXPECTED_BOT = None
 _TEST_EXPECTED_CONFIG_CONTENTS = None
 
 
-def _MockFetch(url=None):
+def _MockFetch(url=None, deadline=None):
+  del deadline
   if start_try_job._BISECT_CONFIG_PATH in url:
     return testing_common.FakeResponseObject(
         200, base64.encodestring(_BISECT_CONFIG_CONTENTS))
@@ -255,7 +256,9 @@ def _MockFetch(url=None):
         200, base64.encodestring(_PERF_CONFIG_CONTENTS))
 
 
-def _MockFailedFetch(url=None):  # pylint: disable=unused-argument
+def _MockFailedFetch(url=None, deadline=None):
+  del url
+  del deadline
   return testing_common.FakeResponseObject(404, {})
 
 
