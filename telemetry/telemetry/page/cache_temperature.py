@@ -63,6 +63,12 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
 
   if temperature == COLD:
     if previous_page is None:
+      # DiskCache initialization is performed asynchronously on Chrome start-up.
+      # Ensure that DiskCache is initialized before starting the measurement to
+      # avoid performance skew.
+      # This is done by navigating to an inexistent URL and then wait for the
+      # navigation to complete.
+      # TODO(kouhei) Consider moving this logic to PageCyclerStory
       with MarkTelemetryInternal(browser, 'ensure_diskcache'):
         tab = browser.tabs[0]
         tab.Navigate("http://does.not.exist")
