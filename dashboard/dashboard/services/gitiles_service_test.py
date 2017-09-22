@@ -50,7 +50,7 @@ class GitilesTest(unittest.TestCase):
         return_value)
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON',
-        deadline=10)
+        deadline=30)
 
   def testCommitRange(self, mock_fetch):
     return_value = {
@@ -97,7 +97,7 @@ class GitilesTest(unittest.TestCase):
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+log/'
         'commit_0_hash..commit_2_hash?format=JSON',
-        deadline=10)
+        deadline=30)
 
   def testCommitRangePaginated(self, mock_fetch):
     return_value_1 = {
@@ -130,7 +130,7 @@ class GitilesTest(unittest.TestCase):
         'hello')
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT',
-        deadline=10)
+        deadline=30)
 
   def testRetries(self, mock_fetch):
     mock_fetch.side_effect = urlfetch.Error()
