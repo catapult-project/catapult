@@ -517,12 +517,10 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(histograms, model);
-  // Energy for first load is 20 W * 15.2 s
-  // (interval from 0.2 s to 15.4 s)
+    // Energy for first load is 20 W * 15.2 s
+    // (interval from 0.2 s to 15.4 s)
     assert.closeTo(
         getMetricValueAvg(histograms, 'load:energy'), 304, 0.1);
-    assert.closeTo(
-        getMetricValueAvg(histograms, 'after_load:power'), 10, 0.01);
   });
 
   test('powerMetric_loading_noMeaningfulPaint', function() {

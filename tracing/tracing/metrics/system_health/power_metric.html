@@ -245,24 +245,12 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function* getLoadingIntervals_(model, chromeBounds) {
     const ttiIntervals = getNavigationTTIIntervals_(model);
-    let lastLoadTime = undefined;
     for (const ttiInterval of ttiIntervals) {
       yield {
         bounds: ttiInterval,
         name: 'load',
         description: 'page loads',
         perSecond: false
-      };
-      lastLoadTime = lastLoadTime === undefined ? ttiInterval.max :
-          Math.max(lastLoadTime, ttiInterval.max);
-    }
-    if (lastLoadTime !== undefined) {
-      yield {
-        bounds: tr.b.math.Range.fromExplicitRange(
-            lastLoadTime, chromeBounds.max),
-        name: 'after_load',
-        description: 'period after load',
-        perSecond: true
       };
     }
   }
