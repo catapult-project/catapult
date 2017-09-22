@@ -11,7 +11,6 @@ from telemetry.core import util
 from telemetry.internal.forwarders import cros_forwarder
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import linux_based_platform_backend
-from telemetry.internal.platform.power_monitor import cros_power_monitor
 from telemetry.internal.util import ps_util
 
 
@@ -25,7 +24,6 @@ class CrosPlatformBackend(
       self._cri.TryLogin()
     else:
       self._cri = cros_interface.CrOSInterface()
-    self._powermonitor = cros_power_monitor.CrosPowerMonitor(self)
 
   def GetDeviceId(self):
     return self._cri.hostname
@@ -158,13 +156,7 @@ class CrosPlatformBackend(
     self.RunCommand([flush_command, '--recurse', directory])
 
   def CanMonitorPower(self):
-    return self._powermonitor.CanMonitorPower()
-
-  def StartMonitoringPower(self, browser):
-    self._powermonitor.StartMonitoringPower(browser)
-
-  def StopMonitoringPower(self):
-    return self._powermonitor.StopMonitoringPower()
+    return False
 
   def PathExists(self, path, timeout=None, retries=None):
     if timeout or retries:
