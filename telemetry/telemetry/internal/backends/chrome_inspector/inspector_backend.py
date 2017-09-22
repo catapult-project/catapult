@@ -16,6 +16,7 @@ from telemetry.internal.backends.chrome_inspector import inspector_console
 from telemetry.internal.backends.chrome_inspector import inspector_memory
 from telemetry.internal.backends.chrome_inspector import inspector_page
 from telemetry.internal.backends.chrome_inspector import inspector_runtime
+from telemetry.internal.backends.chrome_inspector import inspector_storage
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.util import js_template
@@ -71,6 +72,7 @@ class InspectorBackend(object):
       self._page = inspector_page.InspectorPage(
           self._websocket, timeout=timeout)
       self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
+      self._storage = inspector_storage.InspectorStorage(self._websocket)
     except (websocket.WebSocketException, exceptions.TimeoutException,
             py_utils.TimeoutException) as e:
       self._ConvertExceptionFromInspectorWebsocket(e)
@@ -107,6 +109,9 @@ class InspectorBackend(object):
   @property
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
+
+  def ClearDataForOrigin(self, url, timeout):
+    self._storage.ClearDataForOrigin(url, timeout)
 
   def GetWebviewInspectorBackends(self):
     """Returns a list of InspectorBackend instances associated with webviews.

@@ -5,7 +5,6 @@
 from telemetry.internal.actions import action_runner
 from telemetry.internal.browser import web_contents
 from telemetry.internal.image_processing import video
-from telemetry.core import exceptions
 
 DEFAULT_TAB_TIMEOUT = 60
 
@@ -285,12 +284,4 @@ class Tab(web_contents.WebContents):
     Raises:
       exceptions.StoryActionError
     """
-    res = self._inspector_backend._websocket.SyncRequest({
-        'method': 'Storage.clearDataForOrigin',
-        'params': {
-            'origin': url,
-            'storageTypes': 'all'
-        }
-    }, timeout)
-    if 'error' in res:
-      raise exceptions.StoryActionError(res['error']['message'])
+    return self._inspector_backend.ClearDataForOrigin(url, timeout)
