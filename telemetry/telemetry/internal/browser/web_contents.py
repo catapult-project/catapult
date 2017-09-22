@@ -239,7 +239,17 @@ class WebContents(object):
     return self._inspector_backend.WaitForJavaScriptCondition(*args, **kwargs)
 
   def EnableAllContexts(self):
-    """Enable all contexts in a page. Returns the number of available contexts.
+    """Enable all contexts in a page. Returns all activated context ids.
+
+    It's worth noting that this method may not reflect the state of the
+    browser in real time: some of the returned contexts may no longer exist, or
+    new contexts may have been activated.
+
+    Returns:
+      A list of frame context ids. Each |context_id| can be used for
+      executing Javascript in the corresponding iframe through
+      tab.ExecuteJavaScript(..., context_id=context_id) and
+      tab.EvaluateJavaScript(..., context_id=context_id).
 
     Raises:
       exceptions.WebSocketDisconnected

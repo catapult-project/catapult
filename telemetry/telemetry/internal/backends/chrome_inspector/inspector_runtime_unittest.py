@@ -37,7 +37,6 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self._tab.ExecuteJavaScript('window')
 
   def testIFrame(self):
-    starting_contexts = self._tab.EnableAllContexts()
 
     self.Navigate('host.html')
 
@@ -46,8 +45,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self._tab.WaitForJavaScriptCondition(test_defined_js, timeout=10)
 
     py_utils.WaitFor(
-        lambda: self._tab.EnableAllContexts() != starting_contexts,
-        timeout=10)
+        lambda: len(self._tab.EnableAllContexts()) >= 4, timeout=10)
 
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
@@ -66,14 +64,16 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
       py_utils.WaitFor(lambda: TestVarReady(context_id), timeout=10)
       return self._tab.EvaluateJavaScript('testVar', context_id=context_id)
 
-    all_contexts = self._tab.EnableAllContexts()
+    all_contexts_list = list(self._tab.EnableAllContexts())
+    all_contexts_list.sort()
     # Access parent page using EvaluateJavaScriptInContext.
-    self.assertEquals(TestVar(context_id=all_contexts-3), 'host')
+    host_context = all_contexts_list[0]
+    self.assertEquals(TestVar(host_context), 'host')
 
     # Access the iframes without guarantees on which order they loaded.
-    iframe1 = TestVar(context_id=all_contexts-2)
-    iframe2 = TestVar(context_id=all_contexts-1)
-    iframe3 = TestVar(context_id=all_contexts)
+    iframe1 = TestVar(context_id=all_contexts_list[1])
+    iframe2 = TestVar(context_id=all_contexts_list[2])
+    iframe3 = TestVar(context_id=all_contexts_list[3])
     self.assertEqual(set([iframe1, iframe2, iframe3]),
                      set(['iframe1', 'iframe2', 'iframe3']))
 
@@ -81,4 +81,4 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self.assertRaises(
         exceptions.EvaluateException,
         lambda: self._tab.EvaluateJavaScript(
-            '1+1', context_id=all_contexts + 1))
+            '1+1', context_id=all_contexts_list[-1] + 1))

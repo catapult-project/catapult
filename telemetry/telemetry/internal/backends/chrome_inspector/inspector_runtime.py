@@ -9,13 +9,12 @@ class InspectorRuntime(object):
     self._inspector_websocket = inspector_websocket
     self._inspector_websocket.RegisterDomain('Runtime', self._OnNotification)
     self._contexts_enabled = False
-    self._max_context_id = None
+    self._all_context_ids = None
 
   def _OnNotification(self, msg):
     if (self._contexts_enabled and
         msg['method'] == 'Runtime.executionContextCreated'):
-      self._max_context_id = max(self._max_context_id,
-                                 msg['params']['context']['id'])
+      self._all_context_ids.add(msg['params']['context']['id'])
 
   def Execute(self, expr, context_id, timeout):
     self.Evaluate(expr + '; 0;', context_id, timeout)
@@ -67,9 +66,10 @@ class InspectorRuntime(object):
     """
     if not self._contexts_enabled:
       self._contexts_enabled = True
+      self._all_context_ids = set()
       self._inspector_websocket.SyncRequest({'method': 'Runtime.enable'},
                                             timeout=30)
-    return self._max_context_id
+    return self._all_context_ids
 
   def RunInspectorCommand(self, command, timeout):
     """Runs an inspector command.
