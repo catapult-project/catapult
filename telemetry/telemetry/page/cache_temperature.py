@@ -54,13 +54,24 @@ class MarkTelemetryInternal(object):
         "console.timeEnd({{ marker }});", marker=marker)
     return True
 
+def ClearCache(browser):
+  tab = browser.tabs[0]
+  tab.ClearCache(force=True)
+
+def WarmCache(page, browser):
+  with MarkTelemetryInternal(browser, 'warm_cache'):
+    tab = browser.tabs[0]
+    tab.Navigate(page.url)
+    py_utils.WaitFor(tab.HasReachedQuiescence, 60)
+    tab.WaitForDocumentReadyStateToBeComplete()
+    tab.Navigate("about:blank")
+    tab.WaitForDocumentReadyStateToBeComplete()
+
 def EnsurePageCacheTemperature(page, browser, previous_page=None):
   temperature = page.cache_temperature
   logging.info('PageCacheTemperature: %s', temperature)
-
   if temperature == ANY:
     return
-
   if temperature == COLD:
     if previous_page is None:
       # DiskCache initialization is performed asynchronously on Chrome start-up.
@@ -73,8 +84,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
         tab = browser.tabs[0]
         tab.Navigate("http://does.not.exist")
         tab.WaitForDocumentReadyStateToBeComplete()
-    any_tab = browser.tabs[0]
-    any_tab.ClearCache(force=True)
+    ClearCache(browser)
   elif temperature == WARM:
     if (previous_page is not None and
         previous_page.url == page.url and
@@ -90,11 +100,4 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
           tab.Navigate("http://does.not.exist")
           tab.WaitForDocumentReadyStateToBeComplete()
       return
-
-    with MarkTelemetryInternal(browser, 'warm_cache'):
-      tab = browser.tabs[0]
-      tab.Navigate(page.url)
-      py_utils.WaitFor(tab.HasReachedQuiescence, 60)
-      tab.WaitForDocumentReadyStateToBeComplete()
-      tab.Navigate("about:blank")
-      tab.WaitForDocumentReadyStateToBeComplete()
+    WarmCache(page, browser)
