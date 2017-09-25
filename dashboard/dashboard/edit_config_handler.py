@@ -4,7 +4,12 @@
 
 """A common base class for pages that are used to edit configs."""
 
+import json
+
+from google.appengine.api import app_identity
+from google.appengine.api import mail
 from google.appengine.api import taskqueue
+from google.appengine.api import users
 
 from dashboard import list_tests
 from dashboard.common import request_handler
@@ -21,6 +26,24 @@ _TASK_QUEUE_NAME = 'edit-sheriffs-queue'
 # may be executed before the sheriff is saved, so this is a workaround for that.
 # See http://crbug.com/621499
 _TASK_QUEUE_COUNTDOWN = 60
+
+_NOTIFICATION_EMAIL_BODY = """
+The configuration of %(hostname)s was changed by %(user)s.
+
+Key: %(key)s
+
+Added test paths:
+%(added_test_paths)s
+
+Removed test paths:
+%(removed_test_paths)s
+"""
+
+# TODO(qyearsley): Make this customizable by storing the value in datastore.
+# Make sure to send a notification to both old and new address if this value
+# gets changed.
+_NOTIFICATION_ADDRESS = 'chrome-performance-monitoring-alerts@google.com'
+_SENDER_ADDRESS = 'gasper-alerts@google.com'
 
 
 class EditConfigHandler(request_handler.RequestHandler):
@@ -104,6 +127,29 @@ class EditConfigHandler(request_handler.RequestHandler):
     added_test_paths, removed_test_paths = _ChangeTestPatterns(
         old_patterns, new_patterns)
     self._RenderResults(entity, added_test_paths, removed_test_paths)
+    self._SendNotificationEmail(entity, added_test_paths, removed_test_paths)
+
+  def _SendNotificationEmail(
+      self, entity, added_test_paths, removed_test_paths):
+    user_email = users.get_current_user().email()
+    subject = 'Added or updated %s: %s by %s' % (
+        self._model_class.__name__, entity.key.string_id(), user_email)
+    email_body = _NOTIFICATION_EMAIL_BODY % {
+        'key': entity.key.string_id(),
+        'added_test_paths': json.dumps(
+            list(added_test_paths), indent=2, sort_keys=True,
+            separators=(',', ': ')),
+        'removed_test_paths': json.dumps(
+            list(removed_test_paths), indent=2, sort_keys=True,
+            separators=(',', ': ')),
+        'hostname': app_identity.get_default_version_hostname(),
+        'user': user_email,
+    }
+    mail.send_mail(
+        sender=_SENDER_ADDRESS,
+        to=_NOTIFICATION_ADDRESS,
+        subject=subject,
+        body=email_body)
 
   def _UpdateFromRequestParameters(self, entity):
     """Updates the given entity based on query parameters.

@@ -86,7 +86,9 @@ def _ProcessTest(test_key):
   if not anomalies:
     return
 
-  logging.info('Found at least one anomaly in: %s', test.test_path)
+  logging.info('Created %d anomalies', len(anomalies))
+  logging.info(' Test: %s', test_key.id())
+  logging.info(' Sheriff: %s', test.sheriff.id())
 
   # Update the last_alerted_revision property of the test.
   test.last_alerted_revision = anomalies[-1].end_revision
