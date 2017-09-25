@@ -249,6 +249,7 @@ class _JobState(object):
     there's no way to pick additional Changes to try.
     """
     # This loop adds Changes to the _changes list while looping through it.
+    # The Change insertion simultaneously uses and modifies the list indices.
     # However, the loop index goes in reverse order and Changes are only added
     # after the loop index, so the loop never encounters the modified items.
     for index, change_b in reversed(tuple(self.Differences())):
