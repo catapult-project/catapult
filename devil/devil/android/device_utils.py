@@ -1370,8 +1370,11 @@ class DeviceUtils(object):
             logging.error(
                 'Hit EBUSY while attempting to make missing directories.')
             logging.error('lsof output:')
-            for l in self._RunPipedShellCommand(
-                'lsof | grep %s' % cmd_helper.SingleQuote(m.group(1))):
+            # Don't check for return below since grep exits with a non-zero when
+            # no match is found.
+            for l in self.RunShellCommand(
+                'lsof | grep %s' % cmd_helper.SingleQuote(m.group(1)),
+                check_return=False):
               logging.error('  %s', l)
           raise
       self._PushFilesImpl(host_device_tuples, all_changed_files)
