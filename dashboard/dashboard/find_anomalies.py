@@ -80,7 +80,7 @@ def _ProcessTest(test_key):
   change_points = yield _FilterAnomaliesFoundInRef(
       change_points, test_key, len(rows))
 
-  anomalies = [_MakeAnomalyEntity(c, test, rows) for c in change_points]
+  anomalies = yield [_MakeAnomalyEntity(c, test, rows) for c in change_points]
 
   # If no new anomalies were found, then we're done.
   if not anomalies:
@@ -305,6 +305,7 @@ def _GetDisplayRange(old_end, rows):
   return start_rev, end_rev
 
 
+@ndb.tasklet
 def _MakeAnomalyEntity(change_point, test, rows):
   """Creates an Anomaly entity.
 
@@ -324,9 +325,10 @@ def _MakeAnomalyEntity(change_point, test, rows):
   median_before = change_point.median_before
   median_after = change_point.median_after
 
-  queried_diagnostics = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
-      test.key, set([reserved_infos.BUG_COMPONENTS.name,
-                     reserved_infos.OWNERS.name]))
+  queried_diagnostics = yield (
+      histogram.SparseDiagnostic.GetMostRecentValuesByNamesAsync(
+          test.key, set([reserved_infos.BUG_COMPONENTS.name,
+                         reserved_infos.OWNERS.name])))
 
   bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name)
 
@@ -334,7 +336,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
       'emails': queried_diagnostics.get(reserved_infos.OWNERS.name),
       'component': (bug_components[0] if bug_components else None)}
 
-  return anomaly.Anomaly(
+  new_anomaly = anomaly.Anomaly(
       start_revision=start_rev,
       end_revision=end_rev,
       median_before_anomaly=median_before,
@@ -355,6 +357,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
       display_start=display_start,
       display_end=display_end,
       ownership=ownership_information)
+  raise ndb.Return(new_anomaly)
 
 def FindChangePointsForTest(rows, config_dict):
   """Gets the anomaly data from the anomaly detection module.
