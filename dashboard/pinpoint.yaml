@@ -32,10 +32,13 @@ handlers:
   upload: dashboard/elements/.*\.html$
   secure: always
 
+- url: /static
+  static_dir: dashboard/pinpoint/static
+  secure: always
+
 - url: /dashboard/static/
   static_dir: dashboard/static/
   secure: always
-  application_readable: true
 
 - url: /dashboard/pinpoint/elements/(.*\.html)$
   static_files: dashboard/pinpoint/elements/\1
@@ -50,11 +53,6 @@ handlers:
 - url: /jquery/(.*\.js)$
   static_files: jquery/\1
   upload: jquery/.*\.js$
-  secure: always
-
-- url: /favicon.ico
-  static_files: dashboard/static/favicon.ico
-  upload: dashboard/static/favicon.ico
   secure: always
 
 - url: /.*
