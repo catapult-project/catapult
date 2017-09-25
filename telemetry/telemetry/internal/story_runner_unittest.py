@@ -1268,8 +1268,6 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(tmp_path)
 
-  # TODO(rnephew): Refactor this test when we no longer use
-  # expectations.PermanentlyDisableBenchmark() to disable benchmarks.
   def testRunBenchmarkDisabledBenchmark(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True
@@ -1284,9 +1282,7 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(tmp_path)
 
-  # TODO(rnephew): Refactor this test when we no longer use
-  # expectations.PermanentlyDisableBenchmark() to disable benchmarks.
-  def testRunBenchmarkDisabledBenchmarkCannotOverriddenByCommandLine(self):
+  def testRunBenchmarkDisabledBenchmarkCanOverriddenByCommandLine(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True
     options = self._GenerateBaseBrowserFinderOptions()
@@ -1297,7 +1293,7 @@ class StoryRunnerTest(unittest.TestCase):
       story_runner.RunBenchmark(fake_benchmark, options)
       with open(os.path.join(temp_path, 'results-chart.json')) as f:
         data = json.load(f)
-      self.assertFalse(data['enabled'])
+      self.assertTrue(data['enabled'])
     finally:
       shutil.rmtree(temp_path)
 
