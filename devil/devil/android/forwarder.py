@@ -414,9 +414,10 @@ class Forwarder(object):
     logger.info('Killing host_forwarder.')
     try:
       kill_cmd = [self._host_forwarder_path, '--kill-server']
-      (exit_code, _o) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+      (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
           kill_cmd, Forwarder._TIMEOUT)
       if exit_code != 0:
+        logger.warning('Forwarder unable to shut down:\n%s', output)
         kill_cmd = ['pkill', '-9', 'host_forwarder']
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
             kill_cmd, Forwarder._TIMEOUT)
