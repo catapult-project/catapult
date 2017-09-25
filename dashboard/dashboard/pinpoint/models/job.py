@@ -11,9 +11,9 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard.common import utils
-from dashboard.pinpoint import mann_whitney_u
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
+from dashboard.pinpoint.models import mann_whitney_u
 from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 
