@@ -118,7 +118,7 @@ class Job(ndb.Model):
 
   def Fail(self):
     self.exception = traceback.format_exc()
-    self._PostBugComment('stopped with an error', include_differences=True)
+    self._PostBugComment('stopped with an error')
 
   def Schedule(self):
     task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
