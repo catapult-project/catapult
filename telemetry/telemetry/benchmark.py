@@ -13,8 +13,6 @@ from telemetry.story import expectations
 from telemetry.web_perf import timeline_based_measurement
 from tracing.value import histogram
 
-Disabled = decorators.Disabled # pylint: disable=invalid-name
-Enabled = decorators.Enabled # pylint: disable=invalid-name
 Owner = decorators.Owner # pylint: disable=invalid-name
 
 
