@@ -42,18 +42,18 @@ class WprArchiveInfo(object):
         'Detected old version of archive info json file. Please update to new '
         'version.')
 
-    self.is_using_wpr_go_archives = False
+    self.is_using_wpr_go_archives = True
     self._story_name_to_wpr_file = data['archives']
     story_archives = self._data['archives']
     for story in story_archives:
       files = story_archives[story]
       for f in files:
-        if files[f].endswith('.wprgo'):
-          self.is_using_wpr_go_archives = True
-    self.ValidateWprGoFormat(story_archives)
+        if files[f].endswith('.wpr'):
+          self.is_using_wpr_go_archives = False
+    self.ValidateArchivesFormat(story_archives)
 
   @staticmethod
-  def ValidateWprGoFormat(story_archives):
+  def ValidateArchivesFormat(story_archives):
     """ Checks that all archives follow either .wpr format or .wprgo format
     but not both.
     """
