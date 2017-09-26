@@ -35,6 +35,7 @@ _AddSpecialKey('ArrowDown', 0x28)
 _AddSpecialKey('Return', 0x0D, text='\x0D')
 _AddSpecialKey('Delete', 0x2E, text='\x7F')
 _AddSpecialKey('Backspace', 0x08, text='\x08')
+_AddSpecialKey('Tab', 0x09, text='\x09')
 
 # Letter keys.
 for c in string.ascii_uppercase:
