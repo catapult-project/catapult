@@ -39,9 +39,18 @@ DEFAULT_LOG_FORMAT = (
     '%(message)s')
 
 
-def _IsBenchmarkEnabled(benchmark_class, possible_browser):
-  return (issubclass(benchmark_class, benchmark.Benchmark) and
-          decorators.IsBenchmarkEnabled(benchmark_class, possible_browser))
+def _IsBenchmarkEnabled(bench, possible_browser):
+  b = bench()
+  expectations = b.GetExpectations()
+  return (
+      # Test that the current platform is supported.
+      any(t.ShouldDisable(possible_browser.platform, possible_browser)
+          for t in b.SUPPORTED_PLATFORMS) and
+      # Test that expectations say it is enabled.
+      not expectations.IsBenchmarkDisabled(possible_browser.platform,
+                                           possible_browser)
+      # Test that benchmark.ShouldDisable() isn't true.
+      and not b.ShouldDisable(possible_browser))
 
 
 def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
