@@ -555,7 +555,7 @@ class AndroidPlatformBackend(
     Args:
       process_name: The full package name string of the process.
     """
-    return bool(self._device.GetPids(process_name))
+    return bool(self._device.GetApplicationPids(process_name))
 
   def PushProfile(self, package, new_profile_dir):
     """Replace application profile with files found on host machine.
