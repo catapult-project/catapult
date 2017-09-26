@@ -41,6 +41,7 @@ Tests named foo| http://localhost:8003/tests.html?testFilterString=foo
 --- | ---
 All python tests | `$CATAPULT/tracing/bin/run_py_tests`
 All tracing tests in d8 environment | `$CATAPULT/tracing/bin/run_vinn_tests`
+All tracing tests in devserver environment | `$CATAPULT/tracing/bin/run_devserver_tests`
 All tests | `$CATAPULT/tracing/bin/run_tests`
 
 Make sure tests pass before sending us changelist. **We use rietveld for codereview**. For more details, esp on rietveld, [read our contributing guide](https://github.com/catapult-project/catapult/blob/master/CONTRIBUTING.md) or check out the [trace viewer wiki](https://github.com/catapult-project/catapult/wiki/Trace-Viewer-Getting-Started).

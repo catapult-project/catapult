@@ -189,6 +189,7 @@
       'tracing/importer/proto_expectation.html',
       'tracing/importer/simple_line_reader.html',
       'tracing/importer/user_model_builder.html',
+      'tracing/metrics/accessibility_metric.html',
       'tracing/metrics/all_fixed_color_schemes.html',
       'tracing/metrics/all_metrics.html',
       'tracing/metrics/android_systrace_metric.html',
