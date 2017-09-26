@@ -21,6 +21,8 @@ class FindIsolate(quest.Quest):
     self._builder_name = _BuilderNameForConfiguration(configuration)
     self._target = target
 
+    self._previous_builds = {}
+
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
             self._builder_name == other._builder_name)
@@ -29,18 +31,20 @@ class FindIsolate(quest.Quest):
     return 'Build'
 
   def Start(self, change):
-    return _FindIsolateExecution(self._builder_name, self._target, change)
+    return _FindIsolateExecution(self._builder_name, self._target, change,
+                                 self._previous_builds)
 
 
 class _FindIsolateExecution(execution.Execution):
 
-  _previous_builds = {}
-
-  def __init__(self, builder_name, target, change):
+  def __init__(self, builder_name, target, change, previous_builds):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
     self._change = change
+    # previous_builds is shared among all Executions of the same Quest.
+    self._previous_builds = previous_builds
+
     self._build = None
 
   def _AsDict(self):
