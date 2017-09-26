@@ -5,7 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/iron-icons/iron-icons.html">
+<link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
@@ -19,14 +20,18 @@ found in the LICENSE file.
         width: 100%;
       }
 
-      nav a:last-child {
-          margin-left: auto;
+      #sign-in {
+        line-height: 24px;
+        padding: 8px;
+        text-decoration: none;
+      }
+
+      #spacer {
+          margin: auto;
       }
 
       a {
         color: var(--paper-indigo-50);
-        padding: 0.8em;
-        text-decoration: none;
       }
 
       a:hover {
@@ -35,10 +40,25 @@ found in the LICENSE file.
     </style>
 
     <nav id="navbar">
-      <a href="/">Pinpoint</a>
-      <a href="/new">New job</a>
-      <a href="https://github.com/catapult-project/catapult/tree/master/dashboard/dashboard/pinpoint" target="_blank">Documentation</a>
-      <a href$="[[loginUrl]]" title="Switch user">[[displayUsername]]</a>
+      <a href="/">
+        <paper-icon-button src="/static/logo.svg"></paper-icon-button>
+      </a>
+      <span id="spacer"></span>
+      <a href="/new">
+        <paper-icon-button icon="add"></paper-icon-button>
+        <paper-tooltip>Start a job</paper-tooltip>
+      </a>
+      <a href="https://github.com/catapult-project/catapult/tree/master/dashboard/dashboard/pinpoint" target="_blank">
+        <paper-icon-button icon="help"></paper-icon-button>
+        <paper-tooltip>Documentation</paper-tooltip>
+      </a>
+      <a href="https://github.com/catapult-project/catapult/issues/new?title=[Pinpoint]+&assignees=dave-2&labels=Bisect" target="_blank">
+        <paper-icon-button icon="feedback"></paper-icon-button>
+        <paper-tooltip>File a bug</paper-tooltip>
+      </a>
+      <a id="sign-in" href$="[[loginUrl]]" title="Switch user">
+        [[displayUsername]]
+      </a>
     </nav>
   </template>
 
