@@ -33,8 +33,9 @@ _SAME = 'same'
 _UNKNOWN = 'unknown'
 
 
-_ROUND_PUSHPIN = u'\U0001f4cd'
+_CRYING_CAT_FACE = u'\U0001f63f'
 _MIDDLE_DOT = u'\xb7'
+_ROUND_PUSHPIN = u'\U0001f4cd'
 
 
 def JobFromId(job_id):
@@ -118,7 +119,7 @@ class Job(ndb.Model):
 
   def Fail(self):
     self.exception = traceback.format_exc()
-    self._PostBugComment('stopped with an error')
+    self._PostBugComment('stopped with an error ' + _CRYING_CAT_FACE)
 
   def Schedule(self):
     task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
