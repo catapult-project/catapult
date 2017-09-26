@@ -5,4 +5,4 @@
 from dashboard.pinpoint.models.change.change import Change
 from dashboard.pinpoint.models.change.commit import Commit
 from dashboard.pinpoint.models.change.commit import NonLinearError
-from dashboard.pinpoint.models.change.patch import Patch
+from dashboard.pinpoint.models.change.patch import GerritPatch

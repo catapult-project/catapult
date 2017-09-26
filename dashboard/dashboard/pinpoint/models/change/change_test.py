@@ -38,17 +38,17 @@ class ChangeTest(_ChangeTest):
   def testChange(self):
     base_commit = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36b56c')
     dep = commit.Commit('catapult', 'e0a2efbb3d1a81aac3c90041eefec24f066d26ba')
-    p = patch.Patch('https://codereview.chromium.org', 2565263002, 20001)
+    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
 
     # Also test the deps conversion to frozenset.
     c = change.Change([base_commit, dep], p)
 
     self.assertEqual(c, change.Change((base_commit, dep), p))
     string = ('chromium@aaa7336 catapult@e0a2efb + '
-              'https://codereview.chromium.org/2565263002/20001')
+              'https://codereview.com/672011/2f0d5c7')
     id_string = ('catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba '
                  'chromium@aaa7336c821888839f759c6c0a36b56c + '
-                 'https://codereview.chromium.org/2565263002/20001')
+                 'https://codereview.com/672011/2f0d5c7')
     self.assertEqual(str(c), string)
     self.assertEqual(c.id_string, id_string)
     self.assertEqual(c.base_commit, base_commit)
@@ -60,7 +60,7 @@ class ChangeTest(_ChangeTest):
   def testAsDict(self):
     commits = (commit.Commit('chromium', 'aaa7336c82'),
                commit.Commit('catapult', 'e0a2efbb3d'))
-    p = patch.Patch('https://codereview.chromium.org', 2565263002, 20001)
+    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, p)
 
     expected = {
@@ -77,9 +77,9 @@ class ChangeTest(_ChangeTest):
             },
         ],
         'patch': {
-            'server': 'https://codereview.chromium.org',
-            'issue': 2565263002,
-            'patchset': 20001,
+            'server': 'https://codereview.com',
+            'change': 672011,
+            'revision': '2f0d5c7',
         },
     }
     self.assertEqual(c.AsDict(), expected)
@@ -93,23 +93,29 @@ class ChangeTest(_ChangeTest):
     expected = change.Change((commit.Commit('chromium', 'aaa7336'),))
     self.assertEqual(c, expected)
 
+  @mock.patch('dashboard.services.gerrit_service.GetChange')
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testFromDictWithAllFields(self, _):
+  def testFromDictWithAllFields(self, _, get_change):
+    get_change.return_value = {
+        'id': 'repo~branch~id',
+        'revisions': {'2f0d5c7': {}}
+    }
+
     c = change.Change.FromDict({
         'commits': (
             {'repository': 'chromium', 'git_hash': 'aaa7336'},
             {'repository': 'catapult', 'git_hash': 'e0a2efb'},
         ),
         'patch': {
-            'server': 'https://codereview.chromium.org',
-            'issue': 2565263002,
-            'patchset': 20001,
+            'server': 'https://codereview.com',
+            'change': 672011,
+            'revision': '2f0d5c7',
         },
     })
 
     commits = (commit.Commit('chromium', 'aaa7336'),
                commit.Commit('catapult', 'e0a2efb'))
-    p = patch.Patch('https://codereview.chromium.org', 2565263002, 20001)
+    p = patch.GerritPatch('https://codereview.com', 'repo~branch~id', '2f0d5c7')
     expected = change.Change(commits, p)
     self.assertEqual(c, expected)
 
@@ -146,7 +152,7 @@ class MidpointTest(_ChangeTest):
     change_a = change.Change((commit.Commit('chromium', '0e57e2b'),))
     change_b = change.Change(
         (commit.Commit('chromium', 'babe852'),),
-        patch=patch.Patch('https://codereview.chromium.org', 2565263002, 20001))
+        patch=patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7'))
     with self.assertRaises(commit.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 

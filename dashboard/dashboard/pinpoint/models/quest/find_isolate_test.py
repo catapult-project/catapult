@@ -113,15 +113,17 @@ class BuilderLookupTest(_FindIsolateTest):
 @mock.patch('dashboard.services.buildbucket_service.Put')
 class BuildTest(_FindIsolateTest):
 
-  def testBuildLifecycle(self, put, get_job_status):
+  @mock.patch.object(change_module.GerritPatch, 'BuildParameters')
+  def testBuildLifecycle(self, build_parameters, put, get_job_status):
     change = change_module.Change(
         (change_module.Commit('src', 'base git hash'),
          change_module.Commit('v8', 'dep git hash')),
-        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+        patch=change_module.GerritPatch('https://example.org', 672011, '2f0d'))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
 
     # Request a build.
+    build_parameters.return_value = {'patch_storage': 'gerrit'}
     put.return_value = {'build': {'id': 'build_id'}}
     execution.Poll()
 
@@ -134,10 +136,7 @@ class BuildTest(_FindIsolateTest):
             'deps_revision_overrides': {
                 'https://chromium.googlesource.com/v8/v8': 'dep git hash',
             },
-            'patch_storage': 'rietveld',
-            'rietveld': 'https://example.org',
-            'issue': 2565263002,
-            'patchset': 20001,
+            'patch_storage': 'gerrit',
         }
     })
 
@@ -193,9 +192,7 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildFailure(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),
-         change_module.Commit('v8', 'dep git hash')),
-        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+        (change_module.Commit('src', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
 
@@ -217,9 +214,7 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildCanceled(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),
-         change_module.Commit('v8', 'dep git hash')),
-        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+        (change_module.Commit('src', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
 
@@ -241,9 +236,7 @@ class BuildTest(_FindIsolateTest):
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),
-         change_module.Commit('v8', 'dep git hash')),
-        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+        (change_module.Commit('src', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Pro Perf', 'telemetry_perf_tests')
     execution = quest.Start(change)
 

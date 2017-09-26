@@ -10,13 +10,19 @@ import urllib
 from dashboard.common import utils
 
 
+_VULNERABILITY_PREFIX = ")]}'\n"
+
+
 def RequestJson(*args, **kwargs):
   """Fetch a URL and JSON-decode the response.
 
   See the documentation for Request() for details
   about the arguments and exceptions.
   """
-  return json.loads(Request(*args, **kwargs))
+  content = Request(*args, **kwargs)
+  if content.startswith(_VULNERABILITY_PREFIX):
+    content = content[len(_VULNERABILITY_PREFIX):]
+  return json.loads(content)
 
 
 def Request(url, method='GET', body=None, **parameters):

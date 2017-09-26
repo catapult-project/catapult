@@ -155,14 +155,7 @@ def _RequestBuild(builder_name, change):
   }
 
   if change.patch:
-    # TODO: Support Gerrit.
-    # https://github.com/catapult-project/catapult/issues/3599
-    parameters['properties'].update({
-        'patch_storage': 'rietveld',
-        'rietveld': change.patch.server,
-        'issue': change.patch.issue,
-        'patchset': change.patch.patchset,
-    })
+    parameters['properties'].update(change.patch.BuildParameters())
 
   # TODO: Look up Buildbucket bucket from builder_name.
   return buildbucket_service.Put(BUCKET, parameters)

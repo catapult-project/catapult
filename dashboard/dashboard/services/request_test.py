@@ -37,6 +37,12 @@ class SuccessTest(_RequestTest):
     self._request.assert_called_once_with('https://example.com', method='GET')
     self.assertEqual(response, 'response')
 
+  def testRequestJsonWithPrefix(self):
+    self._request.return_value = ({'status': '200'}, ')]}\'\n"response"')
+    response = request.RequestJson('https://example.com')
+    self._request.assert_called_once_with('https://example.com', method='GET')
+    self.assertEqual(response, 'response')
+
   def testRequestWithBodyAndParameters(self):
     self._request.return_value = ({'status': '200'}, 'response')
     response = request.Request('https://example.com', 'POST', body='a string',
