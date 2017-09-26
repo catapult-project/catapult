@@ -70,7 +70,7 @@ var HTMLSerializer = class {
 
     /**
      * @public {Array<string>} This array represents the serialized html that
-     *     makes up a node or document. 
+     *     makes up a node or document.
      */
     this.html = [];
 
@@ -187,7 +187,7 @@ var HTMLSerializer = class {
    * eventually be converted into an html file.
    *
    * @param {Document} doc The Document to serialize.
-   */ 
+   */
   processDocument(doc) {
     this.windowHeight = doc.defaultView.innerHeight;
     this.windowWidth = doc.defaultView.innerWidth;
@@ -231,7 +231,7 @@ var HTMLSerializer = class {
    *
    * @param {Node} node The Node to serialize.
    * @private
-   */ 
+   */
   processTree(node) {
     var tagName = node.tagName;
     if (!tagName && node.nodeType != Node.TEXT_NODE) {
@@ -336,7 +336,7 @@ var HTMLSerializer = class {
    * @param {Element} element The Element to serialize.
    * @param {string} id The id of the Element being serialized.
    * @private
-   */ 
+   */
   processAttributes(element, id) {
     var win = element.ownerDocument.defaultView;
     var style = win.getComputedStyle(element, null);
@@ -583,7 +583,7 @@ var HTMLSerializer = class {
     } else {
       var fullyQualifiedName = this.iframeFullyQualifiedName(win.parent);
       var index = this.iframeIndex(win);
-      return fullyQualifiedName + '.' + index; 
+      return fullyQualifiedName + '.' + index;
     }
   }
 
@@ -660,6 +660,32 @@ var HTMLSerializer = class {
    */
   windowDepth(win) {
     return this.iframeFullyQualifiedName(win).split('.').length - 1;
+  }
+
+  /**
+   * Return a JSONizable dictionary that contain all the data of this object.
+   */
+  asDict() {
+    return {
+          'html': htmlSerializer.html,
+          'frameHoles': htmlSerializer.frameHoles,
+          'idToStyleIndex': htmlSerializer.idToStyleIndex,
+          'idToStyleMap': htmlSerializer.idToStyleMap,
+          'windowHeight': htmlSerializer.windowHeight,
+          'windowWidth': htmlSerializer.windowWidth,
+          'rootId': htmlSerializer.rootId,
+          'rootStyleIndex': htmlSerializer.rootStyleIndex,
+          'pseudoElementSelectorToCSSMap':
+              htmlSerializer.pseudoElementSelectorToCSSMap,
+          'pseudoElementPlaceHolderIndex':
+              htmlSerializer.pseudoElementPlaceHolderIndex,
+          'pseudoElementTestingStyleIndex':
+              htmlSerializer.pseudoElementStyleTestingIndex,
+          'pseudoElementTestingStyleId':
+              htmlSerializer.pseudoElementTestingStyleId,
+          'unusedId': htmlSerializer.generateId(document),
+          'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
+    };
   }
 
   /**
