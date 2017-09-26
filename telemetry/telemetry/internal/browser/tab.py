@@ -285,3 +285,11 @@ class Tab(web_contents.WebContents):
       exceptions.StoryActionError
     """
     return self._inspector_backend.ClearDataForOrigin(url, timeout)
+
+  def StopAllServiceWorkers(self, timeout=DEFAULT_TAB_TIMEOUT):
+    """Stops all service workers.
+
+    Raises:
+      exceptions.StoryActionError
+    """
+    return self._inspector_backend.StopAllServiceWorkers(timeout)

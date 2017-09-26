@@ -7,6 +7,8 @@
 /**
  * @fileoverview This file provides a JavaScript helper function that
  * determines whether service worker registration has completed.
+ * TODO(crbug.com/768701): Move the ServiceWorker state operations to
+ * InspectorServiceWorker by implementing _OnNotification().
  */
 (function() {
   // Make executing this code idempotent.
