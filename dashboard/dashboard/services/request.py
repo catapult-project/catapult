@@ -4,6 +4,7 @@
 
 import httplib
 import json
+import socket
 import urllib
 
 from dashboard.common import utils
@@ -50,7 +51,7 @@ def Request(url, method='GET', body=None, **parameters):
 
   try:
     return _RequestAndProcessHttpErrors(url, **kwargs)
-  except httplib.HTTPException:
+  except (httplib.HTTPException, socket.error):
     # Retry once.
     return _RequestAndProcessHttpErrors(url, **kwargs)
 
