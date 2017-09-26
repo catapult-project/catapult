@@ -140,8 +140,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._story_set[0])
 
     results.WillRunPage(self._story_set[1])
-    v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
+    v1 = skip.SkipValue(results.current_page, 'fake_skip')
     results.AddValue(v1)
     results.DidRunPage(self._story_set[1])
 
@@ -152,8 +151,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._story_set[0])
 
     results.WillRunPage(self._story_set[1])
-    v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
+    v1 = skip.SkipValue(results.current_page, 'fake_skip')
     results.AddValue(v1)
     results.DidRunPage(self._story_set[1])
 
@@ -163,10 +161,11 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(foo_story_result['expected'], 'PASS')
 
     bar_story_result = d['tests']['benchmark_name']['Bar']
-    self.assertEquals(bar_story_result['actual'], 'PASS')
-    self.assertEquals(bar_story_result['expected'], 'PASS')
+    self.assertEquals(bar_story_result['actual'], 'SKIP')
+    self.assertEquals(bar_story_result['expected'], 'SKIP')
 
-    self.assertEquals(d['num_failures_by_type'], {'PASS': 4})
+    self.assertEquals(d['num_failures_by_type'], {'SKIP': 2, 'PASS': 2})
+
 
   def testAsDictWithSkippedAndFailedTests(self):
     results = page_test_results.PageTestResults()

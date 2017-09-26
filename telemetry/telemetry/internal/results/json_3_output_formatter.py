@@ -73,8 +73,11 @@ def ResultsAsDict(page_test_results):
   # crbug.com/754825
   for _, stories in result_dict['tests'].iteritems():
     for _, story_results in stories.iteritems():
-      if set(story_results['actual'].split(' ')) == {'PASS'}:
+      deduped_results = set(story_results['actual'].split(' '))
+      if deduped_results == {'PASS'}:
         story_results['actual'] = 'PASS'
+      elif deduped_results == {'SKIP'}:
+        story_results['actual'] = 'SKIP'
 
   result_dict['num_failures_by_type'] = dict(status_counter)
   return result_dict
