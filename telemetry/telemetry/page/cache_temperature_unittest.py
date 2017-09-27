@@ -50,7 +50,10 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
 
     markers = self.traceMarkers()
     self.assertNotIn('telemetry.internal.ensure_diskcache.start', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.warm.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.warm.end', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')
@@ -66,6 +69,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     self.assertIn('telemetry.internal.ensure_diskcache.start', markers)
     self.assertIn('telemetry.internal.ensure_diskcache.end', markers)
 
+  @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
   def testEnsureWarmAfterColdRun(self):
     with self.captureTrace():
@@ -83,8 +87,12 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
           page, self._browser, previous_page)
 
     markers = self.traceMarkers()
-    self.assertNotIn('telemetry.internal.warm_cache.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.warm.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.warm.end', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
 
+  @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')
   def testEnsureWarmFromScratch(self):
@@ -96,5 +104,75 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.traceMarkers()
-    self.assertIn('telemetry.internal.warm_cache.start', markers)
-    self.assertIn('telemetry.internal.warm_cache.end', markers)
+    self.assertIn('telemetry.internal.warm_cache.warm.start', markers)
+    self.assertIn('telemetry.internal.warm_cache.warm.end', markers)
+
+  @decorators.Disabled('reference')
+  @decorators.Enabled('has tabs')
+  def testEnsureHotAfterColdAndWarmRun(self):
+    with self.captureTrace():
+      story_set = story.StorySet()
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(page, self._browser)
+
+      previous_page = page
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.WARM, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(
+          page, self._browser, previous_page)
+
+      previous_page = page
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(
+          page, self._browser, previous_page)
+
+    markers = self.traceMarkers()
+    self.assertNotIn('telemetry.internal.warm_cache.warm.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.warm.end', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.start', markers)
+    self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
+
+  @decorators.Disabled('reference')
+  def testEnsureHotAfterColdRun(self):
+    with self.captureTrace():
+      story_set = story.StorySet()
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(page, self._browser)
+
+      previous_page = page
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(
+          page, self._browser, previous_page)
+
+    markers = self.traceMarkers()
+    # After navigation for another origin url, traces in previous origin page
+    # does not appear in |markers|, so we can not check this:
+    # self.assertIn('telemetry.internal.warm_cache.hot.start', markers)
+    # TODO: Ensure all traces are in |markers|
+    self.assertIn('telemetry.internal.warm_cache.hot.end', markers)
+
+  @decorators.Disabled('reference')
+  @decorators.Enabled('has tabs')
+  @decorators.Disabled('chromeos')
+  def testEnsureHotFromScratch(self):
+    with self.captureTrace():
+      story_set = story.StorySet()
+      page = page_module.Page(
+          'http://google.com', page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name='http://google.com')
+      cache_temperature.EnsurePageCacheTemperature(page, self._browser)
+
+    markers = self.traceMarkers()
+    self.assertIn('telemetry.internal.warm_cache.warm.start', markers)
+    self.assertIn('telemetry.internal.warm_cache.warm.end', markers)
+    self.assertIn('telemetry.internal.warm_cache.hot.start', markers)
+    self.assertIn('telemetry.internal.warm_cache.hot.end', markers)
