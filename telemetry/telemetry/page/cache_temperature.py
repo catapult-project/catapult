@@ -24,11 +24,6 @@ WARM = 'warm'
 # the run.
 HOT = 'hot'
 
-# These regacy states will be removed after chromium test scripts are adapted
-# to new states.
-PCV1_COLD = COLD
-PCV1_WARM = WARM
-
 class MarkTelemetryInternal(object):
 
   def __init__(self, browser, identifier):
