@@ -87,16 +87,8 @@ class SharedPageState(story_module.SharedState):
       self.platform.network_controller.Close()
     self.platform.network_controller.InitializeIfNeeded(
         use_live_traffic=use_live_traffic)
-    use_wpr_go = False
-    # Always uses wpr go for recording mode.
-    if wpr_mode == wpr_modes.WPR_RECORD:
-      use_wpr_go = True
-    elif wpr_mode == wpr_modes.WPR_REPLAY:
-      use_wpr_go = (story_set.wpr_archive_info and
-                    story_set.wpr_archive_info.is_using_wpr_go_archives)
     self.platform.network_controller.Open(wpr_mode,
-                                          browser_options.extra_wpr_args,
-                                          use_wpr_go=use_wpr_go)
+                                          browser_options.extra_wpr_args)
     self.platform.Initialize()
 
   @property

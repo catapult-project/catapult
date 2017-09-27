@@ -42,32 +42,7 @@ class WprArchiveInfo(object):
         'Detected old version of archive info json file. Please update to new '
         'version.')
 
-    self.is_using_wpr_go_archives = True
     self._story_name_to_wpr_file = data['archives']
-    story_archives = self._data['archives']
-    for story in story_archives:
-      files = story_archives[story]
-      for f in files:
-        if files[f].endswith('.wpr'):
-          self.is_using_wpr_go_archives = False
-    self.ValidateArchivesFormat(story_archives)
-
-  @staticmethod
-  def ValidateArchivesFormat(story_archives):
-    """ Checks that all archives follow either .wpr format or .wprgo format
-    but not both.
-    """
-    using_wpr = False
-    using_wpr_go = False
-    for story in story_archives:
-      files = story_archives[story]
-      for f in files:
-        if files[f].endswith('.wprgo'):
-          using_wpr_go = True
-        elif files[f].endswith('.wpr'):
-          using_wpr = True
-        assert not(using_wpr and using_wpr_go), (
-            'Detected both .wprgo or .wpr archive format.')
 
   @classmethod
   def FromFile(cls, file_path, bucket):
@@ -98,7 +73,7 @@ class WprArchiveInfo(object):
     else:
       assert isinstance(target_platforms, list), 'Must pass platforms as a list'
       target_platforms = target_platforms + [_DEFAULT_PLATFORM]
-    # Download all .wpr or .wprgo files.
+    # Download all .wprgo files.
     if not self._bucket:
       logging.warning('Story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
@@ -216,7 +191,7 @@ class WprArchiveInfo(object):
     highest_number = -1
     base = None
     wpr_files = []
-    extension = 'wprgo' if self.is_using_wpr_go_archives else 'wpr'
+    extension = 'wprgo'
     for story in self._data['archives']:
       for p in self._data['archives'][story]:
         wpr_files.append(self._data['archives'][story][p])

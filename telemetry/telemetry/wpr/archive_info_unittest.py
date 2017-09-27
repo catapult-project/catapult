@@ -24,11 +24,11 @@ page2 = MockPage('http://www.bar.com/', 'Bar', True)
 page3 = MockPage('http://www.baz.com/', 'Baz', platform_specific=True)
 pageNew1 = MockPage('http://www.new.com/', 'New')
 pageNew2 = MockPage('http://www.newer.com/', 'Newer', True)
-recording1 = 'data_001.wpr'
-recording2 = 'data_002.wpr'
-recording3 = 'data_003.wpr'
-recording4 = 'data_004.wpr'
-recording5 = 'data_005.wpr'
+recording1 = 'data_001.wprgo'
+recording2 = 'data_002.wprgo'
+recording3 = 'data_003.wprgo'
+recording4 = 'data_004.wprgo'
+recording5 = 'data_005.wprgo'
 _DEFAULT_PLATFORM = archive_info._DEFAULT_PLATFORM
 
 default_archives_info_contents_dict = {
@@ -52,8 +52,8 @@ default_archives_info_contents_dict = {
 
 default_archive_info_contents = json.dumps(default_archives_info_contents_dict)
 default_wpr_files = [
-    'data_001.wpr', 'data_002.wpr', 'data_003.wpr', 'data_004.wpr',
-    'data_005.wpr']
+    'data_001.wprgo', 'data_002.wprgo', 'data_003.wprgo', 'data_004.wprgo',
+    'data_005.wprgo']
 _BASE_ARCHIVE = {
     u'platform_specific': True,
     u'description': (u'Describes the Web Page Replay archives for a'
@@ -143,13 +143,13 @@ class WprArchiveInfoTest(unittest.TestCase):
         'platform_specific': True,
         'archives': {
             'http://www.baz.com/': {
-                _DEFAULT_PLATFORM: 'data_001.wpr',
-                'win': 'data_002.wpr',
-                'linux': 'data_004.wpr',
-                'mac': 'data_003.wpr',
-                'android': 'data_005.wpr'},
-            'Foo': {_DEFAULT_PLATFORM: 'data_003.wpr'},
-            'Bar': {_DEFAULT_PLATFORM: 'data_002.wpr'}
+                _DEFAULT_PLATFORM: 'data_001.wprgo',
+                'win': 'data_002.wprgo',
+                'linux': 'data_004.wprgo',
+                'mac': 'data_003.wprgo',
+                'android': 'data_005.wprgo'},
+            'Foo': {_DEFAULT_PLATFORM: 'data_003.wprgo'},
+            'Bar': {_DEFAULT_PLATFORM: 'data_002.wprgo'}
         }
     }
     test_archive_info = self.createArchiveInfo(
@@ -259,10 +259,10 @@ class WprArchiveInfoTest(unittest.TestCase):
 
   def testAddRecordedStoriesDefault(self):
     test_archive_info = self.createArchiveInfo()
-    self.assertWprFileDoesNotExist('data_006.wpr')
+    self.assertWprFileDoesNotExist('data_006.wprgo')
 
-    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
-    expected_archive_file_path = os.path.join(self.tmp_dir, 'data_006.wpr')
+    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wprgo')
+    expected_archive_file_path = os.path.join(self.tmp_dir, 'data_006.wprgo')
     hash_dictionary = {expected_archive_file_path: 'filehash'}
     cloud_storage_stub = self.overrides.cloud_storage
     cloud_storage_stub.SetCalculatedHashesForTesting(hash_dictionary)
@@ -282,10 +282,10 @@ class WprArchiveInfoTest(unittest.TestCase):
             _DEFAULT_PLATFORM: recording1
         },
         page2.name: {
-            _DEFAULT_PLATFORM: 'data_006.wpr'
+            _DEFAULT_PLATFORM: 'data_006.wprgo'
         },
         page3.name: {
-            _DEFAULT_PLATFORM: u'data_006.wpr',
+            _DEFAULT_PLATFORM: u'data_006.wprgo',
             'linux': recording4,
             'mac': recording3,
             'win': recording2,
@@ -298,13 +298,13 @@ class WprArchiveInfoTest(unittest.TestCase):
     with open(self.story_set_archive_info_file, 'rU') as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
-    self.assertWprFileDoesExist('data_006.wpr')
+    self.assertWprFileDoesExist('data_006.wprgo')
 
   def testAddRecordedStoriesNotDefault(self):
     test_archive_info = self.createArchiveInfo()
-    self.assertWprFileDoesNotExist('data_006.wpr')
-    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
-    expected_archive_file_path = os.path.join(self.tmp_dir, 'data_006.wpr')
+    self.assertWprFileDoesNotExist('data_006.wprgo')
+    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wprgo')
+    expected_archive_file_path = os.path.join(self.tmp_dir, 'data_006.wprgo')
     hash_dictionary = {expected_archive_file_path: 'filehash'}
     cloud_storage_stub = self.overrides.cloud_storage
     cloud_storage_stub.SetCalculatedHashesForTesting(hash_dictionary)
@@ -325,14 +325,14 @@ class WprArchiveInfoTest(unittest.TestCase):
         },
         page2.name: {
             _DEFAULT_PLATFORM: recording2,
-            'android': 'data_006.wpr'
+            'android': 'data_006.wprgo'
         },
         page3.name: {
             _DEFAULT_PLATFORM: recording1,
             'linux': recording4,
             'mac': recording3,
             'win': recording2,
-            'android': 'data_006.wpr'
+            'android': 'data_006.wprgo'
         },
     }
 
@@ -341,17 +341,17 @@ class WprArchiveInfoTest(unittest.TestCase):
     with open(self.story_set_archive_info_file, 'rU') as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
-    self.assertWprFileDoesExist('data_006.wpr')
+    self.assertWprFileDoesExist('data_006.wprgo')
 
 
 
   def testAddRecordedStoriesNewPage(self):
     test_archive_info = self.createArchiveInfo()
-    self.assertWprFileDoesNotExist('data_006.wpr')
-    self.assertWprFileDoesNotExist('data_007.wpr')
-    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wpr')
-    expected_archive_file_path1 = os.path.join(self.tmp_dir, 'data_006.wpr')
-    expected_archive_file_path2 = os.path.join(self.tmp_dir, 'data_007.wpr')
+    self.assertWprFileDoesNotExist('data_006.wprgo')
+    self.assertWprFileDoesNotExist('data_007.wprgo')
+    new_temp_recording = os.path.join(self.tmp_dir, 'recording.wprgo')
+    expected_archive_file_path1 = os.path.join(self.tmp_dir, 'data_006.wprgo')
+    expected_archive_file_path2 = os.path.join(self.tmp_dir, 'data_007.wprgo')
     hash_dictionary = {
         expected_archive_file_path1: 'filehash',
         expected_archive_file_path2: 'filehash2'
@@ -390,11 +390,11 @@ class WprArchiveInfoTest(unittest.TestCase):
             'android': recording5
         },
         pageNew1.name: {
-            _DEFAULT_PLATFORM: 'data_006.wpr'
+            _DEFAULT_PLATFORM: 'data_006.wprgo'
         },
         pageNew2.name: {
-            _DEFAULT_PLATFORM: 'data_007.wpr',
-            'android': 'data_007.wpr'
+            _DEFAULT_PLATFORM: 'data_007.wprgo',
+            'android': 'data_007.wprgo'
         }
     }
 
@@ -403,5 +403,5 @@ class WprArchiveInfoTest(unittest.TestCase):
     with open(self.story_set_archive_info_file, 'rU') as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
-    self.assertWprFileDoesExist('data_006.wpr')
-    self.assertWprFileDoesExist('data_007.wpr')
+    self.assertWprFileDoesExist('data_006.wprgo')
+    self.assertWprFileDoesExist('data_007.wprgo')

@@ -373,8 +373,7 @@ class _FakeNetworkController(object):
       download_bandwidth_kbps=None, upload_bandwidth_kbps=None):
     pass
 
-  def Open(self, wpr_mode, extra_wpr_args, use_wpr_go=False):
-    del use_wpr_go  # Unused.
+  def Open(self, wpr_mode, extra_wpr_args):
     self.wpr_mode = wpr_mode
     self.extra_wpr_args = extra_wpr_args
     self.is_open = True
