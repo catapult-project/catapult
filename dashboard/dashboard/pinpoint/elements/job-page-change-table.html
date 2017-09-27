@@ -37,20 +37,22 @@ found in the LICENSE file.
           <execution-status attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="0"></execution-status>
         </div>
 
-        <div class="column">
-          <template is="dom-if" if="[[runTitle]]">
+        <template is="dom-if" if="[[runTitle]]">
+          <div class="column">
             <h2>[[runTitle]]</h2>
             <execution-status attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="1"></execution-status>
-          </template>
-        </div>
+          </div>
+        </template>
 
-        <div class="column">
-          <h2>[[testTitle]]</h2>
-          <execution-status attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="2"></execution-status>
-          <template is="dom-if" if="[[resultValues.length]]">
-            <values-histogram values="[[resultValues]]"></values-histogram>
-          </template>
-        </div>
+        <template is="dom-if" if="[[testTitle]]">
+          <div class="column">
+            <h2>[[testTitle]]</h2>
+            <execution-status attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="2"></execution-status>
+            <template is="dom-if" if="[[resultValues.length]]">
+              <values-histogram values="[[resultValues]]"></values-histogram>
+            </template>
+          </div>
+        </template>
       </div>
     </template>
   </template>
