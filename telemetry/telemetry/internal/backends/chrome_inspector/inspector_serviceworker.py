@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.core import exceptions
 
-
 class InspectorServiceWorker(object):
-  def __init__(self, inspector_websocket, timeout):
-    self._websocket = inspector_websocket
+  def __init__(self, inspector_socket, timeout):
+    self._websocket = inspector_socket
     self._websocket.RegisterDomain('ServiceWorker', self._OnNotification)
     # ServiceWorker.enable RPC must be called before calling any other methods
     # in ServiceWorker domain.
@@ -25,4 +25,9 @@ class InspectorServiceWorker(object):
     res = self._websocket.SyncRequest(
         {'method': 'ServiceWorker.stopAllWorkers'}, timeout)
     if 'error' in res:
+      code = res['error']['code']
+      if code == inspector_websocket.InspectorWebsocket.METHOD_NOT_FOUND_CODE:
+        raise NotImplementedError(
+            'DevTools method ServiceWorker.stopAllWorkers is not supported by '
+            'this browser.')
       raise exceptions.StoryActionError(res['error']['message'])
