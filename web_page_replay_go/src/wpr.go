@@ -349,7 +349,7 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 	archiveFileName := c.Args().First()
 	archive, err := webpagereplay.OpenArchive(archiveFileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error openining archive file: %v", err)
+		fmt.Fprintf(os.Stderr, "Error opening archive file: %v", err)
 		os.Exit(1)
 	}
 	log.Printf("Opened archive %s", archiveFileName)
