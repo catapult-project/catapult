@@ -25,9 +25,13 @@ found in the LICENSE file.
     </style>
 
     <template is="dom-if" if="[[isShowing(changeIndex)]]">
-      <change-info change="[[change(changeIndex)]]"></change-info>
 
       <div class="columns">
+        <div class="column">
+          <h2>Commit</h2>
+          <change-info change="[[change(changeIndex)]]"></change-info>
+        </div>
+
         <div class="column">
           <h2>[[buildTitle]]</h2>
           <execution-status attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="0"></execution-status>
