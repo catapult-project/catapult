@@ -34,6 +34,7 @@ $ ./third_party/catapult/tracing/bin/memory_infra_remote_dump --port=1234
 import argparse
 import json
 import os
+import requests
 import sys
 import tempfile
 import time
@@ -47,9 +48,10 @@ except ImportError:
 
 class TracingDevtoolsClient(object):
   def __init__(self, host, port):
-    url = 'ws://%s:%s/devtools/browser' % (host, port)
+    r = requests.get('http://%s:%s/json/version' % (host, port))
+    url = r.json()['webSocketDebuggerUrl']
     print 'Connecting to ' + url
-    self.ws = websocket.CreateConnection(url)
+    self.ws = websocket.create_connection(url)
     self.cmd = 0
 
   def send(self, method, params={}):
