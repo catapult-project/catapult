@@ -1,7 +1,7 @@
 [![Build status](https://travis-ci.org/PolymerElements/paper-tabs.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-tabs)
 [![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://beta.webcomponents.org/element/PolymerElements/paper-tabs)
 
-## &lt;paper-tabs&gt;
+##&lt;paper-tabs&gt;
 
 Material design: [Tabs](https://www.google.com/design/spec/components/tabs.html)
 
@@ -44,9 +44,3 @@ an app, or to browse categorized data sets.
   <paper-tab>Fourth tab</paper-tab>
 </paper-tabs>
 ```
-
-### Notable breaking changes between 1.x and 2.x (hybrid):
-
-IronSelectableBehavior and IronMultiSelectableBehavior, which are used by
-paper-tabs, introduce multiple breaking changes. Please see the README for those
-behaviors for more detail.

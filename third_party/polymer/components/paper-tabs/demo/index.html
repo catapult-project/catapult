@@ -23,25 +23,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
     <link rel="import" href="../../iron-pages/iron-pages.html">
-    <link rel="import" href="../../paper-styles/typography.html">
+    <link rel="import" href="../../paper-toolbar/paper-toolbar.html">
     <link rel="import" href="../paper-tab.html">
     <link rel="import" href="../paper-tabs.html">
 
+    <style is="custom-style" include="demo-pages-shared-styles">
+      #container {
+        max-width: 600px;
+      }
+
+      paper-tabs, paper-toolbar {
+        background-color: var(--paper-blue-900);
+        color: #fff;
+      }
+    </style>
+
   </head>
   <body unresolved>
-
-    <custom-style>
-      <style is="custom-style" include="demo-pages-shared-styles">
-        #container {
-          max-width: 600px;
-        }
-
-        paper-tabs {
-          background-color: var(--paper-blue-900);
-          color: #fff;
-        }
-      </style>
-    </custom-style>
 
     <div id="container" class="vertical-section-container centered">
 
@@ -59,13 +57,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <h3>The <code>no-bar</code> attribute disables the selection bar.</h3>
       <demo-snippet>
         <template>
-          <custom-style>
-            <style is="custom-style">
-              paper-tabs[no-bar] paper-tab.iron-selected {
-                color: #ffff8d;
-              }
-            </style>
-          </custom-style>
+          <style is="custom-style">
+            paper-tabs[no-bar] paper-tab.iron-selected {
+              color: #ffff8d;
+            }
+          </style>
 
           <paper-tabs id="plain-tabs" selected="0" no-bar>
             <paper-tab>ITEM ONE</paper-tab>
@@ -200,17 +196,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </h3>
       <demo-snippet>
         <template>
-          <custom-style>
-            <style is="custom-style">
-              paper-tab[link] a {
-                /* These mixins (from iron-flex-layout) center the link text. */
-                @apply --layout-horizontal;
-                @apply --layout-center-center;
-                color: #fff;
-                text-decoration: none;
-              }
-            </style>
-          </custom-style>
+          <style is="custom-style">
+            paper-tab[link] a {
+              /* These mixins (from iron-flex-layout) center the link text. */
+              @apply(--layout-horizontal);
+              @apply(--layout-center-center);
+              color: #fff;
+              text-decoration: none;
+            }
+          </style>
 
           <paper-tabs selected="0">
             <paper-tab link>
@@ -223,6 +217,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <a href="#item3" tabindex="-1">ITEM THREE</a>
             </paper-tab>
           </paper-tabs>
+        </template>
+      </demo-snippet>
+
+      <h3>
+        Tabs can be used in a <code>paper-toolbar</code>.
+      </h3>
+      <demo-snippet>
+        <template>
+          <style is="custom-style">
+            paper-toolbar {
+              --paper-toolbar-background: var(--paper-blue-900);
+            }
+
+            .self-end {
+              /* This mixin (from iron-flex-layout) aligns the tabs to the
+                 bottom of the toolbar. */
+              @apply(--layout-self-end);
+            }
+          </style>
+
+          <paper-toolbar class="tall">
+            <paper-tabs selected="0" class="bottom self-end" style="width: 300px;">
+              <paper-tab>ITEM ONE</paper-tab>
+              <paper-tab>ITEM TWO</paper-tab>
+            </paper-tabs>
+          </paper-toolbar>
         </template>
       </demo-snippet>
 

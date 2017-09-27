@@ -46,10 +46,10 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
   <template>
     <style>
       :host {
-        @apply --layout-inline;
-        @apply --layout-center;
-        @apply --layout-center-justified;
-        @apply --layout-flex-auto;
+        @apply(--layout-inline);
+        @apply(--layout-center);
+        @apply(--layout-center-justified);
+        @apply(--layout-flex-auto);
 
         position: relative;
         padding: 0 12px;
@@ -57,8 +57,8 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
         cursor: pointer;
         vertical-align: middle;
 
-        @apply --paper-font-common-base;
-        @apply --paper-tab;
+        @apply(--paper-font-common-base);
+        @apply(--paper-tab);
       }
 
       :host(:focus) {
@@ -74,16 +74,16 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
         transform: translateZ(0);
           -webkit-transform: translateZ(0);
         transition: opacity 0.1s cubic-bezier(0.4, 0.0, 1, 1);
-        @apply --layout-horizontal;
-        @apply --layout-center-center;
-        @apply --layout-flex-auto;
-        @apply --paper-tab-content;
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        @apply(--layout-flex-auto);
+        @apply(--paper-tab-content);
       }
 
       :host(:not(.iron-selected)) > .tab-content {
         opacity: 0.8;
 
-        @apply --paper-tab-content-unselected;
+        @apply(--paper-tab-content-unselected);
       }
 
       :host(:focus) .tab-content {
@@ -92,18 +92,18 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
       }
 
       paper-ripple {
-        color: var(--paper-tab-ink, var(--paper-yellow-a100));
+        color: var(--paper-tab-ink, --paper-yellow-a100);
       }
 
-      .tab-content > ::slotted(a) {
-        @apply --layout-flex-auto;
+      .tab-content > ::content > a {
+        @apply(--layout-flex-auto);
 
         height: 100%;
       }
     </style>
 
     <div class="tab-content">
-      <slot></slot>
+      <content></content>
     </div>
   </template>
 

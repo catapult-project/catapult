@@ -53,24 +53,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       function checkSelectionBar(tabs, tab) {
         var tabRect = tab.getBoundingClientRect();
         var rect = Polymer.dom(tabs.root).querySelector('#selectionBar').getBoundingClientRect();
-        assert.approximately(rect.left, tabRect.left, 5);
-        assert.approximately(rect.right, tabRect.right, 5);
-      }
-
-      function waitForIronItemsChanged(selector, callback) {
-        selector.addEventListener('iron-items-changed', function onIronItemsChanged() {
-          selector.removeEventListener('iron-items-changed', onIronItemsChanged);
-          callback();
-        })
+        assert.equal(Math.round(tabRect.left), Math.round(rect.left));
       }
 
       suite('defaults', function() {
 
         var tabs;
 
-        setup(function(done) {
+        setup(function () {
           tabs = fixture('basic');
-          waitForIronItemsChanged(tabs, done);
         });
 
         test('to nothing selected', function() {
@@ -115,15 +106,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       suite('hidden tabs', function() {
         var tabs;
 
-        setup(function(done) {
+        setup(function() {
           tabs = fixture('HiddenTabs');
-          waitForIronItemsChanged(tabs, done);
         });
 
         test('choose the correct bar position once made visible', function() {
           tabs.removeAttribute('hidden');
           tabs.selected = 0;
-          checkSelectionBar(tabs, tabs.items[0]);
+          expect(tabs._width).to.be.greaterThan(0);
+          expect(tabs._left).to.be.equal(0);
         });
       });
 
@@ -131,12 +122,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         var tabs, index = 0;
 
-        setup(function(done) {
+        setup(function () {
           tabs = fixture('basic');
-          waitForIronItemsChanged(tabs, function() {
-            tabs.selected = index;
-            done();
-          });
+          tabs.selected = index;
         });
 
         test('selected value', function() {
@@ -162,13 +150,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var tabs, index = 1;
         var tab;
 
-        setup(function(done) {
+        setup(function () {
           tabs = fixture('basic');
-          waitForIronItemsChanged(tabs, function() {
-            tab = tabs.querySelectorAll('paper-tab')[index];
-            tab.dispatchEvent(new CustomEvent('click', {bubbles: true}));
-            done();
-          });
+          tab = tabs.querySelectorAll('paper-tab')[index];
+          tab.dispatchEvent(new CustomEvent('click', {bubbles: true}));
         });
 
         test('selected value', function() {
@@ -204,9 +189,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       suite('noink attribute', function() {
         var tabs;
 
-        setup(function(done) {
+        setup(function () {
           tabs = fixture('basic');
-          waitForIronItemsChanged(tabs, done);
         });
 
         test('noink attribute propagates to all descendant tabs', function() {
@@ -227,9 +211,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var RIGHT = 39;
         var tabs;
 
-        setup(function(done) {
+        setup(function () {
           tabs = fixture('basic');
-          waitForIronItemsChanged(tabs, done);
+          Polymer.dom.flush();
         });
 
         test('paper-tabs has role tablist', function() {

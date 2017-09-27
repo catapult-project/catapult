@@ -40,5 +40,15 @@
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   },
-  "ignore": []
+  "ignore": [],
+  "homepage": "https://github.com/PolymerElements/paper-tabs",
+  "_release": "1.8.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.8.0",
+    "commit": "0476ca9d9b9a1d4702da4f3405ea2bb2801cfbff"
+  },
+  "_source": "https://github.com/PolymerElements/paper-tabs.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-tabs"
 }

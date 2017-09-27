@@ -68,12 +68,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-      function waitForIronItemsChanged(selector, callback) {
-        selector.addEventListener('iron-items-changed', function onIronItemsChanged() {
-          selector.removeEventListener('iron-items-changed', onIronItemsChanged);
-          callback();
-        })
-      }
 
       suite('links', function() {
 
@@ -82,13 +76,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var tabs;
           var tab, anchor;
 
-          setup(function(done) {
+          setup(function () {
             tabs = fixture('links');
-            waitForIronItemsChanged(tabs, function() {
-              tab = tabs.querySelectorAll('paper-tab')[1];
-              anchor = tab.querySelector('a');
-              done();
-            });
+            tab = tabs.querySelectorAll('paper-tab')[1];
+            anchor = tab.querySelector('a');
           });
 
           test('pressing enter on tab causes anchor click', function(done) {
@@ -120,13 +111,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var tabs;
           var tab, anchor;
 
-          setup(function(done) {
+          setup(function () {
             tabs = fixture('not-links');
-            waitForIronItemsChanged(tabs, function() {
-              tab = tabs.querySelectorAll('paper-tab')[1];
-              anchor = tab.querySelector('a');
-              done();
-            });
+            tab = tabs.querySelectorAll('paper-tab')[1];
+            anchor = tab.querySelector('a');
           });
 
           test('pressing enter on tab does not cause anchor click', function(done) {
@@ -148,13 +136,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var tabs;
           var tab, anchor;
 
-          setup(function(done) {
+          setup(function () {
             tabs = fixture('links');
-            waitForIronItemsChanged(tabs, function() {
-              tab = tabs.querySelectorAll('paper-tab')[1];
-              anchor = tab.querySelector('a');
-              done();
-            });
+            tab = tabs.querySelectorAll('paper-tab')[1];
+            anchor = tab.querySelector('a');
           });
 
           test('pressing enter on tab causes anchor click', function(done) {
