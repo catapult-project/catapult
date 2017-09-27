@@ -15,6 +15,7 @@
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.0",
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^1.0.0",
+    "paper-fab": "PolymerElements/paper-fab#^1.0.0",
     "paper-input": "PolymerElements/paper-input#^1.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0",
     "paper-tabs": "PolymerElements/paper-tabs#^1.0.0",

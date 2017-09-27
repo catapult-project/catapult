@@ -35,5 +35,14 @@
     "test-fixture": "PolymerElements/test-fixture#^1.0.0",
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
-  }
+  },
+  "_release": "1.2.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.2.2",
+    "commit": "064cfb43ea7d38c1a28df45dfef8f564857d8c6b"
+  },
+  "_source": "https://github.com/PolymerElements/paper-fab.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-fab"
 }
