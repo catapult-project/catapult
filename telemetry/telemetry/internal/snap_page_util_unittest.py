@@ -8,6 +8,7 @@ import unittest
 
 from telemetry.internal import snap_page_util
 from telemetry.testing import options_for_unittests
+from telemetry.testing import tab_test_case
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
 
@@ -30,3 +31,13 @@ class SnapPageTest(unittest.TestCase):
     snap_page_util.SnapPage(
         self.finder_options, url, interactive=False, snapshot_file=outfile)
     self.assertIn('id="green"', outfile.getvalue())
+
+
+class JSONTransmissionTest(tab_test_case.TabTestCase):
+
+  def testTransmittingLargeObject(self):
+    # Create a large array of 1 million elements
+    json_obj = [1] * 1000000
+    snap_page_util._TransmitLargeJSONToTab(
+        self._tab, json_obj, 'big_array')
+    self.assertEquals(self._tab.EvaluateJavaScript('big_array.length'), 1000000)
