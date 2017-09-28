@@ -369,7 +369,7 @@ def BuildGraphDumps(processes, threshold, size_threshold):
       # Find leaks
       leaks = []
       FindLeaks(root, [], leaks, threshold, size_threshold)
-      leaks.sort(reverse=True)
+      leaks.sort(reverse=True, key=lambda k: k['size'])
 
       if leaks:
         print '  %s: %d potential leaks found.' % (heap, len(leaks))
