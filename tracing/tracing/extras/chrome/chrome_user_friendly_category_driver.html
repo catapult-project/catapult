@@ -20,7 +20,7 @@ tr.exportTo('tr.e.chrome', function() {
       'CompositingInputsUpdater::update',
       'ThreadProxy::SetNeedsUpdateLayers',
       'LayerTreeHost::UpdateLayers::CalcDrawProps',
-      'UpdateLayerTree'
+      'UpdateLayerTree',
     ],
 
     gc: [
@@ -33,43 +33,57 @@ tr.exportTo('tr.e.chrome', function() {
       'V8.GCIdleNotification',
       'V8.GCContext',
       'V8.GCCompactor',
-      'V8GCController::traceDOMWrappers'
+      'V8GCController::traceDOMWrappers',
     ],
 
     iframe_creation: [
-      'WebLocalFrameImpl::createChildframe'
+      'WebLocalFrameImpl::createChildframe',
     ],
 
     imageDecode: [
       'Decode Image',
       'ImageFrameGenerator::decode',
-      'ImageFrameGenerator::decodeAndScale'
+      'ImageFrameGenerator::decodeAndScale',
+      'ImageResourceContent::updateImage',
     ],
 
     input: [
       'HitTest',
       'ScrollableArea::scrollPositionChanged',
-      'EventHandler::handleMouseMoveEvent'
+      'EventHandler::handleMouseMoveEvent',
     ],
 
     layout: [
+      'DisplayItemList::Finalize',
+      'IntersectionObserverController::computeTrackedIntersectionObservations',
+      'LocalFrameView::invalidateTree',
+      'LocalFrameView::layout',
+      'LocalFrameView::performLayout',
+      'LocalFrameView::performPostLayoutTasks',
+      'LocalFrameView::performPreLayoutTasks',
       'FrameView::invalidateTree',
       'FrameView::layout',
       'FrameView::performLayout',
       'FrameView::performPostLayoutTasks',
       'FrameView::performPreLayoutTasks',
       'Layer::updateLayerPositionsAfterLayout',
+      'LayerTreeHostInProcess::UpdateLayers::BuildPropertyTrees',
       'Layout',
       'LayoutView::hitTest',
+      'PaintLayer::updateLayerPositionsAfterLayout',
       'ResourceLoadPriorityOptimizer::updateAllImageResourcePriorities',
-      'WebViewImpl::layout'
+      'WebViewImpl::layout',
     ],
 
     parseHTML: [
-      'ParseHTML',
+      'BackgroundHTMLParser::pumpTokenizer',
+      'BackgroundHTMLParser::sendTokensToMainThread',
       'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
+      'HTMLDocumentParser::documentElementAvailable',
+      'HTMLDocumentParser::notifyPendingTokenizedChunks',
       'HTMLDocumentParser::processParsedChunkFromBackgroundParser',
       'HTMLDocumentParser::processTokenizedChunkFromBackgroundParser',
+      'ParseHTML',
     ],
 
     raster: [
@@ -81,54 +95,89 @@ tr.exportTo('tr.e.chrome', function() {
       'SkCanvas::drawImageRect()',
       'SkCanvas::drawPicture()',
       'SkCanvas::drawTextBlob()',
-      'TileTaskWorkerPool::PlaybackToMemory'
+      'TileTaskWorkerPool::PlaybackToMemory',
     ],
 
     record: [
+      'Canvas2DLayerBridge::flushRecordingOnly',
+      'CompositingRequirementsUpdater::updateRecursive',
       'ContentLayerDelegate::paintContents',
       'DeprecatedPaintLayerCompositor::updateIfNeededRecursive',
       'DeprecatedPaintLayerCompositor::updateLayerPositionsAfterLayout',
+      'LocalFrameView::paintTree',
+      'LocalFrameView::prePaint',
       'Paint',
+      'PaintController::commitNewDisplayItems',
+      'PaintLayerCompositor::updateIfNeededRecursive',
       'Picture::Record',
       'PictureLayer::Update',
-      'RenderLayer::updateLayerPositionsAfterLayout'
+      'RenderLayer::updateLayerPositionsAfterLayout',
     ],
 
     style: [
       'CSSParserImpl::parseStyleSheet.parse',
       'CSSParserImpl::parseStyleSheet.tokenize',
+      'Document::rebuildLayoutTree',
+      'Document::recalcStyle',
+      'Document::updateActiveStyle',
       'Document::updateStyle',
       'Document::updateStyleInvalidationIfNeeded',
+      'LocalFrameView::updateStyleAndLayoutIfNeededRecursive',
       'ParseAuthorStyleSheet',
       'RuleSet::addRulesFromSheet',
       'StyleElement::processStyleSheet',
       'StyleEngine::createResolver',
+      'StyleEngine::updateActiveStyleSheets',
       'StyleSheetContents::parseAuthorStyleSheet',
-      'UpdateLayoutTree'
+      'UpdateLayoutTree',
     ],
 
     script_parse_and_compile: [
+      'V8.CompileFullCode',
+      'V8.NewContext',
+      'V8.Parse',
+      'V8.ParseLazy',
+      'V8.RecompileSynchronous',
+      'V8.ScriptCompiler',
+      'v8.compile',
       'v8.parseOnBackground',
-      'V8.ScriptCompiler'
     ],
 
     script_execute: [
+      'EvaluateScript',
+      'FunctionCall',
+      'HTMLParserScriptRunner ExecuteScript',
       'V8.Execute',
-      'WindowProxy::initialize'
+      'V8.RunMicrotasks',
+      'V8.Task',
+      'WindowProxy::initialize',
+      'v8.callFunction',
+      'v8.run',
     ],
 
     resource_loading: [
-      'ResourceFetcher::requestResource',
+      'RenderFrameImpl::didFinishDocumentLoad',
+      'RenderFrameImpl::didFinishLoad',
+      'Resource::appendData',
       'ResourceDispatcher::OnReceivedData',
-      'ResourceDispatcher::OnRequestComplete',
       'ResourceDispatcher::OnReceivedResponse',
-      'Resource::appendData'
+      'ResourceDispatcher::OnRequestComplete',
+      'ResourceFetcher::requestResource',
+      'WebURLLoaderImpl::Context::Cancel',
+      'WebURLLoaderImpl::Context::OnCompletedRequest',
+      'WebURLLoaderImpl::Context::OnReceivedData',
+      'WebURLLoaderImpl::Context::OnReceivedRedirect',
+      'WebURLLoaderImpl::Context::OnReceivedResponse',
+      'WebURLLoaderImpl::Context::Start',
+      'WebURLLoaderImpl::loadAsynchronously',
+      'WebURLLoaderImpl::loadSynchronously',
+      'content::mojom::URLLoaderClient',
     ],
 
     // Where do these go?
     renderer_misc: [
       'DecodeFont',
-      'ThreadState::completeSweep' // blink_gc
+      'ThreadState::completeSweep',  // blink_gc
     ],
 
     // TODO(fmeawad): https://github.com/catapult-project/catapult/issues/2572
@@ -137,7 +186,7 @@ tr.exportTo('tr.e.chrome', function() {
     ],
 
     [SAME_AS_PARENT]: [
-      'SyncChannel::Send'
+      'SyncChannel::Send',
     ]
   };
 
@@ -156,7 +205,7 @@ tr.exportTo('tr.e.chrome', function() {
     netlog: 'net',
     overhead: 'overhead',
     startup: 'startup',
-    gpu: 'gpu'
+    gpu: 'gpu',
   };
 
   function ChromeUserFriendlyCategoryDriver() {
