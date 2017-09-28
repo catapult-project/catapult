@@ -15,7 +15,7 @@ https://www.chromium.org/developers/how-tos/install-depot-tools).
 
 Then checkout the catapult repo.
 
-`git clone https://github.com/catapult-project/catapult.git`
+`git clone https://chromium.googlesource.com/catapult`
 
 You can then create a local branch, make and commit your change.
 
@@ -31,7 +31,7 @@ Once you're ready for a review do:
 `git cl upload`
 
 Once uploaded you can view the CL in Gerrit and **request a review** by
-clicking the 'Start Review' button, and adding a reviewer from the
+clicking the "Start Review" button, and adding a reviewer from the
 [OWNERS](/OWNERS) file. You can also click the "CQ Dry Run" button to run all
 the tests on your change.
 
@@ -104,9 +104,9 @@ Look to individual project documentation for more info on getting started:
 Check individual project documentation for instructions on how to run tests.
 You can also check the current status of our tests on the
 [waterfall](http://build.chromium.org/p/client.catapult/waterfall).
-Use the "commit" checkbox in rietveld to commit through the commit queue, which
-automatically runs all tests. Run the tests before committing with the
-"CQ dry run" link.
+Use the "Submit to CQ" button in Gerrit to commit through the commit queue,
+which automatically runs all tests. Run the tests before committing with the
+"CQ dry run" button.
 
 # Updating Chromium's about:tracing (rolling DEPS)
 
