@@ -285,6 +285,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
 
     # Set the sheriff to the first sheriff (alphabetically by sheriff name)
     # that has a test pattern that matches this test.
+    old_sheriff = self.sheriff
     self.sheriff = None
     for sheriff_entity in sheriff_module.Sheriff.query().fetch():
       for pattern in sheriff_entity.patterns:
@@ -292,6 +293,16 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
           self.sheriff = sheriff_entity.key
       if self.sheriff:
         break
+
+    # TODO(simonhatch): Remove this logging. Trying to track down alerts being
+    # generated for tests that seemingly have no sheriff.
+    # https://github.com/catapult-project/catapult/issues/3903
+    if old_sheriff != self.sheriff:
+      logging.info('Sheriff Modified')
+      logging.info(' Test: %s', self.test_path)
+      logging.info(' Old Sheriff: %s', old_sheriff)
+      logging.info(' New Sheriff: %s', self.sheriff)
+
 
     # If this test is monitored, add it to the monitored list of its test suite.
     # A test is be monitored iff it has a sheriff, and monitored tests are
