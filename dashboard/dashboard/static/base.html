@@ -1,9 +1,30 @@
-/**
- * Copyright 2015 The Chromium Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
+<!--
+  CSS variables must be defined in a <custom-style> in order to be accessible
+  inside dom-modules.
+-->
+<style is="custom-style">
+:root {
+  /* Dropdown menus should always be on top of dialogs. */
+  --layer-menus: 300;
+
+  /* Dialogs like chart-tooltip and triage-dialog */
+  --layer-dialogs: 200;
+
+  /* Misc information that might be positioned over inline DOM, but shouldn't
+     overshadow dialogs. E.g. alert-icons.
+   */
+  --layer-highlights: 100;
+}
+</style>
+
+<style>
 html {
   height: 100%;
 }
@@ -132,3 +153,4 @@ input[type=checkbox]:checked::after {
   top: -5px;
   left: -1px;
 }
+</style>

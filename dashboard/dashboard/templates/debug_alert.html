@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <html>
 <head>
-  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <link rel="import" href="/dashboard/static/base.html">
   <link rel="import" href="/dashboard/elements/nav-bar.html">
   <title>Anomaly Detection Function Debugger</title>
 
@@ -25,7 +25,7 @@ found in the LICENSE file.
       border: 2px solid #f90;
       padding: 2px;
       position: absolute;
-      z-index: 1000;
+      z-index: var(--layer-highlights);
     }
 
     code {
