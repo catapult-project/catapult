@@ -12,7 +12,9 @@ See https://github.com/catapult-project/catapult/issues/1905
 
 <link rel="import" href="/components/paper-button/paper-button.html">
 
+<link rel="import" href="/dashboard/elements/pinpoint-perf-job-dialog.html">
 <link rel="import" href="/dashboard/elements/trace-form.html">
+<link rel="import" href="/dashboard/static/pinpoint.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="trace-button">
@@ -45,6 +47,14 @@ See https://github.com/catapult-project/catapult/issues/1905
         later-revision="{{traceInfo.badRev}}"
         test-path="{{traceInfo.testPath}}"
         bug-id="{{bugId}}"></trace-form>
+    <pinpoint-perf-job-dialog
+        id="pinpoint"
+        xsrf-token="{{xsrfToken}}"
+        start-commit="{{traceInfo.goodRev}}"
+        end-commit="{{traceInfo.badRev}}"
+        start-repository="{{traceInfo.goodRevRepo}}"
+        end-repository="{{traceInfo.badRevRepo}}"
+        test-path="{{traceInfo.testPath}}"></pinpoint-perf-job-dialog>
   </template>
   <script>
     'use strict';

@@ -18,6 +18,11 @@ from dashboard.services import pinpoint_service
 
 _BOTS_TO_DIMENSIONS = 'bot_dimensions_map'
 _PINPOINT_REPOSITORIES = 'repositories'
+_ISOLATE_TARGETS = [
+    'angle_perftests', 'cc_perftests', 'gpu_perftests',
+    'load_library_perf_tests', 'media_perftests', 'net_perftests',
+    'performance_browser_tests', 'telemetry_perf_tests',
+    'telemetry_perf_webview_tests', 'tracing_perftests']
 
 
 class InvalidParamsError(Exception):
@@ -30,13 +35,27 @@ class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
     self.response.write(json.dumps({'story_filter': story_filter}))
 
 
-class PinpointNewRequestHandler(request_handler.RequestHandler):
+class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
   def post(self):
     job_params = dict(
         (a, self.request.get(a)) for a in self.request.arguments())
 
     try:
       pinpoint_params = PinpointParamsFromBisectParams(job_params)
+    except InvalidParamsError as e:
+      self.response.write(json.dumps({'error': e.message}))
+      return
+
+    self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
+
+
+class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
+  def post(self):
+    job_params = dict(
+        (a, self.request.get(a)) for a in self.request.arguments())
+
+    try:
+      pinpoint_params = PinpointParamsFromPerfTryParams(job_params)
     except InvalidParamsError as e:
       self.response.write(json.dumps({'error': e.message}))
       return
@@ -95,6 +114,104 @@ def ParseTIRLabelChartNameAndTraceName(test_path_parts):
   return tir_label, chart_name, trace_name
 
 
+def _BotDimensionsFromBotName(bot_name):
+  bots_to_dimensions = namespaced_stored_object.Get(_BOTS_TO_DIMENSIONS)
+  dimensions = bots_to_dimensions.get(bot_name)
+  if not dimensions:
+    raise InvalidParamsError('No dimensions for bot %s defined.' % bot_name)
+  return dimensions
+
+
+def PinpointParamsFromPerfTryParams(params):
+  """Takes parameters from Dashboard's pinpoint-perf-job-dialog and returns
+  a dict with parameters for a new Pinpoint job.
+
+  Args:
+    params: A dict in the following format:
+    {
+        'test_path': Test path for the metric being bisected.
+        'start_commit': Git hash or commit position of earlier revision.
+        'end_commit': Git hash or commit position of later revision.
+        'start_repository': Repository for earlier revision.
+        'end_repository': Repository for later revision.
+        'extra_args': Extra args for the swarming job.
+    }
+
+  Returns:
+    A dict of params for passing to Pinpoint to start a job, or a dict with an
+    'error' field.
+  """
+  if not utils.IsValidSheriffUser():
+    user = users.get_current_user()
+    raise InvalidParamsError('User "%s" not authorized.' % user)
+
+  # Pinpoint takes swarming dimensions, so we need to map bot name to those.
+  test_path = params['test_path']
+  test_path_parts = test_path.split('/')
+  bot_name = test_path_parts[1]
+  suite = test_path_parts[2]
+
+  dimensions = _BotDimensionsFromBotName(bot_name)
+
+  # Pinpoint also requires you specify which isolate target to run the
+  # test, so we derive that from the suite name. Eventually, this would
+  # ideally be stored in a SparesDiagnostic but for now we can guess.
+  target = 'telemetry_perf_tests'
+  if suite in _ISOLATE_TARGETS:
+    raise InvalidParamsError('Only telemetry is supported at the moment.')
+  elif 'webview' in bot_name:
+    target = 'telemetry_perf_webview_tests'
+
+  start_repository = params['start_repository']
+  end_repository = params['end_repository']
+  start_commit = params['start_commit']
+  end_commit = params['end_commit']
+
+  start_git_hash = ResolveToGitHash(start_commit, start_repository)
+  end_git_hash = ResolveToGitHash(end_commit, end_repository)
+
+  supported_repositories = namespaced_stored_object.Get(_PINPOINT_REPOSITORIES)
+
+  # Bail if it's not a supported repository to bisect on
+  if not start_repository in supported_repositories:
+    raise InvalidParamsError('Invalid repository: %s' % start_repository)
+  if not end_repository in supported_repositories:
+    raise InvalidParamsError('Invalid repository: %s' % end_repository)
+
+  # Pinpoint only supports chromium at the moment, so just throw up a
+  # different error for now.
+  if start_repository != 'chromium' or end_repository != 'chromium':
+    raise InvalidParamsError('Only chromium perf try jobs supported currently.')
+
+  extra_args = params['extra_args']
+
+  email = users.get_current_user().email()
+  job_name = 'Job on [%s/%s] for [%s]' % (bot_name, suite, email)
+
+  browser = start_try_job.GuessBrowserName(bot_name)
+
+  return {
+      'configuration': bot_name,
+      'browser': browser,
+      'benchmark': suite,
+      'trace': '',
+      'chart': '',
+      'tir_label': '',
+      'story': '',
+      'start_repository': start_repository,
+      'end_repository': end_repository,
+      'start_git_hash': start_git_hash,
+      'end_git_hash': end_git_hash,
+      'extra_args': json.dumps(extra_args),
+      'bug_id': '',
+      'auto_explore': '0',
+      'target': target,
+      'dimensions': json.dumps(dimensions),
+      'email': email,
+      'name': job_name
+  }
+
+
 def PinpointParamsFromBisectParams(params):
   """Takes parameters from Dashboard's pinpoint-job-dialog and returns
   a dict with parameters for a new Pinpoint job.
@@ -118,8 +235,6 @@ def PinpointParamsFromBisectParams(params):
     user = users.get_current_user()
     raise InvalidParamsError('User "%s" not authorized.' % user)
 
-  bots_to_dimensions = namespaced_stored_object.Get(_BOTS_TO_DIMENSIONS)
-
   # Pinpoint takes swarming dimensions, so we need to map bot name to those.
   test_path = params['test_path']
   test_path_parts = test_path.split('/')
@@ -140,21 +255,13 @@ def PinpointParamsFromBisectParams(params):
     tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
         test_path_parts)
 
-  dimensions = bots_to_dimensions.get(bot_name)
-  if not dimensions:
-    raise InvalidParamsError('No dimensions for bot %s defined.' % bot_name)
+  dimensions = _BotDimensionsFromBotName(bot_name)
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  isolate_targets = [
-      'angle_perftests', 'cc_perftests', 'gpu_perftests',
-      'load_library_perf_tests', 'media_perftests', 'net_perftests',
-      'performance_browser_tests', 'telemetry_perf_tests',
-      'telemetry_perf_webview_tests', 'tracing_perftests']
-
   target = 'telemetry_perf_tests'
-  if suite in isolate_targets:
+  if suite in _ISOLATE_TARGETS:
     target = suite
   elif 'webview' in bot_name:
     target = 'telemetry_perf_webview_tests'

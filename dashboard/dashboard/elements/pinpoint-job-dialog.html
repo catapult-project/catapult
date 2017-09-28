@@ -143,7 +143,8 @@ found in the LICENSE file.
         try {
           this.error = '';
           this.create_disabled = true;
-          const results = await simple_xhr.asPromise('/pinpoint/new', params);
+          const results = await simple_xhr.asPromise(
+              '/pinpoint/new/bisect', params);
           this.fire('pinpoint-new-response', {
             'jobId': results.jobId,
             'jobUrl': results.jobUrl,

@@ -36,13 +36,277 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
     mock_story_filter.assert_called_with('foo')
 
 
-class PinpointNewRequestHandlerTest(testing_common.TestCase):
+class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
-    super(PinpointNewRequestHandlerTest, self).setUp()
+    super(PinpointNewPerfTryRequestHandlerTest, self).setUp()
 
     app = webapp2.WSGIApplication(
-        [(r'/pinpoint/new', pinpoint_request.PinpointNewRequestHandler)])
+        [(r'/pinpoint/new',
+          pinpoint_request.PinpointNewPerfTryRequestHandler)])
+    self.testapp = webtest.TestApp(app)
+
+    self.SetCurrentUser('foo@chromium.org')
+
+    namespaced_stored_object.Set('bot_dimensions_map', {
+        'mac': [
+            {'key': 'foo', 'value': 'mac_dimensions'}
+        ],
+        'android-webview-nexus5x': [
+            {'key': 'foo', 'value': 'android_dimensions'}
+        ]
+    })
+
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {'some': 'params'},
+        'v8': {'more': 'params'}
+    })
+
+    namespaced_stored_object.Set('bot_browser_map', [
+        ['android-webview', 'webview'],
+        ['', 'release']
+    ])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=False))
+  def testPost_NotSheriff(self):
+    response = self.testapp.post('/pinpoint/new')
+    self.assertEqual(
+        {u'error': u'User "foo@chromium.org" not authorized.'},
+        json.loads(response.body))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(pinpoint_service, 'NewJob')
+  @mock.patch.object(
+      pinpoint_request, 'PinpointParamsFromPerfTryParams',
+      mock.MagicMock(return_value={'test': 'result'}))
+  def testPost_Succeeds(self, mock_pinpoint):
+    mock_pinpoint.return_value = {'foo': 'bar'}
+    self.SetCurrentUser('foo@chromium.org')
+    params = {'a': 'b', 'c': 'd'}
+    response = self.testapp.post('/pinpoint/new', params)
+
+    expected_args = mock.call({'test': 'result'})
+    self.assertEqual([expected_args], mock_pinpoint.call_args_list)
+    self.assertEqual({'foo': 'bar'}, json.loads(response.body))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=False))
+  def testPinpointParams_InvalidSheriff_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/foo/blah/foo'
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_BotUndefined_ReturnsError(self):
+    params = {
+        'test_path': 'ChromiumPerf/foo/blah/foo',
+        'bisect_mode': 'performance',
+        'story_filter': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_NonTelemetry_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_Telemetry(self):
+    params = {
+        'test_path': 'ChromiumPerf/mac/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'extra_args': ['--extra-trace-args', 'abc,123,foo'],
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('mac', results['configuration'])
+    self.assertEqual('release', results['browser'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('', results['chart'])
+    self.assertEqual('telemetry_perf_tests', results['target'])
+    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('chromium', results['start_repository'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('chromium', results['end_repository'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('0', results['auto_explore'])
+    self.assertEqual('', results['bug_id'])
+    self.assertEqual('', results['story'])
+    self.assertEqual(
+        ['--extra-trace-args', 'abc,123,foo'],
+        json.loads(results['extra_args']))
+    self.assertEqual(
+        [{'key': 'foo', 'value': 'mac_dimensions'}],
+        json.loads(results['dimensions']))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_WebviewTelemetry(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'extra_args': '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('android-webview-nexus5x', results['configuration'])
+    self.assertEqual('webview', results['browser'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('', results['chart'])
+    self.assertEqual('telemetry_perf_webview_tests', results['target'])
+    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('chromium', results['start_repository'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('chromium', results['end_repository'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('0', results['auto_explore'])
+    self.assertEqual('', results['bug_id'])
+    self.assertEqual(
+        [{'key': 'foo', 'value': 'android_dimensions'}],
+        json.loads(results['dimensions']))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_StartRepositoryInvalid_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'foo',
+        'end_repository': 'chromium',
+        'extra_args': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_StartRepositoryNoChromium_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'v8',
+        'end_repository': 'chromium',
+        'extra_args': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_EndRepositoryNoChromium_RaisesError(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'v8',
+        'extra_args': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={'git_sha': 'abcd'}))
+  def testPinpointParams_ConvertsCommitsToGitHashes(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': '1234',
+        'end_commit': '5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'extra_args': '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('abcd', results['start_git_hash'])
+    self.assertEqual('abcd', results['end_git_hash'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.crrev_service, 'GetNumbering')
+  def testPinpointParams_SkipsConvertingHashes(self, mock_crrev):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'start_repository': 'chromium',
+        'end_repository': 'chromium',
+        'extra_args': '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertFalse(mock_crrev.called)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_InvalidRepositoryCommitPosition(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': '123',
+        'end_commit': '456',
+        'start_repository': 'v8',
+        'end_repository': 'v8',
+        'extra_args': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={'error': {'message': 'foo'}}))
+  def testPinpointParams_CrrevFails(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': '123',
+        'end_commit': '456',
+        'start_repository': 'v8',
+        'end_repository': 'v8',
+        'extra_args': '',
+    }
+    with self.assertRaises(pinpoint_request.InvalidParamsError):
+      pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+
+
+class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(PinpointNewBisectRequestHandlerTest, self).setUp()
+
+    app = webapp2.WSGIApplication(
+        [(r'/pinpoint/new',
+          pinpoint_request.PinpointNewBisectRequestHandler)])
     self.testapp = webtest.TestApp(app)
 
     self.SetCurrentUser('foo@chromium.org')

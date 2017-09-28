@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+tr.exportTo('d', function() {
+  // TODO(simonhatch): Just making a single spot to check for which Pinpoint
+  // bots are active. Remove this whole file once Pinpoint is fully rolled out.
+  const PINPOINT_BOTS = [
+    'chromium-rel-mac11-air',
+    'chromium-rel-mac11-pro'
+  ];
+
+  return {
+    PINPOINT_BOTS,
+  };
+});
+</script>
