@@ -13,7 +13,6 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
-from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
@@ -26,7 +25,6 @@ from telemetry.internal.results import progress_reporter
 _OUTPUT_FORMAT_CHOICES = (
     'chartjson',
     'csv',
-    'csv-pivot-table',
     'gtest',
     'histograms',
     'html',
@@ -41,7 +39,6 @@ _DEFAULT_OUTPUT_FORMAT = 'html'
 _OUTPUT_FILENAME_LOOKUP = {
     'chartjson': 'results-chart.json',
     'csv': 'results.csv',
-    'csv-pivot-table': 'results-pivot-table.csv',
     'histograms': 'histograms.json',
     'html': 'results.html',
     'json-test-results': 'test-results.json',
@@ -72,7 +69,7 @@ def AddResultsOptions(parser):
       '--output-trace-tag',
       default='',
       help='Append a tag to the key of each result trace. Use '
-      'with html, csv-pivot-table output formats.')
+      'with html output formats.')
   group.add_option(
       '--reset-results', action='store_true', help='Delete all stored results.')
   group.add_option(
@@ -160,11 +157,7 @@ def CreateResults(benchmark_metadata, options,
       continue
 
     output_stream = _GetOutputStream(output_format, options.output_dir)
-    if output_format == 'csv-pivot-table':
-      output_formatters.append(
-          csv_pivot_table_output_formatter.CsvPivotTableOutputFormatter(
-              output_stream, trace_tag=options.output_trace_tag))
-    elif output_format == 'html':
+    if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           upload_bucket))
