@@ -6,9 +6,11 @@ import collections
 import logging
 import os
 import traceback
+import uuid
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
+from google.appengine.runtime import apiproxy_errors
 
 from dashboard.common import utils
 from dashboard.pinpoint.models import attempt as attempt_module
@@ -122,8 +124,20 @@ class Job(ndb.Model):
     self._PostBugComment('stopped with an error ' + _CRYING_CAT_FACE)
 
   def Schedule(self):
-    task = taskqueue.add(queue_name='job-queue', url='/api/run/' + self.job_id,
-                         countdown=_TASK_INTERVAL)
+    # Set a task name to deduplicate retries. This adds some latency, but we're
+    # not latency-sensitive. If Job.Run() works asynchronously in the future,
+    # we don't need to worry about duplicate tasks.
+    # https://github.com/catapult-project/catapult/issues/3900
+    task_name = str(uuid.uuid4())
+    try:
+      task = taskqueue.add(
+          queue_name='job-queue', url='/api/run/' + self.job_id,
+          name=task_name, countdown=_TASK_INTERVAL)
+    except apiproxy_errors.DeadlineExceededError:
+      task = taskqueue.add(
+          queue_name='job-queue', url='/api/run/' + self.job_id,
+          name=task_name, countdown=_TASK_INTERVAL)
+
     self.task = task.name
 
   def Run(self):
