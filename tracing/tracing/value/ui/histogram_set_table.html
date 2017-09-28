@@ -170,6 +170,7 @@ tr.exportTo('tr.v.ui', function() {
       title.style.whiteSpace = 'pre';
 
       return {
+        displayLabel,
         title,
         value: row => row.getCell(displayLabel),
         cmp: (rowA, rowB) => rowA.compareCells(rowB, displayLabel),

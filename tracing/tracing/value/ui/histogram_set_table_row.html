@@ -70,6 +70,15 @@ tr.exportTo('tr.v.ui', function() {
       return this.hierarchy_.columns;
     }
 
+    * sortedColumns() {
+      for (const col of this.baseTable_.tableColumns) {
+        yield [
+          col.displayLabel,
+          this.hierarchy_.columns.get(col.displayLabel),
+        ];
+      }
+    }
+
     /**
      * @return {!tr.b.Range}
      */

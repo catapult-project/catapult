@@ -255,7 +255,7 @@ tr.exportTo('tr.v.ui', function() {
         const data = [];
         let unit;
 
-        for (const [displayLabel, hist] of this.row.columns) {
+        for (const [displayLabel, hist] of this.row.sortedColumns()) {
           if (!(hist instanceof tr.v.Histogram)) continue;
 
           if (unit === undefined) {
