@@ -9,7 +9,7 @@ from telemetry import benchmark
 from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import chart_json_output_formatter
-from telemetry.internal.results import json_output_formatter
+from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.testing import stream
@@ -408,8 +408,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     output_formatters.append(
         chart_json_output_formatter.ChartJsonOutputFormatter(
             output_stream, benchmark_metadata))
-    output_formatters.append(json_output_formatter.JsonOutputFormatter(
-        output_stream, benchmark_metadata))
+    output_formatters.append(html_output_formatter.HtmlOutputFormatter(
+        output_stream, benchmark_metadata, True))
     results = page_test_results.PageTestResults(
         output_formatters=output_formatters, benchmark_enabled=False)
     results.PrintSummary()

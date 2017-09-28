@@ -18,7 +18,6 @@ from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_3_output_formatter
-from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
 
@@ -31,7 +30,6 @@ _OUTPUT_FORMAT_CHOICES = (
     'gtest',
     'histograms',
     'html',
-    'json',
     'json-test-results',
     'none',
     )
@@ -46,7 +44,6 @@ _OUTPUT_FILENAME_LOOKUP = {
     'csv-pivot-table': 'results-pivot-table.csv',
     'histograms': 'histograms.json',
     'html': 'results.html',
-    'json': 'results.json',
     'json-test-results': 'test-results.json',
 }
 
@@ -171,9 +168,6 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           upload_bucket))
-    elif output_format == 'json':
-      output_formatters.append(json_output_formatter.JsonOutputFormatter(
-          output_stream, benchmark_metadata))
     elif output_format == 'json-test-results':
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
           output_stream))

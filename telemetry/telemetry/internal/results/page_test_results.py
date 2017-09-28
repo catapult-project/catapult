@@ -18,7 +18,6 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import value as value_module
 from telemetry.internal.results import chart_json_output_formatter
-from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run
@@ -446,8 +445,7 @@ class PageTestResults(object):
 
       # Only serialize the trace if output_format is json or html.
       if (self._output_dir and
-          any(isinstance(o, (json_output_formatter.JsonOutputFormatter,
-                             html_output_formatter.HtmlOutputFormatter))
+          any(isinstance(o, html_output_formatter.HtmlOutputFormatter)
               for o in self._output_formatters)):
         self._SerializeTracesToDirPath()
       for output_formatter in self._output_formatters:
