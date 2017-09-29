@@ -134,7 +134,7 @@ def PinpointParamsFromPerfTryParams(params):
         'end_commit': Git hash or commit position of later revision.
         'start_repository': Repository for earlier revision.
         'end_repository': Repository for later revision.
-        'extra_args': Extra args for the swarming job.
+        'extra_test_args': Extra args for the swarming job.
     }
 
   Returns:
@@ -183,7 +183,7 @@ def PinpointParamsFromPerfTryParams(params):
   if start_repository != 'chromium' or end_repository != 'chromium':
     raise InvalidParamsError('Only chromium perf try jobs supported currently.')
 
-  extra_args = params['extra_args']
+  extra_test_args = params['extra_test_args']
 
   email = users.get_current_user().email()
   job_name = 'Job on [%s/%s] for [%s]' % (bot_name, suite, email)
@@ -202,7 +202,7 @@ def PinpointParamsFromPerfTryParams(params):
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
-      'extra_args': json.dumps(extra_args),
+      'extra_test_args': json.dumps(extra_test_args),
       'bug_id': '',
       'auto_explore': '0',
       'target': target,

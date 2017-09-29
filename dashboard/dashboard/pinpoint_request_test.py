@@ -133,7 +133,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'extra_args': ['--extra-trace-args', 'abc,123,foo'],
+        'extra_test_args': ['--extra-trace-args', 'abc,123,foo'],
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -152,7 +152,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('', results['story'])
     self.assertEqual(
         ['--extra-trace-args', 'abc,123,foo'],
-        json.loads(results['extra_args']))
+        json.loads(results['extra_test_args']))
     self.assertEqual(
         [{'key': 'foo', 'value': 'mac_dimensions'}],
         json.loads(results['dimensions']))
@@ -166,7 +166,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -195,7 +195,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'foo',
         'end_repository': 'chromium',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -209,7 +209,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'v8',
         'end_repository': 'chromium',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -223,7 +223,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'v8',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -240,7 +240,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': '5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -258,7 +258,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -275,7 +275,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': '456',
         'start_repository': 'v8',
         'end_repository': 'v8',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -292,7 +292,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': '456',
         'start_repository': 'v8',
         'end_repository': 'v8',
-        'extra_args': '',
+        'extra_test_args': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)

@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.end_commit, '0987654321');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'chromium');
-    assert.deepEqual(params.extra_args, [
+    assert.deepEqual(params.extra_test_args, [
       '--extra-chrome-categories', 'a,b,c'
     ]);
   }, testOptionsOverwriteSimpleXhr);
@@ -156,7 +156,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.end_commit, '0987654321');
     assert.strictEqual(params.start_repository, 'chromium');
     assert.strictEqual(params.end_repository, 'chromium');
-    assert.deepEqual(params.extra_args, [
+    assert.deepEqual(params.extra_test_args, [
       '--extra-atrace-categories', '1,2,3'
     ]);
   }, testOptionsOverwriteSimpleXhr);
