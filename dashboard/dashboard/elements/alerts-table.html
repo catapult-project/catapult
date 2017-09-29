@@ -746,6 +746,11 @@ found in the LICENSE file.
 
         const keys = this.selectedKeys;
 
+        // Clear this after the first time it is used so that it doesn't cause
+        // the alerts to be re-selected when the user deselects them then sorts
+        // the table. https://github.com/catapult-project/catapult/issues/3933
+        this.selectedKeys = undefined;
+
         const keySet = {};
         for (const k of keys) {
           keySet[k] = true;
