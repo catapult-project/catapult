@@ -97,6 +97,14 @@ def _TelemetryRunTest(request):
   arguments['browser'] = browser
   swarming_extra_args += ('--browser', browser)
 
+  extra_test_args = request.get('extra_test_args')
+  if extra_test_args:
+    extra_test_args = json.loads(extra_test_args)
+    if not isinstance(extra_test_args, list):
+      raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
+    arguments['extra_test_args'] = json.dumps(extra_test_args)
+    swarming_extra_args += extra_test_args
+
   # TODO: Remove `=` in 2018. It was fixed on the chromium side in r496979,
   # but any bisects on commit ranges older than August 25 will still fail.
   swarming_extra_args += ('-v', '--upload-results', '--output-format=chartjson')
@@ -121,6 +129,14 @@ def _GTestRunTest(request):
     swarming_extra_args.append('--gtest_filter=' + test)
 
   swarming_extra_args.append('--gtest_repeat=1')
+
+  extra_test_args = request.get('extra_test_args')
+  if extra_test_args:
+    extra_test_args = json.loads(extra_test_args)
+    if not isinstance(extra_test_args, list):
+      raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
+    arguments['extra_test_args'] = json.dumps(extra_test_args)
+    swarming_extra_args += extra_test_args
 
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
