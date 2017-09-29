@@ -127,6 +127,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedEventSet`
  * `RelatedHistogramBreakdown`
  * `RelatedHistogramMap`
+ * `RelatedNameMap`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared, so it may be
@@ -183,6 +184,12 @@ collectively as composed of various categories.
 
  * `values`: dictionary mapping from custom string name to the related
    Histogram's string guid
+
+### RelatedNameMap
+
+This is a Map from short descriptive names to full Histogram names.
+
+ * `names`: a dictionary mapping strings to strings containing Histogram names.
 
 ### Scalar
 

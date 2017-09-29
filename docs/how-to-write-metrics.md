@@ -169,6 +169,10 @@ histogram.addSample(number, {name: diagnostic})
 
    ![](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
 
+ * [RelatedNameMap](/tracing/tracing/value/diagnostics/related_name_map.html):
+   This maps from short keys to Histogram name. These are correlated with
+   Breakdowns. They are visualized as HTML links in Breakdowns.
+
 
 ### Other Diagnostics
 

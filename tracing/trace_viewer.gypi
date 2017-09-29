@@ -536,6 +536,7 @@
       'tracing/value/diagnostics/related_event_set.html',
       'tracing/value/diagnostics/related_histogram_breakdown.html',
       'tracing/value/diagnostics/related_histogram_map.html',
+      'tracing/value/diagnostics/related_name_map.html',
       'tracing/value/diagnostics/reserved_names.html',
       'tracing/value/diagnostics/scalar.html',
       'tracing/value/diagnostics/tag_map.html',
