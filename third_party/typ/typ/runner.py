@@ -111,6 +111,7 @@ class Runner(object):
         self.stats = None
         self.teardown_fn = None
         self.top_level_dir = None
+        self.top_level_dirs = []
         self.win_multiprocessing = WinMultiprocessing.spawn
         self.final_responses = []
 
@@ -159,7 +160,7 @@ class Runner(object):
             return self._spawn(test_set)
 
         ret = self._set_up_runner()
-        if ret:  # pragma: no cover
+        if ret:
             return ret, None, None
 
         find_start = h.time()
@@ -289,24 +290,39 @@ class Runner(object):
         self.printer = Printer(
             self.print_, args.overwrite, args.terminal_width)
 
-        self.top_level_dir = args.top_level_dir
-        if not self.top_level_dir:
-            if args.tests and h.isdir(args.tests[0]):
-                # TODO: figure out what to do if multiple files are
-                # specified and they don't all have the same correct
-                # top level dir.
-                d = h.realpath(h.dirname(args.tests[0]))
-                if h.exists(d, '__init__.py'):
-                    top_dir = d
+        if self.args.top_level_dirs and self.args.top_level_dir:
+            self.print_(
+                'Cannot specify both --top-level-dir and --top-level-dirs',
+                stream=h.stderr)
+            return 1
+
+        self.top_level_dirs = args.top_level_dirs
+        if not self.top_level_dirs and args.top_level_dir:
+            self.top_level_dirs = [args.top_level_dir]
+
+        if not self.top_level_dirs:
+            for test in [t for t in args.tests if h.exists(t)]:
+                if h.isdir(test):
+                    top_dir = test
                 else:
-                    top_dir = args.tests[0]
-            else:
-                top_dir = h.getcwd()
+                    top_dir = h.dirname(test)
+                while h.exists(top_dir, '__init__.py'):
+                    top_dir = h.dirname(top_dir)
+                top_dir = h.realpath(top_dir)
+                if not top_dir in self.top_level_dirs:
+                    self.top_level_dirs.append(top_dir)
+        if not self.top_level_dirs:
+            top_dir = h.getcwd()
             while h.exists(top_dir, '__init__.py'):
                 top_dir = h.dirname(top_dir)
-            self.top_level_dir = h.realpath(top_dir)
+            top_dir = h.realpath(top_dir)
+            self.top_level_dirs.append(top_dir)
 
-        h.add_to_path(self.top_level_dir)
+        if not self.top_level_dir and self.top_level_dirs:
+            self.top_level_dir = self.top_level_dirs[0]
+
+        for path in self.top_level_dirs:
+            h.add_to_path(path)
 
         for path in args.path:
             h.add_to_path(path)
@@ -315,11 +331,11 @@ class Runner(object):
             try:
                 import coverage
             except ImportError:
-                h.print_("Error: coverage is not installed")
                 return 1
+
             source = self.args.coverage_source
             if not source:
-                source = [self.top_level_dir] + self.args.path
+                source = self.top_level_dirs + self.args.path
             self.coverage_source = source
             self.cov = coverage.coverage(source=self.coverage_source,
                                          data_suffix=True)
@@ -342,7 +358,7 @@ class Runner(object):
             for name in names:
                 try:
                     self._add_tests_to_set(test_set, args.suffixes,
-                                           self.top_level_dir, classifier,
+                                           self.top_level_dirs, classifier,
                                            name)
                 except (AttributeError, ImportError, SyntaxError) as e:
                     ex_str = traceback.format_exc()
@@ -385,33 +401,47 @@ class Runner(object):
                 s = self.host.read_text_file(args.file_list)
             names = [line.strip() for line in s.splitlines()]
         else:
-            names = [self.top_level_dir]
+            names = self.top_level_dirs
         return names
 
-    def _add_tests_to_set(self, test_set, suffixes, top_level_dir, classifier,
+    def _add_tests_to_set(self, test_set, suffixes, top_level_dirs, classifier,
                           name):
         h = self.host
         loader = self.loader
         add_tests = _test_adder(test_set, classifier)
 
-        if h.isfile(name):
-            rpath = h.relpath(name, top_level_dir)
-            if rpath.endswith('.py'):
-                rpath = rpath[:-3]
-            module = rpath.replace(h.sep, '.')
-            add_tests(loader.loadTestsFromName(module))
-        elif h.isdir(name):
-            for suffix in suffixes:
-                add_tests(loader.discover(name, suffix, top_level_dir))
-        else:
-            possible_dir = name.replace('.', h.sep)
-            if h.isdir(top_level_dir, possible_dir):
+        found = set()
+        for d in top_level_dirs:
+            if h.isfile(name):
+                rpath = h.relpath(name, d)
+                if rpath.startswith('..'):
+                    continue
+                if rpath.endswith('.py'):
+                    rpath = rpath[:-3]
+                module = rpath.replace(h.sep, '.')
+                if module not in found:
+                    found.add(module)
+                    add_tests(loader.loadTestsFromName(module))
+            elif h.isdir(name):
+                rpath = h.relpath(name, d)
+                if rpath.startswith('..'):
+                    continue
                 for suffix in suffixes:
-                    path = h.join(top_level_dir, possible_dir)
-                    suite = loader.discover(path, suffix, top_level_dir)
-                    add_tests(suite)
+                    if not name in found:
+                        found.add(name + '/' + suffix)
+                        add_tests(loader.discover(name, suffix, d))
             else:
-                add_tests(loader.loadTestsFromName(name))
+                possible_dir = name.replace('.', h.sep)
+                if h.isdir(d, possible_dir):
+                    for suffix in suffixes:
+                        path = h.join(d, possible_dir)
+                        if not path in found:
+                            found.add(path + '/' + suffix)
+                            suite = loader.discover(path, suffix, d)
+                            add_tests(suite)
+                elif not name in found:
+                    found.add(name)
+                    add_tests(loader.loadTestsFromName(name))
 
         # pylint: disable=no-member
         if hasattr(loader, 'errors') and loader.errors:  # pragma: python3
@@ -755,6 +785,7 @@ class _Child(object):
         self.teardown_fn = parent.teardown_fn
         self.context_after_setup = None
         self.top_level_dir = parent.top_level_dir
+        self.top_level_dirs = parent.top_level_dirs
         self.loaded_suites = {}
         self.cov = None
 

@@ -85,7 +85,7 @@ class ArgumentParser(argparse.ArgumentParser):
                               default=[],
                               help=('Directories to include when running and '
                                     'reporting coverage (defaults to '
-                                    '--top-level-dir plus --path)'))
+                                    '--top-level-dirs plus --path)'))
             self.add_argument('--coverage-omit', action='append',
                               default=[],
                               help=('Globs to omit when reporting coverage '
@@ -171,7 +171,9 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('-P', '--path', action='append', default=[],
                               help=('Adds dir to sys.path (can specify '
                                     'multiple times).'))
-            self.add_argument('--top-level-dir', default=None,
+            self.add_argument('--top-level-dir', action='store', default=None,
+                              help=argparse.SUPPRESS)
+            self.add_argument('--top-level-dirs', action='append', default=[],
                               help=('Sets the top directory of project '
                                     '(used when running subdirs).'))
 

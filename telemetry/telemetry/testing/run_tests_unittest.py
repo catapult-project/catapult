@@ -47,7 +47,7 @@ class RunTestsUnitTest(unittest.TestCase):
       args = MockArgs()
     runner = run_tests.typ.Runner()
     host = runner.host
-    runner.top_level_dir = util.GetTelemetryDir()
+    runner.top_level_dirs = [util.GetTelemetryDir()]
     runner.args.tests = [
         host.join(util.GetTelemetryDir(), 'telemetry', 'testing',
                   'disabled_cases.py')

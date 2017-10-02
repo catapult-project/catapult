@@ -69,6 +69,7 @@ class RunTestsCommand(command_line.OptparseCommand):
                       action='append', help=(
                           'Globs of test names to skip (defaults to '
                           '%(default)s).'))
+
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
                                         running=True,
@@ -173,7 +174,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
     runner.args.test_type = args.test_type
-    runner.args.top_level_dir = args.top_level_dir
+    runner.args.top_level_dirs = args.top_level_dirs
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
     runner.args.list_only = args.list_only
