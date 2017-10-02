@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/extras/chrome/cc/picture_ops_chart_view.css">
-
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 
 <script>
@@ -41,6 +39,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
+      this.style.display = 'block';
+      this.style.height = '180px';
+      this.style.margin = 0;
+      this.style.padding = 0;
+      this.style.position = 'relative';
+
       this.picture_ = undefined;
       this.pictureOps_ = undefined;
       this.opCosts_ = undefined;
@@ -71,6 +75,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Limit to 95%-ile');
       Polymer.dom(this.usePercentileScaleCheckbox_).classList.add(
           'use-percentile-scale');
+      this.usePercentileScaleCheckbox_.style.position = 'absolute';
+      this.usePercentileScaleCheckbox_.style.left = 0;
+      this.usePercentileScaleCheckbox_.style.top = 0;
       Polymer.dom(this).appendChild(this.usePercentileScaleCheckbox_);
     },
 

@@ -20,48 +20,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/quad_stack_view.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 
-<style>
-* /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view {
-  position: relative;
-}
-
-* /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view > top-controls {
-  flex: 0 0 auto;
-  background-image: -webkit-gradient(linear,
-                                     0 0, 100% 0,
-                                     from(#E5E5E5),
-                                     to(#D1D1D1));
-  border-bottom: 1px solid #8e8e8e;
-  border-top: 1px solid white;
-  display: flex;
-  flex-flow: row wrap;
-  flex-direction: row;
-  font-size:  14px;
-  padding-left: 2px;
-  overflow: hidden;
-}
-
-* /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view >
-      top-controls input[type='checkbox'] {
-  vertical-align: -2px;
-}
-
-* /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view > .what-rasterized {
-  color: -webkit-link;
-  cursor: pointer;
-  text-decoration: underline;
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-}
-
-* /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view > #input-event {
-  background-image: url('./images/input-event.png');
-  display: none;
-}
-</style>
-
 <template id='tr-ui-e-chrome-cc-layer-tree-quad-stack-view-template'>
+  <style>
+  #input-event {
+    background-image: url('./images/input-event.png');
+    display: none;
+  }
+  </style>
   <img id='input-event'/>
 </template>
 
@@ -99,10 +64,31 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
+      this.style.flexGrow = 1;
+      this.style.flexShrink = 1;
+      this.style.flexBasis = '100%';
+      this.style.flexDirection = 'column';
+      this.style.minHeight = 0;
+      this.style.display = 'flex';
+      this.style.width = '100%';
+
       this.isRenderPassQuads_ = false;
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
       this.messages_ = [];
       this.controls_ = document.createElement('top-controls');
+      this.controls_.style.flexGrow = 0;
+      this.controls_.style.flexShrink = 0;
+      this.controls_.style.flexBasis = 'auto';
+      this.controls_.style.backgroundImage =
+        '-webkit-gradient(linear, 0 0, 100% 0, from(#E5E5E5), to(#D1D1D1))';
+      this.controls_.style.borderBottom = '1px solid #8e8e8e';
+      this.controls_.style.borderTop = '1px solid white';
+      this.controls_.style.display = 'flex';
+      this.controls_.style.flexDirection = 'row';
+      this.controls_.style.flexWrap = 'wrap';
+      this.controls_.style.fontSize = '14px';
+      this.controls_.style.paddingLeft = '2px';
+      this.controls_.style.overflow = 'hidden';
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       this.quadStackView_ = new tr.ui.b.QuadStackView();
       this.quadStackView_.addEventListener(

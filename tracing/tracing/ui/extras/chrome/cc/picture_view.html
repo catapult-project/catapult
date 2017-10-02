@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/extras/chrome/cc/picture_view.css">
-
 <link rel="import" href="/tracing/extras/chrome/cc/picture.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/analysis/object_snapshot_view.html">
@@ -30,6 +28,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate() {
       Polymer.dom(this).classList.add(
           'tr-ui-e-chrome-cc-picture-snapshot-view');
+      this.style.display = 'flex';
+      this.style.flexGrow = 0;
+      this.style.flexShrink = 1;
+      this.style.flexBasis = 'auto';
       this.pictureDebugger_ = new tr.ui.e.chrome.cc.PictureDebugger();
       Polymer.dom(this).appendChild(this.pictureDebugger_);
     },

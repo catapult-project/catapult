@@ -13,16 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
 
-<style>
-  * /deep/ .chart-base-2d.updating-brushing-state #brushes > * {
-    fill: rgb(103, 199, 165)
-  }
-
-  * /deep/ .chart-base-2d #brushes {
-    fill: rgb(213, 236, 229)
-  }
-</style>
-
 <script>
 'use strict';
 
@@ -454,6 +444,11 @@ tr.exportTo('tr.ui.b', function() {
       const chartAreaSel = d3.select(this.chartAreaElement);
       this.updateXAxis_(chartAreaSel.select('.x.axis'));
       this.updateYAxis_(chartAreaSel.select('.y.axis'));
+      for (const child of this.querySelectorAll('.axis path, .axis line')) {
+        child.style.fill = 'none';
+        child.style.shapeRendering = 'crispEdges';
+        child.style.stroke = 'black';
+      }
       this.updateBrushContents_(chartAreaSel.select('#brushes'));
       this.updateDataContents_(chartAreaSel.select('#series'));
     },
@@ -535,9 +530,11 @@ tr.exportTo('tr.ui.b', function() {
       mouseEvent.stopPropagation();
       const dataEvent = new tr.b.Event('item-mousedown');
       dataEvent.button = mouseEvent.button;
-      Polymer.dom(this).classList.add('updating-brushing-state');
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
+      for (const child of this.querySelector('#brushes').children) {
+        child.setAttribute('fill', 'rgb(103, 199, 165)');
+      }
     },
 
     onMouseMove_(button, mouseEvent) {
@@ -549,6 +546,9 @@ tr.exportTo('tr.ui.b', function() {
       dataEvent.button = button;
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
+      for (const child of this.querySelector('#brushes').children) {
+        child.setAttribute('fill', 'rgb(103, 199, 165)');
+      }
     },
 
     onMouseUp_(button, mouseEvent) {
@@ -558,7 +558,9 @@ tr.exportTo('tr.ui.b', function() {
       dataEvent.button = button;
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
-      Polymer.dom(this).classList.remove('updating-brushing-state');
+      for (const child of this.querySelector('#brushes').children) {
+        child.setAttribute('fill', 'rgb(213, 236, 229)');
+      }
     }
   };
 

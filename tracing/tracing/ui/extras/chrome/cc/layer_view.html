@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/extras/chrome/cc/layer_view.css">
-
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
@@ -34,11 +32,19 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
+      this.style.flexDirection = 'column';
+      this.style.display = 'flex';
+      this.style.left = 0;
+      this.style.position = 'relative';
+      this.style.top = 0;
+
       this.layerTreeQuadStackView_ =
           new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
       this.dragBar_ = document.createElement('tr-ui-b-drag-handle');
       this.analysisEl_ =
           document.createElement('tr-ui-e-chrome-cc-layer-view-analysis');
+      this.analysisEl_.style.height = '150px';
+      this.analysisEl_.style.overflowY = 'auto';
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
 
@@ -94,6 +100,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         const analysis = selection.createAnalysis();
         Polymer.dom(this.analysisEl_).appendChild(analysis);
+        for (const child of this.analysisEl_.children) {
+          child.style.userSelect = 'text';
+        }
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';

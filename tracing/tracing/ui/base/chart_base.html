@@ -10,20 +10,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/d3.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<style>
-  * /deep/ .chart-base {
-    -webkit-user-select: none;
-    cursor: default;
-  }
-
-  * /deep/ .chart-base .axis path,
-  * /deep/ .chart-base .axis line {
-    fill: none;
-    shape-rendering: crispEdges;
-    stroke: #000;
-  }
-</style>
-
 <template id="chart-base-template">
   <svg> <!-- svg tag is dropped by ChartBase.decorate. -->
     <g xmlns="http://www.w3.org/2000/svg" id="chart-area">
@@ -177,6 +163,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate() {
       Polymer.dom(this).classList.add('chart-base');
+      this.setAttribute('style', 'cursor: default; user-select: none;');
       this.chartTitle_ = undefined;
       this.seriesByKey_ = new Map();
       this.graphWidth_ = undefined;

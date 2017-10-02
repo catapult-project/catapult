@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/base/list_view.css">
-
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/ui/base/container_that_decorates_its_children.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
@@ -32,6 +30,9 @@ tr.exportTo('tr.ui.b', function() {
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
 
       Polymer.dom(this).classList.add('x-list-view');
+      this.style.display = 'block';
+      this.style.userSelect = 'none';
+      this.style.outline = 'none';
       this.onItemClicked_ = this.onItemClicked_.bind(this);
       this.onKeyDown_ = this.onKeyDown_.bind(this);
       this.tabIndex = 0;
@@ -42,6 +43,10 @@ tr.exportTo('tr.ui.b', function() {
 
     decorateChild_(item) {
       Polymer.dom(item).classList.add('list-item');
+      item.style.paddingTop = '2px';
+      item.style.paddingRight = '4px';
+      item.style.paddingBottom = '2px';
+      item.style.paddingLeft = '4px';
       item.addEventListener('click', this.onItemClicked_, true);
 
       Object.defineProperty(
@@ -57,8 +62,12 @@ tr.exportTo('tr.ui.b', function() {
               }
               if (value) {
                 Polymer.dom(item).setAttribute('selected', 'selected');
+                item.style.backgroundColor = 'rgb(171, 217, 202)';
+                item.style.outline = '1px dotted rgba(0,0,0,0.1)';
+                item.style.outlineOffset = 0;
               } else {
                 Polymer.dom(item).removeAttribute('selected');
+                item.style.backgroundColor = '';
               }
               const newSelection = this.selectedElement;
               if (newSelection !== oldSelection) {
@@ -161,6 +170,7 @@ tr.exportTo('tr.ui.b', function() {
       const item = document.createElement('div');
       Polymer.dom(item).textContent = textContent;
       Polymer.dom(this).appendChild(item);
+      item.style.userSelect = 'none';
       return item;
     }
 

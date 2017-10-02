@@ -5,16 +5,7 @@
 {
   'variables': {
     'tracing_css_files': [
-      'tracing/ui/base/list_view.css',
       'tracing/ui/extras/about_tracing/common.css',
-      'tracing/ui/extras/chrome/cc/display_item_list_view.css',
-      'tracing/ui/extras/chrome/cc/layer_picker.css',
-      'tracing/ui/extras/chrome/cc/layer_tree_host_impl_view.css',
-      'tracing/ui/extras/chrome/cc/layer_view.css',
-      'tracing/ui/extras/chrome/cc/picture_ops_chart_summary_view.css',
-      'tracing/ui/extras/chrome/cc/picture_ops_chart_view.css',
-      'tracing/ui/extras/chrome/cc/picture_ops_list_view.css',
-      'tracing/ui/extras/chrome/cc/picture_view.css',
       'tracing/ui/extras/chrome/gpu/state_view.css',
       'tracing/ui/extras/system_stats/system_stats_instance_track.css',
       'tracing/ui/extras/system_stats/system_stats_snapshot_view.css',

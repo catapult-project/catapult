@@ -19,84 +19,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/extras/chrome/cc/picture_ops_list_view.html">
 
 <template id="tr-ui-e-chrome-cc-display-item-debugger-template">
-  <style>
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger {
-    flex: 1 1 auto;
-    display: flex;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel {
-    flex-direction: column;
-    display: flex;
-    min-width: 300px;
-    overflow-y: auto;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
-        display-item-info {
-    flex: 1 1 auto;
-    padding-top: 2px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
-        display-item-info .title {
-    font-weight: bold;
-    margin-left: 5px;
-    margin-right: 5px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
-        display-item-info .export {
-    margin: 5px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > tr-ui-b-drag-handle {
-    flex: 0 0 auto;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel {
-    flex: 1 1 auto;
-    display: flex;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > left-panel >
-      display-item-info > header {
-    border-bottom: 1px solid #555;
-  }
-
-  /*************************************************/
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-      tr-ui-e-chrome-cc-picture-ops-list-view.hasPictureOps {
-    display: block;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-        tr-ui-b-drag-handle.hasPictureOps {
-    display: block;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-        tr-ui-e-chrome-cc-picture-ops-list-view {
-    display: none;
-    overflow-y: auto;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger > right-panel >
-        tr-ui-b-drag-handle {
-    display: none;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-display-item-debugger raster-area {
-    flex: 1 1 auto;
-    background-color: #ddd;
-    min-height: 200px;
-    min-width: 200px;
-    overflow-y: auto;
-    padding-left: 5px;
-  }
-  </style>
-
   <left-panel>
     <display-item-info>
       <header>
@@ -141,12 +63,24 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
       Polymer.dom(this).appendChild(node);
+      this.style.flexGrow = 1;
+      this.style.flexShrink = 1;
+      this.style.flexBasis = 'auto';
+      this.style.display = 'flex';
 
       this.pictureAsImageData_ = undefined;
       this.zoomScaleValue_ = 1;
 
       this.sizeInfo_ = Polymer.dom(this).querySelector('.size');
       this.rasterArea_ = Polymer.dom(this).querySelector('raster-area');
+      this.rasterArea_.style.flexGrow = 1;
+      this.rasterArea_.style.flexShrink = 1;
+      this.rasterArea_.style.flexBasis = 'auto';
+      this.rasterArea_.style.backgroundColor = '#ddd';
+      this.rasterArea_.style.minHeight = '200px';
+      this.rasterArea_.style.minWidth = '200px';
+      this.rasterArea_.style.overflowY = 'auto';
+      this.rasterArea_.style.paddingLeft = '5px';
       this.rasterCanvas_ =
           Polymer.dom(this.rasterArea_).querySelector('canvas');
       this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
@@ -176,12 +110,39 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'click', this.onExportSkPictureClicked_.bind(this));
 
       const leftPanel = Polymer.dom(this).querySelector('left-panel');
+      leftPanel.style.display = 'flex';
+      leftPanel.style.flexDirection = 'column';
+      leftPanel.style.minWidth = '300px';
+      leftPanel.style.overflowY = 'auto';
+
+      leftPanel.children[0].paddingTop = '2px';
+      leftPanel.children[0].flexGrow = 1;
+      leftPanel.children[0].flexShrink = 1;
+      leftPanel.children[0].flexBasis = 'auto';
+
+      leftPanel.children[0].children[0].style.borderBottom = '1px solid #555';
+
+      const leftPanelTitle = leftPanel.querySelector('.title');
+      leftPanelTitle.style.fontWeight = 'bold';
+      leftPanelTitle.style.marginLeft = '5px';
+      leftPanelTitle.style.marginright = '5px';
+
+      for (const div of leftPanel.querySelectorAll('.export')) {
+        div.style.margin = '5px';
+      }
 
       const middleDragHandle = document.createElement('tr-ui-b-drag-handle');
+      middleDragHandle.style.flexGrow = 0;
+      middleDragHandle.style.flexShrink = 0;
+      middleDragHandle.style.flexBasis = 'auto';
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
       const rightPanel = Polymer.dom(this).querySelector('right-panel');
+      rightPanel.style.display = 'flex';
+      rightPanel.style.flexGrow = 1;
+      rightPanel.style.flexShrink = 1;
+      rightPanel.style.flexBasis = 'auto';
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       Polymer.dom(this.rasterArea_).insertBefore(
@@ -192,6 +153,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.picture_ = undefined;
 
       this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
+      this.pictureOpsListView_.style.overflowY = 'auto';
       Polymer.dom(rightPanel).insertBefore(
           this.pictureOpsListView_, this.rasterArea_);
 
@@ -363,14 +325,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (showOpsList) {
         this.pictureOpsListView_.picture = this.picture_;
         if (this.pictureOpsListView_.numOps > 0) {
-          Polymer.dom(this.pictureOpsListView_).classList.add('hasPictureOps');
-          Polymer.dom(this.pictureOpsListDragHandle_).classList.add(
-              'hasPictureOps');
+          this.pictureOpsListView_.style.display = 'block';
+          this.pictureOpsListDragHandle_.style.display = 'block';
         }
       } else {
-        Polymer.dom(this.pictureOpsListView_).classList.remove('hasPictureOps');
-        Polymer.dom(this.pictureOpsListDragHandle_).classList.remove(
-            'hasPictureOps');
+        this.pictureOpsListView_.style.display = 'none';
+        this.pictureOpsListDragHandle_.style.display = 'none';
       }
     },
 

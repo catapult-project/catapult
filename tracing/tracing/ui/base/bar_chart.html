@@ -53,7 +53,8 @@ tr.exportTo('tr.ui.b', function() {
           .attr('width', this.graphWidth)
           .attr('y', d => this.verticalScale_(d.max))
           .attr('height', d =>
-            this.verticalScale_(d.min) - this.verticalScale_(d.max));
+            this.verticalScale_(d.min) - this.verticalScale_(d.max))
+          .attr('fill', 'rgb(213, 236, 229)');
     },
 
     getDataPointAtChartPoint_(chartPoint) {

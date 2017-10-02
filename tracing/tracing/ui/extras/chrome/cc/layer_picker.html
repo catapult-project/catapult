@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/extras/chrome/cc/layer_picker.css">
-
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
 <link rel="import" href="/tracing/extras/chrome/cc/layer_tree_host_impl.html">
@@ -39,8 +37,25 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.controls_ = document.createElement('top-controls');
       this.renderPassQuads_ = false;
 
+      this.style.display = 'flex';
+      this.style.flexDirection = 'column';
+      this.controls_.style.flexGrow = 0;
+      this.controls_.style.flexShrink = 0;
+      this.controls_.style.flexBasis = 'auto';
+      this.controls_.style.backgroundImage =
+        '-webkit-gradient(linear, 0 0, 100% 0, from(#E5E5E5), to(#D1D1D1))';
+      this.controls_.style.borderBottom = '1px solid #8e8e8e';
+      this.controls_.style.borderTop = '1px solid white';
+      this.controls_.style.display = 'inline';
+      this.controls_.style.fontSize = '14px';
+      this.controls_.style.paddingLeft = '2px';
 
       this.itemList_ = new tr.ui.b.ListView();
+      this.itemList_.style.flexGrow = 1;
+      this.itemList_.style.flexShrink = 1;
+      this.itemList_.style.flexBasis = 'auto';
+      this.itemList_.style.fontFamily = 'monospace';
+      this.itemList_.style.overflow = 'auto';
       Polymer.dom(this).appendChild(this.controls_);
 
       Polymer.dom(this).appendChild(this.itemList_);

@@ -5,9 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet"
-    href="/tracing/ui/extras/chrome/cc/picture_ops_chart_summary_view.css">
-
 <link rel="import" href="/tracing/ui/base/ui.html">
 
 <script>
@@ -42,6 +39,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
+      this.style.flexGrow = 0;
+      this.style.flexShrink = 0;
+      this.style.flexBasis = 'auto';
+      this.style.fontSize = 0;
+      this.style.margin = 0;
+      this.style.minHeight = '200px';
+      this.style.minWidth = '200px';
+      this.style.overflow = 'hidden';
+      this.style.padding = 0;
+
       this.picture_ = undefined;
       this.pictureDataProcessed_ = false;
 
@@ -87,10 +94,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     hide() {
       Polymer.dom(this).classList.add('hidden');
+      this.style.display = 'none';
     },
 
     show() {
       Polymer.dom(this).classList.remove('hidden');
+      this.style.display = '';
 
       if (this.pictureDataProcessed_) return;
 

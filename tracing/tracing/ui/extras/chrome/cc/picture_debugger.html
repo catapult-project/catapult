@@ -21,71 +21,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/extras/chrome/cc/picture_ops_list_view.html">
 
 <template id="tr-ui-e-chrome-cc-picture-debugger-template">
-  <style>
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger {
-    flex: 1 1 auto;
-    flex-direction: row;
-    display: flex;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > tr-ui-a-generic-object-view {
-    flex-direction: column;
-    display: flex;
-    width: 400px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel {
-    flex-direction: column;
-    display: flex;
-    min-width: 300px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel > picture-info {
-    flex: 0 0 auto;
-    padding-top: 2px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > left-panel >
-        picture-info .title {
-    font-weight: bold;
-    margin-left: 5px;
-    margin-right: 5px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > tr-ui-b-drag-handle {
-    flex: 0 0 auto;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger .filename {
-    -webkit-user-select: text;
-    margin-left: 5px;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > right-panel {
-    flex: 1 1 auto;
-    flex-direction: column;
-    display: flex;
-  }
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger > right-panel >
-        tr-ui-e-chrome-cc-picture-ops-chart-view {
-    min-height: 150px;
-    min-width : 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  /*************************************************/
-
-  * /deep/ tr-ui-e-chrome-cc-picture-debugger raster-area {
-    background-color: #ddd;
-    min-height: 200px;
-    min-width: 200px;
-    overflow-y: auto;
-    padding-left: 5px;
-  }
-  </style>
-
   <left-panel>
     <picture-info>
       <div>
@@ -128,17 +63,35 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       Polymer.dom(this).appendChild(node);
 
+      this.style.display = 'flex';
+      this.style.flexGrow = 1;
+      this.style.flexShrink = 1;
+      this.style.flexBasis = 'auto';
+      this.style.flexDirection = 'row';
+
+      const title = this.querySelector('.title');
+      title.style.fontWeight = 'bold';
+      title.style.marginLeft = '5px';
+      title.style.marginRight = '5px';
+
       this.pictureAsImageData_ = undefined;
       this.showOverdraw_ = false;
       this.zoomScaleValue_ = 1;
 
       this.sizeInfo_ = Polymer.dom(this).querySelector('.size');
       this.rasterArea_ = Polymer.dom(this).querySelector('raster-area');
+      this.rasterArea_.style.backgroundColor = '#ddd';
+      this.rasterArea_.style.minHeight = '200px';
+      this.rasterArea_.style.minWidth = '200px';
+      this.rasterArea_.style.overflowY = 'auto';
+      this.rasterArea_.style.paddingLeft = '5px';
       this.rasterCanvas_ = Polymer.dom(this.rasterArea_)
           .querySelector('canvas');
       this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
 
       this.filename_ = Polymer.dom(this).querySelector('.filename');
+      this.filename_.style.userSelect = 'text';
+      this.filename_.style.marginLeft = '5px';
 
       this.drawOpsChartSummaryView_ =
           new tr.ui.e.chrome.cc.PictureOpsChartSummaryView();
@@ -163,6 +116,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Show timing summary');
 
       const pictureInfo = Polymer.dom(this).querySelector('picture-info');
+      pictureInfo.style.flexGrow = 0;
+      pictureInfo.style.flexShrink = 0;
+      pictureInfo.style.flexBasis = 'auto';
+      pictureInfo.style.paddingTop = '2px';
       Polymer.dom(pictureInfo).appendChild(overdrawCheckbox);
       Polymer.dom(pictureInfo).appendChild(chartCheckbox);
 
@@ -171,17 +128,32 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
       const leftPanel = Polymer.dom(this).querySelector('left-panel');
+      leftPanel.style.flexDirection = 'column';
+      leftPanel.style.display = 'flex';
+      leftPanel.style.minWidth = '300px';
       Polymer.dom(leftPanel).appendChild(this.drawOpsChartSummaryView_);
       Polymer.dom(leftPanel).appendChild(this.drawOpsView_);
 
       const middleDragHandle = document.createElement('tr-ui-b-drag-handle');
+      middleDragHandle.style.flexGrow = 0;
+      middleDragHandle.style.flexShrink = 0;
+      middleDragHandle.style.flexBasis = 'auto';
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
       const rightPanel = Polymer.dom(this).querySelector('right-panel');
-      rightPanel.replaceChild(
-          this.drawOpsChartView_, Polymer.dom(rightPanel)
-              .querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
+      rightPanel.style.flexGrow = 1;
+      rightPanel.style.flexShrink = 1;
+      rightPanel.style.flexBasis = 'auto';
+      rightPanel.style.flexDirection = 'column';
+      rightPanel.style.display = 'flex';
+      const chartView = Polymer.dom(rightPanel).querySelector(
+          'tr-ui-e-chrome-cc-picture-ops-chart-view');
+      chartView.style.minHeight = '150px';
+      chartView.style.minWidth = 0;
+      chartView.style.overflowX = 'auto';
+      chartView.style.overflowY = 'hidden';
+      rightPanel.replaceChild(this.drawOpsChartView_, chartView);
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       Polymer.dom(this.rasterArea_).appendChild(this.infoBar_);

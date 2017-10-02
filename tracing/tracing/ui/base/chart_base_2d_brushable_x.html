@@ -78,7 +78,8 @@ tr.exportTo('tr.ui.b', function() {
           .attr('x', d => this.xScale_(d.min))
           .attr('y', 0)
           .attr('width', d => this.xScale_(d.max) - this.xScale_(d.min))
-          .attr('height', this.graphHeight);
+          .attr('height', this.graphHeight)
+          .attr('fill', 'rgb(213, 236, 229)');
     }
   };
 

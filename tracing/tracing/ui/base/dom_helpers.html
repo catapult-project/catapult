@@ -8,13 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<style>
-* /deep/ .labeled-checkbox {
-  display: flex;
-  white-space: nowrap;
-}
-</style>
-
 <script>
 'use strict';
 
@@ -302,7 +295,9 @@ tr.exportTo('tr.ui.b', function() {
 
     const id = '#checkbox-' + nextCheckboxId++;
 
-    const spanEl = createSpan({className: 'labeled-checkbox'});
+    const spanEl = createSpan();
+    spanEl.style.display = 'flex';
+    spanEl.style.whiteSpace = 'nowrap';
     Polymer.dom(buttonEl).setAttribute('id', id);
 
     const labelEl = document.createElement('label');
