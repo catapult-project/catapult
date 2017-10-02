@@ -104,7 +104,7 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
-  const FIRST_PAINT_BOUNDARIES = tr.v.HistogramBinBoundaries
+  const LOADING_METRIC_BOUNDARIES = tr.v.HistogramBinBoundaries
     .createLinear(0, 1e3, 20)  // 50ms step to 1s
     .addLinearBins(3e3, 20) // 100ms step to 3s
     .addExponentialBins(20e3, 20);
@@ -224,11 +224,12 @@ tr.exportTo('tr.metrics.sh', function() {
     const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: timeToFirstMeaningfulPaint,
+      breakdownTree,
       diagnostics: {
-        'Breakdown of [navStart, FMP]': breakdownDiagnostic,
-        'Start': new RelatedEventSet(navigationStart),
-        'End': new RelatedEventSet(fmpMarkerEvent),
-        'Navigation infos': new tr.v.d.GenericSet([{
+        breakdown: breakdownDiagnostic,
+        start: new RelatedEventSet(navigationStart),
+        end: new RelatedEventSet(fmpMarkerEvent),
+        infos: new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStart.start,
@@ -257,11 +258,12 @@ tr.exportTo('tr.metrics.sh', function() {
     const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: mainThreadCpuTime,
+      breakdownTree,
       diagnostics: {
-        'Breakdown of [navStart, FMP]': breakdownDiagnostic,
-        'Start': new RelatedEventSet(navigationStart),
-        'End': new RelatedEventSet(fmpMarkerEvent),
-        'Navigation infos': new tr.v.d.GenericSet([{
+        breakdown: breakdownDiagnostic,
+        start: new RelatedEventSet(navigationStart),
+        end: new RelatedEventSet(fmpMarkerEvent),
+        infos: new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStart.start,
@@ -327,16 +329,17 @@ tr.exportTo('tr.metrics.sh', function() {
     const timeToFirstInteractive = navStartToFirstInteractiveRange.duration;
     samples.push({
       value: timeToFirstInteractive,
+      breakdownTree,
       diagnostics: {
-        'Start': new RelatedEventSet(navigationStart),
-        'Last long task': new RelatedEventSet(lastLongTaskEvent),
-        'Navigation infos': new tr.v.d.GenericSet([{
+        start: new RelatedEventSet(navigationStart),
+        lastLongTask: new RelatedEventSet(lastLongTaskEvent),
+        infos: new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
           start: navigationStartTime,
           interactive: firstInteractive,
         }]),
-        'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
+        breakdown: breakdownDiagnostic,
       }
     });
   }
@@ -446,47 +449,72 @@ tr.exportTo('tr.metrics.sh', function() {
     };
   }
 
-  function addSamplesToHistogram(samples, histogram) {
+  function addSamplesToHistogram(samples, histogram, histograms) {
     for (const sample of samples) {
       histogram.addSample(sample.value, sample.diagnostics);
+
+      if (!sample.breakdownTree) continue;
+      for (const [category, breakdown] of Object.entries(
+          sample.breakdownTree)) {
+        const relatedName = `${histogram.name}:${category}`;
+        let relatedHist = histograms.getHistogramsNamed(relatedName)[0];
+        if (!relatedHist) {
+          relatedHist = histograms.createHistogram(
+              relatedName, histogram.unit, [], {
+                binBoundaries: LOADING_METRIC_BOUNDARIES,
+                summaryOptions: SUMMARY_OPTIONS,
+              });
+
+          let relatedNames = histogram.diagnostics.get('breakdown');
+          if (!relatedNames) {
+            relatedNames = new tr.v.d.RelatedHistogramBreakdown();
+            histogram.diagnostics.set('breakdown', relatedNames);
+          }
+          relatedNames.set(category, relatedHist);
+        }
+        relatedHist.addSample(breakdown.total, {
+          breakdown: tr.v.d.Breakdown.fromEntries(
+              Object.entries(breakdown.events)),
+        });
+      }
     }
   }
 
   function loadingMetric(histograms, model) {
     const firstPaintHistogram = histograms.createHistogram(
         'timeToFirstPaint', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const firstContentfulPaintHistogram = histograms.createHistogram(
         'timeToFirstContentfulPaint', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first contentful paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const onLoadHistogram = histograms.createHistogram(
         'timeToOnload', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to onload. ' +
             'This is temporary metric used for PCv1/v2 sanity checking',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const firstMeaningfulPaintHistogram = histograms.createHistogram(
         'timeToFirstMeaningfulPaint', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first meaningful paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const firstMeaningfulPaintCpuTimeHistogram = histograms.createHistogram(
         'cpuTimeToFirstMeaningfulPaint', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'CPU time to first meaningful paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const firstInteractiveHistogram = histograms.createHistogram(
         'timeToFirstInteractive', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: FIRST_PAINT_BOUNDARIES,
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first interactive',
           summaryOptions: SUMMARY_OPTIONS,
         });
@@ -500,17 +528,26 @@ tr.exportTo('tr.metrics.sh', function() {
       const samplesSet =
           collectLoadingMetricsForRenderer(rendererHelper);
 
-      addSamplesToHistogram(samplesSet.firstPaintSamples,
-          firstPaintHistogram);
-      addSamplesToHistogram(samplesSet.firstContentfulPaintSamples,
-          firstContentfulPaintHistogram);
-      addSamplesToHistogram(samplesSet.onLoadSamples, onLoadHistogram);
-      addSamplesToHistogram(samplesSet.firstMeaningfulPaintSamples,
-          firstMeaningfulPaintHistogram);
-      addSamplesToHistogram(samplesSet.firstMeaningfulPaintCpuTimeSamples,
-          firstMeaningfulPaintCpuTimeHistogram);
-      addSamplesToHistogram(samplesSet.firstInteractiveSamples,
-          firstInteractiveHistogram);
+      addSamplesToHistogram(
+          samplesSet.firstPaintSamples, firstPaintHistogram, histograms);
+      addSamplesToHistogram(
+          samplesSet.firstContentfulPaintSamples,
+          firstContentfulPaintHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.onLoadSamples, onLoadHistogram, histograms);
+      addSamplesToHistogram(
+          samplesSet.firstMeaningfulPaintSamples,
+          firstMeaningfulPaintHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.firstMeaningfulPaintCpuTimeSamples,
+          firstMeaningfulPaintCpuTimeHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.firstInteractiveSamples,
+          firstInteractiveHistogram,
+          histograms);
     }
   }
 

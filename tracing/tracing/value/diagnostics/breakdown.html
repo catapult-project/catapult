@@ -75,6 +75,14 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    static fromEntries(entries) {
+      const breakdown = new Breakdown();
+      for (const [name, value] of entries) {
+        breakdown.set(name, value);
+      }
+      return breakdown;
+    }
+
     static fromDict(d) {
       const breakdown = new Breakdown();
       for (const [name, value] of Object.entries(d.values)) {

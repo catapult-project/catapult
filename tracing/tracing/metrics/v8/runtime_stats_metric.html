@@ -55,8 +55,7 @@ tr.exportTo('tr.metrics.v8', function() {
       if (samples.length === 0) continue;
       if (interactiveTime !== 0) throw new Error('Too many navigations');
       const diagnostics = tr.b.getOnlyElement(samples).diagnostics;
-      const infos = diagnostics['Navigation infos'];
-      interactiveTime = tr.b.getOnlyElement(infos).interactive;
+      interactiveTime = tr.b.getOnlyElement(diagnostics.infos).interactive;
     }
     return interactiveTime;
   }
