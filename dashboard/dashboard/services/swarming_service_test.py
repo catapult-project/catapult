@@ -93,7 +93,7 @@ class TasksTest(_SwarmingTest):
             'inputs_ref': {
                 'isolated': 'isolated_hash',
             },
-            'extra_args': ['--output-format=json'],
+            'extra_args': ['--output-format=histograms'],
             'dimensions': [
                 {'key': 'id', 'value': 'bot_id'},
                 {'key': 'pool', 'value': 'Chrome-perf'},

@@ -51,7 +51,7 @@ class SharedPageState(story_module.SharedState):
             'This is a Timeline Based Measurement benchmark. You cannot run it '
             'with trace profiler enabled. If you need trace data, tracing is '
             'always enabled in Timeline Based Measurement benchmarks and you '
-            'can get the trace data by adding --output-format=json.')
+            'can get the trace data with the default --output-format=html.')
       # This is to avoid the cyclic-import caused by timeline_based_page_test.
       from telemetry.web_perf import timeline_based_page_test
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)
