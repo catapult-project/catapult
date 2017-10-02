@@ -51,16 +51,13 @@ def main():
   new_histograms = add_shared_diagnostics.AddValueDiagnostics(
       args.input_path, names_to_values)
 
-  if result.returncode != 0:
-    sys.stderr.write(result.stdout)
+  if args.stdout:
+    print new_histograms
   else:
-    if args.stdout:
-      print new_histograms
-    else:
-      path = args.output_path or args.input_path
-      with open(path, 'w') as f:
-        f.write(new_histograms)
-  return result.returncode
+    path = args.output_path or args.input_path
+    with open(path, 'w') as f:
+      f.write(new_histograms)
+  return 0
 
 if __name__ == '__main__':
   sys.exit(main())
