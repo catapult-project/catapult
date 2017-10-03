@@ -31,19 +31,62 @@ tr.exportTo('tr.metrics', function() {
       throw new Error('Metric names should be specified.');
     }
 
+    const categories = getTraceCategories(model);
+
     const histograms = new tr.v.HistogramSet();
 
     for (const metricName of metricNames) {
       const metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
       if (metric === undefined) {
-        throw new Error('"' + metricName + '" is not a registered metric.');
+        throw new Error(`"${metricName}" is not a registered metric.`);
       }
+      validateTraceCategories(metric.metadata.requiredCategories, categories);
       metric.constructor(histograms, model, options);
     }
 
     validateDiagnosticNames(histograms);
 
     return histograms;
+  }
+
+  function getTraceCategories(model) {
+    for (const metadata of model.metadata) {
+      let config;
+      if (metadata.name === 'TraceConfig' && metadata.value) {
+        config = metadata.value;
+      }
+      if (metadata.name === 'metadata' && metadata.value &&
+          metadata.value['trace-config']) {
+        config = JSON.parse(metadata.value['trace-config']);
+      }
+      if (config) {
+        return {
+          excluded: config.excluded_categories || [],
+          included: config.included_categories || [],
+        };
+      }
+    }
+  }
+
+  function validateTraceCategories(requiredCategories, categories) {
+    if (!requiredCategories) return;
+
+    if (!categories) throw new Error('Missing trace config metadata');
+
+    for (const cat of requiredCategories) {
+      const isDisabledByDefault = (cat.indexOf('disabled-by-default') === 0);
+      let missing = false;
+      if (isDisabledByDefault) {
+        if (!categories.included.includes(cat)) {
+          missing = true;
+        }
+      } else if (categories.excluded.includes(cat)) {
+        missing = true;
+      }
+      if (missing) {
+        throw new Error(`Trace is missing required category "${cat}"`);
+      }
+    }
   }
 
   /**

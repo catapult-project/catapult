@@ -97,5 +97,51 @@ tr.b.unittest.testSuite(function() {
       tr.metrics.metricMapFunction(result, m, {metrics: ['sampleMetric']});
     }, Error, 'canonicalUrl "canonical url" != traceUrl "trace url"');
   });
+
+  function requiresDefaultCategoryMetric(histograms, model) {
+  }
+
+  tr.metrics.MetricRegistry.register(requiresDefaultCategoryMetric, {
+    requiredCategories: ['foo'],
+  });
+
+  function requiresDisabledCategoryMetric(histograms, model) {
+  }
+
+  tr.metrics.MetricRegistry.register(requiresDisabledCategoryMetric, {
+    requiredCategories: ['disabled-by-default-foo'],
+  });
+
+  test('validateRequiredCategories', function() {
+    const result = new tr.mre.MreResult();
+    let m = TestUtils.newModel(model => {
+      model.metadata = [{
+        name: 'metadata',
+        value: {
+          'trace-config': JSON.stringify({
+            excluded_categories: ['foo'],
+          }),
+        },
+      }];
+    });
+
+    assert.throw(function() {
+      tr.metrics.metricMapFunction(result, m, {metrics:
+        ['requiresDefaultCategoryMetric']});
+    }, Error, 'Trace is missing required category "foo"');
+
+    m = TestUtils.newModel(model => {
+      model.metadata = [{
+        name: 'TraceConfig',
+        value: {
+        },
+      }];
+    });
+
+    assert.throw(function() {
+      tr.metrics.metricMapFunction(result, m, {metrics:
+        ['requiresDisabledCategoryMetric']});
+    }, Error, 'Trace is missing required category "disabled-by-default-foo"');
+  });
 });
 </script>

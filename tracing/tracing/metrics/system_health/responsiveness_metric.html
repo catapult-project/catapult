@@ -151,7 +151,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   tr.metrics.MetricRegistry.register(responsivenessMetric, {
-    supportsRangeOfInterest: true
+    supportsRangeOfInterest: true,
+    requiredCategories: ['rail'],
   });
 
   return {

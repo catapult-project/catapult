@@ -104,7 +104,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   tr.metrics.MetricRegistry.register(longTasksMetric, {
-    supportsRangeOfInterest: true
+    supportsRangeOfInterest: true,
+    requiredCategories: ['toplevel'],
   });
 
   return {
