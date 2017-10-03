@@ -51,8 +51,6 @@ tr.exportTo('tr.v', function() {
       this.histograms_ = new tr.v.HistogramSet();
       this.jsonEls_ = jsonEls;
       this.view_ = view;
-      this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
-      this.view_.feedbackHref = 'https://docs.google.com/a/google.com/forms/d/e/1FAIpQLSfXvMvm_z2F9-khFaKyH_LHVZ6caPPkxI27BZqMnEt4XjyJ3g/viewform';
       tr.b.Timing.instant(
           'HistogramImporter', 'jsonCount', this.jsonEls_.length);
 
@@ -108,8 +106,11 @@ tr.exportTo('tr.v', function() {
         this.fmpMark_.end();
       });
 
-      await this.view_.build(
-          this.histograms_, message => this.update_(message));
+      await this.view_.build(this.histograms_, {
+        progress: message => this.update_(message),
+        helpHref: 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md',
+        feedbackHref: 'https://docs.google.com/a/google.com/forms/d/e/1FAIpQLSfXvMvm_z2F9-khFaKyH_LHVZ6caPPkxI27BZqMnEt4XjyJ3g/viewform',
+      });
     }
   }
 
