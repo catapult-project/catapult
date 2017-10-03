@@ -50,6 +50,12 @@ _MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
             A: android:scheme(0x01010027)="http" (Raw: "http")
           E: data (line=199)
             A: android:scheme(0x01010027)="https" (Raw: "https")
+      E: meta-data (line=43)
+        A: android:name(0x01010003)="name1" (Raw: "name1")
+        A: android:value(0x01010024)="value1" (Raw: "value1")
+      E: meta-data (line=43)
+        A: android:name(0x01010003)="name2" (Raw: "name2")
+        A: android:value(0x01010024)="value2" (Raw: "value2")
     E: instrumentation (line=8)
       A: android:label(0x01010001)="abc" (Raw: "abc")
       A: android:name(0x01010003)="org.chromium.RandomJUnit4TestRunner" (Raw: "org.chromium.RandomJUnit4TestRunner")
@@ -193,6 +199,12 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEquals('org.chromium.RandomJ4TestRunner',
                         helper.GetInstrumentationName())
+
+  def testGetAllMetadata(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals([('name1', 'value1'), ('name2', 'value2')],
+                        helper.GetAllMetadata())
 
 
 if __name__ == '__main__':
