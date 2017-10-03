@@ -1121,6 +1121,33 @@ tr.exportTo('tr.metrics.sh', function() {
     return numeric;
   }
 
+  function buildSampleDiagnostics(value, node) {
+    if (node.children.length < 2) return undefined;
+    const diagnostics = new Map();
+    const i = node.values.indexOf(value);
+
+    const processBreakdown = new tr.v.d.Breakdown();
+    processBreakdown.colorScheme =
+      tr.e.chrome.chrome_processes.PROCESS_COLOR_SCHEME_NAME;
+    for (const [name, subNode] of node.children[0]) {
+      processBreakdown.set(name, subNode.values[i].total);
+    }
+    if (processBreakdown.size > 0) {
+      diagnostics.set('processes', processBreakdown);
+    }
+
+    const componentBreakdown = new tr.v.d.Breakdown();
+    for (const [name, subNode] of node.children[1]) {
+      componentBreakdown.set(name, subNode.values[i].total);
+    }
+    if (componentBreakdown.size > 0) {
+      diagnostics.set('components', componentBreakdown);
+    }
+
+    if (diagnostics.size === 0) return undefined;
+    return diagnostics;
+  }
+
   /**
    * Create a memory tr.v.Histogram with |unit| and add all total values in
    * |node| to it.
@@ -1128,7 +1155,10 @@ tr.exportTo('tr.metrics.sh', function() {
   function buildMemoryNumericFromNode(name, node, unit) {
     const histogram = new tr.v.Histogram(
         name, unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
-    node.values.forEach(v => histogram.addSample(v.total));
+
+    node.values.forEach(v => histogram.addSample(
+        v.total, buildSampleDiagnostics(v, node)));
+
     return histogram;
   }
 
