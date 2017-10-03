@@ -368,43 +368,10 @@ class ActionRunner(object):
           gesture, as a ratio of the visible bounding rectangle for
           document.body.
       scale_factor: The ratio of the final span to the initial span.
-          The default scale factor is
-          3.0 / (window.outerWidth/window.innerWidth).
+          The default scale factor is 3.0 / (current scale factor).
       speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
     """
     self._RunAction(PinchAction(
-        left_anchor_ratio=left_anchor_ratio, top_anchor_ratio=top_anchor_ratio,
-        scale_factor=scale_factor,
-        speed_in_pixels_per_second=speed_in_pixels_per_second))
-
-  def PinchElement(self, selector=None, text=None, element_function=None,
-                   left_anchor_ratio=0.5, top_anchor_ratio=0.5,
-                   scale_factor=None, speed_in_pixels_per_second=800):
-    """Perform the pinch gesture on an element.
-
-    It computes the pinch gesture automatically based on the anchor
-    coordinate and the scale factor. The scale factor is the ratio of
-    of the final span and the initial span of the gesture.
-
-    Args:
-      selector: A CSS selector describing the element.
-      text: The element must contains this exact text.
-      element_function: A JavaScript function (as string) that is used
-          to retrieve the element. For example:
-          'function() { return foo.element; }'.
-      left_anchor_ratio: The horizontal pinch anchor coordinate of the
-          gesture, as a ratio of the visible bounding rectangle for
-          the element.
-      top_anchor_ratio: The vertical pinch anchor coordinate of the
-          gesture, as a ratio of the visible bounding rectangle for
-          the element.
-      scale_factor: The ratio of the final span to the initial span.
-          The default scale factor is
-          3.0 / (window.outerWidth/window.innerWidth).
-      speed_in_pixels_per_second: The speed of the gesture (in pixels/s).
-    """
-    self._RunAction(PinchAction(
-        selector=selector, text=text, element_function=element_function,
         left_anchor_ratio=left_anchor_ratio, top_anchor_ratio=top_anchor_ratio,
         scale_factor=scale_factor,
         speed_in_pixels_per_second=speed_in_pixels_per_second))

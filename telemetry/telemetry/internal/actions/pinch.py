@@ -10,28 +10,18 @@ from telemetry.util import js_template
 class PinchAction(page_action.PageAction):
 
   def __init__(self,
-               selector=None,
-               text=None,
-               element_function=None,
                left_anchor_ratio=0.5,
                top_anchor_ratio=0.5,
                scale_factor=None,
                speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
     super(PinchAction, self).__init__()
-    self._selector = selector
-    self._text = text
-    self._element_function = element_function
     self._left_anchor_ratio = left_anchor_ratio
     self._top_anchor_ratio = top_anchor_ratio
     self._scale_factor = scale_factor
     self._speed = speed_in_pixels_per_second
     self._synthetic_gesture_source = (
         'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
-
-    if (self._selector is None and self._text is None and
-        self._element_function is None):
-      self._element_function = 'document.body'
 
   def WillRunAction(self, tab):
     utils.InjectJavaScript(tab, 'gesture_common.js')
@@ -50,8 +40,10 @@ class PinchAction(page_action.PageAction):
 
   @staticmethod
   def _GetDefaultScaleFactorForPage(tab):
-    current_scale_factor = tab.EvaluateJavaScript(
-        'window.outerWidth / window.innerWidth')
+    current_scale_factor = tab.EvaluateJavaScript("""
+        "visualViewport" in window
+            ? visualViewport.scale
+            : window.outerWidth / window.innerWidth'""")
     return 3.0 / current_scale_factor
 
   def RunAction(self, tab):
@@ -59,26 +51,15 @@ class PinchAction(page_action.PageAction):
                     PinchAction._GetDefaultScaleFactorForPage(tab))
     code = js_template.Render(
         """
-        function(element, info) {
-          if (!element) {
-            throw Error('Cannot find element: ' + info);
-          }
-          window.__pinchAction.start({
-            element: element,
-            left_anchor_ratio: {{ left_anchor_ratio }},
-            top_anchor_ratio: {{ top_anchor_ratio }},
-            scale_factor: {{ scale_factor }},
-            speed: {{ speed }}
-          });
-        }""",
+        window.__pinchAction.start({
+          left_anchor_ratio: {{ left_anchor_ratio }},
+          top_anchor_ratio: {{ top_anchor_ratio }},
+          scale_factor: {{ scale_factor }},
+          speed: {{ speed }}
+        });""",
         left_anchor_ratio=self._left_anchor_ratio,
         top_anchor_ratio=self._top_anchor_ratio,
         scale_factor=scale_factor,
         speed=self._speed)
-    page_action.EvaluateCallbackWithElement(
-        tab,
-        code,
-        selector=self._selector,
-        text=self._text,
-        element_function=self._element_function)
+    tab.EvaluateJavaScript(code)
     tab.WaitForJavaScriptCondition('window.__pinchActionDone', timeout=60)
