@@ -51,11 +51,11 @@ def SnapPage(finder_options, url, interactive, snapshot_file):
     tab.WaitForDocumentReadyStateToBeComplete()
     tab.action_runner.WaitForNetworkQuiescence()
 
-    with open(os.path.join(util.GetTelemetryThirdPartyDir(), 'snap-it',
+    with open(os.path.join(util.GetCatapultThirdPartyDir(), 'snap-it',
                            'HTMLSerializer.js')) as f:
       snapit_script = f.read()
 
-    with open(os.path.join(util.GetTelemetryThirdPartyDir(), 'snap-it',
+    with open(os.path.join(util.GetCatapultThirdPartyDir(), 'snap-it',
                            'popup.js')) as f:
       dom_combining_script = f.read()
 
