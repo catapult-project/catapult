@@ -10,6 +10,7 @@ from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.api import users
+from google.appengine.ext import ndb
 
 from dashboard import list_tests
 from dashboard.common import request_handler
@@ -208,6 +209,7 @@ def _IsValidTestPathPattern(test_path_pattern):
   return len(test_path_pattern.split('/')) >= 3
 
 
+@ndb.synctasklet
 def _ChangeTestPatterns(old_patterns, new_patterns):
   """Updates tests that are different between old_patterns and new_patterns.
 
@@ -229,10 +231,14 @@ def _ChangeTestPatterns(old_patterns, new_patterns):
     are in the old set but not the new.
   """
   added_patterns, removed_patterns = _ComputeDeltas(old_patterns, new_patterns)
-  added_test_paths = _AllTestPathsMatchingPatterns(added_patterns)
-  removed_test_paths = _AllTestPathsMatchingPatterns(removed_patterns)
+
+  added_test_paths, removed_test_paths = yield (
+      _AllTestPathsMatchingPatterns(added_patterns),
+      _AllTestPathsMatchingPatterns(removed_patterns))
+
   _AddTestsToPutToTaskQueue(added_test_paths + removed_test_paths)
-  return _RemoveOverlapping(added_test_paths, removed_test_paths)
+
+  raise ndb.Return(_RemoveOverlapping(added_test_paths, removed_test_paths))
 
 
 def _ComputeDeltas(old_items, new_items):
@@ -255,12 +261,18 @@ def _RemoveOverlapping(added_items, removed_items):
   return added - removed, removed - added
 
 
+@ndb.tasklet
 def _AllTestPathsMatchingPatterns(patterns_list):
   """Returns a list of all test paths matching the given list of patterns."""
+  matching_patterns_futures = [
+      list_tests.GetTestsMatchingPatternAsync(p) for p in patterns_list]
+
   test_paths = set()
-  for pattern in patterns_list:
-    test_paths |= set(list_tests.GetTestsMatchingPattern(pattern))
-  return sorted(test_paths)
+  for i in xrange(len(patterns_list)):
+    matching_patterns = yield matching_patterns_futures[i]
+    test_paths |= set(matching_patterns)
+
+  raise ndb.Return(sorted(test_paths))
 
 
 def _AddTestsToPutToTaskQueue(test_paths):
@@ -272,11 +284,15 @@ def _AddTestsToPutToTaskQueue(test_paths):
   Args:
     test_paths: List of test paths of tests to be re-put.
   """
+  futures = []
+  queue = taskqueue.Queue(_TASK_QUEUE_NAME)
   for start_index in range(0, len(test_paths), _MAX_TESTS_TO_PUT_AT_ONCE):
     group = test_paths[start_index:start_index + _MAX_TESTS_TO_PUT_AT_ONCE]
     urlsafe_keys = [utils.TestKey(t).urlsafe() for t in group]
-    taskqueue.add(
+    t = taskqueue.Task(
         url='/put_entities_task',
         params={'keys': ','.join(urlsafe_keys)},
-        queue_name=_TASK_QUEUE_NAME,
         countdown=_TASK_QUEUE_COUNTDOWN)
+    futures.append(queue.add_async(t))
+  for f in futures:
+    f.get_result()
