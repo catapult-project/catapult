@@ -31,6 +31,8 @@ class MarkTelemetryInternal(object):
     self.identifier = identifier
 
   def __enter__(self):
+    # This marker must match the regexp in
+    # ChromeProcessHelper.findTelemetryInternalRanges_().
     marker = 'telemetry.internal.%s.start' % self.identifier
     self.browser.tabs[0].ExecuteJavaScript(
         "console.time({{ marker }});", marker=marker)
@@ -41,6 +43,8 @@ class MarkTelemetryInternal(object):
   def __exit__(self, exception_type, exception_value, traceback):
     if exception_type:
       return True
+    # This marker must match the regexp in
+    # ChromeProcessHelper.findTelemetryInternalRanges_().
     marker = 'telemetry.internal.%s.end' % self.identifier
     self.browser.tabs[0].ExecuteJavaScript(
         "console.time({{ marker }});", marker=marker)

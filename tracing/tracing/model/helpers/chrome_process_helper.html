@@ -63,9 +63,9 @@ tr.exportTo('tr.model.helpers', function() {
       let start = 0;
       for (const thread of Object.values(this.process.threads)) {
         for (const slice of thread.asyncSliceGroup.getDescendantEvents()) {
-          if (/^telemetry\.internal\.[^.]*\.start$/.test(slice.title)) {
+          if (/^telemetry\.internal\..*\.start$/.test(slice.title)) {
             start = slice.start;
-          } else if (/^telemetry\.internal\.[^.]*\.end$/.test(slice.title) &&
+          } else if (/^telemetry\.internal\..*\.end$/.test(slice.title) &&
               start !== undefined) {
             this.telemetryInternalRanges_.push(
                 tr.b.math.Range.fromExplicitRange(start, slice.end));
