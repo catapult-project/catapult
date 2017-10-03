@@ -670,7 +670,7 @@ QUnit.test('minimizeStyles: root html tag', function(assert) {
     'frameIndex': '0'
   };
   minimizeStyles(message);
-  assert.equal(message.html[1], 'style="width: 5px;" ');
+  assert.equal(message.html[1], '');
 });
 
 QUnit.test('processAttributes: escaping characters', function(assert) {
