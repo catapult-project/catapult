@@ -196,7 +196,7 @@ QUnit.test('processSrcAttribute: iframe', function(assert) {
   var serializer = new HTMLSerializer();
   var iframe = document.createElement('iframe');
   iframe.setAttribute('src', 'tests.html');
-  serializer.processSrcAttribute(iframe);
+  serializer.processSrcAttribute(iframe, 'dummyId');
   assert.equal(serializer.html.length, 0);
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
 });
@@ -205,7 +205,7 @@ QUnit.test('processSrcAttribute: audio', function(assert) {
   var serializer = new HTMLSerializer();
   var audio = document.createElement('audio');
   audio.setAttribute('src', 'tests.html');
-  serializer.processSrcAttribute(audio);
+  serializer.processSrcAttribute(audio, 'dummyId');
   assert.equal(serializer.html[0], `src="${window.location.href}" `);
   assert.equal(serializer.html.length, 1);
   assert.equal(Object.keys(serializer.srcHoles).length, 0);
@@ -215,12 +215,20 @@ QUnit.test('processSrcAttribute: img', function(assert) {
   var serializer = new HTMLSerializer();
   var img = document.createElement('img');
   img.setAttribute('src', 'tests.html');
-  serializer.processSrcAttribute(img);
+  serializer.processSrcAttribute(img, 'dummyId');
   assert.equal(serializer.html[0], 'src="');
   assert.equal(serializer.html[1], '');
   assert.equal(serializer.html[2], '" ');
   assert.equal(serializer.srcHoles[1], window.location.href);
   assert.equal(Object.keys(serializer.srcHoles).length, 1);
+});
+
+QUnit.test('processSrcAttribute: img (external)', function(assert) {
+  var serializer = new HTMLSerializer();
+  var img = document.createElement('img');
+  img.setAttribute('src', 'https://www.images.com/foo.png');
+  serializer.processSrcAttribute(img, 'targetId');
+  assert.deepEqual(serializer.externalImages, [['targetId', 'https://www.images.com/foo.png']]);
 });
 
 QUnit.test('processTree: single node', function(assert) {

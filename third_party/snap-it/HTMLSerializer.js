@@ -91,6 +91,13 @@ var HTMLSerializer = class {
     this.frameHoles = {};
 
     /**
+     * @public {Array<Array<string, string>>} An array of tuples as
+     *     |(element id, fully qualified url)| detailing any
+     *     external image urls found in the webpage.
+     */
+    this.externalImages = [];
+
+    /**
      * @private {Array<string>} Each element of |this.crossOriginStyleSheets|
      *     contains a url to a stylesheet that does not have the same origin
      *     as the webpage being serialized.
@@ -361,7 +368,7 @@ var HTMLSerializer = class {
       for (var i = 0, attribute; attribute = attributes[i]; i++) {
         switch (attribute.name.toLowerCase())  {
           case 'src':
-            this.processSrcAttribute(element);
+            this.processSrcAttribute(element, id);
             break;
           case 'style':
           case 'id':
@@ -387,9 +394,10 @@ var HTMLSerializer = class {
    *
    * @param {Element} element The Element being processed, which has the src
    *     attribute.
+   * @param {string} id The id of the Element being serialized.
    * @private
    */
-  processSrcAttribute(element) {
+    processSrcAttribute(element, id) {
     var win = element.ownerDocument.defaultView;
     var url = this.fullyQualifiedURL(element);
     var sameOrigin = window.location.host == url.host;
@@ -414,6 +422,7 @@ var HTMLSerializer = class {
         if (sameOrigin) {
           this.processSrcHole(element);
         } else {
+          this.externalImages.push([id, url.href]);
           this.processSimpleAttribute(win, 'src', url.href);
         }
         break;
@@ -685,6 +694,7 @@ var HTMLSerializer = class {
               htmlSerializer.pseudoElementStyleTestingIndex,
           'pseudoElementTestingStyleId':
               htmlSerializer.pseudoElementTestingStyleId,
+          'externalImages': htmlSerializer.externalImages,
           'unusedId': htmlSerializer.generateId(document),
           'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
     };

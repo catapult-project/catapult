@@ -1,5 +1,5 @@
 /**
- * Send the neccessary HTMLSerializer properties back to the extension.
+ * Send the necessary HTMLSerializer properties back to the extension.
  *
  * @param {HTMLSerializer} htmlSerializer The HTMLSerializer.
  */
