@@ -58,11 +58,11 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
         'Indices start at 0, and have the same rules as python slices,'
         ' e.g.  [4, 5, 6, 7, 8][0:3] -> [4, 5, 6])')
     group.add_option(
-        '--experimental-story-shard-begin-index',
+        '--experimental-story-shard-begin-index', type='int',
         help='EXPERIMENTAL. Beginning index of set of stories to run. ' +
         common_story_shard_help)
     group.add_option(
-        '--experimental-story-shard-end-index',
+        '--experimental-story-shard-end-index', type='int',
         help='EXPERIMENTAL. End index of set of stories to run. Value will be'
              ' rounded down to the number of stories. Negative values not'
              ' allowed. ' + common_story_shard_help)
