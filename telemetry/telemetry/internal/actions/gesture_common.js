@@ -6,22 +6,24 @@
 'use strict';
 
 (function() {
-
   // Make sure functions are injected only once.
-  if (window.__GestureCommon_GetBoundingVisibleRect)
+  if (window.__GestureCommon_GetBoundingVisibleRect) {
     return;
+  }
 
   // Returns the bounding rectangle wrt to the top-most document.
   function getBoundingRect(el) {
-    var clientRect = el.getBoundingClientRect();
-    var bound = { left: clientRect.left,
-                  top: clientRect.top,
-                  width: clientRect.width,
-                  height: clientRect.height };
+    const clientRect = el.getBoundingClientRect();
+    const bound = {
+      left: clientRect.left,
+      top: clientRect.top,
+      width: clientRect.width,
+      height: clientRect.height
+    };
 
-    var frame = el.ownerDocument.defaultView.frameElement;
+    let frame = el.ownerDocument.defaultView.frameElement;
     while (frame) {
-      var frameBound = frame.getBoundingClientRect();
+      const frameBound = frame.getBoundingClientRect();
       // This computation doesn't account for more complex CSS transforms on the
       // frame (e.g. scaling or rotations).
       bound.left += frameBound.left;
@@ -35,8 +37,9 @@
   // TODO(ulan): Remove this function once
   // chrome.gpuBenchmarking.pageScaleFactor is available in reference builds.
   function getPageScaleFactor() {
-    if (chrome.gpuBenchmarking.pageScaleFactor)
+    if (chrome.gpuBenchmarking.pageScaleFactor) {
       return chrome.gpuBenchmarking.pageScaleFactor();
+    }
     return 1;
   }
 
@@ -56,11 +59,11 @@
 
   function getBoundingVisibleRect(el) {
     // Get the element bounding rect.
-    var rect = getBoundingRect(el);
+    const rect = getBoundingRect(el);
 
     // Get the window dimensions.
-    var windowHeight = getWindowHeight();
-    var windowWidth = getWindowWidth();
+    const windowHeight = getWindowHeight();
+    const windowWidth = getWindowWidth();
 
     // Then clip the rect to the screen size.
     rect.top = clamp(0, rect.top, windowHeight);

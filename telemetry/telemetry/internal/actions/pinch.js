@@ -9,7 +9,6 @@
 'use strict';
 
 (function() {
-
   function PinchGestureOptions(opt_options) {
     if (opt_options) {
       this.element_ = opt_options.element;
@@ -37,13 +36,11 @@
   // This class zooms into or out of a page, given a number of pixels for
   // the synthetic pinch gesture to cover.
   function PinchAction(opt_callback) {
-    var self = this;
-
     this.beginMeasuringHook = function() {};
     this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
-  };
+  }
 
   PinchAction.prototype.start = function(opt_options) {
     this.options_ = new PinchGestureOptions(opt_options);
@@ -54,22 +51,24 @@
   PinchAction.prototype.startPass_ = function() {
     this.beginMeasuringHook();
 
-    var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
-    var anchor_left =
+    const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
+    const anchorLeft =
         rect.left + rect.width * this.options_.left_anchor_ratio_;
-    var anchor_top =
+    const anchorTop =
         rect.top + rect.height * this.options_.top_anchor_ratio_;
-    chrome.gpuBenchmarking.pinchBy(this.options_.scale_factor_,
-                                   anchor_left, anchor_top,
-                                   this.onGestureComplete_.bind(this),
-                                   this.options_.speed_);
+    chrome.gpuBenchmarking.pinchBy(
+        this.options_.scale_factor_,
+        anchorLeft, anchorTop,
+        this.onGestureComplete_.bind(this),
+        this.options_.speed_);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {
     this.endMeasuringHook();
 
-    if (this.callback_)
+    if (this.callback_) {
       this.callback_();
+    }
   };
 
   window.__PinchAction = PinchAction;
