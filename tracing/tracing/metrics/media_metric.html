@@ -93,7 +93,10 @@ tr.exportTo('tr.metrics', function() {
             tr.b.Unit.byName.count_smallerIsBetter, droppedFrameCount);
       }
       for (const [key, value] of seekTimes.entries()) {
-        histograms.createHistogram('seek_time_' + key,
+        // key is a numerical value that can have '.' when converted to string.
+        // However, '.' causes problems in histogram names, so replace with '_'.
+        histograms.createHistogram(
+            'seek_time_' + key.toString().replace('.', '_'),
             tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, value);
       }
       if (bufferingTime !== undefined) {

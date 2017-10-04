@@ -195,8 +195,8 @@ tr.b.unittest.testSuite(function() {
       compositorThreadMarker,
     ];
     tr.metrics.mediaMetric(histograms, makeModel(events));
-    checkCloseTo(histograms, 'seek_time_1.2', 0.5);
-    checkCloseTo(histograms, 'seek_time_3.7', 60);
+    checkCloseTo(histograms, 'seek_time_1_2', 0.5);
+    checkCloseTo(histograms, 'seek_time_3_7', 60);
   });
 
   // Scenario: Play mixed audio/video from start to finish
@@ -262,7 +262,7 @@ tr.b.unittest.testSuite(function() {
     checkCloseTo(histograms, 'time_to_audio_play', 1.02);
     assert.isUndefined(histograms.getHistogramNamed('buffering_time'));
     checkEqual(histograms, 'dropped_frame_count', 6);
-    checkCloseTo(histograms, 'seek_time_0.5', 0.2);
+    checkCloseTo(histograms, 'seek_time_0_5', 0.2);
     checkCloseTo(histograms, 'seek_time_9', 10);
   });
 });
