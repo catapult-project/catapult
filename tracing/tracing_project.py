@@ -69,6 +69,7 @@ class TracingProject(object):
 
   tracing_root_path = os.path.join(catapult_path, 'tracing')
   trace_processor_root_path = os.path.join(catapult_path, 'trace_processor')
+  common_root_path = os.path.join(catapult_path, 'common')
   tracing_src_path = os.path.join(tracing_root_path, 'tracing')
   extras_path = os.path.join(tracing_src_path, 'extras')
   ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
@@ -77,7 +78,7 @@ class TracingProject(object):
   polymer_path = os.path.join(catapult_third_party_path, 'polymer')
 
   tracing_third_party_path = os.path.join(tracing_root_path, 'third_party')
-  py_vulcanize_path = os.path.join(catapult_third_party_path, 'py_vulcanize')
+  py_vulcanize_path = os.path.join(common_root_path, 'py_vulcanize')
   vinn_path = os.path.join(catapult_third_party_path, 'vinn')
 
   jszip_path = os.path.join(tracing_third_party_path, 'jszip')

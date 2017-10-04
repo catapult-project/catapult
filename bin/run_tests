@@ -14,7 +14,7 @@ _CATAPULT_PATH = os.path.abspath(
 _TESTS = [
     {'path': os.path.join(_CATAPULT_PATH, 'tracing', 'bin', 'run_tests')},
     {'path': os.path.join(
-        _CATAPULT_PATH, 'third_party', 'py_vulcanize', 'bin', 'run_py_tests')},
+        _CATAPULT_PATH, 'common', 'py_vulcanize', 'bin', 'run_py_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'perf_insights', 'bin', 'run_tests')},
     {'path': os.path.join(
         _CATAPULT_PATH, 'catapult_build', 'bin', 'run_py_tests')},

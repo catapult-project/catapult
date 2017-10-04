@@ -97,7 +97,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Py-vulcanize Tests',
-        'path': 'third_party/py_vulcanize/bin/run_py_tests',
+        'path': 'common/py_vulcanize/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],
         'disabled': ['android'],
     },

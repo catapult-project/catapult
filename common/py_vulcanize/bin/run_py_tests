@@ -26,4 +26,4 @@ if __name__ == '__main__':
 
   from catapult_build import run_with_typ
   sys.exit(run_with_typ.Run(
-      os.path.join(_CATAPULT, 'third_party', 'py_vulcanize')))
+      os.path.join(_CATAPULT, 'common', 'py_vulcanize')))
