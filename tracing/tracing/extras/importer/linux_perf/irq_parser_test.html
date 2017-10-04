@@ -25,7 +25,15 @@ tr.b.unittest.testSuite(function() {
       ' RenderThread-2978  ( 2794) [002] dN.1 62828.421805: ' +
         'ipi_entry: (Rescheduling interrupts)',
       ' RenderThread-2978  ( 2794) [002] dN.1 62828.421809: ' +
-        'ipi_exit: (Rescheduling interrupts)'
+        'ipi_exit: (Rescheduling interrupts)',
+      ' RenderThread-2978  ( 2794) [002] dN.1 62829.421809: ' +
+        'preempt_disable: caller=avc_lookup parent=avc_has_perm_noaudit',
+      ' RenderThread-2978  ( 2794) [002] dN.1 62830.421809: ' +
+         'preempt_enable: caller=avc_lookup parent=avc_has_perm_noaudit',
+      ' kworker/u1:2-31908 (31908) [004] ..s3 14163.477231: ' +
+         'irq_disable: caller=avc_lookup parent=avc_has_perm_noaudit',
+      ' kworker/u1:2-31908 (31908) [004] ..s3 14163.477246: ' +
+         'irq_enable: caller=avc_lookup parent=avc_has_perm_noaudit'
     ];
     const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
@@ -33,7 +41,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     let threads = m.getAllThreads();
-    assert.strictEqual(threads.length, 3);
+    assert.strictEqual(threads.length, 5);
 
     threads = m.findAllThreadsNamed('irqs cpu 1');
     assert.strictEqual(threads.length, 1);
@@ -44,6 +52,14 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(threads[0].sliceGroup.length, 1);
 
     threads = m.findAllThreadsNamed('irqs cpu 2');
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
+
+    threads = m.findAllThreadsNamed('preempt cpu 2');
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
+
+    threads = m.findAllThreadsNamed('irqoff cpu 4');
     assert.strictEqual(threads.length, 1);
     assert.strictEqual(threads[0].sliceGroup.length, 1);
   });
