@@ -214,8 +214,10 @@ var HTMLSerializer = class {
         this.processTree(node);
       }
     }
-    var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
-    this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
+    if (this.pseudoElementCSS.length > 0) {
+      var pseudoElements = `<style>${this.pseudoElementCSS.join('')}</style>`;
+      this.html[this.pseudoElementPlaceHolderIndex] = pseudoElements;
+    }
 
     this.pseudoElementTestingStyleId = this.generateId(doc);
     var style = `<style id="${this.pseudoElementTestingStyleId}"></style>`;
@@ -731,8 +733,10 @@ var HTMLSerializer = class {
    */
   fillFontHoles(doc, callback) {
     if (this.crossOriginStyleSheets.length == 0) {
-      var fonts = `<style>${this.fontCSS.join('')}</style>`;
-      this.html[this.fontPlaceHolderIndex] = fonts;
+      if (this.fontCSS.length > 0) {
+        var fonts = `<style>${this.fontCSS.join('')}</style>`;
+        this.html[this.fontPlaceHolderIndex] = fonts;
+      }
       callback();
     } else {
       var styleSheetSrc = this.crossOriginStyleSheets.shift();

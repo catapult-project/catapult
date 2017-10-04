@@ -117,8 +117,10 @@ function minimizeStyles(message) {
     minimizePseudoElementStyle(message, doc, selector, finalPseudoElements);
   }
 
-  message.html[message.pseudoElementPlaceHolderIndex] =
-      `<style>${finalPseudoElements.join(' ')}</style>`;
+  if (finalPseudoElements.length > 0) {
+    message.html[message.pseudoElementPlaceHolderIndex] =
+        `<style>${finalPseudoElements.join(' ')}</style>`;
+  }
 
   if (message.rootStyleIndex) {
     minimizeStyle(

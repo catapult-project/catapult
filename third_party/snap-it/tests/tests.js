@@ -723,6 +723,46 @@ QUnit.test('processDocument: no doctype tag', function(assert) {
   assert.notEqual(serializer.html[0], '<!DOCTYPE html>\n');
 });
 
+QUnit.test('processDocument: no empty styles', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  fixture.appendChild(iframe);
+  serializer.processDocument(iframe.contentDocument);
+  for (var i = 0; i < serializer.html.length; i++)
+    assert.ok(serializer.html[i].search(/<style>\s*<\/style>/) == -1);
+});
+
+QUnit.test('processDocument: no empty styles for css fonts', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var iframe = document.createElement('iframe');
+  serializer.html = ['']
+  serializer.fontPlaceHolderIndex = 1;
+  serializer.fillFontHoles(iframe.contentDocument, () => {});
+  for (var i = 0; i < serializer.html.length; i++)
+    assert.ok(serializer.html[i].search(/<style>\s*<\/style>/) == -1);
+});
+
+QUnit.test('minimizeStyles: no empty styles', function(assert) {
+  var message = {
+    'html': [
+        '<div></div>'
+    ],
+    'pseudoElementTestingStyleIndex': 1,
+    'pseudoElementPlaceHolderIndex': 2,
+    'frameHoles': null,
+    'idToStyleIndex': {},
+    'idToStyleMap': {},
+    'windowHeight': 5,
+    'windowWidth': 5,
+    'frameIndex': '0'
+  };
+  minimizeStyles(message);
+  for (var i = 0; i < message.html.length; i++)
+    assert.ok(message.html[i].search(/<style>\s*<\/style>/) == -1);
+});
+
 QUnit.test('escapedQuote', function(assert) {
   assert.equal(escapedQuote(0), '"');
   assert.equal(escapedQuote(1), '&quot;');
