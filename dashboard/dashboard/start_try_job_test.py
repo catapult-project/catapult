@@ -1009,6 +1009,20 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='android_nexus7_perf_bisect',
         suite='cc_perftests')
 
+  def testGetConfig_TracingPerftests(self):
+    self._TestGetConfigCommand(
+        ('./src/out/Release/tracing_perftests '
+         '--test-launcher-print-test-stdio=always --verbose'),
+        bisect_bot='linux_perf_bisect',
+        suite='tracing_perftests')
+
+  def testGetConfig_AndroidTracingPerftests(self):
+    self._TestGetConfigCommand(
+        'src/build/android/test_runner.py '
+        'gtest --release -s tracing_perftests --verbose',
+        bisect_bot='android_nexus7_perf_bisect',
+        suite='tracing_perftests')
+
   def testGetConfig_IdbPerf(self):
     self._TestGetConfigCommand(
         ('.\\src\\out\\Release\\performance_ui_tests.exe '

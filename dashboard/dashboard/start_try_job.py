@@ -83,7 +83,16 @@ _NON_TELEMETRY_TEST_COMMANDS = {
         '--chartjson',
         '{CHROMIUM_OUTPUT_DIR}',
     ],
+    'tracing_perftests': [
+        './out/Release/tracing_perftests',
+        '--test-launcher-print-test-stdio=always',
+        '--verbose',
+    ],
 }
+_NON_TELEMETRY_ANDROID_COMMAND = 'src/build/android/test_runner.py '\
+                                 'gtest --release -s %(suite)s --verbose'
+_NON_TELEMETRY_ANDROID_SUPPORTED_TESTS = ['cc_perftests', 'tracing_perftests']
+
 _DISABLE_STORY_FILTER_SUITE_LIST = set([
     'octane',  # Has a single story.
 ])
@@ -447,9 +456,9 @@ def GuessCommand(
 
 def _GuessCommandNonTelemetry(suite, bisect_bot):
   """Returns a command string to use for non-Telemetry tests."""
-  if suite == 'cc_perftests' and bisect_bot.startswith('android'):
-    return ('src/build/android/test_runner.py '
-            'gtest --release -s cc_perftests --verbose')
+  if bisect_bot.startswith('android'):
+    if suite in _NON_TELEMETRY_ANDROID_SUPPORTED_TESTS:
+      return _NON_TELEMETRY_ANDROID_COMMAND % {'suite': suite}
   if suite.startswith('resource_sizes'):
     match = re.match(r'.*\((.*)\)', suite)
     if not match:
