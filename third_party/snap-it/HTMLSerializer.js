@@ -674,30 +674,33 @@ var HTMLSerializer = class {
   }
 
   /**
-   * Return a JSONizable dictionary that contain all the data of this object.
+   * Return a JSONizable dictionary with instance data for export.
    */
   asDict() {
-    return {
-          'html': htmlSerializer.html,
-          'frameHoles': htmlSerializer.frameHoles,
-          'idToStyleIndex': htmlSerializer.idToStyleIndex,
-          'idToStyleMap': htmlSerializer.idToStyleMap,
-          'windowHeight': htmlSerializer.windowHeight,
-          'windowWidth': htmlSerializer.windowWidth,
-          'rootId': htmlSerializer.rootId,
-          'rootStyleIndex': htmlSerializer.rootStyleIndex,
-          'pseudoElementSelectorToCSSMap':
-              htmlSerializer.pseudoElementSelectorToCSSMap,
-          'pseudoElementPlaceHolderIndex':
-              htmlSerializer.pseudoElementPlaceHolderIndex,
-          'pseudoElementTestingStyleIndex':
-              htmlSerializer.pseudoElementStyleTestingIndex,
-          'pseudoElementTestingStyleId':
-              htmlSerializer.pseudoElementTestingStyleId,
-          'externalImages': htmlSerializer.externalImages,
-          'unusedId': htmlSerializer.generateId(document),
-          'frameIndex': htmlSerializer.iframeFullyQualifiedName(window)
+    var result = {
+      'frameIndex': htmlSerializer.iframeFullyQualifiedName(window),
+      'unusedId': htmlSerializer.generateId(document)
     };
+    var copyFields = [
+      'externalImages',
+      'frameHoles',
+      'html',
+      'idToStyleIndex',
+      'idToStyleMap',
+      'pseudoElementPlaceHolderIndex',
+      'pseudoElementSelectorToCSSMap',
+      'pseudoElementTestingStyleId',
+      'pseudoElementTestingStyleIndex',
+      'rootId',
+      'rootStyleIndex',
+      'windowHeight',
+      'windowWidth',
+    ];
+    for (var i = 0; i  < copyFields.length; i++) {
+      var fieldName = copyFields[i];
+      result[fieldName] = htmlSerializer[fieldName];
+    }
+    return result;
   }
 
   /**
