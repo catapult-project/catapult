@@ -111,7 +111,8 @@ tr.exportTo('tr.importer', function() {
      * importTraces.
      */
     createImportTracesTask(progressMeter, traces) {
-      const importStartTimeMs = performance.now();
+      const importStartTimeMs = tr.b.Timing.getCurrentTimeMs();
+
       if (this.importing_) {
         throw new Error('Already importing.');
       }
@@ -306,7 +307,7 @@ tr.exportTo('tr.importer', function() {
       lastTask.after(() => {
         this.importing_ = false;
         this.model_.stats.traceImportDurationMs =
-            performance.now() - importStartTimeMs;
+            tr.b.Timing.getCurrentTimeMs() - importStartTimeMs;
       });
       return importTask;
     },

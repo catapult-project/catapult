@@ -95,6 +95,13 @@ tr.exportTo('tr.b', function() {
         });
       }
     }
+
+    static getCurrentTimeMs() {
+      try {
+        return performance.now();
+      } catch (error) {}
+      return 0;
+    }
   }
 
   return {
