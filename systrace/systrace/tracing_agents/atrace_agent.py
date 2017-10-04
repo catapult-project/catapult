@@ -21,6 +21,8 @@ from systrace import util
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 # The number of seconds to wait on output from ADB.
 ADB_STDOUT_READ_TIMEOUT = 0.2
+# The number of seconds to wait for large output from ADB.
+ADB_LARGE_OUTPUT_TIMEOUT = 600
 # The adb shell command to initiate a trace.
 ATRACE_BASE_ARGS = ['atrace']
 # If a custom list of categories is not specified, traces will include
@@ -238,7 +240,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     trace if tracing is still on."""
     result = self._device_utils.RunShellCommand(
         self._tracer_args + ['--async_stop'], raw_output=True,
-        large_output=True, check_return=True)
+        large_output=True, check_return=True, timeout=ADB_LARGE_OUTPUT_TIMEOUT)
     is_trace_enabled_file = '/sys/kernel/debug/tracing/tracing_on'
 
     if self._device_sdk_version < version_codes.MARSHMALLOW:
