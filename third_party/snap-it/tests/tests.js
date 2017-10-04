@@ -1,3 +1,17 @@
+window.allTestDone = false;
+window.failedTests = [];
+
+QUnit.testDone(function(details) {
+  if (details.failed !== 0) {
+    window.failedTests.push(details.module + details.name);
+  }
+});
+
+QUnit.done(function(details) {
+  window.total = details.total;
+  window.allTestDone = true;
+});
+
 QUnit.test('windowDepth: no parent window', function(assert) {
   var serializer = new HTMLSerializer();
   assert.equal(serializer.windowDepth(window), 0);
@@ -635,7 +649,7 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
       'solid; border-bottom-width: 4px; border-left-color: rgb(0, 0, 255); ' +
       'border-left-style: solid; border-left-width: 4px; border-right-color: ' +
       'rgb(0, 0, 255); border-right-style: solid; border-right-width: 4px; ' +
-      'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' + 
+      'border-top-color: rgb(0, 0, 255); border-top-style: solid; ' +
       'border-top-width: 4px; width: 276px; perspective-origin: 142px 24px; ' +
       'transform-origin: 142px 24px;" id="snap-it0" >hello world</div>');
 });

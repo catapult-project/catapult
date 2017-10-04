@@ -106,6 +106,15 @@ _CATAPULT_TESTS = [
         'path': 'systrace/bin/run_tests',
     },
     {
+        'name': 'Snap-it Tests',
+        'path': 'telemetry/bin/run_snap_it_unittest',
+        'additional_args': [
+            '--browser=reference',
+        ],
+        'uses_sandbox_env': True,
+        'disabled': ['android'],
+    },
+    {
         'name': 'Telemetry Tests with Stable Browser (Desktop)',
         'path': 'catapult_build/fetch_telemetry_deps_and_run_tests',
         'additional_args': [
