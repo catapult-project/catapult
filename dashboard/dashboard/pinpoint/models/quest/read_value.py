@@ -38,31 +38,60 @@ class ReadChartJsonValue(quest.Quest):
 
 class _ReadChartJsonValueExecution(execution.Execution):
 
+  # TODO: Remove this method after data migration.
+  def __setstate__(self, state):
+    # pylint: disable=attribute-defined-outside-init
+    self.__dict__ = state
+
+    if not hasattr(self, '_trace_urls'):
+      self._trace_urls = []
+      chartjson = _RetrieveOutputJson(
+          self._isolate_hash, 'chartjson-output.json')
+      if 'trace' in chartjson['charts']:
+        traces = chartjson['charts']['trace']
+        traces = sorted(traces.iteritems(), key=lambda item: item[1]['page_id'])
+        for name, details in traces:
+          self._trace_urls.append({'name': name, 'url': details['cloud_url']})
+
   def __init__(self, chart, tir_label, trace, isolate_hash):
     super(_ReadChartJsonValueExecution, self).__init__()
     self._chart = chart
     self._tir_label = tir_label
-    self._trace = trace or 'summary'
+    self._trace = trace
     self._isolate_hash = isolate_hash
 
+    self._trace_urls = []
+
   def _AsDict(self):
-    return {}
+    if not self._trace_urls:
+      return {}
+    return {'traces': self._trace_urls}
 
   def _Poll(self):
     chartjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
 
+    # Get and cache any trace URLs.
+    if 'trace' in chartjson['charts']:
+      traces = chartjson['charts']['trace']
+      traces = sorted(traces.iteritems(), key=lambda item: item[1]['page_id'])
+      for name, details in traces:
+        self._trace_urls.append({'name': name, 'url': details['cloud_url']})
+
+    # Look up chart.
     if self._tir_label:
       chart_name = '@@'.join((self._tir_label, self._chart))
     else:
       chart_name = self._chart
     if chart_name not in chartjson['charts']:
-      raise ReadValueError('The chart "%s" is not in the results.' %
-                           chart_name)
-    if self._trace not in chartjson['charts'][chart_name]:
-      raise ReadValueError('The trace "%s" is not in the results.' %
-                           self._trace)
-    chart = chartjson['charts'][chart_name][self._trace]
+      raise ReadValueError('The chart "%s" is not in the results.' % chart_name)
 
+    # Look up trace.
+    trace_name = self._trace or 'summary'
+    if trace_name not in chartjson['charts'][chart_name]:
+      raise ReadValueError('The trace "%s" is not in the results.' % trace_name)
+
+    # Convert data to individual values.
+    chart = chartjson['charts'][chart_name][trace_name]
     if chart['type'] == 'list_of_scalar_values':
       result_values = chart['values']
     elif chart['type'] == 'histogram':

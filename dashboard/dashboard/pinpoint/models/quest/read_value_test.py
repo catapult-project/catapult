@@ -26,13 +26,16 @@ class ReadChartJsonValueTest(_ReadValueTest):
   def testReadChartJsonValue(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'trace': {
-            'type': 'list_of_scalar_values',
-            'values': [0, 1, 2],
-        }}}}),
+        json.dumps({'charts': {
+            'tir_label@@chart': {'trace name': {
+                'type': 'list_of_scalar_values',
+                'values': [0, 1, 2],
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
@@ -47,13 +50,16 @@ class ReadChartJsonValueTest(_ReadValueTest):
   def testReadChartJsonValueWithNoTirLabel(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'chart': {'trace': {
-            'type': 'list_of_scalar_values',
-            'values': [0, 1, 2],
-        }}}}),
+        json.dumps({'charts': {
+            'chart': {'trace name': {
+                'type': 'list_of_scalar_values',
+                'values': [0, 1, 2],
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', None, 'trace')
+    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
@@ -122,16 +128,19 @@ class ReadChartJsonValueTest(_ReadValueTest):
   def testHistogram(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'trace': {
-            'type': 'histogram',
-            'buckets': [
-                {'low': 0, 'count': 2},
-                {'low': 0, 'high': 2, 'count': 3},
-            ],
-        }}}}),
+        json.dumps({'charts': {
+            'tir_label@@chart': {'trace name': {
+                'type': 'histogram',
+                'buckets': [
+                    {'low': 0, 'count': 2},
+                    {'low': 0, 'high': 2, 'count': 3},
+                ],
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
@@ -140,16 +149,19 @@ class ReadChartJsonValueTest(_ReadValueTest):
   def testHistogramWithLargeSample(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'trace': {
-            'type': 'histogram',
-            'buckets': [
-                {'low': 0, 'count': 20000},
-                {'low': 0, 'high': 2, 'count': 30000},
-            ],
-        }}}}),
+        json.dumps({'charts': {
+            'tir_label@@chart': {'trace name': {
+                'type': 'histogram',
+                'buckets': [
+                    {'low': 0, 'count': 20000},
+                    {'low': 0, 'high': 2, 'count': 30000},
+                ],
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
@@ -158,13 +170,16 @@ class ReadChartJsonValueTest(_ReadValueTest):
   def testScalar(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'trace': {
-            'type': 'scalar',
-            'value': 2.5,
-        }}}}),
+        json.dumps({'charts': {
+            'tir_label@@chart': {'trace name': {
+                'type': 'scalar',
+                'value': 2.5,
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace')
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 

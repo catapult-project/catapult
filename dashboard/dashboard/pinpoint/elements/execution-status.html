@@ -170,6 +170,19 @@ found in the LICENSE file.
             continue;
           }
 
+          // TODO: Generate the correct URLs in the backend to avoid these
+          // hard-coded keys and base URLs.
+          if (key == 'traces') {
+            for (const trace of value) {
+              executionDetails.push({
+                key: 'trace',
+                value: trace.name,
+                url: trace.url,
+              });
+            }
+            continue;
+          }
+
           let url = '';
           if (key == 'bot_id') {
             url = 'https://chromium-swarm.appspot.com/bot?id=' + value;
