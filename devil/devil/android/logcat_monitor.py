@@ -30,7 +30,8 @@ class LogcatMonitor(object):
       r'(?P<date>\S*) +(?P<time>\S*) +(?P<proc_id>%s) +(?P<thread_id>%s) +'
       r'(?P<log_level>%s) +(?P<component>%s) *: +(?P<message>%s)$')
 
-  def __init__(self, adb, clear=True, filter_specs=None, output_file=None):
+  def __init__(self, adb, clear=True, filter_specs=None, output_file=None,
+               transform_func=None):
     """Create a LogcatMonitor instance.
 
     Args:
@@ -38,6 +39,8 @@ class LogcatMonitor(object):
       clear: If True, clear the logcat when monitoring starts.
       filter_specs: An optional list of '<tag>[:priority]' strings.
       output_file: File path to save recorded logcat.
+      transform_func: An optional unary callable that takes and returns
+        a list of lines, possibly transforming them in the process.
     """
     if isinstance(adb, adb_wrapper.AdbWrapper):
       self._adb = adb
@@ -50,6 +53,7 @@ class LogcatMonitor(object):
     self._record_file_lock = threading.Lock()
     self._record_thread = None
     self._stop_recording_event = threading.Event()
+    self._transform_func = transform_func
 
   @property
   def output_file(self):
@@ -176,6 +180,8 @@ class LogcatMonitor(object):
 
         with self._record_file_lock:
           if self._record_file and not self._record_file.closed:
+            if self._transform_func:
+              data = '\n'.join(self._transform_func([data]))
             self._record_file.write(data + '\n')
 
     self._stop_recording_event.clear()
