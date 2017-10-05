@@ -749,6 +749,30 @@ class AddHistogramsTest(testing_common.TestCase):
     test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
     self.assertEqual('master/bot/benchmark/hist/http___story', test_path)
 
+  def testComputeTestPathWithTIRLabel(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['http://story']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(
+            ['group:media', 'ignored_tag', 'case:browse']))
+    hist = histograms.GetFirstHistogram()
+    test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
+    self.assertEqual(
+        'master/bot/benchmark/hist/browse_media/http___story', test_path)
+
   def testComputeTestPathWithoutStory(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])

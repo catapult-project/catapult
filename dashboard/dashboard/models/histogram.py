@@ -11,6 +11,7 @@ from google.appengine.ext import ndb
 
 from dashboard.models import graph_data
 from dashboard.models import internal_only_model
+from tracing.value.diagnostics import reserved_infos
 
 
 class JsonModel(internal_only_model.InternalOnlyModel):
@@ -68,3 +69,11 @@ class SparseDiagnostic(JsonModel):
         diagnostic_data = json.loads(diagnostic.data)
         diagnostic_map[diagnostic.name] = diagnostic_data.get('values')
     raise ndb.Return(diagnostic_map)
+
+
+def GetTIRLabelFromHistogram(hist):
+  tags = hist.diagnostics.get(reserved_infos.STORY_TAGS.name) or []
+
+  tags_to_use = [t.split(':') for t in tags if ':' in t]
+
+  return '_'.join(v for _, v in sorted(tags_to_use))

@@ -8,7 +8,38 @@ import sys
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
+from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
+
+
+class HistogramTest(testing_common.TestCase):
+  """Test case for functions in Histogram."""
+
+  def setUp(self):
+    super(HistogramTest, self).setUp()
+
+  def testGetTIRLabelFromHistogram_NoTags_ReturnsEmpty(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    self.assertEqual('', histogram.GetTIRLabelFromHistogram(hist))
+
+  def testGetTIRLabelFromHistogram_NoValidTags_ReturnsEmpty(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(['foo', 'bar']))
+    self.assertEqual('', histogram.GetTIRLabelFromHistogram(hist))
+
+  def testGetTIRLabelFromHistogram_ValidTags_SortsByKey(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(
+            ['z:last', 'ignore', 'a:first', 'me', 'm:middle']))
+    self.assertEqual(
+        'first_middle_last', histogram.GetTIRLabelFromHistogram(hist))
 
 
 class SparseDiagnosticTest(testing_common.TestCase):

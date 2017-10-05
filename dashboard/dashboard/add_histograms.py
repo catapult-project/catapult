@@ -208,6 +208,10 @@ def ComputeTestPath(guid, histograms):
   suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
   path = '%s/%s' % (suite_path, hist.name)
 
+  tir_label = histogram.GetTIRLabelFromHistogram(hist)
+  if tir_label:
+    path += '/' + tir_label
+
   story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
   if story_name and len(story_name) == 1:
     escaped_story_name = add_point.EscapeName(list(story_name)[0])
