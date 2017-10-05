@@ -16,8 +16,8 @@ class Oobe(web_contents.WebContents):
     super(Oobe, self).__init__(inspector_backend)
 
   def _GaiaIFrameContext(self):
-    all_context_ids = self.EnableAllContexts()
-    logging.debug('%d contexts in Gaia page', len(all_context_ids))
+    all_context_ids = self.EnableAllContexts().copy()
+    logging.debug('Gaia page contexts: %r', all_context_ids)
     for gaia_iframe_context in all_context_ids:
       try:
         if self.EvaluateJavaScript(
