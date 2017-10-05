@@ -18,7 +18,6 @@ from telemetry.internal.util import binary_manager
 
 def main(args):
   options = browser_options.BrowserFinderOptions()
-  options.browser_options.wpr_mode = wpr_modes.WPR_OFF
   parser = options.CreateParser(
       usage='Create a static HTML snapshot of the page')
   parser.add_option('--url', help='URL of the web page to record')
