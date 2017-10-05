@@ -56,9 +56,12 @@ class Oobe(web_contents.WebContents):
     _, domain = username.split('@')
     def _EnterpriseWebviewVisible():
       webview = self._GaiaWebviewContext()
-      return webview and webview.EvaluateJavaScript(
-          "document.querySelectorAll('span[title= {{ domain }}]').length;",
-          domain=domain)
+      try:
+        return webview and webview.EvaluateJavaScript(
+            "document.querySelectorAll('span[title= {{ domain }}]').length;",
+            domain=domain)
+      except exceptions.DevtoolsTargetCrashException:
+        return False
     py_utils.WaitFor(_EnterpriseWebviewVisible, 60)
 
   def NavigateGuestLogin(self):
