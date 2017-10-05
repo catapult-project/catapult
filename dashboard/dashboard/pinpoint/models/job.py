@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import datetime
 import logging
 import os
 import traceback
@@ -54,7 +55,9 @@ class Job(ndb.Model):
   """A Pinpoint job."""
 
   created = ndb.DateTimeProperty(required=True, auto_now_add=True)
-  updated = ndb.DateTimeProperty(required=True, auto_now=True)
+  # Don't use `auto_now` for `updated`. When we do data migration, we need
+  # to be able to modify the Job without changing the Job's completion time.
+  updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
@@ -197,6 +200,10 @@ class Job(ndb.Model):
     except BaseException:
       self._Fail()
       raise
+    finally:
+      # Don't use `auto_now` for `updated`. When we do data migration, we need
+      # to be able to modify the Job without changing the Job's completion time.
+      self.updated = datetime.datetime.now()
 
   def AsDict(self, include_state=True):
     d = {
