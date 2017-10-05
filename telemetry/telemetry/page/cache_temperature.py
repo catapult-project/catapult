@@ -24,8 +24,8 @@ WARM = 'warm'
 # the run.
 HOT = 'hot'
 
-class MarkTelemetryInternal(object):
 
+class _MarkTelemetryInternal(object):
   def __init__(self, browser, identifier):
     self.browser = browser
     self.identifier = identifier
@@ -52,13 +52,15 @@ class MarkTelemetryInternal(object):
         "console.timeEnd({{ marker }});", marker=marker)
     return True
 
-def ClearCacheAndData(browser, url):
+
+def _ClearCacheAndData(browser, url):
   tab = browser.tabs[0]
   tab.ClearCache(force=True)
   tab.ClearDataForOrigin(url)
 
-def WarmCache(page, browser, temperature):
-  with MarkTelemetryInternal(browser, 'warm_cache.%s' % temperature):
+
+def _WarmCache(page, browser, temperature):
+  with _MarkTelemetryInternal(browser, 'warm_cache.%s' % temperature):
     tab = browser.tabs[0]
     page.RunNavigateSteps(tab.action_runner)
     page.RunPageInteractions(tab.action_runner)
@@ -68,12 +70,25 @@ def WarmCache(page, browser, temperature):
     # script evaluation will be executed again in next navigation.
     tab.StopAllServiceWorkers()
 
-def EnsurePageCacheTemperature(page, browser, previous_page=None):
-  temperature = page.cache_temperature
-  logging.info('PageCacheTemperature: %s', temperature)
-  if temperature == ANY:
-    return
-  if temperature == COLD:
+
+class CacheManipulator(object):
+  TEMPERATURE = None
+  @staticmethod
+  def PrepareCache(page, browser, previous_page):
+    raise NotImplementedError
+
+
+class AnyCacheManipulator(CacheManipulator):
+  TEMPERATURE = ANY
+  @staticmethod
+  def PrepareCache(page, browser, previous_page):
+    pass
+
+
+class ColdCacheManipulator(CacheManipulator):
+  TEMPERATURE = COLD
+  @staticmethod
+  def PrepareCache(page, browser, previous_page):
     if previous_page is None:
       # DiskCache initialization is performed asynchronously on Chrome start-up.
       # Ensure that DiskCache is initialized before starting the measurement to
@@ -81,12 +96,17 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
       # This is done by navigating to an inexistent URL and then wait for the
       # navigation to complete.
       # TODO(kouhei) Consider moving this logic to PageCyclerStory
-      with MarkTelemetryInternal(browser, 'ensure_diskcache'):
+      with _MarkTelemetryInternal(browser, 'ensure_diskcache'):
         tab = browser.tabs[0]
         tab.Navigate("http://does.not.exist")
         tab.WaitForDocumentReadyStateToBeComplete()
-    ClearCacheAndData(browser, page.url)
-  elif temperature == WARM:
+    _ClearCacheAndData(browser, page.url)
+
+
+class WarmCacheManipulator(CacheManipulator):
+  TEMPERATURE = WARM
+  @staticmethod
+  def PrepareCache(page, browser, previous_page):
     if (previous_page is not None and
         previous_page.url == page.url and
         previous_page.cache_temperature == COLD):
@@ -96,7 +116,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
         # Note: Unlike PCv1, PCv2 iterates the same URL for different cache
         #       configurations. This may issue blink in-page hash navigations,
         #       which isn't intended here.
-        with MarkTelemetryInternal(browser, 'avoid_double_hash_navigation'):
+        with _MarkTelemetryInternal(browser, 'avoid_double_hash_navigation'):
           tab = browser.tabs[0]
           tab.Navigate("http://does.not.exist")
           tab.WaitForDocumentReadyStateToBeComplete()
@@ -104,14 +124,19 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
       # time of service worker too.
       browser.tabs[0].StopAllServiceWorkers()
     else:
-      ClearCacheAndData(browser, page.url)
-      WarmCache(page, browser, WARM)
-  elif temperature == HOT:
+      _ClearCacheAndData(browser, page.url)
+      _WarmCache(page, browser, WARM)
+
+
+class HotCacheManipulator(CacheManipulator):
+  TEMPERATURE = HOT
+  @staticmethod
+  def PrepareCache(page, browser, previous_page):
     if (previous_page is not None and
         previous_page.url == page.url and
         previous_page.cache_temperature != ANY):
       if previous_page.cache_temperature == COLD:
-        WarmCache(page, browser, HOT)
+        _WarmCache(page, browser, HOT)
       else:
         if '#' in page.url:
           # TODO(crbug.com/768780): Move this operation to tab.Navigate().
@@ -119,7 +144,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
           # Note: Unlike PCv1, PCv2 iterates the same URL for different cache
           #       configurations. This may issue blink in-page hash navigations,
           #       which isn't intended here.
-          with MarkTelemetryInternal(browser, 'avoid_double_hash_navigation'):
+          with _MarkTelemetryInternal(browser, 'avoid_double_hash_navigation'):
             tab = browser.tabs[0]
             tab.Navigate("http://does.not.exist")
             tab.WaitForDocumentReadyStateToBeComplete()
@@ -127,6 +152,17 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
         # time of service worker too.
         browser.tabs[0].StopAllServiceWorkers()
     else:
-      ClearCacheAndData(browser, page.url)
-      WarmCache(page, browser, WARM)
-      WarmCache(page, browser, HOT)
+      _ClearCacheAndData(browser, page.url)
+      _WarmCache(page, browser, WARM)
+      _WarmCache(page, browser, HOT)
+
+
+def EnsurePageCacheTemperature(page, browser, previous_page=None):
+  temperature = page.cache_temperature
+  logging.info('PageCacheTemperature: %s', temperature)
+  for c in [AnyCacheManipulator, ColdCacheManipulator, WarmCacheManipulator,
+            HotCacheManipulator]:
+    if temperature == c.TEMPERATURE:
+      c.PrepareCache(page, browser, previous_page)
+      return
+  raise NotImplementedError('Unrecognized cache temperature: %s' % temperature)
