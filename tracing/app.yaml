@@ -42,9 +42,9 @@ handlers:
   upload: tracing/third_party/mannwhitneyu/mannwhitneyu.js
   secure: always
 
-- url: /jszip.min.js
-  static_files: tracing/third_party/jszip/jszip.min.js
-  upload: tracing/third_party/jszip/jszip.min.js
+- url: /pako.min.js
+  static_files: tracing/third_party/pako/pako.min.js
+  upload: tracing/third_party/pako/pako.min.js
   secure: always
 
 - url: /d3.min.js

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/in_memory_trace_stream.html">
-<link rel="import" href="/tracing/extras/importer/jszip.html">
+<link rel="import" href="/tracing/extras/importer/pako.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -24,11 +24,19 @@ tr.exportTo('tr.e.importer', function() {
   const GZIP_HEADER_ID2 = 0x8b;
   const GZIP_DEFLATE_COMPRESSION = 8;
 
+  function _stringToUInt8Array(str) {
+    const array = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; ++i) {
+      array[i] = str.charCodeAt(i);
+    }
+    return array;
+  }
+
   function GzipImporter(model, eventData) {
     // Normalize the data into an Uint8Array.
     this.inflateAsTraceStream = false;
     if (typeof(eventData) === 'string' || eventData instanceof String) {
-      eventData = JSZip.utils.transformTo('uint8array', eventData);
+      eventData = _stringToUInt8Array(eventData);
     } else if (eventData instanceof ArrayBuffer) {
       eventData = new Uint8Array(eventData);
     } else if (eventData instanceof tr.b.InMemoryTraceStream) {
@@ -60,8 +68,7 @@ tr.exportTo('tr.e.importer', function() {
       header = new Uint8Array(eventData.slice(0, GZIP_MEMBER_HEADER_ID_SIZE));
     } else if (typeof(eventData) === 'string' || eventData instanceof String) {
       header = eventData.substring(0, GZIP_MEMBER_HEADER_ID_SIZE);
-      // Convert the string to a byteArray for correct value comparison.
-      header = JSZip.utils.transformTo('uint8array', header);
+      header = _stringToUInt8Array(header);
     } else {
       return false;
     }
@@ -125,9 +132,8 @@ tr.exportTo('tr.e.importer', function() {
     if (haveComment) skipZeroTerminatedString();
     if (haveHeaderCrc) getWord();
 
-    // Inflate the data using jszip.
-    const inflatedData =
-        JSZip.compressions.DEFLATE.uncompress(data.subarray(position));
+    // Inflate the data using pako.
+    const inflatedData = pako.inflateRaw(data.subarray(position));
 
     if (this.inflateAsTraceStream_) {
       return GzipImporter.transformToStream(inflatedData);
@@ -151,8 +157,10 @@ tr.exportTo('tr.e.importer', function() {
   };
 
   GzipImporter.transformToStream = function(data) {
-    const type = JSZip.utils.getTypeOf(data);
-    if (type === 'uint8array') return new tr.b.InMemoryTraceStream(data, false);
+    if (data instanceof Uint8Array) {
+      return new tr.b.InMemoryTraceStream(data, false);
+    }
+
     throw new Error(`Cannot transform ${type} to TraceStream.`);
   };
 
@@ -169,21 +177,45 @@ tr.exportTo('tr.e.importer', function() {
    * https://github.com/catapult-project/catapult/issues/2051.
    */
   GzipImporter.transformToString = function(data) {
+    if (typeof(data) === 'string') return data;  // We already have a string.
+
+    // Fall back to manual conversion if TextDecoder is not available.
     if (typeof TextDecoder === 'undefined') {
-      // Fall back to jszip if TextDecoder is not available.
-      return JSZip.utils.transformTo('string', data);
+      if (data instanceof ArrayBuffer) {
+        data = new Uint8Array(data);
+      }
+
+      // Based on JSZip.Utils.stringToArrayLike
+      const result = [];
+      let chunk = 65536;
+      let k = 0;
+      const len = data.length;
+
+      while (k < len && chunk > 1) {
+        try {
+          const chunklen = Math.min(k + chunk, len);
+          let dataslice;
+          if (data instanceof Array) {
+            dataslice = data.slice(k, chunklen);
+          } else {
+            dataslice = data.subarray(k, chunklen);
+          }
+          result.push(String.fromCharCode.apply(null, dataslice));
+          k += chunk;
+        } catch (e) {
+          chunk = Math.floor(chunk / 2);
+        }
+      }
+
+      return result.join('');
     }
 
-    const type = JSZip.utils.getTypeOf(data);
-    if (type === 'string') return data;  // We already have a string.
-
-    if (type === 'array') {
+    if (data instanceof Array) {
       // TextDecoder requires an ArrayBuffer or an ArrayBufferView.
       data = new Uint8Array(data);
     }
 
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(data);
+    return new TextDecoder('utf-8').decode(data);
   };
 
   GzipImporter.prototype = {

@@ -134,6 +134,7 @@
       'tracing/extras/importer/linux_perf/sync_parser.html',
       'tracing/extras/importer/linux_perf/workqueue_parser.html',
       'tracing/extras/importer/oboe.html',
+      'tracing/extras/importer/pako.html',
       'tracing/extras/importer/profiling_dictionary_reader.html',
       'tracing/extras/importer/trace2html_importer.html',
       'tracing/extras/importer/trace_code_entry.html',
