@@ -193,10 +193,17 @@ tr.exportTo('tr.metrics.sh', function() {
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined) continue;
 
-      const timeToEvent = ev.start - navigationStartEvent.start;
+      const navStartToEventRange = tr.b.math.Range.fromExplicitRange(
+          navigationStartEvent.start, ev.start);
+      const networkEvents = getNetworkEventsInRange(
+          rendererHelper.process, navStartToEventRange);
+      const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+          rendererHelper.mainThread, networkEvents, navStartToEventRange);
       samples.push({
-        value: timeToEvent,
+        value: navStartToEventRange.duration,
+        breakdownTree,
         diagnostics: {
+          breakdown: createBreakdownDiagnostic(breakdownTree),
           url: new tr.v.d.GenericSet([url]),
           Start: new RelatedEventSet(navigationStartEvent),
           End: new RelatedEventSet(ev)
@@ -221,12 +228,11 @@ tr.exportTo('tr.metrics.sh', function() {
     const timeToFirstMeaningfulPaint = navStartToFMPRange.duration;
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, navStartToFMPRange);
-    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: timeToFirstMeaningfulPaint,
       breakdownTree,
       diagnostics: {
-        breakdown: breakdownDiagnostic,
+        breakdown: createBreakdownDiagnostic(breakdownTree),
         start: new RelatedEventSet(navigationStart),
         end: new RelatedEventSet(fmpMarkerEvent),
         infos: new tr.v.d.GenericSet([{
@@ -255,12 +261,11 @@ tr.exportTo('tr.metrics.sh', function() {
 
     const breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
         rendererHelper.mainThread, navStartToFMPCpuRange);
-    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: mainThreadCpuTime,
       breakdownTree,
       diagnostics: {
-        breakdown: breakdownDiagnostic,
+        breakdown: createBreakdownDiagnostic(breakdownTree),
         start: new RelatedEventSet(navigationStart),
         end: new RelatedEventSet(fmpMarkerEvent),
         infos: new tr.v.d.GenericSet([{
@@ -324,13 +329,12 @@ tr.exportTo('tr.metrics.sh', function() {
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents,
         navStartToFirstInteractiveRange);
-    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
-
     const timeToFirstInteractive = navStartToFirstInteractiveRange.duration;
     samples.push({
       value: timeToFirstInteractive,
       breakdownTree,
       diagnostics: {
+        breakdown: createBreakdownDiagnostic(breakdownTree),
         start: new RelatedEventSet(navigationStart),
         lastLongTask: new RelatedEventSet(lastLongTaskEvent),
         infos: new tr.v.d.GenericSet([{
@@ -339,7 +343,6 @@ tr.exportTo('tr.metrics.sh', function() {
           start: navigationStartTime,
           interactive: firstInteractive,
         }]),
-        breakdown: breakdownDiagnostic,
       }
     });
   }
@@ -453,6 +456,10 @@ tr.exportTo('tr.metrics.sh', function() {
     for (const sample of samples) {
       histogram.addSample(sample.value, sample.diagnostics);
 
+      // Only add breakdown histograms for FCP.
+      // http://crbug.com/771610
+      if (histogram.name !== 'timeToFirstContentfulPaint') continue;
+
       if (!sample.breakdownTree) continue;
       for (const [category, breakdown] of Object.entries(
           sample.breakdownTree)) {
@@ -462,7 +469,12 @@ tr.exportTo('tr.metrics.sh', function() {
           relatedHist = histograms.createHistogram(
               relatedName, histogram.unit, [], {
                 binBoundaries: LOADING_METRIC_BOUNDARIES,
-                summaryOptions: SUMMARY_OPTIONS,
+                summaryOptions: {
+                  count: false,
+                  max: false,
+                  min: false,
+                  sum: false,
+                },
               });
 
           let relatedNames = histogram.diagnostics.get('breakdown');
