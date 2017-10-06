@@ -8,6 +8,7 @@ import sys
 
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_options
 
 
 def _TransmitLargeJSONToTab(tab, json_obj, js_holder_name):
@@ -32,10 +33,18 @@ def _TransmitLargeJSONToTab(tab, json_obj, js_holder_name):
       '{{ @js_holder_name }} = JSON.parse({{ @js_holder_name }});',
       js_holder_name=js_holder_name)
 
-def SnapPage(finder_options, url, interactive, snapshot_file):
+def SnapPage(finder_options, url, interactive, snapshot_file,
+             enable_browser_log):
   """ Save the HTML snapshot of the page whose address is |url| to
   |snapshot_file|.
   """
+  if enable_browser_log:
+    # Enable NON_VERBOSE_LOGGING which also contains devtool's console logs.
+    finder_options.browser_options.logging_verbosity = (
+        browser_options.BrowserOptions.NON_VERBOSE_LOGGING)
+    # Do not upload the log to cloud storage.
+    finder_options.browser_options.logs_cloud_bucket = None
+
   possible_browser = browser_finder.FindBrowser(finder_options)
   browser = possible_browser.Create(finder_options)
   try:

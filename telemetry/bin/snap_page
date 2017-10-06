@@ -21,6 +21,8 @@ def main(args):
   parser = options.CreateParser(
       usage='Create a static HTML snapshot of the page')
   parser.add_option('--url', help='URL of the web page to record')
+  parser.add_option('--enable-browser-log', help='Enable browser log',
+      default=False, action='store_true')
   parser.add_option('--interactive', action="store_true", default=False,
       help='Activate interactive mode after loading the page')
   parser.add_option('--snapshot-path', help='Where to save the snapshot',
@@ -30,7 +32,8 @@ def main(args):
   binary_manager.InitDependencyManager([])
   snapshot_path = os.path.abspath(options.snapshot_path)
   with codecs.open(snapshot_path, 'w', 'utf-8') as f:
-    snap_page_util.SnapPage(options, options.url, options.interactive, f)
+    snap_page_util.SnapPage(options, options.url, options.interactive, f,
+        options.enable_browser_log)
     print 'Successfully saved snapshot to file://%s' % snapshot_path
 
 if __name__ == '__main__':

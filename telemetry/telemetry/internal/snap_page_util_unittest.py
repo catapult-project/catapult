@@ -29,7 +29,8 @@ class SnapPageTest(unittest.TestCase):
     url = self.platform.http_server.UrlOf(html_file_path)
     outfile = StringIO.StringIO()
     snap_page_util.SnapPage(
-        self.finder_options, url, interactive=False, snapshot_file=outfile)
+        self.finder_options, url, interactive=False, snapshot_file=outfile,
+        enable_browser_log=False)
     self.assertIn('id="green"', outfile.getvalue())
 
 
