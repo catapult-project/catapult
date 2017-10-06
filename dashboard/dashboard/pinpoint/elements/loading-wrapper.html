@@ -25,13 +25,8 @@ found in the LICENSE file.
       }
     </style>
 
-    <iron-ajax
-        auto
-        url="[[url]]"
-        params="[[params]]"
-        loading="{{loading}}"
-        last-error="{{error}}"
-        last-response="{{response}}"></iron-ajax>
+    <iron-ajax auto url="[[url]]" params="[[params]]" loading="{{loading}}"
+               last-error="{{error}}" last-response="{{response}}"></iron-ajax>
     <template is="dom-if" if="[[loading]]">
       <div id="loading-spinner">
         <paper-spinner active></paper-spinner>
@@ -39,7 +34,12 @@ found in the LICENSE file.
     </template>
     <template is="dom-if" if="[[!loading]]">
       <template is="dom-if" if="[[error]]">
-        <p class="error">[[error.response.error]]
+        <template is="dom-if" if="[[error.response.error]]">
+          <p class="error">[[error.response.error]]
+        </template>
+        <template is="dom-if" if="[[!error.response.error]]">
+          <p class="error">[[error.error]]
+        </template>
       </template>
       <template is="dom-if" if="[[!error]]">
         <div>

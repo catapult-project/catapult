@@ -7,5 +7,6 @@ from dashboard.pinpoint.handlers.isolate import Isolate
 from dashboard.pinpoint.handlers.job import Job
 from dashboard.pinpoint.handlers.jobs import Jobs
 from dashboard.pinpoint.handlers.login import Login
+from dashboard.pinpoint.handlers.migrate import Migrate
 from dashboard.pinpoint.handlers.new import New
 from dashboard.pinpoint.handlers.run import Run

@@ -13,6 +13,12 @@ libraries:
 
 handlers:
 
+- url: /api/migrate
+  script: dashboard.pinpoint.dispatcher.APP
+  login: admin
+  secure: always
+  auth_fail_action: unauthorized
+
 - url: /api/run/.*
   script: dashboard.pinpoint.dispatcher.APP
   login: admin
