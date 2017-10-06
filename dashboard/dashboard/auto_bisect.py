@@ -18,7 +18,8 @@ from dashboard.services import pinpoint_service
 
 _PINPOINT_BOTS = [
     'chromium-rel-mac11-air',
-    'chromium-rel-mac11-pro'
+    'chromium-rel-mac11-pro',
+    'linux-release'
 ]
 
 
