@@ -12,10 +12,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <head>
   <title>iron-request</title>
 
-  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../polymer/polymer.html">
+  <link rel="import" href="../../promise-polyfill/promise-polyfill.html">
   <link rel="import" href="../iron-request.html">
 </head>
 <body>
@@ -25,13 +26,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
   <script>
-    suite('<iron-request>', function () {
+    suite('<iron-request>', function() {
       var jsonResponseHeaders;
       var successfulRequestOptions;
       var request;
       var server;
 
-      setup(function () {
+      setup(function() {
         jsonResponseHeaders = {
           'Content-Type': 'application/json'
         };
@@ -85,12 +86,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         };
       });
 
-      teardown(function () {
+      teardown(function() {
         server.restore();
       });
 
-      suite('basic usage', function () {
-        test('creates network requests, requiring only `url`', function () {
+      suite('basic usage', function() {
+        test('creates network requests, requiring only `url`', function() {
           request.send(successfulRequestOptions);
 
           server.respond();
@@ -98,40 +99,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           expect(request.response).to.be.ok;
         });
 
-        test('timeout not set if synchronous', function () {
+        test('timeout not set if synchronous', function() {
           request.send(synchronousSuccessfulRequestOptions);
 
           expect(request.xhr.async).to.be.eql(false);
           expect(request.xhr.timeout).to.be.eql(undefined);
         });
 
-        test('timeout set if asynchronous', function () {
+        test('timeout set if asynchronous', function() {
           request.send(asynchronousSuccessfulRequestOptions);
 
           expect(request.xhr.async).to.be.eql(true);
           expect(request.xhr.timeout).to.be.eql(100);
         });
 
-        test('sets async to true by default', function () {
+        test('sets async to true by default', function() {
           request.send(successfulRequestOptions);
           expect(request.xhr.async).to.be.eql(true);
         });
 
-        test('can be aborted', function () {
+        test('can be aborted', function() {
           request.send(successfulRequestOptions);
 
           request.abort();
 
           server.respond();
 
-          return request.completes.then(function () {
+          return request.completes.then(function() {
             throw new Error('Request did not abort appropriately!');
-          }).catch(function (e) {
+          }).catch(function(e) {
             expect(request.response).to.not.be.ok;
           });
         });
 
-        test('default responseType is text', function () {
+        test('can be aborted with request element', function() {
+          var options = {
+            url: successfulRequestOptions.url,
+            rejectWithRequest: true
+          };
+          request.send(options);
+
+          request.abort();
+
+          server.respond();
+
+          return request.completes.then(function() {
+            throw new Error('Request did not abort appropriately!');
+          }).catch(function(e) {
+            expect(e.error).to.be.instanceof(Error);
+            expect(e.request).to.deep.equal(request);
+          });
+        });
+
+        test('default responseType is text', function() {
           request.send(successfulRequestOptions);
           server.respond();
 
@@ -140,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('default responseType of text is not applied, when async is false', function () {
+        test('default responseType of text is not applied, when async is false', function() {
           var options = Object.create(successfulRequestOptions);
           options.async = false;
 
@@ -152,7 +172,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('responseType can be configured via handleAs option', function () {
+        test('responseType can be configured via handleAs option', function() {
           var options = Object.create(successfulRequestOptions);
           options.handleAs = 'json';
 
@@ -167,7 +187,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('setting jsonPrefix correctly strips it from the response', function () {
+        test('setting jsonPrefix correctly strips it from the response', function() {
           var options = {
             url: '/responds_to_get_with_prefixed_json',
             handleAs: 'json',
@@ -185,7 +205,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('responseType cannot be configured via handleAs option, when async is false', function () {
+        test('responseType cannot be configured via handleAs option, when async is false', function() {
           var options = Object.create(successfulRequestOptions);
           options.handleAs = 'json';
           options.async = false;
@@ -245,6 +265,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server.respond();
 
           expect(request.succeeded).to.be.equal(true);
+        });
+
+        test('special form characters', function() {
+          var testCases = [
+            {
+              test: null,
+              answer: ''
+            },
+            {
+              test: undefined,
+              answer: ''
+            },
+            {
+              test: NaN,
+              answer: 'NaN'
+            },
+            {
+              test: new String('\n\r\n\r'),
+              answer: '%0D%0A%0D%0A%0D' // \r\n\r\n\r
+            },
+            {
+              test: 0,
+              answer: '0'
+            },
+            {
+              test: new String('hello world'),
+              answer: 'hello+world'
+            }
+          ];
+
+          var testCase;
+          for (var i = 0; i < testCases.length; i++) {
+            testCase = testCases[i];
+            var encoded = request._wwwFormUrlEncodePiece(testCase.test);
+
+            expect(encoded).to.be.equal(testCase.answer);
+          }
         });
       });
 

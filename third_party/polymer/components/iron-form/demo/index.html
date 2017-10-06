@@ -19,84 +19,84 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="../../paper-input/paper-input.html">
   <link rel="import" href="../../paper-button/paper-button.html">
   <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
   <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
-  <link rel="import" href="../../paper-input/paper-input.html">
   <link rel="import" href="../../paper-item/paper-item.html">
-  <link rel="import" href="../../paper-menu/paper-menu.html">
+  <link rel="import" href="../../paper-listbox/paper-listbox.html">
   <link rel="import" href="../../paper-spinner/paper-spinner.html">
-  <link rel="import" href="../../paper-styles/color.html">
-  <link rel="import" href="../../paper-styles/typography.html">
+  <link rel="import" href="../../paper-styles/shadow.html">
   <link rel="import" href="../iron-form.html">
-  <link rel="import" href="simple-element.html">
+  <link rel="import" href="cats-only.html">
 
-  <style is="custom-style" include="demo-pages-shared-styles">
-    .output {
-      margin-top: 20px;
-      word-wrap: break-word;
-      @apply(--paper-font-common-code);
-    }
-    form > paper-button {
-      width: 45%;
-      margin-top: 20px;
-    }
-    form > paper-button:not([disabled]) {
-      background: var(--paper-light-blue-500);
-      color: white;
-    }
-    button {
-      margin-top: 20px;
-    }
-    paper-spinner {
-      width: 14px;
-      height: 14px;
-      margin-right: 20px;
-    }
-    paper-dropdown-menu {
-      display: block;
-    }
-    demo-snippet {
-      --demo-snippet-code: {
-        max-height: 300px;
-      };
-    }
-  </style>
+  <custom-style>
+    <style is="custom-style" include="demo-pages-shared-styles">
+      input, paper-input, paper-checkbox {
+        margin-bottom: 8px;
+      }
+      iron-form {
+        @apply --shadow-elevation-2dp;
+        padding: 20px;
+      }
+      paper-button {
+        display: inline-block;
+        width: 45%;
+        text-align: center;
+      }
+      #form1 paper-button {
+        width: 30%;
+      }
+      paper-button:not([disabled]) {
+        background: #03a9f4;
+        color: white;
+      }
+      paper-spinner {
+        width: 14px;
+        height: 14px;
+        margin-right: 20px;
+      }
+      .output {
+        margin-top: 20px;
+        word-wrap: break-word;
+        font-family: monospace;
+      }
+    </style>
+  </custom-style>
 </head>
 <body unresolved>
-
   <div class="vertical-section-container centered">
-    <h3>An <code>iron-form</code> can submit both custom and native elements.</h3>
+    <h3>Iron-form works with native and custom elements, and can prevent automatic redirection</h3>
     <demo-snippet>
       <template>
-        <form is="iron-form" method="get" action="/" id="basic">
-          <paper-input name="name" label="Name" required></paper-input>
+        <input type="checkbox" checked onchange="form1.allowRedirect = !this.checked;"> Prevent automatic form redirection<br><br>
+
+        <iron-form id="form1">
+          <form action="/foo" method="get">
+            <paper-input type="text" name="name" required label="Name" value="Batman"></paper-input>
+            <input name="foo" required>
+            <input type="checkbox" name="donuts" checked>I like donuts<br>
+            <paper-checkbox name="food" value="pizza" checked>pizza</paper-checkbox><br>
+            <paper-checkbox name="food" value="cheese" required>cheese</paper-checkbox>
+            <br>
+            <paper-dropdown-menu label="Cars" name="cars" required>
+              <paper-listbox class="dropdown-content" slot="dropdown-content">
+                <paper-item value="volvo">Volvo</paper-item>
+                <paper-item value="saab">Saab</paper-item>
+                <paper-item value="fiat">Fiat</paper-item>
+                <paper-item value="audi">Audi</paper-item>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <br><br>
+            <paper-button raised onclick="form1.submit()">Submit</paper-button>
+            <paper-button raised onclick="form1.reset()">Reset</paper-button>
+            <paper-button raised onclick="form1.validate()">Validate</paper-button>
+          </form>
           <br>
-          <input type="checkbox" name="food" value="donuts" checked> I like donuts<br>
-          <input type="checkbox" name="food" value="pizza" required> I like pizza<br>
-          <paper-checkbox name="food" value="cheese" required>I like cheese</paper-checkbox><br>
-          <paper-dropdown-menu label="Cars" name="cars" required>
-            <paper-menu class="dropdown-content">
-              <paper-item value="volvo">Volvo</paper-item>
-              <paper-item value="saab">Saab</paper-item>
-              <paper-item value="fiat">Fiat</paper-item>
-              <paper-item value="audi">Audi</paper-item>
-            </paper-menu>
-          </paper-dropdown-menu>
-          <paper-button raised onclick="_submit(event)">Submit</paper-button>
-          <paper-button raised onclick="_reset(event)">Reset</paper-button>
           <div class="output"></div>
-        </form>
+        </iron-form>
         <script>
-          function _submit(event) {
-            Polymer.dom(event).localTarget.parentElement.submit();
-          }
-          function _reset(event) {
-            var form = Polymer.dom(event).localTarget.parentElement
-            form.reset();
-            form.querySelector('.output').innerHTML = '';
-          }
-          basic.addEventListener('iron-form-submit', function(event) {
+          form1.addEventListener('iron-form-submit', function(event) {
             this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
           });
         </script>
@@ -104,38 +104,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </demo-snippet>
 
     <h3>You can submit a form in many different ways: by manually calling submit(),
-    using a native button, or by wrapping a paper-button in a native button:</h3>
+      using a native button, or by wrapping a paper-button in a native button:</h3>
     <demo-snippet>
       <template>
-        <style>
-          button.no-style {
-            -webkit-appearance: none;
-            border: 0;
-            padding: 0;
-            background: transparent;
-          }
-        </style>
-        <p>You can also submit this form by pressing "Enter" in the input</p>
-        <form is="iron-form" method="get" action="/" id="submitOptions">
-          <paper-input name="name" label="Name" value="Batman" required></paper-input>
-          <button type="submit">Submit</button>
-          <button type="submit" class="no-style"><paper-button raised>Submit</paper-button></button>
-          <br>
-          <paper-button raised onclick="_submit(event)">Submit</paper-button>
-          <paper-button raised onclick="_reset(event)">Reset</paper-button>
+        <iron-form id="form2">
+          <form action="/foo" method="get">
+            <paper-input label="Name" value="Batman" name="name"></paper-input>
+            <input type="checkbox" required> You must check this box.
+            <p>Using a native button to submit the form will display
+            the native browser validation UI for native elements: </p>
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
 
+            <p>Using a custom element to submit the form will not display
+            the native browser validation UI:</p>
+            <paper-button raised onclick="form2.submit()">Submit</paper-button>
+            <paper-button raised onclick="form2.reset()">Reset</paper-button>
+          </form>
+          <br>
           <div class="output"></div>
-        </form>
+        </iron-form>
         <script>
-          function _submit(event) {
-            Polymer.dom(event).localTarget.parentElement.submit();
-          }
-          function _reset(event) {
-            var form = Polymer.dom(event).localTarget.parentElement
-            form.reset();
-            form.querySelector('.output').innerHTML = '';
-          }
-          submitOptions.addEventListener('iron-form-submit', function(event) {
+          form2.addEventListener('iron-form-submit', function(event) {
             this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
           });
         </script>
@@ -145,25 +135,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <h3>To customize the request sent to the server, you can listen to the `iron-form-presubmit` event</h3>
     <demo-snippet>
       <template>
-        <form is="iron-form" method="get" action="/" id="presubmit">
-          <paper-input name="name" label="Name" value="Batman" required></paper-input>
-          <paper-button raised onclick="_submit(event)">Submit</paper-button>
-          <paper-button raised onclick="_reset(event)">Reset</paper-button>
+        <iron-form id="form3">
+          <form action="/foo" method="get">
+            <paper-input name="name" label="Name" value="Batman" required></paper-input>
+            <paper-button raised onclick="form3.submit()">Submit</paper-button>
+            <paper-button raised onclick="form3.reset()">Reset</paper-button>
+          </form>
           <div class="output"></div>
-        </form>
+        </iron-form>
         <script>
-          function _submit(event) {
-            Polymer.dom(event).localTarget.parentElement.submit();
-          }
-          function _reset(event) {
-            var form = Polymer.dom(event).localTarget.parentElement
-            form.reset();
-            form.querySelector('.output').innerHTML = '';
-          }
-          presubmit.addEventListener('iron-form-presubmit', function(event) {
+          form3.addEventListener('iron-form-presubmit', function(event) {
             this.request.params['sidekick'] = 'Robin';
           });
-          presubmit.addEventListener('iron-form-submit', function(event) {
+          form3.addEventListener('iron-form-submit', function(event) {
             this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
           });
         </script>
@@ -176,86 +160,91 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <demo-snippet>
       <template>
+        <iron-form id="form4">
+          <form action="/foo" method="get">
+            <paper-input name="name" label="Name" required auto-validate></paper-input>
+            <paper-checkbox name="read" required>You must check this box</paper-checkbox><br>
 
-        <form is="iron-form" method="get" action="/" id="eventsDemo">
-          <paper-input name="name" label="Name" required auto-validate></paper-input>
-          <paper-input name="password" label="Password" type="password" required auto-validate></paper-input>
-          <paper-checkbox name="read" required>You must check this box</paper-checkbox><br>
-          <paper-button raised onclick="_delayedSubmit(event)" disabled id="eventsDemoSubmit">
-            <paper-spinner id="spinner" hidden></paper-spinner>Submit</paper-button>
-          <paper-button raised onclick="_reset(event)">Reset</paper-button>
+            <paper-button raised onclick="_delayedSubmit(event)" disabled id="form4Submit">
+              <paper-spinner id="spinner" hidden></paper-spinner>Submit</paper-button>
+            <paper-button raised onclick="form4.reset()">Reset</paper-button>
+          </form>
           <div class="output"></div>
-        </form>
+        </iron-form>
         <script>
-          eventsDemo.addEventListener('change', function(event) {
+          form4.addEventListener('iron-form-submit', function(event) {
+            this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
+            spinner.active = false;
+            spinner.hidden = true;
+            form4Submit.disabled = false;
+          });
+          form4.addEventListener('change', function(event) {
             // Validate the entire form to see if we should enable the `Submit` button.
-            eventsDemoSubmit.disabled = !eventsDemo.validate();
+            form4Submit.disabled = !form4.validate();
           });
           function _delayedSubmit(event) {
             spinner.active = true;
             spinner.hidden = false;
-            eventsDemoSubmit.disabled = true;
+            form4Submit.disabled = true;
             // Simulate a slow server response.
             setTimeout(function() {
-              Polymer.dom(event).localTarget.parentElement.submit();
+              form4.submit()
             }, 1000);
           }
-          function _reset(event) {
-            var form = Polymer.dom(event).localTarget.parentElement
-            form.reset();
-            form.querySelector('.output').innerHTML = '';
-          }
-          document.getElementById('eventsDemo').addEventListener('iron-form-submit', function(event) {
-            spinner.active = false;
-            spinner.hidden = true;
-            eventsDemoSubmit.disabled = false;
+        </script>
+      </template>
+    </demo-snippet>
+
+
+    <h3>Iron-form respects the novalidate form attribute</h3>
+    <demo-snippet>
+      <template>
+        <iron-form id="form5">
+          <form method="get" action="/foo" novalidate>
+            <paper-input name="name" label="Name" required></paper-input>
+            <cats-only name="cats"></cats-only>
+            <input name="animal" placeholder="animal" required value="meerkat"><br>
+            <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
+            <br>
+            <paper-button raised onclick="form5.submit()">Submit</paper-button>
+            <paper-button raised onclick="form5.reset()">Reset</paper-button>
+          </form>
+          <div class="output"></div>
+        </iron-form>
+        <script>
+          form5.addEventListener('iron-form-submit', function(event) {
             this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
           });
         </script>
       </template>
     </demo-snippet>
 
-    <h3>Example of using a native <code>form</code> to do a page redirect.</h3>
-
-    <p>Since an <code>iron-form</code> submits its elements with an XHR,
-    it cannot do a page redirect after submission. If you need one, you
-    can use a native <code>form</code> element and submit all the custom
-    elements using <code>hidden</code> inputs.</p>
+    <h3>Iron-form respects nested elements</h3>
     <demo-snippet>
       <template>
-        <!-- This form is only used to display the elements -->
-        <form is="iron-form" id="redirectDemo">
-          <paper-input name="name" label="Name" required></paper-input>
-          <paper-input name="password" label="Password" type="password" required></paper-input>
-          <paper-checkbox name="read" required>You must check this box</paper-checkbox><br>
-          <paper-button raised onclick="_nativeSubmit(event)">Submit</paper-button>
-        </form>
+        <iron-form id="form6">
+          <form method="get" action="/foo">
+            <p>
+              <input name="name" label="Name" required>
+              <cats-only name="cats"></cats-only>
+              <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
+            </p>
 
-        <!-- This form is used to submit the elements. This is where you would
-          set your method, action, etc. -->
-        <form method="get" action="redirect" id="nativeForm">
-        </form>
+            <input type="submit" value="Submit">
+            <br>
+            <paper-button raised onclick="form6.submit()">Submit</paper-button>
+            <paper-button raised onclick="form6.reset()">Reset</paper-button>
+          </form>
+          <div class="output"></div>
+        </iron-form>
         <script>
-          function _nativeSubmit(event) {
-            if (redirectDemo.validate()) {
-              // For each element the iron-form wants to submit, create a hidden
-              // input in the submission form.
-              var serializedItems = redirectDemo.serialize();
-              for (var name in serializedItems) {
-                var input = document.createElement('input');
-                input.hidden = true;
-                input.name = name;
-                input.value = serializedItems[name];
-                nativeForm.appendChild(input);
-              }
-              nativeForm.submit();
-            }
-          }
+          form6.addEventListener('iron-form-submit', function(event) {
+            this.querySelector('.output').innerHTML = JSON.stringify(event.detail);
+          });
         </script>
       </template>
     </demo-snippet>
-
   </div>
-</body>
 
+</body>
 </html>

@@ -8,28 +8,41 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../../polymer/polymer.html">
-<link rel="import" href="../../iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="../../iron-validatable-behavior/iron-validatable-behavior.html">
 
-<dom-module id="simple-element">
+<dom-module id="cats-only">
   <template>
     <style>
+      :host {
+        display: inline-block;
+      }
+      input {
+        width: 250px;
+      }
       :host([invalid]) input {
         border-color: red;
       }
     </style>
-    <input value="{{value}}" id="input">
+    <input value="{{value}}" id="input" placeholder="Type 'cats' to prove you like cats">
   </template>
 </dom-module>
 
 <script>
 
   Polymer({
+    is: 'cats-only',
 
-    is: 'simple-element',
+    properties: {
+      value: {
+        type: String
+      },
+
+      name: {
+        type: String
+      }
+    },
 
     behaviors: [
-      Polymer.IronFormElementBehavior,
       Polymer.IronValidatableBehavior
     ],
 
@@ -44,7 +57,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // Overidden from Polymer.IronValidatableBehavior. Will set the `invalid`
     // attribute automatically, which should be used for styling.
     _getValidity: function() {
-      return !!this.value;
+      return this.value === 'cats';
     }
 
   });

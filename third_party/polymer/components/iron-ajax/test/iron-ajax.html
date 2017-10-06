@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <head>
   <title>iron-ajax</title>
 
-  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../polymer/polymer.html">
@@ -61,23 +61,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </test-fixture>
   <test-fixture id="RealPost">
     <template>
-      <iron-ajax method="POST" url="/httpbin/post"></iron-ajax>
+      <iron-ajax method="POST" url="http://httpbin.org/post"></iron-ajax>
     </template>
   </test-fixture>
   <test-fixture id="Delay">
     <template>
-      <iron-ajax url="/httpbin/delay/1"></iron-ajax>
+      <iron-ajax url="http://httpbin.org/delay/1"></iron-ajax>
     </template>
   </test-fixture>
   <test-fixture id="Bubbles">
     <template>
-      <iron-ajax url="/httpbin/post" method="POST" bubbles></iron-ajax>
+      <iron-ajax url="http://httpbin.org/post" method="POST" bubbles></iron-ajax>
       <iron-ajax url="/responds_to_get_with_502_error_json" bubbles></iron-ajax>
     </template>
   </test-fixture>
   <script>
     'use strict';
-    suite('<iron-ajax>', function () {
+    suite('<iron-ajax>', function() {
       var responseHeaders = {
         json: { 'Content-Type': 'application/json' },
         plain: { 'Content-Type': 'text/plain' }
@@ -275,6 +275,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('correctly adds params to a URL that already has some', function() {
           ajax.url += '?a=b';
           ajax.params = {'c': 'd'};
+
           expect(ajax.requestUrl).to.be.equal('/responds_to_get_with_json?a=b&c=d')
         })
 
@@ -304,8 +305,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('the loading-changed event gets fired twice', function() {
+        test('the `iron-ajax-presend` event gets fired', function() {
+          var spy = sinon.spy();
+          var windowSpy = sinon.spy();
+          ajax.addEventListener('iron-ajax-presend', spy);
+          window.addEventListener('iron-ajax-presend', windowSpy);
 
+          var request = ajax.generateRequest();
+
+          server.respond()
+
+          return request.completes.then(function() {
+            expect(spy).to.be.calledOnce;
+            expect(windowSpy).not.to.be.called;
+          });
+        });
+
+        test('the loading-changed event gets fired twice', function() {
           var count = 0;
           ajax.addEventListener('loading-changed', function() {
             count++;
@@ -320,7 +336,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }).then(function() {
             expect(count).to.be.equal(2);
           });
-
         });
       });
 
@@ -493,7 +508,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('is accessible as a readonly property', function() {
-          return request.completes.then(function (request) {
+          return request.completes.then(function(request) {
             expect(ajax.lastResponse).to.be.equal(request.response);
           });
         });
@@ -653,12 +668,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       suite('when handleAs parameter is `text`', function() {
 
-        test('response type is string', function () {
+        test('response type is string', function() {
           ajax.url = '/responds_to_get_with_json';
           ajax.handleAs = 'text';
 
           request = ajax.generateRequest();
-          var promise = request.completes.then(function () {
+          var promise = request.completes.then(function() {
             expect(typeof(ajax.lastResponse)).to.be.equal('string');
           });
 
@@ -702,6 +717,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return promise;
         });
 
+        test('with rejectWithRequest the promise chain contains the request and error', function() {
+          ajax.url = '/responds_to_get_with_502_error_json';
+          ajax.handleAs = 'json';
+          ajax.rejectWithRequest = true;
+
+          var request = ajax.generateRequest();
+          var promise = request.completes.then(function() {
+            throw new Error('Expected the request to fail!');
+          }, function(resp) {
+            expect(resp.error).to.be.instanceof(Error);
+            expect(resp.request).to.deep.equal(request);
+          });
+
+          server.respond();
+
+          return promise;
+        });
+
         test('we give a useful error even when the domain doesn\'t resolve', function() {
           ajax.url = 'http://nonexistant.example.com/';
           server.restore();
@@ -731,12 +764,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       suite('when handleAs parameter is `json`', function() {
 
-        test('response type is string', function () {
+        test('response type is string', function() {
           ajax.url = '/responds_to_get_with_json';
           ajax.handleAs = 'json';
 
           request = ajax.generateRequest();
-          var promise = request.completes.then(function () {
+          var promise = request.completes.then(function() {
             expect(typeof(ajax.lastResponse)).to.be.equal('object');
           });
 
@@ -819,7 +852,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server.restore();
         });
 
-        test('it is present in the request xhr object', function () {
+        test('it is present in the request xhr object', function() {
           ajax.url = '/responds_to_get_with_json';
           ajax.timeout = 5000; // 5 Seconds
 
@@ -827,12 +860,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           expect(request.xhr.timeout).to.be.equal(5000); // 5 Seconds
         });
 
-        test('it fails once that timeout is reached', function () {
+        test('it fails once that timeout is reached', function() {
           var ajax = fixture('Delay');
           ajax.timeout = 1; // 1 Millisecond
 
           request = ajax.generateRequest();
-          return request.completes.then(function () {
+          return request.completes.then(function() {
             throw new Error('Expected the request to throw an error.');
           }, function() {
             expect(request.succeeded).to.be.equal(false);
@@ -847,19 +880,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
-      suite('when using the bubbles attribute', function () {
-        setup(function() {
-          server.restore();
-        });
-        test('the request and response events should bubble to window', function (done) {
+      suite('when using the bubbles attribute', function() {
+        test('the request and response events should bubble to window', function(done) {
           server.restore();
           var total = 0;
-          function incrementTotal(){
+          function incrementTotal() {
             total++;
-            if (total === 4){
+            if (total === 5) {
               done();
             }
           }
+          window.addEventListener('iron-ajax-presend', incrementTotal);
           window.addEventListener('request', incrementTotal);
           window.addEventListener('iron-ajax-request', incrementTotal);
           window.addEventListener('response', incrementTotal);
@@ -869,18 +900,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           server.respond();
         });
 
-        test('the request and error events should bubble to window', function (done) {
-          server.restore();
+        test('the request and error events should bubble to window', function(done) {
           var total = 0;
-          function incrementTotal(){
+          function incrementTotal() {
             total++;
-            if (total === 4){
+            if (total === 5) {
               done();
             }
           }
+          window.addEventListener('iron-ajax-presend', incrementTotal);
           window.addEventListener('request', incrementTotal);
           window.addEventListener('iron-ajax-request', incrementTotal);
-          window.addEventListener('error', incrementTotal);
+          // NOTE(cdata): This needs to be capturing because Mocha + Firefox
+          // results in the error event being observed too early by the test
+          // runner and failing the test:
+          window.addEventListener('error', incrementTotal, true);
           window.addEventListener('iron-ajax-error', incrementTotal);
           var ajax = fixture('Bubbles')[1];
           ajax.generateRequest();
@@ -888,6 +922,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      suite('when handling the `iron-ajax-presend` event', function() {
+        setup(function() {
+          server.restore();
+        });
+
+        test('ability to cancel request', function() {
+          var requestSpy = sinon.spy();
+          var promiseSpy = sinon.spy();
+
+          ajax.addEventListener('iron-ajax-presend', function(e) {
+            e.preventDefault();
+          });
+          ajax.addEventListener('iron-ajax-request', requestSpy);
+
+          var request = ajax.generateRequest();
+
+          return request.completes.catch(function(request) {
+            expect(request.aborted).to.be.true;
+            promiseSpy();
+          }).then(function() {
+            expect(promiseSpy).to.be.calledOnce;
+            expect(requestSpy).not.to.be.called;
+          });
+        });
+
+        test('ability to modify the request options', function(done) {
+          ajax.addEventListener('iron-ajax-presend', function(e) {
+            e.detail.options.url += '/test';
+            e.detail.options.headers.authToken = 'a.b.c';
+          });
+          ajax.addEventListener('iron-ajax-request', function(e) {
+            expect(e.detail.options.url).to.equal('/responds_to_get_with_json/test');
+            expect(e.detail.options.headers.authToken).to.equal('a.b.c');
+            done();
+          });
+
+          ajax.generateRequest();
+        });
+      });
     });
   </script>
 

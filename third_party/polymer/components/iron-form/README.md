@@ -17,62 +17,36 @@ thing! https://github.com/PolymerLabs/tedium/issues
 _[Demo and API docs](https://elements.polymer-project.org/elements/iron-form)_
 
 
-##&lt;iron-form&gt;
+## &lt;iron-form&gt;
+`<iron-form>` is a wrapper around the HTML `<form>` element, that can
+validate and submit both custom and native HTML elements.
 
-`<iron-form>` is an HTML `<form>` element that can validate and submit any custom
-elements that implement `Polymer.IronFormElementBehavior`, as well as any
-native HTML elements. For more information on which attributes are
-available on the native form element, see [https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form)
-
-It supports both `get` and `post` methods, and uses an `iron-ajax` element to
-submit the form data to the action URL.
+It has two modes: if `allow-redirect` is true, then after the form submission you
+will be redirected to the server response. Otherwise, if it is false, it will
+use an `iron-ajax` element to submit the form contents to the server.
 
   Example:
 
 ```html
-<form is="iron-form" id="form" method="post" action="/form/handler">
-  <paper-input name="name" label="name"></paper-input>
-  <input name="address">
-  ...
-</form>
+    <iron-form>
+      <form method="get" action="/form/handler">
+        <input type="text" name="name" value="Batman">
+        <input type="checkbox" name="donuts" checked> I like donuts<br>
+        <paper-checkbox name="cheese" value="yes" checked></paper-checkbox>
+      </form>
+    </iron-form>
 ```
 
-By default, a native `<button>` element will submit this form. However, if you
+By default, a native `<button>` element (or `input type="submit"`) will submit this form. However, if you
 want to submit it from a custom element's click handler, you need to explicitly
-call the form's `submit` method.
+call the `iron-form`'s `submit` method.
 
   Example:
 
 ```html
-<paper-button raised onclick="submitForm()">Submit</paper-button>
+    <paper-button raised onclick="submitForm()">Submit</paper-button>
 
-function submitForm() {
-  document.getElementById('form').submit();
-}
+    function submitForm() {
+      document.getElementById('iron-form').submit();
+    }
 ```
-
-To customize the request sent to the server, you can listen to the `iron-form-presubmit`
-event, and modify the form's[`iron-ajax`](https://elements.polymer-project.org/elements/iron-ajax)
-object. However, If you want to not use `iron-ajax` at all, you can cancel the
-event and do your own custom submission:
-
-  Example of modifying the request, but still using the build-in form submission:
-
-```javascript
-form.addEventListener('iron-form-presubmit', function() {
-  this.request.method = 'put';
-  this.request.params = someCustomParams;
-});
-```
-
-  Example of bypassing the build-in form submission:
-
-```javascript
-form.addEventListener('iron-form-presubmit', function(event) {
-  event.preventDefault();
-  var firebase = new Firebase(form.getAttribute('action'));
-  firebase.set(form.serialize());
-});
-```
-
-

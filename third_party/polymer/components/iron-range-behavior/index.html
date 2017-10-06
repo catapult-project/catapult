@@ -1,3 +1,4 @@
+<!doctype html>
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -7,27 +8,17 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-<link rel="import" href="../../polymer/polymer.html">
-<link rel="import" href="../../iron-form-element-behavior/iron-form-element-behavior.html">
-<link rel="import" href="simple-element.html">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<dom-module id="element-with-nested-form-element">
-  <template>
-    <simple-element name$="[[name]]"></simple-element>
-    <content></content>
-  </template>
-</dom-module>
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../iron-component-page/iron-component-page.html">
+</head>
+<body>
 
-<script>
+  <iron-component-page></iron-component-page>
 
-  Polymer({
-
-    is: 'element-with-nested-form-element',
-
-    behaviors: [
-      Polymer.IronFormElementBehavior
-    ]
-
-  });
-
-</script>
+</body>
+</html>

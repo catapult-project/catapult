@@ -16,826 +16,908 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../polymer/polymer.html">
+  <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
   <link rel="import" href="../../paper-input/paper-input.html">
-  <link rel="import" href="../../paper-input/paper-textarea.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
   <link rel="import" href="../iron-form.html">
-  <link rel="import" href="simple-element.html">
-  <link rel="import" href="element-with-nested-form-element.html">
-  <link rel="import" href="element-with-nested-input.html">
-  <link rel="import" href="validatable-element-with-nested-elements.html">
 
 </head>
 <body>
 
-  <test-fixture id="Basic">
+  <dom-module id="x-input-wrapper">
     <template>
-      <form is="iron-form">
-        <simple-element name="zig" value="zag"></simple-element>
-        <input name="foo" value="bar">
-      </form>
+      <input name="check_wrapped" value="foo"/>
+    </template>
+  </dom-module>
+
+  <test-fixture id="serialization">
+    <template>
+      <div>
+        <iron-form id="native-checkboxes">
+          <form action="/get" method="get">
+            <input type="checkbox" name="check1" checked> <!-- default value is "on" -->
+            <input type="checkbox" name="check1" value="1">
+            <input type="checkbox" name="check1" value="2" checked>
+            <input type="checkbox" name="check2" value="3" checked>
+            <input type="checkbox" name="check3" value="4">
+          </form>
+        </iron-form>
+        <iron-form id="native-radios">
+          <form action="/get" method="get">
+            <input type="radio" name="radio1" checked> <!-- default value is "on" -->
+            <input type="radio" name="radio1" value="1">
+            <input type="radio" name="radio2" value="2" checked>
+            <input type="radio" name="radio2" value="3" checked> <!-- it's a radio group -->
+            <input type="radio" name="radio3" value="4">
+          </form>
+        </iron-form>
+        <iron-form id="native-buttons">
+          <form action="/get" method="get">
+            <input type="reset" name="reset1" value="reset">
+            <input type="submit" name="submit1" value="submit">
+            <button name="button1" value="button">text</button>
+          </form>
+        </iron-form>
+        <iron-form id="native-selects">
+          <form action="/get" method="get">
+            <select name="select1" multiple>
+              <option value="1" selected>A</option>
+              <option value="2" selected>B</option>
+              <option value="3">C</option>
+            </select>
+            <select name="select2">
+              <option value="1" selected>A</option>
+              <option value="2">B</option>
+            </select>
+          </form>
+        </iron-form>
+        <iron-form id="native-inputs">
+          <form action="/get" method="get">
+            <input type="text" name="input1">
+            <input type="text" name="input1" value="foo">
+            <input type="text" name="input1" value="zag">
+            <input type="text" name="input2" value="bar">
+            <input type="password" name="pass1" value="pass">
+            <input type="number" name="number1" value="35">
+            <input name="empty" value="">
+            <input name="empty" value="">
+          </form>
+        </iron-form>
+        <iron-form id="native-inputs-empty">
+          <form action="/get" method="get">
+            <input type="text" name="input1">
+          </form>
+        </iron-form>
+        <iron-form id="custom-checkboxes">
+          <form action="/get" method="get">
+            <paper-checkbox name="check1" checked></paper-checkbox> <!-- default value is "on" -->
+            <paper-checkbox name="check1" value="1"></paper-checkbox>
+            <paper-checkbox name="check1" value="2" checked></paper-checkbox>
+            <paper-checkbox name="check2" value="3" checked></paper-checkbox>
+            <paper-checkbox name="check3" value="4"></paper-checkbox>
+          </form>
+        </iron-form>
+        <iron-form id="custom-inputs">
+          <form action="/get" method="get">
+            <paper-input name="input1" value=""></paper-input>
+            <paper-input name="input1" value="foo"></paper-input>
+            <paper-input name="input1" value="zag"></paper-input>
+            <paper-input name="input2" value="bar"></paper-input>
+            <paper-input type="password" name="pass1" value="pass"></paper-input>
+            <paper-input type="number" name="number1" value="35"></paper-input>
+            <paper-input name="empty" value=""></paper-input>
+            <paper-input name="empty" value=""></paper-input>
+            <x-input-wrapper></x-input-wrapper>
+          </form>
+        </iron-form>
+        <iron-form id="nested-elements">
+          <form action="/get" method="get">
+            <div>
+              <input type="text" name="input1" value="i1">
+            </div>
+            <div>
+              <paper-input name="paper-input1" value="p1"></paper-input>
+            </div>
+            <div>
+              <p>
+                <div>
+                  <input type="text" name="input2" value="i2">
+                  <paper-input name="paper-input2" value="p2"></paper-input>
+                </div>
+              </p>
+            </div>
+          </form>
+        </iron-form>
+        <iron-form id="duplicate-names">
+          <form action="/get" method="get">
+            <input name="input1" value="">
+            <input name="input1" value="foo">
+            <paper-input name="input1" value=""></paper-input>
+            <paper-input name="input1" value="bar"></paper-input>
+            <input name="empty" value="">
+            <input name="empty" value="">
+            <paper-input name="empty" value=""></paper-input>
+            <paper-input name="empty" value=""></paper-input>
+          </form>
+        </iron-form>
+
+      </div>
     </template>
   </test-fixture>
 
-  <test-fixture id="Dupes">
+  <test-fixture id="validation">
     <template>
-      <form is="iron-form">
-        <input name="foo" value="bar">
-        <input name="foo" value="barbar">
-        <input name="empty" value="">
-        <input name="empty" value="">
-        <simple-element name="zig" value="zig"></simple-element>
-        <simple-element name="zig" value="zag"></simple-element>
-        <simple-element name="zig" value="zug"></simple-element>
-      </form>
+      <div>
+        <iron-form id="native-required">
+          <form action="/get" method="get">
+            <input required>
+          </form>
+        </iron-form>
+
+        <iron-form id="native-invalid">
+          <form action="/get" method="get">
+            <input pattern="aa" value="b">
+          </form>
+        </iron-form>
+
+        <iron-form id="custom-required">
+          <form action="/get" method="get">
+            <paper-input required></paper-input>
+          </form>
+        </iron-form>
+
+        <iron-form id="custom-invalid">
+          <form action="/get" method="get">
+            <paper-input pattern="aa" value="b"></paper-input>
+          </form>
+        </iron-form>
+
+        <iron-form id="mixed-invalid">
+          <form action="/get" method="get">
+            <input pattern="aa" value="b">
+            <paper-input pattern="aa" value="b"></paper-input>
+          </form>
+        </iron-form>
+      </div>
     </template>
   </test-fixture>
 
-  <test-fixture id="NestedDupes">
+  <test-fixture id="submission">
     <template>
-      <form is="iron-form">
-        <element-with-nested-form-element name="foo" value="bar"></element-with-nested-form-element>
-        <element-with-nested-input name="zig" value="zag"></element-with-nested-input>
-      </form>
+      <iron-form>
+        <form action="/get" method="get">
+          <input type="checkbox" name="check1" checked>
+          <input type="submit">
+          <input type="button">
+          <paper-button></paper-button>
+        </form>
+      </iron-form>
     </template>
   </test-fixture>
 
-  <test-fixture id="NestedSubmittable">
+  <test-fixture id="resetting">
     <template>
-      <form is="iron-form">
-        <element-with-nested-form-element>
-          <simple-element name="foo" value="bar"></simple-element>
-        </element-with-nested-form-element>
-      </form>
+      <iron-form>
+        <form action="/get" method="get">
+          <input type="input" name="input1" id="input1" value="input1">
+          <input type="input" name="input2" id="input2">
+          <input type="checkbox" name="check1" id="check1" checked>
+          <input type="checkbox" name="check2" id="check2">
+          <input type="radio" name="radio1" id="radio1" checked>
+          <input type="radio" name="radio2" id="radio2">
+          <paper-checkbox name="papercheck1" id="papercheck1" checked></paper-checkbox>
+          <paper-checkbox name="papercheck2" id="papercheck2"></paper-checkbox>
+          <paper-input name="paper1" id="paper1" value="paper1"></paper-input>
+          <paper-input name="paper2" id="paper2" value=""></paper-input>
+          <input type="reset">
+        </form>
+      </iron-form>
     </template>
   </test-fixture>
 
-  <test-fixture id="CheckedStates">
+  <test-fixture id="content-type">
     <template>
-      <form is="iron-form">
-        <input type="checkbox" name="foo" value="bar1" checked>
-        <input type="checkbox" name="foo" value="bar2">
-        <input type="checkbox" name="foo" value="bar3" checked>
-        <input type="checkbox" name="foo" value="bar4">
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="Disabled">
-    <template>
-      <form is="iron-form">
-        <input name="foo" value="bar1">
-        <input name="foo" value="bar2" disabled>
-        <input type="checkbox" name="zig" value="zag" disabled checked>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormUnsetMethod">
-    <template>
-      <form is="iron-form" action="/responds_with_json">
-        <simple-element name="zig" value="zag"></simple-element>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormGet">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="get">
-        <simple-element name="zig" value="zag"></simple-element>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormPost">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <simple-element name="zig" value="zag"></simple-element>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="InvalidForm">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <simple-element name="zig"></simple-element>
-        <input name="foo" required>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormWithRequiredCustomElements">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <simple-element required></simple-element>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormWithRequiredElements">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <input required>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormValidateNonRequiredCustomElements">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <paper-input label="numbers" pattern="^[0-9]$" ></paper-input>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormValidateNonRequiredElements">
-    <template>
-      <form is="iron-form" action="/responds_with_json" method="post">
-        <input type="text" name="letters" pattern="^[a-z]$" >
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormValidateNestedElements">
-    <template>
-      <form is="iron-form">
-        <validatable-element-with-nested-elements>
-          <simple-element required></simple-element>
-          <input required>
-        </validatable-element-with-nested-elements>
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="FormForResetting">
-    <template>
-      <form is="iron-form">
-        <simple-element name="zig" value="zag"></simple-element>
-        <paper-input name="zig" value="zug"></paper-input>
-        <paper-input name="blank" value=""></paper-input>
-        <paper-textarea name="zig" value="zog"></paper-textarea>
-        <paper-textarea name="undef"></paper-textarea>
-        <paper-textarea name="blank" value=""></paper-textarea>
-        <input name="blank" value="">
-        <input name="foo" value="bar">
-        <input type="checkbox" name="foo" value="bar1" checked>
-        <input type="checkbox" name="foo" value="bar2">
-      </form>
-    </template>
-  </test-fixture>
-
-  <test-fixture id="NativeSelect">
-    <template>
-      <form is="iron-form">
-        <select name="numbers" multiple>
-          <option value="one" selected>one</option>
-          <option value="two">two</option>
-          <option value="three" selected>three</option>
-          <option value="four">four</option>
-        </select>
-
-        <select name="cheese">
-          <option value="yes" selected>yes</option>
-          <option value="no">no</option>
-        </select>
-      </form>
+      <div>
+        <iron-form id="simple-form">
+          <form action="/valid/url" method="post">
+            <paper-input name="paper1" value="value1"></paper-input>
+            <paper-input name="paper2" value="value2"></paper-input>
+          </form>
+        </iron-form>
+        <iron-form id="json-form">
+          <form action="/valid/url" method="post" enctype="application/json">
+            <paper-input name="paper1" value="value1"></paper-input>
+            <paper-input name="paper2" value="value2"></paper-input>
+          </form>
+        </iron-form>
+          <iron-form id="plain-form">
+              <form action="/valid/url" method="post" enctype="text/plain">
+                  <paper-input name="paper1" value="value1"></paper-input>
+                  <paper-input name="paper2" value="value2"></paper-input>
+              </form>
+          </iron-form>
+        </div>
     </template>
   </test-fixture>
 
   <script>
-  suite('registration', function() {
-    var f;
-    test('elements can be registered', function() {
-      f = fixture('Basic');
-
-      assert.equal(f._customElements.length, 1);
-      assert.equal(f.elements.length, 1);
-    });
-
-    test('elements can be unregistered', function(done) {
-      f = fixture('Basic');
-      var element = f.querySelector('simple-element');
-
-      assert.equal(f._customElements.length, 1);
-      assert.equal(f.elements.length, 1);
-
-      f.removeChild(element);
-
-      setTimeout(function() {
-        assert.equal(f._customElements.length, 0);
-        assert.equal(f.elements.length, 1);
-        done();
-      }, 200);
-    });
-  });
-
-  suite('validation', function() {
-    test('custom elements are validated if they don\'t have a name', function() {
-      var f = fixture('FormWithRequiredCustomElements');
-      assert.equal(f._customElements.length, 1);
-
-      var simpleElement = f._customElements[0];
-      assert.isFalse(!!simpleElement.name)
-
-      // custom elements
-      assert.isFalse(f.validate());
-      assert.isTrue(simpleElement.invalid);
-
-      simpleElement.value = 'batman';
-
-      assert.isTrue(f.validate());
-      assert.isFalse(simpleElement.invalid);
-
-      // Since the elements don't have names, they don't get serialized.
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 0);
-    });
-
-    test('native elements are validated if they don\'t have a name', function() {
-      var f = fixture('FormWithRequiredElements');
-      assert.equal(f.elements.length, 1);
-
-      var input = f.elements[0];
-
-      assert.isFalse(!!input.name)
-
-      assert.isFalse(f.validate());
-      assert.isFalse(input.validity.valid);
-
-      input.value = 'robin';
-
-      assert.isTrue(f.validate());
-      assert.isTrue(input.validity.valid);
-
-      // Since the elements don't have names, they don't get serialized.
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 0);
-    });
-
-    test('custom elements are validated if they have a name', function() {
-      var f = fixture('FormWithRequiredCustomElements');
-      assert.equal(f._customElements.length, 1);
-
-      var simpleElement = f._customElements[0];
-      simpleElement.name = 'zig';
-
-      assert.isFalse(f.validate());
-      assert.isTrue(simpleElement.invalid);
-
-      simpleElement.value = 'batman';
-
-      assert.isTrue(f.validate());
-      assert.isFalse(simpleElement.invalid);
-
-      // The elements have names, so they're serialized.
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 1);
-    });
-
-    test('native elements are validated if they have a name', function() {
-      var f = fixture('FormWithRequiredElements');
-      assert.equal(f.elements.length, 1);
-
-      var input = f.elements[0];
-      input.name = 'zag';
-
-      assert.isFalse(f.validate());
-      assert.isFalse(input.validity.valid);
-
-      input.value = 'robin';
-
-      assert.isTrue(f.validate());
-      assert.isTrue(input.validity.valid);
-
-      // The elements have names, so they're serialized.
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 1);
-    });
-
-    test('non-required custom elements are validated', function() {
-      var
-        f = fixture('FormValidateNonRequiredCustomElements'),
-        elements = f.getEffectiveChildren(),
-        input = elements && elements[0]
-      ;
-
-      assert.equal(elements.length, 1);
-
-      assert.isTrue(f.validate());
-      assert.isTrue(input.validate());
-
-      input.value = "abcdefg";
-
-      assert.isFalse(f.validate());
-      assert.isFalse(input.validate());
-    });
-
-    test('non-required native elements are validated', function() {
-      var f = fixture('FormValidateNonRequiredElements');
-      assert.equal(f.elements.length, 1);
-
-      var input = f.elements[0];
-
-      assert.isTrue(f.validate());
-      assert.isTrue(input.validity.valid);
-
-      input.value = "012345";
-
-      assert.isFalse(f.validate());
-      assert.isFalse(input.validity.valid);
-    });
-
-    test('nested elements are not validated', function() {
-      var f = fixture('FormValidateNestedElements');
-
-      // <validatable-element-with-nested-elements> returns true.
-      assert.isTrue(f.validate());
-
-      // The form also contains an invalid custom and native element, but those
-      // shouldn't affect the form's validity.
-      assert.equal(f._customElements.length, 2);
-      assert.equal(f.elements.length, 1);
-      assert.isFalse(f.$$('simple-element').validate());
-      assert.isFalse(f.$$('input').checkValidity());
-    });
-  });
-
-  suite('serializing', function() {
-    var f;
-    test('serializes both custom and native elements', function() {
-      f = fixture('Basic');
-
-      assert.equal(f._customElements.length, 1);
-      assert.equal(f.elements.length, 1);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 2);
-      assert.equal(json['zig'], 'zag');
-      assert.equal(json['foo'], 'bar');
-    });
-
-    test('serializes elements with duplicate names', function() {
-      f = fixture('Dupes');
-
-      assert.equal(f._customElements.length, 3);
-      assert.equal(f.elements.length, 4);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 3);
-      assert.equal(json['foo'].length, 2);
-      assert.equal(json['foo'][0], 'bar');
-      assert.equal(json['foo'][1], 'barbar');
-      assert.equal(json['empty'].length, 2);
-      assert.equal(json['empty'][0], '');
-      assert.equal(json['empty'][1], '');
-      assert.equal(json['zig'].length, 3);
-      assert.equal(json['zig'][0], 'zig');
-      assert.equal(json['zig'][1], 'zag');
-      assert.equal(json['zig'][2], 'zug');
-    });
-
-    test('serializes elements with checked states', function() {
-      f = fixture('CheckedStates');
-
-      assert.equal(f._customElements.length, 0);
-      assert.equal(f.elements.length, 4);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 1);
-      assert.equal(json['foo'].length, 2);
-      assert.equal(json['foo'][0], 'bar1');
-      assert.equal(json['foo'][1], 'bar3');
-    });
-
-    test('serializes a native select element with or without multiple selection', function() {
-      f = fixture('NativeSelect');
-
-      assert.equal(f._customElements.length, 0);
-      assert.equal(f.elements.length, 2);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 2);
-
-      // Single selection.
-      assert.equal(json['cheese'], 'yes');
-
-      // Multiple selection.
-      assert.equal(json['numbers'].length, 2);
-      assert.equal(json['numbers'][0], 'one');
-      assert.equal(json['numbers'][1], 'three');
-    });
-
-    test('does not serialize disabled elements', function() {
-      f = fixture('Disabled');
-
-      assert.equal(f._customElements.length, 0);
-      assert.equal(f.elements.length, 3);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 1);
-      assert.equal(json['foo'], 'bar1');
-    });
-
-    test('nested elements are only serialized once', function() {
-      f = fixture('NestedDupes');
-
-      assert.equal(f._customElements.length, 3);
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 2);
-      assert.equal(json['foo'], 'bar');
-      assert.equal(json['zig'], 'zag');
-    });
-
-
-    test('nested elements can be submitted if parents aren\'t submittable', function() {
-      f = fixture('NestedSubmittable');
-
-      var json = f.serialize();
-      assert.equal(Object.keys(json).length, 1);
-      assert.equal(json['foo'], 'bar');
-    });
-
-  });
-
-  suite('resetting', function () {
-    test('form restores the default values if changes were made', function(done) {
-      var form = fixture('FormForResetting');
-
-      // Initial values.
-      var customElement = form.querySelector('simple-element');
-      var input = form.querySelector('input[name="foo"]');
-      var inputBlank = form.querySelector('input[name="blank"]');
-      var checkbox1 = form.querySelectorAll('input[type="checkbox"]')[0];
-      var checkbox2 = form.querySelectorAll('input[type="checkbox"]')[1];
-      var paperInput = form.querySelector('paper-input[name="zig"]');
-      var paperInputBlank = form.querySelector('paper-input[name="blank"]');
-      var paperTextarea = form.querySelector('paper-textarea[name="zig"]');
-      var paperTextareaBlank = form.querySelector('paper-textarea[name="blank"]');
-
-      assert.equal(customElement.value, 'zag');
-      assert.equal(input.value, 'bar');
-      assert.equal(inputBlank.value, '');
-      assert.isTrue(checkbox1.checked);
-      assert.isFalse(checkbox2.checked);
-      assert.equal(paperInput.value, 'zug');
-      assert.equal(paperInput.inputElement.value, 'zug');
-      assert.equal(paperInputBlank.value, '');
-      assert.equal(paperInputBlank.inputElement.value, '');
-      assert.equal(paperTextarea.value, 'zog');
-      assert.equal(paperTextarea.inputElement.textarea.value, 'zog');
-      assert.equal(paperTextareaBlank.value, '');
-      assert.equal(paperTextareaBlank.inputElement.textarea.value, '');
-
-      // Change the values.
-      customElement.value = 'not zag';
-      input.value = 'not bar';
-      inputBlank.value = 'not blank';
-      checkbox1.checked = false;
-      checkbox2.checked = true;
-      paperInput.value = 'not zug';
-      paperInputBlank.value = 'not blank';
-      paperTextarea.value = 'not zog';
-      paperTextareaBlank.value = 'not blank';
-
-      assert.equal(customElement.value, 'not zag');
-      assert.equal(input.value, 'not bar');
-      assert.equal(inputBlank.value, 'not blank');
-      assert.isFalse(checkbox1.checked);
-      assert.isTrue(checkbox2.checked);
-      assert.equal(paperInput.value, 'not zug');
-      assert.equal(paperInput.inputElement.value, 'not zug');
-      assert.equal(paperInputBlank.value, 'not blank');
-      assert.equal(paperInputBlank.inputElement.value, 'not blank');
-      assert.equal(paperTextarea.value, 'not zog');
-      assert.equal(paperTextarea.inputElement.textarea.value, 'not zog');
-      assert.equal(paperTextareaBlank.value, 'not blank');
-      assert.equal(paperTextareaBlank.inputElement.textarea.value, 'not blank');
-
-      form.addEventListener('iron-form-reset', function(event) {
-        // Restored initial values.
-        assert.equal(customElement.value, 'zag');
-        assert.equal(input.value, 'bar');
-        assert.equal(inputBlank.value, '');
-        assert.isTrue(checkbox1.checked);
-        assert.isFalse(checkbox2.checked);
-        assert.equal(paperInput.value, 'zug');
-        assert.equal(paperInput.inputElement.value, 'zug');
-        assert.equal(paperInputBlank.value, '');
-        assert.equal(paperInputBlank.inputElement.value, '');
-        assert.equal(paperTextarea.value, 'zog');
-        assert.equal(paperTextarea.inputElement.textarea.value, 'zog');
-        assert.equal(paperTextareaBlank.value, '');
-        assert.equal(paperTextareaBlank.inputElement.textarea.value, '');
-        done();
+    suite('serialization', function() {
+      var f;
+      var server;
+
+      suiteSetup(function () {
+        Polymer({is: 'x-input-wrapper'});
       });
 
-      form.reset();
-    });
+      setup(function() {
+        f = fixture('serialization');
 
-    test('form restores the default values if no changes were made', function(done) {
-      var form = fixture('FormForResetting');
-
-      // Initial values.
-      var customElement = form.querySelector('simple-element');
-      var input = form.querySelector('input[name="foo"]');
-      var inputBlank = form.querySelector('input[name="blank"]');
-      var checkbox1 = form.querySelectorAll('input[type="checkbox"]')[0];
-      var checkbox2 = form.querySelectorAll('input[type="checkbox"]')[1];
-      var paperInput = form.querySelector('paper-input[name="zig"]');
-      var paperInputBlank = form.querySelector('paper-input[name="blank"]');
-      var paperTextarea = form.querySelector('paper-textarea[name="zig"]');
-      var paperTextareaBlank = form.querySelector('paper-textarea[name="blank"]');
-
-      assert.equal(customElement.value, 'zag');
-      assert.equal(input.value, 'bar');
-      assert.equal(inputBlank.value, '');
-      assert.isTrue(checkbox1.checked);
-      assert.isFalse(checkbox2.checked);
-      assert.equal(paperInput.value, 'zug');
-      assert.equal(paperInput.inputElement.value, 'zug');
-      assert.equal(paperInputBlank.value, '');
-      assert.equal(paperInputBlank.inputElement.value, '');
-      assert.equal(paperTextarea.value, 'zog');
-      assert.equal(paperTextarea.inputElement.textarea.value, 'zog');
-      assert.equal(paperTextareaBlank.value, '');
-      assert.equal(paperTextareaBlank.inputElement.textarea.value, '');
-
-      form.addEventListener('iron-form-reset', function(event) {
-        // Restored initial values.
-        assert.equal(customElement.value, 'zag');
-        assert.equal(input.value, 'bar');
-        assert.equal(inputBlank.value, '');
-        assert.isTrue(checkbox1.checked);
-        assert.isFalse(checkbox2.checked);
-        assert.equal(paperInput.value, 'zug');
-        assert.equal(paperInput.inputElement.value, 'zug');
-        assert.equal(paperInputBlank.value, '');
-        assert.equal(paperInputBlank.inputElement.value, '');
-        assert.equal(paperTextarea.value, 'zog');
-        assert.equal(paperTextarea.inputElement.textarea.value, 'zog');
-        assert.equal(paperTextareaBlank.value, '');
-        assert.equal(paperTextareaBlank.inputElement.textarea.value, '');
-        done();
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET',
+          /\/get.*/,
+          [
+            200,
+            '{"Content-Type":"application/json"}',
+            '{"success":true}'
+          ]
+        );
       });
 
-      form.reset();
-    });
-
-    test('form restores null-value paper-textarea if initially undefined', function(done) {
-      var form = fixture('FormForResetting');
-      var paperTextarea = form.querySelector('paper-textarea[name="undef"]');
-
-      form.addEventListener('iron-form-reset', function(event) {
-        // Setting the native textarea's value to undefined causes it to
-        // display literal "undefined", and paper-textarea.value is indirectly
-        // bound to the textarea's value, so iron-form resets any undefined
-        // initial values to null in order to avoid this problem.
-        assert.equal(paperTextarea.value, null);
-        assert.equal(paperTextarea.inputElement.textarea.value, '');
-        done();
+      teardown(function() {
+        server.restore();
       });
 
-      form.reset();
-    });
+      test('serializes native checkboxes', function(done) {
+        var form = f.querySelector('#native-checkboxes');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
 
-    test('validation messages are cleared', function(done) {
-      var form = fixture('FormWithRequiredCustomElements');
-      assert.equal(form._customElements.length, 1);
-
-      var customElement = form.querySelector('simple-element');
-
-      assert.isFalse(form.validate());
-      assert.isTrue(customElement.invalid);
-
-      form.addEventListener('iron-form-reset', function(event) {
-        // Cleared validation messages.
-        assert.isFalse(customElement.invalid);
-        done();
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.reset();
+      test('serializes native radio buttons', function(done) {
+        var form = f.querySelector('#native-radios');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?radio1=on&radio2=3');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
 
-    });
-
-  });
-
-  suite('submitting', function () {
-    var server;
-    var form;
-
-    setup(function() {
-      server = sinon.fakeServer.create();
-      server.respondWith(
-        'GET',
-        /\/responds_with_json.*/,
-        [
-          200,
-          '{"Content-Type":"application/json"}',
-          '{"success":true}'
-        ]
-      );
-
-      server.respondWith(
-        'POST',
-        /\/responds_with_json.*/,
-        [
-          200,
-          '{"Content-Type":"application/json"}',
-          '{"success":true}'
-        ]
-      );
-
-      server.respondWith(
-        'GET',
-        /\/responds_with_error.*/,
-        [
-          404,
-          '{"Content-Type":"application/text"}',
-          '{"success":false}'
-        ]
-      );
-    });
-
-    teardown(function() {
-      server.restore();
-    });
-
-    test('does not submit forms with invalid native elements', function(done) {
-      form = fixture('InvalidForm');
-      var nativeElement = form.querySelector('input');
-      var customElement = form.querySelector('simple-element');
-      customElement.value = "foo";
-
-      var submitted = false;
-      form.addEventListener('iron-form-submit', function() {
-        submitted = true;
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.addEventListener('iron-form-invalid', function() {
-        expect(submitted).to.be.equal(false);
-        expect(nativeElement.validity.valid).to.be.equal(false);
-        expect(customElement.invalid).to.be.equal(false);
-        done();
+      test('serializes native buttons', function(done) {
+        var form = f.querySelector('#native-buttons');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.submit();
-      server.respond();
-    });
+      test('serializes native selects', function(done) {
+        var form = f.querySelector('#native-selects');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?select1=1&select1=2&select2=1');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
 
-    test('can modify the request in the presubmit', function(done) {
-      form = fixture('FormGet');
-
-      var submitted = false;
-      var presubmitted = false;
-
-      form.addEventListener('iron-form-submit', function() {
-        submitted = true;
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.addEventListener('iron-form-presubmit', function() {
-        presubmitted = true;
-        this.request.params = {batman: true};
+      test('serializes native inputs', function(done) {
+        var form = f.querySelector('#native-inputs');
+
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?input1=&input1=foo&input1=zag&input2=bar&pass1=pass&number1=35&empty=&empty=');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.addEventListener('iron-form-response', function(event) {
-        expect(submitted).to.be.equal(true);
-        expect(presubmitted).to.be.equal(true);
+      test('serializes empty native inputs', function(done) {
+        var form = f.querySelector('#native-inputs-empty');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?input1=');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
 
-        // We have changed the json parameters
-        expect(event.detail.url).to.contain('batman=true');
-
-        var response = event.detail.response;
-        expect(response).to.be.ok;
-        expect(response).to.be.an('object');
-        expect(response.success).to.be.equal(true);
-        done();
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
       });
 
-      form.submit();
-      server.respond();
+      test('serializes custom checkboxes', function(done) {
+        var form = f.querySelector('#custom-checkboxes');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('serializes custom inputs', function(done) {
+        var form = f.querySelector('#custom-inputs');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?input1=&input1=foo&input1=zag&input2=bar&pass1=pass&number1=35&empty=&empty=&check_wrapped=foo');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('serializes elements deeply nested in divs', function(done) {
+        var form = f.querySelector('#nested-elements');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?input1=i1&paper-input1=p1&input2=i2&paper-input2=p2');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('serializes elements with duplicate names', function(done) {
+        var form = f.querySelector('#duplicate-names');
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?input1=&input1=foo&input1=&input1=bar&empty=&empty=&empty=&empty=');
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
     });
 
 
-    test('can do a custom submission in the presubmit', function(done) {
-      form = fixture('FormGet');
+    suite('validation', function() {
+      var f;
+      var server;
 
-      var presubmitted = false;
+      setup(function() {
+        f = fixture('validation');
 
-      // Since we are not using the normal form submission, these events should
-      // never be called.
-      var formResponseHandler = sinon.spy();
-      form.addEventListener('iron-form-response', formResponseHandler);
-      var formSubmitHandler = sinon.spy();
-      form.addEventListener('iron-form-submit', formSubmitHandler);
-
-      form.addEventListener('iron-form-presubmit', function(event) {
-        presubmitted = true;
-        event.preventDefault();
-
-        // Your custom submission logic could go here (like using Firebase).
-        // In this case, fire a custom event as a an example.
-        this.fire('custom-form-submit');
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET',
+          /\/get.*/,
+          [
+            200,
+            '{"Content-Type":"application/json"}',
+            '{"success":true}'
+          ]
+        );
       });
 
-      form.addEventListener('custom-form-submit', function(event) {
-        expect(presubmitted).to.be.equal(true);
-        expect(formResponseHandler.callCount).to.be.equal(0);
-        expect(formSubmitHandler.callCount).to.be.equal(0);
-        done();
+      teardown(function() {
+        server.restore();
       });
 
-      form.submit();
+      test('fires iron-form-invalid if it can\'t submit', function(done) {
+        var form = f.querySelector('#mixed-invalid');
+        form.addEventListener('iron-form-invalid', function(event) {
+          expect(form.validate()).to.be.equal(false);
+          done();
+        });
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          expect(form.validate()).to.be.equal(false);
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('<input required> is validated and does not submit the form', function(done) {
+        var form = f.querySelector('#native-required');
+
+        var responses = 0;
+        form.addEventListener('iron-form-response', function(event) {
+          responses++;
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          expect(form.validate()).to.be.equal(false);
+          form.submit();
+          server.respond();
+        });
+
+        setTimeout(function() {
+          expect(responses).to.be.equal(0);
+          done();
+        },  200);
+      });
+
+      test('invalid <input> but not required is validated and does not submit the form', function(done) {
+        var form = f.querySelector('#native-invalid');
+
+        var responses = 0;
+        form.addEventListener('iron-form-response', function(event) {
+          responses++;
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          expect(form.validate()).to.be.equal(false);
+          form.submit();
+          server.respond();
+        });
+
+        setTimeout(function() {
+          expect(responses).to.be.equal(0);
+          done();
+        },  200);
+      });
+
+      test('<paper-input required> is validated and does not submit the form', function(done) {
+        var form = f.querySelector('#custom-required');
+
+        var responses = 0;
+        form.addEventListener('iron-form-response', function(event) {
+          responses++;
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.validate();
+          expect(form.validate()).to.be.equal(false);
+          form.submit();
+          server.respond();
+        });
+
+        setTimeout(function() {
+          expect(responses).to.be.equal(0);
+          done();
+        },  200);
+      });
+
+      test('invalid <paper-input> but not required is validated and does not submit the form', function(done) {
+        var form = f.querySelector('#custom-invalid');
+
+        var responses = 0;
+        form.addEventListener('iron-form-response', function(event) {
+          responses++;
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          expect(form.validate()).to.be.equal(false);
+          form.submit();
+          server.respond();
+        });
+
+        setTimeout(function() {
+          expect(responses).to.be.equal(0);
+          done();
+        },  200);
+      });
     });
 
-    test('can submit with method unset, defaults to method=get', function(done) {
-      form = fixture('FormUnsetMethod');
+    suite('submission', function() {
+      var form;
+      var server;
 
-      var submitted = false;
-      form.addEventListener('iron-form-submit', function() {
-        submitted = true;
+      setup(function() {
+        form = fixture('submission');
+
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET',
+          /\/get.*/,
+          [
+            200,
+            '{"Content-Type":"application/json"}',
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'POST',
+          /\/post.*/,
+          [
+            200,
+            '{"Content-Type":"application/json"}',
+            '{"success":true}'
+          ]
+        );
+        server.respondWith(
+          'GET',
+          /\/error.*/,
+          [
+            404,
+            '{"Content-Type":"application/text"}',
+            '{"success":false}'
+          ]
+        );
       });
 
-      form.addEventListener('iron-form-response', function(event) {
-        expect(this.request.method).to.be.equal('GET');
-        expect(submitted).to.be.equal(true);
-        expect(event.detail.url).to.contain('zig=zag');
-
-        var response = event.detail.response;
-        expect(response).to.be.ok;
-        expect(response).to.be.an('object');
-        expect(response.success).to.be.equal(true);
-        done();
+      teardown(function() {
+        server.restore();
       });
 
-      form.submit();
-      server.respond();
+      test('calling submit() on a form with method=get', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('calling submit() on a form with method=post', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form._form.setAttribute('method', 'POST');
+          form._form.setAttribute('action', '/post');
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('calling submit() on a form with method unset', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form._form.removeAttribute('method');
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('pressing an <input type=submit> submits the form', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form._form.querySelector('input[type=submit]').click();
+          server.respond();
+        });
+      });
+
+      test('pressing an <input type=button> with an event handler submits the form', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          var button = form._form.querySelector('input[type=button]');
+          button.addEventListener('click', function() {
+            form.submit();
+          });
+          button.click();
+
+          server.respond();
+        });
+      });
+
+      test('pressing a paper-button with an event handler submits the form', function(done) {
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          var button = form._form.querySelector('paper-button');
+          button.addEventListener('click', function() {
+            form.submit();
+          });
+          button.click();
+
+          server.respond();
+        });
+      });
+
+      test('can modify the request in the presubmit', function(done) {
+        var submitted = false;
+        var presubmitted = false;
+
+        form.addEventListener('iron-form-submit', function() {
+          submitted = true;
+        });
+        form.addEventListener('iron-form-presubmit', function() {
+          presubmitted = true;
+          this.request.params = {batman: true};
+        });
+
+        form.addEventListener('iron-form-response', function(event) {
+          expect(submitted).to.be.equal(true);
+          expect(presubmitted).to.be.equal(true);
+
+          // We have changed the json parameters
+          expect(event.detail.url).to.contain('batman=true');
+
+          var response = event.detail.response;
+          expect(response).to.be.ok;
+          expect(response).to.be.an('object');
+          expect(response.success).to.be.equal(true);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+          server.respond();
+        });
+      });
+
+      test('can do a custom submission in the presubmit', function(done) {
+        var presubmitted = false;
+        // Since we are not using the normal form submission, these events should
+        // never be called.
+        var formResponseHandler = sinon.spy();
+        form.addEventListener('iron-form-response', formResponseHandler);
+        var formSubmitHandler = sinon.spy();
+        form.addEventListener('iron-form-submit', formSubmitHandler);
+
+        form.addEventListener('iron-form-presubmit', function(event) {
+          presubmitted = true;
+          event.preventDefault();
+          // Your custom submission logic could go here (like using Firebase).
+          // In this case, fire a custom event as a an example.
+          this.fire('custom-form-submit');
+        });
+        form.addEventListener('custom-form-submit', function(event) {
+          expect(presubmitted).to.be.equal(true);
+          expect(formResponseHandler.callCount).to.be.equal(0);
+          expect(formSubmitHandler.callCount).to.be.equal(0);
+          done();
+        });
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form.submit();
+        });
+      });
+
+      test('can relay errors', function(done) {
+        form.addEventListener('iron-form-error', function(event) {
+          var error = event.detail;
+          expect(error).to.be.ok;
+          expect(error).to.be.an('object');
+          expect(error.error).to.be.ok;
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          form._form.setAttribute('action', '/error');
+          form.submit();
+          server.respond();
+        });
+      });
     });
 
-    test('can submit with method=get', function(done) {
-      form = fixture('FormGet');
+    suite('resetting', function() {
+      test('can reset a form', function(done) {
+        var form = fixture('resetting');
 
-      var submitted = false;
-      form.addEventListener('iron-form-submit', function() {
-        submitted = true;
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          var initial = form.serializeForm();
+          expect(JSON.stringify(initial)).to.be.equal('{"input1":"input1","input2":"","check1":"on","radio1":"on","papercheck1":"on","paper1":"paper1","paper2":""}');
+
+          // Modify all the values, flip all the inputs.
+          document.getElementById('input1').value = 'input1++';
+          document.getElementById('input2').value = 'input2++';
+          document.getElementById('check1').checked = false;
+          document.getElementById('check2').checked = true;
+          document.getElementById('radio1').checked = false;
+          document.getElementById('radio2').checked = true;
+          document.getElementById('papercheck1').checked = false;
+          document.getElementById('papercheck2').checked = true;
+          document.getElementById('paper1').value = 'paper1++';
+          document.getElementById('paper2').value = 'paper2++';
+
+          var updated = form.serializeForm();
+          expect(JSON.stringify(updated)).to.not.be.equal(initial);
+          form.reset();
+          var final = form.serializeForm();
+          expect(JSON.stringify(initial)).to.be.equal(JSON.stringify(final));
+          done();
+        });
       });
-
-      form.addEventListener('iron-form-response', function(event) {
-        expect(submitted).to.be.equal(true);
-        expect(event.detail.url).to.contain('zig=zag');
-
-        var response = event.detail.response;
-        expect(response).to.be.ok;
-        expect(response).to.be.an('object');
-        expect(response.success).to.be.equal(true);
-        done();
-      });
-
-      form.submit();
-      server.respond();
     });
 
-    test('can submit with method=post', function(done) {
-      form = fixture('FormPost');
+    suite('dynamically created', function() {
+      var server;
 
-      var submitted = false;
-      form.addEventListener('iron-form-submit', function() {
-        submitted = true;
+      setup(function() {
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET',
+          /\/get.*/,
+          [
+            200,
+            '{"Content-Type":"application/json"}',
+            '{"success":true}'
+          ]
+        );
       });
 
-      form.addEventListener('iron-form-response', function(event) {
-        expect(submitted).to.be.equal(true);
-
-        var response = event.detail.response;
-        expect(response).to.be.ok;
-        expect(response).to.be.an('object');
-        expect(response.success).to.be.equal(true);
-        done();
+      teardown(function() {
+        server.restore();
       });
 
-      form.submit();
-      server.respond();
+      test('submits a form', function(done) {
+        var form = document.createElement('iron-form');
+        // Need to add to the document so observeNodes runs.
+        document.body.appendChild(form);
+
+        var nativeForm = document.createElement('form');
+        nativeForm.action = '/get';
+        nativeForm.method = 'get';
+
+        var input = document.createElement('input');
+        nativeForm.appendChild(input);
+        input.required = true;
+        input.name = 'foo';
+        Polymer.dom(form).appendChild(nativeForm);
+
+        form.addEventListener('iron-form-response', function(event) {
+          expect(event.detail.url).to.equal('/get?foo=bar');
+          expect(event.detail.response.success).to.be.equal(true);
+          document.body.removeChild(form);
+          done();
+        });
+
+        // Wait one tick for observeNodes.
+        Polymer.Base.async(function() {
+          expect(form.validate()).to.be.equal(false);
+          input.value = 'bar';
+          expect(form.validate()).to.be.equal(true);
+          form.submit();
+          server.respond();
+        }, 1);
+      });
     });
 
-    test('can relay errors', function(done) {
-      form = fixture('FormPost');
-      form.action = "/responds_with_error";
+    suite('content type', function() {
+      var server;
+      var f;
 
-      form.addEventListener('iron-form-error', function(event) {
-        var error = event.detail;
-
-        expect(error).to.be.ok;
-        expect(error).to.be.an('object');
-        expect(error.error).to.be.ok;
-        done();
+      setup(function() {
+        server = sinon.fakeServer.create();
+        f = fixture('content-type');
       });
 
-      form.submit();
-      server.respond();
+      teardown(function() {
+        server.restore();
+      });
+
+      test('submits a form with text/plain', function(done) {
+        var form = f.querySelector('#plain-form');
+
+        server.respondWith(
+          'POST',
+          /\/valid\/url.*/,
+          function (request) {
+            expect(request.requestHeaders).to.deep.equal({
+                "content-type": "text/plain;charset=utf-8",
+                "accept": "application/json"});
+            expect(request.requestBody).to.deep.equal({
+                "paper1": "value1",
+                "paper2": "value2"});
+            done();
+          }
+        );
+
+          // Wait one tick for observeNodes.
+          Polymer.Base.async(function() {
+            form.submit();
+            server.respond();
+          });
+      });
+      test('submits a form with application/json', function(done) {
+          var form = f.querySelector('#json-form');
+
+          server.respondWith(
+            'POST',
+            /\/valid\/url.*/,
+            function (request) {
+              expect(request.requestHeaders).to.deep.equal({
+                  "content-type": "application/json;charset=utf-8",
+                  "accept": "application/json"});
+              expect(request.requestBody).to.equal(
+                  '{"paper1":"value1","paper2":"value2"}');
+              done();
+            }
+          );
+
+          // Wait one tick for observeNodes.
+          Polymer.Base.async(function() {
+            form.submit();
+            server.respond();
+          });
+      });
+        test('submits a form with application/x-www-form-urlencoded', function(done) {
+            var form = f.querySelector('#simple-form');
+
+            server.respondWith(
+                'POST',
+                /\/valid\/url.*/,
+                function (request) {
+                    expect(request.requestHeaders).to.deep.equal({
+                        "content-type": "application/x-www-form-urlencoded;charset=utf-8",
+                        "accept": "application/json"});
+                    expect(request.requestBody).to.equal(
+                        'paper1=value1&paper2=value2');
+                    done();
+                }
+            );
+
+            // Wait one tick for observeNodes.
+            Polymer.Base.async(function() {
+                form.submit();
+                server.respond();
+            });
+        });
     });
-
-  });
-
   </script>
-
 </body>
 </html>

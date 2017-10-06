@@ -1,6 +1,6 @@
 {
   "name": "iron-ajax",
-  "version": "1.4.4",
+  "version": "2.0.5",
   "description": "Makes it easy to make ajax calls and parse the response",
   "private": true,
   "authors": [
@@ -20,15 +20,37 @@
   "homepage": "https://github.com/PolymerElements/iron-ajax",
   "ignore": [],
   "dependencies": {
-    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
-    "polymer": "Polymer/polymer#^1.5.0"
+    "polymer": "Polymer/polymer#1.9 - 2"
   },
   "devDependencies": {
-    "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
-    "iron-image": "polymerelements/iron-image#^1.0.0",
-    "paper-styles": "polymerelements/paper-styles#^1.0.0",
-    "test-fixture": "polymerelements/test-fixture#^1.0.0",
-    "web-component-tester": "^4.0.0",
-    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+    "iron-component-page": "PolymerElements/iron-component-page#1 - 2",
+    "iron-image": "PolymerElements/iron-image#1 - 2",
+    "promise-polyfill": "PolymerLabs/promise-polyfill#1 - 2",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0",
+    "test-fixture": "PolymerElements/test-fixture#^3.0.0-rc.1",
+    "web-component-tester": "^6.0.0"
+  },
+  "variants": {
+    "1.x": {
+      "dependencies": {
+        "promise-polyfill": "PolymerLabs/promise-polyfill#^1.0.0",
+        "polymer": "Polymer/polymer#^1.9"
+      },
+      "devDependencies": {
+        "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+        "iron-image": "PolymerElements/iron-image#^1.0.0",
+        "paper-styles": "PolymerElements/paper-styles#^1.0.0",
+        "test-fixture": "PolymerElements/test-fixture#^1.0.0",
+        "web-component-tester": "^4.0.0",
+        "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+      },
+      "resolutions": {
+        "promise-polyfill": "^1.0.0",
+        "webcomponentsjs": "^0.7"
+      }
+    }
+  },
+  "resolutions": {
+    "webcomponentsjs": "^1.0.0"
   }
 }
