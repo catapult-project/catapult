@@ -154,8 +154,8 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       if data:
         # We only need to validate the row ID for one point, since all points
         # being handled by this upload should have the same row ID.
-        test_map = _ConstructTestPathMap(data)
-        _ValidateRowId(data[0], test_map)
+        last_added_entity = _GetLastAddedEntityForRow(data[0])
+        _ValidateRowId(data[0], last_added_entity)
 
       for row_dict in data:
         ValidateRowDict(row_dict)
@@ -260,11 +260,12 @@ def _AddTasks(data):
     task_list.append(taskqueue.Task(
         url='/add_point_queue',
         params={'data': json.dumps(data_sublist)}))
+
   queue = taskqueue.Queue(_TASK_QUEUE_NAME)
-  for task_sublist in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD):
-    # Calling get_result waits for all tasks to be added. It's possible that
-    # this is different, and maybe faster, than just calling queue.add.
-    queue.add_async(task_sublist).get_result()
+  futures = [queue.add_async(t)
+             for t in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD)]
+  for f in futures:
+    f.get_result()
 
 
 def _Chunk(items, chunk_size):
@@ -531,26 +532,20 @@ def _ImprovementDirectionToHigherIsBetter(improvement_direction_str):
                           improvement_direction_str)
 
 
-def _ConstructTestPathMap(row_dicts):
-  """Makes a mapping from test paths to last added revision."""
-  last_added_revision_keys = []
-  for row in row_dicts:
-    if not ('master' in row and 'bot' in row and 'test' in row):
-      continue
-    path = '%s/%s/%s' % (row['master'], row['bot'], row['test'].strip('/'))
-    if len(path) > _MAX_TEST_PATH_LENGTH:
-      continue
-    last_added_revision_keys.append(ndb.Key('LastAddedRevision', path))
+def _GetLastAddedEntityForRow(row):
+  if not ('master' in row and 'bot' in row and 'test' in row):
+    return None
+  path = '%s/%s/%s' % (row['master'], row['bot'], row['test'].strip('/'))
+  if len(path) > _MAX_TEST_PATH_LENGTH:
+    return None
 
   try:
-    last_added_revision_entities = ndb.get_multi(last_added_revision_keys)
+    last_added_revision_entity = ndb.Key('LastAddedRevision', path).get()
   except datastore_errors.BadRequestError:
-    logging.warn('Datastore BadRequestError when getting %s',
-                 repr(last_added_revision_keys))
-    return {}
+    logging.warn('Datastore BadRequestError when getting %s', path)
+    return None
 
-  return {r.key.string_id(): r.revision
-          for r in last_added_revision_entities if r is not None}
+  return last_added_revision_entity
 
 
 def ValidateRowDict(row):
@@ -611,13 +606,12 @@ def _ValidateTestPathPartName(name):
         'Invalid name: "%s". Names cannot start and end with "__".' % name)
 
 
-def _ValidateRowId(row_dict, test_map):
+def _ValidateRowId(row_dict, last_added_entity):
   """Checks whether the ID for a Row is OK.
 
   Args:
     row_dict: A dictionary with new point properties, including "revision".
-    test_map: A dictionary mapping test paths to the last previously added
-        revision for each test.
+    last_added_entity: The last previous added revision entity for the test.
 
   Raises:
     BadRequestError: The revision is not acceptable for some reason.
@@ -627,11 +621,12 @@ def _ValidateRowId(row_dict, test_map):
   # Get the last added revision number for this test.
   master, bot, test = row_dict['master'], row_dict['bot'], row_dict['test']
   test_path = '%s/%s/%s' % (master, bot, test)
-  last_row_id = test_map.get(test_path)
-  if not last_row_id:
+  if not last_added_entity:
     # Could be first point in test.
     logging.warning('Test %s has no last added revision entry.', test_path)
     return
+
+  last_row_id = last_added_entity.revision
 
   allow_jump = (
       master.endswith('Internal') or
