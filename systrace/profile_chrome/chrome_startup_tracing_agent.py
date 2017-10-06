@@ -55,6 +55,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
           activity=self._package_info.activity,
           data=self._url,
           extras={'create_new_tab': True})
+    self._logcat_monitor.Start()
     self._device.StartActivity(launch_intent, blocking=True)
 
   def _TearDownTracing(self):
@@ -63,7 +64,6 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, config, timeout=None):
     self._SetupTracing()
-    self._logcat_monitor.Start()
     return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
