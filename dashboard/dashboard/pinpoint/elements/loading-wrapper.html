@@ -5,17 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/components/iron-ajax/iron-ajax.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
-
-<link rel="import" href="/dashboard/static/simple_xhr.html">
-<link rel="import" href="/dashboard/static/uri.html">
 
 <dom-module id="loading-wrapper">
   <template>
     <style>
       .error {
         color: var(--paper-red-500);
-        font-weight: bold;
       }
 
       #loading-spinner {
@@ -28,21 +25,28 @@ found in the LICENSE file.
       }
     </style>
 
-    <div hidden$="[[!loading]]">
+    <iron-ajax
+        auto
+        url="[[url]]"
+        params="[[params]]"
+        loading="{{loading}}"
+        last-error="{{error}}"
+        last-response="{{response}}"></iron-ajax>
+    <template is="dom-if" if="[[loading]]">
       <div id="loading-spinner">
         <paper-spinner active></paper-spinner>
       </div>
-    </div>
-    <div hidden$="[[loading]]">
+    </template>
+    <template is="dom-if" if="[[!loading]]">
       <template is="dom-if" if="[[error]]">
-        <p class="error">[[error]]
+        <p class="error">[[error.response.error]]
       </template>
       <template is="dom-if" if="[[!error]]">
         <div>
           <slot></slot>
         </div>
       </template>
-    </div>
+    </template>
   </template>
 
   <script>
@@ -51,34 +55,28 @@ found in the LICENSE file.
       is: 'loading-wrapper',
 
       properties: {
+        url: {
+          type: String,
+        },
+
+        params: {
+          type: Object,
+        },
+
         loading: {
           type: Boolean,
-          value: true,
         },
 
         error: {
-          type: String,
-          value: '',
+          type: Object,
         },
 
-        xsrfToken: {
-          type: String,
-          value: ''
-        }
+        response: {
+          type: Object,
+          notify: true,
+          readonly: true,
+        },
       },
-
-      async load(url, params) {
-        this.loading = true;
-        try {
-          const response = await simple_xhr.asPromise(url, params);
-          this.xsrfToken = response.xsrf_token;
-          return response;
-        } catch (err) {
-          this.error = err;
-        } finally {
-          this.loading = false;
-        }
-      }
     });
   </script>
 </dom-module>

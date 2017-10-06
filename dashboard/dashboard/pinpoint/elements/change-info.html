@@ -18,12 +18,12 @@ found in the LICENSE file.
     </style>
 
     <div>
-      <loading-wrapper id="loader">
+      <loading-wrapper url="/api/gitiles" params="[[params(change)]]" response="{{commitInfo}}">
         <h3>
-          <a href="[[url(change)]]" target="_blank">[[subject]]</a>
+          <a href="[[url(change)]]" target="_blank">[[subject(commitInfo)]]</a>
         </h3>
         <p class="byline">
-          By [[author]]<span class="middle-dot"></span>[[time]]
+          By [[commitInfo.author.email]]<span class="middle-dot"></span>[[time(commitInfo)]]
         </p>
       </loading-wrapper>
     </div>
@@ -36,31 +36,36 @@ found in the LICENSE file.
 
       properties: {
         change: {
-          type: Object,
-          observer: '_changeChanged'
+          type: Object
+        },
+
+        commitInfo: {
+          type: Object
         }
       },
 
-      lastCommit(change) {
-        return change.commits[change.commits.length - 1];
+      params(change) {
+        const commit = this.lastCommit_(this.change);
+        return {
+          repository: commit.repository,
+          git_hash: commit.git_hash
+        };
       },
 
       url(change) {
-        return this.lastCommit(change).url;
+        return this.lastCommit_(change).url;
       },
 
-      async _changeChanged() {
-        const commit = this.lastCommit(this.change);
-        const params = {
-          repository: commit.repository,
-          git_hash_1: commit.git_hash
-        };
-        const response = await this.$.loader.load('/api/gitiles', params);
-        if (response) {
-          this.subject = response.message.split('\n')[0];
-          this.author = response.author.email;
-          this.time = new Date(response.committer.time + 'Z').toLocaleString();
-        }
+      lastCommit_(change) {
+        return change.commits[change.commits.length - 1];
+      },
+
+      subject(commitInfo) {
+        return commitInfo.message.split('\n')[0];
+      },
+
+      time(commitInfo) {
+        return new Date(commitInfo.committer.time + 'Z').toLocaleString();
       },
     });
   </script>

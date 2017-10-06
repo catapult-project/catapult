@@ -14,7 +14,7 @@ from dashboard.services import gitiles_service
 class Gitiles(webapp2.RequestHandler):
   """Handler that exposes gitiles service to UI."""
 
-  def post(self):
+  def get(self):
     repo = self.request.get('repository')
     git_hash_1 = self.request.get('git_hash', self.request.get('git_hash_1'))
     git_hash_2 = self.request.get('git_hash_2')

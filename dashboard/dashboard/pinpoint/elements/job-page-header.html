@@ -72,6 +72,12 @@ found in the LICENSE file.
     Polymer({
       is: 'job-page-header',
 
+      properties: {
+        job: {
+          type: Object,
+        },
+      },
+
       hasDifferences(job) {
         return this.getDifferences(job).length;
       },

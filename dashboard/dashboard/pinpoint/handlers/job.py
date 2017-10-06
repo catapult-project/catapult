@@ -10,19 +10,20 @@ from dashboard.pinpoint.models import job as job_module
 
 class Job(webapp2.RequestHandler):
 
-  def post(self):
+  def get(self):
     job_id = self.request.get('job_id')
 
     # Validate parameters.
     try:
       job = job_module.JobFromId(job_id)
-    except Exception as e:  # pylint: disable=broad-except
-      # Catching google.net.proto.ProtocolBuffer.ProtocolBufferDecodeError
-      # directly doesn't work.
-      # https://github.com/googlecloudplatform/datastore-ndb-python/issues/143
-      if e.__class__.__name__ == 'ProtocolBufferDecodeError':
-        self.response.write(json.dumps({'error': 'Unknown job id.'}))
-        return
-      raise
+    except ValueError:
+      self.response.set_status(400)
+      self.response.write(json.dumps({'error': 'Invalid job id.'}))
+      return
 
-    self.response.write(json.dumps({'data': job.AsDict()}))
+    if not job:
+      self.response.set_status(404)
+      self.response.write(json.dumps({'error': 'Unknown job id.'}))
+      return
+
+    self.response.write(json.dumps(job.AsDict()))

@@ -25,12 +25,12 @@ found in the LICENSE file.
     <h1>
       Jobs
       <span id="job-count" class="badge">
-        [[computeJobCountString(jobCount, jobCountMax)]]
+        [[jobCount(jobs)]]
       </span>
     </h1>
-    <loading-wrapper id="loader">
+    <loading-wrapper url="/api/jobs" response="{{jobs}}">
       <jobs-table id="jobs-table"
-          jobs="[[jobs]]"
+          jobs="[[jobs.jobs]]"
           sort-by="[[queryParams.sortBy]]"
           sort-descending="[[queryParams.sortDescending]]">
       </jobs-table>
@@ -43,39 +43,16 @@ found in the LICENSE file.
       is: 'jobs-page',
 
       properties: {
-        jobCount: {
-          type: Number,
-          value: 0
-        },
-
-        jobCountMax: {
-          type: Number
-        },
-
         jobs: {
-          type: Array,
-          value: () => []
-        }
+          type: Object,
+        },
       },
 
-      computeJobCountString(jobCount, jobCountMax) {
-        if (jobCount >= jobCountMax) {
-          return String(jobCountMax) + '+';
+      jobCount(jobs) {
+        if (jobs.count >= jobs.max_count) {
+          return String(jobs.max_count) + '+';
         }
-        return String(jobCount);
-      },
-
-      deselected() {
-        this.jobs = [];
-      },
-
-      async selected() {
-        const response = await this.$.loader.load('/api/jobs', {});
-        if (response) {
-          this.jobs = response.jobs_list;
-          this.jobCount = response.jobs_count;
-          this.jobCountMax = response.jobs_count_max;
-        }
+        return String(jobs.count);
       }
     });
   </script>

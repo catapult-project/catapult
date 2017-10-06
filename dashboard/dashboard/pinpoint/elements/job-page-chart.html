@@ -69,6 +69,10 @@ found in the LICENSE file.
       },
 
       _jobChanged() {
+        this.async(this.draw, 1);
+      },
+
+      draw() {
         let valuesByChange = this.job.result_values.map(
             valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
 

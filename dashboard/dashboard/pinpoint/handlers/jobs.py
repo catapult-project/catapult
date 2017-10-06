@@ -16,9 +16,8 @@ _MAX_JOBS_TO_COUNT = 1000
 class Jobs(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
-  def post(self):
+  def get(self):
     result = self._GetJobs()
-
     self.response.out.write(json.dumps(result))
 
   def _GetJobs(self):
@@ -26,13 +25,13 @@ class Jobs(webapp2.RequestHandler):
     count_future = job_module.Job.query().count_async(limit=_MAX_JOBS_TO_COUNT)
 
     result = {
-        'jobs_list': [],
-        'jobs_count': count_future.get_result(),
-        'jobs_count_max': _MAX_JOBS_TO_COUNT
+        'jobs': [],
+        'count': count_future.get_result(),
+        'max_count': _MAX_JOBS_TO_COUNT
     }
 
     jobs = job_future.get_result()
     for job in jobs:
-      result['jobs_list'].append(job.AsDict(include_state=False))
+      result['jobs'].append(job.AsDict(include_state=False))
 
     return result

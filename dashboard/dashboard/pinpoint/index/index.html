@@ -24,13 +24,14 @@ found in the LICENSE file.
 <link rel="import" href="/components/polymer/polymer.html">
 
 <link rel="import" href="/dashboard/elements/load-analytics.html">
-<link rel="import" href="/dashboard/pinpoint/elements/error-page.html">
-<link rel="import" href="/dashboard/pinpoint/elements/job-page.html">
-<link rel="import" href="/dashboard/pinpoint/elements/jobs-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/navigation-bar.html">
-<link rel="import" href="/dashboard/pinpoint/elements/new-page.html">
 
 <dom-module id="index-page">
+  <link rel="lazy-import" href="/dashboard/pinpoint/elements/error-page.html">
+  <link rel="lazy-import" href="/dashboard/pinpoint/elements/job-page.html">
+  <link rel="lazy-import" href="/dashboard/pinpoint/elements/jobs-page.html">
+  <link rel="lazy-import" href="/dashboard/pinpoint/elements/new-page.html">
+
   <template>
     <style>
       #content {
@@ -58,11 +59,10 @@ found in the LICENSE file.
     the <iron-pages> element via routeData.page.
     -->
     <div id="content">
-      <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
-        <jobs-page name="" route="{{subroute}}"></jobs-page>
+      <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
         <error-page name="error"></error-page>
-
         <job-page name="job" route="{{subroute}}"></job-page>
+        <jobs-page name="jobs" route="{{subroute}}"></jobs-page>
         <new-page name="new" abs-route="{{route}}"></new-page>
       </iron-pages>
     </div>
@@ -73,6 +73,18 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'index-page',
+
+      properties: {
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged',
+        },
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)',
+      ],
 
       onDeselectedPage(e) {
         const page = e.detail.item;
@@ -92,8 +104,19 @@ found in the LICENSE file.
         }
       },
 
-      ready() {
-      }
+      _routePageChanged(page) {
+        this.page = page || 'jobs';
+      },
+
+      _pageChanged(page) {
+        // Load page import on demand. Show 404 page on failure.
+        const url = '/dashboard/pinpoint/elements/' + page + '-page.html';
+        this.importHref(url, null, this._showPage404, true);
+      },
+
+      _showPage404() {
+        this.page = 'error';
+      },
     });
   </script>
 
