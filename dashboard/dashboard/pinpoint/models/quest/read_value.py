@@ -38,21 +38,6 @@ class ReadChartJsonValue(quest.Quest):
 
 class _ReadChartJsonValueExecution(execution.Execution):
 
-  # TODO: Remove this method after data migration.
-  def __setstate__(self, state):
-    # pylint: disable=attribute-defined-outside-init
-    self.__dict__ = state
-
-    if not hasattr(self, '_trace_urls'):
-      self._trace_urls = []
-      chartjson = _RetrieveOutputJson(
-          self._isolate_hash, 'chartjson-output.json')
-      if 'trace' in chartjson['charts']:
-        traces = chartjson['charts']['trace']
-        traces = sorted(traces.iteritems(), key=lambda item: item[1]['page_id'])
-        for name, details in traces:
-          self._trace_urls.append({'name': name, 'url': details['cloud_url']})
-
   def __init__(self, chart, tir_label, trace, isolate_hash):
     super(_ReadChartJsonValueExecution, self).__init__()
     self._chart = chart
