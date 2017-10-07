@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import optparse
+import sys
 
 from py_utils import class_util
 from telemetry import decorators
@@ -62,6 +63,8 @@ class Benchmark(command_line.Command):
   page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
   SUPPORTED_PLATFORMS = [expectations.ALL]
+
+  MAX_NUM_VALUES = sys.maxint
 
   def __init__(self, max_failures=None):
     """Creates a new Benchmark.

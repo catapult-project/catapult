@@ -69,7 +69,6 @@ def AddCommandLineArgs(parser):
                     action='store_true', default=False,
                     help='Ignore @Disabled and @Enabled restrictions.')
 
-
 def ProcessCommandLineArgs(parser, args):
   story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
   results_options.ProcessCommandLineArgs(parser, args)
@@ -142,7 +141,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
 
 
 def Run(test, story_set, finder_options, results, max_failures=None,
-        expectations=None, metadata=None):
+        expectations=None, metadata=None, max_num_values=sys.maxint):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -201,6 +200,12 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           state.platform.WaitForBatteryTemperature(35)
           _WaitForThermalThrottlingIfNeeded(state.platform)
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
+
+          num_values = len(results.all_page_specific_values)
+          if num_values > max_num_values:
+            msg = 'Too many values: %d > %d' % (num_values, max_num_values)
+            results.AddValue(failure.FailureValue.FromMessage(None, msg))
+
           device_info_diags = _MakeDeviceInfoDiagnostics(state)
         except exceptions.Error:
           # Catch all Telemetry errors to give the story a chance to retry.
@@ -329,7 +334,8 @@ def RunBenchmark(benchmark, finder_options):
       benchmark.ValueCanBeAddedPredicate, benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
-          expectations=expectations, metadata=benchmark.GetMetadata())
+          expectations=expectations, metadata=benchmark.GetMetadata(),
+          max_num_values=benchmark.MAX_NUM_VALUES)
       return_code = min(254, len(results.failures))
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.

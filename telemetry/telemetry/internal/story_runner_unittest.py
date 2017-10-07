@@ -97,7 +97,7 @@ class TestSharedState(story_module.SharedState):
     return True
 
   def RunStory(self, results):
-    raise NotImplementedError
+    self._test.ValidateAndMeasurePage(self._current_story, None, results)
 
   def DidRunStory(self, results):
     pass
@@ -254,7 +254,10 @@ class _Measurement(legacy_page_test.LegacyPageTest):
         improvement_direction=improvement_direction.UP))
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    pass
+    self.i += 1
+    results.AddValue(scalar.ScalarValue(
+        page, 'metric', 'unit', self.i,
+        improvement_direction=improvement_direction.UP))
 
 
 class StoryRunnerTest(unittest.TestCase):
@@ -1408,3 +1411,15 @@ class StoryRunnerTest(unittest.TestCase):
       self.assertEqual(rc, 0)
     finally:
       shutil.rmtree(tmp_path)
+
+  def testRunBenchmark_TooManyValues(self):
+    self.SuppressExceptionFormatting()
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(TestSharedPageState, name='story'))
+    story_runner.Run(
+        _Measurement(), story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest(),
+        max_num_values=0)
+    self.assertEquals(1, len(self.results.failures))
+    self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
+    self.assertIn('Too many values: 1 > 0', self.fake_stdout.getvalue())
