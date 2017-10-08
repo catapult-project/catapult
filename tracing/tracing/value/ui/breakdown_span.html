@@ -46,6 +46,13 @@ found in the LICENSE file.
 tr.exportTo('tr.v.ui', function() {
   const DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
 
+  function getHistogramName(histogram, diagnosticName, key) {
+    if (histogram === undefined) return undefined;
+    const nameMap = histogram.diagnostics.get(diagnosticName);
+    if (nameMap === undefined) return undefined;
+    return nameMap.get(key);
+  }
+
   class BreakdownTableSummaryRow {
     constructor(displayElement, histogramNames) {
       this.displayElement_ = displayElement;
@@ -85,12 +92,13 @@ tr.exportTo('tr.v.ui', function() {
   }
 
   class BreakdownTableRow {
-    constructor(name, value, unit, color) {
+    constructor(name, value, histogramName, unit, color) {
       this.name_ = name;
-      this.value = value;
-      this.unit = unit;
+      this.value_ = value;
+      this.histogramName_ = histogramName;
+      this.unit_ = unit;
 
-      if (!this.isHistogram && typeof value !== 'number') {
+      if (typeof value !== 'number') {
         throw new Error('unsupported value ' + value);
       }
 
@@ -102,19 +110,15 @@ tr.exportTo('tr.v.ui', function() {
       hsl.l *= 0.85;
       this.highlightedColor_ = tr.b.Color.fromHSL(hsl);
 
-      if (this.isHistogram) {
+      if (this.unit_) {
         this.displayElement_ = tr.v.ui.createScalarSpan(this.numberValue, {
-          unit: this.value.unit,
+          unit: this.unit_,
         });
       } else {
         this.displayElement_ = tr.ui.b.createSpan({
           textContent: this.stringValue,
         });
       }
-    }
-
-    get isHistogram() {
-      return this.value instanceof tr.v.Histogram;
     }
 
     get name() {
@@ -131,11 +135,12 @@ tr.exportTo('tr.v.ui', function() {
 
     get keySpan() {
       if (this.keySpan_ === undefined) {
-        if (this.isHistogram) {
+        if (this.histogramName_) {
           this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
-          this.keySpan_.setSelectionAndContent([this.value.name], this.name);
+          this.keySpan_.setSelectionAndContent(
+              [this.histogramName_], this.name);
           this.keySpan_.color = this.color;
-          this.keySpan_.title = this.value.name;
+          this.keySpan_.title = this.histogramName_;
         } else {
           this.keySpan_ = document.createElement('span');
           this.keySpan_.innerText = this.name;
@@ -149,25 +154,22 @@ tr.exportTo('tr.v.ui', function() {
     * @return {number|undefined}
     */
     get numberValue() {
-      if (this.isHistogram) return this.value.sum;
-      if (!isNaN(this.value) &&
-          (this.value !== Infinity) &&
-          (this.value !== -Infinity) &&
-          (this.value > 0)) return this.value;
+      if (!isNaN(this.value_) &&
+          (this.value_ !== Infinity) &&
+          (this.value_ !== -Infinity) &&
+          (this.value_ > 0)) return this.value_;
       // Prevent this row from appearing in the ColumnChart.
       return undefined;
     }
 
     get stringValue() {
-      if (!this.isHistogram &&
-          (isNaN(this.value) ||
-          this.value === Infinity ||
-          this.value === -Infinity)) {
-        return this.value.toString();
+      if ((this.unit_ !== undefined) &&
+          !isNaN(this.value_) &&
+          (this.value_ !== Infinity) &&
+          (this.value_ !== -Infinity)) {
+        return this.unit_.format(this.value_);
       }
-      if (this.unit !== undefined) return this.unit.format(this.value);
-      if (this.isHistogram) return this.value.sum.toString();
-      return this.value.toString();
+      return this.value_.toString();
     }
 
     set tableSum(s) {
@@ -287,13 +289,23 @@ tr.exportTo('tr.v.ui', function() {
       const tableRows = [];
       let tableSum = 0;
       const histogramNames = [];
-      for (const [name, value] of this.diagnostic) {
-        const row = new BreakdownTableRow(
-            name, value, this.chart_.unit, colorScheme(name));
+      for (const [key, value] of this.diagnostic) {
+        let histogramName;
+        let row;
+        if (value instanceof tr.v.Histogram) {
+          // TODO(#3761): Remove with RelatedHistogramBreakdown.
+          histogramName = value.name;
+          row = new BreakdownTableRow(
+              key, value.sum, histogramName, value.unit, colorScheme(key));
+        } else {
+          histogramName = getHistogramName(this.histogram_, this.name_, key);
+          row = new BreakdownTableRow(
+              key, value, histogramName, this.chart_.unit, colorScheme(key));
+        }
         tableRows.push(row);
         if (row.numberValue !== undefined) tableSum += row.numberValue;
-        if (row.isHistogram) {
-          histogramNames.push(value.name);
+        if (histogramName) {
+          histogramNames.push(histogramName);
         }
       }
       tableRows.sort((x, y) => x.compare(y));
