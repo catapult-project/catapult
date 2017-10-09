@@ -67,7 +67,7 @@ class TimeseriesHandler(api_request_handler.ApiRequestHandler):
     }
 
   def _GetValue(self, row, attr):
-    value = getattr(row, attr)
+    value = getattr(row, attr, None)
     if attr == 'timestamp':
       return value.isoformat()
     return value

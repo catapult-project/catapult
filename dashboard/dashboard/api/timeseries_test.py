@@ -46,6 +46,7 @@ class TimeseriesTest(testing_common.TestCase):
         'timestamp': now if i > 5 else last_week,
         'error': 3.3232
     }) for i in range(1, 10)])
+    rows[100]['r_not_every_row'] = 12345
     testing_common.AddRows('ChromiumPerf/linux/page_cycler/warm/cnn', rows)
 
   @mock.patch.object(utils, 'IsGroupMember')
@@ -65,10 +66,11 @@ class TimeseriesTest(testing_common.TestCase):
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn')
     data = self.GetJsonValue(response, 'timeseries')
     self.assertEquals(10, len(data))
-    self.assertEquals(['revision', 'value', 'timestamp', 'r_v8'], data[0])
+    self.assertEquals(
+        ['revision', 'value', 'timestamp', 'r_not_every_row', 'r_v8'], data[0])
     self.assertEquals(100, data[1][0])
     self.assertEquals(900, data[9][0])
-    self.assertEquals('1234a', data[1][3])
+    self.assertEquals('1234a', data[1][4])
 
   @mock.patch.object(api_auth, 'oauth')
   def testPost_NumDays_ChecksTimestamp(self, mock_oauth):
