@@ -55,8 +55,8 @@ class Oobe(web_contents.WebContents):
     title set to the domain, for example <span title="managedchrome.com">."""
     _, domain = username.split('@')
     def _EnterpriseWebviewVisible():
-      webview = self._GaiaWebviewContext()
       try:
+        webview = self._GaiaWebviewContext()
         return webview and webview.EvaluateJavaScript(
             "document.querySelectorAll('span[title= {{ domain }}]').length;",
             domain=domain)
