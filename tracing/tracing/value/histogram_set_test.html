@@ -115,6 +115,16 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.getOnlyElement(histograms.sourceHistograms), bHist);
   });
 
+  test('sourceHistogramsWithNameMap', function() {
+    const unit = tr.b.Unit.byName.unitlessNumber;
+    const histograms = new tr.v.HistogramSet();
+    histograms.createHistogram('A', unit, []);
+    const bHist = histograms.createHistogram('B', unit, [], {diagnostics: {
+      related: tr.v.d.RelatedNameMap.fromEntries([['a', 'A']]),
+    }});
+    assert.strictEqual(tr.b.getOnlyElement(histograms.sourceHistograms), bHist);
+  });
+
   test('sharedDiagnostic', function() {
     // Make a single Histogram, add a shared Diagnostic.
     const aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);

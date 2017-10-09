@@ -217,7 +217,25 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceHistograms() {
-      const sourceHistograms = new Map(this.histogramsByGuid_);
+      const diagnosticNames = new Set();
+      for (const hist of this) {
+        for (const diagnostic of hist.diagnostics.values()) {
+          if (!(diagnostic instanceof tr.v.d.RelatedNameMap)) continue;
+          for (const name of diagnostic.values()) {
+            diagnosticNames.add(name);
+          }
+        }
+      }
+
+      const sourceHistograms = new Map();
+      for (const hist of this) {
+        if (!diagnosticNames.has(hist.name)) {
+          sourceHistograms.set(hist.guid, hist);
+        }
+      }
+
+      // TODO(#3761) Remove the rest of this function with RelatedHistogramMap.
+
       // If a Histogram is in a RelatedHistogramMap,
       // which can be owned either by Histograms or by numeric samples, then it
       // is not a source Histogram.
