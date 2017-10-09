@@ -44,9 +44,9 @@ _EXCLUDED_PATHS = (
 )
 
 
-_CATAPULT_BUG_ID_RE = re.compile(r'#[1-9]\d*')
-_RIETVELD_BUG_ID_RE = re.compile(r'[1-9]\d*')
-_RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8', 'angleproject'})
+_GITHUB_BUG_ID_RE = re.compile(r'#[1-9]\d*')
+_MONORAIL_BUG_ID_RE = re.compile(r'[1-9]\d*')
+_MONORAIL_PROJECT_NAMES = frozenset({'chromium', 'v8', 'angleproject'})
 
 def CheckChangeLogBug(input_api, output_api):
   if not input_api.change.issue:
@@ -56,10 +56,10 @@ def CheckChangeLogBug(input_api, output_api):
   # Show a presubmit message if there is no Bug line or an empty Bug line.
   if not input_api.change.BugsFromDescription():
     return [output_api.PresubmitNotifyResult(
-        'If this change has associated Catapult and/or Rietveld bug(s), add a '
+        'If this change has associated bugs on GitHub or Monorail, add a '
         '"Bug: <bug>(, <bug>)*" line to the patch description where <bug> can '
         'be one of the following: catapult:#NNNN, ' +
-        ', '.join('%s:NNNNNN' % n for n in _RIETVELD_REPOSITORY_NAMES) + '.')]
+        ', '.join('%s:NNNNNN' % n for n in _MONORAIL_PROJECT_NAMES) + '.')]
 
   # Check that each bug in the BUG= line has the correct format.
   error_messages = []
@@ -71,25 +71,25 @@ def CheckChangeLogBug(input_api, output_api):
     bug_parts = bug.split(':')
     if len(bug_parts) != 2:
       error_messages.append('Invalid bug "%s". Bugs should be provided in the '
-                            '"<repository-name>:<bug-id>" format.' % bug)
+                            '"<project-name>:<bug-id>" format.' % bug)
       continue
-    repository_name, bug_id = bug_parts
+    project_name, bug_id = bug_parts
 
-    if repository_name == 'catapult':
+    if project_name == 'catapult':
       if not _CATAPULT_BUG_ID_RE.match(bug_id):
         error_messages.append('Invalid bug "%s". Bugs in the Catapult '
                               'repository should be provided in the '
                               '"catapult:#NNNN" format.' % bug)
       catapult_bug_provided = True
-    elif repository_name in _RIETVELD_REPOSITORY_NAMES:
-      if not _RIETVELD_BUG_ID_RE.match(bug_id):
-        error_messages.append('Invalid bug "%s". Bugs in the Rietveld %s '
-                              'repository should be provided in the '
-                              '"%s:NNNNNN" format.' % (bug, repository_name,
-                                                       repository_name))
+    elif project_name in _MONORAIL_PROJECT_NAMES:
+      if not _MONORAIL_BUG_ID_RE.match(bug_id):
+        error_messages.append('Invalid bug "%s". Bugs in the Monorail %s '
+                              'project should be provided in the '
+                              '"%s:NNNNNN" format.' % (bug, project_name,
+                                                       project_name))
     else:
       error_messages.append('Invalid bug "%s". Unknown repository "%s".' % (
-          bug, repository_name))
+          bug, project_name))
 
   return map(output_api.PresubmitError, error_messages)
 
