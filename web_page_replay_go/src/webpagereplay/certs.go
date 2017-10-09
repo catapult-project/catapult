@@ -74,7 +74,12 @@ func MintDummyCertificate(serverName string, rootCert *x509.Certificate, rootKey
 
 // Returns DER encoded server cert.
 func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypto.PrivateKey) ([]byte, string, error) {
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:443", serverName), &tls.Config{
+	dialer := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}
+	conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", serverName), &tls.Config{
 		NextProtos: []string{"h2", "http/1.1"},
 	})
 	if err != nil {
