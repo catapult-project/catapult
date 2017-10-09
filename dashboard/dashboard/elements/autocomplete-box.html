@@ -135,6 +135,15 @@ property 'group' sets to the header item name.
         content: '';
         pointer-events: none;
       }
+
+      #clear {
+        display: none;
+        border-radius: 50%;
+        background: lightgrey;
+        width: 24px;
+        height: 24px;
+        padding: 0 4px;
+      }
     </style>
 
     <div id="container">
@@ -147,6 +156,8 @@ property 'group' sets to the header item name.
                      disabled$="{{disabled}}"
                      id="textbox"
                      value="{{query::input}}">
+          <paper-icon-button suffix on-tap="onClearInput_"
+            id="clear" icon="clear" alt="clear" title="clear">
         </paper-input>
       </div>
       <paper-material
@@ -188,7 +199,8 @@ property 'group' sets to the header item name.
         query: {
           type: String,
           notify: true,
-          value: ''
+          value: '',
+          observer: 'onQueryChanged_',
         },
 
         /**
@@ -378,6 +390,11 @@ property 'group' sets to the header item name.
         this.$.textbox.readonly = true;
       },
 
+      onClearInput_() {
+        this.set('query', '');
+        this.focus();
+      },
+
       onInputKeydown(event) {
         this.set('dropdownOpen', true);
         const key = event.keyCode || event.charCode;
@@ -392,6 +409,10 @@ property 'group' sets to the header item name.
         } else if (key === 13) { // Enter.
           this.maybeSelectLocus();
         }
+      },
+
+      onQueryChanged_() {
+        this.$.clear.style.display = this.query ? 'inline' : '';
       },
 
       scrollLocusIntoView() {
