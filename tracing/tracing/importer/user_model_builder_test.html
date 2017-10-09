@@ -38,6 +38,36 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('vrExpectations', function() {
+    const verifier = new UserExpectationVerifier();
+
+    verifier.customizeModelCallback = function(model) {
+      model.gpuProcess = model.getOrCreateProcess(3);
+      model.gpuMain = model.gpuProcess.getOrCreateThread(6);
+      model.gpuMain.name = 'CrGpuMain';
+
+      const series = new tr.model.CounterSeries('gpu.WebVR FPS');
+      series.addCounterSample(0, 1);
+      series.addCounterSample(499, 2);
+      series.addCounterSample(500, 3);
+      series.addCounterSample(1000, 4);
+      model.gpuProcess.getOrCreateCounter('gpu',
+          'WebVR FPS').addSeries(series);
+    };
+
+    verifier.expectedUEs = [
+      {title: 'VR Response', start: 0, end: 499, eventCount: 2},
+      {title: 'VR Animation', start: 499, end: 1000, eventCount: 3},
+    ];
+
+    verifier.expectedSegments = [
+      {start: 0, end: 499, expectations: [verifier.expectedUEs[0]]},
+      {start: 499, end: 1000, expectations: [verifier.expectedUEs[1]]},
+    ];
+
+    verifier.verify();
+  });
+
   test('videoExpectations_gapInMiddle', function() {
     const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {

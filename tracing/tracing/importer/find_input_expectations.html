@@ -77,6 +77,22 @@ tr.exportTo('tr.importer', function() {
 
   const CSS_ANIMATION_TITLE = 'Animation';
 
+  const VR_COUNTER_NAMES = [
+    'gpu.WebVR FPS',
+    'gpu.WebVR frame time (ms)',
+    'gpu.WebVR pose prediction (ms)',
+    'VrShellGl::AcquireFrame',
+    'VrShellGl::DrawFrame',
+    'VrShellGl::DrawSubmitFrameWhenReady',
+    'VrShellGl::DrawUiView',
+    'VrShellGl::DrawWorldElements',
+    'VrShellGl::UpdateController',
+  ];
+  /* 500 ms is a bit arbitrary, but it reliably avoids all the jank caused by
+   * VR entry.
+   */
+  const VR_RESPONSE_MS = 500;
+
   /**
    * If there's less than this much time between the end of one event and the
    * start of the next, then they might be merged.
@@ -174,7 +190,8 @@ tr.exportTo('tr.importer', function() {
       handleScrollEvents,
       handleCSSAnimations,
       handleWebGLAnimations,
-      handleVideoAnimations
+      handleVideoAnimations,
+      handleVrAnimations,
     ];
     handlers.forEach(function(handler) {
       protoExpectations.push.apply(protoExpectations, handler(
@@ -780,6 +797,65 @@ tr.exportTo('tr.importer', function() {
   }
 
   /**
+   * Returns proto expectations for VR animation events.
+   */
+  function handleVrAnimations(modelHelper, sortedInputEvents, warn) {
+    let events = [];
+
+    // Find all the processes we should check
+    const processes = [];
+    if (typeof modelHelper.gpuHelper !== 'undefined') {
+      processes.push(modelHelper.gpuHelper.process);
+    }
+    for (const helper of Object.values(modelHelper.rendererHelpers)) {
+      processes.push(helper.process);
+    }
+    for (const helper of Object.values(modelHelper.browserHelpers)) {
+      processes.push(helper.process);
+    }
+
+    // Add all counter samples to the list of events we care about
+    for (const proc of processes) {
+      for (const [counterName, counterSeries] of
+          Object.entries(proc.counters)) {
+        if (VR_COUNTER_NAMES.includes(counterName)) {
+          for (const series of counterSeries.series) {
+            events = events.concat(series.samples);
+          }
+        }
+      }
+    }
+
+    if (events.length === 0) {
+      return [];
+    }
+
+    events.sort((x, y) => x.timestamp - y.timestamp);
+
+    const firstTimestamp = events[0].timestamp;
+    const responsePE = new ProtoExpectation(ProtoExpectation.RESPONSE_TYPE,
+        INITIATOR_TYPE.VR);
+    const animationPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
+        INITIATOR_TYPE.VR);
+    let lastResponseEvent;
+
+    for (const event of events) {
+      // Categorize the first 500 ms of VR time as entry/response
+      // TODO(bsheedy): Make this smarter by basing response duration off trace
+      // data instead of a fixed duration
+      if (event.timestamp - firstTimestamp < VR_RESPONSE_MS) {
+        responsePE.pushSample(event);
+        lastResponseEvent = event;
+      } else {
+        animationPE.pushSample(event);
+      }
+    }
+    // Make sure that there isn't a gap between the two expectations
+    animationPE.pushSample(lastResponseEvent);
+    return [responsePE, animationPE];
+  }
+
+  /**
    * CSS Animations are merged into AnimationExpectations when they intersect.
    */
   function handleCSSAnimations(modelHelper, sortedInputEvents, warn) {
@@ -1052,7 +1128,8 @@ tr.exportTo('tr.importer', function() {
         // Don't merge some animation types with others.
         if ((isCSS && otherPE.initiatorType !== INITIATOR_TYPE.CSS) ||
             isFling !== otherPE.containsTypeNames([INPUT_TYPE.FLING_START]) ||
-            isVideo && otherPE.initiatorType !== INITIATOR_TYPE.VIDEO) {
+            isVideo && otherPE.initiatorType !== INITIATOR_TYPE.VIDEO ||
+            otherPE.initiatorType === INITIATOR_TYPE.VR) {
           continue;
         }
 
@@ -1187,10 +1264,11 @@ tr.exportTo('tr.importer', function() {
       // running, then it wasn't really an animation, now, was it?
       // Philosophy aside, the system_health Animation metrics fail hard if
       // there are no frames in an AnimationExpectation.
-      // Since WebGL animations don't generate this type of frame event,
-      // don't remove them if it's a WebGL animation.
+      // Since WebGL and VR animations don't generate this type of frame
+      // event, don't remove them if it's a WebGL or VR animation.
       if (frameEvents.length === 0 &&
-              !(pe.initiatorType === INITIATOR_TYPE.WEBGL)) {
+              !(pe.initiatorType === INITIATOR_TYPE.WEBGL ||
+                pe.initiatorType === INITIATOR_TYPE.VR)) {
         pe.type = ProtoExpectation.IGNORED_TYPE;
         newPEs.push(pe);
         continue;

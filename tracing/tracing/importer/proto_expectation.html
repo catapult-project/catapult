@@ -47,6 +47,7 @@ tr.exportTo('tr.importer', function() {
     tr.model.um.INITIATOR_TYPE.FLING,
     tr.model.um.INITIATOR_TYPE.MOUSE_WHEEL,
     tr.model.um.INITIATOR_TYPE.SCROLL,
+    tr.model.um.INITIATOR_TYPE.VR,
     tr.model.um.INITIATOR_TYPE.VIDEO,
     tr.model.um.INITIATOR_TYPE.WEBGL,
     tr.model.um.INITIATOR_TYPE.CSS,
@@ -157,6 +158,14 @@ tr.exportTo('tr.importer', function() {
       this.start = Math.min(this.start, event.start);
       this.end = Math.max(this.end, event.end);
       this.associatedEvents.push(event);
+    },
+
+    // Include |sample| in this ProtoExpectation, expanding start/end to
+    // include it.
+    pushSample(sample) {
+      this.start = Math.min(this.start, sample.timestamp);
+      this.end = Math.max(this.end, sample.timestamp);
+      this.associatedEvents.push(sample);
     },
 
     // Returns true if timestamp is contained in this ProtoExpectation.
