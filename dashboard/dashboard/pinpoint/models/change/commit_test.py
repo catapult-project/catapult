@@ -49,6 +49,10 @@ vars = {
 }
 deps = {
   'src/v8': Var('chromium_git') + '/v8/v8.git' + '@' + 'c092edb',
+  'src/third_party/lighttpd': {
+      'url': Var('chromium_git') + '/deps/lighttpd.git' + '@' + '9dfa55d',
+      'condition': 'checkout_mac or checkout_win',
+  },
 }
 deps_os = {
   'win': {
@@ -61,6 +65,7 @@ deps_os = {
     c = commit.Commit('chromium', 'aaa7336')
     expected = frozenset((
         commit.Commit('cygwin', 'c89e446'),
+        commit.Commit('lighttpd', '9dfa55d'),
         commit.Commit('v8', 'c092edb'),
     ))
     self.assertEqual(c.Deps(), expected)

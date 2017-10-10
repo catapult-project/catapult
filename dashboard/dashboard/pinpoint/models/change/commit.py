@@ -48,7 +48,12 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     # Convert deps strings to Commit objects.
     commits = []
-    for dep_string in deps_dict.itervalues():
+    for dep_value in deps_dict.itervalues():
+      if isinstance(dep_value, basestring):
+        dep_string = dep_value
+      else:
+        dep_string = dep_value['url']
+
       dep_string_parts = dep_string.split('@')
       if len(dep_string_parts) < 2:
         continue  # Dep is not pinned to any particular revision.
