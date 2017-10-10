@@ -76,7 +76,7 @@ def CheckChangeLogBug(input_api, output_api):
     project_name, bug_id = bug_parts
 
     if project_name == 'catapult':
-      if not _CATAPULT_BUG_ID_RE.match(bug_id):
+      if not _GITHUB_BUG_ID_RE.match(bug_id):
         error_messages.append('Invalid bug "%s". Bugs in the Catapult '
                               'repository should be provided in the '
                               '"catapult:#NNNN" format.' % bug)
