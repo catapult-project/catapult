@@ -186,7 +186,9 @@ func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, 
 				bestRatio = ratio
 			}
 		}
-		return bestRequest, bestResponse, nil
+		if bestRequest != nil && bestResponse != nil {
+			return bestRequest, bestResponse, nil
+		}
 	}
 
 	// For all URLs with a matching path, pick the URL that has the most matching query parameters.
