@@ -48,40 +48,80 @@
     this.distance_func_ = optDistanceFunc;
   }
 
-  ScrollAction.prototype.getScrollDistanceDown_ = function() {
-    let clientHeight;
-    // clientHeight is "special" for the body element.
-    if (this.element_ === document.body) {
-      clientHeight = __GestureCommon_GetWindowHeight();
-    } else {
-      clientHeight = this.element_.clientHeight;
+  ScrollAction.prototype.isScrollingViewport_ = function() {
+    const viewportElement = document.scrollingElement || document.body;
+    if (!viewportElement) {
+      return false;
     }
 
-    return this.element_.scrollHeight -
-           this.element_.scrollTop -
-           clientHeight;
+    return this.element_ === viewportElement;
+  };
+
+  ScrollAction.prototype.getScrollDistanceDown_ = function() {
+    let clientHeight;
+    let scrollTop;
+
+    // clientHeight and scrollTop are "special" for the scrollingElement.
+    if (this.isScrollingViewport_()) {
+      if ('visualViewport' in window) {
+        clientHeight = window.visualViewport.height;
+        scrollTop = window.visualViewport.pageTop;
+      } else {
+        clientHeight = window.innerHeight;
+        scrollTop = window.scrollY;
+      }
+    } else {
+      clientHeight = this.element_.clientHeight;
+      scrollTop = this.element_.scrollTop;
+    }
+
+    return this.element_.scrollHeight - scrollTop - clientHeight;
   };
 
   ScrollAction.prototype.getScrollDistanceUp_ = function() {
+    if (this.isScrollingViewport_()) {
+      if ('visualViewport' in window) {
+        return window.visualViewport.pageTop;
+      }
+
+      return window.scrollY;
+    }
     return this.element_.scrollTop;
   };
 
   ScrollAction.prototype.getScrollDistanceRight_ = function() {
     let clientWidth;
-    // clientWidth is "special" for the body element.
-    if (this.element_ === document.body) {
-      clientWidth = __GestureCommon_GetWindowWidth();
+    let scrollLeft;
+
+    // clientWidth and scrollLeft are "special" for the scrollingElement.
+    if (this.isScrollingViewport_()) {
+      if ('visualViewport' in window) {
+        clientWidth = window.visualViewport.width;
+        scrollLeft = window.visualViewport.pageLeft;
+      } else {
+        clientWidth = window.innerWidth;
+        scrollLeft = window.scrollX;
+      }
     } else {
       clientWidth = this.element_.clientWidth;
+      scrollLeft = this.element_.scrollLeft;
     }
 
-    return this.element_.scrollWidth - this.element_.scrollLeft - clientWidth;
+    return this.element_.scrollWidth - scrollLeft - clientWidth;
   };
 
   ScrollAction.prototype.getScrollDistanceLeft_ = function() {
+    if (this.isScrollingViewport_()) {
+      if ('visualViewport' in window) {
+        return window.visualViewport.pageLeft;
+      }
+
+      return window.scrollX;
+    }
     return this.element_.scrollLeft;
   };
 
+  // The distance returned is in CSS pixels. i.e. Is not scaled by pinch-zoom.
   ScrollAction.prototype.getScrollDistance_ = function() {
     if (this.distance_func_) {
       return this.distance_func_();
@@ -127,7 +167,13 @@
 
     const maxScrollLengthPixels = (MAX_SCROLL_LENGTH_TIME_MS / 1000) *
         this.options_.speed_;
-    const distance = Math.min(maxScrollLengthPixels, this.getScrollDistance_());
+    let distance = Math.min(maxScrollLengthPixels, this.getScrollDistance_());
+
+    // TODO(bokan): Remove this once gpuBenchmarking is changed to take all
+    // coordinates in viewport space. crbug.com/610021.
+    if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
+      distance = distance * chrome.gpuBenchmarking.pageScaleFactor();
+    }
 
     const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
     const startLeft =
