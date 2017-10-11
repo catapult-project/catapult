@@ -131,6 +131,9 @@ found in the LICENSE file.
               for (let i = 0; i < this.charts.length; i++) {
                 this.setChartData(this.charts[i]);
               }
+              if (this.charts.length === 0) {
+                this.testPicker.getSelectionMenu(0).focus();
+              }
             }.bind(this),
             function(error) {
 
