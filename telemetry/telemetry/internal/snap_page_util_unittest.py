@@ -23,12 +23,29 @@ class SnapPageTest(unittest.TestCase):
   def tearDown(self):
     self.platform.network_controller.Close()
 
+  def _SnapWithDummyValuesExceptPath(self, snapshot_path):
+    snap_page_util.SnapPage(
+        self.finder_options, 'url', interactive=False,
+        snapshot_path=snapshot_path, enable_browser_log=False)
+
+  def testSnappingToInvalidSnapshotPath(self):
+    with self.assertRaises(ValueError):
+      self._SnapWithDummyValuesExceptPath('nosuffix')
+    with self.assertRaises(ValueError):
+      self._SnapWithDummyValuesExceptPath('')
+    with self.assertRaises(ValueError):
+      self._SnapWithDummyValuesExceptPath('foohtml')
+    with self.assertRaises(ValueError):
+      self._SnapWithDummyValuesExceptPath('foo.svg')
+    with self.assertRaises(ValueError):
+      self._SnapWithDummyValuesExceptPath('foo.xhtml')
+
   def testSnappingSimplePage(self):
     self.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
     html_file_path = os.path.join(path.GetUnittestDataDir(), 'green_rect.html')
     url = self.platform.http_server.UrlOf(html_file_path)
     outfile = StringIO.StringIO()
-    snap_page_util.SnapPage(
+    snap_page_util._SnapPageToFile(
         self.finder_options, url, interactive=False, snapshot_file=outfile,
         enable_browser_log=False)
     self.assertIn('id="green"', outfile.getvalue())

@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import codecs
 import os
 import sys
 
@@ -30,11 +29,8 @@ def main(args):
   parser.parse_args(args)
 
   binary_manager.InitDependencyManager([])
-  snapshot_path = os.path.abspath(options.snapshot_path)
-  with codecs.open(snapshot_path, 'w', 'utf-8') as f:
-    snap_page_util.SnapPage(options, options.url, options.interactive, f,
-        options.enable_browser_log)
-    print 'Successfully saved snapshot to file://%s' % snapshot_path
+  snap_page_util.SnapPage(options, options.url, options.interactive,
+                          options.snapshot_path, options.enable_browser_log)
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv[1:]))

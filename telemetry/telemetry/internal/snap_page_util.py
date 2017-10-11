@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import codecs
 import os
 import json
 import sys
@@ -9,6 +10,9 @@ import sys
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
+
+
+HTML_SUFFIX = '.html'
 
 
 def _TransmitLargeJSONToTab(tab, json_obj, js_holder_name):
@@ -33,11 +37,8 @@ def _TransmitLargeJSONToTab(tab, json_obj, js_holder_name):
       '{{ @js_holder_name }} = JSON.parse({{ @js_holder_name }});',
       js_holder_name=js_holder_name)
 
-def SnapPage(finder_options, url, interactive, snapshot_file,
-             enable_browser_log):
-  """ Save the HTML snapshot of the page whose address is |url| to
-  |snapshot_file|.
-  """
+
+def _CreateBrowser(finder_options, enable_browser_log):
   if enable_browser_log:
     # Enable NON_VERBOSE_LOGGING which also contains devtool's console logs.
     finder_options.browser_options.logging_verbosity = (
@@ -46,7 +47,24 @@ def SnapPage(finder_options, url, interactive, snapshot_file,
     finder_options.browser_options.logs_cloud_bucket = None
 
   possible_browser = browser_finder.FindBrowser(finder_options)
-  browser = possible_browser.Create(finder_options)
+  return possible_browser.Create(finder_options)
+
+
+def _ReadSnapItSource(path):
+  """ Returns the contents of the snap-it source file at the given path
+  relative to the snap-it repository.
+  """
+  full_path = os.path.join(util.GetCatapultThirdPartyDir(), 'snap-it', path)
+  with open(full_path) as f:
+    return f.read()
+
+
+def _SnapPageToFile(finder_options, url, interactive,
+                    snapshot_file, enable_browser_log):
+  """ Save the HTML snapshot of the page whose address is |url| to
+  |snapshot_file|.
+  """
+  browser = _CreateBrowser(finder_options, enable_browser_log)
   try:
     tab = browser.tabs[0]
     tab.Navigate(url)
@@ -60,14 +78,8 @@ def SnapPage(finder_options, url, interactive, snapshot_file,
     tab.WaitForDocumentReadyStateToBeComplete()
     tab.action_runner.WaitForNetworkQuiescence()
 
-    with open(os.path.join(util.GetCatapultThirdPartyDir(), 'snap-it',
-                           'HTMLSerializer.js')) as f:
-      snapit_script = f.read()
-
-    with open(os.path.join(util.GetCatapultThirdPartyDir(), 'snap-it',
-                           'popup.js')) as f:
-      dom_combining_script = f.read()
-
+    snapit_script = _ReadSnapItSource('HTMLSerializer.js')
+    dom_combining_script = _ReadSnapItSource('popup.js')
     serialized_doms = []
 
     # Serialize the dom in each frame.
@@ -108,3 +120,18 @@ def SnapPage(finder_options, url, interactive, snapshot_file,
     snapshot_file.write(page_snapshot)
   finally:
     browser.Close()
+
+
+def SnapPage(finder_options, url, interactive, snapshot_path,
+             enable_browser_log):
+  """ Save the HTML snapshot of the page whose address is |url| to
+  the file located at the relative path |snapshot_path|.
+  """
+  if not snapshot_path.endswith(HTML_SUFFIX):
+    raise ValueError('Snapshot path should end with \'%s\' [value=\'%s\'].' % (
+        HTML_SUFFIX, snapshot_path))
+
+  snapshot_path = os.path.abspath(snapshot_path)
+  with codecs.open(snapshot_path, 'w', 'utf-8') as f:
+    _SnapPageToFile(finder_options, url, interactive, f, enable_browser_log)
+  print 'Successfully saved snapshot to file://%s' % snapshot_path
