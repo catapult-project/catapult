@@ -29,7 +29,8 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
       chronos_fs = self._cri.FilesystemMountedAt('/home/chronos/user')
       self.assertTrue(chronos_fs)
       if self._is_guest:
-        self.assertEquals(chronos_fs, 'guestfs')
+        self.assertTrue(chronos_fs.startswith('/dev/loop') or
+                        (chronos_fs == 'guestfs'))
       else:
         crypto_fs = self._cri.FilesystemMountedAt(
             self._cri.CryptohomePath(self._username))

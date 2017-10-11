@@ -234,7 +234,7 @@ class CrOSInterfaceTest(unittest.TestCase):
           source, target = '/dev/sda1', args[2]
         elif 'guest' in args[2]:
           # For the user $guest, returns the guest-mounted state.
-          source, target = 'guestfs', args[2]
+          source, target = '/dev/loop7', args[2]
         return ('Filesystem Mounted on\n%s %s\n' % (source, target), '')
     mock_run_cmd.side_effect = mockRunCmdOnDevice
 

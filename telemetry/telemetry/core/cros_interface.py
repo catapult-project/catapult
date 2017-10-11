@@ -500,7 +500,8 @@ class CrOSInterface(object):
     if mount_info:
       # Checks if the filesytem at |profile_path| is mounted on |profile_path|
       # itself. Before mounting cryptohome, it shows an upper directory (/home).
-      is_guestfs = (mount_info[0] == 'guestfs')
+      is_guestfs = ((mount_info[0] == 'guestfs') or
+                    mount_info[0].startswith('/dev/loop'))
       return is_guestfs == is_guest and mount_info[1] == profile_path
     return False
 
