@@ -26,7 +26,7 @@ else:
           video_file_frame_generator.VideoFileFrameGenerator
 
     # https://github.com/catapult-project/catapult/issues/3510
-    @decorators.Disabled('mac', 'linux')
+    @decorators.Disabled('all')
     @decorators.Isolated
     def testVideoFileFrameGeneratorSuccess(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
@@ -60,7 +60,7 @@ else:
       self.assertTrue(stopped)
 
     # https://github.com/catapult-project/catapult/issues/3510
-    @decorators.Disabled('mac', 'linux')
+    @decorators.Disabled('all')
     @decorators.Isolated
     def testVideoFileFrameGeneratorSkipFrames(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
@@ -77,7 +77,7 @@ else:
       self.assertTrue(stopped)
 
     # https://github.com/catapult-project/catapult/issues/3510
-    @decorators.Disabled('mac', 'linux')
+    @decorators.Disabled('all')
     @decorators.Isolated
     def testVideoFileFrameGeneratorFailure(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
