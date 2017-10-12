@@ -64,45 +64,32 @@ def _StartBisectForBug(bug_id):
   return _StartRecipeBisect(bug_id, test_anomaly, test)
 
 
-def _GetPinpointRevisionInfo(revision, test):
-  repo_to_default_rev = {
-      'ChromiumPerf': {'default_rev': 'r_chromium', 'depot': 'chromium'}
-  }
-
-  row_parent_key = utils.GetTestContainerKey(test)
-  row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
-
-  if not row:
-    raise NotBisectableError('No row %s: %s' % (test.key.id(), str(revision)))
-
-  if not test.master_name in repo_to_default_rev:
-    raise NotBisectableError('Unsupported master: %s' % test.master_name)
-
-  rev_info = repo_to_default_rev[test.master_name]
-  if not hasattr(row, rev_info['default_rev']):
-    raise NotBisectableError('Row has no %s' % rev_info['default_rev'])
-
-  return getattr(row, rev_info['default_rev']), rev_info['depot']
-
-
 def _StartPinpointBisect(bug_id, test_anomaly, test):
   # Convert params to Pinpoint compatible
-  start_git_hash, start_repository = _GetPinpointRevisionInfo(
-      test_anomaly.start_revision - 1, test)
-  end_git_hash, end_repository = _GetPinpointRevisionInfo(
-      test_anomaly.end_revision, test)
+  master_to_depot = {
+      'ChromiumPerf': 'chromium'
+  }
+  if not test.master_name in master_to_depot:
+    raise NotBisectableError('Unsupported master: %s' % test.master_name)
+
+  repository = master_to_depot[test.master_name]
+
   params = {
       'test_path': test.test_path,
-      'start_commit': start_git_hash,
-      'end_commit': end_git_hash,
-      'start_repository': start_repository,
-      'end_repository': end_repository,
+      'start_commit': test_anomaly.start_revision - 1,
+      'end_commit': test_anomaly.end_revision,
+      'start_repository': repository,
+      'end_repository': repository,
       'bug_id': bug_id,
       'bisect_mode': 'performance',
       'story_filter': start_try_job.GuessStoryFilter(test.test_path),
   }
-  results = pinpoint_service.NewJob(
-      pinpoint_request.PinpointParamsFromBisectParams(params))
+
+  try:
+    results = pinpoint_service.NewJob(
+        pinpoint_request.PinpointParamsFromBisectParams(params))
+  except pinpoint_request.InvalidParamsError as e:
+    raise NotBisectableError(e.message)
 
   # For compatibility with existing bisect, switch these to issueId/url
   if 'jobId' in results:
