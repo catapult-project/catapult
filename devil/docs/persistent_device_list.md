@@ -8,16 +8,16 @@
 ## What is it?
 
 A persistent device list that stores all expected devices between builds. It
-is used by the perf test runner in order to properly shard tests by device
-affinity. This is important because the same performance test can yield
-meaningfully different results when run on different devices.
+is used by non-swarmed bots to detect any missing/extra devices attached to
+them.
+
+This will be no longer needed when all bots are switched over to swarming.
 
 ## Bots
 
-The list is usually located at one of these locations:
+The list is usually located at:
 
-  - `/b/build/site_config/.known_devices`.
-  - `~/.android`.
+  - `~/.android/known_devices.json`.
 
 Look at recipes listed below in order to find more up to date location.
 
@@ -28,14 +28,8 @@ bots that upload data to the perf dashboard.
 
 ## Where it is used
 
-The persistent device list is used in performance test recipes via
-[api.chromium\_tests.steps.DynamicPerfTests](https://cs.chromium.org/chromium/build/scripts/slave/recipe_modules/chromium_tests/steps.py?q=DynamicPerfTests).
-For example, the [android/perf](https://cs.chromium.org/chromium/build/scripts/slave/recipes/android/perf.py) recipe uses it like this:
-
-```python
-dynamic_perf_tests = api.chromium_tests.steps.DynamicPerfTests(
-    builder['perf_id'], 'android', None,
-    known_devices_file=builder.get('known_devices_file', None))
-dynamic_perf_tests.run(api, None)
-```
-
+The persistent device list is used in the
+[chromium_android](https://cs.chromium.org/chromium/build/scripts/slave/recipe_modules/chromium_android/api.py?q=known_devices_file)
+recipe module, and consumed by the
+[device_status.py](https://cs.chromium.org/chromium/src/third_party/catapult/devil/devil/android/tools/device_status.py?q=\-\-known%5C-devices%5C-file)
+script among others.
