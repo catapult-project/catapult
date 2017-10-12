@@ -156,6 +156,7 @@ found in the LICENSE file.
       promoteSparkLine_(event) {
         this.addChart(event.detail.testpaths.map(t =>
             new d.SeriesGroup(t.testpath, [t.testpath], [])));
+        this.fireNumChartChangedEvent();
       },
 
       /**
