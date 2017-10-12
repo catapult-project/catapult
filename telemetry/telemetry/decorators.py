@@ -235,6 +235,11 @@ def IsEnabled(test, possible_browser):
   return (not should_skip, msg)
 
 
+def IsBenchmarkEnabled(benchmark, possible_browser):
+  return (not benchmark.ShouldDisable(possible_browser) and
+          IsEnabled(benchmark, possible_browser)[0])
+
+
 def _TestName(test):
   if inspect.ismethod(test):
     # On methods, __name__ is "instancemethod", use __func__.__name__ instead.
