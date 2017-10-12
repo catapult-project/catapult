@@ -410,7 +410,6 @@ def _GetSelectedTestPathsForDict(test_path_dict):
         any_missing = True
     elif isinstance(selection, list):
       parent_test_name = path.split('/')[-1]
-      test_key_futures = []
       for part in selection:
         if part == parent_test_name:
           # When the element in the selected list is the same as the last part

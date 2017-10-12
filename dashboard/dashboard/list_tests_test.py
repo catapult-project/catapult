@@ -613,6 +613,33 @@ class ListTestsTest(testing_common.TestCase):
     }
     self.assertEqual(expected, json.loads(response.body))
 
+  def testPost_GetTestsForTestPath_Selected_Preselected_Multiple(self):
+    self._AddSampleData()
+
+    subtest = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.cnn.com')
+    subtest.has_rows = True
+    subtest.put()
+    subtest = graph_data.TestMetadata.get_by_id(
+        'Chromium/mac/scrolling/commit_time/www.cnn.com')
+    subtest.has_rows = True
+    subtest.put()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': ['www.cnn.com'],
+            'Chromium/mac/scrolling/commit_time': ['www.cnn.com']}),
+        'return_selected': '1'})
+
+    expected = {
+        'anyMissing': False,
+        'tests': [
+            'Chromium/win7/scrolling/commit_time/www.cnn.com',
+            'Chromium/mac/scrolling/commit_time/www.cnn.com'],
+    }
+    self.assertEqual(expected, json.loads(response.body))
+
   def testPost_GetTestsForTestPath_Selected_All(self):
     self._AddSampleData()
 
