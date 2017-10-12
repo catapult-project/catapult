@@ -287,14 +287,10 @@ def RunBenchmark(benchmark, finder_options):
   can_run_on_platform = benchmark._CanRunOnPlatform(possible_browser.platform,
                                                     finder_options)
 
-  # TODO(rnephew): Remove decorators.IsBenchmarkEnabled and IsBenchmarkDisabled
-  # when we have fully moved to _CanRunOnPlatform().
   expectations_disabled = expectations.IsBenchmarkDisabled(
       possible_browser.platform, finder_options)
-  temporarily_disabled = not decorators.IsBenchmarkEnabled(
-      benchmark, possible_browser)
 
-  if expectations_disabled or temporarily_disabled or not can_run_on_platform:
+  if expectations_disabled or not can_run_on_platform:
     print '%s is disabled on the selected browser' % benchmark.Name()
     if finder_options.run_disabled_tests and can_run_on_platform:
       print 'Running benchmark anyway due to: --also-run-disabled-tests'
