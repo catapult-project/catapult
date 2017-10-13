@@ -12,6 +12,7 @@ from oauth2client import service_account # pylint: disable=no-name-in-module
 import time
 
 
+# TODO(rnephew): Move this to use dashboard_api.py for dashboard communication.
 # TODO(rnephew): Integrate into catapult/experimental/benchmark_health_report.
 REQUEST_URL = 'https://chromeperf.appspot.com/api/'
 # pylint: disable=line-too-long
@@ -139,7 +140,7 @@ def GetBugData(creds, bug, cache):
 
 def GetAlertData(credentials, benchmark, days):
   """Returns alerts for given benchmark."""
-  r = 'alerts/history/%s/?benchmark=%s' %(str(days), benchmark)
+  r = 'alerts/history/%s?benchmark=%s' % (str(days), benchmark)
   _, output = MakeApiRequest(credentials, r)
   try:
     data = json.loads(output)['anomalies']

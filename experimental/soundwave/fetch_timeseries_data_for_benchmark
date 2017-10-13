@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+# Copyright 2017 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import argparse
+import csv
+import dashboard_api
+
+
+# pylint: disable=line-too-long
+HELP_SITE = 'https://developers.google.com/api-client-library/python/auth/service-accounts#creatinganaccount'
+
+
+def Main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-b', '--benchmark', required=True,
+                      help='Benchmark to pull data for.')
+  parser.add_argument('-f', '--filters', action='append',
+                      help=('Only gets timeseries that contains substring. Can '
+                            'enter multiple filter strings.'))
+  parser.add_argument('-d', '--days', default=30, type=int,
+                      help='Number of days to collect data for. Default 30')
+  parser.add_argument('--credentials',
+                      help=('Path to json credentials file. See %s for '
+                            'information about generating this.' % HELP_SITE))
+  parser.add_argument('--output-path', default='timeseries_data.csv',
+                      help='Path to save file to. Default: alert_noise.json')
+  args = parser.parse_args()
+
+  dashboard_communicator = dashboard_api.PerfDashboardCommunicator(
+      json_key_path=args.credentials)
+  test_paths = dashboard_communicator.ListTestPaths(args.benchmark)
+
+  with open(args.output_path, 'wb') as fp:
+    csv_writer = csv.writer(fp)
+    headers = ['bot', 'benchmark', 'metric', 'story', 'revision','value',
+               'timestamp', 'r_commit_pos', 'r_chromium', 'r_webkit_rev']
+    csv_writer.writerow(headers)
+    for tp in test_paths:
+      if not args.filters or all(f in tp for f in args.filters):
+        ts = dashboard_communicator.GetTimeseries(tp, days=args.days)
+        for point in ts['timeseries'][1:]:
+          test_data = tp.split('/', 4)[1:] + [data for data in point]
+          csv_writer.writerow(test_data)
+
+
+if __name__ == '__main__':
+  Main()
