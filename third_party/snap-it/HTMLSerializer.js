@@ -187,6 +187,13 @@ var HTMLSerializer = class {
      * @private {string} The assigned id of the html element.
      */
     this.rootId;
+
+    /**
+     * @private {?string} An optional string representing the path
+     *     under which any external images fetched and stored locally
+     *     will reside.
+     */
+    this.localImagePath = null;
   }
 
   /**
@@ -390,7 +397,8 @@ var HTMLSerializer = class {
   }
 
   /**
-   * @return whether the given url is a data url with an image media type.
+   * @return {boolean} whether the given url is a data url with an image media
+   *     type.
    * @private
    */
   isImageDataUrl(url) {
@@ -398,6 +406,41 @@ var HTMLSerializer = class {
     // ensure validity, but we live with simple string checks for now.
     return url.startsWith('data:image/') &&
         url.indexOf('/') < (url.length - 1);
+  }
+
+  /**
+   * @return {string} the url for the external image with the given
+   *     element id
+   * @param {string} id The element id
+   * @param {string} url The image element source url
+   * @private
+   */
+  getExternalImageUrl(id, url) {
+    // Pass through external image urls unmodified if we've not
+    // got a local image path set, thus connoting that we won't
+    // be fetching external images for local storage.
+    if (!this.localImagePath)
+      return url;
+    var localUrl = this.localImagePath + '/' + id;
+    var suffix = this.fileSuffix(url);
+    if (suffix.length > 0)
+        localUrl += '.' + suffix;
+    return localUrl;
+  }
+
+  /**
+   * @return {string} the suffix string (sans the '.' prefix) for the
+   *     given file name or the empty string if no suffix was identified
+   * @param {string} name The file name
+   * @private
+   */
+  fileSuffix(name) {
+    var slashParts = name.split('/');
+    var baseName = slashParts.pop();
+    var parts = baseName.split('.');
+    if (parts.length == 1)
+        return '';
+    return parts.pop();
   }
 
   /**
@@ -441,7 +484,8 @@ var HTMLSerializer = class {
           this.processSrcHole(element);
         } else {
           this.externalImages.push([id, url.href]);
-          this.processSimpleAttribute(win, 'src', url.href);
+          this.processSimpleAttribute(win, 'src',
+              this.getExternalImageUrl(id, url.href));
         }
         break;
       default:
@@ -812,5 +856,17 @@ var HTMLSerializer = class {
         serializer.fillSrcHoles(callback);
       });
     }
+  }
+
+  /**
+   * Sets the path to the directory under which any external images
+   * found in the page will be fetched and stored locally. If
+   * non-null, the urls for any such images will be rewritten to be
+   * relative to this path.
+   *
+   * @param {string=} opt_path The directory path.
+   */
+  setLocalImagePath(opt_path) {
+    this.localImagePath = opt_path;
   }
 }

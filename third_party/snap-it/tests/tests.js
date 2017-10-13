@@ -228,7 +228,20 @@ QUnit.test('processSrcAttribute: img (external)', function(assert) {
   var img = document.createElement('img');
   img.setAttribute('src', 'https://www.images.com/foo.png');
   serializer.processSrcAttribute(img, 'targetId');
-  assert.deepEqual(serializer.externalImages, [['targetId', 'https://www.images.com/foo.png']]);
+  assert.deepEqual(serializer.externalImages, [['targetId',
+      'https://www.images.com/foo.png']]);
+});
+
+QUnit.test('processSrcAttribute: img (external) with local rewrite',
+    function(assert) {
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local');
+  var img = document.createElement('img');
+  img.setAttribute('src', 'https://www.images.com/foo.png');
+  serializer.processSrcAttribute(img, 'targetId');
+  assert.deepEqual(serializer.externalImages, [['targetId',
+      'https://www.images.com/foo.png']]);
+  assert.equal(serializer.html[0], 'src="local/targetId.png" ');
 });
 
 QUnit.test('processTree: single node', function(assert) {
@@ -929,4 +942,40 @@ QUnit.test('minimizeStyles: pseudo elements', function(assert) {
   assert.equal(
       message.html[3],
       '<style>#divId::before{ content: hello; }</style>');
+});
+
+QUnit.test('getExternalImageUrl: no local image path', function(assert) {
+  var serializer = new HTMLSerializer();
+  var urlWithSuffix = 'http://foo.com/img.png';
+  assert.equal(serializer.getExternalImageUrl('id', urlWithSuffix),
+      urlWithSuffix);
+  assert.equal(serializer.getExternalImageUrl('id', ''), '');
+  var urlNoSuffix = 'http://foo.com/img';
+  assert.equal(serializer.getExternalImageUrl('id', urlNoSuffix), urlNoSuffix);
+});
+
+QUnit.test('getExternalImageUrl: local image path', function(assert) {
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local');
+  var urlWithSuffix = 'http://foo.com/img.png';
+  assert.equal(serializer.getExternalImageUrl('id', urlWithSuffix),
+      'local/id.png');
+  var urlNoSuffix = 'http://foo.com/img';
+  assert.equal(serializer.getExternalImageUrl('id', urlNoSuffix), 'local/id');
+});
+
+QUnit.test('getExternalImageUrl: fileSuffix', function(assert) {
+  var serializer = new HTMLSerializer();
+  assert.equal(serializer.fileSuffix(''), '');
+  assert.equal(serializer.fileSuffix('/'), '');
+  assert.equal(serializer.fileSuffix('foo'), '');
+  assert.equal(serializer.fileSuffix('.'), '');
+  assert.equal(serializer.fileSuffix('.png'), 'png');
+  assert.equal(serializer.fileSuffix('foo.png'), 'png');
+  assert.equal(serializer.fileSuffix('foo..png'), 'png');
+  assert.equal(serializer.fileSuffix('/foo.png'), 'png');
+  assert.equal(serializer.fileSuffix('a/foo.png'), 'png');
+  assert.equal(serializer.fileSuffix('http://foo.com/foo'), '');
+  assert.equal(serializer.fileSuffix('http://foo.com/foo.png'), 'png');
+  assert.equal(serializer.fileSuffix('http://foo.com/foo..png'), 'png');
 });
