@@ -332,6 +332,34 @@ QUnit.test(
   }
 );
 
+QUnit.test('processAttributes: img with data url', function(assert) {
+  var serializer = new HTMLSerializer();
+  var fixture = document.getElementById('qunit-fixture');
+  var img = document.createElement('img');
+  img.setAttribute('height', 1);
+  img.setAttribute('width', 1);
+  var dataUrl = 'data:image/gif;base64,R0lGODlhAQABAIAAAA' +
+      'UEBAAAACwAAAAAAQABAAACAkQBADs=';
+  img.setAttribute('src', dataUrl);
+  fixture.appendChild(img);
+  serializer.processAttributes(img, 'id');
+  assert.ok(serializer.html[4].includes(dataUrl));
+});
+
+QUnit.test('isImageDataUrl', function(assert) {
+  var serializer = new HTMLSerializer();
+  assert.ok(serializer.isImageDataUrl('data:image/png'));
+  assert.ok(serializer.isImageDataUrl('data:image/png;base64,'));
+  assert.ok(serializer.isImageDataUrl('data:image/png;base64,F00='));
+  assert.ok(serializer.isImageDataUrl('data:image/jpg'));
+  assert.ok(serializer.isImageDataUrl('data:image/j'));
+  assert.notOk(serializer.isImageDataUrl('data:image'));
+  assert.notOk(serializer.isImageDataUrl('data:image/'));
+  assert.notOk(serializer.isImageDataUrl(''));
+  assert.notOk(serializer.isImageDataUrl('data:'));
+  assert.notOk(serializer.isImageDataUrl('foo'));
+});
+
 QUnit.test('processText: simple text node', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');

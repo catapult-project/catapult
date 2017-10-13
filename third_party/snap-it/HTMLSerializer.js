@@ -390,6 +390,17 @@ var HTMLSerializer = class {
   }
 
   /**
+   * @return whether the given url is a data url with an image media type.
+   * @private
+   */
+  isImageDataUrl(url) {
+    // We could parse the mime type and scrutinize components to
+    // ensure validity, but we live with simple string checks for now.
+    return url.startsWith('data:image/') &&
+        url.indexOf('/') < (url.length - 1);
+  }
+
+  /**
    * Process the src attribute of a given element.
    *
    * @param {Element} element The Element being processed, which has the src
@@ -397,7 +408,7 @@ var HTMLSerializer = class {
    * @param {string} id The id of the Element being serialized.
    * @private
    */
-    processSrcAttribute(element, id) {
+  processSrcAttribute(element, id) {
     var win = element.ownerDocument.defaultView;
     var url = this.fullyQualifiedURL(element);
     var sameOrigin = window.location.host == url.host;
@@ -419,7 +430,14 @@ var HTMLSerializer = class {
         }
         break;
       case 'IMG':
-        if (sameOrigin) {
+        // Our method for calculating same-origin can be incorrect in
+        // the presence of data urls loaded from (for example)
+        // localhost, so check for and handle them explicitly. This
+        // also avoids unnecessarily processing them asynchronously.
+        if (this.isImageDataUrl(url.href)) {
+          // Just pass the url through as it will render directly.
+          this.processSimpleAttribute(win, 'src', url.href);
+        } else if (sameOrigin) {
           this.processSrcHole(element);
         } else {
           this.externalImages.push([id, url.href]);
