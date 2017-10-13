@@ -57,6 +57,11 @@ tr.b.unittest.testSuite(function() {
       pid: procId, ts: timestamp, cat: 'media', tid: tidMain, ph: 'X'};
   }
 
+  function bufferEnoughEvent(timestamp) {
+    return {name: 'WebMediaPlayerImpl::BufferingHaveEnough',
+      pid: procId, ts: timestamp, cat: 'media', tid: tidMain, ph: 'X'};
+  }
+
   function threadMarker(threadName, threadId) {
     return {name: 'thread_name', args: {name: threadName},
       pid: procId, ts: 0, cat: '__metadata', tid: threadId, ph: 'M'};
@@ -160,6 +165,7 @@ tr.b.unittest.testSuite(function() {
       onEndedEvent(10066666, 10),
       doSeekEvent(525, 1.2),
       seekedEvent(719, 1.2),
+      bufferEnoughEvent(825),
       mainThreadMarker,
       compositorThreadMarker,
     ];
@@ -189,14 +195,68 @@ tr.b.unittest.testSuite(function() {
       videoRenderEvent(1500),
       doSeekEvent(2000, 1.2),
       seekedEvent(2500, 1.2),
+      bufferEnoughEvent(3000),
       doSeekEvent(15000, 3.7),
       seekedEvent(75000, 3.7),
+      bufferEnoughEvent(95000),
       mainThreadMarker,
       compositorThreadMarker,
     ];
     tr.metrics.mediaMetric(histograms, makeModel(events));
-    checkCloseTo(histograms, 'seek_time_1_2', 0.5);
-    checkCloseTo(histograms, 'seek_time_3_7', 60);
+    checkCloseTo(histograms, 'pipeline_seek_time_1_2', 0.5);
+    checkCloseTo(histograms, 'seek_time_1_2', 1);
+    checkCloseTo(histograms, 'pipeline_seek_time_3_7', 60);
+    checkCloseTo(histograms, 'seek_time_3_7', 80);
+  });
+
+  test('mediaMetric_seekOverlap', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      videoRenderEvent(1500),
+      doSeekEvent(2000, 1.2),
+      seekedEvent(2500, 1.2),
+      doSeekEvent(2800, 3.7), // Out of order
+      bufferEnoughEvent(3000),
+      seekedEvent(75000, 3.7),
+      bufferEnoughEvent(95000),
+      mainThreadMarker,
+      compositorThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    assert.isDefined(histograms.getHistogramNamed('time_to_video_play'));
+    assert.isUndefined(histograms.getHistogramNamed('seek_time_1_2'));
+  });
+
+  test('mediaMetric_seekIncomplete', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      videoRenderEvent(1500),
+      doSeekEvent(2000, 1.2),
+      seekedEvent(2500, 1.2),
+      // Missing bufferEnoughEvent
+      mainThreadMarker,
+      compositorThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    assert.isDefined(histograms.getHistogramNamed('time_to_video_play'));
+    assert.isUndefined(histograms.getHistogramNamed('seek_time_1_2'));
+  });
+
+  test('mediaMetric_seekWrongTarget', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      videoRenderEvent(1500),
+      doSeekEvent(2000, 1.2),
+      seekedEvent(2500, 2.7), // Wrong target, should be 1.2
+      mainThreadMarker,
+      compositorThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    assert.isDefined(histograms.getHistogramNamed('time_to_video_play'));
+    assert.isUndefined(histograms.getHistogramNamed('seek_time_1_2'));
   });
 
   // Scenario: Play mixed audio/video from start to finish
@@ -248,9 +308,11 @@ tr.b.unittest.testSuite(function() {
       videoRenderEvent(2040),
       doSeekEvent(5000, 0.5),
       seekedEvent(5200, 0.5),
+      bufferEnoughEvent(6000),
       videoFramesDroppedEvent(123456, 4),
       doSeekEvent(200000, 9),
       seekedEvent(210000, 9),
+      bufferEnoughEvent(220000),
       videoFramesDroppedEvent(234567, 2),
       onEndedEvent(300000, 10),
       mainThreadMarker,
@@ -262,8 +324,10 @@ tr.b.unittest.testSuite(function() {
     checkCloseTo(histograms, 'time_to_audio_play', 1.02);
     assert.isUndefined(histograms.getHistogramNamed('buffering_time'));
     checkEqual(histograms, 'dropped_frame_count', 6);
-    checkCloseTo(histograms, 'seek_time_0_5', 0.2);
-    checkCloseTo(histograms, 'seek_time_9', 10);
+    checkCloseTo(histograms, 'pipeline_seek_time_0_5', 0.2);
+    checkCloseTo(histograms, 'seek_time_0_5', 1);
+    checkCloseTo(histograms, 'pipeline_seek_time_9', 10);
+    checkCloseTo(histograms, 'seek_time_9', 20);
   });
 });
 </script>

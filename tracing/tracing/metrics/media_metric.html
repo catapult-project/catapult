@@ -26,9 +26,12 @@ This metric currently supports the following measurement:
 * dropped_frame_count reports the number of video frames that were dropped.
   Ideally this should be 0. If a large number of frames are dropped, the
   video play will not be smooth.
+* pipeline_seek_time calculates how long it takes the media pipeline to process
+  a seek operation, from when the seek request is received, to when the pipeline
+  starts processing at the new location.
 * seek_time calculates how long after a user requests a seek operation
   before the seek completes and the media starts playing at the new
-  location.
+  location, as perceived by the user.
 
 Please inform crouleau@chromium.org and johnchen@chromium.org about
 changes to this file.
@@ -95,9 +98,15 @@ tr.exportTo('tr.metrics', function() {
       for (const [key, value] of seekTimes.entries()) {
         // key is a numerical value that can have '.' when converted to string.
         // However, '.' causes problems in histogram names, so replace with '_'.
+        const keyString = key.toString().replace('.', '_');
         histograms.createHistogram(
-            'seek_time_' + key.toString().replace('.', '_'),
-            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, value);
+            'pipeline_seek_time_' + keyString,
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+            value.pipelineSeekTime);
+        histograms.createHistogram(
+            'seek_time_' + keyString,
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+            value.seekTime);
       }
       if (bufferingTime !== undefined) {
         histograms.createHistogram('buffering_time',
@@ -144,22 +153,73 @@ tr.exportTo('tr.metrics', function() {
 
   function getSeekTimes(mainThread) {
     // We support multiple seeks per page, as long as they seek to different
-    // target time. Thus the following two variables are maps instead of simple
-    // variables. The key of the maps is event.args.target, which is a numerical
+    // target time. Thus the seek times are stored in a map instead of a simple
+    // variable. The key of the map is event.args.target, which is a numerical
     // value indicating the target location of the seek, in unit of seconds.
     // For example, with a seek to 5 seconds mark, event.args.target === 5.
-    const seekStartTimes = new Map();
+    // The value of the map is an object with 4 properties (the first two are
+    // added during object creation, the latter two are added as the data
+    // become available):
+    // * target: seek target time (same as the map key)
+    // * startTime: timestamp of the event marking start of seek
+    // * pipelineSeekTime: amount of time taken by media pipeline to process
+    //   this seek (milliseconds)
+    // * seekTime: amount of seek time perceived by the user (milliseconds)
+    // If any unexpected conditions occur, we stop processing by returning an
+    // empty Map. TODO: Emit detailed warnings.
     const seekTimes = new Map();
+    // |currentSeek| refers to the object associated with the seek that is
+    // currently being processed. It is used to match seek end events against
+    // seek start events.
+    let currentSeek;
     for (const event of mainThread.sliceGroup.getDescendantEvents()) {
       if (event.title === 'WebMediaPlayerImpl::DoSeek') {
-        seekStartTimes.set(event.args.target, event.start);
-      } else if (event.title === 'WebMediaPlayerImpl::OnPipelineSeeked') {
-        const startTime = seekStartTimes.get(event.args.target);
-        if (startTime !== undefined) {
-          seekTimes.set(event.args.target, event.start - startTime);
-          seekStartTimes.delete(event.args.target);
+        if (currentSeek !== undefined) {
+          // TODO warning 'Overlapping seek not supported'
+          return new Map();
         }
+        currentSeek = {
+          target: event.args.target,
+          startTime: event.start
+        };
+        seekTimes.set(event.args.target, currentSeek);
+      } else if (event.title === 'WebMediaPlayerImpl::OnPipelineSeeked') {
+        if (currentSeek === undefined) {
+          // OK to have this event when there is no active seek, as this event
+          // can be generated for other reasons, e.g., initial loading of media
+          // generates this event with target of 0 seconds.
+          continue;
+        }
+        if (currentSeek.target !== event.args.target) {
+          // TODO warning 'WebMediaPlayerImpl::OnPipelineSeeked to unexpected
+          // target'
+          return new Map();
+        }
+        if (currentSeek.pipelineSeekTime !== undefined) {
+          // TODO warning 'Multiple WebMediaPlayerImpl::OnPipelineSeeked events'
+          return new Map();
+        }
+        currentSeek.pipelineSeekTime = event.start - currentSeek.startTime;
+      } else if (event.title === 'WebMediaPlayerImpl::BufferingHaveEnough') {
+        if (currentSeek === undefined) {
+          // No current seek means this event is generated by non-seek related
+          // events, e.g., initial loading of media.
+          continue;
+        }
+        if (currentSeek.pipelineSeekTime === undefined) {
+          // Since we haven't seen WebMediaPlayerImpl::OnPipelineSeeked event
+          // event yet, this event is triggered by something else, e.g., a
+          // have_nothing->have_enough cycle due to underflow from decoders.
+          continue;
+        }
+        currentSeek.seekTime = event.start - currentSeek.startTime;
+        // Finished processing current seek.
+        currentSeek = undefined;
       }
+    }
+    if (currentSeek !== undefined) {
+      // TODO warning 'Incomplete seek events'
+      return new Map();
     }
     return seekTimes;
   }
