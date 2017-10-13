@@ -40,12 +40,12 @@ _COMMENT_COMPLETED_TWO_DIFFERENCES = (
 https://testbed.example.com/job/1
 
 <b>Subject.</b>
-By author@chromium.org \xb7 Fri Jan 01 00:01:00 2016
-chromium @ git_hash
+By author1@chromium.org \xb7 Fri Jan 01 00:01:00 2016
+chromium @ git_hash_1
 
 <b>Subject.</b>
-By author@chromium.org \xb7 Fri Jan 01 00:01:00 2016
-chromium @ git_hash
+By author2@chromium.org \xb7 Fri Jan 02 00:01:00 2016
+chromium @ git_hash_2
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -99,7 +99,7 @@ class BugCommentTest(testing_common.TestCase):
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_NO_DIFFERENCES, send_email=True)
+        123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   @mock.patch.object(job._JobState, 'Differences')
@@ -109,7 +109,9 @@ class BugCommentTest(testing_common.TestCase):
     commit_info.return_value = {
         'author': {'email': 'author@chromium.org'},
         'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
-        'message': 'Subject.\n\nCommit message.',
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Reviewed-by: Reviewer Name <reviewer@chromium.org>',
     }
 
     j = job.Job.New({}, [], False, bug_id=123456)
@@ -117,25 +119,43 @@ class BugCommentTest(testing_common.TestCase):
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_ONE_DIFFERENCE, send_email=True)
+        123456, _COMMENT_COMPLETED_ONE_DIFFERENCE,
+        status='Assigned', owner='author@chromium.org',
+        cc_list=['author@chromium.org', 'reviewer@chromium.org'])
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   @mock.patch.object(job._JobState, 'Differences')
   def testCompletedMultipleDifferences(self, differences, commit_info):
-    c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(1, c), (2, c)]
-    commit_info.return_value = {
-        'author': {'email': 'author@chromium.org'},
-        'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
-        'message': 'Subject.\n\nCommit message.',
-    }
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    differences.return_value = [(1, c1), (2, c2)]
+    commit_info.side_effect = (
+        {
+            'author': {'email': 'author1@chromium.org'},
+            'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
+            'message': 'Subject.\n\n'
+                       'Commit message.\n'
+                       'Reviewed-by: Reviewer Name <reviewer1@chromium.org>',
+        },
+        {
+            'author': {'email': 'author2@chromium.org'},
+            'committer': {'time': 'Fri Jan 02 00:01:00 2016'},
+            'message': 'Subject.\n\n'
+                       'Commit message.\n'
+                       'Reviewed-by: Reviewer Name <reviewer1@chromium.org>\n'
+                       'Reviewed-by: Reviewer Name <reviewer2@chromium.org>',
+        },
+    )
 
     j = job.Job.New({}, [], False, bug_id=123456)
     j.put()
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_TWO_DIFFERENCES, send_email=True)
+        123456, _COMMENT_COMPLETED_TWO_DIFFERENCES,
+        status='Assigned', owner='author2@chromium.org',
+        cc_list=['author1@chromium.org', 'author2@chromium.org',
+                 'reviewer1@chromium.org', 'reviewer2@chromium.org'])
 
   def testFailed(self):
     j = job.Job.New({}, [], False, bug_id=123456)
@@ -144,5 +164,4 @@ class BugCommentTest(testing_common.TestCase):
     with self.assertRaises(AttributeError):
       j.Run()
 
-    self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_FAILED, send_email=True)
+    self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)

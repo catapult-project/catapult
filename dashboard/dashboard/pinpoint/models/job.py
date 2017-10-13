@@ -6,6 +6,7 @@ import collections
 import datetime
 import logging
 import os
+import re
 import traceback
 import uuid
 
@@ -17,7 +18,6 @@ from dashboard.common import utils
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import mann_whitney_u
-from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 
 
@@ -124,40 +124,49 @@ class Job(ndb.Model):
 
   def _Complete(self):
     # Format bug comment.
-
-    # Include list of Changes.
     differences = tuple(self.state.Differences())
 
+    if not differences:
+      title = "<b>%s Couldn't reproduce a difference.</b>" % _ROUND_PUSHPIN
+      self._PostBugComment('\n'.join((title, self.url)))
+      return
+
+    # Include list of Changes.
+    owner = None
+    cc_list = set()
+    commit_details = []
+    for _, change in differences:
+      commit_info = change.last_commit.Details()
+
+      author = commit_info['author']['email']
+      owner = author  # TODO: Assign the largest difference, not the last one.
+      cc_list.add(author)
+      cc_list |= frozenset(re.findall('Reviewed-by: .+ <(.+)>',
+                                      commit_info['message']))
+      commit_details.append(_FormatCommitForBug(
+          change.last_commit, commit_info))
+
     # Header.
-    if differences:
-      if len(differences) == 1:
-        status = 'Found a significant difference after 1 commit.'
-      else:
-        status = ('Found significant differences after each of %d commits.' %
-                  len(differences))
+    if len(differences) == 1:
+      status = 'Found a significant difference after 1 commit.'
     else:
-      status = "Couldn't reproduce a difference."
+      status = ('Found significant differences after each of %d commits.' %
+                len(differences))
 
     title = '<b>%s %s</b>' % (_ROUND_PUSHPIN, status)
     header = '\n'.join((title, self.url))
 
     # Body.
-    change_details = []
-    for _, change in differences:
-      change_details.append(_FormatChangeForBug(change))
-    body = '\n\n'.join(change_details)
+    body = '\n\n'.join(commit_details)
 
     # Footer.
-    if differences:
-      footer = ('Understanding performance regressions:\n'
-                '  http://g.co/ChromePerformanceRegressions')
-    else:
-      footer = ''
+    footer = ('Understanding performance regressions:\n'
+              '  http://g.co/ChromePerformanceRegressions')
 
     # Bring it all together.
-    comment = '\n\n'.join(section for section in (header, body, footer)
-                          if section)
-    self._PostBugComment(comment)
+    comment = '\n\n'.join((header, body, footer))
+    self._PostBugComment(comment, status='Assigned',
+                         cc_list=sorted(cc_list), owner=owner)
 
   def _Fail(self):
     self.exception = traceback.format_exc()
@@ -222,13 +231,13 @@ class Job(ndb.Model):
       d.update(self.state.AsDict())
     return d
 
-  def _PostBugComment(self, comment, send_email=True):
+  def _PostBugComment(self, *args, **kwargs):
     if not self.bug_id:
       return
 
     issue_tracker = issue_tracker_service.IssueTrackerService(
         utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, comment, send_email=send_email)
+    issue_tracker.AddBugComment(self.bug_id, *args, **kwargs)
 
 
 class _JobState(object):
@@ -395,11 +404,7 @@ class _JobState(object):
     return _UNKNOWN
 
 
-def _FormatChangeForBug(change):
-  # TODO: Store the commit info in the Commit.
-  commit = change.last_commit
-  commit_info = gitiles_service.CommitInfo(commit.repository_url,
-                                           commit.git_hash)
+def _FormatCommitForBug(commit, commit_info):
   subject = '<b>%s</b>' % commit_info['message'].split('\n', 1)[0]
   author = commit_info['author']['email']
   time = commit_info['committer']['time']
