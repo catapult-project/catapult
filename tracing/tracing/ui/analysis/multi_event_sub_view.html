@@ -194,8 +194,8 @@ tr.exportTo('tr.ui.analysis', function() {
       if (numTitles === 1) {
         this.$.radioPicker.style.display = 'block';
         this.$.histogramContainer.style.display = 'flex';
-        this.$.histogramSpan.histogram =
-          this.buildHistogram_(this.$.radioPicker.selectedKey);
+        this.$.histogramSpan.build(
+            this.buildHistogram_(this.$.radioPicker.selectedKey));
         if (this.$.histogramSpan.histogram.numValues === 0) {
           this.$.histogramContainer.style.display = 'none';
         }

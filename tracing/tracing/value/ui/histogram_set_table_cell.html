@@ -173,26 +173,6 @@ tr.exportTo('tr.v.ui', function() {
         (this.$.histogram.style.display === 'block');
     },
 
-    get brushedBinRange() {
-      if (!this.isHistogramOpen) return new tr.b.math.Range();
-      return this.histogramSpan_.brushedBinRange;
-    },
-
-    set brushedBinRange(r) {
-      if (this.histogramSpan_ === undefined) return;
-      this.histogramSpan_.brushedBinRange = r;
-    },
-
-    get mergeSampleDiagnostics() {
-      if (!this.isHistogramOpen) return false;
-      return this.histogramSpan_.mergeSampleDiagnostics;
-    },
-
-    set mergeSampleDiagnostics(m) {
-      if (this.histogramSpan_ === undefined) return;
-      this.histogramSpan_.mergeSampleDiagnostics = m;
-    },
-
     set isHistogramOpen(open) {
       if (!(this.histogram instanceof tr.v.Histogram) ||
           (this.histogram.numValues === 0)) {
@@ -212,15 +192,12 @@ tr.exportTo('tr.v.ui', function() {
       // Wait to create the histogram-span until the user wants to display it
       // in order to speed up creating lots of histogram-set-table-cells when
       // building the table.
-      // Wait to pass the Histogram to the histogram-span until it's displayed
-      // so that it can size its BarChart appropriately.
       if (open && this.histogramSpan_ === undefined) {
         this.histogramSpan_ = document.createElement('tr-v-ui-histogram-span');
-        this.histogramSpan_.rowState = this.row.viewState;
         this.histogramSpan_.viewState = this.viewState;
-        this.histogramSpan_.referenceHistogram = this.referenceHistogram;
-        this.histogramSpan_.histogram = this.histogram;
-        this.histogramSpan_.alpha = this.row.rootViewState.alpha;
+        this.histogramSpan_.rowState = this.row.viewState;
+        this.histogramSpan_.rootState = this.row.rootViewState;
+        this.histogramSpan_.build(this.histogram, this.referenceHistogram);
         this.$.histogram.appendChild(this.histogramSpan_);
       }
 
@@ -243,6 +220,10 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onRootStateUpdate_(event) {
+      if (event.delta.referenceDisplayLabel &&
+          this.histogramSpan_) {
+        this.histogramSpan_.build(this.histogram, this.referenceHistogram);
+      }
       if (event.delta.displayStatisticName ||
           event.delta.referenceDisplayLabel ||
           event.delta.alpha) {
@@ -316,13 +297,6 @@ tr.exportTo('tr.v.ui', function() {
       this.$.scalar.style.display = 'flex';
 
       const referenceHistogram = this.referenceHistogram;
-
-      if (this.histogramSpan_) {
-        // Reset in case HistogramSetViewState.referenceDisplayLabel changed.
-        this.histogramSpan_.referenceHistogram = referenceHistogram;
-
-        this.histogramSpan_.alpha = this.row.rootViewState.alpha;
-      }
 
       if ((referenceHistogram instanceof tr.v.Histogram) &&
           (this.histogram.unit === referenceHistogram.unit) &&

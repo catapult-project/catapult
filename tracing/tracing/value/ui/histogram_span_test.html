@@ -30,13 +30,7 @@ tr.b.unittest.testSuite(function() {
 
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
-  });
-
-  test('undefined', function() {
-    const span = document.createElement('tr-v-ui-histogram-span');
-    this.addHTMLOutput(span);
-    span.histogram = undefined;
+    span.build(h);
   });
 
   test('emptyHistogram', function() {
@@ -44,17 +38,17 @@ tr.b.unittest.testSuite(function() {
 
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
   });
 
   test('viewBrushedBinRange', async function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = tr.v.Histogram.create('a', tr.b.Unit.byName.count,
+    span.build(tr.v.Histogram.create('a', tr.b.Unit.byName.count,
         [0, 1, 2, 3, 4].map(value => {
           return {value, diagnostics: new Map([
             ['i', new tr.v.d.GenericSet([value])]])};
-        }));
+        })));
     assert.isTrue(span.viewState.brushedBinRange.isEmpty);
 
     await span.viewState.update({
@@ -69,8 +63,8 @@ tr.b.unittest.testSuite(function() {
   test('controlBrushedBinRange', async function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = tr.v.Histogram.create('a', tr.b.Unit.byName.count,
-        [0, 1, 2, 3, 4]);
+    span.build(tr.v.Histogram.create('a', tr.b.Unit.byName.count,
+        [0, 1, 2, 3, 4]));
     assert.isTrue(span.viewState.brushedBinRange.isEmpty);
 
     span.onMouseDown_({
@@ -103,7 +97,7 @@ tr.b.unittest.testSuite(function() {
         },
       });
     }
-    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
+    span.build(tr.v.Histogram.create('', tr.b.Unit.byName.count, samples));
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
     const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
@@ -135,7 +129,7 @@ tr.b.unittest.testSuite(function() {
         },
       });
     }
-    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
+    span.build(tr.v.Histogram.create('', tr.b.Unit.byName.count, samples));
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
     const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
@@ -161,7 +155,7 @@ tr.b.unittest.testSuite(function() {
 
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
     await span.viewState.update({
       brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
     let breakdowns = tr.ui.b.findDeepElementsMatchingPredicate(
@@ -189,7 +183,7 @@ tr.b.unittest.testSuite(function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     span.canMergeSampleDiagnostics = false;
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
     await span.viewState.update({
       brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
     const breakdowns = tr.ui.b.findDeepElementsMatchingPredicate(
@@ -208,7 +202,7 @@ tr.b.unittest.testSuite(function() {
 
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
   });
 
   test('nans', function() {
@@ -219,7 +213,7 @@ tr.b.unittest.testSuite(function() {
 
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
   });
 
   test('singleBin', function() {
@@ -234,19 +228,16 @@ tr.b.unittest.testSuite(function() {
     h.addSample(75);
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = h;
+    span.build(h);
   });
 
   test('referenceHistogram', function() {
     const span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.unitlessNumber,
-        [1, 10, 100], {
-          binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
-        });
-    span.referenceHistogram = tr.v.Histogram.create('',
-        tr.b.Unit.byName.unitlessNumber, [2, 20, 200], {
-          binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
-        });
+    span.build(tr.v.Histogram.create('', tr.b.Unit.byName.count, [1, 10, 100], {
+      binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+    }), tr.v.Histogram.create('', tr.b.Unit.byName.count, [2, 20, 200], {
+      binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+    }));
     this.addHTMLOutput(span);
   });
 
@@ -266,7 +257,7 @@ tr.b.unittest.testSuite(function() {
     bHist.addSample(90 << 20);
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
-    span.histogram = root;
+    span.build(root);
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '100.0 MiB'));
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
@@ -282,7 +273,7 @@ tr.b.unittest.testSuite(function() {
 
   test('diagnosticsTabs', async function() {
     const span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = tr.v.Histogram.create(
+    span.build(tr.v.Histogram.create(
         '', tr.b.Unit.byName.count, [
           {value: 1, diagnostics: new Map([
               ['sample diagnostic', new tr.v.d.GenericSet(['value1'])],
@@ -296,7 +287,7 @@ tr.b.unittest.testSuite(function() {
               'system_health.common_desktop'])],
             ['breakdown', new tr.v.d.RelatedHistogramBreakdown()],
           ]),
-        });
+        }));
     this.addHTMLOutput(span);
     const metric = tr.ui.b.findDeepElementMatching(
         span, '#metric_diagnostics');
