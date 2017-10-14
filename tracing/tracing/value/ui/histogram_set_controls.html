@@ -22,9 +22,24 @@ found in the LICENSE file.
       margin-left: 20px;
     }
 
-    #search {
-      max-width: 20em;
+    #search_container {
+      display: inline-flex;
       margin-right: 20px;
+      padding-bottom: 1px;
+      border-bottom: 1px solid darkgrey;
+    }
+
+    #search {
+      border: 0;
+      max-width: 20em;
+      outline: none;
+    }
+
+    #clear_search {
+      visibility: hidden;
+      height: 1em;
+      stroke: black;
+      stroke-width: 16;
     }
 
     #controls {
@@ -111,18 +126,33 @@ found in the LICENSE file.
     </style>
 
     <div id="controls">
-      <input id="search" value="{{searchQuery::keyup}}" placeholder="Find Histogram name">
+      <span id="search_container">
+        <input id="search" value="{{searchQuery::keyup}}" placeholder="Find Histogram name">
+        <svg viewbox="0 0 128 128" id="clear_search" on-tap="clearSearch_">
+          <g>
+          <title>Clear search</title>
+          <line x1="28" y1="28" x2="100" y2="100"/>
+          <line x1="28" y1="100" x2="100" y2="28"/>
+          </g>
+        </svg>
+      </span>
 
       <svg viewbox="0 0 128 128" id="show_overview"
         on-tap="toggleOverviewLineCharts_">
+        <g>
+        <title>Show overview charts</title>
         <line x1="19" y1="109" x2="49" y2="49"/>
         <line x1="49" y1="49" x2="79" y2="79"/>
         <line x1="79" y1="79" x2="109" y2="19"/>
+        </g>
       </svg>
       <svg viewbox="0 0 128 128" id="hide_overview"
         on-tap="toggleOverviewLineCharts_">
+        <g>
+        <title>Hide overview charts</title>
         <line x1="28" y1="28" x2="100" y2="100"/>
         <line x1="28" y1="100" x2="100" y2="28"/>
+        </g>
       </svg>
 
       <select id="reference_display_label" value="{{referenceDisplayLabel::change}}">
@@ -253,6 +283,9 @@ tr.exportTo('tr.v.ui', function() {
       if (parseInt(this.alphaIndex) !== this.getAlphaIndexFromViewState_()) {
         marks.push(tr.b.Timing.mark('histogram-set-controls', 'alpha'));
       }
+
+      this.$.clear_search.style.visibility =
+        this.searchQuery ? 'visible' : 'hidden';
 
       let displayStatisticName = this.displayStatisticName;
       if (this.viewState.referenceDisplayLabel === '' &&
@@ -525,6 +558,11 @@ tr.exportTo('tr.v.ui', function() {
     export_(merged, format) {
       tr.b.dispatchSimpleEvent(this, 'export', true, true, {merged, format});
       this.hideExportMenu_();
+    },
+
+    clearSearch_() {
+      this.set('searchQuery', '');
+      this.$.search.focus();
     },
 
     getAlphaString_(alphaIndex) {

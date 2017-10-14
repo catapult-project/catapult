@@ -113,13 +113,15 @@ tr.b.unittest.testSuite(function() {
 
   test('controlSearchQuery', function() {
     const controls = buildControls(this);
-    const search = tr.ui.b.findDeepElementMatchingPredicate(
-        controls, e => e.id === 'search');
+    const search = tr.ui.b.findDeepElementMatching(controls, '#search');
     search.value = 'x';
     const keyupEvent = document.createEvent('KeyboardEvent');
     keyupEvent.initEvent('keyup');
     search.dispatchEvent(keyupEvent);
     assert.strictEqual(controls.viewState.searchQuery, 'x');
+
+    controls.clearSearch_();
+    assert.strictEqual(controls.viewState.searchQuery, '');
   });
 
   test('viewShowAll', function() {
