@@ -978,4 +978,6 @@ QUnit.test('getExternalImageUrl: fileSuffix', function(assert) {
   assert.equal(serializer.fileSuffix('http://foo.com/foo'), '');
   assert.equal(serializer.fileSuffix('http://foo.com/foo.png'), 'png');
   assert.equal(serializer.fileSuffix('http://foo.com/foo..png'), 'png');
+  assert.equal(serializer.fileSuffix('http://foo.com/foo.png?'), 'png');
+  assert.equal(serializer.fileSuffix('http://foo.com/foo.png?v=w'), 'png');
 });

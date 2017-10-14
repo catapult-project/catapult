@@ -440,7 +440,9 @@ var HTMLSerializer = class {
     var parts = baseName.split('.');
     if (parts.length == 1)
         return '';
-    return parts.pop();
+    var suffix = parts.pop();
+    var questionIndex = suffix.indexOf('?');
+    return (questionIndex == -1) ? suffix : suffix.slice(0, questionIndex);
   }
 
   /**
