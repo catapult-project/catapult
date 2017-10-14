@@ -496,6 +496,59 @@ class HistogramRef(object):
     return self._guid
 
 
+class RelatedNameMap(diagnostic.Diagnostic):
+
+  def __init__(self):
+    super(RelatedNameMap, self).__init__()
+    self._map = {}
+
+  def __eq__(self, other):
+    if not isinstance(other, RelatedNameMap):
+      return False
+    if set(self._map.keys()) != set(other._map.keys()):
+      return False
+    for key, name in self._map.iteritems():
+      if name != other.Get(key):
+        return False
+    return True
+
+  def CanAddDiagnostic(self, other, *unused_other):
+    return isinstance(other, RelatedNameMap)
+
+  def AddDiagnostic(self, other, *unused_other):
+    for key, name in other._map.iteritems():
+      existing = self.Get(key)
+      if existing is None:
+        self.Set(key, name)
+      elif existing != name:
+        raise ValueError('Histogram names differ: "%s" != "%s"' % (
+            existing, name))
+
+  def Get(self, key):
+    return self._map.get(key)
+
+  def Set(self, key, name):
+    self._map[key] = name
+
+  def __iter__(self):
+    for key, name in self._map.iteritems():
+      yield key, name
+
+  def Values(self):
+    return self._map.values()
+
+  def _AsDictInto(self, dct):
+    dct['names'] = dict(self._map)
+
+  @staticmethod
+  def FromDict(dct):
+    names = RelatedNameMap()
+    for key, name in dct['names'].iteritems():
+      names.Set(key, name)
+    return names
+
+
+
 class RelatedHistogramMap(diagnostic.Diagnostic):
 
   def __init__(self):
@@ -1380,4 +1433,5 @@ all_diagnostics.DIAGNOSTICS_BY_NAME.update({
     'TagMap': TagMap,
     'RelatedHistogramBreakdown': RelatedHistogramBreakdown,
     'RelatedHistogramMap': RelatedHistogramMap,
+    'RelatedNameMap': RelatedNameMap,
 })

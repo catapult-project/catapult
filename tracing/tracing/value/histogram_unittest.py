@@ -655,6 +655,45 @@ class RelatedEventSetUnittest(unittest.TestCase):
     self.assertEqual(event['duration'], 1)
 
 
+class RelatedNameMapUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    names = histogram.RelatedNameMap()
+    names.Set('a', 'A')
+    d = names.AsDict()
+    clone = diagnostic.Diagnostic.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.Get('a'), 'A')
+
+  def testMerge(self):
+    a_names = histogram.RelatedNameMap()
+    a_names.Set('a', 'A')
+    b_names = histogram.RelatedNameMap()
+    b_names.Set('b', 'B')
+    self.assertTrue(a_names.CanAddDiagnostic(b_names))
+    self.assertTrue(b_names.CanAddDiagnostic(a_names))
+    self.assertFalse(a_names.CanAddDiagnostic(histogram.GenericSet([])))
+
+    a_names.AddDiagnostic(b_names)
+    self.assertEqual(a_names.Get('b'), 'B')
+    a_names.AddDiagnostic(b_names)
+    self.assertEqual(a_names.Get('b'), 'B')
+
+    b_names.Set('a', 'C')
+    with self.assertRaises(ValueError):
+      a_names.AddDiagnostic(b_names)
+
+  def testEquals(self):
+    a_names = histogram.RelatedNameMap()
+    a_names.Set('a', 'A')
+    self.assertNotEqual(a_names, histogram.GenericSet([]))
+    b_names = histogram.RelatedNameMap()
+    self.assertNotEqual(a_names, b_names)
+    b_names.Set('a', 'B')
+    self.assertNotEqual(a_names, b_names)
+    b_names.Set('a', 'A')
+    self.assertEqual(a_names, b_names)
+
+
 class RelatedHistogramBreakdownUnittest(unittest.TestCase):
   def testRoundtrip(self):
     breakdown = histogram.RelatedHistogramBreakdown()
