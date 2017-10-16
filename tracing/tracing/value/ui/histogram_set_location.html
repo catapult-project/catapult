@@ -36,9 +36,32 @@ tr.exportTo('tr.v.ui', function() {
       return window.location.search;
     }
 
-    pushState(url) {
+    get hash() {
+      return window.location.hash;
+    }
+
+    get state() {
+      if (this.stateMode === '#') return this.hash.substr(1);
+      return this.search.substr(1);
+    }
+
+    get stateMode() {
+      if (this.hash) return '#';
+      return '?';
+    }
+
+    buildUrlFromState(state) {
+      let url = this.origin + this.pathname;
+      if (this.stateMode === '#') url += this.search;
+      url += this.stateMode + state;
+      return url;
+    }
+
+    pushState(state) {
+      if (state === this.state) return;
+
       // TODO(#3837) When should this actually call pushState()?
-      window.history.replaceState(null, null, url);
+      window.history.replaceState(null, null, this.buildUrlFromState(state));
     }
 
     addPopStateListener(listener) {
@@ -133,11 +156,11 @@ tr.exportTo('tr.v.ui', function() {
         params.set('p', ('' + this.viewState.alpha).substr(0, 5));
       }
 
-      let search = '?';
+      let urlState = '';
       for (const [key, value] of params) {
-        search += key + '=' + window.encodeURIComponent(value) + '&';
+        if (urlState) urlState += '&';
+        urlState += key + '=' + window.encodeURIComponent(value);
       }
-      search = search.slice(0, search.length - 1);
 
       const rowDicts = {};
       for (const [name, rowState] of this.viewState.tableRowStates) {
@@ -149,19 +172,13 @@ tr.exportTo('tr.v.ui', function() {
       if (Object.keys(rowDicts).length > 0) {
         const rowsParam = '&t=' + tr.b.UrlJson.stringify(rowDicts);
 
-        if ((this.location_.origin.length + this.location_.pathname.length +
-              search.length + rowsParam.length) < MAX_URL_LENGTH) {
-          search += rowsParam;
+        if (this.location_.buildUrlFromState(urlState + rowsParam).length <
+            MAX_URL_LENGTH) {
+          urlState += rowsParam;
         }
       }
 
-      if (search === this.location_.search) {
-        mark.end();
-        return;
-      }
-
-      this.location_.pushState(
-          this.location_.origin + this.location_.pathname + search);
+      this.location_.pushState(urlState);
       mark.end();
     }
 
@@ -170,7 +187,7 @@ tr.exportTo('tr.v.ui', function() {
       this.poppingState_ = true;
 
       const params = new Map();
-      for (const kvp of this.location_.search.slice(1).split('&')) {
+      for (const kvp of this.location_.state.split('&')) {
         const [key, value] = kvp.split('=');
         try {
           params.set(key, window.decodeURIComponent(value));
@@ -224,6 +241,8 @@ tr.exportTo('tr.v.ui', function() {
       mark.end();
     }
   }
+
+  HistogramSetLocation.Locus = Locus;
 
   return {
     HistogramSetLocation,
