@@ -301,9 +301,6 @@ tr.exportTo('tr.metrics.sh', function() {
    *    to timeToInteractive. There is one "load" interval for each page load
    *    in the trace.
    *
-   * - "after_load": The time interval from the timeToInteractive of the last
-   *    load event to the end of the trace.
-   *
    * - "[user_expectation_type]" : Each Response, Animation, or Idle
    *    UE in the trace generates a time interval whose name is that of the UE,
    *    converted to lower case and with underscores in place of spaces.
@@ -317,7 +314,6 @@ tr.exportTo('tr.metrics.sh', function() {
    * the following intervals
    *
    * - "story"
-   * - "after_load"
    * - Any Animation or Idle UE
    *
    * For instance, "the energy it takes to play a video"
