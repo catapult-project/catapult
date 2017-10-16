@@ -75,8 +75,7 @@ tr.exportTo('tr.metrics', function() {
 
       const droppedFrameCount = timeToVideoPlay === undefined ? undefined :
         getDroppedFrameCount(compositorThread);
-      const seekTimes = timeToVideoPlay === undefined ? new Map() :
-        getSeekTimes(mainThread);
+      const seekTimes = getSeekTimes(mainThread);
       const bufferingTime = seekTimes.size !== 0 ? undefined :
         getBufferingTime(mainThread, playStart, timeToVideoPlay,
             timeToAudioPlay);

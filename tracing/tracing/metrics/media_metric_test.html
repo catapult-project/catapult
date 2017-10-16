@@ -188,7 +188,31 @@ tr.b.unittest.testSuite(function() {
     checkEqual(histograms, 'dropped_frame_count', 10);
   });
 
-  test('mediaMetric_seekTime', function() {
+  test('mediaMetric_droppedFrameCountZero', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      videoRenderEvent(1500),
+      mainThreadMarker,
+      compositorThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    checkEqual(histograms, 'dropped_frame_count', 0);
+  });
+
+  test('mediaMetric_droppedFrameCountNoVideo', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      audioRenderEvent(1500),
+      mainThreadMarker,
+      audioThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    assert.isUndefined(histograms.getHistogramNamed('dropped_frame_count'));
+  });
+
+  test('mediaMetric_seekTimeVideo', function() {
     const histograms = new tr.v.HistogramSet();
     const events = [
       doLoadEvent(1000),
@@ -201,6 +225,27 @@ tr.b.unittest.testSuite(function() {
       bufferEnoughEvent(95000),
       mainThreadMarker,
       compositorThreadMarker,
+    ];
+    tr.metrics.mediaMetric(histograms, makeModel(events));
+    checkCloseTo(histograms, 'pipeline_seek_time_1_2', 0.5);
+    checkCloseTo(histograms, 'seek_time_1_2', 1);
+    checkCloseTo(histograms, 'pipeline_seek_time_3_7', 60);
+    checkCloseTo(histograms, 'seek_time_3_7', 80);
+  });
+
+  test('mediaMetric_seekTimeAudio', function() {
+    const histograms = new tr.v.HistogramSet();
+    const events = [
+      doLoadEvent(1000),
+      audioRenderEvent(1500),
+      doSeekEvent(2000, 1.2),
+      seekedEvent(2500, 1.2),
+      bufferEnoughEvent(3000),
+      doSeekEvent(15000, 3.7),
+      seekedEvent(75000, 3.7),
+      bufferEnoughEvent(95000),
+      mainThreadMarker,
+      audioThreadMarker,
     ];
     tr.metrics.mediaMetric(histograms, makeModel(events));
     checkCloseTo(histograms, 'pipeline_seek_time_1_2', 0.5);
