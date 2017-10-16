@@ -385,9 +385,7 @@ class DevToolsClientBackend(object):
     finally:
       self._tracing_backend.StopTracing()
 
-  # TODO(crbug.com/774728): change timeout back to 60s once crbug.com/774728 is
-  # fixed.
-  def CollectChromeTracingData(self, trace_data_builder, timeout=180):
+  def CollectChromeTracingData(self, trace_data_builder, timeout=60):
     try:
       trace_data_builder.AddTraceFor(
           trace_data_module.TAB_ID_PART, self._tab_ids[:])
