@@ -192,7 +192,7 @@ tr.exportTo('tr.v.ui', function() {
       if (params.has('c')) {
         delta.set('sortColumnIndex', parseInt(params.get('c')));
       } else {
-        delta.set('sortColumnIndex', undefined);
+        delta.set('sortColumnIndex', 0);
       }
       delta.set('sortDescending', params.has('d'));
       delta.set('constrainNameColumn', params.get('n') !== '0');
