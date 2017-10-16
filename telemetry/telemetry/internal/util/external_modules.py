@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import importlib
+import logging
 
 from distutils import version
 
@@ -53,5 +54,5 @@ def ImportOptionalModule(module):
     if 'cannot import name' in str(e):
       print 'Possible circular dependency!'
       raise
-    else:
-      return None
+    logging.warning('Unable to import %s due to: %s', module, e)
+    return None
