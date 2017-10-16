@@ -94,16 +94,6 @@ class Benchmark(command_line.Command):
         return True
     return False
 
-  # pylint: disable=unused-argument
-  @classmethod
-  def ShouldDisable(cls, possible_browser):
-    """Override this method to disable a benchmark under specific conditions.
-
-     Supports logic too complex for simple Enabled and Disabled decorators.
-     Decorators are still respected in cases where this function returns False.
-     """
-    return False
-
   def Run(self, finder_options):
     """Do not override this method."""
     return story_runner.RunBenchmark(self, finder_options)
