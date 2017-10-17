@@ -169,9 +169,6 @@ class DependencyManager(object):
       if not dependency_info:
         # The dependency is only configured for other platforms.
         skipped_deps.append(dependency)
-        logging.warning(
-            'Dependency %s not configured for platform %s. Skipping prefetch.',
-            dependency, platform)
         continue
       local_path = dependency_info.GetLocalPath()
       if local_path:
