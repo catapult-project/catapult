@@ -104,6 +104,21 @@ class ReadChartJsonValueTest(_ReadValueTest):
 
     self.assertReadValueError(execution)
 
+  def testReadChartJsonValueWithNoValues(self, retrieve):
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
+        json.dumps({'charts': {'tir_label@@chart': {'summary': {
+            'type': 'list_of_scalar_values',
+            'values': None,
+        }}}}),
+    )
+
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
   def testReadChartJsonValueWithNoTest(self, retrieve):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},

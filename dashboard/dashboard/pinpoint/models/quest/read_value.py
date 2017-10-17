@@ -84,6 +84,8 @@ class _ReadChartJsonValueExecution(execution.Execution):
     elif chart['type'] == 'scalar':
       result_values = [chart['value']]
 
+    if not result_values:
+      raise ReadValueError('The result value is None.')
     self._Complete(result_values=tuple(result_values))
 
 
