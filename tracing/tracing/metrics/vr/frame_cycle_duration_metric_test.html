@@ -49,16 +49,6 @@ tr.b.unittest.testSuite(function() {
           {title: 'VrShellGl::AcquireFrame', wall: 2.5, cpu: 1.5},
           {title: 'VrShellGl::UpdateController', wall: 1, cpu: 0.5},
           {title: 'VrShellGl::UpdateController', wall: 0.5, cpu: 0.4},
-          {
-            title: 'VrShellGl::DrawWorldElements',
-            wall: 5,
-            cpu: 3,
-            sub: [
-              {title: 'VrShellGl::DrawUiView', wall: 1.5, cpu: 1},
-              {title: 'VrShellGl::DrawUiView', wall: 2, cpu: 1.5},
-            ]
-          },
-          {title: 'VrShellGl::DrawWorldElements', wall: 6, cpu: 3},
           {title: 'VrShellGl::DrawFrameSubmitWhenReady', wall: 3, cpu: 0.5},
           {
             title: 'VrShellGl::DrawFrameSubmitWhenReady',
@@ -68,9 +58,14 @@ tr.b.unittest.testSuite(function() {
         ]
       },
       {title: 'VrShellGl::DrawFrame', wall: 20, cpu: 10},
+      // This event should be filtered out by the user expecation.
+      {title: 'VrShellGl::DrawFrame', wall: 20, cpu: 10},
     ];
     const histograms = new tr.v.HistogramSet();
     const model = tr.c.TestUtils.newModel(function(model) {
+      model.userModel.expectations.push(
+          new tr.model.um.AnimationExpectation(model,
+              tr.model.um.INITIATOR_TYPE.VR, 0, 46));
       const browserProcess = model.getOrCreateProcess(0);
       const browserMainThread = browserProcess.getOrCreateThread(0);
       browserMainThread.name = 'CrBrowserMain';
@@ -100,22 +95,10 @@ tr.b.unittest.testSuite(function() {
         histograms.getHistogramNamed('update_controller_cpu').average,
         0.45, TOLERANCE);
 
-    assert.closeTo(
-        histograms.getHistogramNamed('draw_world_elements_wall').average,
-        5.5, TOLERANCE);
-    assert.closeTo(
-        histograms.getHistogramNamed('draw_world_elements_cpu').average,
-        3, TOLERANCE);
-
     assert.closeTo(histograms.getHistogramNamed('submit_frame_wall').average,
         3.25, TOLERANCE);
     assert.closeTo(histograms.getHistogramNamed('submit_frame_cpu').average,
         0.5, TOLERANCE);
-
-    assert.closeTo(histograms.getHistogramNamed('draw_ui_wall').average,
-        1.75, TOLERANCE);
-    assert.closeTo(histograms.getHistogramNamed('draw_ui_cpu').average,
-        1.25, TOLERANCE);
   });
 });
 </script>

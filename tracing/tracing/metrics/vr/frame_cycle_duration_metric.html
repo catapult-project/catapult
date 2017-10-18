@@ -21,7 +21,7 @@ tr.exportTo('tr.metrics.vr', function() {
     };
   }
 
-  function frameCycleDurationMetric(histograms, model) {
+  function frameCycleDurationMetric(histograms, model, opt_options) {
     const histogramsByEventTitle = new Map();
     histogramsByEventTitle.set('VrShellGl::DrawFrame',
         createHistograms(histograms, 'draw_frame',
@@ -32,43 +32,73 @@ tr.exportTo('tr.metrics.vr', function() {
     histogramsByEventTitle.set('VrShellGl::UpdateController',
         createHistograms(histograms, 'update_controller',
           {description: 'Duration to query input from the controller'}));
-    histogramsByEventTitle.set('VrShellGl::DrawWorldElements',
-        createHistograms(histograms, 'draw_world_elements',
-          {description: 'Duration to draw world UI elements'}));
     histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitWhenReady',
         createHistograms(histograms, 'submit_frame',
           {description: 'Duration to submit a frame to GVR'}));
-    histogramsByEventTitle.set('VrShellGl::DrawUiView',
-        createHistograms(histograms, 'draw_ui',
-          {description: 'Duration to draw the UI'}));
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
-    for (const helper of chromeHelper.browserHelpers) {
-      // The events are traced on the GL thread in the browser process.
-      // Unfortunately, this thread has no name.
-      // TODO(tiborg): Give GL thread a name and reference the thread by
-      // the given name.
-      const glThreads = helper.process.findAllThreadsMatching(
-          thread => !thread.name);
+    let rangeOfInterest = model.bounds;
+    const userExpectationsOfInterest = [tr.model.um.AnimationExpectation];
 
-      for (const glThread of glThreads) {
-        for (const event of glThread.getDescendantEvents()) {
-          if (!(histogramsByEventTitle.has(event.title))) {
-            continue;
+    if (opt_options && opt_options.rangeOfInterest) {
+      rangeOfInterest = opt_options.rangeOfInterest;
+      userExpectationsOfInterest.push(tr.model.um.ResponseExpectation);
+    }
+
+    for (const ue of model.userModel.expectations) {
+      // Skip user expecations not of the right type or not inside the range of
+      // interest.
+      if (ue.initiatorType !== tr.model.um.INITIATOR_TYPE.VR) {
+        continue;
+      }
+      if (!userExpectationsOfInterest.some(function(ueOfInterest) {
+        return ue instanceof ueOfInterest;
+      })) {
+        continue;
+      }
+      if (!rangeOfInterest.intersectsExplicitRangeInclusive(
+          ue.start, ue.end)) {
+        continue;
+      }
+
+      for (const helper of chromeHelper.browserHelpers) {
+        // The events are traced on the GL thread in the browser process.
+        // Unfortunately, this thread has no name.
+        // TODO(tiborg): Give GL thread a name and reference the thread by
+        // the given name.
+        const glThreads = helper.process.findAllThreadsMatching(
+            thread => !thread.name);
+
+        for (const glThread of glThreads) {
+          for (const event of glThread.getDescendantEvents()) {
+            // Skip events that are neither in the user expecation, range of
+            // interest nor part of the frame cycle durations.
+            if (!(histogramsByEventTitle.has(event.title))) {
+              continue;
+            }
+            if (event.start < ue.start || event.end > ue.end) {
+              continue;
+            }
+            if (event.start < rangeOfInterest.min ||
+                event.end > rangeOfInterest.max) {
+              continue;
+            }
+
+            const {wall: wallHist, cpu: cpuHist} =
+              histogramsByEventTitle.get(event.title);
+            wallHist.addSample(event.duration);
+            cpuHist.addSample(event.cpuDuration);
           }
-
-          const {wall: wallHist, cpu: cpuHist} =
-            histogramsByEventTitle.get(event.title);
-          wallHist.addSample(event.duration);
-          cpuHist.addSample(event.cpuDuration);
         }
       }
     }
   }
 
-  tr.metrics.MetricRegistry.register(frameCycleDurationMetric);
+  tr.metrics.MetricRegistry.register(frameCycleDurationMetric, {
+    supportsRangeOfInterest: true,
+  });
 
   return {
     frameCycleDurationMetric,

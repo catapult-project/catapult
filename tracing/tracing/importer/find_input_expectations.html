@@ -81,11 +81,12 @@ tr.exportTo('tr.importer', function() {
     'gpu.WebVR FPS',
     'gpu.WebVR frame time (ms)',
     'gpu.WebVR pose prediction (ms)',
+  ];
+  const VR_EVENT_NAMES = [
     'VrShellGl::AcquireFrame',
     'VrShellGl::DrawFrame',
     'VrShellGl::DrawSubmitFrameWhenReady',
     'VrShellGl::DrawUiView',
-    'VrShellGl::DrawWorldElements',
     'VrShellGl::UpdateController',
   ];
   /* 500 ms is a bit arbitrary, but it reliably avoids all the jank caused by
@@ -800,7 +801,7 @@ tr.exportTo('tr.importer', function() {
    * Returns proto expectations for VR animation events.
    */
   function handleVrAnimations(modelHelper, sortedInputEvents, warn) {
-    let events = [];
+    const events = [];
 
     // Find all the processes we should check
     const processes = [];
@@ -815,12 +816,27 @@ tr.exportTo('tr.importer', function() {
     }
 
     // Add all counter samples to the list of events we care about
+    let vrCounterStart = Number.MAX_SAFE_INTEGER;
+    let vrEventStart = Number.MAX_SAFE_INTEGER;
     for (const proc of processes) {
       for (const [counterName, counterSeries] of
           Object.entries(proc.counters)) {
         if (VR_COUNTER_NAMES.includes(counterName)) {
           for (const series of counterSeries.series) {
-            events = events.concat(series.samples);
+            for (const sample of series.samples) {
+              events.push(sample);
+              vrCounterStart = Math.min(vrCounterStart, sample.timestamp);
+            }
+          }
+        }
+      }
+      for (const thread of Object.values(proc.threads)) {
+        for (const container of thread.childEventContainers()) {
+          for (const slice of container.slices) {
+            if (VR_EVENT_NAMES.includes(slice.title)) {
+              events.push(slice);
+              vrEventStart = Math.min(vrEventStart, slice.start);
+            }
           }
         }
       }
@@ -830,9 +846,19 @@ tr.exportTo('tr.importer', function() {
       return [];
     }
 
-    events.sort((x, y) => x.timestamp - y.timestamp);
+    events.sort(function(x, y) {
+      if (x.range.min !== y.range.min) {
+        return x.range.min - y.range.min;
+      }
+      return x.guid - y.guid;
+    });
 
-    const firstTimestamp = events[0].timestamp;
+    vrCounterStart = (vrCounterStart === Number.MAX_SAFE_INTEGER) ?
+      0 : vrCounterStart;
+    vrEventStart = (vrEventStart === Number.MAX_SAFE_INTEGER) ?
+      0 : vrEventStart;
+    const vrAnimationStart = Math.max(vrCounterStart, vrEventStart) +
+        VR_RESPONSE_MS;
     const responsePE = new ProtoExpectation(ProtoExpectation.RESPONSE_TYPE,
         INITIATOR_TYPE.VR);
     const animationPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
@@ -843,13 +869,22 @@ tr.exportTo('tr.importer', function() {
       // Categorize the first 500 ms of VR time as entry/response
       // TODO(bsheedy): Make this smarter by basing response duration off trace
       // data instead of a fixed duration
-      if (event.timestamp - firstTimestamp < VR_RESPONSE_MS) {
-        responsePE.pushSample(event);
+      if (event.range.min < vrAnimationStart) {
+        if (event instanceof tr.model.CounterSample) {
+          responsePE.pushSample(event);
+        } else {
+          responsePE.pushEvent(event);
+        }
         lastResponseEvent = event;
       } else {
-        animationPE.pushSample(event);
+        if (event instanceof tr.model.CounterSample) {
+          animationPE.pushSample(event);
+        } else {
+          animationPE.pushEvent(event);
+        }
       }
     }
+
     // Make sure that there isn't a gap between the two expectations
     animationPE.pushSample(lastResponseEvent);
     return [responsePE, animationPE];
