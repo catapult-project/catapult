@@ -121,6 +121,7 @@ _PERMISSIONS_BLACKLIST_RE = re.compile('|'.join(fnmatch.translate(p) for p in [
     'com.google.android.apps.now.CURRENT_ACCOUNT_ACCESS',
     'com.google.android.c2dm.permission.RECEIVE',
     'com.google.android.providers.gsf.permission.READ_GSERVICES',
+    'com.google.vr.vrcore.permission.VRCORE_INTERNAL',
     'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
     '*.permission.C2D_MESSAGE',
     '*.permission.READ_WRITE_BOOKMARK_FOLDERS',
