@@ -11,7 +11,7 @@ import os
 tracing_path = os.path.abspath(os.path.join(
   os.path.dirname(os.path.realpath(__file__)), '..'))
 sys.path.append(tracing_path)
-from tracing import results_renderer
+from tracing_build import render_histograms_viewer
 
 
 def main():
@@ -26,7 +26,7 @@ def main():
                       help='Show this help message and exit.')
   args = parser.parse_args()
 
-  histograms = results_renderer.ReadExistingResults(
+  histograms = render_histograms_viewer.ReadExistingResults(
       open(args.html_path, 'r').read())
   if os.path.exists(args.json_path):
     histograms.extend(json.load(open(args.json_path, 'r')))

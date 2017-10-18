@@ -13,9 +13,9 @@ from py_utils import cloud_storage
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import output_formatter
 
-from tracing import results_renderer
 from tracing.value import convert_chart_json
 from tracing.value import histogram_set
+from tracing_build import vulcanize_histograms_viewer
 
 
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
@@ -55,9 +55,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     if isinstance(histograms, histogram_set.HistogramSet):
       histograms = histograms.AsDicts()
 
-    results_renderer.RenderHTMLView(
-        histograms,
-        self._output_stream, self._reset_results)
+    vulcanize_histograms_viewer.VulcanizeAndRenderHistogramsViewer(
+        histograms, self._output_stream, self._reset_results)
     file_path = os.path.abspath(self._output_stream.name)
     if self._upload_bucket:
       remote_path = ('html-results/results-%s' %

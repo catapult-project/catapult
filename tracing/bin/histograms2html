@@ -12,7 +12,8 @@ import os
 tracing_path = os.path.abspath(os.path.join(
   os.path.dirname(os.path.realpath(__file__)), '..'))
 sys.path.append(tracing_path)
-from tracing import results_renderer
+from tracing_build import render_histograms_viewer
+from tracing_build import vulcanize_histograms_viewer
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
   histograms = []
 
   for html_path in args.html:
-    histograms.extend(results_renderer.ReadExistingResults(
+    histograms.extend(render_histograms_viewer.ReadExistingResults(
         open(html_path, 'r').read()))
 
   for json_path in args.json:
@@ -48,7 +49,8 @@ def main():
   open(args.html_path, 'a').close() # Create file if it doesn't exist.
   with codecs.open(args.html_path,
                    mode='r+', encoding='utf-8') as output_stream:
-    results_renderer.RenderHTMLView(histograms, output_stream)
+    vulcanize_histograms_viewer.VulcanizeAndRenderHistogramsViewer(
+        histograms, output_stream)
 
 if __name__ == '__main__':
   sys.exit(main())

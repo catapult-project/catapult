@@ -10,7 +10,7 @@ import os
 import sys
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
-from tracing import results_renderer
+from tracing_build import vulcanize_histograms_viewer
 from tracing.metrics import metric_runner
 from tracing.metrics import discover
 
@@ -61,7 +61,8 @@ def Main(argv):
   output_file = args.filename + '.html'
   open(output_file, 'a').close() # Create file if it doesn't exist.
   with codecs.open(output_file, mode='r+', encoding='utf-8') as output_stream:
-    results_renderer.RenderHTMLView(histograms, output_stream, args.reset)
+    vulcanize_histograms_viewer.VulcanizeAndRenderHistogramsViewer(
+        histograms, output_stream, args.reset)
     print 'HTML result created in file://' + os.path.abspath(output_file)
 
   if args.also_output_json:

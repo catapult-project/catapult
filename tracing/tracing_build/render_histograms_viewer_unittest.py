@@ -9,7 +9,7 @@ import unittest
 import os
 import tempfile
 
-from tracing import results_renderer
+from tracing_build import render_histograms_viewer
 
 
 # Wrap string IO with a .name property so that it behaves more like a file.
@@ -39,15 +39,18 @@ class ResultsRendererTest(unittest.TestCase):
     value0 = {'foo': 0}
     value0_json = json.dumps(value0, separators=(',', ':'))
 
-    results_renderer.RenderHTMLView([], self.output_stream, False)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [], self.output_stream, False)
     self.output_stream.seek(0)
-    self.assertEquals([], results_renderer.ReadExistingResults(
+    self.assertEquals([], render_histograms_viewer.ReadExistingResults(
         self.output_stream.read()))
-    results_renderer.RenderHTMLView([value0], self.output_stream, False)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [value0], self.output_stream, False)
     self.output_stream.seek(0)
     self.assertEquals(
         sorted([value0]),
-        sorted(results_renderer.ReadExistingResults(self.output_stream.read())))
+        sorted(render_histograms_viewer.ReadExistingResults(
+            self.output_stream.read())))
     self.assertIn(value0_json, self.GetOutputFileContent())
 
   def testExistingResults(self):
@@ -57,12 +60,15 @@ class ResultsRendererTest(unittest.TestCase):
     value1 = {'bar': 1}
     value1_json = json.dumps(value1, separators=(',', ':'))
 
-    results_renderer.RenderHTMLView([value0], self.output_stream, False)
-    results_renderer.RenderHTMLView([value1], self.output_stream, False)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [value0], self.output_stream, False)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [value1], self.output_stream, False)
     self.output_stream.seek(0)
     self.assertEquals(
         sorted([value0, value1]),
-        sorted(results_renderer.ReadExistingResults(self.output_stream.read())))
+        sorted(render_histograms_viewer.ReadExistingResults(
+            self.output_stream.read())))
     self.assertIn(value0_json, self.GetOutputFileContent())
     self.assertIn(value1_json, self.GetOutputFileContent())
 
@@ -73,11 +79,14 @@ class ResultsRendererTest(unittest.TestCase):
     value1 = {'bar': 1}
     value1_json = json.dumps(value1, separators=(',', ':'))
 
-    results_renderer.RenderHTMLView([value0], self.output_stream, False)
-    results_renderer.RenderHTMLView([value1], self.output_stream, True)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [value0], self.output_stream, False)
+    render_histograms_viewer.RenderHistogramsViewer(
+        [value1], self.output_stream, True)
     self.output_stream.seek(0)
     self.assertEquals(
         sorted([value1]),
-        sorted(results_renderer.ReadExistingResults(self.output_stream.read())))
+        sorted(render_histograms_viewer.ReadExistingResults(
+            self.output_stream.read())))
     self.assertNotIn(value0_json, self.GetOutputFileContent())
     self.assertIn(value1_json, self.GetOutputFileContent())
