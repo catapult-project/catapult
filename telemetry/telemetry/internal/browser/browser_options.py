@@ -21,6 +21,7 @@ from telemetry.internal.platform import device_finder
 from telemetry.internal.platform import remote_platform_options
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import binary_manager
+from telemetry.internal.util import global_hooks
 from telemetry.util import wpr_modes
 
 
@@ -171,6 +172,7 @@ class BrowserFinderOptions(optparse.Values):
       ret = real_parse(args, self) # pylint: disable=E1121
 
       if self.verbosity >= 2:
+        global_hooks.InstallSpyOnPopenArgs()
         logging.getLogger().setLevel(logging.DEBUG)
       elif self.verbosity:
         logging.getLogger().setLevel(logging.INFO)
