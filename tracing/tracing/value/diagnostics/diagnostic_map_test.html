@@ -33,6 +33,13 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.RelatedHistogramBreakdown);
   });
 
+  test('fromObject', function() {
+    assert.strictEqual(tr.v.d.DiagnosticMap.fromObject(
+        {a: new tr.v.d.GenericSet([])}).size, 1);
+    assert.strictEqual(tr.v.d.DiagnosticMap.fromObject(
+        new Map([['a', new tr.v.d.GenericSet([])]])).size, 1);
+  });
+
   test('cloneWithRef', function() {
     const diagnostics = new tr.v.d.DiagnosticMap();
     diagnostics.set('ref', new tr.v.d.DiagnosticRef('abc'));

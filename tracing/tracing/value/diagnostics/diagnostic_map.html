@@ -111,9 +111,15 @@ tr.exportTo('tr.v.d', function() {
       return diagnostics;
     }
 
+    /**
+     * Convert dictionary or ES6 Map to DiagnosticMap.
+     * @param {!Object|!Map.<string, !tr.v.d.Diagnostic>} obj
+     * @return {tr.v.d.DiagnosticMap}
+     */
     static fromObject(obj) {
       const diagnostics = new DiagnosticMap();
-      for (const [name, diagnostic] of Object.entries(obj)) {
+      if (!(obj instanceof Map)) obj = Object.entries(obj);
+      for (const [name, diagnostic] of obj) {
         diagnostics.set(name, diagnostic);
       }
       return diagnostics;
