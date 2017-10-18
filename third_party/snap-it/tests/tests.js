@@ -235,7 +235,7 @@ QUnit.test('processSrcAttribute: img (external)', function(assert) {
 QUnit.test('processSrcAttribute: img (external) with local rewrite',
     function(assert) {
   var serializer = new HTMLSerializer();
-  serializer.setLocalImagePath('local/');
+  serializer.setLocalImagePath('local');
   var img = document.createElement('img');
   img.setAttribute('src', 'https://www.images.com/foo.png');
   serializer.processSrcAttribute(img, 'targetId');
@@ -956,7 +956,7 @@ QUnit.test('getExternalImageUrl: no local image path', function(assert) {
 
 QUnit.test('getExternalImageUrl: local image path', function(assert) {
   var serializer = new HTMLSerializer();
-  serializer.setLocalImagePath('local/');
+  serializer.setLocalImagePath('local');
   var urlWithSuffix = 'http://foo.com/img.png';
   assert.equal(serializer.getExternalImageUrl('id', urlWithSuffix),
       'local/id.png');

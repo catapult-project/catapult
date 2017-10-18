@@ -421,7 +421,7 @@ var HTMLSerializer = class {
     // be fetching external images for local storage.
     if (!this.localImagePath)
       return url;
-    var localUrl = this.localImagePath + id;
+    var localUrl = this.localImagePath + '/' + id;
     var suffix = this.fileSuffix(url);
     if (suffix.length > 0)
         localUrl += '.' + suffix;

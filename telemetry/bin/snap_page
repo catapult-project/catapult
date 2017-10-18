@@ -30,7 +30,7 @@ def main(args):
 
   binary_manager.InitDependencyManager([])
   snap_page_util.SnapPage(options, options.url, options.interactive,
-      options.snapshot_path, options.enable_browser_log)
+                          options.snapshot_path, options.enable_browser_log)
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv[1:]))
