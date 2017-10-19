@@ -11,6 +11,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v', function() {
+  const IGNORE_GROUPING_KEYS = [
+    'name',
+    'storyTags',
+  ];
+
   class CSVBuilder {
     /**
      * @param {!tr.v.HistogramSet} histograms
@@ -30,7 +35,7 @@ tr.exportTo('tr.v', function() {
 
     prepare_() {
       for (const [key, grouping] of tr.v.HistogramGrouping.BY_KEY) {
-        if (key === 'name') continue;
+        if (IGNORE_GROUPING_KEYS.includes(key)) continue;
         this.groupings_.push(grouping);
       }
       this.groupings_.push(new tr.v.GenericSetGrouping(

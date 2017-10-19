@@ -13,9 +13,9 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 function findGrouping(key) {
-  const grouping = tr.v.HistogramGrouping.BY_KEY.get(k);
+  const grouping = tr.v.HistogramGrouping.BY_KEY.get(key);
   if (grouping === undefined) {
-    throw new Error(`Could not find grouping "${k}"`);
+    throw new Error(`Could not find grouping "${key}"`);
   }
   return grouping;
 }

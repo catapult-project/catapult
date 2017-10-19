@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import argparse
+import json
 import sys
 import os
 
@@ -13,7 +14,9 @@ sys.path.append(tracing_path)
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
 from py_utils import camel_case
-from tracing.value import add_shared_diagnostics
+from tracing.value import histogram
+from tracing.value import histogram_set
+from tracing.value import merge_histograms
 from tracing.value.diagnostics import reserved_infos
 
 def main():
@@ -24,6 +27,7 @@ def main():
                       help='HistogramSet JSON file path (input).')
   parser.add_argument(
       '--stdout',
+      action='store_true',
       help='If present, will print the new HistogramSet instead of '
            'clobbering the file referenced by input_path.')
   parser.add_argument(
@@ -48,15 +52,28 @@ def main():
       ctor = arg_names_to_infos[name].entry_type
       names_to_values[diagnostic_name] = ctor(value)
 
-  new_histograms = add_shared_diagnostics.AddValueDiagnostics(
-      args.input_path, names_to_values)
+  # TODO(#3987): Refactor recipes to call merge_histograms separately.
+  dicts_across_repeats = merge_histograms.MergeHistograms(args.input_path, (
+    'name', 'storyTags', 'stories'))
+  dicts_across_stories = merge_histograms.MergeHistograms(args.input_path, (
+    'name', 'storyTags'))
+
+  histograms = histogram_set.HistogramSet()
+  histograms.ImportDicts(dicts_across_repeats)
+  histograms.ImportDicts(dicts_across_stories)
+
+  for name, value in names_to_values.iteritems():
+    histograms.AddSharedDiagnostic(name, histogram.GenericSet([value]))
+
+  results_json = json.dumps(histograms.AsDicts())
 
   if args.stdout:
-    print new_histograms
+    print results_json
   else:
     path = args.output_path or args.input_path
     with open(path, 'w') as f:
-      f.write(new_histograms)
+      f.write(results_json)
+
   return 0
 
 if __name__ == '__main__':
