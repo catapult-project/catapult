@@ -25,7 +25,7 @@ def ParseTsProxyPortFromOutput(output_line):
       r'Started Socks5 proxy server on '
       r'(?P<host>[^:]*):'
       r'(?P<port>\d+)')
-  m = port_re.match(output_line.strip())
+  m = port_re.match(output_line)
   if m:
     return int(m.group('port'))
 
@@ -84,8 +84,9 @@ class TsProxyServer(object):
     if self._proc.poll() is not None:
       return False
     self._proc.stdout.flush()
-    self._port = ParseTsProxyPortFromOutput(
-        output_line=self._proc.stdout.readline())
+    output_line = self._proc.stdout.readline().strip()
+    logging.debug('TsProxy output: %s', output_line)
+    self._port = ParseTsProxyPortFromOutput(output_line)
     return self._port != None
 
 
@@ -100,10 +101,12 @@ class TsProxyServer(object):
       return (
           command_output[-1] == 'OK' or command_output[-1] == 'ERROR')
     py_utils.WaitFor(CommandStatusIsRead, timeout)
-    if not 'OK' in command_output:
-      raise RuntimeError('Failed to execute command %s:\n%s' %
-                         (repr(command_string), '\n'.join(command_output)))
 
+    success = 'OK' in command_output
+    logging.log(logging.DEBUG if success else logging.ERROR,
+                'TsProxy output:\n%s', '\n'.join(command_output))
+    if not success:
+      raise RuntimeError('Failed to execute command: %s', command_string)
 
   def UpdateOutboundPorts(self, http_port, https_port, timeout=5):
     assert http_port and https_port
