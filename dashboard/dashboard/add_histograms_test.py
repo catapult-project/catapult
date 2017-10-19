@@ -789,6 +789,47 @@ class AddHistogramsTest(testing_common.TestCase):
     test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
     self.assertEqual('master/bot/benchmark/hist', test_path)
 
+  def testComputeTestPathWithIsRefWithoutStory(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.IS_REFERENCE_BUILD.name,
+        histogram_module.GenericSet([True]))
+    hist = histograms.GetFirstHistogram()
+    test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
+    self.assertEqual('master/bot/benchmark/hist/ref', test_path)
+
+  def testComputeTestPathWithIsRefAndStory(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['http://story']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.IS_REFERENCE_BUILD.name,
+        histogram_module.GenericSet([True]))
+    hist = histograms.GetFirstHistogram()
+    test_path = add_histograms.ComputeTestPath(hist.guid, histograms)
+    self.assertEqual('master/bot/benchmark/hist/http___story_ref', test_path)
+
   def testComputeRevision(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
