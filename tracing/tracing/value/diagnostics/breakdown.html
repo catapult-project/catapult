@@ -65,6 +65,10 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    get size() {
+      return this.values_.size;
+    }
+
     asDictInto_(d) {
       d.values = {};
       for (const [name, value] of this) {

@@ -1012,7 +1012,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * (corresponding to global memory dumps associated with the given browser)
    * |values| for each process (e.g. 'gpu_process', 'browser_process', etc).
    * We also report a special 'all_processes' histogram which agregates all
-   * others, this has a RelatedHistogramBreakdown diagnostic explaining
+   * others, this has a RelatedNameMap diagnostic explaining
    * how it is built from the other histograms.
    *
    * See addMemoryDumpValues for more details.
@@ -1044,32 +1044,30 @@ tr.exportTo('tr.metrics.sh', function() {
     }
     cachedHistograms.set(histogram.name, histogram);
 
-    const processBreakdown = new tr.v.d.RelatedHistogramBreakdown();
-    processBreakdown.colorScheme =
-      tr.e.chrome.chrome_processes.PROCESS_COLOR_SCHEME_NAME;
+    const processNames = new tr.v.d.RelatedNameMap();
     for (const [childProcessName, childProcessNode] of tree.children[0]) {
       processPath.push(childProcessName);
       const childProcessHistogram =
         recurse(processPath, componentPath, childProcessNode);
-      processBreakdown.set(childProcessName, childProcessHistogram);
+      processNames.set(childProcessName, childProcessHistogram.name);
       processPath.pop();
     }
 
-    const componentBreakdown = new tr.v.d.RelatedHistogramBreakdown();
+    const componentNames = new tr.v.d.RelatedNameMap();
     for (const [childComponentName, childComponentNode] of tree.children[1]) {
       componentPath.push(childComponentName);
       const childComponentHistogram =
         recurse(processPath, componentPath, childComponentNode);
-      componentBreakdown.set(childComponentName, childComponentHistogram);
+      componentNames.set(childComponentName, childComponentHistogram.name);
       componentPath.pop();
     }
 
     values.addHistogram(histogram);
     if (tree.children[0].size > 0) {
-      histogram.diagnostics.set('processes', processBreakdown);
+      histogram.diagnostics.set('processes', processNames);
     }
     if (tree.children[1].size > 0) {
-      histogram.diagnostics.set('components', componentBreakdown);
+      histogram.diagnostics.set('components', componentNames);
     }
 
     return histogram;

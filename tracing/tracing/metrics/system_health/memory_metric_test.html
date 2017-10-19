@@ -3674,10 +3674,19 @@ tr.b.unittest.testSuite(function() {
     const browserHistogram =
         histograms.getHistogramNamed(`${prefix}browser_process${suffix}`);
 
-    const breakdown = allHistogram.diagnostics.get('processes');
-    assert.strictEqual(breakdown.get('browser_process'), browserHistogram);
-    assert.strictEqual(breakdown.get('renderer_processes'), rendererHistogram);
-    assert.strictEqual(breakdown.get('gpu_process'), undefined);
+    const relatedNameMap = allHistogram.diagnostics.get('processes');
+    assert.strictEqual(relatedNameMap.get('browser_process'),
+        browserHistogram.name);
+    assert.strictEqual(relatedNameMap.get('renderer_processes'),
+        rendererHistogram.name);
+    assert.strictEqual(relatedNameMap.get('gpu_process'), undefined);
+
+    const bin = allHistogram.getBinForValue(allHistogram.average);
+    const breakdown = tr.b.getOnlyElement(bin.diagnosticMaps).get('processes');
+    assert.strictEqual(breakdown.get('browser_process'),
+        browserHistogram.average);
+    assert.strictEqual(breakdown.get('renderer_processes'),
+        rendererHistogram.average);
   });
 
   test('componentsHaveBreakdowns', function() {
@@ -3711,15 +3720,31 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.memoryMetric(histograms, model);
-    const prefix = 'memory:chrome:';
-    const suffix = ':reported_by_chrome:v8:effective_size';
-    const browserHistogram =
-        histograms.getHistogramNamed(`${prefix}browser_process${suffix}`);
+    const prefix = 'memory:chrome:browser_process:reported_by_chrome';
+    const suffix = 'effective_size';
+    const browserHistogram = histograms.getHistogramNamed(
+        `${prefix}:v8:${suffix}`);
+    const heapHistogram = histograms.getHistogramNamed(
+        `${prefix}:v8:heap:${suffix}`);
+    const codeSpaceHistogram = histograms.getHistogramNamed(
+        `${prefix}:v8:heap:code_space:${suffix}`);
 
-    const codeSpace = browserHistogram
-      .diagnostics.get('components').get('heap')
-      .diagnostics.get('components').get('code_space');
-    assert.strictEqual(codeSpace.average, 2);
+    assert.strictEqual(browserHistogram.diagnostics.get('components').get(
+        'heap'), heapHistogram.name);
+    assert.strictEqual(heapHistogram.diagnostics.get('components').get(
+        'code_space'), codeSpaceHistogram.name);
+
+    const browserBin = browserHistogram.getBinForValue(
+        browserHistogram.average);
+    const browserBreakdown = tr.b.getOnlyElement(
+        browserBin.diagnosticMaps).get('components');
+    assert.strictEqual(browserBreakdown.get('heap'), heapHistogram.average);
+
+    const heapBin = heapHistogram.getBinForValue(heapHistogram.average);
+    const heapBreakdown = tr.b.getOnlyElement(
+        heapBin.diagnosticMaps).get('components');
+    assert.strictEqual(heapBreakdown.get('code_space'),
+        codeSpaceHistogram.average);
   });
 
   test('dumpIdBrowserClashThrows', function() {
