@@ -72,10 +72,17 @@ tr.exportTo('tr.metrics.vr', function() {
             WEBVR_COUNTERS.get(counter.id).samples[series.name] = [];
           }
           for (const sample of series.samples) {
-            if (sample.timestamp >= ue.start && sample.timestamp < ue.end) {
-              WEBVR_COUNTERS.get(counter.id).samples[series.name].push(
-                  sample.value);
+            if (sample.timestamp < ue.start || sample.timestamp >= ue.end) {
+              continue;
             }
+            if (rangeOfInterestEnabled &&
+                !opt_options.rangeOfInterest.intersectsExplicitRangeInclusive(
+                    sample.timestamp, sample.timestamp)) {
+              continue;
+            }
+
+            WEBVR_COUNTERS.get(counter.id).samples[series.name].push(
+                sample.value);
           }
         }
       }
