@@ -5,6 +5,7 @@
 # pylint: disable=W0212
 
 import fcntl
+import inspect
 import logging
 import os
 import psutil
@@ -26,7 +27,11 @@ DYNAMIC_DEVICE_PORT = 0
 
 
 def _GetProcessStartTime(pid):
-  return psutil.Process(pid).create_time
+  p = psutil.Process(pid)
+  if inspect.ismethod(p.create_time):
+    return p.create_time()
+  else:  # Process.create_time is a property in old versions of psutil.
+    return p.create_time
 
 
 def _LogMapFailureDiagnostics(device):
@@ -345,6 +350,9 @@ class Forwarder(object):
     """
     # See if the host_forwarder daemon was already initialized by a concurrent
     # process or thread (in case multi-process sharding is not used).
+    # TODO(crbug.com/762005): Consider using a different implemention; relying
+    # on matching the string represantion of the process start time seems
+    # fragile.
     pid_for_lock = Forwarder._GetPidForLock()
     fd = os.open(Forwarder._LOCK_PATH, os.O_RDWR | os.O_CREAT)
     with os.fdopen(fd, 'r+') as pid_file:
