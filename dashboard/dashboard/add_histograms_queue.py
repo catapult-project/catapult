@@ -188,13 +188,19 @@ def AddRow(histogram_dict, test_metadata_key, revision, test_path,
 
 def _MakeRowDict(revision, test_path, tracing_histogram):
   d = {}
-  # TODO(#3563): Wire up a_tracing_uri.
   test_parts = test_path.split('/')
   d['master'] = test_parts[0]
   d['bot'] = test_parts[1]
   d['test'] = '/'.join(test_parts[2:])
   d['revision'] = revision
   d['supplemental_columns'] = {}
+
+  # TODO(#3628): Remove this annotation when the frontend displays the full
+  # histogram and all its diagnostics including the full set of trace urls.
+  trace_url_set = tracing_histogram.diagnostics.get(
+      reserved_infos.TRACE_URLS.name)
+  if trace_url_set:
+    d['supplemental_columns']['a_tracing_uri'] = list(trace_url_set)[0]
 
   for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.iteritems():
     revision_info = tracing_histogram.diagnostics.get(diag_name)

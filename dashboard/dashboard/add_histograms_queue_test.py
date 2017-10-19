@@ -33,8 +33,12 @@ TEST_HISTOGRAM = {
             'values': ['4cd34ad3320db114ad3a2bd2acc02aba004d0cb4'],
             'type': 'GenericSet'
         },
-        'owners': '68e5b3bd-829c-4f4f-be3a-98a94279ccf0',
-        'benchmarks': 'ec2c0cdc-cd9f-4736-82b4-6ffc3d76e3eb'
+        reserved_infos.OWNERS.name: '68e5b3bd-829c-4f4f-be3a-98a94279ccf0',
+        reserved_infos.BENCHMARKS.name: 'ec2c0cdc-cd9f-4736-82b4-6ffc3d76e3eb',
+        reserved_infos.TRACE_URLS.name: {
+            'type': 'GenericSet',
+            'values': ['http://google.com/'],
+        },
     },
     'guid': 'c2c0fa00-060f-4d56-a1b7-51fde4767584',
     'name': 'foo',
@@ -279,11 +283,14 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     fields = row.to_dict().iterkeys()
     d_fields = []
     r_fields = []
+    a_fields = []
     for field in fields:
       if field.startswith('d_'):
         d_fields.append(field)
       elif field.startswith('r_'):
         r_fields.append(field)
+      elif field.startswith('a_'):
+        a_fields.append(field)
 
     self.assertAlmostEqual(2.0, row.value)
     self.assertAlmostEqual(1.0, row.error)
@@ -298,6 +305,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(2, len(r_fields))
     self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_git)
     self.assertEqual('123', row.r_chromium_commit_pos)
+
+    self.assertEqual(1, len(a_fields))
+    self.assertEqual('http://google.com/', row.a_tracing_uri)
 
   def testAddRow_WithCustomSummaryOptions(self):
     test_path = 'Chromium/win7/suite/metric'
