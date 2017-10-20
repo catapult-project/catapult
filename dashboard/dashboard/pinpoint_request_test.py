@@ -685,3 +685,23 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
 
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_SplitsStatistics(self):
+    statistic_types = ['avg', 'min', 'max', 'sum', 'std', 'count']
+
+    for s in statistic_types:
+      params = {
+          'test_path': 'ChromiumPerf/mac/system_health/foo_%s' % s,
+          'start_commit': 'abcd1234',
+          'end_commit': 'efgh5678',
+          'start_repository': 'chromium',
+          'end_repository': 'chromium',
+          'bisect_mode': 'performance',
+          'story_filter': '',
+          'bug_id': -1,
+      }
+      results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+      self.assertEqual(s, results['statistic'])
+      self.assertEqual('foo', results['chart'])

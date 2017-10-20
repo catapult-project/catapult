@@ -151,6 +151,10 @@ def _ReadChartJsonValue(request):
     return {}, None
   arguments['chart'] = chart
 
+  statistic = request.get('statistic')
+  if statistic:
+    arguments['statistic'] = statistic
+
   tir_label = request.get('tir_label')
   if tir_label:
     arguments['tir_label'] = tir_label
@@ -159,7 +163,8 @@ def _ReadChartJsonValue(request):
   if trace:
     arguments['trace'] = trace
 
-  return arguments, quest_module.ReadChartJsonValue(chart, tir_label, trace)
+  return arguments, quest_module.ReadChartJsonValue(
+      chart, tir_label, trace, statistic)
 
 
 def _ReadGraphJsonValue(request):

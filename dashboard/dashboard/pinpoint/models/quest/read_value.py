@@ -16,16 +16,26 @@ class ReadValueError(Exception):
 
 class ReadChartJsonValue(quest.Quest):
 
-  def __init__(self, chart, tir_label=None, trace=None):
+  def __init__(self, chart, tir_label=None, trace=None, statistic=None):
     self._chart = chart
     self._tir_label = tir_label
     self._trace = trace
+    self._statistic = statistic
+
+  # TODO: Remove this method after data migration.
+  def __setstate__(self, state):
+    # pylint: disable=attribute-defined-outside-init
+    self.__dict__ = state
+
+    if not hasattr(self, '_statistic'):
+      self._statistic = None
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
             self._chart == other._chart and
             self._tir_label == other._tir_label and
-            self._trace == other._trace)
+            self._trace == other._trace and
+            self._statistic == other._statistic)
 
   def __str__(self):
     return 'Values'
@@ -33,19 +43,29 @@ class ReadChartJsonValue(quest.Quest):
   def Start(self, change, isolate_hash):
     del change
     return _ReadChartJsonValueExecution(self._chart, self._tir_label,
-                                        self._trace, isolate_hash)
+                                        self._trace, self._statistic,
+                                        isolate_hash)
 
 
 class _ReadChartJsonValueExecution(execution.Execution):
 
-  def __init__(self, chart, tir_label, trace, isolate_hash):
+  def __init__(self, chart, tir_label, trace, statistic, isolate_hash):
     super(_ReadChartJsonValueExecution, self).__init__()
     self._chart = chart
     self._tir_label = tir_label
     self._trace = trace
     self._isolate_hash = isolate_hash
+    self._statistic = statistic
 
     self._trace_urls = []
+
+  # TODO: Remove this method after data migration.
+  def __setstate__(self, state):
+    # pylint: disable=attribute-defined-outside-init
+    self.__dict__ = state
+
+    if not hasattr(self, '_statistic'):
+      self._statistic = None
 
   def _AsDict(self):
     if not self._trace_urls:
@@ -67,6 +87,10 @@ class _ReadChartJsonValueExecution(execution.Execution):
       chart_name = '@@'.join((self._tir_label, self._chart))
     else:
       chart_name = self._chart
+
+    if self._statistic:
+      chart_name = '_'.join((chart_name, self._statistic))
+
     if chart_name not in chartjson['charts']:
       raise ReadValueError('The chart "%s" is not in the results.' % chart_name)
 

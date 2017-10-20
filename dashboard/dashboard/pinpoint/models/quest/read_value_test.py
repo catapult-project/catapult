@@ -27,7 +27,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
         json.dumps({'charts': {
-            'tir_label@@chart': {'trace name': {
+            'tir_label@@chart_avg': {'trace name': {
                 'type': 'list_of_scalar_values',
                 'values': [0, 1, 2],
             }},
@@ -35,7 +35,32 @@ class ReadChartJsonValueTest(_ReadValueTest):
         }}),
     )
 
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
+    quest = read_value.ReadChartJsonValue(
+        'chart', 'tir_label', 'trace name', 'avg')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadChartJsonValueWithNoStatistic(self, retrieve):
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
+        json.dumps({'charts': {
+            'chart': {'trace name': {
+                'type': 'list_of_scalar_values',
+                'values': [0, 1, 2],
+            }},
+            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+        }}),
+    )
+
+    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 

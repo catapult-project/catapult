@@ -231,13 +231,15 @@ class ReadChartJsonValue(unittest.TestCase):
         'browser': 'release',
         'tir_label': 'pcv1-cold',
         'chart': 'timeToFirst',
+        'statistic': 'avg',
         'trace': 'trace_name',
     }
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({'key': 'value'}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
-        quest.ReadChartJsonValue('timeToFirst', 'pcv1-cold', 'trace_name'),
+        quest.ReadChartJsonValue(
+            'timeToFirst', 'pcv1-cold', 'trace_name', 'avg'),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
