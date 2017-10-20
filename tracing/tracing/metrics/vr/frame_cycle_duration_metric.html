@@ -35,6 +35,37 @@ tr.exportTo('tr.metrics.vr', function() {
     histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitWhenReady',
         createHistograms(histograms, 'submit_frame',
           {description: 'Duration to submit a frame to GVR'}));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateAnimations',
+        createHistograms(
+            histograms, 'update_animations',
+            {description: 'Duration to apply animation changes'}));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateBindings',
+        createHistograms(
+            histograms, 'update_bindings',
+            {description: 'Duration to push binding values'}));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateOpacity',
+        createHistograms(
+            histograms, 'update_opacity',
+            {description: 'Duration to calculate inherited opacity'}));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
+        createHistograms(histograms, 'update_textures_and_sizes', {
+          description: 'Duration to redraw textures and update element sizes'
+        }));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateLayout',
+        createHistograms(histograms, 'update_layout', {
+          description:
+              'Duration to reposition elements according to their layout'
+        }));
+    histogramsByEventTitle.set(
+        'UiScene::OnBeginFrame.UpdateWorldSpaceTransform',
+        createHistograms(histograms, 'update_world_space_transforms', {
+          description: 'Duration to calculate element transforms in world space'
+        }));
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
