@@ -16,8 +16,7 @@ tr.b.unittest.testSuite(function() {
     const dd = document.createElement('tr-ui-b-dropdown');
     dd.style.marginLeft = '50px';
     dd.style.width = '50px';
-    Polymer.dom(dd.iconElement).textContent =
-        'Settings ' + String.fromCharCode(0x2699);
+    dd.label = 'Settings';
 
     Polymer.dom(dd).appendChild(tr.ui.b.createDiv({textContent: 'item 1'}));
     Polymer.dom(dd).appendChild(
@@ -36,8 +35,10 @@ tr.b.unittest.testSuite(function() {
         tr.ui.b.createDiv({textContent: 'more text'}));
     this.addHTMLOutput(container);
 
-    dd.show();
+    dd.open();
+    assert.isTrue(dd.isOpen);
     dd.close();
+    assert.isFalse(dd.isOpen);
   });
 });
 </script>

@@ -10,147 +10,91 @@ found in the LICENSE file.
 <dom-module id='tr-ui-b-dropdown'>
   <template>
     <style>
-    :host {
-      position: relative;
-      display: flex;
+    button {
+      @apply(--dropdown-button);
     }
-    #outer {
-      display: flex;
-      flex: 0 0 auto;
-      padding: 1px 4px 1px 4px;
-      -webkit-user-select: none;
-      cursor: default;
-    }
-
-    #state {
-      display: flex;
-      flex: 0 0 auto;
-      margin-left: 2px;
-      margin-right: 0px;
-      flex: 0 0 auto;
-    }
-
-    #icon {
-      display: flex;
-      flex: 0 0 auto;
-      flex: 0 0 auto;
+    button.open {
+      @apply(--dropdown-button-open);
     }
     dialog {
       position: absolute;
-      padding: 0;
-      border: 0;
       margin: 0;
-    }
-    dialog::backdrop {
-      background: rgba(0,0,0,.05);
-    }
-
-    #dialog-frame {
-      background-color: #fff;
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 auto;
-      padding: 6px;
-      border: 1px solid black;
-      -webkit-user-select: none;
-      cursor: default;
+      padding: 1em;
+      border: 1px solid darkgrey;
+      @apply(--dropdown-dialog);
     }
     </style>
-    <tr-ui-b-toolbar-button id="outer"
-        on-keydown="onOuterKeyDown_"
-        on-click="onOuterClick_">
-      <div id="icon">&#9881;</div>
-      <div id="state">&#9662;</div>
-    </tr-ui-b-toolbar-button>
-    <dialog id="dialog"
-        on-click="onDialogClick_"
-        on-cancel="onDialogCancel_">
-      <div id="dialog-frame">
-        <content></content>
-      </div>
+
+    <button id="button" on-tap="open">[[label]]</button>
+
+    <dialog id="dialog" on-tap="onDialogTap_" on-cancel="close">
+      <content></content>
     </dialog>
   </template>
 </dom-module>
+
 <script>
 'use strict';
+tr.exportTo('tr.ui.b', function() {
+  Polymer({
+    is: 'tr-ui-b-dropdown',
 
-Polymer({
-  is: 'tr-ui-b-dropdown',
+    properties: {
+      label: {
+        type: String,
+        value: '',
+      },
+    },
 
-  ready() {
-    this.$.outer.tabIndex = 0;
-  },
+    open() {
+      if (this.isOpen) return;
 
-  get iconElement() {
-    return this.$.icon;
-  },
+      Polymer.dom(this.$.button).classList.add('open');
+      const buttonRect = this.$.button.getBoundingClientRect();
+      this.$.dialog.style.top = buttonRect.bottom - 1 + 'px';
+      this.$.dialog.style.left = buttonRect.left + 'px';
+      this.$.dialog.showModal();
 
-  onOuterKeyDown_(e) {
-    if (e.keyCode === ' '.charCodeAt(0)) {
-      this.toggle_();
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  },
+      const dialogRect = this.$.dialog.getBoundingClientRect();
+      if (dialogRect.right > window.innerWidth) {
+        // If the dialog's right edge falls past the right edge of the window,
+        // then move the dialog to the left so that its right edge lines up with
+        // the button's right edge, but not so far left that its left edge falls
+        // past the left edge of the window.
+        this.$.dialog.style.left = Math.max(0, buttonRect.right -
+            dialogRect.width) + 'px';
+      }
+    },
 
-  onOuterClick_(e) {
-    const or = this.$.outer.getBoundingClientRect();
-    let inside = true;
-    inside &= e.clientX >= or.left;
-    inside &= e.clientX < or.right;
-    inside &= e.clientY >= or.top;
-    inside &= e.clientY < or.bottom;
-    if (!inside) return;
+    onDialogTap_(event) {
+      // Close the dialog when the user clicks on the backdrop outside the
+      // dialog, which sends click events to the dialog even though the
+      // coordinates are outside the dialog.
+      const dialogRect = this.$.dialog.getBoundingClientRect();
+      let inside = true;
+      inside &= event.clientX >= dialogRect.left;
+      inside &= event.clientX < dialogRect.right;
+      inside &= event.clientY >= dialogRect.top;
+      inside &= event.clientY < dialogRect.bottom;
+      if (inside) return;
 
-    e.preventDefault();
-    this.toggle_();
-  },
-
-  toggle_() {
-    if (!this.isOpen) {
-      this.show();
-    } else {
+      event.preventDefault();
       this.close();
+    },
+
+    close() {
+      if (!this.isOpen) return;
+      this.$.dialog.close();
+      Polymer.dom(this.$.button).classList.remove('open');
+      this.$.button.focus();
+    },
+
+    get isOpen() {
+      return this.$.button.classList.contains('open');
     }
-  },
+  });
 
-  show() {
-    if (this.isOpen) return;
-
-    Polymer.dom(this.$.outer).classList.add('open');
-
-    const ddr = this.$.outer.getBoundingClientRect();
-    const rW = Math.max(ddr.width, 150);
-    this.$.dialog.style.minWidth = rW + 'px';
-    this.$.dialog.showModal();
-
-    const ddw = this.$.outer.getBoundingClientRect().width;
-    const w = this.$.dialog.getBoundingClientRect().width;
-    this.$.dialog.style.top = ddr.bottom - 1 + 'px';
-    this.$.dialog.style.left = ddr.left + 'px';
-  },
-
-  onDialogClick_(e) {
-    if (!this.isOpen) return;
-    if (e.srcElement !== this.$.dialog) return;
-    e.preventDefault();
-    this.close();
-  },
-
-  onDialogCancel_(e) {
-    e.preventDefault();
-    this.close();
-  },
-
-  close() {
-    if (!this.isOpen) return;
-    this.$.dialog.close();
-    Polymer.dom(this.$.outer).classList.remove('open');
-    this.$.outer.focus();
-  },
-
-  get isOpen() {
-    return this.$.dialog.hasAttribute('open');
-  }
+  return {
+  };
 });
 </script>

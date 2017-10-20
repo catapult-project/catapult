@@ -96,6 +96,20 @@ found in the LICENSE file.
     middle-container > x-timeline-view-side-panel-container { flex: 0 0 auto; }
     tr-ui-b-drag-handle { flex: 0 0 auto; }
     tr-ui-a-analysis-view { flex: 0 0 auto; }
+
+    #view_options_dropdown {
+      --dropdown-button: {
+        -webkit-appearance: none;
+        align-items: normal;
+        background-color: rgb(248, 248, 248);
+        border: 1px solid rgba(0, 0, 0, 0.5);
+        box-sizing: content-box;
+        color: rgba(0, 0, 0, 0.8);
+        font-family: sans-serif;
+        font-size: 12px;
+        padding: 2px 5px;
+      }
+    }
     </style>
 
     <tv-ui-b-hotkey-controller id="hkc"></tv-ui-b-hotkey-controller>
@@ -107,7 +121,7 @@ found in the LICENSE file.
           <tr-ui-b-toolbar-button id="view_metadata_button">
             M
           </tr-ui-b-toolbar-button>
-          <tr-ui-b-dropdown id="view_options_dropdown"></tr-ui-b-dropdown>
+          <tr-ui-b-dropdown id="view_options_dropdown" label="View Options"></tr-ui-b-dropdown>
           <tr-ui-find-control id="view_find_control"></tr-ui-find-control>
           <tr-ui-b-toolbar-button id="view_console_button">
             &#187;
