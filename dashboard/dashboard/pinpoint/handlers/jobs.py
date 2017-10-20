@@ -21,7 +21,9 @@ class Jobs(webapp2.RequestHandler):
     self.response.out.write(json.dumps(result))
 
   def _GetJobs(self):
-    job_future = job_module.Job.query().fetch_async(limit=_MAX_JOBS_TO_FETCH)
+    query = job_module.Job.query()
+    query = query.order(-job_module.Job.created)
+    job_future = query.fetch_async(limit=_MAX_JOBS_TO_FETCH)
     count_future = job_module.Job.query().count_async(limit=_MAX_JOBS_TO_COUNT)
 
     result = {
