@@ -4,6 +4,7 @@
 
 import json
 import math
+import sys
 import time
 import unittest
 
@@ -542,6 +543,7 @@ class BreakdownUnittest(unittest.TestCase):
     bd.Set('inf', float('inf'))
     bd.Set('nun', float('nan'))
     bd.Set('ninf', float('-inf'))
+    bd.Set('long', 1 + sys.maxint)
     d = bd.AsDict()
     clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
@@ -550,6 +552,7 @@ class BreakdownUnittest(unittest.TestCase):
     self.assertEqual(clone.Get('inf'), float('inf'))
     self.assertTrue(math.isnan(clone.Get('nun')))
     self.assertEqual(clone.Get('ninf'), float('-inf'))
+    self.assertEqual(clone.Get('long'), 1 + sys.maxint)
 
 
 class TagMapUnittest(unittest.TestCase):

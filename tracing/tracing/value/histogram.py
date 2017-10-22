@@ -5,6 +5,7 @@
 import datetime
 import json
 import math
+import numbers
 import random
 import uuid
 
@@ -371,8 +372,10 @@ class Breakdown(diagnostic.Diagnostic):
       d['colorScheme'] = self._color_scheme
 
   def Set(self, name, value):
-    assert isinstance(name, basestring)
-    assert isinstance(value, (int, float))
+    assert isinstance(name, basestring), (
+        'Expected basestring, found %s: "%r"' % (type(name).__name__, name))
+    assert isinstance(value, numbers.Number), (
+        'Expected number, found %s: "%r"', (type(value).__name__, value))
     self._values[name] = value
 
   def Get(self, name):
@@ -559,7 +562,9 @@ class RelatedHistogramMap(diagnostic.Diagnostic):
     return self._histograms_by_name.get(name)
 
   def Set(self, name, hist):
-    assert isinstance(hist, (Histogram, HistogramRef))
+    assert isinstance(hist, (Histogram, HistogramRef)), (
+        'Expected Histogram or HistogramRef, found %s: "%r"',
+        (type(hist).__name__, hist))
     self._histograms_by_name[name] = hist
 
   def Add(self, hist):
@@ -582,7 +587,7 @@ class RelatedHistogramMap(diagnostic.Diagnostic):
       if isinstance(hist, Histogram):
         self._histograms_by_name[name] = hist
       else:
-        assert not required, guid
+        assert not required, ('Missing required Histogram %s' % guid)
 
   def _AsDictInto(self, d):
     d['values'] = {}
@@ -605,7 +610,8 @@ class RelatedHistogramBreakdown(RelatedHistogramMap):
 
   def Set(self, name, hist):
     if not isinstance(hist, HistogramRef):
-      assert isinstance(hist, Histogram)
+      assert isinstance(hist, Histogram), (
+          'Expected Histogram, found %s: "%r"' % (type(hist).__name__, hist))
       # All Histograms must have the same unit.
       for _, other_hist in self:
         expected_unit = other_hist.unit
@@ -886,7 +892,8 @@ ExtendUnitNames()
 class Scalar(object):
 
   def __init__(self, unit, value):
-    assert unit in UNIT_NAMES
+    assert unit in UNIT_NAMES, (
+        'Unrecognized unit "%r"' % unit)
     self._unit = unit
     self._value = value
 
@@ -924,7 +931,8 @@ DEFAULT_SUMMARY_OPTIONS = {
 class Histogram(object):
 
   def __init__(self, name, unit, bin_boundaries=None):
-    assert unit in UNIT_NAMES
+    assert unit in UNIT_NAMES, (
+        'Unrecognized unit "%r"' % unit)
 
     if bin_boundaries is None:
       bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[unit]
@@ -993,7 +1001,7 @@ class Histogram(object):
 
   @guid.setter
   def guid(self, g):
-    assert self._guid is None
+    assert self._guid is None, self._guid
     self._guid = g
 
   @property
@@ -1108,7 +1116,7 @@ class Histogram(object):
         not isinstance(diagnostic_map, DiagnosticMap)):
       diagnostic_map = DiagnosticMap(diagnostic_map)
 
-    if not isinstance(value, (int, float)) or math.isnan(value):
+    if not isinstance(value, numbers.Number) or math.isnan(value):
       self._num_nans += 1
       if diagnostic_map:
         UniformlySampleStream(self._nan_diagnostic_maps, self.num_nans,
@@ -1191,7 +1199,7 @@ class Histogram(object):
         if self._running is None:
           self._running = RunningStatistics()
         stat_value = getattr(self._running, key)
-        if isinstance(stat_value, (int, float)):
+        if isinstance(stat_value, numbers.Number):
           results[stat_name] = Scalar(stat_unit, stat_value)
     return results
 
@@ -1359,7 +1367,7 @@ class HistogramBinBoundaries(object):
     return self._bin_ranges
 
   def _Build(self):
-    if not isinstance(self._builder[0], (int, float)):
+    if not isinstance(self._builder[0], numbers.Number):
       raise ValueError('Invalid start of builder_')
 
     self._bin_ranges = []
