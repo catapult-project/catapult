@@ -8,6 +8,9 @@ import unittest
 import mock
 
 from dashboard.pinpoint.models.quest import read_value
+from tracing.value import histogram_set
+from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import reserved_infos
 
 
 class _ReadValueTest(unittest.TestCase):
@@ -224,6 +227,220 @@ class ReadChartJsonValueTest(_ReadValueTest):
     execution.Poll()
 
     self.assertEqual(execution.result_values, (2.5,))
+
+
+@mock.patch('dashboard.services.isolate_service.Retrieve')
+class ReadHistogramsJsonValueTest(_ReadValueTest):
+
+  def testReadHistogramsJsonValue(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(['group:tir_label']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['story']))
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', 'story')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsJsonValueMultipleHistograms(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    hist2 = histogram_module.Histogram('hist', 'count')
+    hist2.AddSample(0)
+    hist2.AddSample(1)
+    hist2.AddSample(2)
+    hist3 = histogram_module.Histogram('some_other_histogram', 'count')
+    hist3.AddSample(3)
+    hist3.AddSample(4)
+    hist3.AddSample(5)
+    histograms = histogram_set.HistogramSet([hist, hist2, hist3])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(['group:tir_label']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['story']))
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', 'story')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2, 0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsTraceUrls(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
+        histogram_module.GenericSet(['trace_url1', 'trace_url2']))
+    hist2 = histogram_module.Histogram('hist2', 'count')
+    hist2.diagnostics[reserved_infos.TRACE_URLS.name] = (
+        histogram_module.GenericSet(['trace_url3']))
+    histograms = histogram_set.HistogramSet([hist, hist2])
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, None, None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0,))
+    self.assertEqual(
+        {
+            'result_values': (0,),
+            'completed': True,
+            'exception': None,
+            'result_arguments': {},
+            'details': {
+                'traces': [
+                    {'url': 'trace_url1', 'name': 'hist'},
+                    {'url': 'trace_url2', 'name': 'hist'},
+                    {'url': 'trace_url3', 'name': 'hist2'}
+                ]
+            }
+        },
+        execution.AsDict())
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsJsonValueWithNoTirLabel(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(['group:tir_label']))
+
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsJsonValueWithNoStory(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['story']))
+
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, None, 'story')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsJsonValueWithMissingFile(self, retrieve):
+    retrieve.return_value = {'files': {}}
+
+    quest = read_value.ReadHistogramsJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadHistogramsJsonValueEmptyHistogramSet(self, retrieve):
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps([]),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadHistogramsJsonValueWithMissingHistogram(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue('does_not_exist', None, None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadHistogramsJsonValueWithNoValues(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue('chart', None, None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
 
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')

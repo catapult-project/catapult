@@ -14,6 +14,7 @@ from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
+from dashboard.common import histogram_helpers
 from dashboard.common import stored_object
 from dashboard.models import histogram
 from tracing.value import histogram_set
@@ -208,7 +209,7 @@ def ComputeTestPath(guid, histograms):
   suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
   path = '%s/%s' % (suite_path, hist.name)
 
-  tir_label = histogram.GetTIRLabelFromHistogram(hist)
+  tir_label = histogram_helpers.GetTIRLabelFromHistogram(hist)
   if tir_label:
     path += '/' + tir_label
 

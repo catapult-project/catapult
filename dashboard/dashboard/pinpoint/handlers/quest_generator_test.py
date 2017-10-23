@@ -10,7 +10,7 @@ from dashboard.pinpoint.models import quest
 
 _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
-    '-v', '--upload-results', '--output-format=chartjson',
+    '-v', '--upload-results', '--output-format=histograms',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -21,7 +21,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--story-filter', 'http://www.fifa.com/',
     '--pageset-repeat', '1', '--browser', 'release',
     '--custom-arg', 'custom value',
-    '-v', '--upload-results', '--output-format=chartjson',
+    '-v', '--upload-results', '--output-format=histograms',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -31,7 +31,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
 _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS = [
     'start_with_url.warm.startup_pages',
     '--pageset-repeat', '2', '--browser', 'release',
-    '-v', '--upload-results', '--output-format=chartjson',
+    '-v', '--upload-results', '--output-format=histograms',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -202,7 +202,7 @@ class GTestRunTest(unittest.TestCase):
                      (arguments, expected_quests))
 
 
-class ReadChartJsonValue(unittest.TestCase):
+class ReadHistogramsJsonValue(unittest.TestCase):
 
   def testMinimumArguments(self):
     arguments = {
@@ -217,7 +217,7 @@ class ReadChartJsonValue(unittest.TestCase):
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
-        quest.ReadChartJsonValue('timeToFirst', None, None),
+        quest.ReadHistogramsJsonValue('timeToFirst', None, None),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
@@ -238,7 +238,7 @@ class ReadChartJsonValue(unittest.TestCase):
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({'key': 'value'}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
-        quest.ReadChartJsonValue(
+        quest.ReadHistogramsJsonValue(
             'timeToFirst', 'pcv1-cold', 'trace_name', 'avg'),
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),

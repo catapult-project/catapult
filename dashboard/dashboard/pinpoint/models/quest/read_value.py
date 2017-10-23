@@ -4,9 +4,12 @@
 
 import json
 
+from dashboard.common import histogram_helpers
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import isolate_service
+from tracing.value import histogram_set
+from tracing.value.diagnostics import reserved_infos
 
 
 class ReadValueError(Exception):
@@ -113,6 +116,110 @@ class _ReadChartJsonValueExecution(execution.Execution):
     self._Complete(result_values=tuple(result_values))
 
 
+class ReadHistogramsJsonValue(quest.Quest):
+
+  def __init__(self, hist_name, tir_label=None, story=None, statistic=None):
+    self._hist_name = hist_name
+    self._tir_label = tir_label
+    self._story = story
+    self._statistic = statistic
+
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self._hist_name == other._hist_name and
+            self._tir_label == other._tir_label and
+            self._story == other._story and
+            self._statistic == other._statistic)
+
+  def __str__(self):
+    return 'Values'
+
+  def Start(self, change, isolate_hash):
+    del change
+    return _ReadHistogramsJsonValueExecution(self._hist_name, self._tir_label,
+                                             self._story, self._statistic,
+                                             isolate_hash)
+
+
+class _ReadHistogramsJsonValueExecution(execution.Execution):
+
+  def __init__(self, hist_name, tir_label, story, statistic, isolate_hash):
+    super(_ReadHistogramsJsonValueExecution, self).__init__()
+    self._hist_name = hist_name
+    self._tir_label = tir_label
+    self._story = story
+    self._statistic = statistic
+    self._isolate_hash = isolate_hash
+
+    self._trace_urls = []
+
+  def _AsDict(self):
+    if not self._trace_urls:
+      return {}
+    return {'traces': self._trace_urls}
+
+  def _Poll(self):
+    # TODO(simonhatch): Switch this to use the new perf-output flag instead
+    # of the chartjson one. They're functionally equivalent, just new name.
+    histogram_dicts = _RetrieveOutputJson(
+        self._isolate_hash, 'chartjson-output.json')
+    histograms = histogram_set.HistogramSet()
+    histograms.ImportDicts(histogram_dicts)
+    histograms.ResolveRelatedHistograms()
+
+    matching_histograms = histograms.GetHistogramsNamed(self._hist_name)
+
+    # Get and cache any trace URLs.
+    for hist in histograms:
+      trace_urls = hist.diagnostics.get(reserved_infos.TRACE_URLS.name)
+      if trace_urls:
+        for t in list(trace_urls):
+          self._trace_urls.append({'name': hist.name, 'url': t})
+    self._trace_urls = sorted(self._trace_urls, key=lambda x: x['name'])
+
+    # Filter the histograms by tir_label and story. Getting either the
+    # tir_label or the story from a histogram involves pulling out and
+    # examining various diagnostics associated with the histogram.
+    tir_label = self._tir_label or ''
+    def _MatchesStoryAndTIRLabel(hist):
+      return (
+          tir_label == histogram_helpers.GetTIRLabelFromHistogram(hist) and
+          self._story == _GetStoryFromHistogram(hist))
+
+    matching_histograms = [
+        h for h in matching_histograms if _MatchesStoryAndTIRLabel(h)]
+
+    # Have to pull out either the raw sample values, or the statistic
+    result_values = []
+    for h in matching_histograms:
+      result_values.extend(self._GetValuesOrStatistic(h))
+
+    if not result_values:
+      raise ReadValueError('Result values missing.')
+
+    self._Complete(result_values=tuple(result_values))
+
+  def _GetValuesOrStatistic(self, hist):
+    if not self._statistic:
+      return hist.sample_values
+
+    # TODO(simonhatch): Use Histogram.getStatisticScalar when it's ported from
+    # js.
+    if self._statistic == 'avg':
+      return [hist.running.mean]
+    elif self._statistic == 'min':
+      return [hist.running.min]
+    elif self._statistic == 'max':
+      return [hist.running.max]
+    elif self._statistic == 'sum':
+      return [hist.running.sum]
+    elif self._statistic == 'std':
+      return [hist.running.stddev]
+    elif self._statistic == 'count':
+      return [hist.running.count]
+    raise ReadValueError('Unknown statistic type: %s' % self._statistic)
+
+
 def _ResultValuesFromHistogram(buckets):
   total_count = sum(bucket['count'] for bucket in buckets)
 
@@ -180,3 +287,10 @@ def _RetrieveOutputJson(isolate_hash, filename):
     raise ReadValueError("The test didn't produce %s." % filename)
   output_json_isolate_hash = output_files[filename]['h']
   return json.loads(isolate_service.Retrieve(output_json_isolate_hash))
+
+
+def _GetStoryFromHistogram(hist):
+  stories = hist.diagnostics.get(reserved_infos.STORIES.name)
+  if stories and len(stories) == 1:
+    return list(stories)[0]
+  return None

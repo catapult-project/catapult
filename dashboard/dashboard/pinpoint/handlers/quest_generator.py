@@ -31,7 +31,8 @@ def GenerateQuests(request):
   """
   target = request.get('target')
   if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
-    quest_functions = (_FindIsolate, _TelemetryRunTest, _ReadChartJsonValue)
+    quest_functions = (
+        _FindIsolate, _TelemetryRunTest, _ReadHistogramsJsonValue)
   else:
     quest_functions = (_FindIsolate, _GTestRunTest, _ReadGraphJsonValue)
 
@@ -107,7 +108,8 @@ def _TelemetryRunTest(request):
 
   # TODO: Remove `=` in 2018. It was fixed on the chromium side in r496979,
   # but any bisects on commit ranges older than August 25 will still fail.
-  swarming_extra_args += ('-v', '--upload-results', '--output-format=chartjson')
+  swarming_extra_args += (
+      '-v', '--upload-results', '--output-format=histograms')
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
   return arguments, quest_module.RunTest(dimensions, swarming_extra_args)
@@ -141,6 +143,30 @@ def _GTestRunTest(request):
   swarming_extra_args += _SWARMING_EXTRA_ARGS
 
   return arguments, quest_module.RunTest(dimensions, swarming_extra_args)
+
+
+def _ReadHistogramsJsonValue(request):
+  arguments = {}
+
+  chart = request.get('chart')
+  if not chart:
+    return {}, None
+  arguments['chart'] = chart
+
+  statistic = request.get('statistic')
+  if statistic:
+    arguments['statistic'] = statistic
+
+  tir_label = request.get('tir_label')
+  if tir_label:
+    arguments['tir_label'] = tir_label
+
+  trace = request.get('trace')
+  if trace:
+    arguments['trace'] = trace
+
+  return arguments, quest_module.ReadHistogramsJsonValue(
+      chart, tir_label, trace, statistic)
 
 
 def _ReadChartJsonValue(request):
