@@ -33,8 +33,6 @@
 
   // This class swipes a page for a specified distance.
   function SwipeAction(opt_callback) {
-    var self = this;
-
     this.beginMeasuringHook = function() {};
     this.endMeasuringHook = function() {};
 
@@ -52,24 +50,26 @@
   SwipeAction.prototype.startGesture_ = function() {
     this.beginMeasuringHook();
 
-    var rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
-    var start_left =
+    const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
+    const startLeft =
         rect.left + rect.width * this.options_.left_start_ratio_;
-    var start_top =
+    const startTop =
         rect.top + rect.height * this.options_.top_start_ratio_;
-    chrome.gpuBenchmarking.swipe(this.options_.direction_,
-                                 this.options_.distance_,
-                                 this.onGestureComplete_.bind(this),
-                                 start_left, start_top,
-                                 this.options_.speed_);
+    chrome.gpuBenchmarking.swipe(
+        this.options_.direction_,
+        this.options_.distance_,
+        this.onGestureComplete_.bind(this),
+        startLeft, startTop,
+        this.options_.speed_);
   };
 
   SwipeAction.prototype.onGestureComplete_ = function() {
     this.endMeasuringHook();
 
     // We're done.
-    if (this.callback_)
+    if (this.callback_) {
       this.callback_();
+    }
   };
 
   window.__SwipeAction = SwipeAction;
