@@ -44,6 +44,14 @@
   DragAction.prototype.startGesture_ = function() {
     this.beginMeasuringHook();
 
+    let speed = this.options_.speed_;
+
+    // TODO(bokan): Remove this condition once gpuBenchmarking is changed to
+    // take all coordinates in viewport space. crbug.com/610021.
+    if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
+      speed = speed * chrome.gpuBenchmarking.pageScaleFactor();
+    }
+
     const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
     const startLeft =
         rect.left + (rect.width * this.options_.left_start_ratio_);
@@ -56,7 +64,7 @@
     chrome.gpuBenchmarking.smoothDrag(
         startLeft, startTop, endLeft, endTop,
         this.onGestureComplete_.bind(this), this.options_.gesture_source_type_,
-        this.options_.speed_);
+        speed);
   };
 
   DragAction.prototype.onGestureComplete_ = function() {

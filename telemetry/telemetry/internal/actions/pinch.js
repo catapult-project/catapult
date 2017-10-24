@@ -53,6 +53,7 @@
     // all coordinates in viewport space. crbug.com/610021.
     let anchorLeft;
     let anchorTop;
+    let speed = this.options_.speed_;
     if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
       anchorLeft =
           __GestureCommon_GetWindowWidth() *
@@ -60,6 +61,7 @@
       anchorTop =
           __GestureCommon_GetWindowHeight() *
           this.options_.top_anchor_ratio_;
+      speed = speed * chrome.gpuBenchmarking.pageScaleFactor();
     } else {
       const rect = __GestureCommon_GetBoundingVisibleRect(document.body);
       anchorLeft = rect.left + rect.width * this.options_.left_anchor_ratio_;
@@ -70,7 +72,7 @@
         this.options_.scale_factor_,
         anchorLeft, anchorTop,
         this.onGestureComplete_.bind(this),
-        this.options_.speed_);
+        speed);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {

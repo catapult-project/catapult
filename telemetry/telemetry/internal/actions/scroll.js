@@ -168,11 +168,13 @@
     const maxScrollLengthPixels = (MAX_SCROLL_LENGTH_TIME_MS / 1000) *
         this.options_.speed_;
     let distance = Math.min(maxScrollLengthPixels, this.getScrollDistance_());
+    let speed = this.options_.speed_;
 
     // TODO(bokan): Remove this once gpuBenchmarking is changed to take all
     // coordinates in viewport space. crbug.com/610021.
     if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
       distance = distance * chrome.gpuBenchmarking.pageScaleFactor();
+      speed = speed * chrome.gpuBenchmarking.pageScaleFactor();
     }
 
     const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
@@ -183,7 +185,7 @@
     chrome.gpuBenchmarking.smoothScrollBy(
         distance, this.onGestureComplete_.bind(this), startLeft, startTop,
         this.options_.gesture_source_type_, this.options_.direction_,
-        this.options_.speed_);
+        speed);
   };
 
   ScrollAction.prototype.onGestureComplete_ = function() {
