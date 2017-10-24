@@ -40,6 +40,7 @@ DASHBOARD_FILES = [
 
 TRACING_PATHS = [
     'tracing/tracing',
+    'tracing/tracing_build',
     'tracing/third_party/gl-matrix/dist/gl-matrix-min.js'
 ]
 

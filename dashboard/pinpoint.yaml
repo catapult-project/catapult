@@ -51,6 +51,16 @@ handlers:
   upload: dashboard/pinpoint/elements/.*\.html$
   secure: always
 
+- url: /vulcanized_histograms_viewer/
+  static_dir: vulcanized_histograms_viewer/
+  secure: always
+  application_readable: true
+
+- url: /results2/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /flot/(.*\.js)$
   static_files: flot/\1
   upload: flot/.*\.js$

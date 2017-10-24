@@ -9,6 +9,7 @@ modify the Quest.
 """
 
 import collections
+import copy
 
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
@@ -73,13 +74,26 @@ class RunTest(quest.Quest):
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
 
+    # For results2 to differentiate between runs, we need telemetry to
+    # append --results-label=foo to the runs. Since this is where we're given
+    # the actual change that's being run, we look for the dummy
+    # --results-label in extra_args and fill it in with the change string.
+    # https://github.com/catapult-project/catapult/issues/3998
+    extra_args = copy.copy(self._extra_args)
+    try:
+      results_label_index = self._extra_args.index('--results-label')
+      extra_args[results_label_index+1] = str(change)
+    except ValueError:
+      # If it's not there, this is probably a gtest
+      pass
+
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(
-          self._dimensions, self._extra_args, isolate_hash)
+          self._dimensions, extra_args, isolate_hash)
       self._canonical_executions.append(execution)
     else:
       execution = _RunTestExecution(
-          self._dimensions, self._extra_args, isolate_hash,
+          self._dimensions, extra_args, isolate_hash,
           previous_execution=self._canonical_executions[index])
 
     return execution

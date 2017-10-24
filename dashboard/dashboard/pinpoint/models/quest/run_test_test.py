@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import unittest
 
 import mock
@@ -13,6 +14,7 @@ _SWARMING_EXTRA_ARGS = [
     'benchmark', '--story-filter', 'story',
     '-v', '--upload-results',
     '--output-format=chartjson', '--browser=release',
+    '--results-label', '',
     '--isolated-script-test-output=${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output='
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -25,9 +27,16 @@ _SWARMING_DIMENSIONS = [
 ]
 
 
+def _CreateSwarmingArgs(label):
+  i = _SWARMING_EXTRA_ARGS.index('--results-label')
+  swarming_args_with_results_label = copy.copy(_SWARMING_EXTRA_ARGS)
+  swarming_args_with_results_label[i+1] = label
+  return swarming_args_with_results_label
+
+
 class _RunTestTest(unittest.TestCase):
 
-  def assertNewTaskHasDimensions(self, swarming_tasks_new):
+  def assertNewTaskHasDimensions(self, swarming_tasks_new, label):
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
@@ -35,7 +44,7 @@ class _RunTestTest(unittest.TestCase):
         'expiration_secs': '36000',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
-            'extra_args': _SWARMING_EXTRA_ARGS,
+            'extra_args': _CreateSwarmingArgs(label),
             'dimensions': [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}] +
                           _SWARMING_DIMENSIONS,
             'execution_timeout_secs': '7200',
@@ -44,7 +53,7 @@ class _RunTestTest(unittest.TestCase):
     }
     swarming_tasks_new.assert_called_with(body)
 
-  def assertNewTaskHasBotId(self, swarming_tasks_new):
+  def assertNewTaskHasBotId(self, swarming_tasks_new, label):
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
@@ -52,7 +61,7 @@ class _RunTestTest(unittest.TestCase):
         'expiration_secs': '36000',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
-            'extra_args': _SWARMING_EXTRA_ARGS,
+            'extra_args': _CreateSwarmingArgs(label),
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'id', 'value': 'bot id'},
@@ -84,7 +93,7 @@ class RunTestFullTest(_RunTestTest):
 
     swarming_task_result.assert_not_called()
     self.assertEqual(swarming_tasks_new.call_count, 1)
-    self.assertNewTaskHasDimensions(swarming_tasks_new)
+    self.assertNewTaskHasDimensions(swarming_tasks_new, 'change_1')
     self.assertFalse(execution.completed)
     self.assertFalse(execution.failed)
 
@@ -127,13 +136,13 @@ class RunTestFullTest(_RunTestTest):
     execution = quest.Start('change_2', 'input isolate hash')
     execution.Poll()
 
-    self.assertNewTaskHasBotId(swarming_tasks_new)
+    self.assertNewTaskHasBotId(swarming_tasks_new, 'change_2')
 
     # Start an Execution on the same Change. It should use a new bot_id.
     execution = quest.Start('change_2', 'input isolate hash')
     execution.Poll()
 
-    self.assertNewTaskHasDimensions(swarming_tasks_new)
+    self.assertNewTaskHasDimensions(swarming_tasks_new, 'change_2')
 
 
 @mock.patch('dashboard.services.swarming_service.Tasks.New')

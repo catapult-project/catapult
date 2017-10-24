@@ -11,6 +11,7 @@ from dashboard.pinpoint.models import quest
 _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
     '-v', '--upload-results', '--output-format=histograms',
+    '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -22,6 +23,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
     '--pageset-repeat', '1', '--browser', 'release',
     '--custom-arg', 'custom value',
     '-v', '--upload-results', '--output-format=histograms',
+    '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
@@ -32,6 +34,7 @@ _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS = [
     'start_with_url.warm.startup_pages',
     '--pageset-repeat', '2', '--browser', 'release',
     '-v', '--upload-results', '--output-format=histograms',
+    '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
