@@ -63,9 +63,6 @@ class TabTest(tab_test_case.TabTestCase):
   def testTabBrowserIsRightBrowser(self):
     self.assertEquals(self._tab.browser, self._browser)
 
-  # http://crbug.com/777741
-  # This test started to timeout after we switched to clang-cl.
-  @decorators.Disabled('win')
   def testRendererCrash(self):
     self.assertRaises(exceptions.DevtoolsTargetCrashException,
                       lambda: self._tab.Navigate('chrome://crash',
