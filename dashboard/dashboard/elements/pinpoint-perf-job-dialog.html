@@ -167,7 +167,7 @@ found in the LICENSE file.
             end_commit: this.endCommit,
             start_repository: this.startRepository,
             end_repository: this.endRepository,
-            extra_test_args: args
+            extra_test_args: JSON.stringify(args)
           };
 
           try {

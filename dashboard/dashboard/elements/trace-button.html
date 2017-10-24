@@ -74,7 +74,14 @@ See https://github.com/catapult-project/catapult/issues/1905
          * Displays the trace-form when the trace button is clicked.
          */
         onTrace() {
-          this.$.trace.show();
+          const testPathParts = this.traceInfo.testPath.split('/');
+          const botName = testPathParts[1];
+
+          if (d.PINPOINT_BOTS.indexOf(botName) != -1) {
+            this.$.pinpoint.show();
+          } else {
+            this.$.trace.show();
+          }
         }
       });
     })();

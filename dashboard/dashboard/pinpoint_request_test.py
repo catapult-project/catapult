@@ -133,7 +133,8 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'start_repository': 'chromium',
         'end_repository': 'chromium',
-        'extra_test_args': ['--extra-trace-args', 'abc,123,foo'],
+        'extra_test_args': json.dumps(
+            ['--extra-trace-args', 'abc,123,foo']),
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 

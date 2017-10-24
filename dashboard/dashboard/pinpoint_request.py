@@ -216,7 +216,7 @@ def PinpointParamsFromPerfTryParams(params):
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
-      'extra_test_args': json.dumps(extra_test_args),
+      'extra_test_args': extra_test_args,
       'bug_id': '',
       'auto_explore': '0',
       'target': target,
