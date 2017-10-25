@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/math/range_utils.html">
 <link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/extras/v8/v8_thread_slice.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -154,6 +155,26 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event.title === 'V8.GCScavenger';
   }
 
+  function isCompileOptimizeRCSCategory(name) {
+    return name === 'Optimize';
+  }
+
+  function isCompileUnoptimizeRCSCategory(name) {
+    return name === 'Compile';
+  }
+
+  function isCompileParseRCSCategory(name) {
+    return name === 'Parse';
+  }
+
+  function isCompileRCSCategory(name) {
+    return name === 'Compile' || name === 'Optimize' || name === 'Parse';
+  }
+
+  function isV8RCSEvent(event) {
+    return event instanceof tr.e.v8.V8ThreadSlice;
+  }
+
   function topGarbageCollectionEventName(event) {
     if (event.title === FULL_GC_EVENT) {
       // Full mark compact events inside a low memory notification
@@ -256,6 +277,11 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isTopV8ExecuteEvent,
     isV8Event,
     isV8ExecuteEvent,
+    isV8RCSEvent,
+    isCompileRCSCategory,
+    isCompileOptimizeRCSCategory,
+    isCompileUnoptimizeRCSCategory,
+    isCompileParseRCSCategory,
     rangeForMemoryDumps,
     subGarbageCollectionEventName,
     topGarbageCollectionEventName,
