@@ -78,23 +78,23 @@ QUnit.test('iframeIndex: multiple layers', function(assert) {
   assert.equal(serializer.iframeIndex(grandChildFrame2.contentWindow), 1);
 });
 
-QUnit.test('iframeFullyQualifiedName: single layer', function(assert) {
+QUnit.test('iframeQualifiedName: single layer', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var childFrame1 = document.createElement('iframe');
   var childFrame2 = document.createElement('iframe');
   fixture.appendChild(childFrame1);
   fixture.appendChild(childFrame2);
-  assert.equal(serializer.iframeFullyQualifiedName(window), '0');
+  assert.equal(serializer.iframeQualifiedName(window), '0');
   assert.equal(
-      serializer.iframeFullyQualifiedName(childFrame1.contentWindow),
+      serializer.iframeQualifiedName(childFrame1.contentWindow),
       '0.0');
   assert.equal(
-      serializer.iframeFullyQualifiedName(childFrame2.contentWindow),
+      serializer.iframeQualifiedName(childFrame2.contentWindow),
       '0.1');
 });
 
-QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
+QUnit.test('iframeQualifiedName: multiple layers', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');
   var childFrame = document.createElement('iframe');
@@ -105,10 +105,10 @@ QUnit.test('iframeFullyQualifiedName: multiple layers', function(assert) {
   childFrameBody.appendChild(grandChildFrame1);
   childFrameBody.appendChild(grandChildFrame2);
   assert.equal(
-      serializer.iframeFullyQualifiedName(grandChildFrame1.contentWindow),
+      serializer.iframeQualifiedName(grandChildFrame1.contentWindow),
       '0.0.0');
   assert.equal(
-      serializer.iframeFullyQualifiedName(grandChildFrame2.contentWindow),
+      serializer.iframeQualifiedName(grandChildFrame2.contentWindow),
       '0.0.1');
 });
 
@@ -170,11 +170,19 @@ QUnit.test('processHoleAttribute: nested window', function(assert) {
   assert.equal(serializer.html[5], '&amp;quot; ');
 });
 
-QUnit.test('fullyQualifiedURL', function(assert) {
+QUnit.test('qualifiedUrlForElement', function(assert) {
   var serializer = new HTMLSerializer();
   var iframe = document.createElement('iframe');
   iframe.setAttribute('src', 'page.html');
-  var url = serializer.fullyQualifiedURL(iframe);
+  var url = serializer.qualifiedUrlForElement(iframe);
+  var href = window.location.href;
+  var path = href.slice(0, href.lastIndexOf('/'));
+  assert.equal(path + '/page.html', url.href);
+});
+
+QUnit.test('qualifiedUrl', function(assert) {
+  var serializer = new HTMLSerializer();
+  var url = serializer.qualifiedUrl('page.html');
   var href = window.location.href;
   var path = href.slice(0, href.lastIndexOf('/'));
   assert.equal(path + '/page.html', url.href);
@@ -501,28 +509,28 @@ QUnit.test('escapedUnicodeString: css', function(assert) {
       'i \\2665 sf');
 });
 
-QUnit.test('fullyQualifiedFontURL', function(assert) {
+QUnit.test('qualifiedFontUrl', function(assert) {
   var serializer = new HTMLSerializer();
   var href = 'http://www.example.com/path/page/';
   var url1 = '/hello/world/';
   assert.equal(
-      serializer.fullyQualifiedFontURL(href, url1),
+      serializer.qualifiedFontUrl(href, url1),
       'http://www.example.com/hello/world/');
   var url2 = './hello/world/';
   assert.equal(
-      serializer.fullyQualifiedFontURL(href, url2),
+      serializer.qualifiedFontUrl(href, url2),
       'http://www.example.com/path/./hello/world/');
   var url3 = '../hello/world/';
   assert.equal(
-      serializer.fullyQualifiedFontURL(href, url3),
+      serializer.qualifiedFontUrl(href, url3),
       'http://www.example.com/path/../hello/world/');
   var url4 = 'http://www.google.com/';
   assert.equal(
-      serializer.fullyQualifiedFontURL(href, url4),
+      serializer.qualifiedFontUrl(href, url4),
       'http://www.google.com/');
   var url5 = 'hello/world/';
   assert.equal(
-      serializer.fullyQualifiedFontURL(href, url5),
+      serializer.qualifiedFontUrl(href, url5),
       'http://www.example.com/path/hello/world/');
 });
 
@@ -644,7 +652,7 @@ QUnit.test('serialize tree: end-to-end, no style', function(assert) {
     },
     'windowHeight': serializer.windowHeight,
     'windowWidth': serializer.windowWidth,
-    'frameIndex': serializer.iframeFullyQualifiedName(win)
+    'frameIndex': serializer.iframeQualifiedName(win)
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
   assert.equal(html, '<div id="snap-it0" >hello world</div>');
@@ -689,7 +697,7 @@ QUnit.test('serialize tree: end-to-end, style', function(assert) {
     },
     'windowHeight': serializer.windowHeight,
     'windowWidth': serializer.windowWidth,
-    'frameIndex': serializer.iframeFullyQualifiedName(win)
+    'frameIndex': serializer.iframeQualifiedName(win)
   };
   var html = unescapeHTML(outputHTMLString([message]), 1);
   assert.equal(
@@ -980,4 +988,16 @@ QUnit.test('getExternalImageUrl: fileSuffix', function(assert) {
   assert.equal(serializer.fileSuffix('http://foo.com/foo..png'), 'png');
   assert.equal(serializer.fileSuffix('http://foo.com/foo.png?'), 'png');
   assert.equal(serializer.fileSuffix('http://foo.com/foo.png?v=w'), 'png');
+});
+
+QUnit.test('wrapUrl', function(assert) {
+  var serializer = new HTMLSerializer();
+  assert.equal(serializer.wrapUrl(''), 'url("")');
+  assert.equal(serializer.wrapUrl('http://www.foo.com'),
+      'url("http://www.foo.com")');
+  var dataUrl = 'data:image/gif;base64,R0lGODlhAQABAIAAAA' +
+      'UEBAAAACwAAAAAAQABAAACAkQBADs=';
+  assert.equal(serializer.wrapUrl(dataUrl),
+      'url("data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAk' +
+      'QBADs=")');
 });
