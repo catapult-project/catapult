@@ -112,6 +112,109 @@ QUnit.test('iframeQualifiedName: multiple layers', function(assert) {
       '0.0.1');
 });
 
+QUnit.test('processTree: background-image with no local rewrite', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createElement('div');
+  node.id = 'targetId';
+  node.style.backgroundImage = "url('https://www.images.com/foo.png')";
+  node.appendChild(document.createTextNode('test'));
+  fixture.appendChild(node);
+  var serializer = new HTMLSerializer();
+  serializer.processTree(node);
+  assert.deepEqual(serializer.externalImages, [['targetId',
+      'https://www.images.com/foo.png']]);
+  assert.equal(serializer.idToStyleMap['targetId']['background-image'],
+      'url("https://www.images.com/foo.png")');
+});
+
+QUnit.test('processTree: background-image with local rewrite', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createElement('div');
+  node.id = 'targetId';
+  node.style.backgroundImage = "url('https://www.images.com/foo.png')";
+  node.appendChild(document.createTextNode('test'));
+  fixture.appendChild(node);
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local/');
+  serializer.processTree(node);
+  assert.deepEqual(serializer.externalImages, [['targetId',
+      'https://www.images.com/foo.png']]);
+  assert.equal(serializer.idToStyleMap['targetId']['background-image'],
+      'url("local/targetId.png")');
+});
+
+QUnit.test('processTree: background-image with data url and local rewrite', function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createElement('div');
+  node.id = 'targetId';
+  node.style.backgroundImage = "url('data:image/gif;base64,R0lGODlhAQABAIAAAA" +
+      "UEBAAAACwAAAAAAQABAAACAkQBADs=')";
+  node.appendChild(document.createTextNode('test'));
+  fixture.appendChild(node);
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local/');
+  serializer.processTree(node);
+  assert.equal(0, serializer.externalImages.length);
+  assert.equal(serializer.idToStyleMap['targetId']['background-image'],
+      'url("data:image/gif;base64,R0lGODlhAQABAIAAAA' +
+      'UEBAAAACwAAAAAAQABAAACAkQBADs=")');
+});
+
+QUnit.test('processTree: background-image with multiple images and local rewrite',
+  function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createElement('div');
+  node.id = 'targetId';
+  node.style.backgroundImage = 'url("https://www.images.com/foo.png"),' +
+      'url("https://www.images.com/bar.png")';
+  node.appendChild(document.createTextNode('test'));
+  fixture.appendChild(node);
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local/');
+  serializer.processTree(node);
+  // TODO(wkorman): Currently this produces not-useful output (two
+  // entries with the same rewritten file name) as we don't support
+  // having multiple external images associated with a single element
+  // id. Look at tacking an optional incrementing per-element image
+  // number onto the name (which will need to be passed along in
+  // externalImages as well somehow).
+  assert.deepEqual(serializer.externalImages, [['targetId',
+      'https://www.images.com/foo.png'],
+      ['targetId', 'https://www.images.com/bar.png']]);
+  assert.equal(serializer.idToStyleMap['targetId']['background-image'],
+      'url("local/targetId.png"),url("local/targetId.png")');
+});
+
+QUnit.test('processTree: background-image with complex multiple images and local rewrite',
+  function(assert) {
+  var fixture = document.getElementById('qunit-fixture');
+  var node = document.createElement('div');
+  node.id = 'targetId';
+  node.style.backgroundImage = 'url("https://www.images.com/foo.png"),' +
+      'url("data:image/gif;base64,R0lGODlhAQABAIAAAA"),' +
+      'url("https://www.images.com/bar.png"),' +
+      'linear-gradient(to right top,red,rgb(240, 109, 6)),' +
+      'url("https://www.images.com/baz.png")';
+  node.appendChild(document.createTextNode('test'));
+  fixture.appendChild(node);
+  var serializer = new HTMLSerializer();
+  serializer.setLocalImagePath('local/');
+  serializer.processTree(node);
+  // TODO(wkorman): The actual external images produce duplicate
+  // filenames for same reason as above unit test. However, we should
+  // successfully pass through the other urls.
+  assert.deepEqual(serializer.externalImages, [
+      ['targetId', 'https://www.images.com/foo.png'],
+      ['targetId', 'https://www.images.com/bar.png'],
+      ['targetId', 'https://www.images.com/baz.png']]);
+  assert.equal(serializer.idToStyleMap['targetId']['background-image'],
+               'url("local/targetId.png"),' +
+               'url("data:image/gif;base64,R0lGODlhAQABAIAAAA"),' +
+               'url("local/targetId.png"),' +
+               'linear-gradient(to right top,red,rgb(240,109,6)),' +
+               'url("local/targetId.png")');
+});
+
 QUnit.test('processSimpleAttribute: top window', function(assert) {
   var serializer = new HTMLSerializer();
   var fixture = document.getElementById('qunit-fixture');

@@ -266,6 +266,7 @@ var HTMLSerializer = class {
       }
       this.processAttributes(node, id);
       this.processPseudoElements(node, id);
+      this.processBackgroundImageStyle(node, id);
       this.html.push('>');
 
       if (tagName == 'HEAD') {
@@ -343,6 +344,58 @@ var HTMLSerializer = class {
     text = this.escapedCharacterString(text, nestingDepth+1);
     text = this.escapedUnicodeString(text, this.INPUT_TEXT_TYPE.HTML);
     this.html.push(text);
+  }
+
+  /**
+   * Processes the 'background-image' style for the given element,
+   * noting any external images in |this.externalImages| and
+   * potentially mutating their url to allow for local storage as
+   * appropriate.
+   *
+   * @param {Element} element The Element to serialize.
+   * @param {string} id The id of the Element being serialized.
+   * @private
+   */
+  processBackgroundImageStyle(element, id) {
+    var imageStyle = this.idToStyleMap[id]['background-image'];
+    if (!imageStyle || imageStyle == 'none')
+      return;
+
+    // TODO(wkorman): Create helper method to reduce win code redundancy.
+    var imageUrls = imageStyle.split(',');
+    var outImageUrls = [];
+    var urlRegex = /\s*url\("([^)]*)"\)/;
+    // TODO(wkorman): Finish support for multiple images in a single
+    // element's background-image style. See also the unit test for
+    // background-image with multiple images.
+    for (var i = 0; i < imageUrls.length; i++) {
+      var rawImageUrl = imageUrls[i].trim();
+      var matches = rawImageUrl.match(urlRegex);
+      // If it doesn't look like a url, leave it alone.
+      if (!matches) {
+        outImageUrls.push(rawImageUrl);
+        continue;
+      }
+
+      var parsedUrl = matches[1];
+      var url = this.qualifiedUrl(parsedUrl);
+
+      if (this.isImageDataUrl(url.href)) {
+        // Just pass the url through as it will render directly.
+        outImageUrls.push(wrapUrl(url.href));
+      } else {
+        // TODO(wkorman): For same-origin images, consider creating a
+        // "hole" and processing it somehow. For now we just punt and
+        // treat same-origin images as external images, which is
+        // inefficient, but should generally work.
+        this.externalImages.push([id, url.href]);
+        var wrappedUrl = this.wrapUrl(this.getExternalImageUrl(id, url.href));
+        outImageUrls.push(wrappedUrl);
+      }
+    }
+
+    var processedImageStyle = outImageUrls.join(',');
+    this.idToStyleMap[id]['background-image'] = processedImageStyle;
   }
 
   /**
