@@ -31,8 +31,15 @@ class Oobe(web_contents.WebContents):
 
   def _GaiaWebviewContext(self):
     webview_contexts = self.GetWebviewContexts()
-    if webview_contexts:
-      return webview_contexts[0]
+    for webview in webview_contexts:
+      # GAIA webview has base.href accounts.google.com.
+      if webview.EvaluateJavaScript(
+          """
+          bases = document.getElementsByTagName('base');
+          bases.length > 0 ?
+              bases[0].href.indexOf('https://accounts.google.com/') == 0 : false;
+          """):
+        return webview
     return None
 
   def _ExecuteOobeApi(self, api, *args):
