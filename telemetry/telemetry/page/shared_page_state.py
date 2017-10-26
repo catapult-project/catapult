@@ -196,9 +196,12 @@ class SharedPageState(story_module.SharedState):
     self._test.WillStartBrowser(self.platform)
     if page.startup_url:
       self._finder_options.browser_options.startup_url = page.startup_url
-    self._finder_options.browser_options.AppendExtraBrowserArgs(
+    # Create a deep copy of finder options so that we can add page-level
+    # arguments to it without polluting the run for the next page.
+    finder_options_for_page = self._finder_options.Copy()
+    finder_options_for_page.browser_options.AppendExtraBrowserArgs(
         page.extra_browser_args)
-    self._browser = self._possible_browser.Create(self._finder_options)
+    self._browser = self._possible_browser.Create(finder_options_for_page)
     self._test.DidStartBrowser(self.browser)
 
     if self._first_browser:
