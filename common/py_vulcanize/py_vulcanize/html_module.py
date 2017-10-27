@@ -22,7 +22,7 @@ class HTMLModule(module.Module):
   def _module_dir_name(self):
     return os.path.dirname(self.resource.absolute_path)
 
-  def Parse(self):
+  def Parse(self, excluded_scripts):
     try:
       parser_results = parse_html_deps.HTMLModuleParser().Parse(self.contents)
     except Exception as ex:
@@ -32,12 +32,13 @@ class HTMLModule(module.Module):
                                      self.name,
                                      self._module_dir_name,
                                      self.IsThirdPartyComponent(),
-                                     parser_results)
+                                     parser_results,
+                                     excluded_scripts)
     self._parser_results = parser_results
     self.scripts = parser_results.scripts
 
-  def Load(self):
-    super(HTMLModule, self).Load()
+  def Load(self, excluded_scripts):
+    super(HTMLModule, self).Load(excluded_scripts=excluded_scripts)
 
     reachable_names = set([m.name
                            for m in self.all_dependent_modules_recursive])
@@ -48,6 +49,10 @@ class HTMLModule(module.Module):
 
     for script in self.scripts:
       if script.is_external:
+        if excluded_scripts and any(re.match(pattern, script.src) for
+            pattern in excluded_scripts):
+          continue
+
         resource = _HRefToResource(self.loader, self.name, self._module_dir_name,
                                    script.src,
                                    tag_for_err_msg='<script src="%s">' % script.src)
@@ -105,13 +110,18 @@ def _HRefToResource(
   return resource
 
 
-def Parse(loader, module_name, module_dir_name, is_component, parser_results):
+def Parse(loader, module_name, module_dir_name, is_component, parser_results,
+          exclude_scripts=None):
   res = module.ModuleDependencyMetadata()
   if is_component:
     return res
 
   # External script references.
   for href in parser_results.scripts_external:
+    if exclude_scripts and any(re.match(pattern, href) for
+        pattern in exclude_scripts):
+      continue
+
     resource = _HRefToResource(loader, module_name, module_dir_name,
                                href,
                                tag_for_err_msg='<script src="%s">' % href)
@@ -120,6 +130,10 @@ def Parse(loader, module_name, module_dir_name, is_component, parser_results):
 
   # External imports. Mostly the same as <script>, but we know its a module.
   for href in parser_results.imports:
+    if exclude_scripts and any(re.match(pattern, href) for
+        pattern in exclude_scripts):
+      continue
+
     if not href.endswith('.html'):
       raise Exception(
           'In %s, the <link rel="import" href="%s"> must point at a '

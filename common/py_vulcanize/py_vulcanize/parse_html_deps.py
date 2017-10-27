@@ -101,7 +101,8 @@ class ExternalScript(Script):
   def loaded_raw_script(self):
     if self._loaded_raw_script:
       return self._loaded_raw_script
-    raise Exception("Raw script was never loaded for this external script.")
+
+    return None
 
   @loaded_raw_script.setter
   def loaded_raw_script(self, value):
@@ -116,6 +117,9 @@ class ExternalScript(Script):
                              use_include_tags_for_scripts,
                              dir_for_include_tag_root):
     raw_script = self.loaded_raw_script
+    if not raw_script:
+      return
+
     if use_include_tags_for_scripts:
       rel_filename = os.path.relpath(raw_script.filename,
                                     dir_for_include_tag_root)

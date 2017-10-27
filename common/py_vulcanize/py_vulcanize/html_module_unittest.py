@@ -183,6 +183,7 @@ class HTMLModuleTests(unittest.TestCase):
 <link rel="import" href="/widget.html">
 <link rel="stylesheet" href="../common.css">
 <script src="/raw_script.js"></script>
+<script src="/excluded_script.js"></script>
 <dom-module id="start">
   <template>
   </template>
@@ -220,7 +221,8 @@ console.log('/raw/raw_script.js was written');
            os.path.normpath('/components/'),
            os.path.normpath('/raw/')])
       loader = resource_loader.ResourceLoader(project)
-      a_b_start_module = loader.LoadModule(module_name='a.b.start')
+      a_b_start_module = loader.LoadModule(
+          module_name='a.b.start', excluded_scripts=['\/excluded_script.js'])
       load_sequence = project.CalcLoadSequenceForModules([a_b_start_module])
 
       # Check load sequence names.
@@ -240,6 +242,7 @@ console.log('/raw/raw_script.js was written');
       assert 'inline script for start.html' in js
       assert 'inline script for widget.html' in js
       assert '/raw/raw_script.js' in js
+      assert 'excluded_script.js' not in js
 
       # Check HTML generation.
       html = generate.GenerateStandaloneHTMLAsString(

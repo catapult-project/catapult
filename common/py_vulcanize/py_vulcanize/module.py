@@ -140,7 +140,7 @@ class Module(object):
       return True
     return False
 
-  def Parse(self):
+  def Parse(self, excluded_scripts):
     """Parses self.contents and fills in the module's dependency metadata."""
     raise NotImplementedError()
 
@@ -161,7 +161,7 @@ class Module(object):
     """Appends the HTML for this module [without links] to the provided file."""
     pass
 
-  def Load(self):
+  def Load(self, excluded_scripts=None):
     """Loads the sub-resources that this module depends on from its dependency
     metadata.
 
@@ -176,7 +176,8 @@ class Module(object):
 
     metadata = self.dependency_metadata
     for name in metadata.dependent_module_names:
-      module = self.loader.LoadModule(module_name=name)
+      module = self.loader.LoadModule(module_name=name,
+                                      excluded_scripts=excluded_scripts)
       self.dependent_modules.append(module)
 
     for name in metadata.style_sheet_names:

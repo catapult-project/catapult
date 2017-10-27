@@ -133,8 +133,10 @@ class Project(object):
     return self.loader.LoadModule(module_name=module_name,
                                   module_filename=module_filename)
 
-  def CalcLoadSequenceForModuleNames(self, module_names):
-    modules = [self.loader.LoadModule(module_name=name) for
+  def CalcLoadSequenceForModuleNames(self, module_names,
+                                     excluded_scripts=None):
+    modules = [self.loader.LoadModule(module_name=name,
+                                      excluded_scripts=excluded_scripts) for
                name in module_names]
     return self.CalcLoadSequenceForModules(modules)
 

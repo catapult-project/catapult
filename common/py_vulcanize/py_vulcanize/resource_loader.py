@@ -108,7 +108,8 @@ class ResourceLoader(object):
       return js_resource
     return html_resource
 
-  def LoadModule(self, module_name=None, module_filename=None):
+  def LoadModule(self, module_name=None, module_filename=None,
+                 excluded_scripts=None):
     assert bool(module_name) ^ bool(module_filename), (
         'Must provide either module_name or module_filename.')
     if module_filename:
@@ -137,8 +138,8 @@ class ResourceLoader(object):
     if resource.absolute_path.endswith('.js'):
       return m
 
-    m.Parse()
-    m.Load()
+    m.Parse(excluded_scripts)
+    m.Load(excluded_scripts)
     return m
 
   def LoadRawScript(self, relative_raw_script_path):
