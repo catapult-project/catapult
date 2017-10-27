@@ -63,6 +63,10 @@ tr.exportTo('tr.v.d', function() {
       this.guid_ = guid;
     }
 
+    get hasGuid() {
+      return this.guid_ !== undefined;
+    }
+
     /**
      * If this Diagnostic is shared between multiple Histograms, then return its
      * |guid|. Otherwise, serialize this Diagnostic to a dictionary.
