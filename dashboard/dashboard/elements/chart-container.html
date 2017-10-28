@@ -984,7 +984,7 @@ triaging functionality in the chart.
             const index = this.indicesToGraph[i];
             const series = this.json.annotations[index];
             if (!series) {
-              this.warnings.push({value: 'No data available.'});
+              this.warnings.push({value: 'No data available in '+series});
             }
           }
 
