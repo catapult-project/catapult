@@ -15,6 +15,7 @@ import time
 import traceback
 
 from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import memory_debug  # pylint: disable=import-error
 
 from telemetry import value as value_module
 from telemetry.internal.results import chart_json_output_formatter
@@ -374,6 +375,8 @@ class PageTestResults(object):
   def WillRunPage(self, page, storyset_repeat_counter=0):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = story_run.StoryRun(page)
+    # TODO(crbug.com/778647): Remove after bug diagnosed or fixed.
+    memory_debug.LogHostMemoryUsage()
     self._progress_reporter.WillRunPage(self)
     self.telemetry_info.WillRunStory(
         page, storyset_repeat_counter)
@@ -443,14 +446,23 @@ class PageTestResults(object):
     if self._benchmark_enabled:
       self._progress_reporter.DidFinishAllTests(self)
 
+      # TODO(crbug.com/778647): Remove after bug diagnosed or fixed.
+      memory_debug.LogHostMemoryUsage()
+
       # Only serialize the trace if output_format is json or html.
       if (self._output_dir and
           any(isinstance(o, html_output_formatter.HtmlOutputFormatter)
               for o in self._output_formatters)):
         self._SerializeTracesToDirPath()
-      for output_formatter in self._output_formatters:
-        output_formatter.Format(self)
-        output_formatter.PrintViewResults()
+
+      try:
+        for output_formatter in self._output_formatters:
+          output_formatter.Format(self)
+          output_formatter.PrintViewResults()
+      except:
+        # TODO(crbug.com/778647): Remove after bug diagnosed or fixed.
+        memory_debug.LogHostMemoryUsage()
+        raise
     else:
       for output_formatter in self._output_formatters:
         output_formatter.FormatDisabled(self)

@@ -1377,9 +1377,11 @@ class StoryRunnerTest(unittest.TestCase):
     fake_benchmark = FakeBenchmark()
     options = self._GenerateBaseBrowserFinderOptions()
 
-    with mock.patch('telemetry.internal.story_runner.time.time') as time_patch:
-      # 3, because telemetry code asks for the time at some point
-      time_patch.side_effect = [1, 0, 61]
+    with mock.patch('telemetry.internal.story_runner.time') as time_patch:
+      # Note: we patch the time module loaded by story_runner, not methods
+      # within the time module itself. This prevents calls from any other
+      # clients of time.time() to interfere with the test.
+      time_patch.time.side_effect = [1, 61]
       tmp_path = tempfile.mkdtemp()
 
       try:
