@@ -7,7 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/dropdown.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_controls_export.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
 
 <dom-module id="tr-v-ui-histogram-set-controls">
@@ -109,20 +111,6 @@ found in the LICENSE file.
     #export {
       margin-right: 20px;
     }
-
-    #export_menu {
-      background: white;
-      border: 1px solid black;
-      display: flex;
-      flex-direction: column;
-      padding: 0.5em;
-      position: absolute;
-      visibility: hidden;
-      z-index: 9999;
-    }
-    #export_menu:focus {
-      outline: none;
-    }
     </style>
 
     <div id="controls">
@@ -167,14 +155,10 @@ found in the LICENSE file.
       <select id="statistic" value="{{displayStatisticName::change}}">
       </select>
 
-      <button id="export" on-tap="toggleExportMenu_">Export</button>
-
-      <div id="export_menu" tabindex="0" on-blur="maybeHideExportMenu_">
-        <button on-tap="exportRawCsv_">raw CSV</button>
-        <button on-tap="exportRawJson_">raw JSON</button>
-        <button on-tap="exportMergedCsv_">merged CSV</button>
-        <button on-tap="exportMergedJson_">merged JSON</button>
-      </div>
+      <tr-ui-b-dropdown label="Export">
+        <tr-v-ui-histogram-set-controls-export>
+        </tr-v-ui-histogram-set-controls-export>
+      </tr-ui-b-dropdown>
 
       <input type="checkbox" id="show_all" checked="{{showAll::change}}" title="When unchecked, less important histograms are hidden.">
       <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
@@ -508,56 +492,6 @@ tr.exportTo('tr.v.ui', function() {
     set feedbackHref(href) {
       this.$.feedback.href = href;
       this.$.feedback.style.display = 'inline';
-    },
-
-    showExportMenu_() {
-      this.$.export_menu.style.visibility = 'visible';
-      const rect = this.$.export.getBoundingClientRect();
-      this.$.export_menu.style.left = rect.left + 'px';
-      this.$.export_menu.focus();
-    },
-
-    maybeHideExportMenu_(event) {
-      if (event &&
-          (event.relatedTarget !== null) &&
-          (event.relatedTarget.id === 'export' ||
-           event.relatedTarget.parentNode.id === 'export_menu')) {
-        return;
-      }
-      this.hideExportMenu_();
-    },
-
-    hideExportMenu_() {
-      this.$.export_menu.style.visibility = 'hidden';
-    },
-
-    toggleExportMenu_() {
-      if (this.$.export_menu.style.visibility === 'visible') {
-        this.hideExportMenu_();
-      } else {
-        this.showExportMenu_();
-      }
-    },
-
-    exportRawCsv_() {
-      this.export_(false, 'csv');
-    },
-
-    exportRawJson_() {
-      this.export_(false, 'json');
-    },
-
-    exportMergedCsv_() {
-      this.export_(true, 'csv');
-    },
-
-    exportMergedJson_() {
-      this.export_(true, 'json');
-    },
-
-    export_(merged, format) {
-      tr.b.dispatchSimpleEvent(this, 'export', true, true, {merged, format});
-      this.hideExportMenu_();
     },
 
     clearSearch_() {

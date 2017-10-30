@@ -555,6 +555,7 @@
       'tracing/value/ui/diagnostic_span_behavior.html',
       'tracing/value/ui/generic_set_span.html',
       'tracing/value/ui/histogram_set_controls.html',
+      'tracing/value/ui/histogram_set_controls_export.html',
       'tracing/value/ui/histogram_set_table.html',
       'tracing/value/ui/histogram_set_table_cell.html',
       'tracing/value/ui/histogram_set_table_name_cell.html',
