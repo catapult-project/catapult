@@ -20,6 +20,7 @@ from telemetry.internal.browser import browser_options
 
 HTML_SUFFIX = '.html'
 STRIP_QUERY_PARAM_REGEX = re.compile(r'\?.*$')
+EXPENSIVE_JS_TIMEOUT_SECONDS = 240
 
 def _TransmitLargeJSONToTab(tab, json_obj, js_holder_name):
   tab.ExecuteJavaScript(
@@ -121,7 +122,8 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
 
     print 'Snapshotting content of %s. This could take a while...' % url
     tab.WaitForDocumentReadyStateToBeComplete()
-    tab.action_runner.WaitForNetworkQuiescence(timeout_in_seconds=60)
+    tab.action_runner.WaitForNetworkQuiescence(
+        timeout_in_seconds=EXPENSIVE_JS_TIMEOUT_SECONDS)
 
     snapit_script = _ReadSnapItSource('HTMLSerializer.js')
     dom_combining_script = _ReadSnapItSource('popup.js')
@@ -153,7 +155,8 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
           htmlSerializer.fillHolesAsync(document, function(s) {
             serializedDom = s.asDict();
           });
-          ''' % local_image_path, context_id=context_id)
+          ''' % local_image_path, context_id=context_id,
+          timeout=EXPENSIVE_JS_TIMEOUT_SECONDS)
       tab.WaitForJavaScriptCondition(
           'serializedDom !== undefined', context_id=context_id)
       serialized_doms.append(tab.EvaluateJavaScript(
@@ -177,8 +180,10 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
       tab.ExecuteJavaScript('serializedDoms.push(sub_dom);')
 
     # Combine all the doms to one HTML string.
-    tab.EvaluateJavaScript(dom_combining_script)
-    page_snapshot = tab.EvaluateJavaScript('outputHTMLString(serializedDoms);')
+    tab.EvaluateJavaScript(dom_combining_script,
+                           timeout=EXPENSIVE_JS_TIMEOUT_SECONDS)
+    page_snapshot = tab.EvaluateJavaScript('outputHTMLString(serializedDoms);',
+                                           timeout=EXPENSIVE_JS_TIMEOUT_SECONDS)
 
     print 'Writing page snapshot [path=%s].' % snapshot_path
     snapshot_file.write(page_snapshot)
