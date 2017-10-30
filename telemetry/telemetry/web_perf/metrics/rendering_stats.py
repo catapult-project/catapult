@@ -117,16 +117,12 @@ def HasDrmStats(process):
 
 def HasRenderingStats(process):
   """ Returns True if the process contains at least one
-      BenchmarkInstrumentation::*RenderingStats event with a frame.
+      BenchmarkInstrumentation::DisplayRenderingStats event with a frame.
   """
   if not process:
     return False
   for event in process.IterAllSlicesOfName(
       'BenchmarkInstrumentation::DisplayRenderingStats'):
-    if 'data' in event.args and event.args['data']['frame_count'] == 1:
-      return True
-  for event in process.IterAllSlicesOfName(
-      'BenchmarkInstrumentation::ImplThreadRenderingStats'):
     if 'data' in event.args and event.args['data']['frame_count'] == 1:
       return True
   return False
