@@ -34,23 +34,27 @@ def KillAllAdb():
   def get_all_adb():
     for p in psutil.process_iter():
       try:
-        if 'adb' in p.name:
-          yield p
+        # Note: p.as_dict is compatible with both older (v1 and under) as well
+        # as newer (v2 and over) versions of psutil.
+        # See: http://grodola.blogspot.com/2014/01/psutil-20-porting.html
+        pinfo = p.as_dict(attrs=['pid', 'name', 'cmdline'])
+        if 'adb' == pinfo['name']:
+          pinfo['cmdline'] = ' '.join(pinfo['cmdline'])
+          yield p, pinfo
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
 
   for sig in [signal.SIGTERM, signal.SIGQUIT, signal.SIGKILL]:
-    for p in get_all_adb():
+    for p, pinfo in get_all_adb():
       try:
-        logger.info('kill %d %d (%s [%s])', sig, p.pid, p.name,
-                    ' '.join(p.cmdline))
+        pinfo['signal'] = sig
+        logger.info('kill %(signal)s %(pid)s (%(name)s [%(cmdline)s])', pinfo)
         p.send_signal(sig)
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
-  for p in get_all_adb():
+  for _, pinfo in get_all_adb():
     try:
-      logger.error('Unable to kill %d (%s [%s])', p.pid, p.name,
-                   ' '.join(p.cmdline))
+      logger.error('Unable to kill %(pid)s (%(name)s [%(cmdline)s])', pinfo)
     except (psutil.NoSuchProcess, psutil.AccessDenied):
       pass
 
