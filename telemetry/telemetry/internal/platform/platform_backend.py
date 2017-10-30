@@ -252,20 +252,6 @@ class PlatformBackend(object):
   def GetNetworkData(self, browser):
     raise NotImplementedError()
 
-  def ReadMsr(self, msr_number, start=0, length=64):
-    """Read a CPU model-specific register (MSR).
-
-    Which MSRs are available depends on the CPU model.
-    On systems with multiple CPUs, this function may run on any CPU.
-
-    Args:
-      msr_number: The number of the register to read.
-      start: The least significant bit to read, zero-indexed.
-          (Said another way, the number of bits to right-shift the MSR value.)
-      length: The number of bits to read. MSRs are 64 bits, even on 32-bit CPUs.
-    """
-    raise NotImplementedError()
-
   def CanTakeScreenshot(self):
     return False
 
