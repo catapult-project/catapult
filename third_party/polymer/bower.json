@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "app-route": "PolymerElements/app-route#^1.0.0",
+    "google-signin": "GoogleWebComponents/google-signin#^2.0.0",
     "iron-ajax": "PolymerElements/iron-ajax#^2.0.0",
     "iron-collapse": "PolymerElements/iron-collapse#^1.0.0",
     "iron-form": "PolymerElements/iron-form#^2.0.0",
