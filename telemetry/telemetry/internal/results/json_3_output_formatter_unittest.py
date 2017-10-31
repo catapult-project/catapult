@@ -275,7 +275,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(json_test_results['num_failures_by_type'], {'PASS': 1})
     self.assertEquals(json_test_results['path_delimiter'], '/')
     self.assertAlmostEqual(json_test_results['seconds_since_epoch'],
-                           time.time(), 1)
+                           time.time(), delta=1)
     self.assertEquals(json_test_results['tests'], {
         'test_benchmark': {
             'Foo': {
