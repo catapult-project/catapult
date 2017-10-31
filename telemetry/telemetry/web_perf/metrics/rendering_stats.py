@@ -105,42 +105,26 @@ def ComputeEventLatencies(input_events):
   return [(name, latency) for _, name, latency in input_event_latencies]
 
 
-def HasDrmStats(process):
-  """ Return True if the process contains DrmEventFlipComplete event.
+def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
+                                    gpu_process):
+  """ Returns the name of the event used to count frame timestamps, and the
+      process that produced the events.
   """
-  if not process:
-    return False
-  for event in process.IterAllSlicesOfName('DrmEventFlipComplete'):
-    if 'data' in event.args and event.args['data']['frame_count'] == 1:
-      return True
-  return False
+  if surface_flinger_process:
+    return 'vsync_before', surface_flinger_process
 
-def HasRenderingStats(process):
-  """ Returns True if the process contains at least one
-      BenchmarkInstrumentation::DisplayRenderingStats event with a frame.
-  """
-  if not process:
-    return False
-  for event in process.IterAllSlicesOfName(
-      'BenchmarkInstrumentation::DisplayRenderingStats'):
-    if 'data' in event.args and event.args['data']['frame_count'] == 1:
-      return True
-  return False
+  drm_event_name = 'DrmEventFlipComplete'
+  display_rendering_stats = 'BenchmarkInstrumentation::DisplayRenderingStats'
+  if gpu_process:
+    # Look for Drm events first. If there are no Drm events, then look for
+    # display rendering stats (which lives in the gpu process with viz).
+    for event_name in (drm_event_name, display_rendering_stats):
+      for event in gpu_process.IterAllSlicesOfName(event_name):
+        if 'data' in event.args and event.args['data']['frame_count'] == 1:
+          return event_name, gpu_process
 
-def GetTimestampEventName(process):
-  """ Returns the name of the events used to count frame timestamps. """
-  if process.name == 'SurfaceFlinger':
-    return 'vsync_before'
+  return display_rendering_stats, browser_process
 
-  if process.name == 'GPU Process':
-    return 'DrmEventFlipComplete'
-
-  event_name = 'BenchmarkInstrumentation::DisplayRenderingStats'
-  for event in process.IterAllSlicesOfName(event_name):
-    if 'data' in event.args and event.args['data']['frame_count'] == 1:
-      return event_name
-
-  return 'BenchmarkInstrumentation::ImplThreadRenderingStats'
 
 class RenderingStats(object):
   def __init__(self, renderer_process, browser_process, surface_flinger_process,
@@ -158,18 +142,8 @@ class RenderingStats(object):
     assert len(timeline_ranges) > 0
     self.refresh_period = None
 
-    # Find the top level process with rendering stats (browser or renderer).
-    if surface_flinger_process:
-      timestamp_process = surface_flinger_process
-      self._GetRefreshPeriodFromSurfaceFlingerProcess(surface_flinger_process)
-    elif HasDrmStats(gpu_process):
-      timestamp_process = gpu_process
-    elif HasRenderingStats(browser_process):
-      timestamp_process = browser_process
-    else:
-      timestamp_process = renderer_process
-
-    timestamp_event_name = GetTimestampEventName(timestamp_process)
+    timestamp_event_name, timestamp_process = GetTimeStampEventNameAndProcess(
+        browser_process, surface_flinger_process, gpu_process)
 
     # A lookup from list names below to any errors or exceptions encountered
     # in attempting to generate that list.
@@ -200,8 +174,9 @@ class RenderingStats(object):
 
       if timeline_range.is_empty:
         continue
-      self._InitFrameTimestampsFromTimeline(
-          timestamp_process, timestamp_event_name, timeline_range)
+      if timestamp_process:
+        self._InitFrameTimestampsFromTimeline(
+            timestamp_process, timestamp_event_name, timeline_range)
       self._InitImplThreadRenderingStatsFromTimeline(
           renderer_process, timeline_range)
       self._InitInputLatencyStatsFromTimeline(
