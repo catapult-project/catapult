@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/components/app-route/app-location.html">
+<link rel="import" href="/components/iron-form/iron-form.html">
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/components/paper-fab/paper-fab.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
+
+<link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
+
+<dom-module id="try-job-fab">
+  <template>
+    <style include="base-style">
+      paper-input {
+        min-width: 40em;
+      }
+
+      .error {
+        color: var(--paper-red-500);
+      }
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <paper-fab id="try-fab" icon="forward" onclick="try_dialog.open()"></paper-fab>
+    <paper-tooltip for="try-fab" position="left">Test a patch</paper-tooltip>
+    <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation" on-iron-overlay-canceled="handleClose">
+      <h2>Test a patch with this configuration</h2>
+      <div>
+        <template is="dom-if" if="[[error]]">
+          <p class="error">[[error]]
+        </template>
+        <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+          <form action="/api/new" method="POST">
+            <input type="hidden" name="auto_explore" value="0">
+            <input type="hidden" name="bug_id" value="[[job.bug_id]]">
+            <template is="dom-repeat" items="[[getArguments(job)]]">
+              <input type="hidden" name="[[item.key]]" value="[[item.value]]">
+            </template>
+            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+          </form>
+        </iron-form>
+      </div>
+      <div class="buttons">
+        <paper-button onclick="try_form.submit()">Start</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+
+  <script>
+    'use strict';
+    Polymer({
+      is: 'try-job-fab',
+
+      properties: {
+        error: Object,
+        job: Object,
+      },
+
+      getArguments(job) {
+        const tuples = [];
+        for (const key in job.arguments) {
+          tuples.push({key, value: job.arguments[key]});
+        }
+        tuples.push({key: 'start_repository', value: 'chromium'});
+        tuples.push({key: 'end_repository', value: 'chromium'});
+        tuples.push({key: 'start_git_hash', value: 'HEAD'});
+        tuples.push({key: 'end_git_hash', value: 'HEAD'});
+        return tuples;
+      },
+
+      handleClose() {
+        // Add a delay for the exit animation.
+        this.async(this.resetForm, 500);
+      },
+
+      resetForm() {
+        this.$.try_form.reset();
+        this.error = null;
+      },
+
+      handleError(event) {
+        this.error = event.detail.request.response.error;
+      },
+
+      handleResponse(event) {
+        this.set('route.path', '/job/' + event.detail.response.jobId);
+        this.$.try_dialog.close();
+      },
+    });
+  </script>
+</dom-module>

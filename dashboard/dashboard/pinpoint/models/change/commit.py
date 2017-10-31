@@ -101,12 +101,17 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     if repository.startswith('https://'):
       repository = repository_module.Repository(repository)
 
-    commit = cls(repository, data['git_hash'])
+    git_hash = data['git_hash']
 
     try:
-      gitiles_service.CommitInfo(commit.repository_url, commit.git_hash)
+      # If they send in something like HEAD, resolve to a hash.
+      repository_url = repository_module.RepositoryUrl(repository)
+      result = gitiles_service.CommitInfo(repository_url, git_hash)
+      git_hash = result['commit']
     except gitiles_service.NotFoundError as e:
       raise KeyError(str(e))
+
+    commit = cls(repository, git_hash)
 
     return commit
 

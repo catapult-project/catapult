@@ -37,7 +37,7 @@ class New(webapp2.RequestHandler):
         'commits': [{
             'repository': self.request.get('start_repository'),
             'git_hash': self.request.get('start_git_hash')
-        }]
+        }],
     }
 
     change_2 = {
@@ -46,6 +46,9 @@ class New(webapp2.RequestHandler):
             'git_hash': self.request.get('end_git_hash')
         }]
     }
+
+    if self.request.get('patch'):
+      change_2['patch'] = self.request.get('patch')
 
     # Validate arguments and convert them to canonical internal representation.
     arguments, quests = quest_generator.GenerateQuests(self.request)
@@ -72,8 +75,6 @@ class New(webapp2.RequestHandler):
     job.Start()
     job.put()
 
-    # TODO: Figure out if these should be underscores or lowerCamelCase.
-    # TODO: They should match the input arguments.
     self.response.out.write(json.dumps({
         'jobId': job.job_id,
         'jobUrl': job.url,

@@ -33,6 +33,9 @@ class _ChangeTest(testing_common.TestCase):
     })
 
 
+
+@mock.patch('dashboard.services.gitiles_service.CommitInfo',
+            mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
 class ChangeTest(_ChangeTest):
 
   def testChange(self):
@@ -94,8 +97,7 @@ class ChangeTest(_ChangeTest):
     self.assertEqual(c, expected)
 
   @mock.patch('dashboard.services.gerrit_service.GetChange')
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testFromDictWithAllFields(self, _, get_change):
+  def testFromDictWithAllFields(self, get_change):
     get_change.return_value = {
         'id': 'repo~branch~id',
         'revisions': {'2f0d5c7': {}}

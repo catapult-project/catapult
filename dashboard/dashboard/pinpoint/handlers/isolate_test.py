@@ -37,6 +37,8 @@ class _IsolateTest(testing_common.TestCase):
     })
 
 
+@mock.patch('dashboard.services.gitiles_service.CommitInfo',
+            mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
 class FunctionalityTest(_IsolateTest):
 
   def testPostAndGet(self):
