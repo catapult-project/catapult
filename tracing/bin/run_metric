@@ -56,7 +56,7 @@ def Main(argv):
   if failures:
     print 'Running metric failed:'
     for failure in failures:
-      print failure['stack']
+      print failure.stack
 
   output_file = args.filename + '.html'
   open(output_file, 'a').close() # Create file if it doesn't exist.

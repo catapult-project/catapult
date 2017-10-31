@@ -21,7 +21,7 @@ class GTestRunReporter(progress_reporter.RunReporter):
 
   def DidAddFailure(self, failure):
     super(GTestRunReporter, self).DidAddFailure(failure)
-    print >> self._output_stream, failure.stack
+    print >> self._output_stream, failure.stack.encode('utf-8')
     self._output_stream.flush()
 
   def DidRun(self, run_failed):
@@ -52,7 +52,8 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
   def WillRun(self, canonical_url):
     super(GTestProgressReporter, self).WillRun(canonical_url)
-    print >> self._output_stream, '[ RUN      ] %s' % (canonical_url)
+    print >> self._output_stream, '[ RUN      ] %s' % (
+        canonical_url.encode('utf-8'))
     self._output_stream.flush()
     return GTestRunReporter(canonical_url, self._output_stream, time.time())
 
@@ -78,7 +79,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           (failed_runs, unit))
       for failed_canonical_url in failed_canonical_urls:
         print >> self._output_stream, '[  FAILED  ]  %s' % (
-            failed_canonical_url)
+            failed_canonical_url.encode('utf-8'))
       print >> self._output_stream
       count = len(failed_canonical_urls)
       unit = 'TEST' if count == 1 else 'TESTS'
