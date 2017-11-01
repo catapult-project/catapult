@@ -19,6 +19,8 @@ from tracing_build import vulcanize_histograms_viewer
 
 
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
+  NEEDS_HISTOGRAMS = True
+
   def __init__(self, output_stream, metadata, reset_results,
                upload_bucket=None):
     super(HtmlOutputFormatter, self).__init__(output_stream)

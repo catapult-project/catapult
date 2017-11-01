@@ -216,6 +216,10 @@ class PageTestResults(object):
     self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
     self._histograms = histogram_set.HistogramSet()
+    # TODO(crbug.com/780477): Remove this property and their clients when
+    # keeping track of histograms becomes feasible for long running benchmarks.
+    self.needs_histograms = any(
+        f.NEEDS_HISTOGRAMS for f in self._output_formatters)
 
     self._telemetry_info = TelemetryInfo(
         upload_bucket=upload_bucket, output_dir=output_dir)

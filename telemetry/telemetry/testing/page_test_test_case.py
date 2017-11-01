@@ -67,6 +67,7 @@ class PageTestTestCase(unittest.TestCase):
     options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results.needs_histograms = True
     story_runner.Run(
         measurement, ps, options, results, metadata=EmptyMetadataForTest())
     return results

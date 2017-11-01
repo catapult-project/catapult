@@ -15,6 +15,7 @@ class OutputFormatter(object):
 
   Examples of output formatter: CsvOutputFormatter produces results in
   CSV format."""
+  NEEDS_HISTOGRAMS = False
 
   def __init__(self, output_stream):
     """Constructs a new formatter that writes to the output_stream.
