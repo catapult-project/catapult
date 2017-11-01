@@ -11,24 +11,24 @@ found in the LICENSE file.
   <template>
     <style>
     button {
-      @apply(--dropdown-button);
+      @apply --dropdown-button;
     }
     button.open {
-      @apply(--dropdown-button-open);
+      @apply --dropdown-button-open;
     }
     dialog {
       position: absolute;
       margin: 0;
       padding: 1em;
       border: 1px solid darkgrey;
-      @apply(--dropdown-dialog);
+      @apply --dropdown-dialog;
     }
     </style>
 
     <button id="button" on-tap="open">[[label]]</button>
 
     <dialog id="dialog" on-tap="onDialogTap_" on-cancel="close">
-      <content></content>
+      <slot></slot>
     </dialog>
   </template>
 </dom-module>
