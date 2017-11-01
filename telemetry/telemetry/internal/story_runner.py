@@ -295,7 +295,11 @@ def RunBenchmark(benchmark, finder_options):
     if finder_options.run_disabled_tests and can_run_on_platform:
       print 'Running benchmark anyway due to: --also-run-disabled-tests'
     else:
-      print 'Try --also-run-disabled-tests to force the benchmark to run.'
+      if can_run_on_platform:
+        print 'Try --also-run-disabled-tests to force the benchmark to run.'
+      else:
+        print ("This platform is not supported for this benchmark. If this is "
+               "in error please add it to the benchmark's supported platforms.")
       # If chartjson is specified, this will print a dict indicating the
       # benchmark name and disabled state.
       with results_options.CreateResults(
