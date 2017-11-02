@@ -52,40 +52,42 @@ def GetPsOutputWithPlatformBackend(platform_backend, columns, pid):
   return platform_backend.RunCommand(args).splitlines()
 
 
-def EnableListingStrayProcessesUponExitHook():
-  def _ListAllSubprocesses():
-    try:
-      import psutil
-    except ImportError:
-      logging.warning(
-          'psutil is not installed on the system. Not listing possible '
-          'leaked processes. To install psutil, see: '
-          'https://pypi.python.org/pypi/psutil')
-      return
-    telemetry_pid = os.getpid()
-    parent = psutil.Process(telemetry_pid)
-    if hasattr(parent, 'children'):
-      children = parent.children(recursive=True)
-    else:  # Some old version of psutil use get_children instead children.
-      children = parent.get_children()
-    if children:
-      leak_processes_info = []
-      for p in children:
-        if inspect.ismethod(p.name):
-          name = p.name()
-        else:  # Process.name is a property in old versions of psutil.
-          name = p.name
-        process_info = '%s (%s)' % (name, p.pid)
-        try:
-          if inspect.ismethod(p.cmdline):
-            cmdline = p.cmdline()
-          else:
-            cmdline = p.cmdline
-          process_info += ' - %s' % cmdline
-        except Exception as e: # pylint: disable=broad-except
-          logging.warning(str(e))
-        leak_processes_info.append(process_info)
-      logging.warning('Telemetry leaks these processes: %s',
-                      ', '.join(leak_processes_info))
+def ListAllSubprocesses():
+  try:
+    import psutil
+  except ImportError:
+    logging.warning(
+        'psutil is not installed on the system. Not listing possible '
+        'leaked processes. To install psutil, see: '
+        'https://pypi.python.org/pypi/psutil')
+    return
+  telemetry_pid = os.getpid()
+  parent = psutil.Process(telemetry_pid)
+  if hasattr(parent, 'children'):
+    children = parent.children(recursive=True)
+  else:  # Some old version of psutil use get_children instead children.
+    children = parent.get_children()
 
-  atexit_with_log.Register(_ListAllSubprocesses)
+  if children:
+    processes_info = []
+    for p in children:
+      if inspect.ismethod(p.name):
+        name = p.name()
+      else:  # Process.name is a property in old versions of psutil.
+        name = p.name
+      process_info = '%s (%s)' % (name, p.pid)
+      try:
+        if inspect.ismethod(p.cmdline):
+          cmdline = p.cmdline()
+        else:
+          cmdline = p.cmdline
+        process_info += ' - %s' % cmdline
+      except Exception as e: # pylint: disable=broad-except
+        logging.warning(str(e))
+      processes_info.append(process_info)
+    logging.warning('Running sub processes (%i processes): %s',
+                    len(children), '\n'.join(processes_info))
+
+
+def EnableListingStrayProcessesUponExitHook():
+  atexit_with_log.Register(ListAllSubprocesses)

@@ -11,6 +11,7 @@ import unittest
 
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
+from telemetry.internal.util import ps_util
 from telemetry.testing import options_for_unittests
 
 current_browser_options = None
@@ -67,6 +68,11 @@ def teardown_browser():
 
 class BrowserTestCase(unittest.TestCase):
   __metaclass__ = _MetaBrowserTestCase
+
+  def setUp(self):
+    # TODO(nedn): remove this debug log once crbug.com/766877 is resolved
+    if self._platform.GetOSName() == 'win':
+      ps_util.ListAllSubprocesses()
 
   @classmethod
   def setUpClass(cls):
