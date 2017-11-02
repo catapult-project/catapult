@@ -304,6 +304,54 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
 
 class RenderingStatsUnitTest(unittest.TestCase):
 
+  def testHasRenderingStats(self):
+    timeline = model.TimelineModel()
+    timer = MockTimer()
+
+    # A process without rendering stats
+    process_without_stats = timeline.GetOrCreateProcess(pid=1)
+    thread_without_stats = process_without_stats.GetOrCreateThread(tid=11)
+    process_without_stats.FinalizeImport()
+    self.assertFalse(rendering_stats.HasRenderingStats(thread_without_stats))
+
+    # A process with rendering stats, but no frames in them
+    process_without_frames = timeline.GetOrCreateProcess(pid=2)
+    thread_without_frames = process_without_frames.GetOrCreateThread(tid=21)
+    process_without_frames.FinalizeImport()
+    self.assertFalse(rendering_stats.HasRenderingStats(thread_without_frames))
+
+    # A process with impl rendering stats and frames in them
+    process_with_frames = timeline.GetOrCreateProcess(pid=3)
+    thread_with_frames = process_with_frames.GetOrCreateThread(tid=31)
+    AddImplThreadRenderingStats(timer, thread_with_frames, True, None)
+    process_with_frames.FinalizeImport()
+    self.assertFalse(rendering_stats.HasRenderingStats(thread_with_frames))
+
+    # A process with display rendering stats and frames in them
+    process_with_display_stats = timeline.GetOrCreateProcess(pid=4)
+    thread_display_stats = process_with_frames.GetOrCreateThread(tid=31)
+    AddDisplayRenderingStats(timer, thread_display_stats, True, None)
+    process_with_display_stats.FinalizeImport()
+    self.assertTrue(rendering_stats.HasRenderingStats(thread_display_stats))
+
+  def testHasDrmStats(self):
+    timeline = model.TimelineModel()
+    timer = MockTimer()
+    vblank_timer = MockVblankTimer()
+
+    # A process without drm stats
+    process_without_stats = timeline.GetOrCreateProcess(pid=5)
+    thread_without_stats = process_without_stats.GetOrCreateThread(tid=51)
+    process_without_stats.FinalizeImport()
+    self.assertFalse(rendering_stats.HasDrmStats(thread_without_stats))
+
+    # A process with drm stats and frames in them
+    process_with_frames = timeline.GetOrCreateProcess(pid=6)
+    thread_with_frames = process_with_frames.GetOrCreateThread(tid=61)
+    AddDrmEventFlipStats(timer, vblank_timer, thread_with_frames, True, None)
+    process_with_frames.FinalizeImport()
+    self.assertTrue(rendering_stats.HasDrmStats(thread_with_frames))
+
   def testBothSurfaceFlingerAndDisplayStats(self):
     timeline = model.TimelineModel()
     timer = MockTimer()
