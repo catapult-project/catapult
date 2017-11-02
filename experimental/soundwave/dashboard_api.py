@@ -3,6 +3,7 @@ import json
 from oauth2client import client
 from oauth2client import service_account # pylint: disable=no-name-in-module
 import time
+import urllib
 
 
 class PerfDashboardCommunicator(object):
@@ -87,12 +88,13 @@ class PerfDashboardCommunicator(object):
     return  json.loads(content)
 
   def ListTestPaths(self, benchmark, sheriff=False):
-    """Lists test paths for given benchmark.
+    """Lists test paths for the given benchmark.
 
     args:
       benchmark: Benchmark to get paths for.
       sheriff:
-          Filters test paths to only ones monitored by given sheriff rotation.
+          Filters test paths to only ones monitored by the given sheriff
+          rotation.
     returns:
       A list of test paths. Ex. ['TestPath1', 'TestPath2']
     """
@@ -101,8 +103,8 @@ class PerfDashboardCommunicator(object):
       r += '?sheriff=%s' % sheriff
     return self._MakeApiRequest(r)
 
-  def GetTimeseries(self, test_path, days=False):
-    """Get timeseries for given test path.
+  def GetTimeseries(self, test_path, days=30):
+    """Get timeseries for the given test path.
 
     args:
       test_path: test path to get timeseries for.
@@ -119,7 +121,15 @@ class PerfDashboardCommunicator(object):
            ],
        'test_path': test_path}
     """
-    r = 'timeseries/%s' % test_path
-    if days:
-      r += '?num_days=%d' % days
+    options = urllib.urlencode({'num_days': days})
+    r = 'timeseries/%s?%s' % (urllib.quote_plus(test_path), options)
     return self._MakeApiRequest(r)
+
+  def GetBugData(self, bug_id):
+    """Returns data on the given bug."""
+    return self._MakeApiRequest('bugs/%d' % bug_id)
+
+  def GetAlertData(self, benchmark, days=30):
+    """Returns alerts for the given benchmark."""
+    options = urllib.urlencode({'benchmark': benchmark})
+    return self._MakeApiRequest('alerts/history/%d?%s' % (days, options))
