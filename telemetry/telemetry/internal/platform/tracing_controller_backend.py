@@ -139,7 +139,9 @@ class TracingControllerBackend(object):
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
-    return builder.AsData()
+    # TODO(charliea): Instead of always returning an empty list, instead make
+    # BattOr errors nonfatal and return them here.
+    return (builder.AsData(), [])
 
   def FlushTracing(self):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'

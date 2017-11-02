@@ -63,7 +63,8 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.assertNotIn(dump_id, expected_dump_ids)
       expected_dump_ids.append(dump_id)
 
-    tracing_data = self._tracing_controller.StopTracing()
+    tracing_data, errors = self._tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
 
     # Check that clock sync data is in tracing data.
     clock_sync_found = False
@@ -98,7 +99,8 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # Check that the method returns None if the dump was not successful.
     self.assertIsNone(self._browser.DumpMemory())
 
-    tracing_data = self._tracing_controller.StopTracing()
+    tracing_data, errors = self._tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
 
     # Check that dumping memory after tracing stopped raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)

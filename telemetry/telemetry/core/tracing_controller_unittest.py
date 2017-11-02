@@ -44,7 +44,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     config.enable_chrome_trace = True
     tracing_controller.StartTracing(config)
 
-    trace_data = tracing_controller.StopTracing()
+    trace_data, errors = tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     # Test that trace data is parsable
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
@@ -57,7 +58,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller.StartTracing(config)
     self.assertFalse(tracing_controller.StartTracing(config))
 
-    trace_data = tracing_controller.StopTracing()
+    trace_data, errors = tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     # Test that trace data is parsable
     model_module.TimelineModel(trace_data)
     self.assertFalse(tracing_controller.is_tracing_running)
@@ -93,7 +95,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       InjectMarker(i)
 
     # Stop tracing.
-    trace_data = tracing_controller.StopTracing()
+    trace_data, errors = tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     self.assertFalse(tracing_controller.is_tracing_running)
 
     # Test that trace data is parsable
@@ -141,7 +144,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       # Calling start tracing again will return False
       self.assertFalse(platform.tracing_controller.StartTracing(config))
 
-      trace_data = platform.tracing_controller.StopTracing()
+      trace_data, errors = platform.tracing_controller.StopTracing()
+      self.assertEqual(errors, [])
       # Test that trace data is parsable
       model_module.TimelineModel(trace_data)
       self.assertFalse(platform.tracing_controller.is_tracing_running)
@@ -186,6 +190,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     # We wait 1s before starting and stopping tracing to avoid crbug.com/602266,
     # which would cause a crash otherwise.
     time.sleep(1)
-    trace_data = tracing_controller.StopTracing()
+    trace_data, errors = tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     self.assertTrue(
         trace_data.HasTracesFor(trace_data_module.BATTOR_TRACE_PART))
