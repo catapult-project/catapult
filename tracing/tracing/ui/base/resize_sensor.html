@@ -21,7 +21,7 @@ found in the LICENSE file.
       }
     </style>
     <div id="container">
-      <content></content>
+      <slot></slot>
     </div>
   </template>
 </dom-module>
@@ -38,7 +38,7 @@ found in the LICENSE file.
       this.sensor_ = new ResizeSensor(this.$.container,
                                       this.onResize_.bind(this));
       // ResizeSensor appends a div to this.$.container. That div must be a
-      // direct sibling of <content>.
+      // direct sibling of <slot>.
       // ResizeSensor's first argument must be a Node, so it cannot be
       // this.root.
     },
