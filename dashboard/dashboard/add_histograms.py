@@ -5,6 +5,7 @@
 """URL endpoint for adding new histograms to the dashboard."""
 
 import json
+import logging
 import sys
 
 from google.appengine.api import taskqueue
@@ -64,12 +65,22 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
   def AuthorizedPost(self):
     datastore_hooks.SetPrivilegedRequest()
 
-    data_str = self.request.get('data')
-    if not data_str:
-      raise api_request_handler.BadRequestError('Missing "data" parameter')
+    try:
+      data_str = self.request.get('data')
+      if not data_str:
+        raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-    histogram_dicts = json.loads(data_str)
-    ProcessHistogramSet(histogram_dicts)
+      logging.info('Received data: %s', data_str)
+
+      histogram_dicts = json.loads(data_str)
+      ProcessHistogramSet(histogram_dicts)
+    except api_request_handler.BadRequestError as e:
+      # TODO(simonhatch, eakuefner: Remove this later.
+      # When this has all stabilized a bit, remove and let this 400 to clients,
+      # but for now to preven the waterfall from re-uploading over and over
+      # while we bug fix, let's just log the error.
+      # https://github.com/catapult-project/catapult/issues/4019
+      logging.error(e.message)
 
 
 def ProcessHistogramSet(histogram_dicts):

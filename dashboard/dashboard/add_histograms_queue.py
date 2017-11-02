@@ -5,6 +5,7 @@
 """URL endpoint to add new histograms to the datastore."""
 
 import json
+import logging
 import sys
 
 from google.appengine.ext import ndb
@@ -82,6 +83,8 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     data = self.request.get('data')
     revision = int(self.request.get('revision'))
     test_path = self.request.get('test_path')
+
+    logging.info('Processing: %s', test_path)
 
     data_dict = json.loads(data)
     guid = data_dict['guid']
