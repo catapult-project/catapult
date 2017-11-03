@@ -135,7 +135,7 @@ histogram.addSample(number, {name: diagnostic})
    This is a Set of references to Events in the trace model. Visually, they
    are displayed as HTML links which, when clicked in the metrics-side-panel,
    select the referenced Events in the trace viewer's timeline view. When
-   clicked in results2.html, they currently do nothing, but should eventually
+   clicked in results.html, they currently do nothing, but should eventually
    open the trace that contains the events and select them.
 
    ![](/docs/images/how-to-write-metrics-related-event-set.png)
@@ -265,7 +265,7 @@ to be shared by all Histograms, and must all contain exactly one value:
 Histograms are consumed by
 
  * [histogram-set-table](/tracing/tracing/value/ui/histogram_set_table.html) in
-   both results2.html and the Metrics side panel in trace viewer,
+   both results.html and the Metrics side panel in trace viewer,
  * the [dashboard](https://chromeperf.appspot.com) indirectly via their statistics.
 
 Currently, telemetry discards Histograms and Diagnostics, and only passes their
