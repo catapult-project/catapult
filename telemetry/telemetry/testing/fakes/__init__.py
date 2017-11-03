@@ -195,6 +195,7 @@ class FakePossibleBrowser(object):
     self.is_remote = False
     self.execute_on_startup = execute_on_startup
     self.execute_after_browser_creation = execute_after_browser_creation
+    self.finder_options = None  # This is set in Create().
 
   @property
   def returned_browser(self):
@@ -204,7 +205,7 @@ class FakePossibleBrowser(object):
   def Create(self, finder_options):
     if self.execute_on_startup is not None:
       self.execute_on_startup()
-    del finder_options  # unused
+    self.finder_options = finder_options
     if self.execute_after_browser_creation is not None:
       self.execute_after_browser_creation(self._returned_browser)
     return self.returned_browser
