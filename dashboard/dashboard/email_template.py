@@ -11,7 +11,6 @@ import urllib
 from google.appengine.api import urlfetch
 
 from dashboard.common import utils
-from dashboard.models import bug_label_patterns
 
 _SINGLE_EMAIL_SUBJECT = (
     '%(percent_changed)s %(change_type)s in %(test_name)s '
@@ -25,9 +24,8 @@ A <b>%(percent_changed)s</b> %(change_type)s.<br>
   <tr><td>Test:</td><td><b>%(test_name)s</b></td>
   <tr><td>Revision Range:</td><td><b>%(start)d - %(end)d</b></td>
 </table><p>
-<a href="%(graph_url)s">View the graph</a>
-and <a href='%(bug_url)s'>file a bug</a>.<br>
-<b>+++++++++++++++++++++++++++++++</b><br>
+<a href="%(triage_url)s">View the graph</a> to triage.<br>
+<br>
 """
 
 _SUMMARY_EMAIL_TEXT_BODY = """
@@ -38,23 +36,13 @@ Bot: %(bot)s
 Test: %(test_name)s
 Revision Range:%(start)d - %(end)d
 
-View the graph: %(graph_url)s
-File a bug: %(bug_url)s
+View the graph: %(triage_url)s
 +++++++++++++++++++++++++++++++
 """
 
-_BUG_REPORT_COMMENT = (
-    'Performance dashboard identified a %(percent_changed)s %(change_type)s '
-    'in %(test_name)s on %(bot)s at revision range %(start)d:%(end)d. '
-    'Graph: %(graph_url)s')
-
-_BUG_REPORT_LINK_URL = (
-    'https://code.google.com/p/chromium/issues/entry?summary=%s&comment=%s&'
-    'labels=Type-Bug-Regression,Pri-2,%s')
-
 _ALL_ALERTS_LINK = (
     '<a href="https://chromeperf.appspot.com/alerts?sheriff=%s">'
-    'All alerts</a><br>')
+    'View all alerts for %s</a>.<br>')
 
 _PERF_TRY_EMAIL_SUBJECT = (
     'Perf Try %(status)s on %(bot)s at %(start)s:%(end)s.')
@@ -263,6 +251,10 @@ def GetGroupReportPageLink(alert):
   return GetReportPageLink(test_path, rev=alert.end_revision)
 
 
+def GetAlertsLink(sheriff_name):
+  return _ALL_ALERTS_LINK % (urllib.quote(sheriff_name), sheriff_name)
+
+
 def GetAlertInfo(alert, test):
   """Gets the alert info formatted for the given alert and test.
 
@@ -281,7 +273,7 @@ def GetAlertInfo(alert, test):
   master = test.master_name
   bot = test.bot_name
 
-  graph_url = GetGroupReportPageLink(alert)
+  triage_url = GetGroupReportPageLink(alert)
 
   # Parameters to interpolate into strings below.
   interpolation_parameters = {
@@ -293,26 +285,15 @@ def GetAlertInfo(alert, test):
       'sheriff_name': sheriff_name,
       'start': alert.start_revision,
       'end': alert.end_revision,
-      'graph_url': graph_url,
+      'triage_url': triage_url,
   }
-
-  bug_comment = _BUG_REPORT_COMMENT % interpolation_parameters
-  bug_summary = ('%(percent_changed)s %(change_type)s in %(test_name)s '
-                 'on %(bot)s at %(start)d:%(end)d') % interpolation_parameters
-  labels = (alert.sheriff.get().labels +
-            bug_label_patterns.GetBugLabelsForTest(test))
-  bug_url = _BUG_REPORT_LINK_URL % (
-      urllib.quote(bug_summary), urllib.quote(bug_comment), ','.join(labels))
-
-  interpolation_parameters['bug_url'] = bug_url
 
   results = {
       'email_subject': _SINGLE_EMAIL_SUBJECT % interpolation_parameters,
       'email_text': _SUMMARY_EMAIL_TEXT_BODY % interpolation_parameters,
       'email_html': _EMAIL_HTML_TABLE % interpolation_parameters,
-      'dashboard_link': graph_url,
-      'alerts_link': _ALL_ALERTS_LINK % urllib.quote(sheriff_name),
-      'bug_link': bug_url,
+      'dashboard_link': triage_url,
+      'alerts_link': GetAlertsLink(sheriff_name),
   }
   return results
 

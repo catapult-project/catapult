@@ -134,13 +134,7 @@ class EmailSummaryTest(testing_common.TestCase):
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual('anandc@google.com', messages[0].to)
     html = str(messages[0].html)
-    self.assertIn('2 Total Anomalies', html)
-    self.assertIn('A <b>100.0%</b> regression', html)
-    self.assertNotIn('A <b>50.0%</b> regression', html)
-    self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff\'', html)
-    self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,label1\'', html)
+    self.assertIn('2 total performance regressions were found', html)
 
   def testGet_SheriffWithSummary_DoesntEmailInternalOnly(self):
     self._AddFourNewAlertsWithSummaryForOnlyTwo(internal_only=True)
@@ -161,13 +155,7 @@ class EmailSummaryTest(testing_common.TestCase):
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual('anandc@google.com', messages[0].to)
     html = str(messages[0].html)
-    self.assertIn('2 Total Anomalies', html)
-    self.assertIn('A <b>100.0%</b> regression', html)
-    self.assertNotIn('A <b>50.0%</b> regression', html)
-    self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff\'', html)
-    self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,label1\'', html)
+    self.assertIn('2 total performance regressions were found', html)
 
   def testGet_SheriffWithSummary_SkipsImprovements(self):
     self._AddFourNewAlertsWithSummaryForOnlyTwo()
@@ -190,8 +178,7 @@ class EmailSummaryTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     html = str(messages[0].html)
-    self.assertIn('2 Total Anomalies', html)
-    self.assertIn('A <b>' + anomaly.FREAKIN_HUGE + '</b> regression', html)
+    self.assertIn('2 total performance regressions were found', html)
 
   def testGet_SendsEmailsToMultipleSheriffsInOneRequest(self):
     self._AddAlertsForTwoSheriffsWithSummary()
@@ -207,9 +194,7 @@ class EmailSummaryTest(testing_common.TestCase):
     for message in messages:
       self.assertEquals(message.sender, 'gasper-alerts@google.com')
       html = str(message.html)
-      self.assertIn('2 Total Anomalies', html)
-      self.assertIn('A <b>100.0%</b> regression', html)
-      self.assertNotIn('A <b>50.0%</b> regression', html)
+      self.assertIn('2 total performance regressions were found', html)
 
   def testGet_SheriffSummarizeSetToFalse_NoEmailSent(self):
     self._AddNewAlertsForSheriffsWithNoSummary()

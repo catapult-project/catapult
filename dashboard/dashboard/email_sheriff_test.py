@@ -85,10 +85,6 @@ class EmailSheriffTest(testing_common.TestCase):
     self.assertIn('<b>Win7</b>', html)
     self.assertIn('<b>dromaeo/dom</b>', html)
 
-    # Bug links
-    self.assertIn(urllib.quote(expected_subject), body)
-    self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,label1', html)
     # Sheriff link
     self.assertIn(
         '/alerts?sheriff=%s' % urllib.quote('Chromium Perf Sheriff'), html)

@@ -96,6 +96,8 @@ def _ProcessTest(test_key):
   yield alert_group.GroupAlertsAsync(
       anomalies, utils.TestSuiteName(test.key), 'Anomaly')
 
+  yield ndb.put_multi_async(anomalies)
+
   # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
   # code will run serially.
   # Email sheriff about any new regressions.
@@ -104,8 +106,6 @@ def _ProcessTest(test_key):
         not anomaly_entity.is_improvement and
         not sheriff.summarize):
       email_sheriff.EmailSheriff(sheriff, test, anomaly_entity)
-
-  yield ndb.put_multi_async(anomalies)
 
 
 @ndb.synctasklet

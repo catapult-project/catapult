@@ -29,3 +29,4 @@ def EmailSheriff(sheriff, test, anomaly):
                  subject=anomaly_info['email_subject'],
                  body=anomaly_info['email_text'],
                  html=anomaly_info['email_html'] + anomaly_info['alerts_link'])
+  logging.info('Sent single mail to %s', receivers)
