@@ -659,6 +659,41 @@ triaging functionality in the chart.
 
           events.addEventListener(
               window, 'urichange', this.onUriChanged.bind(this));
+
+          // This flag is used by onSelectedRelatedTabIndexChange_ to fire the
+          // chartstatechanged event without causing infinite recursion.
+          // Listeners such as the report-page listen for that event to
+          // serialize the page state, but this chart-container also listens for
+          // that event to rebuild related sparklines whenever any seriesGroups
+          // or revisions change.
+          // TODO(benjhayden) Refactor and clarify events.
+          this.ignoreChartStateChangedEvent_ = false;
+
+          // This Promise is resolved when relatedTabs is ready to allow
+          // build() to restore state.selectedRelatedTab.
+          // TODO(benjhayden) Refactor addSeriesGroup2 and other methods in its
+          // stack to be async so that build() can await
+          // Promise.all(addSeriesGroup2(...) for each seriesGroup) before
+          // restoring selectedRelatedTab. sendGraphJsonRequest() will need to
+          // be careful to wait to resolve until after its callback returns.
+          this.relatedTabsReadyPromise_ = new Promise(resolve => {
+            this.resolveRelatedTabsReady_ = resolve;
+          });
+        },
+
+        async build(state) {
+          for (const seriesGroup of state.seriesGroups) {
+            this.addSeriesGroup2(seriesGroup, true);
+          }
+          if (state.selectedRelatedTab) {
+            await this.relatedTabsReadyPromise_;
+            for (let i = 0; i < this.relatedTabs.length; ++i) {
+              if (this.relatedTabs[i].name === state.selectedRelatedTab) {
+                this.selectedRelatedTabIndex = i;
+                break;
+              }
+            }
+          }
         },
 
         /**
@@ -2769,7 +2804,13 @@ triaging functionality in the chart.
          * @return {Array} List of pair of test path and selected series.
          */
         getState() {
-          const state = [];
+          const state = {seriesGroups: []};
+
+          if (this.selectedRelatedTabIndex >= 0) {
+            state.selectedRelatedTab =
+              this.relatedTabs[this.selectedRelatedTabIndex].name;
+          }
+
           this.seriesGroupList.forEach(function(seriesGroup) {
             let selected = [];
             const unselected = [];
@@ -2788,7 +2829,7 @@ triaging functionality in the chart.
               selected = [seriesGroup.selection];
             }
             selected = arrayUnique(selected);
-            state.push([seriesGroup.path, selected]);
+            state.seriesGroups.push([seriesGroup.path, selected]);
           });
           return state;
         },
@@ -2801,6 +2842,7 @@ triaging functionality in the chart.
         },
 
         onChartStateChanged_(event) {
+          if (this.ignoreChartStateChangedEvent_) return;
           this.buildRelatedTabs_();
           this.onSelectedRelatedTabIndexChange_();
         },
@@ -2876,6 +2918,7 @@ triaging functionality in the chart.
           });
 
           this.set('relatedTabs', relatedTabs);
+          this.resolveRelatedTabsReady_();
         },
 
         getSparklineChartOptions() {
@@ -2904,6 +2947,10 @@ triaging functionality in the chart.
         },
 
         onSelectedRelatedTabIndexChange_() {
+          this.ignoreChartStateChangedEvent_ = true;
+          this.fireChartStateChangedEvent(this.seriesGroupList);
+          this.ignoreChartStateChangedEvent_ = false;
+
           // The last tab is actually a button to unset the tab to hide the
           // sparklines.
           if (this.selectedRelatedTabIndex === this.relatedTabs.length - 1) {
