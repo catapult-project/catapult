@@ -133,7 +133,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
         models.append(model_module.TimelineModel(
-            tab.browser.platform.tracing_controller.StopTracing()[0]))
+            tab.browser.platform.tracing_controller.StopTracing()))
         tab_ids.append(tab.id)
 
     self.RunMeasurement(ScrollingGestureTestMeasurement(), ps)

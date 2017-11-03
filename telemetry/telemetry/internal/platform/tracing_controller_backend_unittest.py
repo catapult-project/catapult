@@ -145,8 +145,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 1)
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEqual(self.controller._trace_log, None)
@@ -166,8 +165,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 1)
     sync_event_one = [x for x in self._getControllerEventsAslist(data)
                       if x.get('name') == 'clock_sync'][0]
@@ -176,8 +174,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     # Run 2
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 1)
     sync_event_two = [x for x in self._getControllerEventsAslist(data)
                       if x.get('name') == 'clock_sync'][0]
@@ -215,8 +212,7 @@ class TracingControllerBackendTest(unittest.TestCase):
       self.assertIsNotNone(self.controller._current_state.builder)
 
     # Stop tracing.
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertIsNone(self.controller._current_state)
 
@@ -231,8 +227,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
     self.assertEquals(self.controller._active_agents_instances, [])
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 0)
     self.assertFalse(self.controller.is_tracing_running)
 
@@ -245,8 +240,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 0)
 
@@ -264,8 +258,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.is_tracing_running)
     self.assertEquals(len(self.controller._active_agents_instances), 3)
     # No sync event before running StopTracing().
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 2)
     self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
@@ -286,8 +279,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
     self.assertEquals(len(self.controller._active_agents_instances), 4)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 2)
 
@@ -309,8 +301,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     ]
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.controller._RecordIssuerClockSyncMarker(sync_id, ts)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 1)
     self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
@@ -337,8 +328,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.is_tracing_running)
     self.assertEquals(len(self.controller._active_agents_instances), 4)
     self.controller._IssueClockSyncMarker()
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [])
+    data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 4)
     self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
@@ -363,8 +353,7 @@ class TracingControllerBackendTest(unittest.TestCase):
       self.assertTrue(self.controller.is_tracing_running)
       self.assertEquals(len(self.controller._active_agents_instances), 4)
       self.controller._IssueClockSyncMarker()
-      data, errors = self.controller.StopTracing()
-      self.assertEqual(errors, [])
+      data = self.controller.StopTracing()
       self.assertFalse(self.controller.is_tracing_running)
       self.assertEquals(self._getSyncCount(data), 0)
     finally:
