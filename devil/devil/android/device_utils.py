@@ -660,6 +660,25 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError(
         'Could not find data directory for %s', package)
 
+  def TakeBugReport(self, path, timeout=60*5, retries=None):
+    """Takes a bug report and dumps it to the specified path.
+
+    This doesn't use adb's bugreport option since its behavior is dependent on
+    both adb version and device OS version. To make it simpler, this directly
+    runs the bugreport command on the device itself and dumps the stdout to a
+    file.
+
+    Args:
+      path: Path on the host to drop the bug report.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+    """
+    with device_temp_file.DeviceTempFile(self.adb) as device_tmp_file:
+      cmd = '( bugreport )>%s 2>&1' % device_tmp_file.name
+      self.RunShellCommand(
+          cmd, check_return=True, shell=True, timeout=timeout, retries=retries)
+      self.PullFile(device_tmp_file.name, path)
+
   @decorators.WithTimeoutAndRetriesFromInstance()
   def WaitUntilFullyBooted(self, wifi=False, timeout=None, retries=None):
     """Wait for the device to fully boot.
