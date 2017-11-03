@@ -10,7 +10,6 @@ underscore are intended to be implementation details, and should not
 be subclassed; however, some, like _FakeBrowser, have public APIs that
 may need to be called in tests.
 """
-from telemetry.core import exceptions
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import system_info
@@ -167,23 +166,6 @@ class FakeHTTPServer(object):
   def UrlOf(self, url):
     del url  # unused
     return 'file:///foo'
-
-
-class FakeForwarder(object):
-  def Close(self):
-    pass
-
-
-class FakeForwarderFactory(object):
-  def __init__(self):
-    self.raise_exception_on_create = False
-    self.host_ip = '127.0.0.1'
-
-  def Create(self, port_pair):
-    del port_pair  # Unused.
-    if self.raise_exception_on_create:
-      raise exceptions.IntentionalException
-    return FakeForwarder()
 
 
 class FakePossibleBrowser(object):
