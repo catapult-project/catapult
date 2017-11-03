@@ -413,6 +413,11 @@ property 'group' sets to the header item name.
 
       onQueryChanged_() {
         this.$.clear.style.display = this.query ? 'inline' : '';
+
+        // The selectedItem should reflect the query.
+        // When the query is cleared, the selectedItem needs to be manually
+        // cleared.
+        if (!this.query) this.selectedItem = undefined;
       },
 
       scrollLocusIntoView() {

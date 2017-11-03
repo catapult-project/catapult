@@ -302,14 +302,20 @@ found in the LICENSE file.
         const model = event.model;
         const boxIndex = model.index;
         if (this.updatingSubtestMenus) return;
-        if (boxIndex === undefined) {
-          return;
-        } else if (boxIndex == 0) {
+        if (boxIndex === undefined) return;
+
+        const box = this.getSelectionMenu(boxIndex);
+        if (box === undefined) return;
+
+        if (boxIndex == 0) {
           this.updateTestSuiteDescription();
-          const updateBotMenuMark = tr.b.Timing.mark(
-              'testPicker', 'updateBotMenu');
-          this.updateBotMenu();
-          updateBotMenuMark.end();
+          if (box.selectedItem) {
+            // Only update the Bot menu if a Test Suite is selected.
+            const updateBotMenuMark = tr.b.Timing.mark(
+                'testPicker', 'updateBotMenu');
+            this.updateBotMenu();
+            updateBotMenuMark.end();
+          }
         } else {
           if (boxIndex == 1) {
             const tagMap = await this.tagMapCache.get(
@@ -326,12 +332,17 @@ found in the LICENSE file.
               this.set('storySet', storySet);
             }
           }
-          await this.updateSubtestMenus(boxIndex + 1);
+          if (box.selectedItem) {
+            await this.updateSubtestMenus(boxIndex + 1);
+          }
         }
-        // Focus the next menu so the user can go ahead and start typing in it.
-        const nextMenu = this.getSelectionMenu(boxIndex + 1);
-        if (nextMenu) nextMenu.focus();
-        onDropdownSelectMark.end();
+
+        if (box.selectedItem) {
+          // Focus the next menu so the user can go ahead and start typing in it.
+          const nextMenu = this.getSelectionMenu(boxIndex + 1);
+          if (nextMenu) nextMenu.focus();
+          onDropdownSelectMark.end();
+        }
       },
 
       updateTestSuiteDescription() {
@@ -373,9 +384,6 @@ found in the LICENSE file.
           this.updatingSubtestMenus = true;
           await this.updateSubtestMenus(2);
           this.updatingSubtestMenus = false;
-        } else {
-          // Clear all subtest menus.
-          this.splice('selectionModels', 2);
         }
         this.updateAddButtonState();
         updateBotMenuMark.end();
@@ -588,7 +596,9 @@ found in the LICENSE file.
           level += 1;
         }
 
-        const suite = this.getSelectionMenu(0).selectedItem.name;
+        const suiteItem = this.getSelectionMenu(0).selectedItem;
+        if (!suiteItem) return undefined;
+        const suite = suiteItem.name;
         const bot = this.getCheckedBot();
         parts.unshift(suite);
         parts.unshift(bot);
