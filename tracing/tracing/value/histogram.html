@@ -441,8 +441,8 @@ tr.exportTo('tr.v', function() {
 
     getBinIndexForValue(value) {
       // Don't use subtraction to avoid arithmetic overflow.
-      const i = tr.b.findHighIndexInSortedArray(
-          this.allBins, b => ((value < b.range.max) ? -1 : 1));
+      const i = tr.b.findFirstTrueIndexInSortedArray(
+          this.allBins, b => value < b.range.max);
       if (0 <= i && i < this.allBins.length) return i;
       return this.allBins.length - 1;
     }

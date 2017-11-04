@@ -364,21 +364,6 @@ tr.exportTo('tr.b', function() {
     return hitPos !== -1 ? hitPos : low;
   }
 
-  // From devtools/front_end/platform/utilities.js upperBound
-  function findHighIndexInSortedArray(ary, mapFn, loVal, hiVal) {
-    let lo = loVal || 0;
-    let hi = hiVal !== undefined ? hiVal : ary.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (mapFn(ary[mid]) >= 0) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
-    }
-    return hi;
-  }
-
   /**
    * Finds an index in an array of intervals that either intersects
    * the provided loVal, or if no intersection is found, -1 or ary.length.
@@ -614,12 +599,35 @@ tr.exportTo('tr.b', function() {
     return hiInt;
   }
 
+  /**
+  * Returns first index i in |array| such that |test| is true for array[i].
+  * Returns array.length if no such i is found. Assumes |test| is monotonic
+  * boolean on |array|, i.e. if test(array[i]) is true, then test(array[i + 1])
+  * is also true.
+  *
+  * @param {Array} array Array of elements to perform binary search on.
+  * @param {function(*):boolean} test Monotonic boolean test function.
+  */
+  function findFirstTrueIndexInSortedArray(array, test) {
+    let i0 = 0;
+    let i1 = array.length;
+    while (i0 < i1) {
+      const i = Math.trunc((i0 + i1) / 2);
+      if (test(array[i])) {
+        i1 = i;  // Explore the left branch.
+      } else {
+        i0 = i + 1;  // Explore the right branch.
+      }
+    }
+    return i1;
+  }
+
   return {
     compareArrays,
     deepCopy,
     findClosestElementInSortedArray,
     findClosestIntervalInSortedIntervals,
-    findHighIndexInSortedArray,
+    findFirstTrueIndexInSortedArray,
     findIndexInSortedClosedIntervals,
     findIndexInSortedIntervals,
     findLowIndexInSortedArray,

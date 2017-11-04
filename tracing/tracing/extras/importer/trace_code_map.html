@@ -88,8 +88,8 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     lookupEntry(address) {
-      const index = tr.b.findHighIndexInSortedArray(
-          this.entries_, function(e) { return address - e.address; }) - 1;
+      const index = tr.b.findFirstTrueIndexInSortedArray(
+          this.entries_, e => (address < e.address)) - 1;
       const entry = this.entries_[index];
       return entry &&
           address < entry.address + entry.size ? entry : undefined;

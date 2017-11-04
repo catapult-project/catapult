@@ -407,5 +407,27 @@ tr.b.unittest.testSuite(function() {
     assert.isNull(array.findClosestInterval(100, 50));
     assert.isNull(array.findClosestInterval(50, -100));
   });
+
+  test('findFirstTrueIndexInSortedArray', function() {
+    const array = [1, 3, 7, 15, 30, 50, 80];
+    const objectArray = array.map(v => {return {value: v};});
+
+    assert.strictEqual(
+        tr.b.findFirstTrueIndexInSortedArray(objectArray, x => (x.value > 90)),
+        objectArray.length);
+    assert.strictEqual(
+        tr.b.findFirstTrueIndexInSortedArray(objectArray, x => (x.value > 15)),
+        4);
+    assert.strictEqual(
+        tr.b.findFirstTrueIndexInSortedArray(objectArray, x => (x.value >= 15)),
+        3);
+    assert.strictEqual(
+        tr.b.findFirstTrueIndexInSortedArray(objectArray, x => (x.value > 0)),
+        0);
+    assert.strictEqual(
+        tr.b.findFirstTrueIndexInSortedArray(objectArray,
+            x => (x.value % 5 === 0)),
+        3);
+  });
 });
 </script>
