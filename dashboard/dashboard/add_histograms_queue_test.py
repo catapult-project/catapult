@@ -25,6 +25,10 @@ TEST_HISTOGRAM = {
     'allBins': {'1': [1], '3': [1], '4': [1]},
     'binBoundaries': [1, [1, 1000, 20]],
     'diagnostics': {
+        reserved_infos.LOG_URLS.name: {
+            'values': ['http://log.url/'],
+            'type': 'GenericSet',
+        },
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: {
             'values': [123],
             'type': 'GenericSet'
@@ -306,8 +310,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_git)
     self.assertEqual('123', row.r_chromium_commit_pos)
 
-    self.assertEqual(1, len(a_fields))
+    self.assertEqual(2, len(a_fields))
     self.assertEqual('http://google.com/', row.a_tracing_uri)
+    self.assertEqual('http://log.url/', row.a_stdio_url)
 
   def testAddRow_WithCustomSummaryOptions(self):
     test_path = 'Chromium/win7/suite/metric'

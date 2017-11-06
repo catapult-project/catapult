@@ -30,6 +30,7 @@ from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
 
 DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
+    reserved_infos.LOG_URLS.name: 'a_stdio_url',
     reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: 'r_chromium_commit_pos',
     reserved_infos.V8_COMMIT_POSITIONS.name: 'r_v8_rev',
     reserved_infos.CHROMIUM_REVISIONS.name: 'r_chromium_git',
