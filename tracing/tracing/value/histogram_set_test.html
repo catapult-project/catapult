@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
     const aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
     const histograms = new tr.v.HistogramSet([aHist]);
     const diagnostic = new tr.v.d.GenericSet(['shared']);
-    histograms.addSharedDiagnostic('generic', diagnostic);
+    histograms.addSharedDiagnosticToAllHistograms('generic', diagnostic);
 
     // Serializing a single Histogram with a single shared diagnostic should
     // produce 2 dicts.

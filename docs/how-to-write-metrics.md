@@ -101,7 +101,7 @@ histograms.addHistogram(histogram, {name: diagnostic})
 Attach a Diagnostic to all Histograms in a HistogramSet:
 
 ```javascript
-histograms.addSharedDiagnostic(name, diagnostic);
+histograms.addSharedDiagnosticToAllHistograms(name, diagnostic);
 ```
 
 Attach a Diagnostic to a sample:

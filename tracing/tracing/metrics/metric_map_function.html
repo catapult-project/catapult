@@ -125,7 +125,7 @@ tr.exportTo('tr.metrics', function() {
         if (type === undefined) {
           throw new Error(`Unexpected telemetry.${name}`);
         }
-        histograms.addSharedDiagnostic(name, new type(value));
+        histograms.addSharedDiagnosticToAllHistograms(name, new type(value));
       }
     }
   }

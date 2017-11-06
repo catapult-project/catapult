@@ -55,6 +55,19 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         hist.unit);
+
+    const stories = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES);
+    assert.isTrue(stories.hasGuid);
+    assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
+
+    const benchmarks = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.BENCHMARKS);
+    assert.isTrue(benchmarks.hasGuid);
+    assert.strictEqual(benchmarks, histograms.lookupDiagnostic(
+        benchmarks.guid));
+
+    const labels = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.LABELS);
+    assert.isTrue(labels.hasGuid);
+    assert.strictEqual(labels, histograms.lookupDiagnostic(labels.guid));
   });
 
   test('convertWithoutTIRLabel', function() {
@@ -100,6 +113,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         hist.unit);
+
+    const stories = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES);
+    assert.isTrue(stories.hasGuid);
+    assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
   });
 
   test('convertWithTIRLabel', function() {
@@ -139,6 +156,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         hist.unit);
+    assert.isTrue(hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES).hasGuid);
+    assert.isTrue(hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.STORY_TAGS).hasGuid);
   });
 
   test('convertHistogram', function() {
@@ -225,6 +245,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.getOnlyElement(histograms[1].diagnostics.get(
         tr.v.d.RESERVED_NAMES.TRACE_URLS)),
         'https://console.developers.google.com/m/cloudstorage/chromium-telemetry/o/storyB_1900-01-01_00-00-00.html');
+    assert.isTrue(histograms[0].diagnostics.get(
+        tr.v.d.RESERVED_NAMES.TRACE_URLS).hasGuid);
+    assert.isTrue(histograms[1].diagnostics.get(
+        tr.v.d.RESERVED_NAMES.TRACE_URLS).hasGuid);
   });
 });
 </script>

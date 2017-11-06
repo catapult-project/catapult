@@ -141,7 +141,7 @@ tr.b.unittest.testSuite(function() {
 
     const histograms0 = new tr.v.HistogramSet([aHist0, bHist0]);
 
-    histograms0.addSharedDiagnostic(
+    histograms0.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['0']));
 
     const aHist1 = new tr.v.Histogram('a', tr.b.Unit.byName.count);
@@ -157,7 +157,7 @@ tr.b.unittest.testSuite(function() {
 
     const histograms1 = new tr.v.HistogramSet([aHist1, bHist1]);
 
-    histograms1.addSharedDiagnostic(
+    histograms1.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['1']));
 
     const aMergedHist = aHist0.clone();

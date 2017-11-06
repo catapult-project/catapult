@@ -452,11 +452,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         'benchmark_name', 'benchmark_description')
     results.PopulateHistogramSet(benchmark_metadata)
 
-    histogram_dicts = results.AsHistogramDicts()
-    self.assertEquals(1, len(histogram_dicts))
-
-    h = histogram_module.Histogram.FromDict(histogram_dicts[0])
-    self.assertEquals('a', h.name)
+    self.assertEquals(1, len(results.histograms))
+    self.assertEquals('a', list(results.histograms)[0].name)
 
   def testPopulateHistogramSet_UsesHistogramSetData(self):
     original_diagnostic = histogram_module.GenericSet(['benchmark_name'])

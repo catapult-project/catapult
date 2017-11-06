@@ -263,13 +263,13 @@ tr.b.unittest.testSuite(function() {
         'b', tr.b.Unit.byName.count, [2]);
     const c1Hist = histograms1.createHistogram(
         'c', tr.b.Unit.byName.count, [3]);
-    histograms0.addSharedDiagnostic(
+    histograms0.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['L0']));
-    histograms0.addSharedDiagnostic(
+    histograms0.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(0));
-    histograms1.addSharedDiagnostic(
+    histograms1.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['L1']));
-    histograms1.addSharedDiagnostic(
+    histograms1.addSharedDiagnosticToAllHistograms(
         tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(1));
 
     const table = await buildTable(this, new tr.v.HistogramSet(

@@ -21,6 +21,24 @@ tr.exportTo('tr.v', function() {
      */
     static convertChartJson(charts, histograms) {
       const traceValues = charts.charts.trace;
+
+      // The chromeperf dashboard requires some Diagnostics to be shared, even
+      // if there is only a single Histogram in the HistogramSet.
+      const diagnosticCaches = new Map();
+      function addSharedDiagnostic(hist, name, diagnostic) {
+        if (!diagnosticCaches.has(name)) {
+          diagnosticCaches.set(name, new Map());
+        }
+        const cache = diagnosticCaches.get(name);
+        const datum = diagnostic instanceof tr.v.d.GenericSet ?
+          tr.b.getOnlyElement(diagnostic) : diagnostic.minDate;
+        if (!cache.has(datum)) {
+          cache.set(datum, diagnostic);
+          histograms.addSharedDiagnostic(diagnostic);
+        }
+        hist.diagnostics.set(name, cache.get(datum));
+      }
+
       for (const [name, pageValues] of Object.entries(charts.charts)) {
         if (name === 'trace') continue;
 
@@ -45,12 +63,11 @@ tr.exportTo('tr.v', function() {
           const unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
               improvementDirection);
 
-          const hist = new tr.v.Histogram(
-              value.name,
-              tr.b.Unit.byName[unitName + unitNameSuffix],
-              tr.v.HistogramBinBoundaries.SINGULAR);
-          hist.description = value.description || '';
-          histograms.addHistogram(hist);
+          const hist = histograms.createHistogram(
+              value.name, tr.b.Unit.byName[unitName + unitNameSuffix], [], {
+                binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+                description: value.description || '',
+              });
 
           if (traceValues) {
             const traceValue = traceValues[storyName] || {};
@@ -59,37 +76,33 @@ tr.exportTo('tr.v', function() {
               traceUrl = 'file://' + traceValue.file_path;
             }
             if (traceUrl) {
-              hist.diagnostics.set(tr.v.d.RESERVED_NAMES.TRACE_URLS,
+              addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.TRACE_URLS,
                   new tr.v.d.GenericSet([traceUrl]));
             }
           }
 
           if (pageValuesCount > 1) {
-            hist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
+            addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.STORIES,
                 new tr.v.d.GenericSet([storyName]));
           }
 
           if (value.tir_label) {
-            hist.diagnostics.set(
-                tr.v.d.RESERVED_NAMES.STORY_TAGS,
+            addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.STORY_TAGS,
                 new tr.v.d.GenericSet([`tir_label:${value.tir_label}`]));
           }
 
           if (charts.benchmark_name) {
-            hist.diagnostics.set(
-                tr.v.d.RESERVED_NAMES.BENCHMARKS,
+            addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.BENCHMARKS,
                 new tr.v.d.GenericSet([charts.benchmark_name]));
           }
 
           if (charts.label) {
-            hist.diagnostics.set(
-                tr.v.d.RESERVED_NAMES.LABELS,
+            addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.LABELS,
                 new tr.v.d.GenericSet([charts.label]));
           }
 
           if (charts.benchmarkStartMs) {
-            hist.diagnostics.set(
-                tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+            addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.BENCHMARK_START,
                 new tr.v.d.DateRange(charts.benchmarkStartMs));
           }
 
