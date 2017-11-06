@@ -17,8 +17,12 @@ from dashboard.models import try_job
 from dashboard.services import pinpoint_service
 
 _PINPOINT_BOTS = [
+    'chromium-rel-mac-retina',
+    'chromium-rel-mac11',
     'chromium-rel-mac11-air',
     'chromium-rel-mac11-pro',
+    'chromium-rel-mac12',
+    'chromium-rel-mac12-mini-8gb',
     'linux-release'
 ]
 
