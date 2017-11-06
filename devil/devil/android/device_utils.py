@@ -2622,7 +2622,8 @@ class DeviceUtils(object):
       return parallelizer.SyncParallelizer(devices)
 
   @classmethod
-  def HealthyDevices(cls, blacklist=None, device_arg='default', **kwargs):
+  def HealthyDevices(cls, blacklist=None, device_arg='default', retry=True,
+                     **kwargs):
     """Returns a list of DeviceUtils instances.
 
     Returns a list of DeviceUtils instances that are attached, not blacklisted,
@@ -2644,6 +2645,8 @@ class DeviceUtils(object):
               blacklisted.
           ['A', 'B', ...] -> Returns instances for the subset that is not
               blacklisted.
+      retry: If true, will attempt to restart adb server and query it again if
+          no devices are found.
       A device serial, or a list of device serials (optional).
 
     Returns:
@@ -2679,19 +2682,31 @@ class DeviceUtils(object):
         return True
       return False
 
-    if device_arg:
-      devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
-    else:
-      devices = []
-      for adb in adb_wrapper.AdbWrapper.Devices():
-        if not blacklisted(adb.GetDeviceSerial()):
-          devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+    def _get_devices():
+      if device_arg:
+        devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
+      else:
+        devices = []
+        for adb in adb_wrapper.AdbWrapper.Devices():
+          if not blacklisted(adb.GetDeviceSerial()):
+            devices.append(cls(
+                _CreateAdbWrapper(adb), default_retries=None, **kwargs))
 
-    if len(devices) == 0 and not allow_no_devices:
-      raise device_errors.NoDevicesError()
-    if len(devices) > 1 and not select_multiple:
-      raise device_errors.MultipleDevicesError(devices)
-    return sorted(devices)
+      if len(devices) == 0 and not allow_no_devices:
+        raise device_errors.NoDevicesError()
+      if len(devices) > 1 and not select_multiple:
+        raise device_errors.MultipleDevicesError(devices)
+      return sorted(devices)
+
+    try:
+      return _get_devices()
+    except device_errors.NoDevicesError:
+      if not retry:
+        raise
+      logger.warning(
+          'No devices found. Will try again after restarting adb server.')
+      RestartServer()
+      return _get_devices()
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
