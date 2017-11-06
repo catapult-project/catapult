@@ -29,19 +29,12 @@ def Main():
 
   dashboard_communicator = dashboard_api.PerfDashboardCommunicator(
       json_key_path=args.credentials)
-  test_paths = dashboard_communicator.ListTestPaths(args.benchmark)
 
   with open(args.output_path, 'wb') as fp:
     csv_writer = csv.writer(fp)
-    headers = ['bot', 'benchmark', 'metric', 'story', 'revision','value',
-               'timestamp', 'r_commit_pos', 'r_chromium', 'r_webkit_rev']
-    csv_writer.writerow(headers)
-    for tp in test_paths:
-      if not args.filters or all(f in tp for f in args.filters):
-        ts = dashboard_communicator.GetTimeseries(tp, days=args.days)
-        for point in ts['timeseries'][1:]:
-          test_data = tp.split('/', 4)[1:] + [data for data in point]
-          csv_writer.writerow(test_data)
+    for row in dashboard_communicator.GetAllTimeseriesForBenchmark(
+        args.benchmark, args.days, args.filters):
+      csv_writer.writerow(row)
 
 
 if __name__ == '__main__':
