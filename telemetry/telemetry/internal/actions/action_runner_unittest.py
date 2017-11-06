@@ -40,7 +40,8 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     with action_runner.CreateInteraction('InteractionName',
                                          **interaction_kwargs):
       pass
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
+    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
 
     records = self.GetInteractionRecords(trace_data)
     self.assertEqual(
@@ -82,7 +83,9 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
     try:
       dump_id = self.action_runner.MeasureMemory(deterministic_mode)
     finally:
-      trace_data = self._browser.platform.tracing_controller.StopTracing()
+      trace_data, errors = (
+          self._browser.platform.tracing_controller.StopTracing())
+      self.assertEqual(errors, [])
 
     # If successful, i.e. we haven't balied out due to an exception, check
     # that we can find our dump in the trace.

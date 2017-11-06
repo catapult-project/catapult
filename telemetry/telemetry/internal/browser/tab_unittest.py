@@ -128,7 +128,8 @@ class TabTest(tab_test_case.TabTestCase):
     self._browser.platform.tracing_controller.StartTracing(config)
     self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
     self._tab.ClearHighlight(rgba_color.WEB_PAGE_TEST_ORANGE)
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
+    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     timeline_model = model.TimelineModel(trace_data)
     renderer_thread = timeline_model.GetRendererThreadFromTabId(
         self._tab.id)
@@ -161,7 +162,8 @@ class TabTest(tab_test_case.TabTestCase):
     first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
     second_tab.ExecuteJavaScript('console.time("second-tab-marker");')
     second_tab.ExecuteJavaScript('console.timeEnd("second-tab-marker");')
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
+    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
+    self.assertEqual(errors, [])
     timeline_model = model.TimelineModel(trace_data)
 
     # Assert that the renderer_thread of the first tab contains
