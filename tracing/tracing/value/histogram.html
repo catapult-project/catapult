@@ -169,6 +169,9 @@ tr.exportTo('tr.v', function() {
       // case it is modified.
       this.binBoundariesDict_ = binBoundaries.asDict();
 
+      // HistogramBinBoundaries create empty HistogramBins. Save memory by
+      // sharing those empty HistogramBin instances with other Histograms. Wait
+      // to copy HistogramBins until we need to modify it (copy-on-write).
       this.allBins = binBoundaries.bins.slice();
       this.description = '';
       const allowReservedNames = false;

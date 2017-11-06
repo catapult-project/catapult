@@ -939,9 +939,14 @@ class Histogram(object):
 
     self._guid = None
 
+    # Serialize bin boundaries here instead of holding a reference to it in case
+    # it is modified.
     self._bin_boundaries_dict = bin_boundaries.AsDict()
 
-    self._bins = []
+    # HistogramBinBoundaries creates empty HistogramBins. Save memory by sharing
+    # those empty HistogramBin instances with other Histograms. Wait to copy
+    # HistogramBins until we need to modify it (copy-on-write).
+    self._bins = list(bin_boundaries.bins)
     self._description = ''
     self._name = name
     self._diagnostics = DiagnosticMap()
@@ -954,9 +959,6 @@ class Histogram(object):
     self._summary_options = dict(DEFAULT_SUMMARY_OPTIONS)
     self._summary_options['percentile'] = []
     self._unit = unit
-
-    for rang in bin_boundaries.bin_ranges:
-      self._bins.append(HistogramBin(rang))
 
     self._max_num_sample_values = self._GetDefaultMaxNumSampleValues()
 
@@ -1026,10 +1028,15 @@ class Histogram(object):
     if 'allBins' in dct:
       if isinstance(dct['allBins'], list):
         for i, bin_dct in enumerate(dct['allBins']):
+          # Copy HistogramBin on write, share the rest with the other
+          # Histograms that use the same HistogramBinBoundaries.
+          hist._bins[i] = HistogramBin(hist._bins[i].range)
           hist._bins[i].FromDict(bin_dct)
       else:
         for i, bin_dct in dct['allBins'].iteritems():
-          hist._bins[int(i)].FromDict(bin_dct)
+          i = int(i)
+          hist._bins[i] = HistogramBin(hist._bins[i].range)
+          hist._bins[i].FromDict(bin_dct)
     if 'running' in dct:
       hist._running = RunningStatistics.FromDict(dct['running'])
     if 'summaryOptions' in dct:
@@ -1104,12 +1111,15 @@ class Histogram(object):
         return hbin.range.center
     return self._bins[len(self._bins) - 1].range.min
 
-  def GetBinForValue(self, value):
+  def GetBinIndexForValue(self, value):
     index = FindHighIndexInSortedArray(
         self._bins, lambda b: (-1 if (value < b.range.max) else 1))
     if 0 <= index < len(self._bins):
-      return self._bins[index]
-    return self._bins[len(self._bins) - 1]
+      return index
+    return len(self._bins) - 1
+
+  def GetBinForValue(self, value):
+    return self._bins[self.GetBinIndexForValue(value)]
 
   def AddSample(self, value, diagnostic_map=None):
     if (diagnostic_map is not None and
@@ -1126,7 +1136,11 @@ class Histogram(object):
         self._running = RunningStatistics()
       self._running.Add(value)
 
-      hbin = self.GetBinForValue(value)
+      bin_index = self.GetBinIndexForValue(value)
+      hbin = self._bins[bin_index]
+      if hbin.count == 0:
+        hbin = HistogramBin(hbin.range)
+        self._bins[bin_index] = hbin
       hbin.AddSample(value)
       if diagnostic_map:
         hbin.AddDiagnosticMap(diagnostic_map)
@@ -1155,7 +1169,10 @@ class Histogram(object):
       self._running = self._running.Merge(other.running)
 
     for i, hbin in enumerate(other.bins):
-      self.bins[i].AddBin(hbin)
+      mybin = self._bins[i]
+      if mybin.count == 0:
+        self._bins[i] = mybin = HistogramBin(mybin.range)
+      mybin.AddBin(hbin)
 
     self.diagnostics.Merge(other.diagnostics, self, other)
 
@@ -1275,6 +1292,7 @@ class HistogramBinBoundaries(object):
     self._range = Range()
     self._range.AddValue(min_bin_boundary)
     self._bin_ranges = None
+    self._bins = None
 
   @property
   def range(self):
@@ -1324,7 +1342,10 @@ class HistogramBinBoundaries(object):
     if next_max_bin_boundary <= self.range.max:
       raise ValueError('The added max bin boundary must be larger than ' +
                        'the current max boundary')
+
     self._bin_ranges = None
+    self._bins = None
+
     self._PushBuilderSlice(next_max_bin_boundary)
     self.range.AddValue(next_max_bin_boundary)
     return self
@@ -1337,6 +1358,8 @@ class HistogramBinBoundaries(object):
                        'the previous max bin boundary')
 
     self._bin_ranges = None
+    self._bins = None
+
     self._PushBuilderSlice([
         HistogramBinBoundaries.SLICE_TYPE_LINEAR,
         next_max_bin_boundary, bin_count])
@@ -1353,6 +1376,7 @@ class HistogramBinBoundaries(object):
                        'the current max boundary boundary')
 
     self._bin_ranges = None
+    self._bins = None
 
     self._PushBuilderSlice([
         HistogramBinBoundaries.SLICE_TYPE_EXPONENTIAL,
@@ -1361,12 +1385,21 @@ class HistogramBinBoundaries(object):
     return self
 
   @property
+  def bins(self):
+    if self._bins is None:
+      self._BuildBins()
+    return self._bins
+
+  def _BuildBins(self):
+    self._bins = [HistogramBin(r) for r in self.bin_ranges]
+
+  @property
   def bin_ranges(self):
     if self._bin_ranges is None:
-      self._Build()
+      self._BuildBinRanges()
     return self._bin_ranges
 
-  def _Build(self):
+  def _BuildBinRanges(self):
     if not isinstance(self._builder[0], numbers.Number):
       raise ValueError('Invalid start of builder_')
 
