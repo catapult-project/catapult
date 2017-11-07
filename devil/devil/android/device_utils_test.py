@@ -2706,7 +2706,7 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials])):
       with self.assertRaises(device_errors.NoDevicesError):
-        device_utils.DeviceUtils.HealthyDevices(device_arg=None)
+        device_utils.DeviceUtils.HealthyDevices(device_arg=None, retry=False)
 
   def testHealthyDevices_noneDeviceArg_multiple_attached_ANDROID_SERIAL(self):
     try:
@@ -2745,7 +2745,17 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials])):
       with self.assertRaises(device_errors.NoDevicesError):
-        device_utils.DeviceUtils.HealthyDevices(device_arg=[])
+        device_utils.DeviceUtils.HealthyDevices(device_arg=[], retry=False)
+
+  def testHealthyDevices_EmptyListDeviceArg_no_attached_with_retry(self):
+    test_serials = []
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
+         [_AdbWrapperMock(s) for s in test_serials]),
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
+         [_AdbWrapperMock(s) for s in test_serials])):
+      with self.assertRaises(device_errors.NoDevicesError):
+        device_utils.DeviceUtils.HealthyDevices(device_arg=[], retry=True)
 
   def testHealthyDevices_ListDeviceArg(self):
     device_arg = ['0123456789abcdef', 'fedcba9876543210']
