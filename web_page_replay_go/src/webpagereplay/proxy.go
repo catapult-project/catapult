@@ -14,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+        "time"
 )
 
 const errStatus = http.StatusInternalServerError
@@ -33,6 +34,31 @@ func fixupRequestURL(req *http.Request, scheme string) {
 	if req.URL.Host == "" {
 		req.URL.Host = req.Host
 	}
+}
+
+// updateDate is the basic function for date adjustment.
+func updateDate(h http.Header, name string, now, oldNow time.Time) {
+        val := h.Get(name)
+        if val == "" {
+                return
+        }
+        oldTime, err := http.ParseTime(val)
+        if err != nil {
+                return
+        }
+        newTime := now.Add(oldTime.Sub(oldNow))
+        h.Set(name, newTime.UTC().Format(http.TimeFormat))
+}
+
+// updateDates updates "Date" header as current time and adjusts "Last-Modified"/"Expires" against it.
+func updateDates(h http.Header, now time.Time) {
+        oldNow, err := http.ParseTime(h.Get("Date"))
+        h.Set("Date", now.UTC().Format(http.TimeFormat))
+        if err != nil {
+                return
+        }
+        updateDate(h, "Last-Modified", now, oldNow)
+        updateDate(h, "Expires", now, oldNow)
 }
 
 // NewReplayingProxy constructs an HTTP proxy that replays responses from an archive.
@@ -101,6 +127,9 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 			storedResp.Header.Set("Content-Length", strconv.Itoa(len(body)))
 		}
 	}
+
+        // Update dates in response header.
+        updateDates(storedResp.Header, time.Now())
 
 	// Transform.
 	for _, t := range proxy.transformers {
