@@ -935,7 +935,8 @@ class Histogram(object):
         'Unrecognized unit "%r"' % unit)
 
     if bin_boundaries is None:
-      bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[unit]
+      base_unit = unit.split('_')[0]
+      bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[base_unit]
 
     self._guid = None
 
@@ -1453,10 +1454,10 @@ HistogramBinBoundaries.SINGULAR = HistogramBinBoundaries(JS_MAX_VALUE)
 
 
 DEFAULT_BOUNDARIES_FOR_UNIT = {
-    'ms': HistogramBinBoundaries.CreateExponential(1e-3, 1e6, 1e2),
-    'tsMs': HistogramBinBoundaries.CreateLinear(0, 1e10, 1e3),
+    'ms': HistogramBinBoundaries.CreateExponential(1e-3, 1e6, 100),
+    'tsMs': HistogramBinBoundaries.CreateLinear(0, 1e10, 1000),
     'n%': HistogramBinBoundaries.CreateLinear(0, 1.0, 20),
-    'sizeInBytes': HistogramBinBoundaries.CreateExponential(1, 1e12, 1e2),
+    'sizeInBytes': HistogramBinBoundaries.CreateExponential(1, 1e12, 100),
     'J': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
     'W': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'unitless': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),

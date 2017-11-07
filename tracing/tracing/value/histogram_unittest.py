@@ -152,6 +152,40 @@ class HistogramUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))
 
+  def testDefaultBoundaries(self):
+    hist = histogram.Histogram('', 'ms')
+    self.assertEqual(len(hist.bins), 102)
+
+    hist = histogram.Histogram('', 'tsMs')
+    self.assertEqual(len(hist.bins), 1002)
+
+    hist = histogram.Histogram('', 'n%')
+    self.assertEqual(len(hist.bins), 22)
+
+    hist = histogram.Histogram('', 'sizeInBytes')
+    self.assertEqual(len(hist.bins), 102)
+
+    hist = histogram.Histogram('', 'J')
+    self.assertEqual(len(hist.bins), 52)
+
+    hist = histogram.Histogram('', 'W')
+    self.assertEqual(len(hist.bins), 52)
+
+    hist = histogram.Histogram('', 'unitless')
+    self.assertEqual(len(hist.bins), 52)
+
+    hist = histogram.Histogram('', 'count')
+    self.assertEqual(len(hist.bins), 22)
+
+    hist = histogram.Histogram('', 'sigma')
+    self.assertEqual(len(hist.bins), 52)
+
+    hist = histogram.Histogram('', 'sigma_smallerIsBetter')
+    self.assertEqual(len(hist.bins), 52)
+
+    hist = histogram.Histogram('', 'sigma_biggerIsBetter')
+    self.assertEqual(len(hist.bins), 52)
+
   def testSerializationSize(self):
     hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
     d = hist.AsDict()
