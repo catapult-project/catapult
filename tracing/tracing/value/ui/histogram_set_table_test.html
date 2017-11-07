@@ -183,10 +183,13 @@ tr.b.unittest.testSuite(function() {
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     histograms.createHistogram('b', tr.b.Unit.byName.count, [2]);
     const table = await buildTable(this, histograms);
+    const baseTable = getBaseTable(table);
+    assert.strictEqual(baseTable.sortColumnIndex, 0);
+    assert.isFalse(baseTable.sortDescending);
 
-    await table.viewState.update({sortColumnIndex: 0});
-
-    await table.viewState.update({sortColumnIndex: 1});
+    await table.viewState.update({sortColumnIndex: 1, sortDescending: true});
+    assert.isTrue(baseTable.sortDescending);
+    assert.strictEqual(baseTable.sortColumnIndex, 1);
   });
 
   test('controlSortColumnIndex', async function() {

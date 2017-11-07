@@ -51,12 +51,16 @@ tr.exportTo('tr.v.ui', function() {
       this.groupedHistograms_ = undefined;
       this.hierarchies_ = undefined;
       this.tableRows_ = undefined;
+
+      // Store this listener so it can be removed while updateContents_ modifies
+      // sortColumnIndex and sortDescending, then re-added.
+      this.sortColumnChangedListener_ = e => this.onSortColumnChanged_(e);
     },
 
     ready() {
       this.$.table.zebra = true;
       this.addEventListener('sort-column-changed',
-          this.onSortColumnChanged_.bind(this));
+          this.sortColumnChangedListener_);
       this.addEventListener('requestSelectionChange',
           this.onRequestSelectionChange_.bind(this));
       this.addEventListener('row-expanded-changed',
@@ -241,8 +245,14 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.selectedTableColumnIndex = (referenceDisplayLabelIndex < 0) ?
           undefined : (1 + referenceDisplayLabelIndex);
 
+      // Temporarily stop listening for this event in order to prevent the
+      // listener from updating viewState unnecessarily.
+      this.removeEventListener('sort-column-changed',
+          this.sortColumnChangedListener_);
       this.$.table.sortColumnIndex = this.viewState.sortColumnIndex;
       this.$.table.sortDescending = this.viewState.sortDescending;
+      this.addEventListener('sort-column-changed',
+          this.sortColumnChangedListener_);
 
       // Each name-cell listens to this.viewState for updates to
       // constrainNameColumn.
