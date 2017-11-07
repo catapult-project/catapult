@@ -184,7 +184,7 @@ const buildComparisonResultOutput = function(a, b) {
   } else {
     comparisonResult = tr.b.math.Statistics.mwu(
         a, b, tr.b.math.Statistics.DEFAULT_ALPHA,
-        tr.b.math.Statistics.MAX_SUGGESTED_SAMPLE_SIZE);
+        tr.b.math.Statistics.MAX_SUGGESTED_SAMPLE_SIZE).asDict();
   }
   return {
     sampleA: a,

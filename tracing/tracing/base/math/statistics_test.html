@@ -525,7 +525,14 @@ tr.b.unittest.testSuite(function() {
     let sampleA = [1, 2, 2.1, 2.2, 2, 1];
     let sampleB = [12, 13, 13.1, 13.2, 13, 12];
     let results = Statistics.mwu(sampleA, sampleB);
-    assert.isBelow(results.p, 0.1);
+    assert.isBelow(results.p, Statistics.DEFAULT_ALPHA);
+
+    assert.strictEqual(results.significance,
+        Statistics.Significance.SIGNIFICANT);
+    assert.strictEqual(results.compare(Statistics.DEFAULT_ALPHA / 10),
+        Statistics.Significance.INSIGNIFICANT);
+    assert.strictEqual(results.significance,
+        Statistics.Significance.INSIGNIFICANT);
 
     // 0.01 < x < 0.1
     sampleA = [1, 2, 2.1, 2.2, 2, 1];
@@ -573,6 +580,15 @@ tr.b.unittest.testSuite(function() {
     // Empty samples should not be comparable.
     results = Statistics.mwu(emptySample, emptySample);
     assert(isNaN(results.p));
+
+    results = Statistics.mwu(
+        emptySample, emptySample, Statistics.DEFAULT_ALPHA, 1);
+    assert.strictEqual(results.significance,
+        Statistics.Significance.NEED_MORE_DATA);
+    assert.strictEqual(results.compare(0.9),
+        Statistics.Significance.NEED_MORE_DATA);
+    assert.strictEqual(results.significance,
+        Statistics.Significance.NEED_MORE_DATA);
 
     // The result of comparing a sample against an empty sample should not be a
     // valid p value. NOTE: The current implementation returns 0, it is up to

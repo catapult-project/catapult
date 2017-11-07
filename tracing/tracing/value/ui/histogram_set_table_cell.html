@@ -108,6 +108,7 @@ tr.exportTo('tr.v.ui', function() {
       this.histogram_ = undefined;
       this.histogramSpan_ = undefined;
       this.overviewChart_ = undefined;
+      this.mwuResult_ = undefined;
     },
 
     ready() {
@@ -124,6 +125,17 @@ tr.exportTo('tr.v.ui', function() {
       this.row.rootViewState.removeUpdateListener(this.rootListener_);
       // Don't need to removeUpdateListener for the row and cells; their
       // lifetimes are the same as |this|.
+    },
+
+    updateMwu_() {
+      const referenceHistogram = this.referenceHistogram;
+      this.mwuResult_ = undefined;
+      if (!(this.histogram instanceof tr.v.Histogram)) return;
+      if (!this.histogram.canCompare(referenceHistogram)) return;
+      this.mwuResult_ = tr.b.math.Statistics.mwu(
+          this.histogram.sampleValues,
+          referenceHistogram.sampleValues,
+          this.row.rootViewState.alpha);
     },
 
     build(row, displayLabel, viewState) {
@@ -143,9 +155,16 @@ tr.exportTo('tr.v.ui', function() {
         this.row.rootViewState.addUpdateListener(this.rootListener_);
       }
 
+      this.updateMwu_();
+
       // this.histogram_ and this.referenceHistogram might be undefined,
       // a HistogramSet of unmergeable Histograms, or a Histogram.
       this.updateContents_();
+    },
+
+    updateSignificance_() {
+      if (!this.mwuResult_) return;
+      this.$.scalar.significance = this.mwuResult_.significance;
     },
 
     get viewState() {
@@ -224,11 +243,16 @@ tr.exportTo('tr.v.ui', function() {
           this.histogramSpan_) {
         this.histogramSpan_.build(this.histogram, this.referenceHistogram);
       }
+
       if (event.delta.displayStatisticName ||
-          event.delta.referenceDisplayLabel ||
-          event.delta.alpha) {
+          event.delta.referenceDisplayLabel) {
+        this.updateMwu_();
         this.updateContents_();
+      } else if (event.delta.alpha && this.mwuResult_) {
+        this.mwuResult_.compare(this.row.rootViewState.alpha);
+        this.updateSignificance_();
       }
+
       if (this.row.viewState.isOverviewed &&
           (event.delta.sortColumnIndex ||
            event.delta.sortDescending ||
@@ -296,15 +320,9 @@ tr.exportTo('tr.v.ui', function() {
       this.$.open_histogram.style.visibility = 'visible';
       this.$.scalar.style.display = 'flex';
 
+      this.updateSignificance_();
+
       const referenceHistogram = this.referenceHistogram;
-
-      if ((referenceHistogram instanceof tr.v.Histogram) &&
-          (this.histogram.unit === referenceHistogram.unit) &&
-          (referenceHistogram.numValues > 0)) {
-        this.$.scalar.significance = this.histogram.getDifferenceSignificance(
-            referenceHistogram, this.row.rootViewState.alpha);
-      }
-
       const statName = this.histogram.getAvailableStatisticName(
           this.row.rootViewState.displayStatisticName, referenceHistogram);
       const statisticScalar = this.histogram.getStatisticScalar(

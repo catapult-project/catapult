@@ -804,12 +804,65 @@ tr.exportTo('tr.b.math', function() {
   };
 
 
-  /**
-   * @typedef {Object} HypothesisTestResult
-   * @property {number} p
-   * @property {number} U
-   * @property {!tr.b.math.Statistics.Significance} significance
-   */
+  class HypothesisTestResult {
+    constructor(p, u, needMoreData, opt_alpha) {
+      this.p_ = p;
+      this.u_ = u;
+      this.needMoreData_ = needMoreData;
+      this.compare(opt_alpha);
+    }
+
+    /**
+     * The probability under the null hypothesis (i.e. the two samples are
+     * indistinguishable) of obtaining a result more extreme than observed.
+     * @return number in (0,1)
+     */
+    get p() {
+      return this.p_;
+    }
+
+    /**
+     * The U statistic from MWU.
+     * @return number
+     */
+    get U() {
+      return this.u_;
+    }
+
+    /**
+     * @return {!tr.b.math.Statistics.Significance}
+     */
+    get significance() {
+      return this.significance_;
+    }
+
+    /**
+     * Recompute |significance| with the same p-value but a new alpha threshold.
+     * Faster than recomputing MWU.
+     *
+     * @param {number=}
+     * @return {!tr.b.math.Statistics.Significance}
+     */
+    compare(opt_alpha) {
+      const alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
+      if (this.p < alpha) {
+        this.significance_ = Statistics.Significance.SIGNIFICANT;
+      } else if (this.needMoreData_) {
+        this.significance_ = Statistics.Significance.NEED_MORE_DATA;
+      } else {
+        this.significance_ = Statistics.Significance.INSIGNIFICANT;
+      }
+      return this.significance_;
+    }
+
+    asDict() {
+      return {
+        p: this.p,
+        U: this.U,
+        significance: this.significance,
+      };
+    }
+  }
 
   /**
    * @param {!Array.<number>} a
@@ -820,16 +873,10 @@ tr.exportTo('tr.b.math', function() {
    */
   Statistics.mwu = function(a, b, opt_alpha, opt_reqSampleSize) {
     const result = mannwhitneyu.test(a, b);
-    const alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
-    if (result.p < alpha) {
-      result.significance = Statistics.Significance.SIGNIFICANT;
-    } else if (opt_reqSampleSize && (a.length < opt_reqSampleSize ||
-          b.length < opt_reqSampleSize)) {
-      result.significance = Statistics.Significance.NEED_MORE_DATA;
-    } else {
-      result.significance = Statistics.Significance.INSIGNIFICANT;
-    }
-    return result;
+    const needMoreData = opt_reqSampleSize &&
+      Math.min(a.length, b.length) < opt_reqSampleSize;
+    return new HypothesisTestResult(
+        result.p, result.U, needMoreData, opt_alpha);
   };
 
   return {

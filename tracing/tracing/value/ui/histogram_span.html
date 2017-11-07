@@ -100,6 +100,7 @@ tr.exportTo('tr.v.ui', function() {
       this.prevBrushedBinRange_ = new tr.b.math.Range();
       this.anySampleDiagnostics_ = false;
       this.canMergeSampleDiagnostics_ = true;
+      this.mwuResult_ = undefined;
     },
 
     get rowState() {
@@ -147,6 +148,13 @@ tr.exportTo('tr.v.ui', function() {
       this.$.sample_diagnostics.histogram = histogram;
       this.referenceHistogram_ = opt_referenceHistogram;
 
+      if (this.histogram.canCompare(this.referenceHistogram)) {
+        this.mwuResult_ = tr.b.math.Statistics.mwu(
+            this.histogram.sampleValues,
+            this.referenceHistogram.sampleValues,
+            this.rootState.alpha);
+      }
+
       this.anySampleDiagnostics_ = false;
       for (const bin of this.histogram.allBins) {
         if (bin.diagnosticMaps.length > 0) {
@@ -176,9 +184,16 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
+    updateSignificance_() {
+      if (!this.mwuResult_) return;
+      this.$.stats.setSignificanceForKey(
+          `${tr.v.DELTA}avg`, this.mwuResult_.significance);
+    },
+
     onRootStateUpdate_(event) {
-      if (event.delta.alpha) {
-        this.updateContents_();
+      if (event.delta.alpha && this.mwuResult_) {
+        this.mwuResult_.compare(this.rootState.alpha);
+        this.updateSignificance_();
       }
     },
 
@@ -429,24 +444,13 @@ tr.exportTo('tr.v.ui', function() {
     getDeltaScalars_(statNames, scalarMap) {
       if (!this.histogram.canCompare(this.referenceHistogram)) return;
 
-      const mwu = tr.b.math.Statistics.mwu(
-          this.histogram.sampleValues,
-          this.referenceHistogram.sampleValues,
-          this.rootState.alpha);
-
       for (const deltaStatName of tr.v.Histogram.getDeltaStatisticsNames(
           statNames)) {
         if (IGNORE_DELTA_STATISTICS_NAMES.includes(deltaStatName)) continue;
         const scalar = this.histogram.getStatisticScalar(
-            deltaStatName, this.referenceHistogram, mwu);
+            deltaStatName, this.referenceHistogram, this.mwuResult_);
         if (scalar === undefined) continue;
         scalarMap.set(deltaStatName, scalar);
-      }
-
-      if (this.histogram.unit.improvementDirection !==
-          tr.b.ImprovementDirection.DONT_CARE) {
-        this.$.stats.setSignificanceForKey(
-            `${tr.v.DELTA}avg`, mwu.significance);
       }
     },
 
@@ -473,6 +477,7 @@ tr.exportTo('tr.v.ui', function() {
         scalarMap.set(name, scalar);
       }
       this.$.stats.scalarMap = scalarMap;
+      this.updateSignificance_();
 
       const metricDiagnosticMap = new tr.v.d.DiagnosticMap();
       const metadataDiagnosticMap = new tr.v.d.DiagnosticMap();
