@@ -80,7 +80,7 @@ class Job(ndb.Model):
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
 
-  state = ndb.PickleProperty(required=True)
+  state = ndb.PickleProperty(required=True, compressed=True)
 
   @classmethod
   def New(cls, arguments, quests, auto_explore,
