@@ -10,6 +10,7 @@ import time
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import memory_debug  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -364,6 +365,7 @@ def RunBenchmark(benchmark, finder_options):
       duration = time.time() - start
       results.AddSummaryValue(scalar.ScalarValue(
           None, 'benchmark_duration', 'minutes', duration / 60.0))
+      memory_debug.LogHostMemoryUsage()
       results.PrintSummary()
   return return_code
 
