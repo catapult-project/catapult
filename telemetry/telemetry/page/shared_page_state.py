@@ -57,6 +57,11 @@ class SharedPageState(story_module.SharedState):
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)
     else:
       self._test = test
+
+    if (self._device_type == 'desktop' and
+        platform_module.GetHostPlatform().GetOSName() == 'chromeos'):
+      self._device_type = 'chromeos'
+
     _PrepareFinderOptions(finder_options, self._test, self._device_type)
     self._browser = None
     self._finder_options = finder_options
@@ -360,10 +365,7 @@ class SharedMobilePageState(SharedPageState):
 
 
 class SharedDesktopPageState(SharedPageState):
-  if platform_module.GetHostPlatform().GetOSName() == 'chromeos':
-    _device_type = 'chromeos'
-  else:
-    _device_type = 'desktop'
+  _device_type = 'desktop'
 
 
 class SharedTabletPageState(SharedPageState):

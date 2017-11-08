@@ -52,9 +52,13 @@ class NetworkControllerBackend(object):
     assert bool(self._ts_proxy_server) == bool(self._forwarder)
     if self._ts_proxy_server:
       return
-    local_port = self._StartTsProxyServer(self._use_live_traffic)
-    self._forwarder = self._platform_backend.forwarder_factory.Create(
-        self._platform_backend.GetPortPairForForwarding(local_port))
+    try:
+      local_port = self._StartTsProxyServer(self._use_live_traffic)
+      self._forwarder = self._platform_backend.forwarder_factory.Create(
+          self._platform_backend.GetPortPairForForwarding(local_port))
+    except Exception:
+      self.Close()
+      raise
 
   @property
   def is_open(self):
