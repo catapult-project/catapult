@@ -4,6 +4,7 @@
 
 import collections
 import datetime
+import itertools
 import logging
 import os
 import re
@@ -351,12 +352,12 @@ class _JobState(object):
     # all the result values for that Change and Quest.
     result_values = []
     for change in self._changes:
+      executions = _ExecutionsPerQuest(self._attempts[change])
       change_result_values = []
-
-      change_results_per_quest = _CombineResultsPerQuest(self._attempts[change])
       for quest in self._quests:
-        change_result_values.append(change_results_per_quest[quest])
-
+        quest_result_values = [itertools.chain.from_iterable(
+            execution for execution in executions[quest])]
+        change_result_values.append(quest_result_values)
       result_values.append(change_result_values)
 
     attempts = []
@@ -379,20 +380,26 @@ class _JobState(object):
     if any(not attempt.completed for attempt in attempts_a + attempts_b):
       return _PENDING
 
-    # Compare exceptions.
-    exceptions_a = tuple(bool(attempt.exception) for attempt in attempts_a)
-    exceptions_b = tuple(bool(attempt.exception) for attempt in attempts_b)
+    executions_by_quest_a = _ExecutionsPerQuest(attempts_a)
+    executions_by_quest_b = _ExecutionsPerQuest(attempts_b)
 
-    if _CompareValues(exceptions_a, exceptions_b) == _DIFFERENT:
-      return _DIFFERENT
+    for quest in self._quests:
+      executions_a = executions_by_quest_a[quest]
+      executions_b = executions_by_quest_b[quest]
 
-    # Compare values.
-    results_a = _CombineResultsPerQuest(attempts_a)
-    results_b = _CombineResultsPerQuest(attempts_b)
+      # Compare exceptions.
+      values_a = tuple(bool(execution.exception) for execution in executions_a)
+      values_b = tuple(bool(execution.exception) for execution in executions_b)
+      if _CompareValues(values_a, values_b) == _DIFFERENT:
+        return _DIFFERENT
 
-    if any(_CompareValues(results_a[quest], results_b[quest]) == _DIFFERENT
-           for quest in self._quests):
-      return _DIFFERENT
+      # Compare result values.
+      values_a = tuple(itertools.chain.from_iterable(
+          execution.result_values for execution in executions_a))
+      values_b = tuple(itertools.chain.from_iterable(
+          execution.result_values for execution in executions_b))
+      if _CompareValues(values_a, values_b) == _DIFFERENT:
+        return _DIFFERENT
 
     # Here, "the same" means that we fail to reject the null hypothesis. We can
     # never be completely sure that the two Changes have the same results, but
@@ -414,16 +421,12 @@ def _FormatCommitForBug(commit, commit_info):
   return '\n'.join((subject, byline, git_link))
 
 
-def _CombineResultsPerQuest(attempts):
-  aggregate_results = collections.defaultdict(list)
+def _ExecutionsPerQuest(attempts):
+  executions = collections.defaultdict(list)
   for attempt in attempts:
-    if not attempt.completed:
-      continue
-
-    for quest, results in attempt.result_values.iteritems():
-      aggregate_results[quest] += results
-
-  return aggregate_results
+    for quest, execution in zip(attempt.quests, attempt.executions):
+      executions[quest].append(execution)
+  return executions
 
 
 def _CompareValues(values_a, values_b):

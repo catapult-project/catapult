@@ -29,6 +29,14 @@ class Attempt(object):
     self._executions = []
 
   @property
+  def quests(self):
+    return tuple(self._quests)
+
+  @property
+  def executions(self):
+    return tuple(self._executions)
+
+  @property
   def completed(self):
     """Returns True iff the Attempt is completed. Otherwise, it is in progress.
 
@@ -41,17 +49,6 @@ class Attempt(object):
     return self._last_execution.failed or (
         self._last_execution.completed and
         len(self._quests) == len(self._executions))
-
-  @property
-  def exception(self):
-    assert self.completed
-    return self._last_execution.exception
-
-  @property
-  def result_values(self):
-    assert self.completed
-    return dict((quest, execution.result_values)
-                for quest, execution in zip(self._quests, self._executions))
 
   @property
   def _last_execution(self):
