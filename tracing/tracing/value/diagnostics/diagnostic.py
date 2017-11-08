@@ -4,10 +4,18 @@
 
 import uuid
 
+from py_utils import slots_metaclass
+
 from tracing.value.diagnostics import all_diagnostics
 
 
 class Diagnostic(object):
+  __slots__ = '_guid',
+
+  # Ensure that new subclasses remember to specify __slots__ in order to prevent
+  # regressing memory consumption:
+  __metaclass__ = slots_metaclass.SlotsMetaclass
+
   def __init__(self):
     self._guid = None
 

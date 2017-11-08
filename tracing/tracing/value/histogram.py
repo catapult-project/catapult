@@ -128,6 +128,7 @@ def Percentile(ary, percent):
 
 
 class Range(object):
+  __slots__ = '_empty', '_min', '_max'
 
   def __init__(self):
     self._empty = True
@@ -183,6 +184,8 @@ class Range(object):
 
 # This class computes statistics online in O(1).
 class RunningStatistics(object):
+  __slots__ = (
+      '_count', '_mean', '_max', '_min', '_sum', '_variance', '_meanlogs')
 
   def __init__(self):
     self._count = 0
@@ -333,6 +336,7 @@ class RunningStatistics(object):
     return result
 
 class Breakdown(diagnostic.Diagnostic):
+  __slots__ = '_values', '_color_scheme'
 
   def __init__(self):
     super(Breakdown, self).__init__()
@@ -392,6 +396,7 @@ class Breakdown(diagnostic.Diagnostic):
 # Dicts and lists are not hashable.
 # (1 == True) and (0 == False) in Python, but not in JSON.
 class GenericSet(diagnostic.Diagnostic):
+  __slots__ = '_values', '_comparable_set'
 
   def __init__(self, values):
     super(GenericSet, self).__init__()
@@ -450,6 +455,7 @@ class GenericSet(diagnostic.Diagnostic):
 
 
 class DateRange(diagnostic.Diagnostic):
+  __slots__ = '_range',
 
   def __init__(self, ms):
     super(DateRange, self).__init__()
@@ -490,6 +496,7 @@ class DateRange(diagnostic.Diagnostic):
     self._range.AddRange(other_diagnostic._range)
 
 class HistogramRef(object):
+  __slots__ = '_guid',
 
   def __init__(self, guid):
     self._guid = guid
@@ -500,6 +507,7 @@ class HistogramRef(object):
 
 
 class RelatedNameMap(diagnostic.Diagnostic):
+  __slots__ = '_map',
 
   def __init__(self):
     super(RelatedNameMap, self).__init__()
@@ -553,6 +561,7 @@ class RelatedNameMap(diagnostic.Diagnostic):
 
 
 class RelatedHistogramMap(diagnostic.Diagnostic):
+  __slots__ = '_histograms_by_name',
 
   def __init__(self):
     super(RelatedHistogramMap, self).__init__()
@@ -603,6 +612,7 @@ class RelatedHistogramMap(diagnostic.Diagnostic):
 
 
 class RelatedHistogramBreakdown(RelatedHistogramMap):
+  __slots__ = '_color_scheme',
 
   def __init__(self):
     super(RelatedHistogramBreakdown, self).__init__()
@@ -636,6 +646,7 @@ class RelatedHistogramBreakdown(RelatedHistogramMap):
 
 
 class TagMap(diagnostic.Diagnostic):
+  __slots__ = '_tags_to_story_names',
 
   def __init__(self, info):
     super(TagMap, self).__init__()
@@ -676,6 +687,7 @@ class TagMap(diagnostic.Diagnostic):
 
 
 class RelatedEventSet(diagnostic.Diagnostic):
+  __slots__ = '_events_by_stable_id',
 
   def __init__(self):
     super(RelatedEventSet, self).__init__()
@@ -703,6 +715,7 @@ class RelatedEventSet(diagnostic.Diagnostic):
 
 
 class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
+  __slots__ = '_diagnostics',
 
   def __init__(self, diagnostics):
     super(UnmergeableDiagnosticSet, self).__init__()
@@ -747,6 +760,7 @@ class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
 
 
 class DiagnosticMap(dict):
+  __slots__ = '_allow_reserved_names',
 
   def __init__(self, *args, **kwargs):
     self._allow_reserved_names = True
@@ -825,6 +839,7 @@ MAX_DIAGNOSTIC_MAPS = 16
 
 
 class HistogramBin(object):
+  __slots__ = '_range', '_count', '_diagnostic_maps'
 
   def __init__(self, rang):
     self._range = rang
@@ -890,6 +905,7 @@ ExtendUnitNames()
 
 
 class Scalar(object):
+  __slots__ = '_unit', '_value'
 
   def __init__(self, unit, value):
     assert unit in UNIT_NAMES, (
@@ -929,6 +945,21 @@ DEFAULT_SUMMARY_OPTIONS = {
 
 
 class Histogram(object):
+  __slots__ = (
+      '_guid',
+      '_bin_boundaries_dict',
+      '_description',
+      '_name',
+      '_diagnostics',
+      '_nan_diagnostic_maps',
+      '_num_nans',
+      '_running',
+      '_sample_values',
+      '_short_name',
+      '_summary_options',
+      '_unit',
+      '_bins',
+      '_max_num_sample_values')
 
   def __init__(self, name, unit, bin_boundaries=None):
     assert unit in UNIT_NAMES, (
@@ -1284,6 +1315,8 @@ class Histogram(object):
 
 
 class HistogramBinBoundaries(object):
+  __slots__ = '_builder', '_range', '_bin_ranges', '_bins'
+
   CACHE = {}
   SLICE_TYPE_LINEAR = 0
   SLICE_TYPE_EXPONENTIAL = 1
