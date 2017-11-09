@@ -151,9 +151,6 @@ class PlatformBackend(object):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def GetSystemCommitCharge(self):
-    raise NotImplementedError()
-
   def GetSystemTotalPhysicalMemory(self):
     raise NotImplementedError()
 
@@ -161,12 +158,6 @@ class PlatformBackend(object):
     return {}
 
   def GetCpuTimestamp(self):
-    return {}
-
-  def PurgeUnpinnedMemory(self):
-    pass
-
-  def GetMemoryStats(self, pid):
     return {}
 
   def GetChildPids(self, pid):

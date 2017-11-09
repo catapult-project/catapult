@@ -275,37 +275,6 @@ class AndroidPlatformBackend(
       raise Exception('Error installing PushAppsToBackground.apk.')
     self.InstallApplication(host_path)
 
-  def PurgeUnpinnedMemory(self):
-    """Purges the unpinned ashmem memory for the whole system.
-
-    This can be used to make memory measurements more stable. Requires root.
-    """
-    if not self._can_elevate_privilege:
-      logging.warning('Cannot run purge_ashmem. Requires a rooted device.')
-      return
-
-    if not android_prebuilt_profiler_helper.InstallOnDevice(
-        self._device, 'purge_ashmem'):
-      raise Exception('Error installing purge_ashmem.')
-    output = self._device.RunShellCommand(
-        [android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')],
-        check_return=True)
-    for l in output:
-      logging.info(l)
-
-  @decorators.Deprecated(
-      2017, 11, 4,
-      'Clients should use tracing and memory-infra in new Telemetry '
-      'benchmarks. See for context: https://crbug.com/632021')
-  def GetMemoryStats(self, pid):
-    memory_usage = self._device.GetMemoryUsageForPid(pid)
-    if not memory_usage:
-      return {}
-    return {'ProportionalSetSize': memory_usage['Pss'] * 1024,
-            'SharedDirty': memory_usage['Shared_Dirty'] * 1024,
-            'PrivateDirty': memory_usage['Private_Dirty'] * 1024,
-            'VMPeak': memory_usage['VmHWM'] * 1024}
-
   def GetChildPids(self, pid):
     child_pids = []
     ps = self.GetPsOutput(['pid', 'name'])

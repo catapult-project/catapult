@@ -60,10 +60,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def GetSystemCommitCharge(self):
-    performance_info = self._GetPerformanceInfo()
-    return performance_info.CommitTotal * performance_info.PageSize / 1024
-
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     performance_info = self._GetPerformanceInfo()
@@ -79,18 +75,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def GetCpuTimestamp(self):
     """Return current timestamp in seconds."""
     return {'TotalTime': time.time()}
-
-  @decorators.Deprecated(
-      2017, 11, 4,
-      'Clients should use tracing and memory-infra in new Telemetry '
-      'benchmarks. See for context: https://crbug.com/632021')
-  def GetMemoryStats(self, pid):
-    memory_info = self._GetWin32ProcessInfo(
-        win32process.GetProcessMemoryInfo, pid)
-    return {'VM': memory_info['PagefileUsage'],
-            'VMPeak': memory_info['PeakPagefileUsage'],
-            'WorkingSetSize': memory_info['WorkingSetSize'],
-            'WorkingSetSizePeak': memory_info['PeakWorkingSetSize']}
 
   def KillProcess(self, pid, kill_process_tree=False):
     # os.kill for Windows is Python 2.7.

@@ -189,49 +189,6 @@ class Browser(app.App):
     return result
 
   @property
-  def memory_stats(self):
-    """Returns a dict of memory statistics for the browser:
-    { 'Browser': {
-        'VM': R,
-        'VMPeak': S,
-        'WorkingSetSize': T,
-        'WorkingSetSizePeak': U,
-        'ProportionalSetSize': V,
-        'PrivateDirty': W
-      },
-      'Gpu': {
-        'VM': R,
-        'VMPeak': S,
-        'WorkingSetSize': T,
-        'WorkingSetSizePeak': U,
-        'ProportionalSetSize': V,
-        'PrivateDirty': W
-      },
-      'Renderer': {
-        'VM': R,
-        'VMPeak': S,
-        'WorkingSetSize': T,
-        'WorkingSetSizePeak': U,
-        'ProportionalSetSize': V,
-        'PrivateDirty': W
-      },
-      'SystemCommitCharge': X,
-      'SystemTotalPhysicalMemory': Y,
-      'ProcessCount': Z,
-    }
-    Any of the above keys may be missing on a per-platform basis.
-    """
-    self._platform_backend.PurgeUnpinnedMemory()
-    result = self._GetStatsCommon(self._platform_backend.GetMemoryStats)
-    commit_charge = self._platform_backend.GetSystemCommitCharge()
-    if commit_charge:
-      result['SystemCommitCharge'] = commit_charge
-    total = self._platform_backend.GetSystemTotalPhysicalMemory()
-    if total:
-      result['SystemTotalPhysicalMemory'] = total
-    return result
-
-  @property
   def cpu_stats(self):
     """Returns a dict of cpu statistics for the system.
     { 'Browser': {

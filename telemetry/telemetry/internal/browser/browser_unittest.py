@@ -122,9 +122,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     info_b = self._browser.GetSystemInfo()
     self.assertFalse(info_a is info_b)
 
-  def testGetSystemTotalMemory(self):
-    self.assertTrue(self._browser.memory_stats['SystemTotalPhysicalMemory'] > 0)
-
   def testSystemInfoModelNameOnMac(self):
     if self._browser.platform.GetOSName() != 'mac':
       self.skipTest('This test is only run on macOS')

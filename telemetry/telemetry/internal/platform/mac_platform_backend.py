@@ -14,12 +14,6 @@ from telemetry import decorators
 from telemetry.internal.platform import posix_platform_backend
 from telemetry.util import process_statistic_timeline_data
 
-try:
-  import resource  # pylint: disable=import-error
-except ImportError:
-  resource = None  # Not available on all platforms
-
-
 
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def __init__(self):
@@ -101,34 +95,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     """Return current timestamp in seconds."""
     return {'TotalTime': time.time()}
 
-  def GetSystemCommitCharge(self):
-    vm_stat = self.RunCommand(['vm_stat'])
-    for stat in vm_stat.splitlines():
-      key, value = stat.split(':')
-      if key == 'Pages active':
-        pages_active = int(value.strip()[:-1])  # Strip trailing '.'
-        return pages_active * resource.getpagesize() / 1024
-    return 0
-
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     return int(self.RunCommand(['sysctl', '-n', 'hw.memsize']))
-
-  def PurgeUnpinnedMemory(self):
-    # TODO(pliard): Implement this.
-    pass
-
-  @decorators.Deprecated(
-      2017, 11, 4,
-      'Clients should use tracing and memory-infra in new Telemetry '
-      'benchmarks. See for context: https://crbug.com/632021')
-  def GetMemoryStats(self, pid):
-    rss_vsz = self.GetPsOutput(['rss', 'vsz'], pid)
-    if rss_vsz:
-      rss, vsz = rss_vsz[0].split()
-      return {'VM': 1024 * int(vsz),
-              'WorkingSetSize': 1024 * int(rss)}
-    return {}
 
   @decorators.Cache
   def GetArchName(self):
