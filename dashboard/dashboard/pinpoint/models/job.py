@@ -355,8 +355,9 @@ class _JobState(object):
       executions = _ExecutionsPerQuest(self._attempts[change])
       change_result_values = []
       for quest in self._quests:
-        quest_result_values = [itertools.chain.from_iterable(
-            execution for execution in executions[quest])]
+        quest_result_values = list(itertools.chain.from_iterable(
+            execution.result_values for execution in executions[quest]
+            if execution.completed))
         change_result_values.append(quest_result_values)
       result_values.append(change_result_values)
 
