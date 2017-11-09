@@ -151,6 +151,22 @@ Get the device's path to its SD card.
 ```
 
 
+### DeviceUtils.GetIMEI
+
+Get the device's IMEI.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The device's IMEI.
+
+    Raises:
+      AdbCommandFailedError on error
+```
+
+
 ### DeviceUtils.GetApplicationPaths
 
 Get the paths of the installed apks on the device for the given package.
@@ -160,6 +176,22 @@ Get the paths of the installed apks on the device for the given package.
 
     Returns:
       List of paths to the apks on the device for the given package.
+```
+
+
+### DeviceUtils.TakeBugReport
+
+Takes a bug report and dumps it to the specified path.
+```
+    This doesn't use adb's bugreport option since its behavior is dependent on
+    both adb version and device OS version. To make it simpler, this directly
+    runs the bugreport command on the device itself and dumps the stdout to a
+    file.
+
+    Args:
+      path: Path on the host to drop the bug report.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
 ```
 
 
@@ -299,18 +331,21 @@ Remove the app |package\_name| from the device.
 
 Run an ADB shell command.
 ```
-    The command to run |cmd| should be a sequence of program arguments or else
-    a single string.
+    The command to run |cmd| should be a sequence of program arguments
+    (preferred) or a single string with a shell script to run.
 
     When |cmd| is a sequence, it is assumed to contain the name of the command
     to run followed by its arguments. In this case, arguments are passed to the
-    command exactly as given, without any further processing by the shell. This
-    allows to easily pass arguments containing spaces or special characters
-    without having to worry about getting quoting right. Whenever possible, it
-    is recomended to pass |cmd| as a sequence.
+    command exactly as given, preventing any further processing by the shell.
+    This allows callers to easily pass arguments with spaces or special
+    characters without having to worry about quoting rules. Whenever possible,
+    it is recomended to pass |cmd| as a sequence.
 
-    When |cmd| is given as a string, it will be interpreted and run by the
-    shell on the device.
+    When |cmd| is passed as a single string, |shell| should be set to True.
+    The command will be interpreted and run by the shell on the device,
+    allowing the use of shell features such as pipes, wildcards, or variables.
+    Failing to set shell=True will issue a warning, but this will be changed
+    to a hard failure in the future (see: catapult:#3242).
 
     This behaviour is consistent with that of command runners in cmd_helper as
     well as Python's own subprocess.Popen.
@@ -319,8 +354,9 @@ Run an ADB shell command.
       have switched to the new behaviour.
 
     Args:
-      cmd: A string with the full command to run on the device, or a sequence
-        containing the command and its arguments.
+      cmd: A sequence containing the command to run and its arguments, or a
+        string with a shell script to run (should also set shell=True).
+      shell: A boolean indicating whether shell features may be used in |cmd|.
       check_return: A boolean indicating whether or not the return code should
         be checked.
       cwd: The device directory in which the command should be run.
@@ -553,6 +589,8 @@ Removes the given path(s) from the device.
       recursive: Whether to remove any directories in the path(s) recursively.
       as_root: Whether root permissions should be use to remove the given
                path(s).
+      rename: Whether to rename the path(s) before removing to help avoid
+            filesystem errors. See https://stackoverflow.com/questions/11539657
       timeout: timeout in seconds
       retries: number of retries
 ```
@@ -782,6 +820,31 @@ Returns the country setting on the device.
 ```
 
 
+### DeviceUtils.GetApplicationPids
+
+Returns the PID or PIDs of a given process name.
+```
+    Note that the |process_name|, often the package name, must match exactly.
+
+    Args:
+      process_name: A string containing the process name to get the PIDs for.
+      at_most_one: A boolean indicating that at most one PID is expected to
+                   be found.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A list of the PIDs for the named process. If at_most_one=True returns
+      the single PID found or None otherwise.
+
+    Raises:
+      CommandFailedError if at_most_one=True and more than one PID is found
+          for the named process.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
 ### DeviceUtils.GetProp
 
 Gets a property from the device.
@@ -840,12 +903,13 @@ Gets the device main ABI.
 
 ### DeviceUtils.GetPids
 
-Returns the PIDs of processes with the given name.
+Returns the PIDs of processes containing the given name as substring.
 ```
     Note that the |process_name| is often the package name.
 
     Args:
       process_name: A string containing the process name to get the PIDs for.
+                    If missing returns PIDs for all processes.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -856,6 +920,15 @@ Returns the PIDs of processes with the given name.
     Raises:
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.GetLogcatMonitor
+
+Returns a new LogcatMonitor associated with this device.
+```
+    Parameters passed to this function are passed directly to
+    |logcat_monitor.LogcatMonitor| and are documented there.
 ```
 
 
@@ -915,40 +988,12 @@ Takes a screenshot of the device.
 ```
 
 
-### DeviceUtils.GetMemoryUsageForPid
-
-Gets the memory usage for the given PID.
-```
-    Args:
-      pid: PID of the process.
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Returns:
-      A dict containing memory usage statistics for the PID. May include:
-        Size, Rss, Pss, Shared_Clean, Shared_Dirty, Private_Clean,
-        Private_Dirty, VmHWM
-
-    Raises:
-      CommandTimeoutError on timeout.
-```
-
-
 ### DeviceUtils.DismissCrashDialogIfNeeded
 
 Dismiss the error/ANR dialog if present.
 ```
     Returns: Name of the crashed package if a dialog is focused,
              None otherwise.
-```
-
-
-### DeviceUtils.GetLogcatMonitor
-
-Returns a new LogcatMonitor associated with this device.
-```
-    Parameters passed to this function are passed directly to
-    |logcat_monitor.LogcatMonitor| and are documented there.
 ```
 
 

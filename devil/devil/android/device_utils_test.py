@@ -2527,60 +2527,6 @@ class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
       self.device.TakeScreenshot('/test/host/screenshot.png')
 
 
-class DeviceUtilsGetMemoryUsageForPidTest(DeviceUtilsTest):
-
-  def setUp(self):
-    super(DeviceUtilsGetMemoryUsageForPidTest, self).setUp()
-
-  def testGetMemoryUsageForPid_validPid(self):
-    with self.assertCalls(
-        (self.call.device._RunPipedShellCommand(
-            'showmap 1234 | grep TOTAL', as_root=True),
-         ['100 101 102 103 104 105 106 107 TOTAL']),
-        (self.call.device.ReadFile('/proc/1234/status', as_root=True),
-         'VmHWM: 1024 kB\n')):
-      self.assertEqual(
-          {
-            'Size': 100,
-            'Rss': 101,
-            'Pss': 102,
-            'Shared_Clean': 103,
-            'Shared_Dirty': 104,
-            'Private_Clean': 105,
-            'Private_Dirty': 106,
-            'VmHWM': 1024
-          },
-          self.device.GetMemoryUsageForPid(1234))
-
-  def testGetMemoryUsageForPid_noSmaps(self):
-    with self.assertCalls(
-        (self.call.device._RunPipedShellCommand(
-            'showmap 4321 | grep TOTAL', as_root=True),
-         ['cannot open /proc/4321/smaps: No such file or directory']),
-        (self.call.device.ReadFile('/proc/4321/status', as_root=True),
-         'VmHWM: 1024 kb\n')):
-      self.assertEquals({'VmHWM': 1024}, self.device.GetMemoryUsageForPid(4321))
-
-  def testGetMemoryUsageForPid_noStatus(self):
-    with self.assertCalls(
-        (self.call.device._RunPipedShellCommand(
-            'showmap 4321 | grep TOTAL', as_root=True),
-         ['100 101 102 103 104 105 106 107 TOTAL']),
-        (self.call.device.ReadFile('/proc/4321/status', as_root=True),
-         self.CommandError())):
-      self.assertEquals(
-          {
-            'Size': 100,
-            'Rss': 101,
-            'Pss': 102,
-            'Shared_Clean': 103,
-            'Shared_Dirty': 104,
-            'Private_Clean': 105,
-            'Private_Dirty': 106,
-          },
-          self.device.GetMemoryUsageForPid(4321))
-
-
 class DeviceUtilsDismissCrashDialogIfNeededTest(DeviceUtilsTest):
 
   def testDismissCrashDialogIfNeeded_crashedPageckageNotFound(self):
