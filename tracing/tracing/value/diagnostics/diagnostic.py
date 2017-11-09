@@ -72,11 +72,9 @@ class Diagnostic(object):
     """
     self._guid = None
 
-  def CanAddDiagnostic(self, unused_other_diagnostic, unused_name,
-                       unused_parent_hist, unused_other_parent_hist):
+  def CanAddDiagnostic(self, unused_other_diagnostic):
     return False
 
-  def AddDiagnostic(self, unused_other_diagnostic, unused_name,
-                    unused_parent_hist, unused_other_parent_hist):
+  def AddDiagnostic(self, unused_other_diagnostic):
     raise Exception('Abstract virtual method: subclasses must override '
                     'this method if they override canAddDiagnostic')

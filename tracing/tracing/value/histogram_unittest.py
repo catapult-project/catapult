@@ -633,21 +633,20 @@ class TagMapUnittest(unittest.TestCase):
             'android': ['story3', 'story4', 'story5']
         }})
 
-    self.assertFalse(t0.CanAddDiagnostic(
-        histogram.GenericSet([]), None, None, None))
-    self.assertTrue(t0.CanAddDiagnostic(t1, None, None, None))
+    self.assertFalse(t0.CanAddDiagnostic(histogram.GenericSet([])))
+    self.assertTrue(t0.CanAddDiagnostic(t1))
 
     m0 = diagnostic.Diagnostic.FromDict(t0.AsDict())
 
     self.assertTrue(isinstance(m0, histogram.TagMap))
     self.assertFalse(
-        m0.CanAddDiagnostic(histogram.GenericSet([]), None, None, None))
-    self.assertTrue(m0.CanAddDiagnostic(t1, None, None, None))
+        m0.CanAddDiagnostic(histogram.GenericSet([])))
+    self.assertTrue(m0.CanAddDiagnostic(t1))
 
-    m0.AddDiagnostic(t1, None, None, None)
+    m0.AddDiagnostic(t1)
 
     m1 = diagnostic.Diagnostic.FromDict(t1.AsDict())
-    m1.AddDiagnostic(t0, None, None, None)
+    m1.AddDiagnostic(t0)
 
     self.assertDictEqual(m0.AsDict(), m1.AsDict())
 
@@ -902,13 +901,13 @@ class DiagnosticMapUnittest(unittest.TestCase):
     # DiagnosticMap.
     hist2 = histogram.Histogram('', 'count')
     hist2.diagnostics['a'] = generic
-    hist.diagnostics.Merge(hist2.diagnostics, hist, hist2)
+    hist.diagnostics.Merge(hist2.diagnostics)
     self.assertIs(generic, hist.diagnostics['a'])
 
     # Separate keys are not merged.
     hist3 = histogram.Histogram('', 'count')
     hist3.diagnostics['b'] = generic2
-    hist.diagnostics.Merge(hist3.diagnostics, hist, hist3)
+    hist.diagnostics.Merge(hist3.diagnostics)
     self.assertIs(generic, hist.diagnostics['a'])
     self.assertIs(generic2, hist.diagnostics['b'])
 
@@ -916,7 +915,7 @@ class DiagnosticMapUnittest(unittest.TestCase):
     # UnmergeableDiagnosticSet.
     hist4 = histogram.Histogram('', 'count')
     hist4.diagnostics['a'] = related_map
-    hist.diagnostics.Merge(hist4.diagnostics, hist, hist4)
+    hist.diagnostics.Merge(hist4.diagnostics)
     self.assertIsInstance(
         hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
     diagnostics = list(hist.diagnostics['a'])
@@ -927,7 +926,7 @@ class DiagnosticMapUnittest(unittest.TestCase):
     hist5 = histogram.Histogram('', 'count')
     hist5.diagnostics['a'] = histogram.UnmergeableDiagnosticSet(
         [events, generic2])
-    hist.diagnostics.Merge(hist5.diagnostics, hist, hist5)
+    hist.diagnostics.Merge(hist5.diagnostics)
     self.assertIsInstance(
         hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
     diagnostics = list(hist.diagnostics['a'])

@@ -429,12 +429,10 @@ class GenericSet(diagnostic.Diagnostic):
           self._comparable_set.add(value)
     return self._comparable_set
 
-  def CanAddDiagnostic(self, other_diagnostic, unused_name=None,
-                       unused_parent_hist=None, unused_other_parent_hist=None):
+  def CanAddDiagnostic(self, other_diagnostic):
     return isinstance(other_diagnostic, GenericSet)
 
-  def AddDiagnostic(self, other_diagnostic, unused_name=None,
-                    unused_parent_hist=None, unused_other_parent_hist=None):
+  def AddDiagnostic(self, other_diagnostic):
     comparable_set = self._GetComparableSet()
     for value in other_diagnostic:
       if isinstance(value, (dict, list, bool)):
@@ -494,12 +492,10 @@ class DateRange(diagnostic.Diagnostic):
       dr._range.AddValue(dct['max'])
     return dr
 
-  def CanAddDiagnostic(self, other_diagnostic, unused_name=None,
-                       unused_parent_hist=None, unused_other_parent_hist=None):
+  def CanAddDiagnostic(self, other_diagnostic):
     return isinstance(other_diagnostic, DateRange)
 
-  def AddDiagnostic(self, other_diagnostic, unused_name=None,
-                    unused_parent_hist=None, unused_other_parent_hist=None):
+  def AddDiagnostic(self, other_diagnostic):
     self._range.AddRange(other_diagnostic._range)
 
 class HistogramRef(object):
@@ -530,10 +526,10 @@ class RelatedNameMap(diagnostic.Diagnostic):
         return False
     return True
 
-  def CanAddDiagnostic(self, other, *unused_other):
+  def CanAddDiagnostic(self, other):
     return isinstance(other, RelatedNameMap)
 
-  def AddDiagnostic(self, other, *unused_other):
+  def AddDiagnostic(self, other):
     for key, name in other._map.iteritems():
       existing = self.Get(key)
       if existing is None:
@@ -678,12 +674,10 @@ class TagMap(diagnostic.Diagnostic):
       self.tags_to_story_names[tag] = set()
     self.tags_to_story_names[tag].add(story_display_name)
 
-  def CanAddDiagnostic(self, other_diagnostic, unused_name,
-                       unused_parent_hist, unused_other_parent_hist):
+  def CanAddDiagnostic(self, other_diagnostic):
     return isinstance(other_diagnostic, TagMap)
 
-  def AddDiagnostic(self, other_diagnostic, unused_name,
-                    unused_parent_hist, unused_other_parent_hist):
+  def AddDiagnostic(self, other_diagnostic):
     for name, story_display_names in\
         other_diagnostic.tags_to_story_names.iteritems():
       if not name in self.tags_to_story_names:
@@ -735,20 +729,16 @@ class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
     for diag in self._diagnostics:
       yield diag
 
-  def CanAddDiagnostic(self, unused_other_diagnostic, unused_name,
-                       unused_parent_hist, unused_other_parent_hist):
+  def CanAddDiagnostic(self, unused_other_diagnostic):
     return True
 
-  def AddDiagnostic(self, other_diagnostic, name, parent_hist,
-                    other_parent_hist):
+  def AddDiagnostic(self, other_diagnostic):
     if isinstance(other_diagnostic, UnmergeableDiagnosticSet):
       self._diagnostics.extend(other_diagnostic._diagnostics)
       return
     for diag in self:
-      if diag.CanAddDiagnostic(other_diagnostic, name, parent_hist,
-                               other_parent_hist):
-        diag.AddDiagnostic(other_diagnostic, name, parent_hist,
-                           other_parent_hist)
+      if diag.CanAddDiagnostic(other_diagnostic):
+        diag.AddDiagnostic(other_diagnostic)
         return
     self._diagnostics.append(other_diagnostic)
 
@@ -821,22 +811,14 @@ class DiagnosticMap(dict):
       dct[name] = diag.AsDictOrReference()
     return dct
 
-  def Merge(self, other, parent_hist, other_parent_hist):
-    merged_from = self.get(reserved_infos.MERGED_FROM.name)
-    if merged_from is None:
-      merged_from = RelatedHistogramMap()
-      self[reserved_infos.MERGED_FROM.name] = merged_from
-    merged_from.Set(len(merged_from), other_parent_hist)
-
+  def Merge(self, other):
     for name, other_diagnostic in other.iteritems():
       if name not in self:
         self[name] = other_diagnostic
         continue
       my_diagnostic = self[name]
-      if my_diagnostic.CanAddDiagnostic(
-          other_diagnostic, name, parent_hist, other_parent_hist):
-        my_diagnostic.AddDiagnostic(
-            other_diagnostic, name, parent_hist, other_parent_hist)
+      if my_diagnostic.CanAddDiagnostic(other_diagnostic):
+        my_diagnostic.AddDiagnostic(other_diagnostic)
         continue
       self[name] = UnmergeableDiagnosticSet([
           my_diagnostic, other_diagnostic])
@@ -1213,7 +1195,13 @@ class Histogram(object):
         self._bins[i] = mybin = HistogramBin(mybin.range)
       mybin.AddBin(hbin)
 
-    self.diagnostics.Merge(other.diagnostics, self, other)
+    merged_from = self.diagnostics.get(reserved_infos.MERGED_FROM.name)
+    if merged_from is None:
+      merged_from = RelatedHistogramMap()
+      self.diagnostics[reserved_infos.MERGED_FROM.name] = merged_from
+    merged_from.Set(len(merged_from), other)
+
+    self.diagnostics.Merge(other.diagnostics)
 
   def CustomizeSummaryOptions(self, options):
     for key, value in options.iteritems():
