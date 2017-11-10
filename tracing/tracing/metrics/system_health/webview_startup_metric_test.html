@@ -11,30 +11,29 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-
-function makeTestModel() {
-  return tr.c.TestUtils.newModel(function(model) {
-    const mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'webview',
-      title: 'WebViewStartupInterval',
-      start: 200,
-      duration: 42.0,
-      cpuStart: 150,
-      cpuDuration: 32.0
-    }));
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'webview',
-      title: 'WebViewBlankUrlLoadInterval',
-      start: 250,
-      duration: 27.0,
-      cpuStart: 190,
-      cpuDuration: 17.0
-    }));
-  });
-}
-
 tr.b.unittest.testSuite(function() {
+  function makeTestModel() {
+    return tr.c.TestUtils.newModel(function(model) {
+      const mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'webview',
+        title: 'WebViewStartupInterval',
+        start: 200,
+        duration: 42.0,
+        cpuStart: 150,
+        cpuDuration: 32.0
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'webview',
+        title: 'WebViewBlankUrlLoadInterval',
+        start: 250,
+        duration: 27.0,
+        cpuStart: 190,
+        cpuDuration: 17.0
+      }));
+    });
+  }
+
   test('webviewStartupMetric', function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.webviewStartupMetric(histograms, makeTestModel());
