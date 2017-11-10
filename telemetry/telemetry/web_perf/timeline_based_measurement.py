@@ -14,8 +14,6 @@ from telemetry.timeline import tracing_config
 from telemetry.value import trace
 from telemetry.value import common_value_helpers
 from telemetry.web_perf.metrics import timeline_based_metric
-from telemetry.web_perf.metrics import smoothness
-from telemetry.web_perf import smooth_gesture_util
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
@@ -32,13 +30,6 @@ ALL_OVERHEAD_LEVELS = [
     DEFAULT_OVERHEAD_LEVEL,
     DEBUG_OVERHEAD_LEVEL,
 ]
-
-
-def _GetAllLegacyTimelineBasedMetrics():
-  # TODO(nednguyen): use discovery pattern to return all the instances of
-  # all TimelineBasedMetrics class in web_perf/metrics/ folder.
-  # This cannot be done until crbug.com/460208 is fixed.
-  return (smoothness.SmoothnessMetric(),)
 
 
 class InvalidInteractions(Exception):
@@ -84,11 +75,6 @@ def _GetRendererThreadsToInteractionRecordsMap(model):
       # TODO(nduca): Add support for page-load interaction record.
       if tir_module.IsTimelineInteractionRecord(event.name):
         interaction = tir_module.TimelineInteractionRecord.FromAsyncEvent(event)
-        # Adjust the interaction record to match the synthetic gesture
-        # controller if needed.
-        interaction = (
-            smooth_gesture_util.GetAdjustedInteractionIfContainGesture(
-                model, interaction))
         threads_to_records_map[curr_thread].append(interaction)
         if interaction.label in interaction_labels_of_previous_threads:
           raise InvalidInteractions(
@@ -139,9 +125,6 @@ class Options(object):
   This is created and returned by
   Benchmark.CreateCoreTimelineBasedMeasurementOptions.
 
-  By default, all the timeline based metrics in telemetry/web_perf/metrics are
-  used (see _GetAllLegacyTimelineBasedMetrics above).
-  To customize your metric needs, use SetTimelineBasedMetrics().
   """
 
   def __init__(self, overhead_level=LOW_OVERHEAD_LEVEL):
@@ -293,11 +276,9 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         # Run all TBMv1 metrics if no other metric is specified
         # (legacy behavior)
         if not self._tbm_options.GetLegacyTimelineBasedMetrics():
-          logging.warn('Please specify the TBMv1 metrics you are interested in '
-                       'explicitly. This implicit functionality will be removed'
-                       ' on July 17, 2016.')
-          self._tbm_options.SetLegacyTimelineBasedMetrics(
-              _GetAllLegacyTimelineBasedMetrics())
+          raise Exception(
+              'Please specify the TBMv1 metrics you are interested in '
+              'explicitly.')
         self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
     finally:
       trace_result.CleanUpAllTraces()
