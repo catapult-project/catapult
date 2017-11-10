@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
+<link rel="import" href="/tracing/metrics/system_health/event_finder_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
@@ -24,6 +25,8 @@ tr.exportTo('tr.metrics.sh', function() {
   const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   const RelatedEventSet = tr.v.d.RelatedEventSet;
+  const hasCategoryAndName = tr.metrics.sh.hasCategoryAndName;
+  const EventFinderUtils = tr.metrics.sh.EventFinderUtils;
 
   /**
    * @param  {!tr.model.Process} process
@@ -45,13 +48,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return networkEvents;
   }
 
-  // TODO(ksakamoto): This should be a method of tr.model.Event or one of its
-  // subclasses.
-  function hasCategoryAndName(event, category, title) {
-    return event.title === title && event.category &&
-        tr.b.getCategoryParts(event.category).includes(category);
-  }
-
   /**
    * @param {!Object.<string, Object>} breakdownTree
    * @return {tr.v.d.Breakdown} A breakdown with categories and the total time
@@ -67,42 +63,6 @@ tr.exportTo('tr.metrics.sh', function() {
     }
     return breakdownDiagnostic;
   }
-
-  /**
-   * A utility class for finding navigationStart event for given frame and
-   * timestamp.
-   * @constructor
-   */
-  function NavigationStartFinder(rendererHelper) {
-    this.navigationStartsForFrameId_ = {};
-    for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-      if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart')) {
-        continue;
-      }
-      const frameIdRef = ev.args.frame;
-      let list = this.navigationStartsForFrameId_[frameIdRef];
-      if (list === undefined) {
-        this.navigationStartsForFrameId_[frameIdRef] = list = [];
-      }
-      list.unshift(ev);
-    }
-  }
-
-  NavigationStartFinder.prototype = {
-    findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ts) {
-      const list = this.navigationStartsForFrameId_[frameIdRef];
-      if (list === undefined) return undefined;
-      let eventBeforeTimestamp;
-      for (const ev of list) {
-        if (ev.start > ts) continue;
-        if (eventBeforeTimestamp === undefined) {
-          eventBeforeTimestamp = ev;
-        }
-      }
-      if (eventBeforeTimestamp === undefined) return undefined;
-      return eventBeforeTimestamp;
-    }
-  };
 
   const LOADING_METRIC_BOUNDARIES = tr.v.HistogramBinBoundaries
     .createLinear(0, 1e3, 20)  // 50ms step to 1s
@@ -175,7 +135,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectTimeToEvent(
-      category, eventName, rendererHelper, navigationStartFinder) {
+      category, eventName, rendererHelper, frameToNavStartEvents) {
     const targetEvents = findAllEvents(rendererHelper, category, eventName);
     const samples = [];
     for (const ev of targetEvents) {
@@ -186,9 +146,9 @@ tr.exportTo('tr.metrics.sh', function() {
       if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
       const url = snapshot.args.documentLoaderURL;
       if (shouldIgnoreURL(url)) continue;
-      const navigationStartEvent = navigationStartFinder.
-        findNavigationStartEventForFrameBeforeTimestamp(
-          frameIdRef, ev.start);
+      const navigationStartEvent =
+          EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
+              frameToNavStartEvents.get(frameIdRef) || [], ev.start);
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined) continue;
@@ -369,7 +329,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * Design doc: https://goo.gl/ISWndc
    */
   function collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-      rendererHelper, navigationStartFinder) {
+      rendererHelper, frameToNavStartEvents) {
     const firstMeaningfulPaintSamples = [];
     const firstMeaningfulPaintCpuTimeSamples = [];
     const firstInteractiveSamples = [];
@@ -397,9 +357,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
       // Iterate over the FMP candidates, remembering the last one.
       for (const ev of candidatesForFrameId[frameIdRef]) {
-        const navigationStartForThisCandidate = navigationStartFinder.
-          findNavigationStartEventForFrameBeforeTimestamp(
-            frameIdRef, ev.start);
+        const navigationStartForThisCandidate =
+          EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
+              frameToNavStartEvents.get(frameIdRef) || [], ev.start);
         // Ignore candidate w/o preceding navigationStart, as they are not
         // attributed to any TTFMP.
         if (navigationStartForThisCandidate === undefined) continue;
@@ -428,20 +388,22 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
-    const navigationStartFinder = new NavigationStartFinder(rendererHelper);
+    const frameToNavStartEvents =
+        EventFinderUtils.getSortedMainThreadEventsByFrame(
+            rendererHelper, 'navigationStart', 'blink.user_timing');
     const firstPaintSamples = collectTimeToEvent(
         'loading', 'firstPaint',
-        rendererHelper, navigationStartFinder);
+        rendererHelper, frameToNavStartEvents);
     const firstContentfulPaintSamples = collectTimeToEvent(
         'loading', 'firstContentfulPaint',
-        rendererHelper, navigationStartFinder);
+        rendererHelper, frameToNavStartEvents);
     const onLoadSamples = collectTimeToEvent(
         'blink.user_timing', 'loadEventStart',
-        rendererHelper, navigationStartFinder);
+        rendererHelper, frameToNavStartEvents);
     const {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
         firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-            rendererHelper, navigationStartFinder);
+            rendererHelper, frameToNavStartEvents);
     return {
       firstPaintSamples,
       firstContentfulPaintSamples,

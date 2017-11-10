@@ -193,48 +193,31 @@ tr.exportTo('tr.b.math', function() {
     },
 
     /**
-     * Returns a slice of the input array that intersects with this range
+     * Returns a slice of |sortedArray| that intersects with this range
      * inclusively.
      * If the range does not have a min, it is treated as unbounded from below.
      * Similarly, if max is undefined, the range is unbounded from above.
      *
-     * @param {Array} array The array of elements to be filtered.
+     * @param {Array} sortedArray The sorted array of elements to be filtered.
      * @param {Funcation=} opt_keyFunc A function that extracts a numeric value,
      *        to be used in comparisons, from an element of the array. If not
      *        specified, array elements themselves will be used.
      * @param {Object=} opt_this An optional this argument to be passed to
      *        opt_keyFunc.
      */
-    filterArray(array, opt_keyFunc, opt_this) {
+    filterArray(sortedArray, opt_keyFunc, opt_this) {
       if (this.isEmpty_) return [];
-      // Binary search. |test| is a function that should return true when we
-      // need to explore the left branch and false to explore the right branch.
-      function binSearch(test) {
-        let i0 = 0;
-        let i1 = array.length;
-        while (i0 < i1) {
-          const i = Math.trunc((i0 + i1) / 2);
-          if (test(i)) {
-            i1 = i;  // Explore the left branch.
-          } else {
-            i0 = i + 1;  // Explore the right branch.
-          }
-        }
-        return i1;
-      }
 
       const keyFunc = opt_keyFunc || (x => x);
-      function getValue(index) {
-        return keyFunc.call(opt_this, array[index]);
+      function getValue(obj) {
+        return keyFunc.call(opt_this, obj);
       }
 
-      const first = binSearch(function(i) {
-        return this.min_ === undefined || this.min_ <= getValue(i);
-      }.bind(this));
-      const last = binSearch(function(i) {
-        return this.max_ !== undefined && this.max_ < getValue(i);
-      }.bind(this));
-      return array.slice(first, last);
+      const first = tr.b.findFirstTrueIndexInSortedArray(sortedArray,
+          obj => this.min_ === undefined || this.min_ <= getValue(obj));
+      const last = tr.b.findFirstTrueIndexInSortedArray(sortedArray,
+          obj => this.max_ !== undefined && this.max_ < getValue(obj));
+      return sortedArray.slice(first, last);
     }
   };
 

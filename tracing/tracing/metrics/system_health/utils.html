@@ -130,9 +130,22 @@ tr.exportTo('tr.metrics.sh', function() {
         d.start, d.end));
   }
 
+  /**
+   * Returns true if |category| is one of the categories of |event|, and |event|
+   * has title |title|.
+   *
+   * TODO(dproy): Make this a method on a suitable parent class of the
+   * event/slice classes that are used with this function.
+   */
+  function hasCategoryAndName(event, category, title) {
+    return event.title === title && event.category &&
+        tr.b.getCategoryParts(event.category).includes(category);
+  }
+
   return {
-    perceptualBlend,
+    hasCategoryAndName,
     filterExpectationsByRange,
+    perceptualBlend,
     splitGlobalDumpsByBrowserName
   };
 });
