@@ -64,6 +64,9 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
+  const BIN_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(
+      LONG_TASK_MS, LONGEST_TASK_MS, 40);
+
   /**
    * This metric directly measures long tasks on renderer main threads.
    * This metric requires only the 'toplevel' tracing category.
@@ -75,32 +78,47 @@ tr.exportTo('tr.metrics.sh', function() {
   function longTasksMetric(histograms, model, opt_options) {
     const rangeOfInterest = opt_options ? opt_options.rangeOfInterest :
       undefined;
-    const longTaskHist = new tr.v.Histogram('long tasks',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        tr.v.HistogramBinBoundaries.createLinear(
-            LONG_TASK_MS, LONGEST_TASK_MS, 40));
-    longTaskHist.description = 'durations of long tasks';
-    const slices = new tr.model.EventSet();
+    const longTaskHist = histograms.createHistogram(
+        'longTasks', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: BIN_BOUNDARIES,
+          description: 'durations of long tasks',
+        });
+
+    const relatedNames = new tr.v.d.RelatedNameMap();
+    longTaskHist.diagnostics.set('categories', relatedNames);
+
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
-            longTaskHist.addSample(task.duration,
-                {relatedEvents: new tr.v.d.RelatedEventSet([task])});
-            slices.push(task);
-            slices.addEventSet(task.descendentSlices);
+            const breakdown = new tr.v.d.Breakdown();
+            breakdown.colorScheme =
+              tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
+            for (const slice of task.descendentSlices) {
+              const sample = slice.cpuSelfTime;
+              if (sample === undefined) continue;
+
+              const category = model.getUserFriendlyCategoryFromEvent(slice);
+              const histName = 'longTasks:' + category;
+              let hist = histograms.getHistogramNamed(histName);
+              if (hist === undefined) {
+                hist = histograms.createHistogram(histName,
+                    tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
+                      binBoundaries: BIN_BOUNDARIES,
+                    });
+                relatedNames.set(category, hist.name);
+              }
+              hist.addSample(sample, {
+                events: new tr.v.d.RelatedEventSet([slice]),
+              });
+              breakdown.set(category, sample + breakdown.get(category));
+            }
+
+            longTaskHist.addSample(task.duration, {
+              events: new tr.v.d.RelatedEventSet([task]),
+              categories: breakdown,
+            });
           });
     });
-    histograms.addHistogram(longTaskHist);
-
-    const sampleForEvent = undefined;
-    const breakdown = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
-        histograms, 'long tasks ', slices,
-        e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'),
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, sampleForEvent,
-        tr.v.HistogramBinBoundaries.createExponential(1, LONGEST_TASK_MS, 40));
-    breakdown.colorScheme =
-      tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
-    longTaskHist.diagnostics.set('category', breakdown);
   }
 
   tr.metrics.MetricRegistry.register(longTasksMetric, {

@@ -61,48 +61,51 @@ tr.b.unittest.testSuite(function() {
       model.addUserFriendlyCategoryDriver(
           tr.e.chrome.ChromeUserFriendlyCategoryDriver);
     });
+
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.longTasksMetric(histograms, model);
-    const longTaskHist = histograms.getHistogramNamed('long tasks');
+
+    const longTaskHist = histograms.getHistogramNamed('longTasks');
     assert.strictEqual(1, longTaskHist.numValues);
-    assert.strictEqual(1, longTaskHist.allBins[1].count);
-    assert.lengthOf(longTaskHist.allBins[1].diagnosticMaps, 1);
-    const events =
-      longTaskHist.allBins[1].diagnosticMaps[0].get('relatedEvents');
-    assert.instanceOf(events, tr.v.d.RelatedEventSet);
-    assert.strictEqual(tr.b.getOnlyElement(events).title,
-        'foo');
-    const breakdown = longTaskHist.diagnostics.get('category');
-    assert.instanceOf(breakdown, tr.v.d.RelatedHistogramBreakdown);
-    assert.lengthOf(breakdown, 4);
 
-    let hist = breakdown.get('layout');
-    assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(histograms.getHistogramNamed(hist.name), hist);
-    assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
-    assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.allBins[1].count);
+    const relatedNames = longTaskHist.diagnostics.get('categories');
+    assert.instanceOf(relatedNames, tr.v.d.RelatedNameMap);
+    assert.strictEqual(relatedNames.get('layout'), 'longTasks:layout');
+    assert.strictEqual(relatedNames.get('gc'), 'longTasks:gc');
+    assert.strictEqual(relatedNames.get('composite'), 'longTasks:composite');
+    assert.strictEqual(relatedNames.get('imageDecode'),
+        'longTasks:imageDecode');
 
-    hist = breakdown.get('gc');
-    assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(histograms.getHistogramNamed(hist.name), hist);
-    assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
-    assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.allBins[1].count);
+    const bin = longTaskHist.getBinForValue(longTaskHist.average);
+    const diagnostics = tr.b.getOnlyElement(bin.diagnosticMaps);
+    const breakdown = diagnostics.get('categories');
+    assert.instanceOf(breakdown, tr.v.d.Breakdown);
+    assert.strictEqual(breakdown.size, 4);
 
-    hist = breakdown.get('composite');
-    assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(histograms.getHistogramNamed(hist.name), hist);
-    assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
-    assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.allBins[1].count);
+    const taskEventSet = diagnostics.get('events');
+    assert.instanceOf(taskEventSet, tr.v.d.RelatedEventSet);
+    assert.lengthOf(taskEventSet, 1);
 
-    hist = breakdown.get('imageDecode');
-    assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(histograms.getHistogramNamed(hist.name), hist);
-    assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
-    assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.allBins[1].count);
+    const layoutHist = histograms.getHistogramNamed('longTasks:layout');
+    assert.strictEqual(1, layoutHist.numValues);
+    assert.lengthOf(tr.b.getOnlyElement(layoutHist.getBinForValue(
+        layoutHist.average).diagnosticMaps).get('events'), 1);
+
+    const gcHist = histograms.getHistogramNamed('longTasks:gc');
+    assert.strictEqual(1, gcHist.numValues);
+    assert.lengthOf(tr.b.getOnlyElement(gcHist.getBinForValue(
+        gcHist.average).diagnosticMaps).get('events'), 1);
+
+    const compositeHist = histograms.getHistogramNamed('longTasks:composite');
+    assert.strictEqual(1, compositeHist.numValues);
+    assert.lengthOf(tr.b.getOnlyElement(compositeHist.getBinForValue(
+        compositeHist.average).diagnosticMaps).get('events'), 1);
+
+    const imageDecodeHist = histograms.getHistogramNamed(
+        'longTasks:imageDecode');
+    assert.strictEqual(1, imageDecodeHist.numValues);
+    assert.lengthOf(tr.b.getOnlyElement(imageDecodeHist.getBinForValue(
+        imageDecodeHist.average).diagnosticMaps).get('events'), 1);
   });
 });
 </script>
