@@ -28,7 +28,7 @@ def Main(argv):
                             'Available metrics are: %s' %
                             ', '.join(all_metrics)),
                       choices=all_metrics, metavar='metricName')
-  parser.add_argument('--filename', default='results2', type=str,
+  parser.add_argument('--filename', default='results', type=str,
                       help='Output file name (no extension)')
   parser.add_argument('--reset', action='store_true',
                       help=('Whether to ignore existing results in HTML file '

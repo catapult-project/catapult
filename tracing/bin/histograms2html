@@ -18,7 +18,7 @@ from tracing_build import vulcanize_histograms_viewer
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Upgrade a results2 instance or add a new HistogramSet.',
+      description='Upgrade a results.html or add a new HistogramSet.',
       add_help=False)
   parser.add_argument('html_path', metavar='HTML_PATH',
                       help='HTML file path (output).')

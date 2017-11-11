@@ -20,7 +20,7 @@ from tracing.value import histograms_to_csv
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Upgrade a results2 instance or add a new HistogramSet.',
+      description='Convert HistogramSet JSON to CSV.',
       add_help=False)
   parser.add_argument('json_path',
                       help='HistogramSet JSON file path (input).')
