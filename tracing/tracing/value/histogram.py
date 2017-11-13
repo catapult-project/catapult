@@ -474,6 +474,13 @@ class DateRange(diagnostic.Diagnostic):
   def duration_ms(self):
     return self._range.duration
 
+  def __str__(self):
+    min_date = self.min_date.isoformat().replace('T', ' ')[:19]
+    if self.duration_ms == 0:
+      return min_date
+    max_date = self.max_date.isoformat().replace('T', ' ')[:19]
+    return min_date + ' - ' + max_date
+
   def _AsDictInto(self, dct):
     dct['min'] = self._range.min
     if self.duration_ms == 0:
