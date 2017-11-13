@@ -315,9 +315,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       results.AddValue(
           common_value_helpers.TranslateMreFailure(d, page))
 
-    if results.needs_histograms:
-      results.histograms.ImportDicts(mre_result.pairs.get('histograms', []))
-      results.histograms.ResolveRelatedHistograms()
+    results.histograms.ImportDicts(mre_result.pairs.get('histograms', []))
+    results.histograms.ResolveRelatedHistograms()
 
     for d in mre_result.pairs.get('scalars', []):
       results.AddValue(common_value_helpers.TranslateScalarValue(d, page))

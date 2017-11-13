@@ -36,8 +36,6 @@ def _WriteCsv(dicts, fileobj):
 
 
 class CsvOutputFormatter(output_formatter.OutputFormatter):
-  NEEDS_HISTOGRAMS = True
-
   def __init__(self, output_stream, reset_results=False):
     super(CsvOutputFormatter, self).__init__(output_stream)
     self._reset_results = reset_results
