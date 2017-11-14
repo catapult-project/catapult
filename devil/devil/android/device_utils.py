@@ -177,8 +177,10 @@ _SELINUX_MODE = {
 }
 # Some devices require different logic for checking if root is necessary
 _SPECIAL_ROOT_DEVICE_LIST = [
-    'marlin',
-    'sailfish',
+    'marlin', # Pixel XL
+    'sailfish', # Pixel
+    'taimen', # Pixel 2 XL
+    'walleye', # Pixel 2
 ]
 _IMEI_RE = re.compile(r'  Device ID = (.+)$')
 # The following regex is used to match result parcels like:
