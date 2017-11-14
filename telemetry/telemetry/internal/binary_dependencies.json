@@ -319,20 +319,6 @@
         }
       }
     },
-    "purge_ashmem": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "android_arm64-v8a": {
-          "cloud_storage_hash": "fb1ef95e54208564418494b016ac525594370db8",
-          "download_path": "bin/android/arm64-v8a/purge_ashmem"
-        },
-        "android_armeabi-v7a": {
-          "cloud_storage_hash": "9c1a2aad6e92b1f407428a972c8acf036c039287",
-          "download_path": "bin/android/armeabi-v7a/purge_ashmem"
-        }
-      }
-    },
     "push_apps_to_background_apk": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
