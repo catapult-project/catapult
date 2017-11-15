@@ -12,6 +12,7 @@ import sys
 
 from py_utils import atexit_with_log
 from telemetry.core import util
+from telemetry.internal.util import ps_util
 
 import py_utils
 
@@ -74,6 +75,9 @@ class TsProxyServer(object):
       logging.info('TsProxy port: %s', self._port)
       self._is_running = True
     except py_utils.TimeoutException:
+      # TODO(nedn): remove this debug log once crbug.com/766877 is resolved
+      if os.name == 'nt':
+        ps_util.ListAllSubprocesses()
       err = self.StopServer()
       raise RuntimeError(
           'Error starting tsproxy: %s' % err)
