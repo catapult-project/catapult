@@ -38,12 +38,14 @@ found in the LICENSE file.
 
     <div class="columns">
       <div class="column">
-        <h2>Differences found after commits</h2>
-        <template is="dom-if" if="[[!hasDifferences(job)]]">
-          <p>No differences found.</p>
+        <template is="dom-if" if="[[hasDifferences(job)]]">
+          <h2>Differences found after commits</h2>
+          <template is="dom-repeat" items="[[getDifferences(job)]]">
+            <change-info change=[[item]]></change-info>
+          </template>
         </template>
-        <template is="dom-repeat" items="[[getDifferences(job)]]">
-          <change-info change=[[item]]></change-info>
+        <template is="dom-if" if="[[!hasDifferences(job)]]">
+          <h2>No differences found</h2>
         </template>
       </div>
       <div class="column">
