@@ -333,6 +333,18 @@ class Browser(app.App):
         pressure_level, timeout)
 
   @property
+  def supports_overview_mode(self): # pylint: disable=invalid-name
+    return self._browser_backend.supports_overview_mode
+
+  def EnterOverviewMode(
+      self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self._browser_backend.EnterOverviewMode(timeout)
+
+  def ExitOverviewMode(
+      self, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self._browser_backend.ExitOverviewMode(timeout)
+
+  @property
   def supports_cpu_metrics(self):
     return self._browser_backend.supports_cpu_metrics
 

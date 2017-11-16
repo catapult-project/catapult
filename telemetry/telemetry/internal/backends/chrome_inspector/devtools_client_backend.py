@@ -17,6 +17,7 @@ from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.internal.backends.chrome_inspector import system_info_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
+from telemetry.internal.backends.chrome_inspector import window_manager_backend
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
@@ -111,6 +112,7 @@ class DevToolsClientBackend(object):
     self._memory_backend = None
     self._system_info_backend = None
     self._app_backend = app_backend
+    self._wm_backend = None
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
 
@@ -196,6 +198,9 @@ class DevToolsClientBackend(object):
     if self._system_info_backend:
       self._system_info_backend.Close()
       self._system_info_backend = None
+    if self._wm_backend:
+      self._wm_backend.Close()
+      self._wm_backend = None
 
     if self._devtools_context_map_backend:
       self._devtools_context_map_backend.Clear()
@@ -311,6 +316,12 @@ class DevToolsClientBackend(object):
     contexts = self._ListInspectableContexts()
     self._devtools_context_map_backend._Update(contexts)
     return self._devtools_context_map_backend
+
+  def _CreateWindowManagerBackendIfNeeded(self):
+    if not self._wm_backend:
+      self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
+      self._wm_backend = window_manager_backend.WindowManagerBackend(
+          self._browser_inspector_websocket)
 
   def _CreateTracingBackendIfNeeded(self, is_tracing_running=False):
     assert self.supports_tracing
@@ -449,6 +460,15 @@ class DevToolsClientBackend(object):
     self._CreateMemoryBackendIfNeeded()
     return self._memory_backend.SimulateMemoryPressureNotification(
         pressure_level, timeout)
+
+  @property
+  def window_manager_backend(self):
+    """Return the window manager backend.
+
+    This should be called by a CrOS backend only.
+    """
+    self._CreateWindowManagerBackendIfNeeded()
+    return self._wm_backend
 
 
 class _DevToolsContextMapBackend(object):

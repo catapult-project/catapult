@@ -253,6 +253,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   @property
+  def supports_overview_mode(self): # pylint: disable=invalid-name
+    return True
+
+  def EnterOverviewMode(self, timeout):
+    self.devtools_client.window_manager_backend.EnterOverviewMode(timeout)
+
+  def ExitOverviewMode(self, timeout):
+    self.devtools_client.window_manager_backend.ExitOverviewMode(timeout)
+
+  @property
   @decorators.Cache
   def misc_web_contents_backend(self):
     """Access to chrome://oobe/login page."""

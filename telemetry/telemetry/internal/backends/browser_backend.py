@@ -7,6 +7,7 @@ import sys
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import decorators
+from telemetry.core import exceptions
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
 from telemetry.internal.platform import profiling_controller_backend
@@ -174,3 +175,13 @@ class BrowserBackend(app_backend.AppBackend):
   @property
   def supports_power_metrics(self):
     raise NotImplementedError()
+
+  @property
+  def supports_overview_mode(self): # pylint: disable=invalid-name
+    return False
+
+  def EnterOverviewMode(self, timeout): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Overview mode is not supported')
+
+  def ExitOverviewMode(self, timeout): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Overview mode is not supported')

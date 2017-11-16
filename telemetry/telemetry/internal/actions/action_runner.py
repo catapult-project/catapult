@@ -789,6 +789,16 @@ class ActionRunner(object):
     """
     self._tab.browser.SimulateMemoryPressureNotification(pressure_level)
 
+  def EnterOverviewMode(self):
+    if not self._tab.browser.supports_overview_mode:
+      raise exceptions.StoryActionError('Overview mode is not supported')
+    self._tab.browser.EnterOverviewMode()
+
+  def ExitOverviewMode(self):
+    if not self._tab.browser.supports_overview_mode:
+      raise exceptions.StoryActionError('Overview mode is not supported')
+    self._tab.browser.ExitOverviewMode()
+
   def PauseInteractive(self):
     """Pause the page execution and wait for terminal interaction.
 
