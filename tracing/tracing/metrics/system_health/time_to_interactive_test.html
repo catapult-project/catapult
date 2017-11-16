@@ -12,15 +12,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  const findConsistentlyInteractiveTimestamp =
-      tr.metrics.sh.findConsistentlyInteractiveTimestamp;
-  const findFirstInteractiveTimestamp =
-      tr.metrics.sh.findFirstInteractiveTimestamp;
-  const requiredFIWindowSizeMs =
-        tr.metrics.sh.requiredFIWindowSizeMs;
-  const findFITaskClusters = tr.metrics.sh.findFITaskClusters;
+  const findInteractiveTime =
+      tr.metrics.sh.findInteractiveTime;
+  const findFirstCpuIdleTime =
+      tr.metrics.sh.findFirstCpuIdleTime;
+  const requiredFCIWindowSizeMs =
+        tr.metrics.sh.requiredFCIWindowSizeMs;
+  const findFCITaskClusters = tr.metrics.sh.findFCITaskClusters;
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'doesNotWaitForTasksFarAwayWithoutNetworkRequests', () => {
     const longTasks = [
       {start: 50, end: 200},
@@ -30,11 +30,11 @@ tr.b.unittest.testSuite(function() {
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
     assert.closeTo(
-        findConsistentlyInteractiveTimestamp(0, 10000, 50, longTasks, []),
+        findInteractiveTime(0, 10000, 50, longTasks, []),
         400, 1e-7);
   });
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'waitsForTasksFarAwayWhenNetworkIsBusy', () => {
     const longTasks = [
       {start: 50, end: 200},
@@ -52,11 +52,11 @@ tr.b.unittest.testSuite(function() {
     // Last network 2-quiet region starts at 2900, while the next long task
     // starts at 7000. We don't have 5 seconds of quiet window before that long
     // task.
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         0, 20000, 50, longTasks, networkRequests), 7200, 1e-7);
   });
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'noQuietWindowBecauseOfLongTask', () => {
     const longTasks = [
       {start: 50, end: 200},
@@ -64,11 +64,11 @@ tr.b.unittest.testSuite(function() {
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
     // windowEnd is 2400, so we don't get 5 seconds on quiet window after 400.
-    assert.isUndefined(findConsistentlyInteractiveTimestamp(
+    assert.isUndefined(findInteractiveTime(
         0, 2400, 50, longTasks, []));
   });
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'noQuietWindowBecauseOfNetwork', () => {
     const networkRequests = [
       {start: 50, end: 200},
@@ -78,11 +78,11 @@ tr.b.unittest.testSuite(function() {
 
     // windowEnd is 2200, and beginning of last network 2-quiet region is 200.
     // We don't have a 5 second quiet window.
-    assert.isUndefined(findConsistentlyInteractiveTimestamp(
+    assert.isUndefined(findInteractiveTime(
         0, 2200, 50, [], networkRequests));
   });
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'network2QuietHappensAfterLastLongTask', () => {
     const longTasks = [
       {start: 50, end: 200},
@@ -97,12 +97,12 @@ tr.b.unittest.testSuite(function() {
       {start: 600, end: 8300},
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         0, 20000, 50, longTasks, networkRequests), 7200, 1e-7);
   });
 
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'longEnoughNetwork2QuietBeforeLastLongTask', () => {
     const longTasks = [
       {start: 50, end: 200},
@@ -120,11 +120,11 @@ tr.b.unittest.testSuite(function() {
 
     // 1000ms is the beginning of last network 2-quiet region, and we have a 5s
     // window between that and the start of next long task.
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         0, 20000, 50, longTasks, networkRequests), 400, 1e-7);
   });
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'isLowerBoundedAtDCL', () => {
     const longTasks = [
       {start: 50, end: 200}
@@ -132,22 +132,22 @@ tr.b.unittest.testSuite(function() {
 
     // End of last long task is 200, but FCI is still 5000 because of
     // DOMContentLoadedEnd being at 5000.
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         0, 20000, 5000, longTasks, []), 5000, 1e-7);
   });
 
 
-  test('findConsistentlyInteractiveTimestamp_' +
+  test('findInteractiveTime_' +
        'returnsWindowStartWhenNoLongTasks', () => {
     // Note that it is possible for DOMContentLoadedEnd to happen before
     // windowStart, since windowStart is usually First Meaningful Paint. If
     // there are no long tasks, and DCL is before windowStart, FCI should be
     // windowStart.
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         1000, 20000, 500, [], []), 1000, 1e-7);
   });
 
-  test('findConsistentlyInteractiveTimestamp' +
+  test('findInteractiveTime' +
        'networkRequestStartsBeforeWindowStart', () => {
     const longTasks = [
       {start: 7000, end: 7200}
@@ -161,19 +161,19 @@ tr.b.unittest.testSuite(function() {
 
     // windowStart is now 1000. All three network requests start before
     // windowStart, but should still manage to block netowrk 2-quiet.
-    assert.closeTo(findConsistentlyInteractiveTimestamp(
+    assert.closeTo(findInteractiveTime(
         1000, 20000, 1050, longTasks, networkRequests), 7200, 1e-7);
   });
 
-  test('requiredFIWindowSizeMs', () => {
+  test('requiredFCIWindowSizeMs', () => {
     // The required window size function is an exponential decay, and is
     // uniquely determined by values at three points.
-    assert.closeTo(requiredFIWindowSizeMs(0), 5000, 1e-7);
-    assert.closeTo(requiredFIWindowSizeMs(15000), 3000, 1e-7);
-    assert.closeTo(requiredFIWindowSizeMs(Infinity), 1000, 1e-7);
+    assert.closeTo(requiredFCIWindowSizeMs(0), 5000, 1e-7);
+    assert.closeTo(requiredFCIWindowSizeMs(15000), 3000, 1e-7);
+    assert.closeTo(requiredFCIWindowSizeMs(Infinity), 1000, 1e-7);
   });
 
-  test('findFITaskClusters_MultipleLongTasks', () => {
+  test('findFCITaskClusters_MultipleLongTasks', () => {
     const longTasks = [
       {start: 50, end: 200},
       {start: 500, end: 700},
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
       {start: 5000, end: 5100},
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    const clusters = findFITaskClusters(longTasks);
+    const clusters = findFCITaskClusters(longTasks);
     assert.strictEqual(clusters.length, 3);
     assert.strictEqual(clusters[0].start, 50);
     assert.strictEqual(clusters[0].end, 700);
@@ -193,8 +193,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(clusters[2].end, 5100);
   });
 
-  test('findFIfTaskClusters_NoLongTasks', () => {
-    const clusters = findFITaskClusters([]);
+  test('findFCITaskClusters_NoLongTasks', () => {
+    const clusters = findFCITaskClusters([]);
     assert.strictEqual(clusters.length, 0);
   });
 
@@ -204,11 +204,11 @@ tr.b.unittest.testSuite(function() {
     const dclEnd = 0;
     const longTasks = [];
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 0, 1e-7);
   });
 
-  test('findFirstInteractiveTimestamp_' +
+  test('findFirstCpuIdleTime_' +
        'firstInteractiveReachedInBetweenTaskClusters', () => {
     const searchBegin = 0;
     const searchEnd = 20000;
@@ -226,11 +226,11 @@ tr.b.unittest.testSuite(function() {
       {start: 8200, end: 8500},
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 3000, 1e-7);
   });
 
-  test('findFirstInteractiveTimestamp_' +
+  test('findFirstCpuIdleTime_' +
        'FirstInteractiveReachedAfterLastHeavyCluster', () => {
     const searchBegin = 0;
     const searchEnd = 20000;
@@ -245,7 +245,7 @@ tr.b.unittest.testSuite(function() {
       {start: 7000, end: 7400}
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 7400, 1e-7);
   });
 
@@ -262,7 +262,7 @@ tr.b.unittest.testSuite(function() {
       {start: 8000, end: 8300}
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.isUndefined(findFirstInteractiveTimestamp(searchBegin, searchEnd,
+    assert.isUndefined(findFirstCpuIdleTime(searchBegin, searchEnd,
         dclEnd, longTasks));
   });
 
@@ -275,7 +275,7 @@ tr.b.unittest.testSuite(function() {
       {start: 4000, end: 4100}
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), dclEnd, 1e-7);
   });
 
@@ -288,11 +288,11 @@ tr.b.unittest.testSuite(function() {
       {start: 1000, end: 1400}
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 2400, 1e-7);
   });
 
-  test('findFirstInteractiveTimestamp_' +
+  test('findFirstCpuIdleTime_' +
       'lightTaskClustersDoesNotBlockFirstInteractive', () => {
     const searchBegin = 0;
     const searchEnd = 20000;
@@ -307,11 +307,11 @@ tr.b.unittest.testSuite(function() {
       {start: 7000, end: 7400}
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 1350, 1e-7);
   });
 
-  test('findFirstInteractiveTimestamp_' +
+  test('findFirstCpuIdleTime_' +
        'requiredWindowSizeIsAtLeast5sAtTheBeginning', () => {
     // Search begin intentionally not 0 to catch errors in calculating
     // timeSinceSearchBegin.
@@ -325,7 +325,7 @@ tr.b.unittest.testSuite(function() {
       {start: 15200, end: 15500},
     ].map(options => tr.c.TestUtils.newSliceEx(options));
 
-    assert.closeTo(findFirstInteractiveTimestamp(searchBegin, searchEnd, dclEnd,
+    assert.closeTo(findFirstCpuIdleTime(searchBegin, searchEnd, dclEnd,
         longTasks), 15500, 1e-7);
   });
 });

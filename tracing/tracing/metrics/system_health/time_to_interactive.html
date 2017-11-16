@@ -11,14 +11,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  // Required quiet window size for Time to Consistently Interactive.
-  const CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS = 5000;
+  // Required quiet window size for Time to Interactive.
+  const TIME_TO_INTERACTIVE_WINDOW_SIZE_MS = 5000;
 
   // Number of requests tolerated before network is considered busy.
   const ACTIVE_REQUEST_TOLERANCE = 2;
 
-  // Minimum gap between task clusters for determining First Interactive.
-  const FI_MIN_CLUSTER_SEPARATION_MS = 1000;
+  // Minimum gap between task clusters for determining First CPU Idle.
+  const FCI_MIN_CLUSTER_SEPARATION_MS = 1000;
 
   // Minimum duration of a task cluster to consider it heavy.
   const TASK_CLUSTER_HEAVINESS_THRESHOLD_MS = 250;
@@ -69,7 +69,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Returns true if at time |timestamp| we have a long enough quiet window for
-   * determining Time to Consistently Interactive.
+   * determining Time to Interactive.
    *
    * @param {number} timestamp - Timestamp of interest.
    * @param {number} networkQuietWindowStart - Most recent timestamp when the
@@ -79,7 +79,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * Undefined if a long task is in progress at |timestamp|.
    * @returns {boolean}
    */
-  function reachedFCIQuiescense_(timestamp,
+  function reachedTTIQuiscence_(timestamp,
       networkQuietWindowStart, mainThreadQuietWindowStart) {
     if (networkQuietWindowStart === undefined ||
         mainThreadQuietWindowStart === undefined) {
@@ -88,29 +88,29 @@ tr.exportTo('tr.metrics.sh', function() {
 
     const mainThreadQuietForLongEnough =
           timestamp - mainThreadQuietWindowStart >=
-          CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS;
+          TIME_TO_INTERACTIVE_WINDOW_SIZE_MS;
 
     const networkQuietForLongEnough =
           timestamp - networkQuietWindowStart >=
-          CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS;
+          TIME_TO_INTERACTIVE_WINDOW_SIZE_MS;
 
     return mainThreadQuietForLongEnough && networkQuietForLongEnough;
   }
 
   /**
-   * Returns the timestamp for when the page first becomes Consistently
-     Interactive.
+   * Returns the timestamp for when the page first becomes Interactive.
    *
    * See https://goo.gl/IN68jL for detailed explanation of definition and
-   * motivations. To summarize, we look for a 5 second window starting from
+   * motivations. This metric was previously known as "Consistently
+   * Interactive". To summarize, we look for a 5 second window starting from
    * between |searchBegin| and |searchEnd| such that there is no long task
    * overlapping with that window, and the entire window is network 2-quiet. A
    * long task is defined as a main thread task with wall duration longer than
    * 50ms, and network 2-quiet means the window never has more than 2 concurrent
-   * in-flight network requests. FCI 'candidate' is defined as end of the last
-   * long task before this quiet window, or as |searchBegin| if there is no long
-   * task before that window. We define FCI as max of FCI candidate and
-   * domContentLoadedEnd.
+   * in-flight network requests. Interactive 'candidate' is defined as end of
+   * the last long task before this quiet window, or as |searchBegin| if there
+   * is no long task before that window. We define Interactive as max of
+   * Interactive candidate and domContentLoadedEnd.
    *
    * Returns undefined if no suitable quiet window is found.
    *
@@ -129,7 +129,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * requests overlapping with the search window.
    * @returns {number|undefined}
    */
-  function findConsistentlyInteractiveTimestamp(searchBegin, searchEnd,
+  function findInteractiveTime(searchBegin, searchEnd,
       domContentLoadedEnd, longTasksInWindow, networkRequests) {
     // It is sufficient to only look at the end points of long tasks and network
     // requests. These are the points where any meaningful changes happen.
@@ -146,7 +146,7 @@ tr.exportTo('tr.metrics.sh', function() {
     let activeRequests = 0;
 
     for (const endpoint of endpoints) {
-      if (reachedFCIQuiescense_(endpoint.time,
+      if (reachedTTIQuiscence_(endpoint.time,
           networkQuietWindowStart, mainThreadQuietWindowStart)) {
         fciCandidate = mainThreadQuietWindowStart;
         break;
@@ -178,7 +178,7 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    if (reachedFCIQuiescense_(searchEnd,
+    if (reachedTTIQuiscence_(searchEnd,
         networkQuietWindowStart, mainThreadQuietWindowStart)) {
       fciCandidate = mainThreadQuietWindowStart;
     }
@@ -189,16 +189,16 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * Returns the required quiet window size for FirstInteractive at
+   * Returns the required quiet window size for First CPU Idle at
    * |timeSinceSearchBeginMs| after searchBegin.
    *
    * Required quiet window size is modeled as an exponential decay. See
    * https://goo.gl/kQXGLW for development of the exact equation used here.
    *
    * @param {number} timeSinceSearchBeginMs - Time since the beginning of search
-   *     window for FirstInteractive.
+   *     window for First CPU Idle.
    */
-  function requiredFIWindowSizeMs(timeSinceSearchBeginMs) {
+  function requiredFCIWindowSizeMs(timeSinceSearchBeginMs) {
     const timeCoefficient = 1 / 15 * Math.log(2);
 
     const timeSinceSearchBeginSeconds = tr.b.convertUnit(timeSinceSearchBeginMs,
@@ -229,9 +229,9 @@ tr.exportTo('tr.metrics.sh', function() {
       for (let i = 0; i < tasksInClusterSorted.length - 1; i++) {
         const durationBetweenTasks = tasksInClusterSorted[i + 1].start -
             tasksInClusterSorted[i].end;
-        if (durationBetweenTasks >= FI_MIN_CLUSTER_SEPARATION_MS) {
+        if (durationBetweenTasks >= FCI_MIN_CLUSTER_SEPARATION_MS) {
           throw new Error('Internal Error: Tasks in a TaskCluster cannot be ' +
-                          'more than ' + FI_MIN_CLUSTER_SEPARATION_MS +
+                          'more than ' + FCI_MIN_CLUSTER_SEPARATION_MS +
                           ' miliseconds apart');
         }
 
@@ -274,7 +274,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *     longer than 50ms, sorted by task start time.
    * @returns {Array.<!TaskCluster>}
    */
-  function findFITaskClusters(sortedLongTasks) {
+  function findFCITaskClusters(sortedLongTasks) {
     const clusters = [];
     if (sortedLongTasks.length === 0) return clusters;
 
@@ -285,7 +285,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     for (const currTask of restOfTasks) {
       const prevTask = currentClusterTasks[currentClusterTasks.length - 1];
-      if (currTask.start - prevTask.end < FI_MIN_CLUSTER_SEPARATION_MS) {
+      if (currTask.start - prevTask.end < FCI_MIN_CLUSTER_SEPARATION_MS) {
         // Add task to current task cluster.
         currentClusterTasks.push(currTask);
       } else {
@@ -303,7 +303,7 @@ tr.exportTo('tr.metrics.sh', function() {
   /**
    * Returns true if at time |timestamp|, assuming |timestamp| is not in the
    * middle of a heavy task cluster, we have a long enough quiet window for
-   * determining Time to First Interactive.
+   * determining First CPU Idle.
    *
    * @param {number} timestamp - Timestamp of interest. We assume |timestamp| is
    *     not in the middle of a heavy task cluster.
@@ -314,29 +314,30 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {number} searchBegin - Left boundary for quiet window search.
    * @returns {boolean}
    */
-  function reachedFIQuiescense_(timestamp, mainThreadQuietWindowStart,
+  function reachedFCIQuiescence_(timestamp, mainThreadQuietWindowStart,
       searchBegin) {
     const quietWindowSize = timestamp - mainThreadQuietWindowStart;
     const timeSinceSearchBegin = mainThreadQuietWindowStart - searchBegin;
-    const requiredWindowSize = requiredFIWindowSizeMs(timeSinceSearchBegin);
+    const requiredWindowSize = requiredFCIWindowSizeMs(timeSinceSearchBegin);
     return quietWindowSize > requiredWindowSize;
   }
 
   /**
-   * Returns the timestamp for First Interactive for a page.
+   * Returns the timestamp for First CPU Idle for a page.
    *
    * See https://goo.gl/1a1XwZ for definition, and https://goo.gl/IN68jL for an
-   * explanation of how the definition was developed. To summarize, in order to
-   * find First Interactive we look for a long enough window between
-   * |searchBegin| and |searchEnd| such that it doesn't contain a heavy task
-   * cluster. The required length of the window decreases the further we move
-   * away from |searchBegin|. A "task cluster" is defined as a group of long
-   * tasks such that they are at least 1s away from any other long task that is
-   * not in the group. A task cluster is considered "heavy" if the duration of
-   * the task cluster (the time interval from the beginning of first task to the
-   * end of last task) is longer than 250ms. We call the beginning of the quiet
-   * window FI candidate, and define First Interactive as max of FI candidate
-   * and domContentLoadedEnd.
+   * explanation of how the definition was developed. This metric was previously
+   * known as "First Interactive". To summarize, in order to find First
+   * Interactive we look for a long enough window between |searchBegin| and
+   * |searchEnd| such that it doesn't contain a heavy task cluster. The required
+   * length of the window decreases the further we move away from |searchBegin|.
+   * A "task cluster" is defined as a group of long tasks such that they are at
+   * least 1s away from any other long task that is not in the group. A task
+   * cluster is considered "heavy" if the duration of the task cluster (the time
+   * interval from the beginning of first task to the end of last task) is
+   * longer than 250ms. We call the beginning of the quiet window FCI candidate,
+   * and define First Cpu Idle as max of FCI candidate and
+   * domContentLoadedEnd.
    *
    * Returns undefined if no suitable quiet window is found.
    *
@@ -353,16 +354,16 @@ tr.exportTo('tr.metrics.sh', function() {
    *     than 50ms overlapping with the search window.
    * @returns {number|undefined}
    */
-  function findFirstInteractiveTimestamp(searchBegin, searchEnd,
+  function findFirstCpuIdleTime(searchBegin, searchEnd,
       domContentLoadedEnd, longTasksInWindow) {
     const sortedLongTasks = longTasksInWindow.sort((a, b) => a.start - b.start);
-    const taskClusters = findFITaskClusters(sortedLongTasks);
+    const taskClusters = findFCITaskClusters(sortedLongTasks);
     const heavyTaskClusters = taskClusters.filter(cluster => cluster.isHeavy());
 
     let quietWindowBegin = searchBegin;
     let fiCandidate = undefined;
     for (const cluster of heavyTaskClusters) {
-      if (reachedFIQuiescense_(cluster.start, quietWindowBegin, searchBegin)) {
+      if (reachedFCIQuiescence_(cluster.start, quietWindowBegin, searchBegin)) {
         fiCandidate = quietWindowBegin;
         break;
       }
@@ -371,7 +372,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     if (fiCandidate === undefined) {
       // Check if quiescence was reached at the end of the search window.
-      if (reachedFIQuiescense_(searchEnd, quietWindowBegin, searchBegin)) {
+      if (reachedFCIQuiescence_(searchEnd, quietWindowBegin, searchBegin)) {
         fiCandidate = quietWindowBegin;
       } else {
         // We never reached quiescence.
@@ -383,10 +384,10 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   return {
-    findConsistentlyInteractiveTimestamp,
-    findFirstInteractiveTimestamp,
-    requiredFIWindowSizeMs,
-    findFITaskClusters,
+    findInteractiveTime,
+    findFirstCpuIdleTime,
+    requiredFCIWindowSizeMs,
+    findFCITaskClusters,
   };
 });
 </script>
