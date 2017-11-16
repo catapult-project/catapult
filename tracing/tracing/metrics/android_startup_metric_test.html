@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/android_startup_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function makeTestModel() {
+    return tr.c.TestUtils.newModel(function(model) {
+      const browserProcess = model.getOrCreateProcess(1);
+      const mainThread = browserProcess.getOrCreateThread(2);
+      // Initializing the thread name is necessary to pass validation checks
+      // made by the ChromeModelHelper.
+      mainThread.name = 'CrBrowserMain';
+      mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'startup',
+        title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry2',
+        start: 6817.406,
+        duration: 1745.50
+      }));
+    });
+  }
+
+  test('androidStartupMetric_simple', function() {
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.androidStartupMetric(histograms, makeTestModel());
+    const messageLoopStartHistogram = histograms.getHistogramNamed(
+        'messageloop_start_time');
+    assert.strictEqual(1, messageLoopStartHistogram.numValues);
+    assert.strictEqual(1745.5, messageLoopStartHistogram.average);
+  });
+});
+</script>

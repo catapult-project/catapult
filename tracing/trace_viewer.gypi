@@ -184,6 +184,7 @@
       'tracing/metrics/accessibility_metric.html',
       'tracing/metrics/all_fixed_color_schemes.html',
       'tracing/metrics/all_metrics.html',
+      'tracing/metrics/android_startup_metric.html',
       'tracing/metrics/android_systrace_metric.html',
       'tracing/metrics/blink/gc_metric.html',
       'tracing/metrics/blink/leak_detection_metric.html',
