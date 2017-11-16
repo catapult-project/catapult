@@ -62,7 +62,6 @@ def _IsBattOrConnected(test_platform, android_device=None,
         try:
           android_device_map = battor_device_mapping.GenerateSerialMap()
         except battor_error.BattOrError:
-          logging.exception('Error generating serial map')
           return False
 
     # If neither if statement above is triggered, it means that an
