@@ -201,6 +201,7 @@
       'tracing/metrics/system_health/cpu_time_tree_data_reporter.html',
       'tracing/metrics/system_health/event_finder_utils.html',
       'tracing/metrics/system_health/expected_queueing_time_metric.html',
+      'tracing/metrics/system_health/limited_cpu_time_metric.html',
       'tracing/metrics/system_health/loading_metric.html',
       'tracing/metrics/system_health/long_tasks_metric.html',
       'tracing/metrics/system_health/memory_metric.html',
