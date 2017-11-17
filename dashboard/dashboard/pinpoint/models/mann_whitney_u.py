@@ -31,7 +31,7 @@ def MannWhitneyU(x, y):
   u2 = n1*n2 - u1  # remainder is U for y
   t = _TieCorrectionFactor(ranked)
   if t == 0:
-    raise ValueError('All numbers are identical in mannwhitneyu')
+    return 1.0
   sd = math.sqrt(t * n1 * n2 * (n1+n2+1) / 12.0)
 
   mean_rank = n1*n2/2.0 + 0.5

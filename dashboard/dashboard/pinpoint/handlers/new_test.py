@@ -127,13 +127,6 @@ class NewTest(testing_common.TestCase):
     self.assertEqual({'error': 'message'}, json.loads(response.body))
 
   @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
-  def testPost_InvalidRepeatCount(self):
-    request = dict(_BASE_REQUEST)
-    request['repeat_count'] = 'not_an_int'
-    response = self.testapp.post('/api/new', request, status=200)
-    self.assertIn('error', json.loads(response.body))
-
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   def testPost_InvalidBug(self):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = 'not_an_int'

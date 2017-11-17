@@ -29,7 +29,6 @@ class New(webapp2.RequestHandler):
   @api_auth.Authorize
   def _CreateJob(self):
     """Start a new Pinpoint job."""
-    repeat_count = self.request.get('repeat_count')
     auto_explore = self.request.get('auto_explore') == '1'
     bug_id = self.request.get('bug_id')
 
@@ -52,7 +51,6 @@ class New(webapp2.RequestHandler):
 
     # Validate arguments and convert them to canonical internal representation.
     arguments, quests = quest_generator.GenerateQuests(self.request)
-    repeat_count = _ValidateRepeatCount(repeat_count)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(change_1, change_2)
 
@@ -61,7 +59,6 @@ class New(webapp2.RequestHandler):
         arguments=arguments,
         quests=quests,
         auto_explore=auto_explore,
-        repeat_count=repeat_count,
         bug_id=bug_id)
 
     # Add changes.
@@ -79,16 +76,6 @@ class New(webapp2.RequestHandler):
         'jobId': job.job_id,
         'jobUrl': job.url,
     }))
-
-
-def _ValidateRepeatCount(repeat_count):
-  if not repeat_count:
-    return None
-
-  try:
-    return int(repeat_count)
-  except ValueError:
-    raise ValueError('"repeat_count" must be an integer.')
 
 
 def _ValidateBugId(bug_id):

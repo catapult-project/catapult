@@ -24,8 +24,7 @@ class MannWhitneyUTest(unittest.TestCase):
     self.assertEqual(mann_whitney_u.MannWhitneyU([0], [1]), 1.0)
 
   def testAllValuesIdentical(self):
-    with self.assertRaises(ValueError):
-      mann_whitney_u.MannWhitneyU([0] * 5, [0] * 5)
+    self.assertEqual(mann_whitney_u.MannWhitneyU([0] * 5, [0] * 5), 1.0)
 
 
 if __name__ == '__main__':

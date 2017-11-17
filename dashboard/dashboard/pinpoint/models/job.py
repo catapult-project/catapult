@@ -27,8 +27,13 @@ from dashboard.services import issue_tracker_service
 _TASK_INTERVAL = 10
 
 
-_DEFAULT_REPEAT_COUNT = 15
+_REPEAT_COUNT_INCREASE = 10
+_MAX_REPEAT_COUNT = 30
+
+
+_QUESTIONABLE_SIGNIFICANCE_LEVEL = 0.1
 _SIGNIFICANCE_LEVEL = 0.001
+_MINIMUM_VALUE_COUNT = 8
 
 
 _DIFFERENT = 'different'
@@ -71,8 +76,6 @@ class Job(ndb.Model):
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
 
-  repeat_count = ndb.IntegerProperty(required=True)
-
   # If True, the service should pick additional Changes to run (bisect).
   # If False, only run the Changes explicitly added by the user.
   auto_explore = ndb.BooleanProperty(required=True)
@@ -84,16 +87,13 @@ class Job(ndb.Model):
   state = ndb.PickleProperty(required=True, compressed=True)
 
   @classmethod
-  def New(cls, arguments, quests, auto_explore,
-          repeat_count=_DEFAULT_REPEAT_COUNT, bug_id=None):
-    repeat_count = repeat_count or _DEFAULT_REPEAT_COUNT
+  def New(cls, arguments, quests, auto_explore, bug_id=None):
     # Create job.
     return cls(
         arguments=arguments,
         auto_explore=auto_explore,
-        repeat_count=repeat_count,
         bug_id=bug_id,
-        state=_JobState(quests, repeat_count))
+        state=_JobState(quests))
 
   @property
   def job_id(self):
@@ -251,12 +251,11 @@ class _JobState(object):
   anyway. Everything queryable should be on the Job object.
   """
 
-  def __init__(self, quests, repeat_count):
+  def __init__(self, quests):
     """Create a _JobState.
 
     Args:
       quests: A sequence of quests to run on each Change.
-      repeat_count: The number of attempts to automatically run per Change.
     """
     # _quests is mutable. Any modification should mutate the existing list
     # in-place rather than assign a new list, because every Attempt references
@@ -270,11 +269,13 @@ class _JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
-    self._repeat_count = repeat_count
-
-  def AddAttempt(self, change):
+  def AddAttempts(self, change):
     assert change in self._attempts
-    self._attempts[change].append(attempt_module.Attempt(self._quests, change))
+    attempt_count = min(_REPEAT_COUNT_INCREASE,
+                        _MAX_REPEAT_COUNT - len(self._attempts[change]))
+    for _ in xrange(attempt_count):
+      self._attempts[change].append(
+          attempt_module.Attempt(self._quests, change))
 
   def AddChange(self, change, index=None):
     if index:
@@ -283,8 +284,7 @@ class _JobState(object):
       self._changes.append(change)
 
     self._attempts[change] = []
-    for _ in xrange(self._repeat_count):
-      self.AddAttempt(change)
+    self.AddAttempts(change)
 
   def Explore(self):
     """Compare Changes and bisect by adding additional Changes as needed.
@@ -292,6 +292,9 @@ class _JobState(object):
     For every pair of adjacent Changes, compare their results as probability
     distributions. If the results are different, find the midpoint of the
     Changes and add it to the Job.
+
+    If the results are inconclusive, add more Attempts to the Changes unless
+    we've hit _MAX_REPEAT_COUNT.
 
     The midpoint can only be added if the second Change represents a commit that
     comes after the first Change. Otherwise, this method won't explore further.
@@ -302,16 +305,23 @@ class _JobState(object):
     # The Change insertion simultaneously uses and modifies the list indices.
     # However, the loop index goes in reverse order and Changes are only added
     # after the loop index, so the loop never encounters the modified items.
-    for index, change_b in reversed(tuple(self.Differences())):
+    for index in xrange(len(self._changes) - 1, 0, -1):
       change_a = self._changes[index - 1]
+      change_b = self._changes[index]
+      comparison = self._Compare(change_a, change_b)
 
-      try:
-        midpoint = change_module.Change.Midpoint(change_a, change_b)
-      except change_module.NonLinearError:
-        continue
+      if comparison == _DIFFERENT:
+        try:
+          midpoint = change_module.Change.Midpoint(change_a, change_b)
+        except change_module.NonLinearError:
+          continue
 
-      logging.info('Adding Change %s.', midpoint)
-      self.AddChange(midpoint, index)
+        logging.info('Adding Change %s.', midpoint)
+        self.AddChange(midpoint, index)
+
+      elif comparison == _UNKNOWN:
+        self.AddAttempts(change_a)
+        self.AddAttempts(change_b)
 
   def ScheduleWork(self):
     work_left = False
@@ -375,6 +385,23 @@ class _JobState(object):
     }
 
   def _Compare(self, change_a, change_b):
+    """Compare the results of two Changes in this Job.
+
+    Aggregate the exceptions and result_values across every Quest for both
+    Changes. Then, compare all the results for each Quest. If any of them are
+    different, return _DIFFERENT. Otherwise, if any of them are inconclusive,
+    return _UNKNOWN.  Otherwise, they are the _SAME.
+
+    Arguments:
+      change_a: The first Change whose results to compare.
+      change_b: The second Change whose results to compare.
+
+    Returns:
+      _PENDING: If either Change has an incomplete Attempt.
+      _DIFFERENT: If the two Changes (very likely) have different results.
+      _SAME: If the two Changes (probably) have the same result.
+      _UNKNOWN: If we'd like more data to make a decision.
+    """
     attempts_a = self._attempts[change_a]
     attempts_b = self._attempts[change_b]
 
@@ -384,6 +411,7 @@ class _JobState(object):
     executions_by_quest_a = _ExecutionsPerQuest(attempts_a)
     executions_by_quest_b = _ExecutionsPerQuest(attempts_b)
 
+    any_unknowns = False
     for quest in self._quests:
       executions_a = executions_by_quest_a[quest]
       executions_b = executions_by_quest_b[quest]
@@ -391,25 +419,28 @@ class _JobState(object):
       # Compare exceptions.
       values_a = tuple(bool(execution.exception) for execution in executions_a)
       values_b = tuple(bool(execution.exception) for execution in executions_b)
-      if _CompareValues(values_a, values_b) == _DIFFERENT:
+      comparison = _CompareValues(values_a, values_b)
+      if comparison == _DIFFERENT:
         return _DIFFERENT
+      elif comparison == _UNKNOWN:
+        any_unknowns = True
 
       # Compare result values.
       values_a = tuple(itertools.chain.from_iterable(
           execution.result_values for execution in executions_a))
       values_b = tuple(itertools.chain.from_iterable(
           execution.result_values for execution in executions_b))
-      if _CompareValues(values_a, values_b) == _DIFFERENT:
-        return _DIFFERENT
+      if values_a and values_b:
+        comparison = _CompareValues(values_a, values_b)
+        if comparison == _DIFFERENT:
+          return _DIFFERENT
+        elif comparison == _UNKNOWN:
+          any_unknowns = True
 
-    # Here, "the same" means that we fail to reject the null hypothesis. We can
-    # never be completely sure that the two Changes have the same results, but
-    # we've run everything that we planned to, and didn't detect any difference.
-    if (len(attempts_a) >= self._repeat_count and
-        len(attempts_b) >= self._repeat_count):
-      return _SAME
+    if any_unknowns:
+      return _UNKNOWN
 
-    return _UNKNOWN
+    return _SAME
 
 
 def _FormatCommitForBug(commit, commit_info):
@@ -431,15 +462,45 @@ def _ExecutionsPerQuest(attempts):
 
 
 def _CompareValues(values_a, values_b):
+  """Decide whether two samples are the same, different, or unknown.
+
+  Arguments:
+    values_a: A list of sortable values. They don't need to be numeric.
+    values_b: A list of sortable values. They don't need to be numeric.
+
+  Returns:
+    _DIFFERENT: The samples likely come from different distributions.
+        Reject the null hypothesis.
+    _SAME: Not enough evidence to say that the samples come from different
+        distributions. Fail to reject the null hypothesis.
+    _UNKNOWN: Not enough evidence to say that the samples come from different
+        distributions, but it looks a little suspicious, and we would like more
+        data before making a final decision.
+  """
   if not (values_a and values_b):
+    # A sample has no values in it.
     return _UNKNOWN
 
-  try:
-    p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
-  except ValueError:
+  if (len(values_a) < _MINIMUM_VALUE_COUNT or
+      len(values_b) < _MINIMUM_VALUE_COUNT):
+    # There are few enough values that the significance test would never reject
+    # the null hypothesis. We'd like more information. This can happen if a lot
+    # of the test runs fail, so we don't have a lot of performance numbers to
+    # work with.
     return _UNKNOWN
+
+  p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
 
   if p_value < _SIGNIFICANCE_LEVEL:
+    # The p-value is less than the significance level. Reject the null
+    # hypothesis.
     return _DIFFERENT
-  else:
+
+  if p_value < _QUESTIONABLE_SIGNIFICANCE_LEVEL:
+    # The p-value is not less than the significance level, but it's small enough
+    # to be suspicious. We'd like to investigate more closely.
     return _UNKNOWN
+
+  # The p-value is quite large. We're not suspicious that the two samples might
+  # come from different distributions, and we don't care to investigate more.
+  return _SAME
