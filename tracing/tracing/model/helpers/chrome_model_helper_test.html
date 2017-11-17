@@ -162,5 +162,77 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(helper.modelHelper, modelHelper);
     });
   });
+
+  test('chromeBounds_considersAllChromeProcesses', function() {
+    const model1 = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: 100,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 200,
+        duration: 100,
+      }));
+    });
+
+    const model2 = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const gpuProcess = model.getOrCreateProcess(42);
+      const gpuMainThread = gpuProcess.getOrCreateThread(1);
+      gpuMainThread.name = 'CrGpuMain';
+      gpuMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: 50,
+      }));
+      model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 100,
+        duration: 50,
+      }));
+    });
+
+    const modelHelper1 =
+        model1.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    assert.strictEqual(modelHelper1.chromeBounds.min, 0);
+    assert.strictEqual(modelHelper1.chromeBounds.max, 300);
+
+    const modelHelper2 =
+        model2.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    assert.strictEqual(modelHelper2.chromeBounds.min, 0);
+    assert.strictEqual(modelHelper2.chromeBounds.max, 150);
+  });
+
+  test('chromeBounds_onlyConsidersChromeProcesses', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: 100,
+      }));
+
+      // The bounds of this process should not be included in chrome bounds.
+      const nonChromeProcess = model.getOrCreateProcess(1234);
+      nonChromeProcess.name = 'Telemetry';
+      const nonChromeThread = nonChromeProcess.getOrCreateThread(1);
+      nonChromeThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 200,
+        duration: 100,
+      }));
+    });
+
+    const modelHelper =
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    assert.strictEqual(modelHelper.chromeBounds.min, 0);
+    assert.strictEqual(modelHelper.chromeBounds.max, 100);
+  });
 });
 </script>

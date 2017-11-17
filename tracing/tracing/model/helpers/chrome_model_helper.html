@@ -147,9 +147,16 @@ tr.exportTo('tr.model.helpers', function() {
     get chromeBounds() {
       if (!this.chromeBounds_) {
         this.chromeBounds_ = new tr.b.math.Range();
-        for (const browserHelper of
-             Object.values(this.browserHelpers)) {
+        for (const browserHelper of Object.values(this.browserHelpers)) {
           this.chromeBounds_.addRange(browserHelper.process.bounds);
+        }
+
+        for (const rendererHelper of Object.values(this.rendererHelpers)) {
+          this.chromeBounds_.addRange(rendererHelper.process.bounds);
+        }
+
+        if (this.gpuHelper) {
+          this.chromeBounds_.addRange(this.gpuHelper.process.bounds);
         }
       }
 

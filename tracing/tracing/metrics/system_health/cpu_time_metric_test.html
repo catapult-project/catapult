@@ -51,8 +51,8 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(value, 0.033, 0.001);
   });
 
-  // Normalize against the browser process, whose non-CPU slice goes from 2900
-  // to 3000.
+  // Normalize against chrome processes, whose slices (both with and without
+  // CPU data) go from 2900 to 3000.
   test('cpuTimeMetric_browserProcess', function() {
     const sliceDuration = 50;
     const totalDuration = 3000;
@@ -66,17 +66,21 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         isTopLevel: true,
-        start: 0,
-        duration: sliceDuration,
-        cpuStart: 0,
-        cpuDuration: sliceDuration,
-      }));
-      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        type: tr.model.ThreadSlice,
-        isTopLevel: true,
         start: totalDuration - sliceDuration,
         duration: sliceDuration,
         cpuStart: totalDuration - sliceDuration,
+        cpuDuration: sliceDuration,
+      }));
+
+      const nonChromeProcess = model.getOrCreateProcess(1234);
+      nonChromeProcess.name = 'Telemetry';
+      const nonChromeThread = nonChromeProcess.getOrCreateThread(1);
+      nonChromeThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
         cpuDuration: sliceDuration,
       }));
     });
