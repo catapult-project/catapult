@@ -21,9 +21,9 @@ import sys
 import urllib2
 import zipfile
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'py_utils'))
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 from dependency_manager import base_config
 
 
