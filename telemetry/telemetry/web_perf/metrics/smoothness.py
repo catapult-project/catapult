@@ -35,7 +35,9 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     mean_frame_time: The arithmetic mean of frame times
     percentage_smooth: Percentage of frames that were hitting 60 FPS.
     frame_time_discrepancy: The absolute discrepancy of frame timestamps
-    mean_pixels_approximated: The mean percentage of pixels approximated
+    mean_pixels_approximated: The mean percentage of pixels that we didn't have
+    time to rasterize so we used an "approximation" (background color or
+    checkerboarding)
     queueing_durations: The queueing delay between compositor & main threads
 
   Note that if any of the interaction records provided to AddResults have less
