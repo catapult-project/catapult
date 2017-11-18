@@ -11,6 +11,7 @@ import time
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import util
+from telemetry.internal.results import artifact_results
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
@@ -145,6 +146,8 @@ def CreateResults(benchmark_metadata, options,
   if not options.output_formats:
     options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
+  artifacts = artifact_results.ArtifactResults(options.output_dir)
+
   upload_bucket = None
   if options.upload_results:
     upload_bucket = options.upload_bucket
@@ -163,7 +166,7 @@ def CreateResults(benchmark_metadata, options,
           upload_bucket))
     elif output_format == 'json-test-results':
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
-          output_stream))
+          output_stream, artifacts))
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
@@ -194,7 +197,8 @@ def CreateResults(benchmark_metadata, options,
       output_dir=options.output_dir,
       value_can_be_added_predicate=value_can_be_added_predicate,
       benchmark_enabled=benchmark_enabled,
-      upload_bucket=upload_bucket)
+      upload_bucket=upload_bucket,
+      artifact_results=artifacts)
 
   results.telemetry_info.benchmark_name = benchmark_metadata.name
   results.telemetry_info.benchmark_start_epoch = time.time()

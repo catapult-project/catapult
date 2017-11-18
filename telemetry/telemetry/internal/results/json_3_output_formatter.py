@@ -16,7 +16,7 @@ def _mk_dict(d, *args):
   return d
 
 
-def ResultsAsDict(page_test_results):
+def ResultsAsDict(page_test_results, artifacts=None):
   """Takes PageTestResults to a dict in the JSON test results format.
 
   To serialize results as JSON we first convert them to a dict that can be
@@ -26,6 +26,7 @@ def ResultsAsDict(page_test_results):
 
   Args:
     page_test_results: a PageTestResults object
+    artifacts: an ArtifactResults object.
   """
   telemetry_info = page_test_results.telemetry_info
   result_dict = {
@@ -65,6 +66,10 @@ def ResultsAsDict(page_test_results):
     else:
       test['is_unexpected'] = test['is_unexpected'] or status != expected
 
+    story_artifacts = artifacts and artifacts.GetTestArtifacts(run.story.name)
+    if story_artifacts:
+      test['artifacts'] = dict(story_artifacts)
+
   # The following logic can interfere with calculating flakiness percentages.
   # The logic does allow us to re-run tests without them automatically
   # being marked as flaky by the flakiness dashboard and milo.
@@ -84,8 +89,9 @@ def ResultsAsDict(page_test_results):
 
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream):
+  def __init__(self, output_stream, artifacts=None):
     super(JsonOutputFormatter, self).__init__(output_stream)
+    self.artifacts = artifacts
 
   def Format(self, page_test_results):
     """Serialize page test results in JSON Test Results format.
@@ -93,7 +99,7 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
     See: https://www.chromium.org/developers/the-json-test-results-format
     """
     json.dump(
-        ResultsAsDict(page_test_results),
+        ResultsAsDict(page_test_results, self.artifacts),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
 
