@@ -16,6 +16,7 @@ from dashboard import bisect_fyi
 from dashboard import bisect_fyi_test
 from dashboard import layered_cache
 from dashboard import update_bug_with_results
+from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.common import stored_object
@@ -191,6 +192,14 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results.UpdateBugWithResultsHandler)])
     self.testapp = webtest.TestApp(app)
     self._AddRietveldConfig()
+
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        },
+    })
 
   def _AddRietveldConfig(self):
     """Adds a RietveldConfig entity to the datastore.

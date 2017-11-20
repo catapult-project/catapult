@@ -7,6 +7,8 @@
 import copy
 import math
 
+from dashboard.common import namespaced_stored_object
+
 
 _BISECT_HEADER = """
 === BISECT JOB RESULTS ===
@@ -105,13 +107,6 @@ _BISECT_WARNING = ' * %s\n'
 _REVISION_TABLE_TEMPLATE = """
 %(table)s"""
 
-COMMIT_RANGE_URL_BY_DEPOT = {
-    'chromium': 'https://chromium.googlesource.com/chromium/src/+log/',
-    'angle': 'https://chromium.googlesource.com/angle/angle/+log/',
-    'v8': 'https://chromium.googlesource.com/v8/v8.git/+log/',
-    'skia': 'https://chromium.googlesource.com/skia/+log/',
-}
-
 STATUS_REPRO_WITH_CULPRIT = '%(test_type)s found with culprit'
 
 STATUS_REPRO_UNABLE_NARROW =\
@@ -174,6 +169,8 @@ _NON_TELEMETRY_TEST_COMMANDS = {
     'performance_browser_tests': 'performance_browser_tests',
     'resource_sizes': 'resource_sizes.py',
 }
+
+_REPOSITORIES_KEY = 'repositories'
 
 
 def _GuessBenchmarkFromRunCommand(run_command):
@@ -329,11 +326,14 @@ def _GenerateReport(results_data):
   # a log containing all entries in the suspected range.
   if message == STATUS_REPRO_UNABLE_NARROW:
     depot_name = lkgr.get('depot_name')
-    depot_url = COMMIT_RANGE_URL_BY_DEPOT.get(depot_name)
+
+    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
+    depot_url = repositories.get(depot_name, {}).get('repository_url')
     result += _BISECT_SUSPECTED_RANGE % {'num': fkbr_index - lkgr_index}
     if depot_url and lkgr.get('depot_name') == fkbr.get('depot_name'):
+      git_url = depot_url + '/+log/'
       result += _BISECT_SUSPECTED_RANGE_URL % {
-          'url': depot_url,
+          'url': git_url,
           'lkgr': lkgr.get('commit_hash'),
           'fkbr': fkbr.get('commit_hash')}
     elif not depot_url:

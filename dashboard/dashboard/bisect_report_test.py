@@ -9,6 +9,7 @@ import json
 import unittest
 
 from dashboard import bisect_report
+from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.models import try_job
 
@@ -70,6 +71,12 @@ class BisectReportTest(testing_common.TestCase):
 
   def setUp(self):
     super(BisectReportTest, self).setUp()
+
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        },
+    })
 
   def _AddTryJob(self, results_data, **kwargs):
     job = try_job.TryJob(results_data=results_data, **kwargs)
