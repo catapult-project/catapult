@@ -16,9 +16,9 @@ class PerfDashboardCommunicator(object):
 
   def __init__(self, json_key_path=None, auto_authorize=True):
     self._json_key_path = json_key_path
-    self._connection = None
+    self._creds = None
     if auto_authorize:
-      self._connection = self.AuthorizeAccount()
+      self._creds = self.AuthorizeAccount()
 
   def AuthorizeAccount(self):
     """A factory for authorized account credentials."""
@@ -31,22 +31,22 @@ class PerfDashboardCommunicator(object):
     return self._AuthorizeAccountUserAccount()
 
   def _AuthorizeAccountServiceAccount(self, json_key):
-    """Used to create a service account connection with the dashboard.
+    """Used to create service account credentials for the dashboard.
 
     args:
       json_key: Path to json file that contains credentials.
     returns:
-      An object that can be used to communicate with the dashboard.
+      A credentials object for communicating with the dashboard.
     """
     creds = service_account.ServiceAccountCredentials.from_json_keyfile_name(
         json_key, [self.SCOPES])
-    return creds.authorize(httplib2.Http())
+    return creds
 
   def _AuthorizeAccountUserAccount(self):
-    """Used to create an user account connection with the performance dashboard.
+    """Used to create user account credentials for the performance dashboard.
 
     returns:
-      An object that can be used to communicate with the dashboard.
+      A credentials object for communicating with the dashboard.
     """
     flow = client.OAuth2WebServerFlow(
         self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET, [self.SCOPES],
@@ -57,10 +57,14 @@ class PerfDashboardCommunicator(object):
     code = raw_input('Enter verification code: ').strip()
     try:
       creds = flow.step2_exchange(code)
-      return creds.authorize(httplib2.Http())
+      return creds
     except client.FlowExchangeError:
       print 'User authentication has failed.'
       raise
+
+  def _CreateAuthorizedConnection(self):
+    assert self._creds, "Must have valid credentials to create a connection"
+    return self._creds.authorize(httplib2.Http())
 
   def _MakeApiRequest(self, request, retry=3, delay=3):
     """Used to communicate with perf dashboard.
@@ -71,9 +75,9 @@ class PerfDashboardCommunicator(object):
     returns:
       Contents of the response from the dashboard.
     """
-    assert self._connection, 'Must start conection before making request.'
     print 'Making API request: %s' % request
-    resp, content = self._connection.request(
+    connection = self._CreateAuthorizedConnection()
+    resp, content = connection.request(
         self.REQUEST_URL + request,
         method="POST",
         headers={'Content-length': 0})
@@ -162,7 +166,3 @@ class PerfDashboardCommunicator(object):
           # 'r_chromium', 'r_webkit_rev', 'r_v8_rev'
           test_data = tp.split('/', 4)[1:] + [data for data in point]
           yield test_data
-
-
-
-
