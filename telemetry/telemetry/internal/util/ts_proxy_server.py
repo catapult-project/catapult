@@ -76,8 +76,7 @@ class TsProxyServer(object):
       self._is_running = True
     except py_utils.TimeoutException:
       # TODO(nedn): remove this debug log once crbug.com/766877 is resolved
-      if os.name == 'nt':
-        ps_util.ListAllSubprocesses()
+      ps_util.ListAllSubprocesses()
       err = self.StopServer()
       raise RuntimeError(
           'Error starting tsproxy: %s' % err)
