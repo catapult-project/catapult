@@ -9,9 +9,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.m', function() {
-var LONG_TASK_MS = 100;
+  const LONG_TASK_MS = 100;
 
-var UNINTERESTING_TASKS = [
+  const UNINTERESTING_TASKS = [
     'MessageLoop::RunTask',
     'TaskQueueManager::DoWork',
     'TaskQueueManager::ProcessTaskFromWorkQueue',
@@ -63,23 +63,23 @@ var UNINTERESTING_TASKS = [
     'HTMLScriptRunner::executeScriptsWaitingForResources',
     'FrameMsg_JavaScriptExecuteRequest',
     'v8.callModuleMethod'
-];
+  ];
 
   function longRunningScriptsMapper(result, model) {
-    var resultArray = [];
+    const resultArray = [];
 
     iterateRendererMainThreads(model, function(thread) {
       thread.sliceGroup.topLevelSlices.forEach(function(slice) {
+        const interestingSlice = findLongestInterestingSlice(slice);
+        if (interestingSlice.duration < LONG_TASK_MS) return;
 
-        var interestingSlice = findLongestInterestingSlice(slice);
-        if (interestingSlice.duration < LONG_TASK_MS)
-          return;
-
-        var scriptURL = getScriptURL(interestingSlice);
-        if (scriptURL !== undefined && scriptURL != '') {
-          var topLevelDomain = extractDomain(scriptURL);
-          resultArray.push({key: topLevelDomain,
-                           float_value: interestingSlice.duration});
+        const scriptURL = getScriptURL(interestingSlice);
+        if (scriptURL !== undefined && scriptURL !== '') {
+          const topLevelDomain = extractDomain(scriptURL);
+          resultArray.push({
+            key: topLevelDomain,
+            float_value: interestingSlice.duration
+          });
         }
       });
     });
@@ -91,33 +91,32 @@ var UNINTERESTING_TASKS = [
   tr.mre.FunctionRegistry.register(longRunningScriptsMapper);
 
   return {
-    longRunningScriptsMapper: longRunningScriptsMapper
+    longRunningScriptsMapper,
   };
 
   function iterateRendererMainThreads(model, cb, opt_this) {
-    var modelHelper = model.getOrCreateHelper(
+    const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    tr.b.dictionaryValues(modelHelper.rendererHelpers).forEach(
+    Object.values(modelHelper.rendererHelpers).forEach(
         function(rendererHelper) {
-          if (!rendererHelper.mainThread)
-            return;
+          if (!rendererHelper.mainThread) return;
           cb.call(opt_this, rendererHelper.mainThread);
         });
   }
 
   function getScriptURL(slice) {
-    var url = undefined;
+    let url = undefined;
 
     if (slice.title === 'v8.run') {
-      url = slice.args['fileName'];
+      url = slice.args.fileName;
     } else if (slice.title === 'v8.compile') {
-      url = slice.args['fileName'];
+      url = slice.args.fileName;
     } else if (slice.title === 'FunctionCall') {
-      url = slice.args['data']['scriptName'];
+      url = slice.args.data.scriptName;
     } else if (slice.title === 'EvaluateScript') {
-      url = slice.args['data']['url'];
+      url = slice.args.data.url;
     } else if (slice.title === 'HTMLScriptRunner ExecuteScript') {
-      url = slice.args['data']['url'];
+      url = slice.args.data.url;
     }
 
     return url;
@@ -125,36 +124,36 @@ var UNINTERESTING_TASKS = [
 
   function findLongestInterestingSlice(slice) {
     if (UNINTERESTING_TASKS.indexOf(slice.title) >= 0) {
-      var longestSlice = undefined;
-      var subSlices = slice.subSlices;
-      for (var i = 0; i < subSlices.length; ++i) {
+      let longestSlice = undefined;
+      const subSlices = slice.subSlices;
+      for (let i = 0; i < subSlices.length; ++i) {
         if (longestSlice === undefined ||
             longestSlice.duration < subSlices[i].duration) {
           longestSlice = subSlices[i];
         }
       }
 
-      if (longestSlice !== undefined)
+      if (longestSlice !== undefined) {
         return findLongestInterestingSlice(longestSlice);
+      }
     }
 
     return slice;
   }
 
   function extractDomain(url) {
-      var domain;
-      //find & remove protocol (http, ftp, etc.) and get domain
-      if (url.indexOf('://') > -1) {
-          domain = url.split('/')[2];
-      }
-      else {
-          domain = url.split('/')[0];
-      }
+    let domain;
+    // Find & remove protocol (http, ftp, etc.) and get domain.
+    if (url.indexOf('://') > -1) {
+      domain = url.split('/')[2];
+    } else {
+      domain = url.split('/')[0];
+    }
 
-      //find & remove port number
-      domain = domain.split(':')[0];
+    // Find & remove port number.
+    domain = domain.split(':')[0];
 
-      return domain;
+    return domain;
   }
 });
 
