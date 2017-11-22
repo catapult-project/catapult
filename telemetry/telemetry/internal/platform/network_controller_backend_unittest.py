@@ -8,28 +8,28 @@ from telemetry.testing import fakes
 from telemetry.core import exceptions
 from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import platform_backend
+from telemetry.util import wpr_modes
 
 import mock
 
 
 class NetworkControllerBackendTest(unittest.TestCase):
-  def testReinitializationSuccessAfterFirstFailure(self):
+  def testReOpenSuccessAfterFirstFailure(self):
     backend = platform_backend.PlatformBackend()
     fake_forwarder_factory = fakes.FakeForwarderFactory()
     fake_forwarder_factory.raise_exception_on_create = True
     with mock.patch(
         'telemetry.internal.platform.platform_backend.'
         'PlatformBackend.forwarder_factory', new=fake_forwarder_factory):
-      nb = network_controller_backend.NetworkControllerBackend(
-          backend)
+      nb = network_controller_backend.NetworkControllerBackend(backend)
       try:
         try:
           # First time initializing network_controller_backend would fail.
-          nb.InitializeIfNeeded(use_live_traffic=False)
+          nb.Open(wpr_modes.WPR_REPLAY)
         except exceptions.IntentionalException:
           pass
         fake_forwarder_factory.raise_exception_on_create = False
         # Second time initializing network_controller_backend would succeed
-        nb.InitializeIfNeeded(use_live_traffic=False)
+        nb.Open(wpr_modes.WPR_REPLAY)
       finally:
         nb.Close()

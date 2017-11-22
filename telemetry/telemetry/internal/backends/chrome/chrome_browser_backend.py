@@ -145,7 +145,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def GetReplayBrowserStartupArgs(self):
     replay_args = []
     network_backend = self.platform_backend.network_controller_backend
-    if not network_backend.is_initialized:
+    if not network_backend.is_open:
       return []
     proxy_port = network_backend.forwarder.port_pair.remote_port
     replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)

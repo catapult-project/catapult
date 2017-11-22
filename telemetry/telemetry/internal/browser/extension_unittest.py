@@ -34,7 +34,7 @@ class ExtensionTest(unittest.TestCase):
       # May not find a browser that supports extensions.
       return False
     self._platform = browser_to_create.platform
-    self._platform.network_controller.InitializeIfNeeded()
+    self._platform.network_controller.Open()
     self._browser = browser_to_create.Create(options)
     self._extension = self._browser.extensions[load_extension]
     self._extension_id = load_extension.extension_id
@@ -103,7 +103,7 @@ class NonExistentExtensionTest(unittest.TestCase):
         extension_path, options.browser_type)
     browser_to_create = browser_finder.FindBrowser(options)
     try:
-      browser_to_create.platform.network_controller.InitializeIfNeeded()
+      browser_to_create.platform.network_controller.Open()
       with browser_to_create.Create(options) as b:
         if b.supports_extensions:
           self.assertRaises(KeyError, lambda: b.extensions[load_extension])
@@ -134,7 +134,7 @@ class MultipleExtensionTest(unittest.TestCase):
     # May not find a browser that supports extensions.
     if browser_to_create:
       self._platform = browser_to_create.platform
-      self._platform.network_controller.InitializeIfNeeded()
+      self._platform.network_controller.Open()
       self._browser = browser_to_create.Create(options)
 
   def tearDown(self):

@@ -12,15 +12,15 @@ from telemetry.util import wpr_modes
 
 
 class FakePlatformBackend(object):
-  def __init__(self, is_initialized, local_ts_proxy_port, remote_port,
-               is_host_platform):
+  def __init__(self, is_network_controller_open, local_ts_proxy_port,
+               remote_port, is_host_platform):
     self.is_host_platform = is_host_platform
 
     self.forwarder_factory = mock.Mock()
 
     self.network_controller_backend = mock.Mock()
-    self.network_controller_backend.is_initialized = is_initialized
-    if is_initialized:
+    self.network_controller_backend.is_open = is_network_controller_open
+    if is_network_controller_open:
       self.network_controller_backend.forwarder.port_pair = forwarders.PortPair(
           local_port=local_ts_proxy_port, remote_port=remote_port)
     else:

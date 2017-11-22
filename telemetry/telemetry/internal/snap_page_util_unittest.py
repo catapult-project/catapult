@@ -30,7 +30,7 @@ class SnapPageTest(unittest.TestCase):
     self.finder_options = options_for_unittests.GetCopy()
     browser_to_create = browser_finder.FindBrowser(self.finder_options)
     self.platform = browser_to_create.platform
-    self.platform.network_controller.InitializeIfNeeded()
+    self.platform.network_controller.Open()
 
   def tearDown(self):
     self.platform.network_controller.Close()

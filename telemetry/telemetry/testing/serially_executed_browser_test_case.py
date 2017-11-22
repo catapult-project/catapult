@@ -10,7 +10,6 @@ import unittest
 from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.testing import browser_test_context
-from telemetry.util import wpr_modes
 
 
 DEFAULT_LOG_FORMAT = (
@@ -70,7 +69,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     cls._browser_to_create = browser_finder.FindBrowser(browser_options)
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
-      cls.platform.network_controller.InitializeIfNeeded()
+      cls.platform.network_controller.Open()
     else:
       assert cls.platform == cls._browser_to_create.platform, (
           'All browser launches within same test suite must use browsers on '
@@ -91,8 +90,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     assert not cls.browser, 'WPR must be started prior to browser being started'
 
     cloud_storage.GetIfChanged(archive_path, archive_bucket)
-    cls.platform.network_controller.Open(wpr_modes.WPR_REPLAY, [])
-    cls.platform.network_controller.StartReplay(archive_path=archive_path)
+    cls.platform.network_controller.StartReplay(archive_path)
 
   @classmethod
   def StopWPRServer(cls):

@@ -83,15 +83,9 @@ class SharedPageState(story_module.SharedState):
       wpr_mode = wpr_modes.WPR_RECORD
     else:
       wpr_mode = wpr_modes.WPR_REPLAY
+    self._extra_wpr_args = browser_options.extra_wpr_args
 
-    use_live_traffic = wpr_mode == wpr_modes.WPR_OFF
-
-    if self.platform.network_controller.is_open:
-      self.platform.network_controller.Close()
-    self.platform.network_controller.InitializeIfNeeded(
-        use_live_traffic=use_live_traffic)
-    self.platform.network_controller.Open(wpr_mode,
-                                          browser_options.extra_wpr_args)
+    self.platform.network_controller.Open(wpr_mode)
     self.platform.Initialize()
 
   @property
@@ -237,7 +231,7 @@ class SharedPageState(story_module.SharedState):
       logging.warning('WPR archive missing: %s', archive_path)
       archive_path = None
     self.platform.network_controller.StartReplay(
-        archive_path, page.make_javascript_deterministic)
+        archive_path, page.make_javascript_deterministic, self._extra_wpr_args)
 
     if not self.browser:
       self._StartBrowser(page)

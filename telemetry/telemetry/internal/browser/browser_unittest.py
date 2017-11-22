@@ -204,7 +204,7 @@ def _GenerateBrowserProfile(number_of_tabs):
   options = options_for_unittests.GetCopy()
   options.browser_options.output_profile_path = profile_dir
   browser_to_create = browser_finder.FindBrowser(options)
-  browser_to_create.platform.network_controller.InitializeIfNeeded()
+  browser_to_create.platform.network_controller.Open()
   try:
     with browser_to_create.Create(options) as browser:
       browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
@@ -256,7 +256,7 @@ class BrowserRestoreSessionTest(unittest.TestCase):
         ['--restore-last-session'])
     cls._options.browser_options.profile_dir = cls._profile_dir
     cls._browser_to_create = browser_finder.FindBrowser(cls._options)
-    cls._browser_to_create.platform.network_controller.InitializeIfNeeded()
+    cls._browser_to_create.platform.network_controller.Open()
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos', 'win', 'mac')
@@ -291,7 +291,7 @@ class TestBrowserOperationDoNotLeakTempFiles(unittest.TestCase):
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertIsNotNone(browser_to_create)
     before_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
-    browser_to_create.platform.network_controller.InitializeIfNeeded()
+    browser_to_create.platform.network_controller.Open()
     try:
       with browser_to_create.Create(options) as browser:
         tab = browser.tabs.New()

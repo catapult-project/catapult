@@ -149,7 +149,7 @@ class LocalServerController(object):
 
   def StartServer(self, server):
     assert not server.is_running, 'Server already started'
-    assert self._platform_backend.network_controller_backend.is_initialized
+    assert self._platform_backend.network_controller_backend.is_open
     assert isinstance(server, LocalServer)
     if server.__class__ in self._local_servers_by_class:
       raise Exception(
