@@ -77,6 +77,23 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # stopping also clears the app state in Android's activity manager.
     self.platform_backend.StopApplication(self._backend_settings.package)
 
+  def _SetupProfile(self):
+    if self.browser_options.dont_override_profile:
+      return
+    if self.browser_options.profile_dir:
+      self.platform_backend.PushProfile(
+          self._backend_settings.package,
+          self.browser_options.profile_dir)
+    else:
+      self.platform_backend.RemoveProfile(
+          self._backend_settings.package,
+          self._backend_settings.profile_ignore_list)
+
+  def _CollectProfile(self):
+    if self._output_profile_path:
+      self.platform_backend.PullProfile(
+          self._backend_settings.package, self._output_profile_path)
+
   def Start(self):
     self.device.adb.Logcat(clear=True)
     if self.browser_options.startup_url:
@@ -101,16 +118,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # command line flags, in case some other Android process manages to
       # trigger Chrome's startup before we do.
       self._StopBrowser()
-
-      if self.device.HasRoot() or self.device.NeedsSU():
-        if self.browser_options.profile_dir:
-          self.platform_backend.PushProfile(
-              self._backend_settings.package,
-              self.browser_options.profile_dir)
-        elif not self.browser_options.dont_override_profile:
-          self.platform_backend.RemoveProfile(
-              self._backend_settings.package,
-              self._backend_settings.profile_ignore_list)
+      self._SetupProfile()
 
       self.device.StartActivity(
           intent.Intent(package=self._backend_settings.package,
@@ -257,14 +265,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
-
     self._StopBrowser()
-
     self.platform_backend.StopForwardingHost(self._port)
-
-    if self._output_profile_path:
-      self.platform_backend.PullProfile(
-          self._backend_settings.package, self._output_profile_path)
+    self._CollectProfile()
 
   def IsBrowserRunning(self):
     return self.platform_backend.IsAppRunning(self._backend_settings.package)
