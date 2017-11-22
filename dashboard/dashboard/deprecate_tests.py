@@ -11,6 +11,7 @@ import logging
 
 from google.appengine.api import taskqueue
 from google.appengine.datastore.datastore_query import Cursor
+from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 
 from dashboard import layered_cache
@@ -52,6 +53,7 @@ class DeprecateTestsHandler(request_handler.RequestHandler):
       return
 
     _AddDeprecateTestDataTask({'type': 'fetch-and-process-tests'})
+    _AddDeleteMastersAndBotsTasks()
 
   def post(self):
     datastore_hooks.SetPrivilegedRequest()
@@ -71,6 +73,57 @@ class DeprecateTestsHandler(request_handler.RequestHandler):
 
     logging.error(
         'Unknown task_type posted to /deprecate_tests: %s', task_type)
+
+
+def _AddDeleteMastersAndBotsTasks():
+  deferred.defer(
+      _CheckAndDeleteBotsTask, _queue=_DEPRECATE_TESTS_TASK_QUEUE_NAME)
+
+
+@ndb.synctasklet
+def _CheckAndDeleteMastersTask():
+  q1 = graph_data.Master.query()
+  masters = yield q1.fetch_async(keys_only=True)
+
+  @ndb.tasklet
+  def _GetFirstBot(master_key):
+    q = graph_data.Bot.query(ancestor=master_key)
+    result = yield q.get_async(keys_only=True)
+    raise ndb.Return(result)
+
+  masters_tests = yield [_GetFirstBot(m) for m in masters]
+  masters_to_delete = [
+      masters[i] for i in xrange(len(masters)) if not masters_tests[i]]
+
+  for m in masters_to_delete:
+    logging.info('Deleting master: %s', str(m))
+  yield [m.delete_async() for m in masters_to_delete]
+
+
+@ndb.synctasklet
+def _CheckAndDeleteBotsTask():
+  q1 = graph_data.Bot.query()
+  bots = yield q1.fetch_async(keys_only=True)
+
+  @ndb.tasklet
+  def _GetFirstTest(bot_key):
+    q = graph_data.TestMetadata.query()
+    q = q.filter(graph_data.TestMetadata.master_name == bot_key.parent().id())
+    q = q.filter(graph_data.TestMetadata.bot_name == bot_key.id())
+    result = yield q.get_async(keys_only=True)
+    raise ndb.Return(result)
+
+  bots_tests = yield [_GetFirstTest(b) for b in bots]
+  bots_to_delete = [
+      bots[i] for i in xrange(len(bots)) if not bots_tests[i]]
+
+  for b in bots_to_delete:
+    logging.info('Deleting bot: %s', str(b))
+  yield [b.delete_async() for b in bots_to_delete]
+
+  # Now go check masters and delete any with no associated bots
+  deferred.defer(
+      _CheckAndDeleteMastersTask, _queue=_DEPRECATE_TESTS_TASK_QUEUE_NAME)
 
 
 @ndb.synctasklet

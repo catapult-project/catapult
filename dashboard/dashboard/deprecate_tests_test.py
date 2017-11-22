@@ -9,6 +9,8 @@ import unittest
 import webapp2
 import webtest
 
+from google.appengine.ext import ndb
+
 from dashboard import deprecate_tests
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -47,6 +49,18 @@ _TESTS_MULTIPLE = [
                 'foo2': {},
             },
         },
+    }
+]
+
+_TESTS_MULTIPLE_MASTERS_AND_BOTS = [
+    ['ChromiumPerf', 'ChromiumPerfFYI'],
+    ['mac', 'linux'],
+    {
+        'SunSpider': {
+            'Total': {
+                't': {},
+            },
+        }
     }
 ]
 
@@ -164,6 +178,76 @@ class DeprecateTestsTest(testing_common.TestCase):
 
     test = utils.TestKey('ChromiumPerf/mac/SunSpider/Total/t_ref').get()
     mock_delete.assert_called_once_with(test)
+
+  @mock.patch.object(
+      deprecate_tests, '_AddDeprecateTestDataTask', mock.MagicMock())
+  def testPost_DeletesBot_NotMaster(self):
+    testing_common.AddTests(*_TESTS_MULTIPLE_MASTERS_AND_BOTS)
+    utils.TestKey('ChromiumPerf/mac/SunSpider/Total/t').delete()
+    utils.TestKey('ChromiumPerf/mac/SunSpider/Total').delete()
+    utils.TestKey('ChromiumPerf/mac/SunSpider').delete()
+
+    for m in _TESTS_MULTIPLE_MASTERS_AND_BOTS[0]:
+      for b in _TESTS_MULTIPLE_MASTERS_AND_BOTS[1]:
+        master_key = ndb.Key('Master', m)
+        bot_key = ndb.Key('Bot', b, parent=master_key)
+        self.assertIsNotNone(bot_key.get())
+        self.assertIsNotNone(master_key.get())
+
+    self.testapp.get('/deprecate_tests')
+
+    self.ExecuteDeferredTasks(deprecate_tests._DEPRECATE_TESTS_TASK_QUEUE_NAME)
+
+    expected_deleted_bots = [ndb.Key('Master', 'ChromiumPerf', 'Bot', 'mac')]
+    for m in _TESTS_MULTIPLE_MASTERS_AND_BOTS[0]:
+      for b in _TESTS_MULTIPLE_MASTERS_AND_BOTS[1]:
+        master_key = ndb.Key('Master', m)
+        bot_key = ndb.Key('Bot', b, parent=master_key)
+        if bot_key in expected_deleted_bots:
+          self.assertIsNone(bot_key.get())
+        else:
+          self.assertIsNotNone(bot_key.get())
+        self.assertIsNotNone(master_key.get())
+
+  @mock.patch.object(
+      deprecate_tests, '_AddDeprecateTestDataTask', mock.MagicMock())
+  def testPost_DeletesMasterAndBot(self):
+    testing_common.AddTests(*_TESTS_MULTIPLE_MASTERS_AND_BOTS)
+    utils.TestKey('ChromiumPerf/mac/SunSpider/Total/t').delete()
+    utils.TestKey('ChromiumPerf/mac/SunSpider/Total').delete()
+    utils.TestKey('ChromiumPerf/mac/SunSpider').delete()
+    utils.TestKey('ChromiumPerf/linux/SunSpider/Total/t').delete()
+    utils.TestKey('ChromiumPerf/linux/SunSpider/Total').delete()
+    utils.TestKey('ChromiumPerf/linux/SunSpider').delete()
+
+    for m in _TESTS_MULTIPLE_MASTERS_AND_BOTS[0]:
+      for b in _TESTS_MULTIPLE_MASTERS_AND_BOTS[1]:
+        master_key = ndb.Key('Master', m)
+        bot_key = ndb.Key('Bot', b, parent=master_key)
+        self.assertIsNotNone(bot_key.get())
+        self.assertIsNotNone(master_key.get())
+
+    self.testapp.get('/deprecate_tests')
+
+    self.ExecuteDeferredTasks(deprecate_tests._DEPRECATE_TESTS_TASK_QUEUE_NAME)
+
+    expected_deleted_bots = [
+        ndb.Key('Master', 'ChromiumPerf', 'Bot', 'mac'),
+        ndb.Key('Master', 'ChromiumPerf', 'Bot', 'linux')]
+    expected_deleted_masters = [ndb.Key('Master', 'ChromiumPerf')]
+    for m in _TESTS_MULTIPLE_MASTERS_AND_BOTS[0]:
+      master_key = ndb.Key('Master', m)
+      if master_key in expected_deleted_masters:
+        self.assertIsNone(master_key.get())
+      else:
+        self.assertIsNotNone(master_key.get())
+
+      for b in _TESTS_MULTIPLE_MASTERS_AND_BOTS[1]:
+        bot_key = ndb.Key('Bot', b, parent=master_key)
+        if bot_key in expected_deleted_bots:
+          self.assertIsNone(bot_key.get())
+        else:
+          self.assertIsNotNone(bot_key.get())
 
 
 if __name__ == '__main__':
