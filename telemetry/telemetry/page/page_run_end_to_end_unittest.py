@@ -183,68 +183,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       self.assertEquals(len(story_set), test.browser_starts)
     self.assertFormattedExceptionIsEmpty()
 
-  def testCredentialsWhenLoginFails(self):
-    self.CaptureFormattedException()
-    credentials_backend = StubCredentialsBackend(login_return_value=False)
-    did_run = self.runCredentialsTest(credentials_backend)
-    assert credentials_backend.did_get_login
-    assert not credentials_backend.did_get_login_no_longer_needed
-    assert not did_run
-    self.assertFormattedExceptionIsEmpty()
-
-  def testCredentialsWhenLoginSucceeds(self):
-    credentials_backend = StubCredentialsBackend(login_return_value=True)
-    did_run = self.runCredentialsTest(credentials_backend)
-    assert credentials_backend.did_get_login
-    assert credentials_backend.did_get_login_no_longer_needed
-    assert did_run
-
-  def runCredentialsTest(self, credentials_backend):
-    story_set = story.StorySet()
-    did_run = [False]
-
-    try:
-      class TestSharedState(shared_page_state.SharedPageState):
-        def ShouldStopBrowserAfterStoryRun(self, _):
-          # Do not close browser for LoginNoLongerNeeded to get called.
-          return False
-
-      with tempfile.NamedTemporaryFile(delete=False) as f:
-        page = page_module.Page(
-            'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-            shared_page_state_class=TestSharedState,
-            credentials_path=f.name,
-            name='blank.html')
-        page.credentials = "test"
-        story_set.AddStory(page)
-
-        f.write(SIMPLE_CREDENTIALS_STRING)
-
-      class TestThatInstallsCredentialsBackend(legacy_page_test.LegacyPageTest):
-
-        def __init__(self, credentials_backend):
-          super(TestThatInstallsCredentialsBackend, self).__init__()
-          self._credentials_backend = credentials_backend
-
-        def DidStartBrowser(self, browser):
-          browser.credentials.AddBackend(self._credentials_backend)
-
-        def ValidateAndMeasurePage(self, *_):
-          did_run[0] = True
-
-      test = TestThatInstallsCredentialsBackend(credentials_backend)
-      options = options_for_unittests.GetCopy()
-      options.output_formats = ['none']
-      options.suppress_gtest_report = True
-      SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
-    finally:
-      os.remove(f.name)
-
-    return did_run[0]
-
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
     story_set = story.StorySet()

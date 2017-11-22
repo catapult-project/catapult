@@ -45,9 +45,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self._is_guest)
     if browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
-          browser_backend, self._platform_backend, self._credentials_path)
-    return browser.Browser(browser_backend, self._platform_backend,
-                           self._credentials_path)
+          browser_backend, self._platform_backend)
+    return browser.Browser(browser_backend, self._platform_backend)
 
   def SupportsOptions(self, browser_options):
     return (len(browser_options.extensions_to_load) == 0) or not self._is_guest

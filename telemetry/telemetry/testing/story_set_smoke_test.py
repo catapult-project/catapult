@@ -6,7 +6,6 @@ import logging
 import os
 import unittest
 
-from telemetry.internal.browser import browser_credentials
 from telemetry.internal import story_runner
 from telemetry import page
 from telemetry import story as story_module
@@ -50,23 +49,6 @@ class StorySetSmokeTest(unittest.TestCase):
         self.assertTrue(wpr_archive_info.WprFilePathForStory(story),
                         msg='No archive found for %s in %s' % (
                             story.url, story_set.archive_data_file))
-
-  def CheckCredentials(self, story_set):
-    """Verify that all pages in story_set use proper credentials"""
-    for story in story_set.stories:
-      if not isinstance(story, page.Page):
-        continue
-      credentials = browser_credentials.BrowserCredentials()
-      if story.credentials_path:
-        credentials.credentials_path = (
-            os.path.join(story.base_dir, story.credentials_path))
-      fail_message = ('page %s of %s has invalid credentials %s' %
-                      (story.url, story_set.file_path, story.credentials))
-      if story.credentials:
-        try:
-          self.assertTrue(credentials.CanLogin(story.credentials), fail_message)
-        except browser_credentials.CredentialsError:
-          self.fail(fail_message)
 
   def CheckAttributes(self, story_set):
     """Verify that story_set and its stories base attributes have the right
@@ -139,6 +121,5 @@ class StorySetSmokeTest(unittest.TestCase):
     for story_set_class in story_sets:
       story_set = story_set_class()
       self.CheckArchive(story_set)
-      self.CheckCredentials(story_set)
       self.CheckAttributes(story_set)
       self.CheckPassingStoryRunnerValidation(story_set)

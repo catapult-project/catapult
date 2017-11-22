@@ -15,7 +15,6 @@ class PossibleBrowser(possible_app.PossibleApp):
     super(PossibleBrowser, self).__init__(app_type=browser_type,
                                           target_os=target_os)
     self._supports_tab_control = supports_tab_control
-    self._credentials_path = None
 
   def __repr__(self):
     return 'PossibleBrowser(app_type=%s)' % self.app_type
@@ -50,6 +49,3 @@ class PossibleBrowser(possible_app.PossibleApp):
   @property
   def last_modification_time(self):
     return -1
-
-  def SetCredentialsPath(self, credentials_path):
-    self._credentials_path = credentials_path

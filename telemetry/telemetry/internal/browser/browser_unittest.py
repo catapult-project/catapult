@@ -231,8 +231,7 @@ class BrowserCreationTest(unittest.TestCase):
         IntentionalException('Boom!'))
     with self.assertRaises(IntentionalException):
       browser_module.Browser(
-          self.mock_browser_backend, self.mock_platform_backend,
-          credentials_path=None)
+          self.mock_browser_backend, self.mock_platform_backend)
     self.assertTrue(self.mock_platform_backend.WillCloseBrowser.called)
 
   def testOriginalExceptionNotSwallow(self):
@@ -242,8 +241,7 @@ class BrowserCreationTest(unittest.TestCase):
         IntentionalException('Cannot close browser!'))
     with self.assertRaises(IntentionalException) as context:
       browser_module.Browser(
-          self.mock_browser_backend, self.mock_platform_backend,
-          credentials_path=None)
+          self.mock_browser_backend, self.mock_platform_backend)
     self.assertIn('Boom!', context.exception.message)
 
 

@@ -16,7 +16,6 @@ from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
 from telemetry.page import traffic_setting
-from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import screenshot
 from telemetry.util import wpr_modes
@@ -69,7 +68,6 @@ class SharedPageState(story_module.SharedState):
         self._test, finder_options)
 
     self._first_browser = True
-    self._did_login_for_current_page = False
     self._previous_page = None
     self._current_page = None
     self._current_tab = None
@@ -158,10 +156,6 @@ class SharedPageState(story_module.SharedState):
         try:
           if self._current_tab.IsAlive():
             self._current_tab.CloseConnections()
-          if (self._current_page.credentials and
-              self._did_login_for_current_page):
-            self.browser.credentials.LoginNoLongerNeeded(
-                self._current_tab, self._current_page.credentials)
           self._previous_page = self._current_page
         except Exception as exc: # pylint: disable=broad-except
           logging.warning(
@@ -196,7 +190,6 @@ class SharedPageState(story_module.SharedState):
   def _StartBrowser(self, page):
     assert self._browser is None
     self._AllowInteractionForStage('before-start-browser')
-    self._possible_browser.SetCredentialsPath(page.credentials_path)
 
     self._test.WillStartBrowser(self.platform)
     # Create a deep copy of finder options so that we can add page-level
@@ -211,7 +204,6 @@ class SharedPageState(story_module.SharedState):
 
     if self._first_browser:
       self._first_browser = False
-      self.browser.credentials.WarnIfMissingCredentials(page)
     self._AllowInteractionForStage('after-start-browser')
 
   def WillRunStory(self, page):
@@ -247,10 +239,7 @@ class SharedPageState(story_module.SharedState):
     self.platform.network_controller.StartReplay(
         archive_path, page.make_javascript_deterministic)
 
-    if self.browser:
-      # Set new credential path for browser.
-      self.browser.credentials.credentials_path = page.credentials_path
-    else:
+    if not self.browser:
       self._StartBrowser(page)
     if self.browser.supports_tab_control and self._test.close_tabs_before_run:
       # Create a tab if there's none.
@@ -310,13 +299,6 @@ class SharedPageState(story_module.SharedState):
       self.platform.SetHTTPServerDirectories(
           self._current_page.page_set.serving_dirs |
           set([self._current_page.serving_dir]))
-
-    if self._current_page.credentials:
-      if not self.browser.credentials.LoginNeeded(
-          self._current_tab, self._current_page.credentials):
-        raise legacy_page_test.Failure(
-            'Login as ' + self._current_page.credentials + ' failed')
-      self._did_login_for_current_page = True
 
     if self._test.clear_cache_before_each_run:
       self._current_tab.ClearCache(force=True)

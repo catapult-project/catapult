@@ -72,7 +72,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
             self._flash_path, self._is_content_shell, self._browser_directory)
 
         returned_browser = browser.Browser(
-            browser_backend, self._platform_backend, self._credentials_path)
+            browser_backend, self._platform_backend)
 
         return returned_browser
       except Exception: # pylint: disable=broad-except

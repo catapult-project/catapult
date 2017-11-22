@@ -133,7 +133,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         finder_options.browser_options, self._backend_settings)
     try:
       return browser.Browser(
-          browser_backend, self._platform_backend, self._credentials_path)
+          browser_backend, self._platform_backend)
     except Exception:
       exc_info = sys.exc_info()
       logging.error(

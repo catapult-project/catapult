@@ -12,7 +12,6 @@ from telemetry.core import profiling_controller
 from telemetry import decorators
 from telemetry.internal import app
 from telemetry.internal.backends import browser_backend
-from telemetry.internal.browser import browser_credentials
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
 from telemetry.internal.browser import web_contents
@@ -30,15 +29,13 @@ class Browser(app.App):
     with browser_to_create.Create(options) as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform_backend, credentials_path):
+  def __init__(self, backend, platform_backend):
     super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
     try:
       self._browser_backend = backend
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
-      self.credentials = browser_credentials.BrowserCredentials()
-      self.credentials.credentials_path = credentials_path
       self._platform_backend.DidCreateBrowser(self, self._browser_backend)
       browser_options = self._browser_backend.browser_options
       self.platform.FlushDnsCache()
