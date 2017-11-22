@@ -115,7 +115,7 @@ def _CheckTestForDeprecationOrRemoval(entity_key):
 
   # Check if the test should be deleted entirely.
   now = datetime.datetime.now()
-  logging.info('checking %s', entity.test_path)
+
   if not last_row or last_row.timestamp < now - _REMOVAL_REVISON_DELTA:
     # descendants = list_tests.GetTestDescendants(entity.key, keys_only=True)
     child_paths = '/'.join([entity.key.id(), '*'])
