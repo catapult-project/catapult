@@ -5,12 +5,13 @@
 """A common base class for pages that are used to edit configs."""
 
 import json
+import logging
 
 from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.api import users
-from google.appengine.ext import ndb
+from google.appengine.ext import deferred
 
 from dashboard import list_tests
 from dashboard.common import request_handler
@@ -28,16 +29,18 @@ _TASK_QUEUE_NAME = 'edit-sheriffs-queue'
 # See http://crbug.com/621499
 _TASK_QUEUE_COUNTDOWN = 60
 
+_NUM_PATTERNS_PER_TASK = 10
+
 _NOTIFICATION_EMAIL_BODY = """
 The configuration of %(hostname)s was changed by %(user)s.
 
 Key: %(key)s
 
-Added test paths:
-%(added_test_paths)s
+New test path patterns:
+%(new_test_path_patterns)s
 
-Removed test paths:
-%(removed_test_paths)s
+Old test path patterns
+%(old_test_path_patterns)s
 """
 
 # TODO(qyearsley): Make this customizable by storing the value in datastore.
@@ -125,23 +128,27 @@ class EditConfigHandler(request_handler.RequestHandler):
     entity.patterns = new_patterns
     self._UpdateFromRequestParameters(entity)
     entity.put()
-    added_test_paths, removed_test_paths = _ChangeTestPatterns(
-        old_patterns, new_patterns)
-    self._RenderResults(entity, added_test_paths, removed_test_paths)
-    self._SendNotificationEmail(entity, added_test_paths, removed_test_paths)
 
-  def _SendNotificationEmail(
-      self, entity, added_test_paths, removed_test_paths):
+    self._RenderResults(entity, new_patterns, old_patterns)
+    self._QueueChangeTestPatternsAndEmail(entity, new_patterns, old_patterns)
+
+  def  _QueueChangeTestPatternsAndEmail(
+      self, entity, new_patterns, old_patterns):
+    deferred.defer(
+        _QueueChangeTestPatternsTasks, old_patterns, new_patterns)
+
     user_email = users.get_current_user().email()
     subject = 'Added or updated %s: %s by %s' % (
         self._model_class.__name__, entity.key.string_id(), user_email)
+    email_key = entity.key.string_id()
+
     email_body = _NOTIFICATION_EMAIL_BODY % {
-        'key': entity.key.string_id(),
-        'added_test_paths': json.dumps(
-            list(added_test_paths), indent=2, sort_keys=True,
+        'key': email_key,
+        'new_test_path_patterns': json.dumps(
+            list(new_patterns), indent=2, sort_keys=True,
             separators=(',', ': ')),
-        'removed_test_paths': json.dumps(
-            list(removed_test_paths), indent=2, sort_keys=True,
+        'old_test_path_patterns': json.dumps(
+            list(old_patterns), indent=2, sort_keys=True,
             separators=(',', ': ')),
         'hostname': app_identity.get_default_version_hostname(),
         'user': user_email,
@@ -151,6 +158,7 @@ class EditConfigHandler(request_handler.RequestHandler):
         to=_NOTIFICATION_ADDRESS,
         subject=subject,
         body=email_body)
+
 
   def _UpdateFromRequestParameters(self, entity):
     """Updates the given entity based on query parameters.
@@ -162,13 +170,13 @@ class EditConfigHandler(request_handler.RequestHandler):
     """
     raise NotImplementedError()
 
-  def _RenderResults(self, entity, added_test_paths, removed_test_paths):
+  def _RenderResults(self, entity, new_patterns, old_patterns):
     """Outputs results using the results.html template.
 
     Args:
       entity: The entity that was edited.
-      added_test_paths: New tests that this config now applies to.
-      removed_test_paths: Tests that this config no longer applies to.
+      new_patterns: New test patterns that this config now applies to.
+      old_patterns: Old Test patterns that this config no longer applies to.
     """
     def ResultEntry(name, value):
       """Returns an entry in the results lists to embed on result.html."""
@@ -179,8 +187,8 @@ class EditConfigHandler(request_handler.RequestHandler):
                      (self._model_class.__name__, entity.key.string_id())),
         'results': [
             ResultEntry('Entity', str(entity)),
-            ResultEntry('Added tests', '\n'.join(added_test_paths)),
-            ResultEntry('Removed tests', '\n'.join(removed_test_paths)),
+            ResultEntry('New Patterns', '\n'.join(new_patterns)),
+            ResultEntry('Old Patterns', '\n'.join(old_patterns)),
         ]
     })
 
@@ -209,8 +217,7 @@ def _IsValidTestPathPattern(test_path_pattern):
   return len(test_path_pattern.split('/')) >= 3
 
 
-@ndb.synctasklet
-def _ChangeTestPatterns(old_patterns, new_patterns):
+def _QueueChangeTestPatternsTasks(old_patterns, new_patterns):
   """Updates tests that are different between old_patterns and new_patterns.
 
   The two arguments both represent sets of test paths (i.e. sets of data
@@ -231,14 +238,19 @@ def _ChangeTestPatterns(old_patterns, new_patterns):
     are in the old set but not the new.
   """
   added_patterns, removed_patterns = _ComputeDeltas(old_patterns, new_patterns)
+  patterns = list(added_patterns) + list(removed_patterns)
 
-  added_test_paths, removed_test_paths = yield (
-      _AllTestPathsMatchingPatterns(added_patterns),
-      _AllTestPathsMatchingPatterns(removed_patterns))
+  for i in xrange(0, len(patterns), _NUM_PATTERNS_PER_TASK):
+    pattern_sublist = patterns[i:i+_NUM_PATTERNS_PER_TASK]
 
-  _AddTestsToPutToTaskQueue(added_test_paths + removed_test_paths)
+    deferred.defer(_GetTestPathsAndAddTask, pattern_sublist)
 
-  raise ndb.Return(_RemoveOverlapping(added_test_paths, removed_test_paths))
+
+def _GetTestPathsAndAddTask(patterns):
+  test_paths = _AllTestPathsMatchingPatterns(patterns)
+  logging.info(test_paths)
+
+  _AddTestsToPutToTaskQueue(test_paths)
 
 
 def _ComputeDeltas(old_items, new_items):
@@ -261,7 +273,6 @@ def _RemoveOverlapping(added_items, removed_items):
   return added - removed, removed - added
 
 
-@ndb.tasklet
 def _AllTestPathsMatchingPatterns(patterns_list):
   """Returns a list of all test paths matching the given list of patterns."""
   matching_patterns_futures = [
@@ -269,10 +280,10 @@ def _AllTestPathsMatchingPatterns(patterns_list):
 
   test_paths = set()
   for i in xrange(len(patterns_list)):
-    matching_patterns = yield matching_patterns_futures[i]
+    matching_patterns = matching_patterns_futures[i].get_result()
     test_paths |= set(matching_patterns)
 
-  raise ndb.Return(sorted(test_paths))
+  return sorted(test_paths)
 
 
 def _AddTestsToPutToTaskQueue(test_paths):

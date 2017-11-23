@@ -4,8 +4,11 @@
 
 import unittest
 
+import mock
 import webapp2
 import webtest
+
+from google.appengine.ext import deferred
 
 from dashboard import edit_config_handler
 from dashboard import put_entities_task
@@ -69,49 +72,63 @@ class EditConfigHandlerTest(testing_common.TestCase):
 
   def testChangeTestPatterns_NoneValue_RaisesTypeError(self):
     with self.assertRaises(TypeError):
-      edit_config_handler._ChangeTestPatterns('a/b/c', None)
+      edit_config_handler._QueueChangeTestPatternsTasks('a/b/c', None)
 
-  def testChangeTestPatterns_NoChange_ReturnsEmptySets(self):
-    self.assertEqual(
-        (set(), set()),
-        edit_config_handler._ChangeTestPatterns([], []))
-    self.assertEqual(
-        (set(), set()),
-        edit_config_handler._ChangeTestPatterns(['a/b/c'], ['a/b/c']))
+  @mock.patch.object(deferred, 'defer')
+  def testChangeTestPatterns_NoChange_ReturnsEmptySets(self, mock_defer):
+    edit_config_handler._QueueChangeTestPatternsTasks([], [])
+    self.assertFalse(mock_defer.called)
 
-  def testChangeTestPatterns_OnlyAdd_ReturnsAddedAndEmptySet(self):
+    edit_config_handler._QueueChangeTestPatternsTasks(['a/b/c'], ['a/b/c'])
+    self.assertFalse(mock_defer.called)
+
+  @mock.patch.object(edit_config_handler, '_AddTestsToPutToTaskQueue')
+  def testChangeTestPatterns_OnlyAdd_ReturnsAddedAndEmptySet(
+      self, mock_add_tests):
     self._AddSampleTestData()
-    self.assertEqual(
-        ({'TheMaster/TheBot/Suite1/aaa'}, set()),
-        edit_config_handler._ChangeTestPatterns(
-            ['*/*/*/bbb'], ['*/*/*/aaa', '*/*/*/bbb']))
 
-  def testChangeTestPatterns_OnlyRemove_ReturnsEmptySetAndRemoved(self):
-    self._AddSampleTestData()
-    self.assertEqual(
-        (set(), {'TheMaster/TheBot/Suite1/bbb'}),
-        edit_config_handler._ChangeTestPatterns(
-            ['*/*/*/aaa', '*/*/Suite1/bbb'], ['*/*/*/aaa']))
+    edit_config_handler._QueueChangeTestPatternsTasks(
+        ['*/*/*/bbb'], ['*/*/*/aaa', '*/*/*/bbb'])
 
-  def testChangeTestPatterns_RemoveAndAdd_ReturnsAddedAndRemoved(self):
-    self._AddSampleTestData()
-    added = {
-        'TheMaster/TheBot/Suite1/aaa',
-    }
-    removed = {
-        'TheMaster/TheBot/Suite2/ccc',
-        'TheMaster/TheBot/Suite2/ddd',
-    }
-    self.assertEqual(
-        (added, removed),
-        edit_config_handler._ChangeTestPatterns(
-            ['*/*/Suite2/*'], ['*/*/*/aaa']))
+    self.ExecuteDeferredTasks('default')
 
-  def testChangeTestPatterns_CanTakeSetsAsArguments(self):
+    mock_add_tests.assert_called_with(['TheMaster/TheBot/Suite1/aaa'])
+
+  @mock.patch.object(edit_config_handler, '_AddTestsToPutToTaskQueue')
+  def testChangeTestPatterns_OnlyRemove_ReturnsEmptySetAndRemoved(
+      self, mock_add_tests):
     self._AddSampleTestData()
-    self.assertEqual(
-        ({'TheMaster/TheBot/Suite1/aaa'}, set()),
-        edit_config_handler._ChangeTestPatterns(set(), {'*/*/Suite1/aaa'}))
+
+    edit_config_handler._QueueChangeTestPatternsTasks(
+        ['*/*/*/aaa', '*/*/Suite1/bbb'], ['*/*/*/aaa'])
+
+    self.ExecuteDeferredTasks('default')
+
+    mock_add_tests.assert_called_with(['TheMaster/TheBot/Suite1/bbb'])
+
+  @mock.patch.object(edit_config_handler, '_AddTestsToPutToTaskQueue')
+  def testChangeTestPatterns_RemoveAndAdd_ReturnsAddedAndRemoved(
+      self, mock_add_tests):
+    self._AddSampleTestData()
+
+    edit_config_handler._QueueChangeTestPatternsTasks(
+        ['*/*/Suite2/*'], ['*/*/*/aaa'])
+
+    self.ExecuteDeferredTasks('default')
+
+    mock_add_tests.assert_called_with([
+        'TheMaster/TheBot/Suite1/aaa', 'TheMaster/TheBot/Suite2/ccc',
+        'TheMaster/TheBot/Suite2/ddd'])
+
+  @mock.patch.object(edit_config_handler, '_AddTestsToPutToTaskQueue')
+  def testChangeTestPatterns_CanTakeSetsAsArguments(self, mock_add_tests):
+    self._AddSampleTestData()
+
+    edit_config_handler._QueueChangeTestPatternsTasks(set(), {'*/*/Suite1/aaa'})
+
+    self.ExecuteDeferredTasks('default')
+
+    mock_add_tests.assert_called_with(['TheMaster/TheBot/Suite1/aaa'])
 
   def testComputeDeltas_Empty(self):
     self.assertEqual((set(), set()), edit_config_handler._ComputeDeltas([], []))

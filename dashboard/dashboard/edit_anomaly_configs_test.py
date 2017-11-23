@@ -112,6 +112,7 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
         'patterns': '*/*/Suite1/*',
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
     })
+    self.ExecuteDeferredTasks('default')
     self.ExecuteTaskQueueTasks(
         '/put_entities_task', edit_config_handler._TASK_QUEUE_NAME)
 
@@ -170,6 +171,7 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
         'patterns': ['*/*/two'],
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
     })
+    self.ExecuteDeferredTasks('default')
     self.ExecuteTaskQueueTasks(
         '/put_entities_task', edit_config_handler._TASK_QUEUE_NAME)
 
