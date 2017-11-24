@@ -271,23 +271,6 @@ tr.exportTo('tr.metrics.sh', function() {
         taskExtractor(tr.metrics.v8.utils.isV8Event)
       ],
       [
-        'v8:compile',
-        taskExtractor(tr.metrics.v8.utils.isCompileEvent)
-      ],
-      [
-        'v8:compile:optimize',
-        taskExtractor(tr.metrics.v8.utils.isCompileOptimizeEvent)
-      ],
-      [
-        'v8:compile:parse',
-        taskExtractor(tr.metrics.v8.utils.isCompileParseEvent)
-      ],
-      [
-        'v8:compile:compile-unoptimize',
-        taskExtractor(tr.metrics.v8.utils.isCompileUnoptimizeEvent,
-            tr.metrics.v8.utils.isCompileParseEvent)
-      ],
-      [
         'v8:execute',
         taskExtractor(tr.metrics.v8.utils.isV8ExecuteEvent)
       ],

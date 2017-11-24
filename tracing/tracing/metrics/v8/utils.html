@@ -109,32 +109,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
             event.parentSlice.title === MINOR_GC_EVENT);
   }
 
-  function isCompileOptimizeEvent(event) {
-    return (event.title === 'V8.OptimizeCode' ||
-            event.title === 'V8.RecompileSynchronous' ||
-            event.title === 'V8.RecompileConcurrent');
-  }
-
-  function isCompileUnoptimizeEvent(event) {
-    return (event.title === 'V8.CompileIgnition' ||
-            event.title === 'V8.CompileUnoptimizedInnerFunctions' ||
-            event.title === 'V8.Compile' ||
-            event.title === 'V8.CompileEval' ||
-            event.title === 'V8.CompileCode' ||
-            event.title === 'V8.CompileScript');
-  }
-
-  function isCompileParseEvent(event) {
-    return (event.title === 'V8.PreParse' ||
-            event.title === 'V8.ParseFunction' ||
-            event.title === 'V8.ParseProgram');
-  }
-
-  function isCompileEvent(event) {
-    return tr.b.getCategoryParts(event.category).includes(
-        'disabled-by-default-v8.compile');
-  }
-
   function isFullMarkCompactorEvent(event) {
     return event.title === 'V8.GCCompactor';
   }
@@ -259,10 +233,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   return {
     findParent,
     groupAndProcessEvents,
-    isCompileEvent,
-    isCompileOptimizeEvent,
-    isCompileUnoptimizeEvent,
-    isCompileParseEvent,
     isForcedGarbageCollectionEvent,
     isFullMarkCompactorEvent,
     isGarbageCollectionEvent,
