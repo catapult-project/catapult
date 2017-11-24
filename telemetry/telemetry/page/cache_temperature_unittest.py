@@ -13,9 +13,9 @@ from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
 
 
-class CacheTemperatureTests(browser_test_case.BrowserTestCase):
+class CacheTempeartureTests(browser_test_case.BrowserTestCase):
   def __init__(self, *args, **kwargs):
-    super(CacheTemperatureTests, self).__init__(*args, **kwargs)
+    super(CacheTempeartureTests, self).__init__(*args, **kwargs)
     self._full_trace = None
 
   @contextlib.contextmanager
@@ -176,43 +176,3 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     self.assertIn('telemetry.internal.warm_cache.warm.end', markers)
     self.assertIn('telemetry.internal.warm_cache.hot.start', markers)
     self.assertIn('telemetry.internal.warm_cache.hot.end', markers)
-
-  @decorators.Disabled('reference')
-  @decorators.Enabled('has tabs')
-  def testEnsureWarmBrowser(self):
-    with self.captureTrace():
-      story_set = story.StorySet()
-      page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.WARM_BROWSER,
-          name='http://google.com')
-      cache_temperature.EnsurePageCacheTemperature(
-          page, self._browser)
-
-    markers = self.traceMarkers()
-    # Browser cache warming happens in a different tab so markers shouldn't
-    # appear.
-    self.assertNotIn('telemetry.internal.warm_cache.warm.start', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.warm.end', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.hot.start', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
-
-  @decorators.Disabled('reference')
-  @decorators.Enabled('has tabs')
-  def testEnsureHotBrowser(self):
-    with self.captureTrace():
-      story_set = story.StorySet()
-      page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.HOT_BROWSER,
-          name='http://google.com')
-      cache_temperature.EnsurePageCacheTemperature(
-          page, self._browser)
-
-    markers = self.traceMarkers()
-    # Browser cache warming happens in a different tab so markers shouldn't
-    # appear.
-    self.assertNotIn('telemetry.internal.warm_cache.warm.start', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.warm.end', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.hot.start', markers)
-    self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)

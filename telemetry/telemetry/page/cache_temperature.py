@@ -11,7 +11,6 @@ https://docs.google.com/document/u/1/d/12D7tkhZi887g9d0U2askU9JypU_wYiEI7Lw0bfwx
 """
 
 import logging
-from telemetry.core import exceptions
 
 # Default Cache Temperature. The page doesn't care which browser cache state
 # it is run on.
@@ -19,18 +18,11 @@ ANY = 'any'
 # Emulates cold runs. Clears various caches and data with using tab.ClearCache()
 # and tab.ClearDataForOrigin().
 COLD = 'cold'
-# Emulates warm browser runs. Ensures that the page was visited once in a
-# different renderer.
-WARM_BROWSER = 'warm-browser'
-# Emulates hot runs. Ensures that the page was visited at least twice in a
-# different renderer before the run.
-HOT_BROWSER = 'hot-browser'
-# Emulates warm renderer runs. Ensures that the page was visited once before the
-# run in the same renderer.
-WARM = 'warm-renderer'
-# Emulates hot renderer runs. Ensures that the page was visited at least twice
-# in the same renderer before the run.
-HOT = 'hot-renderer'
+# Emulates warm runs. Ensures that the page was visited once before the run.
+WARM = 'warm'
+# Emulates hot runs. Ensures that the page was visited at least twice before
+# the run.
+HOT = 'hot'
 
 
 class _MarkTelemetryInternal(object):
@@ -73,37 +65,23 @@ def _WarmCache(page, tab, temperature):
 
 
 class CacheManipulator(object):
-  RENDERER_TEMPERATURE = None
-  BROWSER_TEMPERATURE = None
+  TEMPERATURE = None
   @staticmethod
-  def PrepareRendererCache(page, tab, previous_page):
+  def PrepareCache(page, tab, previous_page):
     raise NotImplementedError
-
-  @classmethod
-  def PrepareBrowserCache(cls, page, browser, previous_page):
-    # Perform browser cache manipulation in a different tab.
-    tab = browser.tabs.New()
-    cls.PrepareRendererCache(page, tab, previous_page)
-    tab.Close()
 
 
 class AnyCacheManipulator(CacheManipulator):
-  RENDERER_TEMPERATURE = ANY
-  BROWSER_TEMPERATURE = None
+  TEMPERATURE = ANY
   @staticmethod
-  def PrepareRendererCache(page, tab, previous_page):
+  def PrepareCache(page, tab, previous_page):
     pass
-
-  @classmethod
-  def PrepareBrowserCache(cls, page, browser, previous_page):
-    raise exceptions.Error('Prepare browser cache not supported')
 
 
 class ColdCacheManipulator(CacheManipulator):
-  RENDERER_TEMPERATURE = COLD
-  BROWSER_TEMPERATURE = None
+  TEMPERATURE = COLD
   @staticmethod
-  def PrepareRendererCache(page, tab, previous_page):
+  def PrepareCache(page, tab, previous_page):
     if previous_page is None:
       # DiskCache initialization is performed asynchronously on Chrome start-up.
       # Ensure that DiskCache is initialized before starting the measurement to
@@ -116,16 +94,11 @@ class ColdCacheManipulator(CacheManipulator):
         tab.WaitForDocumentReadyStateToBeComplete()
     _ClearCacheAndData(tab, page.url)
 
-  @classmethod
-  def PrepareBrowserCache(cls, page, browser, previous_page):
-    raise exceptions.Error('Prepare browser cache not supported')
-
 
 class WarmCacheManipulator(CacheManipulator):
-  RENDERER_TEMPERATURE = WARM
-  BROWSER_TEMPERATURE = WARM_BROWSER
+  TEMPERATURE = WARM
   @staticmethod
-  def PrepareRendererCache(page, tab, previous_page):
+  def PrepareCache(page, tab, previous_page):
     if (previous_page is not None and
         previous_page.url == page.url and
         previous_page.cache_temperature == COLD):
@@ -143,14 +116,13 @@ class WarmCacheManipulator(CacheManipulator):
       tab.StopAllServiceWorkers()
     else:
       _ClearCacheAndData(tab, page.url)
-      _WarmCache(page, tab, 'warm')
+      _WarmCache(page, tab, WARM)
 
 
 class HotCacheManipulator(CacheManipulator):
-  RENDERER_TEMPERATURE = HOT
-  BROWSER_TEMPERATURE = HOT_BROWSER
+  TEMPERATURE = HOT
   @staticmethod
-  def PrepareRendererCache(page, tab, previous_page):
+  def PrepareCache(page, tab, previous_page):
     if (previous_page is not None and
         previous_page.url == page.url and
         previous_page.cache_temperature != ANY):
@@ -172,8 +144,8 @@ class HotCacheManipulator(CacheManipulator):
 
     else:
       _ClearCacheAndData(tab, page.url)
-      _WarmCache(page, tab, 'warm')
-      _WarmCache(page, tab, 'hot')
+      _WarmCache(page, tab, WARM)
+      _WarmCache(page, tab, HOT)
 
 
 def EnsurePageCacheTemperature(page, browser, previous_page=None):
@@ -181,10 +153,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
   logging.info('PageCacheTemperature: %s', temperature)
   for c in [AnyCacheManipulator, ColdCacheManipulator, WarmCacheManipulator,
             HotCacheManipulator]:
-    if temperature == c.RENDERER_TEMPERATURE:
-      c.PrepareRendererCache(page, browser.tabs[0], previous_page)
-      return
-    elif temperature == c.BROWSER_TEMPERATURE:
-      c.PrepareBrowserCache(page, browser, previous_page)
+    if temperature == c.TEMPERATURE:
+      c.PrepareCache(page, browser.tabs[0], previous_page)
       return
   raise NotImplementedError('Unrecognized cache temperature: %s' % temperature)
