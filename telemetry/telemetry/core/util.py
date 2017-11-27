@@ -66,35 +66,18 @@ def WaitFor(condition, timeout):
   return catapult_util.WaitFor(condition, timeout)
 
 
-class PortKeeper(object):
-  """Port keeper hold an available port on the system.
-
-  Before actually use the port, you must call Release().
-  """
-
-  def __init__(self):
-    self._temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self._temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    self._temp_socket.bind(('', 0))
-    self._port = self._temp_socket.getsockname()[1]
-
-  @property
-  def port(self):
-    return self._port
-
-  def Release(self):
-    assert self._temp_socket, 'Already released'
-    self._temp_socket.close()
-    self._temp_socket = None
-
-
 def GetUnreservedAvailableLocalPort():
   """Returns an available port on the system.
 
   WARNING: This method does not reserve the port it returns, so it may be used
   by something else before you get to use it. This can lead to flake.
   """
-  tmp = socket.socket()
+  # AF_INET restricts port to IPv4 addresses.
+  # SOCK_STREAM means that it is a TCP socket.
+  tmp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  # Setting SOL_SOCKET + SO_REUSEADDR to 1 allows the reuse of local addresses,
+  # tihs is so sockets do not fail to bind for being in the CLOSE_WAIT state.
+  tmp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
   tmp.bind(('', 0))
   port = tmp.getsockname()[1]
   tmp.close()

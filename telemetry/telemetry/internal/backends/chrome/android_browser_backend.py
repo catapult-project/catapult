@@ -31,9 +31,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options)
 
-    self._port_keeper = util.PortKeeper()
-    # Use the port hold by _port_keeper by default.
-    self._port = self._port_keeper.port
+    self._port = None
 
     extensions_to_load = browser_options.extensions_to_load
 
@@ -130,11 +128,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # TODO(crbug.com/404771): Move port forwarding to network_controller.
       remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
           self.device)
+
       try:
-        # Release reserved port right before forwarding host to device.
-        self._port_keeper.Release()
-        assert self._port == self._port_keeper.port, (
-            'Android browser backend must use reserved port by _port_keeper')
+        self._port = util.GetUnreservedAvailableLocalPort()
         self.platform_backend.ForwardHostToDevice(
             self._port, remote_devtools_port)
       except Exception:
@@ -266,7 +262,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
     self._StopBrowser()
-    self.platform_backend.StopForwardingHost(self._port)
+    if self._port is not None:
+      self.platform_backend.StopForwardingHost(self._port)
+      self._port = None
     self._CollectProfile()
 
   def IsBrowserRunning(self):
