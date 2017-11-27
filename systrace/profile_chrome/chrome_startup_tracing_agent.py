@@ -2,12 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import optparse
 import os
 import py_utils
 import re
 
 from devil.android import flag_changer
+from devil.android.constants import webapk
 from devil.android.perf import cache_control
 from devil.android.sdk import intent
 
@@ -16,10 +18,12 @@ from systrace import tracing_agents
 
 
 class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
-  def __init__(self, device, package_info, cold, url, trace_time=None):
+  def __init__(self, device, package_info, webapk_package, cold, url,
+               trace_time=None):
     tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package_info = package_info
+    self._webapk_package = webapk_package
     self._cold = cold
     self._logcat_monitor = self._device.GetLogcatMonitor()
     self._url = url
@@ -40,11 +44,23 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
       flags.append('--trace-startup-duration={}'.format(self._trace_time))
     self._flag_changer.AddFlags(flags)
     self._device.ForceStop(self._package_info.package)
+    if self._webapk_package:
+      self._device.ForceStop(self._webapk_package)
+      logging.warning('Forces to stop the WebAPK and the browser provided by '
+                      '--browser: %s. Please make sure that this browser '
+                      'matches the host browser of the WebAPK %s. ',
+                      self._package_info.package,
+                      self._webapk_package)
     if self._cold:
       self._device.EnableRoot()
       cache_control.CacheControl(self._device).DropRamCaches()
     launch_intent = None
-    if self._url == '':
+    if self._webapk_package:
+      launch_intent = intent.Intent(
+          package=self._webapk_package,
+          activity=webapk.WEBAPK_MAIN_ACTIVITY,
+          data=self._url)
+    elif self._url == '':
       launch_intent = intent.Intent(
           action='android.intent.action.MAIN',
           package=self._package_info.package,
@@ -97,11 +113,12 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
 
 
 class ChromeStartupConfig(tracing_agents.TracingConfig):
-  def __init__(self, device, package_info, cold, url, chrome_categories,
-               trace_time):
+  def __init__(self, device, package_info, webapk_package, cold, url,
+               chrome_categories, trace_time):
     tracing_agents.TracingConfig.__init__(self)
     self.device = device
     self.package_info = package_info
+    self.webapk_package = webapk_package
     self.cold = cold
     self.url = url
     self.chrome_categories = chrome_categories
@@ -110,6 +127,7 @@ class ChromeStartupConfig(tracing_agents.TracingConfig):
 
 def try_create_agent(config):
   return ChromeStartupTracingAgent(config.device, config.package_info,
+                                   config.webapk_package,
                                    config.cold, config.url, config.trace_time)
 
 def add_options(parser):
@@ -121,9 +139,15 @@ def add_options(parser):
   options.add_option('--cold', help='Flush the OS page cache before starting '
                      'the browser. Note that this require a device with root '
                      'access.', default=False, action='store_true')
+  options.add_option('--webapk-package', help='Specify the package name '
+                     'of the WebAPK to launch the given URL. An empty URL '
+                     'laucnhes the host browser of the WebAPK with an new '
+                     'tab.', default=None)
+
   return options
 
 def get_config(options):
   return ChromeStartupConfig(options.device, options.package_info,
-                             options.cold, options.url,
-                             options.chrome_categories, options.trace_time)
+                             options.webapk_package, options.cold,
+                             options.url, options.chrome_categories,
+                             options.trace_time)
