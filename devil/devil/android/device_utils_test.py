@@ -10,6 +10,7 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 # pylint: disable=protected-access
 # pylint: disable=unused-argument
 
+import contextlib
 import json
 import logging
 import os
@@ -1664,32 +1665,28 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
 
   def testPushChangedFilesZipped_noUnzipCommand(self):
     test_files = [('/test/host/path/file1', '/test/device/path/file1')]
-    mock_zip_temp = mock.mock_open()
-    mock_zip_temp.return_value.name = '/test/temp/file/tmp.zip'
     with self.assertCalls(
-        (mock.call.tempfile.NamedTemporaryFile(suffix='.zip'), mock_zip_temp),
-        (mock.call.multiprocessing.Process(
-            target=device_utils.DeviceUtils._CreateDeviceZip,
-            args=('/test/temp/file/tmp.zip', test_files)), mock.Mock()),
         (self.call.device._MaybeInstallCommands(), False)):
       self.assertFalse(self.device._PushChangedFilesZipped(test_files,
                                                            ['/test/dir']))
 
   def _testPushChangedFilesZipped_spec(self, test_files):
-    mock_zip_temp = mock.mock_open()
-    mock_zip_temp.return_value.name = '/test/temp/file/tmp.zip'
+    @contextlib.contextmanager
+    def mock_zip_temp_dir():
+      yield '/test/temp/dir'
+
     with self.assertCalls(
-        (mock.call.tempfile.NamedTemporaryFile(suffix='.zip'), mock_zip_temp),
-        (mock.call.multiprocessing.Process(
-            target=device_utils.DeviceUtils._CreateDeviceZip,
-            args=('/test/temp/file/tmp.zip', test_files)), mock.Mock()),
         (self.call.device._MaybeInstallCommands(), True),
+        (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
+         mock_zip_temp_dir),
+        (mock.call.devil.utils.zip_utils.WriteZipFile(
+            '/test/temp/dir/tmp.zip', test_files)),
         (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb,
                                                                  suffix='.zip'),
              MockTempFile('/test/sdcard/foo123.zip')),
         self.call.adb.Push(
-            '/test/temp/file/tmp.zip', '/test/sdcard/foo123.zip'),
+            '/test/temp/dir/tmp.zip', '/test/sdcard/foo123.zip'),
         self.call.device.RunShellCommand(
             'unzip /test/sdcard/foo123.zip&&chmod -R 777 /test/dir',
             shell=True, as_root=True,

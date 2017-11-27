@@ -14,7 +14,6 @@ import fnmatch
 import itertools
 import json
 import logging
-import multiprocessing
 import os
 import posixpath
 import pprint
@@ -26,7 +25,6 @@ import tempfile
 import time
 import threading
 import uuid
-import zipfile
 
 from devil import base_error
 from devil import devil_env
@@ -49,6 +47,8 @@ from devil.utils import parallelizer
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
+
+from py_utils import tempfile_ext
 
 logger = logging.getLogger(__name__)
 
@@ -1590,39 +1590,29 @@ class DeviceUtils(object):
       self.adb.Push(h, d)
 
   def _PushChangedFilesZipped(self, files, dirs):
-    with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
-      zip_proc = multiprocessing.Process(
-          target=DeviceUtils._CreateDeviceZip,
-          args=(zip_file.name, files))
-      zip_proc.start()
+    if not self._MaybeInstallCommands():
+      return False
+
+    with tempfile_ext.NamedTemporaryDirectory() as working_dir:
+      zip_path = os.path.join(working_dir, 'tmp.zip')
       try:
-        # While it's zipping, ensure the unzip command exists on the device.
-        if not self._MaybeInstallCommands():
-          zip_proc.terminate()
-          return False
+        zip_utils.WriteZipFile(zip_path, files)
+      except zip_utils.ZipFailedError:
+        return False
 
-        # Warm up NeedsSU cache while we're still zipping.
-        self.NeedsSU()
-        with device_temp_file.DeviceTempFile(
-            self.adb, suffix='.zip') as device_temp:
-          zip_proc.join()
-          self.adb.Push(zip_file.name, device_temp.name)
-          quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)
-          self.RunShellCommand(
-              'unzip %s&&chmod -R 777 %s' % (device_temp.name, quoted_dirs),
-              shell=True, as_root=True,
-              env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
-              check_return=True)
-      finally:
-        if zip_proc.is_alive():
-          zip_proc.terminate()
+      self.NeedsSU()
+      with device_temp_file.DeviceTempFile(
+          self.adb, suffix='.zip') as device_temp:
+        self.adb.Push(zip_path, device_temp.name)
+
+        quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)
+        self.RunShellCommand(
+            'unzip %s&&chmod -R 777 %s' % (device_temp.name, quoted_dirs),
+            shell=True, as_root=True,
+            env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
+            check_return=True)
+
     return True
-
-  @staticmethod
-  def _CreateDeviceZip(zip_path, host_device_tuples):
-    with zipfile.ZipFile(zip_path, 'w') as zip_file:
-      for host_path, device_path in host_device_tuples:
-        zip_utils.WriteToZipFile(zip_file, host_path, device_path)
 
   # TODO(nednguyen): remove this and migrate the callsite to PathExists().
   @decorators.WithTimeoutAndRetriesFromInstance()

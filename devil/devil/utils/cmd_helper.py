@@ -175,7 +175,7 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False, env=None):
       subprocess.
 
   Returns:
-    The 2-tuple (exit code, output).
+    The 2-tuple (exit code, stdout).
   """
   status, stdout, stderr = GetCmdStatusOutputAndError(
       args, cwd=cwd, shell=shell, env=env)
@@ -201,7 +201,7 @@ def GetCmdStatusOutputAndError(args, cwd=None, shell=False, env=None):
       subprocess.
 
   Returns:
-    The 2-tuple (exit code, output).
+    The 3-tuple (exit code, stdout, stderr).
   """
   _ValidateAndLogCommand(args, cwd, shell)
   pipe = Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

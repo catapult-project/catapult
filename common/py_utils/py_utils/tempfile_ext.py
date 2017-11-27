@@ -14,6 +14,11 @@ def NamedTemporaryDirectory(suffix='', prefix='tmp', dir=None):
 
   This is a context manager version of tempfile.mkdtemp. The arguments to this
   function are the same as the arguments for that one.
+
+  This can be used to automatically manage the lifetime of a temporary file
+  without maintaining an open file handle on it. Doing so can be useful in
+  scenarios where a parent process calls a child process to create a temporary
+  file and then does something with the resulting file.
   """
   # This uses |dir| as a parameter name for consistency with mkdtemp.
   # pylint: disable=redefined-builtin
