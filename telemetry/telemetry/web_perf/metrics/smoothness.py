@@ -172,6 +172,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     mean_latency = None
     latency_discrepancy = None
     none_value_reason = None
+    latency_list = None
     if self._HasEnoughFrames(stats.frame_timestamps):
       latency_list = perf_tests_helper.FlattenList(list_of_latency_lists)
       if len(latency_list) == 0:
@@ -182,6 +183,11 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return (
+        list_of_scalar_values.ListOfScalarValues(
+            page, name, 'ms', latency_list,
+            description='Raw %s values' % name,
+            none_value_reason=none_value_reason,
+            improvement_direction=improvement_direction.DOWN),
         scalar.ScalarValue(
             page, 'mean_%s' % name, 'ms', mean_latency,
             description='Arithmetic mean of the raw %s values' % name,
