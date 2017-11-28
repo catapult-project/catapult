@@ -495,20 +495,6 @@ class AndroidPlatformBackend(
     self._device.SetProp('socket.relaxsslcheck', value)
     return old_flag
 
-  def ForwardHostToDevice(self, host_port, device_port):
-    self._device.adb.Forward('tcp:%d' % host_port, device_port)
-
-  def StopForwardingHost(self, host_port):
-    # This used to run `adb forward --list` to check that the requested
-    # port was actually being forwarded to self._device. Unfortunately,
-    # starting in adb 1.0.36, a bug (b/31811775) keeps this from working.
-    # For now, try to remove the port forwarding and ignore failures.
-    try:
-      self._device.adb.ForwardRemove('tcp:%d' % host_port)
-    except device_errors.AdbCommandFailedError:
-      logging.critical(
-          'Attempted to unforward port tcp:%d but failed.', host_port)
-
   def DismissCrashDialogIfNeeded(self):
     """Dismiss any error dialogs.
 

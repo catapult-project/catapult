@@ -26,6 +26,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._cri = cri
     self._is_guest = is_guest
+    # TODO(#1977): Move forwarder to network_controller.
     self._forwarder = None
     self._remote_debugging_port = None
     self._port = None
@@ -77,7 +78,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('Browser target: %s', self._browser_target)
 
     if not self._cri.local:
-      # TODO(crbug.com/404771): Move port forwarding to network_controller.
       self._port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
           forwarders.PortPair(self._port, self._remote_debugging_port),
