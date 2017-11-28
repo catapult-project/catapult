@@ -74,27 +74,6 @@ tr.exportTo('tr.metrics.v8', function() {
     function addHistogramsForRuntimeGroup(runtimeGroup) {
       const durationSamples = new tr.v.d.RelatedHistogramBreakdown();
       const countSamples = new tr.v.d.RelatedHistogramBreakdown();
-      for (const entry of runtimeGroup.values) {
-        const durationSampleHistogram = histograms.createHistogram(
-            `${entry.name}:duration`,
-            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-            convertMicroToMilli_(entry.time), {
-              binBoundaries: DURATION_CUSTOM_BOUNDARIES,
-              summaryOptions: SUMMARY_OPTIONS,
-            });
-        durationSamples.set(
-            durationSampleHistogram.name, durationSampleHistogram);
-
-        const countSampleHistogram = histograms.createHistogram(
-            `${entry.name}:count`,
-            tr.b.Unit.byName.count_smallerIsBetter,
-            entry.count, {
-              binBoundaries: COUNT_CUSTOM_BOUNDARIES,
-              summaryOptions: SUMMARY_OPTIONS,
-            });
-        countSamples.set(
-            countSampleHistogram.name, countSampleHistogram);
-      }
 
       histograms.createHistogram(
           `${runtimeGroup.name}:duration`,
