@@ -194,8 +194,13 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     for h in matching_histograms:
       result_values.extend(self._GetValuesOrStatistic(h))
 
-    if not result_values:
-      raise ReadValueError('Result values missing.')
+    if not result_values and self._hist_name:
+      name = 'histogram: %s' % self._hist_name
+      if tir_label:
+        name += ' tir_label: %s' % tir_label
+      if self._story:
+        name += ' story: %s' % self._story
+      raise ReadValueError('Could not find values matching: %s' % name)
 
     self._Complete(result_values=tuple(result_values))
 

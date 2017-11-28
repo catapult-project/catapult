@@ -150,9 +150,8 @@ def _ReadHistogramsJsonValue(request):
   arguments = {}
 
   chart = request.get('chart')
-  if not chart:
-    return {}, None
-  arguments['chart'] = chart
+  if chart:
+    arguments['chart'] = chart
 
   statistic = request.get('statistic')
   if statistic:

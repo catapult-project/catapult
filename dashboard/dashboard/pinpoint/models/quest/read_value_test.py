@@ -442,6 +442,34 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
 
     self.assertReadValueError(execution)
 
+  def testReadHistogramsJsonValueTirLabelWithNoValues(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue('chart', 'tir_label', None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadHistogramsJsonValueStoryWithNoValues(self, retrieve):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue('chart', None, 'story')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')
 class ReadGraphJsonValueTest(_ReadValueTest):

@@ -118,6 +118,7 @@ class TelemetryRunTest(unittest.TestCase):
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
+        quest.ReadHistogramsJsonValue(None)
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
@@ -136,6 +137,7 @@ class TelemetryRunTest(unittest.TestCase):
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({'key': 'value'}, _ALL_TELEMETRY_RUN_TEST_ARGUMENTS),
+        quest.ReadHistogramsJsonValue(None)
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
@@ -165,6 +167,7 @@ class TelemetryRunTest(unittest.TestCase):
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
         quest.RunTest({}, _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS),
+        quest.ReadHistogramsJsonValue(None)
     ]
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
