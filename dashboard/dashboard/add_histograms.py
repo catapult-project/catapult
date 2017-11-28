@@ -81,6 +81,11 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
       # while we bug fix, let's just log the error.
       # https://github.com/catapult-project/catapult/issues/4019
       logging.error(e.message)
+    except Exception as e:  # pylint: disable=broad-except
+      # TODO(simonhatch, eakuefner: Remove this later.
+      # We shouldn't be catching ALL exceptions, this is just while the
+      # stability of the endpoint is being worked on.
+      logging.error(e.message)
 
 
 def ProcessHistogramSet(histogram_dicts):

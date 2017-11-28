@@ -717,9 +717,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'unit': 'count'
         }])
 
-    self.assertRaises(
-        Exception,
-        self.testapp.post, '/add_histograms', {'data': data})
+    # TODO(simonhatch): The endpoint is swallowing all exceptions for now.
+    self.testapp.post('/add_histograms', {'data': data})
 
   def testFindHistogramLevelSparseDiagnostics(self):
     hist = histogram_module.Histogram('hist', 'count')
