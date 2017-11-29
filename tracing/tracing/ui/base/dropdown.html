@@ -72,10 +72,10 @@ tr.exportTo('tr.ui.b', function() {
       // coordinates are outside the dialog.
       const dialogRect = this.$.dialog.getBoundingClientRect();
       let inside = true;
-      inside &= event.clientX >= dialogRect.left;
-      inside &= event.clientX < dialogRect.right;
-      inside &= event.clientY >= dialogRect.top;
-      inside &= event.clientY < dialogRect.bottom;
+      inside &= event.detail.x >= dialogRect.left;
+      inside &= event.detail.x < dialogRect.right;
+      inside &= event.detail.y >= dialogRect.top;
+      inside &= event.detail.y < dialogRect.bottom;
       if (inside) return;
 
       event.preventDefault();
