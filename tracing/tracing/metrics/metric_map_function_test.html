@@ -54,11 +54,48 @@ tr.b.unittest.testSuite(function() {
     }, Error, '"wrongMetric" is not a registered metric.');
 
     const result = new tr.mre.MreResult();
-    tr.metrics.metricMapFunction(result, m, {'metrics': ['sampleMetric']});
+    tr.metrics.metricMapFunction(
+        result, m, {'metrics': ['sampleMetric']});
     assert.property(result.pairs, 'histograms');
     assert.strictEqual(result.pairs.histograms.length, 1);
     assert.property(result.pairs, 'scalars');
     assert.strictEqual(result.pairs.scalars.length, 6);
+    assert.lengthOf(result.failures, 0);
+  });
+
+  test('exceptionMetric', function() {
+    const events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
+    ];
+    const m = TestUtils.newModelWithEvents(JSON.stringify(events), {
+      shiftWorldToZero: false,
+      pruneEmptyContainers: false,
+      trackDetailedModelStats: true,
+      customizeModelCallback(m) {
+        const p1 = m.getOrCreateProcess(1);
+        const t2 = p1.getOrCreateThread(2);
+        t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
+          type: ThreadSlice,
+          name: 'some_slice',
+          start: 0, end: 10
+        }));
+        t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
+          type: ThreadSlice,
+          name: 'some_slice',
+          start: 20, end: 30
+        }));
+      }
+    });
+
+    const result = new tr.mre.MreResult();
+    tr.metrics.metricMapFunction(
+        result, m, {'metrics': ['sampleExceptionMetric']});
+    assert.property(result.pairs, 'histograms');
+    assert.strictEqual(result.pairs.histograms.length, 1);
+    assert.property(result.pairs, 'scalars');
+    assert.strictEqual(result.pairs.scalars.length, 6);
+    assert.lengthOf(result.failures, 1);
   });
 
   function invalidDiagnosticNameMetric(histograms, model) {

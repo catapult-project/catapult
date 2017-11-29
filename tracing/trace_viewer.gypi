@@ -192,6 +192,7 @@
       'tracing/metrics/media_metric.html',
       'tracing/metrics/metric_map_function.html',
       'tracing/metrics/metric_registry.html',
+      'tracing/metrics/sample_exception_metric.html',
       'tracing/metrics/sample_metric.html',
       'tracing/metrics/spa_navigation_helper.html',
       'tracing/metrics/spa_navigation_metric.html',

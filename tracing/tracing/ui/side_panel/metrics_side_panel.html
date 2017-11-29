@@ -196,13 +196,11 @@ tr.exportTo('tr.ui', function() {
       }
 
       const startDate = new Date();
-      let histograms;
-      try {
-        histograms = tr.metrics.runMetrics(this.model_, options);
-      } catch (err) {
-        Polymer.dom(this.$.error).textContent = err.message;
-        return;
-      }
+      const addFailureCb = failure => {
+        Polymer.dom(this.$.error).textContent = failure.description;
+      };
+      const histograms = tr.metrics.runMetrics(
+          this.model_, options, addFailureCb);
 
       this.metricLatenciesMs_.push(new Date() - startDate);
       while (this.metricLatenciesMs_.length > 20) {

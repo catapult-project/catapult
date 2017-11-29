@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/mre/failure.html">
 <link rel="import" href="/tracing/mre/function_handle.html">
 <link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
@@ -19,9 +20,10 @@ tr.exportTo('tr.metrics', function() {
    * @param {!tr.model.Model} model
    * @param {!Object} options
    * @param {!Array.<string>} options.metrics
+   * @param {!Function} addFailureCb
    * @return {!tr.v.HistogramSet}
    */
-  function runMetrics(model, options) {
+  function runMetrics(model, options, addFailureCb) {
     if (options === undefined) {
       throw new Error('Options are required.');
     }
@@ -41,7 +43,14 @@ tr.exportTo('tr.metrics', function() {
         throw new Error(`"${metricName}" is not a registered metric.`);
       }
       validateTraceCategories(metric.metadata.requiredCategories, categories);
-      metric.constructor(histograms, model, options);
+      try {
+        metric.constructor(histograms, model, options);
+      } catch (e) {
+        const err = tr.b.normalizeException(e);
+        addFailureCb(new tr.mre.Failure(
+            undefined, 'metricMapFunction', model.canonicalUrl, err.typeName,
+            err.message, err.stack));
+      }
     }
 
     validateDiagnosticNames(histograms);
@@ -137,7 +146,8 @@ tr.exportTo('tr.metrics', function() {
    * @param {!Array.<string>} options.metrics
    */
   function metricMapFunction(result, model, options) {
-    const histograms = runMetrics(model, options);
+    const histograms = runMetrics(
+        model, options, result.addFailure.bind(result));
     addTelemetryInfo(histograms, model);
 
     result.addPair('histograms', histograms.asDicts());
