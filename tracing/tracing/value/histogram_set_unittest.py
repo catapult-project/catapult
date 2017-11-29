@@ -147,3 +147,69 @@ class HistogramSetUnittest(unittest.TestCase):
     hists.ReplaceSharedDiagnostic(guid0, diag1)
 
     self.assertIsNotNone(hists.LookupDiagnostic(guid1))
+
+  def testDeduplicateDiagnostics(self):
+    generic_a = histogram.GenericSet(['A'])
+    generic_b = histogram.GenericSet(['B'])
+    date_a = histogram.DateRange(42)
+    date_b = histogram.DateRange(57)
+
+    a_hist = histogram.Histogram('a', 'unitless')
+    generic0 = histogram.GenericSet.FromDict(generic_a.AsDict())
+    generic0.AddDiagnostic(generic_b)
+    a_hist.diagnostics['generic'] = generic0
+    date0 = histogram.DateRange.FromDict(date_a.AsDict())
+    date0.AddDiagnostic(date_b)
+    a_hist.diagnostics['date'] = date0
+
+    b_hist = histogram.Histogram('b', 'unitless')
+    generic1 = histogram.GenericSet.FromDict(generic_a.AsDict())
+    generic1.AddDiagnostic(generic_b)
+    b_hist.diagnostics['generic'] = generic1
+    date1 = histogram.DateRange.FromDict(date_a.AsDict())
+    date1.AddDiagnostic(date_b)
+    b_hist.diagnostics['date'] = date1
+
+    histograms = histogram_set.HistogramSet([a_hist, b_hist])
+    self.assertNotEqual(
+        a_hist.diagnostics['generic'].guid, b_hist.diagnostics['generic'].guid)
+    self.assertEqual(
+        a_hist.diagnostics['generic'], b_hist.diagnostics['generic'])
+    self.assertNotEqual(
+        a_hist.diagnostics['date'].guid, b_hist.diagnostics['date'].guid)
+    self.assertEqual(
+        a_hist.diagnostics['date'], b_hist.diagnostics['date'])
+
+    histograms.DeduplicateDiagnostics()
+
+    self.assertEqual(
+        a_hist.diagnostics['generic'].guid, b_hist.diagnostics['generic'].guid)
+    self.assertEqual(
+        a_hist.diagnostics['generic'], b_hist.diagnostics['generic'])
+    self.assertEqual(
+        a_hist.diagnostics['date'].guid, b_hist.diagnostics['date'].guid)
+    self.assertEqual(
+        a_hist.diagnostics['date'], b_hist.diagnostics['date'])
+
+    histograms2 = histogram_set.HistogramSet()
+    histograms2.ImportDicts(histograms.AsDicts())
+    histograms2.ResolveRelatedHistograms()
+    a_hists = histograms2.GetHistogramsNamed('a')
+    self.assertEqual(len(a_hists), 1)
+    a_hist2 = a_hists[0]
+    b_hists = histograms2.GetHistogramsNamed('b')
+    self.assertEqual(len(b_hists), 1)
+    b_hist2 = b_hists[0]
+
+    self.assertEqual(
+        a_hist2.diagnostics['generic'].guid,
+        b_hist2.diagnostics['generic'].guid)
+    self.assertEqual(
+        a_hist2.diagnostics['generic'],
+        b_hist2.diagnostics['generic'])
+    self.assertEqual(
+        a_hist2.diagnostics['date'].guid,
+        b_hist2.diagnostics['date'].guid)
+    self.assertEqual(
+        a_hist2.diagnostics['date'],
+        b_hist2.diagnostics['date'])

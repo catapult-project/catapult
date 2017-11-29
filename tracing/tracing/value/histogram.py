@@ -135,6 +135,15 @@ class Range(object):
     self._min = None
     self._max = None
 
+  def __eq__(self, other):
+    if not isinstance(other, Range):
+      return False
+    if self.empty and other.empty:
+      return True
+    if self.empty != other.empty:
+      return False
+    return  (self.min == other.min) and (self.max == other.max)
+
   @staticmethod
   def FromExplicitRange(lower, upper):
     r = Range()
@@ -459,6 +468,11 @@ class DateRange(diagnostic.Diagnostic):
     super(DateRange, self).__init__()
     self._range = Range()
     self._range.AddValue(ms)
+
+  def __eq__(self, other):
+    if not isinstance(other, DateRange):
+      return False
+    return self._range == other._range
 
   @property
   def min_date(self):

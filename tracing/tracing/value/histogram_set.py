@@ -97,3 +97,37 @@ class HistogramSet(object):
       for name, diag in hist.diagnostics.iteritems():
         if diag.has_guid and diag.guid == old_guid:
           hist.diagnostics[name] = new_diagnostic
+
+  def DeduplicateDiagnostics(self):
+    names_to_candidates = {}
+    diagnostics_to_histograms = {}
+
+    for hist in self:
+      for name, candidate in hist.diagnostics.iteritems():
+        if not hasattr(candidate, '__eq__'):
+          continue
+
+        diagnostics_to_histograms[candidate] = hist
+
+        if name not in names_to_candidates:
+          names_to_candidates[name] = set()
+        names_to_candidates[name].add(candidate)
+
+    for name, candidates in names_to_candidates.iteritems():
+      diagnostics_to_counts = {}
+
+      for candidate in candidates:
+        found = False
+        for test, count in diagnostics_to_counts.iteritems():
+          if candidate == test:
+            hist = diagnostics_to_histograms.get(candidate)
+            hist.diagnostics[name] = test
+            diagnostics_to_counts[test] = count + 1
+            found = True
+            break
+        if not found:
+          diagnostics_to_counts[candidate] = 1
+
+        for diag, count in diagnostics_to_counts.iteritems():
+          if count > 1 and diag.has_guid:
+            self._shared_diagnostics_by_guid[diag.guid] = diag
