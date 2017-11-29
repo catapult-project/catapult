@@ -294,9 +294,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if not self._trace_config_file:
       return
     if self._platform_backend.GetOSName() == 'android':
-      self._platform_backend.device.RunShellCommand(
-          ['rm', '-f', self._trace_config_file], check_return=True,
-          as_root=True)
+      self._platform_backend.device.RemovePath(
+          self._trace_config_file, force=True, rename=True, as_root=True)
     elif self._platform_backend.GetOSName() == 'chromeos':
       self._platform_backend.cri.RmRF(self._trace_config_file)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
