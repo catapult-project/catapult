@@ -50,10 +50,6 @@ CHROME_PACKAGE_NAMES = {
         'com.google.android.apps.chrome',
         android_browser_backend_settings.ChromeBackendSettings, 'Chrome.apk'
     ],
-    'android-chrome-work': [
-        'com.chrome.work',
-        android_browser_backend_settings.ChromeBackendSettings, None
-    ],
     'android-chrome-beta': [
         'com.chrome.beta',
         android_browser_backend_settings.ChromeBackendSettings, None

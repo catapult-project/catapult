@@ -39,11 +39,6 @@ PACKAGE_INFO = {
         'com.google.android.apps.chrome.Main',
         'chrome-command-line',
         'chrome_devtools_remote'),
-    'chrome_work': PackageInfo(
-        'com.chrome.work',
-        'com.google.android.apps.chrome.Main',
-        'chrome-command-line',
-        'chrome_devtools_remote'),
     'chromium': PackageInfo(
         'org.chromium.chrome',
         'com.google.android.apps.chrome.Main',
