@@ -44,6 +44,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._backend_settings = backend_settings
     self._saved_sslflag = ''
     self._app_ui = None
+    self._profile_directory = None
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
@@ -188,9 +189,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # --ignore-certificate-errors-spki-list, which allows Chrome to selectively
     # bypass cert errors while exercising HTTP disk cache and avoiding
     # re-establishing socket connections.
-    args.append('--user-data-dir=' +
-                self.platform_backend.GetProfileDir(
-                    self._backend_settings.package))
+    args.append('--user-data-dir=' + self.profile_directory)
     return args
 
   def ForceJavaHeapGarbageCollection(self):
@@ -218,7 +217,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def profile_directory(self):
-    return self._backend_settings.profile_dir
+    if not self._profile_directory:
+      self._profile_directory = (
+          self.platform_backend.GetProfileDir(self._backend_settings.package))
+    return self._profile_directory
 
   @property
   def package(self):
