@@ -13,6 +13,7 @@ THIRD_PARTY_LIBRARIES = [
     'apiclient',
     'beautifulsoup4',
     'graphy',
+    'html5lib-python',
     'httplib2',
     'mapreduce',
     'mock',
