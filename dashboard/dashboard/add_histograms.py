@@ -119,7 +119,6 @@ def ProcessHistogramSet(histogram_dicts):
           raise ValueError(
               name + ' diagnostics must be the same for all histograms')
 
-      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
         suite_level_sparse_diagnostic_entities.append(
             histogram.SparseDiagnostic(
                 id=diag.guid, data=diag.AsDict(), test=suite_key,
