@@ -11,7 +11,6 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
-from telemetry.internal import forwarders
 
 import py_utils
 
@@ -77,11 +76,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('Discovered ephemeral port %s', self._port)
     logging.info('Browser target: %s', self._browser_target)
 
+    # TODO(#1977): Simplify when cross forwarder supports missing local ports.
     if not self._cri.local:
       self._port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
-          forwarders.PortPair(self._port, self._remote_debugging_port),
-          use_remote_port_forwarding=False)
+          local_port=self._port, remote_port=self._remote_debugging_port,
+          reverse=True)
     return super(CrOSBrowserBackend, self).HasBrowserFinishedLaunching()
 
   def GetBrowserStartupArgs(self):

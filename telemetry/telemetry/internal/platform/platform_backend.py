@@ -5,7 +5,6 @@
 import weakref
 
 from battor import battor_wrapper
-from telemetry.internal import forwarders
 from telemetry.internal.forwarders import do_nothing_forwarder
 from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import tracing_controller_backend
@@ -82,11 +81,15 @@ class PlatformBackend(object):
   @property
   def forwarder_factory(self):
     if not self._forwarder_factory:
-      self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
+      self._forwarder_factory = self._CreateForwarderFactory()
     return self._forwarder_factory
 
+  def _CreateForwarderFactory(self):
+    return do_nothing_forwarder.DoNothingForwarderFactory()
+
   def GetPortPairForForwarding(self, local_port):
-    return forwarders.PortPair(local_port=local_port, remote_port=local_port)
+    # TODO(#1977): Remove when all forwarders support default remote ports.
+    return (local_port, local_port)
 
   def GetRemotePort(self, port):
     return port
@@ -108,10 +111,6 @@ class PlatformBackend(object):
       self.SetFullPerformanceModeEnabled(False)
 
     self._running_browser_backends.discard(browser_backend)
-
-  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding):
-    """Use forwarder_factory to create a port forwarder."""
-    raise NotImplementedError()
 
   def IsRemoteDevice(self):
     """Check if target platform is on remote device.

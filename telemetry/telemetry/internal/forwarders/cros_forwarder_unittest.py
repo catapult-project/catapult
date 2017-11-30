@@ -9,7 +9,7 @@ from telemetry.internal.forwarders import cros_forwarder
 
 # pylint: disable=protected-access
 class ForwardingArgsTest(unittest.TestCase):
-  port_pair = forwarders.PortPair(111, 222)
+  port_pair = forwarders._PortPair(111, 222)
 
   def testForwardingArgsReverse(self):
     forwarding_args = cros_forwarder.CrOsSshForwarder._ForwardingArgs(

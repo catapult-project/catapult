@@ -11,7 +11,6 @@ from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
-from telemetry.internal import forwarders
 
 from devil.android import app_ui
 from devil.android import device_signal
@@ -131,8 +130,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self.device)
       # Setting local_port=0 allows the forwarder to pick an available port.
       self._forwarder = self.platform_backend.forwarder_factory.Create(
-          forwarders.PortPair(0, remote_devtools_port), reverse=True)
-      self._port = self._forwarder.port_pair.local_port
+          local_port=0, remote_port=remote_devtools_port, reverse=True)
+      self._port = self._forwarder.local_port
 
       try:
         self._WaitForBrowserToComeUp(remote_devtools_port)

@@ -5,19 +5,30 @@
 import collections
 
 
-PortPair = collections.namedtuple('PortPair', ['local_port', 'remote_port'])
-PortSet = collections.namedtuple('PortSet', ['http', 'https', 'dns'])
-
+# TODO(#1977): Remove when no longer used by fowarder implementations.
+_PortPair = collections.namedtuple('PortPair', ['local_port', 'remote_port'])
 
 
 class ForwarderFactory(object):
 
-  def Create(self, port_pair):
-    """Creates a forwarder that maps remote (device) <-> local (host) ports.
+  def Create(self, local_port, remote_port, reverse=False):
+    """Creates a forwarder to map a local (host) with a remote (device) port.
+
+    By default this means mapping a known local_port with a remote_port. If the
+    remote_port missing (e.g. 0 or None) then the forwarder will choose an
+    available port on the device.
+
+    Conversely, when reverse=True, a known remote_port is mapped to a
+    local_port and, if this is missing, then the forwarder will choose an
+    available port on the host.
+
+    # TODO(#1977): Ensure all implementations fully support the previous
+    # description regarding missing ports.
 
     Args:
-      port_pair: A PortPairs instance that consists of a PortPair mapping
-          for each protocol. http is required. https and dns may be None.
+      local_port: An http port on the local host.
+      remote_port: An http port on the remote device.
+      reverse: A Boolean indicating the direction of the mapping.
     """
     raise NotImplementedError()
 
@@ -34,21 +45,16 @@ class Forwarder(object):
     self._forwarding = True
 
   @property
-  def host_port(self):
-    return self._port_pair.remote_port
-
-  @property
   def host_ip(self):
     return '127.0.0.1'
 
   @property
-  def port_pair(self):
-    return self._port_pair
+  def local_port(self):
+    return self._port_pair.local_port
 
   @property
-  def url(self):
-    assert self.host_ip and self.host_port
-    return 'http://%s:%i' % (self.host_ip, self.host_port)
+  def remote_port(self):
+    return self._port_pair.remote_port
 
   def Close(self):
     self._port_pair = None

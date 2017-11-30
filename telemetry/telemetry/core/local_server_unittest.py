@@ -55,10 +55,6 @@ class SimpleLocalServer(local_server.LocalServer):
   def GetBackendStartupArgs(self):
     return {'hello': 'world'}
 
-  @property
-  def url(self):
-    return self.forwarder.url + '/'
-
 
 class LocalServerUnittest(tab_test_case.TabTestCase):
 
@@ -68,7 +64,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     cls._server = SimpleLocalServer()
     cls._platform.StartLocalServer(cls._server)
 
-  @decorators.Disabled('all') # https://crbug.com/570955
+  @decorators.Disabled('all')  # TODO(#1977): Fix and re-enable test.
   def testLocalServer(self):
     self.assertTrue(self._server in self._platform.local_servers)
     self._tab.Navigate(self._server.url)
@@ -77,7 +73,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     body_text = body_text.strip()
     self.assertEquals('hello world', body_text)
 
-  @decorators.Disabled('all') # https://crbug.com/570955
+  @decorators.Disabled('all')  # TODO(#1977): Fix and re-enable test.
   def testStartingAndRestarting(self):
     server2 = SimpleLocalServer()
     self.assertRaises(Exception,

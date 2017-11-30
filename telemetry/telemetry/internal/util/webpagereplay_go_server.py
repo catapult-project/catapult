@@ -15,13 +15,14 @@ import tempfile
 import urllib
 
 from telemetry.core import util
-from telemetry.internal import forwarders
 from telemetry.internal.util import binary_manager
 
 import py_utils
 
+
 _WPR_DIR = os.path.abspath(os.path.join(
     util.GetCatapultDir(), 'web_page_replay_go'))
+
 
 class ReplayError(Exception):
   """Catch-all exception for the module."""
@@ -212,7 +213,8 @@ class ReplayServer(object):
     """Start Web Page Replay and verify that it started.
 
     Returns:
-      A forwarders.PortSet(http, https, dns) tuple; with dns None if unused.
+      A dictionary mapping the keys 'http', 'https', and (if used) 'dns'
+      to the respective ports of the replay server.
     Raises:
       ReplayNotStartedError: if Replay start-up fails.
     """
@@ -227,11 +229,7 @@ class ReplayServer(object):
       py_utils.WaitFor(self._IsStarted, 30)
       logging.info('WPR ports: %s' % self._started_ports)
       atexit_with_log.Register(self.StopServer)
-      return forwarders.PortSet(
-          self._started_ports['http'],
-          self._started_ports['https'],
-          self._started_ports.get('dns'),  # None if unused
-          )
+      return dict(self._started_ports)
     except py_utils.TimeoutException:
       raise ReplayNotStartedError(
           'Web Page Replay failed to start. Log output:\n%s' %

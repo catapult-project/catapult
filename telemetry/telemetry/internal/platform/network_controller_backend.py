@@ -68,8 +68,10 @@ class NetworkControllerBackend(object):
     self._wpr_mode = wpr_mode
     try:
       local_port = self._StartTsProxyServer()
+      # TODO(#1977): Remove call to GetPortPairForForwarding when all
+      # forwarders support default remote ports.
       self._forwarder = self._platform_backend.forwarder_factory.Create(
-          self._platform_backend.GetPortPairForForwarding(local_port))
+          *self._platform_backend.GetPortPairForForwarding(local_port))
     except Exception:
       self.Close()
       raise
@@ -85,13 +87,6 @@ class NetworkControllerBackend(object):
   @property
   def host_ip(self):
     return self._platform_backend.forwarder_factory.host_ip
-
-  @property
-  def wpr_device_ports(self):
-    try:
-      return self._forwarder.port_pairs.remote_ports
-    except AttributeError:
-      return None
 
   def Close(self):
     """Undo changes in the target platform used for network control.
@@ -156,7 +151,7 @@ class NetworkControllerBackend(object):
     self._extra_wpr_args = extra_wpr_args
     local_ports = self._StartReplayServer()
     self._ts_proxy_server.UpdateOutboundPorts(
-        http_port=local_ports.http, https_port=local_ports.https)
+        http_port=local_ports['http'], https_port=local_ports['https'])
 
   def StopReplay(self):
     """Stop web page replay.

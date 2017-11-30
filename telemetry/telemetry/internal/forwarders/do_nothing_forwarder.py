@@ -28,7 +28,10 @@ class ConnectionError(Error):
 
 class DoNothingForwarderFactory(forwarders.ForwarderFactory):
 
-  def Create(self, port_pair):
+  def Create(self, local_port, remote_port, reverse=False):
+    del reverse  # Not relevant in DoNothingForwarder.
+    # TODO(#1977): Remove usage of PortPair.
+    port_pair = forwarders._PortPair(local_port, remote_port)
     return DoNothingForwarder(port_pair)
 
 

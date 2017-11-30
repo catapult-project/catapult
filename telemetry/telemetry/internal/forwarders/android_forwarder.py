@@ -23,9 +23,9 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
     super(AndroidForwarderFactory, self).__init__()
     self._device = device
 
-  # TODO(#1977): Make API consistent accross forwarders.
-  def Create(self, port_pair,  # pylint: disable=arguments-differ
-             reverse=False):
+  def Create(self, local_port, remote_port, reverse=False):
+    # TODO(#1977): Remove usage of PortPair.
+    port_pair = forwarders._PortPair(local_port, remote_port)
     try:
       if reverse:
         return AndroidReverseForwarder(self._device, port_pair)
@@ -91,7 +91,7 @@ class AndroidForwarder(forwarders.Forwarder):
     forwarder.Forwarder.Map(
         [(port_pair.remote_port, port_pair.local_port)], self._device)
     self._port_pair = (
-        forwarders.PortPair(
+        forwarders._PortPair(
             port_pair.local_port,
             forwarder.Forwarder.DevicePortForHostPort(port_pair.local_port)))
     atexit_with_log.Register(self.Close)
@@ -122,7 +122,7 @@ class AndroidReverseForwarder(forwarders.Forwarder):
     if not local_port:
       local_port = util.GetUnreservedAvailableLocalPort()
     self._device.adb.Forward('tcp:%d' % local_port, remote_port)
-    self._port_pair = forwarders.PortPair(local_port, remote_port)
+    self._port_pair = forwarders._PortPair(local_port, remote_port)
 
   def Close(self):
     if self._forwarding:

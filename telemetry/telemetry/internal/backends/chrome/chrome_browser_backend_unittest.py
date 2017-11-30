@@ -5,7 +5,6 @@
 import unittest
 import mock
 
-from telemetry.internal import forwarders
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import browser_options as browser_options_module
 from telemetry.util import wpr_modes
@@ -21,8 +20,8 @@ class FakePlatformBackend(object):
     self.network_controller_backend = mock.Mock()
     self.network_controller_backend.is_open = is_network_controller_open
     if is_network_controller_open:
-      self.network_controller_backend.forwarder.port_pair = forwarders.PortPair(
-          local_port=local_ts_proxy_port, remote_port=remote_port)
+      self.network_controller_backend.forwarder.local_port = local_ts_proxy_port
+      self.network_controller_backend.forwarder.remote_port = remote_port
     else:
       self.network_controller_backend.forwarder = None
     self.network_controller_backend.host_ip = '127.0.0.1'

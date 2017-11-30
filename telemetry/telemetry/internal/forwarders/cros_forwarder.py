@@ -19,8 +19,10 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
     super(CrOsForwarderFactory, self).__init__()
     self._cri = cri
 
-  # pylint: disable=arguments-differ
-  def Create(self, port_pair, use_remote_port_forwarding=True):
+  def Create(self, local_port, remote_port, reverse=False):
+    # TODO(#1977): Remove usage of PortPair.
+    port_pair = forwarders._PortPair(local_port, remote_port)
+    use_remote_port_forwarding = not reverse
     if self._cri.local:
       return do_nothing_forwarder.DoNothingForwarder(port_pair)
     return CrOsSshForwarder(self._cri, use_remote_port_forwarding, port_pair)
@@ -60,9 +62,9 @@ class CrOsSshForwarder(forwarders.Forwarder):
         py_utils.WaitFor(lambda: _get_remote_port(err_file_reader), 60)
 
     py_utils.WaitFor(
-        lambda: self._cri.IsHTTPServerRunningOnPort(self.host_port), 60)
+        lambda: self._cri.IsHTTPServerRunningOnPort(self.remote_port), 60)
     err_file.close()
-    logging.debug('Server started on %s:%d', self.host_ip, self.host_port)
+    logging.debug('Server started on %s:%d', self.host_ip, self.remote_port)
 
   # pylint: disable=unused-argument
   @staticmethod
@@ -76,7 +78,7 @@ class CrOsSshForwarder(forwarders.Forwarder):
                               remote_port=port_pair.remote_port)]
 
   @property
-  def host_port(self):
+  def remote_port(self):
     # Return remote port if it is resolved remotely.
     if self._remote_port:
       return self._remote_port

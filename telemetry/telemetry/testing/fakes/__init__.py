@@ -180,8 +180,10 @@ class FakeForwarderFactory(object):
     self.raise_exception_on_create = False
     self.host_ip = '127.0.0.1'
 
-  def Create(self, port_pair):
-    del port_pair  # Unused.
+  def Create(self, local_port, remote_port, reverse=False):
+    del local_port  # Unused.
+    del remote_port  # Unused.
+    del reverse  # Unused.
     if self.raise_exception_on_create:
       raise exceptions.IntentionalException
     return FakeForwarder()

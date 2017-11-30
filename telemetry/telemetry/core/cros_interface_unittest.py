@@ -13,7 +13,6 @@ import mock
 
 from telemetry.core import cros_interface
 from telemetry import decorators
-from telemetry.internal import forwarders
 from telemetry.internal.forwarders import cros_forwarder
 from telemetry.testing import options_for_unittests
 
@@ -72,7 +71,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       self.assertTrue(cri.IsServiceRunning('openssh-server'))
 
-  # TODO(achuith): Fix this test. crbug.com/619767.
+  # TODO(#1977): Fix this test.
   @decorators.Disabled('all')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
     with self._GetCRI() as cri:
@@ -88,9 +87,7 @@ class CrOSInterfaceTest(unittest.TestCase):
 
       # Forward local server's port to remote device's remote_port.
       forwarder = cros_forwarder.CrOsForwarderFactory(cri).Create(
-          forwarders.PortPairs(http=forwarders.PortPair(port, remote_port),
-                               https=None,
-                               dns=None))
+          local_port=port, remote_port=remote_port)
 
       # At this point, remote device should be able to connect to local server.
       self.assertTrue(cri.IsHTTPServerRunningOnPort(remote_port))

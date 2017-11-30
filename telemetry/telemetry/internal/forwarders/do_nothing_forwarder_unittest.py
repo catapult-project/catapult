@@ -30,7 +30,7 @@ class TestErrorDoNothingForwarder(do_nothing_forwarder.DoNothingForwarder):
 
 class CheckPortPairsTest(unittest.TestCase):
   def testBasicCheck(self):
-    port_pair = forwarders.PortPair(80, 80)
+    port_pair = forwarders._PortPair(80, 80)
     f = TestDoNothingForwarder(port_pair)
     expected_connected_addresses = [
         ('127.0.0.1', 80),
@@ -39,11 +39,11 @@ class CheckPortPairsTest(unittest.TestCase):
 
   def testPortMismatchRaisesPortsMismatchError(self):
     # The do_nothing_forward cannot forward from one port to another.
-    port_pair = forwarders.PortPair(80, 81)
+    port_pair = forwarders._PortPair(80, 81)
     with self.assertRaises(do_nothing_forwarder.PortsMismatchError):
       TestDoNothingForwarder(port_pair)
 
   def testConnectionTimeoutRaisesConnectionError(self):
-    port_pair = forwarders.PortPair(80, 80)
+    port_pair = forwarders._PortPair(80, 80)
     with self.assertRaises(do_nothing_forwarder.ConnectionError):
       TestErrorDoNothingForwarder(port_pair)

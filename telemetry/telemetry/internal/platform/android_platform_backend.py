@@ -14,7 +14,6 @@ from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.internal import forwarders
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
@@ -118,13 +117,8 @@ class AndroidPlatformBackend(
     platform_backend = AndroidPlatformBackend(device)
     return android_platform.AndroidPlatform(platform_backend)
 
-  @property
-  def forwarder_factory(self):
-    if not self._forwarder_factory:
-      self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-          self._device)
-
-    return self._forwarder_factory
+  def _CreateForwarderFactory(self):
+    return android_forwarder.AndroidForwarderFactory(self._device)
 
   @property
   def device(self):
@@ -171,11 +165,6 @@ class AndroidPlatformBackend(
 
   def GetRemotePort(self, port):
     return forwarder.Forwarder.DevicePortForHostPort(port) or 0
-
-  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding):
-    # use_remote_port_forwarding is ignored as it is always true for
-    # Android device.
-    return self.forwarder_factory.Create(port_pair)
 
   def IsRemoteDevice(self):
     # Android device is connected via adb which is on remote.
@@ -561,7 +550,8 @@ class AndroidPlatformBackend(
         ['sh', self._device_copy_script, source, dest], check_return=True)
 
   def GetPortPairForForwarding(self, local_port):
-    return forwarders.PortPair(local_port=local_port, remote_port=0)
+    # TODO(#1977): Remove when all forwarders support default remote ports.
+    return (local_port, 0)
 
   def RemoveProfile(self, package, ignore_list):
     """Delete application profile on device.

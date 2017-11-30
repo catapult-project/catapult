@@ -45,19 +45,13 @@ class CrosPlatformBackend(
   def cri(self):
     return self._cri
 
-  @property
-  def forwarder_factory(self):
-    if not self._forwarder_factory:
-      self._forwarder_factory = cros_forwarder.CrOsForwarderFactory(self._cri)
-    return self._forwarder_factory
+  def _CreateForwarderFactory(self):
+    return cros_forwarder.CrOsForwarderFactory(self._cri)
 
   def GetRemotePort(self, port):
     if self._cri.local:
       return port
     return self._cri.GetRemotePort()
-
-  def CreatePortForwarder(self, port_pair, use_remote_port_forwarding=False):
-    return self.forwarder_factory.Create(port_pair, use_remote_port_forwarding)
 
   def IsRemoteDevice(self):
     # Check if CrOS device is remote.
