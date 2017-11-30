@@ -43,6 +43,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, browser_options, self._platform_backend.cri,
         self._is_guest)
+
+    browser_backend.ClearCaches()
+
     if browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
           browser_backend, self._platform_backend)

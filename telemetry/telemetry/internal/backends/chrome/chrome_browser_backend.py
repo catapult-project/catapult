@@ -335,6 +335,33 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self.devtools_client.SimulateMemoryPressureNotification(
         pressure_level, timeout)
 
+  # TODO: consider migrating profile_directory & browser_directory out of
+  # browser_backend so we don't have to rely on creating browser_backend
+  # before clearing browser caches.
+  def ClearCaches(self):
+    """ Clear system caches related to browser.
+
+    This clears DNS caches, then clears system caches on file paths that are
+    related to the browser (if
+    browser_options.clear_sytem_cache_for_browser_and_profile_on_start is True).
+
+    Note: this is done with best effort and may have no actual effects on the
+    system.
+    """
+    platform = self.platform_backend.platform
+    platform.FlushDnsCache()
+    if self.browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
+      if platform.CanFlushIndividualFilesFromSystemCache():
+        platform.FlushSystemCacheForDirectory(
+            self.browser_options.profile_directory)
+        platform.FlushSystemCacheForDirectory(
+            self.browser_options.browser_directory)
+      elif platform.SupportFlushEntireSystemCache():
+        platform.FlushEntireSystemCache()
+      else:
+        logging.warning(
+            'Flush system cache is not supported. Did not flush system cache.')
+
   @property
   def supports_cpu_metrics(self):
     return True
@@ -346,3 +373,5 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   @property
   def supports_power_metrics(self):
     return True
+
+

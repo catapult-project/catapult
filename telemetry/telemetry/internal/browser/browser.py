@@ -37,21 +37,6 @@ class Browser(app.App):
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self._platform_backend.DidCreateBrowser(self, self._browser_backend)
-      browser_options = self._browser_backend.browser_options
-      self.platform.FlushDnsCache()
-      if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-        if self.platform.CanFlushIndividualFilesFromSystemCache():
-          self.platform.FlushSystemCacheForDirectory(
-              self._browser_backend.profile_directory)
-          self.platform.FlushSystemCacheForDirectory(
-              self._browser_backend.browser_directory)
-        elif self.platform.SupportFlushEntireSystemCache():
-          self.platform.FlushEntireSystemCache()
-        else:
-          logging.warning(
-              'Flush system cache is not supported. ' +
-              'Did not flush system cache.')
-
       self._browser_backend.SetBrowser(self)
       self._browser_backend.Start()
       self._LogBrowserInfo()
