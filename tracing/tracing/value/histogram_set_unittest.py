@@ -165,9 +165,14 @@ class HistogramSetUnittest(unittest.TestCase):
     date1.AddDiagnostic(date_b)
     b_hist.diagnostics['date'] = date1
 
-    histograms = histogram_set.HistogramSet([a_hist, b_hist])
+    c_hist = histogram.Histogram('c', 'unitless')
+    c_hist.diagnostics['generic'] = generic1
+
+    histograms = histogram_set.HistogramSet([a_hist, b_hist, c_hist])
     self.assertNotEqual(
         a_hist.diagnostics['generic'].guid, b_hist.diagnostics['generic'].guid)
+    self.assertEqual(
+        b_hist.diagnostics['generic'].guid, c_hist.diagnostics['generic'].guid)
     self.assertEqual(
         a_hist.diagnostics['generic'], b_hist.diagnostics['generic'])
     self.assertNotEqual(
@@ -179,6 +184,8 @@ class HistogramSetUnittest(unittest.TestCase):
 
     self.assertEqual(
         a_hist.diagnostics['generic'].guid, b_hist.diagnostics['generic'].guid)
+    self.assertEqual(
+        b_hist.diagnostics['generic'].guid, c_hist.diagnostics['generic'].guid)
     self.assertEqual(
         a_hist.diagnostics['generic'], b_hist.diagnostics['generic'])
     self.assertEqual(

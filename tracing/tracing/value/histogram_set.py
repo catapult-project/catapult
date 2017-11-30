@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
+
 from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
@@ -101,7 +103,7 @@ class HistogramSet(object):
 
   def DeduplicateDiagnostics(self):
     names_to_candidates = {}
-    diagnostics_to_histograms = {}
+    diagnostics_to_histograms = collections.defaultdict(list)
 
     for hist in self:
       for name, candidate in hist.diagnostics.iteritems():
@@ -110,7 +112,7 @@ class HistogramSet(object):
           self._shared_diagnostics_by_guid[candidate.guid] = candidate
           continue
 
-        diagnostics_to_histograms[candidate] = hist
+        diagnostics_to_histograms[candidate].append(hist)
 
         if name not in names_to_candidates:
           names_to_candidates[name] = set()
@@ -123,8 +125,9 @@ class HistogramSet(object):
         found = False
         for test in deduplicated_diagnostics:
           if candidate == test:
-            hist = diagnostics_to_histograms.get(candidate)
-            hist.diagnostics[name] = test
+            hists = diagnostics_to_histograms.get(candidate)
+            for h in hists:
+              h.diagnostics[name] = test
             found = True
             break
         if not found:
