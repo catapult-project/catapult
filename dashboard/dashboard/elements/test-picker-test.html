@@ -216,14 +216,6 @@ tr.b.unittest.testSuite(function() {
         await testPicker.subtests.get('foo'), 'bar');
   });
 
-  test('getSubtestsForPath', async function() {
-    testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
-    const testPicker = document.createElement('test-picker');
-    assert.deepEqual(
-        await testPicker.subtests.get('foo'), [{name: 'bar'}]);
-    testing_common.clearXhrMock();
-  });
-
   test('subtestsStoresPromises', async function() {
     testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
     const testPicker = document.createElement('test-picker');

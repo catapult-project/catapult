@@ -150,20 +150,20 @@ const testing_common = (function() {
     if (sid) {
       selectedParams = {
         sid,
-        'test_path_dict': mockData.testPathDict,
+        'test_path_list': [mockData.testPath],
         'is_selected': true
       };
       unselectedParams = {
         sid,
-        'test_path_dict': mockData.testPathDict
+        'test_path_list': mockData.testPathUnselected
       };
     } else {
       selectedParams = {
-        'test_path_dict': mockData.testPathDict,
+        'test_path_list': [mockData.testPath],
         'is_selected': true
       };
       unselectedParams = {
-        'test_path_dict': mockData.testPathDict
+        'test_path_list': mockData.testPathUnselected
       };
     }
     const selectedGraphQuery = ('/graph_json?graphs=' +

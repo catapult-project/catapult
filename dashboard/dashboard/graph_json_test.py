@@ -155,10 +155,10 @@ class GraphJsonTest(testing_common.TestCase):
   def testPost_ValidRequest(self):
     self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
-        'test_path_dict': {
-            'ChromiumGPU/winXP/dromaeo/dom': [],
-            'ChromiumGPU/winXP/dromaeo/jslib': [],
-        }
+        'test_path_list': [
+            'ChromiumGPU/winXP/dromaeo/dom',
+            'ChromiumGPU/winXP/dromaeo/jslib'
+        ]
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -177,9 +177,9 @@ class GraphJsonTest(testing_common.TestCase):
     row.put()
 
     graphs = {
-        'test_path_dict': {
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        }
+        'test_path_list': [
+            'ChromiumGPU/win7/dromaeo/jslib',
+        ]
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -196,10 +196,9 @@ class GraphJsonTest(testing_common.TestCase):
   def testPost_LongTestPathWithSelected(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
-        'test_path_dict': {
-            'master/bot/suite/sub1/sub2/sub3/sub4/sub5': ['sub5']
-        },
-        'is_selected': True
+        'test_path_list': [
+            'master/bot/suite/sub1/sub2/sub3/sub4/sub5'
+        ]
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -210,9 +209,9 @@ class GraphJsonTest(testing_common.TestCase):
   def testPost_LongTestPathWithUnSelected(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
-        'test_path_dict': {
-            'master/bot/suite/sub1/sub2/sub3/sub4': ['sub4']
-        }
+        'test_path_list': [
+            'master/bot/suite/sub1/sub2/sub3/sub4/sub5'
+        ]
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -223,9 +222,7 @@ class GraphJsonTest(testing_common.TestCase):
   def testPost_LongTestPathWithUnSelectedAndNoSubTest_NoGraphData(self):
     self._AddLongTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
-        'test_path_dict': {
-            'master/bot/suite/sub1/sub2/sub3/sub4/sub5': ['sub5']
-        },
+        'test_path_list': []
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -238,9 +235,11 @@ class GraphJsonTest(testing_common.TestCase):
     """Tests the post method of the request handler."""
     self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
     graphs = {
-        'test_path_dict': {
-            'ChromiumGPU/winXP/dromaeo': [],
-        }
+        'test_path_list': [
+            'ChromiumGPU/winXP/dromaeo',
+            'ChromiumGPU/winXP/dromaeo/dom',
+            'ChromiumGPU/winXP/dromaeo/jslib'
+        ]
     }
     # If the request is valid, a valid response will be returned.
     response = self.testapp.post(
@@ -714,12 +713,13 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
   def _HandlerWithMockRequestParams(self, **params):
     """Returns a GraphJsonHandler object with canned request parameters."""
     request_params = {
-        'test_path_dict': {
-            'Master/b1/scrolling/frame_times/about.com': [],
-            'Master/b2/scrolling/frame_times/about.com': [],
-            'Master/linux/dromaeo.domcoremodify/dom': [],
-        }
+        'test_path_list': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom',
+            'Master/b2/scrolling/frame_times/about.com'
+        ]
     }
+
     request_params.update(params)
     handler = graph_json.GraphJsonHandler()
     handler.request = mock.MagicMock()

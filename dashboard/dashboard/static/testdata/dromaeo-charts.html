@@ -4,6 +4,7 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/dashboard/static/series_group.html">
 
 <script>
 'use strict';
@@ -1158,16 +1159,16 @@ const dromaeoCharts = (function() {
     [406231, 883.28692879715, 1468925246000]
   ];
 
-  const graphParams = [
-    [
-      'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom',
-      [
-        'dom'
-      ]
-    ]
-  ];
-
   const testPath = 'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom';
+  const testPathUnselected = [
+    'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom/' +
+    'http___dromaeo.com?dom-attr',
+    'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom/' +
+    'http___dromaeo.com?dom-attr_ref',
+    'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom/ref'];
+
+  const graphParams = new d.SeriesGroup(
+      testPath, [testPath], testPathUnselected);
 
   const testPathDict = {
     'ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom': ['dom']
@@ -1179,6 +1180,7 @@ const dromaeoCharts = (function() {
     graphRevisionJson,
     graphParams,
     testPath,
+    testPathUnselected,
     testPathDict
   };
 })();
