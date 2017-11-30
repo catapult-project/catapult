@@ -95,6 +95,7 @@ def ProcessHistogramSet(histogram_dicts):
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(histogram_dicts)
   histograms.ResolveRelatedHistograms()
+  histograms.DeduplicateDiagnostics()
   InlineDenseSharedDiagnostics(histograms)
 
   revision = ComputeRevision(histograms)
