@@ -90,7 +90,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return 7 * (window.devicePixelRatio || 1);
     },
 
-    draw(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld, viewHeight) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawObjectInstances_(viewLWorld, viewRWorld);

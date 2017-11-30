@@ -130,7 +130,7 @@ tr.exportTo('tr.ui', function() {
       this.viewport_.dispatchChangeEvent();
     },
 
-    draw(ctx, viewLWorld, viewRWorld) {
+    draw(ctx, viewLWorld, viewRWorld, viewHeight) {
       if (this.range_.isEmpty) return;
 
       const dt = this.viewport_.currentDisplayTransform;
@@ -144,24 +144,24 @@ tr.exportTo('tr.ui', function() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       if (markerLWorld > viewLWorld) {
         ctx.fillRect(dt.xWorldToView(viewLWorld), 0,
-            markerLView, ctx.canvas.height);
+            markerLView, viewHeight);
       }
 
       if (markerRWorld < viewRWorld) {
         ctx.fillRect(markerRView, 0,
-            dt.xWorldToView(viewRWorld), ctx.canvas.height);
+            dt.xWorldToView(viewRWorld), viewHeight);
       }
 
       const pixelRatio = window.devicePixelRatio || 1;
       ctx.lineWidth = Math.round(pixelRatio);
       if (this.range_.range > 0) {
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-            ctx.canvas.height, this.min, this.leftSelected_);
+            viewHeight, this.min, this.leftSelected_);
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-            ctx.canvas.height, this.max, this.rightSelected_);
+            viewHeight, this.max, this.rightSelected_);
       } else {
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-            ctx.canvas.height, this.min,
+            viewHeight, this.min,
             this.leftSelected_ || this.rightSelected_);
       }
       ctx.lineWidth = 1;

@@ -64,16 +64,13 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    draw(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld, viewHeight) {
       switch (type) {
         case tr.ui.tracks.DrawType.GRID:
           this.drawGrid_(viewLWorld, viewRWorld);
           break;
         case tr.ui.tracks.DrawType.MARKERS:
-          if (!this.viewport.interestRange.isEmpty) {
-            this.viewport.interestRange.draw(this.context(),
-                viewLWorld, viewRWorld);
-          }
+          this.drawMarkers_(viewLWorld, viewRWorld);
           break;
       }
     },
@@ -270,6 +267,17 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       ctx.restore();
+    },
+
+    drawMarkers_(viewLWorld, viewRWorld) {
+      const pixelRatio = window.devicePixelRatio || 1;
+      const trackBounds = this.getBoundingClientRect();
+      const viewHeight = trackBounds.height * pixelRatio;
+
+      if (!this.viewport.interestRange.isEmpty) {
+        this.viewport.interestRange.draw(this.context(),
+            viewLWorld, viewRWorld, viewHeight);
+      }
     },
 
     /**

@@ -339,7 +339,7 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    drawMajorMarkLines(ctx) {
+    drawMajorMarkLines(ctx, viewHeight) {
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
@@ -348,7 +348,7 @@ tr.exportTo('tr.ui', function() {
       ctx.beginPath();
       for (const majorMark of this.majorMarkWorldPositions_) {
         const x = this.currentDisplayTransform.xWorldToView(majorMark);
-        tr.ui.b.drawLine(ctx, x, 0, x, ctx.canvas.height);
+        tr.ui.b.drawLine(ctx, x, 0, x, viewHeight);
       }
       ctx.strokeStyle = '#ddd';
       ctx.stroke();
@@ -356,7 +356,7 @@ tr.exportTo('tr.ui', function() {
       ctx.restore();
     },
 
-    drawGridLines(ctx, viewLWorld, viewRWorld) {
+    drawGridLines(ctx, viewLWorld, viewRWorld, viewHeight) {
       if (!this.gridEnabled) return;
 
       const dt = this.currentDisplayTransform;
@@ -373,7 +373,7 @@ tr.exportTo('tr.ui', function() {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
           const vx = Math.floor(dt.xWorldToView(x));
-          tr.ui.b.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
+          tr.ui.b.drawLine(ctx, vx, 0, vx, viewHeight);
         }
 
         x += this.gridStep;

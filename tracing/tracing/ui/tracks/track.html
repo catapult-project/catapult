@@ -95,12 +95,13 @@ tr.exportTo('tr.ui.tracks', function() {
       const dt = this.viewport.currentDisplayTransform;
       const viewLWorld = dt.xViewToWorld(0);
       const viewRWorld = dt.xViewToWorld(canvasBounds.width * pixelRatio);
+      const viewHeight = bounds.height * pixelRatio;
 
-      this.draw(type, viewLWorld, viewRWorld);
+      this.draw(type, viewLWorld, viewRWorld, viewHeight);
       ctx.restore();
     },
 
-    draw(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld, viewHeight) {
     },
 
     addEventsToTrackMap(eventToTrackMap) {

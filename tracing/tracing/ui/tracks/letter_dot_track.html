@@ -79,7 +79,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return 7 * (window.devicePixelRatio || 1);
     },
 
-    draw(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld, viewHeight) {
       if (this.items_ === undefined) return;
 
       switch (type) {
