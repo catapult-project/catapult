@@ -51,36 +51,30 @@ tr.b.unittest.testSuite(function() {
     dd.open();
     assert.isTrue(dd.isOpen);
 
-    // Dispatch a click event at the checkbox, which should bubble up to the
-    // dropdown, but should not close the dropdown because it is inside it.
+    dd.close();
+    assert.isFalse(dd.isOpen);
+
+    dd.open();
+    assert.isTrue(dd.isOpen);
+
+    // Dispatching a click event at contents of the dropdown should never close
+    // it, even if it is outside of the dropdown, which can happen if the user
+    // presses the spacebar while the checkbox is focused.
     const actualCheckboxRect = actualCheckbox.getBoundingClientRect();
     dispatchClick(
         actualCheckbox, actualCheckboxRect.left, actualCheckboxRect.top);
     assert.isTrue(dd.isOpen);
-
-    // Dispatch a click event at the checkbox, but outside of the dropdown,
-    // so the dropdown should close.
     dispatchClick(actualCheckbox, 0, 0);
-    assert.isFalse(dd.isOpen);
-
-    dd.open();
     assert.isTrue(dd.isOpen);
 
-    // Dispatch a click event at the textDiv, which should bubble up to the
-    // dropdown, but should not close the dropdown because it is inside it.
     const textDivRect = textDiv.getBoundingClientRect();
-    dispatchClick(actualCheckbox, textDivRect.left, textDivRect.top);
+    dispatchClick(textDiv, textDivRect.left, textDivRect.top);
+    assert.isTrue(dd.isOpen);
+    dispatchClick(textDiv, 0, 0);
     assert.isTrue(dd.isOpen);
 
-    // Dispatch a click event at the textDiv, but outside of the dropdown,
-    // so the dropdown should close.
-    dispatchClick(actualCheckbox, 0, 0);
-    assert.isFalse(dd.isOpen);
-
-    dd.open();
-    assert.isTrue(dd.isOpen);
-
-    dd.close();
+    // Clicking outside the dropdown should close it.
+    dispatchClick(dd.$.dialog, 0, 0);
     assert.isFalse(dd.isOpen);
   });
 });

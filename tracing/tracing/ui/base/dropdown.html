@@ -67,6 +67,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onDialogTap_(event) {
+      // Clicking on elements inside the dialog should never close it.
+      if (event.detail.sourceEvent.srcElement !== this.$.dialog) return;
+
       // Close the dialog when the user clicks on the backdrop outside the
       // dialog, which sends click events to the dialog even though the
       // coordinates are outside the dialog.
