@@ -168,8 +168,6 @@ tr.exportTo('tr.v', function() {
       };
 
       for (const hist of this) {
-        hist.diagnostics.resolveSharedDiagnostics(this);
-
         handleDiagnosticMap(hist.diagnostics);
 
         for (const dm of hist.nanDiagnosticMaps) {
@@ -197,7 +195,9 @@ tr.exportTo('tr.v', function() {
           this.sharedDiagnosticsByGuid_.set(dict.guid,
               tr.v.d.Diagnostic.fromDict(dict));
         } else {
-          this.addHistogram(tr.v.Histogram.fromDict(dict));
+          const hist = tr.v.Histogram.fromDict(dict);
+          this.addHistogram(hist);
+          hist.diagnostics.resolveSharedDiagnostics(this, true);
         }
       }
     }
@@ -329,7 +329,11 @@ tr.exportTo('tr.v', function() {
 
       for (const hist of this) {
         for (const [name, candidate] of hist.diagnostics) {
-          if (candidate.equals === undefined) continue;
+          // TODO(#3695): Remove this check once equality is smoke-tested.
+          if (candidate.equals === undefined) {
+            this.sharedDiagnosticsByGuid_.set(candidate.guid, candidate);
+            continue;
+          }
 
           diagnosticsToHistograms.set(candidate, hist);
 
@@ -341,28 +345,25 @@ tr.exportTo('tr.v', function() {
       }
 
       for (const [name, candidates] of namesToCandidates) {
-        const diagnosticsToCounts = new Map();
+        const deduplicatedDiagnostics = new Set();
 
         for (const candidate of candidates) {
           let found = false;
-          for (const [test, count] of diagnosticsToCounts) {
+          for (const test of deduplicatedDiagnostics) {
             if (candidate.equals(test)) {
               const hist = diagnosticsToHistograms.get(candidate);
               hist.diagnostics.set(name, test);
-              diagnosticsToCounts.set(test, count + 1);
               found = true;
               break;
             }
           }
           if (!found) {
-            diagnosticsToCounts.set(candidate, 1);
+            deduplicatedDiagnostics.add(candidate);
           }
         }
 
-        for (const [diagnostic, count] of diagnosticsToCounts) {
-          if (count > 1 || diagnostic.hasGuid) {
-            this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
-          }
+        for (const diagnostic of deduplicatedDiagnostics) {
+          this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
         }
       }
     }

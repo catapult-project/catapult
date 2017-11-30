@@ -58,7 +58,6 @@ class HistogramSet(object):
           diag.Resolve(histograms)
 
     for hist in self:
-      hist.diagnostics.ResolveSharedDiagnostics(self)
       HandleDiagnosticMap(hist.diagnostics)
       for dm in hist.nan_diagnostic_maps:
         HandleDiagnosticMap(dm)
@@ -79,7 +78,9 @@ class HistogramSet(object):
         diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:
-        self.AddHistogram(histogram_module.Histogram.FromDict(d))
+        hist = histogram_module.Histogram.FromDict(d)
+        hist.diagnostics.ResolveSharedDiagnostics(self)
+        self.AddHistogram(hist)
 
   def AsDicts(self):
     dcts = []
@@ -104,7 +105,9 @@ class HistogramSet(object):
 
     for hist in self:
       for name, candidate in hist.diagnostics.iteritems():
+        # TODO(#3695): Remove this check once equality is smoke-tested.
         if not hasattr(candidate, '__eq__'):
+          self._shared_diagnostics_by_guid[candidate.guid] = candidate
           continue
 
         diagnostics_to_histograms[candidate] = hist
@@ -114,20 +117,18 @@ class HistogramSet(object):
         names_to_candidates[name].add(candidate)
 
     for name, candidates in names_to_candidates.iteritems():
-      diagnostics_to_counts = {}
+      deduplicated_diagnostics = set()
 
       for candidate in candidates:
         found = False
-        for test, count in diagnostics_to_counts.iteritems():
+        for test in deduplicated_diagnostics:
           if candidate == test:
             hist = diagnostics_to_histograms.get(candidate)
             hist.diagnostics[name] = test
-            diagnostics_to_counts[test] = count + 1
             found = True
             break
         if not found:
-          diagnostics_to_counts[candidate] = 1
+          deduplicated_diagnostics.add(candidate)
 
-        for diag, count in diagnostics_to_counts.iteritems():
-          if count > 1 and diag.has_guid:
-            self._shared_diagnostics_by_guid[diag.guid] = diag
+        for diag in deduplicated_diagnostics:
+          self._shared_diagnostics_by_guid[diag.guid] = diag

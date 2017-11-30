@@ -108,11 +108,6 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertEqual(len(hists2), 1)
     hist2 = [h for h in hists2][0]
 
-    # The diagnostic reference should be deserialized as a DiagnosticRef until
-    # resolveRelatedHistograms is called.
-    self.assertIsInstance(
-        hist2.diagnostics.get('generic'), diagnostic_ref.DiagnosticRef)
-    hists2.ResolveRelatedHistograms()
     self.assertIsInstance(
         hist2.diagnostics.get('generic'), histogram.GenericSet)
     self.assertEqual(list(diag), list(hist2.diagnostics.get('generic')))
@@ -190,6 +185,14 @@ class HistogramSetUnittest(unittest.TestCase):
         a_hist.diagnostics['date'].guid, b_hist.diagnostics['date'].guid)
     self.assertEqual(
         a_hist.diagnostics['date'], b_hist.diagnostics['date'])
+
+    histogram_dicts = histograms.AsDicts()
+
+    # All diagnostics should have been serialized as DiagnosticRefs.
+    for d in histogram_dicts:
+      if 'type' not in d:
+        for diagnostic_dict in d['diagnostics'].itervalues():
+          self.assertIsInstance(diagnostic_dict, str)
 
     histograms2 = histogram_set.HistogramSet()
     histograms2.ImportDicts(histograms.AsDicts())
