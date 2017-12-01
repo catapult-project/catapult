@@ -143,6 +143,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     else:
       self._log_file_path = None
 
+    # TODO(perezju): Consider whether this can be moved to the Start method.
+    self._SetupProfile()
+
   @property
   def is_logging_enabled(self):
     return self.browser_options.logging_verbosity in [
@@ -305,8 +308,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'defaults', 'write', '-app', dialog_path, 'NSQuitAlwaysKeepsWindows',
           '-bool', 'false'
       ])
-
-    self._SetupProfile()
 
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
