@@ -859,6 +859,29 @@ class AddHistogramsTest(testing_common.TestCase):
     add_histograms.InlineDenseSharedDiagnostics(histograms)
     self.assertTrue(hist.diagnostics[reserved_infos.BENCHMARKS.name].has_guid)
 
+  @mock.patch('logging.info')
+  def testLogDebugInfo_Succeeds(self, mock_log):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.LOG_URLS.name,
+        histogram_module.GenericSet(['http://foo']))
+    add_histograms._LogDebugInfo(histograms)
+    mock_log.assert_called_once_with('Buildbot URL: %s', "['http://foo']")
+
+  @mock.patch('logging.info')
+  def testLogDebugInfo_NoHistograms(self, mock_log):
+    histograms = histogram_set.HistogramSet()
+    add_histograms._LogDebugInfo(histograms)
+    mock_log.assert_called_once_with('No histograms in data.')
+
+  @mock.patch('logging.info')
+  def testLogDebugInfo_NoLogUrls(self, mock_log):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    add_histograms._LogDebugInfo(histograms)
+    mock_log.assert_called_once_with('No LOG_URLS in data.')
+
   def testDeduplicateAndPut_Same(self):
     d = {
         'values': ['master'],

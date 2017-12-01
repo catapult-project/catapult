@@ -88,6 +88,20 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
       logging.error(e.message)
 
 
+def _LogDebugInfo(histograms):
+  hist = histograms.GetFirstHistogram()
+  if not hist:
+    logging.info('No histograms in data.')
+    return
+
+  log_urls = hist.diagnostics.get(reserved_infos.LOG_URLS.name)
+  if log_urls:
+    log_urls = list(log_urls)
+    logging.info('Buildbot URL: %s', str(log_urls))
+  else:
+    logging.info('No LOG_URLS in data.')
+
+
 def ProcessHistogramSet(histogram_dicts):
   if not isinstance(histogram_dicts, list):
     raise api_request_handler.BadRequestError(
@@ -96,8 +110,10 @@ def ProcessHistogramSet(histogram_dicts):
   histograms.ImportDicts(histogram_dicts)
   histograms.ResolveRelatedHistograms()
   histograms.DeduplicateDiagnostics()
-  InlineDenseSharedDiagnostics(histograms)
 
+  _LogDebugInfo(histograms)
+
+  InlineDenseSharedDiagnostics(histograms)
   revision = ComputeRevision(histograms)
   suite_key = GetSuiteKey(histograms)
 
