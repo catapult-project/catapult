@@ -99,9 +99,6 @@ def ProcessHistogramSet(histogram_dicts):
   InlineDenseSharedDiagnostics(histograms)
 
   revision = ComputeRevision(histograms)
-
-  task_list = []
-
   suite_key = GetSuiteKey(histograms)
 
   suite_level_sparse_diagnostic_entities = []
@@ -133,6 +130,8 @@ def ProcessHistogramSet(histogram_dicts):
     histograms.ReplaceSharedDiagnostic(
         new_guid, diagnostic.Diagnostic.FromDict(old_diagnostic))
 
+  task_list = []
+
   for hist in histograms:
     guid = hist.guid
     diagnostics = FindHistogramLevelSparseDiagnostics(guid, histograms)
@@ -143,7 +142,13 @@ def ProcessHistogramSet(histogram_dicts):
     task_list.append(_MakeTask(hist, test_path, revision, diagnostics))
 
   queue = taskqueue.Queue(TASK_QUEUE_NAME)
-  queue.add(task_list)
+
+  futures = []
+  for i in xrange(0, len(task_list), taskqueue.MAX_TASKS_PER_ADD):
+    f = queue.add_async(task_list[i:i + taskqueue.MAX_TASKS_PER_ADD])
+    futures.append(f)
+  for f in futures:
+    f.get_result()
 
 
 def _MakeTask(hist, test_path, revision, diagnostics=None):
