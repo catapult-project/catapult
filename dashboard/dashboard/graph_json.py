@@ -19,6 +19,7 @@ from google.appengine.ext import ndb
 
 from dashboard import alerts
 from dashboard import can_bisect
+from dashboard import list_tests
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -81,10 +82,17 @@ class GraphJsonHandler(request_handler.RequestHandler):
       logging.error('Invalid JSON string for graphs')
       return None
 
+    test_path_dict = graphs.get('test_path_dict')
     test_path_list = graphs.get('test_path_list')
     is_selected = graphs.get('is_selected')
 
-    if test_path_list is not None:
+    if test_path_dict and test_path_list:
+      logging.error(
+          'Only one of test_path_dict and test_path_list may be specified')
+      return None
+    elif test_path_dict:
+      test_paths = _ResolveTestPathDict(test_path_dict, is_selected)
+    elif test_path_list:
       test_paths = test_path_list
     else:
       logging.error(
@@ -101,6 +109,18 @@ class GraphJsonHandler(request_handler.RequestHandler):
         'end_rev': _PositiveIntOrNone(graphs.get('end_rev')),
     }
     return arguments
+
+
+def _ResolveTestPathDict(test_path_dict, is_selected):
+  # TODO(eakuefner): These are old-style test path dicts which means that []
+  # doesn't mean 'no tests' but rather 'all tests'. Remove this hack.
+  if is_selected:
+    for test, selected in test_path_dict.iteritems():
+      if selected == []:
+        test_path_dict[test] = 'all'
+
+  return list_tests.GetTestsForTestPathDict(
+      test_path_dict, bool(is_selected))['tests']
 
 
 def GetGraphJson(

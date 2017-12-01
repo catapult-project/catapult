@@ -90,28 +90,6 @@ tr.exportTo('d', function() {
     };
   }
 
-  async function getSubtestsForPath(mainPath, paths, returnSelected) {
-    // TODO(eakuefner): Reimplement cancellation and memoize.
-    // TODO(eakuefner): Fix error handling.
-    const params = {
-      type: 'test_path_dict'
-    };
-
-    params.test_path_dict = {};
-    params.test_path_dict[mainPath] = paths;
-    params.test_path_dict = JSON.stringify(params.test_path_dict);
-
-    if (returnSelected) {
-      params.return_selected = '1';
-    } else {
-      params.return_selected = '0';
-    }
-
-    const result = await simple_xhr.asPromise('/list_tests', params);
-
-    return result.tests;
-  }
-
   function testPathDict(mainPath, legacySelection) {
     let selection = [];
     if (legacySelection.length === 1 && legacySelection[0] === 'all') {
@@ -134,7 +112,6 @@ tr.exportTo('d', function() {
 
   return {
     SeriesGroup,
-    getSubtestsForPath,
     listTestsRequestParams
   };
 });

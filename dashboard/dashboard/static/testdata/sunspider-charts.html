@@ -4,7 +4,6 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/dashboard/static/series_group.html">
 
 <script>
 'use strict';
@@ -1381,11 +1380,14 @@ const sunspiderCharts = (function() {
     [406403, 920.7, 1468977937000]
   ];
 
-  const testPath = 'ChromiumPerf/android-nexus6/sunspider/Total';
-  const testPathUnselected = [];
+  const graphParams = [
+    [
+      'ChromiumPerf/android-nexus6/sunspider/Total',
+      ['Total']
+    ]
+  ];
 
-  const graphParams = new d.SeriesGroup(
-      testPath, [testPath], testPathUnselected);
+  const testPath = 'ChromiumPerf/android-nexus6/sunspider/Total';
 
   const testPathDict = {
     'ChromiumPerf/android-nexus6/sunspider/Total': ['Total']

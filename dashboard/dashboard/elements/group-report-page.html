@@ -20,7 +20,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/login-warning.html">
 <link rel="import" href="/dashboard/elements/quick-log.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
-<link rel="import" href="/dashboard/static/series_group.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -230,7 +229,7 @@ found in the LICENSE file.
           end_rev: event.detail.endRev,
         };
         for (const testpath of event.detail.testpaths) {
-          chart.addSeriesGroup(new d.SeriesGroup(
+          chart.addSeriesGroup2(new d.SeriesGroup(
             testpath.testpath, [testpath.testpath], []), true);
         }
         this.setChartData(chart);
@@ -320,14 +319,13 @@ found in the LICENSE file.
         ].join('/');
       },
 
-      async getTestPathAndSelectedSeries_(alert) {
+      getTestPathAndSelectedSeries(alert) {
         // Show the test for the alert, as well as the corresponding ref build
         // if possible.
-        let testPath = this.getTestPath(alert);
+        const testPath = this.getTestPath(alert);
         const testPathParts = testPath.split('/');
         const testName = testPathParts[testPathParts.length - 1];
         const refPath = alert.ref_test;
-        const paths = [testName];
         if (refPath) {
           const refPathParts = refPath.split('/');
           const refName = refPathParts[refPathParts.length - 1];
@@ -335,24 +333,16 @@ found in the LICENSE file.
             // Main test and ref are siblings. List them as:
             // [shared_test_path, [test_name, ref_name]]
             testPathParts.pop();
-            testPath = testPathParts.join('/');
+            return [testPathParts.join('/'), [testName, refName]];
+          } else if (testPathParts.length == refPathParts.length - 1) {
+            // Ref is a child of the main test. List them as:
+            // [full_main_test_path, [test_name, ref_name]]
+            // The server 'un-doubles' the main test name when listed this way.
+            return [testPath, [testName, refName]];
           }
-          paths.push(refName);
         }
-
-        let selectedTests;
-        let unselectedTests;
-        try {
-          [selectedTests, unselectedTests] = await Promise.all([
-            d.getSubtestsForPath(testPath, paths, true),
-            d.getSubtestsForPath(testPath, paths, false)]);
-        } catch (e) {
-          return null;
-        }
-
-        const seriesGroup = new d.SeriesGroup(
-            testPath, selectedTests, unselectedTests);
-        return seriesGroup;
+        // No ref build or malformed ref build name, only show selected test.
+        return [testPath, [testName]];
       },
 
       setChartData(chart) {
@@ -362,7 +352,7 @@ found in the LICENSE file.
         chart.testSuites = this.testSuites;
       },
 
-      async addGraph(alerts, insertBefore) {
+      addGraph(alerts, insertBefore) {
         if (!alerts) {
           return;
         }
@@ -386,10 +376,7 @@ found in the LICENSE file.
           };
           chart.graphParams = graphParams;
           chart.alertKey = alert.key;
-
-          const series = await this.getTestPathAndSelectedSeries_(alert);
-
-          chart.addSeriesGroup(series);
+          chart.addSeriesGroup([this.getTestPathAndSelectedSeries(alert)]);
           chart.addEventListener(
               'chartclosed', this.onGraphClose.bind(this), false);
           chart.addEventListener('alertChangedRevisions',

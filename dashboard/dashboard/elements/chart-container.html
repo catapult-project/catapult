@@ -671,9 +671,9 @@ triaging functionality in the chart.
 
           // This Promise is resolved when relatedTabs is ready to allow
           // build() to restore state.selectedRelatedTab.
-          // TODO(benjhayden) Refactor addSeriesGroup and other methods in its
+          // TODO(benjhayden) Refactor addSeriesGroup2 and other methods in its
           // stack to be async so that build() can await
-          // Promise.all(addSeriesGroup(...) for each seriesGroup) before
+          // Promise.all(addSeriesGroup2(...) for each seriesGroup) before
           // restoring selectedRelatedTab. sendGraphJsonRequest() will need to
           // be careful to wait to resolve until after its callback returns.
           this.relatedTabsReadyPromise_ = new Promise(resolve => {
@@ -683,7 +683,7 @@ triaging functionality in the chart.
 
         async build(state) {
           for (const seriesGroup of state.seriesGroups) {
-            this.addSeriesGroup(seriesGroup, true);
+            this.addSeriesGroup2(seriesGroup, true);
           }
           if (state.selectedRelatedTab) {
             await this.relatedTabsReadyPromise_;
@@ -752,6 +752,84 @@ triaging functionality in the chart.
         },
 
         /**
+         * Adds series group to graph.
+         *
+         * If test path already exist, it will be ignored.
+         *
+         * @param {Array.<Array>} testPathAndSelected A list of
+         *     pair of test path and a list of selected series.
+         * @param {boolean} collapse Whether unchecked and unimportant
+         *     series should start off hidden.
+         */
+        addSeriesGroup(testPathAndSelected, collapse) {
+          // Checks if test path already exists.
+          const testPathSet = {};
+          this.seriesGroupList.forEach(function(group) {
+            testPathSet[group.path] = true;
+          });
+
+          testPathAndSelected = testPathAndSelected.filter(function(value) {
+            return !(value[0] in testPathSet);
+          });
+          if (testPathAndSelected.length == 0) {
+            return;
+          }
+
+          // We want to send two requests, one for selected and unselected
+          // series, so there would be a quicker response for the selected
+          // series. But, if the selected series is unknown, we default to
+          // send an unselected series.
+          const selectedTestPathDict = {};
+          const unSelectedTestPathDict = {};
+          for (let i = 0; i < testPathAndSelected.length; i++) {
+            const testPath = testPathAndSelected[i][0];
+            let selectedTraces = testPathAndSelected[i][1];
+            selectedTraces = arrayUnique(selectedTraces);
+            const seriesGroup = {
+              path: testPath,
+              tests: [],
+              collapse,
+              numPendingRequests: 0
+            };
+            if (selectedTraces.length > 0) {
+              const selected = selectedTraces[0];
+              if (this.SERIES_SELECTION_OPTIONS.indexOf(selected) != -1) {
+                seriesGroup.selection = selectedTraces[0];
+                selectedTestPathDict[testPath] = [];
+              } else {
+                // Create test data here for selected traces so they can
+                // be initially shown in chart legend.
+                for (let j = 0; j < selectedTraces.length; j++) {
+                  const testData = {
+                    name: selectedTraces[j],
+                    displayName: selectedTraces[j],
+                    selected: true
+                  };
+                  seriesGroup.tests.push(testData);
+                }
+                selectedTestPathDict[testPath] = selectedTraces;
+                unSelectedTestPathDict[testPath] = selectedTraces;
+              }
+            } else {
+              unSelectedTestPathDict[testPath] = [];
+            }
+            this.push('seriesGroupList', seriesGroup);
+          }
+
+          this.updateSeriesGroupDisplayNames();
+          this.buildRelatedTabs_();
+
+          if (Object.keys(selectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(selectedTestPathDict, true);
+          }
+          if (Object.keys(unSelectedTestPathDict).length > 0) {
+            this.sendGraphJsonRequest(unSelectedTestPathDict, false);
+          }
+          this.updateSlider();
+          this.$.title.update();
+        },
+
+        /**
          * Adds series group to graph explicitly.
          *
          * Since adding the test_path_dict mode for /list_tests, the preferred
@@ -765,7 +843,7 @@ triaging functionality in the chart.
          * @param {boolean} collapse Whether unchecked and unimportant
          *     series should start off hidden.
          */
-        addSeriesGroup(seriesGroup, collapse) {
+        addSeriesGroup2(seriesGroup, collapse) {
           const mainPath = seriesGroup.mainPath;
           const selectedPaths = seriesGroup.selectedPaths;
           const unselectedPaths = seriesGroup.unselectedPaths;
@@ -832,9 +910,16 @@ triaging functionality in the chart.
           // cleaned up
           const params = JSON.parse(JSON.stringify(this.graphParams));
 
-          const testPaths = testPathDictOrList;
-          params.test_path_list = testPathDictOrList;
-          const pathsForUpdate = [mainPath];
+          let pathsForUpdate;
+          if (testPathDictOrList instanceof Array) {
+            const testPaths = testPathDictOrList;
+            params.test_path_list = testPathDictOrList;
+            pathsForUpdate = [mainPath];
+          } else {
+            const testPaths = Object.keys(testPathDictOrList);
+            params.test_path_dict = testPathDictOrList;
+            pathsForUpdate = testPaths;
+          }
 
           // TODO(eakuefner): Figure out how to remove this parameter since in
           // list mode we only need it for the _MAX_UNSELECTED_TESTS hack.
@@ -1864,25 +1949,14 @@ triaging functionality in the chart.
          * series group from the test path created from clicked title
          * parts.
          */
-        async onTitleClicked(event, detail) {
+        onTitleClicked(event, detail) {
           const titleParts = event.detail.titleParts;
           const partIndex = event.detail.partIndex;
           const testPath = titleParts.slice(0, partIndex + 1).join('/');
           this.json = tr.b.deepCopy(this.DEFAULT_JSON_PROPERTIES);
           this.set('seriesGroupList', []);
           this.set('indicesToGraph', []);
-
-          let unselectedTests;
-          try {
-            unselectedTests = await d.getSubtestsForPath(testPath, [], false);
-          } catch (e) {
-            return null;
-          }
-
-          const seriesGroup = new d.SeriesGroup(
-              testPath, [], unselectedTests);
-
-          this.addSeriesGroup(seriesGroup, true);
+          this.addSeriesGroup([[testPath, []]], true);
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
 
@@ -2669,7 +2743,7 @@ triaging functionality in the chart.
           if (data) {
             const seriesGroup = new d.SeriesGroup(
                 data.mainPath, data.selectedPaths, data.unselectedPaths);
-            this.addSeriesGroup(seriesGroup, true);
+            this.addSeriesGroup2(seriesGroup, true);
           }
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
@@ -2823,7 +2897,7 @@ triaging functionality in the chart.
           for (const seriesGroup of this.seriesGroupList) {
             for (const test of seriesGroup.tests) {
               if (!test.selected) continue;
-              // `test.path` is set in the addSeriesGroup() path.
+              // `test.path` is set in the addSeriesGroup2() path.
               // This method needs to handle the old SeriesGroup.path/test.name
               // form for the addSeriesGroup() path.
               const testpath = test.path || seriesGroup.path + '/' + test.name;

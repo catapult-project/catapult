@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 <link rel="import" href="/dashboard/elements/story_tag_filter.html">
 <link rel="import" href="/dashboard/static/async_map.html">
-<link rel="import" href="/dashboard/static/series_group.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 
@@ -555,8 +554,8 @@ found in the LICENSE file.
         let unselectedTests;
         try {
           [selectedTests, unselectedTests] = await Promise.all([
-            d.getSubtestsForPath(path, 'core', true),
-            d.getSubtestsForPath(path, 'core', false)]);
+            this.getSubtestsForPath(path, true),
+            this.getSubtestsForPath(path, false)]);
         } catch (e) {
           this.loading = false;
           return null;
@@ -648,6 +647,30 @@ found in the LICENSE file.
 
       getCurrentUnselected() {
         return this.currentUnselectedTests_;
+      },
+
+      async getSubtestsForPath(path, returnSelected) {
+        // TODO(eakuefner): Reimplement cancellation and memoize.
+        // TODO(eakuefner): Fix error handling.
+        const params = {
+          type: 'test_path_dict'
+        };
+
+        params.test_path_dict = {};
+        params.test_path_dict[path] = 'core';
+        params.test_path_dict = JSON.stringify(params.test_path_dict);
+
+        if (returnSelected) {
+          params.return_selected = '1';
+        } else {
+          params.return_selected = '0';
+        }
+
+        const xhrMark = tr.b.Timing.mark('testPicker', 'xhr');
+        const result = await simple_xhr.asPromise('/list_tests', params);
+        xhrMark.end();
+
+        return result.tests;
       },
 
       /**
