@@ -353,9 +353,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
       if platform.CanFlushIndividualFilesFromSystemCache():
         platform.FlushSystemCacheForDirectory(
-            self.browser_options.profile_directory)
+            self.profile_directory)
         platform.FlushSystemCacheForDirectory(
-            self.browser_options.browser_directory)
+            self.browser_directory)
       elif platform.SupportFlushEntireSystemCache():
         platform.FlushEntireSystemCache()
       else:

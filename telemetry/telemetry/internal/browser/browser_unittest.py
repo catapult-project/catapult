@@ -280,25 +280,34 @@ class BrowserRestoreSessionTest(unittest.TestCase):
     shutil.rmtree(cls._profile_dir)
 
 
-class TestBrowserOperationDoNotLeakTempFiles(unittest.TestCase):
+class TestBrowserCreation(unittest.TestCase):
+
+  def setUp(self):
+    self.finder_options = options_for_unittests.GetCopy()
+    self.browser_to_create = browser_finder.FindBrowser(self.finder_options)
+    self.browser_to_create.platform.network_controller.Open()
+
+  def tearDown(self):
+    self.browser_to_create.platform.network_controller.Close()
 
   @decorators.Enabled('linux')
   # TODO(crbug.com/782691): enable this on Win
   # TODO(ashleymarie): Re-enable on mac (BUG=catapult:#3523)
   @decorators.Isolated
   def testBrowserNotLeakingTempFiles(self):
-    options = options_for_unittests.GetCopy()
-    browser_to_create = browser_finder.FindBrowser(options)
-    self.assertIsNotNone(browser_to_create)
     before_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
-    browser_to_create.platform.network_controller.Open()
-    try:
-      with browser_to_create.Create(options) as browser:
-        tab = browser.tabs.New()
-        tab.Navigate('about:blank')
-        self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
-      after_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
-      self.assertEqual(before_browser_run_temp_dir_content,
-                       after_browser_run_temp_dir_content)
-    finally:
-      browser_to_create.platform.network_controller.Close()
+    with self.browser_to_create.Create(self.finder_options) as browser:
+      tab = browser.tabs.New()
+      tab.Navigate('about:blank')
+      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+    after_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
+    self.assertEqual(before_browser_run_temp_dir_content,
+                     after_browser_run_temp_dir_content)
+
+  def testSuccessfullyStartBrowserWithSystemCacheClearOptions(self):
+    browser_options = self.finder_options.browser_options
+    browser_options.clear_sytem_cache_for_browser_and_profile_on_start = True
+    with self.browser_to_create.Create(self.finder_options) as browser:
+      tab = browser.tabs.New()
+      tab.Navigate('about:blank')
+      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
