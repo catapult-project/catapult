@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.selection = selection1;
     this.addHTMLOutput(viewEl);
     let rows = viewEl.$.runtimeCallStats.$.table.tableRows;
-    assert.lengthOf(rows, 12);
+    assert.lengthOf(rows, 18);
     assert.deepEqual(rows.map(r => r.time), [
       1802,
       567,
@@ -73,6 +73,12 @@ tr.b.unittest.testSuite(function() {
       0,
       0,
       0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       0
     ]);
 
@@ -80,11 +86,17 @@ tr.b.unittest.testSuite(function() {
     selection2.push(m.s2);
     viewEl.selection = selection2;
     rows = viewEl.$.runtimeCallStats.$.table.tableRows;
-    assert.lengthOf(rows, 12);
+    assert.lengthOf(rows, 18);
     assert.deepEqual(rows.map(r => r.time), [
       912,
       0,
       789,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       0,
       0,
       0,

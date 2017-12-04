@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
     const rows = viewEl.$.runtimeCallStats.$.table.tableRows;
-    assert.lengthOf(rows, 12);
+    assert.lengthOf(rows, 18);
     assert.deepEqual(rows.map(r => r.time), [
       2714,
       567,
@@ -69,6 +69,12 @@ tr.b.unittest.testSuite(function() {
       345,
       0,
       890,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
       0,
       0,
       0,
