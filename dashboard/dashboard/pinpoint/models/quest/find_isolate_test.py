@@ -86,7 +86,7 @@ class BuilderLookupTest(_FindIsolateTest):
         ('Android arm64 Builder', 'Android Nexus5X Perf'),
         ('Linux Builder', 'Linux Perf'),
         ('Mac Builder', 'Mac Air Perf'),
-        ('Win Builder', 'Win 7 Perf'),
+        ('Win Builder', 'chromium-rel-win7-dual'),
         ('Win x64 Builder', 'Win Zenbook Perf'),
     )
 

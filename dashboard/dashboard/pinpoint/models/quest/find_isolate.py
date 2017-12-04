@@ -134,7 +134,7 @@ def _BuilderNameForConfiguration(configuration):
   elif 'mac' in configuration:
     return 'Mac Builder'
   elif 'win' in configuration:
-    if configuration == 'win 7 perf':
+    if configuration == 'chromium-rel-win7-dual':
       return 'Win Builder'
     else:
       return 'Win x64 Builder'
