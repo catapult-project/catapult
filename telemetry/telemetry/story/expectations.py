@@ -3,8 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-#from telemetry.story import expectations_parser
-from py_utils import expectations_parser
 
 
 class StoryExpectations(object):
@@ -19,14 +17,11 @@ class StoryExpectations(object):
       self.DisableStory('story_name2', [expectations.ALL], 'crbug.com/789')
       ...
   """
-  def __init__(self, expectation_file=None):
+  def __init__(self):
     self._disabled_platforms = []
     self._expectations = {}
     self._frozen = False
     self.SetExpectations()
-    if expectation_file:
-      parser = expectations_parser.TestExpectationParser(expectation_file)
-      self._MapExpectationsFromFile(parser)
     self._Freeze()
 
   # TODO(rnephew): Transform parsed expectation file into StoryExpectations.
@@ -34,8 +29,42 @@ class StoryExpectations(object):
   # logical OR to combine multiple conditions in a single expectation. The
   # expectation files use logical AND when combining multiple conditions.
   # crbug.com/781409
-  def _MapExpectationsFromFile(self, _):
-    pass
+  def GetBenchmarkExpectationsFromParser(self, expectations, benchmark):
+    """Transforms parser expections into StoryExpectations
+
+    Args:
+      expectations: parser.expectations property from expectations_parser
+      benchmark: Name of benchmark to extract expectations for.
+
+    Side effects:
+      Adds parser expectations to self._expectations dictionary.
+    """
+    try:
+      self._frozen = False
+      for expectation in expectations:
+        if not expectation.test.startswith('%s/' % benchmark):
+          continue
+        # Strip off benchmark name. In format: benchmark/story
+        story = expectation.test[len(benchmark)+1:]
+        try:
+          conditions = (
+              [EXPECTATION_NAME_MAP[c] for c in expectation.conditions])
+        except KeyError:
+          logging.critical(
+              'Unable to map expectation in file to TestCondition')
+          raise
+        conditions_str = '+'.join(expectation.conditions)
+        self.DisableStory(
+            story,
+            # Test Expectations with multiple conditions are treated as logical
+            # and and require all conditions to be met for disabling to occur.
+            # By design, StoryExpectations treats lists as logical or so we must
+            # construct TestConditions using the logical and helper class.
+            # TODO(): Consider refactoring TestConditions to be logical or.
+            [_TestConditionLogicalAndConditions(conditions, conditions_str)],
+            expectation.reason)
+    finally:
+      self._Freeze()
 
   def AsDict(self):
     """Returns information on disabled stories/benchmarks as a dictionary"""
@@ -53,6 +82,7 @@ class StoryExpectations(object):
         logging.error('Story %s is not in the story set.' % story_name)
     return invalid_story_names
 
+  # TODO(rnephew): When TA/DA conversion is complete, remove this method.
   def SetExpectations(self):
     """Sets the Expectations for test disabling
 
@@ -62,6 +92,7 @@ class StoryExpectations(object):
   def _Freeze(self):
     self._frozen = True
     self._disabled_platforms = tuple(self._disabled_platforms)
+
 
   @property
   def disabled_platforms(self):
@@ -185,7 +216,7 @@ class _AllTestCondition(_TestCondition):
     return True
 
   def __str__(self):
-    return 'All Platforms'
+    return 'All'
 
 
 class _TestConditionAndroidSvelte(_TestCondition):
@@ -268,14 +299,14 @@ class _TestConditionLogicalOrConditions(_TestCondition):
 
 
 ALL = _AllTestCondition()
-ALL_MAC = _TestConditionByPlatformList(['mac'], 'Mac Platforms')
-ALL_WIN = _TestConditionByPlatformList(['win'], 'Win Platforms')
-ALL_LINUX = _TestConditionByPlatformList(['linux'], 'Linux Platforms')
-ALL_CHROMEOS = _TestConditionByPlatformList(['chromeos'], 'ChromeOS Platforms')
-ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android Platforms')
+ALL_MAC = _TestConditionByPlatformList(['mac'], 'Mac')
+ALL_WIN = _TestConditionByPlatformList(['win'], 'Win')
+ALL_LINUX = _TestConditionByPlatformList(['linux'], 'Linux')
+ALL_CHROMEOS = _TestConditionByPlatformList(['chromeos'], 'ChromeOS')
+ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android')
 ALL_DESKTOP = _TestConditionByPlatformList(
-    ['mac', 'linux', 'win', 'chromeos'], 'Desktop Platforms')
-ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile Platforms')
+    ['mac', 'linux', 'win', 'chromeos'], 'Desktop')
+ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile')
 ANDROID_NEXUS5 = _TestConditionByAndroidModel('Nexus 5')
 _ANDROID_NEXUS5X = _TestConditionByAndroidModel('Nexus 5X')
 _ANDROID_NEXUS5XAOSP = _TestConditionByAndroidModel('AOSP on BullHead')
@@ -298,8 +329,31 @@ MAC_10_11 = _TestConditionByMacVersion('10.11', 'Mac 10.11')
 # Mac 10_12 Includes:
 #   Mac 10.12 Perf, Mac Mini 8GB 10.12 Perf
 MAC_10_12 = _TestConditionByMacVersion('10.12', 'Mac 10.12')
-
 ANDROID_NEXUS6_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_NEXUS6, ANDROID_WEBVIEW], 'Nexus6 Webview')
 ANDROID_NEXUS5X_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_NEXUS5X, ANDROID_WEBVIEW], 'Nexus5X Webview')
+
+EXPECTATION_NAME_MAP = {
+    'All': ALL,
+    'Android_Svelte': ANDROID_SVELTE,
+    'Android_Webview': ANDROID_WEBVIEW,
+    'Android_but_not_webview': ANDROID_NOT_WEBVIEW,
+    'Mac': ALL_MAC,
+    'Win': ALL_WIN,
+    'Linux': ALL_LINUX,
+    'ChromeOS': ALL_CHROMEOS,
+    'Android': ALL_ANDROID,
+    'Desktop': ALL_DESKTOP,
+    'Mobile': ALL_MOBILE,
+    'Nexus_5': ANDROID_NEXUS5,
+    'Nexus_5X': ANDROID_NEXUS5X,
+    'Nexus_6': ANDROID_NEXUS6,
+    'Nexus_6P': ANDROID_NEXUS6P,
+    'Nexus_7': ANDROID_NEXUS7,
+    'Cherry_Mobile_Android_One': ANDROID_ONE,
+    'Mac_10.11': MAC_10_11,
+    'Mac_10.12': MAC_10_12,
+    'Nexus6_Webview': ANDROID_NEXUS6_WEBVIEW,
+    'Nexus5X_Webview': ANDROID_NEXUS5X_WEBVIEW
+}
