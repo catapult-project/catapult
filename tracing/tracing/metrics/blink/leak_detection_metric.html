@@ -43,6 +43,9 @@ tr.exportTo('tr.metrics.blink', function() {
     for (const [key, count] of sumCounter) {
       histograms.createHistogram('Leaked ' + key,
           tr.b.Unit.byName.count_smallerIsBetter, count);
+      if (count > 0) {
+        throw new Error('Memory leak is found.');
+      }
     }
   }
 
