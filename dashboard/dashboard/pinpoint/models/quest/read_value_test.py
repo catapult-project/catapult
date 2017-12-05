@@ -393,6 +393,42 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
     self.assertEqual(retrieve.mock_calls, expected_calls)
 
+  def testReadHistogramsJsonValueSummary(self, retrieve):
+    samples = []
+    hists = []
+    for i in xrange(10):
+      hist = histogram_module.Histogram('hist', 'count')
+      hist.AddSample(0)
+      hist.AddSample(1)
+      hist.AddSample(2)
+      hist.diagnostics[reserved_infos.STORIES.name] = (
+          histogram_module.GenericSet(['story%d' % i]))
+      hists.append(hist)
+      samples.extend(hist.sample_values)
+
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        histogram_module.GenericSet(['group:tir_label']))
+
+    retrieve.side_effect = (
+        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
+        json.dumps(histograms.AsDicts()),
+    )
+
+    quest = read_value.ReadHistogramsJsonValue(
+        hists[0].name, 'tir_label', None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, tuple(samples))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
+    self.assertEqual(retrieve.mock_calls, expected_calls)
+
   def testReadHistogramsJsonValueWithMissingFile(self, retrieve):
     retrieve.return_value = {'files': {}}
 

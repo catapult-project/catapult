@@ -181,13 +181,19 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     # tir_label or the story from a histogram involves pulling out and
     # examining various diagnostics associated with the histogram.
     tir_label = self._tir_label or ''
-    def _MatchesStoryAndTIRLabel(hist):
-      return (
-          tir_label == histogram_helpers.GetTIRLabelFromHistogram(hist) and
-          self._story == _GetStoryFromHistogram(hist))
 
     matching_histograms = [
-        h for h in matching_histograms if _MatchesStoryAndTIRLabel(h)]
+        h for h in matching_histograms
+        if tir_label == histogram_helpers.GetTIRLabelFromHistogram(h)]
+
+
+    # If no story is supplied, we're looking for a summary metric so just match
+    # on name and tir_label. This is equivalent to the chartjson condition that
+    # if no story is specified, look for "summary".
+    if self._story:
+      matching_histograms = [
+          h for h in matching_histograms
+          if self._story == _GetStoryFromHistogram(h)]
 
     # Have to pull out either the raw sample values, or the statistic
     result_values = []
