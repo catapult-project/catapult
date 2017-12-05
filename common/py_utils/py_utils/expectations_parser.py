@@ -71,10 +71,10 @@ class TestExpectationParser(object):
   """
 
   TAG_TOKEN = '# tags:'
-  _MATCH_STRING = r'(?:(crbug.com/\d+) )?'  # The bug field (optional).
+  _MATCH_STRING = r'^(?:(crbug.com/\d+) )?'  # The bug field (optional).
   _MATCH_STRING += r'(?:\[ (.+) \] )?' # The label field (optional).
-  _MATCH_STRING += r'([\w/]+) '  # The test path field.
-  _MATCH_STRING += r'\[ (.+) \]'  # The expectation field.
+  _MATCH_STRING += r'(\S+) ' # The test path field.
+  _MATCH_STRING += r'\[ ([^\[.]+) \]$'  # The expectation field.
   MATCHER = re.compile(_MATCH_STRING)
 
   def __init__(self, path=None, raw=None):
