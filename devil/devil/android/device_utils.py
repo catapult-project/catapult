@@ -2333,7 +2333,8 @@ class DeviceUtils(object):
     if at_most_one:
       if len(pids) > 1:
         raise device_errors.CommandFailedError(
-            'Expected a single process but found PIDs: %s.' % ', '.join(pids),
+            'Expected a single PID for %r but found: %r.' % (
+                process_name, pids),
             device_serial=str(self))
       return pids[0] if pids else None
     else:
