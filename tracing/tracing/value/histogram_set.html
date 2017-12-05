@@ -325,7 +325,7 @@ tr.exportTo('tr.v', function() {
      */
     deduplicateDiagnostics() {
       const namesToCandidates = new Map();  // string: Set<Diagnostic>
-      const diagnosticsToHistograms = new Map();  // Diagnostic: Histogram
+      const diagnosticsToHistograms = new Map();  // Diagnostic: [Histogram]
 
       for (const hist of this) {
         for (const [name, candidate] of hist.diagnostics) {
@@ -335,7 +335,11 @@ tr.exportTo('tr.v', function() {
             continue;
           }
 
-          diagnosticsToHistograms.set(candidate, hist);
+          if (diagnosticsToHistograms.get(candidate) === undefined) {
+            diagnosticsToHistograms.set(candidate, [hist]);
+          } else {
+            diagnosticsToHistograms.get(candidate).push(hist);
+          }
 
           if (!namesToCandidates.has(name)) {
             namesToCandidates.set(name, new Set());
@@ -351,8 +355,10 @@ tr.exportTo('tr.v', function() {
           let found = false;
           for (const test of deduplicatedDiagnostics) {
             if (candidate.equals(test)) {
-              const hist = diagnosticsToHistograms.get(candidate);
-              hist.diagnostics.set(name, test);
+              const hists = diagnosticsToHistograms.get(candidate);
+              for (const hist of hists) {
+                hist.diagnostics.set(name, test);
+              }
               found = true;
               break;
             }
@@ -360,10 +366,10 @@ tr.exportTo('tr.v', function() {
           if (!found) {
             deduplicatedDiagnostics.add(candidate);
           }
-        }
 
-        for (const diagnostic of deduplicatedDiagnostics) {
-          this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+          for (const diagnostic of deduplicatedDiagnostics) {
+            this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+          }
         }
       }
     }
