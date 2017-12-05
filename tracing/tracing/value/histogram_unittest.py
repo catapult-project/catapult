@@ -590,6 +590,32 @@ class BreakdownUnittest(unittest.TestCase):
 
 
 class TagMapUnittest(unittest.TestCase):
+
+  def testEquality(self):
+    tags0 = {
+        'tag1': ['path1', 'path2'],
+        'tag2': ['path1', 'path2', 'path3']
+    }
+    tags1 = {
+        'tag1': ['path1', 'path2'],
+        'tag2': ['path1', 'path2', 'path3']
+    }
+    info0 = histogram.TagMap({'tagsToStoryNames': tags0})
+    info1 = histogram.TagMap({'tagsToStoryNames': tags1})
+    self.assertEqual(info0, info1)
+
+  def testInequality(self):
+    tags0 = {
+        'tag1': ['path1', 'path2'],
+        'tag2': ['path1', 'path2', 'path3']
+    }
+    tags1 = {
+        'tag1': ['path1', 'path2']
+    }
+    info0 = histogram.TagMap({'tagsToStoryNames': tags0})
+    info1 = histogram.TagMap({'tagsToStoryNames': tags1})
+    self.assertNotEqual(info0, info1)
+
   def testRoundtrip(self):
     tags = {
         'tag1': ['path1', 'path2', 'path3'],

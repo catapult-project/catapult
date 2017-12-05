@@ -671,6 +671,12 @@ class TagMap(diagnostic.Diagnostic):
         (k, set(v)) for k, v in info.get(
             'tagsToStoryNames', {}).iteritems())
 
+  def __eq__(self, other):
+    if not isinstance(other, TagMap):
+      return False
+
+    return self.tags_to_story_names == other.tags_to_story_names
+
   def _AsDictInto(self, d):
     d['tagsToStoryNames'] = dict(
         (k, list(v)) for k, v in self.tags_to_story_names.iteritems())
