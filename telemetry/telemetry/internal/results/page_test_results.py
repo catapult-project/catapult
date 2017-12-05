@@ -21,6 +21,7 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run
+from telemetry.internal.util import file_handle
 from telemetry.value import failure
 from telemetry.value import skip
 from telemetry.value import trace
@@ -428,11 +429,18 @@ class PageTestResults(object):
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)
 
-  def AddArtifact(self, story, item, reason):
-    self._artifact_results.AddArtifact(story, item, reason)
+  def AddArtifact(self, story, name, path):
+    if self._artifact_results:
+      self._artifact_results.AddArtifact(story, name, path)
+    else:
+      logging.info("Deleting unused artifact %r of %r" % (name, story))
+      if isinstance(path, file_handle.FileHandle):
+        path = path.GetAbsPath()
 
-  def AddProfilingFile(self, page, file_handle):
-    self._pages_to_profiling_files[page].append(file_handle)
+      os.unlink(path)
+
+  def AddProfilingFile(self, page, fh):
+    self._pages_to_profiling_files[page].append(fh)
 
   def AddSummaryValue(self, value):
     assert value.page is None
@@ -505,15 +513,15 @@ class PageTestResults(object):
   def UploadProfilingFilesToCloud(self):
     bucket = self.telemetry_info.upload_bucket
     for page, file_handle_list in self._pages_to_profiling_files.iteritems():
-      for file_handle in file_handle_list:
+      for fh in file_handle_list:
         remote_path = ('profiler-file-id_%s-%s%-d%s' % (
-            file_handle.id,
+            fh.id,
             datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
             random.randint(1, 100000),
-            file_handle.extension))
+            fh.extension))
         try:
           cloud_url = cloud_storage.Insert(
-              bucket, remote_path, file_handle.GetAbsPath())
+              bucket, remote_path, fh.GetAbsPath())
           sys.stderr.write(
               'View generated profiler files online at %s for page %s\n' %
               (cloud_url, page.name))

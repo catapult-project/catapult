@@ -18,6 +18,7 @@ def _abs_join(*args):
   """Helper to do a path join that's an absolute path."""
   return ROOT_CHAR + os.path.join(*args)
 
+
 class ArtifactResultsUnittest(unittest.TestCase):
   @mock.patch('telemetry.internal.results.artifact_results.shutil.move')
   @mock.patch('telemetry.internal.results.artifact_results.os.makedirs')
@@ -31,7 +32,7 @@ class ArtifactResultsUnittest(unittest.TestCase):
 
     self.assertEqual({k: dict(v) for k, v in ar._test_artifacts.items()}, {
         'test': {
-            'artifact_name': ['bar.log'],
+            'artifact_name': ['artifacts/bar.log'],
         }
     })
 
@@ -47,7 +48,7 @@ class ArtifactResultsUnittest(unittest.TestCase):
 
     self.assertEqual({k: dict(v) for k, v in ar._test_artifacts.items()}, {
         'test': {
-            'artifact_name': [os.path.join('baz', 'bar.log')],
+            'artifact_name': ['artifacts/baz/bar.log'],
         }
     })
 
@@ -63,7 +64,7 @@ class ArtifactResultsUnittest(unittest.TestCase):
 
     self.assertEqual({k: dict(v) for k, v in ar._test_artifacts.items()}, {
         'test': {
-            'artifact_name': ['bar.log'],
+            'artifact_name': ['artifacts/bar.log'],
         }
     })
 
@@ -81,7 +82,7 @@ class ArtifactResultsUnittest(unittest.TestCase):
 
     self.assertEqual({k: dict(v) for k, v in ar._test_artifacts.items()}, {
         'test': {
-            'artifact_name': ['bar.log'],
+            'artifact_name': ['artifacts/bar.log'],
         }
     })
 
@@ -99,6 +100,6 @@ class ArtifactResultsUnittest(unittest.TestCase):
 
     self.assertEqual({k: dict(v) for k, v in ar._test_artifacts.items()}, {
         'test': {
-            'artifact_name': ['bar.log', 'bam.log'],
+            'artifact_name': ['artifacts/bar.log', 'artifacts/bam.log'],
         }
     })

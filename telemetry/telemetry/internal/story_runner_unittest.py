@@ -204,6 +204,7 @@ class FakeBenchmark(benchmark.Benchmark):
 def _GetOptionForUnittest():
   options = options_for_unittests.GetCopy()
   options.output_formats = ['none']
+  options.output_dir = tempfile.mkdtemp(prefix='story_runner_test')
   options.suppress_gtest_report = False
   parser = options.CreateParser()
   story_runner.AddCommandLineArgs(parser)
@@ -289,6 +290,8 @@ class StoryRunnerTest(unittest.TestCase):
     if os.path.isfile(results_file_path):
       os.remove(results_file_path)
     self.RestoreExceptionFormatter()
+
+    shutil.rmtree(self.options.output_dir)
 
   def testRunStorySet(self):
     number_stories = 3
@@ -1053,6 +1056,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_successLegacy(self):
@@ -1067,6 +1072,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.RunStory(root_mock.results),
         mock.call.test.DidRunPage(root_mock.state.platform),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryTimeout(self):
@@ -1085,6 +1092,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.AddValue(FailureValueMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryError(self):
@@ -1105,6 +1114,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.AddValue(FailureValueMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnsupportedAction(self):
@@ -1114,7 +1125,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
-
     self.assertEquals(root_mock.method_calls, [
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
@@ -1123,6 +1133,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.AddValue(SkipValueMatcher()),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnhandlable(self):
@@ -1141,11 +1153,14 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.AddValue(FailureValueMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY)
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_finallyException(self):
+    exc = Exception('bar')
     root_mock = self._CreateErrorProcessingMock(method_exceptions={
-        'state.DidRunStory': Exception('bar')
+        'state.DidRunStory': exc,
     })
 
     with self.assertRaisesRegexp(Exception, 'bar'):
@@ -1160,7 +1175,10 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
-        mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results)
+        mock.call.state.DumpStateUponFailure(
+            root_mock.story, root_mock.results, exc),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryTimeout_finallyException(self):
@@ -1181,7 +1199,9 @@ class StoryRunnerTest(unittest.TestCase):
             root_mock.story, root_mock.results),
         mock.call.results.AddValue(FailureValueMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
-        mock.call.state.DidRunStory(root_mock.results)
+        mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryError_finallyException(self):
@@ -1200,7 +1220,9 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
         mock.call.results.AddValue(FailureValueMatcher('foo')),
-        mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results)
+        mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnsupportedAction_finallyException(
@@ -1218,7 +1240,9 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.AddValue(SkipValueMatcher()),
         mock.call.test.DidRunStory(
             root_mock.state.platform, root_mock.results),
-        mock.call.state.DidRunStory(root_mock.results)
+        mock.call.state.DidRunStory(root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnhandlable_finallyException(self):
@@ -1240,7 +1264,9 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
         mock.call.results.AddValue(FailureValueMatcher('foo')),
-        mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results)
+        mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+        mock.call.results.AddArtifact(
+            root_mock.story.name, 'logs', mock.ANY),
     ])
 
   def _GenerateBaseBrowserFinderOptions(self):

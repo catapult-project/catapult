@@ -131,7 +131,7 @@ class SharedPageState(story_module.SharedState):
     if self._finder_options.browser_options.take_screenshot_for_failed_page:
       fh = screenshot.TryCaptureScreenShot(self.platform, self._current_tab)
       if fh is not None:
-        results.AddProfilingFile(page, fh)
+        results.AddArtifact(page.name, 'screenshot', fh)
     else:
       logging.warning('Taking screenshots upon failures disabled.')
 

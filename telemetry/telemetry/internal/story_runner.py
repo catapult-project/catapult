@@ -2,15 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import logging
 import optparse
 import os
 import sys
+import tempfile
 import time
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
 from py_utils import memory_debug  # pylint: disable=import-error
+from py_utils import logging_util  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -86,59 +89,84 @@ def _GenerateTagMapFromStorySet(stories):
   return tagmap
 
 
+@contextlib.contextmanager
+def CaptureLogsAsArtifacts(results, test_name):
+  file_name = ''
+  try:
+    with tempfile.NamedTemporaryFile(
+        prefix='test_', suffix='.log', delete=False) as file_obj:
+      file_name = file_obj.name
+      with logging_util.CaptureLogs(file_obj):
+        yield
+  finally:
+    if file_name:
+      results.AddArtifact(test_name, 'logs', file_name)
+
+
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
-  def ProcessError(description=None):
+  def ProcessError(exc=None, description=None):
     state.DumpStateUponFailure(story, results)
+
+    # Dump app crash, if present
+    if exc:
+      if isinstance(exc, exceptions.AppCrashException):
+        minidump_path = exc.minidump_path
+        if minidump_path:
+          results.AddArtifactFromPageRun(page, 'minidump', minidump_path)
+
     # Note: adding the FailureValue to the results object also normally
     # cause the progress_reporter to log it in the output.
     results.AddValue(failure.FailureValue(story, sys.exc_info(), description))
-  try:
-    if isinstance(test, story_test.StoryTest):
-      test.WillRunStory(state.platform)
-    state.WillRunStory(story)
-    if not state.CanRunStory(story):
-      results.AddValue(skip.SkipValue(
-          story,
-          'Skipped because story is not supported '
-          '(SharedState.CanRunStory() returns False).'))
-      return
-    state.RunStory(results)
-    if isinstance(test, story_test.StoryTest):
-      test.Measure(state.platform, results)
-  except (legacy_page_test.Failure, exceptions.TimeoutException,
-          exceptions.LoginException, exceptions.ProfilingException,
-          py_utils.TimeoutException):
-    ProcessError()
-  except exceptions.Error:
-    ProcessError()
-    raise
-  except page_action.PageActionNotSupported as e:
-    results.AddValue(
-        skip.SkipValue(story, 'Unsupported page action: %s' % e))
-  except Exception:
-    ProcessError(description='Unhandlable exception raised.')
-    raise
-  finally:
-    has_existing_exception = (sys.exc_info() != (None, None, None))
+
+  with CaptureLogsAsArtifacts(results, story.name):
     try:
-      # We attempt to stop tracing and/or metric collecting before possibly
-      # closing the browser. Closing the browser first and stopping tracing
-      # later appeared to cause issues where subsequent browser instances would
-      # not launch correctly on some devices (see: crbug.com/720317).
-      # The following normally cause tracing and/or metric collecting to stop.
       if isinstance(test, story_test.StoryTest):
-        test.DidRunStory(state.platform, results)
-      else:
-        test.DidRunPage(state.platform)
-      # And the following normally causes the browser to be closed.
-      state.DidRunStory(results)
-    except Exception: # pylint: disable=broad-except
-      if not has_existing_exception:
-        state.DumpStateUponFailure(story, results)
-        raise
-      # Print current exception and propagate existing exception.
-      exception_formatter.PrintFormattedException(
-          msg='Exception raised when cleaning story run: ')
+        test.WillRunStory(state.platform)
+      state.WillRunStory(story)
+
+      if not state.CanRunStory(story):
+        results.AddValue(skip.SkipValue(
+            story,
+            'Skipped because story is not supported '
+            '(SharedState.CanRunStory() returns False).'))
+        return
+      state.RunStory(results)
+      if isinstance(test, story_test.StoryTest):
+        test.Measure(state.platform, results)
+    except (legacy_page_test.Failure, exceptions.TimeoutException,
+            exceptions.LoginException, exceptions.ProfilingException,
+            py_utils.TimeoutException) as exc:
+      ProcessError(exc)
+    except exceptions.Error as exc:
+      ProcessError(exc)
+      raise
+    except page_action.PageActionNotSupported as exc:
+      results.AddValue(
+          skip.SkipValue(story, 'Unsupported page action: %s' % exc))
+    except Exception:
+      ProcessError(description='Unhandlable exception raised.')
+      raise
+    finally:
+      has_existing_exception = (sys.exc_info() != (None, None, None))
+      try:
+        # We attempt to stop tracing and/or metric collecting before possibly
+        # closing the browser. Closing the browser first and stopping tracing
+        # later appeared to cause issues where subsequent browser instances
+        # would not launch correctly on some devices (see: crbug.com/720317).
+        # The following normally cause tracing and/or metric collecting to stop.
+        if isinstance(test, story_test.StoryTest):
+          test.DidRunStory(state.platform, results)
+        else:
+          test.DidRunPage(state.platform)
+        # And the following normally causes the browser to be closed.
+        state.DidRunStory(results)
+      except Exception as exc: # pylint: disable=broad-except
+        if not has_existing_exception:
+          state.DumpStateUponFailure(story, results, exc)
+          raise
+        # Print current exception and propagate existing exception.
+        exception_formatter.PrintFormattedException(
+            msg='Exception raised when cleaning story run: ')
 
 
 def Run(test, story_set, finder_options, results, max_failures=None,

@@ -146,7 +146,7 @@ def CreateResults(benchmark_metadata, options,
   if not options.output_formats:
     options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
-  artifacts = artifact_results.ArtifactResults(options.output_dir)
+  artifacts = None
 
   upload_bucket = None
   if options.upload_results:
@@ -165,6 +165,9 @@ def CreateResults(benchmark_metadata, options,
           output_stream, benchmark_metadata, options.reset_results,
           upload_bucket))
     elif output_format == 'json-test-results':
+      # Only create artifact results if we're going to actually output them
+      # through an output format.
+      artifacts = artifact_results.ArtifactResults(options.output_dir)
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
           output_stream, artifacts))
     elif output_format == 'chartjson':
