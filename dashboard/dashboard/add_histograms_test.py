@@ -60,7 +60,7 @@ _SAMPLE_HISTOGRAM_END_TO_END = [
                 '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
         },
         'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
-        'name': 'foo2',
+        'name': 'foo',
         'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
         'sampleValues': [1, 2, 3],
         'unit': 'count'
@@ -95,7 +95,7 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
   def testPost_Succeeds(self, mock_process_test, mock_graph_revisions):
     data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
     sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo2']).put()
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo']).put()
 
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -361,6 +361,27 @@ class AddHistogramsTest(testing_common.TestCase):
     self.assertEqual(
         'e9c2891d-2b04-413f-8cf4-099827e67626',
         hist['diagnostics'][reserved_infos.MASTERS.name])
+
+  def testPostHistogram_FindSuiteLevelSparseDiagnostics_SavesOnce(self):
+    hists = [
+        histogram_module.Histogram('hist%d' % i, 'count') for i in xrange(10)]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        histogram_module.GenericSet([12345]))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+
+    results = add_histograms.FindSuiteLevelSparseDiagnostics(
+        histograms, add_histograms.GetSuiteKey(histograms), 12345)
+    self.assertEqual(3, len(results))
 
   def testPostHistogram_DeduplicatesSameSparseDiagnostic(self):
     diag_dict = {

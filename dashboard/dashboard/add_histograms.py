@@ -117,26 +117,11 @@ def ProcessHistogramSet(histogram_dicts):
   revision = ComputeRevision(histograms)
   suite_key = GetSuiteKey(histograms)
 
-  suite_level_sparse_diagnostic_entities = []
-  diagnostic_names_added = {}
-
   # We'll skip the histogram-level sparse diagnostics because we need to
   # handle those with the histograms, below, so that we can properly assign
   # test paths.
-  for hist in histograms:
-    for name, diag in hist.diagnostics.iteritems():
-      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
-        if diagnostic_names_added.get(name) is None:
-          diagnostic_names_added[name] = diag.guid
-
-        if diagnostic_names_added.get(name) != diag.guid:
-          raise ValueError(
-              name + ' diagnostics must be the same for all histograms')
-
-        suite_level_sparse_diagnostic_entities.append(
-            histogram.SparseDiagnostic(
-                id=diag.guid, data=diag.AsDict(), test=suite_key,
-                start_revision=revision, end_revision=sys.maxint, name=name))
+  suite_level_sparse_diagnostic_entities = FindSuiteLevelSparseDiagnostics(
+      histograms, suite_key, revision)
 
   # TODO(eakuefner): Refactor master/bot computation to happen above this line
   # so that we can replace with a DiagnosticRef rather than a full diagnostic.
@@ -188,6 +173,7 @@ def DeduplicateAndPut(new_entities, test, rev):
   diagnostic_entities = query.fetch()
   entity_futures = []
   new_guids_to_existing_diagnostics = {}
+
   for new_entity in new_entities:
     type_str = new_entity.data['type']
     old_entity = _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities)
@@ -218,6 +204,25 @@ def _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities):
 def _IsDifferent(diagnostic_a, diagnostic_b):
   return (diagnostic.Diagnostic.FromDict(diagnostic_a) !=
           diagnostic.Diagnostic.FromDict(diagnostic_b))
+
+
+def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision):
+  diagnostic_names_added = {}
+  suite_level_sparse_diagnostic_entities = []
+  for hist in histograms:
+    for name, diag in hist.diagnostics.iteritems():
+      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
+        if diagnostic_names_added.get(name) is None:
+          diagnostic_names_added[name] = diag.guid
+          suite_level_sparse_diagnostic_entities.append(
+              histogram.SparseDiagnostic(
+                  id=diag.guid, data=diag.AsDict(), test=suite_key,
+                  start_revision=revision, end_revision=sys.maxint, name=name))
+
+        if diagnostic_names_added.get(name) != diag.guid:
+          raise ValueError(
+              name + ' diagnostics must be the same for all histograms')
+  return suite_level_sparse_diagnostic_entities
 
 
 def FindHistogramLevelSparseDiagnostics(guid, histograms):
