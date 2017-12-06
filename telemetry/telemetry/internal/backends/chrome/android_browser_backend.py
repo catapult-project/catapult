@@ -206,6 +206,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       pid = self.device.GetApplicationPids(
           self._backend_settings.package, at_most_one=True)
     except device_errors.CommandFailedError as exc:
+      logging.warning('Dumping output of "ps" command for diagnosis:')
+      for line in self.device.RunShellCommand(['ps']):
+        logging.warning('- %s', line)
       # This may happen if we end up with two PIDs for the browser process.
       # Re-raise as an AppCrashException to get further debug information.
       raise exceptions.AppCrashException(
