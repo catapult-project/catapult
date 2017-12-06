@@ -36,34 +36,41 @@ class DoNothingForwarderFactory(forwarders.ForwarderFactory):
 class DoNothingForwarder(forwarders.Forwarder):
   """Check that no forwarding is needed for the given port pairs.
 
-  The local and remote ports must be equal. Otherwise, the "do nothing"
-  forwarder does not make sense. (Raises PortsMismatchError.)
+  If either the local or remote port is missing, it is made to match its
+  counterpart. At least one of the two must be given, though.
 
-  Also, check that all TCP ports support connections.  (Raises ConnectionError.)
+  A PortsMismatchError is raised if local and remote ports are not equal.
+  Otherwise, the "do nothing" forwarder does not make sense.
+
+  A ConnectionError is raised if the port does not support TCP connections.
   """
 
   def __init__(self, local_port, remote_port):
     super(DoNothingForwarder, self).__init__()
-    # TODO(#1977): Move call to after checking ports.
+    local_port, remote_port = _ValidatePorts(local_port, remote_port)
     self._StartedForwarding(local_port, remote_port)
-    self._CheckPortPair()
+    self._WaitForConnectionEstablished()
 
-  def _CheckPortPair(self):
-    if self._port_pair.local_port != self._port_pair.remote_port:
-      raise PortsMismatchError('Local port forwarding is not supported')
-    try:
-      self._WaitForConnectionEstablished(
-          (self.host_ip, self._port_pair.local_port), timeout=10)
-      logging.debug(
-          'Connection test succeeded for %s:%d',
-          self.host_ip, self._port_pair.local_port)
-    except py_utils.TimeoutException:
-      raise ConnectionError(
-          'Unable to connect to address: %s:%d',
-          self.host_ip, self._port_pair.local_port)
+  def _WaitForConnectionEstablished(self):
+    address = (self.host_ip, self.local_port)
 
-  def _WaitForConnectionEstablished(self, address, timeout):
     def CanConnect():
       with contextlib.closing(socket.socket()) as s:
         return s.connect_ex(address) == 0
-    py_utils.WaitFor(CanConnect, timeout)
+
+    try:
+      py_utils.WaitFor(CanConnect, timeout=10)
+      logging.debug('Connection test succeeded for %s:%d', *address)
+    except py_utils.TimeoutException:
+      raise ConnectionError('Unable to connect to address: %s:%d' % address)
+
+
+def _ValidatePorts(local_port, remote_port):
+  if not local_port:
+    assert remote_port, 'Either local or remote ports must be given'
+    local_port = remote_port
+  elif not remote_port:
+    remote_port = local_port
+  elif local_port != remote_port:
+    raise PortsMismatchError('Local port forwarding is not supported')
+  return (local_port, remote_port)
