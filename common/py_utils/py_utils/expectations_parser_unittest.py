@@ -10,14 +10,6 @@ from py_utils import expectations_parser
 
 class TestExpectationParserTest(unittest.TestCase):
 
-  def testInitWithPathNoFile(self):
-    with self.assertRaises(ValueError):
-      expectations_parser.TestExpectationParser(path='No Path')
-
-  def testInitNoData(self):
-    with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(path=None, raw=None)
-
   def testInitWithGoodData(self):
     good_data = """
 # This is a test expectation file.
@@ -28,7 +20,7 @@ class TestExpectationParserTest(unittest.TestCase):
 crbug.com/12345 [ Mac ] b1/s1 [ Skip ]
 crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 """
-    parser = expectations_parser.TestExpectationParser(raw=good_data)
+    parser = expectations_parser.TestExpectationParser(good_data)
     tags = ['tag1', 'tag2', 'tag3', 'tag4', 'Mac', 'Win', 'Debug']
     self.assertEqual(parser.tags, tags)
     expected_outcome = [
@@ -50,7 +42,7 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 crbug.com/12345 [ Mac b1/s1 [ Skip ]
 """
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=bad_data)
+      expectations_parser.TestExpectationParser(bad_data)
 
   def testTagAfterExpectationsStart(self):
     bad_data = """
@@ -63,11 +55,11 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
 # tags: tag4
 """
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=bad_data)
+      expectations_parser.TestExpectationParser(bad_data)
 
   def testParseExpectationLineEverythingThere(self):
     raw_data = '# tags: Mac\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     expected_outcome = [
         expectations_parser.Expectation(
             'crbug.com/23456', 'b1/s2', ['Mac'], ['Skip'])
@@ -78,11 +70,11 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
   def testParseExpectationLineBadTag(self):
     raw_data = '# tags: None\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineNoConditions(self):
     raw_data = '# tags: All\ncrbug.com/12345 b1/s1 [ Skip ]'
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     expected_outcome = [
         expectations_parser.Expectation(
             'crbug.com/12345', 'b1/s1', [], ['Skip']),
@@ -92,7 +84,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
 
   def testParseExpectationLineNoBug(self):
     raw_data = '# tags: All\n[ All ] b1/s1 [ Skip ]'
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     expected_outcome = [
         expectations_parser.Expectation(
             None, 'b1/s1', ['All'], ['Skip']),
@@ -102,7 +94,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
 
   def testParseExpectationLineNoBugNoConditions(self):
     raw_data = '# tags: All\nb1/s1 [ Skip ]'
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     expected_outcome = [
         expectations_parser.Expectation(
             None, 'b1/s1', [], ['Skip']),
@@ -113,7 +105,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
   def testParseExpectationLineMultipleConditions(self):
     raw_data = ('# tags:All None Batman\n'
                 'crbug.com/123 [ All None Batman ] b1/s1 [ Skip ]')
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     expected_outcome = [
         expectations_parser.Expectation(
             'crbug.com/123', 'b1/s1', ['All', 'None', 'Batman'], ['Skip']),
@@ -124,32 +116,32 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
   def testParseExpectationLineBadConditionBracket(self):
     raw_data = '# tags: Mac\ncrbug.com/23456 ] Mac ] b1/s2 [ Skip ]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineBadResultBracket(self):
     raw_data = '# tags: Mac\ncrbug.com/23456 ] Mac ] b1/s2 ] Skip ]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineBadConditionBracketSpacing(self):
     raw_data = '# tags: Mac\ncrbug.com/2345 [Mac] b1/s1 [ Skip ]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineBadResultBracketSpacing(self):
     raw_data = '# tags: Mac\ncrbug.com/2345 [ Mac ] b1/s1 [Skip]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineNoClosingConditionBracket(self):
     raw_data = '# tags: Mac\ncrbug.com/2345 [ Mac b1/s1 [ Skip ]'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineNoClosingResultBracket(self):
     raw_data = '# tags: Mac\ncrbug.com/2345 [ Mac ] b1/s1 [ Skip'
     with self.assertRaises(expectations_parser.ParseError):
-      expectations_parser.TestExpectationParser(raw=raw_data)
+      expectations_parser.TestExpectationParser(raw_data)
 
   def testParseExpectationLineUrlInTestName(self):
     raw_data = (
@@ -158,6 +150,6 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         expectations_parser.Expectation(
             'crbug.com/123', 'b.1/http://google.com', ['Mac'], ['Skip'])
     ]
-    parser = expectations_parser.TestExpectationParser(raw=raw_data)
+    parser = expectations_parser.TestExpectationParser(raw_data)
     for i in range(len(parser.expectations)):
       self.assertEqual(parser.expectations[i], expected_outcomes[i])

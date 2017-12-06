@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import re
 
 
@@ -54,20 +53,21 @@ class Expectation(object):
 
 
 class TestExpectationParser(object):
-  """Parse expectations file.
+  """Parse expectations data in TA/DA format.
 
   This parser covers the 'tagged' test lists format in:
       bit.ly/chromium-test-list-format
 
-  It takes the path to the expectation file as an argument.
+  Takes raw expectations data as a string read from the TA/DA expectation file
+  in the format:
 
-  Example expectation file to parse:
     # This is an example expectation file.
     #
     # tags: Mac Mac10.10 Mac10.11
     # tags: Win Win8
 
     crbug.com/123 [ Win ] benchmark/story [ Skip ]
+    ...
   """
 
   TAG_TOKEN = '# tags:'
@@ -77,18 +77,10 @@ class TestExpectationParser(object):
   _MATCH_STRING += r'\[ ([^\[.]+) \]$'  # The expectation field.
   MATCHER = re.compile(_MATCH_STRING)
 
-  def __init__(self, path=None, raw=None):
+  def __init__(self, raw_data):
     self._tags = []
     self._expectations = []
-    if path:
-      if not os.path.exists(path):
-        raise ValueError('Path to expectation file must be valid.')
-      with open(path, 'r') as fp:
-        self._ParseRawExpectationData(fp.read())
-    elif raw:
-      self._ParseRawExpectationData(raw)
-    else:
-      raise ParseError('Must specify raw string or expectation file to decode.')
+    self._ParseRawExpectationData(raw_data)
 
   def _ParseRawExpectationData(self, raw_data):
     for count, line in list(enumerate(raw_data.splitlines(), start=1)):
