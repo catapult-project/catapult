@@ -107,7 +107,12 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(TEST_HISTOGRAM['guid'], histograms[0].key.id())
 
     h = histograms[0]
-    self.assertEqual(json.dumps(TEST_HISTOGRAM), h.data)
+    h1 = histograms[0].data
+    del h1['guid']
+
+    h2 = copy.deepcopy(TEST_HISTOGRAM)
+    del h2['guid']
+    self.assertEqual(h2, h1)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)
     self.assertFalse(h.internal_only)
@@ -132,7 +137,12 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(original_histogram['guid'], histograms[0].key.id())
 
     h = histograms[0]
-    self.assertEqual(json.dumps(TEST_HISTOGRAM), h.data)
+    h1 = histograms[0].data
+    del h1['guid']
+
+    h2 = copy.deepcopy(TEST_HISTOGRAM)
+    del h2['guid']
+    self.assertEqual(h2, h1)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)
     self.assertTrue(h.internal_only)

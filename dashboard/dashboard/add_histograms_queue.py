@@ -113,27 +113,19 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           end_revision=revision, internal_only=internal_only)
     else:
       diagnostics = self.request.get('diagnostics')
-      if diagnostics:
-        diagnostic_data = json.loads(diagnostics)
-        diagnostic_entities = []
-        for diagnostic_datum in diagnostic_data:
-          # TODO(eakuefner): Pass map of guid to dict to avoid overhead
-          guid = diagnostic_datum['guid']
-          diagnostic_entities.append(histogram.SparseDiagnostic(
-              id=guid, data=diagnostic_datum, test=test_key,
-              start_revision=revision, end_revision=sys.maxint,
-              internal_only=internal_only))
-        new_guids_to_existing_diagnostics = add_histograms.DeduplicateAndPut(
-            diagnostic_entities, test_key, revision).iteritems()
-        # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
-        hs = histogram_set.HistogramSet()
-        hs.ImportDicts([data_dict])
-        # TODO(eakuefner): Share code for replacement logic with add_histograms
-        for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
-          hs.ReplaceSharedDiagnostic(
-              new_guid, diagnostic_ref.DiagnosticRef(
-                  existing_diagnostic['guid']))
-        data = hs.GetFirstHistogram().AsDict()
+
+      new_guids_to_existing_diagnostics = ProcessDiagnostics(
+          diagnostics, revision, test_key, internal_only)
+
+      # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
+      hs = histogram_set.HistogramSet()
+      hs.ImportDicts([data_dict])
+      # TODO(eakuefner): Share code for replacement logic with add_histograms
+      for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
+        hs.ReplaceSharedDiagnostic(
+            new_guid, diagnostic_ref.DiagnosticRef(
+                existing_diagnostic['guid']))
+      data = hs.GetFirstHistogram().AsDict()
 
       entity = histogram.Histogram(
           id=guid, data=data, test=test_key, revision=revision,
@@ -157,6 +149,24 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
         graph_revisions.AddRowsToCacheAsync(added_rows),
         find_anomalies.ProcessTestsAsync(tests_keys)]
     ndb.Future.wait_all(futures)
+
+
+def ProcessDiagnostics(diagnostics, revision, test_key, internal_only):
+  if not diagnostics:
+    return {}
+
+  diagnostic_data = json.loads(diagnostics)
+  diagnostic_entities = []
+  for diagnostic_datum in diagnostic_data:
+    # TODO(eakuefner): Pass map of guid to dict to avoid overhead
+    guid = diagnostic_datum['guid']
+    diagnostic_entities.append(histogram.SparseDiagnostic(
+        id=guid, data=diagnostic_datum, test=test_key,
+        start_revision=revision, end_revision=sys.maxint,
+        internal_only=internal_only))
+  new_guids_to_existing_diagnostics = add_histograms.DeduplicateAndPut(
+      diagnostic_entities, test_key, revision).iteritems()
+  return new_guids_to_existing_diagnostics
 
 
 def GetUnitArgs(unit):

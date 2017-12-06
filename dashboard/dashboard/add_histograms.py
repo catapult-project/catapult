@@ -7,6 +7,7 @@
 import json
 import logging
 import sys
+import uuid
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -159,7 +160,17 @@ def _MakeTask(hist, test_path, revision, diagnostics=None):
       'revision': revision
   }
   if diagnostics is not None:
-    params['diagnostics'] = json.dumps([d.AsDict() for d in diagnostics])
+    # By changing the GUID just before serializing the task, we're making it
+    # unique for each histogram. This avoids each histogram trying to write the
+    # same diagnostic out (datastore contention), at the cost of copyin the
+    # data. These are sparsely written to datastore anyway, so the extra
+    # storage should be minimal.
+    diagnostics = [d.AsDict() for d in diagnostics]
+    for d in diagnostics:
+      d['guid'] = str(uuid.uuid4())
+
+    params['diagnostics'] = json.dumps(diagnostics)
+
   return taskqueue.Task(url='/add_histograms_queue', params=params)
 
 
