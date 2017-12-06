@@ -24,17 +24,15 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
     self._device = device
 
   def Create(self, local_port, remote_port, reverse=False):
-    # TODO(#1977): Remove usage of PortPair.
-    port_pair = forwarders._PortPair(local_port, remote_port)
     try:
-      if reverse:
-        return AndroidReverseForwarder(self._device, port_pair)
+      if not reverse:
+        return AndroidForwarder(self._device, local_port, remote_port)
       else:
-        return AndroidForwarder(self._device, port_pair)
+        return AndroidReverseForwarder(self._device, local_port, remote_port)
     except Exception:
       logging.exception(
           'Failed to map local_port=%r to remote_port=%r (reverse=%r).',
-          port_pair.local_port, port_pair.remote_port, reverse)
+          local_port, remote_port, reverse)
       util.LogExtraDebugInformation(
           self._ListCurrentAdbConnections,
           self._ListWebPageReplayInstances,
@@ -85,22 +83,18 @@ class AndroidForwarder(forwarders.Forwarder):
   - catapult:/devil/devil/android/forwarder.py
   """
 
-  def __init__(self, device, port_pair):
-    super(AndroidForwarder, self).__init__(port_pair)
+  def __init__(self, device, local_port, remote_port):
+    super(AndroidForwarder, self).__init__()
     self._device = device
-    forwarder.Forwarder.Map(
-        [(port_pair.remote_port, port_pair.local_port)], self._device)
-    self._port_pair = (
-        forwarders._PortPair(
-            port_pair.local_port,
-            forwarder.Forwarder.DevicePortForHostPort(port_pair.local_port)))
+    assert local_port, 'Local port must be given'
+    forwarder.Forwarder.Map([(remote_port, local_port)], self._device)
+    remote_port = forwarder.Forwarder.DevicePortForHostPort(local_port)
+    self._StartedForwarding(local_port, remote_port)
     atexit_with_log.Register(self.Close)
-    # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):
-    if self._forwarding:
-      forwarder.Forwarder.UnmapDevicePort(
-          self._port_pair.remote_port, self._device)
+    if self.is_forwarding:
+      forwarder.Forwarder.UnmapDevicePort(self.remote_port, self._device)
     super(AndroidForwarder, self).Close()
 
 
@@ -114,23 +108,22 @@ class AndroidReverseForwarder(forwarders.Forwarder):
   - catapult:/devil/devil/android/sdk/adb_wrapper.py
   """
 
-  def __init__(self, device, port_pair):
-    super(AndroidReverseForwarder, self).__init__(port_pair)
+  def __init__(self, device, local_port, remote_port):
+    super(AndroidReverseForwarder, self).__init__()
     self._device = device
-    local_port, remote_port = port_pair
     assert remote_port, 'Remote port must be given'
     if not local_port:
       local_port = util.GetUnreservedAvailableLocalPort()
     self._device.adb.Forward('tcp:%d' % local_port, remote_port)
-    self._port_pair = forwarders._PortPair(local_port, remote_port)
+    self._StartedForwarding(local_port, remote_port)
 
   def Close(self):
-    if self._forwarding:
+    if self.is_forwarding:
       # This used to run `adb forward --list` to check that the requested
       # port was actually being forwarded to self._device. Unfortunately,
       # starting in adb 1.0.36, a bug (b/31811775) keeps this from working.
       # For now, try to remove the port forwarding and ignore failures.
-      local_address = 'tcp:%d' % self._port_pair.local_port
+      local_address = 'tcp:%d' % self.local_port
       try:
         self._device.adb.ForwardRemove(local_address)
       except device_errors.AdbCommandFailedError:

@@ -20,23 +20,23 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
     self._cri = cri
 
   def Create(self, local_port, remote_port, reverse=False):
-    # TODO(#1977): Remove usage of PortPair.
-    port_pair = forwarders._PortPair(local_port, remote_port)
-    use_remote_port_forwarding = not reverse
     if self._cri.local:
-      return do_nothing_forwarder.DoNothingForwarder(port_pair)
-    return CrOsSshForwarder(self._cri, use_remote_port_forwarding, port_pair)
+      return do_nothing_forwarder.DoNothingForwarder(local_port, remote_port)
+    return CrOsSshForwarder(self._cri, local_port, remote_port,
+                            use_remote_port_forwarding=not reverse)
 
 
 class CrOsSshForwarder(forwarders.Forwarder):
 
-  def __init__(self, cri, use_remote_port_forwarding, port_pair):
-    super(CrOsSshForwarder, self).__init__(port_pair)
+  def __init__(self, cri, local_port, remote_port, use_remote_port_forwarding):
+    super(CrOsSshForwarder, self).__init__()
+    # TODO(#1977): Move call to after forwarding has actually started.
+    self._StartedForwarding(local_port, remote_port)
     self._cri = cri
     self._proc = None
     self._remote_port = None
     forwarding_args = self._ForwardingArgs(
-        use_remote_port_forwarding, self.host_ip, port_pair)
+        use_remote_port_forwarding, self.host_ip, self._port_pair)
     err_file = tempfile.NamedTemporaryFile()
     self._proc = subprocess.Popen(
         self._cri.FormSSHCommandLine(['-NT'], forwarding_args,
@@ -57,7 +57,7 @@ class CrOsSshForwarder(forwarders.Forwarder):
         self._remote_port = int(tokens.group(1))
       return tokens
 
-    if use_remote_port_forwarding and port_pair.remote_port == 0:
+    if use_remote_port_forwarding and self._port_pair.remote_port == 0:
       with open(err_file.name, 'r') as err_file_reader:
         py_utils.WaitFor(lambda: _get_remote_port(err_file_reader), 60)
 

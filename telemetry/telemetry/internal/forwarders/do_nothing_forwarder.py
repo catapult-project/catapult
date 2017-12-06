@@ -30,9 +30,7 @@ class DoNothingForwarderFactory(forwarders.ForwarderFactory):
 
   def Create(self, local_port, remote_port, reverse=False):
     del reverse  # Not relevant in DoNothingForwarder.
-    # TODO(#1977): Remove usage of PortPair.
-    port_pair = forwarders._PortPair(local_port, remote_port)
-    return DoNothingForwarder(port_pair)
+    return DoNothingForwarder(local_port, remote_port)
 
 
 class DoNothingForwarder(forwarders.Forwarder):
@@ -44,8 +42,10 @@ class DoNothingForwarder(forwarders.Forwarder):
   Also, check that all TCP ports support connections.  (Raises ConnectionError.)
   """
 
-  def __init__(self, port_pair):
-    super(DoNothingForwarder, self).__init__(port_pair)
+  def __init__(self, local_port, remote_port):
+    super(DoNothingForwarder, self).__init__()
+    # TODO(#1977): Move call to after checking ports.
+    self._StartedForwarding(local_port, remote_port)
     self._CheckPortPair()
 
   def _CheckPortPair(self):

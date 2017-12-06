@@ -39,10 +39,16 @@ class ForwarderFactory(object):
 
 class Forwarder(object):
 
-  def __init__(self, port_pair):
-    assert port_pair, 'Port mapping is required.'
-    self._port_pair = port_pair
-    self._forwarding = True
+  def __init__(self):
+    self._port_pair = None
+
+  def _StartedForwarding(self, local_port, remote_port):
+    # TODO(#1977): Check that neither port is missing at this point.
+    self._port_pair = _PortPair(local_port, remote_port)
+
+  @property
+  def is_forwarding(self):
+    return self._port_pair is not None
 
   @property
   def host_ip(self):
@@ -58,4 +64,3 @@ class Forwarder(object):
 
   def Close(self):
     self._port_pair = None
-    self._forwarding = False
