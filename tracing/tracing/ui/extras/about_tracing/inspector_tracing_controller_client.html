@@ -141,7 +141,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     beginGetBufferPercentFull() {
-      return tr.b.timeout(100).then(() => this.bufferUsage_());
+      return tr.b.timeout(100).then(() => this.bufferUsage_);
     },
 
     onDataCollected_(messageString) {
