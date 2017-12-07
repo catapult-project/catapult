@@ -414,7 +414,7 @@ class AddHistogramsTest(testing_common.TestCase):
                     'e9c2891d-2b04-413f-8cf4-099827e67626',
                 reserved_infos.BOTS.name:
                     '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.GPUS.name:
+                reserved_infos.DEVICE_IDS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
                 reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
                     '25f0a111-9bb4-4cea-b0c1-af2609623160',
@@ -434,10 +434,10 @@ class AddHistogramsTest(testing_common.TestCase):
 
     self.assertEqual(1, len(diagnostics))
     self.assertEqual(
-        ['test'], diagnostics[reserved_infos.GPUS.name]['values'])
+        ['test'], diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
     self.assertNotEqual(
         '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-        diagnostics[reserved_infos.GPUS.name]['guid'])
+        diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
 
   def testPostHistogram_AddsNewSparseDiagnostic(self):
     diag_dict = {
@@ -857,14 +857,30 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic('foo', histogram_module.GenericSet(['bar']))
     histograms.AddSharedDiagnostic(
-        reserved_infos.GPUS.name,
+        reserved_infos.DEVICE_IDS.name,
         histogram_module.GenericSet([]))
     diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(
         hist.guid, histograms)
 
     self.assertEqual(1, len(diagnostics))
     self.assertIsInstance(
-        diagnostics[reserved_infos.GPUS.name], histogram_module.GenericSet)
+        diagnostics[reserved_infos.DEVICE_IDS.name],
+        histogram_module.GenericSet)
+
+  def testFindSuiteLevelSparseDiagnostics(self):
+    def _CreateHistogram(hist, master):
+      h = histogram_module.Histogram(hist, 'count')
+      h.diagnostics[reserved_infos.MASTERS.name] = (
+          histogram_module.GenericSet([master]))
+      return h
+
+    histograms = histogram_set.HistogramSet([
+        _CreateHistogram('hist1', 'master1'),
+        _CreateHistogram('hist2', 'master2')])
+
+    with self.assertRaises(ValueError):
+      add_histograms.FindSuiteLevelSparseDiagnostics(
+          histograms, utils.TestKey('M/B/Foo'), 12345)
 
   def testComputeTestPathWithStory(self):
     hist = histogram_module.Histogram('hist', 'count')
