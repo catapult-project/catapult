@@ -22,7 +22,13 @@ tr.exportTo('tr.b', function() {
   }
 
   Base64.getDecodedBufferLength = function(input) {
-    return input.length * 3 + 1 >> 2;
+    let pad = 0;
+    if (input.substr(-2) === '==') {
+      pad = 2;
+    } else if (input.substr(-1) === '=') {
+      pad = 1;
+    }
+    return ((input.length * 3 + 1) >> 2) - pad;
   };
 
   Base64.EncodeArrayBufferToString = function(input) {
@@ -38,7 +44,7 @@ tr.exportTo('tr.b', function() {
 
   Base64.DecodeToTypedArray = function(input, output) {
     const nInLen = input.length;
-    const nOutLen = nInLen * 3 + 1 >> 2;
+    const nOutLen = Base64.getDecodedBufferLength(input);
     let nMod3 = 0;
     let nMod4 = 0;
     let nUint24 = 0;
@@ -58,7 +64,7 @@ tr.exportTo('tr.b', function() {
         nUint24 = 0;
       }
     }
-    return nOutIdx - 1;
+    return nOutLen;
   };
 
   /*

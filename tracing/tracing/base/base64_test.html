@@ -10,9 +10,12 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('getDecodedLength', function() {
-    assert.isTrue(tr.b.Base64.getDecodedBufferLength('YQ==') >= 1);
-    assert.isTrue(tr.b.Base64.getDecodedBufferLength('YWJjZA==') >= 4);
-    assert.isTrue(tr.b.Base64.getDecodedBufferLength('YWJjZGVm') >= 6);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YQ=='), 1);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YWI='), 2);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YWJj='), 3);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YWJjZA=='), 4);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YWJjZGU='), 5);
+    assert.strictEqual(tr.b.Base64.getDecodedBufferLength('YWJjZGVm'), 6);
   });
 
   test('DecodeToTypedArray', function() {
@@ -33,8 +36,18 @@ tr.b.unittest.testSuite(function() {
 
   test('DecodeLengthReturn', function() {
     const buffer = new DataView(new ArrayBuffer(256));
-    const len = tr.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
+    let len = tr.b.Base64.DecodeToTypedArray(btoa('h'), buffer);
+    assert.strictEqual(len, 1);
+    len = tr.b.Base64.DecodeToTypedArray(btoa('he'), buffer);
+    assert.strictEqual(len, 2);
+    len = tr.b.Base64.DecodeToTypedArray(btoa('hel'), buffer);
+    assert.strictEqual(len, 3);
+    len = tr.b.Base64.DecodeToTypedArray(btoa('hell'), buffer);
+    assert.strictEqual(len, 4);
+    len = tr.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
     assert.strictEqual(len, 5);
+    len = tr.b.Base64.DecodeToTypedArray(btoa('hello!'), buffer);
+    assert.strictEqual(len, 6);
   });
 
   test('Base64.atob', function() {
