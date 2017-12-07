@@ -158,7 +158,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_BENCHMARKS, TEST_OWNERS])
+        'diagnostics': json.dumps({
+            'benchmarks': TEST_BENCHMARKS,
+            'owners': TEST_OWNERS})
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]
@@ -174,7 +176,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     ownership_entity = ndb.Key(
         'SparseDiagnostic', TEST_OWNERS['guid']).get()
     self.assertFalse(telemetry_info_entity.internal_only)
+    self.assertEqual('benchmarks', telemetry_info_entity.name)
     self.assertFalse(ownership_entity.internal_only)
+    self.assertEqual('owners', ownership_entity.name)
 
   def testPostHistogram_WithSameDiagnostic(self):
     diag_dict = {
@@ -193,7 +197,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_BENCHMARKS, TEST_OWNERS])
+        'diagnostics': json.dumps({
+            'benchmarks': TEST_BENCHMARKS,
+            'owners': TEST_OWNERS})
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]
@@ -211,7 +217,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'type': 'GenericSet'
     }
     diag = histogram.SparseDiagnostic(
-        data=diag_dict, start_revision=1, end_revision=sys.maxint,
+        data=diag_dict, name='owners',
+        start_revision=1, end_revision=sys.maxint,
         test=utils.TestKey('Chromium/win7/suite/metric'))
     diag.put()
     stored_object.Set(
@@ -221,7 +228,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'data': json.dumps(TEST_HISTOGRAM),
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps([TEST_BENCHMARKS, TEST_OWNERS])
+        'diagnostics': json.dumps({
+            'benchmarks': TEST_BENCHMARKS,
+            'owners': TEST_OWNERS})
     }
     self.testapp.post('/add_histograms_queue', params)
     histogram_entity = histogram.Histogram.query().fetch()[0]

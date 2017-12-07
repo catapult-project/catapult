@@ -157,11 +157,11 @@ def ProcessDiagnostics(diagnostics, revision, test_key, internal_only):
 
   diagnostic_data = json.loads(diagnostics)
   diagnostic_entities = []
-  for diagnostic_datum in diagnostic_data:
+  for name, diagnostic_datum in diagnostic_data.iteritems():
     # TODO(eakuefner): Pass map of guid to dict to avoid overhead
     guid = diagnostic_datum['guid']
     diagnostic_entities.append(histogram.SparseDiagnostic(
-        id=guid, data=diagnostic_datum, test=test_key,
+        id=guid, name=name, data=diagnostic_datum, test=test_key,
         start_revision=revision, end_revision=sys.maxint,
         internal_only=internal_only))
   new_guids_to_existing_diagnostics = add_histograms.DeduplicateAndPut(

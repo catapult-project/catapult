@@ -159,17 +159,17 @@ def _MakeTask(hist, test_path, revision, diagnostics=None):
       'test_path': test_path,
       'revision': revision
   }
-  if diagnostics is not None:
-    # By changing the GUID just before serializing the task, we're making it
-    # unique for each histogram. This avoids each histogram trying to write the
-    # same diagnostic out (datastore contention), at the cost of copyin the
-    # data. These are sparsely written to datastore anyway, so the extra
-    # storage should be minimal.
-    diagnostics = [d.AsDict() for d in diagnostics]
-    for d in diagnostics:
-      d['guid'] = str(uuid.uuid4())
 
-    params['diagnostics'] = json.dumps(diagnostics)
+  # By changing the GUID just before serializing the task, we're making it
+  # unique for each histogram. This avoids each histogram trying to write the
+  # same diagnostic out (datastore contention), at the cost of copyin the
+  # data. These are sparsely written to datastore anyway, so the extra
+  # storage should be minimal.
+  diagnostics = dict((k, d.AsDict()) for k, d in diagnostics.iteritems())
+  for d in diagnostics.values():
+    d['guid'] = str(uuid.uuid4())
+
+  params['diagnostics'] = json.dumps(diagnostics)
 
   return taskqueue.Task(url='/add_histograms_queue', params=params)
 
@@ -186,8 +186,8 @@ def DeduplicateAndPut(new_entities, test, rev):
   new_guids_to_existing_diagnostics = {}
 
   for new_entity in new_entities:
-    type_str = new_entity.data['type']
-    old_entity = _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities)
+    old_entity = _GetDiagnosticEntityMatchingName(
+        new_entity.name, diagnostic_entities)
     if old_entity is not None:
       # Case 1: One in datastore, different from new one.
       if _IsDifferent(old_entity.data, new_entity.data):
@@ -206,42 +206,41 @@ def DeduplicateAndPut(new_entities, test, rev):
   return new_guids_to_existing_diagnostics
 
 
-def _GetDiagnosticEntityMatchingType(type_str, diagnostic_entities):
+def _GetDiagnosticEntityMatchingName(name, diagnostic_entities):
   for entity in diagnostic_entities:
-    if entity.data['type'] == type_str:
+    if entity.name == name:
       return entity
+  return None
 
 
 def _IsDifferent(diagnostic_a, diagnostic_b):
-  return (diagnostic.Diagnostic.FromDict(diagnostic_a) !=
-          diagnostic.Diagnostic.FromDict(diagnostic_b))
+  return not (
+      diagnostic.Diagnostic.FromDict(diagnostic_a) ==
+      diagnostic.Diagnostic.FromDict(diagnostic_b))
 
 
 def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision):
-  diagnostic_names_added = {}
-  suite_level_sparse_diagnostic_entities = []
+  diagnostics = {}
   for hist in histograms:
     for name, diag in hist.diagnostics.iteritems():
       if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
-        if diagnostic_names_added.get(name) is None:
-          diagnostic_names_added[name] = diag.guid
-          suite_level_sparse_diagnostic_entities.append(
-              histogram.SparseDiagnostic(
-                  id=diag.guid, data=diag.AsDict(), test=suite_key,
-                  start_revision=revision, end_revision=sys.maxint, name=name))
-
-        if diagnostic_names_added.get(name) != diag.guid:
+        existing_entity = diagnostics.get(name)
+        if existing_entity is None:
+          diagnostics[name] = histogram.SparseDiagnostic(
+              id=diag.guid, data=diag.AsDict(), test=suite_key,
+              start_revision=revision, end_revision=sys.maxint, name=name)
+        elif existing_entity.key.id() != diag.guid:
           raise ValueError(
               name + ' diagnostics must be the same for all histograms')
-  return suite_level_sparse_diagnostic_entities
+  return diagnostics.values()
 
 
 def FindHistogramLevelSparseDiagnostics(guid, histograms):
   hist = histograms.LookupHistogram(guid)
-  diagnostics = []
+  diagnostics = {}
   for name, diag in hist.diagnostics.iteritems():
     if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
-      diagnostics.append(diag)
+      diagnostics[name] = diag
   return diagnostics
 
 

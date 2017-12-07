@@ -26,6 +26,8 @@ from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
 
+# pylint: disable=too-many-lines
+
 
 GOOGLER_USER = users.User(email='authorized@chromium.org',
                           _auth_domain='google.com')
@@ -141,6 +143,133 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       self, mock_process_test):
     self._SetupRefTest('_ref_abcd')
     self.assertTrue(mock_process_test.called)
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_DeduplicateByName(self):
+    def _CreateHistogram(revision, device, owner):
+      hists = [histogram_module.Histogram('hist', 'count')]
+      histograms = histogram_set.HistogramSet(hists)
+      histograms.AddSharedDiagnostic(
+          reserved_infos.MASTERS.name,
+          histogram_module.GenericSet(['master']))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.BOTS.name,
+          histogram_module.GenericSet(['bot']))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+          histogram_module.GenericSet([revision]))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.BENCHMARKS.name,
+          histogram_module.GenericSet(['benchmark']))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.OWNERS.name,
+          histogram_module.GenericSet([owner]))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.DEVICE_IDS.name,
+          histogram_module.GenericSet([device]))
+      histograms.AddSharedDiagnostic(
+          reserved_infos.STORIES.name,
+          histogram_module.GenericSet(['story1', 'story2']))
+      return histograms
+
+    hs = _CreateHistogram(1111, 'device1', 'owner1')
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    # There should be the 4 suite level and 2 histogram level diagnostics
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(6, len(diagnostics))
+
+    hs = _CreateHistogram(1112, 'device1', 'owner1')
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    # There should STILL be the 4 suite level and 2 histogram level diagnostics
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(6, len(diagnostics))
+
+    hs = _CreateHistogram(1113, 'device2', 'owner1')
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    # There should one additional device diagnostic since that changed
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(7, len(diagnostics))
+
+    hs = _CreateHistogram(1114, 'device2', 'owner2')
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    # Now there's an additional owner diagnostic
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(8, len(diagnostics))
+
+    hs = _CreateHistogram(1115, 'device2', 'owner2')
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    # No more new diagnostics
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(8, len(diagnostics))
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_NamesAreSet(self):
+    hists = [histogram_module.Histogram('hist', 'count')]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        histogram_module.GenericSet([12345]))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.DEVICE_IDS.name,
+        histogram_module.GenericSet(['devie_foo']))
+
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(4, len(diagnostics))
+
+    # The first 3 are all suite level diagnostics, the last is a histogram
+    # level diagnostic.
+    names = [
+        reserved_infos.MASTERS.name,
+        reserved_infos.BOTS.name,
+        reserved_infos.BENCHMARKS.name,
+        reserved_infos.DEVICE_IDS.name]
+    for d in diagnostics:
+      self.assertIn(d.name, names)
+      names.remove(d.name)
 
 
 class AddHistogramsTest(testing_common.TestCase):
@@ -304,9 +433,11 @@ class AddHistogramsTest(testing_common.TestCase):
     diagnostics = json.loads(params['diagnostics'][0])
 
     self.assertEqual(1, len(diagnostics))
-    self.assertEqual(['test'], diagnostics[0]['values'])
+    self.assertEqual(
+        ['test'], diagnostics[reserved_infos.GPUS.name]['values'])
     self.assertNotEqual(
-        '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae', diagnostics[0]['guid'])
+        '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        diagnostics[reserved_infos.GPUS.name]['guid'])
 
   def testPostHistogram_AddsNewSparseDiagnostic(self):
     diag_dict = {
@@ -732,7 +863,8 @@ class AddHistogramsTest(testing_common.TestCase):
         hist.guid, histograms)
 
     self.assertEqual(1, len(diagnostics))
-    self.assertIsInstance(diagnostics[0], histogram_module.GenericSet)
+    self.assertIsInstance(
+        diagnostics[reserved_infos.GPUS.name], histogram_module.GenericSet)
 
   def testComputeTestPathWithStory(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -891,7 +1023,7 @@ class AddHistogramsTest(testing_common.TestCase):
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=d, test=test_key, start_revision=1,
+        data=d, name='masters', test=test_key, start_revision=1,
         end_revision=sys.maxint, id='abc')
     entity.put()
     d2 = d.copy()
@@ -911,7 +1043,7 @@ class AddHistogramsTest(testing_common.TestCase):
     }
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=d, test=test_key, start_revision=1,
+        data=d, name='masters', test=test_key, start_revision=1,
         end_revision=sys.maxint, id='abc')
     entity.put()
     d2 = d.copy()
