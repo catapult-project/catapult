@@ -19,6 +19,9 @@ class Diagnostic(object):
   def __init__(self):
     self._guid = None
 
+  def __ne__(self, other):
+    return not self == other
+
   @property
   def guid(self):
     if self._guid is None:
