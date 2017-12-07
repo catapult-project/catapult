@@ -57,7 +57,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         '  EnabledBench  Enabled benchmark for testing.\n'
         'Pass --browser to list benchmarks for another browser.\n\n')
     benchmark_runner.PrintBenchmarkList([BenchmarkEnabled, BenchmarkEnabled],
-                                        self._mock_possible_browser,
+                                        self._mock_possible_browser, None,
                                         self._stream)
     self.assertEquals(expected_printed_stream, self._stream.output_data)
 
@@ -71,6 +71,6 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
         'Pass --browser to list benchmarks for another browser.\n\n')
 
     benchmark_runner.PrintBenchmarkList([BenchmarkEnabled, BenchmarkDisabled],
-                                        self._mock_possible_browser,
+                                        self._mock_possible_browser, None,
                                         self._stream)
     self.assertEquals(expected_printed_stream, self._stream.output_data)

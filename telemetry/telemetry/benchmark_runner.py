@@ -22,6 +22,7 @@ from telemetry.util import matching
 
 from py_utils import discover
 
+
 # Right now, we only have one of each of our power perf bots. This means that
 # all eligible Telemetry benchmarks are run unsharded, which results in very
 # long (12h) cycle times. We'd like to reduce the number of tests that we run
@@ -38,10 +39,16 @@ DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
     '%(message)s')
 
+def _SetExpectations(bench, path):
+  if path and os.path.exists(path):
+    with open(path) as fp:
+      bench.AugmentExpectationsWithParser(fp.read())
+  return bench.expectations
 
-def _IsBenchmarkEnabled(bench, possible_browser):
+
+def _IsBenchmarkEnabled(bench, possible_browser, expectations_file):
   b = bench()
-  expectations = b.GetExpectations()
+  expectations = _SetExpectations(b, expectations_file)
   return (
       # Test that the current platform is supported.
       any(t.ShouldDisable(possible_browser.platform, possible_browser)
@@ -51,7 +58,8 @@ def _IsBenchmarkEnabled(bench, possible_browser):
                                            possible_browser))
 
 
-def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
+def PrintBenchmarkList(
+    benchmarks, possible_browser, expectations_file, output_pipe=sys.stdout):
   """ Print benchmarks that are not filtered in the same order of benchmarks in
   the |benchmarks| list.
 
@@ -81,7 +89,8 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
   # Sort the benchmarks by benchmark name.
   benchmarks = sorted(benchmarks, key=lambda b: b.Name())
   for b in benchmarks:
-    if not possible_browser or _IsBenchmarkEnabled(b, possible_browser):
+    if not possible_browser or _IsBenchmarkEnabled(b, possible_browser,
+                                                   expectations_file):
       print >> output_pipe, format_string % (b.Name(), b.Description())
     else:
       disabled_benchmarks.append(b)
@@ -144,6 +153,7 @@ class List(command_line.OptparseCommand):
           args.positional_args[0], environment, exact_matches=False)
     else:
       parser.error('Must provide at most one benchmark name.')
+    cls._expectations_file = environment.expectations_file
 
   def Run(self, args):
     # Set at least log info level for List command.
@@ -151,7 +161,8 @@ class List(command_line.OptparseCommand):
     # should be change to use verbose logging instead.
     logging.getLogger().setLevel(logging.INFO)
     possible_browser = browser_finder.FindBrowser(args)
-    PrintBenchmarkList(args.benchmarks, possible_browser)
+    PrintBenchmarkList(
+        args.benchmarks, possible_browser, self._expectations_file)
     return 0
 
 
@@ -190,7 +201,8 @@ class Run(command_line.OptparseCommand):
     if not args.positional_args:
       possible_browser = (browser_finder.FindBrowser(args)
                           if args.browser_type else None)
-      PrintBenchmarkList(all_benchmarks, possible_browser)
+      PrintBenchmarkList(
+          all_benchmarks, possible_browser, environment.expectations_file)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -202,7 +214,8 @@ class Run(command_line.OptparseCommand):
           all_benchmarks, input_benchmark_name, lambda x: x.Name())
       if most_likely_matched_benchmarks:
         print >> sys.stderr, 'Do you mean any of those benchmarks below?'
-        PrintBenchmarkList(most_likely_matched_benchmarks, None, sys.stderr)
+        PrintBenchmarkList(most_likely_matched_benchmarks, None,
+                           environment.expectations_file, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -210,7 +223,8 @@ class Run(command_line.OptparseCommand):
           'Multiple benchmarks named "%s".' % input_benchmark_name)
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
-      PrintBenchmarkList(matching_benchmarks, None, sys.stderr)
+      PrintBenchmarkList(matching_benchmarks, None,
+                         environment.expectations_file, sys.stderr)
       sys.exit(-1)
 
     benchmark_class = matching_benchmarks.pop()
@@ -224,9 +238,12 @@ class Run(command_line.OptparseCommand):
     benchmark_class.ProcessCommandLineArgs(parser, args)
 
     cls._benchmark = benchmark_class
+    cls._expectations_path = environment.expectations_file
 
   def Run(self, args):
-    return min(255, self._benchmark().Run(args))
+    b = self._benchmark()
+    _SetExpectations(b, self._expectations_path)
+    return min(255, b.Run(args))
 
 
 def _ScriptName():

@@ -306,3 +306,20 @@ class BenchmarkTest(unittest.TestCase):
     # We can pass None for both arguments because we select no platforms as
     # supported, which always returns false.
     self.assertFalse(b._CanRunOnPlatform(None, None))
+
+  def testAugmentExpectationsWithParserNoData(self):
+    b = TestBenchmark(story_module.Story(
+        name='test_name',
+        shared_state_class=shared_page_state.SharedPageState))
+    b.AugmentExpectationsWithParser('')
+    expectations = b.expectations.AsDict()
+    self.assertFalse(expectations.get('test_name'))
+
+  def testAugmentExpectationsWithParserData(self):
+    b = TestBenchmark(story_module.Story(
+        name='test_name',
+        shared_state_class=shared_page_state.SharedPageState))
+    data = 'crbug.com/123 benchmark_unittest.TestBenchmark/test_name [ Skip ]'
+    b.AugmentExpectationsWithParser(data)
+    expectations = b.expectations.AsDict()
+    self.assertTrue(expectations['stories'].get('test_name'))

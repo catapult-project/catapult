@@ -193,7 +193,8 @@ class FakeBenchmark(benchmark.Benchmark):
     assert isinstance(b, bool)
     self._story_disabled = b
 
-  def GetExpectations(self):
+  @property
+  def expectations(self):
     if self.story_disabled:
       return _DisableStoryExpectations()
     if self.disabled:

@@ -305,8 +305,7 @@ def RunBenchmark(benchmark, finder_options):
 
   benchmark_metadata = benchmark.GetMetadata()
   possible_browser = browser_finder.FindBrowser(finder_options)
-  expectations = benchmark.InitializeExpectations()
-
+  expectations = benchmark.expectations
   if not possible_browser:
     print ('Cannot find browser of type %s. To list out all '
            'available browsers, rerun your command with '
