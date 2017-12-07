@@ -153,3 +153,13 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
     parser = expectations_parser.TestExpectationParser(raw_data)
     for i in range(len(parser.expectations)):
       self.assertEqual(parser.expectations[i], expected_outcomes[i])
+
+  def testParseExpectationLineEndingComment(self):
+    raw_data = '# tags: Mac\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ] # abc 123'
+    parser = expectations_parser.TestExpectationParser(raw_data)
+    expected_outcome = [
+        expectations_parser.Expectation(
+            'crbug.com/23456', 'b1/s2', ['Mac'], ['Skip'])
+    ]
+    for i in range(len(parser.expectations)):
+      self.assertEqual(parser.expectations[i], expected_outcome[i])

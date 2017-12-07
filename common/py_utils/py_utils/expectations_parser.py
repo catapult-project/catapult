@@ -74,7 +74,8 @@ class TestExpectationParser(object):
   _MATCH_STRING = r'^(?:(crbug.com/\d+) )?'  # The bug field (optional).
   _MATCH_STRING += r'(?:\[ (.+) \] )?' # The label field (optional).
   _MATCH_STRING += r'(\S+) ' # The test path field.
-  _MATCH_STRING += r'\[ ([^\[.]+) \]$'  # The expectation field.
+  _MATCH_STRING += r'\[ ([^\[.]+) \]'  # The expectation field.
+  _MATCH_STRING += r'(\s+#.*)?$' # End comment (optional).
   MATCHER = re.compile(_MATCH_STRING)
 
   def __init__(self, raw_data):
@@ -103,7 +104,8 @@ class TestExpectationParser(object):
       raise ParseError(
           'Expectation has invalid syntax on line %d: %s'
           % (line_number, line))
-    reason, raw_conditions, test, results = match.groups()
+    # Unused group is optional trailing comment.
+    reason, raw_conditions, test, results, _ = match.groups()
     conditions = [c for c in raw_conditions.split()] if raw_conditions else []
 
     for c in conditions:
