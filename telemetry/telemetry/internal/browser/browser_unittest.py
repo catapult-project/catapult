@@ -227,15 +227,15 @@ class BrowserCreationTest(unittest.TestCase):
     self.mock_platform_backend = mock.MagicMock()
 
   def testCleanedUpCalledWhenExceptionRaisedInBrowserCreation(self):
-    self.mock_platform_backend.DidCreateBrowser.side_effect = (
+    self.mock_browser_backend.SetBrowser.side_effect = (
         IntentionalException('Boom!'))
     with self.assertRaises(IntentionalException):
       browser_module.Browser(
           self.mock_browser_backend, self.mock_platform_backend)
-    self.assertTrue(self.mock_platform_backend.WillCloseBrowser.called)
+    self.assertTrue(self.mock_browser_backend.Close.called)
 
   def testOriginalExceptionNotSwallow(self):
-    self.mock_platform_backend.DidCreateBrowser.side_effect = (
+    self.mock_browser_backend.SetBrowser.side_effect = (
         IntentionalException('Boom!'))
     self.mock_platform_backend.WillCloseBrowser.side_effect = (
         IntentionalException('Cannot close browser!'))

@@ -87,6 +87,8 @@ class SharedPageState(story_module.SharedState):
 
     self.platform.network_controller.Open(wpr_mode)
     self.platform.Initialize()
+    self.platform.SetFullPerformanceModeEnabled(
+        browser_options.full_performance_mode)
 
   @property
   def possible_browser(self):
@@ -233,6 +235,7 @@ class SharedPageState(story_module.SharedState):
     self.platform.network_controller.StartReplay(
         archive_path, page.make_javascript_deterministic, self._extra_wpr_args)
 
+
     if not self.browser:
       self._StartBrowser(page)
     if self.browser.supports_tab_control and self._test.close_tabs_before_run:
@@ -319,6 +322,7 @@ class SharedPageState(story_module.SharedState):
     self._StopBrowser()
     self.platform.StopAllLocalServers()
     self.platform.network_controller.Close()
+    self.platform.SetFullPerformanceModeEnabled(False)
 
   def _StopBrowser(self):
     if self._browser:

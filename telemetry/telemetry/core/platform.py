@@ -379,6 +379,13 @@ class Platform(object):
     """
     return self._platform_backend.TakeScreenshot(file_path)
 
+  def SetFullPerformanceModeEnabled(self, enabled):
+    """ Set full performance mode on the platform.
+
+    Note: this can be no-op on certain platforms.
+    """
+    return self._platform_backend.SetFullPerformanceModeEnabled(enabled)
+
   def StartLocalServer(self, server):
     """Starts a LocalServer and associates it with this platform.
     |server.Close()| should be called manually to close the started server.

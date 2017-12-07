@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import weakref
-
 from battor import battor_wrapper
 from telemetry.internal.forwarders import do_nothing_forwarder
 from telemetry.internal.platform import network_controller_backend
@@ -27,7 +25,6 @@ class PlatformBackend(object):
     if device and not self.SupportsDevice(device):
       raise ValueError('Unsupported device: %s' % device.name)
     self._platform = None
-    self._running_browser_backends = weakref.WeakSet()
     self._network_controller_backend = None
     self._tracing_controller_backend = None
     self._forwarder_factory = None
@@ -67,10 +64,6 @@ class PlatformBackend(object):
     return self._platform.is_host_platform
 
   @property
-  def running_browser_backends(self):
-    return list(self._running_browser_backends)
-
-  @property
   def network_controller_backend(self):
     return self._network_controller_backend
 
@@ -96,21 +89,6 @@ class PlatformBackend(object):
 
   def GetSystemLog(self):
     return None
-
-  def DidCreateBrowser(self, browser, browser_backend):
-    browser_options = browser_backend.browser_options
-    self.SetFullPerformanceModeEnabled(browser_options.full_performance_mode)
-
-  def DidStartBrowser(self, browser, browser_backend):
-    assert browser not in self._running_browser_backends
-    self._running_browser_backends.add(browser_backend)
-
-  def WillCloseBrowser(self, browser, browser_backend):
-    is_last_browser = len(self._running_browser_backends) <= 1
-    if is_last_browser:
-      self.SetFullPerformanceModeEnabled(False)
-
-    self._running_browser_backends.discard(browser_backend)
 
   def IsRemoteDevice(self):
     """Check if target platform is on remote device.
