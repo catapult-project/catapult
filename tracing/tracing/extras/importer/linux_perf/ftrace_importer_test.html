@@ -613,5 +613,55 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(Object.keys(m.kernel.cpus), 2);
     assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
+
+  test('noOverlap', function() {
+    const lines = [
+      '# tracer: nop',
+      '#',
+      '# entries-in-buffer/entries-written: 10/10   #P:1',
+      '#',
+      '#                              _-----=> irqs-off',
+      '#                             / _----=> need-resched',
+      '#                            | / _---=> hardirq/softirq',
+      '#                            || / _--=> preempt-depth',
+      '#                            ||| /     delay',
+      '#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION',
+      '#              | |       |   ||||       |         |',
+      '          <idle>-0     [000] d..3 49.000000: sched_switch: ' +
+          'prev_comm=swapper/3 prev_pid=0 prev_prio=120 prev_state=S ' +
+          '==> next_comm=Unity next_pid=29677 next_prio=120',
+      '           <...>-29677 [000] d..3 49.001000: sched_switch: ' +
+          'prev_comm=Unity prev_pid=29677 prev_prio=120 prev_state=R+ ' +
+          '==> next_comm=swapper/3 next_pid=0 next_prio=120',
+      '           <...>-29678 [000] d..4 49.002000: sched_wakeup: ' +
+          'comm=Unity pid=29677 prio=120 success=1 target_cpu=000',
+      '          <idle>-0     [000] d..3 49.003000: sched_switch: ' +
+          'prev_comm=swapper/3 prev_pid=0 prev_prio=120 prev_state=R ' +
+          '==> next_comm=Unity next_pid=29677 next_prio=120',
+      '           <...>-29677 [000] ...1 49.004000: tracing_mark_write: ' +
+          'B|7244|eglSwapBuffersWithDamageKHR',
+      '           <...>-29677 [000] d..3 49.005000: sched_switch: ' +
+          'prev_comm=Unity prev_pid=29677 prev_prio=120 prev_state=S ' +
+          '==> next_comm=swapper/3 next_pid=0 next_prio=120',
+      '           <...>-2599  [000] d.h4 49.006000: sched_wakeup: ' +
+          'comm=Unity pid=29677 prio=120 success=1 target_cpu=000',
+      '          <idle>-0     [000] d..3 49.007000: sched_switch: ' +
+          'prev_comm=swapper/3 prev_pid=0 prev_prio=120 prev_state=R ' +
+          '==> next_comm=Unity next_pid=29677 next_prio=120',
+      '           <...>-29677 [000] ...1 49.008000: tracing_mark_write: ' +
+          'B|7244|queueBuffer',
+      '           <...>-29677 [000] d..3 49.009000: sched_switch: ' +
+          'prev_comm=Unity prev_pid=29677 prev_prio=120 prev_state=R ' +
+          '==> next_comm=swapper/3 next_pid=0 next_prio=120'
+    ];
+    const m = newModel(lines.join('\n'));
+    const thread = m.getAllThreads()[0];
+    let previousEnd = 0;
+    for (const slice of thread.timeSlices) {
+      assert.isTrue(slice.end >= slice.start);
+      assert.isTrue(slice.start >= previousEnd);
+      previousEnd = slice.end;
+    }
+  });
 });
 </script>

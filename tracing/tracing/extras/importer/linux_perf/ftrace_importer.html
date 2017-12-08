@@ -553,8 +553,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           slices.push(runningSlice);
         }
 
-        let wakeup = undefined;
         for (let i = 1; i < origSlices.length; i++) {
+          let wakeup = undefined;
           const prevSlice = origSlices[i - 1];
           const nextSlice = origSlices[i];
           let midDuration = nextSlice.start - prevSlice.end;
