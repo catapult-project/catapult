@@ -100,6 +100,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     extra_args = {} if is_diagnostic else GetUnitArgs(data_dict['unit'])
     # TDOO(eakuefner): Populate benchmark_description once it appears in
     # diagnostics.
+    # https://github.com/catapult-project/catapult/issues/4096
     parent_test = add_point_queue.GetOrCreateAncestors(
         master, bot, test_name, internal_only, **extra_args)
     test_key = parent_test.key
