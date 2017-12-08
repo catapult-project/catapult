@@ -3,10 +3,7 @@
 # found in the LICENSE file.
 
 import collections
-
-
-# TODO(#1977): Remove when no longer used by fowarder implementations.
-_PortPair = collections.namedtuple('PortPair', ['local_port', 'remote_port'])
+import logging
 
 
 class ForwarderFactory(object):
@@ -40,15 +37,21 @@ class ForwarderFactory(object):
 class Forwarder(object):
 
   def __init__(self):
-    self._port_pair = None
+    self._local_port = None
+    self._remote_port = None
 
   def _StartedForwarding(self, local_port, remote_port):
-    # TODO(#1977): Check that neither port is missing at this point.
-    self._port_pair = _PortPair(local_port, remote_port)
+    assert not self.is_forwarding, 'forwarder has already started'
+    assert local_port and remote_port, 'ports should now be determined'
+
+    self._local_port = local_port
+    self._remote_port = remote_port
+    logging.info('%s started between %s:%s and %s', type(self).__name__,
+                 self.host_ip, self.local_port, self.remote_port)
 
   @property
   def is_forwarding(self):
-    return self._port_pair is not None
+    return self._local_port is not None
 
   @property
   def host_ip(self):
@@ -56,11 +59,12 @@ class Forwarder(object):
 
   @property
   def local_port(self):
-    return self._port_pair.local_port
+    return self._local_port
 
   @property
   def remote_port(self):
-    return self._port_pair.remote_port
+    return self._remote_port
 
   def Close(self):
-    self._port_pair = None
+    self._local_port = None
+    self._remote_port = None

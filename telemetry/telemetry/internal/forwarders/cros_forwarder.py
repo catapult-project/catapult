@@ -2,11 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import re
 import subprocess
 import tempfile
 
+from telemetry.core import util
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import do_nothing_forwarder
 
@@ -22,70 +22,75 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
   def Create(self, local_port, remote_port, reverse=False):
     if self._cri.local:
       return do_nothing_forwarder.DoNothingForwarder(local_port, remote_port)
-    return CrOsSshForwarder(self._cri, local_port, remote_port,
-                            use_remote_port_forwarding=not reverse)
+    else:
+      return CrOsSshForwarder(
+          self._cri, local_port, remote_port, port_forward=not reverse)
 
 
 class CrOsSshForwarder(forwarders.Forwarder):
 
-  def __init__(self, cri, local_port, remote_port, use_remote_port_forwarding):
+  def __init__(self, cri, local_port, remote_port, port_forward):
     super(CrOsSshForwarder, self).__init__()
-    # TODO(#1977): Move call to after forwarding has actually started.
-    self._StartedForwarding(local_port, remote_port)
     self._cri = cri
     self._proc = None
-    self._remote_port = None
-    forwarding_args = self._ForwardingArgs(
-        use_remote_port_forwarding, self.host_ip, self._port_pair)
-    err_file = tempfile.NamedTemporaryFile()
-    self._proc = subprocess.Popen(
-        self._cri.FormSSHCommandLine(['-NT'], forwarding_args,
-                                     port_forward=use_remote_port_forwarding),
-        stdout=subprocess.PIPE,
-        stderr=err_file,
-        stdin=subprocess.PIPE,
-        shell=False)
-    def _get_remote_port(err_file):
-      # When we specify the remote port '0' in ssh remote port forwarding,
-      # the remote ssh server should return the port it binds to in stderr.
-      # e.g. 'Allocated port 42360 for remote forward to localhost:12345',
-      # the port 42360 is the port created remotely and the traffic to the
-      # port will be relayed to localhost port 12345.
-      line = err_file.readline()
-      tokens = re.search(r'port (\d+) for remote forward to', line)
-      if tokens:
-        self._remote_port = int(tokens.group(1))
-      return tokens
 
-    if use_remote_port_forwarding and self._port_pair.remote_port == 0:
-      with open(err_file.name, 'r') as err_file_reader:
-        py_utils.WaitFor(lambda: _get_remote_port(err_file_reader), 60)
-
-    py_utils.WaitFor(
-        lambda: self._cri.IsHTTPServerRunningOnPort(self.remote_port), 60)
-    err_file.close()
-    logging.debug('Server started on %s:%d', self.host_ip, self.remote_port)
-
-  # pylint: disable=unused-argument
-  @staticmethod
-  def _ForwardingArgs(use_remote_port_forwarding, host_ip, port_pair):
-    if use_remote_port_forwarding:
-      arg_format = '-R{remote_port}:{host_ip}:{local_port}'
+    if port_forward:
+      assert local_port, 'Local port must be given'
     else:
-      arg_format = '-L{local_port}:{host_ip}:{remote_port}'
-    return [arg_format.format(host_ip=host_ip,
-                              local_port=port_pair.local_port,
-                              remote_port=port_pair.remote_port)]
+      assert remote_port, 'Remote port must be given'
+      if not local_port:
+        # Choose an available port on the host.
+        local_port = util.GetUnreservedAvailableLocalPort()
 
-  @property
-  def remote_port(self):
-    # Return remote port if it is resolved remotely.
-    if self._remote_port:
-      return self._remote_port
-    return self._port_pair.remote_port
+    forwarding_args = _ForwardingArgs(
+        local_port, remote_port, self.host_ip, port_forward)
+
+    # TODO(crbug.com/793256): Consider avoiding the extra tempfile and
+    # read stderr directly from the subprocess instead.
+    with tempfile.NamedTemporaryFile() as stderr_file:
+      self._proc = subprocess.Popen(
+          self._cri.FormSSHCommandLine(['-NT'], forwarding_args,
+                                       port_forward=port_forward),
+          stdout=subprocess.PIPE,
+          stderr=stderr_file,
+          stdin=subprocess.PIPE,
+          shell=False)
+      if not remote_port:
+        remote_port = _ReadRemotePort(stderr_file.name)
+
+    self._StartedForwarding(local_port, remote_port)
+    py_utils.WaitFor(self._IsConnectionReady, timeout=60)
+
+  def _IsConnectionReady(self):
+    return self._cri.IsHTTPServerRunningOnPort(self.remote_port)
 
   def Close(self):
     if self._proc:
       self._proc.kill()
       self._proc = None
     super(CrOsSshForwarder, self).Close()
+
+
+def _ReadRemotePort(filename):
+  def TryReadingPort(f):
+    # When we specify the remote port '0' in ssh remote port forwarding,
+    # the remote ssh server should return the port it binds to in stderr.
+    # e.g. 'Allocated port 42360 for remote forward to localhost:12345',
+    # the port 42360 is the port created remotely and the traffic to the
+    # port will be relayed to localhost port 12345.
+    line = f.readline()
+    tokens = re.search(r'port (\d+) for remote forward to', line)
+    return int(tokens.group(1)) if tokens else None
+
+  with open(filename, 'r') as f:
+    return py_utils.WaitFor(lambda: TryReadingPort(f), timeout=60)
+
+
+def _ForwardingArgs(local_port, remote_port, host_ip, port_forward):
+  if port_forward:
+    arg_format = '-R{remote_port}:{host_ip}:{local_port}'
+  else:
+    arg_format = '-L{local_port}:{host_ip}:{remote_port}'
+  return [arg_format.format(host_ip=host_ip,
+                            local_port=local_port,
+                            remote_port=remote_port or 0)]
