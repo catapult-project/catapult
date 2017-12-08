@@ -36,9 +36,11 @@ class Browser(app.App):
       self._browser_backend = backend
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
+      self._platform_backend.DidCreateBrowser(self, self._browser_backend)
       self._browser_backend.SetBrowser(self)
       self._browser_backend.Start()
       self._LogBrowserInfo()
+      self._platform_backend.DidStartBrowser(self, self._browser_backend)
       self._profiling_controller = profiling_controller.ProfilingController(
           self._browser_backend.profiling_controller_backend)
     except Exception:
@@ -203,6 +205,7 @@ class Browser(app.App):
     try:
       if self._browser_backend.IsBrowserRunning():
         logging.info('Closing browser (pid=%s) ...', self._browser_backend.pid)
+        self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
       self._browser_backend.profiling_controller_backend.WillCloseBrowser()
       if self._browser_backend.supports_uploading_logs:
