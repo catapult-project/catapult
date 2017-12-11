@@ -53,16 +53,20 @@ class StoryExpectations(object):
           logging.critical(
               'Unable to map expectation in file to TestCondition')
           raise
+
+        # Test Expectations with multiple conditions are treated as logical
+        # and and require all conditions to be met for disabling to occur.
+        # By design, StoryExpectations treats lists as logical or so we must
+        # construct TestConditions using the logical and helper class.
+        # TODO(): Consider refactoring TestConditions to be logical or.
         conditions_str = '+'.join(expectation.conditions)
-        self.DisableStory(
-            story,
-            # Test Expectations with multiple conditions are treated as logical
-            # and and require all conditions to be met for disabling to occur.
-            # By design, StoryExpectations treats lists as logical or so we must
-            # construct TestConditions using the logical and helper class.
-            # TODO(): Consider refactoring TestConditions to be logical or.
-            [_TestConditionLogicalAndConditions(conditions, conditions_str)],
-            expectation.reason)
+        composite_condition = _TestConditionLogicalAndConditions(
+            conditions, conditions_str)
+
+        if story == '*':
+          self.DisableBenchmark([composite_condition], expectation.reason)
+        else:
+          self.DisableStory(story, [composite_condition], expectation.reason)
     finally:
       self._Freeze()
 
@@ -91,7 +95,6 @@ class StoryExpectations(object):
 
   def _Freeze(self):
     self._frozen = True
-    self._disabled_platforms = tuple(self._disabled_platforms)
 
 
   @property
