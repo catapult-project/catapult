@@ -7,6 +7,7 @@
 import json
 import logging
 import sys
+import traceback
 import uuid
 
 from google.appengine.api import taskqueue
@@ -72,18 +73,18 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
       histogram_dicts = json.loads(data_str)
       ProcessHistogramSet(histogram_dicts)
-    except api_request_handler.BadRequestError as e:
+    except api_request_handler.BadRequestError:
       # TODO(simonhatch, eakuefner: Remove this later.
       # When this has all stabilized a bit, remove and let this 400 to clients,
       # but for now to preven the waterfall from re-uploading over and over
       # while we bug fix, let's just log the error.
       # https://github.com/catapult-project/catapult/issues/4019
-      logging.error(e.message)
-    except Exception as e:  # pylint: disable=broad-except
+      logging.error(traceback.format_exc())
+    except Exception:  # pylint: disable=broad-except
       # TODO(simonhatch, eakuefner: Remove this later.
       # We shouldn't be catching ALL exceptions, this is just while the
       # stability of the endpoint is being worked on.
-      logging.error(e.message)
+      logging.error(traceback.format_exc())
 
 
 def _LogDebugInfo(histograms):
