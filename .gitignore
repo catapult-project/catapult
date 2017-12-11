@@ -34,3 +34,7 @@ perf_insights/perf_insights/download_traces.py
 
 # Downloaded binaries
 catapult_base/catapult_base/bin/
+
+# Generated fetched binary's timestamp
+# See details in py_utils.cloud_storage.GetIfChanged(file_path, bucket) method.
+.fetchts

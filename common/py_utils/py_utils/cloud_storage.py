@@ -15,6 +15,7 @@ import subprocess
 import re
 import sys
 import tempfile
+import time
 
 import py_utils
 from py_utils import lock
@@ -412,14 +413,49 @@ def GetIfChanged(file_path, bucket):
   """
   with _FileLock(file_path):
     hash_path = file_path + '.sha1'
+    fetch_ts_path = file_path + '.fetchts'
     if not os.path.exists(hash_path):
       logger.warning('Hash file not found: %s', hash_path)
       return False
 
     expected_hash = ReadHash(hash_path)
+
+    # To save the time required computing binary hash (which is an expensive
+    # operation, see crbug.com/793609#c2 for details), any time we fetch a new
+    # binary, we save not only that binary but the time of the fetch in
+    # |fetch_ts_path|. Anytime the file needs updated (its
+    # hash in |hash_path| change), we can just need to compare the timestamp of
+    # |hash_path| with the timestamp in |fetch_ts_path| to figure out
+    # if the update operation has been done.
+    #
+    # Notes: for this to work, we make the assumption that only
+    # cloud_storage.GetIfChanged modifies the local |file_path| binary.
+
+    if os.path.exists(fetch_ts_path) and os.path.exists(file_path):
+      with open(fetch_ts_path) as f:
+        data = f.read().strip()
+        last_binary_fetch_ts = float(data)
+
+      if last_binary_fetch_ts > os.path.getmtime(hash_path):
+        return False
+
+    # Whether the binary stored in local already has hash matched
+    # expected_hash or we need to fetch new binary from cloud, update the
+    # timestamp in |fetch_ts_path| with current time anyway since it is
+    # outdated compared with sha1's last modified time.
+    with open(fetch_ts_path, 'w') as f:
+      f.write(str(time.time()))
+
     if os.path.exists(file_path) and CalculateHash(file_path) == expected_hash:
       return False
     _GetLocked(bucket, expected_hash, file_path)
+    if CalculateHash(file_path) != expected_hash:
+      os.remove(fetch_ts_path)
+      raise RuntimeError(
+          'Binary stored in cloud storage does not have hash matching .sha1 '
+          'file. Please make sure that the binary file is uploaded using '
+          'depot_tools/upload_to_google_storage.py script or through automatic '
+          'framework.')
     return True
 
 

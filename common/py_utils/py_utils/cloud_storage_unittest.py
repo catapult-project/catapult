@@ -30,7 +30,7 @@ def _FakeCalulateHashNewHash(_):
   return 'omgnewhash'
 
 
-class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
+class BaseFakeFsUnitTest(fake_filesystem_unittest.TestCase):
 
   def setUp(self):
     self.original_environ = os.environ.copy()
@@ -53,6 +53,9 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
 
   def _FakeGet(self, bucket, remote_path, local_path):
     pass
+
+
+class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
 
   def _AssertRunCommandRaisesError(self, communicate_strs, error):
     with mock.patch('py_utils.cloud_storage.subprocess.Popen') as popen:
@@ -110,73 +113,6 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
     self.assertFalse(cloud_storage.Exists('fake bucket',
                                           'fake remote path'))
 
-  @mock.patch('py_utils.cloud_storage.CalculateHash')
-  @mock.patch('py_utils.cloud_storage._GetLocked')
-  @mock.patch('py_utils.cloud_storage._FileLock')
-  @mock.patch('py_utils.cloud_storage.os.path')
-  def testGetIfHashChanged(self, path_mock, unused_lock_mock, get_mock,
-                           calc_hash_mock):
-    path_mock.exists.side_effect = [False, True, True]
-    calc_hash_mock.return_value = 'hash'
-
-    # The file at |local_path| doesn't exist. We should download file from cs.
-    ret = cloud_storage.GetIfHashChanged(
-        'remote_path', 'local_path', 'cs_bucket', 'hash')
-    self.assertTrue(ret)
-    get_mock.assert_called_once_with('cs_bucket', 'remote_path', 'local_path')
-    get_mock.reset_mock()
-    self.assertFalse(calc_hash_mock.call_args)
-    calc_hash_mock.reset_mock()
-
-    # A local file exists at |local_path| but has the wrong hash.
-    # We should download file from cs.
-    ret = cloud_storage.GetIfHashChanged(
-        'remote_path', 'local_path', 'cs_bucket', 'new_hash')
-    self.assertTrue(ret)
-    get_mock.assert_called_once_with('cs_bucket', 'remote_path', 'local_path')
-    get_mock.reset_mock()
-    calc_hash_mock.assert_called_once_with('local_path')
-    calc_hash_mock.reset_mock()
-
-    # Downloaded file exists locally and has the right hash. Don't download.
-    ret = cloud_storage.GetIfHashChanged(
-        'remote_path', 'local_path', 'cs_bucket', 'hash')
-    self.assertFalse(get_mock.call_args)
-    self.assertFalse(ret)
-    calc_hash_mock.reset_mock()
-    get_mock.reset_mock()
-
-  @mock.patch('py_utils.cloud_storage._FileLock')
-  def testGetIfChanged(self, unused_lock_mock):
-    orig_get = cloud_storage._GetLocked
-    orig_read_hash = cloud_storage.ReadHash
-    orig_calculate_hash = cloud_storage.CalculateHash
-    cloud_storage.ReadHash = _FakeReadHash
-    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
-    file_path = 'test-file-path.wpr'
-    hash_path = file_path + '.sha1'
-    try:
-      cloud_storage._GetLocked = self._FakeGet
-      # hash_path doesn't exist.
-      self.assertFalse(cloud_storage.GetIfChanged(file_path,
-                                                  cloud_storage.PUBLIC_BUCKET))
-      # hash_path exists, but file_path doesn't.
-      self.CreateFiles([hash_path])
-      self.assertTrue(cloud_storage.GetIfChanged(file_path,
-                                                 cloud_storage.PUBLIC_BUCKET))
-      # hash_path and file_path exist, and have same hash.
-      self.CreateFiles([file_path])
-      self.assertFalse(cloud_storage.GetIfChanged(file_path,
-                                                  cloud_storage.PUBLIC_BUCKET))
-      # hash_path and file_path exist, and have different hashes.
-      cloud_storage.CalculateHash = _FakeCalulateHashNewHash
-      self.assertTrue(cloud_storage.GetIfChanged(file_path,
-                                                 cloud_storage.PUBLIC_BUCKET))
-    finally:
-      cloud_storage._GetLocked = orig_get
-      cloud_storage.CalculateHash = orig_calculate_hash
-      cloud_storage.ReadHash = orig_read_hash
-
   @unittest.skipIf(sys.platform.startswith('win'),
                    'https://github.com/catapult-project/catapult/issues/1861')
   def testGetFilesInDirectoryIfChanged(self):
@@ -218,7 +154,6 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
-
   @mock.patch('py_utils.cloud_storage._FileLock')
   def testDisableCloudStorageIo(self, unused_lock_mock):
     os.environ['DISABLE_CLOUD_STORAGE_IO'] = '1'
@@ -226,6 +161,10 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
     self.fs.CreateDirectory(dir_path)
     file_path = os.path.join(dir_path, 'file1')
     file_path_sha = file_path + '.sha1'
+
+    def CleanTimeStampFile():
+      os.remove(file_path + '.fetchts')
+
     self.CreateFiles([file_path, file_path_sha])
     with open(file_path_sha, 'w') as f:
       f.write('hash1234')
@@ -239,8 +178,159 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage.GetIfHashChanged('bar', file_path, 'bucket', 'hash1234')
     with self.assertRaises(cloud_storage.CloudStorageIODisabled):
       cloud_storage.Insert('bucket', 'foo', file_path)
+
+    CleanTimeStampFile()
     with self.assertRaises(cloud_storage.CloudStorageIODisabled):
       cloud_storage.GetFilesInDirectoryIfChanged(dir_path, 'bucket')
+
+
+class GetIfChangedTests(BaseFakeFsUnitTest):
+
+  def setUp(self):
+    super(GetIfChangedTests, self).setUp()
+    self._orig_read_hash = cloud_storage.ReadHash
+    self._orig_calculate_hash = cloud_storage.CalculateHash
+
+  def tearDown(self):
+    super(GetIfChangedTests, self).tearDown()
+    cloud_storage.CalculateHash = self._orig_calculate_hash
+    cloud_storage.ReadHash = self._orig_read_hash
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testHashPathDoesNotExists(self, unused_get_locked, unused_lock_mock):
+    cloud_storage.ReadHash = _FakeReadHash
+    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    file_path = 'test-file-path.wpr'
+
+    cloud_storage._GetLocked = self._FakeGet
+    # hash_path doesn't exist.
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testHashPathExistsButFilePathDoesNot(
+      self, unused_get_locked, unused_lock_mock):
+    cloud_storage.ReadHash = _FakeReadHash
+    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    file_path = 'test-file-path.wpr'
+    hash_path = file_path + '.sha1'
+
+    # hash_path exists, but file_path doesn't.
+    self.CreateFiles([hash_path])
+    self.assertTrue(cloud_storage.GetIfChanged(file_path,
+                                               cloud_storage.PUBLIC_BUCKET))
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testHashPathAndFileHashExistWithSameHash(
+      self, unused_get_locked, unused_lock_mock):
+    cloud_storage.ReadHash = _FakeReadHash
+    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    file_path = 'test-file-path.wpr'
+
+    # hash_path and file_path exist, and have same hash.
+    self.CreateFiles([file_path])
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testHashPathAndFileHashExistWithDifferentHash(
+      self, mock_get_locked, unused_get_locked):
+    cloud_storage.ReadHash = _FakeReadHash
+    cloud_storage.CalculateHash = _FakeCalulateHashNewHash
+    file_path = 'test-file-path.wpr'
+    hash_path = file_path + '.sha1'
+
+    def _FakeGetLocked(bucket, expected_hash, file_path):
+      del bucket, expected_hash, file_path  # unused
+      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+
+    mock_get_locked.side_effect = _FakeGetLocked
+
+    self.CreateFiles([file_path, hash_path])
+    # hash_path and file_path exist, and have different hashes.
+    self.assertTrue(cloud_storage.GetIfChanged(file_path,
+                                               cloud_storage.PUBLIC_BUCKET))
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage.CalculateHash')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testNoHashComputationNeededUponSecondCall(
+      self, mock_get_locked, mock_calculate_hash, unused_get_locked):
+    mock_calculate_hash.side_effect = _FakeCalulateHashNewHash
+    cloud_storage.ReadHash = _FakeReadHash
+    file_path = 'test-file-path.wpr'
+    hash_path = file_path + '.sha1'
+
+    def _FakeGetLocked(bucket, expected_hash, file_path):
+      del bucket, expected_hash, file_path  # unused
+      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+
+    mock_get_locked.side_effect = _FakeGetLocked
+
+    self.CreateFiles([file_path, hash_path])
+    # hash_path and file_path exist, and have different hashes. This first call
+    # will invoke a fetch.
+    self.assertTrue(cloud_storage.GetIfChanged(file_path,
+                                               cloud_storage.PUBLIC_BUCKET))
+
+    # The fetch left a .fetchts file on machine.
+    self.assertTrue(os.path.exists(file_path + '.fetchts'))
+
+    # Subsequent invocations of GetIfChanged should not invoke CalculateHash.
+    mock_calculate_hash.assert_not_called()
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
+
+  @mock.patch('py_utils.cloud_storage._FileLock')
+  @mock.patch('py_utils.cloud_storage.CalculateHash')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  def testRefetchingFileUponHashFileChange(
+      self, mock_get_locked, mock_calculate_hash, unused_get_locked):
+    mock_calculate_hash.side_effect = _FakeCalulateHashNewHash
+    cloud_storage.ReadHash = _FakeReadHash
+    file_path = 'test-file-path.wpr'
+    hash_path = file_path + '.sha1'
+
+    def _FakeGetLocked(bucket, expected_hash, file_path):
+      del bucket, expected_hash, file_path  # unused
+      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+
+    mock_get_locked.side_effect = _FakeGetLocked
+
+    self.CreateFiles([file_path, hash_path])
+    # hash_path and file_path exist, and have different hashes. This first call
+    # will invoke a fetch.
+    self.assertTrue(cloud_storage.GetIfChanged(file_path,
+                                               cloud_storage.PUBLIC_BUCKET))
+
+    # The fetch left a .fetchts file on machine.
+    self.assertTrue(os.path.exists(file_path + '.fetchts'))
+
+    with open(file_path + '.fetchts') as f:
+      fetchts = float(f.read())
+
+    # Updating the .sha1 hash_path file with the new hash after .fetchts
+    # is created.
+    file_obj = self.fs.GetObject(hash_path)
+    file_obj.SetMTime(fetchts + 100)
+
+    cloud_storage.ReadHash = lambda _: 'hashNeW'
+    def _FakeGetLockedNewHash(bucket, expected_hash, file_path):
+      del bucket, expected_hash, file_path  # unused
+      cloud_storage.CalculateHash = lambda _: 'hashNeW'
+
+    mock_get_locked.side_effect = _FakeGetLockedNewHash
+
+    # hash_path and file_path exist, and have different hashes. This first call
+    # will invoke a fetch.
+    self.assertTrue(cloud_storage.GetIfChanged(file_path,
+                                               cloud_storage.PUBLIC_BUCKET))
 
 
 class CloudStorageRealFsUnitTest(unittest.TestCase):
