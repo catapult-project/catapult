@@ -80,12 +80,12 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         add_point_queue.BOT_WHITELIST_KEY, ['win7'])
 
     test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_HISTOGRAM),
+    params = [{
+        'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123
-    }
-    self.testapp.post('/add_histograms_queue', params)
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
 
     test_key = utils.TestKey(test_path)
 
@@ -122,12 +122,12 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         add_point_queue.BOT_WHITELIST_KEY, ['mac'])
 
     test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_HISTOGRAM),
+    params = [{
+        'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123
-    }
-    self.testapp.post('/add_histograms_queue', params)
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
 
     test_key = utils.TestKey(test_path)
     original_histogram = TEST_HISTOGRAM
@@ -154,15 +154,16 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     stored_object.Set(
         add_point_queue.BOT_WHITELIST_KEY, ['win7'])
     test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_HISTOGRAM),
+    params = [{
+        'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps({
+        'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
-            'owners': TEST_OWNERS})
-    }
-    self.testapp.post('/add_histograms_queue', params)
+            'owners': TEST_OWNERS
+        }
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -193,15 +194,16 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     stored_object.Set(
         add_point_queue.BOT_WHITELIST_KEY, ['win7'])
     test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_HISTOGRAM),
+    params = [{
+        'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps({
+        'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
-            'owners': TEST_OWNERS})
-    }
-    self.testapp.post('/add_histograms_queue', params)
+            'owners': TEST_OWNERS
+        }
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -224,15 +226,16 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     stored_object.Set(
         add_point_queue.BOT_WHITELIST_KEY, ['win7'])
     test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_HISTOGRAM),
+    params = [{
+        'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123,
-        'diagnostics': json.dumps({
+        'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
-            'owners': TEST_OWNERS})
-    }
-    self.testapp.post('/add_histograms_queue', params)
+            'owners': TEST_OWNERS
+        }
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -240,50 +243,6 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         hist.diagnostics['owners'].guid)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(len(diagnostics), 3)
-
-  def testPostSparseDiagnostic(self):
-    stored_object.Set(
-        add_point_queue.BOT_WHITELIST_KEY, ['win7'])
-
-    test_path = 'Chromium/win7/suite/metric'
-    params = {
-        'data': json.dumps(TEST_BENCHMARKS),
-        'test_path': test_path,
-        'revision': 123
-    }
-    self.testapp.post('/add_histograms_queue', params)
-
-    test_key = utils.TestKey(test_path)
-
-    test = test_key.get()
-    self.assertIsNone(test.units)
-
-    original_diagnostic = TEST_BENCHMARKS
-    diagnostic_entity = ndb.Key(
-        'SparseDiagnostic', original_diagnostic['guid']).get()
-    self.assertFalse(diagnostic_entity.internal_only)
-
-  def testPostSparseDiagnostic_Internal(self):
-    stored_object.Set(
-        add_point_queue.BOT_WHITELIST_KEY, ['mac'])
-
-    test_path = 'Chromium/win7/suite/metric'
-    test_key = utils.TestKey(test_path)
-
-    params = {
-        'data': json.dumps(TEST_BENCHMARKS),
-        'test_path': test_path,
-        'revision': 123
-    }
-    self.testapp.post('/add_histograms_queue', params)
-
-    test = test_key.get()
-    self.assertIsNone(test.units)
-
-    original_diagnostic = TEST_BENCHMARKS
-    diagnostic_entity = ndb.Key(
-        'SparseDiagnostic', original_diagnostic['guid']).get()
-    self.assertTrue(diagnostic_entity.internal_only)
 
   def testGetUnitArgs_Up(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')

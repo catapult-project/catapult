@@ -81,82 +81,79 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     """
     datastore_hooks.SetPrivilegedRequest()
 
-    data = self.request.get('data')
-    revision = int(self.request.get('revision'))
-    test_path = self.request.get('test_path')
+    params = json.loads(self.request.get('params'))
 
-    logging.info('Processing: %s', test_path)
-
-    data_dict = json.loads(data)
-    guid = data_dict['guid']
-    is_diagnostic = 'type' in data_dict
-
-    test_path_parts = test_path.split('/')
-    master = test_path_parts[0]
-    bot = test_path_parts[1]
-    test_name = '/'.join(test_path_parts[2:])
-    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-    internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
-    extra_args = {} if is_diagnostic else GetUnitArgs(data_dict['unit'])
-    # TDOO(eakuefner): Populate benchmark_description once it appears in
-    # diagnostics.
-    # https://github.com/catapult-project/catapult/issues/4096
-    parent_test = add_point_queue.GetOrCreateAncestors(
-        master, bot, test_name, internal_only, **extra_args)
-    test_key = parent_test.key
-
-    added_rows = []
-    monitored_test_keys = []
-
-    if is_diagnostic:
-      entity = histogram.SparseDiagnostic(
-          id=guid, data=data, test=test_key, start_revision=revision,
-          end_revision=revision, internal_only=internal_only)
-    else:
-      diagnostics = self.request.get('diagnostics')
-
-      new_guids_to_existing_diagnostics = ProcessDiagnostics(
-          diagnostics, revision, test_key, internal_only)
-
-      # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
-      hs = histogram_set.HistogramSet()
-      hs.ImportDicts([data_dict])
-      # TODO(eakuefner): Share code for replacement logic with add_histograms
-      for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
-        hs.ReplaceSharedDiagnostic(
-            new_guid, diagnostic_ref.DiagnosticRef(
-                existing_diagnostic['guid']))
-      data = hs.GetFirstHistogram().AsDict()
-
-      entity = histogram.Histogram(
-          id=guid, data=data, test=test_key, revision=revision,
-          internal_only=internal_only)
-      row = AddRow(data_dict, test_key, revision, test_path, internal_only)
-      added_rows.append(row)
-
-      is_monitored = parent_test.sheriff and parent_test.has_rows
-      if is_monitored:
-        monitored_test_keys.append(parent_test.key)
+    for p in params:
+      _ProcessHistogram(p)
 
 
-    entity.put()
+def _ProcessHistogram(params):
+  bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
 
-    tests_keys = [
-        k for k in monitored_test_keys if not add_point_queue.IsRefBuild(k)]
+  revision = int(params['revision'])
+  test_path = params['test_path']
+  data_dict = params['data']
 
-    # Updating of the cached graph revisions should happen after put because
-    # it requires the new row to have a timestamp, which happens upon put.
-    futures = [
-        graph_revisions.AddRowsToCacheAsync(added_rows),
-        find_anomalies.ProcessTestsAsync(tests_keys)]
-    ndb.Future.wait_all(futures)
+  logging.info('Processing: %s', test_path)
+
+  guid = data_dict['guid']
+  test_path_parts = test_path.split('/')
+  master = test_path_parts[0]
+  bot = test_path_parts[1]
+  test_name = '/'.join(test_path_parts[2:])
+  internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
+  extra_args = GetUnitArgs(data_dict['unit'])
+  # TDOO(eakuefner): Populate benchmark_description once it appears in
+  # diagnostics.
+  # https://github.com/catapult-project/catapult/issues/4096
+  parent_test = add_point_queue.GetOrCreateAncestors(
+      master, bot, test_name, internal_only, **extra_args)
+  test_key = parent_test.key
+
+  added_rows = []
+  monitored_test_keys = []
+
+  diagnostics = params.get('diagnostics')
+
+  new_guids_to_existing_diagnostics = ProcessDiagnostics(
+      diagnostics, revision, test_key, internal_only)
+
+  # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
+  hs = histogram_set.HistogramSet()
+  hs.ImportDicts([data_dict])
+  # TODO(eakuefner): Share code for replacement logic with add_histograms
+  for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
+    hs.ReplaceSharedDiagnostic(
+        new_guid, diagnostic_ref.DiagnosticRef(
+            existing_diagnostic['guid']))
+  data = hs.GetFirstHistogram().AsDict()
+
+  entity = histogram.Histogram(
+      id=guid, data=data, test=test_key, revision=revision,
+      internal_only=internal_only)
+  entity.put()
+  row = AddRow(data_dict, test_key, revision, test_path, internal_only)
+  added_rows.append(row)
+
+  is_monitored = parent_test.sheriff and parent_test.has_rows
+  if is_monitored:
+    monitored_test_keys.append(parent_test.key)
+
+  tests_keys = [
+      k for k in monitored_test_keys if not add_point_queue.IsRefBuild(k)]
+
+  # Updating of the cached graph revisions should happen after put because
+  # it requires the new row to have a timestamp, which happens upon put.
+  futures = [
+      graph_revisions.AddRowsToCacheAsync(added_rows),
+      find_anomalies.ProcessTestsAsync(tests_keys)]
+  ndb.Future.wait_all(futures)
 
 
-def ProcessDiagnostics(diagnostics, revision, test_key, internal_only):
-  if not diagnostics:
+def ProcessDiagnostics(diagnostic_data, revision, test_key, internal_only):
+  if not diagnostic_data:
     return {}
 
-  diagnostic_data = json.loads(diagnostics)
   diagnostic_entities = []
   for name, diagnostic_datum in diagnostic_data.iteritems():
     # TODO(eakuefner): Pass map of guid to dict to avoid overhead

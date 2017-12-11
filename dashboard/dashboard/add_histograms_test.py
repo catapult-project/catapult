@@ -291,9 +291,74 @@ class AddHistogramsTest(testing_common.TestCase):
     params_by_guid = {}
     for task in tasks:
       params = urlparse.parse_qs(base64.b64decode(task['body']))
-      guid = json.loads(params['data'][0])['guid']
-      params_by_guid[guid] = params
+      histogram_dicts = json.loads(params['params'][0])
+      for d in histogram_dicts:
+        params_by_guid[d['data']['guid']] = d
     return params_by_guid
+
+  @mock.patch.object(
+      add_histograms, '_QueueHistogramTasks')
+  def testPostHistogram_TooManyHistograms_Splits(self, mock_queue):
+    def _MakeHistogram(name):
+      h = histogram_module.Histogram(name, 'count')
+      for i in xrange(100):
+        h.AddSample(i)
+      return h
+
+    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(100)]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        histogram_module.GenericSet([12345]))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.DEVICE_IDS.name,
+        histogram_module.GenericSet(['devie_foo']))
+
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
+
+    self.assertTrue(len(mock_queue.call_args[0][0]) > 1)
+
+  @mock.patch.object(
+      add_histograms, '_QueueHistogramTasks')
+  def testPostHistogram_FewHistograms_SingleTask(self, mock_queue):
+    def _MakeHistogram(name):
+      h = histogram_module.Histogram(name, 'count')
+      for i in xrange(100):
+        h.AddSample(i)
+      return h
+
+    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(50)]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        histogram_module.GenericSet([12345]))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.DEVICE_IDS.name,
+        histogram_module.GenericSet(['devie_foo']))
+
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
+
+    self.assertEqual(len(mock_queue.call_args[0][0]), 1)
 
   def testPostHistogramSetsTestPathAndRevision(self):
     data = json.dumps([
@@ -359,16 +424,16 @@ class AddHistogramsTest(testing_common.TestCase):
     self.assertEqual(2, len(params_by_guid))
     self.assertEqual(
         'master/bot/benchmark/foo/story',
-        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['test_path'][0])
+        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['test_path'])
     self.assertEqual(
-        '424242',
-        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['revision'][0])
+        424242,
+        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['revision'])
     self.assertEqual(
         'master/bot/benchmark/foo2/story',
-        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['test_path'][0])
+        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['test_path'])
     self.assertEqual(
-        '424242',
-        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['revision'][0])
+        424242,
+        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['revision'])
 
   def testPostHistogramPassesHistogramLevelSparseDiagnostics(self):
     data = json.dumps([
@@ -430,7 +495,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
     params_by_guid = self.TaskParamsByGuid()
     params = params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']
-    diagnostics = json.loads(params['diagnostics'][0])
+    diagnostics = params['diagnostics']
 
     self.assertEqual(1, len(diagnostics))
     self.assertEqual(
@@ -487,7 +552,7 @@ class AddHistogramsTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     params_by_guid = self.TaskParamsByGuid()
     params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
-    hist = json.loads(params['data'][0])
+    hist = params['data']
 
     self.assertEqual(4, len(diagnostics))
     self.assertEqual(
@@ -544,7 +609,7 @@ class AddHistogramsTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     params_by_guid = self.TaskParamsByGuid()
     params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
-    hist = json.loads(params['data'][0])
+    hist = params['data']
 
     self.assertEqual(3, len(diagnostics))
     self.assertEqual(
@@ -707,17 +772,32 @@ class AddHistogramsTest(testing_common.TestCase):
     params_by_guid = self.TaskParamsByGuid()
 
     params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
-    hist = json.loads(params['data'][0])
+    hist = params['data']
     owners_info = hist['diagnostics'][reserved_infos.OWNERS.name]
     self.assertEqual(4, len(diagnostics))
-    self.assertEqual(reserved_infos.BENCHMARKS.name, diagnostics[0].name)
-    self.assertEqual(reserved_infos.BOTS.name, diagnostics[1].name)
-    self.assertEqual(reserved_infos.OWNERS.name, diagnostics[2].name)
-    self.assertEqual(reserved_infos.MASTERS.name, diagnostics[3].name)
-    self.assertEqual(['benchmark'], diagnostics[0].data['values'])
-    self.assertEqual(['bot'], diagnostics[1].data['values'])
-    self.assertEqual(['alice@chromium.org'], diagnostics[2].data['values'])
-    self.assertEqual(['master'], diagnostics[3].data['values'])
+
+    names = [
+        reserved_infos.BENCHMARKS.name,
+        reserved_infos.BOTS.name,
+        reserved_infos.OWNERS.name,
+        reserved_infos.MASTERS.name]
+    diagnostics_by_name = {}
+    for d in diagnostics:
+      self.assertIn(d.name, names)
+      names.remove(d.name)
+      diagnostics_by_name[d.name] = d
+    self.assertEqual(
+        ['benchmark'],
+        diagnostics_by_name[reserved_infos.BENCHMARKS.name].data['values'])
+    self.assertEqual(
+        ['bot'],
+        diagnostics_by_name[reserved_infos.BOTS.name].data['values'])
+    self.assertEqual(
+        ['alice@chromium.org'],
+        diagnostics_by_name[reserved_infos.OWNERS.name].data['values'])
+    self.assertEqual(
+        ['master'],
+        diagnostics_by_name[reserved_infos.MASTERS.name].data['values'])
     self.assertEqual('cabb59fe-4bcf-4512-881c-d038c7a80635', owners_info)
 
   def testPostHistogram_AddsSparseDiagnosticByName_OnlyOnce(self):

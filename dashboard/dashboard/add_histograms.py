@@ -129,30 +129,61 @@ def ProcessHistogramSet(histogram_dicts):
     histograms.ReplaceSharedDiagnostic(
         new_guid, diagnostic.Diagnostic.FromDict(old_diagnostic))
 
-  task_list = []
+  tasks = _BatchHistogramsIntoTasks(histograms, revision)
+
+  _QueueHistogramTasks(tasks)
+
+
+def _MakeTask(params):
+  return taskqueue.Task(
+      url='/add_histograms_queue', params={'params': json.dumps(params)})
+
+
+def _BatchHistogramsIntoTasks(histograms, revision):
+  params = []
+  tasks = []
 
   for hist in histograms:
-    guid = hist.guid
-    diagnostics = FindHistogramLevelSparseDiagnostics(guid, histograms)
+    diagnostics = FindHistogramLevelSparseDiagnostics(hist.guid, histograms)
     # TODO(eakuefner): Don't compute full diagnostics, because we need anyway to
     # call GetOrCreate here and in the queue.
-    test_path = ComputeTestPath(guid, histograms)
+    test_path = ComputeTestPath(hist.guid, histograms)
+
     # TODO(eakuefner): Batch these better than one per task.
-    task_list.append(_MakeTask(hist, test_path, revision, diagnostics))
+    task_dict = _MakeTaskDict(hist, test_path, revision, diagnostics)
 
+    # taskqueue.Task does size checking and throws an exception if you're over
+    # the payload limit.
+    try:
+      _MakeTask(params + [task_dict])
+      params.append(task_dict)
+    except taskqueue.TaskTooLargeError:
+      t = _MakeTask(params)
+      tasks.append(t)
+      params = []
+
+  if params:
+    t = _MakeTask(params)
+    tasks.append(t)
+
+  return tasks
+
+
+def _QueueHistogramTasks(tasks):
   queue = taskqueue.Queue(TASK_QUEUE_NAME)
-
   futures = []
-  for i in xrange(0, len(task_list), taskqueue.MAX_TASKS_PER_ADD):
-    f = queue.add_async(task_list[i:i + taskqueue.MAX_TASKS_PER_ADD])
+  for i in xrange(0, len(tasks), taskqueue.MAX_TASKS_PER_ADD):
+    f = queue.add_async(tasks[i:i + taskqueue.MAX_TASKS_PER_ADD])
     futures.append(f)
   for f in futures:
     f.get_result()
 
 
-def _MakeTask(hist, test_path, revision, diagnostics=None):
+def _MakeTaskDict(hist, test_path, revision, diagnostics):
+  # TODO(simonhatch): "revision" is common to all tasks, as is the majority of
+  # the test path
   params = {
-      'data': json.dumps(hist.AsDict()),
+      'data': hist.AsDict(),
       'test_path': test_path,
       'revision': revision
   }
@@ -166,9 +197,9 @@ def _MakeTask(hist, test_path, revision, diagnostics=None):
   for d in diagnostics.itervalues():
     d['guid'] = str(uuid.uuid4())
 
-  params['diagnostics'] = json.dumps(diagnostics)
+  params['diagnostics'] = diagnostics
 
-  return taskqueue.Task(url='/add_histograms_queue', params=params)
+  return params
 
 
 # TODO(eakuefner): Clean this up by making it accept raw diagnostics.
