@@ -365,7 +365,7 @@ class StartBisectTest(testing_common.TestCase):
                     'dev.chromium.org': {},
                     'test.blogspot.com': {},
                     'http___test.com_': {},
-                    'Wikipedia (1 tab)': {}
+                    'Wikipedia_(1_tab)': {}
                 },
                 'vm_final_size_renderer': {
                     'ref': {},
@@ -405,14 +405,14 @@ class StartBisectTest(testing_common.TestCase):
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/win7/page_cycler.morejs/'
-                      'times/Wikipedia (1 tab)'),
+                      'times/Wikipedia_(1_tab)'),
         'step': 'prefill-info',
     })
     info = json.loads(response.body)
     self.assertEqual('win_perf_bisect', info['bisect_bot'])
     self.assertEqual('foo@chromium.org', info['email'])
     self.assertEqual('page_cycler.morejs', info['suite'])
-    self.assertEqual('times/Wikipedia (1 tab)', info['default_metric'])
+    self.assertEqual('times/Wikipedia_(1_tab)', info['default_metric'])
     self.assertEqual('ChromiumPerf', info['master'])
     self.assertFalse(info['internal_only'])
     self.assertFalse(info['is_admin'])
@@ -428,7 +428,7 @@ class StartBisectTest(testing_common.TestCase):
         ], info['all_bots'])
     self.assertEqual(
         [
-            'times/Wikipedia (1 tab)',
+            'times/Wikipedia_(1_tab)',
             'times/blog.chromium.org',
             'times/dev.chromium.org',
             'times/http___test.com_',
