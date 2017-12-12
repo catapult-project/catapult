@@ -259,7 +259,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
   def testAddRow(self):
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
-    add_histograms_queue.AddRow(TEST_HISTOGRAM, test_key, 123, test_path, False)
+    add_histograms_queue.AddRow(
+        TEST_HISTOGRAM, test_key, 123, test_path, False).put()
 
     row = graph_data.Row.query().fetch()[0]
     fields = row.to_dict().iterkeys()
@@ -305,8 +306,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'min': False,
         'sum': False
         })
-    add_histograms_queue.AddRow(hist.AsDict(), test_key, 123, test_path,
-                                False)
+    add_histograms_queue.AddRow(
+        hist.AsDict(), test_key, 123, test_path, False).put()
     row = graph_data.Row.query().fetch()[0]
     fields = row.to_dict().iterkeys()
     d_fields = [field for field in fields if field.startswith('d_')]
@@ -317,7 +318,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
   def testAddRow_SetsInternalOnly(self):
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
-    add_histograms_queue.AddRow(TEST_HISTOGRAM, test_key, 123, test_path, True)
+    add_histograms_queue.AddRow(
+        TEST_HISTOGRAM, test_key, 123, test_path, True).put()
     row = graph_data.Row.query().fetch()[0]
     self.assertTrue(row.internal_only)
 
@@ -325,10 +327,11 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     hist = histogram_module.Histogram('foo', 'count').AsDict()
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
-    add_histograms_queue.AddRow(hist, test_key, 123, test_path, True)
+    row = add_histograms_queue.AddRow(hist, test_key, 123, test_path, True)
 
     rows = graph_data.Row.query().fetch()
     self.assertEqual(0, len(rows))
+    self.assertIsNone(row)
 
   def testAddRow_FailsWithNonSingularRevisionInfo(self):
     test_path = 'Chromium/win7/suite/metric'
@@ -338,4 +341,4 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'type': 'GenericSet', 'values': [123, 456]}
 
     with self.assertRaises(add_histograms_queue.BadRequestError):
-      add_histograms_queue.AddRow(hist, test_key, 123, test_path, False)
+      add_histograms_queue.AddRow(hist, test_key, 123, test_path, False).put()

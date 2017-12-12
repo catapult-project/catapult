@@ -205,12 +205,19 @@ def _MakeTaskDict(hist, test_path, revision, diagnostics):
 
 # TODO(eakuefner): Clean this up by making it accept raw diagnostics.
 # TODO(eakuefner): Move this helper along with others to a common place.
+@ndb.synctasklet
 def DeduplicateAndPut(new_entities, test, rev):
+  result = yield DeduplicateAndPutAsync(new_entities, test, rev)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def DeduplicateAndPutAsync(new_entities, test, rev):
   query = histogram.SparseDiagnostic.query(
       ndb.AND(
           histogram.SparseDiagnostic.end_revision == sys.maxint,
           histogram.SparseDiagnostic.test == test))
-  diagnostic_entities = query.fetch()
+  diagnostic_entities = yield query.fetch_async()
   entity_futures = []
   new_guids_to_existing_diagnostics = {}
 
@@ -231,8 +238,8 @@ def DeduplicateAndPut(new_entities, test, rev):
       continue
     # Case 3: Nothing in datastore.
     entity_futures.append(new_entity.put_async())
-  ndb.Future.wait_all(entity_futures)
-  return new_guids_to_existing_diagnostics
+  yield entity_futures
+  raise ndb.Return(new_guids_to_existing_diagnostics)
 
 
 def _GetDiagnosticEntityMatchingName(name, diagnostic_entities):

@@ -81,28 +81,58 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     """
     datastore_hooks.SetPrivilegedRequest()
 
+    bot_whitelist_future = stored_object.GetAsync(
+        add_point_queue.BOT_WHITELIST_KEY)
+
     params = json.loads(self.request.get('params'))
+    _PrewarmGets(params)
+
+    bot_whitelist = bot_whitelist_future.get_result()
+
+    # Roughly, the processing of histograms and the processing of rows can be
+    # done in parallel since there are no dependencies.
+
+    futures = []
 
     for p in params:
-      _ProcessHistogram(p)
+      futures.extend(_ProcessRowAndHistogram(p, bot_whitelist))
+
+    ndb.Future.wait_all(futures)
 
 
-def _ProcessHistogram(params):
-  bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
+def _PrewarmGets(params):
+  keys = set()
 
+  for p in params:
+    test_path = p['test_path']
+    path_parts = test_path.split('/')
+
+    keys.add(ndb.Key('Master', path_parts[0]))
+    keys.add(ndb.Key('Bot', path_parts[1]))
+
+    test_parts = path_parts[2:]
+    test_key = '%s/%s' % (path_parts[0], path_parts[1])
+    for p in test_parts:
+      test_key += '/%s' % p
+      keys.add(ndb.Key('TestMetadata', test_key))
+
+  ndb.get_multi_async(list(keys))
+
+
+def _ProcessRowAndHistogram(params, bot_whitelist):
   revision = int(params['revision'])
   test_path = params['test_path']
   data_dict = params['data']
 
   logging.info('Processing: %s', test_path)
 
-  guid = data_dict['guid']
   test_path_parts = test_path.split('/')
   master = test_path_parts[0]
   bot = test_path_parts[1]
   test_name = '/'.join(test_path_parts[2:])
   internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
   extra_args = GetUnitArgs(data_dict['unit'])
+
   # TDOO(eakuefner): Populate benchmark_description once it appears in
   # diagnostics.
   # https://github.com/catapult-project/catapult/issues/4096
@@ -110,19 +140,51 @@ def _ProcessHistogram(params):
       master, bot, test_name, internal_only, **extra_args)
   test_key = parent_test.key
 
-  added_rows = []
-  monitored_test_keys = []
+  return [
+      _AddRowFromData(params, revision, parent_test, internal_only),
+      _AddHistogramFromData(params, revision, test_key, internal_only)]
 
+
+@ndb.tasklet
+def _AddRowFromData(params, revision, parent_test, internal_only):
+  data_dict = params['data']
+  test_path = params['test_path']
+  test_key = parent_test.key
+
+  row = AddRow(data_dict, test_key, revision, test_path, internal_only)
+  if row:
+    yield row.put_async()
+
+  tests_keys = []
+  is_monitored = parent_test.sheriff and parent_test.has_rows
+  if is_monitored:
+    tests_keys.append(parent_test.key)
+
+  tests_keys = [
+      k for k in tests_keys if not add_point_queue.IsRefBuild(k)]
+
+  # Updating of the cached graph revisions should happen after put because
+  # it requires the new row to have a timestamp, which happens upon put.
+  futures = [
+      graph_revisions.AddRowsToCacheAsync([row]),
+      find_anomalies.ProcessTestsAsync(tests_keys)]
+  yield futures
+
+
+@ndb.tasklet
+def _AddHistogramFromData(params, revision, test_key, internal_only):
+  data_dict = params['data']
+  guid = data_dict['guid']
   diagnostics = params.get('diagnostics')
-
-  new_guids_to_existing_diagnostics = ProcessDiagnostics(
+  new_guids_to_existing_diagnostics = yield ProcessDiagnostics(
       diagnostics, revision, test_key, internal_only)
 
   # TODO(eakuefner): Move per-histogram monkeypatching logic to Histogram.
   hs = histogram_set.HistogramSet()
   hs.ImportDicts([data_dict])
   # TODO(eakuefner): Share code for replacement logic with add_histograms
-  for new_guid, existing_diagnostic in new_guids_to_existing_diagnostics:
+  for new_guid, existing_diagnostic in (
+      new_guids_to_existing_diagnostics.iteritems()):
     hs.ReplaceSharedDiagnostic(
         new_guid, diagnostic_ref.DiagnosticRef(
             existing_diagnostic['guid']))
@@ -131,28 +193,13 @@ def _ProcessHistogram(params):
   entity = histogram.Histogram(
       id=guid, data=data, test=test_key, revision=revision,
       internal_only=internal_only)
-  entity.put()
-  row = AddRow(data_dict, test_key, revision, test_path, internal_only)
-  added_rows.append(row)
-
-  is_monitored = parent_test.sheriff and parent_test.has_rows
-  if is_monitored:
-    monitored_test_keys.append(parent_test.key)
-
-  tests_keys = [
-      k for k in monitored_test_keys if not add_point_queue.IsRefBuild(k)]
-
-  # Updating of the cached graph revisions should happen after put because
-  # it requires the new row to have a timestamp, which happens upon put.
-  futures = [
-      graph_revisions.AddRowsToCacheAsync(added_rows),
-      find_anomalies.ProcessTestsAsync(tests_keys)]
-  ndb.Future.wait_all(futures)
+  yield entity.put_async()
 
 
+@ndb.tasklet
 def ProcessDiagnostics(diagnostic_data, revision, test_key, internal_only):
   if not diagnostic_data:
-    return {}
+    raise ndb.Return({})
 
   diagnostic_entities = []
   for name, diagnostic_datum in diagnostic_data.iteritems():
@@ -162,9 +209,11 @@ def ProcessDiagnostics(diagnostic_data, revision, test_key, internal_only):
         id=guid, name=name, data=diagnostic_datum, test=test_key,
         start_revision=revision, end_revision=sys.maxint,
         internal_only=internal_only))
-  new_guids_to_existing_diagnostics = add_histograms.DeduplicateAndPut(
-      diagnostic_entities, test_key, revision).iteritems()
-  return new_guids_to_existing_diagnostics
+  new_guids_to_existing_diagnostics = yield (
+      add_histograms.DeduplicateAndPutAsync(
+          diagnostic_entities, test_key, revision))
+
+  raise ndb.Return(new_guids_to_existing_diagnostics)
 
 
 def GetUnitArgs(unit):
@@ -195,7 +244,6 @@ def AddRow(histogram_dict, test_metadata_key, revision, test_path,
   test_container_key = utils.GetTestContainerKey(test_metadata_key)
   row = graph_data.Row(id=revision, parent=test_container_key,
                        internal_only=internal_only, **properties)
-  row.put()
   return row
 
 def _MakeRowDict(revision, test_path, tracing_histogram):
