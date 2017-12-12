@@ -114,6 +114,24 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     rows = graph_data.Row.query().fetch()
     mock_graph_revisions.assert_called_once_with(rows)
 
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  @mock.patch.object(
+      add_histograms_queue, 'AddRow', mock.MagicMock(return_value=None))
+  def testPost_EmptyHistogram_NotAdded(
+      self, mock_process_test, mock_graph_revisions):
+    data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo2']).put()
+
+    self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    self.assertFalse(mock_process_test.called)
+    self.assertFalse(mock_graph_revisions.called)
+
   def _SetupRefTest(self, ref_name):
     sheriff.Sheriff(
         id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()

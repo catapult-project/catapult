@@ -152,8 +152,10 @@ def _AddRowFromData(params, revision, parent_test, internal_only):
   test_key = parent_test.key
 
   row = AddRow(data_dict, test_key, revision, test_path, internal_only)
-  if row:
-    yield row.put_async()
+  if not row:
+    raise ndb.Return()
+
+  yield row.put_async()
 
   tests_keys = []
   is_monitored = parent_test.sheriff and parent_test.has_rows
