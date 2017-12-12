@@ -33,15 +33,6 @@ from telemetry.testing import system_stub
 
 from py_utils import tempfile_ext
 
-SIMPLE_CREDENTIALS_STRING = """
-{
-  "test": {
-    "username": "example",
-    "password": "asdf"
-  }
-}
-"""
-
 
 class DummyTest(legacy_page_test.LegacyPageTest):
 
@@ -60,25 +51,6 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 
   def __init__(self):
     super(EmptyMetadataForTest, self).__init__('')
-
-
-class StubCredentialsBackend(object):
-
-  def __init__(self, login_return_value):
-    self.did_get_login = False
-    self.did_get_login_no_longer_needed = False
-    self.login_return_value = login_return_value
-
-  @property
-  def credentials_type(self):
-    return 'test'
-
-  def LoginNeeded(self, *_):
-    self.did_get_login = True
-    return self.login_return_value
-
-  def LoginNoLongerNeeded(self, _):
-    self.did_get_login_no_longer_needed = True
 
 
 def GetSuccessfulPageRuns(results):

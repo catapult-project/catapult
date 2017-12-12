@@ -17,7 +17,6 @@ class TestPageSet(story.StorySet):
   def __init__(self):
     super(TestPageSet, self).__init__(
         archive_data_file='data/archive_files/test.json',
-        credentials_path='data/credential',
         user_agent_type='desktop',
         bucket=story.PUBLIC_BUCKET)
 

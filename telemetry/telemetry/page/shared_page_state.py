@@ -210,11 +210,6 @@ class SharedPageState(story_module.SharedState):
 
     page_set = page.page_set
     self._current_page = page
-    if (self._current_page.credentials and
-        self._finder_options.browser_options.wpr_mode == wpr_modes.WPR_RECORD):
-      raise Exception(
-          'Setting page credentials is deprecated, please conver page %s to '
-          'use login_helper instead (Examples: https://goo.gl/fXi6ii)' % page)
 
     if self._browser and page.startup_url:
       assert not self.platform.tracing_controller.is_tracing_running, (

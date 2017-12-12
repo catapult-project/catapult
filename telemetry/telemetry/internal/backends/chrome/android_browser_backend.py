@@ -13,7 +13,6 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
-from devil.android import device_errors
 from devil.android import device_signal
 from devil.android import flag_changer
 from devil.android.sdk import intent

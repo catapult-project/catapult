@@ -18,9 +18,7 @@ from telemetry.internal.actions import action_runner as action_runner_module
 class Page(story.Story):
 
   def __init__(self, url, page_set=None, base_dir=None, name='',
-               credentials_path=None,
-               credentials_bucket=cloud_storage.PUBLIC_BUCKET, tags=None,
-               startup_url='', make_javascript_deterministic=True,
+               tags=None, startup_url='', make_javascript_deterministic=True,
                shared_page_state_class=shared_page_state.SharedPageState,
                grouping_keys=None,
                cache_temperature=cache_temperature_module.ANY,
@@ -42,13 +40,6 @@ class Page(story.Story):
       base_dir = os.path.dirname(inspect.getfile(self.__class__))
     self._base_dir = base_dir
     self._name = name
-    if credentials_path:
-      credentials_path = os.path.join(self._base_dir, credentials_path)
-      cloud_storage.GetIfChanged(credentials_path, credentials_bucket)
-      if not os.path.exists(credentials_path):
-        logging.error('Invalid credentials path: %s' % credentials_path)
-        credentials_path = None
-    self._credentials_path = credentials_path
     self._cache_temperature = cache_temperature
 
     assert traffic_setting in traffic_setting_module.NETWORK_CONFIGS, (
@@ -62,15 +53,10 @@ class Page(story.Story):
     # These attributes can be set dynamically by the page.
     self.synthetic_delays = dict()
     self._startup_url = startup_url
-    self.credentials = None
     self.skip_waits = False
     self.script_to_evaluate_on_commit = None
     self._SchemeErrorCheck()
     self._extra_browser_args = extra_browser_args or []
-
-  @property
-  def credentials_path(self):
-    return self._credentials_path
 
   @property
   def cache_temperature(self):

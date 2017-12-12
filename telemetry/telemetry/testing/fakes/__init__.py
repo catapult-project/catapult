@@ -225,9 +225,6 @@ class FakePossibleBrowser(object):
   def IsRemote(self):
     return self.is_remote
 
-  def SetCredentialsPath(self, _):
-    pass
-
 
 class FakeSharedPageState(shared_page_state.SharedPageState):
   def __init__(self, test, finder_options, story_set):
@@ -325,10 +322,6 @@ class _FakeBrowser(object):
     """Allows setting of the browser_type."""
     self._browser_type = incoming
 
-  @property
-  def credentials(self):
-    return _FakeCredentials()
-
   def Close(self):
     self._is_crashed = False
 
@@ -348,11 +341,6 @@ class _FakeBrowser(object):
     return self._tabs
 
   def DumpStateUponFailure(self):
-    pass
-
-
-class _FakeCredentials(object):
-  def WarnIfMissingCredentials(self, _):
     pass
 
 

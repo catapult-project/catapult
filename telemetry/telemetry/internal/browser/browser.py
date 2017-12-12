@@ -220,7 +220,6 @@ class Browser(app.App):
             'Browser is still running (pid=%s).', self._browser_backend.pid)
       else:
         logging.info('Browser is closed.')
-      self.credentials = None
 
   def Foreground(self):
     """Ensure the browser application is moved to the foreground."""
