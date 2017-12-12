@@ -1150,10 +1150,10 @@ class DeviceUtils(object):
     logger.info(
         'KillAll(%r, ...) attempting to kill the following:', process_name)
     for p in processes:
-      logger.info('  %05s %s', p.pid, p.name)
+      logger.info('  %05d %s', p.pid, p.name)
 
     pids = set(p.pid for p in processes)
-    cmd = ['kill', '-%d' % signum] + sorted(pids)
+    cmd = ['kill', '-%d' % signum] + sorted(str(p) for p in pids)
     self.RunShellCommand(cmd, as_root=as_root, check_return=True)
 
     def all_pids_killed():
@@ -2311,12 +2311,15 @@ class DeviceUtils(object):
       row = line.split()
       try:
         row = {k: row[i] for k, i in _PS_COLUMNS.iteritems()}
-      except IndexError:
+        if row['pid'] == 'PID' or process_name not in row['name']:
+          # Skip over header and non-matching processes.
+          continue
+        row['pid'] = int(row['pid'])
+        row['ppid'] = int(row['ppid'])
+      except StandardError:  # e.g. IndexError, TypeError, ValueError.
         logging.warning('failed to parse ps line: %r', line)
         continue
-      p = ProcessInfo(**row)
-      if process_name in p.name and p.pid != 'PID':
-        processes.append(p)
+      processes.append(ProcessInfo(**row))
     return processes
 
   # TODO(#4103): Remove after migrating clients to ListProcesses.
@@ -2344,7 +2347,7 @@ class DeviceUtils(object):
     """
     procs_pids = collections.defaultdict(list)
     for p in self.ListProcesses(process_name):
-      procs_pids[p.name].append(p.pid)
+      procs_pids[p.name].append(str(p.pid))
     return procs_pids
 
   @decorators.WithTimeoutAndRetriesFromInstance()
