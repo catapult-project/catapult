@@ -234,5 +234,37 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     self.assertEquals(self.device.GetProp('service.adb.root'), '1')
 
 
+class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
+
+  def setUp(self):
+    super(PsOutputCompatibilityTests, self).setUp()
+    self.adb = adb_wrapper.AdbWrapper(self.serial)
+    self.adb.WaitForDevice()
+    self.device = device_utils.DeviceUtils(self.adb, default_retries=0)
+
+  def testPsOutoutCompatibility(self):
+    # pylint: disable=protected-access
+    lines = self.device._GetPsOutput(None)
+
+    # Check column names at each index match expected values.
+    header = lines[0].split()
+    for column, idx in device_utils._PS_COLUMNS.iteritems():
+      column = column.upper()
+      self.assertEqual(
+          header[idx], column,
+          'Expected column %s at index %d but found %s\nsource: %r' % (
+              column, idx, header[idx], lines[0]))
+
+    # Check pid and ppid are numeric values.
+    for line in lines[1:]:
+      row = line.split()
+      row = {k: row[i] for k, i in device_utils._PS_COLUMNS.iteritems()}
+      for key in ('pid', 'ppid'):
+        self.assertTrue(
+            row[key].isdigit(),
+            'Expected numeric %s value but found %r\nsource: %r' % (
+                key, row[key], line))
+
+
 if __name__ == '__main__':
   unittest.main()

@@ -11,7 +11,6 @@ Eventually, this will be based on adb_wrapper.
 import calendar
 import collections
 import fnmatch
-import itertools
 import json
 import logging
 import os
@@ -170,6 +169,11 @@ _FILE_MODE_SPECIAL = [
     ('s', stat.S_ISGID),
     ('t', stat.S_ISVTX),
 ]
+_PS_COLUMNS = {
+  'pid': 1,
+  'ppid': 2,
+  'name': -1
+}
 _SELINUX_MODE = {
     'enforcing': True,
     'permissive': False,
@@ -194,6 +198,8 @@ _PARCEL_RESULT_RE = re.compile(
     r'0x[0-9a-f]{8}\: (?:[0-9a-f]{8}\s+){1,4}\'(.{16})\'')
 _EBUSY_RE = re.compile(
     r'mkdir failed for ([^,]*), Device or resource busy')
+
+ProcessInfo = collections.namedtuple('ProcessInfo', ['name', 'pid', 'ppid'])
 
 
 @decorators.WithExplicitTimeoutAndRetries(
@@ -1130,29 +1136,29 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    procs_pids = self.GetPids(process_name)
+    processes = self.ListProcesses(process_name)
     if exact:
-      procs_pids = {process_name: procs_pids.get(process_name, [])}
-    pids = set(itertools.chain(*procs_pids.values()))
-    if not pids:
+      processes = [p for p in processes if p.name == process_name]
+    if not processes:
       if quiet:
         return 0
       else:
         raise device_errors.CommandFailedError(
-            'No process "%s"' % process_name, str(self))
+            'No processes matching %r (exact=%r)' % (process_name, exact),
+            str(self))
 
     logger.info(
         'KillAll(%r, ...) attempting to kill the following:', process_name)
-    for name, ids in procs_pids.iteritems():
-      for i in ids:
-        logger.info('  %05s %s', str(i), name)
+    for p in processes:
+      logger.info('  %05s %s', p.pid, p.name)
 
+    pids = set(p.pid for p in processes)
     cmd = ['kill', '-%d' % signum] + sorted(pids)
     self.RunShellCommand(cmd, as_root=as_root, check_return=True)
 
     def all_pids_killed():
-      procs_pids_remain = self.GetPids(process_name)
-      return not pids.intersection(itertools.chain(*procs_pids_remain.values()))
+      pids_left = (p.pid for p in self.ListProcesses(process_name))
+      return not pids.intersection(pids_left)
 
     if blocking:
       timeout_retry.WaitFor(all_pids_killed, wait_period=0.1)
@@ -1284,7 +1290,7 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    if self.GetPids(package):
+    if self.GetApplicationPids(package):
       self.RunShellCommand(['am', 'force-stop', package], check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -2255,9 +2261,70 @@ class DeviceUtils(object):
     """
     return self.GetProp('ro.product.cpu.abi', cache=True)
 
+  def _GetPsOutput(self, pattern):
+    """Runs |ps| command on the device and returns its output,
+
+    This private method abstracts away differences between Android verions for
+    calling |ps|, and implements support for filtering the output by a given
+    |pattern|, but does not do any output parsing.
+    """
+    try:
+      ps_cmd = 'ps'
+      # ps behavior was changed in Android above N, http://crbug.com/686716
+      if (self.build_version_sdk >= version_codes.NOUGAT_MR1
+          and self.build_id[0] > 'N'):
+        ps_cmd = 'ps -e'
+      if pattern:
+        return self._RunPipedShellCommand(
+            '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(pattern)))
+      else:
+        return self.RunShellCommand(
+            ps_cmd.split(), check_return=True, large_output=True)
+    except device_errors.AdbShellCommandFailedError as e:
+      if e.status and isinstance(e.status, list) and not e.status[0]:
+        # If ps succeeded but grep failed, there were no processes with the
+        # given name.
+        return []
+      else:
+        raise
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def ListProcesses(self, process_name=None, timeout=None, retries=None):
+    """Returns a list of tuples with info about processes on the device.
+
+    This essentially parses the output of the |ps| command into convenient
+    ProcessInfo tuples.
+
+    Args:
+      process_name: A string used to filter the returned processes. If given,
+                    only processes whose name have this value as a substring
+                    will be returned.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A list of ProcessInfo tuples with |name|, |pid|, and |ppid| fields.
+    """
+    process_name = process_name or ''
+    processes = []
+    for line in self._GetPsOutput(process_name):
+      row = line.split()
+      try:
+        row = {k: row[i] for k, i in _PS_COLUMNS.iteritems()}
+      except IndexError:
+        logging.warning('failed to parse ps line: %r', line)
+        continue
+      p = ProcessInfo(**row)
+      if process_name in p.name and p.pid != 'PID':
+        processes.append(p)
+    return processes
+
+  # TODO(#4103): Remove after migrating clients to ListProcesses.
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetPids(self, process_name=None, timeout=None, retries=None):
     """Returns the PIDs of processes containing the given name as substring.
+
+    DEPRECATED
 
     Note that the |process_name| is often the package name.
 
@@ -2276,38 +2343,13 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     procs_pids = collections.defaultdict(list)
-    try:
-      ps_cmd = 'ps'
-      # ps behavior was changed in Android above N, http://crbug.com/686716
-      if (self.build_version_sdk >= version_codes.NOUGAT_MR1
-          and self.build_id[0] > 'N'):
-        ps_cmd = 'ps -e'
-      if process_name:
-        ps_output = self._RunPipedShellCommand(
-            '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(process_name)))
-      else:
-        ps_output = self.RunShellCommand(
-            ps_cmd.split(), check_return=True, large_output=True)
-    except device_errors.AdbShellCommandFailedError as e:
-      if e.status and isinstance(e.status, list) and not e.status[0]:
-        # If ps succeeded but grep failed, there were no processes with the
-        # given name.
-        return procs_pids
-      else:
-        raise
-
-    process_name = process_name or ''
-    for line in ps_output:
-      try:
-        ps_data = line.split()
-        pid, process = ps_data[1], ps_data[-1]
-        if process_name in process and pid != 'PID':
-          procs_pids[process].append(pid)
-      except IndexError:
-        pass
+    for p in self.ListProcesses(process_name):
+      procs_pids[p.name].append(p.pid)
     return procs_pids
 
-  def GetApplicationPids(self, process_name, at_most_one=False, **kwargs):
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetApplicationPids(self, process_name, at_most_one=False,
+                         timeout=None, retries=None):
     """Returns the PID or PIDs of a given process name.
 
     Note that the |process_name|, often the package name, must match exactly.
@@ -2329,7 +2371,8 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    pids = self.GetPids(process_name, **kwargs).get(process_name, [])
+    pids = [p.pid for p in self.ListProcesses(process_name)
+            if p.name == process_name]
     if at_most_one:
       if len(pids) > 1:
         raise device_errors.CommandFailedError(
