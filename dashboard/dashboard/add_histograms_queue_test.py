@@ -19,6 +19,7 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
 
 TEST_HISTOGRAM = {
@@ -243,6 +244,28 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         hist.diagnostics['owners'].guid)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(len(diagnostics), 3)
+
+  def testPostHistogram_StoresUnescapedStoryName(self):
+    hists = [histogram_module.Histogram('hist', 'count')]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        histogram_module.GenericSet(['http://unescaped_story']))
+
+    test_path = 'Chromium/win7/suite/metric'
+    params = [{
+        'data': hists[0].AsDict(),
+        'test_path': test_path,
+        'revision': 123,
+        'diagnostics': {
+            'stories': hists[0].diagnostics.get('stories').AsDict(),
+        }
+    }]
+    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+
+    t = utils.TestKey(test_path).get()
+
+    self.assertEqual('http://unescaped_story', t.unescaped_story_name)
 
   def testGetUnitArgs_Up(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')

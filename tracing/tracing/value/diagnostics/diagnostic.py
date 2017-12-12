@@ -62,6 +62,9 @@ class Diagnostic(object):
       diagnostic.guid = dct['guid']
     return diagnostic
 
+  def ResetGuid(self):
+    self._guid = str(uuid.uuid4())
+
   def Inline(self):
     """Inlines a shared diagnostic.
 

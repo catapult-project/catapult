@@ -8,7 +8,6 @@ import json
 import logging
 import sys
 import traceback
-import uuid
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -184,7 +183,6 @@ def _MakeTaskDict(hist, test_path, revision, diagnostics):
   # TODO(simonhatch): "revision" is common to all tasks, as is the majority of
   # the test path
   params = {
-      'data': hist.AsDict(),
       'test_path': test_path,
       'revision': revision
   }
@@ -194,11 +192,13 @@ def _MakeTaskDict(hist, test_path, revision, diagnostics):
   # same diagnostic out (datastore contention), at the cost of copyin the
   # data. These are sparsely written to datastore anyway, so the extra
   # storage should be minimal.
-  diagnostics = {k: d.AsDict() for k, d in diagnostics.iteritems()}
   for d in diagnostics.itervalues():
-    d['guid'] = str(uuid.uuid4())
+    d.ResetGuid()
+
+  diagnostics = {k: d.AsDict() for k, d in diagnostics.iteritems()}
 
   params['diagnostics'] = diagnostics
+  params['data'] = hist.AsDict()
 
   return params
 

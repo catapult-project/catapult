@@ -876,6 +876,12 @@ class DiagnosticMapUnittest(unittest.TestCase):
     with self.assertRaises(TypeError):
       diagnostics[reserved_infos.TRACE_URLS.name] = histogram.DateRange(0)
 
+  def testResetGuid(self):
+    generic = histogram.GenericSet(['generic diagnostic'])
+    guid1 = generic.guid
+    generic.ResetGuid()
+    guid2 = generic.guid
+    self.assertNotEqual(guid1, guid2)
 
   # TODO(eakuefner): Find a better place for these non-map tests once we
   # break up the Python implementation more.
