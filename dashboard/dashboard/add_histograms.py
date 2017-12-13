@@ -13,11 +13,10 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import add_point
-from dashboard import add_point_queue
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
-from dashboard.common import stored_object
+from dashboard.common import utils
 from dashboard.models import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
@@ -285,10 +284,7 @@ def GetSuiteKey(histograms):
   # is all also being done in add_histograms_queue's post handler)
   master, bot, benchmark = _GetMasterBotBenchmarkFromHistogram(
       histograms.GetFirstHistogram())
-  bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-  internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
-  return add_point_queue.GetOrCreateAncestors(
-      master, bot, benchmark, internal_only).key
+  return utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
 
 
 def ComputeTestPath(guid, histograms):
