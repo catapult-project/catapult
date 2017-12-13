@@ -23,7 +23,9 @@ tr.b.unittest.testSuite(function() {
   const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   const allZeroArray = new Array(BLINK_OBJECT_LIST.length).fill(0);
-  const leakingResultArray = new Array(BLINK_OBJECT_LIST.length).fill(1);
+  const oneLeakArray = new Array(BLINK_OBJECT_LIST.length).fill(0);
+  oneLeakArray[1] = 1;
+  const multipleLeaksArray = new Array(BLINK_OBJECT_LIST.length).fill(1);
 
   function createProcessWithName(model, name) {
     const uniquePid =
@@ -34,39 +36,35 @@ tr.b.unittest.testSuite(function() {
     return process;
   }
 
-  function createTimestamp(model, browser, renderer, values, timestamp) {
+  function createTimestamp(model, browser, rendererValuePairs, timestamp) {
     const gmd1 = addGlobalMemoryDump(model, {ts: timestamp});
     const pmdBrowser1 = addProcessMemoryDump(gmd1, browser, {ts: timestamp});
-    const pmdRenderer1 = addProcessMemoryDump(gmd1, renderer, {ts: timestamp});
-    pmdRenderer1.memoryAllocatorDumps = [
-      newAllocatorDump(pmdRenderer1, 'blink_objects', { children:
-        createBlinkObjectCountList(pmdRenderer1, values)})];
+    for (const pair of rendererValuePairs) {
+      addDumpsToRenderer(gmd1, pair.renderer, pair.values, timestamp);
+    }
+  }
+
+  function addDumpsToRenderer(gmd, renderer, values, timestamp) {
+    const pmdRenderer = addProcessMemoryDump(gmd, renderer, {ts: timestamp});
+    pmdRenderer.memoryAllocatorDumps = [
+      newAllocatorDump(pmdRenderer, 'blink_objects', { children:
+        createBlinkObjectCountList(pmdRenderer, values)})];
+  }
+
+  function getNumericLeakCount(histograms, index) {
+    return histograms.getHistogramNamed('Leaked ' +
+      BLINK_OBJECT_LIST[index]).statisticsScalars.get('sum').value;
   }
 
   function createBlinkObjectCountList(renderer, values) {
     const blinkObjectCountList = [];
-    for (let i = 0; i++; i < values.length) {
+    for (let i = 0; i < values.length; i++) {
       blinkObjectCountList.push(newAllocatorDump(renderer,
           'blink_objects/' + BLINK_OBJECT_LIST[i], { numerics:
       { object_count: values[i] }}));
     }
     return blinkObjectCountList;
   }
-
-  function createBlinkObjectCount(renderer, name, value) {
-    return newAllocatorDump(renderer, 'blink_objects/' + name, { numerics:
-      { object_count: value }});
-  }
-
-  test('testNoBrowser', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      createProcessWithName(model, 'Renderer');
-    });
-    const histograms = new tr.v.HistogramSet();
-    assert.throws(
-        function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
-        Error);
-  });
 
   test('testNoRenderer', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
@@ -75,7 +73,7 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     assert.throws(
         function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
-        Error);
+        'Renderer process is not present.');
   });
 
   test('testZeroDump', function() {
@@ -86,33 +84,34 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     assert.throws(
         function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
-        Error);
+        'Expected at least two memory dumps.');
   });
 
   test('testOnlyOneDump', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const browser = createProcessWithName(model, 'Browser');
       const renderer = createProcessWithName(model, 'Renderer');
-      createTimestamp(model, browser, renderer, allZeroArray, 40);
+      const pair = [{renderer, values: allZeroArray}];
+      createTimestamp(model, browser, pair, 40);
     });
     const histograms = new tr.v.HistogramSet();
     assert.throws(
         function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
-        Error);
+        'Expected at least two memory dumps.');
   });
 
   test('testNoLeak', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const browser = createProcessWithName(model, 'Browser');
       const renderer = createProcessWithName(model, 'Renderer');
-      createTimestamp(model, browser, renderer, allZeroArray, 20);
-      createTimestamp(model, browser, renderer, allZeroArray, 40);
+      const pair = [{renderer, 'values': allZeroArray}];
+      createTimestamp(model, browser, pair, 20);
+      createTimestamp(model, browser, pair, 40);
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.blink.leakDetectionMetric(histograms, model);
-    for (let i = 0; i++; i < BLINK_OBJECT_LIST.length) {
-      const obj = BLINK_OBJECT_LIST[i];
-      assert.strictEqual(histograms.getHistogramNamed(obj), 0);
+    for (let i = 0; i < BLINK_OBJECT_LIST.length; i++) {
+      assert.strictEqual(getNumericLeakCount(histograms, i), 0);
     }
   });
 
@@ -120,19 +119,20 @@ tr.b.unittest.testSuite(function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const browser = createProcessWithName(model, 'Browser');
       const renderer = createProcessWithName(model, 'Renderer');
-      const leakingResultArray = allZeroArray;
-      leakingResultArray[1] = 1;
-      createTimestamp(model, browser, renderer, allZeroArray, 20);
-      createTimestamp(model, browser, renderer, leakingResultArray, 40);
+      const pair1 = [{renderer, 'values': allZeroArray}];
+      const pair2 = [{renderer, 'values': oneLeakArray}];
+      createTimestamp(model, browser, pair1, 20);
+      createTimestamp(model, browser, pair2, 40);
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.blink.leakDetectionMetric(histograms, model);
-    for (let i = 0; i++; i < BLINK_OBJECT_LIST.length) {
-      const obj = BLINK_OBJECT_LIST[i];
-      if (obj === BLINK_OBJECT_LIST[1]) {
-        assert.strictEqual(histograms.getHistogramNamed(obj), 1);
+    assert.throws(
+        function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
+        'Memory leak is found.');
+    for (let i = 0; i < BLINK_OBJECT_LIST.length; i++) {
+      if (i === 1) {
+        assert.strictEqual(getNumericLeakCount(histograms, i), 1);
       } else {
-        assert.strictEqual(histograms.getHistogramNamed(obj), 0);
+        assert.strictEqual(getNumericLeakCount(histograms, i), 0);
       }
     }
   });
@@ -141,14 +141,17 @@ tr.b.unittest.testSuite(function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const browser = createProcessWithName(model, 'Browser');
       const renderer = createProcessWithName(model, 'Renderer');
-      createTimestamp(model, browser, renderer, allZeroArray, 20);
-      createTimestamp(model, browser, renderer, leakingResultArray, 40);
+      const pair1 = [{renderer, 'values': allZeroArray}];
+      const pair2 = [{renderer, 'values': multipleLeaksArray}];
+      createTimestamp(model, browser, pair1, 20);
+      createTimestamp(model, browser, pair2, 40);
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.blink.leakDetectionMetric(histograms, model);
-    for (let i = 0; i++; i < BLINK_OBJECT_LIST.length) {
-      const obj = BLINK_OBJECT_LIST[i];
-      assert.strictEqual(histograms.getHistogramNamed(obj), 1);
+    assert.throws(
+        function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
+        'Memory leak is found.');
+    for (let i = 0; i < BLINK_OBJECT_LIST.length; i++) {
+      assert.strictEqual(getNumericLeakCount(histograms, i), 1);
     }
   });
 
@@ -157,16 +160,19 @@ tr.b.unittest.testSuite(function() {
       const browser = createProcessWithName(model, 'Browser');
       const renderer1 = createProcessWithName(model, 'Renderer');
       const renderer2 = createProcessWithName(model, 'Renderer');
-      createTimestamp(model, browser, renderer1, allZeroArray, 20);
-      createTimestamp(model, browser, renderer2, allZeroArray, 20);
-      createTimestamp(model, browser, renderer1, leakingResultArray, 40);
-      createTimestamp(model, browser, renderer2, leakingResultArray, 40);
+      const pair1 = [{'renderer': renderer1, 'values': allZeroArray},
+                     {'renderer': renderer2, 'values': allZeroArray}];
+      const pair2 = [{'renderer': renderer1, 'values': multipleLeaksArray},
+                     {'renderer': renderer2, 'values': multipleLeaksArray}];
+      createTimestamp(model, browser, pair1, 20);
+      createTimestamp(model, browser, pair2, 40);
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.blink.leakDetectionMetric(histograms, model);
-    for (let i = 0; i++; i < BLINK_OBJECT_LIST.length) {
-      const obj = BLINK_OBJECT_LIST[i];
-      assert.strictEqual(histograms.getHistogramNamed(obj), 2);
+    assert.throws(
+        function() {tr.metrics.blink.leakDetectionMetric(histograms, model);},
+        'Memory leak is found.');
+    for (let i = 0; i < BLINK_OBJECT_LIST.length; i++) {
+      assert.strictEqual(getNumericLeakCount(histograms, i), 2);
     }
   });
 });
