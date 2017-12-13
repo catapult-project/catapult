@@ -76,6 +76,7 @@ _PERMISSIONS_BLACKLIST_RE = re.compile('|'.join(fnmatch.translate(p) for p in [
     'android.permission.ACCESS_MOCK_LOCATION',
     'android.permission.ACCESS_NETWORK_STATE',
     'android.permission.ACCESS_NOTIFICATION_POLICY',
+    'android.permission.ACCESS_VR_STATE',
     'android.permission.ACCESS_WIFI_STATE',
     'android.permission.AUTHENTICATE_ACCOUNTS',
     'android.permission.BLUETOOTH',
