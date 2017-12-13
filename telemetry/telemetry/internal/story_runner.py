@@ -112,7 +112,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       if isinstance(exc, exceptions.AppCrashException):
         minidump_path = exc.minidump_path
         if minidump_path:
-          results.AddArtifactFromPageRun(page, 'minidump', minidump_path)
+          results.AddArtifact(story.name, 'minidump', minidump_path)
 
     # Note: adding the FailureValue to the results object also normally
     # cause the progress_reporter to log it in the output.

@@ -1097,6 +1097,44 @@ class StoryRunnerTest(unittest.TestCase):
             root_mock.story.name, 'logs', mock.ANY)
     ])
 
+  def AssertListEquals(self, list_1, list_2):
+    self.assertEquals(len(list_1), len(list_2))
+    for i in range(len(list_1)):
+      self.assertEqual(list_1[i], list_2[i])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryAppCrash(self):
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.close()
+    temp_file_path = tmp.name
+    fake_app = fakes.FakeApp()
+    fake_app.recent_minidump_path = temp_file_path
+    try:
+      app_crash_exception = exceptions.AppCrashException(fake_app, msg='foo')
+      root_mock = self._CreateErrorProcessingMock(method_exceptions={
+          'state.WillRunStory': app_crash_exception
+      })
+
+      with self.assertRaises(exceptions.AppCrashException):
+        story_runner._RunStoryAndProcessErrorIfNeeded(
+            root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+      self.AssertListEquals(root_mock.method_calls, [
+          mock.call.test.WillRunStory(root_mock.state.platform),
+          mock.call.state.WillRunStory(root_mock.story),
+          mock.call.state.DumpStateUponFailure(
+              root_mock.story, root_mock.results),
+          mock.call.results.AddArtifact(
+              root_mock.story.name, 'minidump', temp_file_path),
+          mock.call.results.AddValue(FailureValueMatcher('foo')),
+          mock.call.test.DidRunStory(
+              root_mock.state.platform, root_mock.results),
+          mock.call.state.DidRunStory(root_mock.results),
+          mock.call.results.AddArtifact(
+              root_mock.story.name, 'logs', mock.ANY)
+      ])
+    finally:
+      os.remove(temp_file_path)
+
   def testRunStoryAndProcessErrorIfNeeded_tryError(self):
     root_mock = self._CreateErrorProcessingMock(method_exceptions={
         'state.CanRunStory': exceptions.Error('foo')

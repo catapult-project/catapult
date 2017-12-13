@@ -7,7 +7,7 @@
 These allow code like story_runner and Benchmark to be run and tested
 without compiling or starting a browser. Class names prepended with an
 underscore are intended to be implementation details, and should not
-be subclassed; however, some, like _FakeBrowser, have public APIs that
+be subclassed; however, some, like FakeBrowser, have public APIs that
 may need to be called in tests.
 """
 from telemetry.core import exceptions
@@ -76,6 +76,9 @@ class FakePlatform(object):
     raise NotImplementedError
 
   def GetDeviceId(self):
+    return None
+
+  def GetSystemLog(self):
     return None
 
   def StopAllLocalServers(self):
@@ -192,7 +195,7 @@ class FakeForwarderFactory(object):
 class FakePossibleBrowser(object):
   def __init__(self, execute_on_startup=None,
                execute_after_browser_creation=None):
-    self._returned_browser = _FakeBrowser(FakeLinuxPlatform())
+    self._returned_browser = FakeBrowser(FakeLinuxPlatform())
     self.browser_type = 'linux'
     self.supports_tab_control = False
     self.is_remote = False
@@ -275,19 +278,16 @@ def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None,
       execute_after_browser_creation=execute_after_browser_creation)
 
 
-# Internal classes. Note that end users may still need to both call
-# and mock out methods of these classes, but they should not be
-# subclassed.
+class FakeApp(object):
 
-class _FakeBrowser(object):
-  def __init__(self, platform):
-    self._tabs = _FakeTabList(self)
-    # Fake the creation of the first tab.
-    self._tabs.New()
-    self._returned_system_info = FakeSystemInfo()
-    self._platform = platform
-    self._browser_type = 'release'
-    self._is_crashed = False
+  def __init__(self, platform=None):
+    if not platform:
+      self._platform = FakePlatform()
+    else:
+      self._platform = platform
+    self.standard_output = ''
+    self.stack_trace = (False, '')
+    self.recent_minidump_path = None
 
   @property
   def platform(self):
@@ -298,6 +298,30 @@ class _FakeBrowser(object):
     """Allows overriding of the fake browser's platform object."""
     assert isinstance(incoming, FakePlatform)
     self._platform = incoming
+
+  def GetStandardOutput(self):
+    return self.standard_output
+
+  def GetStackTrace(self):
+    return self.stack_trace
+
+  def GetMostRecentMinidumpPath(self):
+    return self.recent_minidump_path
+
+# Internal classes. Note that end users may still need to both call
+# and mock out methods of these classes, but they should not be
+# subclassed.
+
+class FakeBrowser(FakeApp):
+  def __init__(self, platform):
+    super(FakeBrowser, self).__init__(platform)
+    self._tabs = _FakeTabList(self)
+    # Fake the creation of the first tab.
+    self._tabs.New()
+    self._returned_system_info = FakeSystemInfo()
+    self._platform = platform
+    self._browser_type = 'release'
+    self._is_crashed = False
 
   @property
   def returned_system_info(self):
