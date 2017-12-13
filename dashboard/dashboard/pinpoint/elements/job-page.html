@@ -39,6 +39,21 @@ found in the LICENSE file.
         margin-bottom: 0.1em;
       }
 
+      .columns {
+        display: flex;
+        margin: 0 -0.5em;
+      }
+
+      #details-column {
+        flex: 1;
+        margin: 0 0.5em;
+      }
+
+      #main-column {
+        flex: 3;
+        margin: 0 0.5em;
+      }
+
       try-job-fab {
         bottom: 2em;
         position: fixed;
@@ -72,9 +87,15 @@ found in the LICENSE file.
         <span class="middle-dot"></span>
         [[start(job)]]
       </p>
-      <job-page-header job="[[job]]"></job-page-header>
-      <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>
-      <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
+      <div class="columns">
+        <div id="details-column">
+          <job-page-header job="[[job]]"></job-page-header>
+        </div>
+        <div id="main-column">
+          <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>
+          <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
+        </div>
+      </div>
       <try-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></try-job-fab>
     </loading-wrapper>
   </template>

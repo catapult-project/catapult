@@ -11,62 +11,30 @@ found in the LICENSE file.
 <dom-module id="job-page-header">
   <template>
     <style include="base-style">
-      .columns {
-        display: flex;
-        margin: 0 -0.5em;
-      }
-
-      .column {
-        flex: 1;
-        margin: 0 0.5em;
-      }
-
-      table {
-        table-layout: fixed;
-      }
-
       th {
         text-align: right;
-        width: 8em;
-      }
-
-      td {
-        overflow: scroll;
-        white-space: nowrap;
+        vertical-align: top;
       }
     </style>
 
-    <div class="columns">
-      <div class="column">
-        <template is="dom-if" if="[[hasDifferences(job)]]">
-          <h2>Differences found after commits</h2>
-          <template is="dom-repeat" items="[[getDifferences(job)]]">
-            <change-info change=[[item]]></change-info>
-          </template>
-        </template>
-        <template is="dom-if" if="[[!hasDifferences(job)]]">
-          <h2>No differences found</h2>
-        </template>
-      </div>
-      <div class="column">
-        <table>
-          <template is="dom-repeat" items="[[getArguments(job, 0)]]">
-            <tr>
-              <th>[[item.key]]
-              <td>[[item.value]]
-          </template>
-        </table>
-      </div>
-      <div class="column">
-        <table>
-          <template is="dom-repeat" items="[[getArguments(job, 1)]]">
-            <tr>
-              <th>[[item.key]]
-              <td>[[item.value]]
-          </template>
-        </table>
-      </div>
-    </div>
+    <template is="dom-if" if="[[hasDifferences(job)]]">
+      <h2>Differences found after commits</h2>
+      <template is="dom-repeat" items="[[getDifferences(job)]]">
+        <change-info change=[[item]]></change-info>
+      </template>
+    </template>
+    <template is="dom-if" if="[[!hasDifferences(job)]]">
+      <h2>No differences found</h2>
+    </template>
+
+    <h2>Job arguments</h2>
+    <table>
+      <template is="dom-repeat" items="[[getArguments(job)]]">
+        <tr>
+          <th>[[item.key]]
+          <td>[[item.value]]
+      </template>
+    </table>
   </template>
 
   <script>
@@ -94,7 +62,7 @@ found in the LICENSE file.
         return differences;
       },
 
-      getArguments(job, rightHalf) {
+      getArguments(job) {
         const tuples = [];
         for (const key in job.arguments) {
           tuples.push({key, value: job.arguments[key]});
@@ -104,11 +72,7 @@ found in the LICENSE file.
           if (a.key > b.key) return 1;
           return 0;
         });
-
-        if (rightHalf) {
-          return tuples.slice(Math.ceil(tuples.length / 2));
-        }
-        return tuples.slice(0, Math.ceil(tuples.length / 2));
+        return tuples;
       }
     });
   </script>

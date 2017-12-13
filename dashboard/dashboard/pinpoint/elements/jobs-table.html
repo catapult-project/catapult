@@ -11,15 +11,15 @@ found in the LICENSE file.
   <template>
     <style include="base-style">
       th {
-        background-color: var(--paper-indigo-50);
         background-position: right 0.5em center;
         background-repeat: no-repeat;
         background-size: 0.8em;
+        border-bottom: solid 1px var(--paper-grey-400);
         cursor: pointer;
       }
 
       th:hover {
-        background-color: var(--paper-indigo-100);
+        color: var(--paper-pink-a200);
       }
 
       th[data-sort-direction=true] {
@@ -40,7 +40,7 @@ found in the LICENSE file.
           <th id="configuration" on-click="columnHeaderClicked">Configuration
           <th id="benchmark" on-click="columnHeaderClicked">Benchmark
           <th id="story" on-click="columnHeaderClicked">Story
-          <th id="metric" on-click="columnHeaderClicked">Metric
+          <th id="chart" on-click="columnHeaderClicked">Chart
       <tbody>
         <template is="dom-repeat" items="[[jobs]]" sort="[[jobSorter(sortBy, sortDescending)]]">
           <tr>
@@ -50,7 +50,7 @@ found in the LICENSE file.
             <td>[[item.arguments.configuration]]
             <td>[[item.arguments.benchmark]]
             <td>[[item.arguments.story]]
-            <td>[[item.arguments.metric]]
+            <td>[[item.arguments.chart]]
         </template>
     </table>
   </template>
