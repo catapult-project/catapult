@@ -28,6 +28,7 @@ _BASE_REQUEST = {
     'target': 'telemetry_perf_tests',
     'configuration': 'chromium-rel-mac11-pro',
     'benchmark': 'speedometer',
+    'browser': 'release',
     'auto_explore': '1',
     'bug_id': '12345',
     'start_repository': 'src',
@@ -49,6 +50,9 @@ class NewTest(testing_common.TestCase):
 
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
+    namespaced_stored_object.Set('bot_dimensions_map', {
+        'chromium-rel-mac11-pro': {},
+    })
     namespaced_stored_object.Set('repositories', {
         'catapult': {'repository_url': 'http://catapult'},
         'src': {'repository_url': 'http://src'},

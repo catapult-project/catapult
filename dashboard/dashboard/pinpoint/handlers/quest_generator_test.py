@@ -4,6 +4,8 @@
 
 import unittest
 
+from dashboard.common import namespaced_stored_object
+from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import quest_generator
 from dashboard.pinpoint.models import quest
 
@@ -83,24 +85,21 @@ class FindIsolateTest(unittest.TestCase):
                      (arguments, expected_quests))
 
 
-class TelemetryRunTest(unittest.TestCase):
+class TelemetryRunTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(TelemetryRunTest, self).setUp()
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+    namespaced_stored_object.Set('bot_dimensions_map', {
+        'chromium-rel-mac11-pro': {},
+    })
 
   def testMissingArguments(self):
     arguments = {
         'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
-        'dimensions': '{}',
-        # benchmark is missing.
-        'browser': 'release',
-    }
-    with self.assertRaises(TypeError):
-      quest_generator.GenerateQuests(arguments)
-
-    arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'target': 'telemetry_perf_tests',
-        'dimensions': '{}',
         'benchmark': 'speedometer',
+        'dimensions': '{}',
         # browser is missing.
     }
     with self.assertRaises(TypeError):
@@ -110,8 +109,8 @@ class TelemetryRunTest(unittest.TestCase):
     arguments = {
         'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
-        'dimensions': '{}',
         'benchmark': 'speedometer',
+        'dimensions': '{}',
         'browser': 'release',
     }
 
@@ -155,6 +154,22 @@ class TelemetryRunTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       quest_generator.GenerateQuests(arguments)
 
+  def testWithConfigurationOnly(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+        'benchmark': 'speedometer',
+        'browser': 'release',
+    }
+
+    expected_quests = [
+        quest.FindIsolate('chromium-rel-mac11-pro', 'telemetry_perf_tests'),
+        quest.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS),
+        quest.ReadHistogramsJsonValue(None)
+    ]
+    self.assertEqual(quest_generator.GenerateQuests(arguments),
+                     (arguments, expected_quests))
+
   def testStartupBenchmarkRepeatCount(self):
     arguments = {
         'configuration': 'chromium-rel-mac11-pro',
@@ -173,20 +188,26 @@ class TelemetryRunTest(unittest.TestCase):
                      (arguments, expected_quests))
 
 
-class GTestRunTest(unittest.TestCase):
+class GTestRunTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(GTestRunTest, self).setUp()
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+    namespaced_stored_object.Set('bot_dimensions_map', {
+        'chromium-rel-mac11-pro': {},
+    })
+
 
   def testMinimumArguments(self):
     arguments = {
         'configuration': 'chromium-rel-mac11-pro',
         'target': 'net_perftests',
-        'dimensions': '{}',
     }
 
     expected_quests = [
         quest.FindIsolate('chromium-rel-mac11-pro', 'net_perftests'),
         quest.RunTest({}, _MIN_GTEST_RUN_TEST_ARGUMENTS),
     ]
-    print quest_generator.GenerateQuests(arguments)[1][1]._extra_args
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
 
@@ -203,7 +224,6 @@ class GTestRunTest(unittest.TestCase):
         quest.FindIsolate('chromium-rel-mac11-pro', 'net_perftests'),
         quest.RunTest({'key': 'value'}, _ALL_GTEST_RUN_TEST_ARGUMENTS),
     ]
-    print quest_generator.GenerateQuests(arguments)[1][1]._extra_args
     self.assertEqual(quest_generator.GenerateQuests(arguments),
                      (arguments, expected_quests))
 
