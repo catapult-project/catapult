@@ -35,7 +35,7 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
     }
 
     if (histograms.length === 1) {
-      mergedHistograms.addHistogram(histograms[0]);
+      mergedHistograms.addHistogram(histograms[0].clone());
       continue;
     }
 
