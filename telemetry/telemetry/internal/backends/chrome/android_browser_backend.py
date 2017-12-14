@@ -13,7 +13,6 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
-from devil.android import device_errors
 from devil.android import device_signal
 from devil.android import flag_changer
 from devil.android.sdk import intent
@@ -203,19 +202,28 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def pid(self):
     try:
-      pid = self.device.GetApplicationPids(
-          self._backend_settings.package, at_most_one=True)
-    except device_errors.CommandFailedError as exc:
-      logging.warning('Dumping output of "ps" command for diagnosis:')
-      for line in self.device.RunShellCommand(['ps']):
-        logging.warning('- %s', line)
-      # This may happen if we end up with two PIDs for the browser process.
-      # Re-raise as an AppCrashException to get further debug information.
+      # Although there might be multiple processes sharing the same name as
+      # the browser app, the browser process is the only one being a direct
+      # descendant of an Android zygote. (See crbug.com/785446)
+      zygotes = self.device.ListProcesses('zygote')
+      zygote_pids = set(p.pid for p in zygotes)
+      assert zygote_pids, 'No Android zygote found'
+
+      processes = self.device.ListProcesses(self._backend_settings.package)
+      pids = []
+      for process in processes:
+        if (process.name == self._backend_settings.package and
+            process.ppid in zygote_pids):
+          pids.append(process.pid)
+      assert len(pids) <= 1, 'Found too many browsers: %r' % pids
+    except Exception as exc:
+      # Re-raise as an AppCrashException to get further diagnostic information.
+      # In particular we also get the values of all local variables above.
       raise exceptions.AppCrashException(
           self.browser, 'Error getting browser PID: %s' % exc)
-    if not pid:
+    if not pids:
       raise exceptions.BrowserGoneException(self.browser)
-    return int(pid)
+    return pids[0]
 
   @property
   def browser_directory(self):
