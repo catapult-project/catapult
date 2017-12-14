@@ -156,7 +156,7 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
   # diagnostics.
   # https://github.com/catapult-project/catapult/issues/4096
   parent_test = add_point_queue.GetOrCreateAncestors(
-      master, bot, test_name, internal_only,
+      master, bot, test_name, internal_only=internal_only,
       unescaped_story_name=unescaped_story_name, **extra_args)
   test_key = parent_test.key
 
