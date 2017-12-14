@@ -100,7 +100,7 @@ def _Request(url):
 
 def _RequestAndProcessHttpErrors(url):
   """Requests a URL, converting HTTP errors to Python exceptions."""
-  response = urlfetch.fetch(url, deadline=30)
+  response = urlfetch.fetch(url, deadline=60)
 
   if response.status_code == 404:
     raise NotFoundError('Server returned HTTP code %d for %s' %
