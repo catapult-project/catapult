@@ -128,38 +128,47 @@ def ProcessHistogramSet(histogram_dicts):
     histograms.ReplaceSharedDiagnostic(
         new_guid, diagnostic.Diagnostic.FromDict(old_diagnostic))
 
-  tasks = _BatchHistogramsIntoTasks(histograms, revision)
+  tasks = _BatchHistogramsIntoTasks(suite_key.id(), histograms, revision)
 
   _QueueHistogramTasks(tasks)
 
 
 def _MakeTask(params):
   return taskqueue.Task(
-      url='/add_histograms_queue', params={'params': json.dumps(params)})
+      url='/add_histograms_queue', payload=json.dumps(params),
+      _size_check=False)
 
 
-def _BatchHistogramsIntoTasks(histograms, revision):
+def _BatchHistogramsIntoTasks(suite_path, histograms, revision):
   params = []
   tasks = []
 
+  base_size = _MakeTask([]).size
+  estimated_size = 0
+
   for hist in histograms:
     diagnostics = FindHistogramLevelSparseDiagnostics(hist.guid, histograms)
+
     # TODO(eakuefner): Don't compute full diagnostics, because we need anyway to
     # call GetOrCreate here and in the queue.
-    test_path = ComputeTestPath(hist.guid, histograms)
+    test_path = ComputeTestPath(suite_path, hist.guid, histograms)
 
     # TODO(eakuefner): Batch these better than one per task.
     task_dict = _MakeTaskDict(hist, test_path, revision, diagnostics)
 
-    # taskqueue.Task does size checking and throws an exception if you're over
-    # the payload limit.
-    try:
-      _MakeTask(params + [task_dict])
-      params.append(task_dict)
-    except taskqueue.TaskTooLargeError:
+    estimated_size += len(json.dumps(task_dict))
+
+    # Creating the task directly and getting the size back is slow, so we just
+    # keep a running total of estimated task size. A bit hand-wavy but the #
+    # of histograms per task doesn't need to be perfect, just has to be under
+    # the max task size.
+    estimated_total_size = estimated_size * 1.05 + base_size + 1024
+    if estimated_total_size > taskqueue.MAX_TASK_SIZE_BYTES:
       t = _MakeTask(params)
       tasks.append(t)
       params = []
+      estimated_size = 0
+    params.append(task_dict)
 
   if params:
     t = _MakeTask(params)
@@ -287,9 +296,8 @@ def GetSuiteKey(histograms):
   return utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
 
 
-def ComputeTestPath(guid, histograms):
+def ComputeTestPath(suite_path, guid, histograms):
   hist = histograms.LookupHistogram(guid)
-  suite_path = '%s/%s/%s' % _GetMasterBotBenchmarkFromHistogram(hist)
   path = '%s/%s' % (suite_path, hist.name)
 
   tir_label = histogram_helpers.GetTIRLabelFromHistogram(hist)

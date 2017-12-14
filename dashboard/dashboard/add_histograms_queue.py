@@ -85,7 +85,8 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     bot_whitelist_future = stored_object.GetAsync(
         add_point_queue.BOT_WHITELIST_KEY)
 
-    params = json.loads(self.request.get('params'))
+    params = json.loads(self.request.body)
+
     _PrewarmGets(params)
 
     bot_whitelist = bot_whitelist_future.get_result()

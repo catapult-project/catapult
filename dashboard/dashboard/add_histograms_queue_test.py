@@ -86,7 +86,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'test_path': test_path,
         'revision': 123
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     test_key = utils.TestKey(test_path)
 
@@ -128,7 +128,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'test_path': test_path,
         'revision': 123
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     test_key = utils.TestKey(test_path)
     original_histogram = TEST_HISTOGRAM
@@ -164,7 +164,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
             'owners': TEST_OWNERS
         }
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -204,7 +204,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
             'owners': TEST_OWNERS
         }
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -236,7 +236,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
             'owners': TEST_OWNERS
         }
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
     histogram_entity = histogram.Histogram.query().fetch()[0]
     hist = histogram_module.Histogram.FromDict(histogram_entity.data)
     self.assertEqual(
@@ -261,7 +261,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
             'stories': hists[0].diagnostics.get('stories').AsDict(),
         }
     }]
-    self.testapp.post('/add_histograms_queue', {'params': json.dumps(params)})
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     t = utils.TestKey(test_path).get()
 
