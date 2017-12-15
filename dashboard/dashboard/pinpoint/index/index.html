@@ -64,7 +64,7 @@ found in the LICENSE file.
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
         <error-page name="error"></error-page>
         <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]"></job-page>
-        <jobs-page name="jobs" route="{{subroute}}"></jobs-page>
+        <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]"></jobs-page>
         <migrate-page name="migrate"></migrate-page>
       </iron-pages>
     </div>

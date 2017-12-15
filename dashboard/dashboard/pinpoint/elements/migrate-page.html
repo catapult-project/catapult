@@ -62,7 +62,7 @@ found in the LICENSE file.
         </template>
         <iron-form id="migrate_form" on-iron-form-response="handleResponse">
           <form action="/api/migrate" method="POST">
-            <paper-button raised onclick="migrate_form.submit()">Start</paper-button>
+            <paper-button raised on-tap="submit">Start</paper-button>
           </form>
         </iron-form>
       </template>
@@ -80,6 +80,10 @@ found in the LICENSE file.
           type: Object,
           observer: '_statusChanged',
         },
+      },
+
+      submit() {
+        this.$.migrate_form.submit();
       },
 
       handleResponse(event) {

@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-chart.html">
 <link rel="import" href="/dashboard/pinpoint/elements/job-page-header.html">
 <link rel="import" href="/dashboard/pinpoint/elements/loading-wrapper.html">
-<link rel="import" href="/dashboard/pinpoint/elements/try-job-fab.html">
+<link rel="import" href="/dashboard/pinpoint/elements/patch-job-fab.html">
 
 <dom-module id="job-page">
   <template>
@@ -54,7 +54,7 @@ found in the LICENSE file.
         margin: 0 0.5em;
       }
 
-      try-job-fab {
+      patch-job-fab {
         bottom: 2em;
         position: fixed;
         right: 2em;
@@ -96,7 +96,7 @@ found in the LICENSE file.
           <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
         </div>
       </div>
-      <try-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></try-job-fab>
+      <patch-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></patch-job-fab>
     </loading-wrapper>
   </template>
 

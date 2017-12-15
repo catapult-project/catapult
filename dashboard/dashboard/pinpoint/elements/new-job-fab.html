@@ -15,23 +15,33 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/pinpoint/elements/base-style.html">
 
-<dom-module id="patch-job-fab">
+<dom-module id="new-job-fab">
   <template>
     <style include="base-style">
       paper-input {
-        min-width: 40em;
+        min-width: 30em;
       }
 
       .error {
         color: var(--paper-red-500);
       }
+
+      .columns {
+        display: flex;
+        margin: 0 -0.5em;
+      }
+
+      .column {
+        flex: 1;
+        margin: 0 0.5em;
+      }
     </style>
 
     <app-location route="{{route}}"></app-location>
-    <paper-fab id="try-fab" icon="forward" on-tap="openDialog"></paper-fab>
-    <paper-tooltip for="try-fab" position="left">Test a patch</paper-tooltip>
+    <paper-fab id="try-fab" icon="add" on-tap="openDialog"></paper-fab>
+    <paper-tooltip for="try-fab" position="left">Try job</paper-tooltip>
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
-      <h2>Test a patch with this configuration</h2>
+      <h2>Run a try job</h2>
       <div>
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
@@ -39,11 +49,33 @@ found in the LICENSE file.
         <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
             <input type="hidden" name="auto_explore" value="0">
-            <input type="hidden" name="bug_id" value="[[job.bug_id]]">
-            <template is="dom-repeat" items="[[getArguments(job)]]">
-              <input type="hidden" name="[[item.key]]" value="[[item.value]]">
-            </template>
-            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+            <input type="hidden" name="start_repository" value="chromium">
+            <input type="hidden" name="end_repository" value="chromium">
+            <input type="hidden" name="start_git_hash" value="HEAD">
+            <input type="hidden" name="end_git_hash" value="HEAD">
+            <input type="hidden" name="target" value="telemetry_perf_tests">
+            <div class="columns">
+              <div class="column">
+                <h3>Build</h3>
+                <paper-input name="bug_id" label="Bug ID"></paper-input>
+                <paper-input name="patch" label="Gerrit URL" required></paper-input>
+                <paper-input name="configuration" label="Configuration" required></paper-input>
+                <paper-input name="browser" label="Browser"></paper-input>
+              </div>
+              <div class="column">
+                <h3>Test</h3>
+                <paper-input name="benchmark" label="Benchmark"></paper-input>
+                <paper-input name="story" label="Story"></paper-input>
+                <paper-input name="extra_test_args" label="Extra Test Arguments"></paper-input>
+              </div>
+              <div class="column">
+                <h3>Values</h3>
+                <paper-input name="chart" label="Chart"></paper-input>
+                <paper-input name="tir_label" label="TIR Label"></paper-input>
+                <paper-input name="trace" label="Trace"></paper-input>
+                <paper-input name="statistic" label="Statistic"></paper-input>
+              </div>
+            </div>
           </form>
         </iron-form>
       </div>
@@ -56,23 +88,10 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer({
-      is: 'patch-job-fab',
+      is: 'new-job-fab',
 
       properties: {
         error: Object,
-        job: Object,
-      },
-
-      getArguments(job) {
-        const tuples = [];
-        for (const key in job.arguments) {
-          tuples.push({key, value: job.arguments[key]});
-        }
-        tuples.push({key: 'start_repository', value: 'chromium'});
-        tuples.push({key: 'end_repository', value: 'chromium'});
-        tuples.push({key: 'start_git_hash', value: 'HEAD'});
-        tuples.push({key: 'end_git_hash', value: 'HEAD'});
-        return tuples;
       },
 
       openDialog() {
