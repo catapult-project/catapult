@@ -134,7 +134,7 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 class DummyLocalStory(story_module.Story):
   def __init__(self, shared_state_class, name='', tags=None):
     if name == '':
-      name = 'dummy local story'
+      name = 'dummy_local_story'
     super(DummyLocalStory, self).__init__(
         shared_state_class, name=name, tags=tags)
 
@@ -315,13 +315,6 @@ class StoryRunnerTest(unittest.TestCase):
     test = DummyTest()
     self.assertRaises(story_runner.ArchiveError, story_runner.Run, test,
                       story_set, self.options, self.results)
-
-  def testRunStoryWithLongName(self):
-    story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(FooStoryState, name='l' * 182))
-    test = DummyTest()
-    self.assertRaises(ValueError, story_runner.Run, test, story_set,
-                      self.options, self.results)
 
   def testRunStoryWithLongURLPage(self):
     story_set = story_module.StorySet()
@@ -721,7 +714,7 @@ class StoryRunnerTest(unittest.TestCase):
     class ErrorRaisingDummyLocalStory(DummyLocalStory):
       def __init__(self, shared_state_class, name='', tags=None):
         if name == '':
-          name = 'dummy local story'
+          name = 'dummy_local_story'
         super(ErrorRaisingDummyLocalStory, self).__init__(
             shared_state_class, name=name, tags=tags)
 
