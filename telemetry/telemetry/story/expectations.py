@@ -117,7 +117,6 @@ class StoryExpectations(object):
       conditions: List of _TestCondition subclasses.
       reason: Reason for disabling the benchmark.
     """
-    assert reason, 'A reason for disabling must be given.'
     assert not self._frozen, ('Cannot disable benchmark on a frozen '
                               'StoryExpectation object.')
     for condition in conditions:
@@ -150,7 +149,6 @@ class StoryExpectations(object):
       conditions: List of _TestCondition subclasses.
       reason: Reason for disabling the story.
     """
-    assert reason, 'A reason for disabling must be given.'
     # TODO(rnephew): Remove http check when old stories that use urls as names
     # are removed.
     if not story_name.startswith('http'):
