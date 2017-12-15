@@ -29,24 +29,8 @@ class StoryTest(unittest.TestCase):
     s = StoryFoo('Bar')
     self.assertEquals('Bar', s.name)
 
-  def testStoryNameWithSimpleWhiteSpace(self):
-    with self.assertRaises(AssertionError):
-      StoryFoo(' ')
-
-  def testStorynameWithTab(self):
-    with self.assertRaises(AssertionError):
-      StoryFoo('\t')
-
-  def testStoryNameWithLongName(self):
-    with self.assertRaises(AssertionError):
-      StoryFoo('a'*181)
-
-  def testStoryNameWithNewlineCharacter(self):
-    with self.assertRaises(AssertionError):
-      StoryFoo('\n')
-
   def testStoryFileSafeName(self):
-    s = StoryFoo('Foo_Bar:Baz~0')
+    s = StoryFoo('Foo Bar:Baz~0')
     self.assertEquals('Foo_Bar_Baz_0', s.file_safe_name)
 
   def testStoryAsDict(self):

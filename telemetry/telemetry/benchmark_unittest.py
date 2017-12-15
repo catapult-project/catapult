@@ -41,7 +41,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testPageTestWithIncompatibleStory(self):
     b = TestBenchmark(story_module.Story(
-        name='test_story',
+        name='test story',
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
@@ -49,14 +49,14 @@ class BenchmarkTest(unittest.TestCase):
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
-        name='test_benchmark',
+        name='test benchmark',
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(options_for_unittests.GetCopy())
 
     b = TestBenchmark(android.AndroidStory(
-        name='test_benchmark', start_intent=None))
+        name='test benchmark', start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(options_for_unittests.GetCopy())
@@ -137,7 +137,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testBenchmarkExpectations(self):
     b = TestBenchmark(story_module.Story(
-        name='test_name',
+        name='test name',
         shared_state_class=shared_page_state.SharedPageState))
     self.assertIsInstance(
         b.GetExpectations(), story_module.expectations.StoryExpectations)
@@ -292,7 +292,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testCanRunOnPlatformReturnTrue(self):
     b = TestBenchmark(story_module.Story(
-        name='test_name',
+        name='test name',
         shared_state_class=shared_page_state.SharedPageState))
     # We can pass None for both arguments because it defaults to ALL for
     # supported platforms, which always returns true.
@@ -300,7 +300,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testCanRunOnPlatformReturnFalse(self):
     b = TestBenchmark(story_module.Story(
-        name='test_name',
+        name='test name',
         shared_state_class=shared_page_state.SharedPageState))
     b.SUPPORTED_PLATFORMS = [] # pylint: disable=invalid-name
     # We can pass None for both arguments because we select no platforms as
