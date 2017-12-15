@@ -7,7 +7,6 @@ import logging
 import optparse
 import os
 import sys
-import tempfile
 import time
 
 import py_utils
@@ -91,16 +90,9 @@ def _GenerateTagMapFromStorySet(stories):
 
 @contextlib.contextmanager
 def CaptureLogsAsArtifacts(results, test_name):
-  file_name = ''
-  try:
-    with tempfile.NamedTemporaryFile(
-        prefix='test_', suffix='.log', delete=False) as file_obj:
-      file_name = file_obj.name
-      with logging_util.CaptureLogs(file_obj):
-        yield
-  finally:
-    if file_name:
-      results.AddArtifact(test_name, 'logs', file_name)
+  with results.CreateArtifact(test_name, 'logs') as log_file:
+    with logging_util.CaptureLogs(log_file):
+      yield
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):

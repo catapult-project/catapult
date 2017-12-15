@@ -146,7 +146,7 @@ def CreateResults(benchmark_metadata, options,
   if not options.output_formats:
     options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
-  artifacts = None
+  artifacts = artifact_results.NoopArtifactResults(options.output_dir)
 
   upload_bucket = None
   if options.upload_results:

@@ -14,7 +14,9 @@ class LoggingUtilTest(unittest.TestCase):
     with logging_util.CaptureLogs(s):
       logging.fatal('test')
 
-    self.assertEqual(s.getvalue(), 'test\n')
+    # Only assert ends with, since the logging message by default has the date
+    # in it.
+    self.assertTrue(s.getvalue().endswith('test\n'))
 
 
 if __name__ == '__main__':

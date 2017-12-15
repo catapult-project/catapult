@@ -9,6 +9,8 @@ import unittest
 from telemetry.internal.results import artifact_results
 from telemetry.internal.util import file_handle
 
+from py_utils import tempfile_ext
+
 
 # splitdrive returns '' on systems which don't have drives, like linux.
 ROOT_CHAR = os.path.splitdrive(__file__)[0] + os.sep
@@ -20,6 +22,40 @@ def _abs_join(*args):
 
 
 class ArtifactResultsUnittest(unittest.TestCase):
+  def testCreateBasic(self):
+    with tempfile_ext.NamedTemporaryDirectory(
+        prefix='artifact_tests') as tempdir:
+      ar = artifact_results.ArtifactResults(tempdir)
+      filenames = []
+      with ar.CreateArtifact('bad//story:name', 'logs') as log_file:
+        filenames.append(log_file.name)
+        log_file.write('hi\n')
+
+      with ar.CreateArtifact('other_name', 'logs') as log_file:
+        filenames.append(log_file.name)
+        log_file.write('hi\n')
+
+      for filename in filenames:
+        with open(filename) as f:
+          self.assertEqual(f.read(), 'hi\n')
+
+  def testCreateDuplicateStoryName(self):
+    with tempfile_ext.NamedTemporaryDirectory(
+        prefix='artifact_tests') as tempdir:
+      ar = artifact_results.ArtifactResults(tempdir)
+      filenames = []
+      with ar.CreateArtifact('story_name', 'logs') as log_file:
+        filenames.append(log_file.name)
+        log_file.write('hi\n')
+
+      with ar.CreateArtifact('story_name', 'logs') as log_file:
+        filenames.append(log_file.name)
+        log_file.write('hi\n')
+
+      for filename in filenames:
+        with open(filename) as f:
+          self.assertEqual(f.read(), 'hi\n')
+
   @mock.patch('telemetry.internal.results.artifact_results.shutil.move')
   @mock.patch('telemetry.internal.results.artifact_results.os.makedirs')
   def testAddBasic(self, make_patch, move_patch):

@@ -12,8 +12,20 @@ import logging
 
 @contextlib.contextmanager
 def CaptureLogs(file_stream):
-  logger = logging.getLogger()
+  if not file_stream:
+    # No file stream given, just don't capture logs.
+    yield
+    return
+
   fh = logging.StreamHandler(file_stream)
+
+  logger = logging.getLogger()
+  # Try to copy the current log format, if one is set.
+  if logger.handlers and hasattr(logger.handlers[0], 'formatter'):
+    fh.formatter = logger.handlers[0].formatter
+  else:
+    fh.setFormatter(logging.Formatter(
+        '(%(levelname)s) %(asctime)s %(message)s'))
   logger.addHandler(fh)
 
   try:
