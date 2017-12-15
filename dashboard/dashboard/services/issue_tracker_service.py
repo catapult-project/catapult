@@ -33,6 +33,10 @@ class IssueTrackerService(object):
       http: A Http object that requests will be made through; this should be an
           Http object that's already authenticated via OAuth2.
     """
+    # Monorail recommends a 15s timeout on all requests.
+    # https://github.com/catapult-project/catapult/issues/4115
+    http.timeout = 15
+
     self._service = discovery.build(
         'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
 
