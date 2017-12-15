@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/ui/extras/about_tracing/devtools_stream.html">
 <link rel="import" href="/tracing/ui/extras/about_tracing/inspector_connection.html">
 <link rel="import"
       href="/tracing/ui/extras/about_tracing/tracing_controller_client.html">
@@ -42,30 +43,28 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
   /**
    * Controls tracing using the inspector's FrontendAgentHost APIs.
-   *
-   * @constructor
    */
-  function InspectorTracingControllerClient() {
-    this.recording_ = false;
-    this.bufferUsage_ = 0;
-    this.conn_ = tr.ui.e.about_tracing.InspectorConnection.instance;
-    this.currentTraceTextChunks_ = undefined;
-  }
-
-  InspectorTracingControllerClient.prototype = {
-    __proto__: tr.ui.e.about_tracing.TracingControllerClient.prototype,
+  class InspectorTracingControllerClient extends
+      tr.ui.e.about_tracing.TracingControllerClient {
+    constructor(connection) {
+      super();
+      this.recording_ = false;
+      this.bufferUsage_ = 0;
+      this.conn_ = connection;
+      this.currentTraceTextChunks_ = undefined;
+    }
 
     beginMonitoring(monitoringOptions) {
       throw new Error('Not implemented');
-    },
+    }
 
     endMonitoring() {
       throw new Error('Not implemented');
-    },
+    }
 
     captureMonitoring() {
       throw new Error('Not implemented');
-    },
+    }
 
     getMonitoringStatus() {
       return createResolvedPromise({
@@ -75,7 +74,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         useContinuousTracing: false,
         useSampling: false
       });
-    },
+    }
 
     getCategories() {
       const res = this.conn_.req('Tracing.getCategories', {});
@@ -84,7 +83,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }, function(err) {
         return [];
       });
-    },
+    }
 
     beginRecording(recordingOptions) {
       if (this.recording_) {
@@ -121,6 +120,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           'Tracing.start',
           {
             traceConfig: traceConfigStr,
+            transferMode: 'ReturnAsStream',
+            streamCompression: 'gzip',
             bufferUsageReportingInterval: 1000
           });
       res = res.then(
@@ -134,21 +135,21 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
             this.recording_ = false;
           }.bind(this));
       return res;
-    },
+    }
 
     onBufferUsageUpdateFromInspector_(params) {
       this.bufferUsage_ = params.value || params.percentFull;
-    },
+    }
 
     beginGetBufferPercentFull() {
       return tr.b.timeout(100).then(() => this.bufferUsage_);
-    },
+    }
 
     onDataCollected_(messageString) {
       appendTraceChunksTo(this.currentTraceTextChunks_, messageString);
-    },
+    }
 
-    endRecording() {
+    async endRecording() {
       if (this.recording_ === false) {
         return createResolvedPromise();
       }
@@ -158,50 +159,54 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
 
       this.currentTraceTextChunks_ = ['['];
-      this.conn_.setNotificationListener(
-          'Tracing.dataCollected', this.onDataCollected_.bind(this));
-
-      const clearListeners = function() {
+      const clearListeners = () => {
         this.conn_.setNotificationListener(
             'Tracing.bufferUsage', undefined);
         this.conn_.setNotificationListener(
             'Tracing.tracingComplete', undefined);
         this.conn_.setNotificationListener(
             'Tracing.dataCollected', undefined);
-      }.bind(this);
+      };
 
-      this.recording_ = 'stopping';
-      return new Promise(function(resolve, reject) {
-        function tracingComplete() {
-          clearListeners();
-          this.recording_ = false;
-          this.currentTraceTextChunks_.push(']');
-          const traceText = this.currentTraceTextChunks_.join('');
-          this.currentTraceTextChunks_ = undefined;
-          resolve(traceText);
-        }
-
-        function tracingFailed(err) {
-          clearListeners();
-          this.recording_ = false;
-          reject(err);
-        }
-
+      try {
         this.conn_.setNotificationListener(
-            'Tracing.tracingComplete', tracingComplete.bind(this));
-        this.conn_.req('Tracing.end', {}).then(
-            function end() {
-              // Nothing happens here. We're really waiting for
-              // Tracing.tracingComplete.
-            }.bind(this),
-            tracingFailed.bind(this));
-      }.bind(this));
-    },
+            'Tracing.dataCollected', this.onDataCollected_.bind(this));
+
+        const tracingComplete = new Promise((resolve, reject) => {
+          this.conn_.setNotificationListener(
+              'Tracing.tracingComplete', resolve);
+        });
+
+        this.recording_ = 'stopping';
+        await this.conn_.req('Tracing.end', {});
+        const params = await tracingComplete;
+
+        this.traceName_ = 'trace.json';
+        if ('stream' in params) {
+          const stream = new tr.ui.e.about_tracing.DevtoolsStream(
+              this.conn_, params.stream);
+          const streamCompression = params.streamCompression || 'none';
+          if (streamCompression === 'gzip') {
+            this.traceName_ = 'trace.json.gz';
+          }
+
+          return await stream.readAndClose();
+        }
+
+        this.currentTraceTextChunks_.push(']');
+        const traceText = this.currentTraceTextChunks_.join('');
+        this.currentTraceTextChunks_ = undefined;
+        return traceText;
+      } finally {
+        clearListeners();
+        this.recording_ = false;
+      }
+    }
 
     defaultTraceName() {
-      return 'trace.json';
+      return this.traceName_;
     }
-  };
+  }
 
   return {
     InspectorTracingControllerClient,

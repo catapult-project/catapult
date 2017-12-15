@@ -11,6 +11,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/base.html">
 <link rel="import" href="/tracing/ui/extras/about_tracing/profiling_view.html">
+<link rel="import" href="/tracing/ui/extras/full_config.html">
 
 <style>
   body {
@@ -53,7 +54,9 @@ found in the LICENSE file.
       return;
     }
 
-    const tracingControllerClient = new tr.ui.e.about_tracing.InspectorTracingControllerClient(); // @suppress longLineCheck
+    const tracingControllerClient =
+        new tr.ui.e.about_tracing.InspectorTracingControllerClient(
+            new tr.ui.e.about_tracing.InspectorConnection(window));
     profilingViewEl = new tr.ui.e.about_tracing.ProfilingView(tracingControllerClient); // @suppress longLineCheck
     document.body.appendChild(profilingViewEl);
   }

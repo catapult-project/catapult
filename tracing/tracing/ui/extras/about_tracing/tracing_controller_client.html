@@ -15,19 +15,17 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
    *
    * @constructor
    */
-  function TracingControllerClient() { }
-
-  TracingControllerClient.prototype = {
-    beginMonitoring(monitoringOptions) { },
-    endMonitoring() { },
-    captureMonitoring() { },
-    getMonitoringStatus() { },
-    getCategories() { },
-    beginRecording(recordingOptions) { },
-    beginGetBufferPercentFull() { },
-    endRecording() { },
+  class TracingControllerClient {
+    beginMonitoring(monitoringOptions) { }
+    endMonitoring() { }
+    captureMonitoring() { }
+    getMonitoringStatus() { }
+    getCategories() { }
+    beginRecording(recordingOptions) { }
+    beginGetBufferPercentFull() { }
+    endRecording() { }
     defaultTraceName() { }
-  };
+  }
 
   return {
     TracingControllerClient,

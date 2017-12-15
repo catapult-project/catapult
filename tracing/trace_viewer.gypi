@@ -419,6 +419,7 @@
       'tracing/ui/brushing_state.html',
       'tracing/ui/brushing_state_controller.html',
       'tracing/ui/extras/about_tracing/about_tracing.html',
+      'tracing/ui/extras/about_tracing/devtools_stream.html',
       'tracing/ui/extras/about_tracing/inspector_connection.html',
       'tracing/ui/extras/about_tracing/inspector_tracing_controller_client.html',
       'tracing/ui/extras/about_tracing/profiling_view.html',

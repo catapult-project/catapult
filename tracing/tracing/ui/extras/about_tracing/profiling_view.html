@@ -115,7 +115,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         this.tracingControllerClient_ = tracingControllerClient;
       } else if (window.DevToolsHost !== undefined) {
         this.tracingControllerClient_ =
-            new tr.ui.e.about_tracing.InspectorTracingControllerClient();
+            new tr.ui.e.about_tracing.InspectorTracingControllerClient(
+                new tr.ui.e.about_tracing.InspectorConnection(window));
       } else {
         this.tracingControllerClient_ =
             new tr.ui.e.about_tracing.XhrBasedTracingControllerClient();
