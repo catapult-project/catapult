@@ -64,9 +64,9 @@ deps_os = {
 
     c = commit.Commit('chromium', 'aaa7336')
     expected = frozenset((
-        commit.Commit('cygwin', 'c89e446'),
-        commit.Commit('lighttpd', '9dfa55d'),
-        commit.Commit('v8', 'c092edb'),
+        ('https://chromium.googlesource.com/chromium/deps/cygwin', 'c89e446'),
+        ('https://chromium.googlesource.com/deps/lighttpd', '9dfa55d'),
+        ('https://chromium.googlesource.com/v8/v8', 'c092edb'),
     ))
     self.assertEqual(c.Deps(), expected)
 
@@ -78,6 +78,14 @@ deps_os = {
         'url': _CHROMIUM_URL + '/+/aaa7336',
     }
     self.assertEqual(c.AsDict(), expected)
+
+  def testFromDepNewRepo(self):
+    c = commit.Commit.FromDep(commit.Dep('https://new/repository/url.git', 'git_hash'))
+    self.assertEqual(c, commit.Commit('url', 'git_hash'))
+
+  def testFromDepExistingRepo(self):
+    c = commit.Commit.FromDep(commit.Dep(_CHROMIUM_URL, 'git_hash'))
+    self.assertEqual(c, commit.Commit('chromium', 'git_hash'))
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(side_effect=lambda x, y: {'commit': y}))

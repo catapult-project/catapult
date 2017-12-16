@@ -155,9 +155,9 @@ def _ExpandDepsToMatchRepositories(commits_a, commits_b):
 
     # Look through commits_b for any extra slots to fill with the DEPS.
     for commit_b in commits_b[len(commits_a):]:
-      dep_a = _FindCommitWithRepository(deps_a, commit_b.repository)
+      dep_a = _FindRepositoryUrlInDeps(deps_a, commit_b.repository_url)
       if dep_a:
-        commits_a.append(dep_a)
+        commits_a.append(commit_module.Commit.FromDep(dep_a))
       else:
         break
 
@@ -200,17 +200,24 @@ def _FindMidpoints(commits_a, commits_b):
       deps_a = commit_a.Deps()
       deps_b = commit_b.Deps()
       commits_a += sorted(
-          dep for dep in deps_a.difference(deps_b)
-          if not _FindCommitWithRepository(commits_a, dep.repository))
+          commit_module.Commit.FromDep(dep) for dep in deps_a.difference(deps_b)
+          if not _FindRepositoryUrlInCommits(commits_a, dep.repository_url))
       commits_b += sorted(
-          dep for dep in deps_b.difference(deps_a)
-          if not _FindCommitWithRepository(commits_b, dep.repository))
+          commit_module.Commit.FromDep(dep) for dep in deps_b.difference(deps_a)
+          if not _FindRepositoryUrlInCommits(commits_b, dep.repository_url))
 
   return commits_midpoint
 
 
-def _FindCommitWithRepository(commits, repository):
+def _FindRepositoryUrlInDeps(deps, repository_url):
+  for dep in deps:
+    if dep[0] == repository_url:
+      return dep
+  return None
+
+
+def _FindRepositoryUrlInCommits(commits, repository_url):
   for commit in commits:
-    if commit.repository == repository:
+    if commit.repository_url == repository_url:
       return commit
   return None

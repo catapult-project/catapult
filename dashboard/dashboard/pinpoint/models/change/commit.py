@@ -12,6 +12,9 @@ class NonLinearError(Exception):
   """Raised when trying to find the midpoint of Changes that are not linear."""
 
 
+Dep = collections.namedtuple('Dep', ('repository_url', 'git_hash'))
+
+
 class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
@@ -40,7 +43,15 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     return gitiles_service.CommitInfo(self.repository_url, self.git_hash)
 
   def Deps(self):
-    """Return the DEPS of this Commit as a frozenset of Commits."""
+    """Return the DEPS of this Commit.
+
+    Returns Dep namedtuples with repository URLs instead of Commit objects,
+    because Commit objects must have their repositories verified in the
+    datastore, and we'd like to do that more lazily.
+
+    Returns:
+      A frozenset of Dep (repository_url, git_hash) namedtuples.
+    """
     # Download and execute DEPS file.
     try:
       deps_file_contents = gitiles_service.FileContents(
@@ -56,7 +67,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     for deps_os in deps_data.get('deps_os', {}).itervalues():
       deps_dict.update(deps_os)
 
-    # Convert deps strings to Commit objects.
+    # Convert deps strings to repository and git hash.
     commits = []
     for dep_value in deps_dict.itervalues():
       if isinstance(dep_value, basestring):
@@ -71,9 +82,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         raise NotImplementedError('Unknown DEP format: ' + dep_string)
 
       repository_url, git_hash = dep_string_parts
-      repository = repository_module.Repository(repository_url,
-                                                add_if_missing=True)
-      commits.append(Commit(repository, git_hash))
+      if repository_url.endswith('.git'):
+        repository_url = repository_url[:-4]
+      commits.append(Dep(repository_url, git_hash))
 
     return frozenset(commits)
 
@@ -83,6 +94,22 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         'git_hash': self.git_hash,
         'url': self.repository_url + '/+/' + self.git_hash,
     }
+
+  @classmethod
+  def FromDep(cls, dep):
+    """Create a Commit from a Dep namedtuple as returned by Deps().
+
+    If the repository url is unknown, it will be added to the local datastore.
+
+    Arguments:
+      dep: A Dep namedtuple.
+
+    Returns:
+      A Commit.
+    """
+    repository = repository_module.Repository(dep.repository_url,
+                                              add_if_missing=True)
+    return cls(repository, dep.git_hash)
 
   @classmethod
   def FromDict(cls, data):
