@@ -108,8 +108,8 @@ func (common *CommonConfig) Flags() []cli.Flag {
 	return append(common.certConfig.Flags(),
 		cli.StringFlag{
 			Name:        "host",
-			Value:       "",
-			Usage:       "IP address to bind all servers to. Defaults to 127.0.0.1 if not specified.",
+			Value:       "localhost",
+			Usage:       "IP address to bind all servers to. Defaults to localhost if not specified.",
 			Destination: &common.host,
 		},
 		cli.IntFlag{
@@ -208,8 +208,8 @@ func (r *RootCACommand) Flags() []cli.Flag {
 		})
 }
 
-func getListener(port int) (net.Listener, error) {
-	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("localhost:%d", port))
+func getListener(host string, port int) (net.Listener, error) {
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%d", host, port))
 	if err != nil {
 		return nil, err
 	}
@@ -235,6 +235,7 @@ func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler, common *CommonConfig) {
 	type Server struct {
 		Scheme string
+		Host   string
 		Port   int
 		*http.Server
 	}
@@ -244,6 +245,7 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	if common.httpPort > -1 {
 		servers = append(servers, &Server{
 			Scheme: "http",
+			Host:   common.host,
 			Port:   common.httpPort,
 			Server: &http.Server{
 				Addr:    fmt.Sprintf("%v:%v", common.host, common.httpPort),
@@ -254,6 +256,7 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	if common.httpsPort > -1 {
 		servers = append(servers, &Server{
 			Scheme: "https",
+			Host:   common.host,
 			Port:   common.httpsPort,
 			Server: &http.Server{
 				Addr:      fmt.Sprintf("%v:%v", common.host, common.httpsPort),
@@ -265,6 +268,7 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	if common.httpSecureProxyPort > -1 {
 		servers = append(servers, &Server{
 			Scheme: "https",
+			Host:   common.host,
 			Port:   common.httpSecureProxyPort,
 			Server: &http.Server{
 				Addr:      fmt.Sprintf("%v:%v", common.host, common.httpSecureProxyPort),
@@ -277,17 +281,18 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	for _, s := range servers {
 		s := s
 		go func() {
+			var ln net.Listener
 			var err error
 			switch s.Scheme {
 			case "http":
-				ln, err := getListener(s.Port)
+				ln, err = getListener(s.Host, s.Port)
 				if err != nil {
 					break
 				}
 				logServeStarted(s.Scheme, ln)
 				err = s.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)})
 			case "https":
-				ln, err := getListener(s.Port)
+				ln, err = getListener(s.Host, s.Port)
 				if err != nil {
 					break
 				}
