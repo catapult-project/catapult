@@ -314,6 +314,7 @@ class SharedPageState(story_module.SharedState):
     self._StopBrowser()
     self.platform.StopAllLocalServers()
     self.platform.network_controller.Close()
+    self.platform.SetFullPerformanceModeEnabled(False)
 
   def _StopBrowser(self):
     if self._browser:
