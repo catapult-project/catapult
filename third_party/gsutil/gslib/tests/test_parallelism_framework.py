@@ -34,6 +34,7 @@ from gslib import cs_api_map
 from gslib.command import Command
 from gslib.command import CreateGsutilLogger
 from gslib.command import DummyArgChecker
+from gslib.tests.mock_cloud_api import MockCloudApi
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.base import RequiresIsolation
 from gslib.tests.util import unittest
@@ -229,9 +230,11 @@ class FakeCommand(Command):
     self.logger = CreateGsutilLogger('FakeCommand')
     self.parallel_operations = do_parallel
     self.failure_count = 0
+    self.gsutil_api = MockCloudApi()
     self.multiprocessing_is_available = (
         CheckMultiprocessingAvailableAndInit().is_available)
     self.debug = 0
+    self.user_project = None
 
 
 class FakeCommandWithoutMultiprocessingModule(FakeCommand):
@@ -520,7 +523,7 @@ class TestParallelismFramework(testcase.GsUtilUnitTestCase):
             'Setting fail_on_error should raise any exception encountered.')
       except CustomException, e:
         pass
-      except Exception, e:
+      except Exception, e:  # pylint: disable=broad-except
         self.fail('Got unexpected error: ' + str(e))
 
     def _RunFailureFunc():

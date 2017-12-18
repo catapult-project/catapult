@@ -4,8 +4,8 @@ gcs-oauth2-boto-plugin is a Python application whose purpose is to behave as
 an auth plugin for the [boto] auth plugin framework for use with [OAuth 2.0]
 credentials for the Google Cloud Platform. This plugin is compatible with
 both [user accounts] and [service accounts], and its functionality is
-essentially a wrapper around the oauth2client package of
-[google-api-python-client] with the addition of automatically caching tokens
+essentially a wrapper around [oauth2client]
+with the addition of automatically caching tokens
 for the machine in a thread- and process-safe fashion.
 
 For more information about how to use this plugin to access Google Cloud Storage
@@ -44,5 +44,5 @@ command from the root of this repository):
 [OAuth 2.0]: https://developers.google.com/accounts/docs/OAuth2Login
 [user accounts]: https://developers.google.com/accounts/docs/OAuth2#installed
 [service accounts]: https://developers.google.com/accounts/docs/OAuth2#serviceaccount
-[google-api-python-client]: https://code.google.com/p/google-api-python-client/wiki/OAuth2Client
+[oauth2client]: https://github.com/google/oauth2client
 [GCS documentation]: https://developers.google.com/storage/docs/gspythonlibrary

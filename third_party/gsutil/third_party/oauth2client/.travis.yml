@@ -11,11 +11,26 @@ env:
   - TOX_ENV=docs
   - TOX_ENV=system-tests
   - TOX_ENV=system-tests3
+  - TOX_ENV=gae
+  global:
+  - GAE_PYTHONPATH=${HOME}/.cache/google_appengine
+cache:
+  directories:
+  - ${HOME}/.cache
 install:
-- pip install tox
+- ./scripts/install.sh
 script:
-- tox -e $TOX_ENV
+- ./scripts/run.sh
 after_success:
 - if [[ "${TOX_ENV}" == "py27" ]]; then tox -e coveralls; fi
 notifications:
   email: false
+
+deploy:
+  provider: pypi
+  user: gcloudpypi
+  password:
+    secure: "C9ImNa5kbdnrQNfX9ww4PUtQIr3tN+nfxl7eDkP1B8Qr0QNYjrjov7x+DLImkKvmoJd3dxYtYIpLE9esObUHu0gKHYxqymNHtuAAyoBOUfPtmp0vIEse9brNKMtaey5Ngk7ZWz9EHKBBqRHxqgN+Giby+K9Ta3K3urJIq6urYhE="
+  on:
+    tags: true
+    repo: google/oauth2client

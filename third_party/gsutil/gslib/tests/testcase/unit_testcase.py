@@ -33,7 +33,7 @@ from gslib.tests.testcase import base
 import gslib.tests.util as util
 from gslib.tests.util import unittest
 from gslib.tests.util import WorkingDirectory
-from gslib.util import GsutilStreamHandler
+from gslib.util import DiscardMessagesQueue
 
 
 class GsutilApiUnitTestClassMapFactory(object):
@@ -92,7 +92,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     self.log_handlers_save = self.root_logger.handlers
     fd, self.log_handler_file = tempfile.mkstemp()
     self.log_handler_stream = os.fdopen(fd, 'w+')
-    self.temp_log_handler = GsutilStreamHandler(self.log_handler_stream)
+    self.temp_log_handler = logging.StreamHandler(self.log_handler_stream)
     self.root_logger.handlers = [self.temp_log_handler]
 
   def tearDown(self):
@@ -253,7 +253,8 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     }
 
     return CloudApiDelegator(
-        cls.mock_bucket_storage_uri, gsutil_api_map, cls.logger, debug=debug)
+        cls.mock_bucket_storage_uri, gsutil_api_map, cls.logger,
+        DiscardMessagesQueue(), debug=debug)
 
   @classmethod
   def _test_wildcard_iterator(cls, uri_or_str, debug=0):
@@ -356,7 +357,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     Returns:
       A StorageUri for the created object.
     """
-    bucket_uri = bucket_uri or self.CreateBucket()
+    bucket_uri = bucket_uri or self.CreateBucket(provider=self.default_provider)
     object_name = object_name or self.MakeTempName('obj')
     key_uri = bucket_uri.clone_replace_name(object_name)
     if contents is not None:

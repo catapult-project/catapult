@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 import os
 import re
+import stat
 
 from gslib.exception import InvalidUrlError
 
@@ -34,10 +35,6 @@ GS_GENERATION_REGEX = re.compile(r'(?P<object>.+)#(?P<generation>[0-9]+)$')
 S3_VERSION_REGEX = re.compile(r'(?P<object>.+)#(?P<version_id>.+)$')
 # Matches file strings of the form 'file://dir/filename'
 FILE_OBJECT_REGEX = re.compile(r'([^:]*://)(?P<filepath>.*)')
-# Regex to disallow buckets violating charset or not [3..255] chars total.
-BUCKET_NAME_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9\._-]{1,253}[a-zA-Z0-9]$')
-# Regex to disallow buckets with individual DNS labels longer than 63.
-TOO_LONG_DNS_NAME_COMP = re.compile(r'[-_a-z0-9]{64}')
 # Regex to determine if a string contains any wildcards.
 WILDCARD_REGEX = re.compile(r'[*?\[\]]')
 
@@ -54,8 +51,11 @@ class StorageUrl(object):
   def IsCloudUrl(self):
     raise NotImplementedError('IsCloudUrl not overridden')
 
-  def IsStream(self):
+  def IsStream():
     raise NotImplementedError('IsStream not overridden')
+
+  def IsFifo(self):
+    raise NotImplementedError('IsFifo not overridden')
 
   def CreatePrefixUrl(self, wildcard_suffix=None):
     """Returns a prefix of this URL that can be used for iterating.
@@ -122,7 +122,7 @@ class _FileUrl(StorageUrl):
     and object_name contains the file/directory path.
   """
 
-  def __init__(self, url_string, is_stream=False):
+  def __init__(self, url_string, is_stream=False, is_fifo=False):
     self.scheme = 'file'
     self.bucket_name = ''
     match = FILE_OBJECT_REGEX.match(url_string)
@@ -132,6 +132,7 @@ class _FileUrl(StorageUrl):
       self.object_name = url_string
     self.generation = None
     self.is_stream = is_stream
+    self.is_fifo = is_fifo
     self.delim = os.sep
 
   def Clone(self):
@@ -146,8 +147,13 @@ class _FileUrl(StorageUrl):
   def IsStream(self):
     return self.is_stream
 
+  def IsFifo(self):
+    return self.is_fifo
+
   def IsDirectory(self):
-    return not self.IsStream() and os.path.isdir(self.object_name)
+    return (not self.IsStream() and
+            not self.IsFifo() and
+            os.path.isdir(self.object_name))
 
   def CreatePrefixUrl(self, wildcard_suffix=None):
     return self.url_string
@@ -188,16 +194,15 @@ class _CloudUrl(StorageUrl):
     elif bucket_match:
       self.scheme = bucket_match.group('provider')
       self.bucket_name = bucket_match.group('bucket')
-      if (not ContainsWildcard(self.bucket_name) and
-          (not BUCKET_NAME_RE.match(self.bucket_name) or
-           TOO_LONG_DNS_NAME_COMP.search(self.bucket_name))):
-        raise InvalidUrlError('Invalid bucket name in URL "%s"' % url_string)
     else:
       object_match = OBJECT_REGEX.match(url_string)
       if object_match:
         self.scheme = object_match.group('provider')
         self.bucket_name = object_match.group('bucket')
         self.object_name = object_match.group('object')
+        if self.object_name == '.' or self.object_name == '..':
+          raise InvalidUrlError(
+              '%s is an invalid root-level object name' % self.object_name)
         if self.scheme == 'gs':
           generation_match = GS_GENERATION_REGEX.match(self.object_name)
           if generation_match:
@@ -223,6 +228,9 @@ class _CloudUrl(StorageUrl):
 
   def IsStream(self):
     raise NotImplementedError('IsStream not supported on CloudUrl')
+
+  def IsFifo(self):
+    raise NotImplementedError('IsFifo not supported on CloudUrl')
 
   def IsBucket(self):
     return bool(self.bucket_name and not self.object_name)
@@ -302,7 +310,12 @@ def StorageUrlFromString(url_str):
   if scheme == 'file':
     path = _GetPathFromUrlString(url_str)
     is_stream = (path == '-')
-    return _FileUrl(url_str, is_stream=is_stream)
+    is_fifo = False
+    try:
+      is_fifo = stat.S_ISFIFO(os.stat(path).st_mode)
+    except OSError:
+      pass
+    return _FileUrl(url_str, is_stream=is_stream, is_fifo=is_fifo)
   return _CloudUrl(url_str)
 
 

@@ -1,19 +1,31 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Common code for converting proto to other formats, such as JSON."""
 
 import base64
 import collections
 import datetime
 import json
-import logging
-import os
-import sys
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import protojson
 import six
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import protojson
 from apitools.base.py import exceptions
 
 __all__ = [
@@ -104,6 +116,18 @@ def MessageToDict(message):
     return json.loads(MessageToJson(message))
 
 
+def DictToProtoMap(properties, additional_property_type, sort_items=False):
+    """Convert the given dictionary to an AdditionalProperty message."""
+    items = properties.items()
+    if sort_items:
+        items = sorted(items)
+    map_ = []
+    for key, value in items:
+        map_.append(additional_property_type.AdditionalProperty(
+            key=key, value=value))
+    return additional_property_type(additional_properties=map_)
+
+
 def PyValueToMessage(message_type, value):
     """Convert the given python value to a message of type message_type."""
     return JsonToMessage(message_type, json.dumps(value))
@@ -142,7 +166,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
 
     """
 
-    # TODO(user): craigcitro suggests a pretty-printer from apitools/gen.
+    # TODO(jasmuth): craigcitro suggests a pretty-printer from apitools/gen.
 
     indent = kwargs.get('indent', 0)
 
@@ -195,7 +219,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
             def __repr__(self):
                 s = 'TimeZoneOffset(' + repr(self.offset) + ')'
                 if not kwargs.get('no_modules'):
-                    s = 'protorpc.util.' + s
+                    s = 'apitools.base.protorpclite.util.' + s
                 return s
 
         msg = datetime.datetime(
@@ -215,8 +239,7 @@ def _GetField(message, field_path):
 
 def _SetField(dictblob, field_path, value):
     for field in field_path[:-1]:
-        dictblob[field] = {}
-        dictblob = dictblob[field]
+        dictblob = dictblob.setdefault(field, {})
     dictblob[field_path[-1]] = value
 
 
@@ -262,16 +285,9 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
         if message_type in _CUSTOM_MESSAGE_CODECS:
             return _CUSTOM_MESSAGE_CODECS[
                 message_type].decoder(encoded_message)
-        # We turn off the default logging in protorpc. We may want to
-        # remove this later.
-        old_level = logging.getLogger().level
-        logging.getLogger().setLevel(logging.ERROR)
-        try:
-            result = _DecodeCustomFieldNames(message_type, encoded_message)
-            result = super(_ProtoJsonApiTools, self).decode_message(
-                message_type, result)
-        finally:
-            logging.getLogger().setLevel(old_level)
+        result = _DecodeCustomFieldNames(message_type, encoded_message)
+        result = super(_ProtoJsonApiTools, self).decode_message(
+            message_type, result)
         result = _ProcessUnknownEnums(result, encoded_message)
         result = _ProcessUnknownMessages(result, encoded_message)
         return _DecodeUnknownFields(result, encoded_message)
@@ -313,12 +329,15 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
         if isinstance(message, messages.FieldList):
             return '[%s]' % (', '.join(self.encode_message(x)
                                        for x in message))
-        message_type = type(message)
-        if message_type in _CUSTOM_MESSAGE_CODECS:
+
+        # pylint: disable=unidiomatic-typecheck
+        if type(message) in _CUSTOM_MESSAGE_CODECS:
             return _CUSTOM_MESSAGE_CODECS[type(message)].encoder(message)
+
         message = _EncodeUnknownFields(message)
         result = super(_ProtoJsonApiTools, self).encode_message(message)
-        return _EncodeCustomFieldNames(message, result)
+        result = _EncodeCustomFieldNames(message, result)
+        return json.dumps(json.loads(result), sort_keys=True)
 
     def encode_field(self, field, value):
         """Encode the given value as JSON.
@@ -381,7 +400,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
     field_type = pair_type.value.type
     new_values = []
     all_field_names = [x.name for x in message.all_fields()]
-    for name, value_dict in encoded_message.items():
+    for name, value_dict in six.iteritems(encoded_message):
         if name in all_field_names:
             continue
         value = PyValueToMessage(field_type, value_dict)
@@ -395,6 +414,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
 def _DecodeUnrecognizedFields(message, pair_type):
     """Process unrecognized fields in message."""
     new_values = []
+    codec = _ProtoJsonApiTools.Get()
     for unknown_field in message.all_unrecognized_fields():
         # TODO(craigcitro): Consider validating the variant if
         # the assignment below doesn't take care of it. It may
@@ -404,11 +424,15 @@ def _DecodeUnrecognizedFields(message, pair_type):
         value_type = pair_type.field_by_name('value')
         if isinstance(value_type, messages.MessageField):
             decoded_value = DictToMessage(value, pair_type.value.message_type)
-        elif isinstance(value_type, messages.EnumField):
-            decoded_value = pair_type.value.type(value)
         else:
-            decoded_value = value
-        new_pair = pair_type(key=str(unknown_field), value=decoded_value)
+            decoded_value = codec.decode_field(
+                pair_type.value, value)
+        try:
+            new_pair_key = str(unknown_field)
+        except UnicodeEncodeError:
+            new_pair_key = protojson.ProtoJson().decode_field(
+                pair_type.key, unknown_field)
+        new_pair = pair_type(key=new_pair_key, value=decoded_value)
         new_values.append(new_pair)
     return new_values
 
@@ -424,13 +448,12 @@ def _EncodeUnknownFields(message):
         raise exceptions.InvalidUserInputError(
             'Invalid pairs field %s' % pairs_field)
     pairs_type = pairs_field.message_type
-    value_variant = pairs_type.field_by_name('value').variant
+    value_field = pairs_type.field_by_name('value')
+    value_variant = value_field.variant
     pairs = getattr(message, source)
+    codec = _ProtoJsonApiTools.Get()
     for pair in pairs:
-        if value_variant == messages.Variant.MESSAGE:
-            encoded_value = MessageToDict(pair.value)
-        else:
-            encoded_value = pair.value
+        encoded_value = codec.encode_field(value_field, pair.value)
         result.set_unrecognized_field(pair.key, encoded_value, value_variant)
     setattr(result, source, [])
     return result
@@ -527,30 +550,8 @@ _JSON_ENUM_MAPPINGS = {}
 _JSON_FIELD_MAPPINGS = {}
 
 
-def _GetTypeKey(message_type, package):
-    """Get the prefix for this message type in mapping dicts."""
-    key = message_type.definition_name()
-    if package and key.startswith(package + '.'):
-        module_name = message_type.__module__
-        # We normalize '__main__' to something unique, if possible.
-        if module_name == '__main__':
-            try:
-                file_name = sys.modules[module_name].__file__
-            except (AttributeError, KeyError):
-                pass
-            else:
-                base_name = os.path.basename(file_name)
-                split_name = os.path.splitext(base_name)
-                if len(split_name) == 1:
-                    module_name = unicode(base_name)
-                else:
-                    module_name = u'.'.join(split_name[:-1])
-        key = module_name + '.' + key.partition('.')[2]
-    return key
-
-
 def AddCustomJsonEnumMapping(enum_type, python_name, json_name,
-                             package=''):
+                             package=None):  # pylint: disable=unused-argument
     """Add a custom wire encoding for a given enum value.
 
     This is primarily used in generated code, to handle enum values
@@ -558,26 +559,23 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name,
 
     Args:
       enum_type: (messages.Enum) An enum type
-      python_name: (string) Python name for this value.
-      json_name: (string) JSON name to be used on the wire.
-      package: (basestring, optional) Package prefix for this enum, if
-          present. We strip this off the enum name in order to generate
-          unique keys.
+      python_name: (basestring) Python name for this value.
+      json_name: (basestring) JSON name to be used on the wire.
+      package: (NoneType, optional) No effect, exists for legacy compatibility.
     """
     if not issubclass(enum_type, messages.Enum):
         raise exceptions.TypecheckError(
             'Cannot set JSON enum mapping for non-enum "%s"' % enum_type)
-    enum_name = _GetTypeKey(enum_type, package)
     if python_name not in enum_type.names():
         raise exceptions.InvalidDataError(
             'Enum value %s not a value for type %s' % (python_name, enum_type))
-    field_mappings = _JSON_ENUM_MAPPINGS.setdefault(enum_name, {})
+    field_mappings = _JSON_ENUM_MAPPINGS.setdefault(enum_type, {})
     _CheckForExistingMappings('enum', enum_type, python_name, json_name)
     field_mappings[python_name] = json_name
 
 
 def AddCustomJsonFieldMapping(message_type, python_name, json_name,
-                              package=''):
+                              package=None):  # pylint: disable=unused-argument
     """Add a custom wire encoding for a given message field.
 
     This is primarily used in generated code, to handle enum values
@@ -585,38 +583,35 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name,
 
     Args:
       message_type: (messages.Message) A message type
-      python_name: (string) Python name for this value.
-      json_name: (string) JSON name to be used on the wire.
-      package: (basestring, optional) Package prefix for this message, if
-          present. We strip this off the message name in order to generate
-          unique keys.
+      python_name: (basestring) Python name for this value.
+      json_name: (basestring) JSON name to be used on the wire.
+      package: (NoneType, optional) No effect, exists for legacy compatibility.
     """
     if not issubclass(message_type, messages.Message):
         raise exceptions.TypecheckError(
             'Cannot set JSON field mapping for '
             'non-message "%s"' % message_type)
-    message_name = _GetTypeKey(message_type, package)
     try:
         _ = message_type.field_by_name(python_name)
     except KeyError:
         raise exceptions.InvalidDataError(
             'Field %s not recognized for type %s' % (
                 python_name, message_type))
-    field_mappings = _JSON_FIELD_MAPPINGS.setdefault(message_name, {})
+    field_mappings = _JSON_FIELD_MAPPINGS.setdefault(message_type, {})
     _CheckForExistingMappings('field', message_type, python_name, json_name)
     field_mappings[python_name] = json_name
 
 
 def GetCustomJsonEnumMapping(enum_type, python_name=None, json_name=None):
     """Return the appropriate remapping for the given enum, or None."""
-    return _FetchRemapping(enum_type.definition_name(), 'enum',
+    return _FetchRemapping(enum_type, 'enum',
                            python_name=python_name, json_name=json_name,
                            mappings=_JSON_ENUM_MAPPINGS)
 
 
 def GetCustomJsonFieldMapping(message_type, python_name=None, json_name=None):
     """Return the appropriate remapping for the given field, or None."""
-    return _FetchRemapping(message_type.definition_name(), 'field',
+    return _FetchRemapping(message_type, 'field',
                            python_name=python_name, json_name=json_name,
                            mappings=_JSON_FIELD_MAPPINGS)
 
@@ -651,20 +646,20 @@ def _CheckForExistingMappings(mapping_type, message_type,
     elif mapping_type == 'enum':
         getter = GetCustomJsonEnumMapping
     remapping = getter(message_type, python_name=python_name)
-    if remapping is not None:
+    if remapping is not None and remapping != json_name:
         raise exceptions.InvalidDataError(
             'Cannot add mapping for %s "%s", already mapped to "%s"' % (
                 mapping_type, python_name, remapping))
     remapping = getter(message_type, json_name=json_name)
-    if remapping is not None:
+    if remapping is not None and remapping != python_name:
         raise exceptions.InvalidDataError(
             'Cannot add mapping for %s "%s", already mapped to "%s"' % (
                 mapping_type, json_name, remapping))
 
 
 def _EncodeCustomFieldNames(message, encoded_value):
-    message_name = type(message).definition_name()
-    field_remappings = list(_JSON_FIELD_MAPPINGS.get(message_name, {}).items())
+    field_remappings = list(_JSON_FIELD_MAPPINGS.get(type(message), {})
+                            .items())
     if field_remappings:
         decoded_value = json.loads(encoded_value)
         for python_name, json_name in field_remappings:
@@ -675,8 +670,7 @@ def _EncodeCustomFieldNames(message, encoded_value):
 
 
 def _DecodeCustomFieldNames(message_type, encoded_message):
-    message_name = message_type.definition_name()
-    field_remappings = _JSON_FIELD_MAPPINGS.get(message_name, {})
+    field_remappings = _JSON_FIELD_MAPPINGS.get(message_type, {})
     if field_remappings:
         decoded_message = json.loads(encoded_message)
         for python_name, json_name in list(field_remappings.items()):

@@ -22,6 +22,4 @@ cr, rest = decoder.decode(substrate, asn1Spec=ocspReq)
 
 print(cr.prettyPrint())
 
-assert encoder.encode(cr, defMode=False) == substrate or \
-       encoder.encode(cr, defMode=True) == substrate, \
-       'OCSP request recode fails'
+assert encoder.encode(cr) == substrate, 'OCSP request recode fails'

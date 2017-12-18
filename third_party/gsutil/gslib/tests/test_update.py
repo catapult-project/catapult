@@ -29,11 +29,14 @@ import subprocess
 import sys
 import tarfile
 
+import boto
 import gslib
+from gslib.metrics import _UUID_FILE_PATH
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import unittest
 from gslib.util import CERTIFICATE_VALIDATION_ENABLED
+from gslib.util import DisallowUpdateIfDataInGsutilDir
 
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -76,7 +79,7 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
     # .git*, etc.)
     os.makedirs(gsutil_dst)
     for comp in ('CHANGES.md', 'CHECKSUM', 'COPYING', 'gslib', 'gsutil',
-                 'gsutil.py', 'MANIFEST.in', 'README.md', 'setup.py',
+                 'gsutil.py', 'MANIFEST.in', 'README.md', 'setup.py', 'test',
                  'third_party', 'VERSION'):
       if os.path.isdir(os.path.join(GSUTIL_DIR, comp)):
         func = shutil.copytree
@@ -156,12 +159,19 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
         'The update command cannot run with user data in the gsutil directory',
         stderr.replace(os.linesep, ' '))
 
+    # Determine whether we'll need to decline the analytics prompt.
+    analytics_prompt = not (
+        os.path.exists(_UUID_FILE_PATH) or
+        boto.config.get_value('GSUtil', 'disable_analytics_prompt'))
+
+    update_input = 'n\r\ny\r\n' if analytics_prompt else 'y\r\n'
+
     # Now do the real update, which should succeed.
     p = subprocess.Popen(prefix + [gsutil_relative_dst, 'update', '-f',
                                    suri(src_tarball)],
                          cwd=tmpdir_dst, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-    (_, stderr) = p.communicate(input='y\r\n')
+    (_, stderr) = p.communicate(input=update_input)
     p.stdout.close()
     p.stderr.close()
     self.assertEqual(p.returncode, 0, msg=(
@@ -172,3 +182,38 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
     dst_version_file = os.path.join(tmpdir_dst, 'gsutil', 'VERSION')
     with open(dst_version_file, 'r') as f:
       self.assertEqual(f.read(), expected_version)
+
+    # If the analytics prompt was given, that means we disabled analytics. We
+    # should reset to the default by deleting the UUID file.
+    if analytics_prompt:
+      os.unlink(_UUID_FILE_PATH)
+
+
+class UpdateUnitTest(testcase.GsUtilUnitTestCase):
+  """Tests the functionality of commands/update.py."""
+
+  @unittest.skipUnless(
+      not gslib.IS_PACKAGE_INSTALL,
+      'Test is runnable only if gsutil dir is accessible, and update '
+      'command is not valid for package installs.')
+  def test_repo_matches_manifest(self):
+    """Ensure that all files/folders match the manifest."""
+    # Create a temp directory and copy specific files to it.
+    tmpdir_src = self.CreateTempDir()
+    gsutil_src = os.path.join(tmpdir_src, 'gsutil')
+    os.makedirs(gsutil_src)
+    copy_files = []
+    for filename in os.listdir(GSUTIL_DIR):
+      if (filename.endswith('.pyc') or filename.startswith('.git')
+          or filename == '__pycache__' or filename == '.settings'
+          or filename == '.project' or filename == '.pydevproject'):
+        # Need to ignore any compiled code or Eclipse project folders.
+        continue
+      copy_files.append(filename)
+    for comp in copy_files:
+      if os.path.isdir(os.path.join(GSUTIL_DIR, comp)):
+        func = shutil.copytree
+      else:
+        func = shutil.copyfile
+      func(os.path.join(GSUTIL_DIR, comp), os.path.join(gsutil_src, comp))
+    DisallowUpdateIfDataInGsutilDir(directory=gsutil_src)

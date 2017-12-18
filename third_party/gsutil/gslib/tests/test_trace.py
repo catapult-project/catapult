@@ -35,5 +35,5 @@ class TestTraceTokenOption(testcase.GsUtilIntegrationTestCase):
     if self.test_api == ApiSelector.JSON:
       self.assertIn('You are running gsutil with trace output enabled.', stderr)
       self.assertRegexpMatches(
-          stderr, r'.*GET.*b/%s/o/%s\?.*&trace=token%%3ATHISISATOKEN' %
+          stderr, r'.*GET.*b/%s/o/%s\?.*trace=token%%3ATHISISATOKEN' %
           (key_uri.bucket_name, key_uri.object_name))

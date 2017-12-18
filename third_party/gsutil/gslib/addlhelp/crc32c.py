@@ -22,9 +22,9 @@ _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
   Google Cloud Storage provides a cyclic redundancy check (CRC) header that
   allows clients to verify the integrity of object contents. For non-composite
-  objects GCS also provides an MD5 header to allow clients to verify object
-  integrity, but for composite objects only the CRC is available. gsutil
-  automatically performs integrity checks on all uploads and downloads.
+  objects Google Cloud Storage also provides an MD5 header to allow clients to
+  verify object integrity, but for composite objects only the CRC is available.
+  gsutil automatically performs integrity checks on all uploads and downloads.
   Additionally, you can use the "gsutil hash" command to calculate a CRC for
   any local file.
 
@@ -72,7 +72,7 @@ _DETAILED_HELP_TEXT = ("""
 
   To compile and install crcmod:
 
-    sudo yum install gcc python-devel python-setuptools
+    sudo yum install gcc python-devel python-setuptools redhat-rpm-config
     sudo easy_install -U pip
     sudo pip uninstall crcmod
     sudo pip install -U crcmod
@@ -109,7 +109,7 @@ _DETAILED_HELP_TEXT = ("""
 
   https://pypi.python.org/pypi/crcmod/1.7
 
-  MSI installers are available for the 32-bit versions of Python 2.6 and 2.7.
+  MSI installers are available for the 32-bit versions of Python 2.7.
   Make sure to install to a 32-bit Python directory. If you're using 64-bit
   Python it won't work with 32-bit crcmod, and instead you'll need to install
   32-bit Python in order to use crcmod.

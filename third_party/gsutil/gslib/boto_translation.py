@@ -46,6 +46,7 @@ from boto.s3.cors import CORSConfiguration as S3Cors
 from boto.s3.deletemarker import DeleteMarker
 from boto.s3.lifecycle import Lifecycle as S3Lifecycle
 from boto.s3.prefix import Prefix
+from boto.s3.tagging import Tags
 
 from gslib.boto_resumable_upload import BotoResumableUpload
 from gslib.cloud_api import AccessDeniedException
@@ -60,6 +61,7 @@ from gslib.cloud_api import ResumableUploadAbortException
 from gslib.cloud_api import ResumableUploadException
 from gslib.cloud_api import ResumableUploadStartOverException
 from gslib.cloud_api import ServiceException
+from gslib.cloud_api_helper import ListToGetFields
 from gslib.cloud_api_helper import ValidateDstObjectMetadata
 # Imported for boto AuthHandler purposes.
 import gslib.devshell_auth_plugin  # pylint: disable=unused-import
@@ -81,9 +83,11 @@ from gslib.translation_helper import DEFAULT_CONTENT_TYPE
 from gslib.translation_helper import EncodeStringAsLong
 from gslib.translation_helper import GenerationFromUrlAndString
 from gslib.translation_helper import HeadersFromObjectMetadata
+from gslib.translation_helper import LabelTranslation
 from gslib.translation_helper import LifecycleTranslation
 from gslib.translation_helper import REMOVE_CORS_CONFIG
 from gslib.translation_helper import S3MarkerAclFromObjectMetadata
+from gslib.util import AddAcceptEncodingGzipIfNeeded
 from gslib.util import ConfigureNoOpAuthIfNeeded
 from gslib.util import DEFAULT_FILE_BUFFER_SIZE
 from gslib.util import GetMaxRetryDelay
@@ -150,25 +154,39 @@ class BotoTranslation(CloudApi):
   This class takes gsutil Cloud API objects, translates them to XML service
   calls, and translates the results back into gsutil Cloud API objects for
   use by the caller.
+
+  This class does not support encryption and ignores encryption and decryption
+  parameters. Behavior when encountering encrypted objects is undefined.
+  TODO: Implement support.
+
+  This class does not support handling a Requester Pays user project for
+  billing, and any given user project will be ignored.
+  TODO: Support user_project.
   """
 
-  def __init__(self, bucket_storage_uri_class, logger, provider=None,
-               credentials=None, debug=0, trace_token=None):
+  def __init__(self, bucket_storage_uri_class, logger, status_queue,
+               provider=None, credentials=None, debug=0, trace_token=None,
+               perf_trace_token=None, user_project=None):
     """Performs necessary setup for interacting with the cloud storage provider.
 
     Args:
       bucket_storage_uri_class: boto storage_uri class, used by APIs that
                                 provide boto translation or mocking.
       logger: logging.logger for outputting log messages.
+      status_queue: Queue for relaying status to UI.
       provider: Provider prefix describing cloud storage provider to connect to.
                 'gs' and 's3' are supported. Function implementations ignore
                 the provider argument and use this one instead.
       credentials: Unused.
       debug: Debug level for the API implementation (0..3).
       trace_token: Unused in this subclass.
+      perf_trace_token: Performance trace token to use when making API calls
+          ('gs' provider only).
+      user_project: Unused in this subclass
     """
-    super(BotoTranslation, self).__init__(bucket_storage_uri_class, logger,
-                                          provider=provider, debug=debug)
+    super(BotoTranslation, self).__init__(
+        bucket_storage_uri_class, logger, status_queue, provider=provider,
+        debug=debug, trace_token=trace_token, perf_trace_token=perf_trace_token)
     _ = credentials
     # pylint: disable=global-variable-undefined, global-variable-not-assigned
     global boto_auth_initialized, boto_auth_initialized_lock
@@ -185,8 +203,7 @@ class BotoTranslation(CloudApi):
     """See CloudApi class for function doc strings."""
     _ = provider
     bucket_uri = self._StorageUriForBucket(bucket_name)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     try:
       return self._BotoBucketToBucket(bucket_uri.get_bucket(validate=True,
                                                             headers=headers),
@@ -197,9 +214,8 @@ class BotoTranslation(CloudApi):
   def ListBuckets(self, project_id=None, provider=None, fields=None):
     """See CloudApi class for function doc strings."""
     _ = provider
-    get_fields = self._ListToGetFields(list_fields=fields)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    get_fields = ListToGetFields(list_fields=fields)
+    headers = self._CreateBaseHeaders()
     if self.provider == 'gs':
       headers[GOOG_PROJ_ID_HDR] = PopulateProjectId(project_id)
     try:
@@ -225,10 +241,9 @@ class BotoTranslation(CloudApi):
     """See CloudApi class for function doc strings."""
     _ = provider
     bucket_uri = self._StorageUriForBucket(bucket_name)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
+    self._AddPreconditionsToHeaders(preconditions, headers)
     try:
-      self._AddPreconditionsToHeaders(preconditions, headers)
       if metadata.acl:
         boto_acl = AclTranslation.BotoAclFromMessage(metadata.acl)
         bucket_uri.set_xml_acl(boto_acl.to_xml(), headers=headers)
@@ -236,41 +251,56 @@ class BotoTranslation(CloudApi):
         canned_acls = bucket_uri.canned_acls()
         if canned_acl not in canned_acls:
           raise CommandException('Invalid canned ACL "%s".' % canned_acl)
-        bucket_uri.set_acl(canned_acl, bucket_uri.object_name)
+        bucket_uri.set_acl(canned_acl, bucket_uri.object_name, headers=headers)
       if canned_def_acl:
         canned_acls = bucket_uri.canned_acls()
         if canned_def_acl not in canned_acls:
           raise CommandException('Invalid canned ACL "%s".' % canned_def_acl)
-        bucket_uri.set_def_acl(canned_def_acl, bucket_uri.object_name)
+        bucket_uri.set_def_acl(canned_def_acl, bucket_uri.object_name,
+                               headers=headers)
       if metadata.cors:
         if metadata.cors == REMOVE_CORS_CONFIG:
           metadata.cors = []
         boto_cors = CorsTranslation.BotoCorsFromMessage(metadata.cors)
-        bucket_uri.set_cors(boto_cors, False)
+        bucket_uri.set_cors(boto_cors, False, headers=headers)
       if metadata.defaultObjectAcl:
         boto_acl = AclTranslation.BotoAclFromMessage(
             metadata.defaultObjectAcl)
         bucket_uri.set_def_xml_acl(boto_acl.to_xml(), headers=headers)
+      if metadata.labels:
+        boto_tags = LabelTranslation.BotoTagsFromMessage(metadata.labels)
+        # TODO: Define tags-related methods on storage_uri objects. The set_tags
+        # method raises an exception if the response differs from the style of
+        # S3, which uses a 204 response code upon success. That method
+        # should be okay with a 200 instead of a 204 for GS responses. In the
+        # meantime, we invoke the underlying bucket's methods directly and
+        # bypass manually raised exceptions from 200 responses.
+        try:
+          bucket_uri.get_bucket().set_tags(boto_tags, headers=headers)
+        except boto.exception.GSResponseError, e:
+          if e.status != 200:
+            raise
       if metadata.lifecycle:
         boto_lifecycle = LifecycleTranslation.BotoLifecycleFromMessage(
             metadata.lifecycle)
-        bucket_uri.configure_lifecycle(boto_lifecycle, False)
+        bucket_uri.configure_lifecycle(boto_lifecycle, False, headers=headers)
       if metadata.logging:
-        if self.provider == 'gs':
-          headers[GOOG_PROJ_ID_HDR] = PopulateProjectId(None)
         if metadata.logging.logBucket and metadata.logging.logObjectPrefix:
           bucket_uri.enable_logging(metadata.logging.logBucket,
                                     metadata.logging.logObjectPrefix,
-                                    False, headers)
+                                    False, headers=headers)
         else:  # Logging field is present and empty.  Disable logging.
-          bucket_uri.disable_logging(False, headers)
+          bucket_uri.disable_logging(False, headers=headers)
+      if metadata.storageClass:
+        bucket_uri.set_storage_class(metadata.storageClass, headers=headers)
       if metadata.versioning:
         bucket_uri.configure_versioning(metadata.versioning.enabled,
                                         headers=headers)
       if metadata.website:
         main_page_suffix = metadata.website.mainPageSuffix
         error_page = metadata.website.notFoundPage
-        bucket_uri.set_website_config(main_page_suffix, error_page)
+        bucket_uri.set_website_config(main_page_suffix, error_page,
+                                      headers=headers)
       return self.GetBucket(bucket_name, fields=fields)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e, bucket_name=bucket_name)
@@ -282,12 +312,11 @@ class BotoTranslation(CloudApi):
     bucket_uri = self._StorageUriForBucket(bucket_name)
     location = ''
     if metadata and metadata.location:
-      location = metadata.location
+      location = metadata.location.lower()
     # Pass storage_class param only if this is a GCS bucket. (In S3 the
     # storage class is specified on the key object.)
-    headers = {}
+    headers = self._CreateBaseHeaders()
     if bucket_uri.scheme == 'gs':
-      self._AddApiVersionToHeaders(headers)
       headers[GOOG_PROJ_ID_HDR] = PopulateProjectId(project_id)
       storage_class = ''
       if metadata and metadata.storageClass:
@@ -308,8 +337,7 @@ class BotoTranslation(CloudApi):
     """See CloudApi class for function doc strings."""
     _ = provider, preconditions
     bucket_uri = self._StorageUriForBucket(bucket_name)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     try:
       bucket_uri.delete_bucket(headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
@@ -341,13 +369,12 @@ class BotoTranslation(CloudApi):
                   all_versions=None, provider=None, fields=None):
     """See CloudApi class for function doc strings."""
     _ = provider
-    get_fields = self._ListToGetFields(list_fields=fields)
+    get_fields = ListToGetFields(list_fields=fields)
     bucket_uri = self._StorageUriForBucket(bucket_name)
-    headers = {}
+    headers = self._CreateBaseHeaders()
     yield_prefixes = fields is None or 'prefixes' in fields
     yield_objects = fields is None or any(
         field.startswith('items/') for field in fields)
-    self._AddApiVersionToHeaders(headers)
     try:
       objects_iter = bucket_uri.list_bucket(prefix=prefix or '',
                                             delimiter=delimiter or '',
@@ -423,16 +450,16 @@ class BotoTranslation(CloudApi):
   def GetObjectMedia(
       self, bucket_name, object_name, download_stream, provider=None,
       generation=None, object_size=None,
+      compressed_encoding=False,
       download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
       start_byte=0, end_byte=None, progress_callback=None,
-      serialization_data=None, digesters=None):
+      serialization_data=None, digesters=None, decryption_tuple=None):
     """See CloudApi class for function doc strings."""
     # This implementation will get the object metadata first if we don't pass it
     # in via serialization_data.
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
-    if 'accept-encoding' not in headers:
-      headers['accept-encoding'] = 'gzip'
+    headers = self._CreateBaseHeaders()
+    AddAcceptEncodingGzipIfNeeded(
+        headers, compressed_encoding=compressed_encoding)
     if end_byte is not None:
       headers['range'] = 'bytes=%s-%s' % (start_byte, end_byte)
     elif start_byte > 0:
@@ -521,9 +548,6 @@ class BotoTranslation(CloudApi):
   def _PerformSimpleDownload(self, download_stream, key, progress_callback=None,
                              num_progress_callbacks=XML_PROGRESS_CALLBACKS,
                              headers=None, hash_algs=None):
-    if not headers:
-      headers = {}
-      self._AddApiVersionToHeaders(headers)
     try:
       key.get_contents_to_file(download_stream, cb=progress_callback,
                                num_cb=num_progress_callbacks, headers=headers,
@@ -559,10 +583,6 @@ class BotoTranslation(CloudApi):
     Raises:
       ResumableDownloadException on error.
     """
-    if not headers:
-      headers = {}
-      self._AddApiVersionToHeaders(headers)
-
     retryable_exceptions = (httplib.HTTPException, IOError, socket.error,
                             socket.gaierror)
 
@@ -589,7 +609,7 @@ class BotoTranslation(CloudApi):
         fp.flush()
         # Download succeeded.
         return
-      except retryable_exceptions, e:
+      except retryable_exceptions, e:  # pylint: disable=catching-non-exception
         if debug >= 1:
           self.logger.info('Caught exception (%s)', repr(e))
         if isinstance(e, IOError) and e.errno == errno.EPIPE:
@@ -654,8 +674,7 @@ class BotoTranslation(CloudApi):
     object_uri = self._StorageUriForObject(bucket_name, object_name,
                                            generation=generation)
 
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     meta_headers = HeadersFromObjectMetadata(metadata, self.provider)
 
     metadata_plus = {}
@@ -682,7 +701,8 @@ class BotoTranslation(CloudApi):
     if metadata.acl:
       boto_acl = AclTranslation.BotoAclFromMessage(metadata.acl)
       try:
-        object_uri.set_xml_acl(boto_acl.to_xml(), key_name=object_name)
+        object_uri.set_xml_acl(boto_acl.to_xml(), key_name=object_name,
+                               headers=headers)
       except TRANSLATABLE_BOTO_EXCEPTIONS, e:
         self._TranslateExceptionAndRaise(e, bucket_name=bucket_name,
                                          object_name=object_name,
@@ -691,7 +711,8 @@ class BotoTranslation(CloudApi):
       canned_acls = object_uri.canned_acls()
       if canned_acl not in canned_acls:
         raise CommandException('Invalid canned ACL "%s".' % canned_acl)
-      object_uri.set_acl(canned_acl, object_uri.object_name)
+      object_uri.set_acl(canned_acl, object_uri.object_name,
+                         headers=headers)
 
     return self.GetObjectMetadata(bucket_name, object_name,
                                   generation=generation, fields=fields)
@@ -746,8 +767,8 @@ class BotoTranslation(CloudApi):
     """
     ValidateDstObjectMetadata(object_metadata)
 
-    headers = HeadersFromObjectMetadata(object_metadata, self.provider)
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
+    headers.update(HeadersFromObjectMetadata(object_metadata, self.provider))
 
     if object_metadata.crc32c:
       if 'x-goog-hash' in headers:
@@ -804,18 +825,20 @@ class BotoTranslation(CloudApi):
 
   def _SetObjectAcl(self, object_metadata, dst_uri):
     """Sets the ACL (if present in object_metadata) on an uploaded object."""
+    headers = self._CreateBaseHeaders()
     if object_metadata.acl:
       boto_acl = AclTranslation.BotoAclFromMessage(object_metadata.acl)
-      dst_uri.set_xml_acl(boto_acl.to_xml())
+      dst_uri.set_xml_acl(boto_acl.to_xml(), headers=headers)
     elif self.provider == 's3':
       s3_acl = S3MarkerAclFromObjectMetadata(object_metadata)
       if s3_acl:
-        dst_uri.set_xml_acl(s3_acl)
+        dst_uri.set_xml_acl(s3_acl, headers=headers)
 
   def UploadObjectResumable(
       self, upload_stream, object_metadata, canned_acl=None, preconditions=None,
-      provider=None, fields=None, size=None, serialization_data=None,
-      tracker_callback=None, progress_callback=None):
+      size=None, serialization_data=None, tracker_callback=None,
+      progress_callback=None, encryption_tuple=None, provider=None,
+      fields=None):
     """See CloudApi class for function doc strings."""
     if self.provider == 's3':
       # Resumable uploads are not supported for s3.
@@ -845,7 +868,8 @@ class BotoTranslation(CloudApi):
 
   def UploadObjectStreaming(self, upload_stream, object_metadata,
                             canned_acl=None, progress_callback=None,
-                            preconditions=None, provider=None, fields=None):
+                            preconditions=None, encryption_tuple=None,
+                            provider=None, fields=None):
     """See CloudApi class for function doc strings."""
     headers, dst_uri = self._UploadSetup(object_metadata,
                                          preconditions=preconditions)
@@ -865,7 +889,7 @@ class BotoTranslation(CloudApi):
 
   def UploadObject(self, upload_stream, object_metadata, canned_acl=None,
                    preconditions=None, size=None, progress_callback=None,
-                   provider=None, fields=None):
+                   encryption_tuple=None, provider=None, fields=None):
     """See CloudApi class for function doc strings."""
     headers, dst_uri = self._UploadSetup(object_metadata,
                                          preconditions=preconditions)
@@ -894,8 +918,7 @@ class BotoTranslation(CloudApi):
                    generation=None, provider=None):
     """See CloudApi class for function doc strings."""
     _ = provider
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     self._AddPreconditionsToHeaders(preconditions, headers)
 
     uri = self._StorageUriForObject(bucket_name, object_name,
@@ -909,7 +932,8 @@ class BotoTranslation(CloudApi):
 
   def CopyObject(self, src_obj_metadata, dst_obj_metadata, src_generation=None,
                  canned_acl=None, preconditions=None, progress_callback=None,
-                 max_bytes_per_call=None, provider=None, fields=None):
+                 max_bytes_per_call=None, encryption_tuple=None,
+                 decryption_tuple=None, provider=None, fields=None):
     """See CloudApi class for function doc strings."""
     _ = provider
 
@@ -926,8 +950,8 @@ class BotoTranslation(CloudApi):
       src_version_id = src_generation
       src_generation = None
 
-    headers = HeadersFromObjectMetadata(dst_obj_metadata, self.provider)
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
+    headers.update(HeadersFromObjectMetadata(dst_obj_metadata, self.provider))
     self._AddPreconditionsToHeaders(preconditions, headers)
 
     if canned_acl:
@@ -939,10 +963,17 @@ class BotoTranslation(CloudApi):
       if s3_acl:
         preserve_acl = True
 
+    # If no destination storage class was specified, we want to not specify a
+    # storage class in our copy request, resulting in the bucket's default
+    # storage class being used. Boto uses a default storage class of STANDARD
+    # for copy_key() calls, so we explicitly use None if no storage class was
+    # specified, which will omit the storage class header in our request.
+    dst_storage_class = dst_obj_metadata.storageClass or None
     try:
       new_key = dst_uri.copy_key(
           src_obj_metadata.bucket, src_obj_metadata.name,
           preserve_acl=preserve_acl, headers=headers,
+          storage_class=dst_storage_class,
           src_version_id=src_version_id, src_generation=src_generation)
 
       return self._BotoKeyToObject(new_key, fields=fields)
@@ -956,7 +987,8 @@ class BotoTranslation(CloudApi):
                                        not_found_exception=not_found_exception)
 
   def ComposeObject(self, src_objs_metadata, dst_obj_metadata,
-                    preconditions=None, provider=None, fields=None):
+                    preconditions=None, encryption_tuple=None, provider=None,
+                    fields=None):
     """See CloudApi class for function doc strings."""
     _ = provider
     ValidateDstObjectMetadata(dst_obj_metadata)
@@ -965,12 +997,14 @@ class BotoTranslation(CloudApi):
     dst_obj_metadata.name = None
     dst_bucket_name = dst_obj_metadata.bucket
     dst_obj_metadata.bucket = None
-    headers = HeadersFromObjectMetadata(dst_obj_metadata, self.provider)
+
+    headers = self._CreateBaseHeaders()
+    headers.update(HeadersFromObjectMetadata(dst_obj_metadata, self.provider))
+    self._AddPreconditionsToHeaders(preconditions, headers)
+
     if not dst_obj_metadata.contentType:
       dst_obj_metadata.contentType = DEFAULT_CONTENT_TYPE
       headers['content-type'] = dst_obj_metadata.contentType
-    self._AddApiVersionToHeaders(headers)
-    self._AddPreconditionsToHeaders(preconditions, headers)
 
     dst_uri = self._StorageUriForObject(dst_bucket_name, dst_obj_name)
 
@@ -998,9 +1032,16 @@ class BotoTranslation(CloudApi):
         headers['x-goog-if-metageneration-match'] = str(
             preconditions.meta_gen_match)
 
-  def _AddApiVersionToHeaders(self, headers):
+  def _CreateBaseHeaders(self):
+    """Creates base headers used for all API calls in this class."""
+    base_headers = {}
+
     if self.provider == 'gs':
-      headers['x-goog-api-version'] = self.api_version
+      base_headers['x-goog-api-version'] = self.api_version
+    if self.provider == 'gs' and self.perf_trace_token:
+      base_headers['cookie'] = self.perf_trace_token
+
+    return base_headers
 
   def _GetMD5FromETag(self, src_etag):
     """Returns an MD5 from the etag iff the etag is a valid MD5 hash.
@@ -1027,7 +1068,7 @@ class BotoTranslation(CloudApi):
         '%s://%s' % (self.provider, bucket),
         suppress_consec_slashes=False,
         bucket_storage_uri_class=self.bucket_storage_uri_class,
-        debug=self.debug)
+        debug=self.debug, validate=False)
 
   def _StorageUriForObject(self, bucket, object_name, generation=None):
     """Returns a boto storage_uri for the given object.
@@ -1063,7 +1104,8 @@ class BotoTranslation(CloudApi):
     object_uri = self._StorageUriForObject(bucket_name, object_name,
                                            generation=generation)
     try:
-      key = object_uri.get_key()
+      headers = self._CreateBaseHeaders()
+      key = object_uri.get_key(headers=headers)
       if not key:
         raise CreateObjectNotFoundException('404', self.provider,
                                             bucket_name, object_name,
@@ -1073,29 +1115,6 @@ class BotoTranslation(CloudApi):
       self._TranslateExceptionAndRaise(e, bucket_name=bucket_name,
                                        object_name=object_name,
                                        generation=generation)
-
-  def _ListToGetFields(self, list_fields=None):
-    """Removes 'items/' from the input fields and converts it to a set.
-
-    This way field sets requested for ListBucket/ListObject can be used in
-    _BotoBucketToBucket and _BotoKeyToObject calls.
-
-    Args:
-      list_fields: Iterable fields usable in ListBucket/ListObject calls.
-
-    Returns:
-      Set of fields usable in GetBucket/GetObject or
-      _BotoBucketToBucket/_BotoKeyToObject calls.
-    """
-    if list_fields:
-      get_fields = set()
-      for field in list_fields:
-        if field in ['kind', 'nextPageToken', 'prefixes']:
-          # These are not actually object / bucket metadata fields.
-          # They are fields specific to listing, so we don't consider them.
-          continue
-        get_fields.add(re.sub(r'items/', '', field))
-      return get_fields
 
   # pylint: disable=too-many-statements
   def _BotoBucketToBucket(self, bucket, fields=None):
@@ -1113,8 +1132,7 @@ class BotoTranslation(CloudApi):
 
     cloud_api_bucket = apitools_messages.Bucket(name=bucket.name,
                                                 id=bucket.name)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     if self.provider == 'gs':
       if not fields or 'storageClass' in fields:
         if hasattr(bucket, 'get_storage_class'):
@@ -1137,7 +1155,7 @@ class BotoTranslation(CloudApi):
               self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
       if not fields or 'cors' in fields:
         try:
-          boto_cors = bucket_uri.get_cors()
+          boto_cors = bucket_uri.get_cors(headers=headers)
           cloud_api_bucket.cors = CorsTranslation.BotoCorsToMessage(boto_cors)
         except TRANSLATABLE_BOTO_EXCEPTIONS, e:
           self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
@@ -1159,14 +1177,14 @@ class BotoTranslation(CloudApi):
               self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
       if not fields or 'lifecycle' in fields:
         try:
-          boto_lifecycle = bucket_uri.get_lifecycle_config()
+          boto_lifecycle = bucket_uri.get_lifecycle_config(headers=headers)
           cloud_api_bucket.lifecycle = (
               LifecycleTranslation.BotoLifecycleToMessage(boto_lifecycle))
         except TRANSLATABLE_BOTO_EXCEPTIONS, e:
           self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
       if not fields or 'logging' in fields:
         try:
-          boto_logging = bucket_uri.get_logging_config()
+          boto_logging = bucket_uri.get_logging_config(headers=headers)
           if boto_logging and 'Logging' in boto_logging:
             logging_config = boto_logging['Logging']
             log_object_prefix_present = 'LogObjectPrefix' in logging_config
@@ -1182,7 +1200,7 @@ class BotoTranslation(CloudApi):
           self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
       if not fields or 'website' in fields:
         try:
-          boto_website = bucket_uri.get_website_config()
+          boto_website = bucket_uri.get_website_config(headers=headers)
           if boto_website and 'WebsiteConfiguration' in boto_website:
             website_config = boto_website['WebsiteConfiguration']
             main_page_suffix_present = 'MainPageSuffix' in website_config
@@ -1198,7 +1216,25 @@ class BotoTranslation(CloudApi):
         except TRANSLATABLE_BOTO_EXCEPTIONS, e:
           self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
       if not fields or 'location' in fields:
-        cloud_api_bucket.location = bucket_uri.get_location()
+        cloud_api_bucket.location = bucket_uri.get_location(headers=headers)
+      # End gs-specific field checks.
+    if not fields or 'labels' in fields:
+      try:
+        # TODO: Define tags-related methods on storage_uri objects. In the
+        # meantime, we invoke the underlying bucket's methods directly.
+        try:
+          boto_tags = bucket_uri.get_bucket().get_tags()
+          cloud_api_bucket.labels = (
+              LabelTranslation.BotoTagsToMessage(boto_tags))
+        except boto.exception.StorageResponseError, e:
+          # If no tagging config exists, the S3 API returns a 404 (the GS API
+          # returns a 200 with an empty TagSet). If the bucket didn't exist,
+          # we would have failed much earlier in this method, so we know that
+          # it's the tagging config that doesn't exist.
+          if not (self.provider == 's3' and e.status == 404):
+            raise
+      except TRANSLATABLE_BOTO_EXCEPTIONS, e:
+        self._TranslateExceptionAndRaise(e, bucket_name=bucket.name)
     if not fields or 'versioning' in fields:
       versioning = bucket_uri.get_versioning_config(headers=headers)
       if versioning:
@@ -1227,7 +1263,8 @@ class BotoTranslation(CloudApi):
       apitools Object corresponding to key.
     """
     custom_metadata = None
-    if not fields or 'metadata' in fields:
+    if not fields or 'metadata' in fields or len(
+        [field for field in fields if field.startswith('metadata/')]) >= 1:
       custom_metadata = self._TranslateBotoKeyCustomMetadata(key)
     cache_control = None
     if not fields or 'cacheControl' in fields:
@@ -1244,10 +1281,10 @@ class BotoTranslation(CloudApi):
     metageneration = None
     if not fields or 'metageneration' in fields:
       metageneration = self._TranslateBotoKeyMetageneration(key)
-    updated = None
-    # Translation code to avoid a dependency on dateutil.
-    if not fields or 'updated' in fields:
-      updated = self._TranslateBotoKeyTimestamp(key)
+    time_created = None
+    if not fields or 'timeCreated' in fields:
+      # Translation code to avoid a dependency on dateutil.
+      time_created = self._TranslateBotoKeyTimestamp(key)
     etag = None
     if not fields or 'etag' in fields:
       etag = getattr(key, 'etag', None)
@@ -1282,7 +1319,12 @@ class BotoTranslation(CloudApi):
       size = key.size or 0
     storage_class = None
     if not fields or 'storageClass' in fields:
-      storage_class = getattr(key, 'storage_class', None)
+      # TODO: Scrub all callers requesting the storageClass field and then
+      # revert this to storage_class; the base storage_class
+      # attribute calls GET on the bucket if the storage class is not already
+      # populated in the key, which can fail if the user does not have
+      # permission on the bucket.
+      storage_class = getattr(key, '_storage_class', None)
 
     cloud_api_object = apitools_messages.Object(
         bucket=key.bucket.name,
@@ -1299,7 +1341,7 @@ class BotoTranslation(CloudApi):
         generation=generation,
         metageneration=metageneration,
         componentCount=component_count,
-        updated=updated,
+        timeCreated=time_created,
         metadata=custom_metadata,
         mediaLink=media_link,
         storageClass=storage_class)
@@ -1390,8 +1432,7 @@ class BotoTranslation(CloudApi):
     """Updates cloud_api_object with the ACL from the boto key."""
     storage_uri_for_key = self._StorageUriForObject(key.bucket.name, key.name,
                                                     generation=generation)
-    headers = {}
-    self._AddApiVersionToHeaders(headers)
+    headers = self._CreateBaseHeaders()
     try:
       if self.provider == 'gs':
         key_acl = storage_uri_for_key.get_acl(headers=headers)
@@ -1528,6 +1569,7 @@ class BotoTranslation(CloudApi):
   def XmlPassThroughSetAcl(self, acl_text, storage_url, canned=True,
                            def_obj_acl=False):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     try:
       uri = boto.storage_uri(
           storage_url.url_string, suppress_consec_slashes=False,
@@ -1538,23 +1580,24 @@ class BotoTranslation(CloudApi):
           canned_acls = uri.canned_acls()
           if acl_text not in canned_acls:
             raise CommandException('Invalid canned ACL "%s".' % acl_text)
-          uri.set_def_acl(acl_text, uri.object_name)
+          uri.set_def_acl(acl_text, uri.object_name, headers=headers)
         else:
           canned_acls = uri.canned_acls()
           if acl_text not in canned_acls:
             raise CommandException('Invalid canned ACL "%s".' % acl_text)
-          uri.set_acl(acl_text, uri.object_name)
+          uri.set_acl(acl_text, uri.object_name, headers=headers)
       else:
         if def_obj_acl:
-          uri.set_def_xml_acl(acl_text, uri.object_name)
+          uri.set_def_xml_acl(acl_text, uri.object_name, headers=headers)
         else:
-          uri.set_xml_acl(acl_text, uri.object_name)
+          uri.set_xml_acl(acl_text, uri.object_name, headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
   # pylint: disable=catching-non-exception
   def XmlPassThroughSetCors(self, cors_text, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     # Parse XML document and convert into Cors object.
     if storage_url.scheme == 's3':
       cors_obj = S3Cors()
@@ -1573,18 +1616,19 @@ class BotoTranslation(CloudApi):
           storage_url.url_string, suppress_consec_slashes=False,
           bucket_storage_uri_class=self.bucket_storage_uri_class,
           debug=self.debug)
-      uri.set_cors(cors_obj, False)
+      uri.set_cors(cors_obj, False, headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
   def XmlPassThroughGetCors(self, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     uri = boto.storage_uri(
         storage_url.url_string, suppress_consec_slashes=False,
         bucket_storage_uri_class=self.bucket_storage_uri_class,
         debug=self.debug)
     try:
-      cors = uri.get_cors(False)
+      cors = uri.get_cors(False, headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
@@ -1594,12 +1638,13 @@ class BotoTranslation(CloudApi):
 
   def XmlPassThroughGetLifecycle(self, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     try:
       uri = boto.storage_uri(
           storage_url.url_string, suppress_consec_slashes=False,
           bucket_storage_uri_class=self.bucket_storage_uri_class,
           debug=self.debug)
-      lifecycle = uri.get_lifecycle_config(False)
+      lifecycle = uri.get_lifecycle_config(False, headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
@@ -1609,6 +1654,7 @@ class BotoTranslation(CloudApi):
 
   def XmlPassThroughSetLifecycle(self, lifecycle_text, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     # Parse XML document and convert into lifecycle object.
     if storage_url.scheme == 's3':
       lifecycle_obj = S3Lifecycle()
@@ -1627,31 +1673,73 @@ class BotoTranslation(CloudApi):
           storage_url.url_string, suppress_consec_slashes=False,
           bucket_storage_uri_class=self.bucket_storage_uri_class,
           debug=self.debug)
-      uri.configure_lifecycle(lifecycle_obj, False)
+      uri.configure_lifecycle(lifecycle_obj, False, headers=headers)
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
   def XmlPassThroughGetLogging(self, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     try:
       uri = boto.storage_uri(
           storage_url.url_string, suppress_consec_slashes=False,
           bucket_storage_uri_class=self.bucket_storage_uri_class,
           debug=self.debug)
-      logging_config_xml = UnaryDictToXml(uri.get_logging_config())
+      logging_config_xml = UnaryDictToXml(uri.get_logging_config(
+          headers=headers))
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 
     return XmlParseString(logging_config_xml).toprettyxml()
 
-  def XmlPassThroughGetWebsite(self, storage_url):
+  def XmlPassThroughGetTagging(self, storage_url):
     """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
     try:
       uri = boto.storage_uri(
           storage_url.url_string, suppress_consec_slashes=False,
           bucket_storage_uri_class=self.bucket_storage_uri_class,
           debug=self.debug)
-      web_config_xml = UnaryDictToXml(uri.get_website_config())
+      # TODO: Define tags-related methods on storage_uri objects. In the
+      # meantime, we invoke the underlying bucket's methods directly.
+      tagging_config_xml = uri.get_bucket().get_xml_tags()
+    except TRANSLATABLE_BOTO_EXCEPTIONS, e:
+      self._TranslateExceptionAndRaise(e)
+
+    return XmlParseString(tagging_config_xml).toprettyxml()
+
+  def XmlPassThroughSetTagging(self, tagging_text, storage_url):
+    """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
+    tags_obj = Tags()
+    h = handler.XmlHandler(tags_obj, None)
+    try:
+      xml.sax.parseString(tagging_text, h)
+    except SaxExceptions.SAXParseException, e:
+      raise CommandException(
+          'Requested labels/tagging config is invalid: %s at line %s, column '
+          '%s' % (e.getMessage(), e.getLineNumber(), e.getColumnNumber()))
+
+    try:
+      uri = boto.storage_uri(
+          storage_url.url_string, suppress_consec_slashes=False,
+          bucket_storage_uri_class=self.bucket_storage_uri_class,
+          debug=self.debug)
+      # TODO: Define tags-related methods on storage_uri objects. In the
+      # meantime, we invoke the underlying bucket's methods directly.
+      uri.get_bucket().set_tags(tags_obj, headers=headers)
+    except TRANSLATABLE_BOTO_EXCEPTIONS, e:
+      self._TranslateExceptionAndRaise(e)
+
+  def XmlPassThroughGetWebsite(self, storage_url):
+    """See CloudApiDelegator class for function doc strings."""
+    headers = self._CreateBaseHeaders()
+    try:
+      uri = boto.storage_uri(
+          storage_url.url_string, suppress_consec_slashes=False,
+          bucket_storage_uri_class=self.bucket_storage_uri_class,
+          debug=self.debug)
+      web_config_xml = UnaryDictToXml(uri.get_website_config(headers=headers))
     except TRANSLATABLE_BOTO_EXCEPTIONS, e:
       self._TranslateExceptionAndRaise(e)
 

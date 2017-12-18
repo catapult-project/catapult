@@ -12,8 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for tracker_file."""
+"""Unit tests for tracker_file and parallel_tracker_file."""
 
+from gslib.exception import CommandException
+from gslib.parallel_tracker_file import ObjectFromTracker
+from gslib.parallel_tracker_file import ReadParallelUploadTrackerFile
+from gslib.parallel_tracker_file import ValidateParallelCompositeTrackerData
+from gslib.parallel_tracker_file import WriteComponentToParallelUploadTrackerFile
+from gslib.parallel_tracker_file import WriteParallelUploadTrackerFile
+from gslib.storage_url import StorageUrlFromString
 from gslib.tests.testcase.unit_testcase import GsUtilUnitTestCase
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.tracker_file import _HashFilename
@@ -22,6 +29,7 @@ from gslib.tracker_file import GetRewriteTrackerFilePath
 from gslib.tracker_file import HashRewriteParameters
 from gslib.tracker_file import ReadRewriteTrackerFile
 from gslib.tracker_file import WriteRewriteTrackerFile
+from gslib.util import CreateLock
 
 
 class TestTrackerFile(GsUtilUnitTestCase):
@@ -64,4 +72,129 @@ class TestTrackerFile(GsUtilUnitTestCase):
     self.assertIsNone(ReadRewriteTrackerFile(tracker_file_name,
                                              rewrite_params_hash2))
     DeleteTrackerFile(tracker_file_name)
-    
+
+  def testReadGsutil416ParallelUploadTrackerFile(self):
+    """Tests the parallel upload tracker file format prior to gsutil 4.17."""
+    random_prefix = '123'
+    objects = ['obj1', '42', 'obj2', '314159']
+    contents = '\n'.join([random_prefix] + objects) + '\n'
+    fpath = self.CreateTempFile(file_name='foo', contents=contents)
+    expected_objects = [ObjectFromTracker(objects[2 * i], objects[2 * i + 1])
+                        for i in range(0, len(objects) / 2)]
+    (_, actual_prefix, actual_objects) = ReadParallelUploadTrackerFile(
+        fpath, self.logger)
+    self.assertEqual(random_prefix, actual_prefix)
+    self.assertEqual(expected_objects, actual_objects)
+
+  def testReadEmptyGsutil416ParallelUploadTrackerFile(self):
+    """Tests reading an empty pre-gsutil 4.17 parallel upload tracker file."""
+    fpath = self.CreateTempFile(file_name='foo', contents='')
+    (_, actual_prefix, actual_objects) = ReadParallelUploadTrackerFile(
+        fpath, self.logger)
+    self.assertEqual(None, actual_prefix)
+    self.assertEqual([], actual_objects)
+
+  def testParallelUploadTrackerFileNoEncryption(self):
+    fpath = self.CreateTempFile(file_name='foo')
+    random_prefix = '123'
+    objects = [ObjectFromTracker('obj1', '42'),
+               ObjectFromTracker('obj2', '314159')]
+    WriteParallelUploadTrackerFile(fpath, random_prefix, objects)
+    (enc_key, actual_prefix, actual_objects) = ReadParallelUploadTrackerFile(
+        fpath, self.logger)
+    self.assertEqual(random_prefix, actual_prefix)
+    self.assertEqual(None, enc_key)
+    self.assertEqual(objects, actual_objects)
+
+  def testParallelUploadTrackerFileWithEncryption(self):
+    fpath = self.CreateTempFile(file_name='foo')
+    random_prefix = '123'
+    enc_key = '456'
+    objects = [ObjectFromTracker('obj1', '42'),
+               ObjectFromTracker('obj2', '314159')]
+    WriteParallelUploadTrackerFile(fpath, random_prefix, objects,
+                                   encryption_key_sha256=enc_key)
+    (actual_key, actual_prefix, actual_objects) = ReadParallelUploadTrackerFile(
+        fpath, self.logger)
+    self.assertEqual(enc_key, actual_key)
+    self.assertEqual(random_prefix, actual_prefix)
+    self.assertEqual(objects, actual_objects)
+
+  def testWriteComponentToParallelUploadTrackerFile(self):
+    tracker_file_lock = CreateLock()
+    fpath = self.CreateTempFile(file_name='foo')
+    random_prefix = '123'
+    enc_key = '456'
+    objects = [ObjectFromTracker('obj1', '42'),
+               ObjectFromTracker('obj2', '314159')]
+    WriteParallelUploadTrackerFile(fpath, random_prefix, objects,
+                                   encryption_key_sha256=enc_key)
+    new_object = ObjectFromTracker('obj3', '43')
+    try:
+      WriteComponentToParallelUploadTrackerFile(
+          fpath, tracker_file_lock, new_object, self.logger,
+          encryption_key_sha256=None)
+      self.fail('Expected CommandException due to different encryption key')
+    except CommandException, e:
+      self.assertIn('does not match encryption key', str(e))
+
+    WriteComponentToParallelUploadTrackerFile(
+        fpath, tracker_file_lock, new_object, self.logger,
+        encryption_key_sha256='456')
+
+    (actual_key, actual_prefix, actual_objects) = ReadParallelUploadTrackerFile(
+        fpath, self.logger)
+    self.assertEqual(enc_key, actual_key)
+    self.assertEqual(random_prefix, actual_prefix)
+    self.assertEqual(objects + [new_object], actual_objects)
+
+  def testValidateParallelCompositeTrackerData(self):
+    fpath = self.CreateTempFile(file_name='foo')
+    random_prefix = '123'
+    old_enc_key = '456'
+    bucket_url = StorageUrlFromString('gs://foo')
+    objects = [ObjectFromTracker('obj1', '42'),
+               ObjectFromTracker('obj2', '314159')]
+    WriteParallelUploadTrackerFile(fpath, random_prefix, objects,
+                                   encryption_key_sha256=old_enc_key)
+
+    # Mock command object since Valdiate will call Apply() to delete the
+    # existing components.
+    class MockCommandObject(object):
+      delete_called = False
+
+      # We call Apply with parallel_operations_override, which expects this enum
+      # class to exist.
+      class ParallelOverrideReason(object):
+        SPEED = 'speed'
+
+      def Apply(self, *unused_args, **unused_kwargs):
+        self.delete_called = True
+
+    def MockDeleteFunc():
+      pass
+
+    def MockDeleteExceptionHandler():
+      pass
+
+    command_obj = MockCommandObject()
+    # Validate with correct key should succeed.
+    (actual_prefix, actual_objects) = ValidateParallelCompositeTrackerData(
+        fpath, old_enc_key, random_prefix,
+        objects, old_enc_key, bucket_url, command_obj, self.logger,
+        MockDeleteFunc, MockDeleteExceptionHandler)
+    self.assertEqual(False, command_obj.delete_called)
+    self.assertEqual(random_prefix, actual_prefix)
+    self.assertEqual(objects, actual_objects)
+
+    new_enc_key = '789'
+    command_obj = MockCommandObject()
+
+    (actual_prefix, actual_objects) = ValidateParallelCompositeTrackerData(
+        fpath, old_enc_key, random_prefix,
+        objects, new_enc_key, bucket_url, command_obj, self.logger,
+        MockDeleteFunc, MockDeleteExceptionHandler)
+
+    self.assertEqual(True, command_obj.delete_called)
+    self.assertEqual(None, actual_prefix)
+    self.assertEqual([], actual_objects)

@@ -21,7 +21,7 @@
 # IN THE SOFTWARE.
 """Boto translation layer for resumable uploads.
 
-See http://code.google.com/apis/storage/docs/developer-guide.html#resumable
+See https://cloud.google.com/storage/docs/resumable-uploads-xml
 for details.
 
 Resumable uploads will retry interrupted uploads, resuming at the byte

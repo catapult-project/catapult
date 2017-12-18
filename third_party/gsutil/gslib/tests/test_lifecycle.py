@@ -45,12 +45,18 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
       '{"rule": [{"action": {"type": "Add"}, "condition": {"age": 365}}]}\n')
 
   lifecycle_doc = (
-      '{"rule": [{"action": {"type": "Delete"}, "condition": {"age": 365}}]}\n')
+      '{"rule": ['
+      '{"action": {"type": "Delete"}, "condition": {"age": 365}}, '
+      '{"action": {"type": "SetStorageClass", "storageClass": "NEARLINE"},'
+      ' "condition": {"matchesStorageClass": ["STANDARD"], "age": 366}}]}\n')
   lifecycle_json_obj = json.loads(lifecycle_doc)
 
   lifecycle_doc_bucket_style = (
-      '{"lifecycle": {"rule": [{"action": {"type": "Delete"}, "condition": '
-      '{"age": 365}}]}}\n')
+      '{"lifecycle": ' + lifecycle_doc.rstrip() + '}\n')
+
+  # TODO: Remove once Boto is updated to support new fields.
+  lifecycle_doc_without_storage_class_fields = (
+      '{"rule": [{"action": {"type": "Delete"}, "condition": {"age": 365}}]}\n')
 
   lifecycle_created_before_doc = (
       '{"rule": [{"action": {"type": "Delete"}, "condition": '
@@ -61,7 +67,10 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
 
   def test_lifecycle_translation(self):
     """Tests lifecycle translation for various formats."""
-    json_text = self.lifecycle_doc
+    # TODO: Use lifecycle_doc again once Boto is updated to support new fields.
+    # json_text = self.lifecycle_doc
+    json_text = self.lifecycle_doc_without_storage_class_fields
+
     entries_list = LifecycleTranslation.JsonLifecycleToMessage(json_text)
     boto_lifecycle = LifecycleTranslation.BotoLifecycleFromMessage(entries_list)
     converted_entries_list = LifecycleTranslation.BotoLifecycleToMessage(

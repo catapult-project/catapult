@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Upload and download support for apitools."""
 from __future__ import print_function
 
@@ -256,9 +271,8 @@ class Download(_Transfer):
     def __str__(self):
         if not self.initialized:
             return 'Download (uninitialized)'
-        else:
-            return 'Download with %d/%s bytes transferred from url %s' % (
-                self.progress, self.total_size, self.url)
+        return 'Download with %d/%s bytes transferred from url %s' % (
+            self.progress, self.total_size, self.url)
 
     def ConfigureRequest(self, http_request, url_builder):
         url_builder.query_params['alt'] = 'media'
@@ -633,9 +647,8 @@ class Upload(_Transfer):
     def __str__(self):
         if not self.initialized:
             return 'Upload (uninitialized)'
-        else:
-            return 'Upload with %d/%s bytes transferred for url %s' % (
-                self.progress, self.total_size or '???', self.url)
+        return 'Upload with %d/%s bytes transferred for url %s' % (
+            self.progress, self.total_size or '???', self.url)
 
     @property
     def strategy(self):
@@ -743,20 +756,24 @@ class Upload(_Transfer):
         # NOTE: We encode the body, but can't use
         #       `email.message.Message.as_string` because it prepends
         #       `> ` to `From ` lines.
-        # NOTE: We must use six.StringIO() instead of io.StringIO() since the
-        #       `email` library uses cStringIO in Py2 and io.StringIO in Py3.
-        fp = six.StringIO()
-        g = email_generator.Generator(fp, mangle_from_=False)
+        fp = six.BytesIO()
+        if six.PY3:
+            generator_class = email_generator.BytesGenerator
+        else:
+            generator_class = email_generator.Generator
+        g = generator_class(fp, mangle_from_=False)
         g.flatten(msg_root, unixfrom=False)
         http_request.body = fp.getvalue()
 
         multipart_boundary = msg_root.get_boundary()
         http_request.headers['content-type'] = (
             'multipart/related; boundary=%r' % multipart_boundary)
+        if isinstance(multipart_boundary, six.text_type):
+            multipart_boundary = multipart_boundary.encode('ascii')
 
         body_components = http_request.body.split(multipart_boundary)
-        headers, _, _ = body_components[-2].partition('\n\n')
-        body_components[-2] = '\n\n'.join([headers, '<media body>\n\n--'])
+        headers, _, _ = body_components[-2].partition(b'\n\n')
+        body_components[-2] = b'\n\n'.join([headers, b'<media body>\n\n--'])
         http_request.loggable_body = multipart_boundary.join(body_components)
 
     def __ConfigureResumableRequest(self, http_request):
@@ -831,6 +848,7 @@ class Upload(_Transfer):
         # go ahead and pump the bytes now.
         if self.auto_transfer:
             return self.StreamInChunks()
+        return http_response
 
     def __GetLastByte(self, range_header):
         _, _, end = range_header.partition('-')

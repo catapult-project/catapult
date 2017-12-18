@@ -1,7 +1,7 @@
 Name: gsutil
 Short Name: gsutil
 URL: https://cloud.google.com/storage/docs/gsutil
-Version: 4.15
+Version: 4.28
 Date: 2015-10-01
 License: Apache 2.0
 License File: no

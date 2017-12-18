@@ -21,7 +21,7 @@ from gslib.help_provider import HelpProvider
 _DETAILED_HELP_TEXT = ("""
 <B>TECHNICAL SUPPORT</B>
   If you have any questions or encounter any problems with Google Cloud Storage,
-  please first read the `FAQ <https://developers.google.com/storage/docs/faq>`_.
+  please first read the `FAQ <https://cloud.google.com/storage/docs/faq>`_.
 
   If you still have questions please use one of the following methods as
   appropriate, providing the details noted below:
@@ -33,25 +33,26 @@ _DETAILED_HELP_TEXT = ("""
   support team actively monitors questions to this tag and we'll do our best to
   respond.
 
-  B) For questions regarding your account, billing, Terms Of Service, Google
-  Cloud Console, or other administration-related questions please email
-  gs-team@google.com.
+  B) For gsutil bugs or feature requests, please check if there is already a
+  `existing GitHub issue <https://github.com/GoogleCloudPlatform/gsutil/issues>`_
+  that covers your request. If not, create a
+  `new GitHub issue <https://github.com/GoogleCloudPlatform/gsutil/issues/new>`_.
 
-  To help us diagnose any issues you encounter, please provide these details
-  in addition to the description of your problem:
+  To help us diagnose any issues you encounter, when creating a new issue
+  please provide these details in addition to the description of your problem:
 
-  - The resource you are attempting to access (bucket name, object name)
+  - The resource you are attempting to access (bucket name, object name),
+    assuming they are not sensitive.
   - The operation you attempted (GET, PUT, etc.)
   - The time and date (including timezone) at which you encountered the problem
-  - The tool or library you use to interact with Google Cloud Storage
   - If you can use gsutil to reproduce your issue, specify the -D option to
-    display your request's HTTP details. Provide these details with your post
-    to the forum as they can help us further troubleshoot your issue.
+    display your request's HTTP details, and provide these details in the 
+    issue.
 
   Warning: The gsutil -d, -D, and -DD options will also print the authentication
   header with authentication credentials for your Google Cloud Storage account.
   Make sure to remove any "Authorization:" headers before you post HTTP details
-  to the forum. Note also that if you upload files large enough to use resumable
+  to the issue. Note also that if you upload files large enough to use resumable
   uploads, the resumable upload IDs are security-sensitive while an upload
   is not yet complete, so should not be posted on public forums.
 
@@ -63,13 +64,19 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>BILLING AND ACCOUNT QUESTIONS</B>
-  For questions about billing or account issues, please visit
-  https://developers.google.com/storage/docs/pricing-and-terms.
+  A) For billing documentation, please visit
+  https://cloud.google.com/storage/pricing.
   If you want to cancel billing, follow the instructions at
-  `Google Developers Console<https://developers.google.com/console/help/billing>`
+  `Cloud Storage FAQ <https://cloud.google.com/storage/docs/faq#disablebilling>`_.
   Caution: When you disable billing, you also disable the Google Cloud Storage
   service. Make sure you want to disable the Google Cloud Storage service
   before you disable billing.
+
+  B) For support regarding billing, please see
+  `billing support <https://support.google.com/cloud/contact/cloud_platform_billing>`_.
+  For other questions regarding your account, Terms Of Service, Google
+  Cloud Console, or other administration-related questions please see
+  `Google Cloud Platform support <https://support.google.com/cloud/answer/6282346#gcp>`_.
 """)
 
 

@@ -16,9 +16,20 @@
 
 from __future__ import absolute_import
 
+import logging
+import os
+import re
 import signal
-from gslib.util import IS_WINDOWS
+import sys
+import traceback
 
+from gslib import metrics
+from gslib.exception import ControlCException
+from gslib.util import IS_WINDOWS
+from gslib.util import UTF8
+
+if IS_WINDOWS:
+  import ctypes  # pylint: disable=g-import-not-at-top
 
 # Maps from signal_num to list of signal handlers to call.
 _non_final_signal_handlers = {}
@@ -97,3 +108,50 @@ def GetCaughtSignals():
     signals.append(signal.SIGQUIT)
   return signals
 
+
+def KillProcess(pid):
+  """Make best effort to kill the given process.
+
+  We ignore all exceptions so a caller looping through a list of processes will
+  continue attempting to kill each, even if one encounters a problem.
+
+  Args:
+    pid: The process ID.
+  """
+  try:
+    # os.kill doesn't work in Python3 versions before 3.2.
+    if IS_WINDOWS and ((3, 0) <= sys.version_info[:3] < (3, 2)):
+      kernel32 = ctypes.windll.kernel32
+      handle = kernel32.OpenProcess(1, 0, pid)
+      kernel32.TerminateProcess(handle, 0)
+    else:
+      os.kill(pid, signal.SIGKILL)
+  except:  # pylint: disable=bare-except
+    pass
+
+
+# pylint: disable=unused-argument
+def MultithreadedMainSignalHandler(signal_num, cur_stack_frame):
+  """Final signal handler for multi-threaded main process."""
+  if signal_num == signal.SIGINT:
+    if logging.getLogger().isEnabledFor(logging.DEBUG):
+      stack_trace = ''.join(traceback.format_list(traceback.extract_stack()))
+      err = ('DEBUG: Caught CTRL-C (signal %d) - Exception stack trace:\n'
+             '    %s' % (signal_num, re.sub('\\n', '\n    ', stack_trace)))
+      try:
+        sys.stderr.write(err.encode(UTF8))
+      except UnicodeDecodeError:
+        # Can happen when outputting invalid Unicode filenames.
+        sys.stderr.write(err)
+    else:
+      sys.stderr.write('Caught CTRL-C (signal %d) - exiting\n' % signal_num)
+
+  metrics.LogFatalError(exception=ControlCException())
+  metrics.Shutdown()
+  KillProcess(os.getpid())
+
+
+def ChildProcessSignalHandler(signal_num, cur_stack_frame):
+  """Final signal handler for child processes."""
+  KillProcess(os.getpid())
+# pylint: enable=unused-argument

@@ -18,16 +18,37 @@ from __future__ import absolute_import
 
 import re
 
+from gslib.exception import NO_URLS_MATCHED_GENERIC
+from gslib.exception import NO_URLS_MATCHED_TARGET
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.base import MAX_BUCKET_LENGTH
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetBotoConfigForTest
 from gslib.util import Retry
 
 
 class TestRm(testcase.GsUtilIntegrationTestCase):
   """Integration tests for rm command."""
+
+  def _CleanRmUiOutputBeforeChecking(self, stderr):
+    """Excludes everything coming from the UI to avoid assert errors.
+
+    Args:
+      stderr: The cumulative stderr output.
+    Returns:
+      The cumulative stderr output without the expected UI output.
+    """
+    ui_output_pattern = '[^\n\r]*objects][^\n\r]*[\n\r]'
+    final_message_pattern = 'Operation completed over[^\n]*'
+    ui_spinner_list = ['\\\r', '|\r', '/\r', '-\r']
+    ui_lines_list = (re.findall(ui_output_pattern, stderr) +
+                     re.findall(final_message_pattern, stderr) +
+                     ui_spinner_list)
+    for ui_line in ui_lines_list:
+      stderr = stderr.replace(ui_line, '')
+    return stderr
 
   def _RunRemoveCommandAndCheck(self, command_and_args, objects_to_remove=None,
                                 buckets_to_remove=None, stdin=None):
@@ -53,7 +74,6 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
       stdin: String of data to pipe to the process as standard input (for
          testing -I option).
     """
-    cumulative_stderr_lines = set()
     bucket_strings = []
     for bucket_to_remove in buckets_to_remove or []:
       bucket_strings.append('Removing %s/...' % bucket_to_remove)
@@ -62,41 +82,65 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
       object_strings.append('Removing %s...' % object_to_remove)
     expected_stderr_lines = set(object_strings + bucket_strings)
 
-    @Retry(AssertionError, tries=5, timeout_secs=1)
-    def _RunRmCommandAndCheck():
-      """Runs the command with retries, updating+checking cumulative output."""
+    if not self.multiregional_buckets and self.default_provider == 'gs':
       stderr = self.RunGsUtil(command_and_args, return_stderr=True,
                               expected_status=None, stdin=stdin)
-      update_lines = True
-      # Retry 404's and 409's due to eventual listing consistency, but don't add
-      # the output to the set.
-      if ('No URLs matched' in stderr or
-          '409 BucketNotEmpty' in stderr or
-          '409 VersionedBucketNotEmpty' in stderr):
-        update_lines = False
+      num_objects = len(object_strings)
+      # Asserting for operation completion
+      if '-q' not in command_and_args:
+        if '-m' in command_and_args:
+          self.assertIn('[%d/%d objects]' % (num_objects, num_objects),
+                        stderr)
+        else:
+          self.assertIn('[%d objects]' % num_objects,
+                        stderr)
 
-      # For recursive deletes of buckets, it is possible that the bucket is
-      # deleted before the objects are all present in the listing, in which case
-      # we will never see all of the expected "Removing object..." messages.
-      # Since this is still a successful outcome, just return successfully.
-      if '-r' in command_and_args and 'bucket does not exist' in stderr:
-        for bucket_to_remove in buckets_to_remove:
-          matching_bucket = re.match(r'.*404\s+%s\s+bucket does not exist' %
-                                     re.escape(bucket_to_remove), stderr)
-          if matching_bucket:
-            for line in cumulative_stderr_lines:
-              if 'Removing %s/...' % bucket_to_remove in line:
+      stderr = self._CleanRmUiOutputBeforeChecking(stderr)
+      stderr_set = set(stderr.splitlines())
+      if '' in stderr_set:
+        stderr_set.remove('')  # Avoid groups represented by an empty string.
+      self.assertEqual(stderr_set, expected_stderr_lines)
+    else:
+      cumulative_stderr_lines = set()
+
+      @Retry(AssertionError, tries=5, timeout_secs=1)
+      def _RunRmCommandAndCheck():
+        """Runs/retries the command updating+checking cumulative output."""
+        stderr = self.RunGsUtil(command_and_args, return_stderr=True,
+                                expected_status=None, stdin=stdin)
+        stderr = self._CleanRmUiOutputBeforeChecking(stderr)
+        update_lines = True
+        # Retry 404's and 409's due to eventual listing consistency, but don't
+        # add the output to the set.
+        if (NO_URLS_MATCHED_GENERIC in stderr or
+            '409 BucketNotEmpty' in stderr or
+            '409 VersionedBucketNotEmpty' in stderr):
+          update_lines = False
+
+        # For recursive deletes of buckets, it is possible that the bucket is
+        # deleted before the objects are all present in the listing, in which
+        # case we will never see all of the expected "Removing object..."
+        # messages. Since this is still a successful outcome, just return
+        # successfully.
+        if '-r' in command_and_args and 'bucket does not exist' in stderr:
+          for bucket_to_remove in buckets_to_remove:
+            matching_bucket = re.match(r'.*404\s+%s\s+bucket does not exist' %
+                                       re.escape(bucket_to_remove), stderr)
+            if matching_bucket:
+              for line in cumulative_stderr_lines:
+                if 'Removing %s/...' % bucket_to_remove in line:
+                  return
+              if 'Removing %s/...' % bucket_to_remove in stderr:
                 return
-            if 'Removing %s/...' % bucket_to_remove in stderr:
-              return
 
-      if update_lines:
-        cumulative_stderr_lines.update(set(stderr.splitlines()))
+        if update_lines:
+          cumulative_stderr_lines.update(
+              set([s for s in stderr.splitlines() if s]))
 
-      # Ensure all of the expected strings are present.
-      self.assertEqual(cumulative_stderr_lines, expected_stderr_lines)
+        # Ensure all of the expected strings are present.
+        self.assertEqual(cumulative_stderr_lines, expected_stderr_lines)
 
-    _RunRmCommandAndCheck()
+      _RunRmCommandAndCheck()
 
   def test_all_versions_current(self):
     """Test that 'rm -a' for an object with a current version works."""
@@ -106,9 +150,7 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     g1 = urigen(key_uri)
     key_uri.set_contents_from_string('baz')
     g2 = urigen(key_uri)
-    self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
-    # Use @Retry as hedge against bucket listing eventual consistency.
-    @Retry(AssertionError, tries=3, timeout_secs=1)
+
     def _Check1(stderr_lines):
       stderr = self.RunGsUtil(['-m', 'rm', '-a', suri(key_uri)],
                               return_stderr=True)
@@ -118,8 +160,19 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
                        2)
       self.assertIn('Removing %s#%s...' % (suri(key_uri), g1), stderr)
       self.assertIn('Removing %s#%s...' % (suri(key_uri), g2), stderr)
+
     all_stderr_lines = set()
-    _Check1(all_stderr_lines)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
+      @Retry(AssertionError, tries=3, timeout_secs=1)
+      # Use @Retry as hedge against bucket listing eventual consistency.
+      def _CheckWithRetries(stderr_lines):
+        _Check1(stderr_lines)
+
+      _CheckWithRetries(all_stderr_lines)
+    else:
+      _Check1(all_stderr_lines)
+
     self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
 
   def test_all_versions_no_current(self):
@@ -140,7 +193,18 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateVersionedBucket()
     stderr = self.RunGsUtil(['rm', '-a', '%s' % suri(bucket_uri, 'foo')],
                             return_stderr=True, expected_status=1)
-    self.assertIn('No URLs matched', stderr)
+    self.assertIn(NO_URLS_MATCHED_TARGET % suri(bucket_uri, 'foo'), stderr)
+
+  def test_remove_recursive_prefix(self):
+    bucket_uri = self.CreateBucket()
+    obj_uri = self.CreateObject(bucket_uri=bucket_uri, object_name='a/b/c',
+                                contents='foo')
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1)
+
+    stderr = self.RunGsUtil(['rm', '-r', suri(bucket_uri, 'a')],
+                            return_stderr=True)
+    self.assertIn('Removing %s' % suri(obj_uri), stderr)
 
   def test_remove_all_versions_recursive_on_bucket(self):
     """Test that 'rm -r' works on bucket."""
@@ -156,7 +220,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     k1g2 = urigen(k1_uri)
     k2g2 = urigen(k2_uri)
 
-    self.AssertNObjectsInBucket(bucket_uri, 4, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 4, versioned=True)
 
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', suri(bucket_uri)],
@@ -189,7 +254,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     k1g2 = urigen(k1_uri)
     k2g2 = urigen(k2_uri)
 
-    self.AssertNObjectsInBucket(bucket_uri, 4, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 4, versioned=True)
 
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', '%s' % suri(bucket_uri, 'dir')],
@@ -199,11 +265,28 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
                            '%s#%s' % (suri(k2_uri), k2g2)])
     self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
 
+  def test_rm_seek_ahead(self):
+    object_uri = self.CreateObject(contents='foo')
+    with SetBotoConfigForTest([('GSUtil', 'task_estimation_threshold', '1'),
+                               ('GSUtil', 'task_estimation_force', 'True')]):
+      stderr = self.RunGsUtil(['-m', 'rm', suri(object_uri)],
+                              return_stderr=True)
+      self.assertIn('Estimated work for this command: objects: 1\n', stderr)
+
+  def test_rm_seek_ahead_stdin_args(self):
+    object_uri = self.CreateObject(contents='foo')
+    with SetBotoConfigForTest([('GSUtil', 'task_estimation_threshold', '1'),
+                               ('GSUtil', 'task_estimation_force', 'True')]):
+      stderr = self.RunGsUtil(['-m', 'rm', '-I'], stdin=suri(object_uri),
+                              return_stderr=True)
+      self.assertNotIn('Estimated work', stderr)
+
   def test_missing_first_force(self):
     bucket_uri = self.CreateBucket()
     object_uri = self.CreateObject(bucket_uri=bucket_uri, object_name='present',
                                    contents='foo')
-    self.AssertNObjectsInBucket(bucket_uri, 1)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1)
     self.RunGsUtil(['rm', '%s' % suri(bucket_uri, 'missing'),
                     suri(object_uri)], expected_status=1)
     stderr = self.RunGsUtil(
@@ -217,19 +300,22 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateVersionedBucket()
     key_uri = bucket_uri.clone_replace_name('foo')
     key_uri.set_contents_from_string('bar')
-    self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
     stderr = self.RunGsUtil(['rm', '-a', suri(key_uri),
                              '%s' % suri(bucket_uri, 'missing')],
                             return_stderr=True, expected_status=1)
     self.assertEqual(stderr.count('Removing %s://' % self.default_provider), 1)
-    self.assertIn('No URLs matched', stderr)
+    self.assertIn(NO_URLS_MATCHED_TARGET % suri(bucket_uri, 'missing'),
+                  stderr)
 
   def test_some_missing_force(self):
     """Test that 'rm -af' succeeds despite hidden first uri."""
     bucket_uri = self.CreateVersionedBucket()
     key_uri = bucket_uri.clone_replace_name('foo')
     key_uri.set_contents_from_string('bar')
-    self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
     stderr = self.RunGsUtil(
         ['rm', '-af', suri(key_uri), '%s' % suri(bucket_uri, 'missing')],
         return_stderr=True, expected_status=1)
@@ -243,15 +329,23 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     key_uri.set_contents_from_string('foobar')
     folder_uri = bucket_uri.clone_replace_name('abc_$folder$')
     folder_uri.set_contents_from_string('')
-    self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
-    # This could fail due to eventual listing consistency, so use retry and
-    # expected_status=None to guard against No URLs matched exceptions.
-    @Retry(AssertionError, tries=3, timeout_secs=1)
+
     def _RemoveAndCheck():
       self.RunGsUtil(['rm', '-r', '%s' % suri(bucket_uri, 'abc')],
                      expected_status=None)
       self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
-    _RemoveAndCheck()
+
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
+      # This could fail due to eventual listing consistency, so use retry and
+      # expected_status=None to guard against No URLs matched exceptions.
+      @Retry(AssertionError, tries=3, timeout_secs=1)
+      def _RemoveAndCheckWrapper():
+        _RemoveAndCheck()
+
+      _RemoveAndCheckWrapper()
+    else:
+      _RemoveAndCheck()
     # Bucket should not be deleted (Should not get ServiceException).
     bucket_uri.get_location(validate=False)
 
@@ -263,7 +357,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     folder_uri = bucket_uri.clone_replace_name('abc_$folder$')
     folder_uri.set_contents_from_string('')
 
-    self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', '%s' % suri(bucket_uri, '**')],
         objects_to_remove=['%s#%s' % (suri(key_uri), urigen(key_uri)),
@@ -277,7 +372,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     """Test for 'rm -r' of a bucket."""
     bucket_uri = self.CreateBucket()
     object_uri = self.CreateObject(bucket_uri, contents='foo')
-    self.AssertNObjectsInBucket(bucket_uri, 1)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1)
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', suri(bucket_uri)],
         objects_to_remove=['%s#%s' % (suri(object_uri), urigen(object_uri))],
@@ -298,7 +394,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     self.CreateObject(bucket_uri, 'obj', 'z')
     self.CreateObject(bucket_uri, 'obj', 'z')
     final_uri = self.CreateObject(bucket_uri, 'obj', 'z')
-    self.AssertNObjectsInBucket(bucket_uri, 3, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 3, versioned=True)
     self._RunRemoveCommandAndCheck(['rm', suri(bucket_uri, '**')],
                                    objects_to_remove=['%s' % final_uri])
 
@@ -328,9 +425,10 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     ouri2 = self.CreateObject(bucket_uri=buri2, object_name='o2', contents='z')
     self.CreateObject(bucket_uri=buri3, object_name='o3', contents='z')
 
-    self.AssertNObjectsInBucket(buri1, 1)
-    self.AssertNObjectsInBucket(buri2, 1)
-    self.AssertNObjectsInBucket(buri3, 1)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(buri1, 1)
+      self.AssertNObjectsInBucket(buri2, 1)
+      self.AssertNObjectsInBucket(buri3, 1)
 
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', '%s://%s-tbu*' % (self.default_provider, buri_base)],
@@ -344,7 +442,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     """Test that 'rm -q' outputs no progress indications."""
     bucket_uri = self.CreateBucket()
     key_uri = self.CreateObject(bucket_uri=bucket_uri, contents='foo')
-    self.AssertNObjectsInBucket(bucket_uri, 1)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1)
     self._RunRemoveCommandAndCheck(['-q', 'rm', suri(key_uri)], [])
     self.AssertNObjectsInBucket(bucket_uri, 0)
 
@@ -357,8 +456,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
                               object_name='dirnoslash/foo', contents='z')
     ouri3 = self.CreateObject(bucket_uri=bucket_uri,
                               object_name='dirnoslash/foo2', contents='z')
-
-    self.AssertNObjectsInBucket(bucket_uri, 3, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 3, versioned=True)
 
     self._RunRemoveCommandAndCheck(
         ['rm', '-r', suri(bucket_uri)],
@@ -399,7 +498,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
         object_name='everything/is/better/with/slashes///////',
         contents='Maniac')
 
-    self.AssertNObjectsInBucket(bucket_uri, 9, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 9, versioned=True)
 
     # We add a slash to URIs with a trailing slash,
     # because ObjectToURI (suri) removes one trailing slash.
@@ -444,8 +544,9 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     ouri4 = self.CreateObject(bucket_uri=buri2,
                               object_name='moo',
                               contents='moocontents')
-    self.AssertNObjectsInBucket(buri1, 3, versioned=True)
-    self.AssertNObjectsInBucket(buri2, 1, versioned=True)
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(buri1, 3, versioned=True)
+      self.AssertNObjectsInBucket(buri2, 1, versioned=True)
 
     objects_to_remove = ['%s#%s' % (suri(ouri1), urigen(ouri1)),
                          '%s#%s' % (suri(ouri3), urigen(ouri3)),

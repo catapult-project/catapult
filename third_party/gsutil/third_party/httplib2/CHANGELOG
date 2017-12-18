@@ -1,3 +1,80 @@
+0.10.3
+
+  Fix certificate validation on Python<=2.7.8 without ssl.CertificateError
+  https://github.com/httplib2/httplib2/issues/45
+
+0.10.2
+
+  Just a reupload of 0.10.1, which was broken for Python3
+  because wheel distribution doesn't play well with our 2/3 split code base.
+  https://github.com/httplib2/httplib2/issues/43
+
+0.10.1
+
+  This is the first release by new httplib2 team. See post by Joe
+  https://bitworking.org/news/2016/03/an_update_on_httplib2
+
+  Remove VeriSign Class 3 CA from trusted certs
+  https://googleonlinesecurity.blogspot.com/2015/12/proactive-measures-in-digital.html
+
+  Add IdenTrust DST Root CA X3
+  https://github.com/httplib2/httplib2/pull/26
+
+  Support for specifying the SSL protocol version (Python v2)
+  https://github.com/jcgregorio/httplib2/issues/329
+
+  On App Engine use urlfetch's default deadline if None is passed.
+
+  Fix TypeError on AppEngine “__init__() got an unexpected keyword argument 'ssl_version’”
+  https://github.com/httplib2/httplib2/pull/12
+
+  Send SNI data for SSL connections on Python 2.7.9+
+  Verify the server hostname if certificate validation is enabled
+  https://github.com/httplib2/httplib2/pull/13
+
+  Add proxy_headers argument to ProxyInfo constructor
+  https://github.com/httplib2/httplib2/pull/21
+
+  Make disable_ssl_certificate_validation work with Python 3.5.
+  https://github.com/httplib2/httplib2/pull/15
+
+  Fix socket error handling
+  https://github.com/httplib2/httplib2/commit/eb7468561714a5b700d5a3d8fa1a8794de02b9ef
+  https://github.com/httplib2/httplib2/commit/e7f6e622047107e701ee70e7ec586717d97b0cbb
+
+0.9.2
+
+  Fixes in this release:
+
+   https://github.com/jcgregorio/httplib2/pull/313
+
+    Fix incorrect ResponseNotReady exceptions, retry on transient errors.
+
+0.9.1
+
+  Fixes in this release:
+
+    https://github.com/jcgregorio/httplib2/pull/296
+
+        There was a problem with headers when a binary string is passed (like
+        b'Authorization').
+
+    https://github.com/jcgregorio/httplib2/pull/276
+
+        Default to doing DNS resolution through a proxy server if present.
+
+0.9
+  Heartbleed
+
+0.8
+  More fixes for the App Engine support.
+
+  Added a new feature that allows you to supply your own provider for the
+  CA_CERTS file. Just create a module named ca_certs_locater that has a method
+  get() that returns the file location of the CA_CERTS file.
+
+  Lots of clean up of the code formatting to make it more consistent.
+
 0.7.7
    More fixes for App Engine, now less likely to swallow important exceptions.
    Adding proxy_info_from_* methods to Python3. Reviewed in https://codereview.appspot.com/6588078/.

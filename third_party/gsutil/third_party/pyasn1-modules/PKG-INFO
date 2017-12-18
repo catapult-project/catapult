@@ -1,6 +1,6 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: pyasn1-modules
-Version: 0.0.5
+Version: 0.0.8
 Summary: A collection of ASN.1-based protocols modules.
 Home-page: http://sourceforge.net/projects/pyasn1/
 Author: Ilya Etingof <ilya@glas.net>

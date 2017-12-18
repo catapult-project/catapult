@@ -1,9 +1,25 @@
-"""Tests for google3.cloud.bigscience.apitools.base.py.batch."""
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Tests for apitools.base.py.batch."""
 
 import textwrap
 
 import mock
 from six.moves import http_client
+from six.moves import range  # pylint:disable=redefined-builtin
 from six.moves.urllib import parse
 import unittest2
 
@@ -78,8 +94,7 @@ class BatchTest(unittest2.TestCase):
             self.assertEqual(expected_request.http_method, request.http_method)
             if isinstance(response, list):
                 return response.pop(0)
-            else:
-                return response
+            return response
 
         mock_request.side_effect = CheckRequest
 
@@ -134,9 +149,19 @@ class BatchTest(unittest2.TestCase):
                                   exceptions.HttpError)
 
     def testSingleRequestInBatch(self):
+        desired_url = 'https://www.example.com'
+
+        callback_was_called = []
+
+        def _Callback(response, exception):
+            self.assertEqual({'status': '200'}, response.info)
+            self.assertEqual('content', response.content)
+            self.assertEqual(desired_url, response.request_url)
+            self.assertIsNone(exception)
+            callback_was_called.append(1)
+
         mock_service = FakeService()
 
-        desired_url = 'https://www.example.com'
         batch_api_request = batch.BatchApiRequest(batch_url=desired_url)
         # The request to be added. The actual request sent will be somewhat
         # larger, as this is added to a batch.
@@ -169,7 +194,8 @@ class BatchTest(unittest2.TestCase):
                 'desired_request': desired_request,
             })
 
-            api_request_responses = batch_api_request.Execute(FakeHttp())
+            api_request_responses = batch_api_request.Execute(
+                FakeHttp(), batch_request_callback=_Callback)
 
             self.assertEqual(1, len(api_request_responses))
             self.assertEqual(1, mock_request.call_count)
@@ -180,6 +206,68 @@ class BatchTest(unittest2.TestCase):
             self.assertEqual({'status': '200'}, response.info)
             self.assertEqual('content', response.content)
             self.assertEqual(desired_url, response.request_url)
+        self.assertEquals(1, len(callback_was_called))
+
+    def _MakeResponse(self, number_of_parts):
+        return http_wrapper.Response(
+            info={
+                'status': '200',
+                'content-type': 'multipart/mixed; boundary="boundary"',
+            },
+            content='--boundary\n' + '--boundary\n'.join(
+                textwrap.dedent("""\
+                    content-type: text/plain
+                    content-id: <id+{0}>
+
+                    HTTP/1.1 200 OK
+                    response {0} content
+
+                    """)
+                .format(i) for i in range(number_of_parts)) + '--boundary--',
+            request_url=None,
+        )
+
+    def _MakeSampleRequest(self, url, name):
+        return http_wrapper.Request(url, 'POST', {
+            'content-type': 'multipart/mixed; boundary="None"',
+            'content-length': 80,
+        }, '{0} {1}'.format(name, 'x' * (79 - len(name))))
+
+    def testMultipleRequestInBatchWithMax(self):
+        mock_service = FakeService()
+
+        desired_url = 'https://www.example.com'
+        batch_api_request = batch.BatchApiRequest(batch_url=desired_url)
+
+        number_of_requests = 10
+        max_batch_size = 3
+        for i in range(number_of_requests):
+            batch_api_request.Add(
+                mock_service, 'unused', None,
+                {'desired_request': self._MakeSampleRequest(
+                    desired_url, 'Sample-{0}'.format(i))})
+
+        responses = []
+        for i in range(0, number_of_requests, max_batch_size):
+            responses.append(
+                self._MakeResponse(
+                    min(number_of_requests - i, max_batch_size)))
+        with mock.patch.object(http_wrapper, 'MakeRequest',
+                               autospec=True) as mock_request:
+            self.__ConfigureMock(
+                mock_request,
+                expected_request=http_wrapper.Request(desired_url, 'POST', {
+                    'content-type': 'multipart/mixed; boundary="None"',
+                    'content-length': 1142,
+                }, 'x' * 1142),
+                response=responses)
+            api_request_responses = batch_api_request.Execute(
+                FakeHttp(), max_batch_size=max_batch_size)
+
+        self.assertEqual(number_of_requests, len(api_request_responses))
+        self.assertEqual(
+            -(-number_of_requests // max_batch_size),
+            mock_request.call_count)
 
     def testRefreshOnAuthFailure(self):
         mock_service = FakeService()

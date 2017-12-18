@@ -16,9 +16,16 @@
 
 from __future__ import absolute_import
 
+from gslib.cs_api_map import ApiSelector
+from gslib.exception import NO_URLS_MATCHED_TARGET
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import RUN_S3_TESTS
+from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import TEST_ENCRYPTION_KEY1
+from gslib.tests.util import unittest
 
 
 class TestCat(testcase.GsUtilIntegrationTestCase):
@@ -59,9 +66,11 @@ class TestCat(testcase.GsUtilIntegrationTestCase):
     """Tests cat command on versioned objects."""
     bucket_uri = self.CreateVersionedBucket()
     # Create 2 versions of an object.
-    uri1 = self.CreateObject(bucket_uri=bucket_uri, contents='data1')
+    uri1 = self.CreateObject(bucket_uri=bucket_uri, contents='data1',
+                             gs_idempotent_generation=0)
     uri2 = self.CreateObject(bucket_uri=bucket_uri,
-                             object_name=uri1.object_name, contents='data2')
+                             object_name=uri1.object_name, contents='data2',
+                             gs_idempotent_generation=urigen(uri1))
     stdout = self.RunGsUtil(['cat', suri(uri1)], return_stdout=True)
     # Last version written should be live.
     self.assertEqual('data2', stdout)
@@ -83,7 +92,8 @@ class TestCat(testcase.GsUtilIntegrationTestCase):
       # Attempting to cat invalid version should result in an error.
       stderr = self.RunGsUtil(['cat', uri2.version_specific_uri + '23'],
                               return_stderr=True, expected_status=1)
-      self.assertIn('No URLs matched', stderr)
+      self.assertIn(NO_URLS_MATCHED_TARGET % uri2.version_specific_uri + '23',
+                    stderr)
 
   def test_cat_multi_arg(self):
     """Tests cat command with multiple arguments."""
@@ -111,3 +121,25 @@ class TestCat(testcase.GsUtilIntegrationTestCase):
     stdout = self.RunGsUtil(['cat', suri(obj_uri1), suri(obj_uri2)],
                             return_stdout=True)
     self.assertIn(data1 + data2, stdout)
+
+  @SkipForS3('S3 customer-supplied encryption keys are not supported.')
+  def test_cat_encrypted_object(self):
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip(
+          'gsutil does not support encryption with the XML API')
+    object_contents = '0123456789'
+    object_uri = self.CreateObject(object_name='foo', contents=object_contents,
+                                   encryption_key=TEST_ENCRYPTION_KEY1)
+
+    stderr = self.RunGsUtil(['cat', suri(object_uri)], expected_status=1,
+                            return_stderr=True)
+    self.assertIn('No decryption key matches object', stderr)
+
+    boto_config_for_test = [('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]
+
+    with SetBotoConfigForTest(boto_config_for_test):
+      stdout = self.RunGsUtil(['cat', suri(object_uri)], return_stdout=True)
+      self.assertEqual(stdout, object_contents)
+      stdout = self.RunGsUtil(['cat', '-r 1-3', suri(object_uri)],
+                              return_stdout=True)
+      self.assertEqual(stdout, '123')

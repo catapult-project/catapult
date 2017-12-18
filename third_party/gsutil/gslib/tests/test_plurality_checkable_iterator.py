@@ -132,11 +132,21 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
 
     pcit = PluralityCheckableIterator(IterTest())
     try:
+      pcit.PeekException()
+      self.fail('Expected exception 1 from PeekException')
+    except CustomTestException, e:
+      self.assertIn(e.message, 'Test exception 1')
+    try:
       for _ in pcit:
         pass
       self.fail('Expected exception 1 from iterator')
     except CustomTestException, e:
       self.assertIn(e.message, 'Test exception 1')
+    try:
+      pcit.PeekException()
+      self.fail('Expected exception 2 from PeekException')
+    except CustomTestException, e:
+      self.assertIn(e.message, 'Test exception 2')
     try:
       for _ in pcit:
         pass
@@ -147,7 +157,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       self.fail('Expected StopIteration')
 
   def testPluralityCheckableIteratorWithYieldedException(self):
-    """Tests PluralityCheckableIterator an iterator that yields an exception.
+    """Tests PCI with an iterator that yields an exception.
 
     The yielded exception is in the form of a tuple and must also contain a
     stack trace.
@@ -175,6 +185,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
           raise StopIteration()
 
     pcit = PluralityCheckableIterator(IterTest())
+    iterated_value = None
     try:
       for _ in pcit:
         pass
@@ -184,3 +195,43 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     for value in pcit:
       iterated_value = value
     self.assertEqual(iterated_value, 1)
+
+  def testPluralityCheckableIteratorReadsAheadAsNeeded(self):
+    """Tests that the PCI does not unnecessarily read new elements."""
+
+    class IterTest(object):
+
+      def __init__(self):
+        self.position = 0
+
+      def __iter__(self):
+        return self
+
+      def next(self):
+        if self.position == 3:
+          raise StopIteration()
+        self.position += 1
+
+    # IsEmpty and PeekException should retrieve only 1 element from the
+    # underlying iterator.
+    pcit = PluralityCheckableIterator(IterTest())
+    pcit.IsEmpty()
+    pcit.PeekException()
+    self.assertEquals(pcit.orig_iterator.position, 1)
+    # HasPlurality requires populating 2 elements into the iterator.
+    pcit.HasPlurality()
+    self.assertEquals(pcit.orig_iterator.position, 2)
+    # next should yield already-populated elements without advancing the
+    # iterator.
+    pcit.next()  # Yields element 1
+    self.assertEquals(pcit.orig_iterator.position, 2)
+    pcit.next()  # Yields element 2
+    self.assertEquals(pcit.orig_iterator.position, 2)
+    pcit.next()  # Yields element 3
+    self.assertEquals(pcit.orig_iterator.position, 3)
+    try:
+      pcit.next()  # Underlying iterator is empty
+      self.fail('Expected StopIteration')
+    except StopIteration:
+      pass
+

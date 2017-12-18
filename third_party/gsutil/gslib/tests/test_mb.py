@@ -30,3 +30,10 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['mb', suri(bucket_uri)], expected_status=1,
                             return_stderr=True)
     self.assertIn('already exists', stderr)
+
+  def test_non_ascii_project_fails(self):
+    stderr = self.RunGsUtil(['ls', '-p', 'ã', 'gs://fobarbaz'],
+                            expected_status=1,
+                            return_stderr=True)
+    self.assertIn('Invalid non-ASCII', stderr)
+

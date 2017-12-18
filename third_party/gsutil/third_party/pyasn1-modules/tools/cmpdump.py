@@ -23,6 +23,4 @@ pkiMsg, rest = decoder.decode(substrate, asn1Spec=pkiMessage)
 
 print(pkiMsg.prettyPrint())
 
-assert encoder.encode(pkiMsg, defMode=False) == substrate or \
-       encoder.encode(pkiMsg, defMode=True) == substrate, \
-       'CMP message recode fails'
+assert encoder.encode(pkiMsg) == substrate, 'CMP message recode fails'

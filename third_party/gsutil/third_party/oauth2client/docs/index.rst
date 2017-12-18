@@ -6,20 +6,72 @@ oauth2client
 ``oauth2client`` makes it easy to interact with OAuth2-protected resources,
 especially those related to Google APIs. You can also start with `general
 information about using OAuth2 with Google APIs
-<https://developers.google.com/accounts/docs/OAuth2>`_. 
+<https://developers.google.com/accounts/docs/OAuth2>`_.
 
 Getting started
 ---------------
 
-We recommend installing via ``pip``::
+We recommend installing via ``pip``:
 
-  $ pip install --upgrade oauth2client
+.. code-block:: bash
 
-You can also install from source::
+    $ pip install --upgrade oauth2client
 
-  $ git clone https://github.com/google/oauth2client
-  $ cd oauth2client
-  $ python setup.py install
+You can also install from source:
+
+.. code-block:: bash
+
+    $ git clone https://github.com/google/oauth2client
+    $ cd oauth2client
+    $ python setup.py install
+
+Using ``pypy``
+--------------
+
+-   In order to use crypto libraries (e.g. for service accounts) you will
+    need to install one of ``pycrypto`` or ``pyOpenSSL``.
+-   Using ``pycrypto`` with ``pypy`` will be in general problematic. If
+    ``libgmp`` is installed on your machine, the ``pycrypto`` install will
+    attempt to build ``_fastmath.c``. However, this file uses CPython
+    implementation details and hence can't be built in ``pypy`` (as of
+    ``pypy`` 2.6 and ``pycrypto`` 2.6.1). In order to install
+
+    .. code-block:: bash
+
+        with_gmp=no pip install --upgrade pycrypto
+
+    See discussions on the `pypy issue tracker`_ and the
+    `pycrypto issue tracker`_.
+
+-   Using ``pyOpenSSL`` with versions of ``pypy`` before 2.6 may be in general
+    problematic since ``pyOpenSSL`` depends on the ``cryptography`` library.
+    For versions of ``cryptography`` before 1.0, importing ``pyOpenSSL``
+    with it caused `massive startup costs`_. In order to address this
+    slow startup, ``cryptography`` 1.0 made some `changes`_ in how it used
+    ``cffi`` when means it can't be used on versions of ``pypy`` before 2.6.
+
+    The default version of ``pypy`` you get when installed
+
+    .. code-block:: bash
+
+        apt-get install pypy pypy-dev
+
+    on `Ubuntu 14.04`_ is 2.2.1. In order to upgrade, you'll need to use
+    the `pypy/ppa PPA`_:
+
+    .. code-block:: bash
+
+        apt-get purge pypy pypy-dev
+        add-apt-repository ppa:pypy/ppa
+        apt-get update
+        apt-get install pypy pypy-dev
+
+.. _pypy issue tracker: https://bitbucket.org/pypy/pypy/issues/997
+.. _pycrypto issue tracker: https://github.com/dlitz/pycrypto/pull/59
+.. _massive startup costs: https://github.com/pyca/pyopenssl/issues/137
+.. _changes: https://github.com/pyca/cryptography/issues/2275#issuecomment-130751514
+.. _Ubuntu 14.04: http://packages.ubuntu.com/trusty/pypy
+.. _pypy/ppa PPA: https://launchpad.net/~pypy/+archive/ubuntu/ppa
 
 Downloads
 ^^^^^^^^^
@@ -28,7 +80,7 @@ Downloads
   <https://github.com/google/oauth2client/tarball/master>`_
 * `Most recent release zipfile
   <https://github.com/google/oauth2client/zipball/master>`_
-* `Complete release list <https://github.com/google/oauth2client/releases>`_ 
+* `Complete release list <https://github.com/google/oauth2client/releases>`_
 
 Library Documentation
 ---------------------
@@ -40,16 +92,17 @@ Library Documentation
 Contributing
 ------------
 
-Please see the `contributing page <contributing.html>`_ for more information.
+Please see the `contributing page`_ for more information.
 In particular, we love pull requests -- but please make sure to sign the
 contributor license agreement.
+
+.. _contributing page: https://github.com/google/oauth2client/blob/master/CONTRIBUTING.md
 
 .. toctree::
    :maxdepth: 1
    :hidden:
 
-   source/modules
-   contributing
+   source/oauth2client
 
 Supported Python Versions
 -------------------------

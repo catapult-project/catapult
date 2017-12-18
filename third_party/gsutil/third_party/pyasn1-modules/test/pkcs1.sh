@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pkcs1dump.py <<EOT
+python pkcs1dump.py <<EOT
 -----BEGIN DSA PRIVATE KEY-----
 MIIBugIBAAKBgQCN91+Cma8UPw09gjwP9WOJCdpv3mv3/qFqzgiODGZx0Q002iTl
 1dq36m5TsWYFEcMCEyC3tFuoQ0mGq5zUUOmJvHCIPufs0g8Av0fhY77uFqneHHUi

@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import
 
+import re
 import textwrap
 
 from gslib.cloud_api import BadRequestException
@@ -23,13 +24,16 @@ from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
+from gslib.exception import InvalidUrlError
 from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.util import InsistAscii
 from gslib.util import NO_MAX
+from gslib.util import NormalizeStorageClass
 
 
 _SYNOPSIS = """
-  gsutil mb [-c class] [-l location] [-p proj_id] uri...
+  gsutil mb [-c class] [-l location] [-p proj_id] url...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -39,14 +43,14 @@ _DETAILED_HELP_TEXT = ("""
 
 <B>DESCRIPTION</B>
   The mb command creates a new bucket. Google Cloud Storage has a single
-  namespace, so you will not be allowed to create a bucket with a name already
+  namespace, so you are not allowed to create a bucket with a name already
   in use by another user. You can, however, carve out parts of the bucket name
   space corresponding to your company's domain name (see "gsutil help naming").
 
-  If you don't specify a project ID using the -p option, the bucket
-  will be created using the default project ID specified in your gsutil
-  configuration file (see "gsutil help config"). For more details about
-  projects see "gsutil help projects".
+  If you don't specify a project ID using the -p option, the bucket is created
+  using the default project ID specified in your gsutil configuration file
+  (see "gsutil help config"). For more details about projects see "gsutil help
+  projects".
 
   The -c and -l options specify the storage class and location, respectively,
   for the bucket. Once a bucket is created in a given location and with a
@@ -56,77 +60,55 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>BUCKET STORAGE CLASSES</B>
-  If you don't specify a -c option, the bucket will be created with the default
-  (Standard) storage class.
+  You can specify one of the `storage classes
+  <https://cloud.google.com/storage/docs/storage-classes>`_ for a bucket
+  with the -c option.
 
-  If you specify -c DURABLE_REDUCED_AVAILABILITY (or -c DRA), it causes the data
-  stored in the bucket to use Durable Reduced Availability storage. Buckets
-  created with this storage class have lower availability than Standard storage
-  class buckets, but durability equal to that of buckets created with Standard
-  storage class. This option allows users to reduce costs for data for which
-  lower availability is acceptable. Durable Reduced Availability storage would
-  not be appropriate for "hot" objects (i.e., objects being accessed frequently)
-  or for interactive workloads; however, it might be appropriate for other types
-  of applications. See the online documentation for
-  `pricing <https://cloud.google.com/storage/pricing>`_
-  and `SLA <https://cloud.google.com/storage/sla>`_
-  details.
+  Example:
 
+    gsutil mb -c nearline gs://some-bucket
 
-  If you specify -c NEARLINE (or -c NL), it causes the data
-  stored in the bucket to use Nearline storage. Buckets created with this
-  storage class have higher latency and lower throughput than Standard storage
-  class buckets. The availability and durability remains equal to that of
-  buckets created with the Standard storage class. This option is best for
-  objects which are accessed rarely and for which slower performance is
-  acceptable. See the online documentation for
+  See online documentation for
   `pricing <https://cloud.google.com/storage/pricing>`_ and
   `SLA <https://cloud.google.com/storage/sla>`_ details.
 
+  If you don't specify a -c option, the bucket is created with the
+  default storage class Standard Storage, which is equivalent to Multi-Regional
+  Storage or Regional Storage, depending on whether the bucket was created in
+  a multi-regional location or regional location, respectively.
 
 <B>BUCKET LOCATIONS</B>
-  If you don't specify a -l option, the bucket will be created in the default
-  location (US). Otherwise, you can specify one of the available continental
-  locations:
+  You can specify one of the 'available locations
+  <https://cloud.google.com/storage/docs/bucket-locations>`_ for a bucket
+  with the -l option.
 
-  - ASIA (Asia)
-  - EU (European Union)
-  - US (United States)
+  Examples:
 
-  Example:
-    gsutil mb -l ASIA gs://some-bucket
+    gsutil mb -l asia gs://some-bucket
 
-  If you specify the Durable Reduced Availability storage class (-c DRA), you
-  can specify one of the continental locations above or one of the regional
-  locations below: [1]_
+    gsutil mb -c regional -l us-east1 gs://some-bucket
 
-  - ASIA-EAST1 (Eastern Asia-Pacific)
-  - US-EAST1 (Eastern United States)
-  - US-EAST2 (Eastern United States)
-  - US-EAST3 (Eastern United States)
-  - US-CENTRAL1 (Central United States)
-  - US-CENTRAL2 (Central United States)
-  - US-WEST1 (Western United States)
-
-  Example:
-    gsutil mb -c DRA -l US-CENTRAL1 gs://some-bucket
-
-  .. [1] These locations are for `Regional Buckets <https://developers.google.com/storage/docs/regional-buckets>`_.
-     Regional Buckets is an experimental feature and data stored in these
-     locations is not subject to the usual SLA. See the documentation for
-     additional information.
-
+  If you don't specify a -l option, the bucket is created in the default
+  location (US).
 
 <B>OPTIONS</B>
-  -c class          Can be DRA (or DURABLE_REDUCED_AVAILABILITY), NL (or
-                    NEARLINE), or S (or STANDARD). Default is STANDARD.
+  -c class          Specifies the default storage class. Default is "Standard".
 
-  -l location       Can be any continental location as described above, or
-                    for DRA storage class, any regional or continental
-                    location. Default is US. Locations are case insensitive.
+  -l location       Can be any multi-regional or regional location. See
+                    https://cloud.google.com/storage/docs/storage-classes
+                    for a discussion of this distinction. Default is US.
+                    Locations are case insensitive.
 
   -p proj_id        Specifies the project ID under which to create the bucket.
+
+  -s class          Same as -c.
 """)
+
+
+# Regex to disallow buckets violating charset or not [3..255] chars total.
+BUCKET_NAME_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9\._-]{1,253}[a-zA-Z0-9]$')
+# Regex to disallow buckets with individual DNS labels longer than 63.
+TOO_LONG_DNS_NAME_COMP = re.compile(r'[-_a-z0-9]{64}')
 
 
 class MbCommand(Command):
@@ -139,7 +121,7 @@ class MbCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=1,
       max_args=NO_MAX,
-      supported_sub_args='c:l:p:',
+      supported_sub_args='c:l:p:s:',
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -171,30 +153,36 @@ class MbCommand(Command):
         if o == '-l':
           location = a
         elif o == '-p':
+          # Project IDs are sent as header values when using gs and s3 XML APIs.
+          InsistAscii(a, 'Invalid non-ASCII character found in project ID')
           self.project_id = a
-        elif o == '-c':
-          storage_class = self._Normalize_Storage_Class(a)
+        elif o == '-c' or o == '-s':
+          storage_class = NormalizeStorageClass(a)
 
     bucket_metadata = apitools_messages.Bucket(location=location,
                                                storageClass=storage_class)
 
-    for bucket_uri_str in self.args:
-      bucket_uri = StorageUrlFromString(bucket_uri_str)
-      if not bucket_uri.IsBucket():
-        raise CommandException('The mb command requires a URI that specifies a '
-                               'bucket.\n"%s" is not valid.' % bucket_uri)
+    for bucket_url_str in self.args:
+      bucket_url = StorageUrlFromString(bucket_url_str)
+      if not bucket_url.IsBucket():
+        raise CommandException('The mb command requires a URL that specifies a '
+                               'bucket.\n"%s" is not valid.' % bucket_url)
+      if (not BUCKET_NAME_RE.match(bucket_url.bucket_name) or
+          TOO_LONG_DNS_NAME_COMP.search(bucket_url.bucket_name)):
+        raise InvalidUrlError(
+            'Invalid bucket name in URL "%s"' % bucket_url.bucket_name)
 
-      self.logger.info('Creating %s...', bucket_uri)
+      self.logger.info('Creating %s...', bucket_url)
       # Pass storage_class param only if this is a GCS bucket. (In S3 the
       # storage class is specified on the key object.)
       try:
         self.gsutil_api.CreateBucket(
-            bucket_uri.bucket_name, project_id=self.project_id,
-            metadata=bucket_metadata, provider=bucket_uri.scheme)
+            bucket_url.bucket_name, project_id=self.project_id,
+            metadata=bucket_metadata, provider=bucket_url.scheme)
       except BadRequestException as e:
         if (e.status == 400 and e.reason == 'DotfulBucketNameNotUnderTld' and
-            bucket_uri.scheme == 'gs'):
-          bucket_name = bucket_uri.bucket_name
+            bucket_url.scheme == 'gs'):
+          bucket_name = bucket_url.bucket_name
           final_comp = bucket_name[bucket_name.rfind('.')+1:]
           raise CommandException('\n'.join(textwrap.wrap(
               'Buckets with "." in the name must be valid DNS names. The bucket'
@@ -205,13 +193,3 @@ class MbCommand(Command):
           raise
 
     return 0
-
-  def _Normalize_Storage_Class(self, sc):
-    sc = sc.upper()
-    if sc in ('DRA', 'DURABLE_REDUCED_AVAILABILITY'):
-      return 'DURABLE_REDUCED_AVAILABILITY'
-    if sc in ('S', 'STD', 'STANDARD'):
-      return 'STANDARD'
-    if sc in ('NL', 'NEARLINE'):
-      return 'NEARLINE'
-    return sc

@@ -27,6 +27,10 @@ The exceptions in this module are for use across multiple different classes.
 from __future__ import absolute_import
 
 
+NO_URLS_MATCHED_GENERIC = 'No URLs matched'
+NO_URLS_MATCHED_TARGET = 'No URLs matched: %s'
+
+
 class AbortException(StandardError):
   """Exception raised when a user aborts a command that needs to do cleanup."""
 
@@ -70,6 +74,15 @@ class CommandException(StandardError):
 
 class HashMismatchException(Exception):
   """Exception raised when data integrity validation fails."""
+  pass
+
+
+class ControlCException(Exception):
+  """Exception to report to analytics when the user exits via ctrl-C.
+
+  This exception is never actually raised, but is used by analytics collection
+  to provide a more descriptive name for user exit.
+  """
   pass
 
 

@@ -1,14 +1,29 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Message registry for apitools."""
 
 import collections
 import contextlib
 import json
 
-from protorpc import descriptor
-from protorpc import messages
 import six
 
+from apitools.base.protorpclite import descriptor
+from apitools.base.protorpclite import messages
 from apitools.gen import extended_descriptor
 from apitools.gen import util
 
@@ -57,23 +72,25 @@ class MessageRegistry(object):
         'date': TypeInfo(type_name='extra_types.DateField',
                          variant=messages.Variant.STRING),
         'date-time': TypeInfo(
-            type_name='protorpc.message_types.DateTimeMessage',
+            type_name=('apitools.base.protorpclite.message_types.'
+                       'DateTimeMessage'),
             variant=messages.Variant.MESSAGE),
     }
 
-    def __init__(self, client_info, names, description,
-                 root_package_dir, base_files_package):
+    def __init__(self, client_info, names, description, root_package_dir,
+                 base_files_package, protorpc_package):
         self.__names = names
         self.__client_info = client_info
         self.__package = client_info.package
         self.__description = util.CleanDescription(description)
         self.__root_package_dir = root_package_dir
         self.__base_files_package = base_files_package
+        self.__protorpc_package = protorpc_package
         self.__file_descriptor = extended_descriptor.ExtendedFileDescriptor(
             package=self.__package, description=self.__description)
         # Add required imports
         self.__file_descriptor.additional_imports = [
-            'from protorpc import messages as _messages',
+            'from %s import messages as _messages' % self.__protorpc_package,
         ]
         # Map from scoped names (i.e. Foo.Bar) to MessageDescriptors.
         self.__message_registry = collections.OrderedDict()
@@ -392,10 +409,12 @@ class MessageRegistry(object):
                     return self.PRIMITIVE_TYPE_INFO_MAP[type_name]
                 raise ValueError('Unknown type/format "%s"/"%s"' % (
                     attrs['format'], type_name))
-            if (type_info.type_name.startswith('protorpc.message_types.') or
-                    type_info.type_name.startswith('message_types.')):
+            if type_info.type_name.startswith((
+                    'apitools.base.protorpclite.message_types.',
+                    'message_types.')):
                 self.__AddImport(
-                    'from protorpc import message_types as _message_types')
+                    'from %s import message_types as _message_types' %
+                    self.__protorpc_package)
             if type_info.type_name.startswith('extra_types.'):
                 self.__AddImport(
                     'from %s import extra_types' % self.__base_files_package)
@@ -403,6 +422,9 @@ class MessageRegistry(object):
 
         if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
             type_info = self.PRIMITIVE_TYPE_INFO_MAP[type_name]
+            if type_info.type_name.startswith('extra_types.'):
+                self.__AddImport(
+                    'from %s import extra_types' % self.__base_files_package)
             return type_info
 
         if type_name == 'array':
@@ -419,8 +441,7 @@ class MessageRegistry(object):
                     entry_name_hint, items.get('items'), parent_name)
                 return TypeInfo(type_name=entry_type_name,
                                 variant=messages.Variant.MESSAGE)
-            else:
-                return self.__GetTypeInfo(items, entry_name_hint)
+            return self.__GetTypeInfo(items, entry_name_hint)
         elif type_name == 'any':
             self.__AddImport('from %s import extra_types' %
                              self.__base_files_package)

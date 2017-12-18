@@ -1,28 +1,29 @@
 [![Build Status](https://travis-ci.org/google/oauth2client.svg?branch=master)](https://travis-ci.org/google/oauth2client)
-
-[![Coverage Status](https://img.shields.io/coveralls/google/oauth2client.svg)](https://coveralls.io/r/google/oauth2client?branch=master)
+[![Coverage Status](https://coveralls.io/repos/google/oauth2client/badge.svg?branch=master&service=github)](https://coveralls.io/github/google/oauth2client?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/oauth2client/badge/?version=latest)](https://oauth2client.readthedocs.io/)
 
 This is a client library for accessing resources protected by OAuth 2.0.
-
-[Full documentation](http://google.github.io/oauth2client/)
 
 Installation
 ============
 
-To install, simply say
+To install, simply run the following command in your terminal:
 
-    $ pip install --upgrade oauth2client
+```bash
+$ pip install --upgrade oauth2client
+```
 
 Contributing
 ============
 
-Please see the
-[contributing page](http://google.github.io/oauth2client/contributing.html)
-for more information. In particular, we love pull requests -- but please make
-sure to sign the contributor license agreement.
+Please see the [CONTRIBUTING page][1] for more information. In particular, we
+love pull requests -- but please make sure to sign the contributor license
+agreement.
 
 Supported Python Versions
 =========================
 
-We support Python 2.6, 2.7, 3.3+. More information
-[in the docs](http://google.github.io/oauth2client/#supported-python-versions).
+We support Python 2.6, 2.7, 3.3+. More information [in the docs][2].
+
+[1]: https://github.com/google/oauth2client/blob/master/CONTRIBUTING.md
+[2]: https://oauth2client.readthedocs.io/#supported-python-versions

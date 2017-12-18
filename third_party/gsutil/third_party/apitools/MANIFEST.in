@@ -2,3 +2,4 @@ include *.py
 include *.txt
 include *.md
 recursive-include apitools *.py
+recursive-include apitools *.json

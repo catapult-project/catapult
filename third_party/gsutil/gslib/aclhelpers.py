@@ -149,7 +149,7 @@ class AclChange(object):
       _ThrowError('{0} requires domain'.format(self.scope_type))
 
     if self.perm not in self.permission_shorthand_mapping.values():
-      perms = ', '.join(self.permission_shorthand_mapping.values())
+      perms = ', '.join(set(self.permission_shorthand_mapping.values()))
       _ThrowError('Allowed permissions are {0}'.format(perms))
 
   def _YieldMatchingEntries(self, current_acl):
@@ -174,7 +174,9 @@ class AclChange(object):
             entry.domain and self.identifier == entry.domain):
         yield entry
       elif (self.scope_type == 'Project' and
-            entry.domain and self.identifier == entry.project):
+            entry.projectTeam and
+            self.identifier == '%s-%s' % (entry.projectTeam.team,
+                                          entry.projectTeam.projectNumber)):
         yield entry
       elif (self.scope_type == 'AllUsers' and
             entry.entity.lower() == self.public_entity_all_users.lower()):
@@ -291,17 +293,16 @@ class AclDel(object):
       An apitools_messages.BucketAccessControl or ObjectAccessControl.
     """
     for entry in current_acl:
-      if entry.entityId and self.identifier == entry.entityId:
+      if entry.entityId and self.identifier.lower() == entry.entityId.lower():
         yield entry
-      elif entry.email and self.identifier == entry.email:
+      elif entry.email and self.identifier.lower() == entry.email.lower():
         yield entry
-      elif entry.domain and self.identifier == entry.domain:
+      elif entry.domain and self.identifier.lower() == entry.domain.lower():
         yield entry
-      elif entry.projectTeam:
-        project_team = entry.projectTeam
-        acl_label = project_team.team + '-' + project_team.projectNumber
-        if acl_label == self.identifier:
-          yield entry
+      elif (entry.projectTeam and
+            self.identifier.lower() == '%s-%s'.lower() % (
+                entry.projectTeam.team, entry.projectTeam.projectNumber)):
+        yield entry
       elif entry.entity.lower() == 'allusers' and self.identifier == 'AllUsers':
         yield entry
       elif (entry.entity.lower() == 'allauthenticatedusers' and

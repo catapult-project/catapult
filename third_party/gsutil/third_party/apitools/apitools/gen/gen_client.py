@@ -1,6 +1,22 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Command-line interface to gen_client."""
 
+import argparse
 import contextlib
 import json
 import logging
@@ -8,89 +24,9 @@ import os
 import pkgutil
 import sys
 
-from google.apputils import appcommands
-import gflags as flags
-
 from apitools.base.py import exceptions
 from apitools.gen import gen_client_lib
 from apitools.gen import util
-
-flags.DEFINE_string(
-    'infile', '',
-    'Filename for the discovery document. Mutually exclusive with '
-    '--discovery_url.')
-flags.DEFINE_string(
-    'discovery_url', '',
-    'URL (or "name.version") of the discovery document to use. '
-    'Mutually exclusive with --infile.')
-
-flags.DEFINE_string(
-    'base_package',
-    'apitools.base.py',
-    'Base package path of apitools (defaults to '
-    'apitools.base.py)'
-)
-flags.DEFINE_string(
-    'outdir', '',
-    'Directory name for output files. (Defaults to the API name.)')
-flags.DEFINE_boolean(
-    'overwrite', False,
-    'Only overwrite the output directory if this flag is specified.')
-flags.DEFINE_string(
-    'root_package', '',
-    'Python import path for where these modules should be imported from.')
-
-
-flags.DEFINE_multistring(
-    'strip_prefix', [],
-    'Prefix to strip from type names in the discovery document. (May '
-    'be specified multiple times.)')
-flags.DEFINE_string(
-    'api_key', None,
-    'API key to use for API access.')
-flags.DEFINE_string(
-    'client_json', None,
-    'Use the given file downloaded from the dev. console for client_id '
-    'and client_secret.')
-flags.DEFINE_string(
-    'client_id', '1042881264118.apps.googleusercontent.com',
-    'Client ID to use for the generated client.')
-flags.DEFINE_string(
-    'client_secret', 'x_Tw5K8nnjoRAqULM9PFAC2b',
-    'Client secret for the generated client.')
-flags.DEFINE_multistring(
-    'scope', [],
-    'Scopes to request in the generated client. May be specified more than '
-    'once.')
-flags.DEFINE_string(
-    'user_agent', '',
-    'User agent for the generated client. Defaults to <api>-generated/0.1.')
-flags.DEFINE_boolean(
-    'generate_cli', True, 'If True, a CLI is also generated.')
-flags.DEFINE_list(
-    'unelidable_request_methods', [],
-    'Full method IDs of methods for which we should NOT try to elide '
-    'the request type. (Should be a comma-separated list.)')
-
-flags.DEFINE_boolean(
-    'experimental_capitalize_enums', False,
-    'Dangerous: attempt to rewrite enum values to be uppercase.')
-flags.DEFINE_enum(
-    'experimental_name_convention', util.Names.DEFAULT_NAME_CONVENTION,
-    util.Names.NAME_CONVENTIONS,
-    'Dangerous: use a particular style for generated names.')
-flags.DEFINE_boolean(
-    'experimental_proto2_output', False,
-    'Dangerous: also output a proto2 message file.')
-
-FLAGS = flags.FLAGS
-
-flags.RegisterValidator(
-    'infile', lambda i: not (i and FLAGS.discovery_url),
-    'Cannot specify both --infile and --discovery_url')
-flags.RegisterValidator(
-    'discovery_url', lambda i: not (i and FLAGS.infile),
-    'Cannot specify both --infile and --discovery_url')
 
 
 def _CopyLocalFile(filename):
@@ -103,47 +39,41 @@ def _CopyLocalFile(filename):
         out.write(src_data)
 
 
-_DISCOVERY_DOC = None
-
-
-def _GetDiscoveryDocFromFlags():
+def _GetDiscoveryDocFromFlags(args):
     """Get the discovery doc from flags."""
-    global _DISCOVERY_DOC  # pylint: disable=global-statement
-    if _DISCOVERY_DOC is None:
-        if FLAGS.discovery_url:
-            try:
-                discovery_doc = util.FetchDiscoveryDoc(FLAGS.discovery_url)
-            except exceptions.CommunicationError:
-                raise exceptions.GeneratedClientError(
-                    'Could not fetch discovery doc')
-        else:
-            infile = os.path.expanduser(FLAGS.infile) or '/dev/stdin'
-            discovery_doc = json.load(open(infile))
-        _DISCOVERY_DOC = discovery_doc
-    return _DISCOVERY_DOC
-
-
-def _GetCodegenFromFlags():
-    """Create a codegen object from flags."""
-    discovery_doc = _GetDiscoveryDocFromFlags()
-    names = util.Names(
-        FLAGS.strip_prefix,
-        FLAGS.experimental_name_convention,
-        FLAGS.experimental_capitalize_enums)
-
-    if FLAGS.client_json:
+    if args.discovery_url:
         try:
-            with open(FLAGS.client_json) as client_json:
+            return util.FetchDiscoveryDoc(args.discovery_url)
+        except exceptions.CommunicationError:
+            raise exceptions.GeneratedClientError(
+                'Could not fetch discovery doc')
+
+    infile = os.path.expanduser(args.infile) or '/dev/stdin'
+    with open(infile) as f:
+        return json.load(f)
+
+
+def _GetCodegenFromFlags(args):
+    """Create a codegen object from flags."""
+    discovery_doc = _GetDiscoveryDocFromFlags(args)
+    names = util.Names(
+        args.strip_prefix,
+        args.experimental_name_convention,
+        args.experimental_capitalize_enums)
+
+    if args.client_json:
+        try:
+            with open(args.client_json) as client_json:
                 f = json.loads(client_json.read())
                 web = f.get('installed', f.get('web', {}))
                 client_id = web.get('client_id')
                 client_secret = web.get('client_secret')
         except IOError:
             raise exceptions.NotFoundError(
-                'Failed to open client json file: %s' % FLAGS.client_json)
+                'Failed to open client json file: %s' % args.client_json)
     else:
-        client_id = FLAGS.client_id
-        client_secret = FLAGS.client_secret
+        client_id = args.client_id
+        client_secret = args.client_secret
 
     if not client_id:
         logging.warning('No client ID supplied')
@@ -154,23 +84,25 @@ def _GetCodegenFromFlags():
         client_secret = ''
 
     client_info = util.ClientInfo.Create(
-        discovery_doc, FLAGS.scope, client_id, client_secret,
-        FLAGS.user_agent, names, FLAGS.api_key)
-    outdir = os.path.expanduser(FLAGS.outdir) or client_info.default_directory
-    if os.path.exists(outdir) and not FLAGS.overwrite:
+        discovery_doc, args.scope, client_id, client_secret,
+        args.user_agent, names, args.api_key)
+    outdir = os.path.expanduser(args.outdir) or client_info.default_directory
+    if os.path.exists(outdir) and not args.overwrite:
         raise exceptions.ConfigurationValueError(
             'Output directory exists, pass --overwrite to replace '
             'the existing files.')
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    root_package = FLAGS.root_package or util.GetPackage(outdir)
     return gen_client_lib.DescriptorGenerator(
-        discovery_doc, client_info, names, root_package, outdir,
-        base_package=FLAGS.base_package,
-        generate_cli=FLAGS.generate_cli,
-        use_proto2=FLAGS.experimental_proto2_output,
-        unelidable_request_methods=FLAGS.unelidable_request_methods)
+        discovery_doc, client_info, names, args.root_package, outdir,
+        base_package=args.base_package,
+        protorpc_package=args.protorpc_package,
+        generate_cli=args.generate_cli,
+        init_wildcards_file=(args.init_file == 'wildcards'),
+        use_proto2=args.experimental_proto2_output,
+        unelidable_request_methods=args.unelidable_request_methods,
+        apitools_version=args.apitools_version)
 
 
 # TODO(craigcitro): Delete this if we don't need this functionality.
@@ -196,7 +128,7 @@ def _WriteProtoFiles(codegen):
             codegen.WriteServicesProtoFile(out)
 
 
-def _WriteGeneratedFiles(codegen):
+def _WriteGeneratedFiles(args, codegen):
     if codegen.use_proto2:
         _WriteProtoFiles(codegen)
     with util.Chdir(codegen.outdir):
@@ -204,7 +136,7 @@ def _WriteGeneratedFiles(codegen):
             codegen.WriteMessagesFile(out)
         with open(codegen.client_info.client_file_name, 'w') as out:
             codegen.WriteClientLibrary(out)
-        if FLAGS.generate_cli:
+        if args.generate_cli:
             with open(codegen.client_info.cli_file_name, 'w') as out:
                 codegen.WriteCli(out)
             os.chmod(codegen.client_info.cli_file_name, 0o755)
@@ -221,86 +153,198 @@ def _WriteSetupPy(codegen):
         codegen.WriteSetupPy(out)
 
 
-class GenerateClient(appcommands.Cmd):
+def GenerateClient(args):
 
     """Driver for client code generation."""
 
-    def Run(self, _):
-        """Create a client library."""
-        codegen = _GetCodegenFromFlags()
-        if codegen is None:
-            logging.error('Failed to create codegen, exiting.')
-            return 128
-        _WriteGeneratedFiles(codegen)
+    codegen = _GetCodegenFromFlags(args)
+    if codegen is None:
+        logging.error('Failed to create codegen, exiting.')
+        return 128
+    _WriteGeneratedFiles(args, codegen)
+    if args.init_file != 'none':
         _WriteInit(codegen)
 
 
-class GeneratePipPackage(appcommands.Cmd):
+def GeneratePipPackage(args):
 
     """Generate a client as a pip-installable tarball."""
 
-    def Run(self, _):
-        """Create a client in a pip package."""
-        discovery_doc = _GetDiscoveryDocFromFlags()
-        package = discovery_doc['name']
-        original_outdir = os.path.expanduser(FLAGS.outdir)
-        FLAGS.outdir = os.path.join(
-            FLAGS.outdir, 'apitools/clients/%s' % package)
-        FLAGS.root_package = 'apitools.clients.%s' % package
-        FLAGS.generate_cli = False
-        codegen = _GetCodegenFromFlags()
-        if codegen is None:
-            logging.error('Failed to create codegen, exiting.')
-            return 1
-        _WriteGeneratedFiles(codegen)
-        _WriteInit(codegen)
-        with util.Chdir(original_outdir):
-            _WriteSetupPy(codegen)
-            with util.Chdir('apitools'):
+    discovery_doc = _GetDiscoveryDocFromFlags(args)
+    package = discovery_doc['name']
+    original_outdir = os.path.expanduser(args.outdir)
+    args.outdir = os.path.join(
+        args.outdir, 'apitools/clients/%s' % package)
+    args.root_package = 'apitools.clients.%s' % package
+    args.generate_cli = False
+    codegen = _GetCodegenFromFlags(args)
+    if codegen is None:
+        logging.error('Failed to create codegen, exiting.')
+        return 1
+    _WriteGeneratedFiles(args, codegen)
+    _WriteInit(codegen)
+    with util.Chdir(original_outdir):
+        _WriteSetupPy(codegen)
+        with util.Chdir('apitools'):
+            _WriteIntermediateInit(codegen)
+            with util.Chdir('clients'):
                 _WriteIntermediateInit(codegen)
-                with util.Chdir('clients'):
-                    _WriteIntermediateInit(codegen)
 
 
-class GenerateProto(appcommands.Cmd):
-
+def GenerateProto(args):
     """Generate just the two proto files for a given API."""
 
-    def Run(self, _):
-        """Create proto definitions for an API."""
-        codegen = _GetCodegenFromFlags()
-        _WriteProtoFiles(codegen)
+    codegen = _GetCodegenFromFlags(args)
+    _WriteProtoFiles(codegen)
 
 
-# pylint:disable=invalid-name
+class _SplitCommaSeparatedList(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values.split(','))
 
 
-def run_main():
-    """Function to be used as setuptools script entry point."""
-    # Put the flags for this module somewhere the flags module will look
-    # for them.
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+    parser = argparse.ArgumentParser(
+        description='Apitools Client Code Generator')
 
-    # pylint:disable=protected-access
-    new_name = flags._GetMainModule()
-    sys.modules[new_name] = sys.modules['__main__']
-    for flag in FLAGS.FlagsByModuleDict().get(__name__, []):
-        FLAGS._RegisterFlagByModule(new_name, flag)
-        for key_flag in FLAGS.KeyFlagsByModuleDict().get(__name__, []):
-            FLAGS._RegisterKeyFlagForModule(new_name, key_flag)
-    # pylint:enable=protected-access
+    discovery_group = parser.add_mutually_exclusive_group()
+    discovery_group.add_argument(
+        '--infile',
+        help=('Filename for the discovery document. Mutually exclusive with '
+              '--discovery_url'))
 
-    # Now set __main__ appropriately so that appcommands will be
-    # happy.
-    sys.modules['__main__'] = sys.modules[__name__]
-    appcommands.Run()
-    sys.modules['__main__'] = sys.modules.pop(new_name)
+    discovery_group.add_argument(
+        '--discovery_url',
+        help=('URL (or "name.version") of the discovery document to use. '
+              'Mutually exclusive with --infile.'))
 
+    parser.add_argument(
+        '--base_package',
+        default='apitools.base.py',
+        help='Base package path of apitools (defaults to apitools.base.py')
 
-def main(_):
-    appcommands.AddCmd('client', GenerateClient)
-    appcommands.AddCmd('pip_package', GeneratePipPackage)
-    appcommands.AddCmd('proto', GenerateProto)
+    parser.add_argument(
+        '--protorpc_package',
+        default='apitools.base.protorpclite',
+        help=('Base package path of protorpc '
+              '(defaults to apitools.base.protorpclite'))
 
+    parser.add_argument(
+        '--outdir',
+        default='',
+        help='Directory name for output files. (Defaults to the API name.)')
+
+    parser.add_argument(
+        '--overwrite',
+        default=False, action='store_true',
+        help='Only overwrite the output directory if this flag is specified.')
+
+    parser.add_argument(
+        '--root_package',
+        default='',
+        help=('Python import path for where these modules '
+              'should be imported from.'))
+
+    parser.add_argument(
+        '--strip_prefix', nargs='*',
+        default=[],
+        help=('Prefix to strip from type names in the discovery document. '
+              '(May be specified multiple times.)'))
+
+    parser.add_argument(
+        '--api_key',
+        help=('API key to use for API access.'))
+
+    parser.add_argument(
+        '--client_json',
+        help=('Use the given file downloaded from the dev. console for '
+              'client_id and client_secret.'))
+
+    parser.add_argument(
+        '--client_id',
+        default='1042881264118.apps.googleusercontent.com',
+        help='Client ID to use for the generated client.')
+
+    parser.add_argument(
+        '--client_secret',
+        default='x_Tw5K8nnjoRAqULM9PFAC2b',
+        help='Client secret for the generated client.')
+
+    parser.add_argument(
+        '--scope', nargs='*',
+        default=[],
+        help=('Scopes to request in the generated client. '
+              'May be specified more than once.'))
+
+    parser.add_argument(
+        '--user_agent',
+        default='x_Tw5K8nnjoRAqULM9PFAC2b',
+        help=('User agent for the generated client. '
+              'Defaults to <api>-generated/0.1.'))
+
+    parser.add_argument(
+        '--generate_cli', dest='generate_cli', action='store_true',
+        help='If specified (default), a CLI is also generated.')
+    parser.add_argument(
+        '--nogenerate_cli', dest='generate_cli', action='store_false',
+        help='CLI will not be generated.')
+    parser.set_defaults(generate_cli=True)
+
+    parser.add_argument(
+        '--init-file',
+        choices=['none', 'empty', 'wildcards'],
+        type=lambda s: s.lower(),
+        default='wildcards',
+        help='Controls whether and how to generate package __init__.py file.')
+
+    parser.add_argument(
+        '--unelidable_request_methods',
+        action=_SplitCommaSeparatedList,
+        default=[],
+        help=('Full method IDs of methods for which we should NOT try to '
+              'elide the request type. (Should be a comma-separated list.'))
+
+    parser.add_argument(
+        '--apitools_version',
+        default='', dest='apitools_version',
+        help=('Apitools version used as a requirement in generated clients. '
+              'Defaults to version of apitools used to generate the clients.'))
+
+    parser.add_argument(
+        '--experimental_capitalize_enums',
+        default=False, action='store_true',
+        help='Dangerous: attempt to rewrite enum values to be uppercase.')
+
+    parser.add_argument(
+        '--experimental_name_convention',
+        choices=util.Names.NAME_CONVENTIONS,
+        default=util.Names.DEFAULT_NAME_CONVENTION,
+        help='Dangerous: use a particular style for generated names.')
+
+    parser.add_argument(
+        '--experimental_proto2_output',
+        default=False, action='store_true',
+        help='Dangerous: also output a proto2 message file.')
+
+    subparsers = parser.add_subparsers(help='Type of generated code')
+
+    client_parser = subparsers.add_parser(
+        'client', help='Generate apitools client in destination folder')
+    client_parser.set_defaults(func=GenerateClient)
+
+    pip_package_parser = subparsers.add_parser(
+        'pip_package', help='Generate apitools client pip package')
+    pip_package_parser.set_defaults(func=GeneratePipPackage)
+
+    proto_parser = subparsers.add_parser(
+        'proto', help='Generate apitools client protos')
+    proto_parser.set_defaults(func=GenerateProto)
+
+    args = parser.parse_args(argv[1:])
+    return args.func(args) or 0
 
 if __name__ == '__main__':
-    appcommands.Run()
+    sys.exit(main())

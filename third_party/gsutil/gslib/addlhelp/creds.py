@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 from gslib.help_provider import HelpProvider
 
+
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
   gsutil currently supports several types of credentials/authentication, as
@@ -41,8 +42,8 @@ _DETAILED_HELP_TEXT = ("""
   be used regardless of whether the user has any boto configuration files (which
   are located at ~/.boto unless a different path is specified in the BOTO_CONFIG
   environment variable). However, gsutil will still look for credentials in the
-  boto config file if a type of credential is needed that's not stored in the
-  gcloud credential store (e.g., an HMAC credential for an S3 account).
+  boto config file if a type of non-GCS credential is needed that's not stored
+  in the gcloud credential store (e.g., an HMAC credential for an S3 account).
 
 
 <B>Configuring/Using Credentials via Standalone gsutil Distribution</B>
@@ -60,11 +61,12 @@ _DETAILED_HELP_TEXT = ("""
   (e.g., by running BOTO_CONFIG=~/.boto_user_account gsutil ls).
 
   Note that when using the standalone version of gsutil with the JSON API you
-  can configure at most one of the following types of GCS credentials in a
-  single boto config file: OAuth2 User Account, OAuth2 Service Account. In
-  addition to these, you may also have S3 HMAC credentials (necessary for using
-  s3:// URLs) and GCE Internal Service Account credentials. GCE Internal Service
-  Account credentials are used only when OAuth2 credentials are not present.
+  can configure at most one of the following types of Google Cloud Storage
+  credentials in a single boto config file: OAuth2 User Account, OAuth2 Service
+  Account. In addition to these, you may also have S3 HMAC credentials
+  (necessary for using s3:// URLs) and Google Compute Engine Internal Service
+  Account credentials. Google Compute Engine Internal Service Account
+  credentials are used only when OAuth2 credentials are not present.
 
 
 <B>SUPPORTED CREDENTIAL TYPES</B>
@@ -75,7 +77,7 @@ _DETAILED_HELP_TEXT = ("""
     This is the preferred type of credentials for authenticating requests on
     behalf of a specific user (which is probably the most common use of gsutil).
     This is the default type of credential that will be created when you run
-    "gsutil config".
+    "gsutil config" (or "gcloud init" for Cloud SDK installs).
     For more details about OAuth2 authentication, see:
     https://developers.google.com/accounts/docs/OAuth2#scenarios
 
@@ -90,9 +92,9 @@ _DETAILED_HELP_TEXT = ("""
     Note that it's possible to set up HMAC credentials for both Google Cloud
     Storage and another service provider; or to set up OAuth2 user account
     credentials for Google Cloud Storage and HMAC credentials for another
-    service provider. To do so, after you run the gsutil config command, you
-    can edit the generated ~/.boto config file and look for comments for where
-    other credentials can be added.
+    service provider. To do so, after you run the "gsutil config" command (or
+    "gcloud init" for Cloud SDK installs), you can edit the generated ~/.boto
+    config file and look for comments for where other credentials can be added.
 
     For more details about HMAC authentication, see:
       https://developers.google.com/storage/docs/reference/v1/getting-startedv1#keys
@@ -103,44 +105,36 @@ _DETAILED_HELP_TEXT = ("""
     you will run gsutil out of a nightly cron job to upload/download data,
     using a service account allows the cron job not to depend on credentials of
     an individual employee at your company. This is the type of credential that
-    will be configured when you run "gsutil config -e".
+    will be configured when you run "gsutil config -e". To configure service
+    account credentials when installed via the Cloud SDK, run "gcloud auth
+    activate-service-account".
 
     It is important to note that a service account is considered an Editor by
     default for the purposes of API access, rather than an Owner. In particular,
     the fact that Editors have OWNER access in the default object and
     bucket ACLs, but the canned ACL options remove OWNER access from
     Editors, can lead to unexpected results. The solution to this problem is to
-    add the email address for your service account as a project editor. To find
-    the email address, visit the
-    `Google Developers Console <https://cloud.google.com/console#/project>`_,
-    click on the project you're using, click "APIs & auth", and click
-    "Credentials".
+    use "gsutil acl ch" instead of "gsutil acl set <canned-ACL>" to change
+    permissions on a bucket.
 
-    To create a service account, visit the Google Developers Console and then:
-
-       - Click "APIs & auth" in the left sidebar.
-
-       - Click "Credentials".
-
-       - Click "Create New Client ID".
-
-       - Select "Service Account" as your application type.
-
-       - Save the JSON private key or the .p12 private key and password
-         provided.
-
-    For further information about account roles, see:
-      https://developers.google.com/console/help/#DifferentRoles
+    To set up a service account for use with "gsutil config -e" or "gcloud auth
+    activate-service-account", see:
+     https://cloud.google.com/storage/docs/authentication#generating-a-private-key 
 
     For more details about OAuth2 service accounts, see:
       https://developers.google.com/accounts/docs/OAuth2ServiceAccount
 
-  GCE Internal Service Account:
-    This is the type of service account used for accounts hosted by App Engine
-    or GCE. Such credentials are created automatically for you on GCE when you
-    run the gcutil addinstance command with the --service_account flag.
+    For further information about account roles, see:
+      https://developers.google.com/console/help/#DifferentRoles
 
-    For more details about GCE service accounts, see:
+  Google Compute Engine Internal Service Account:
+    This is the type of service account used for accounts hosted by App Engine
+    or Google Compute Engine. Such credentials are created automatically for
+    you on Google Compute Engine when you run the gcloud compute instances
+    creates command and the credentials can be controlled with the --scopes
+    flag.
+
+    For more details about Google Compute Engine service accounts, see:
       https://developers.google.com/compute/docs/authentication;
 
     For more details about App Engine service accounts, see:

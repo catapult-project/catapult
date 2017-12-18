@@ -52,7 +52,7 @@ def howto_install_setuptools():
 try:
     from setuptools import setup
     params = {
-        'install_requires': [ 'pyasn1>=0.1.4' ],
+        'install_requires': [ 'pyasn1>=0.1.8' ],
         'zip_safe': True
         }    
 except ImportError:
@@ -67,7 +67,7 @@ except ImportError:
     from distutils.core import setup
     params = {}
     if sys.version_info[:2] > (2, 4):
-        params['requires'] = [ 'pyasn1(>=0.1.4)' ]
+        params['requires'] = [ 'pyasn1(>=0.1.8)' ]
 
 doclines = [ x.strip() for x in __doc__.split('\n') if x ]
 

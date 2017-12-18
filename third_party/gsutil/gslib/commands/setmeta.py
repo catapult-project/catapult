@@ -16,6 +16,9 @@
 
 from __future__ import absolute_import
 
+import time
+
+from apitools.base.py import encoding
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import PreconditionException
 from gslib.cloud_api import Preconditions
@@ -24,14 +27,20 @@ from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.name_expansion import NameExpansionIterator
+from gslib.name_expansion import SeekAheadNameExpansionIterator
+from gslib.parallelism_framework_util import PutToQueueWithTimeout
 from gslib.storage_url import StorageUrlFromString
+from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.thread_message import MetadataMessage
 from gslib.translation_helper import CopyObjectMetadata
 from gslib.translation_helper import ObjectMetadataFromHeaders
 from gslib.translation_helper import PreconditionsFromHeaders
 from gslib.util import GetCloudApiInstance
+from gslib.util import InsistAsciiHeader
+from gslib.util import InsistAsciiHeaderValue
+from gslib.util import IsCustomMetadataHeader
 from gslib.util import NO_MAX
 from gslib.util import Retry
-
 
 _SYNOPSIS = """
   gsutil setmeta -h [header:value|header] ... url...
@@ -106,7 +115,7 @@ _DETAILED_HELP_TEXT = ("""
 # gsutil3 at the time gsutil4 was released.
 SETTABLE_FIELDS = ['cache-control', 'content-disposition',
                    'content-encoding', 'content-language',
-                   'content-md5', 'content-type']
+                   'content-type']
 
 
 def _SetMetadataExceptionHandler(cls, e):
@@ -180,14 +189,21 @@ class SetMetaCommand(Command):
     name_expansion_iterator = NameExpansionIterator(
         self.command_name, self.debug, self.logger, self.gsutil_api,
         self.args, self.recursion_requested, all_versions=self.all_versions,
-        continue_on_error=self.parallel_operations)
+        continue_on_error=self.parallel_operations,
+        bucket_listing_fields=['generation', 'metadata', 'metageneration'])
+
+    seek_ahead_iterator = SeekAheadNameExpansionIterator(
+        self.command_name, self.debug, self.GetSeekAheadGsutilApi(),
+        self.args, self.recursion_requested,
+        all_versions=self.all_versions, project_id=self.project_id)
 
     try:
       # Perform requests in parallel (-m) mode, if requested, using
       # configured number of parallel processes and threads. Otherwise,
       # perform requests with sequential function calls in current process.
       self.Apply(_SetMetadataFuncWrapper, name_expansion_iterator,
-                 _SetMetadataExceptionHandler, fail_on_error=True)
+                 _SetMetadataExceptionHandler, fail_on_error=True,
+                 seek_ahead_iterator=seek_ahead_iterator)
     except AccessDeniedException as e:
       if e.status == 403:
         self._WarnServiceAccounts()
@@ -211,11 +227,8 @@ class SetMetaCommand(Command):
     exp_src_url = name_expansion_result.expanded_storage_url
     self.logger.info('Setting metadata on %s...', exp_src_url)
 
-    fields = ['generation', 'metadata', 'metageneration']
-    cloud_obj_metadata = gsutil_api.GetObjectMetadata(
-        exp_src_url.bucket_name, exp_src_url.object_name,
-        generation=exp_src_url.generation, provider=exp_src_url.scheme,
-        fields=fields)
+    cloud_obj_metadata = encoding.JsonToMessage(
+        apitools_messages.Object, name_expansion_result.expanded_result)
 
     preconditions = Preconditions(
         gen_match=self.preconditions.gen_match,
@@ -245,7 +258,9 @@ class SetMetaCommand(Command):
     gsutil_api.PatchObjectMetadata(
         exp_src_url.bucket_name, exp_src_url.object_name, patch_obj_metadata,
         generation=exp_src_url.generation, preconditions=preconditions,
-        provider=exp_src_url.scheme)
+        provider=exp_src_url.scheme, fields=['id'])
+    PutToQueueWithTimeout(gsutil_api.status_queue,
+                          MetadataMessage(message_time=time.time()))
 
   def _ParseMetadataHeaders(self, headers):
     """Validates and parses metadata changes from the headers argument.
@@ -268,21 +283,30 @@ class SetMetaCommand(Command):
     num_cust_metadata_minus_elems = 0
 
     for md_arg in headers:
-      parts = md_arg.split(':')
-      if len(parts) not in (1, 2):
-        raise CommandException(
-            'Invalid argument: must be either header or header:value (%s)' %
-            md_arg)
-      if len(parts) == 2:
-        (header, value) = parts
-      else:
-        (header, value) = (parts[0], None)
-      _InsistAsciiHeader(header)
+      # Use partition rather than split, as we should treat all characters past
+      # the initial : as part of the header's value.
+      parts = md_arg.partition(':')
+      (header, _, value) = parts
+      InsistAsciiHeader(header)
+
       # Translate headers to lowercase to match the casing assumed by our
       # sanity-checking operations.
-      header = header.lower()
+      lowercase_header = header.lower()
+      # This check is overly simple; it would be stronger to check, for each
+      # URL argument, whether the header starts with the provider
+      # metadata_prefix, but here we just parse the spec once, before
+      # processing any of the URLs. This means we will not detect if the user
+      # tries to set an x-goog-meta- field on an another provider's object,
+      # for example.
+      is_custom_meta = IsCustomMetadataHeader(lowercase_header)
+      if not is_custom_meta and lowercase_header not in SETTABLE_FIELDS:
+        raise CommandException(
+            'Invalid or disallowed header (%s).\nOnly these fields (plus '
+            'x-goog-meta-* fields) can be set or unset:\n%s' % (
+                header, sorted(list(SETTABLE_FIELDS))))
+
       if value:
-        if _IsCustomMeta(header):
+        if is_custom_meta:
           # Allow non-ASCII data for custom metadata fields.
           cust_metadata_plus[header] = value
           num_cust_metadata_plus_elems += 1
@@ -290,16 +314,16 @@ class SetMetaCommand(Command):
           # Don't unicode encode other fields because that would perturb their
           # content (e.g., adding %2F's into the middle of a Cache-Control
           # value).
-          _InsistAsciiHeaderValue(header, value)
+          InsistAsciiHeaderValue(header, value)
           value = str(value)
-          metadata_plus[header] = value
+          metadata_plus[lowercase_header] = value
           num_metadata_plus_elems += 1
       else:
-        if _IsCustomMeta(header):
+        if is_custom_meta:
           cust_metadata_minus.add(header)
           num_cust_metadata_minus_elems += 1
         else:
-          metadata_minus.add(header)
+          metadata_minus.add(lowercase_header)
           num_metadata_minus_elems += 1
 
     if (num_metadata_plus_elems != len(metadata_plus)
@@ -308,41 +332,8 @@ class SetMetaCommand(Command):
         or num_cust_metadata_minus_elems != len(cust_metadata_minus)
         or metadata_minus.intersection(set(metadata_plus.keys()))):
       raise CommandException('Each header must appear at most once.')
-    other_than_base_fields = (set(metadata_plus.keys())
-                              .difference(SETTABLE_FIELDS))
-    other_than_base_fields.update(
-        metadata_minus.difference(SETTABLE_FIELDS))
-    for f in other_than_base_fields:
-      # This check is overly simple; it would be stronger to check, for each
-      # URL argument, whether f.startswith the
-      # provider metadata_prefix, but here we just parse the spec
-      # once, before processing any of the URLs. This means we will not
-      # detect if the user tries to set an x-goog-meta- field on an another
-      # provider's object, for example.
-      if not _IsCustomMeta(f):
-        raise CommandException(
-            'Invalid or disallowed header (%s).\nOnly these fields (plus '
-            'x-goog-meta-* fields) can be set or unset:\n%s' % (
-                f, sorted(list(SETTABLE_FIELDS))))
+
     metadata_plus.update(cust_metadata_plus)
     metadata_minus.update(cust_metadata_minus)
     return (metadata_minus, metadata_plus)
 
-
-def _InsistAscii(string, message):
-  if not all(ord(c) < 128 for c in string):
-    raise CommandException(message)
-
-
-def _InsistAsciiHeader(header):
-  _InsistAscii(header, 'Invalid non-ASCII header (%s).' % header)
-
-
-def _InsistAsciiHeaderValue(header, value):
-  _InsistAscii(
-      value, ('Invalid non-ASCII value (%s) was provided for header %s.'
-              % (value, header)))
-
-
-def _IsCustomMeta(header):
-  return header.startswith('x-goog-meta-') or header.startswith('x-amz-meta-')

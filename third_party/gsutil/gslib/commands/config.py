@@ -32,11 +32,10 @@ import webbrowser
 
 import boto
 from boto.provider import Provider
-from httplib2 import ServerNotFoundError
-from oauth2client.client import HAS_CRYPTO
 
 import gslib
 from gslib.command import Command
+from gslib.command import DEFAULT_TASK_ESTIMATION_THRESHOLD
 from gslib.commands.compose import MAX_COMPONENT_COUNT
 from gslib.cred_types import CredTypes
 from gslib.exception import AbortException
@@ -45,13 +44,17 @@ from gslib.hashing_helper import CHECK_HASH_ALWAYS
 from gslib.hashing_helper import CHECK_HASH_IF_FAST_ELSE_FAIL
 from gslib.hashing_helper import CHECK_HASH_IF_FAST_ELSE_SKIP
 from gslib.hashing_helper import CHECK_HASH_NEVER
+from gslib.metrics import CheckAndMaybePromptForAnalyticsEnabling
 from gslib.sig_handling import RegisterSignalHandler
-from gslib.util import EIGHT_MIB
 from gslib.util import IS_WINDOWS
+from gslib.util import RESUMABLE_THRESHOLD_B
+
+from httplib2 import ServerNotFoundError
+from oauth2client.client import HAS_CRYPTO
 
 
 _SYNOPSIS = """
-  gsutil [-D] config [-a] [-b] [-e] [-f] [-o <file>] [-r] [-s <scope>] [-w]
+  gsutil [-D] config [-a] [-b] [-e] [-f] [-n] [-o <file>] [-r] [-s <scope>] [-w]
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -100,19 +103,13 @@ _DETAILED_HELP_TEXT = ("""
   or application (as opposed to a user).
 
   When you run gsutil config -e, you will be prompted for your service account
-  email address and the path to your private key file. To get these data, visit
-  the `Google Developers Console <https://cloud.google.com/console#/project>`_,
-  click on the project you are using, then click "APIs & auth", then click
-  "Credentials", then click "Create new Client ID"; on the pop-up dialog box
-  select "Service account" and click "Create Client ID". This will download
-  a private key file, which you should move to somewhere
-  accessible from the machine where you run gsutil. Make sure to set its
-  protection so only the users you want to be able to authenticate have
-  access.
+  email address and the path to your private key file. To get this data,
+  follow the instructions on
+  `Service Accounts <https://cloud.google.com/storage/docs/authentication#generating-a-private-key>`_.
 
   Note that your service account will NOT be considered an Owner for the
   purposes of API access (see "gsutil help creds" for more information about
-  this). See https://developers.google.com/accounts/docs/OAuth2ServiceAccount
+  this). See https://developers.google.com/identity/protocols/OAuth2ServiceAccount
   for further information on service account authentication.
 
 
@@ -125,8 +122,8 @@ _DETAILED_HELP_TEXT = ("""
   changing environment variables.
 
   You can also set up a path of configuration files, by setting the BOTO_PATH
-  environment variable to contain a ":" delimited path. For example setting
-  the BOTO_PATH environment variable to:
+  environment variable to contain a ":" delimited path (or ";" for Windows).
+  For example setting the BOTO_PATH environment variable to:
 
     /etc/projects/my_group_project.boto.cfg:/home/mylogin/.boto
 
@@ -135,23 +132,25 @@ _DETAILED_HELP_TEXT = ("""
   state among many users: The shared state can go in the central shared file
   ( /etc/projects/my_group_project.boto.cfg) and each user's individual
   credentials can be placed in the configuration file in each of their home
-  directories. (For security reasons users should never share credentials
-  via a shared configuration file.)
+  directories. For security reasons, users should never share credentials
+  via a shared configuration file.
 
 
 <B>CONFIGURATION FILE STRUCTURE</B>
   The configuration file contains a number of sections: [Credentials],
-  [Boto], [GSUtil], and [OAuth2]. If you edit the file make sure to edit the
+  [Boto], [GSUtil], and [OAuth2]. If you edit the file, make sure to edit the
   appropriate section (discussed below), and to be careful not to mis-edit
   any of the setting names (like "gs_access_key_id") and not to remove the
   section delimiters (like "[Credentials]").
 
 
 <B>ADDITIONAL CONFIGURATION-CONTROLLABLE FEATURES</B>
-  With the exception of setting up gsutil to work through a proxy (see
-  below), most users won't need to edit values in the boto configuration file;
-  values found in there tend to be of more specialized use than command line
-  option-controllable features.
+  With the exception of setting up gsutil to work through a proxy, most users
+  won't need to edit values in the boto configuration file; values found in
+  the file tend to be of more specialized use than command line
+  option-controllable features. For information on setting up gsutil to work
+  through a proxy, see the comments preceding the proxy settings in your
+  .boto file.
 
   The following are the currently defined configuration settings, broken
   down by section. Their use is documented in comments preceding each, in
@@ -186,11 +185,17 @@ _DETAILED_HELP_TEXT = ("""
       max_retry_delay
       num_retries
 
+    [GoogleCompute]
+      service_account
+
     [GSUtil]
       check_hashes
       content_language
+      decryption_key1 ... 100
       default_api_version
       default_project_id
+      disable_analytics_prompt
+      encryption_key
       json_api_version
       parallel_composite_upload_component_size
       parallel_composite_upload_threshold
@@ -207,6 +212,7 @@ _DETAILED_HELP_TEXT = ("""
       state_dir
       tab_completion_time_logs
       tab_completion_timeout
+      task_estimation_threshold
       use_magicfile
 
     [OAuth2]
@@ -250,6 +256,9 @@ _DETAILED_HELP_TEXT = ("""
 
   -f          Request token with full-control access (default).
 
+  -n          Write the configuration file without authentication configured.
+              This flag is mutually exlusive with all flags other than -o.
+
   -o <file>   Write the configuration to <file> instead of ~/.boto.
               Use '-' for stdout.
 
@@ -268,6 +277,7 @@ except ImportError:
 
 GOOG_CLOUD_CONSOLE_URI = 'https://cloud.google.com/console#/project'
 
+SCOPE_CLOUD_PLATFORM = 'https://www.googleapis.com/auth/cloud-platform'
 SCOPE_FULL_CONTROL = 'https://www.googleapis.com/auth/devstorage.full_control'
 SCOPE_READ_WRITE = 'https://www.googleapis.com/auth/devstorage.read_write'
 SCOPE_READ_ONLY = 'https://www.googleapis.com/auth/devstorage.read_only'
@@ -286,13 +296,21 @@ CONFIG_PRELUDE_CONTENT = """
 # the underlying CPU/core count. Given we'll be running multiple concurrent
 # processes on a typical multi-core Linux computer, to avoid being too
 # aggressive with resources, the default number of threads is reduced from
-# the previous value of 24 to 10.
+# the previous value of 24 to 5.
+#
+# We also cap the maximum number of default processes at 32. Since each level
+# of recursion depth gets its own process pool, this means a maximum of
+# 64 processes with the current maximum recursion depth of 2.  We limit this
+# number because testing with more than 200 processes showed fatal locking
+# exceptions in Python's multiprocessing.Manager. More processes are
+# probably not needed to saturate most networks.
+#
 # On Windows and Mac systems parallel multi-processing and multi-threading
 # in Python presents various challenges so we retain compatibility with
 # the established parallel mode operation, i.e. one process and 24 threads.
 if platform.system() == 'Linux':
-  DEFAULT_PARALLEL_PROCESS_COUNT = multiprocessing.cpu_count()
-  DEFAULT_PARALLEL_THREAD_COUNT = 10
+  DEFAULT_PARALLEL_PROCESS_COUNT = min(multiprocessing.cpu_count(), 32)
+  DEFAULT_PARALLEL_THREAD_COUNT = 5
 else:
   DEFAULT_PARALLEL_PROCESS_COUNT = 1
   DEFAULT_PARALLEL_THREAD_COUNT = 24
@@ -326,9 +344,9 @@ CONFIG_BOTO_SECTION_CONTENT = """
 # in configuration files, to protect against "man-in-the-middle" attacks.
 https_validate_certificates = True
 
-# 'debug' controls the level of debug messages printed: 0 for none, 1
-# for basic boto debug, 2 for all boto debug plus HTTP requests/responses.
-# Note: 'gsutil -d' sets debug to 2 for that one command run.
+# 'debug' controls the level of debug messages printed for the XML API only:
+# 0 for none, 1 for basic boto debug, 2 for all boto debug plus HTTP
+# requests/responses.
 #debug = <0, 1, or 2>
 
 # 'num_retries' controls the number of retry attempts made when errors occur
@@ -351,6 +369,16 @@ https_validate_certificates = True
 # Note: At present this value only impacts the XML API and the JSON API uses a
 # fixed value of 60.
 #max_retry_delay = <integer value>
+"""
+
+CONFIG_GOOGLECOMPUTE_SECTION_CONTENT = """
+[GoogleCompute]
+
+# 'service_account' specifies the a Google Compute Engine service account to
+# use for credentials. This value is intended for use only on Google Compute
+# Engine virtual machines and usually lives in /etc/boto.cfg. Most users
+# shouldn't need to edit this part of the config.
+#service_account = default
 """
 
 CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
@@ -440,9 +468,9 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # that is done we will re-enable parallel composite uploads by default in
 # gsutil.
 #
-# Note: Parallel composite uploads should not be used with NEARLINE storage
-# class buckets, as doing this would incur an early deletion charge for each
-# component object.
+# Note: Parallel composite uploads should not be used with NEARLINE or COLDLINE
+# storage class buckets, as doing this incurs an early deletion charge for
+# each component object.
 #parallel_composite_upload_threshold = %(parallel_composite_upload_threshold)s
 #parallel_composite_upload_component_size = %(parallel_composite_upload_component_size)s
 
@@ -455,6 +483,14 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 #sliced_object_download_threshold = %(sliced_object_download_threshold)s
 #sliced_object_download_component_size = %(sliced_object_download_component_size)s
 #sliced_object_download_max_components = %(sliced_object_download_max_components)s
+
+# 'task_estimation_threshold' controls how many files or objects gsutil
+# processes before it attempts to estimate the total work that will be
+# performed by the command. Estimation makes extra directory listing or API
+# list calls and is performed only if multiple processes and/or threads are
+# used. Estimation can slightly increase cost due to extra
+# listing calls; to disable it entirely, set this value to 0.
+#task_estimation_threshold=%(task_estimation_threshold)s
 
 # 'use_magicfile' specifies if the 'file --mime-type <filename>' command should
 # be used to guess content types instead of the default filename extension-based
@@ -491,22 +527,45 @@ content_language = en
 # instead (inexpensively) compare the cloud source and destination hashes.
 #check_hashes = if_fast_else_fail
 
+# 'encryption_key' specifies a single customer-supplied encryption key that
+# will be used for all data written to Google Cloud Storage. See
+# "gsutil help encryption" for more information
+# Encryption key: RFC 4648 section 4 base64-encoded AES256 string
+# Warning: If decrypt_key is specified without an encrypt_key, objects will be
+# decrypted when copied in the cloud.
+#encryption_key=
+
+# Each 'decryption_key' entry specifies a customer-supplied decryption key that
+# will be used to access and Google Cloud Storage objects encrypted with
+# the corresponding key.
+# Decryption keys: Up to 100 RFC 4648 section 4 base64-encoded AES256 strings
+# in ascending numerical order, starting with 1.
+#decryption_key1=
+#decryption_key2=
+#decryption_key3=
+
 # The ability to specify an alternative JSON API version is primarily for cloud
 # storage service developers.
 #json_api_version = v1
 
-# Specifies the API to use when interacting with cloud storage providers.  If
-# the gsutil command supports this API for the provider, it will be used
-# instead of the default.
-# Commands typically default to XML for S3 and JSON for GCS.
+# Specifies the API to use when interacting with cloud storage providers. If the
+# gsutil command supports this API for the provider, it will be used instead of
+# the default API. Commands typically default to XML for S3 and JSON for GCS.
+# Note that if any encryption configuration options are set (see above), the
+# JSON API will be used for interacting with Google Cloud Storage buckets even
+# if XML is preferred, as gsutil does not currently support this functionality
+# when using the XML API.
 #prefer_api = json
 #prefer_api = xml
+
+# Disables the prompt asking for opt-in to data collection for analytics.
+#disable_analytics_prompt = True
 
 """ % {'hash_fast_else_fail': CHECK_HASH_IF_FAST_ELSE_FAIL,
        'hash_fast_else_skip': CHECK_HASH_IF_FAST_ELSE_SKIP,
        'hash_always': CHECK_HASH_ALWAYS,
        'hash_never': CHECK_HASH_NEVER,
-       'resumable_threshold': EIGHT_MIB,
+       'resumable_threshold': RESUMABLE_THRESHOLD_B,
        'parallel_process_count': DEFAULT_PARALLEL_PROCESS_COUNT,
        'parallel_thread_count': DEFAULT_PARALLEL_THREAD_COUNT,
        'parallel_composite_upload_threshold': (
@@ -519,7 +578,8 @@ content_language = en
            DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE),
        'sliced_object_download_max_components': (
            DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS),
-       'max_component_count': MAX_COMPONENT_COUNT}
+       'max_component_count': MAX_COMPONENT_COUNT,
+       'task_estimation_threshold': DEFAULT_TASK_ESTIMATION_THRESHOLD}
 
 CONFIG_OAUTH2_CONFIG_CONTENT = """
 [OAuth2]
@@ -549,15 +609,6 @@ CONFIG_OAUTH2_CONFIG_CONTENT = """
 #  token_cache_path_pattern = <tmpdir>/oauth2client-tokencache.%%(uid)s.%%(key)s
 # where <tmpdir> is the system-dependent default temp directory.
 
-# The following options specify the OAuth2 client identity and secret that is
-# used when requesting and using OAuth2 tokens. If not specified, a default
-# OAuth2 client for the gsutil tool is used; for uses of the boto library (with
-# OAuth2 authentication plugin) in other client software, it is recommended to
-# use a tool/client-specific OAuth2 client. For more information on OAuth2, see
-# http://code.google.com/apis/accounts/docs/OAuth2.html
-#client_id = <OAuth2 client id>
-#client_secret = <OAuth2 client secret>
-
 # The following options specify the label and endpoint URIs for the OAUth2
 # authorization provider being used. Primarily useful for tool developers.
 #provider_label = Google
@@ -568,6 +619,13 @@ CONFIG_OAUTH2_CONFIG_CONTENT = """
 # rate limiting errors occur for OAuth2 requests to retrieve an access token.
 # The default value is 6.
 #oauth2_refresh_retries = <integer value>
+
+# The following options specify the OAuth2 client identity and secret that is
+# used when requesting and using OAuth2 tokens. If not specified, a default
+# OAuth2 client for the gsutil tool is used; for uses of the boto library (with
+# OAuth2 authentication plugin) in other client software, it is recommended to
+# use a tool/client-specific OAuth2 client. For more information on OAuth2, see
+# http://code.google.com/apis/accounts/docs/OAuth2.html
 """
 
 
@@ -581,7 +639,7 @@ class ConfigCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=0,
       max_args=0,
-      supported_sub_args='habefwrs:o:',
+      supported_sub_args='habefnwrs:o:',
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -735,8 +793,12 @@ class ConfigCommand(Command):
         '# To use a proxy, edit and uncomment the proxy and proxy_port lines.\n'
         '# If you need a user/password with this proxy, edit and uncomment\n'
         '# those lines as well. If your organization also disallows DNS\n'
-        '# lookups by client machines set proxy_rdns = True\n'
-        '# If proxy_host and proxy_port are not specified in this file and\n'
+        '# lookups by client machines, set proxy_rdns to True (the default).\n'
+        '# If you have installed gsutil through the Cloud SDK and have \n'
+        '# configured proxy settings in gcloud, those proxy settings will \n'
+        '# override any other options (including those set here, along with \n'
+        '# any settings in proxy-related environment variables). Otherwise, \n'
+        '# if proxy_host and proxy_port are not specified in this file and\n'
         '# one of the OS environment variables http_proxy, https_proxy, or\n'
         '# HTTPS_PROXY is defined, gsutil will use the proxy server specified\n'
         '# in these environment variables, in order of precedence according\n'
@@ -760,8 +822,9 @@ class ConfigCommand(Command):
 
   # pylint: disable=dangerous-default-value,too-many-statements
   def _WriteBotoConfigFile(self, config_file, launch_browser=True,
-                           oauth2_scopes=[SCOPE_FULL_CONTROL],
-                           cred_type=CredTypes.OAUTH2_USER_ACCOUNT):
+                           oauth2_scopes=[SCOPE_CLOUD_PLATFORM],
+                           cred_type=CredTypes.OAUTH2_USER_ACCOUNT,
+                           configure_auth=True):
     """Creates a boto config file interactively.
 
     Needed credentials are obtained interactively, either by asking the user for
@@ -782,6 +845,8 @@ class ConfigCommand(Command):
         - for OAUTH2_SERVICE_ACCOUNT, prompt the user for OAuth2 for service
           account email address and private key file (and if the file is a .p12
           file, the password for that file).
+      configure_auth: Boolean, whether or not to configure authentication in
+          the generated file.
     """
     # Collect credentials
     provider_map = {'aws': 'aws', 'google': 'gs'}
@@ -789,66 +854,70 @@ class ConfigCommand(Command):
     key_ids = {}
     sec_keys = {}
     service_account_key_is_json = False
-    if cred_type == CredTypes.OAUTH2_SERVICE_ACCOUNT:
-      gs_service_key_file = raw_input('What is the full path to your private '
-                                      'key file? ')
-      # JSON files have the email address built-in and don't require a password.
-      try:
-        with open(gs_service_key_file, 'rb') as key_file_fp:
-          json.loads(key_file_fp.read())
-        service_account_key_is_json = True
-      except ValueError:
-        if not HAS_CRYPTO:
-          raise CommandException(
-              'Service account authentication via a .p12 file requires '
-              'either\nPyOpenSSL or PyCrypto 2.6 or later. Please install '
-              'either of these\nto proceed, use a JSON-format key file, or '
-              'configure a different type of credentials.')
+    if configure_auth:
+      if cred_type == CredTypes.OAUTH2_SERVICE_ACCOUNT:
+        gs_service_key_file = raw_input('What is the full path to your private '
+                                        'key file? ')
+        # JSON files have the email address built-in and don't require a
+        # password.
+        try:
+          with open(gs_service_key_file, 'rb') as key_file_fp:
+            json.loads(key_file_fp.read())
+          service_account_key_is_json = True
+        except ValueError:
+          if not HAS_CRYPTO:
+            raise CommandException(
+                'Service account authentication via a .p12 file requires '
+                'either\nPyOpenSSL or PyCrypto 2.6 or later. Please install '
+                'either of these\nto proceed, use a JSON-format key file, or '
+                'configure a different type of credentials.')
 
-      if not service_account_key_is_json:
-        gs_service_client_id = raw_input('What is your service account email '
-                                         'address? ')
-        gs_service_key_file_password = raw_input(
-            '\n'.join(textwrap.wrap(
-                'What is the password for your service key file [if you '
-                'haven\'t set one explicitly, leave this line blank]?')) + ' ')
-      self._CheckPrivateKeyFilePermissions(gs_service_key_file)
-    elif cred_type == CredTypes.OAUTH2_USER_ACCOUNT:
-      oauth2_client = oauth2_helper.OAuth2ClientFromBotoConfig(boto.config,
-                                                               cred_type)
-      try:
-        oauth2_refresh_token = oauth2_helper.OAuth2ApprovalFlow(
-            oauth2_client, oauth2_scopes, launch_browser)
-      except (ResponseNotReady, ServerNotFoundError, socket.error):
-        # TODO: Determine condition to check for in the ResponseNotReady
-        # exception so we only run proxy config flow if failure was caused by
-        # request being blocked because it wasn't sent through proxy. (This
-        # error could also happen if gsutil or the oauth2 client had a bug that
-        # attempted to incorrectly reuse an HTTP connection, for example.)
-        sys.stdout.write('\n'.join(textwrap.wrap(
-            "Unable to connect to accounts.google.com during OAuth2 flow. This "
-            "can happen if your site uses a proxy. If you are using gsutil "
-            "through a proxy, please enter the proxy's information; otherwise "
-            "leave the following fields blank.")) + '\n')
-        self._PromptForProxyConfig()
+        if not service_account_key_is_json:
+          gs_service_client_id = raw_input('What is your service account email '
+                                           'address? ')
+          gs_service_key_file_password = raw_input(
+              '\n'.join(textwrap.wrap(
+                  'What is the password for your service key file [if you '
+                  'haven\'t set one explicitly, leave this line blank]?'))
+              + ' ')
+        self._CheckPrivateKeyFilePermissions(gs_service_key_file)
+      elif cred_type == CredTypes.OAUTH2_USER_ACCOUNT:
         oauth2_client = oauth2_helper.OAuth2ClientFromBotoConfig(boto.config,
                                                                  cred_type)
-        oauth2_refresh_token = oauth2_helper.OAuth2ApprovalFlow(
-            oauth2_client, oauth2_scopes, launch_browser)
-    elif cred_type == CredTypes.HMAC:
-      got_creds = False
-      for provider in provider_map:
-        if provider == 'google':
-          key_ids[provider] = raw_input('What is your %s access key ID? ' %
-                                        provider)
-          sec_keys[provider] = raw_input('What is your %s secret access key? ' %
-                                         provider)
-          got_creds = True
-          if not key_ids[provider] or not sec_keys[provider]:
-            raise CommandException(
-                'Incomplete credentials provided. Please try again.')
-      if not got_creds:
-        raise CommandException('No credentials provided. Please try again.')
+        try:
+          oauth2_refresh_token = oauth2_helper.OAuth2ApprovalFlow(
+              oauth2_client, oauth2_scopes, launch_browser)
+        except (ResponseNotReady, ServerNotFoundError, socket.error):
+          # TODO: Determine condition to check for in the ResponseNotReady
+          # exception so we only run proxy config flow if failure was caused by
+          # request being blocked because it wasn't sent through proxy. (This
+          # error could also happen if gsutil or the oauth2 client had a bug
+          # that attempted to incorrectly reuse an HTTP connection, for
+          # example.)
+          sys.stdout.write('\n'.join(textwrap.wrap(
+              "Unable to connect to accounts.google.com during OAuth2 flow. "
+              "This can happen if your site uses a proxy. If you are using "
+              "gsutil through a proxy, please enter the proxy's information; "
+              "otherwise leave the following fields blank.")) + '\n')
+          self._PromptForProxyConfig()
+          oauth2_client = oauth2_helper.OAuth2ClientFromBotoConfig(boto.config,
+                                                                   cred_type)
+          oauth2_refresh_token = oauth2_helper.OAuth2ApprovalFlow(
+              oauth2_client, oauth2_scopes, launch_browser)
+      elif cred_type == CredTypes.HMAC:
+        got_creds = False
+        for provider in provider_map:
+          if provider == 'google':
+            key_ids[provider] = raw_input('What is your %s access key ID? ' %
+                                          provider)
+            sec_keys[provider] = raw_input('What is your %s secret access '
+                                           'key? ' % provider)
+            got_creds = True
+            if not key_ids[provider] or not sec_keys[provider]:
+              raise CommandException(
+                  'Incomplete credentials provided. Please try again.')
+        if not got_creds:
+          raise CommandException('No credentials provided. Please try again.')
 
     # Write the config file prelude.
     config_file.write(CONFIG_PRELUDE_CONTENT.lstrip())
@@ -862,40 +931,48 @@ class ConfigCommand(Command):
 
     # Write the config file Credentials section.
     config_file.write('[Credentials]\n\n')
-    if cred_type == CredTypes.OAUTH2_SERVICE_ACCOUNT:
-      config_file.write('# Google OAuth2 service account credentials '
-                        '(for "gs://" URIs):\n')
-      config_file.write('gs_service_key_file = %s\n' % gs_service_key_file)
-      if not service_account_key_is_json:
-        config_file.write('gs_service_client_id = %s\n'
-                          % gs_service_client_id)
+    if configure_auth:
+      if cred_type == CredTypes.OAUTH2_SERVICE_ACCOUNT:
+        config_file.write('# Google OAuth2 service account credentials '
+                          '(for "gs://" URIs):\n')
+        config_file.write('gs_service_key_file = %s\n' % gs_service_key_file)
+        if not service_account_key_is_json:
+          config_file.write('gs_service_client_id = %s\n'
+                            % gs_service_client_id)
 
-        if not gs_service_key_file_password:
-          config_file.write(
-              '# If you would like to set your password, you can do so using\n'
-              '# the following commands (replaced with your information):\n'
-              '# "openssl pkcs12 -in cert1.p12 -out temp_cert.pem"\n'
-              '# "openssl pkcs12 -export -in temp_cert.pem -out cert2.p12"\n'
-              '# "rm -f temp_cert.pem"\n'
-              '# Your initial password is "notasecret" - for more information,'
-              '\n# please see http://www.openssl.org/docs/apps/pkcs12.html.\n')
-          config_file.write('#gs_service_key_file_password =\n\n')
-        else:
-          config_file.write('gs_service_key_file_password = %s\n\n'
-                            % gs_service_key_file_password)
-    elif cred_type == CredTypes.OAUTH2_USER_ACCOUNT:
-      config_file.write(
-          '# Google OAuth2 credentials (for "gs://" URIs):\n'
-          '# The following OAuth2 account is authorized for scope(s):\n')
-      for scope in oauth2_scopes:
-        config_file.write('#     %s\n' % scope)
-      config_file.write(
-          'gs_oauth2_refresh_token = %s\n\n' % oauth2_refresh_token)
+          if not gs_service_key_file_password:
+            config_file.write(
+                '# If you would like to set your password, you can do so\n'
+                '# using the following commands (replaced with your\n'
+                '# information):\n'
+                '# "openssl pkcs12 -in cert1.p12 -out temp_cert.pem"\n'
+                '# "openssl pkcs12 -export -in temp_cert.pem -out cert2.p12"\n'
+                '# "rm -f temp_cert.pem"\n'
+                '# Your initial password is "notasecret" - for more\n'
+                '# information, please see \n'
+                '# http://www.openssl.org/docs/apps/pkcs12.html.\n')
+            config_file.write('#gs_service_key_file_password =\n\n')
+          else:
+            config_file.write('gs_service_key_file_password = %s\n\n'
+                              % gs_service_key_file_password)
+      elif cred_type == CredTypes.OAUTH2_USER_ACCOUNT:
+        config_file.write(
+            '# Google OAuth2 credentials (for "gs://" URIs):\n'
+            '# The following OAuth2 account is authorized for scope(s):\n')
+        for scope in oauth2_scopes:
+          config_file.write('#     %s\n' % scope)
+        config_file.write(
+            'gs_oauth2_refresh_token = %s\n\n' % oauth2_refresh_token)
+      else:
+        config_file.write(
+            '# To add Google OAuth2 credentials ("gs://" URIs), '
+            'edit and uncomment the\n# following line:\n'
+            '#gs_oauth2_refresh_token = <your OAuth2 refresh token>\n\n')
     else:
-      config_file.write(
-          '# To add Google OAuth2 credentials ("gs://" URIs), '
-          'edit and uncomment the\n# following line:\n'
-          '#gs_oauth2_refresh_token = <your OAuth2 refresh token>\n\n')
+      if os.environ.get('CLOUDSDK_WRAPPER') == '1':
+        config_file.write(
+            '# Google OAuth2 credentials are managed by the Cloud SDK and\n'
+            '# do not need to be present in this file.\n')
 
     for provider in provider_map:
       key_prefix = provider_map[provider]
@@ -909,7 +986,7 @@ class ConfigCommand(Command):
                           (key_prefix, sec_keys[provider]))
       else:
         config_file.write(
-            '# To add %s credentials ("%s://" URIs), edit and '
+            '# To add HMAC %s credentials for "%s://" URIs, edit and '
             'uncomment the\n# following two lines:\n'
             '#%s_access_key_id = <your %s access key ID>\n'
             '#%s_secret_access_key = <your %s secret access key>\n' %
@@ -934,6 +1011,9 @@ class ConfigCommand(Command):
     config_file.write('%s\n' % CONFIG_BOTO_SECTION_CONTENT)
     self._WriteProxyConfigFileSection(config_file)
 
+    # Write the Google Compute Engine section.
+    config_file.write(CONFIG_GOOGLECOMPUTE_SECTION_CONTENT)
+
     # Write the config file GSUtil section that doesn't depend on user input.
     config_file.write(CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT)
 
@@ -949,48 +1029,65 @@ class ConfigCommand(Command):
 
     # Write the config file GSUtil section that includes the default
     # project ID input from the user.
-    if launch_browser:
-      sys.stdout.write(
-          'Attempting to launch a browser to open the Google Cloud Console at '
-          'URL: %s\n\n'
-          '[Note: due to a Python bug, you may see a spurious error message '
-          '"object is not\ncallable [...] in [...] Popen.__del__" which can '
-          'be ignored.]\n\n' % GOOG_CLOUD_CONSOLE_URI)
-      sys.stdout.write(
-          'In your browser you should see the Cloud Console. Find the project '
-          'you will\nuse, and then copy the Project ID string from the second '
-          'column. Older projects do\nnot have Project ID strings. For such '
-          'projects, click the project and then copy the\nProject Number '
-          'listed under that project.\n\n')
-      if not webbrowser.open(GOOG_CLOUD_CONSOLE_URI, new=1, autoraise=True):
+    if not os.environ.get('CLOUDSDK_WRAPPER'):
+      if launch_browser:
         sys.stdout.write(
-            'Launching browser appears to have failed; please navigate a '
-            'browser to the following URL:\n%s\n' % GOOG_CLOUD_CONSOLE_URI)
-      # Short delay; webbrowser.open on linux insists on printing out a message
-      # which we don't want to run into the prompt for the auth code.
-      time.sleep(2)
-    else:
-      sys.stdout.write(
-          '\nPlease navigate your browser to %s,\nthen find the project you '
-          'will use, and copy the Project ID string from the\nsecond column. '
-          'Older projects do not have Project ID strings. For such projects,\n'
-          'click the project and then copy the Project Number listed under '
-          'that project.\n\n' % GOOG_CLOUD_CONSOLE_URI)
-    default_project_id = raw_input('What is your project-id? ').strip()
-    project_id_section_prelude = """
+            'Attempting to launch a browser to open the Google Cloud Console '
+            'at URL: %s\n\n'
+            '[Note: due to a Python bug, you may see a spurious error message '
+            '"object is not\ncallable [...] in [...] Popen.__del__" which can '
+            'be ignored.]\n\n' % GOOG_CLOUD_CONSOLE_URI)
+        sys.stdout.write(
+            'In your browser you should see the Cloud Console. Find the '
+            'project you will\nuse, and then copy the Project ID string from '
+            'the second '
+            'column. Older projects do\nnot have Project ID strings. For such '
+            'projects, click the project and then copy the\nProject Number '
+            'listed under that project.\n\n')
+        if not webbrowser.open(GOOG_CLOUD_CONSOLE_URI, new=1, autoraise=True):
+          sys.stdout.write(
+              'Launching browser appears to have failed; please navigate a '
+              'browser to the following URL:\n%s\n' % GOOG_CLOUD_CONSOLE_URI)
+        # Short delay; webbrowser.open on linux insists on printing out a
+        # message which we don't want to run into the prompt for the auth code.
+        time.sleep(2)
+      else:
+        sys.stdout.write(
+            '\nPlease navigate your browser to %s,\nthen find the project '
+            'you will use, and copy the Project ID string from the\nsecond '
+            'column. Older projects do not have Project ID strings. For such '
+            'projects,\n click the project and then copy the Project Number '
+            'listed under that project.\n\n' % GOOG_CLOUD_CONSOLE_URI)
+
+      default_project_id = raw_input('What is your project-id? ').strip()
+      project_id_section_prelude = """
 # 'default_project_id' specifies the default Google Cloud Storage project ID to
 # use with the 'mb' and 'ls' commands. This default can be overridden by
 # specifying the -p option to the 'mb' and 'ls' commands.
 """
-    if not default_project_id:
-      raise CommandException(
-          'No default project ID entered. The default project ID is needed by '
-          'the\nls and mb commands; please try again.')
-    config_file.write('%sdefault_project_id = %s\n\n\n' %
-                      (project_id_section_prelude, default_project_id))
+      if not default_project_id:
+        raise CommandException(
+            'No default project ID entered. The default project ID is needed '
+            'by the\nls and mb commands; please try again.')
+      config_file.write('%sdefault_project_id = %s\n\n\n' %
+                        (project_id_section_prelude, default_project_id))
 
-    # Write the config file OAuth2 section.
+      CheckAndMaybePromptForAnalyticsEnabling()
+
+    # Write the config file OAuth2 section that doesn't depend on user input.
     config_file.write(CONFIG_OAUTH2_CONFIG_CONTENT)
+
+    # If the user ran gsutil config with a custom client ID, write that to the
+    # config file.
+    if (cred_type == CredTypes.OAUTH2_USER_ACCOUNT
+        and configure_auth
+        and oauth2_client.client_id != oauth2_helper.CLIENT_ID
+        and oauth2_client.client_secret != oauth2_helper.CLIENT_SECRET):
+      config_file.write('client_id = %s\nclient_secret = %s\n' %
+                        (oauth2_client.client_id, oauth2_client.client_secret))
+    else:
+      config_file.write('#client_id = <OAuth2 client id>\n'
+                        '#client_secret = <OAuth2 client secret>\n')
 
   def RunCommand(self):
     """Command entry point for the config command."""
@@ -1000,6 +1097,7 @@ class ConfigCommand(Command):
     output_file_name = None
     has_a = False
     has_e = False
+    configure_auth = True
     for opt, opt_arg in self.sub_opts:
       if opt == '-a':
         cred_type = CredTypes.HMAC
@@ -1011,6 +1109,8 @@ class ConfigCommand(Command):
         has_e = True
       elif opt == '-f':
         scopes.append(SCOPE_FULL_CONTROL)
+      elif opt == '-n':
+        configure_auth = False
       elif opt == '-o':
         output_file_name = opt_arg
       elif opt == '-r':
@@ -1026,8 +1126,42 @@ class ConfigCommand(Command):
       raise CommandException('Both -a and -e cannot be specified. Please see '
                              '"gsutil help config" for more information.')
 
+    if not configure_auth and (has_a or has_e or scopes or launch_browser):
+      raise CommandException('The -a, -b, -e, -f, -s, and -w flags cannot be '
+                             'specified with the -n flag. Please see '
+                             '"gsutil help config" for more information.')
+
+    # Don't allow users to configure Oauth2 (any option other than -a and -n)
+    # when running in the Cloud SDK, unless they have the Cloud SDK configured
+    # not to pass credentials to gsutil.
+    if (os.environ.get('CLOUDSDK_WRAPPER') == '1' and
+        os.environ.get('CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL') == '1' and
+        not has_a and configure_auth):
+      raise CommandException('\n'.join([
+          'OAuth2 is the preferred authentication mechanism with the Cloud '
+          'SDK.',
+          'Run "gcloud auth login" to configure authentication, unless:',
+          '\n'.join(textwrap.wrap(
+              'You don\'t want gsutil to use OAuth2 credentials from the Cloud '
+              'SDK, but instead want to manage credentials with .boto files '
+              'generated by running "gsutil config"; in which case run '
+              '"gcloud config set pass_credentials_to_gsutil false".',
+              initial_indent='- ', subsequent_indent='  ')),
+          '\n'.join(textwrap.wrap(
+              'You want to authenticate with an HMAC access key and secret, in '
+              'which case run "gsutil config -a".',
+              initial_indent='- ', subsequent_indent='  ')),
+      ]))
+
+    if os.environ.get('CLOUDSDK_WRAPPER') == '1' and has_a:
+      sys.stderr.write('\n'.join(textwrap.wrap(
+          'This command will configure HMAC credentials, but gsutil will use '
+          'OAuth2 credentials from the Cloud SDK by default. To make sure '
+          'the HMAC credentials are used, run: "gcloud config set '
+          'pass_credentials_to_gsutil false".')) + '\n\n')
+
     if not scopes:
-      scopes.append(SCOPE_FULL_CONTROL)
+      scopes.append(SCOPE_CLOUD_PLATFORM)
 
     default_config_path_bak = None
     if not output_file_name:
@@ -1076,7 +1210,8 @@ class ConfigCommand(Command):
     RegisterSignalHandler(signal.SIGINT, _CleanupHandler)
     try:
       self._WriteBotoConfigFile(output_file, launch_browser=launch_browser,
-                                oauth2_scopes=scopes, cred_type=cred_type)
+                                oauth2_scopes=scopes, cred_type=cred_type,
+                                configure_auth=configure_auth)
     except Exception as e:
       user_aborted = isinstance(e, AbortException)
       if user_aborted:

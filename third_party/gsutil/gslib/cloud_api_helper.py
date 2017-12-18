@@ -17,8 +17,10 @@
 from __future__ import absolute_import
 
 import json
+import re
 
 from gslib.cloud_api import ArgumentException
+from gslib.util import AddQueryParamToUrl
 
 
 def ValidateDstObjectMetadata(dst_obj_metadata):
@@ -41,30 +43,58 @@ def ValidateDstObjectMetadata(dst_obj_metadata):
         'Object metadata supplied for destination object had no bucket name.')
 
 
-def GetDownloadSerializationData(src_obj_metadata, progress=0):
+def GetDownloadSerializationData(
+    src_obj_metadata, progress=0, user_project=None):
   """Returns download serialization data.
 
-  There are four entries:
+  There are five entries:
     auto_transfer: JSON-specific field, always False.
     progress: How much of the download has already been completed.
     total_size: Total object size.
     url: Implementation-specific field used for saving a metadata get call.
          For JSON, this the download URL of the object.
          For XML, this is a pickled boto key.
+    user_project: Project to be billed to, added as query param.
 
   Args:
     src_obj_metadata: Object to be downloaded.
     progress: See above.
+    user_project: User project to add to query string.
 
   Returns:
     Serialization data for use with Cloud API GetObjectMedia.
   """
 
+  url = src_obj_metadata.mediaLink
+  if user_project:
+    url = AddQueryParamToUrl(url, 'userProject', user_project)
+
   serialization_dict = {
       'auto_transfer': 'False',
       'progress': progress,
       'total_size': src_obj_metadata.size,
-      'url': src_obj_metadata.mediaLink
+      'url': url
   }
 
   return json.dumps(serialization_dict)
+
+
+def ListToGetFields(list_fields=None):
+  """Removes 'items/' from the input fields and converts it to a set.
+
+  Args:
+    list_fields: Iterable fields usable in ListBuckets/ListObjects calls.
+
+  Returns:
+    Set of fields usable in GetBucket/GetObjectMetadata calls (None implies
+    all fields should be returned).
+  """
+  if list_fields:
+    get_fields = set()
+    for field in list_fields:
+      if field in ('kind', 'nextPageToken', 'prefixes'):
+        # These are not actually object / bucket metadata fields.
+        # They are fields specific to listing, so we don't consider them.
+        continue
+      get_fields.add(re.sub(r'items/', '', field))
+    return get_fields

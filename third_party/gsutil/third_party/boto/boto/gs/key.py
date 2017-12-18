@@ -131,6 +131,8 @@ class Key(S3Key):
                 self.content_encoding = value
             elif key == 'x-goog-stored-content-length':
                 self.size = int(value)
+            elif key == 'x-goog-storage-class':
+                self.storage_class = value
 
     def open_read(self, headers=None, query_args='',
                   override_num_retries=None, response_headers=None):
@@ -270,7 +272,7 @@ class Key(S3Key):
 
         :type fp: file
         :param fp: The file pointer to upload. The file pointer must
-            point point at the offset from which you wish to upload.
+            point at the offset from which you wish to upload.
             ie. if uploading the full file, it should point at the
             start of the file. Normally when a file is opened for
             reading, the fp will point at the first byte. See the

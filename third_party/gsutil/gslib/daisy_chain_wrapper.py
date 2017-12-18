@@ -15,12 +15,14 @@
 """Wrapper for use in daisy-chained copies."""
 
 from collections import deque
+from contextlib import contextmanager
 import os
 import threading
 import time
 
 from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import CloudApi
+from gslib.encryption_helper import CryptoTupleFromKey
 from gslib.util import CreateLock
 from gslib.util import TRANSFER_BUFFER_SIZE
 
@@ -60,6 +62,14 @@ class BufferWrapper(object):
         self.daisy_chain_wrapper.bytes_buffered += data_len
 
 
+@contextmanager
+def AcquireLockWithTimeout(lock, timeout):
+  result = lock.acquire(timeout=timeout)
+  yield result
+  if result:
+    lock.release()
+
+
 class DaisyChainWrapper(object):
   """Wrapper class for daisy-chaining a cloud download to an upload.
 
@@ -73,21 +83,25 @@ class DaisyChainWrapper(object):
   used.
   """
 
-  def __init__(self, src_url, src_obj_size, gsutil_api, progress_callback=None,
-               download_chunk_size=_DEFAULT_DOWNLOAD_CHUNK_SIZE):
+  def __init__(self, src_url, src_obj_size, gsutil_api,
+               compressed_encoding=False, progress_callback=None,
+               download_chunk_size=_DEFAULT_DOWNLOAD_CHUNK_SIZE,
+               decryption_key=None):
     """Initializes the daisy chain wrapper.
 
     Args:
       src_url: Source CloudUrl to copy from.
       src_obj_size: Size of source object.
       gsutil_api: gsutil Cloud API to use for the copy.
+      compressed_encoding: If true, source object has content-encoding: gzip.
       progress_callback: Optional callback function for progress notifications
           for the download thread. Receives calls with arguments
           (bytes_transferred, total_size).
       download_chunk_size: Integer number of bytes to download per
           GetObjectMedia request. This is the upper bound of bytes that may be
           unnecessarily downloaded if there is a break in the resumable upload.
-
+      decryption_key: Base64-encoded decryption key for the source object,
+          if any.
     """
     # Current read position for the upload file pointer.
     self.position = 0
@@ -114,6 +128,9 @@ class DaisyChainWrapper(object):
 
     self.src_obj_size = src_obj_size
     self.src_url = src_url
+    self.compressed_encoding = compressed_encoding
+    self.decryption_tuple = CryptoTupleFromKey(decryption_key)
+
 
     # This is safe to use the upload and download thread because the download
     # thread calls only GetObjectMedia, which creates a new HTTP connection
@@ -126,8 +143,11 @@ class DaisyChainWrapper(object):
     self.download_exception = None
     self.download_thread = None
     self.progress_callback = progress_callback
+    self.download_started = threading.Event()
     self.stop_download = threading.Event()
     self.StartDownloadThread(progress_callback=self.progress_callback)
+    if self.download_started.wait(60) == False:
+      raise Exception('Could not start download thread after 60 seconds.')
 
   def StartDownloadThread(self, start_byte=0, progress_callback=None):
     """Starts the download thread for the source object (from start_byte)."""
@@ -149,15 +169,18 @@ class DaisyChainWrapper(object):
       # TODO: Support resumable downloads. This would require the BufferWrapper
       # object to support seek() and tell() which requires coordination with
       # the upload.
+      self.download_started.set()
       try:
         while start_byte + self._download_chunk_size < self.src_obj_size:
           self.gsutil_api.GetObjectMedia(
               self.src_url.bucket_name, self.src_url.object_name,
-              BufferWrapper(self), start_byte=start_byte,
+              BufferWrapper(self), compressed_encoding=self.compressed_encoding,
+              start_byte=start_byte,
               end_byte=start_byte + self._download_chunk_size - 1,
               generation=self.src_url.generation, object_size=self.src_obj_size,
               download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
-              provider=self.src_url.scheme, progress_callback=progress_callback)
+              provider=self.src_url.scheme, progress_callback=progress_callback,
+              decryption_tuple=self.decryption_tuple)
           if self.stop_download.is_set():
             # Download thread needs to be restarted, so exit.
             self.stop_download.clear()
@@ -165,10 +188,12 @@ class DaisyChainWrapper(object):
           start_byte += self._download_chunk_size
         self.gsutil_api.GetObjectMedia(
             self.src_url.bucket_name, self.src_url.object_name,
-            BufferWrapper(self), start_byte=start_byte,
-            generation=self.src_url.generation, object_size=self.src_obj_size,
+            BufferWrapper(self), compressed_encoding=self.compressed_encoding,
+            start_byte=start_byte, generation=self.src_url.generation,
+            object_size=self.src_obj_size,
             download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
-            provider=self.src_url.scheme, progress_callback=progress_callback)
+            provider=self.src_url.scheme, progress_callback=progress_callback,
+            decryption_tuple=self.decryption_tuple)
       # We catch all exceptions here because we want to store them.
       except Exception, e:  # pylint: disable=broad-except
         # Save the exception so that it can be seen in the upload thread.
@@ -197,11 +222,14 @@ class DaisyChainWrapper(object):
       with self.lock:
         if self.buffer:
           break
-        with self.download_exception_lock:
+        if AcquireLockWithTimeout(self.download_exception_lock, 30):
           if self.download_exception:
             # Download thread died, so we will never recover. Raise the
             # exception that killed it.
             raise self.download_exception  # pylint: disable=raising-bad-type
+        else:
+          if not self.download_thread.is_alive():
+            raise Exception('Download thread died suddenly.')
       # Buffer was empty, yield thread priority so the download thread can fill.
       time.sleep(0)
     with self.lock:

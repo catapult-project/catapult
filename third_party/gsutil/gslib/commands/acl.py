@@ -16,7 +16,9 @@
 
 from __future__ import absolute_import
 
+from apitools.base.py import encoding
 from gslib import aclhelpers
+from gslib import metrics
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import Preconditions
@@ -50,7 +52,7 @@ _CH_SYNOPSIS = """
     -u <id|email>:<perm>
     -g <id|email|domain|All|AllAuth>:<perm>
     -p <viewers|editors|owners>-<project number>
-    -d <id|email|domain|All|AllAuth>
+    -d <id|email|domain|All|AllAuth|<viewers|editors|owners>-<project number>>
 """
 
 _GET_DESCRIPTION = """
@@ -157,13 +159,22 @@ _CH_DESCRIPTION = """
 
     gsutil acl ch -g admins@example.com:O gs://example-bucket/*.jpg
 
-  Grant the owners of project example-project-123 WRITE access to the bucket
+  Grant the owners of project example-project WRITE access to the bucket
   example-bucket:
 
-    gsutil acl ch -p owners-example-project-123:W gs://example-bucket
+    gsutil acl ch -p owners-example-project:W gs://example-bucket
 
   NOTE: You can replace 'owners' with 'viewers' or 'editors' to grant access
   to a project's viewers/editors respectively.
+
+  Remove access to the bucket example-bucket for the owners of project number
+  12345:
+
+    gsutil acl ch -d owners-12345 gs://example-bucket
+
+  Note that removing a project requires you to reference the project by
+  its number (which you can see with the acl get command) as opposed to its
+  project ID string.
 
   Grant the user with the specified canonical ID READ access to all objects
   in example-bucket that begin with folder/:
@@ -209,6 +220,10 @@ _CH_DESCRIPTION = """
     R: READ
     W: WRITE
     O: OWNER
+
+  For more information on these roles and the access they grant, see the
+  permissions section of the `Access Control Lists page
+  <https://cloud.google.com/storage/docs/access-control/lists#permissions>`_.
 
 <B>CH ENTITIES</B>
   There are four different entity types: Users, Groups, All Authenticated Users,
@@ -386,8 +401,9 @@ class AclCommand(Command):
               self.command_name))
 
     self.everything_set_okay = True
-    self.ApplyAclFunc(_ApplyAclChangesWrapper, _ApplyExceptionHandler,
-                      self.args)
+    self.ApplyAclFunc(
+        _ApplyAclChangesWrapper, _ApplyExceptionHandler,
+        self.args, object_fields=['acl', 'generation', 'metageneration'])
     if not self.everything_set_okay:
       raise CommandException('ACLs for some objects could not be set.')
 
@@ -416,10 +432,8 @@ class AclCommand(Command):
                                     fields=['acl', 'metageneration'])
       current_acl = bucket.acl
     elif url.IsObject():
-      gcs_object = gsutil_api.GetObjectMetadata(
-          url.bucket_name, url.object_name, provider=url.scheme,
-          generation=url.generation,
-          fields=['acl', 'generation', 'metageneration'])
+      gcs_object = encoding.JsonToMessage(apitools_messages.Object,
+                                          name_expansion_result.expanded_result)
       current_acl = gcs_object.acl
     if not current_acl:
       self._RaiseForAccessDenied(url)
@@ -446,7 +460,7 @@ class AclCommand(Command):
         gsutil_api.PatchObjectMetadata(
             url.bucket_name, url.object_name, object_metadata,
             preconditions=preconditions, provider=url.scheme,
-            generation=url.generation)
+            generation=url.generation, fields=['id'])
     except BadRequestException as e:
       # Don't retry on bad requests, e.g. invalid email address.
       raise CommandException('Received bad request from server: %s' % str(e))
@@ -459,12 +473,19 @@ class AclCommand(Command):
     """Command entry point for the acl command."""
     action_subcommand = self.args.pop(0)
     self.ParseSubOpts(check_args=True)
+
+    # Commands with both suboptions and subcommands need to reparse for
+    # suboptions, so we log again.
+    metrics.LogCommandParams(sub_opts=self.sub_opts)
     self.def_acl = False
     if action_subcommand == 'get':
+      metrics.LogCommandParams(subcommands=[action_subcommand])
       self.GetAndPrintAcl(self.args[0])
     elif action_subcommand == 'set':
+      metrics.LogCommandParams(subcommands=[action_subcommand])
       self._SetAcl()
     elif action_subcommand in ('ch', 'change'):
+      metrics.LogCommandParams(subcommands=[action_subcommand])
       self._ChAcl()
     else:
       raise CommandException(('Invalid subcommand "%s" for the %s command.\n'

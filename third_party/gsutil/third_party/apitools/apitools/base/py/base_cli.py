@@ -1,5 +1,22 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Base script for generated CLI."""
+
+from __future__ import absolute_import
 
 import atexit
 import code
@@ -9,8 +26,8 @@ import readline
 import rlcompleter
 import sys
 
-from google.apputils import appcommands
 import gflags as flags
+from google.apputils import appcommands
 
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
@@ -58,11 +75,6 @@ def DeclareBaseFlags():
 
     _BASE_FLAGS_DECLARED = True
 
-# NOTE: This is specified here so that it can be read by other files
-# without depending on the flag to be registered.
-TRACE_HELP = (
-    'A tracing token of the form "token:<tokenid>" '
-    'to include in api requests.')
 FLAGS = flags.FLAGS
 
 
@@ -87,15 +99,13 @@ class _SmartCompleter(rlcompleter.Completer):
         if ('(' in readline.get_line_buffer() or
                 not callable(val)):
             return word
-        else:
-            return word + '('
+        return word + '('
 
     def complete(self, text, state):
         if not readline.get_line_buffer().strip():
             if not state:
                 return '  '
-            else:
-                return None
+            return None
         return rlcompleter.Completer.complete(self, text, state)
 
 

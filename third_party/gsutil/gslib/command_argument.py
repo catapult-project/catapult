@@ -99,3 +99,8 @@ class CommandArgument(object):
   def MakeFreeTextArgument():
     """Constructs an argument that takes arbitrary text."""
     return CommandArgument('text', completer=CompleterType.NO_OP)
+
+  @staticmethod
+  def MakeOneOrMoreBindingsArgument():
+    """Constructs an argument that takes multiple bindings."""
+    return CommandArgument('binding', nargs='+', completer=CompleterType.NO_OP)

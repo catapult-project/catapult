@@ -42,7 +42,7 @@ _DETAILED_HELP_TEXT = ("""
   cloud storage providers. For example, to move all objects from a
   bucket to a local directory you could use:
 
-    gsutil mv gs://my_bucket dir
+    gsutil mv gs://my_bucket/* dir
 
   Similarly, to move all objects from a local directory to a bucket you could
   use:
@@ -77,6 +77,13 @@ _DETAILED_HELP_TEXT = ("""
   Unlike the case with many file systems, the gsutil mv command does not
   perform a single atomic operation. Rather, it performs a copy from source
   to destination followed by removing the source for each object.
+
+
+<B>CHARGES FOR MOVING NEARLINE OBJECTS</B>
+  If you move a Nearline storage class object, deletion and data retrieval
+  charges apply, because gsutil actually copies the original object and deletes
+  the original. See the `documentation
+  <https://cloud.google.com/storage/pricing>`_ for pricing details.
 
 
 <B>OPTIONS</B>
@@ -146,7 +153,9 @@ class MvCommand(Command):
     if self.recursion_requested:
       unparsed_args.append('-R')
     unparsed_args.extend(self.unparsed_args)
-    self.command_runner.RunNamedCommand('cp', unparsed_args, self.headers,
-                                        self.debug, self.parallel_operations)
+    self.command_runner.RunNamedCommand(
+        'cp', args=unparsed_args, headers=self.headers, debug=self.debug,
+        trace_token=self.trace_token, user_project=self.user_project,
+        parallel_operations=self.parallel_operations)
 
     return 0

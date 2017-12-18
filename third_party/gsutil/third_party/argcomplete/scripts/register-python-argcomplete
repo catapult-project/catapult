@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
+
+# Copyright 2012-2013, Andrey Kislyuk and argcomplete contributors.
+# Licensed under the Apache License. See https://github.com/kislyuk/argcomplete for more info.
+
+'''
+Register a Python executable for use with the argcomplete module.
+
+To perform the registration, source the output of this script in your bash shell (quote the output to avoid interpolation).
+
+Example:
+
+    $ eval "$(register-python-argcomplete my-favorite-script.py)"
+
+For Tcsh
+
+    $ eval `register-python-argcomplete --shell tcsh my-favorite-script.py`
+'''
+
+import sys
+import argparse
+
+shellcode = r'''
+# Run something, muting output or redirecting it to the debug stream
+# depending on the value of _ARC_DEBUG.
+__python_argcomplete_run() {
+    if [[ -z "$_ARC_DEBUG" ]]; then
+        "$@" 8>&1 9>&2 1>/dev/null 2>&1
+    else
+        "$@" 8>&1 9>&2 1>&9 2>&1
+    fi
+}
+
+_python_argcomplete() {
+    local IFS=$'\013'
+    local SUPPRESS_SPACE=0
+    if compopt +o nospace 2> /dev/null; then
+        SUPPRESS_SPACE=1
+    fi
+    COMPREPLY=( $(IFS="$IFS" \
+                  COMP_LINE="$COMP_LINE" \
+                  COMP_POINT="$COMP_POINT" \
+                  COMP_TYPE="$COMP_TYPE" \
+                  _ARGCOMPLETE_COMP_WORDBREAKS="$COMP_WORDBREAKS" \
+                  _ARGCOMPLETE=1 \
+                  _ARGCOMPLETE_SUPPRESS_SPACE=$SUPPRESS_SPACE \
+                  __python_argcomplete_run "$1") )
+    if [[ $? != 0 ]]; then
+        unset COMPREPLY
+    elif [[ $SUPPRESS_SPACE == 1 ]] && [[ "$COMPREPLY" =~ [=/:]$ ]]; then
+        compopt -o nospace
+    fi
+}
+complete %(complete_opts)s -F _python_argcomplete "%(executable)s"
+'''
+
+tcshcode = '''\
+complete "%(executable)s" 'p@*@`python-argcomplete-tcsh "%(executable)s"`@'
+'''
+
+parser = argparse.ArgumentParser(
+    description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+
+parser.add_argument(
+    '--no-defaults',
+    dest='use_defaults', action='store_false', default=True,
+    help='When no matches are generated, do not fallback to readline\'s default completion')
+parser.add_argument(
+    '--complete-arguments',
+    nargs=argparse.REMAINDER,
+    help='arguments to call complete with; use of this option discards default options')
+parser.add_argument(
+    '-s', '--shell',
+    choices=('bash', 'tcsh'), default='bash',
+    help='output code for the specified shell')
+
+parser.add_argument(
+    'executable',
+    help='executable to completed (when invoked by exactly this name)')
+
+if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit(1)
+
+args = parser.parse_args()
+
+if args.complete_arguments is None:
+    complete_options = '-o nospace -o default' if args.use_defaults else '-o nospace'
+else:
+    complete_options = " ".join(args.complete_arguments)
+
+if args.shell == 'bash':
+    code = shellcode
+else:
+    code = tcshcode
+
+sys.stdout.write(code % dict(
+    complete_opts=complete_options,
+    executable=args.executable
+))

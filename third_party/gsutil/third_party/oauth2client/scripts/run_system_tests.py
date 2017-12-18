@@ -1,9 +1,24 @@
+# Copyright 2016 Google Inc. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import os
 
 import httplib2
+from six.moves import http_client
 from oauth2client import client
-from oauth2client import service_account
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 JSON_KEY_PATH = os.getenv('OAUTH2CLIENT_TEST_JSON_KEY_PATH')
@@ -41,8 +56,8 @@ def _require_environ():
 def _check_user_info(credentials, expected_email):
     http = credentials.authorize(httplib2.Http())
     response, content = http.request(USER_INFO)
-    if response.status != 200:
-        raise ValueError('Expected 200 response.')
+    if response.status != http_client.OK:
+        raise ValueError('Expected 200 OK response.')
 
     content = content.decode('utf-8')
     payload = json.loads(content)
@@ -51,30 +66,15 @@ def _check_user_info(credentials, expected_email):
 
 
 def run_json():
-    with open(JSON_KEY_PATH, 'r') as file_object:
-        client_credentials = json.load(file_object)
-
-    credentials = service_account._ServiceAccountCredentials(
-        service_account_id=client_credentials['client_id'],
-        service_account_email=client_credentials['client_email'],
-        private_key_id=client_credentials['private_key_id'],
-        private_key_pkcs8_text=client_credentials['private_key'],
-        scopes=SCOPE,
-    )
-
-    _check_user_info(credentials, client_credentials['client_email'])
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        JSON_KEY_PATH, scopes=SCOPE)
+    service_account_email = credentials._service_account_email
+    _check_user_info(credentials, service_account_email)
 
 
 def run_p12():
-    with open(P12_KEY_PATH, 'rb') as file_object:
-        private_key_contents = file_object.read()
-
-    credentials = client.SignedJwtAssertionCredentials(
-        service_account_name=P12_KEY_EMAIL,
-        private_key=private_key_contents,
-        scope=SCOPE,
-    )
-
+    credentials = ServiceAccountCredentials.from_p12_keyfile(
+        P12_KEY_EMAIL, P12_KEY_PATH, scopes=SCOPE)
     _check_user_info(credentials, P12_KEY_EMAIL)
 
 

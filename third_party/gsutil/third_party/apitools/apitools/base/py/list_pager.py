@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """A helper function that executes a series of List queries for many APIs."""
 
 from apitools.base.py import encoding
@@ -9,7 +24,7 @@ __all__ = [
 
 
 def YieldFromList(
-        service, request, limit=None, batch_size=100,
+        service, request, global_params=None, limit=None, batch_size=100,
         method='List', field='items', predicate=None,
         current_token_attribute='pageToken',
         next_token_attribute='nextPageToken',
@@ -22,6 +37,8 @@ def YieldFromList(
           corresponding to the service's .List() method, with all the
           attributes populated except the .maxResults and .pageToken
           attributes.
+      global_params: protorpc.messages.Message, The global query parameters to
+           provide when calling the given method.
       limit: int, The maximum number of records to yield. None if all available
           records should be yielded.
       batch_size: int, The number of items to retrieve per request.
@@ -35,17 +52,20 @@ def YieldFromList(
           response message holding the page token for the next page.
       batch_size_attribute: str, The name of the attribute in a
           response message holding the maximum number of results to be
-          returned.
+          returned. None if caller-specified batch size is unsupported.
 
     Yields:
       protorpc.message.Message, The resources listed by the service.
 
     """
     request = encoding.CopyProtoMessage(request)
-    setattr(request, batch_size_attribute, batch_size)
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
-        response = getattr(service, method)(request)
+        if batch_size_attribute:
+            request_batch_size = min(batch_size, limit or batch_size)
+            setattr(request, batch_size_attribute, request_batch_size)
+        response = getattr(service, method)(request,
+                                            global_params=global_params)
         items = getattr(response, field)
         if predicate:
             items = list(filter(predicate, items))

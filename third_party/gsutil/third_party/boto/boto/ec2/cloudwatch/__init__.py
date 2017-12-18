@@ -29,6 +29,7 @@ from boto.ec2.cloudwatch.metric import Metric
 from boto.ec2.cloudwatch.alarm import MetricAlarm, MetricAlarms, AlarmHistoryItem
 from boto.ec2.cloudwatch.datapoint import Datapoint
 from boto.regioninfo import RegionInfo, get_regions, load_regions
+from boto.regioninfo import connect
 import boto
 
 RegionData = load_regions().get('cloudwatch', {})
@@ -55,10 +56,8 @@ def connect_to_region(region_name, **kw_params):
     :return: A connection to the given region, or None if an invalid region
         name is given
     """
-    for region in regions():
-        if region.name == region_name:
-            return region.connect(**kw_params)
-    return None
+    return connect('cloudwatch', region_name,
+                   connection_cls=CloudWatchConnection, **kw_params)
 
 
 class CloudWatchConnection(AWSQueryConnection):
@@ -343,7 +342,7 @@ class CloudWatchConnection(AWSQueryConnection):
         action.
 
         :type action_prefix: string
-        :param action_name: The action name prefix.
+        :param action_prefix: The action name prefix.
 
         :type alarm_name_prefix: string
         :param alarm_name_prefix: The alarm name prefix. AlarmNames cannot
@@ -444,7 +443,7 @@ class CloudWatchConnection(AWSQueryConnection):
         or unit to filter the set of alarms further.
 
         :type metric_name: string
-        :param metric_name: The name of the metric
+        :param metric_name: The name of the metric.
 
         :type namespace: string
         :param namespace: The namespace of the metric.
@@ -456,9 +455,10 @@ class CloudWatchConnection(AWSQueryConnection):
         :type statistic: string
         :param statistic: The statistic for the metric.
 
-        :param dimension_filters: A dictionary containing name/value
-            pairs that will be used to filter the results.  The key in
-            the dictionary is the name of a Dimension.  The value in
+        :type dimensions: dict
+        :param dimensions: A dictionary containing name/value
+            pairs that will be used to filter the results. The key in
+            the dictionary is the name of a Dimension. The value in
             the dictionary is either a scalar value of that Dimension
             name that you want to filter on, a list of values to
             filter on or None if you want all metrics with that

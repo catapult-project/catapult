@@ -20,6 +20,7 @@ from gslib.bucket_listing_ref import BucketListingObject
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
+from gslib.encryption_helper import GetEncryptionTuple
 from gslib.exception import CommandException
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
@@ -28,9 +29,10 @@ from gslib.translation_helper import PreconditionsFromHeaders
 
 MAX_COMPONENT_COUNT = 1024
 MAX_COMPOSE_ARITY = 32
+MAX_COMPONENT_RATE = 200
 
 _SYNOPSIS = """
-  gsutil compose gs://bucket/obj1 gs://bucket/obj2 ... gs://bucket/composite
+  gsutil compose gs://bucket/obj1 [gs://bucket/obj2 ...] gs://bucket/composite
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -43,9 +45,9 @@ _DETAILED_HELP_TEXT = ("""
   of a given sequence of component objects under the same bucket. gsutil uses
   the content type of the first source object to determine the destination
   object's content type. For more information, please see:
-  https://developers.google.com/storage/docs/composite-objects
+  https://cloud.google.com/storage/docs/composite-objects
 
-  Note also that the gsutil cp command will automatically split uploads for
+  Note also that the gsutil cp command can automatically split uploads for
   large files into multiple component objects, upload them in parallel, and
   compose them into a final object (which will be subject to the component
   count limit). This will still perform all uploads from a single machine. For
@@ -63,10 +65,18 @@ _DETAILED_HELP_TEXT = ("""
         gs://bucket/append-target
     $ gsutil rm gs://bucket/data-to-append
 
-  Note that there is a limit (currently %d) to the number of components for a
-  given composite object. This means you can append to each object at most %d
-  times.
-""" % (MAX_COMPONENT_COUNT, MAX_COMPONENT_COUNT - 1))
+  Note that there is a limit (currently %d) to the number of components that can
+  be composed in a single operation.
+
+  There is a limit (currently %d) to the total number of components
+  for a given composite object. This means you can append to each object at most
+  %d times.
+  
+  There is a per-project rate limit (currently %d) to the number of components
+  you can compose per second. This rate counts both the components being
+  appended to a composite object as well as the components being copied when
+  the composite object of which they are a part is copied.
+""" % (MAX_COMPOSE_ARITY, MAX_COMPONENT_COUNT, MAX_COMPONENT_COUNT - 1, MAX_COMPONENT_RATE))
 
 
 class ComposeCommand(Command):
@@ -77,7 +87,7 @@ class ComposeCommand(Command):
       'compose',
       command_name_aliases=['concat'],
       usage_synopsis=_SYNOPSIS,
-      min_args=2,
+      min_args=1,
       max_args=MAX_COMPOSE_ARITY + 1,
       supported_sub_args='',
       # Not files, just object names without gs:// prefix.
@@ -151,8 +161,8 @@ class ComposeCommand(Command):
           raise CommandException('"compose" called with too many component '
                                  'objects. Limit is %d.' % MAX_COMPOSE_ARITY)
 
-    if len(components) < 2:
-      raise CommandException('"compose" requires at least 2 component objects.')
+    if not components:
+      raise CommandException('"compose" requires at least 1 component object.')
 
     dst_obj_metadata.contentType = self.gsutil_api.GetObjectMetadata(
         first_src_url.bucket_name, first_src_url.object_name,
@@ -161,7 +171,8 @@ class ComposeCommand(Command):
     preconditions = PreconditionsFromHeaders(self.headers or {})
 
     self.logger.info(
-        'Composing %s from %d component objects.', target_url, len(components))
-    self.gsutil_api.ComposeObject(components, dst_obj_metadata,
-                                  preconditions=preconditions,
-                                  provider=target_url.scheme)
+        'Composing %s from %d component object(s).',
+        target_url, len(components))
+    self.gsutil_api.ComposeObject(
+        components, dst_obj_metadata, preconditions=preconditions,
+        provider=target_url.scheme, encryption_tuple=GetEncryptionTuple())

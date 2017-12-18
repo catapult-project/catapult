@@ -26,30 +26,18 @@ import textwrap
 import time
 
 import gslib
+from gslib.cloud_api import ProjectIdException
 from gslib.command import Command
 from gslib.command import ResetFailureCount
 from gslib.exception import CommandException
 from gslib.project_id import PopulateProjectId
 import gslib.tests as tests
+from gslib.tests.util import GetTestNames
+from gslib.tests.util import unittest
 from gslib.util import IS_WINDOWS
 from gslib.util import NO_MAX
 
-
-# For Python 2.6, unittest2 is required to run the tests. If it's not available,
-# display an error if the test command is run instead of breaking the whole
-# program.
 # pylint: disable=g-import-not-at-top
-try:
-  from gslib.tests.util import GetTestNames
-  from gslib.tests.util import unittest
-except ImportError as e:
-  if 'unittest2' in str(e):
-    unittest = None
-    GetTestNames = None  # pylint: disable=invalid-name
-  else:
-    raise
-
-
 try:
   import coverage
 except ImportError:
@@ -137,8 +125,14 @@ _DETAILED_HELP_TEXT = ("""
 
   This will output an HTML report to a directory named 'htmlcov'.
 
+  Test coverage is compatible with v4.1 of the coverage module
+  (https://pypi.python.org/pypi/coverage).
+
 
 <B>OPTIONS</B>
+  -b          Run tests against multi-regional US buckets. By default,
+              tests run against regional buckets in us-central1.
+
   -c          Output coverage information.
 
   -f          Exit on first sequential test failure.
@@ -289,6 +283,14 @@ def CreateTestProcesses(parallel_tests, test_index, process_list, process_done,
   orig_test_index = test_index
   executable_prefix = [sys.executable] if sys.executable and IS_WINDOWS else []
   s3_argument = ['-s'] if tests.util.RUN_S3_TESTS else []
+  multiregional_buckets = ['-b'] if tests.util.USE_MULTIREGIONAL_BUCKETS else []
+  project_id_arg = []
+  try:
+    project_id_arg = ['-o',
+                      'GSUtil:default_project_id=%s' % PopulateProjectId()]
+  except ProjectIdException:
+    # If we don't have a project ID, unit tests should still be able to pass.
+    pass
 
   process_create_start_time = time.time()
   last_log_time = process_create_start_time
@@ -298,9 +300,8 @@ def CreateTestProcesses(parallel_tests, test_index, process_list, process_done,
     if root_coverage_file:
       env['GSUTIL_COVERAGE_OUTPUT_FILE'] = root_coverage_file
     process_list.append(subprocess.Popen(
-        executable_prefix + [gslib.GSUTIL_PATH] +
-        ['-o', 'GSUtil:default_project_id=' + PopulateProjectId()] +
-        ['test'] + s3_argument +
+        executable_prefix + [gslib.GSUTIL_PATH] + project_id_arg +
+        ['test'] + s3_argument + multiregional_buckets +
         ['--' + _SEQUENTIAL_ISOLATION_FLAG] +
         [parallel_tests[test_index][len('gslib.tests.test_'):]],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env))
@@ -327,7 +328,7 @@ class TestCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=0,
       max_args=NO_MAX,
-      supported_sub_args='uflp:sc',
+      supported_sub_args='buflp:sc',
       file_url_ok=True,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -338,7 +339,8 @@ class TestCommand(Command):
       help_name='test',
       help_name_aliases=[],
       help_type='command_help',
-      help_one_line_summary='Run gsutil tests',
+      help_one_line_summary=(
+          'Run gsutil unit/integration tests (for developers)'),
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )
@@ -449,10 +451,6 @@ class TestCommand(Command):
 
   def RunCommand(self):
     """Command entry point for the test command."""
-    if not unittest:
-      raise CommandException('On Python 2.6, the unittest2 module is required '
-                             'to run the gsutil tests.')
-
     failfast = False
     list_tests = False
     max_parallel_tests = _DEFAULT_TEST_PARALLEL_PROCESSES
@@ -460,7 +458,9 @@ class TestCommand(Command):
     sequential_only = False
     if self.sub_opts:
       for o, a in self.sub_opts:
-        if o == '-c':
+        if o == '-b':
+          tests.util.USE_MULTIREGIONAL_BUCKETS = True
+        elif o == '-c':
           perform_coverage = True
         elif o == '-f':
           failfast = True
@@ -487,7 +487,7 @@ class TestCommand(Command):
           'You can install it with "pip install coverage".')
 
     if (tests.util.RUN_S3_TESTS and
-          max_parallel_tests > _DEFAULT_S3_TEST_PARALLEL_PROCESSES):
+        max_parallel_tests > _DEFAULT_S3_TEST_PARALLEL_PROCESSES):
       self.logger.warn(
           'Reducing parallel tests to %d due to S3 maximum bucket '
           'limitations.', _DEFAULT_S3_TEST_PARALLEL_PROCESSES)
@@ -569,6 +569,10 @@ class TestCommand(Command):
                               (len(parallel_integration_tests) <= 1
                                and not isolated_tests))
 
+    # Disable analytics for the duration of testing. This is set as an
+    # environment variable so that the subprocesses will also not report.
+    os.environ['GSUTIL_TEST_ANALYTICS'] = '1'
+
     if run_tests_sequentially:
       total_tests = suite.countTestCases()
       resultclass = MakeCustomTestResultClass(total_tests)
@@ -632,7 +636,8 @@ class TestCommand(Command):
                  num_parallel_tests)
         (num_parallel_failures, parallel_time_elapsed) = self.RunParallelTests(
             parallel_integration_tests, max_parallel_tests,
-            coverage_controller.data.filename if perform_coverage else None)
+            coverage_controller.data_files.filename if perform_coverage
+            else None)
         self.PrintTestResults(
             num_sequential_tests, sequential_success,
             sequential_time_elapsed,
@@ -644,7 +649,10 @@ class TestCommand(Command):
       coverage_controller.combine()
       coverage_controller.save()
       print ('Coverage information was saved to: %s' %
-             coverage_controller.data.filename)
+             coverage_controller.data_files.filename)
+
+    # Re-enable analytics to report the test command.
+    os.environ['GSUTIL_TEST_ANALYTICS'] = '0'
 
     if sequential_success and not num_parallel_failures:
       ResetFailureCount()

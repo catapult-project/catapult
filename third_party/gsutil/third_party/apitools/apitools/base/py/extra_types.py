@@ -1,20 +1,31 @@
 #!/usr/bin/env python
-"""Extra types understood by apitools.
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-This file will be replaced by a .proto file when we switch to proto2
-from protorpc.
-"""
+"""Extra types understood by apitools."""
 
 import collections
 import datetime
 import json
 import numbers
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import protojson
 import six
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import protojson
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util
@@ -29,29 +40,30 @@ __all__ = [
     'JsonProtoDecoder',
 ]
 
-# We import from protorpc.
 # pylint:disable=invalid-name
 DateTimeMessage = message_types.DateTimeMessage
 # pylint:enable=invalid-name
 
 
-class DateField(messages.Field):
+# We insert our own metaclass here to avoid letting ProtoRPC
+# register this as the default field type for strings.
+#  * since ProtoRPC does this via metaclasses, we don't have any
+#    choice but to use one ourselves
+#  * since a subclass's metaclass must inherit from its superclass's
+#    metaclass, we're forced to have this hard-to-read inheritance.
+#
+# pylint: disable=protected-access
+class _FieldMeta(messages._FieldMeta):
+
+    def __init__(cls, name, bases, dct):  # pylint: disable=no-self-argument
+        # pylint: disable=super-init-not-called,non-parent-init-called
+        type.__init__(cls, name, bases, dct)
+# pylint: enable=protected-access
+
+
+class DateField(six.with_metaclass(_FieldMeta, messages.Field)):
 
     """Field definition for Date values."""
-
-    # We insert our own metaclass here to avoid letting ProtoRPC
-    # register this as the default field type for strings.
-    #  * since ProtoRPC does this via metaclasses, we don't have any
-    #    choice but to use one ourselves
-    #  * since a subclass's metaclass must inherit from its superclass's
-    #    metaclass, we're forced to have this hard-to-read inheritance.
-    #
-    # pylint: disable=invalid-name
-    class __metaclass__(messages.Field.__metaclass__):
-
-        def __init__(cls, name, bases, dct):
-            super(messages.Field.__metaclass__, cls).__init__(name, bases, dct)
-    # pylint: enable=invalid-name
 
     VARIANTS = frozenset([messages.Variant.STRING])
     DEFAULT_VARIANT = messages.Variant.STRING

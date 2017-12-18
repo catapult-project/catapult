@@ -27,6 +27,7 @@ import time
 import boto
 from boto.storage_uri import BucketStorageUri
 import gslib
+from gslib import metrics
 from gslib.cloud_api_delegator import CloudApiDelegator
 from gslib.command import Command
 from gslib.command import CreateGsutilLogger
@@ -43,8 +44,12 @@ from gslib.no_op_credentials import NoOpCredentials
 from gslib.tab_complete import MakeCompleter
 from gslib.util import CheckMultiprocessingAvailableAndInit
 from gslib.util import CompareVersions
+from gslib.util import DiscardMessagesQueue
 from gslib.util import GetGsutilVersionModifiedTime
 from gslib.util import GSUTIL_PUB_TARBALL
+from gslib.util import InsistAsciiHeader
+from gslib.util import InsistAsciiHeaderValue
+from gslib.util import IsCustomMetadataHeader
 from gslib.util import IsRunningInteractively
 from gslib.util import LAST_CHECKED_FOR_GSUTIL_UPDATE_TIMESTAMP_FILE
 from gslib.util import LookUpGsutilVersion
@@ -53,55 +58,69 @@ from gslib.util import SECONDS_PER_DAY
 from gslib.util import UTF8
 
 
-def HandleArgCoding(args):
-  """Handles coding of command-line args.
+def HandleHeaderCoding(headers):
+  """Handles coding of headers and their values. Alters the dict in-place.
+
+  Converts a dict of headers and their values to their appropriate types. We
+  ensure that all headers and their values will contain only ASCII characters,
+  with the exception of custom metadata header values; these values may contain
+  Unicode characters, and thus if they are not already unicode-type objects,
+  we attempt to decode them to Unicode using UTF-8 encoding.
 
   Args:
-    args: array of command-line args.
+    headers: A dict mapping headers to their values. All keys and values must
+        be either str or unicode objects.
 
-  Returns:
-    array of command-line args.
+  Raises:
+    CommandException: If a header or its value cannot be encoded in the
+        required encoding.
+  """
+  if not headers:
+    return
+
+  for key in headers:
+    InsistAsciiHeader(key)
+    if IsCustomMetadataHeader(key):
+      if not isinstance(headers[key], unicode):
+        try:
+          headers[key] = headers[key].decode(UTF8)
+        except UnicodeDecodeError:
+          raise CommandException('\n'.join(textwrap.wrap(
+              'Invalid encoding for header value (%s: %s). Values must be '
+              'decodable as Unicode. NOTE: the value printed above '
+              'replaces the problematic characters with a hex-encoded '
+              'printable representation. For more details (including how to '
+              'convert to a gsutil-compatible encoding) see `gsutil help '
+              'encoding`.' % (repr(key), repr(headers[key])))))
+    else:
+      # Non-custom-metadata headers and their values must be ASCII characters.
+      InsistAsciiHeaderValue(key, headers[key])
+
+
+def HandleArgCoding(args):
+  """Handles coding of command-line args. Alters the list in-place.
+
+  Args:
+    args: A list of command-line args.
 
   Raises:
     CommandException: if errors encountered.
   """
   # Python passes arguments from the command line as byte strings. To
-  # correctly interpret them, we decode ones other than -h and -p args (which
-  # will be passed as headers, and thus per HTTP spec should not be encoded) as
-  # utf-8. The exception is x-goog-meta-* headers, which are allowed to contain
-  # non-ASCII content (and hence, should be decoded), per
-  # https://developers.google.com/storage/docs/gsutil/addlhelp/WorkingWithObjectMetadata
-  processing_header = False
+  # correctly interpret them, we decode them as utf-8.
   for i in range(len(args)):
     arg = args[i]
-    # Commands like mv can run this function twice; don't decode twice.
-    try:
-      decoded = arg if isinstance(arg, unicode) else arg.decode(UTF8)
-    except UnicodeDecodeError:
-      raise CommandException('\n'.join(textwrap.wrap(
-          'Invalid encoding for argument (%s). Arguments must be decodable as '
-          'Unicode. NOTE: the argument printed above replaces the problematic '
-          'characters with a hex-encoded printable representation. For more '
-          'details (including how to convert to a gsutil-compatible encoding) '
-          'see `gsutil help encoding`.' % repr(arg))))
-    if processing_header:
-      if arg.lower().startswith('x-goog-meta'):
-        args[i] = decoded
-      else:
-        try:
-          # Try to encode as ASCII to check for invalid header values (which
-          # can't be sent over HTTP).
-          decoded.encode('ascii')
-        except UnicodeEncodeError:
-          # Raise the CommandException using the decoded value because
-          # _OutputAndExit function re-encodes at the end.
-          raise CommandException(
-              'Invalid non-ASCII header value (%s).\nOnly ASCII characters are '
-              'allowed in headers other than x-goog-meta- headers' % decoded)
-    else:
-      args[i] = decoded
-    processing_header = (arg in ('-h', '-p'))
-  return args
+    if not isinstance(arg, unicode):
+      try:
+        args[i] = arg.decode(UTF8)
+      except UnicodeDecodeError:
+        raise CommandException('\n'.join(textwrap.wrap(
+            'Invalid encoding for argument (%s). Arguments must be decodable '
+            'as Unicode. NOTE: the argument printed above replaces the '
+            'problematic characters with a hex-encoded printable '
+            'representation. For more details (including how to convert to a '
+            'gsutil-compatible encoding) see `gsutil help encoding`.' %
+            repr(arg))))
 
 
 class CommandRunner(object):
@@ -181,7 +200,7 @@ class CommandRunner(object):
     logger = CreateGsutilLogger('tab_complete')
     gsutil_api = CloudApiDelegator(
         self.bucket_storage_uri_class, gsutil_api_map,
-        logger, debug=0)
+        logger, DiscardMessagesQueue(), debug=0)
 
     for command in set(self.command_map.values()):
       command_parser = subparsers.add_parser(
@@ -201,7 +220,9 @@ class CommandRunner(object):
   def RunNamedCommand(self, command_name, args=None, headers=None, debug=0,
                       trace_token=None, parallel_operations=False,
                       skip_update_check=False, logging_filters=None,
-                      do_shutdown=True):
+                      do_shutdown=True, perf_trace_token=None,
+                      user_project=None,
+                      collect_analytics=False):
     """Runs the named command.
 
     Used by gsutil main, commands built atop other commands, and tests.
@@ -215,8 +236,13 @@ class CommandRunner(object):
       parallel_operations: Should command operations be executed in parallel?
       skip_update_check: Set to True to disable checking for gsutil updates.
       logging_filters: Optional list of logging.Filters to apply to this
-                       command's logger.
+          command's logger.
       do_shutdown: Stop all parallelism framework workers iff this is True.
+      perf_trace_token: Performance measurement trace token to pass to the
+          underlying API.
+      user_project: The project to bill this request to.
+      collect_analytics: Set to True to collect an analytics metric logging this
+          command.
 
     Raises:
       CommandException: if errors encountered.
@@ -230,6 +256,10 @@ class CommandRunner(object):
       command_name = 'update'
       command_changed_to_update = True
       args = ['-n']
+
+      # Check for opt-in analytics.
+      if IsRunningInteractively() and collect_analytics:
+        metrics.CheckAndMaybePromptForAnalyticsEnabling()
 
     if not args:
       args = []
@@ -267,13 +297,25 @@ class CommandRunner(object):
       args = new_args
       command_name = 'help'
 
-    args = HandleArgCoding(args)
+    HandleArgCoding(args)
+    HandleHeaderCoding(headers)
 
     command_class = self.command_map[command_name]
     command_inst = command_class(
         self, args, headers, debug, trace_token, parallel_operations,
         self.bucket_storage_uri_class, self.gsutil_api_class_map_factory,
-        logging_filters, command_alias_used=command_name)
+        logging_filters, command_alias_used=command_name,
+        perf_trace_token=perf_trace_token, user_project=user_project)
+
+    # Log the command name, command alias, and sub-options after being parsed by
+    # RunCommand and the command constructor. For commands with subcommands and
+    # suboptions, we need to log the suboptions again within the command itself
+    # because the command constructor will not parse the suboptions fully.
+    if collect_analytics:
+      metrics.LogCommandParams(command_name=command_inst.command_name,
+                               sub_opts=command_inst.sub_opts,
+                               command_alias=command_name)
+
     return_code = command_inst.RunCommand()
 
     if CheckMultiprocessingAvailableAndInit().is_available and do_shutdown:
@@ -356,6 +398,7 @@ class CommandRunner(object):
       # Create a credential-less gsutil API to check for the public
       # update tarball.
       gsutil_api = GcsJsonApi(self.bucket_storage_uri_class, logger,
+                              DiscardMessagesQueue(),
                               credentials=NoOpCredentials(), debug=debug)
 
       cur_ver = LookUpGsutilVersion(gsutil_api, GSUTIL_PUB_TARBALL)

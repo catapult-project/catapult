@@ -42,23 +42,22 @@ import tempfile
 import threading
 import urllib
 
+# pylint: disable=g-import-not-at-top
 if os.environ.get('USER_AGENT'):
   import boto
   boto.UserAgent += os.environ.get('USER_AGENT')
 
 from boto import config
 import httplib2
-from oauth2client import service_account
 from oauth2client.client import AccessTokenRefreshError
-from oauth2client.client import Credentials
-from oauth2client.client import EXPIRY_FORMAT
 from oauth2client.client import HAS_CRYPTO
 from oauth2client.client import OAuth2Credentials
 from retry_decorator.retry_decorator import retry as Retry
 import socks
 
-if HAS_CRYPTO:
-  from oauth2client.client import SignedJwtAssertionCredentials
+
+from six import BytesIO
+
 
 LOG = logging.getLogger('oauth2_client')
 
@@ -74,18 +73,70 @@ META_TOKEN_URI = (METADATA_SERVER + '/computeMetadata/v1/instance/'
                   'service-accounts/default/token')
 
 META_HEADERS = {
-    'X-Google-Metadata-Request': 'True'
+    'Metadata-Flavor': 'Google'
 }
+
+# The following implements cross-compatibility with versions of oauth2client.
+# oauth2client 2.0.0 introduced major backwards-incompatibility changes,
+# and it's possible that consumers of this library may be pinned to an
+# old version such as 1.5.2. This must be kept in place until/unless
+# we're certain no clients still depend on the older oauth2 client.
+OAUTH2CLIENT_V2 = False
+try:
+  from oauth2client.service_account import ServiceAccountCredentials
+  # oauth2client >= 2.0.0
+  OAUTH2CLIENT_V2 = True
+except ImportError:
+  # oauth2client < 2.0.0
+  if HAS_CRYPTO:
+    from oauth2client.client import SignedJwtAssertionCredentials
+
+  from oauth2client import service_account
+  from oauth2client.client import Credentials
+  from oauth2client.client import EXPIRY_FORMAT
+
+  # pylint: disable=protected-access
+  class ServiceAccountCredentials(service_account._ServiceAccountCredentials):
+
+    def to_json(self):
+      self.service_account_name = self._service_account_email
+      strip = (['_private_key'] +
+               Credentials.NON_SERIALIZED_MEMBERS)
+      return super(ServiceAccountCredentials, self)._to_json(strip)
+
+    @classmethod
+    def from_json(cls, s):
+      try:
+        data = json.loads(s)
+        retval = ServiceAccountCredentials(
+            service_account_id=data['_service_account_id'],
+            service_account_email=data['_service_account_email'],
+            private_key_id=data['_private_key_id'],
+            private_key_pkcs8_text=data['_private_key_pkcs8_text'],
+            scopes=[DEFAULT_SCOPE])
+            # TODO: Need to define user agent here,
+            # but it is not known until runtime.
+        retval.invalid = data['invalid']
+        retval.access_token = data['access_token']
+        if 'token_expiry' in data:
+          retval.token_expiry = datetime.datetime.strptime(
+              data['token_expiry'], EXPIRY_FORMAT)
+        return retval
+      except KeyError, e:
+        raise Exception('Your JSON credentials are invalid; '
+                        'missing required entry %s.' % e[0])
+  # pylint: enable=protected-access
+# pylint: enable=g-import-not-at-top
 
 
 # Note: this is copied from gsutil's gslib.cred_types. It should be kept in
 # sync. Also note that this library does not use HMAC, but it's preserved from
 # gsutil's copy to maintain compatibility.
 class CredTypes(object):
-  HMAC = "HMAC"
-  OAUTH2_SERVICE_ACCOUNT = "OAuth 2.0 Service Account"
-  OAUTH2_USER_ACCOUNT = "Oauth 2.0 User Account"
-  GCE = "GCE"
+  HMAC = 'HMAC'
+  OAUTH2_SERVICE_ACCOUNT = 'OAuth 2.0 Service Account'
+  OAUTH2_USER_ACCOUNT = 'Oauth 2.0 User Account'
+  GCE = 'GCE'
 
 
 class Error(Exception):
@@ -424,57 +475,27 @@ class OAuth2ServiceAccountClient(_BaseOAuth2ServiceAccountClient):
 
   def GetCredentials(self):
     if HAS_CRYPTO:
-      return SignedJwtAssertionCredentials(
-          self._client_id, self._private_key, scope=DEFAULT_SCOPE,
-          private_key_password=self._password)
+      if OAUTH2CLIENT_V2:
+        # pylint: disable=protected-access
+        return ServiceAccountCredentials.from_p12_keyfile_buffer(
+            self._client_id, BytesIO(self._private_key),
+            private_key_password=self._password, scopes=DEFAULT_SCOPE,
+            token_uri=self.token_uri)
+        # pylint: enable=protected-access
+      else:
+        return SignedJwtAssertionCredentials(
+            self._client_id, self._private_key, scope=DEFAULT_SCOPE,
+            private_key_password=self._password, token_uri=self.token_uri)
     else:
       raise MissingDependencyError(
           'Service account authentication requires PyOpenSSL. Please install '
           'this library and try again.')
 
 
-# TODO: oauth2client should expose _ServiceAccountCredentials as it is the only
-# way to properly set scopes. In the longer term this class should probably
-# be refactored into oauth2client directly in a way that allows for setting of
-# user agent and scopes. https://github.com/google/oauth2client/issues/164
-# pylint: disable=protected-access
-class ServiceAccountCredentials(service_account._ServiceAccountCredentials):
-
-  def to_json(self):
-    self.service_account_name = self._service_account_email
-    strip = (['_private_key'] +
-             Credentials.NON_SERIALIZED_MEMBERS)
-    return super(ServiceAccountCredentials, self)._to_json(strip)
-
-  @classmethod
-  def from_json(cls, s):
-    try:
-      data = json.loads(s)
-      retval = ServiceAccountCredentials(
-          service_account_id=data['_service_account_id'],
-          service_account_email=data['_service_account_email'],
-          private_key_id=data['_private_key_id'],
-          private_key_pkcs8_text=data['_private_key_pkcs8_text'],
-          scopes=[DEFAULT_SCOPE])
-          # TODO: Need to define user agent here,
-          # but it is not known until runtime.
-      retval.invalid = data['invalid']
-      retval.access_token = data['access_token']
-      if 'token_expiry' in data:
-        retval.token_expiry = datetime.datetime.strptime(
-            data['token_expiry'], EXPIRY_FORMAT)
-      return retval
-    except KeyError, e:
-      raise Exception('Your JSON credentials are invalid; '
-                      'missing required entry %s.' % e[0])
-# pylint: enable=protected-access
-
-
 class OAuth2JsonServiceAccountClient(_BaseOAuth2ServiceAccountClient):
   """An OAuth2 service account client using .json keys."""
 
-  def __init__(self, client_id, service_account_email, private_key_id,
-               private_key_pkcs8_text, access_token_cache=None, auth_uri=None,
+  def __init__(self, json_key_dict, access_token_cache=None, auth_uri=None,
                token_uri=None, datetime_strategy=datetime.datetime,
                disable_ssl_certificate_validation=False,
                proxy_host=None, proxy_port=None, proxy_user=None,
@@ -484,49 +505,60 @@ class OAuth2JsonServiceAccountClient(_BaseOAuth2ServiceAccountClient):
     """Creates an OAuth2JsonServiceAccountClient.
 
     Args:
-      client_id: The OAuth2 client ID of this client.
-      client_email: The email associated with this client.
-      private_key_id: The private key id associated with this service account.
-      private_key_pkcs8_text: The pkcs8 text containing the private key data.
+      json_key_dict: dictionary from the json private key file. Includes:
+          client_id: The OAuth2 client ID of this client.
+          client_email: The email associated with this client.
+          private_key_id: The private key id associated with this service
+              account.
+          private_key_pkcs8_text: The pkcs8 text containing the private key
+              data.
 
     Keyword arguments match the _BaseOAuth2ServiceAccountClient class.
     """
     # pylint: enable=g-doc-args
     super(OAuth2JsonServiceAccountClient, self).__init__(
-        client_id, auth_uri=auth_uri, token_uri=token_uri,
+        json_key_dict['client_id'], auth_uri=auth_uri, token_uri=token_uri,
         access_token_cache=access_token_cache,
         datetime_strategy=datetime_strategy,
         disable_ssl_certificate_validation=disable_ssl_certificate_validation,
         proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user,
         proxy_pass=proxy_pass, ca_certs_file=ca_certs_file)
-    self._service_account_email = service_account_email
-    self._private_key_id = private_key_id
-    self._private_key_pkcs8_text = private_key_pkcs8_text
+    self._json_key_dict = json_key_dict
+    self._service_account_email = json_key_dict['client_email']
+    self._private_key_id = json_key_dict['private_key_id']
+    self._private_key_pkcs8_text = json_key_dict['private_key']
 
   def GetCredentials(self):
-    return ServiceAccountCredentials(
-        service_account_id=self._client_id,
-        service_account_email=self._service_account_email,
-        private_key_id=self._private_key_id,
-        private_key_pkcs8_text=self._private_key_pkcs8_text,
-        scopes=[DEFAULT_SCOPE])
-        # TODO: Need to plumb user agent through here.
+    if OAUTH2CLIENT_V2:
+      return ServiceAccountCredentials.from_json_keyfile_dict(
+          self._json_key_dict, scopes=[DEFAULT_SCOPE], token_uri=self.token_uri)
+    else:
+      return ServiceAccountCredentials(
+          service_account_id=self._client_id,
+          service_account_email=self._service_account_email,
+          private_key_id=self._private_key_id,
+          private_key_pkcs8_text=self._private_key_pkcs8_text,
+          scopes=[DEFAULT_SCOPE], token_uri=self.token_uri)
+    # TODO: Need to plumb user agent through here.
 
 
 class GsAccessTokenRefreshError(Exception):
   """Transient error when requesting access token."""
+
   def __init__(self, e):
-    super(Exception, self).__init__(e)
+    super(GsAccessTokenRefreshError, self).__init__(e)
 
 
 class GsInvalidRefreshTokenError(Exception):
+
   def __init__(self, e):
-    super(Exception, self).__init__(e)
+    super(GsInvalidRefreshTokenError, self).__init__(e)
 
 
 class MissingDependencyError(Exception):
+
   def __init__(self, e):
-    super(Exception, self).__init__(e)
+    super(MissingDependencyError, self).__init__(e)
 
 
 class OAuth2UserAccountClient(OAuth2Client):
@@ -595,10 +627,12 @@ class OAuth2UserAccountClient(OAuth2Client):
     try:
       http = self.CreateHttpRequest()
       credentials = OAuth2Credentials(None, self.client_id, self.client_secret,
-          self.refresh_token, None, self.token_uri, None)
+                                      self.refresh_token, None, self.token_uri,
+                                      None)
       credentials.refresh(http)
-      return AccessToken(credentials.access_token,
-          credentials.token_expiry, datetime_strategy=self.datetime_strategy)
+      return AccessToken(
+          credentials.access_token, credentials.token_expiry,
+          datetime_strategy=self.datetime_strategy)
     except AccessTokenRefreshError, e:
       if 'Invalid response 403' in e.message:
         # This is the most we can do at the moment to accurately detect rate
@@ -635,8 +669,8 @@ class OAuth2GCEClient(OAuth2Client):
       http = httplib2.Http()
       response, content = http.request(META_TOKEN_URI, method='GET',
                                        body=None, headers=META_HEADERS)
-    except Exception:
-      raise GsAccessTokenRefreshError()
+    except Exception, e:
+      raise GsAccessTokenRefreshError(e)
 
     if response.status == 200:
       d = json.loads(content)
@@ -644,7 +678,7 @@ class OAuth2GCEClient(OAuth2Client):
       return AccessToken(
           d['access_token'],
           datetime.datetime.now() +
-              datetime.timedelta(seconds=d.get('expires_in', 0)),
+          datetime.timedelta(seconds=d.get('expires_in', 0)),
           datetime_strategy=self.datetime_strategy)
 
 
@@ -661,7 +695,7 @@ def _IsGCE():
     # this approach, we'll avoid having to enumerate all possible non-transient
     # socket errors.
     return False
-  except Exception, e:
+  except Exception, e:  # pylint: disable=broad-except
     LOG.warning("Failed to determine whether we're running on GCE, so we'll"
                 "assume that we aren't: %s", e)
     return False
@@ -696,7 +730,7 @@ class AccessToken(object):
       try:
         expiry = datetime.datetime(
             *[int(n) for n in expiry_tuple.split(',')])
-      except:
+      except:  # pylint: disable=bare-except
         return None
     return AccessToken(GetValue(kv, 'token'), expiry)
 

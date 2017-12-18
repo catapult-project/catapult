@@ -39,10 +39,15 @@ from gslib import copy_helper
 from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import ServiceException
 from gslib.exception import CommandException
+from gslib.exception import InvalidUrlError
+from gslib.exception import NO_URLS_MATCHED_GENERIC
 from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetDummyProjectForUnitTest
+from gslib.tests.util import unittest
+from gslib.util import IS_WINDOWS
 from gslib.util import UTF8
 
 
@@ -68,23 +73,36 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
   def testGetPathBeforeFinalDir(self):
     """Tests GetPathBeforeFinalDir() (unit test)."""
     self.assertEqual(
-        'gs://', copy_helper.GetPathBeforeFinalDir(StorageUrlFromString(
-            'gs://bucket/')))
+        'gs://', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/'),
+            StorageUrlFromString('gs://bucket/obj')))
     self.assertEqual(
-        'gs://bucket', copy_helper.GetPathBeforeFinalDir(StorageUrlFromString(
-            'gs://bucket/dir/')))
+        'gs://bucket', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/dir/'),
+            StorageUrlFromString('gs://bucket/dir/obj')))
     self.assertEqual(
-        'gs://bucket', copy_helper.GetPathBeforeFinalDir(StorageUrlFromString(
-            'gs://bucket/dir')))
+        'gs://bucket', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/dir'),
+            StorageUrlFromString('gs://bucket/dir/obj')))
     self.assertEqual(
         'gs://bucket/dir', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/dir/obj'),
             StorageUrlFromString('gs://bucket/dir/obj')))
+    self.assertEqual(
+        'gs://bucket/dir1', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/*/dir2'),
+            StorageUrlFromString('gs://bucket/dir1/dir2/obj')))
+    self.assertEqual(
+        'gs://bucket/dir1/dir2/dir3', copy_helper.GetPathBeforeFinalDir(
+            StorageUrlFromString('gs://bucket/*/dir2/*/dir4'),
+            StorageUrlFromString('gs://bucket/dir1/dir2/dir3/dir4/obj')))
     src_dir = self.CreateTempDir()
     subdir = os.path.join(src_dir, 'subdir')
     os.mkdir(subdir)
     self.assertEqual(suri(src_dir),
                      copy_helper.GetPathBeforeFinalDir(
-                         StorageUrlFromString(suri(subdir))))
+                         StorageUrlFromString(suri(subdir)),
+                         StorageUrlFromString(suri(subdir, 'obj'))))
 
   # @SequentialAndParallelTransfer
   def testCopyingTopLevelFileToBucket(self):
@@ -114,9 +132,9 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
 
   # @SequentialAndParallelTransfer
   def testCopyingNestedFileToBucketSubdir(self):
-    """Tests copying a nested file to a bucket subdir.
+    r"""Tests copying a nested file to a bucket subdir.
 
-    Tests that we correctly translate local FS-specific delimiters ('\' on
+    Tests that we correctly translate local FS-specific delimiters (\ on
     Windows) to bucket delimiter (/).
     """
     tmpdir = self.CreateTempDir()
@@ -133,6 +151,64 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
         suri(dst_bucket_uri, 'subdir', 'a'),
         suri(dst_bucket_uri, 'subdir', 'obj'),
     ])
+    self.assertEqual(expected, actual)
+
+  def testCopyingBucketSubdirsToBucket(self):
+    """Ensure wildcarded recursive cp in bucket subdirs behaves like Unix."""
+    src_bucket_uri = self.CreateBucket()
+    dst_bucket_uri = self.CreateBucket()
+    fpath = self.CreateTempFile(file_name='foo', contents='bar')
+    self.RunCommand('cp', [fpath, suri(src_bucket_uri, 'Test/sub-test/foo')])
+    self.RunCommand('cp', [fpath, suri(src_bucket_uri, 'Test2/sub-test/foo')])
+    self.RunCommand('cp', [fpath, suri(src_bucket_uri, 'Test3/sub-test/foo')])
+    self.RunCommand('cp', ['-R', suri(src_bucket_uri, '*', 'sub-test'),
+                           suri(dst_bucket_uri)])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri, 'sub-test', 'foo')])
+    self.assertEqual(expected, actual)
+
+    src_bucket_uri2 = self.CreateBucket()
+    dst_bucket_uri2 = self.CreateBucket()
+
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri2, 'Test/dir1/dir2/foo')])
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri2, 'Test2/dir1/dir2/foo')])
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri2, 'Test3/dir1/dir2/bar')])
+    self.RunCommand('cp', ['-R', suri(src_bucket_uri2, '*', 'dir1', 'dir2'),
+                           suri(dst_bucket_uri2)])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri2, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri2, 'dir2', 'foo'),
+                    suri(dst_bucket_uri2, 'dir2', 'bar')])
+    self.assertEqual(expected, actual)
+
+    dst_bucket_uri3 = self.CreateBucket()
+    self.RunCommand('cp', ['-R', suri(src_bucket_uri2, 'Test*', '*', 'dir2'),
+                           suri(dst_bucket_uri3)])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri3, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri3, 'dir2', 'foo'),
+                    suri(dst_bucket_uri3, 'dir2', 'bar')])
+    self.assertEqual(expected, actual)
+
+    src_bucket_uri3 = self.CreateBucket()
+    dst_bucket_uri4 = self.CreateBucket()
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri3, 'dir1/test1/dir2/dir3/foo')])
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri3, 'dir1/test2/dir2/dir3/foo')])
+    self.RunCommand('cp',
+                    [fpath, suri(src_bucket_uri3, 'dir1/test3/dir2/dir3/bar')])
+    self.RunCommand('cp', ['-R', suri(src_bucket_uri3,
+                                      'dir1', '*', 'dir2', 'dir3'),
+                           suri(dst_bucket_uri4)])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri4, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri4, 'dir3', 'foo'),
+                    suri(dst_bucket_uri4, 'dir3', 'bar')])
     self.assertEqual(expected, actual)
 
   # @SequentialAndParallelTransfer
@@ -242,6 +318,18 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     self.assertEqual(1, len(actual))
     self.assertEqual(suri(dst_bucket_uri, 'dir1', 'foo'), actual[0])
 
+  def testCopyDotFilesToBucket(self):
+    dst_bucket_uri = self.CreateBucket()
+    src_dir = self.CreateTempDir(test_files=[('foo')])
+    object_named_dot = suri(dst_bucket_uri) + '/.'
+    object_named_dotdot = suri(dst_bucket_uri) + '/..'
+    for object_name in (object_named_dot, object_named_dotdot):
+      try:
+        self.RunCommand('cp', [os.path.join(src_dir, 'foo'), object_name])
+        self.fail('Expected InvalidUrlError for %s' % object_name)
+      except InvalidUrlError:
+        pass
+
   def testCopyingBucketToDir(self):
     """Tests copying from a bucket to a directory."""
     src_bucket_uri = self.CreateBucket(test_objects=['foo', 'dir/foo2'])
@@ -254,6 +342,33 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_dir, src_bucket_uri.bucket_name, 'foo'),
                     suri(dst_dir, src_bucket_uri.bucket_name, 'dir', 'foo2')])
     self.assertEqual(expected, actual)
+
+  @unittest.skipIf(IS_WINDOWS, 'os.symlink() is not available on Windows.')
+  def testCopyingSymlinkDirectory(self):
+    """Tests that cp warns when copying a symlink directory."""
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    tmpdir2 = self.CreateTempDir()
+    # Create a valid file, since cp expects to copy at least one source URL
+    # successfully.
+    subdir = os.path.join(tmpdir, 'subdir')
+    os.mkdir(subdir)
+    fpath1 = self.CreateTempFile(tmpdir=subdir, contents='foo')
+    self.CreateTempFile(tmpdir=tmpdir2, contents='foo')
+    os.mkdir(os.path.join(tmpdir, 'symlinkdir'))
+    # Create a symlink to a directory to ensure we warn when encountering it.
+    os.symlink(tmpdir2, os.path.join(subdir, 'symlinkdir'))
+    mock_log_handler = self.RunCommand('cp', ['-r', tmpdir, suri(bucket_uri)],
+                                       return_log_handler=True)
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
+    expected_object_path = suri(bucket_uri, os.path.basename(tmpdir),
+                                'subdir', os.path.basename(fpath1))
+    expected = set([expected_object_path])
+    self.assertEqual(expected, actual)
+    self.assertIn('Skipping symlink directory "%s"' %
+                  os.path.join(subdir, 'symlinkdir'),
+                  mock_log_handler.messages['info'])
 
   def testCopyingBucketToBucket(self):
     """Tests copying from a bucket-only URI to a bucket."""
@@ -420,6 +535,31 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([suri(dst_bucket_uri, 'dir3/dir2/foo')])
     self.assertEqual(expected, actual)
 
+  def testCopyingFileToDirRecursive(self):
+    """Tests copying a file with -R."""
+    src_file = self.CreateTempFile(file_name='foo')
+    dst_bucket_uri = self.CreateBucket()
+    self.RunCommand('cp', ['-R', src_file,
+                           suri(dst_bucket_uri, 'dir/foo')])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri, 'dir/foo')])
+    self.assertEqual(expected, actual)
+
+  def testCopyingMultipleFilesToDirRecursive(self):
+    """Tests copying multiple files with -R."""
+    src_dir = self.CreateTempDir()
+    src_file1 = self.CreateTempFile(tmpdir=src_dir, file_name='foo')
+    src_file2 = self.CreateTempFile(tmpdir=src_dir, file_name='bar')
+    dst_bucket_uri = self.CreateBucket()
+    self.RunCommand('cp', ['-R', src_file1, src_file2,
+                           suri(dst_bucket_uri, 'dir/foo')])
+    actual = set(str(u) for u in self._test_wildcard_iterator(
+        suri(dst_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
+    expected = set([suri(dst_bucket_uri, 'dir/foo/foo'),
+                    suri(dst_bucket_uri, 'dir/foo/bar')])
+    self.assertEqual(expected, actual)
+
   def testAttemptDirCopyWithoutRecursion(self):
     """Tests copying a directory without -R."""
     src_dir = self.CreateTempDir(test_files=1)
@@ -428,7 +568,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
       self.RunCommand('cp', [src_dir, dst_dir])
       self.fail('Did not get expected CommandException')
     except CommandException, e:
-      self.assertIn('No URLs matched', e.reason)
+      self.assertIn(NO_URLS_MATCHED_GENERIC, e.reason)
 
   def testNonRecursiveFileAndSameNameSubdir(self):
     """Tests copying a file and subdirectory of the same name without -R."""
@@ -566,7 +706,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
   def testLsBucketRecursiveWithLeadingSlashObjectName(self):
     """Test that ls -R of a bucket with an object that has leading slash."""
     dst_bucket_uri = self.CreateBucket(test_objects=['f0'])
-    output = self.RunCommand('ls', ['-R', suri(dst_bucket_uri) + '*'],
+    output = self.RunCommand('ls', ['-R', suri(dst_bucket_uri, '*')],
                              return_stdout=True)
     expected = set([suri(dst_bucket_uri, 'f0')])
     expected.add('')  # Blank line between subdir listings.
@@ -617,7 +757,9 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     # present MockStorageService doesn't translate canned ACLs into actual ACL
     # XML.
     src_bucket_uri = self.CreateBucket(test_objects=['f0'])
-    self.RunCommand('acl', ['set', 'private', suri(src_bucket_uri)[:-2] + '*'])
+    with SetDummyProjectForUnitTest():
+      self.RunCommand('acl', ['set', 'private',
+                              suri(src_bucket_uri)[:-2] +'*'])
 
   def testSetAclOnObjectRuns(self):
     """Test that the 'acl set' command basically runs."""
@@ -760,7 +902,7 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
           'cp', [suri(src_bucket_uri, 'src_subdir'), dst_dir])
       self.fail('Did not get expected CommandException')
     except CommandException, e:
-      self.assertIn('No URLs matched', e.reason)
+      self.assertIn(NO_URLS_MATCHED_GENERIC, e.reason)
 
   def testCopyingBucketSubDirToBucketSubDir(self):
     """Tests copying a bucket subdir to another bucket subdir."""
@@ -1084,7 +1226,8 @@ class GsUtilCommandTests(testcase.GsUtilUnitTestCase):
     """Test mb on existing bucket."""
     dst_bucket_uri = self.CreateBucket()
     try:
-      self.RunCommand('mb', [suri(dst_bucket_uri)])
+      with SetDummyProjectForUnitTest():
+        self.RunCommand('mb', [suri(dst_bucket_uri)])
       self.fail('Did not get expected StorageCreateError')
     except ServiceException, e:
       self.assertEqual(e.status, 409)
@@ -1096,7 +1239,7 @@ class GsUtilCommandTests(testcase.GsUtilUnitTestCase):
       self.RunCommand('rm', [suri(dst_bucket_uri, 'non_existent')])
       self.fail('Did not get expected CommandException')
     except CommandException, e:
-      self.assertIn('No URLs matched', e.reason)
+      self.assertIn(NO_URLS_MATCHED_GENERIC, e.reason)
 
   # Now that gsutil ver computes a checksum it adds 1-3 seconds to test run
   # time (for in memory mocked tests that otherwise take ~ 0.1 seconds). Since

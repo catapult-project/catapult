@@ -39,7 +39,7 @@ class MTurkRequestError(EC2ResponseError):
 
 class MTurkConnection(AWSQueryConnection):
 
-    APIVersion = '2012-03-25'
+    APIVersion = '2014-08-15'
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None,
                  is_secure=True, port=None, proxy=None, proxy_port=None,
@@ -844,7 +844,7 @@ class MTurkConnection(AWSQueryConnection):
         body = response.read()
         if self.debug == 2:
             print(body)
-        if '<Errors>' not in body:
+        if '<Errors>' not in body.decode('utf-8'):
             rs = ResultSet(marker_elems)
             h = handler.XmlHandler(rs, self)
             xml.sax.parseString(body, h)

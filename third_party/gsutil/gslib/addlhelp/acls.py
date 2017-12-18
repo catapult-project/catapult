@@ -14,6 +14,8 @@
 # limitations under the License.
 """Additional help about Access Control Lists."""
 
+# TODO(iam-beta): Revise this to include new IAM syntax.
+
 from __future__ import absolute_import
 
 from gslib.help_provider import HelpProvider
@@ -68,6 +70,14 @@ _DETAILED_HELP_TEXT = ("""
      costs), but not grant those users read access to the object data (which
      might be sensitive data that should only be accessed by a different
      specific group of users).
+
+
+<B>ACCESSING PUBLIC OBJECTS</B>
+  Objects with public READ access can be accessed anonymously by gsutil, via
+  a browser, or via Cloud Storage APIs. For more details on accessing public
+  objects, see:
+
+    https://cloud.google.com/storage/docs/access-public-data
 
 
 <B>CANNED ACLS</B>
@@ -202,7 +212,7 @@ _DETAILED_HELP_TEXT = ("""
 
 <B>SHARING SCENARIOS</B>
   For more detailed examples how to achieve various useful sharing use
-  cases see https://developers.google.com/storage/docs/collaboration
+  cases see https://cloud.google.com/storage/docs/collaboration
 """)
 
 

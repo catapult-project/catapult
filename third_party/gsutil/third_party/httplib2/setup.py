@@ -5,14 +5,13 @@ except ImportError:
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.7.7'
+VERSION = '0.10.3'
 
 setup(name='httplib2',
         version=VERSION,
         author='Joe Gregorio',
         author_email='joe@bitworking.org',
-        url='http://code.google.com/p/httplib2/',
-        download_url='http://httplib2.googlecode.com/files/httplib2-%s.tar.gz' % VERSION,
+        url='https://github.com/httplib2/httplib2',
         description='A comprehensive HTTP client library.',
         license='MIT',
         long_description="""

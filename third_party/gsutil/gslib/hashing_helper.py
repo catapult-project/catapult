@@ -32,8 +32,16 @@ from gslib.util import UsingCrcmodExtension
 SLOW_CRCMOD_WARNING = """
 WARNING: You have requested checksumming but your crcmod installation isn't
 using the module's C extension, so checksumming will run very slowly. For help
-installing the extension, please see:
-  $ gsutil help crcmod
+installing the extension, please see "gsutil help crcmod".
+"""
+
+
+SLOW_CRCMOD_RSYNC_WARNING = """
+WARNING: gsutil rsync uses hashes when modification time is not available at
+both the source and destination. Your crcmod installation isn't using the
+module's C extension, so checksumming will run very slowly. If this is your
+first rsync since updating gsutil, this rsync can take significantly longer than
+usual. For help installing the extension, please see "gsutil help crcmod".
 """
 
 
@@ -41,19 +49,18 @@ _SLOW_CRCMOD_DOWNLOAD_WARNING = """
 WARNING: Downloading this composite object requires integrity checking with
 CRC32c, but your crcmod installation isn't using the module's C extension,
 so the hash computation will likely throttle download performance. For help
-installing the extension, please see:
-  $ gsutil help crcmod
+installing the extension, please see "gsutil help crcmod".
+
 To disable slow integrity checking, see the "check_hashes" option in your
 boto config file.
 """
+
 
 _SLOW_CRC_EXCEPTION_TEXT = """
 Downloading this composite object requires integrity checking with CRC32c,
 but your crcmod installation isn't using the module's C extension, so the
 hash computation will likely throttle download performance. For help
-installing the extension, please see:
-
-  $ gsutil help crcmod
+installing the extension, please see "gsutil help crcmod".
 
 To download regardless of crcmod performance or to skip slow integrity
 checks, see the "check_hashes" option in your boto config file.
@@ -66,8 +73,8 @@ _NO_HASH_CHECK_WARNING = """
 WARNING: This download will not be validated since your crcmod installation
 doesn't use the module's C extension, so the hash computation would likely
 throttle download performance. For help in installing the extension, please
-see:
-  $ gsutil help crcmod
+see "gsutil help crcmod".
+
 To force integrity checking, see the "check_hashes" option in your boto config
 file.
 """

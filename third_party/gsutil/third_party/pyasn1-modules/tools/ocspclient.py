@@ -22,7 +22,7 @@ class ValueOnlyBitStringEncoder(encoder.encoder.BitStringEncoder):
         return substrate[1:], isConstructed
 
     def __call__(self, bitStringValue):
-        return self.encode(None, bitStringValue, defMode=1, maxChunkSize=0)
+        return self.encode(None, bitStringValue, maxChunkSize=0)
 
 valueOnlyBitStringEncoder = ValueOnlyBitStringEncoder()
 

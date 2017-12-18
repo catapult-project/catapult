@@ -34,11 +34,22 @@ from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
 from gslib.storage_url import StripOneSlash
 from gslib.storage_url import WILDCARD_REGEX
+from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.translation_helper import GenerationFromUrlAndString
+from gslib.util import FixWindowsEncodingIfNeeded
+from gslib.util import PrintableStr
 from gslib.util import UTF8
 
 
 FLAT_LIST_REGEX = re.compile(r'(?P<before>.*?)\*\*(?P<after>.*)')
+
+_UNICODE_EXCEPTION_TEXT = (
+    'Invalid Unicode path encountered (%s). gsutil cannot proceed '
+    'with such files present. Please remove or rename this file and '
+    'try again. NOTE: the path printed above replaces the '
+    'problematic characters with a hex-encoded printable '
+    'representation. For more details (including how to convert to a '
+    'gsutil-compatible encoding) see `gsutil help encoding`.')
 
 
 class WildcardIterator(object):
@@ -98,7 +109,7 @@ class CloudWildcardIterator(WildcardIterator):
                              responsible for converting these to list-style
                              format ['items/name', 'items/acl'] as well as
                              adding any fields necessary for listing such as
-                             prefixes.  API implemenation is responsible for
+                             prefixes.  API implementation is responsible for
                              adding pagination fields.  If this is None,
                              all fields are returned.
       expand_top_level_buckets: If true, yield no BUCKET references.  Instead,
@@ -193,12 +204,15 @@ class CloudWildcardIterator(WildcardIterator):
               self._BuildBucketFilterStrings(url.object_name))
           prog = re.compile(fnmatch.translate(prefix_wildcard))
 
+          # If we have a suffix wildcard, we only care about listing prefixes.
+          listing_fields = (
+              set(['prefixes']) if suffix_wildcard else bucket_listing_fields)
+
           # List bucket for objects matching prefix up to delimiter.
           for obj_or_prefix in self.gsutil_api.ListObjects(
               url.bucket_name, prefix=prefix, delimiter=delimiter,
               all_versions=self.all_versions or single_version_request,
-              provider=self.wildcard_url.scheme,
-              fields=bucket_listing_fields):
+              provider=self.wildcard_url.scheme, fields=listing_fields):
             if obj_or_prefix.datatype == CloudApi.CsObjectOrPrefixType.OBJECT:
               gcs_object = obj_or_prefix.data
               if prog.match(gcs_object.name):
@@ -211,6 +225,17 @@ class CloudWildcardIterator(WildcardIterator):
                             self.all_versions or single_version_request))
             else:  # CloudApi.CsObjectOrPrefixType.PREFIX
               prefix = obj_or_prefix.data
+
+              if ContainsWildcard(prefix):
+                # TODO: Disambiguate user-supplied strings from iterated
+                # prefix and object names so that we can better reason
+                # about wildcards and handle this case without raising an error.
+                raise CommandException(
+                    'Cloud folder %s%s contains a wildcard; gsutil does '
+                    'not currently support objects with wildcards in their '
+                    'name.'
+                    % (bucket_url_string, prefix))
+
               # If the prefix ends with a slash, remove it.  Note that we only
               # remove one slash so that we can successfully enumerate dirs
               # containing multiple slashes.
@@ -303,7 +328,9 @@ class CloudWildcardIterator(WildcardIterator):
       sys.stderr.write(
           'DEBUG: wildcard=%s, prefix=%s, delimiter=%s, '
           'prefix_wildcard=%s, suffix_wildcard=%s\n' %
-          (wildcard, prefix, delimiter, prefix_wildcard, suffix_wildcard))
+          (PrintableStr(wildcard), PrintableStr(prefix),
+           PrintableStr(delimiter), PrintableStr(prefix_wildcard),
+           PrintableStr(suffix_wildcard)))
     return (prefix, delimiter, prefix_wildcard, suffix_wildcard)
 
   def _SingleVersionMatches(self, listed_generation):
@@ -465,6 +492,23 @@ class CloudWildcardIterator(WildcardIterator):
         yield blr
 
 
+def _GetFileObject(filepath):
+  """Returns an apitools Object class with supported file attributes.
+
+  To provide size estimates for local to cloud file copies, we need to retrieve
+  expose the local file's size.
+
+  Args:
+    filepath: Path to the file.
+
+  Returns:
+    apitools Object that with file name and size attributes filled-in.
+  """
+  # TODO: If we are preserving POSIX attributes, we could instead call
+  # os.stat() here.
+  return apitools_messages.Object(size=os.path.getsize(filepath))
+
+
 class FileWildcardIterator(WildcardIterator):
   """WildcardIterator subclass for files and directories.
 
@@ -475,21 +519,32 @@ class FileWildcardIterator(WildcardIterator):
   files in any subdirectory named 'abc').
   """
 
-  def __init__(self, wildcard_url, debug=0):
+  def __init__(self, wildcard_url, debug=0, ignore_symlinks=False,
+               logger=None):
     """Instantiates an iterator over BucketListingRefs matching wildcard URL.
 
     Args:
       wildcard_url: FileUrl that contains the wildcard to iterate.
       debug: Debug level (range 0..3).
+      ignore_symlinks: If True, ignore symlinks during iteration.
+      logger: logging.Logger for outputting messages during iteration.
     """
     self.wildcard_url = wildcard_url
     self.debug = debug
+    self.ignore_symlinks = ignore_symlinks
+    self.logger = logger
 
-  def __iter__(self):
+  def __iter__(self, bucket_listing_fields=None):
     """Iterator that gets called when iterating over the file wildcard.
 
     In the case where no wildcard is present, returns a single matching file
     or directory.
+
+    Args:
+      bucket_listing_fields: Iterable fields to include in listings.
+          Ex. ['size']. Currently only 'size' is supported.
+          If present, will populate yielded BucketListingObject.root_object
+          with the file name and size.
 
     Raises:
       WildcardException: if invalid wildcard found.
@@ -497,6 +552,9 @@ class FileWildcardIterator(WildcardIterator):
     Yields:
       BucketListingRef of type OBJECT (for files) or PREFIX (for directories)
     """
+    include_size = (bucket_listing_fields
+                    and 'size' in set(bucket_listing_fields))
+
     wildcard = self.wildcard_url.object_name
     match = FLAT_LIST_REGEX.match(wildcard)
     if match:
@@ -522,10 +580,19 @@ class FileWildcardIterator(WildcardIterator):
       filepaths = glob.iglob(wildcard)
     for filepath in filepaths:
       expanded_url = StorageUrlFromString(filepath)
-      if os.path.isdir(filepath):
-        yield BucketListingPrefix(expanded_url)
-      else:
-        yield BucketListingObject(expanded_url)
+      try:
+        if self.ignore_symlinks and os.path.islink(filepath):
+          if self.logger:
+            self.logger.info('Skipping symbolic link %s...', filepath)
+          continue
+        if os.path.isdir(filepath):
+          yield BucketListingPrefix(expanded_url)
+        else:
+          blr_object = _GetFileObject(filepath) if include_size else None
+          yield BucketListingObject(expanded_url, root_object=blr_object)
+      except UnicodeEncodeError:
+        raise CommandException('\n'.join(textwrap.wrap(
+            _UNICODE_EXCEPTION_TEXT % repr(filepath))))
 
   def _IterDir(self, directory, wildcard):
     """An iterator over the specified dir and wildcard."""
@@ -534,10 +601,16 @@ class FileWildcardIterator(WildcardIterator):
     # originated on Windows) os.walk() will not attempt to decode and then die
     # with a "codec can't decode byte" error, and instead we can catch the error
     # at yield time and print a more informative error message.
-    for dirpath, unused_dirnames, filenames in os.walk(directory.encode(UTF8)):
+    for dirpath, dirnames, filenames in os.walk(directory.encode(UTF8)):
+      if self.logger:
+        for dirname in dirnames:
+          full_dir_path = os.path.join(dirpath, dirname)
+          if os.path.islink(full_dir_path):
+            self.logger.info('Skipping symlink directory "%s"', full_dir_path)
       for f in fnmatch.filter(filenames, wildcard):
         try:
-          yield os.path.join(dirpath, f).decode(UTF8)
+          yield os.path.join(dirpath,
+                             FixWindowsEncodingIfNeeded(f)).decode(UTF8)
         except UnicodeDecodeError:
           # Note: We considered several ways to deal with this, but each had
           # problems:
@@ -566,25 +639,23 @@ class FileWildcardIterator(WildcardIterator):
           # Instead we chose to abort when one such file is encountered, and
           # require the user to remove or rename the files and try again.
           raise CommandException('\n'.join(textwrap.wrap(
-              'Invalid Unicode path encountered (%s). gsutil cannot proceed '
-              'with such files present. Please remove or rename this file and '
-              'try again. NOTE: the path printed above replaces the '
-              'problematic characters with a hex-encoded printable '
-              'representation. For more details (including how to convert to a '
-              'gsutil-compatible encoding) see `gsutil help encoding`.' %
-              repr(os.path.join(dirpath, f)))))
+              _UNICODE_EXCEPTION_TEXT % repr(os.path.join(dirpath, f)))))
 
   # pylint: disable=unused-argument
   def IterObjects(self, bucket_listing_fields=None):
     """Iterates over the wildcard, yielding only object (file) refs.
 
     Args:
-      bucket_listing_fields: Ignored as filesystems don't have buckets.
+      bucket_listing_fields: Iterable fields to include in listings.
+          Ex. ['size']. Currently only 'size' is supported.
+          If present, will populate yielded BucketListingObject.root_object
+          with the file name and size.
 
     Yields:
       BucketListingRefs of type OBJECT or empty iterator if no matches.
     """
-    for bucket_listing_ref in self.IterAll():
+    for bucket_listing_ref in self.IterAll(
+        bucket_listing_fields=bucket_listing_fields):
       if bucket_listing_ref.IsObject():
         yield bucket_listing_ref
 
@@ -593,14 +664,18 @@ class FileWildcardIterator(WildcardIterator):
     """Iterates over the wildcard, yielding BucketListingRefs.
 
     Args:
-      bucket_listing_fields: Ignored; filesystems don't have buckets.
+      bucket_listing_fields: Iterable fields to include in listings.
+          Ex. ['size']. Currently only 'size' is supported.
+          If present, will populate yielded BucketListingObject.root_object
+          with the file name and size.
       expand_top_level_buckets: Ignored; filesystems don't have buckets.
 
     Yields:
       BucketListingRefs of type OBJECT (file) or PREFIX (directory),
       or empty iterator if no matches.
     """
-    for bucket_listing_ref in self.__iter__():
+    for bucket_listing_ref in self.__iter__(
+        bucket_listing_fields=bucket_listing_fields):
       yield bucket_listing_ref
 
   def IterBuckets(self, unused_bucket_fields=None):
@@ -631,7 +706,8 @@ class WildcardException(StandardError):
 
 
 def CreateWildcardIterator(url_str, gsutil_api, all_versions=False, debug=0,
-                           project_id=None):
+                           project_id=None, ignore_symlinks=False,
+                           logger=None):
   """Instantiate a WildcardIterator for the given URL string.
 
   Args:
@@ -643,6 +719,8 @@ def CreateWildcardIterator(url_str, gsutil_api, all_versions=False, debug=0,
                   object version.
     debug: Debug level to control debug output for iterator.
     project_id: Project id to use for bucket listings.
+    ignore_symlinks: For FileUrls, ignore symlinks during iteration if true.
+    logger: For outputting debug messages during iteration.
 
   Returns:
     A WildcardIterator that handles the requested iteration.
@@ -650,7 +728,8 @@ def CreateWildcardIterator(url_str, gsutil_api, all_versions=False, debug=0,
 
   url = StorageUrlFromString(url_str)
   if url.IsFileUrl():
-    return FileWildcardIterator(url, debug=debug)
+    return FileWildcardIterator(url, debug=debug,
+                                ignore_symlinks=ignore_symlinks, logger=logger)
   else:  # Cloud URL
     return CloudWildcardIterator(
         url, gsutil_api, all_versions=all_versions, debug=debug,

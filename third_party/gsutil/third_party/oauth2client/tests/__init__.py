@@ -10,12 +10,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test Package set up."""
+"""Test package set-up."""
+
+from oauth2client import util
 
 __author__ = 'afshar@google.com (Ali Afshar)'
 
-import oauth2client.util
 
 def setup_package():
-  """Run on testing package."""
-  oauth2client.util.positional_parameters_enforcement = 'EXCEPTION'
+    """Run on testing package."""
+    util.positional_parameters_enforcement = util.POSITIONAL_EXCEPTION

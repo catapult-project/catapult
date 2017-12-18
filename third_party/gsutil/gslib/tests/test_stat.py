@@ -17,12 +17,55 @@
 from __future__ import absolute_import
 
 from gslib.cs_api_map import ApiSelector
+from gslib.exception import NO_URLS_MATCHED_TARGET
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.testcase.integration_testcase import SkipForXML
+from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT1
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT1_CRC32C
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT1_MD5
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT2
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT2_CRC32C
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT2_MD5
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT3
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT3_CRC32C
+from gslib.tests.util import TEST_ENCRYPTION_CONTENT3_MD5
+from gslib.tests.util import TEST_ENCRYPTION_KEY1
+from gslib.tests.util import TEST_ENCRYPTION_KEY1_SHA256_B64
+from gslib.tests.util import TEST_ENCRYPTION_KEY2
+from gslib.tests.util import TEST_ENCRYPTION_KEY2_SHA256_B64
+from gslib.tests.util import unittest
+from gslib.util import Retry
 
 
 class TestStat(testcase.GsUtilIntegrationTestCase):
   """Integration tests for stat command."""
+
+  @SkipForS3('\'Archived time\' is a GS-specific response field.')
+  @SkipForXML(
+      'XML API only supports \'DeletedTime\' response field when making a '
+      'GET Bucket request to list all objects, which is heavy overhead when '
+      'the real intent is just a HEAD Object call.'
+  )
+  def test_versioned_stat_output(self):
+    """Tests stat output of an outdated object under version control."""
+    bucket_uri = self.CreateVersionedBucket()
+    old_object_uri = self.CreateObject(
+        bucket_uri=bucket_uri, contents='z')
+
+    # Update object
+    self.CreateObject(
+        bucket_uri=bucket_uri,
+        object_name=old_object_uri.object_name,
+        contents='z', gs_idempotent_generation=urigen(old_object_uri))
+
+    stdout = self.RunGsUtil(
+        ['stat', old_object_uri.version_specific_uri], return_stdout=True)
+
+    self.assertIn('Archived time', stdout)
 
   def test_stat_output(self):
     """Tests stat output of a single object."""
@@ -46,10 +89,14 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
       if self.test_api == ApiSelector.XML:
         self.assertIn('Cache-Control:', stdout)
         self.assertIn('Content-Encoding:', stdout)
+      # TODO: Remove JSON check after adding storage class parsing in Boto.
+      elif self.test_api == ApiSelector.JSON:
+        self.assertIn('Storage class:', stdout)
       self.assertIn('Generation:', stdout)
       self.assertIn('Metageneration:', stdout)
       self.assertIn('Hash (crc32c):', stdout)
       self.assertIn('Hash (md5):', stdout)
+      self.assertNotIn('Archived time', stdout)  # object is not archived
     self.assertIn('Content-Length:', stdout)
     self.assertIn('Content-Type:', stdout)
     self.assertIn('ETag:', stdout)
@@ -75,7 +122,7 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
     stdout, stderr = self.RunGsUtil(
         ['stat', suri(bucket_uri, 'missing'), suri(bucket_uri, 'notmissing')],
         expected_status=1, return_stdout=True, return_stderr=True)
-    self.assertIn('No URLs matched %s' % suri(bucket_uri, 'missing'), stderr)
+    self.assertIn(NO_URLS_MATCHED_TARGET % suri(bucket_uri, 'missing'), stderr)
     self.assertIn('%s:' % suri(bucket_uri, 'notmissing'), stdout)
 
   def test_stat_one_missing_wildcard(self):
@@ -85,7 +132,7 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
     stdout, stderr = self.RunGsUtil(
         ['stat', suri(bucket_uri, 'missin*'), suri(bucket_uri, 'notmissin*')],
         expected_status=1, return_stdout=True, return_stderr=True)
-    self.assertIn('No URLs matched %s' % suri(bucket_uri, 'missin*'), stderr)
+    self.assertIn(NO_URLS_MATCHED_TARGET % suri(bucket_uri, 'missin*'), stderr)
     self.assertIn('%s:' % suri(bucket_uri, 'notmissing'), stdout)
 
   def test_stat_bucket_wildcard(self):
@@ -103,7 +150,80 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
     object2_uri = self.CreateObject(bucket_uri=bucket_uri, object_name='foo2',
                                     contents='z')
     stat_string = suri(object1_uri)[:-2] + '*'
-    stdout = self.RunGsUtil(['stat', stat_string], return_stdout=True)
-    self.assertIn(suri(object1_uri), stdout)
-    self.assertIn(suri(object2_uri), stdout)
 
+    # Use @Retry as hedge against bucket listing eventual consistency.
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      stdout = self.RunGsUtil(['stat', stat_string], return_stdout=True)
+      self.assertIn(suri(object1_uri), stdout)
+      self.assertIn(suri(object2_uri), stdout)
+    _Check1()
+
+  @SkipForS3('S3 customer-supplied encryption keys are not supported.')
+  def test_stat_encrypted_object(self):
+    """Tests stat command with an encrypted object."""
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip(
+          'gsutil does not support encryption with the XML API')
+    bucket_uri = self.CreateBucket()
+    object_uri = self.CreateObject(
+        bucket_uri=bucket_uri, object_name='foo',
+        contents=TEST_ENCRYPTION_CONTENT1, encryption_key=TEST_ENCRYPTION_KEY1)
+
+    # Stat object with key should return unencrypted hashes.
+    with SetBotoConfigForTest([
+        ('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]):
+      stdout = self.RunGsUtil(['stat', suri(object_uri)], return_stdout=True)
+      self.assertIn(TEST_ENCRYPTION_CONTENT1_MD5, stdout)
+      self.assertIn(TEST_ENCRYPTION_CONTENT1_CRC32C, stdout)
+      self.assertIn(TEST_ENCRYPTION_KEY1_SHA256_B64, stdout)
+
+    # Stat object without key should return encrypted hashes.
+    stdout = self.RunGsUtil(['stat', suri(object_uri)], return_stdout=True)
+    self.assertNotIn(TEST_ENCRYPTION_CONTENT1_MD5, stdout)
+    self.assertNotIn(TEST_ENCRYPTION_CONTENT1_CRC32C, stdout)
+    self.assertIn('encrypted', stdout)
+    self.assertIn(TEST_ENCRYPTION_KEY1_SHA256_B64, stdout)
+
+  def test_stat_encrypted_object_wildcard(self):
+    """Tests stat command with a mix of encrypted and unencrypted objects."""
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip(
+          'gsutil does not support encryption with the XML API')
+    bucket_uri = self.CreateBucket()
+    object1_uri = self.CreateObject(
+        bucket_uri=bucket_uri, object_name='foo1',
+        contents=TEST_ENCRYPTION_CONTENT1, encryption_key=TEST_ENCRYPTION_KEY1)
+    object2_uri = self.CreateObject(
+        bucket_uri=bucket_uri, object_name='foo2',
+        contents=TEST_ENCRYPTION_CONTENT2, encryption_key=TEST_ENCRYPTION_KEY2)
+    object3_uri = self.CreateObject(
+        bucket_uri=bucket_uri, object_name='foo3',
+        contents=TEST_ENCRYPTION_CONTENT3)
+
+    stat_string = suri(object1_uri)[:-2] + '*'
+
+    # Stat 3 objects, two encrypted each with a different key, and one
+    # unencrypted. Should result in two unencrypted listing and one encrypted
+    # listing.
+    with SetBotoConfigForTest([
+        ('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]):
+      # Use @Retry as hedge against bucket listing eventual consistency.
+      @Retry(AssertionError, tries=3, timeout_secs=1)
+      def _StatExpectMixed():
+        """Runs stat and validates output."""
+        stdout = self.RunGsUtil(['stat', stat_string], return_stdout=True)
+        self.assertIn(suri(object1_uri), stdout)
+        self.assertIn(TEST_ENCRYPTION_CONTENT1_MD5, stdout)
+        self.assertIn(TEST_ENCRYPTION_CONTENT1_CRC32C, stdout)
+        self.assertIn(TEST_ENCRYPTION_KEY1_SHA256_B64, stdout)
+        self.assertIn(suri(object2_uri), stdout)
+        self.assertNotIn(TEST_ENCRYPTION_CONTENT2_MD5, stdout)
+        self.assertNotIn(TEST_ENCRYPTION_CONTENT2_CRC32C, stdout)
+        self.assertIn('encrypted', stdout)
+        self.assertIn(TEST_ENCRYPTION_KEY2_SHA256_B64, stdout)
+        self.assertIn(suri(object3_uri), stdout)
+        self.assertIn(TEST_ENCRYPTION_CONTENT3_MD5, stdout)
+        self.assertIn(TEST_ENCRYPTION_CONTENT3_CRC32C, stdout)
+
+      _StatExpectMixed()

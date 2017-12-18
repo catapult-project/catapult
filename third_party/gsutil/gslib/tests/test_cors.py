@@ -72,6 +72,12 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
       '"responseHeader": ["foo2", "bar2"], "method": ["GET", "DELETE"]}]\n')
   cors_json_obj = json.loads(cors_doc)
 
+  cors_doc_not_nested_in_list = (
+      '{"origin": ["http://origin.example.com", "http://origin2.example.com"], '
+      '"responseHeader": ["foo", "bar"], '
+      '"method": ["GET", "PUT", "POST"], '
+      '"maxAgeSeconds": 3600}')
+
   cors_doc2 = (
       '[{"origin": ["http://origin1.example.com", '
       '"http://origin2.example.com"], '
@@ -131,6 +137,13 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(self._set_cmd_prefix + [fpath, suri(bucket_uri)],
                             expected_status=1, return_stderr=True)
     self.assertNotIn('XML CORS data provided', stderr)
+
+  def test_cors_doc_not_wrapped_in_json_list(self):
+    bucket_uri = self.CreateBucket()
+    fpath = self.CreateTempFile(contents=self.cors_doc_not_nested_in_list)
+    stderr = self.RunGsUtil(self._set_cmd_prefix + [fpath, suri(bucket_uri)],
+                            expected_status=1, return_stderr=True)
+    self.assertIn('should be formatted as a list', stderr)
 
   def set_cors_and_reset(self):
     """Tests setting CORS then removing it."""

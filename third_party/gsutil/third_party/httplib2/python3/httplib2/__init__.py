@@ -24,7 +24,7 @@ __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
     "Louis Nyffenegger",
     "Mark Pilgrim"]
 __license__ = "MIT"
-__version__ = "0.7.7"
+__version__ = "0.10.3"
 
 import re
 import sys
@@ -192,7 +192,12 @@ def safename(filename):
 
 NORMALIZE_SPACE = re.compile(r'(?:\r\n)?[ \t]+')
 def _normalize_headers(headers):
-    return dict([ (key.lower(), NORMALIZE_SPACE.sub(value, ' ').strip())  for (key, value) in headers.items()])
+    return dict([ (_convert_byte_str(key).lower(), NORMALIZE_SPACE.sub(_convert_byte_str(value), ' ').strip())  for (key, value) in headers.items()])
+
+def _convert_byte_str(s):
+    if not isinstance(s, str):
+        return str(s, 'utf-8')
+    return s
 
 def _parse_cache_control(headers):
     retval = {}
@@ -714,17 +719,35 @@ class KeyCerts(Credentials):
 
 class ProxyInfo(object):
   """Collect information required to use a proxy."""
-  def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=None, proxy_user=None, proxy_pass=None):
-      """The parameter proxy_type must be set to one of socks.PROXY_TYPE_XXX
-      constants. For example:
-
-p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP, proxy_host='localhost', proxy_port=8000)
+  def __init__(self, proxy_type, proxy_host, proxy_port, proxy_rdns=True, proxy_user=None, proxy_pass=None, proxy_headers=None):
       """
-      self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns, self.proxy_user, self.proxy_pass = proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass
+        Args:
+          proxy_type: The type of proxy server.  This must be set to one of
+          socks.PROXY_TYPE_XXX constants.  For example:
+
+            p = ProxyInfo(proxy_type=socks.PROXY_TYPE_HTTP,
+              proxy_host='localhost', proxy_port=8000)
+
+          proxy_host: The hostname or IP address of the proxy server.
+
+          proxy_port: The port that the proxy server is running on.
+
+          proxy_rdns: If True (default), DNS queries will not be performed
+          locally, and instead, handed to the proxy to resolve.  This is useful
+          if the network does not allow resolution of non-local names.  In
+          httplib2 0.9 and earlier, this defaulted to False.
+
+          proxy_user: The username used to authenticate with the proxy server.
+
+          proxy_pass: The password used to authenticate with the proxy server.
+
+          proxy_headers: Additional or modified headers for the proxy connect request.
+      """
+      self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns, self.proxy_user, self.proxy_pass, self.proxy_headers = proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass, proxy_headers
 
   def astuple(self):
     return (self.proxy_type, self.proxy_host, self.proxy_port, self.proxy_rdns,
-            self.proxy_user, self.proxy_pass)
+            self.proxy_user, self.proxy_pass, self.proxy_headers)
 
   def isgood(self):
     return socks and (self.proxy_host != None) and (self.proxy_port != None)
@@ -777,6 +800,7 @@ def proxy_info_from_url(url, method='http'):
         proxy_port = port,
         proxy_user = username or None,
         proxy_pass = password or None,
+        proxy_headers = None,
     )
 
 
@@ -794,6 +818,7 @@ class HTTPConnectionWithTimeout(http.client.HTTPConnection):
     def __init__(self, host, port=None, timeout=None, proxy_info=None):
         http.client.HTTPConnection.__init__(self, host, port=port,
                                             timeout=timeout)
+        # TODO: implement proxy_info
         self.proxy_info = proxy_info
 
 
@@ -810,15 +835,19 @@ class HTTPSConnectionWithTimeout(http.client.HTTPSConnection):
     def __init__(self, host, port=None, key_file=None, cert_file=None,
                  timeout=None, proxy_info=None,
                  ca_certs=None, disable_ssl_certificate_validation=False):
+        # TODO: implement proxy_info
         self.proxy_info = proxy_info
         context = None
         if ca_certs is None:
             ca_certs = CA_CERTS
-        if (cert_file or ca_certs) and not disable_ssl_certificate_validation:
+        if (cert_file or ca_certs):
             if not hasattr(ssl, 'SSLContext'):
                 raise CertificateValidationUnsupportedInPython31()
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-            context.verify_mode = ssl.CERT_REQUIRED
+            if disable_ssl_certificate_validation:
+                context.verify_mode = ssl.CERT_NONE
+            else:
+                context.verify_mode = ssl.CERT_REQUIRED
             if cert_file:
                 context.load_cert_chain(cert_file, key_file)
             if ca_certs:
@@ -826,7 +855,7 @@ class HTTPSConnectionWithTimeout(http.client.HTTPSConnection):
         http.client.HTTPSConnection.__init__(
                 self, host, port=port, key_file=key_file,
                 cert_file=cert_file, timeout=timeout, context=context,
-                check_hostname=True)
+                check_hostname=disable_ssl_certificate_validation ^ True)
 
 
 SCHEME_TO_CONNECTION = {
@@ -957,7 +986,10 @@ class Http(object):
         self.authorizations = []
 
     def _conn_request(self, conn, request_uri, method, body, headers):
-        for i in range(RETRIES):
+        i = 0
+        seen_bad_status_line = False
+        while i < RETRIES:
+            i += 1
             try:
                 if conn.sock is None:
                     conn.connect()
@@ -970,8 +1002,9 @@ class Http(object):
                 raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
             except socket.error as e:
                 errno_ = (e.args[0].errno if isinstance(e.args[0], socket.error) else e.errno)
-                if errno_ == errno.ECONNREFUSED: # Connection refused
-                    raise
+                if errno_ in (errno.ENETUNREACH, errno.EADDRNOTAVAIL) and i < RETRIES:
+                    continue  # retry on potentially transient errors
+                raise
             except http.client.HTTPException:
                 if conn.sock is None:
                     if i < RETRIES-1:
@@ -990,6 +1023,19 @@ class Http(object):
                 pass
             try:
                 response = conn.getresponse()
+            except (http.client.BadStatusLine, http.client.ResponseNotReady):
+                # If we get a BadStatusLine on the first try then that means
+                # the connection just went stale, so retry regardless of the
+                # number of RETRIES set.
+                if not seen_bad_status_line and i == 1:
+                    i = 0
+                    seen_bad_status_line = True
+                    conn.close()
+                    conn.connect()
+                    continue
+                else:
+                    conn.close()
+                    raise
             except socket.timeout:
                 raise
             except (socket.error, http.client.HTTPException):
@@ -1073,7 +1119,9 @@ class Http(object):
                         if response.status in [302, 303]:
                           redirect_method = "GET"
                           body = None
-                        (response, content) = self.request(location, redirect_method, body=body, headers = headers, redirections = redirections - 1)
+                        (response, content) = self.request(
+                            location, method=redirect_method, body=body,
+                            headers=headers, redirections=redirections - 1)
                         response.previous = old_response
                 else:
                     raise RedirectLimit("Redirected more times than redirection_limit allows.", response, content)
@@ -1208,7 +1256,9 @@ a string that contains the response entity body.
                     # Should cached permanent redirects be counted in our redirection count? For now, yes.
                     if redirections <= 0:
                         raise RedirectLimit("Redirected more times than redirection_limit allows.", {}, "")
-                    (response, new_content) = self.request(info['-x-permanent-redirect-url'], "GET", headers = headers, redirections = redirections - 1)
+                    (response, new_content) = self.request(
+                        info['-x-permanent-redirect-url'], method='GET',
+                        headers=headers, redirections=redirections - 1)
                     response.previous = Response(info)
                     response.previous.fromcache = True
                 else:

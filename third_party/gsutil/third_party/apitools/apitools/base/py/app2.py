@@ -1,5 +1,21 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Appcommands-compatible command class with extra fixins."""
+from __future__ import absolute_import
 from __future__ import print_function
 
 import cmd
@@ -10,11 +26,11 @@ import sys
 import traceback
 import types
 
-import six
-
+import gflags as flags
 from google.apputils import app
 from google.apputils import appcommands
-import gflags as flags
+import six
+
 
 __all__ = [
     'NewCmd',
@@ -35,8 +51,7 @@ def _SafeMakeAscii(s):
         return s.encode('ascii')
     elif isinstance(s, str):
         return s.decode('ascii')
-    else:
-        return six.text_type(s).encode('ascii', 'backslashreplace')
+    return six.text_type(s).encode('ascii', 'backslashreplace')
 
 
 class NewCmd(appcommands.Cmd):
@@ -76,8 +91,7 @@ class NewCmd(appcommands.Cmd):
     def _GetFlag(self, flagname):
         if flagname in self._command_flags:
             return self._command_flags[flagname]
-        else:
-            return None
+        return None
 
     def Run(self, argv):
         """Run this command.
@@ -114,8 +128,7 @@ class NewCmd(appcommands.Cmd):
 
         if self._debug_mode:
             return self.RunDebug(args, {})
-        else:
-            return self.RunSafely(args, {})
+        return self.RunSafely(args, {})
 
     def RunCmdLoop(self, argv):
         """Hook for use in cmd.Cmd-based command shells."""
@@ -205,7 +218,7 @@ class CommandLoop(cmd.Cmd):
     def last_return_code(self):
         return self._last_return_code
 
-    def _set_prompt(self):
+    def _set_prompt(self):  # pylint: disable=invalid-name
         self.prompt = self._default_prompt
 
     def do_EOF(self, *unused_args):  # pylint: disable=invalid-name
@@ -291,11 +304,14 @@ class CommandLoop(cmd.Cmd):
         names.remove('do_EOF')
         return names
 
-    def do_help(self, command_name):
+    def do_help(self, arg):
         """Print the help for command_name (if present) or general help."""
+
+        command_name = arg
 
         # TODO(craigcitro): Add command-specific flags.
         def FormatOneCmd(name, command, command_names):
+            """Format one command."""
             indent_size = appcommands.GetMaxCommandLength() + 3
             if len(command_names) > 1:
                 indent = ' ' * indent_size
@@ -307,12 +323,11 @@ class CommandLoop(cmd.Cmd):
                 first_line = '%-*s%s' % (indent_size,
                                          name + ':', first_help_line)
                 return '\n'.join((first_line, rest))
-            else:
-                default_indent = '  '
-                return '\n' + flags.TextWrap(
-                    command.CommandGetHelp('', cmd_names=command_names),
-                    indent=default_indent,
-                    firstline_indent=default_indent) + '\n'
+            default_indent = '  '
+            return '\n' + flags.TextWrap(
+                command.CommandGetHelp('', cmd_names=command_names),
+                indent=default_indent,
+                firstline_indent=default_indent) + '\n'
 
         if not command_name:
             print('\nHelp for commands:\n')

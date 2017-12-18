@@ -35,13 +35,15 @@ management tasks, including:
 """
 
 requires = [
-    'boto==2.38.0',
+    'argcomplete>=1.8.2',
+    'boto==2.48.0',
     'crcmod>=1.7',
-    'gcs-oauth2-boto-plugin>=1.9',
-    'google-apitools==0.4.10',
-    'httplib2>=0.8',
-    'oauth2client>=1.4.11',
-    'protorpc>=0.10.0',
+    'gcs-oauth2-boto-plugin>=1.14',
+    'google-apitools==0.5.16',
+    'httplib2>=0.10.3',
+    # TODO: Sync submodule with tag referenced here once #339 is fixed in mock.
+    'mock==2.0.0',
+    'oauth2client==2.2.0',
     'pyOpenSSL>=0.13',
     'python-gflags>=2.0',
     'retry_decorator>=1.0.0',
@@ -55,7 +57,8 @@ dependency_links = [
     # Note: this commit ID should be kept in sync with the 'third_party/boto'
     # entry in 'git submodule status'.
     # pylint: disable=line-too-long
-    'https://github.com/boto/boto/archive/cb8aeec987ddcd5fecd206e38777b9a15cb0bcab.tar.gz#egg=boto-2.38.0',
+    'https://github.com/boto/boto/archive/6c5b98861d726fdd5e05702972b14692e73e84f4.tar.gz#egg=boto-2.48.0',
+    # pylint: enable=line-too-long
 ]
 
 CURDIR = os.path.abspath(os.path.dirname(__file__))
@@ -136,8 +139,8 @@ class CustomSDist(sdist.sdist):
 setup(
     name='gsutil',
     version=VERSION,
-    url='https://developers.google.com/storage/docs/gsutil',
-    download_url='https://developers.google.com/storage/docs/gsutil_install',
+    url='https://cloud.google.com/storage/docs/gsutil',
+    download_url='https://cloud.google.com/storage/docs/gsutil_install',
     license='Apache 2.0',
     author='Google Inc.',
     author_email='gs-team@google.com',
@@ -152,6 +155,10 @@ setup(
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Topic :: System :: Filesystems',
         'Topic :: Utilities',
     ],

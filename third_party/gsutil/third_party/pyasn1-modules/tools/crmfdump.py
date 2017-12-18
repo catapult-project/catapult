@@ -20,6 +20,4 @@ cr, rest = decoder.decode(substrate, asn1Spec=certReq)
 
 print(cr.prettyPrint())
 
-assert encoder.encode(cr, defMode=False) == substrate or \
-       encoder.encode(cr, defMode=True) == substrate, \
-       'crmf recode fails'
+assert encoder.encode(cr) == substrate, 'crmf recode fails'

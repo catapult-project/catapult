@@ -59,7 +59,7 @@ _DETAILED_HELP_TEXT = ("""
               (only useful with a versioning-enabled bucket). Also prints
               generation and metageneration for each listed object.
 
-  -c          Produce a grand total.
+  -c          Includes a grand total at the end of the output.
 
   -e          A pattern to exclude from reporting. Example: -e "*.o" would
               exclude any object that ends in ".o". Can be specified multiple
@@ -68,7 +68,7 @@ _DETAILED_HELP_TEXT = ("""
   -h          Prints object sizes in human-readable format (e.g., 1 KiB,
               234 MiB, 2GiB, etc.)
 
-  -s          Display only a summary total for each argument.
+  -s          Displays only the grand total for each argument.
 
   -X          Similar to -e, but excludes patterns from the given file. The
               patterns to exclude should be one per line.
@@ -207,7 +207,7 @@ class DuCommand(Command):
             f = open(a, 'r')
           try:
             for line in f:
-              line = line.strip()
+              line = line.strip().decode(UTF8)
               if line:
                 self.exclude_patterns.append(line)
           finally:
@@ -226,9 +226,9 @@ class DuCommand(Command):
     def _PrintNothing(unused_blr=None):
       pass
 
-    def _PrintDirectory(num_bytes, name):
+    def _PrintDirectory(num_bytes, blr):
       if not self.summary_only:
-        self._PrintSummaryLine(num_bytes, name)
+        self._PrintSummaryLine(num_bytes, blr.url_string.encode(UTF8))
 
     for url_arg in self.args:
       top_level_storage_url = StorageUrlFromString(url_arg)
@@ -273,7 +273,8 @@ class DuCommand(Command):
         total_bytes += exp_bytes
 
         if self.summary_only:
-          self._PrintSummaryLine(exp_bytes, blr.url_string.rstrip('/'))
+          self._PrintSummaryLine(exp_bytes,
+                                 blr.url_string.rstrip('/').encode(UTF8))
 
     if self.produce_total:
       self._PrintSummaryLine(total_bytes, 'total')

@@ -1,12 +1,26 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Command registry for apitools."""
 
 import logging
 import textwrap
 
-from protorpc import descriptor
-from protorpc import messages
-
+from apitools.base.protorpclite import descriptor
+from apitools.base.protorpclite import messages
 from apitools.gen import extended_descriptor
 
 # This is a code generator; we're purposely verbose.
@@ -102,7 +116,7 @@ class CommandRegistry(object):
     """Registry for CLI commands."""
 
     def __init__(self, package, version, client_info, message_registry,
-                 root_package, base_files_package, base_url, names):
+                 root_package, base_files_package, protorpc_package, names):
         self.__package = package
         self.__version = version
         self.__client_info = client_info
@@ -110,7 +124,7 @@ class CommandRegistry(object):
         self.__message_registry = message_registry
         self.__root_package = root_package
         self.__base_files_package = base_files_package
-        self.__base_url = base_url
+        self.__protorpc_package = protorpc_package
         self.__command_list = []
         self.__global_flags = []
 
@@ -212,11 +226,12 @@ class CommandRegistry(object):
         return command_name
 
     def __GetConversion(self, extended_field, extended_message):
+        """Returns a template for field type."""
         field = extended_field.field_descriptor
 
         type_name = ''
         if field.variant in (messages.Variant.MESSAGE, messages.Variant.ENUM):
-            if field.type_name.startswith('protorpc.'):
+            if field.type_name.startswith('apitools.base.protorpclite.'):
                 type_name = field.type_name
             else:
                 field_message = self.__LookupMessage(extended_message, field)
@@ -248,6 +263,7 @@ class CommandRegistry(object):
         return field.label == descriptor.FieldDescriptor.Label.REPEATED
 
     def __FlagInfoFromField(self, extended_field, extended_message, fv=''):
+        """Creates FlagInfo object for given field."""
         field = extended_field.field_descriptor
         flag_info = FlagInfo()
         flag_info.name = str(field.name)
@@ -276,6 +292,7 @@ class CommandRegistry(object):
         return flag_info
 
     def __PrintFlagDeclarations(self, printer):
+        """Writes out command line flag declarations."""
         package = self.__client_info.package
         function_name = '_Declare%sFlags' % (package[0].upper() + package[1:])
         printer()
@@ -289,7 +306,7 @@ class CommandRegistry(object):
             printer('flags.DEFINE_string(')
             with printer.Indent('    '):
                 printer("'api_endpoint',")
-                printer('%r,', self.__base_url)
+                printer('%r,', self.__client_info.base_url)
                 printer("'URL of the API endpoint to use.',")
                 printer("short_name='%s_url')", self.__package)
             printer('flags.DEFINE_string(')
@@ -317,6 +334,7 @@ class CommandRegistry(object):
         printer('%s()', function_name)
 
     def __PrintGetGlobalParams(self, printer):
+        """Writes out GetGlobalParamsFromFlags function."""
         printer('def GetGlobalParamsFromFlags():')
         with printer.Indent():
             printer('"""Return a StandardQueryParameters based on flags."""')
@@ -334,6 +352,7 @@ class CommandRegistry(object):
         printer()
 
     def __PrintGetClient(self, printer):
+        """Writes out GetClientFromFlags function."""
         printer('def GetClientFromFlags():')
         with printer.Indent():
             printer('"""Return a client object, configured from flags."""')
@@ -379,6 +398,7 @@ class CommandRegistry(object):
             printer('"""')
 
     def __PrintFlag(self, printer, flag_info):
+        """Writes out given flag definition."""
         printer('flags.DEFINE_%s(', flag_info.type)
         with printer.Indent(indent='    '):
             printer('%r,', flag_info.name)
@@ -400,6 +420,7 @@ class CommandRegistry(object):
             printer('flags.MarkFlagAsRequired(%r)', flag_info.name)
 
     def __PrintPyShell(self, printer):
+        """Writes out PyShell class."""
         printer('class PyShell(appcommands.Cmd):')
         printer()
         with printer.Indent():
@@ -462,9 +483,8 @@ class CommandRegistry(object):
         printer('import platform')
         printer('import sys')
         printer()
-        printer('import protorpc')
-        printer('from protorpc import message_types')
-        printer('from protorpc import messages')
+        printer('from %s import message_types', self.__protorpc_package)
+        printer('from %s import messages', self.__protorpc_package)
         printer()
         appcommands_import = 'from google.apputils import appcommands'
         printer(appcommands_import)

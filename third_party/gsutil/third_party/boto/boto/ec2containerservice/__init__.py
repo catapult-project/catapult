@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-from boto.regioninfo import RegionInfo, get_regions
+from boto.regioninfo import get_regions
+from boto.regioninfo import connect
 
 
 def regions():
@@ -30,12 +31,12 @@ def regions():
     :rtype: list
     :return: A list of :class:`boto.regioninfo.RegionInfo`
     """
-    from boto.ec2containerservice import EC2ContainerServiceConnection
-    return get_regions('', connection_cls=EC2ContainerServiceConnection)
+    from boto.ec2containerservice.layer1 import EC2ContainerServiceConnection
+    return get_regions('ec2containerservice',
+                       connection_cls=EC2ContainerServiceConnection)
 
 
 def connect_to_region(region_name, **kw_params):
-    for region in regions():
-        if region.name == region_name:
-            return region.connect(**kw_params)
-    return None
+    from boto.ec2containerservice.layer1 import EC2ContainerServiceConnection
+    return connect('ec2containerservice', region_name,
+                   connection_cls=EC2ContainerServiceConnection, **kw_params)

@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 
 from gslib.help_provider import HelpProvider
+from gslib.util import RESUMABLE_THRESHOLD_MIB
 
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
@@ -30,20 +31,20 @@ _DETAILED_HELP_TEXT = ("""
 <B>BACKGROUND ON RESUMABLE TRANSFERS</B>
   First, it's helpful to understand gsutil's resumable transfer mechanism,
   and how your script needs to be implemented around this mechanism to work
-  reliably. gsutil uses resumable transfer support when you attempt to upload
-  or download a file larger than a configurable threshold (by default, this
-  threshold is 2 MiB). When a transfer fails partway through (e.g., because of
-  an intermittent network problem), gsutil uses a truncated randomized binary
-  exponential backoff-and-retry strategy that by default will retry transfers up
-  to 23 times over a 10 minute period of time (see "gsutil help retries" for
-  details). If the transfer fails each of these attempts with no intervening
-  progress, gsutil gives up on the transfer, but keeps a "tracker" file for
-  it in a configurable location (the default location is ~/.gsutil/, in a file
-  named by a combination of the SHA1 hash of the name of the bucket and object
-  being transferred and the last 16 characters of the file name). When transfers
-  fail in this fashion, you can rerun gsutil at some later time (e.g., after
-  the networking problem has been resolved), and the resumable transfer picks
-  up where it left off.
+  reliably. gsutil uses resumable transfer support when you attempt to download
+  to a file of any size or to upload a file larger than a configurable
+  threshold (by default, this threshold is %d MiB). If a transfer fails
+  partway through (e.g., because of an intermittent network problem), gsutil
+  uses a truncated randomized binary exponential backoff-and-retry strategy
+  that by default will retry transfers up to 23 times over a 10 minute period
+  of time (see "gsutil help retries" for details). If the transfer fails each
+  of these attempts with no intervening progress, gsutil gives up on the
+  transfer, but keeps a "tracker" file for it in a configurable location (the
+  default location is ~/.gsutil/, in a file named by a combination of the SHA1
+  hash of the name of the bucket and object being transferred and the last 16
+  characters of the file name). When transfers fail in this fashion, you can
+  rerun gsutil at some later time (e.g., after the networking problem has been
+  resolved), and the resumable transfer picks up where it left off.
 
 
 <B>SCRIPTING DATA TRANSFER TASKS</B>
@@ -130,7 +131,7 @@ _DETAILED_HELP_TEXT = ("""
      speed, available memory, CPU load, and other conditions, this may or may
      not be optimal. Try experimenting with higher or lower numbers of threads
      to find the best number of threads for your environment.
-""")
+""" % RESUMABLE_THRESHOLD_MIB)
 
 
 class CommandOptions(HelpProvider):

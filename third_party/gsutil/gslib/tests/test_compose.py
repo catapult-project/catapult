@@ -21,6 +21,10 @@ from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import TEST_ENCRYPTION_KEY1
+from gslib.tests.util import TEST_ENCRYPTION_KEY2
+from gslib.tests.util import unittest
 
 
 @SkipForS3('S3 does not support object composition.')
@@ -48,10 +52,10 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
 
   def test_compose_too_few_fails(self):
     stderr = self.RunGsUtil(
-        ['compose', 'gs://b/component-obj', 'gs://b/composite-obj'],
+        ['compose', 'gs://b/composite-obj'],
         expected_status=1, return_stderr=True)
     self.assertIn(
-        'CommandException: "compose" requires at least 2 component objects.\n',
+        'CommandException: "compose" requires at least 1 component object.\n',
         stderr)
 
   def test_compose_between_buckets_fails(self):
@@ -75,6 +79,7 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     self.assertIn(expected_msg, stderr)
 
   def test_simple_compose(self):
+    self.check_n_ary_compose(1)
     self.check_n_ary_compose(2)
 
   def test_maximal_compose(self):
@@ -113,6 +118,62 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
                             return_stderr=True, expected_status=1)
 
     self.assertIn('PreconditionException', stderr)
+
+  def test_compose_with_encryption(self):
+    """Tests composing encrypted objects."""
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip(
+          'gsutil does not support encryption with the XML API')
+    bucket_uri = self.CreateBucket()
+    object_uri1 = self.CreateObject(bucket_uri=bucket_uri, contents='foo',
+                                    encryption_key=TEST_ENCRYPTION_KEY1)
+    object_uri2 = self.CreateObject(bucket_uri=bucket_uri, contents='bar',
+                                    encryption_key=TEST_ENCRYPTION_KEY1)
+
+    # Compose without correct key should fail.
+    stderr = self.RunGsUtil(['compose', suri(object_uri1), suri(object_uri2),
+                             suri(bucket_uri, 'obj')], expected_status=1,
+                            return_stderr=True)
+    self.assertIn('is encrypted by a customer-supplied encryption key', stderr)
+
+    # Compose with different encryption key should fail; source and destination
+    # encryption keys must match.
+    with SetBotoConfigForTest([
+        ('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY2),
+        ('GSUtil', 'decryption_key1', TEST_ENCRYPTION_KEY1)]):
+      stderr = self.RunGsUtil(['compose', suri(object_uri1), suri(object_uri2),
+                               suri(bucket_uri, 'obj')], expected_status=1,
+                              return_stderr=True)
+      self.assertIn('provided encryption key is incorrect', stderr)
+
+    with SetBotoConfigForTest(
+        [('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]):
+      self.RunGsUtil(['compose', suri(object_uri1), suri(object_uri2),
+                      suri(bucket_uri, 'obj')])
+
+  def test_compose_different_encryption_keys(self):
+    """Tests composing encrypted objects with different encryption keys."""
+    bucket_uri = self.CreateBucket()
+    object_uri1 = self.CreateObject(bucket_uri=bucket_uri, contents='foo',
+                                    encryption_key=TEST_ENCRYPTION_KEY1)
+    object_uri2 = self.CreateObject(bucket_uri=bucket_uri, contents='bar',
+                                    encryption_key=TEST_ENCRYPTION_KEY2)
+
+    with SetBotoConfigForTest([
+        ('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1),
+        ('GSUtil', 'decryption_key1', TEST_ENCRYPTION_KEY2)]):
+      stderr = self.RunGsUtil(['compose', suri(object_uri1), suri(object_uri2),
+                               suri(bucket_uri, 'obj')], expected_status=1,
+                              return_stderr=True)
+      self.assertIn('provided encryption key is incorrect', stderr)
+
+    # Should also fail if we don't have the second key.
+    with SetBotoConfigForTest(
+        [('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]):
+      stderr = self.RunGsUtil(['compose', suri(object_uri1), suri(object_uri2),
+                               suri(bucket_uri, 'obj')], expected_status=1,
+                              return_stderr=True)
+      self.assertIn('provided encryption key is incorrect', stderr)
 
   def test_compose_missing_second_source_object(self):
     bucket_uri = self.CreateBucket()

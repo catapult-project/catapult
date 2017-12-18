@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 
 from gslib import aclhelpers
+from gslib import metrics
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import Preconditions
@@ -311,5 +312,9 @@ class DefAclCommand(Command):
       raise CommandException(('Invalid subcommand "%s" for the %s command.\n'
                               'See "gsutil help defacl".') %
                              (action_subcommand, self.command_name))
+    # Commands with both suboptions and subcommands need to reparse for
+    # suboptions, so we log again.
+    metrics.LogCommandParams(subcommands=[action_subcommand],
+                             sub_opts=self.sub_opts)
     func()
     return 0

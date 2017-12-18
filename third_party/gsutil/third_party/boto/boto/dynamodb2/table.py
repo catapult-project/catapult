@@ -97,7 +97,7 @@ class Table(object):
             ...     ],
             ...     throughput={
             ...       'read':10,
-            ...       'write":10,
+            ...       'write':10,
             ...     }),
             ... ], connection=dynamodb2.connect_to_region('us-west-2',
             ...     aws_access_key_id='key',
@@ -178,7 +178,8 @@ class Table(object):
             ...     'write': 10,
             ... }, indexes=[
             ...     KeysOnlyIndex('MostRecentlyJoined', parts=[
-            ...         RangeKey('date_joined')
+            ...         HashKey('username'),
+            ...         RangeKey('date_joined'),
             ... ]), global_indexes=[
             ...     GlobalAllIndex('UsersByZipcode', parts=[
             ...         HashKey('zipcode'),
@@ -668,7 +669,7 @@ class Table(object):
         should be fetched)
 
         Returns an ``Item`` instance containing all the data for that record.
-        
+
         Raises an ``ItemNotFound`` exception if the item is not found.
 
         Example::
@@ -1118,7 +1119,7 @@ class Table(object):
         + `AND` - True if all filter conditions evaluate to true (default)
         + `OR` - True if at least one filter condition evaluates to true
 
-        Returns a ``ResultSet``, which transparently handles the pagination of
+        Returns a ``ResultSet`` containing ``Item``s, which transparently handles the pagination of
         results you get back.
 
         Example::
@@ -1580,9 +1581,9 @@ class Table(object):
             })
             results.append(item)
 
-        raw_unproccessed = raw_results.get('UnprocessedKeys', {})
+        raw_unprocessed = raw_results.get('UnprocessedKeys', {}).get(self.table_name, {})
 
-        for raw_key in raw_unproccessed.get('Keys', []):
+        for raw_key in raw_unprocessed.get('Keys', []):
             py_key = {}
 
             for key, value in raw_key.items():

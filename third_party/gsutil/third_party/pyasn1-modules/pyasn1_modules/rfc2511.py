@@ -168,7 +168,7 @@ class CertReqMsg(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType('certReq', CertRequest()),
         namedtype.OptionalNamedType('pop', ProofOfPossession()),
-        namedtype.OptionalNamedType('regInfo', univ.SequenceOf(componentType=AttributeTypeAndValue).subtype(subtypeSpec=constraint.ValueSizeConstraint(1, MAX)))
+        namedtype.OptionalNamedType('regInfo', univ.SequenceOf(componentType=AttributeTypeAndValue()).subtype(subtypeSpec=constraint.ValueSizeConstraint(1, MAX)))
 	)
         
 class CertReqMessages(univ.SequenceOf):

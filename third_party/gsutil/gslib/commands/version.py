@@ -27,7 +27,7 @@ import crcmod
 import gslib
 from gslib.command import Command
 from gslib.util import CheckMultiprocessingAvailableAndInit
-from gslib.util import GetConfigFilePath
+from gslib.util import GetConfigFilePaths
 from gslib.util import UsingCrcmodExtension
 
 
@@ -84,7 +84,10 @@ class VersionCommand(Command):
         if o == '-l':
           long_form = True
 
-    config_path = GetConfigFilePath()
+    if GetConfigFilePaths():
+      config_paths = ', '.join(GetConfigFilePaths())
+    else:
+      config_paths = 'no config found'
 
     shipped_checksum = gslib.CHECKSUM
     try:
@@ -107,7 +110,8 @@ class VersionCommand(Command):
           'OS: {os_version}\n'
           'multiprocessing available: {multiprocessing_available}\n'
           'using cloud sdk: {cloud_sdk}\n'
-          'config path: {config_path}\n'
+          'pass cloud sdk credentials to gsutil: {cloud_sdk_credentials}\n'
+          'config path(s): {config_paths}\n'
           'gsutil path: {gsutil_path}\n'
           'compiled crcmod: {compiled_crcmod}\n'
           'installed via package manager: {is_package_install}\n'
@@ -123,7 +127,10 @@ class VersionCommand(Command):
           multiprocessing_available=(
               CheckMultiprocessingAvailableAndInit().is_available),
           cloud_sdk=(os.environ.get('CLOUDSDK_WRAPPER') == '1'),
-          config_path=config_path,
+          cloud_sdk_credentials=(
+              os.environ.get('CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL') == '1'
+          ),
+          config_paths=config_paths,
           gsutil_path=gslib.GSUTIL_PATH,
           compiled_crcmod=UsingCrcmodExtension(crcmod),
           is_package_install=gslib.IS_PACKAGE_INSTALL,

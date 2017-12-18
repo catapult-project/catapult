@@ -31,6 +31,13 @@ from gslib.tests.util import unittest
 class TestSignUrl(testcase.GsUtilIntegrationTestCase):
   """Integration tests for signurl command."""
 
+  def _GetJSONKsFile(self):
+    if not hasattr(self, 'json_ks_file'):
+      # Dummy json keystore constructed from test.p12.
+      contents = pkgutil.get_data('gslib', 'tests/test_data/test.json')
+      self.json_ks_file = self.CreateTempFile(contents=contents)
+    return self.json_ks_file
+
   def _GetKsFile(self):
     if not hasattr(self, 'ks_file'):
       # Dummy pkcs12 keystore generated with the command
@@ -52,12 +59,19 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
       self.ks_file = self.CreateTempFile(contents=contents)
     return self.ks_file
 
-  def testSignUrlOutput(self):
-    """Tests signurl output of a sample object."""
+  def testSignUrlOutputP12(self):
+    """Tests signurl output of a sample object with pkcs12 keystore."""
+    self._DoTestSignUrlOutput(self._GetKsFile())
 
+  def testSignUrlOutputJSON(self):
+    """Tests signurl output of a sample object with json keystore."""
+    self._DoTestSignUrlOutput(self._GetJSONKsFile(), json_keystore=True)
+
+  def _DoTestSignUrlOutput(self, ks_file, json_keystore=False):
+    """Tests signurl output of a sample object."""
     object_url = self.CreateObject(contents='z')
-    stdout = self.RunGsUtil(['signurl', '-p', 'notasecret',
-                             self._GetKsFile(), suri(object_url)],
+    cmd_base = ['signurl'] if json_keystore else ['signurl', '-p', 'notasecret']
+    stdout = self.RunGsUtil(cmd_base + [ks_file, suri(object_url)],
                             return_stdout=True)
 
     self.assertIn(object_url.uri, stdout)
@@ -65,9 +79,9 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
     self.assertIn('Expires=', stdout)
     self.assertIn('\tGET\t', stdout)
 
-    stdout = self.RunGsUtil(['signurl', '-m', 'PUT', '-p',
-                             'notasecret', self._GetKsFile(),
-                             'gs://test/test.txt'], return_stdout=True)
+    stdout = self.RunGsUtil(cmd_base + ['-m', 'PUT', ks_file,
+                                        'gs://test/test.txt'],
+                            return_stdout=True)
 
     self.assertIn('test@developer.gserviceaccount.com', stdout)
     self.assertIn('Expires=', stdout)
@@ -136,7 +150,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
 
   def setUp(self):
     super(UnitTestSignUrl, self).setUp()
-    self.ks_contents = pkgutil.get_data('gslib', 'tests/test_data/test.p12')
+    ks_contents = pkgutil.get_data('gslib', 'tests/test_data/test.p12')
+    self.key, self.client_email = gslib.commands.signurl._ReadKeystore(
+        ks_contents, 'notasecret')
 
   def testDurationSpec(self):
     tests = [('1h', timedelta(hours=1)),
@@ -159,9 +175,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           self.fail('{0} failed to parse')
 
   def testSignPut(self):
-    """Tests the return value of the _GenSignedUrl function with \
-    a PUT method."""
-
+    """Tests the _GenSignedUrl function with a PUT method."""
     expected = ('https://storage.googleapis.com/test/test.txt?'
                 'GoogleAccessId=test@developer.gserviceaccount.com'
                 '&Expires=1391816302&Signature=A6QbgTA8cXZCtjy2xCr401bdi0e'
@@ -173,18 +187,49 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                 'c62hDKyaU2YssSMy%2FjUJynWx3TIiJjhg%3D%3D')
 
     expiration = 1391816302
-    ks, client_id = (gslib.commands.signurl
-                     ._ReadKeystore(self.ks_contents, 'notasecret'))
-    signed_url = (gslib.commands.signurl
-                  ._GenSignedUrl(ks.get_privatekey(),
-                                 client_id, 'PUT', '',
-                                 '', expiration, 'test/test.txt'))
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        self.key, self.client_email, 'PUT', '', '', expiration,
+        'test/test.txt', self.logger)
     self.assertEquals(expected, signed_url)
 
-  def testSignurlPutContentype(self):
-    """Tests the return value of the _GenSignedUrl function with \
-    a PUT method and specified content type."""
+  def testSignResumable(self):
+    """Tests the _GenSignedUrl function with a RESUMABLE method."""
+    expected = ('https://storage.googleapis.com/test/test.txt?'
+                'GoogleAccessId=test@developer.gserviceaccount.com'
+                '&Expires=1391816302&Signature=UjGs%2FBkE910Twb3Pqt0%2Fq49yNm9'
+                'xykmFYICOdgmdOxbiFtyjwrp%2FsjNgnu42UXuikzRVtM02nHyy8ZebWUome6'
+                '6Vkk7CKQNndDL3sdJD7ErqVTU2DjOH0ZMhmFIxqAwLnShdMDnE%2FhV7iTeF8'
+                'XjsM49IMxMvJiDuclzmxg4aJkkdrpodduxY8dtta1BKMWKjESzKn7nYxZcU06'
+                'iRhWN76OyH7RtRA4SpO5SDdepzsD5TPzAKmPQKLBTlcHkRbx3FE7ZDFJ5hF1L'
+                'ilSRr3GgD7E4kRFD3ybYuBQYEJJN5SIlpWw2n3De5QetxMGq6a%2FzkwA1zdc'
+                'WHCbL%2FVAmHkfuDJg%3D%3D')
 
+    class MockLogger(object):
+
+      def __init__(self):
+        self.warning_issued = False
+
+      def warn(self, unused_msg):
+        self.warning_issued = True
+
+    mock_logger = MockLogger()
+    expiration = 1391816302
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        self.key, self.client_email, 'RESUMABLE', '', '', expiration,
+        'test/test.txt', mock_logger)
+    self.assertEquals(expected, signed_url)
+    # Resumable uploads with no content-type should issue a warning.
+    self.assertTrue(mock_logger.warning_issued)
+
+    mock_logger2 = MockLogger()
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        self.key, self.client_email, 'RESUMABLE', '', 'image/jpeg', expiration,
+        'test/test.txt', mock_logger)
+    # No warning, since content type was included.
+    self.assertFalse(mock_logger2.warning_issued)
+
+  def testSignurlPutContentype(self):
+    """Tests the _GenSignedUrl function a PUT method and content type."""
     expected = ('https://storage.googleapis.com/test/test.txt?'
                 'GoogleAccessId=test@developer.gserviceaccount.com&'
                 'Expires=1391816302&Signature=APn%2BCCVcQrfc1fKQXrs'
@@ -197,20 +242,13 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                 'SGuJHqEcFz0kyfAlkpmG%2Fl5E1FQROYqLN2kZQ%3D%3D')
 
     expiration = 1391816302
-    ks, client_id = (gslib.commands.signurl
-                     ._ReadKeystore(self.ks_contents,
-                                    'notasecret'))
-    signed_url = (gslib.commands.signurl
-                  ._GenSignedUrl(ks.get_privatekey(),
-                                 client_id, 'PUT', '',
-                                 'text/plain', expiration,
-                                 'test/test.txt'))
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        self.key, self.client_email, 'PUT', '', 'text/plain', expiration,
+        'test/test.txt', self.logger)
     self.assertEquals(expected, signed_url)
 
   def testSignurlGet(self):
-    """Tests the return value of the _GenSignedUrl function with \
-    a GET method."""
-
+    """Tests the _GenSignedUrl function with a GET method."""
     expected = ('https://storage.googleapis.com/test/test.txt?'
                 'GoogleAccessId=test@developer.gserviceaccount.com&'
                 'Expires=0&Signature=TCZwe32cU%2BMksmLiSY9shHXQjLs1'
@@ -223,11 +261,30 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                 'DCbhR0Vo1fturPMwmAhi88f0qzRzywbg%3D%3D')
 
     expiration = 0
-    ks, client_id = (gslib.commands.signurl
-                     ._ReadKeystore(self.ks_contents,
-                                    'notasecret'))
-    signed_url = (gslib.commands.signurl
-                  ._GenSignedUrl(ks.get_privatekey(),
-                                 client_id, 'GET', '',
-                                 '', expiration, 'test/test.txt'))
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        self.key, self.client_email, 'GET', '', '', expiration, 'test/test.txt',
+        self.logger)
+    self.assertEquals(expected, signed_url)
+
+  def testSignurlGetWithJSONKey(self):
+    """Tests _GenSignedUrl with a GET method and the test JSON private key."""
+    expected = ('https://storage.googleapis.com/test/test.txt?'
+                'GoogleAccessId=test@developer.gserviceaccount.com&'
+                'Expires=0&Signature=TCZwe32cU%2BMksmLiSY9shHXQjLs1'
+                'F3y%2F%2F1M0UhiK4qsPRVNZVwI7YWvv2qa2Xa%2BVBBafboF0'
+                '1%2BWvx3ZG316pwpNIRR6y7jNnE0LvQmHE8afbm2VYCi%2B2JS'
+                'ZK2YZFJAyEek8si53jhYQEmaRq1zPfGbX84B2FJ8v4iI%2FTC1'
+                'I9OE5vHF0sWwIR9d73JDrFLjaync7QYFWRExdwvqlQX%2BPO3r'
+                'OG9Ns%2BcQFIN7npnsVjH28yNY9gBzXya8LYmNvUx6bWHWZMiu'
+                'fLwDZ0jejNeDZTOfQGRM%2B0vY7NslzaT06W1wo8P7McSkAZEl'
+                'DCbhR0Vo1fturPMwmAhi88f0qzRzywbg%3D%3D')
+
+    json_contents = pkgutil.get_data('gslib', 'tests/test_data/test.json')
+    key, client_email = gslib.commands.signurl._ReadJSONKeystore(
+        json_contents)
+
+    expiration = 0
+    signed_url = gslib.commands.signurl._GenSignedUrl(
+        key, client_email, 'GET', '', '', expiration, 'test/test.txt',
+        self.logger)
     self.assertEquals(expected, signed_url)

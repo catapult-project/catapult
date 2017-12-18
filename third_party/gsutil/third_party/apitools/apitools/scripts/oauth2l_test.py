@@ -1,3 +1,18 @@
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Tests for oauth2l."""
 
 import json
@@ -11,57 +26,49 @@ from six.moves import http_client
 import unittest2
 
 import apitools.base.py as apitools_base
+from apitools.scripts import oauth2l
 
 _OAUTH2L_MAIN_RUN = False
-
-if six.PY2:
-    import gflags as flags
-    from google.apputils import appcommands
-    from apitools.scripts import oauth2l
-    FLAGS = flags.FLAGS
 
 
 class _FakeResponse(object):
 
     def __init__(self, status_code, scopes=None):
         self.status_code = status_code
+        self.info = {
+            'reason': str(http_client.responses[self.status_code]),
+            'status': str(self.status_code),
+        }
         if self.status_code == http_client.OK:
             self.content = json.dumps({'scope': ' '.join(scopes or [])})
         else:
             self.content = 'Error'
-            self.info = str(http_client.responses[self.status_code])
             self.request_url = 'some-url'
 
 
-def _GetCommandOutput(t, command_name, command_argv):
-    global _OAUTH2L_MAIN_RUN  # pylint: disable=global-statement
-    if not _OAUTH2L_MAIN_RUN:
-        oauth2l.main(None)
-        _OAUTH2L_MAIN_RUN = True
-    command = appcommands.GetCommandByName(command_name)
-    if command is None:
-        t.fail('Unknown command: %s' % command_name)
+def _GetCommandOutput(command_name, command_argv):
     orig_stdout = sys.stdout
+    orig_stderr = sys.stderr
     new_stdout = six.StringIO()
+    new_stderr = six.StringIO()
     try:
         sys.stdout = new_stdout
-        command.CommandRun([command_name] + command_argv)
+        sys.stderr = new_stderr
+        oauth2l.main(['oauth2l', command_name] + command_argv)
     finally:
         sys.stdout = orig_stdout
-        FLAGS.Reset()
+        sys.stderr = orig_stderr
     new_stdout.seek(0)
     return new_stdout.getvalue().rstrip()
 
 
-@unittest2.skipIf(six.PY3, 'oauth2l unsupported in python3')
-class TestTest(unittest2.TestCase):
+class InvalidCommandTest(unittest2.TestCase):
 
     def testOutput(self):
-        self.assertRaises(AssertionError,
-                          _GetCommandOutput, self, 'foo', [])
+        self.assertRaises(SystemExit,
+                          _GetCommandOutput, 'foo', [])
 
 
-@unittest2.skipIf(six.PY3, 'oauth2l unsupported in python3')
 class Oauth2lFormattingTest(unittest2.TestCase):
 
     def setUp(self):
@@ -75,36 +82,36 @@ class Oauth2lFormattingTest(unittest2.TestCase):
         return ['--credentials_format=' + credentials_format, 'userinfo.email']
 
     def testFormatBare(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'fetch', self._Args('bare'))
+            output = _GetCommandOutput('fetch', self._Args('bare'))
             self.assertEqual(self.access_token, output)
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatHeader(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'fetch', self._Args('header'))
+            output = _GetCommandOutput('fetch', self._Args('header'))
             header = 'Authorization: Bearer %s' % self.access_token
             self.assertEqual(header, output)
             self.assertEqual(1, mock_credentials.call_count)
 
     def testHeaderCommand(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'header', ['userinfo.email'])
+            output = _GetCommandOutput('header', ['userinfo.email'])
             header = 'Authorization: Bearer %s' % self.access_token
             self.assertEqual(header, output)
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatJson(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'fetch', self._Args('json'))
+            output = _GetCommandOutput('fetch', self._Args('json'))
             output_lines = [l.strip() for l in output.splitlines()]
             expected_lines = [
                 '"_class": "AccessTokenCredentials",',
@@ -115,11 +122,10 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatJsonCompact(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'fetch',
-                                       self._Args('json_compact'))
+            output = _GetCommandOutput('fetch', self._Args('json_compact'))
             expected_clauses = [
                 '"_class":"AccessTokenCredentials",',
                 '"access_token":"%s",' % self.access_token,
@@ -130,10 +136,10 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatPretty(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
-            output = _GetCommandOutput(self, 'fetch', self._Args('pretty'))
+            output = _GetCommandOutput('fetch', self._Args('pretty'))
             expecteds = ['oauth2client.client.AccessTokenCredentials',
                          self.access_token]
             for expected in expecteds:
@@ -145,7 +151,6 @@ class Oauth2lFormattingTest(unittest2.TestCase):
                           oauth2l._Format, 'xml', self.credentials)
 
 
-@unittest2.skipIf(six.PY3, 'oauth2l unsupported in python3')
 class TestFetch(unittest2.TestCase):
 
     def setUp(self):
@@ -156,9 +161,9 @@ class TestFetch(unittest2.TestCase):
             self.access_token, self.user_agent)
 
     def testNoScopes(self):
-        output = _GetCommandOutput(self, 'fetch', [])
+        output = _GetCommandOutput('fetch', [])
         self.assertEqual(
-            'Exception raised in fetch operation: No scopes provided',
+            'Error encountered in fetch operation: No scopes provided',
             output)
 
     def testScopes(self):
@@ -173,7 +178,7 @@ class TestFetch(unittest2.TestCase):
                                    return_value=expected_scopes,
                                    autospec=True) as mock_get_scopes:
                 output = _GetCommandOutput(
-                    self, 'fetch', ['userinfo.email', 'cloud-platform'])
+                    'fetch', ['userinfo.email', 'cloud-platform'])
                 self.assertIn(self.access_token, output)
                 self.assertEqual(1, mock_fetch.call_count)
                 args, _ = mock_fetch.call_args
@@ -192,8 +197,7 @@ class TestFetch(unittest2.TestCase):
                 with mock.patch.object(self.credentials, 'refresh',
                                        return_value=None,
                                        autospec=True) as mock_refresh:
-                    output = _GetCommandOutput(self, 'fetch',
-                                               ['userinfo.email'])
+                    output = _GetCommandOutput('fetch', ['userinfo.email'])
                     self.assertIn(self.access_token, output)
                     self.assertEqual(1, mock_fetch.call_count)
                     self.assertEqual(1, mock_validate.call_count)
@@ -206,7 +210,7 @@ class TestFetch(unittest2.TestCase):
             with mock.patch.object(oauth2l, '_ValidateToken',
                                    return_value=True,
                                    autospec=True) as mock_validate:
-                output = _GetCommandOutput(self, 'fetch', ['userinfo.email'])
+                output = _GetCommandOutput('fetch', ['userinfo.email'])
                 self.assertIn(self.access_token, output)
                 self.assertEqual(1, mock_fetch.call_count)
                 _, kwargs = mock_fetch.call_args
@@ -216,25 +220,17 @@ class TestFetch(unittest2.TestCase):
                 self.assertEqual(1, mock_validate.call_count)
 
     def testMissingClientSecrets(self):
-        try:
-            FLAGS.client_secrets = '/non/existent/file'
-            self.assertRaises(
-                ValueError,
-                oauth2l.GetClientInfoFromFlags)
-        finally:
-            FLAGS.Reset()
+        self.assertRaises(
+            ValueError,
+            oauth2l.GetClientInfoFromFlags, '/non/existent/file')
 
     def testWrongClientSecretsFormat(self):
-        client_secrets_path = os.path.join(
+        client_secrets = os.path.join(
             os.path.dirname(__file__),
             'testdata/noninstalled_client_secrets.json')
-        try:
-            FLAGS.client_secrets = client_secrets_path
-            self.assertRaises(
-                ValueError,
-                oauth2l.GetClientInfoFromFlags)
-        finally:
-            FLAGS.Reset()
+        self.assertRaises(
+            ValueError,
+            oauth2l.GetClientInfoFromFlags, client_secrets)
 
     def testCustomClientInfo(self):
         client_secrets_path = os.path.join(
@@ -248,7 +244,7 @@ class TestFetch(unittest2.TestCase):
                 fetch_args = [
                     '--client_secrets=' + client_secrets_path,
                     'userinfo.email']
-                output = _GetCommandOutput(self, 'fetch', fetch_args)
+                output = _GetCommandOutput('fetch', fetch_args)
                 self.assertIn(self.access_token, output)
                 self.assertEqual(1, mock_fetch.call_count)
                 _, kwargs = mock_fetch.call_args
@@ -259,7 +255,6 @@ class TestFetch(unittest2.TestCase):
                 self.assertEqual(1, mock_validate.call_count)
 
 
-@unittest2.skipIf(six.PY3, 'oauth2l unsupported in python3')
 class TestOtherCommands(unittest2.TestCase):
 
     def setUp(self):
@@ -274,7 +269,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'GetUserinfo',
                                return_value=user_info,
                                autospec=True) as mock_get_userinfo:
-            output = _GetCommandOutput(self, 'email', [self.access_token])
+            output = _GetCommandOutput('email', [self.access_token])
             self.assertEqual(user_info['email'], output)
             self.assertEqual(1, mock_get_userinfo.call_count)
             self.assertEqual(self.access_token,
@@ -284,7 +279,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'GetUserinfo',
                                return_value={},
                                autospec=True) as mock_get_userinfo:
-            output = _GetCommandOutput(self, 'email', [self.access_token])
+            output = _GetCommandOutput('email', [self.access_token])
             self.assertEqual('', output)
             self.assertEqual(1, mock_get_userinfo.call_count)
 
@@ -293,7 +288,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'GetUserinfo',
                                return_value=user_info,
                                autospec=True) as mock_get_userinfo:
-            output = _GetCommandOutput(self, 'userinfo', [self.access_token])
+            output = _GetCommandOutput('userinfo', [self.access_token])
             self.assertEqual(json.dumps(user_info, indent=4), output)
             self.assertEqual(1, mock_get_userinfo.call_count)
             self.assertEqual(self.access_token,
@@ -305,7 +300,7 @@ class TestOtherCommands(unittest2.TestCase):
                                return_value=user_info,
                                autospec=True) as mock_get_userinfo:
             output = _GetCommandOutput(
-                self, 'userinfo', ['--format=json_compact', self.access_token])
+                'userinfo', ['--format=json_compact', self.access_token])
             self.assertEqual(json.dumps(user_info, separators=(',', ':')),
                              output)
             self.assertEqual(1, mock_get_userinfo.call_count)
@@ -319,7 +314,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'MakeRequest',
                                return_value=response,
                                autospec=True) as mock_make_request:
-            output = _GetCommandOutput(self, 'scopes', [self.access_token])
+            output = _GetCommandOutput('scopes', [self.access_token])
             self.assertEqual(sorted(scopes), output.splitlines())
             self.assertEqual(1, mock_make_request.call_count)
 
@@ -330,7 +325,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'MakeRequest',
                                return_value=response,
                                autospec=True) as mock_make_request:
-            output = _GetCommandOutput(self, 'validate', [self.access_token])
+            output = _GetCommandOutput('validate', [self.access_token])
             self.assertEqual('', output)
             self.assertEqual(1, mock_make_request.call_count)
 
@@ -339,7 +334,7 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'MakeRequest',
                                return_value=response,
                                autospec=True) as mock_make_request:
-            output = _GetCommandOutput(self, 'scopes', [self.access_token])
+            output = _GetCommandOutput('scopes', [self.access_token])
             self.assertEqual('', output)
             self.assertEqual(1, mock_make_request.call_count)
 
@@ -348,9 +343,9 @@ class TestOtherCommands(unittest2.TestCase):
         with mock.patch.object(apitools_base, 'MakeRequest',
                                return_value=response,
                                autospec=True) as mock_make_request:
-            output = _GetCommandOutput(self, 'scopes', [self.access_token])
+            output = _GetCommandOutput('scopes', [self.access_token])
             self.assertIn(str(http_client.responses[response.status_code]),
                           output)
-            self.assertIn('Exception raised in scopes operation: HttpError',
+            self.assertIn('Error encountered in scopes operation: HttpError',
                           output)
             self.assertEqual(1, mock_make_request.call_count)

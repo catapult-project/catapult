@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Library for handling batch HTTP requests for apitools."""
 
 import collections
@@ -13,6 +28,7 @@ import uuid
 import six
 from six.moves import http_client
 from six.moves import urllib_parse
+from six.moves import range  # pylint: disable=redefined-builtin
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -41,6 +57,7 @@ class RequestResponseAndHandler(collections.namedtuple(
 
 
 class BatchApiRequest(object):
+    """Batches multiple api requests into a single request."""
 
     class ApiCall(object):
 
@@ -164,7 +181,8 @@ class BatchApiRequest(object):
             http_request, self.retryable_codes, service, method_config)
         self.api_requests.append(api_request)
 
-    def Execute(self, http, sleep_between_polls=5, max_retries=5):
+    def Execute(self, http, sleep_between_polls=5, max_retries=5,
+                max_batch_size=None, batch_request_callback=None):
         """Execute all of the requests in the batch.
 
         Args:
@@ -174,33 +192,44 @@ class BatchApiRequest(object):
           max_retries: Max retries. Any requests that have not succeeded by
               this number of retries simply report the last response or
               exception, whatever it happened to be.
+          max_batch_size: int, if specified requests will be split in batches
+              of given size.
+          batch_request_callback: function of (http_response, exception) passed
+              to BatchHttpRequest which will be run on any given results.
 
         Returns:
           List of ApiCalls.
         """
         requests = [request for request in self.api_requests
                     if not request.terminal_state]
+        batch_size = max_batch_size or len(requests)
 
         for attempt in range(max_retries):
             if attempt:
                 time.sleep(sleep_between_polls)
 
-            # Create a batch_http_request object and populate it with
-            # incomplete requests.
-            batch_http_request = BatchHttpRequest(batch_url=self.batch_url)
-            for request in requests:
-                batch_http_request.Add(
-                    request.http_request, request.HandleResponse)
-            batch_http_request.Execute(http)
+            for i in range(0, len(requests), batch_size):
+                # Create a batch_http_request object and populate it with
+                # incomplete requests.
+                batch_http_request = BatchHttpRequest(
+                    batch_url=self.batch_url,
+                    callback=batch_request_callback
+                )
+                for request in itertools.islice(requests,
+                                                i, i + batch_size):
+                    batch_http_request.Add(
+                        request.http_request, request.HandleResponse)
+                batch_http_request.Execute(http)
+
+                if hasattr(http.request, 'credentials'):
+                    if any(request.authorization_failed
+                           for request in itertools.islice(requests,
+                                                           i, i + batch_size)):
+                        http.request.credentials.refresh(http)
 
             # Collect retryable requests.
             requests = [request for request in self.api_requests if not
                         request.terminal_state]
-
-            if hasattr(http.request, 'credentials'):
-                if any(request.authorization_failed for request in requests):
-                    http.request.credentials.refresh(http)
-
             if not requests:
                 break
 
@@ -428,6 +457,7 @@ class BatchHttpRequest(object):
 
             # Disable protected access because namedtuple._replace(...)
             # is not actually meant to be protected.
+            # pylint: disable=protected-access
             self.__request_response_handlers[request_id] = (
                 self.__request_response_handlers[request_id]._replace(
                     response=response))

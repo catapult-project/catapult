@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """HTTP wrapper for apitools.
 
 This library wraps the underlying http library we use, which is
@@ -12,6 +27,7 @@ import socket
 import time
 
 import httplib2
+import oauth2client
 import six
 from six.moves import http_client
 from six.moves.urllib import parse
@@ -48,7 +64,7 @@ _REDIRECT_STATUS_CODES = (
 # num_retries: Number of retries consumed; used for exponential backoff.
 ExceptionRetryArgs = collections.namedtuple(
     'ExceptionRetryArgs', ['http', 'http_request', 'exc', 'num_retries',
-                           'max_retry_wait'])
+                           'max_retry_wait', 'total_wait_sec'])
 
 
 @contextlib.contextmanager
@@ -224,6 +240,7 @@ def RebuildHttpConnections(http):
 
 
 def RethrowExceptionHandler(*unused_args):
+    # pylint: disable=misplaced-bare-raise
     raise
 
 
@@ -262,6 +279,13 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         # oauth2client, need to handle it here.
         logging.debug('Response content was invalid (%s), retrying',
                       retry_args.exc)
+    elif (isinstance(retry_args.exc,
+                     oauth2client.client.HttpAccessTokenRefreshError) and
+          (retry_args.exc.status == TOO_MANY_REQUESTS or
+           retry_args.exc.status >= 500)):
+        logging.debug(
+            'Caught transient credential refresh error (%s), retrying',
+            retry_args.exc)
     elif isinstance(retry_args.exc, exceptions.RequestError):
         logging.debug('Request returned no response, retrying')
     # API-level failures
@@ -272,7 +296,7 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         logging.debug('Response returned a retry-after header, retrying')
         retry_after = retry_args.exc.retry_after
     else:
-        raise
+        raise  # pylint: disable=misplaced-bare-raise
     RebuildHttpConnections(retry_args.http)
     logging.debug('Retrying request to url %s after exception %s',
                   retry_args.http_request.url, retry_args.exc)
@@ -296,8 +320,8 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
       max_retry_wait: (int, default 60) Maximum number of seconds to wait
           when retrying.
       redirections: (int, default 5) Number of redirects to follow.
-      retry_func: Function to handle retries on exceptions. Arguments are
-          (Httplib2.Http, Request, Exception, int num_retries).
+      retry_func: Function to handle retries on exceptions. Argument is an
+          ExceptionRetryArgs tuple.
       check_response_func: Function to validate the HTTP response.
           Arguments are (Response, response content, url).
 
@@ -309,6 +333,7 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
 
     """
     retry = 0
+    first_req_time = time.time()
     while True:
         try:
             return _MakeRequestNoRetry(
@@ -321,8 +346,9 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
             if retry >= retries:
                 raise
             else:
-                retry_func(ExceptionRetryArgs(
-                    http, http_request, e, retry, max_retry_wait))
+                total_wait_sec = time.time() - first_req_time
+                retry_func(ExceptionRetryArgs(http, http_request, e, retry,
+                                              max_retry_wait, total_wait_sec))
 
 
 def _MakeRequestNoRetry(http, http_request, redirections=5,

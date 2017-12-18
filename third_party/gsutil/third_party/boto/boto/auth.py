@@ -39,7 +39,7 @@ import hmac
 import os
 import posixpath
 
-from boto.compat import urllib, encodebytes
+from boto.compat import urllib, encodebytes, parse_qs_safe, urlparse
 from boto.auth_handler import AuthHandler
 from boto.exception import BotoClientError
 
@@ -51,13 +51,47 @@ except ImportError:
     sha256 = None
 
 
-# Region detection strings to determine if SigV4 should be used
-# by default.
+# Region detection strings to determine if SigV2 should be used
+# by default
+S3_AUTH_DETECT = [
+    '-ap-northeast-1',
+    '.ap-northeast-1',
+    '-ap-southeast-1',
+    '.ap-southeast-1',
+    '-ap-southeast-2',
+    '.ap-southeast-2',
+    '-eu-west-1',
+    '.eu-west-1',
+    '-external-1',
+    '.external-1',
+    '-sa-east-1',
+    '.sa-east-1',
+    '-us-east-1',
+    '.us-east-1',
+    '-us-gov-west-1',
+    '.us-gov-west-1',
+    '-us-west-1',
+    '.us-west-1',
+    '-us-west-2',
+    '.us-west-2'
+]
+
+
 SIGV4_DETECT = [
     '.cn-',
-    # In eu-central we support both host styles for S3
+    # In eu-central and ap-northeast-2 we support both host styles for S3
     '.eu-central',
     '-eu-central',
+    '.ap-northeast-2',
+    '-ap-northeast-2',
+    '.ap-south-1',
+    '-ap-south-1',
+    '.us-east-2',
+    '-us-east-2',
+    '-ca-central',
+    '.ca-central',
+    '.eu-west-2',
+    '-eu-west-2',
 ]
 
 
@@ -573,7 +607,7 @@ class S3HmacAuthV4Handler(HmacAuthV4Handler, AuthHandler):
         # Because some quoting may have already been applied, let's back it out.
         unquoted = urllib.parse.unquote(path.path)
         # Requote, this time addressing all characters.
-        encoded = urllib.parse.quote(unquoted)
+        encoded = urllib.parse.quote(unquoted, safe='/~')
         return encoded
 
     def canonical_query_string(self, http_request):
@@ -688,7 +722,7 @@ class S3HmacAuthV4Handler(HmacAuthV4Handler, AuthHandler):
             modified_req.params = copy_params
 
         raw_qs = parsed_path.query
-        existing_qs = urllib.parse.parse_qs(
+        existing_qs = parse_qs_safe(
             raw_qs,
             keep_blank_values=True
         )
@@ -769,8 +803,8 @@ class S3HmacAuthV4Handler(HmacAuthV4Handler, AuthHandler):
         # Add signature to params now that we have it
         req.params['X-Amz-Signature'] = signature
 
-        return 'https://%s%s?%s' % (req.host, req.path,
-                                    urllib.parse.urlencode(req.params))
+        return '%s://%s%s?%s' % (req.protocol, req.host, req.path,
+                                 urllib.parse.urlencode(req.params))
 
 
 class STSAnonHandler(AuthHandler):
@@ -878,8 +912,8 @@ class QuerySignatureV1AuthHandler(QuerySignatureHelper, AuthHandler):
     def _calc_signature(self, params, *args):
         boto.log.debug('using _calc_signature_1')
         hmac = self._get_hmac()
-        keys = params.keys()
-        keys.sort(cmp=lambda x, y: cmp(x.lower(), y.lower()))
+        keys = list(params.keys())
+        keys.sort(key=lambda x: x.lower())
         pairs = []
         for key in keys:
             hmac.update(key.encode('utf-8'))
@@ -1028,13 +1062,38 @@ def detect_potential_s3sigv4(func):
         if boto.config.get('s3', 'use-sigv4', False):
             return ['hmac-v4-s3']
 
-        if hasattr(self, 'host'):
-            # If you're making changes here, you should also check
-            # ``boto/iam/connection.py``, as several things there are also
-            # endpoint-related.
-            for test in SIGV4_DETECT:
-                if test in self.host:
-                    return ['hmac-v4-s3']
+        if not hasattr(self, 'host'):
+            return func(self)
 
-        return func(self)
+        # Keep the old explicit logic in case somebody was adding to the list.
+        for test in SIGV4_DETECT:
+            if test in self.host:
+                return ['hmac-v4-s3']
+
+        # Use default for non-aws hosts. Adding a url scheme is necessary if
+        # not present for urlparse to properly function.
+        host = self.host
+        if not self.host.startswith('http://') or \
+                self.host.startswith('https://'):
+            host = 'https://' + host
+        netloc = urlparse(host).netloc
+        if not (netloc.endswith('amazonaws.com') or
+                netloc.endswith('amazonaws.com.cn')):
+            return func(self)
+
+        # Use the default for the global endpoint
+        if netloc.endswith('s3.amazonaws.com'):
+            return func(self)
+
+        # Use the default for regions that support sigv4 and sigv2
+        if any(test in self.host for test in S3_AUTH_DETECT):
+            return func(self)
+
+        # Use anonymous if enabled.
+        if hasattr(self, 'anon') and self.anon:
+            return func(self)
+
+        # Default to sigv4 for aws hosts outside of regions that are known
+        # to support sigv2
+        return ['hmac-v4-s3']
     return _wrapper

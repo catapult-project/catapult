@@ -21,12 +21,16 @@ import sys
 
 from gslib.bucket_listing_ref import BucketListingObject
 from gslib.cloud_api import AccessDeniedException
+from gslib.cloud_api import EncryptionException
 from gslib.cloud_api import NotFoundException
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.exception import InvalidUrlError
+from gslib.ls_helper import ENCRYPTED_FIELDS
+from gslib.exception import NO_URLS_MATCHED_TARGET
+from gslib.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
 from gslib.util import NO_MAX
@@ -113,11 +117,7 @@ class StatCommand(Command):
 
   def RunCommand(self):
     """Command entry point for stat command."""
-    # List of fields we'll print for stat objects.
-    stat_fields = ['updated', 'cacheControl', 'contentDisposition',
-                   'contentEncoding', 'contentLanguage', 'size', 'contentType',
-                   'componentCount', 'metadata', 'crc32c', 'md5Hash', 'etag',
-                   'generation', 'metageneration']
+    stat_fields = ENCRYPTED_FIELDS + UNENCRYPTED_FULL_LISTING_FIELDS
     found_nonmatching_arg = False
     for url_str in self.args:
       arg_matches = 0
@@ -129,24 +129,33 @@ class StatCommand(Command):
           blr_iter = self.WildcardIterator(url_str).IterObjects(
               bucket_listing_fields=stat_fields)
         else:
-          single_obj = self.gsutil_api.GetObjectMetadata(
-              url.bucket_name, url.object_name, generation=url.generation,
-              provider=url.scheme, fields=stat_fields)
+          try:
+            single_obj = self.gsutil_api.GetObjectMetadata(
+                url.bucket_name, url.object_name, generation=url.generation,
+                provider=url.scheme, fields=stat_fields)
+          except EncryptionException:
+            # Retry without requesting hashes.
+            single_obj = self.gsutil_api.GetObjectMetadata(
+                url.bucket_name, url.object_name, generation=url.generation,
+                provider=url.scheme, fields=UNENCRYPTED_FULL_LISTING_FIELDS)
           blr_iter = [BucketListingObject(url, root_object=single_obj)]
         for blr in blr_iter:
           if blr.IsObject():
             arg_matches += 1
+            # TODO: Request fewer fields if we're not printing the object.
             if logging.getLogger().isEnabledFor(logging.INFO):
               PrintFullInfoAboutObject(blr, incl_acl=False)
       except AccessDeniedException:
-        sys.stderr.write('You aren\'t authorized to read %s - skipping' %
-                         url_str)
+        if logging.getLogger().isEnabledFor(logging.INFO):
+          sys.stderr.write('You aren\'t authorized to read %s - skipping' %
+                           url_str)
       except InvalidUrlError:
         raise
       except NotFoundException:
         pass
       if not arg_matches:
-        sys.stderr.write('No URLs matched %s' % url_str)
+        if logging.getLogger().isEnabledFor(logging.INFO):
+          sys.stderr.write(NO_URLS_MATCHED_TARGET % url_str)
         found_nonmatching_arg = True
     if found_nonmatching_arg:
       return 1

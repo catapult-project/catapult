@@ -21,6 +21,7 @@ from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
+from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.storage_url import StorageUrlFromString
 from gslib.util import NO_MAX
 
@@ -138,6 +139,6 @@ class RbCommand(Command):
             raise
         did_some_work = True
     if not did_some_work:
-      raise CommandException('No URLs matched')
+      raise CommandException(NO_URLS_MATCHED_TARGET % list(self.args))
     return 1 if some_failed else 0
 

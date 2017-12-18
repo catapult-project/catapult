@@ -22,9 +22,8 @@ import sys
 import time
 import webbrowser
 
-from oauth2client.client import OAuth2WebServerFlow
-
 from gcs_oauth2_boto_plugin import oauth2_client
+from oauth2client.client import OAuth2WebServerFlow
 
 CLIENT_ID = None
 CLIENT_SECRET = None
@@ -52,7 +51,7 @@ def OAuth2ClientFromBotoConfig(
     token_cache = oauth2_client.InMemoryTokenCache()
   else:
     raise Exception(
-        "Invalid value for config option OAuth2/token_cache: %s" %
+        'Invalid value for config option OAuth2/token_cache: %s' %
         token_cache_type)
 
   proxy_host = None
@@ -78,24 +77,22 @@ def OAuth2ClientFromBotoConfig(
     with open(private_key_filename, 'rb') as private_key_file:
       private_key = private_key_file.read()
 
-    json_key = None
+    json_key_dict = None
     try:
-      json_key = json.loads(private_key)
+      json_key_dict = json.loads(private_key)
     except ValueError:
       pass
-    if json_key:
+    if json_key_dict:
       for json_entry in ('client_id', 'client_email', 'private_key_id',
                          'private_key'):
-        if json_entry not in json_key:
+        if json_entry not in json_key_dict:
           raise Exception('The JSON private key file at %s '
                           'did not contain the required entry: %s' %
                           (private_key_filename, json_entry))
 
       return oauth2_client.OAuth2JsonServiceAccountClient(
-          json_key['client_id'], json_key['client_email'],
-          json_key['private_key_id'], json_key['private_key'],
-          access_token_cache=token_cache, auth_uri=provider_authorization_uri,
-          token_uri=provider_token_uri,
+          json_key_dict, access_token_cache=token_cache,
+          auth_uri=provider_authorization_uri, token_uri=provider_token_uri,
           disable_ssl_certificate_validation=not(config.getbool(
               'Boto', 'https_validate_certificates', True)),
           proxy_host=proxy_host, proxy_port=proxy_port,
@@ -126,7 +123,7 @@ def OAuth2ClientFromBotoConfig(
     client_secret = config.get('OAuth2', 'client_secret',
                                os.environ.get('OAUTH2_CLIENT_SECRET',
                                               CLIENT_SECRET))
-    ca_certs_file=config.get_value('Boto', 'ca_certificates_file')
+    ca_certs_file = config.get_value('Boto', 'ca_certificates_file')
     if ca_certs_file == 'system':
       ca_certs_file = None
 

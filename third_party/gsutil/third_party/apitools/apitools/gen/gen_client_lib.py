@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Simple tool for generating a client library.
 
 Relevant links:
@@ -7,13 +22,22 @@ Relevant links:
 
 import datetime
 
-from six.moves import urllib_parse
-
-from apitools.base.py import base_cli
 from apitools.gen import command_registry
 from apitools.gen import message_registry
 from apitools.gen import service_registry
 from apitools.gen import util
+
+
+def _ApitoolsVersion():
+    """Returns version of the currently installed google-apitools package."""
+    try:
+        import pkg_resources
+    except ImportError:
+        return 'X.X.X'
+    try:
+        return pkg_resources.get_distribution('google-apitools').version
+    except pkg_resources.DistributionNotFound:
+        return 'X.X.X'
 
 
 def _StandardQueryParametersSchema(discovery_doc):
@@ -27,20 +51,11 @@ def _StandardQueryParametersSchema(discovery_doc):
     # We add an entry for the trace, since Discovery doesn't.
     standard_query_schema['properties']['trace'] = {
         'type': 'string',
-        'description': base_cli.TRACE_HELP,
+        'description': ('A tracing token of the form "token:<tokenid>" '
+                        'to include in api requests.'),
         'location': 'query',
     }
     return standard_query_schema
-
-
-def _ComputePaths(package, version, discovery_doc):
-    full_path = urllib_parse.urljoin(
-        discovery_doc['rootUrl'], discovery_doc['servicePath'])
-    api_path_component = '/'.join((package, version, ''))
-    if api_path_component not in full_path:
-        return full_path, ''
-    prefix, _, suffix = full_path.rpartition(api_path_component)
-    return prefix + api_path_component, suffix
 
 
 class DescriptorGenerator(object):
@@ -48,8 +63,10 @@ class DescriptorGenerator(object):
     """Code generator for a given discovery document."""
 
     def __init__(self, discovery_doc, client_info, names, root_package, outdir,
-                 base_package, generate_cli=False, use_proto2=False,
-                 unelidable_request_methods=None):
+                 base_package, protorpc_package, generate_cli=False,
+                 init_wildcards_file=True,
+                 use_proto2=False, unelidable_request_methods=None,
+                 apitools_version=''):
         self.__discovery_doc = discovery_doc
         self.__client_info = client_info
         self.__outdir = outdir
@@ -60,22 +77,20 @@ class DescriptorGenerator(object):
         self.__version = self.__client_info.version
         self.__revision = discovery_doc.get('revision', '1')
         self.__generate_cli = generate_cli
+        self.__init_wildcards_file = init_wildcards_file
         self.__root_package = root_package
         self.__base_files_package = base_package
-        self.__base_files_target = (
-            '//cloud/bigscience/apitools/base/py:apitools_base')
+        self.__protorpc_package = protorpc_package
         self.__names = names
-        self.__base_url, self.__base_path = _ComputePaths(
-            self.__package, self.__client_info.url_version,
-            self.__discovery_doc)
 
         # Order is important here: we need the schemas before we can
         # define the services.
         self.__message_registry = message_registry.MessageRegistry(
             self.__client_info, self.__names, self.__description,
-            self.__root_package, self.__base_files_package)
+            self.__root_package, self.__base_files_package,
+            self.__protorpc_package)
         schemas = self.__discovery_doc.get('schemas', {})
-        for schema_name, schema in schemas.items():
+        for schema_name, schema in sorted(schemas.items()):
             self.__message_registry.AddDescriptorFromSchema(
                 schema_name, schema)
 
@@ -92,7 +107,8 @@ class DescriptorGenerator(object):
         self.__command_registry = command_registry.CommandRegistry(
             self.__package, self.__version, self.__client_info,
             self.__message_registry, self.__root_package,
-            self.__base_files_package, self.__base_url, self.__names)
+            self.__base_files_package, self.__protorpc_package,
+            self.__names)
         self.__command_registry.AddGlobalParameters(
             self.__message_registry.LookupDescriptorOrDie(
                 'StandardQueryParameters'))
@@ -101,8 +117,6 @@ class DescriptorGenerator(object):
             self.__client_info,
             self.__message_registry,
             self.__command_registry,
-            self.__base_url,
-            self.__base_path,
             self.__names,
             self.__root_package,
             self.__base_files_package,
@@ -116,8 +130,14 @@ class DescriptorGenerator(object):
         if api_methods:
             self.__services_registry.AddServiceFromResource(
                 'api', {'methods': api_methods})
+        # pylint: disable=protected-access
         self.__client_info = self.__client_info._replace(
             scopes=self.__services_registry.scopes)
+
+        # The apitools version that will be used in prerequisites for the
+        # generated packages.
+        self.__apitools_version = (
+            apitools_version if apitools_version else _ApitoolsVersion())
 
     @property
     def client_info(self):
@@ -143,6 +163,10 @@ class DescriptorGenerator(object):
     def use_proto2(self):
         return self.__use_proto2
 
+    @property
+    def apitools_version(self):
+        return self.__apitools_version
+
     def _GetPrinter(self, out):
         printer = util.SimplePrettyPrinter(out)
         return printer
@@ -150,25 +174,29 @@ class DescriptorGenerator(object):
     def WriteInit(self, out):
         """Write a simple __init__.py for the generated client."""
         printer = self._GetPrinter(out)
-        printer('"""Common imports for generated %s client library."""',
-                self.__client_info.package)
-        printer('# pylint:disable=wildcard-import')
+        if self.__init_wildcards_file:
+            printer('"""Common imports for generated %s client library."""',
+                    self.__client_info.package)
+            printer('# pylint:disable=wildcard-import')
+        else:
+            printer('"""Package marker file."""')
         printer()
         printer('import pkgutil')
         printer()
-        printer('from %s import *', self.__base_files_package)
-        if self.__root_package == '.':
-            import_prefix = ''
-        else:
-            import_prefix = '%s.' % self.__root_package
-        if self.__generate_cli:
+        if self.__init_wildcards_file:
+            printer('from %s import *', self.__base_files_package)
+            if self.__root_package == '.':
+                import_prefix = ''
+            else:
+                import_prefix = '%s.' % self.__root_package
+            if self.__generate_cli:
+                printer('from %s%s import *',
+                        import_prefix, self.__client_info.cli_rule_name)
             printer('from %s%s import *',
-                    import_prefix, self.__client_info.cli_rule_name)
-        printer('from %s%s import *',
-                import_prefix, self.__client_info.client_rule_name)
-        printer('from %s%s import *',
-                import_prefix, self.__client_info.messages_rule_name)
-        printer()
+                    import_prefix, self.__client_info.client_rule_name)
+            printer('from %s%s import *',
+                    import_prefix, self.__client_info.messages_rule_name)
+            printer()
         printer('__path__ = pkgutil.extend_path(__path__, __name__)')
 
     def WriteIntermediateInit(self, out):
@@ -207,11 +235,13 @@ class DescriptorGenerator(object):
         printer('import setuptools')
         printer('REQUIREMENTS = [')
         with printer.Indent(indent='    '):
-            # TODO(craigcitro): Have this track apitools' version.
-            printer('"google-apitools>=0.4.8",')
+            parts = self.apitools_version.split('.')
+            major = parts.pop(0)
+            minor = parts.pop(0)
+            printer('"google-apitools>=%s,~=%s.%s",',
+                    self.apitools_version, major, minor)
             printer('"httplib2>=0.9",')
             printer('"oauth2client>=1.4.12",')
-            printer('"protorpc>=0.10.0",')
         printer(']')
         printer('_PACKAGE = "apitools.clients.%s"' % self.__package)
         printer()
@@ -220,7 +250,8 @@ class DescriptorGenerator(object):
         with printer.Indent(indent='    '):
             printer('name="google-apitools-%s-%s",',
                     self.__package, self.__version)
-            printer('version="0.4.%s",', self.__revision)
+            printer('version="%s.%s",',
+                    self.apitools_version, self.__revision)
             printer('description="Autogenerated apitools library for %s",' % (
                 self.__package,))
             printer('url="https://github.com/google/apitools",')

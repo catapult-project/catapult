@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pkcs7dump.py <<EOT
+python pkcs7dump.py <<EOT
 -----BEGIN PKCS7-----
 MIIKdQYJKoZIhvcNAQcCoIIKZjCCCmICAQExADALBgkqhkiG9w0BBwGgggpIMIIC
 XjCCAcegAwIBAgIBADANBgkqhkiG9w0BAQQFADB1MQswCQYDVQQGEwJSVTEPMA0G

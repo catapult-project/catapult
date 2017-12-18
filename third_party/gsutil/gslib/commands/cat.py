@@ -37,7 +37,8 @@ _DETAILED_HELP_TEXT = ("""
 
 <B>DESCRIPTION</B>
   The cat command outputs the contents of one or more URLs to stdout.
-  It is equivalent to doing:
+  While the cat command does not compute a checksum, it is otherwise
+  equivalent to doing:
 
     gsutil cp url... -
 

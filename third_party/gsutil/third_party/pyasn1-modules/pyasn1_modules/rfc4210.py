@@ -504,6 +504,11 @@ class PKIBody(univ.Choice):
          pkiconf  [19] PKIConfirmContent,      --Confirmation
          nested   [20] NestedMessageContent,   --Nested Message
          genm     [21] GenMsgContent,          --General Message
+         genp     [22] GenRepContent,          --General Response
+         error    [23] ErrorMsgContent,        --Error Message
+         certConf [24] CertConfirmContent,     --Certificate confirm
+         pollReq  [25] PollReqContent,         --Polling request
+         pollRep  [26] PollRepContent          --Polling response
 
     """
     componentType = namedtype.NamedTypes(
@@ -594,6 +599,26 @@ class PKIBody(univ.Choice):
 #        ),
         namedtype.NamedType('genm', GenMsgContent().subtype(
             explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,21)
+            )
+        ),
+        namedtype.NamedType('gen', GenRepContent().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,22)
+            )
+        ),
+        namedtype.NamedType('error', ErrorMsgContent().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,23)
+            )
+        ),
+        namedtype.NamedType('certConf', CertConfirmContent().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,24)
+            )
+        ),
+        namedtype.NamedType('pollReq', PollReqContent().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,25)
+            )
+        ),
+        namedtype.NamedType('pollRep', PollRepContent().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext,tag.tagFormatConstructed,26)
             )
         )
     )

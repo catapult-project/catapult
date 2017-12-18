@@ -1,12 +1,43 @@
 Contributing
 ============
 
-1.  **Please sign one of the contributor license agreements below.**
-1.  Fork the repo, develop and test your code changes, add docs.
+1.  **Please sign one of the contributor license agreements [below][6].**
+1.  [File an issue][9] to notify the maintainers about what you're working on.
+1.  [Fork the repo][10], develop and [test][11] your code changes, add docs.
 1.  Make sure that your commit messages clearly describe the changes.
-1.  Send a pull request.
+1.  [Send][12] a pull request.
 
 Here are some guidelines for hacking on `oauth2client`.
+
+Before writing code, file an issue
+----------------------------------
+
+Use the [issue tracker][7] to start the discussion. It is possible that someone
+else is already working on your idea, your approach is not quite right, or that
+the functionality exists already. The ticket you file in the issue tracker will
+be used to hash that all out.
+
+Fork `oauth2client`
+-------------------
+
+We will use GitHub's mechanism for [forking][8] repositories and making pull
+requests. Fork the repository, and make your changes in the forked repository.
+
+Include tests
+-------------
+
+Be sure to add the relevant tests before making the pull request. Docs will be
+updated automatically when we merge to `master`, but you should also build
+the docs yourself via `tox -e docs` and make sure they're readable.
+
+Make the pull request
+---------------------
+
+Once you have made all your changes, tests, and updated the documentation,
+make a pull request to move everything back into the main `oauth2client`
+repository. Be sure to reference the original issue in the pull request.
+Expect some back-and-forth with regards to style and compliance of these
+rules.
 
 Using a Development Checkout
 ----------------------------
@@ -90,6 +121,14 @@ Running Tests
     $ tox
     ```
 
+-   In order to run the `pypy` environment (in `tox`) you'll need at
+    least version 2.6 of `pypy` installed. See the [docs][13] for
+    more information.
+
+-   **Note** that `django` related tests are turned off for Python 2.6
+    and 3.3. This is because `django` dropped support for
+    [2.6 in `django==1.7`][14] and for [3.3 in `django==1.9`][15].
+
 Running System Tests
 --------------------
 
@@ -149,7 +188,17 @@ You can sign these electronically (just scroll to the bottom). After that,
 we'll be able to accept your pull requests.
 
 [1]: https://github.com/google/oauth2client
-[2]: https://tox.readthedocs.org/en/latest/
+[2]: https://tox.readthedocs.io/en/latest/
 [3]: https://cloud.google.com/storage/docs/authentication#generating-a-private-key
 [4]: https://developers.google.com/open-source/cla/individual
 [5]: https://developers.google.com/open-source/cla/corporate
+[6]: #contributor-license-agreements
+[7]: https://github.com/google/oauth2client/issues
+[8]: https://help.github.com/articles/fork-a-repo/
+[9]: #before-writing-code-file-an-issue
+[10]: #fork-oauth2client
+[11]: #include-tests
+[12]: #make-the-pull-request
+[13]: https://oauth2client.readthedocs.io/en/latest/#using-pypy
+[14]: https://docs.djangoproject.com/en/1.7/faq/install/#what-python-version-can-i-use-with-django
+[15]: https://docs.djangoproject.com/en/1.9/faq/install/#what-python-version-can-i-use-with-django

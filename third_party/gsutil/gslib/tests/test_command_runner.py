@@ -26,6 +26,7 @@ from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.command_runner import CommandRunner
 from gslib.command_runner import HandleArgCoding
+from gslib.command_runner import HandleHeaderCoding
 from gslib.exception import CommandException
 from gslib.tab_complete import CloudObjectCompleter
 from gslib.tab_complete import CloudOrLocalObjectCompleter
@@ -35,10 +36,10 @@ from gslib.tab_complete import NoOpCompleter
 import gslib.tests.testcase as testcase
 import gslib.tests.util as util
 from gslib.tests.util import ARGCOMPLETE_AVAILABLE
-from gslib.tests.util import SetBotoConfigFileForTest
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import unittest
 from gslib.util import GSUTIL_PUB_TARBALL
+from gslib.util import InsistAscii
 from gslib.util import SECONDS_PER_DAY
 
 
@@ -344,47 +345,30 @@ class TestCommandRunnerUnitTests(
   # pylint: disable=invalid-encoded-data
   def test_valid_arg_coding(self):
     """Tests that gsutil encodes valid args correctly."""
-    # Args other than -h and -p should be utf-8 decoded.
-    args = HandleArgCoding(['ls', '-l'])
-    self.assertIs(type(args[0]), unicode)
-    self.assertIs(type(args[1]), unicode)
+    # Args should be unicode; if they are not unicode, they should be utf-8
+    # decoded.
+    args = ['ls', '-p', 'abc:def', 'gs://bucket']
+    HandleArgCoding(args)
+    for a in args:
+      self.assertIs(type(a), unicode)
 
-    # -p and -h args other than x-goog-meta should not be decoded.
-    args = HandleArgCoding(['ls', '-p', 'abc:def', 'gs://bucket'])
-    self.assertIs(type(args[0]), unicode)
-    self.assertIs(type(args[1]), unicode)
-    self.assertIsNot(type(args[2]), unicode)
-    self.assertIs(type(args[3]), unicode)
+  def test_valid_header_coding(self):
+    headers = {
+        'content-type': 'text/plain',
+        'x-goog-meta-foo': 'bãr',
+    }
+    HandleHeaderCoding(headers)
+    # Custom metadata header values should be decoded to unicode; others should
+    # not be decoded, but should contain only ASCII characters.
+    self.assertIs(type(headers['x-goog-meta-foo']), unicode)
+    InsistAscii(
+        headers['content-type'],
+        'Value of non-custom-metadata header contained non-ASCII characters')
 
-    args = HandleArgCoding(['gsutil', '-h', 'content-type:text/plain', 'cp',
-                            'a', 'gs://bucket'])
-    self.assertIs(type(args[0]), unicode)
-    self.assertIs(type(args[1]), unicode)
-    self.assertIsNot(type(args[2]), unicode)
-    self.assertIs(type(args[3]), unicode)
-    self.assertIs(type(args[4]), unicode)
-    self.assertIs(type(args[5]), unicode)
-
-    # -h x-goog-meta args should be decoded.
-    args = HandleArgCoding(['gsutil', '-h', 'x-goog-meta-abc', '1234'])
-    self.assertIs(type(args[0]), unicode)
-    self.assertIs(type(args[1]), unicode)
-    self.assertIs(type(args[2]), unicode)
-    self.assertIs(type(args[3]), unicode)
-
-    # -p and -h args with non-ASCII content should raise CommandException.
-    try:
-      HandleArgCoding(['ls', '-p', '碼'])
-      # Ensure exception is raised.
-      self.assertTrue(False)
-    except CommandException as e:
-      self.assertIn('Invalid non-ASCII header', e.reason)
-    try:
-      HandleArgCoding(['-h', '碼', 'ls'])
-      # Ensure exception is raised.
-      self.assertTrue(False)
-    except CommandException as e:
-      self.assertIn('Invalid non-ASCII header', e.reason)
+  def test_invalid_header_coding_fails(self):
+    headers = {'content-type': 'bãr'}
+    with self.assertRaisesRegexp(CommandException, r'Invalid non-ASCII'):
+      HandleHeaderCoding(headers)
 
 
 class TestCommandRunnerIntegrationTests(
@@ -415,8 +399,8 @@ class TestCommandRunnerIntegrationTests(
   @unittest.skipUnless(not util.HAS_GS_HOST, 'gs_host is defined in config')
   def test_lookup_version_without_credentials(self):
     """Tests that gsutil tarball version lookup works without credentials."""
-    with SetBotoConfigFileForTest(self.CreateTempFile(
-        contents='[GSUtil]\nsoftware_update_check_period=1')):
+    with SetBotoConfigForTest([('GSUtil', 'software_update_check_period', '1')],
+                              use_existing_config=False):
       self.command_runner = command_runner.CommandRunner()
       # Looking up software version shouldn't get auth failure exception.
       self.command_runner.RunNamedCommand('ls', [GSUTIL_PUB_TARBALL])

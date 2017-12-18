@@ -37,6 +37,7 @@ from gslib.cloud_api import ServiceException
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.translation_helper import CreateBucketNotFoundException
 from gslib.translation_helper import CreateObjectNotFoundException
+from gslib.util import DiscardMessagesQueue
 
 
 class MockObject(object):
@@ -122,6 +123,7 @@ class MockCloudApi(object):
   def __init__(self, provider='gs'):
     self.buckets = {}
     self.provider = provider
+    self.status_queue = DiscardMessagesQueue()
 
   def MockCreateBucket(self, bucket_name):
     """Creates a simple bucket without exercising the API directly."""

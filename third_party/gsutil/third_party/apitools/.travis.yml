@@ -1,10 +1,10 @@
 language: python
 sudo: false
 env:
-  - TOX_ENV=py26
   - TOX_ENV=py27
+  - TOX_ENV=py27oldoauth2client
   - TOX_ENV=py34
-  - TOX_ENV=pypy
+  - TOX_ENV=py35
   - TOX_ENV=lint
 install:
   - pip install tox
@@ -12,3 +12,12 @@ install:
 script: tox -e $TOX_ENV
 after_success:
   - if [[ "${TOX_ENV}" == "py27" ]]; then tox -e coveralls; fi
+
+# Tweak for adding python3.5; see
+# https://github.com/travis-ci/travis-ci/issues/4794
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - python3.5

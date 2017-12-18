@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Extended protorpc descriptors.
 
 This takes existing protorpc Descriptor classes and adds extra
@@ -16,11 +31,11 @@ import abc
 import operator
 import textwrap
 
-from protorpc import descriptor as protorpc_descriptor
-from protorpc import message_types
-from protorpc import messages
 import six
 
+from apitools.base.protorpclite import descriptor as protorpc_descriptor
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
 import apitools.base.py as apitools_base
 
 
@@ -149,11 +164,9 @@ def _WriteFile(file_descriptor, package, version, proto_printer):
     proto_printer.PrintPreamble(package, version, file_descriptor)
     _PrintEnums(proto_printer, file_descriptor.enum_types)
     _PrintMessages(proto_printer, file_descriptor.message_types)
-    custom_json_mappings = _FetchCustomMappings(
-        file_descriptor.enum_types, file_descriptor.package)
+    custom_json_mappings = _FetchCustomMappings(file_descriptor.enum_types)
     custom_json_mappings.extend(
-        _FetchCustomMappings(
-            file_descriptor.message_types, file_descriptor.package))
+        _FetchCustomMappings(file_descriptor.message_types))
     for mapping in custom_json_mappings:
         proto_printer.PrintCustomJsonMapping(mapping)
 
@@ -185,31 +198,30 @@ def PrintIndentedDescriptions(printer, ls, name, prefix=''):
                         printer(line)
 
 
-def _FetchCustomMappings(descriptor_ls, package):
+def _FetchCustomMappings(descriptor_ls):
     """Find and return all custom mappings for descriptors in descriptor_ls."""
     custom_mappings = []
     for descriptor in descriptor_ls:
         if isinstance(descriptor, ExtendedEnumDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Enum', m, descriptor, package)
+                _FormatCustomJsonMapping('Enum', m, descriptor)
                 for m in descriptor.enum_mappings)
         elif isinstance(descriptor, ExtendedMessageDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Field', m, descriptor, package)
+                _FormatCustomJsonMapping('Field', m, descriptor)
                 for m in descriptor.field_mappings)
             custom_mappings.extend(
-                _FetchCustomMappings(descriptor.enum_types, package))
+                _FetchCustomMappings(descriptor.enum_types))
             custom_mappings.extend(
-                _FetchCustomMappings(descriptor.message_types, package))
+                _FetchCustomMappings(descriptor.message_types))
     return custom_mappings
 
 
-def _FormatCustomJsonMapping(mapping_type, mapping, descriptor, package):
+def _FormatCustomJsonMapping(mapping_type, mapping, descriptor):
     return '\n'.join((
         'encoding.AddCustomJson%sMapping(' % mapping_type,
-        "    %s, '%s', '%s'," % (descriptor.full_name, mapping.python_name,
+        "    %s, '%s', '%s')" % (descriptor.full_name, mapping.python_name,
                                  mapping.json_name),
-        '    package=%r)' % package,
     ))
 
 

@@ -16,14 +16,17 @@
 
 from __future__ import absolute_import
 
+import collections
 import errno
 import heapq
 import io
 from itertools import islice
+import logging
 import os
 import re
 import tempfile
 import textwrap
+import time
 import traceback
 import urllib
 
@@ -37,18 +40,53 @@ from gslib.command import Command
 from gslib.command import DummyArgChecker
 from gslib.command_argument import CommandArgument
 from gslib.copy_helper import CreateCopyHelperOpts
+from gslib.copy_helper import GetSourceFieldsNeededForCopy
 from gslib.copy_helper import SkipUnsupportedObjectError
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.hashing_helper import CalculateB64EncodedCrc32cFromContents
 from gslib.hashing_helper import CalculateB64EncodedMd5FromContents
+from gslib.hashing_helper import SLOW_CRCMOD_RSYNC_WARNING
 from gslib.hashing_helper import SLOW_CRCMOD_WARNING
+from gslib.metrics import LogPerformanceSummaryParams
 from gslib.plurality_checkable_iterator import PluralityCheckableIterator
+from gslib.posix_util import ATIME_ATTR
+from gslib.posix_util import ConvertDatetimeToPOSIX
+from gslib.posix_util import ConvertModeToBase8
+from gslib.posix_util import DeserializeFileAttributesFromObjectMetadata
+from gslib.posix_util import GID_ATTR
+from gslib.posix_util import InitializeUserGroups
+from gslib.posix_util import MODE_ATTR
+from gslib.posix_util import MTIME_ATTR
+from gslib.posix_util import NA_ID
+from gslib.posix_util import NA_MODE
+from gslib.posix_util import NA_TIME
+from gslib.posix_util import NeedsPOSIXAttributeUpdate
+from gslib.posix_util import ParseAndSetPOSIXAttributes
+from gslib.posix_util import POSIXAttributes
+from gslib.posix_util import SerializeFileAttributesToObjectMetadata
+from gslib.posix_util import UID_ATTR
+from gslib.posix_util import ValidateFilePermissionAccess
+from gslib.posix_util import WarnFutureTimestamp
+from gslib.posix_util import WarnInvalidValue
+from gslib.posix_util import WarnNegativeAttribute
+from gslib.seek_ahead_thread import SeekAheadResult
 from gslib.sig_handling import GetCaughtSignals
 from gslib.sig_handling import RegisterSignalHandler
 from gslib.storage_url import StorageUrlFromString
+from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.translation_helper import CopyCustomMetadata
+from gslib.translation_helper import GenerationFromUrlAndString
+from gslib.util import CalculateThroughput
+from gslib.util import CreateCustomMetadata
+from gslib.util import CreateLock
 from gslib.util import GetCloudApiInstance
+from gslib.util import GetValueFromObjectCustomMetadata
+from gslib.util import IS_WINDOWS
 from gslib.util import IsCloudSubdirPlaceholder
+from gslib.util import ObjectIsGzipEncoded
+from gslib.util import RsyncDiffToApply
+from gslib.util import SECONDS_PER_DAY
 from gslib.util import TEN_MIB
 from gslib.util import UsingCrcmodExtension
 from gslib.util import UTF8
@@ -56,7 +94,7 @@ from gslib.wildcard_iterator import CreateWildcardIterator
 
 
 _SYNOPSIS = """
-  gsutil rsync [-c] [-C] [-d] [-e] [-n] [-p] [-r] [-U] [-x] src_url dst_url
+  gsutil rsync [-a] [-c] [-C] [-d] [-e] [-n] [-p] [-r] [-U] [-x] src_url dst_url
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -66,10 +104,11 @@ _DETAILED_HELP_TEXT = ("""
 
 <B>DESCRIPTION</B>
   The gsutil rsync command makes the contents under dst_url the same as the
-  contents under src_url, by copying any missing files/objects, and (if the
-  -d option is specified) deleting any extra files/objects. For example, to
-  make gs://mybucket/data match the contents of the local directory "data"
-  you could do:
+  contents under src_url, by copying any missing files/objects (or those whose
+  data has changed), and (if the -d option is specified) deleting any extra
+  files/objects. src_url must specify a directory, bucket, or bucket
+  subdirectory. For example, to make gs://mybucket/data match the contents of
+  the local directory "data" you could do:
 
     gsutil rsync -d data gs://mybucket/data
 
@@ -147,29 +186,30 @@ _DETAILED_HELP_TEXT = ("""
   specify with the rsync command, there are two more safety measures your can
   take when using gsutil rsync -d:
 
-    1. Try running the command with the rsync -n option first, to see what it
-       would do without actually performing the operations. For example, if
-       you run the command:
+  1. Try running the command with the rsync -n option first, to see what it
+     would do without actually performing the operations. For example, if
+     you run the command:
 
-         gsutil -m rsync -r -d -n gs://your-bucket/data gs://your-bucket
-       
-       it will be immediately evident that running that command without the -n
-       option would cause many objects to be deleted.
+       gsutil -m rsync -r -d -n gs://your-bucket/data gs://your-bucket
 
-    2. Enable object versioning in your bucket, which will allow you to restore
-       objects if you accidentally delete them. For more details see
-       "gsutil help versions".
+     it will be immediately evident that running that command without the -n
+     option would cause many objects to be deleted.
+
+  2. Enable object versioning in your bucket, which will allow you to restore
+     objects if you accidentally delete them. For more details see
+     "gsutil help versions".
 
 
-<B>IMPACT OF BUCKET LISTING EVENTUAL CONSISTENCY</B>
-  The rsync command operates by listing the source and destination URLs, and
-  then performing copy and remove operations according to the differences
-  between these listings. Because bucket listing is eventually (not strongly)
-  consistent, if you upload new objects or delete objects from a bucket and then
-  immediately run gsutil rsync with that bucket as the source or destination,
-  it's possible the rsync command will not see the recent updates and thus
-  synchronize incorrectly. You can rerun the rsync operation again later to
-  correct the incorrect synchronization.
+<B>EVENTUAL CONSISTENCY WITH NON-GOOGLE CLOUD PROVIDERS</B>
+  While Google Cloud Storage is strongly consistent, some cloud providers
+  only support eventual consistency. You may encounter scenarios where rsync
+  synchronizes using stale listing data when working with these other cloud
+  providers. For example, if you run rsync immediately after uploading an
+  object to an eventually consistent cloud provider, the added object may not
+  yet appear in the provider’s listing. Consequently, rsync will miss adding
+  the object to the destination. If this happens you can rerun the rsync
+  operation again later (after the object listing has "caught up").
+
 
 
 <B>CHECKSUM VALIDATION AND FAILURE HANDLING</B>
@@ -180,11 +220,14 @@ _DETAILED_HELP_TEXT = ("""
   if it does, please contact gs-team@google.com.
 
   The rsync command will retry when failures occur, but if enough failures
-  happen during a particular copy or delete operation the command will skip that
-  object and move on. At the end of the synchronization run if any failures were
-  not successfully retried, the rsync command will report the count of failures,
-  and exit with non-zero status. At this point you can run the rsync command
-  again, and it will attempt any remaining needed copy and/or delete operations.
+  happen during a particular copy or delete operation the command will fail.
+
+  If the -C option is provided, the command will instead skip the failing
+  object and move on. At the end of the synchronization run if any failures
+  were not successfully retried, the rsync command will report the count of
+  failures, and exit with non-zero status. At this point you can run the rsync
+  command again, and it will attempt any remaining needed copy and/or delete
+  operations.
 
   Note that there are cases where retrying will never succeed, such as if you
   don't have write permission to the destination bucket or if the destination
@@ -195,27 +238,27 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>CHANGE DETECTION ALGORITHM</B>
-  To determine if a file or object has changed gsutil rsync first checks whether
-  the source and destination sizes match. If they match, it next checks if their
-  checksums match, using checksums if available (see below). Unlike the Unix
-  rsync command, gsutil rsync does not use timestamps to determine if the
-  file/object changed, because the GCS API does not permit the caller to set an
-  object's timestamp (hence, timestamps of identical files/objects cannot be
-  made to match).
+  To determine if a file or object has changed, gsutil rsync first checks
+  whether the file modification time (mtime) of both the source and destination
+  is available. If mtime is available at both source and destination, and the
+  destination mtime is different than the source, or if the source and
+  destination file size differ, gsutil rsync will update the destination. If the
+  source is a cloud bucket and the destination is a local file system, and if
+  mtime is not available for the source, gsutil rsync will use the time created
+  for the cloud object as a substitute for mtime. Otherwise, if mtime is not
+  available for either the source or the destination, gsutil rsync will fall
+  back to using checksums. If the source and destination are both cloud buckets
+  with checksums available, gsutil rsync will use these hashes instead of mtime.
+  However, gsutil rsync will still update mtime at the destination if it is not
+  present. If the source and destination have matching checksums and only the
+  source has an mtime, gsutil rsync will copy the mtime to the destination. If
+  neither mtime nor checksums are available, gsutil rsync will resort to
+  comparing file sizes.
 
-  Checksums will not be available in two cases:
-
-  1. When synchronizing to or from a file system. By default, gsutil does not
-     checksum files, because of the slowdown caused when working with large
-     files. You can cause gsutil to checksum files by using the gsutil rsync -c
-     option, at the cost of increased local disk I/O and run time when working
-     with large files. You should consider using the -c option if your files can
-     change without changing sizes (e.g., if you have files that contain fixed
-     width data, such as timestamps).
-
-  2. When comparing composite GCS objects with objects at a cloud provider that
-     does not support CRC32C (which is the only checksum available for composite
-     objects). See 'gsutil help compose' for details about composite objects.
+  Checksums will not be available when comparing composite Google Cloud Storage
+  objects with objects at a cloud provider that does not support CRC32C (which
+  is the only checksum available for composite objects). See 'gsutil help
+  compose' for details about composite objects.
 
 
 <B>COPYING IN THE CLOUD AND METADATA PRESERVATION</B>
@@ -224,9 +267,10 @@ _DETAILED_HELP_TEXT = ("""
   from the machine where you run gsutil). In addition to the performance and
   cost advantages of doing this, copying in the cloud preserves metadata (like
   Content-Type and Cache-Control). In contrast, when you download data from the
-  cloud it ends up in a file, which has no associated metadata. Thus, unless you
-  have some way to hold on to or re-create that metadata, synchronizing a bucket
-  to a directory in the local file system will not retain the metadata.
+  cloud it ends up in a file, which has no associated metadata, other than file
+  modification time (mtime). Thus, unless you have some way to hold on to or
+  re-create that metadata, synchronizing a bucket to a directory in the local
+  file system will not retain the metadata other than mtime.
 
   Note that by default, the gsutil rsync command does not copy the ACLs of
   objects being synchronized and instead will use the default bucket ACL (see
@@ -250,9 +294,10 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>LIMITATIONS</B>
-  1. The gsutil rsync command doesn't make the destination object's timestamps
-     match those of the source object (it can't; timestamp setting is not
-     allowed by the GCS API).
+
+  1. The gsutil rsync command will only allow non-negative file modification
+     times to be used in its comparisons. This means gsutil rsync will resort to
+     using checksums for any file with a timestamp before 1970-01-01 UTC.
 
   2. The gsutil rsync command considers only the current object generations in
      the source and destination buckets when deciding what to copy / delete. If
@@ -261,13 +306,33 @@ _DETAILED_HELP_TEXT = ("""
      command doesn't try to make the archived generations match in the source
      and destination buckets.
 
+  3. The gsutil rsync command does not support copying special file types
+     such as sockets, device files, named pipes, or any other non-standard
+     files intended to represent an operating system resource. If you run
+     gsutil rsync on a source directory that includes such files (for example,
+     copying the root directory on Linux that includes /dev ), you should use
+     the -x flag to exclude these files. Otherwise, gsutil rsync may fail or
+     hang.
 
+  4. The gsutil rsync command copies changed files in their entirety and does
+     not employ the
+     `rsync delta-transfer algorithm <https://rsync.samba.org/tech_report/>`_
+     to transfer portions of a changed file. This is because cloud objects are
+     immutable and no facility exists to read partial cloud object checksums or
+     perform partial overwrites.
 
 <B>OPTIONS</B>
-  -c            Causes the rsync command to compute checksums for files if the
-                size of source and destination match, and then compare
-                checksums.  This option increases local disk I/O and run time
-                if either src_url or dst_url are on the local file system.
+  -a canned_acl Sets named canned_acl when uploaded objects created. See
+                "gsutil help acls" for further details. Note that rsync will
+                decide whether or not to perform a copy based only on object size
+                and modification time, not current ACL state. Also see the -p
+                option below.
+
+  -c            Causes the rsync command to compute and compare checksums
+                (instead of comparing mtime) for files if the size of source and
+                destination as well as mtime (if available) match. This option
+                increases local disk I/O and run time if either src_url or
+                dst_url are on the local file system.
 
   -C            If an error occurs, continue to attempt to copy the remaining
                 files. If errors occurred, gsutil's exit status will be non-zero
@@ -284,13 +349,22 @@ _DETAILED_HELP_TEXT = ("""
                 "BE CAREFUL WHEN USING -d OPTION!".
 
   -e            Exclude symlinks. When specified, symbolic links will be
-                ignored.
+                ignored. Note that gsutil does not follow directory symlinks,
+                regardless of whether -e is specified.
 
   -n            Causes rsync to run in "dry run" mode, i.e., just outputting
                 what would be copied or deleted without actually doing any
                 copying/deleting.
 
-  -p            Causes ACLs to be preserved when synchronizing in the cloud.
+  -p            Causes ACLs to be preserved when objects are copied. Note that
+                rsync will decide whether or not to perform a copy based only
+                on object size and modification time, not current ACL state.
+                Thus, if the source and destination differ in size or
+                modification time and you run gsutil rsync -p, the file will be
+                copied and ACL preserved. However, if the source and destination
+                don't differ in size or checksum but have different ACLs,
+                running gsutil rsync -p will have no effect.
+
                 Note that this option has performance and cost implications when
                 using the XML API, as it requires separate HTTP calls for
                 interacting with ACLs. The performance issue can be mitigated to
@@ -301,12 +375,25 @@ _DETAILED_HELP_TEXT = ("""
                 You can avoid the additional performance and cost of using
                 rsync -p if you want all objects in the destination bucket to
                 end up with the same ACL by setting a default object ACL on that
-                bucket instead of using rsync -p. See 'help gsutil defacl'.
+                bucket instead of using rsync -p. See 'gsutil help defacl'.
 
-  -R, -r        Causes directories, buckets, and bucket subdirectories to be
-                synchronized recursively. If you neglect to use this option
-                gsutil will make only the top-level directory in the source
-                and destination URLs match, skipping any sub-directories.
+  -P            Causes POSIX attributes to be preserved when objects are copied.
+                With this feature enabled, gsutil rsync will copy fields
+                provided by stat. These are the user ID of the owner, the group
+                ID of the owning group, the mode (permissions) of the file, and
+                the access/modification time of the file. For downloads, these
+                attributes will only be set if the source objects were uploaded
+                with this flag enabled.
+
+                On Windows, this flag will only set and restore access time and
+                modification time. This is because Windows doesn't have a notion
+                of POSIX uid/gid/mode.
+
+  -R, -r        The -R and -r options are synonymous. Causes directories,
+                buckets, and bucket subdirectories to be synchronized
+                recursively. If you neglect to use this option gsutil will make
+                only the top-level directory in the source and destination URLs
+                match, skipping any sub-directories.
 
   -U            Skip objects with unsupported object types instead of failing.
                 Unsupported object types are Amazon S3 Objects in the GLACIER
@@ -315,34 +402,37 @@ _DETAILED_HELP_TEXT = ("""
   -x pattern    Causes files/objects matching pattern to be excluded, i.e., any
                 matching files/objects will not be copied or deleted. Note that
                 the pattern is a Python regular expression, not a wildcard (so,
-                matching any string ending in 'abc' would be specified using
-                '.*abc' rather than '*abc'). Note also that the exclude path is
+                matching any string ending in "abc" would be specified using
+                ".*abc$" rather than "*abc"). Note also that the exclude path is
                 always relative (similar to Unix rsync or tar exclude options).
                 For example, if you run the command:
 
-                  gsutil rsync -x 'data./.*\\.txt' dir gs://my-bucket
+                  gsutil rsync -x "data./.*\.txt$" dir gs://my-bucket
 
                 it will skip the file dir/data1/a.txt.
 
                 You can use regex alternation to specify multiple exclusions,
                 for example:
 
-                  gsutil rsync -x '.*\\.txt|.*\\.jpg' dir gs://my-bucket
+                  gsutil rsync -x ".*\.txt$|.*\.jpg$" dir gs://my-bucket
+
+                NOTE: When using this on the Windows command line, use ^ as an
+                escape character instead of \ and escape the | character.
 """)
-
-
-class _DiffAction(object):
-  COPY = 'copy'
-  REMOVE = 'remove'
-
 
 _NA = '-'
 _OUTPUT_BUFFER_SIZE = 64 * 1024
 _PROGRESS_REPORT_LISTING_COUNT = 10000
 
-
 # Tracks files we need to clean up at end or if interrupted.
 _tmp_files = []
+
+
+class _DiffAction(object):
+  COPY = 'copy'
+  REMOVE = 'remove'
+  MTIME_SRC_TO_DST = 'mtime_src_to_dst'
+  POSIX_SRC_TO_DST = 'posix_src_to_dst'
 
 
 # pylint: disable=unused-argument
@@ -367,22 +457,6 @@ def CleanUpTempFiles():
     pass
 
 
-class _DiffToApply(object):
-  """Class that encapsulates info needed to apply diff for one object."""
-
-  def __init__(self, src_url_str, dst_url_str, diff_action):
-    """Constructor.
-
-    Args:
-      src_url_str: The source URL string, or None if diff_action is REMOVE.
-      dst_url_str: The destination URL string.
-      diff_action: _DiffAction to be applied.
-    """
-    self.src_url_str = src_url_str
-    self.dst_url_str = dst_url_str
-    self.diff_action = diff_action
-
-
 def _DiffToApplyArgChecker(command_instance, diff_to_apply):
   """Arg checker that skips symlinks if -e flag specified."""
   if (diff_to_apply.diff_action == _DiffAction.REMOVE
@@ -399,7 +473,7 @@ def _DiffToApplyArgChecker(command_instance, diff_to_apply):
 def _ComputeNeededFileChecksums(logger, src_url_str, src_size, src_crc32c,
                                 src_md5, dst_url_str, dst_size, dst_crc32c,
                                 dst_md5):
-  """Computes any file checksums needed by _ObjectsMatch.
+  """Computes any file checksums needed by _CompareObjects.
 
   Args:
     logger: logging.logger for outputting log messages.
@@ -519,12 +593,16 @@ def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
       wildcard = '%s/**' % base_url_str.rstrip('/\\')
     else:
       wildcard = '%s/*' % base_url_str.rstrip('/\\')
+    fields = ['crc32c', 'md5Hash', 'name', 'size', 'timeCreated',
+              'metadata/%s' % MTIME_ATTR]
+    if cls.preserve_posix_attrs:
+      fields.extend(['metadata/%s' % ATIME_ATTR, 'metadata/%s' % MODE_ATTR,
+                     'metadata/%s' % GID_ATTR, 'metadata/%s' % UID_ATTR])
     iterator = CreateWildcardIterator(
-        wildcard, gsutil_api, debug=cls.debug,
-        project_id=cls.project_id).IterObjects(
+        wildcard, gsutil_api, debug=cls.debug, project_id=cls.project_id,
+        ignore_symlinks=cls.exclude_symlinks).IterObjects(
             # Request just the needed fields, to reduce bandwidth usage.
-            bucket_listing_fields=['crc32c', 'md5Hash', 'name', 'size'])
-
+            bucket_listing_fields=fields)
   i = 0
   for blr in iterator:
     # Various GUI tools (like the GCS web console) create placeholder objects
@@ -562,23 +640,66 @@ def _BuildTmpOutputLine(blr):
     blr: The BucketListingRef.
 
   Returns:
-    The output line, formatted as _EncodeUrl(URL)<sp>size<sp>crc32c<sp>md5
-    where crc32c will only be present for GCS URLs, and md5 will only be
-    present for cloud URLs that aren't composite objects. A missing field is
-    populated with '-'.
+    The output line, formatted as
+    _EncodeUrl(URL)<sp>size<sp>time_created<sp>atime<sp>mtime<sp>mode<sp>uid<sp>
+    gid<sp>crc32c<sp>md5 where md5 will only be present for cloud URLs that
+    aren't composite objects. A missing field is populated with '-', or -1 in
+    the case of atime/mtime/time_created.
   """
+  atime = NA_TIME
   crc32c = _NA
+  gid = NA_ID
   md5 = _NA
+  mode = NA_MODE
+  mtime = NA_TIME
+  time_created = NA_TIME
+  uid = NA_ID
   url = blr.storage_url
   if url.IsFileUrl():
-    size = os.path.getsize(url.object_name)
+    mode, _, _, _, uid, gid, size, atime, mtime, _ = os.stat(url.object_name)
+    # atime/mtime can be a float, so it needs to be converted to a long.
+    atime = long(atime)
+    mtime = long(mtime)
+    mode = ConvertModeToBase8(mode)
+    # Don't use atime / mtime with times older than 1970-01-01 UTC.
+    if atime < 0:
+      atime = NA_TIME
+    if mtime < 0:
+      mtime = NA_TIME
   elif url.IsCloudUrl():
     size = blr.root_object.size
+    if blr.root_object.metadata is not None:
+      found_m, mtime_str = GetValueFromObjectCustomMetadata(blr.root_object,
+                                                            MTIME_ATTR, NA_TIME)
+      try:
+        # The mtime value can be changed in the online console, this performs a
+        # sanity check and sets the mtime to NA_TIME if it fails.
+        mtime = long(mtime_str)
+        if found_m and mtime <= NA_TIME:
+          WarnNegativeAttribute('mtime', url.url_string)
+        if mtime > long(time.time()) + SECONDS_PER_DAY:
+          WarnFutureTimestamp('mtime', url.url_string)
+      except ValueError:
+        # Since mtime is a string, catch the case where it can't be cast as a
+        # long.
+        WarnInvalidValue('mtime', url.url_string)
+        mtime = NA_TIME
+      posix_attrs = DeserializeFileAttributesFromObjectMetadata(blr.root_object,
+                                                                url.url_string)
+      mode = posix_attrs.mode.permissions
+      atime = posix_attrs.atime
+      uid = posix_attrs.uid
+      gid = posix_attrs.gid
+    # Sanitize the timestamp returned, and put it in UTC format. For more
+    # information see the UTC class in gslib/util.py.
+    time_created = ConvertDatetimeToPOSIX(blr.root_object.timeCreated)
     crc32c = blr.root_object.crc32c or _NA
     md5 = blr.root_object.md5Hash or _NA
   else:
     raise CommandException('Got unexpected URL type (%s)' % url.scheme)
-  return '%s %d %s %s\n' % (_EncodeUrl(url.url_string), size, crc32c, md5)
+  return '%s %d %d %d %d %d %d %d %s %s\n' % (_EncodeUrl(url.url_string), size,
+                                              time_created, atime, mtime, mode,
+                                              uid, gid, crc32c, md5)
 
 
 def _EncodeUrl(url_string):
@@ -638,7 +759,7 @@ def _BatchSort(in_iter, out_file):
       output_chunk = io.open('%s-%06i' % (out_file.name, len(chunk_files)),
                              mode='w+', encoding=UTF8)
       chunk_files.append(output_chunk)
-      output_chunk.writelines(unicode(''.join(current_chunk)))
+      output_chunk.write(unicode(''.join(current_chunk)))
       output_chunk.flush()
       output_chunk.seek(0)
     out_file.writelines(heapq.merge(*chunk_files))
@@ -660,7 +781,7 @@ def _BatchSort(in_iter, out_file):
 
 
 class _DiffIterator(object):
-  """Iterator yielding sequence of _DiffToApply objects."""
+  """Iterator yielding sequence of RsyncDiffToApply objects."""
 
   def __init__(self, command_obj, base_src_url, base_dst_url):
     self.command_obj = command_obj
@@ -670,6 +791,8 @@ class _DiffIterator(object):
     self.logger = self.command_obj.logger
     self.base_src_url = base_src_url
     self.base_dst_url = base_dst_url
+    self.preserve_posix = command_obj.preserve_posix_attrs
+
     self.logger.info('Building synchronization state...')
 
     (src_fh, self.sorted_list_src_file_name) = tempfile.mkstemp(
@@ -683,8 +806,8 @@ class _DiffIterator(object):
     os.close(src_fh)
     os.close(dst_fh)
 
-    # Build sorted lists of src and dst URLs in parallel. To do this, pass args
-    # to _ListUrlRootFunc as tuple (base_url_str, out_filename, desc)
+    # Build sorted lists of src and dst URLs in parallel. To do this, pass
+    # args to _ListUrlRootFunc as tuple (base_url_str, out_filename, desc)
     # where base_url_str is the starting URL string for listing.
     args_iter = iter([
         (self.base_src_url.url_string, self.sorted_list_src_file_name,
@@ -696,10 +819,11 @@ class _DiffIterator(object):
     # Contains error message from non-retryable listing failure.
     command_obj.non_retryable_listing_failures = 0
     shared_attrs = ['non_retryable_listing_failures']
-    command_obj.Apply(_ListUrlRootFunc, args_iter, _RootListingExceptionHandler,
-                      shared_attrs, arg_checker=DummyArgChecker,
-                      parallel_operations_override=True,
-                      fail_on_error=True)
+    command_obj.Apply(
+        _ListUrlRootFunc, args_iter, _RootListingExceptionHandler, shared_attrs,
+        arg_checker=DummyArgChecker,
+        parallel_operations_override=command_obj.ParallelOverrideReason.SPEED,
+        fail_on_error=True)
 
     if command_obj.non_retryable_listing_failures:
       raise CommandException('Caught non-retryable exception - aborting rsync')
@@ -707,27 +831,61 @@ class _DiffIterator(object):
     self.sorted_list_src_file = open(self.sorted_list_src_file_name, 'r')
     self.sorted_list_dst_file = open(self.sorted_list_dst_file_name, 'r')
 
+    if (base_src_url.IsCloudUrl() and base_dst_url.IsFileUrl() and
+        self.preserve_posix):
+      self.sorted_src_urls_it = PluralityCheckableIterator(
+          iter(self.sorted_list_src_file))
+      self._ValidateObjectAccess()
+      # Reset our file pointers to the beginning.
+      self.sorted_list_src_file.seek(0)
+
     # Wrap iterators in PluralityCheckableIterator so we can check emptiness.
     self.sorted_src_urls_it = PluralityCheckableIterator(
         iter(self.sorted_list_src_file))
     self.sorted_dst_urls_it = PluralityCheckableIterator(
         iter(self.sorted_list_dst_file))
 
+  def _ValidateObjectAccess(self):
+    """Validates that the user won't lose access to the files if copied.
+
+    Iterates over the src file list to check if access will be maintained. If at
+    any point we would orphan a file, a list of errors is compiled and logged
+    with an exception raised to the user.
+    """
+    errors = collections.deque()
+    for src_url in self.sorted_src_urls_it:
+      (src_url_str, _, _, _, _, src_mode, src_uid, src_gid,
+       _, _) = (self._ParseTmpFileLine(src_url))
+      valid, err = ValidateFilePermissionAccess(src_url_str, uid=src_uid,
+                                                gid=src_gid, mode=src_mode)
+      if not valid:
+        errors.append(err)
+    if errors:
+      for err in errors:
+        self.logger.critical(err)
+      raise CommandException('This sync will orphan file(s), please fix their '
+                             'permissions before trying again.')
+
   def _ParseTmpFileLine(self, line):
     """Parses output from _BuildTmpOutputLine.
 
     Parses into tuple:
-      (URL, size, crc32c, md5)
-    where crc32c and/or md5 can be _NA.
+      (URL, size, time_created, atime, mtime, mode, uid, gid, crc32c, md5)
+    where crc32c and/or md5 can be _NA and atime/mtime/time_created can be
+    NA_TIME.
 
     Args:
       line: The line to parse.
 
     Returns:
-      Parsed tuple: (url, size, crc32c, md5)
+      Parsed tuple: (url, size, time_created, atime, mtime, mode, uid, gid,
+                     crc32c, md5)
     """
-    (encoded_url, size, crc32c, md5) = line.split()
-    return (_DecodeUrl(encoded_url), int(size), crc32c, md5.strip())
+    (encoded_url, size, time_created, atime, mtime, mode, uid, gid, crc32c,
+     md5) = line.split()
+    return (_DecodeUrl(encoded_url), int(size), long(time_created), long(atime),
+            long(mtime), int(mode), int(uid), int(gid), crc32c,
+            md5.strip())
 
   def _WarnIfMissingCloudHash(self, url_str, crc32c, md5):
     """Warns if given url_str is a cloud URL and is missing both crc32c and md5.
@@ -750,123 +908,232 @@ class _DiffIterator(object):
       return True
     return False
 
-  def _ObjectsMatch(self, src_url_str, src_size, src_crc32c, src_md5,
-                    dst_url_str, dst_size, dst_crc32c, dst_md5):
-    """Returns True if src and dst objects are the same.
+  def _CompareObjects(self, src_url_str, src_size, src_mtime, src_crc32c,
+                      src_md5, dst_url_str, dst_size, dst_mtime, dst_crc32c,
+                      dst_md5):
+    """Returns whether src should replace dst object, and if mtime is present.
 
-    Uses size plus whatever checksums are available.
+    Uses mtime, size, or whatever checksums are available.
 
     Args:
       src_url_str: Source URL string.
-      src_size: Source size
+      src_size: Source size.
+      src_mtime: Source modification time.
       src_crc32c: Source CRC32c.
       src_md5: Source MD5.
       dst_url_str: Destination URL string.
-      dst_size: Destination size
+      dst_size: Destination size.
+      dst_mtime: Destination modification time.
       dst_crc32c: Destination CRC32c.
       dst_md5: Destination MD5.
 
     Returns:
-      True/False.
+      A 3-tuple indicating if src should replace dst, and if src and dst have
+      mtime.
     """
     # Note: This function is called from __iter__, which is called from the
     # Command.Apply driver. Thus, all checksum computation will be run in a
     # single thread, which is good (having multiple threads concurrently
     # computing checksums would thrash the disk).
+    #
+    # Comparison Hierarchy:
+    # 1. mtime
+    # 2. md5/crc32c hashes (if available)
+    # 3. size
+    has_src_mtime = src_mtime > NA_TIME
+    has_dst_mtime = dst_mtime > NA_TIME
+    use_hashes = (self.compute_file_checksums or
+                  (StorageUrlFromString(src_url_str).IsCloudUrl() and
+                   StorageUrlFromString(dst_url_str).IsCloudUrl()))
+    if not use_hashes and has_src_mtime and has_dst_mtime:
+      return (src_mtime != dst_mtime or src_size != dst_size, has_src_mtime,
+              has_dst_mtime)
     if src_size != dst_size:
-      return False
-    if self.compute_file_checksums:
-      (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
-          self.logger, src_url_str, src_size, src_crc32c, src_md5, dst_url_str,
-          dst_size, dst_crc32c, dst_md5)
+      return True, has_src_mtime, has_dst_mtime
+    (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
+        self.logger, src_url_str, src_size, src_crc32c, src_md5, dst_url_str,
+        dst_size, dst_crc32c, dst_md5)
     if src_md5 != _NA and dst_md5 != _NA:
       self.logger.debug('Comparing md5 for %s and %s', src_url_str, dst_url_str)
-      return src_md5 == dst_md5
+      return src_md5 != dst_md5, has_src_mtime, has_dst_mtime
     if src_crc32c != _NA and dst_crc32c != _NA:
       self.logger.debug(
           'Comparing crc32c for %s and %s', src_url_str, dst_url_str)
-      return src_crc32c == dst_crc32c
+      return src_crc32c != dst_crc32c, has_src_mtime, has_dst_mtime
     if not self._WarnIfMissingCloudHash(src_url_str, src_crc32c, src_md5):
       self._WarnIfMissingCloudHash(dst_url_str, dst_crc32c, dst_md5)
-    # Without checksums to compare we depend only on basic size comparison.
-    return True
+    # Without checksums or mtime to compare we depend only on basic size
+    # comparison.
+    return False, has_src_mtime, has_dst_mtime
 
   def __iter__(self):
-    """Iterates over src/dst URLs and produces a _DiffToApply sequence.
+    """Iterates over src/dst URLs and produces a RsyncDiffToApply sequence.
 
     Yields:
-      The _DiffToApply.
+      The RsyncDiffToApply.
     """
     # Strip trailing slashes, if any, so we compute tail length against
     # consistent position regardless of whether trailing slashes were included
     # or not in URL.
     base_src_url_len = len(self.base_src_url.url_string.rstrip('/\\'))
     base_dst_url_len = len(self.base_dst_url.url_string.rstrip('/\\'))
+    out_of_src_items = False
     src_url_str = dst_url_str = None
     # Invariant: After each yield, the URLs in src_url_str, dst_url_str,
     # self.sorted_src_urls_it, and self.sorted_dst_urls_it are not yet
     # processed. Each time we encounter None in src_url_str or dst_url_str we
     # populate from the respective iterator, and we reset one or the other value
     # to None after yielding an action that disposes of that URL.
-    while not self.sorted_src_urls_it.IsEmpty() or src_url_str is not None:
+    while True:
       if src_url_str is None:
-        (src_url_str, src_size, src_crc32c, src_md5) = self._ParseTmpFileLine(
-            self.sorted_src_urls_it.next())
-        # Skip past base URL and normalize slashes so we can compare across
-        # clouds/file systems (including Windows).
-        src_url_str_to_check = _EncodeUrl(
-            src_url_str[base_src_url_len:].replace('\\', '/'))
-        dst_url_str_would_copy_to = copy_helper.ConstructDstUrl(
-            self.base_src_url, StorageUrlFromString(src_url_str), True, True,
-            self.base_dst_url, False, self.recursion_requested).url_string
-      if self.sorted_dst_urls_it.IsEmpty():
-        # We've reached end of dst URLs, so copy src to dst.
-        yield _DiffToApply(
-            src_url_str, dst_url_str_would_copy_to, _DiffAction.COPY)
-        src_url_str = None
-        continue
-      if not dst_url_str:
-        (dst_url_str, dst_size, dst_crc32c, dst_md5) = (
-            self._ParseTmpFileLine(self.sorted_dst_urls_it.next()))
-        # Skip past base URL and normalize slashes so we can compare acros
-        # clouds/file systems (including Windows).
-        dst_url_str_to_check = _EncodeUrl(
-            dst_url_str[base_dst_url_len:].replace('\\', '/'))
+        if self.sorted_src_urls_it.IsEmpty():
+          out_of_src_items = True
+        else:
+          (src_url_str, src_size, src_time_created, src_atime, src_mtime,
+           src_mode, src_uid, src_gid, src_crc32c, src_md5) = (
+               self._ParseTmpFileLine(self.sorted_src_urls_it.next()))
+          posix_attrs = POSIXAttributes(atime=src_atime, mtime=src_mtime,
+                                        uid=src_uid, gid=src_gid, mode=src_mode)
+          # Skip past base URL and normalize slashes so we can compare across
+          # clouds/file systems (including Windows).
+          src_url_str_to_check = _EncodeUrl(
+              src_url_str[base_src_url_len:].replace('\\', '/'))
+          dst_url_str_would_copy_to = copy_helper.ConstructDstUrl(
+              self.base_src_url, StorageUrlFromString(src_url_str), True, True,
+              self.base_dst_url, False, self.recursion_requested).url_string
+      if dst_url_str is None:
+        if not self.sorted_dst_urls_it.IsEmpty():
+          # We don't need time created at the destination.
+          (dst_url_str, dst_size, _, dst_atime, dst_mtime, dst_mode, dst_uid,
+           dst_gid, dst_crc32c,
+           dst_md5) = self._ParseTmpFileLine(self.sorted_dst_urls_it.next())
+          # Skip past base URL and normalize slashes so we can compare across
+          # clouds/file systems (including Windows).
+          dst_url_str_to_check = _EncodeUrl(
+              dst_url_str[base_dst_url_len:].replace('\\', '/'))
+      # Only break once we've attempted to populate {str,dst}_url_to_check and
+      # we know we're out of src objects.
+      if out_of_src_items:
+        break
 
-      if src_url_str_to_check < dst_url_str_to_check:
+      # We're guaranteed to have a value for src_url_str_to_check here, but may
+      # be out of dst objects.
+      if (dst_url_str is None or
+          src_url_str_to_check < dst_url_str_to_check):
         # There's no dst object corresponding to src object, so copy src to dst.
-        yield _DiffToApply(
-            src_url_str, dst_url_str_would_copy_to, _DiffAction.COPY)
+        yield RsyncDiffToApply(
+            src_url_str, dst_url_str_would_copy_to, posix_attrs,
+            _DiffAction.COPY, src_size)
         src_url_str = None
       elif src_url_str_to_check > dst_url_str_to_check:
         # dst object without a corresponding src object, so remove dst if -d
         # option was specified.
         if self.delete_extras:
-          yield _DiffToApply(None, dst_url_str, _DiffAction.REMOVE)
+          yield RsyncDiffToApply(None, dst_url_str, POSIXAttributes(),
+                                 _DiffAction.REMOVE, None)
         dst_url_str = None
       else:
         # There is a dst object corresponding to src object, so check if objects
         # match.
-        if self._ObjectsMatch(
-            src_url_str, src_size, src_crc32c, src_md5,
-            dst_url_str, dst_size, dst_crc32c, dst_md5):
-          # Continue iterating without yielding a _DiffToApply.
-          pass
-        else:
-          yield _DiffToApply(src_url_str, dst_url_str, _DiffAction.COPY)
+        if (StorageUrlFromString(src_url_str).IsCloudUrl() and
+            StorageUrlFromString(dst_url_str).IsFileUrl() and
+            src_mtime == NA_TIME):
+          src_mtime = src_time_created
+        should_replace, has_src_mtime, has_dst_mtime = (self._CompareObjects(
+            src_url_str, src_size, src_mtime, src_crc32c, src_md5, dst_url_str,
+            dst_size, dst_mtime, dst_crc32c, dst_md5))
+        if should_replace:
+          yield RsyncDiffToApply(src_url_str, dst_url_str, posix_attrs,
+                                 _DiffAction.COPY, src_size)
+        elif self.preserve_posix:
+          posix_attrs, needs_update = NeedsPOSIXAttributeUpdate(
+              src_atime, dst_atime, src_mtime, dst_mtime, src_uid, dst_uid,
+              src_gid, dst_gid, src_mode, dst_mode)
+          if needs_update:
+            yield RsyncDiffToApply(src_url_str, dst_url_str, posix_attrs,
+                                   _DiffAction.POSIX_SRC_TO_DST, src_size)
+        elif has_src_mtime and not has_dst_mtime:
+          # File/object at destination matches source but is missing mtime
+          # attribute at destination.
+          yield RsyncDiffToApply(src_url_str, dst_url_str, posix_attrs,
+                                 _DiffAction.MTIME_SRC_TO_DST, src_size)
+        # else: we don't need to copy the file from src to dst since they're
+        # the same files.
+        # Advance to the next two objects.
         src_url_str = None
         dst_url_str = None
 
-    # If -d option specified any files/objects left in dst iteration should be
-    # removed.
     if not self.delete_extras:
       return
+    # If -d option was specified any files/objects left in dst iteration should
+    # be removed.
     if dst_url_str:
-      yield _DiffToApply(None, dst_url_str, _DiffAction.REMOVE)
-      dst_url_str = None
+      yield RsyncDiffToApply(None, dst_url_str, POSIXAttributes(),
+                             _DiffAction.REMOVE, None)
     for line in self.sorted_dst_urls_it:
-      (dst_url_str, _, _, _) = self._ParseTmpFileLine(line)
-      yield _DiffToApply(None, dst_url_str, _DiffAction.REMOVE)
+      (dst_url_str, _, _, _, _, _, _, _, _, _) = self._ParseTmpFileLine(line)
+      yield RsyncDiffToApply(None, dst_url_str, POSIXAttributes(),
+                             _DiffAction.REMOVE, None)
+
+
+class _SeekAheadDiffIterator(object):
+  """Wraps _AvoidChecksumAndListingDiffIterator and yields SeekAheadResults."""
+
+  def __init__(self, cloned_diff_iterator):
+    self.cloned_diff_iterator = cloned_diff_iterator
+
+  def __iter__(self):
+    for diff_to_apply in self.cloned_diff_iterator:
+      bytes_to_copy = diff_to_apply.copy_size or 0
+      if (diff_to_apply.diff_action == _DiffAction.MTIME_SRC_TO_DST or
+          diff_to_apply.diff_action == _DiffAction.POSIX_SRC_TO_DST):
+        # Assume MTIME_SRC_TO_DST and POSIX_SRC_TO_DST are metadata-only
+        # copies. However, if the user does not have OWNER permission on
+        # an object, the data must be re-sent, and this function will
+        # underestimate the amount of bytes that rsync must copy.
+        bytes_to_copy = 0
+
+      yield SeekAheadResult(data_bytes=bytes_to_copy)
+
+
+class _AvoidChecksumAndListingDiffIterator(_DiffIterator):
+  """Iterator initialized from an existing _DiffIterator.
+
+  This iterator yields RsyncDiffToApply objects used to estimate the total work
+  that will be performed by the DiffIterator, while avoiding expensive
+  computation.
+  """
+
+  # pylint: disable=super-init-not-called
+  def __init__(self, initialized_diff_iterator):
+    # Intentionally don't call the _DiffIterator constructor. This class
+    # reuses the initialized_diff_iterator values to avoid unnecessary
+    # computation, and inherits the __iter__ function.
+
+    # We're providing an estimate, so avoid computing checksums even though
+    # that may cause our estimate to be off.
+    self.compute_file_checksums = False
+    self.delete_extras = initialized_diff_iterator.delete_extras
+    self.recursion_requested = initialized_diff_iterator.delete_extras
+    # TODO: Add a test that mocks the appropriate values in RsyncFunc and
+    # ensure that running this iterator succeeds.
+    self.preserve_posix = False
+    # This iterator shouldn't output any log messages.
+    self.logger = logging.getLogger('dummy')
+    self.base_src_url = initialized_diff_iterator.base_src_url
+    self.base_dst_url = initialized_diff_iterator.base_dst_url
+
+    self.sorted_list_src_file = open(
+        initialized_diff_iterator.sorted_list_src_file_name, 'r')
+    self.sorted_list_dst_file = open(
+        initialized_diff_iterator.sorted_list_dst_file_name, 'r')
+
+    # Wrap iterators in PluralityCheckableIterator so we can check emptiness.
+    self.sorted_src_urls_it = PluralityCheckableIterator(
+        iter(self.sorted_list_src_file))
+    self.sorted_dst_urls_it = PluralityCheckableIterator(
+        iter(self.sorted_list_dst_file))
+  # pylint: enable=super-init-not-called
 
 
 def _RsyncFunc(cls, diff_to_apply, thread_state=None):
@@ -874,6 +1141,7 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
   gsutil_api = GetCloudApiInstance(cls, thread_state=thread_state)
   dst_url_str = diff_to_apply.dst_url_str
   dst_url = StorageUrlFromString(dst_url_str)
+  posix_attrs = diff_to_apply.src_posix_attrs
   if diff_to_apply.diff_action == _DiffAction.REMOVE:
     if cls.dryrun:
       cls.logger.info('Would remove %s', dst_url)
@@ -894,16 +1162,140 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
     src_url_str = diff_to_apply.src_url_str
     src_url = StorageUrlFromString(src_url_str)
     if cls.dryrun:
+      if src_url.IsFileUrl():
+        # Try to open the local file to detect errors that would occur in
+        # non-dry-run mode.
+        try:
+          with open(src_url.object_name, 'rb') as _:
+            pass
+        except Exception, e:  # pylint: disable=broad-except
+          cls.logger.info('Could not open %s' % src_url.object_name)
+          raise
       cls.logger.info('Would copy %s to %s', src_url, dst_url)
     else:
       try:
-        copy_helper.PerformCopy(cls.logger, src_url, dst_url, gsutil_api, cls,
-                                _RsyncExceptionHandler,
-                                headers=cls.headers)
+        src_obj_metadata = None
+        if src_url.IsCloudUrl():
+          src_generation = GenerationFromUrlAndString(src_url,
+                                                      src_url.generation)
+          src_obj_metadata = gsutil_api.GetObjectMetadata(
+              src_url.bucket_name, src_url.object_name,
+              generation=src_generation, provider=src_url.scheme,
+              fields=cls.source_metadata_fields)
+          if ObjectIsGzipEncoded(src_obj_metadata):
+            cls.logger.info(
+                '%s has a compressed content-encoding, so it will be '
+                'decompressed upon download; future executions of gsutil rsync '
+                'with this source object will always download it. If you wish '
+                'to synchronize such an object efficiently, compress the '
+                'source objects in place before synchronizing them, rather '
+                'than (for example) using gsutil cp -Z to compress them '
+                'on-the-fly (which results in compressed content-encoding).'
+                % src_url)
+        else:  # src_url.IsFileUrl()
+          src_obj_metadata = apitools_messages.Object()
+          # getmtime can return a float, so it needs to be converted to long.
+          if posix_attrs.mtime > long(time.time()) + SECONDS_PER_DAY:
+            WarnFutureTimestamp('mtime', src_url.url_string)
+        if src_obj_metadata.metadata:
+          custom_metadata = src_obj_metadata.metadata
+        else:
+          custom_metadata = apitools_messages.Object.MetadataValue(
+              additionalProperties=[])
+        SerializeFileAttributesToObjectMetadata(
+            posix_attrs, custom_metadata,
+            preserve_posix=cls.preserve_posix_attrs)
+        tmp_obj_metadata = apitools_messages.Object()
+        tmp_obj_metadata.metadata = custom_metadata
+        CopyCustomMetadata(tmp_obj_metadata, src_obj_metadata, override=True)
+        copy_result = copy_helper.PerformCopy(
+            cls.logger, src_url, dst_url, gsutil_api, cls,
+            _RsyncExceptionHandler, src_obj_metadata=src_obj_metadata,
+            headers=cls.headers, is_rsync=True,
+            preserve_posix=cls.preserve_posix_attrs)
+        if copy_result is not None:
+          (_, bytes_transferred, _, _) = copy_result
+          with cls.stats_lock:
+            cls.total_bytes_transferred += bytes_transferred
       except SkipUnsupportedObjectError, e:
         cls.logger.info('Skipping item %s with unsupported object type %s',
                         src_url, e.unsupported_type)
-
+  elif diff_to_apply.diff_action == _DiffAction.MTIME_SRC_TO_DST:
+    # If the destination is an object in a bucket, this will not blow away other
+    # metadata. This behavior is unlike if the file/object actually needed to be
+    # copied from the source to the destination.
+    dst_url = StorageUrlFromString(diff_to_apply.dst_url_str)
+    if cls.dryrun:
+      cls.logger.info('Would set mtime for %s', dst_url)
+    else:
+      cls.logger.info('Copying mtime from src to dst for %s',
+                      dst_url.url_string)
+      mtime = posix_attrs.mtime
+      obj_metadata = apitools_messages.Object()
+      obj_metadata.metadata = CreateCustomMetadata({MTIME_ATTR: mtime})
+      if dst_url.IsCloudUrl():
+        dst_url = StorageUrlFromString(diff_to_apply.dst_url_str)
+        dst_generation = GenerationFromUrlAndString(dst_url, dst_url.generation)
+        dst_obj_metadata = gsutil_api.GetObjectMetadata(
+            dst_url.bucket_name, dst_url.object_name, generation=dst_generation,
+            provider=dst_url.scheme, fields=['acl'])
+        if dst_obj_metadata.acl:
+          # We have ownership, and can patch the object.
+          gsutil_api.PatchObjectMetadata(dst_url.bucket_name,
+                                         dst_url.object_name, obj_metadata,
+                                         provider=dst_url.scheme,
+                                         generation=dst_url.generation)
+        else:
+          # We don't have object ownership, so it must be copied.
+          cls.logger.info('Copying whole file/object for %s instead of patching'
+                          ' because you don\'t have owner permission on the '
+                          'object.', dst_url.url_string)
+          _RsyncFunc(cls, RsyncDiffToApply(diff_to_apply.src_url_str,
+                                           diff_to_apply.dst_url_str,
+                                           posix_attrs,
+                                           _DiffAction.COPY,
+                                           diff_to_apply.copy_size),
+                     thread_state=thread_state)
+      else:
+        ParseAndSetPOSIXAttributes(dst_url.object_name, obj_metadata,
+                                   preserve_posix=cls.preserve_posix_attrs)
+  elif diff_to_apply.diff_action == _DiffAction.POSIX_SRC_TO_DST:
+    # If the destination is an object in a bucket, this will not blow away other
+    # metadata. This behavior is unlike if the file/object actually needed to be
+    # copied from the source to the destination.
+    dst_url = StorageUrlFromString(diff_to_apply.dst_url_str)
+    if cls.dryrun:
+      cls.logger.info('Would set POSIX attributes for %s', dst_url)
+    else:
+      cls.logger.info('Copying POSIX attributes from src to dst for %s',
+                      dst_url.url_string)
+      obj_metadata = apitools_messages.Object()
+      obj_metadata.metadata = apitools_messages.Object.MetadataValue(
+          additionalProperties=[])
+      SerializeFileAttributesToObjectMetadata(posix_attrs,
+                                              obj_metadata.metadata,
+                                              preserve_posix=True)
+      if dst_url.IsCloudUrl():
+        dst_generation = GenerationFromUrlAndString(dst_url, dst_url.generation)
+        dst_obj_metadata = gsutil_api.GetObjectMetadata(
+            dst_url.bucket_name, dst_url.object_name, generation=dst_generation,
+            provider=dst_url.scheme, fields=['acl'])
+        if dst_obj_metadata.acl:
+          # We have ownership, and can patch the object.
+          gsutil_api.PatchObjectMetadata(dst_url.bucket_name,
+                                         dst_url.object_name, obj_metadata,
+                                         provider=dst_url.scheme,
+                                         generation=dst_url.generation)
+        else:
+          # We don't have object ownership, so it must be copied.
+          cls.logger.info('Copying whole file/object for %s instead of patching'
+                          ' because you don\'t have owner permission on the '
+                          'object.', dst_url.url_string)
+          _RsyncFunc(cls, RsyncDiffToApply(diff_to_apply.src_url_str,
+                                           diff_to_apply.dst_url_str,
+                                           posix_attrs, _DiffAction.COPY,
+                                           diff_to_apply.copy_size),
+                     thread_state=thread_state)
   else:
     raise CommandException('Got unexpected DiffAction (%d)'
                            % diff_to_apply.diff_action)
@@ -932,7 +1324,7 @@ class RsyncCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=2,
       max_args=2,
-      supported_sub_args='cCdenprRUx:',
+      supported_sub_args='a:cCdenpPrRUx:',
       file_url_ok=True,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -951,7 +1343,6 @@ class RsyncCommand(Command):
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )
-  total_bytes_transferred = 0
 
   def _InsistContainer(self, url_str, treat_nonexistent_object_as_subdir):
     """Sanity checks that URL names an existing container.
@@ -980,18 +1371,37 @@ class RsyncCommand(Command):
   def RunCommand(self):
     """Command entry point for the rsync command."""
     self._ParseOpts()
-    if self.compute_file_checksums and not UsingCrcmodExtension(crcmod):
-      self.logger.warn(SLOW_CRCMOD_WARNING)
+
+    self.total_bytes_transferred = 0
+    # Use a lock to ensure accurate statistics in the face of
+    # multi-threading/multi-processing.
+    self.stats_lock = CreateLock()
+    if not UsingCrcmodExtension(crcmod):
+      if self.compute_file_checksums:
+        self.logger.warn(SLOW_CRCMOD_WARNING)
+      else:
+        self.logger.warn(SLOW_CRCMOD_RSYNC_WARNING)
 
     src_url = self._InsistContainer(self.args[0], False)
     dst_url = self._InsistContainer(self.args[1], True)
+    is_daisy_chain = (src_url.IsCloudUrl() and dst_url.IsCloudUrl() and
+                      src_url.scheme != dst_url.scheme)
+    LogPerformanceSummaryParams(
+        has_file_src=src_url.IsFileUrl(), has_cloud_src=src_url.IsCloudUrl(),
+        has_file_dst=dst_url.IsFileUrl(), has_cloud_dst=dst_url.IsCloudUrl(),
+        is_daisy_chain=is_daisy_chain, uses_fan=self.parallel_operations,
+        provider_types=[src_url.scheme, dst_url.scheme])
+
+    self.source_metadata_fields = GetSourceFieldsNeededForCopy(
+        dst_url.IsCloudUrl(), self.skip_unsupported_objects, self.preserve_acl,
+        is_rsync=True, preserve_posix=self.preserve_posix_attrs)
 
     # Tracks if any copy or rm operations failed.
     self.op_failure_count = 0
 
-    # List of attributes to share/manage across multiple processes in
+    # Tuple of attributes to share/manage across multiple processes in
     # parallel (-m) mode.
-    shared_attrs = ['op_failure_count']
+    shared_attrs = ('op_failure_count', 'total_bytes_transferred')
 
     for signal_num in GetCaughtSignals():
       RegisterSignalHandler(signal_num, _HandleSignals)
@@ -1000,13 +1410,30 @@ class RsyncCommand(Command):
     # configured number of parallel processes and threads. Otherwise,
     # perform requests with sequential function calls in current process.
     diff_iterator = _DiffIterator(self, src_url, dst_url)
+
+    # For estimation purposes, create a SeekAheadIterator based on the
+    # source and destination files generated when creating the diff iterator.
+    # This iteration should avoid expensive operations like file checksumming.
+    seek_ahead_iterator = _SeekAheadDiffIterator(
+        _AvoidChecksumAndListingDiffIterator(diff_iterator))
+
     self.logger.info('Starting synchronization')
+    start_time = time.time()
     try:
       self.Apply(_RsyncFunc, diff_iterator, _RsyncExceptionHandler,
                  shared_attrs, arg_checker=_DiffToApplyArgChecker,
-                 fail_on_error=True)
+                 fail_on_error=True, seek_ahead_iterator=seek_ahead_iterator)
     finally:
       CleanUpTempFiles()
+
+    end_time = time.time()
+    self.total_elapsed_time = end_time - start_time
+    self.total_bytes_per_second = CalculateThroughput(
+        self.total_bytes_transferred, self.total_elapsed_time)
+    LogPerformanceSummaryParams(
+        avg_throughput=self.total_bytes_per_second,
+        total_elapsed_time=self.total_elapsed_time,
+        total_bytes_transferred=self.total_bytes_transferred)
 
     if self.op_failure_count:
       plural_str = 's' if self.op_failure_count else ''
@@ -1022,16 +1449,24 @@ class RsyncCommand(Command):
     # state rather than CopyHelperOpts.
     self.continue_on_error = False
     self.delete_extras = False
-    preserve_acl = False
+    self.preserve_acl = False
+    self.preserve_posix_attrs = False
     self.compute_file_checksums = False
     self.dryrun = False
     self.exclude_pattern = None
     self.skip_unsupported_objects = False
     # self.recursion_requested is initialized in command.py (so it can be
     # checked in parent class for all commands).
+    canned_acl = None
+    # canned_acl is handled by a helper function in parent
+    # Command class, so save in Command state rather than CopyHelperOpts.
+    self.canned = None
 
     if self.sub_opts:
       for o, a in self.sub_opts:
+        if o == '-a':
+          canned_acl = a
+          self.canned = True
         if o == '-c':
           self.compute_file_checksums = True
         # Note: In gsutil cp command this is specified using -c but here we use
@@ -1046,7 +1481,11 @@ class RsyncCommand(Command):
         elif o == '-n':
           self.dryrun = True
         elif o == '-p':
-          preserve_acl = True
+          self.preserve_acl = True
+        elif o == '-P':
+          self.preserve_posix_attrs = True
+          if not IS_WINDOWS:
+            InitializeUserGroups()
         elif o == '-r' or o == '-R':
           self.recursion_requested = True
         elif o == '-U':
@@ -1058,6 +1497,10 @@ class RsyncCommand(Command):
             self.exclude_pattern = re.compile(a)
           except re.error:
             raise CommandException('Invalid exclude filter (%s)' % a)
+    if self.preserve_acl and canned_acl:
+      raise CommandException(
+          'Specifying both the -p and -a options together is invalid.')
     return CreateCopyHelperOpts(
-        preserve_acl=preserve_acl,
+        canned_acl=canned_acl,
+        preserve_acl=self.preserve_acl,
         skip_unsupported_objects=self.skip_unsupported_objects)

@@ -24,10 +24,14 @@ from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
+from gslib.ls_helper import ENCRYPTED_FIELDS
 from gslib.ls_helper import LsHelper
+from gslib.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
 from gslib.translation_helper import AclTranslation
+from gslib.translation_helper import LabelTranslation
+from gslib.util import InsistAscii
 from gslib.util import ListingStyle
 from gslib.util import MakeHumanReadable
 from gslib.util import NO_MAX
@@ -41,7 +45,7 @@ from gslib.util import UTF8
 JSON_TIMESTAMP_RE = re.compile(r'([^\s]*)\s([^\.\+]*).*')
 
 _SYNOPSIS = """
-  gsutil ls [-a] [-b] [-l] [-L] [-r] [-p proj_id] url...
+  gsutil ls [-a] [-b] [-d] [-l] [-L] [-r] [-p proj_id] url...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -110,6 +114,10 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil ls -r gs://bucket/dir/**
 
+  If you want to see only the subdirectory itself, use the -d option:
+
+    gsutil ls -d gs://bucket/dir
+
 
 <B>LISTING OBJECT DETAILS</B>
   If you specify the -l option, gsutil will output additional information
@@ -120,8 +128,8 @@ _DETAILED_HELP_TEXT = ("""
   will print the object size, creation time stamp, and name of each matching
   object, along with the total count and sum of sizes of all matching objects:
 
-       2276224  2012-03-02T19:25:17Z  gs://bucket/obj1
-       3914624  2012-03-02T19:30:27Z  gs://bucket/obj2
+       2276224  2017-03-02T19:25:17Z  gs://bucket/obj1
+       3914624  2017-03-02T19:30:27Z  gs://bucket/obj2
     TOTAL: 2 objects, 6190848 bytes (5.9 MiB)
 
   Note that the total listed in parentheses above is in mebibytes (or gibibytes,
@@ -141,22 +149,38 @@ _DETAILED_HELP_TEXT = ("""
   will print something like:
 
     gs://bucket/obj1:
-            Creation Time:      Fri, 02 Mar 2012 19:25:17 GMT
-            Size:               2276224
-            Cache-Control:      private, max-age=0
-            Content-Type:       application/x-executable
-            ETag:               5ca6796417570a586723b7344afffc81
-            Generation:         1378862725952000
-            Metageneration:     1
-            ACL:
-    [
+            Creation time:                    Fri, 26 May 2017 22:55:44 GMT
+            Update time:                      Tue, 18 Jul 2017 12:31:18 GMT
+            Storage class:                    MULTI_REGIONAL
+            Content-Length:                   60183
+            Content-Type:                     image/jpeg
+            Hash (crc32c):                    zlUhtg==
+            Hash (md5):                       Bv86IAzFzrD1Z2io/c7yqA==
+            ETag:                             5ca67960a586723b7344afffc81
+            Generation:                       1378862725952000
+            Metageneration:                   1
+            ACL:                              [
       {
-        "entity": "group-00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
-        "entityId": "00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
+        "entity": "project-owners-867484910061",
+        "projectTeam": {
+          "projectNumber": "867484910061",
+          "team": "owners"
+        },
+        "role": "OWNER"
+      },
+      {
+        "email": "jane@gmail.com",
+        "entity": "user-jane@gmail.com",
         "role": "OWNER"
       }
     ]
-    TOTAL: 1 objects, 2276224 bytes (2.17 MiB)
+    TOTAL: 1 objects, 60183 bytes (58.77 KiB)
+
+  Note that results may contain additional fields, such as custom metadata or
+  a storage class update time, if they are applicable to the object.
+
+  Also note that some fields, such as update time, are not available with the
+  (non-default) XML API.
 
   See also "gsutil help acl" for getting a more readable version of the ACL.
 
@@ -170,28 +194,43 @@ _DETAILED_HELP_TEXT = ("""
   will print something like:
 
     gs://bucket/ :
-            StorageClass:                 STANDARD
-            LocationConstraint:           US
-            Versioning enabled:           True
-            Logging:                      None
-            WebsiteConfiguration:         None
-            CORS configuration:           Present
+            Storage class:                MULTI_REGIONAL
+            Location constraint:          US
+            Versioning enabled:           False
+            Logging configuration:        None
+            Website configuration:        None
+            CORS configuration:           None
             Lifecycle configuration:      None
+            Requester Pays enabled:       True
+            Labels:                       None
+            Time created:                 Thu, 14 Jan 2016 19:25:17 GMT
+            Time updated:                 Thu, 08 Jun 2017 21:17:59 GMT
+            Metageneration:               1
+            ACL:
     [
       {
-        "entity": "group-00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
-        "entityId": "00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
+        "entity": "project-owners-867489160491",
+        "projectTeam": {
+          "projectNumber": "867489160491",
+          "team": "owners"
+        },
         "role": "OWNER"
       }
     ]
             Default ACL:
     [
       {
-        "entity": "group-00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
-        "entityId": "00b4903a97163d99003117abe64d292561d2b4074fc90ce5c0e35ac45f66ad70",
+        "entity": "project-owners-867489160491",
+        "projectTeam": {
+          "projectNumber": "867489160491",
+          "team": "owners"
+        },
         "role": "OWNER"
       }
     ]
+
+  Note that some fields above (time created, time updated, metageneration) are
+  not available with the (non-default) XML API.
 
 
 <B>OPTIONS</B>
@@ -203,6 +242,10 @@ _DETAILED_HELP_TEXT = ("""
               much more slowly (and cost more) using the XML API than the
               default JSON API.
 
+  -d          List matching subdirectory names instead of contents, and do not
+              recurse into matching subdirectories even if the -R option is
+              specified.
+
   -b          Prints info about the bucket when used with a bucket URL.
 
   -h          When used with -l, prints object sizes in human readable format
@@ -210,7 +253,12 @@ _DETAILED_HELP_TEXT = ("""
 
   -p proj_id  Specifies the project ID to use for listing buckets.
 
-  -R, -r      Requests a recursive listing.
+  -R, -r      Requests a recursive listing, performing at least one listing
+              operation per subdirectory. If you have a large number of
+              subdirectories and do not require recursive-style output ordering,
+              you may be able to instead use wildcards to perform a flat
+              listing, e.g.  `gsutil ls gs://mybucket/**`, which will generally
+              perform fewer listing operations.
 
   -a          Includes non-current object versions / generations in the listing
               (only useful with a versioning-enabled bucket). If combined with
@@ -230,7 +278,7 @@ class LsCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=0,
       max_args=NO_MAX,
-      supported_sub_args='aeblLhp:rR',
+      supported_sub_args='aebdlLhp:rR',
       file_url_ok=False,
       provider_url_ok=True,
       urls_start_arg=0,
@@ -281,6 +329,20 @@ class LsCommand(Command):
     fields['logging_config'] = 'Present' if bucket.logging else 'None'
     fields['cors_config'] = 'Present' if bucket.cors else 'None'
     fields['lifecycle_config'] = 'Present' if bucket.lifecycle else 'None'
+    fields['requester_pays'] = bucket.billing and bucket.billing.requesterPays
+    if bucket.labels:
+      fields['labels'] = LabelTranslation.JsonFromMessage(
+          bucket.labels, pretty_print=True)
+    else:
+      fields['labels'] = 'None'
+    # Fields not available in all APIs (e.g. the XML API)
+    if bucket.metageneration:
+      fields['metageneration'] = bucket.metageneration
+    if bucket.timeCreated:
+      fields['time_created'] = bucket.timeCreated.strftime(
+          '%a, %d %b %Y %H:%M:%S GMT')
+    if bucket.updated:
+      fields['updated'] = bucket.updated.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
     # For field values that are multiline, add indenting to make it look
     # prettier.
@@ -295,16 +357,33 @@ class LsCommand(Command):
         new_value = '\n\t  ' + new_value
       fields[key] = new_value
 
-    print('{bucket} :\n'
-          '\tStorage class:\t\t\t{storage_class}\n'
-          '\tLocation constraint:\t\t{location_constraint}\n'
-          '\tVersioning enabled:\t\t{versioning}\n'
-          '\tLogging configuration:\t\t{logging_config}\n'
-          '\tWebsite configuration:\t\t{website_config}\n'
-          '\tCORS configuration: \t\t{cors_config}\n'
-          '\tLifecycle configuration:\t{lifecycle_config}\n'
-          '\tACL:\t\t\t\t{acl}\n'
-          '\tDefault ACL:\t\t\t{default_acl}'.format(**fields))
+    # Only display certain properties if the given API returned them (JSON API
+    # returns many fields that the XML API does not).
+    metageneration_line = ''
+    time_created_line = ''
+    time_updated_line = ''
+    if 'metageneration' in fields:
+      metageneration_line = '\tMetageneration:\t\t\t{metageneration}\n'
+    if 'time_created' in fields:
+      time_created_line = '\tTime created:\t\t\t{time_created}\n'
+    if 'updated' in fields:
+      time_updated_line = '\tTime updated:\t\t\t{updated}\n'
+
+    print(('{bucket} :\n'
+           '\tStorage class:\t\t\t{storage_class}\n'
+           '\tLocation constraint:\t\t{location_constraint}\n'
+           '\tVersioning enabled:\t\t{versioning}\n'
+           '\tLogging configuration:\t\t{logging_config}\n'
+           '\tWebsite configuration:\t\t{website_config}\n'
+           '\tCORS configuration: \t\t{cors_config}\n'
+           '\tLifecycle configuration:\t{lifecycle_config}\n'
+           '\tRequester Pays enabled:\t\t{requester_pays}\n'
+           '\tLabels:\t\t\t\t{labels}\n' +
+           time_created_line +
+           time_updated_line +
+           metageneration_line +
+           '\tACL:\t\t\t\t{acl}\n'
+           '\tDefault ACL:\t\t\t{default_acl}').format(**fields))
     if bucket_blr.storage_url.scheme == 's3':
       print('Note: this is an S3 bucket so configuration values may be '
             'blank. To retrieve bucket configuration values, use '
@@ -328,7 +407,7 @@ class LsCommand(Command):
       num_objs = 1
 
     timestamp = JSON_TIMESTAMP_RE.sub(
-        r'\1T\2Z', str(obj.updated).decode(UTF8).encode('ascii'))
+        r'\1T\2Z', str(obj.timeCreated).decode(UTF8).encode('ascii'))
     printstr = '%(size)10s  %(timestamp)s  %(url)s'
     encoded_etag = None
     encoded_metagen = None
@@ -358,6 +437,7 @@ class LsCommand(Command):
     self.all_versions = False
     self.include_etag = False
     self.human_readable = False
+    self.list_subdir_contents = True
     if self.sub_opts:
       for o, a in self.sub_opts:
         if o == '-a':
@@ -373,9 +453,13 @@ class LsCommand(Command):
         elif o == '-L':
           listing_style = ListingStyle.LONG_LONG
         elif o == '-p':
+          # Project IDs are sent as header values when using gs and s3 XML APIs.
+          InsistAscii(a, 'Invalid non-ASCII character found in project ID')
           self.project_id = a
         elif o == '-r' or o == '-R':
           self.recursion_requested = True
+        elif o == '-d':
+          self.list_subdir_contents = False
 
     if not self.args:
       # default to listing all gs buckets
@@ -399,9 +483,20 @@ class LsCommand(Command):
           listing_style == ListingStyle.LONG):
         bucket_fields = ['id']
       elif listing_style == ListingStyle.LONG_LONG:
-        bucket_fields = ['location', 'storageClass', 'versioning', 'acl',
-                         'defaultObjectAcl', 'website', 'logging', 'cors',
-                         'lifecycle']
+        bucket_fields = ['acl',
+                         'billing',
+                         'cors',
+                         'defaultObjectAcl',
+                         'labels',
+                         'location',
+                         'logging',
+                         'lifecycle',
+                         'metageneration',
+                         'storageClass',
+                         'timeCreated',
+                         'updated',
+                         'versioning',
+                         'website']
       if storage_url.IsProvider():
         # Provider URL: use bucket wildcard to list buckets.
         for blr in self.WildcardIterator(
@@ -435,9 +530,10 @@ class LsCommand(Command):
           ls_helper = LsHelper(self.WildcardIterator, self.logger,
                                all_versions=self.all_versions,
                                print_bucket_header_func=print_bucket_header,
-                               should_recurse=self.recursion_requested)
+                               should_recurse=self.recursion_requested,
+                               list_subdir_contents=self.list_subdir_contents)
         elif listing_style == ListingStyle.LONG:
-          bucket_listing_fields = ['name', 'updated', 'size']
+          bucket_listing_fields = ['name', 'timeCreated', 'updated', 'size']
           if self.all_versions:
             bucket_listing_fields.extend(['generation', 'metageneration'])
           if self.include_etag:
@@ -449,18 +545,21 @@ class LsCommand(Command):
                                print_bucket_header_func=print_bucket_header,
                                all_versions=self.all_versions,
                                should_recurse=self.recursion_requested,
-                               fields=bucket_listing_fields)
+                               fields=bucket_listing_fields,
+                               list_subdir_contents=self.list_subdir_contents)
 
         elif listing_style == ListingStyle.LONG_LONG:
           # List all fields
-          bucket_listing_fields = None
+          bucket_listing_fields = (UNENCRYPTED_FULL_LISTING_FIELDS +
+                                   ENCRYPTED_FIELDS)
           ls_helper = LsHelper(self.WildcardIterator, self.logger,
                                print_object_func=PrintFullInfoAboutObject,
                                print_dir_func=_PrintPrefixLong,
                                print_bucket_header_func=print_bucket_header,
                                all_versions=self.all_versions,
                                should_recurse=self.recursion_requested,
-                               fields=bucket_listing_fields)
+                               fields=bucket_listing_fields,
+                               list_subdir_contents=self.list_subdir_contents)
         else:
           raise CommandException('Unknown listing style: %s' % listing_style)
 

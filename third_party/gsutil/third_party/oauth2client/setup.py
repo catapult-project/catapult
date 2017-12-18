@@ -22,23 +22,20 @@ from __future__ import print_function
 import sys
 
 if sys.version_info < (2, 6):
-  print('oauth2client requires python2 version >= 2.6.', file=sys.stderr)
-  sys.exit(1)
+    print('oauth2client requires python2 version >= 2.6.', file=sys.stderr)
+    sys.exit(1)
 if (3, 1) <= sys.version_info < (3, 3):
-  print('oauth2client requires python3 version >= 3.3.', file=sys.stderr)
-  sys.exit(1)
+    print('oauth2client requires python3 version >= 3.3.', file=sys.stderr)
+    sys.exit(1)
 
+from setuptools import find_packages
 from setuptools import setup
-
-packages = [
-    'oauth2client',
-]
 
 install_requires = [
     'httplib2>=0.9.1',
-    'pyasn1==0.1.7',
-    'pyasn1_modules==0.0.5',
-    'rsa==3.1.4',
+    'pyasn1>=0.1.7',
+    'pyasn1-modules>=0.0.5',
+    'rsa>=3.1.4',
     'six>=1.6.1',
 ]
 
@@ -55,7 +52,7 @@ setup(
     author="Google Inc.",
     url="http://github.com/google/oauth2client/",
     install_requires=install_requires,
-    packages=packages,
+    packages=find_packages(),
     license="Apache 2.0",
     keywords="google oauth 2.0 http client",
     classifiers=[

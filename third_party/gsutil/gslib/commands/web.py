@@ -20,10 +20,12 @@ import sys
 
 from apitools.base.py import encoding
 
+from gslib import metrics
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
+from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.util import NO_MAX
@@ -119,7 +121,7 @@ _DESCRIPTION = """
      http://www.example.com/photos/404.html.
 
   4. For additional details see
-     https://developers.google.com/storage/docs/website-configuration.
+     https://cloud.google.com/storage/docs/website-configuration.
 
   The web command has two sub-commands:
 """ + _SET_DESCRIPTION + _GET_DESCRIPTION
@@ -213,7 +215,7 @@ class WebCommand(Command):
         self.gsutil_api.PatchBucket(url.bucket_name, bucket_metadata,
                                     provider=url.scheme, fields=['id'])
     if not some_matched:
-      raise CommandException('No URLs matched')
+      raise CommandException(NO_URLS_MATCHED_TARGET % list(url_args))
     return 0
 
   def RunCommand(self):
@@ -228,4 +230,9 @@ class WebCommand(Command):
       raise CommandException(('Invalid subcommand "%s" for the %s command.\n'
                               'See "gsutil help web".') %
                              (action_subcommand, self.command_name))
+
+    # Commands with both suboptions and subcommands need to reparse for
+    # suboptions, so we log again.
+    metrics.LogCommandParams(subcommands=[action_subcommand],
+                             sub_opts=self.sub_opts)
     return func()

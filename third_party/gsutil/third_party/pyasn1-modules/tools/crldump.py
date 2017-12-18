@@ -29,9 +29,7 @@ while 1:
         
     print(key.prettyPrint())
 
-    assert encoder.encode(key, defMode=False) == substrate or \
-           encoder.encode(key, defMode=True) == substrate, \
-           'pkcs8 recode fails'
+    assert encoder.encode(key) == substrate, 'pkcs8 recode fails'
         
     cnt = cnt + 1
  

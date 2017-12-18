@@ -29,13 +29,13 @@ _DETAILED_HELP_TEXT = ("""
 
   There are two ways to set metadata on objects:
 
-  - at upload time you can specify one or more headers to associate with
-    objects, using the gsutil -h option.  For example, the following command
-    would cause gsutil to set the Content-Type and Cache-Control for each
-    of the files being uploaded:
+  - At upload time you can specify one or more metadata properties to
+    associate with objects, using the gsutil -h option.  For example, the
+    following command would cause gsutil to set the Content-Type and
+    Cache-Control for each of the files being uploaded:
 
-      gsutil -h "Content-Type:text/html" \\
-             -h "Cache-Control:public, max-age=3600" cp -r images \\
+      gsutil -h "Content-Type:text/html" \
+             -h "Cache-Control:public, max-age=3600" cp -r images \
              gs://bucket/images
 
     Note that -h is an option on the gsutil command, not the cp sub-command.
@@ -46,37 +46,22 @@ _DETAILED_HELP_TEXT = ("""
   More details about specific pieces of metadata are discussed below.
 
 
-<B>CONTENT TYPE</B>
+<B>CONTENT-TYPE</B>
   The most commonly set metadata is Content-Type (also known as MIME type),
-  which allows browsers to render the object properly.
-  gsutil sets the Content-Type automatically at upload time, based on each
-  filename extension. For example, uploading files with names ending in .txt
-  will set Content-Type to text/plain. If you're running gsutil on Linux or
-  MacOS and would prefer to have content type set based on naming plus content
-  examination, see the use_magicfile configuration variable in the gsutil/boto
-  configuration file (See also "gsutil help config"). In general, using
-  use_magicfile is more robust and configurable, but is not available on
-  Windows.
+  which allows browsers to render the object properly. gsutil sets the
+  Content-Type automatically at upload time, based on each filename extension.
+  For example, uploading files with names ending in .txt will set Content-Type
+  to text/plain. If you're running gsutil on Linux or MacOS and would prefer to
+  have content type set based on naming plus content examination, see the
+  use_magicfile configuration variable in the .boto configuration file (See
+  also "gsutil help config"). In general, using use_magicfile is more robust
+  and configurable, but is not available on Windows.
 
-  If you specify a Content-Type header with -h when uploading content (like the
+  If you specify Content-Type with -h when uploading content (like the
   example gsutil command given in the previous section), it overrides the
   Content-Type that would have been set based on filename extension or content.
   This can be useful if the Content-Type detection algorithm doesn't work as
   desired for some of your files.
-
-  You can also completely suppress content type detection in gsutil, by
-  specifying an empty string on the Content-Type header:
-
-    gsutil -h 'Content-Type:' cp -r images gs://bucket/images
-
-  In this case, the Google Cloud Storage service will not attempt to detect
-  the content type. In general this approach will work better than using
-  filename extension-based content detection in gsutil, because the list of
-  filename extensions is kept more current in the server-side content detection
-  system than in the Python library upon which gsutil content type detection
-  depends. (For example, at the time of writing this, the filename extension
-  ".webp" was recognized by the server-side content detection system, but
-  not by gsutil.)
 
 
 <B>CACHE-CONTROL</B>
@@ -87,7 +72,7 @@ _DETAILED_HELP_TEXT = ("""
 
   Here's an example of uploading a set of objects to allow caching:
 
-    gsutil -h "Cache-Control:public,max-age=3600" cp -a public-read \\
+    gsutil -h "Cache-Control:public,max-age=3600" cp -a public-read \
            -r html gs://bucket/html
 
   This command would upload all files in the html directory (and subdirectories)
@@ -104,7 +89,7 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil -h Cache-Control:private cp -a public-read file.png gs://your-bucket
 
-  Another use of the Cache-Control header is through the "no-transform" value,
+  Another use of Cache-Control is through the "no-transform" value,
   which instructs Google Cloud Storage to not apply any content transformations
   based on specifics of a download request, such as removing gzip
   content-encoding for incompatible clients.  Note that this parameter is only
@@ -123,8 +108,9 @@ _DETAILED_HELP_TEXT = ("""
   following example for Linux:
 
     echo "Highly compressible text" | gzip > foo.txt
-    gsutil -h "Content-Encoding:gzip" -h "Content-Type:text/plain" \\
-      cp foo.txt gs://bucket/compressed
+    gsutil -h "Content-Encoding:gzip" \
+           -h "Content-Type:text/plain" \
+           cp foo.txt gs://bucket/compressed
 
   Note that this is different from uploading a gzipped object foo.txt.gz with
   Content-Type: application/x-gzip because most browsers are able to
@@ -139,30 +125,31 @@ _DETAILED_HELP_TEXT = ("""
   avoided.
 
   Note also that gsutil provides an easy way to cause content to be compressed
-  and stored with Content-Encoding: gzip: see the -z option in "gsutil help cp".
+  and stored with Content-Encoding: gzip: see the -z and -Z options in
+  "gsutil help cp".
 
 
 <B>CONTENT-DISPOSITION</B>
   You can set Content-Disposition on your objects, to specify presentation
   information about the data being transmitted. Here's an example:
 
-    gsutil -h 'Content-Disposition:attachment; filename=filename.ext' \\
-      cp -r attachments gs://bucket/attachments
+    gsutil -h 'Content-Disposition:attachment; filename=filename.ext' \
+           cp -r attachments gs://bucket/attachments
 
   Setting the Content-Disposition allows you to control presentation style
   of the content, for example determining whether an attachment should be
   automatically displayed vs should require some form of action from the user to
-  open it.  See http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1
+  open it.  See https://tools.ietf.org/html/rfc6266
   for more details about the meaning of Content-Disposition.
 
 
 <B>CUSTOM METADATA</B>
   You can add your own custom metadata (e.g,. for use by your application)
-  to an object by setting a header that starts with "x-goog-meta", for example:
+  to a Google Cloud Storage object by using "x-goog-meta" with -h. For example:
 
     gsutil -h x-goog-meta-reviewer:jane cp mycode.java gs://bucket/reviews
 
-  You can add multiple differently named custom metadata fields to each object.
+  You can add multiple differently-named custom metadata fields to each object.
 
 
 <B>SETTABLE FIELDS; FIELD VALUES</B>
@@ -173,15 +160,23 @@ _DETAILED_HELP_TEXT = ("""
   - Content-Disposition
   - Content-Encoding
   - Content-Language
-  - Content-MD5
   - Content-Type
-  - Any field starting with a matching Cloud Storage Provider
-    prefix, such as x-goog-meta- (i.e., custom metadata).
+  - Custom metadata
 
-  Header names are case-insensitive.
+  Field names are case-insensitive.
 
-  x-goog-meta- fields can have data set to arbitrary Unicode values. All
-  other fields must have ASCII values.
+  All fields and their values must consist only of ASCII characters, with the
+  exception of values for x-goog-meta- fields, which may contain arbitrary
+  Unicode values. Note that when setting metadata using the XML API, which sends
+  custom metadata as HTTP headers, Unicode characters will be encoded using
+  UTF-8, then url-encoded to ASCII. For example:
+
+    gsutil setmeta -h "x-goog-meta-foo: ã" gs://bucket/object
+
+  would store the custom metadata key-value pair of "foo" and "%C3%A3".
+  Subsequently, running "ls -L" using the JSON API to list the object's metadata
+  would print "%C3%A3", while "ls -L" using the XML API would url-decode this
+  value automatically, printing the character "ã".
 
 
 <B>VIEWING CURRENTLY SET METADATA</B>

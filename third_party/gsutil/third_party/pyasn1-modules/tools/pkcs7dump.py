@@ -24,9 +24,7 @@ if rest: substrate = substrate[:-len(rest)]
     
 print(contentInfo.prettyPrint())
 
-assert encoder.encode(contentInfo, defMode=False) == substrate or \
-       encoder.encode(contentInfo, defMode=True) == substrate, \
-       're-encode fails'
+assert encoder.encode(contentInfo) == substrate, 're-encode fails'
 
 contentType = contentInfo.getComponentByName('contentType')
 

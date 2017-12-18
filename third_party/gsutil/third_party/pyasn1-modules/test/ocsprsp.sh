@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ocsprspdump.py <<EOT
+python ocsprspdump.py <<EOT
 MIIEvQoBAKCCBLYwggSyBgkrBgEFBQcwAQEEggSjMIIEnzCCAQ+hgYAwfjELMAkGA1UEBhMCQVUx
 EzARBgNVBAgTClNvbWUtU3RhdGUxITAfBgNVBAoTGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEV
 MBMGA1UEAxMMc25tcGxhYnMuY29tMSAwHgYJKoZIhvcNAQkBFhFpbmZvQHNubXBsYWJzLmNvbRgP

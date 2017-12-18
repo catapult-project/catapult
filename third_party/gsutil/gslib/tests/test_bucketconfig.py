@@ -72,18 +72,22 @@ class TestBucketConfig(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
     self.assertEqual(json.loads(lifecycle_out), self.lifecycle_json_obj)
 
-    self.RunGsUtil(
-        self._set_acl_command + ['authenticated-read', suri(bucket_uri)])
+    if not self._ServiceAccountCredentialsPresent():
+      # See comments in _ServiceAccountCredentialsPresent
+      self.RunGsUtil(
+          self._set_acl_command + ['authenticated-read', suri(bucket_uri)])
 
     cors_out = self.RunGsUtil(self._get_cors_command + [suri(bucket_uri)],
                               return_stdout=True)
     lifecycle_out = self.RunGsUtil(self._get_lifecycle_command +
                                    [suri(bucket_uri)], return_stdout=True)
-    acl_out = self.RunGsUtil(self._get_acl_command + [suri(bucket_uri)],
-                             return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
     self.assertEqual(json.loads(lifecycle_out), self.lifecycle_json_obj)
-    self.assertIn('allAuthenticatedUsers', acl_out)
+
+    if not self._ServiceAccountCredentialsPresent():
+      acl_out = self.RunGsUtil(self._get_acl_command + [suri(bucket_uri)],
+                               return_stdout=True)
+      self.assertIn('allAuthenticatedUsers', acl_out)
 
     self.RunGsUtil(
         self._set_defacl_command + ['public-read', suri(bucket_uri)])
@@ -92,11 +96,13 @@ class TestBucketConfig(testcase.GsUtilIntegrationTestCase):
                               return_stdout=True)
     lifecycle_out = self.RunGsUtil(self._get_lifecycle_command +
                                    [suri(bucket_uri)], return_stdout=True)
-    acl_out = self.RunGsUtil(self._get_acl_command + [suri(bucket_uri)],
-                             return_stdout=True)
     def_acl_out = self.RunGsUtil(self._get_defacl_command + [suri(bucket_uri)],
                                  return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
     self.assertEqual(json.loads(lifecycle_out), self.lifecycle_json_obj)
-    self.assertIn('allAuthenticatedUsers', acl_out)
     self.assertIn('allUsers', def_acl_out)
+
+    if not self._ServiceAccountCredentialsPresent():
+      acl_out = self.RunGsUtil(self._get_acl_command + [suri(bucket_uri)],
+                               return_stdout=True)
+      self.assertIn('allAuthenticatedUsers', acl_out)

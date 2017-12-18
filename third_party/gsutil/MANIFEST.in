@@ -1,4 +1,6 @@
+include CHANGES.md
 include CHECKSUM
+include CONTRIBUTING.md
 include COPYING
 include README.md
 include VERSION
@@ -6,7 +8,7 @@ include gsutil
 include gsutil.py
 include setup.py
 recursive-include gslib *
+recursive-include test *
 global-exclude .git*
 global-exclude *.pyc
 exclude gslib/commands/update.py
-recursive-include scripts *

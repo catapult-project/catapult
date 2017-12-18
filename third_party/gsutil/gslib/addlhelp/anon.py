@@ -30,10 +30,15 @@ _DETAILED_HELP_TEXT = ("""
   Users can similarly download objects they find via the above gsutil ls
   command.
 
-  If a user without credentials attempts to access protected data using gsutil,
-  they will be prompted to run "gsutil config" to obtain credentials.
-
   See "gsutil help acls" for more details about data protection.
+
+<B>Configuring/Using Credentials via Cloud SDK Distribution of gsutil</B>
+  If a user without credentials attempts to access protected data using gsutil,
+  they will be prompted to run gcloud init to obtain credentials.
+
+<B>Configuring/Using Credentials via Standalone gsutil Distribution</B>
+  If a user without credentials attempts to access protected data using gsutil,
+  they will be prompted to run gsutil config to obtain credentials.
 """)
 
 

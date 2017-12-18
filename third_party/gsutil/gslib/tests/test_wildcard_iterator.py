@@ -30,6 +30,7 @@ from gslib.exception import InvalidUrlError
 from gslib.storage_url import ContainsWildcard
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetDummyProjectForUnitTest
 
 
 class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
@@ -186,9 +187,10 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     """Tests matching a single bucket based on a wildcarded bucket URI."""
     exp_obj_uri_strs = set([
         suri(self.test_bucket1_uri) + self.test_bucket1_uri.delim])
-    actual_obj_uri_strs = set(
-        str(u) for u in self._test_wildcard_iterator(
-            '%s*1' % self.base_uri_str).IterBuckets(bucket_fields=['id']))
+    with SetDummyProjectForUnitTest():
+      actual_obj_uri_strs = set(
+          str(u) for u in self._test_wildcard_iterator(
+              '%s*1' % self.base_uri_str).IterBuckets(bucket_fields=['id']))
     self.assertEqual(exp_obj_uri_strs, actual_obj_uri_strs)
 
   def testMultiMatchWildcardedBucketUri(self):
@@ -196,19 +198,21 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     exp_obj_uri_strs = set([
         suri(self.test_bucket0_uri) + self.test_bucket0_uri.delim,
         suri(self.test_bucket1_uri) + self.test_bucket1_uri.delim])
-    actual_obj_uri_strs = set(
-        str(u) for u in self._test_wildcard_iterator(
-            '%s*' % self.base_uri_str).IterBuckets(bucket_fields=['id']))
+    with SetDummyProjectForUnitTest():
+      actual_obj_uri_strs = set(
+          str(u) for u in self._test_wildcard_iterator(
+              '%s*' % self.base_uri_str).IterBuckets(bucket_fields=['id']))
     self.assertEqual(exp_obj_uri_strs, actual_obj_uri_strs)
 
   def testWildcardBucketAndObjectUri(self):
     """Tests matching with both bucket and object wildcards."""
     exp_obj_uri_strs = set([str(self.test_bucket0_uri.clone_replace_name(
         'abcd'))])
-    actual_obj_uri_strs = set(
-        str(u) for u in self._test_wildcard_iterator(
-            '%s0*/abc*' % self.base_uri_str).IterAll(
-                expand_top_level_buckets=True))
+    with SetDummyProjectForUnitTest():
+      actual_obj_uri_strs = set(
+          str(u) for u in self._test_wildcard_iterator(
+              '%s0*/abc*' % self.base_uri_str).IterAll(
+                  expand_top_level_buckets=True))
     self.assertEqual(exp_obj_uri_strs, actual_obj_uri_strs)
 
   def testWildcardUpToFinalCharSubdirPlusObjectName(self):
@@ -236,17 +240,17 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     blrs = set(
         u for u in self._test_wildcard_iterator(
             self.test_bucket0_uri.clone_replace_name('**')).IterAll(
-                bucket_listing_fields=['updated']))
+                bucket_listing_fields=['timeCreated']))
     self.assertTrue(len(blrs))
     for blr in blrs:
-      self.assertTrue(blr.root_object and blr.root_object.updated)
+      self.assertTrue(blr.root_object and blr.root_object.timeCreated)
     blrs = set(
         u for u in self._test_wildcard_iterator(
             self.test_bucket0_uri.clone_replace_name('**')).IterAll(
                 bucket_listing_fields=['generation']))
     self.assertTrue(len(blrs))
     for blr in blrs:
-      self.assertTrue(blr.root_object and not blr.root_object.updated)
+      self.assertTrue(blr.root_object and not blr.root_object.timeCreated)
 
 
 class FileIteratorTests(testcase.GsUtilUnitTestCase):
@@ -295,6 +299,21 @@ class FileIteratorTests(testcase.GsUtilUnitTestCase):
                           self._test_wildcard_iterator(uri).IterAll(
                               expand_top_level_buckets=True))
     self.assertEqual(self.immed_child_uri_strs, actual_uri_strs)
+
+  def testMatchingAllFilesWithSize(self):
+    """Tests matching all files, based on wildcard."""
+    uri = self._test_storage_uri(suri(self.test_dir, '*'))
+    blrs = self._test_wildcard_iterator(uri).IterAll(
+        expand_top_level_buckets=True, bucket_listing_fields=['size'])
+    num_expected_objects = 3
+    num_actual_objects = 0
+    for blr in blrs:
+      self.assertTrue(str(blr) in self.immed_child_uri_strs)
+      if blr.IsObject():
+        num_actual_objects += 1
+        # Size is based on contents "Test N" as created by CreateTempDir.
+        self.assertEqual(blr.root_object.size, 6)
+    self.assertEqual(num_expected_objects, num_actual_objects)
 
   def testMatchingFileSubset(self):
     """Tests matching a subset of files, based on wildcard."""

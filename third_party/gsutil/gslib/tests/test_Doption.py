@@ -49,6 +49,19 @@ class TestDOption(testcase.GsUtilIntegrationTestCase):
         self.assertIn('total_bytes_transferred: %d' % len(file_contents),
                       stderr)
 
+  def test_minus_D_perf_trace_cp(self):
+    """Test upload and download with a sample perf trace token."""
+    file_name = 'bar'
+    fpath = self.CreateTempFile(file_name=file_name, contents='foo')
+    bucket_uri = self.CreateBucket()
+    stderr = self.RunGsUtil(['-D', '--perf-trace-token=123', 'cp', fpath,
+                             suri(bucket_uri)], return_stderr=True)
+    self.assertIn('\'cookie\': \'123\'', stderr)
+    stderr2 = self.RunGsUtil(['-D', '--perf-trace-token=123', 'cp',
+                              suri(bucket_uri, file_name), fpath],
+                             return_stderr=True)
+    self.assertIn('\'cookie\': \'123\'', stderr2)
+
   def test_minus_D_resumable_upload(self):
     fpath = self.CreateTempFile(contents='a1b2c3d4')
     bucket_uri = self.CreateBucket()
@@ -107,7 +120,8 @@ class TestDOption(testcase.GsUtilIntegrationTestCase):
     self.assertIn('OS: ', stdout)
     self.assertIn('multiprocessing available: ', stdout)
     self.assertIn('using cloud sdk: ', stdout)
-    self.assertIn('config path: ', stdout)
+    self.assertIn('pass cloud sdk credentials to gsutil: ', stdout)
+    self.assertIn('config path(s): ', stdout)
     self.assertIn('gsutil path: ', stdout)
     self.assertIn('compiled crcmod: ', stdout)
     self.assertIn('installed via package manager: ', stdout)

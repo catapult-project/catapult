@@ -2,7 +2,7 @@ tests:
 	-cd python2 && python2.4 httplib2test.py
 	-cd python2 && python2.5 httplib2test.py
 	-cd python2 && python2.6 httplib2test.py
-	cd python2 && python2.6 httplib2test_appengine.py
+	-cd python2 && python2.6 httplib2test_appengine.py
 	cd python2 && python2.7 httplib2test.py
 	cd python2 && python2.7 httplib2test_appengine.py
 	cd python3 && python3.2 httplib2test.py
@@ -30,7 +30,7 @@ release:
 	-mkdir dist/httplib2-$(VERSION)
 	cp -r python2 $(DST) 
 	cp -r python3 $(DST) 
-	cp setup.py README MANIFEST.in CHANGELOG $(DST)
+	cp setup.py README.md MANIFEST.in CHANGELOG $(DST)
 	cd dist && tar -czv -f httplib2-$(VERSION).tar.gz httplib2-$(VERSION) 
 	cd dist && zip httplib2-$(VERSION).zip -r httplib2-$(VERSION)
 	cd dist/httplib2-$(VERSION) && python setup.py sdist --formats=gztar,zip upload

@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright 2015 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Tests for transfer.py."""
 import string
 
@@ -184,52 +200,69 @@ class TransferTest(unittest2.TestCase):
             self.assertEqual(string.ascii_lowercase + string.ascii_uppercase,
                              download_stream.getvalue())
 
-    def testFromEncoding(self):
-        # Test a specific corner case in multipart encoding.
+    def testMultipartEncoding(self):
+        # This is really a table test for various issues we've seen in
+        # the past; see notes below for particular histories.
 
-        # Python's mime module by default encodes lines that start with
-        # "From " as ">From ", which we need to make sure we don't run afoul
-        # of when sending content that isn't intended to be so encoded. This
-        # test calls out that we get this right. We test for both the
-        # multipart and non-multipart case.
-        multipart_body = '{"body_field_one": 7}'
-        upload_contents = 'line one\nFrom \nline two'
-        upload_config = base_api.ApiUploadInfo(
-            accept=['*/*'],
-            max_size=None,
-            resumable_multipart=True,
-            resumable_path=u'/resumable/upload',
-            simple_multipart=True,
-            simple_path=u'/upload',
-        )
-        url_builder = base_api._UrlBuilder('http://www.uploads.com')
+        test_cases = [
+            # Python's mime module by default encodes lines that start
+            # with "From " as ">From ", which we need to make sure we
+            # don't run afoul of when sending content that isn't
+            # intended to be so encoded. This test calls out that we
+            # get this right. We test for both the multipart and
+            # non-multipart case.
+            'line one\nFrom \nline two',
 
-        # Test multipart: having a body argument in http_request forces
-        # multipart here.
-        upload = transfer.Upload.FromStream(
-            six.StringIO(upload_contents),
-            'text/plain',
-            total_size=len(upload_contents))
-        http_request = http_wrapper.Request(
-            'http://www.uploads.com',
-            headers={'content-type': 'text/plain'},
-            body=multipart_body)
-        upload.ConfigureRequest(upload_config, http_request, url_builder)
-        self.assertEqual(url_builder.query_params['uploadType'], 'multipart')
-        rewritten_upload_contents = '\n'.join(
-            http_request.body.split('--')[2].splitlines()[1:])
-        self.assertTrue(rewritten_upload_contents.endswith(upload_contents))
+            # We had originally used a `six.StringIO` to hold the http
+            # request body in the case of a multipart upload; for
+            # bytes being uploaded in Python3, however, this causes
+            # issues like this:
+            # https://github.com/GoogleCloudPlatform/gcloud-python/issues/1760
+            # We test below to ensure that we don't end up mangling
+            # the body before sending.
+            u'name,main_ingredient\nRäksmörgås,Räkor\nBaguette,Bröd',
+        ]
 
-        # Test non-multipart (aka media): no body argument means this is
-        # sent as media.
-        upload = transfer.Upload.FromStream(
-            six.StringIO(upload_contents),
-            'text/plain',
-            total_size=len(upload_contents))
-        http_request = http_wrapper.Request(
-            'http://www.uploads.com',
-            headers={'content-type': 'text/plain'})
-        upload.ConfigureRequest(upload_config, http_request, url_builder)
-        self.assertEqual(url_builder.query_params['uploadType'], 'media')
-        rewritten_upload_contents = http_request.body
-        self.assertTrue(rewritten_upload_contents.endswith(upload_contents))
+        for upload_contents in test_cases:
+            multipart_body = '{"body_field_one": 7}'
+            upload_bytes = upload_contents.encode('ascii', 'backslashreplace')
+            upload_config = base_api.ApiUploadInfo(
+                accept=['*/*'],
+                max_size=None,
+                resumable_multipart=True,
+                resumable_path=u'/resumable/upload',
+                simple_multipart=True,
+                simple_path=u'/upload',
+            )
+            url_builder = base_api._UrlBuilder('http://www.uploads.com')
+
+            # Test multipart: having a body argument in http_request forces
+            # multipart here.
+            upload = transfer.Upload.FromStream(
+                six.BytesIO(upload_bytes),
+                'text/plain',
+                total_size=len(upload_bytes))
+            http_request = http_wrapper.Request(
+                'http://www.uploads.com',
+                headers={'content-type': 'text/plain'},
+                body=multipart_body)
+            upload.ConfigureRequest(upload_config, http_request, url_builder)
+            self.assertEqual(
+                'multipart', url_builder.query_params['uploadType'])
+            rewritten_upload_contents = b'\n'.join(
+                http_request.body.split(b'--')[2].splitlines()[1:])
+            self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
+
+            # Test non-multipart (aka media): no body argument means this is
+            # sent as media.
+            upload = transfer.Upload.FromStream(
+                six.BytesIO(upload_bytes),
+                'text/plain',
+                total_size=len(upload_bytes))
+            http_request = http_wrapper.Request(
+                'http://www.uploads.com',
+                headers={'content-type': 'text/plain'})
+            upload.ConfigureRequest(upload_config, http_request, url_builder)
+            self.assertEqual(url_builder.query_params['uploadType'], 'media')
+            rewritten_upload_contents = http_request.body
+            self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))

@@ -18,10 +18,19 @@ from __future__ import absolute_import
 
 import os
 
+import crcmod
+from gslib.cs_api_map import ApiSelector
+from gslib.tests.test_cp import TestCpMvPOSIXBucketToLocalErrors
+from gslib.tests.test_cp import TestCpMvPOSIXBucketToLocalNoErrors
+from gslib.tests.test_cp import TestCpMvPOSIXLocalToBucketNoErrors
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SequentialAndParallelTransfer
+from gslib.tests.util import unittest
+from gslib.util import IS_WINDOWS
 from gslib.util import Retry
+from gslib.util import UsingCrcmodExtension
 
 
 class TestMv(testcase.GsUtilIntegrationTestCase):
@@ -40,10 +49,18 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
     cmd = (['-m', 'mv'] + objs + [suri(bucket2_uri)])
     stderr = self.RunGsUtil(cmd, return_stderr=True)
     # Rewrite API may output an additional 'Copying' progress notification.
-    self.assertGreaterEqual(stderr.count('Copying'), 2)
-    self.assertLessEqual(stderr.count('Copying'), 4)
-    self.assertEqual(stderr.count('Copying') % 2, 0)
-    self.assertEqual(stderr.count('Removing'), 2)
+    self.assertGreaterEqual(
+        stderr.count('Copying'), 2,
+        'stderr did not contain 2 "Copying" lines:\n%s' % stderr)
+    self.assertLessEqual(
+        stderr.count('Copying'), 4,
+        'stderr did not contain <= 4 "Copying" lines:\n%s' % stderr)
+    self.assertEqual(
+        stderr.count('Copying') % 2, 0,
+        'stderr did not contain even number of "Copying" lines:\n%s' % stderr)
+    self.assertEqual(
+        stderr.count('Removing'), 2,
+        'stderr did not contain 2 "Removing" lines:\n%s' % stderr)
 
     self.AssertNObjectsInBucket(bucket1_uri, 0)
     self.AssertNObjectsInBucket(bucket2_uri, 2)
@@ -63,12 +80,29 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
     cmd = (['-m', 'mv'] + objs + [suri(bucket1_uri)])
     stderr = self.RunGsUtil(cmd, return_stderr=True)
     # Rewrite API may output an additional 'Copying' progress notification.
-    self.assertGreaterEqual(stderr.count('Copying'), 1)
-    self.assertLessEqual(stderr.count('Copying'), 2)
+    self.assertGreaterEqual(
+        stderr.count('Copying'), 1,
+        'stderr did not contain >= 1 "Copying" lines:\n%s' % stderr)
+    self.assertLessEqual(
+        stderr.count('Copying'), 2,
+        'stderr did not contain <= 2 "Copying" lines:\n%s' % stderr)
     self.assertEqual(stderr.count('Removing'), 1)
 
     self.AssertNObjectsInBucket(bucket1_uri, 1)
     self.AssertNObjectsInBucket(bucket2_uri, 0)
+
+  def test_move_bucket_to_dir(self):
+    """Tests moving a local directory to a bucket."""
+    bucket_uri = self.CreateBucket(test_objects=2)
+    self.AssertNObjectsInBucket(bucket_uri, 2)
+    tmpdir = self.CreateTempDir()
+    self.RunGsUtil(['mv', suri(bucket_uri, '*'), tmpdir])
+    dir_list = []
+    for dirname, _, filenames in os.walk(tmpdir):
+      for filename in filenames:
+        dir_list.append(os.path.join(dirname, filename))
+    self.assertEqual(len(dir_list), 2)
+    self.AssertNObjectsInBucket(bucket_uri, 0)
 
   def test_move_dir_to_bucket(self):
     """Tests moving a local directory to a bucket."""
@@ -110,3 +144,50 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
     contents = self.RunGsUtil(['cat', suri(object_uri)], return_stdout=True)
     self.assertEqual(contents, 'data2')
 
+  @unittest.skipIf(IS_WINDOWS, 'POSIX attributes not available on Windows.')
+  @unittest.skipUnless(UsingCrcmodExtension(crcmod),
+                       'Test requires fast crcmod.')
+  def test_mv_preserve_posix_bucket_to_dir_no_errors(self):
+    """Tests use of the -P flag with mv from a bucket to a local dir.
+
+    Specifically tests combinations of POSIX attributes in metadata that will
+    pass validation.
+    """
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    TestCpMvPOSIXBucketToLocalNoErrors(self, bucket_uri, tmpdir, is_cp=False)
+
+  @unittest.skipIf(IS_WINDOWS, 'POSIX attributes not available on Windows.')
+  def test_mv_preserve_posix_bucket_to_dir_errors(self):
+    """Tests use of the -P flag with mv from a bucket to a local dir.
+
+    Specifically, combinations of POSIX attributes in metadata that will fail
+    validation.
+    """
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+
+    obj = self.CreateObject(bucket_uri=bucket_uri, object_name='obj',
+                            contents='obj')
+    TestCpMvPOSIXBucketToLocalErrors(self, bucket_uri, obj, tmpdir, is_cp=False)
+
+  @unittest.skipIf(IS_WINDOWS, 'POSIX attributes not available on Windows.')
+  def test_mv_preseve_posix_dir_to_bucket_no_errors(self):
+    """Tests use of the -P flag with mv from a local dir to a bucket."""
+    bucket_uri = self.CreateBucket()
+    TestCpMvPOSIXLocalToBucketNoErrors(self, bucket_uri, is_cp=False)
+
+  @SkipForS3('Test is only relevant for gs storage classes.')
+  def test_mv_early_deletion_warning(self):
+    """Tests that mv on a recent nearline object warns about early deletion."""
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip('boto does not return object storage class')
+
+    bucket_uri = self.CreateBucket(storage_class='NEARLINE')
+    object_uri = self.CreateObject(bucket_uri=bucket_uri, contents='obj')
+    stderr = self.RunGsUtil(['mv', suri(object_uri), suri(bucket_uri, 'foo')],
+                            return_stderr=True)
+    self.assertIn(
+        'Warning: moving nearline object %s may incur an early deletion '
+        'charge, because the original object is less than 30 days old '
+        'according to the local system time.' % suri(object_uri), stderr)
