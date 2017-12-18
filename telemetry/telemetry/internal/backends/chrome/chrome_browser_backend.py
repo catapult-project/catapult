@@ -123,6 +123,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # Disable the search geolocation disclosure infobar, as it is only shown a
     # small number of times to users and should not be part of perf comparisons.
     args.append('--disable-search-geolocation-disclosure')
+    
+    # Override the need for a user gesture in order to play media.
+    args.append('--autoplay-policy=no-user-gesture-required')
 
     if (self.browser_options.logging_verbosity ==
         self.browser_options.NON_VERBOSE_LOGGING):
