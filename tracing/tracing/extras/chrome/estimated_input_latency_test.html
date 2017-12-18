@@ -85,6 +85,16 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
+  function addDomContentLoadedEnd(mainThread, dclTime) {
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'domContentLoadedEventEnd',
+      start: dclTime,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
   function addSchedulerTask(mainThread, startTime, duration) {
     mainThread.sliceGroup.pushSlice(newSchedulerTask(startTime, duration));
   }
@@ -128,9 +138,11 @@ tr.b.unittest.testSuite(function() {
       const mainThread = rendererProcess.getOrCreateThread(MAIN_THREAD_ID);
       addNavigationStart(mainThread, 0);
       addFMPCandidate(mainThread, 5000);
+      addDomContentLoadedEnd(mainThread, 5000);
 
       addNavigationStart(mainThread, 100000);
       addFMPCandidate(mainThread, 110000);
+      addDomContentLoadedEnd(mainThread, 110000);
 
       // To detect when a page has become interactive, we need to find a large
       // enough window of no long tasks. Adding a dummy task sufficiently far
@@ -158,18 +170,20 @@ tr.b.unittest.testSuite(function() {
         addTestFrame(rendererProcess);
         addNavigationStart(mainThread, pid * 1000);
         addFMPCandidate(mainThread, pid * 1000 + 2000);
-        addNavigationStart(mainThread, pid * 2000);
-        addFMPCandidate(mainThread, pid * 2000 + 2000);
+        addDomContentLoadedEnd(mainThread, pid * 1000 + 2000);
+        addNavigationStart(mainThread, pid * 10000);
+        addFMPCandidate(mainThread, pid * 10000 + 2000);
+        addDomContentLoadedEnd(mainThread, pid * 10000 + 2000);
         addDummyTask(mainThread, 100000);
       }
     });
 
     const interactiveTimestampsMap = getInteractiveTimestamps(model);
-    assert.deepEqual(interactiveTimestampsMap.get(1), [4000]);
-    assert.deepEqual(interactiveTimestampsMap.get(2), [6000]);
-    assert.deepEqual(interactiveTimestampsMap.get(3), [5000, 8000]);
-    assert.deepEqual(interactiveTimestampsMap.get(4), [6000, 10000]);
-    assert.deepEqual(interactiveTimestampsMap.get(5), [7000, 12000]);
+    assert.deepEqual(interactiveTimestampsMap.get(1), [3000, 12000]);
+    assert.deepEqual(interactiveTimestampsMap.get(2), [4000, 22000]);
+    assert.deepEqual(interactiveTimestampsMap.get(3), [5000, 32000]);
+    assert.deepEqual(interactiveTimestampsMap.get(4), [6000, 42000]);
+    assert.deepEqual(interactiveTimestampsMap.get(5), [7000, 52000]);
   });
 
   test('singlePostInteractiveWindow', () => {

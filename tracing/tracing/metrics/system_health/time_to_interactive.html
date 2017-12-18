@@ -142,13 +142,13 @@ tr.exportTo('tr.metrics.sh', function() {
 
     let networkQuietWindowStart = searchBegin;
     let mainThreadQuietWindowStart = searchBegin;
-    let fciCandidate = undefined;
+    let interactiveCandidate = undefined;
     let activeRequests = 0;
 
     for (const endpoint of endpoints) {
       if (reachedTTIQuiscence_(endpoint.time,
           networkQuietWindowStart, mainThreadQuietWindowStart)) {
-        fciCandidate = mainThreadQuietWindowStart;
+        interactiveCandidate = mainThreadQuietWindowStart;
         break;
       }
 
@@ -178,14 +178,15 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    if (reachedTTIQuiscence_(searchEnd,
-        networkQuietWindowStart, mainThreadQuietWindowStart)) {
-      fciCandidate = mainThreadQuietWindowStart;
+    if (interactiveCandidate === undefined &&
+        reachedTTIQuiscence_(searchEnd,
+            networkQuietWindowStart, mainThreadQuietWindowStart)) {
+      interactiveCandidate = mainThreadQuietWindowStart;
     }
 
-    if (fciCandidate === undefined) return undefined;
+    if (interactiveCandidate === undefined) return undefined;
 
-    return Math.max(fciCandidate, domContentLoadedEnd);
+    return Math.max(interactiveCandidate, domContentLoadedEnd);
   }
 
   /**

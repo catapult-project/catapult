@@ -25,7 +25,7 @@ tr.exportTo('tr.metrics.sh', function() {
      * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper
      * @param {string} eventTitle
      * @param {string} eventCategory
-     * @returns {Array<!tr.model.ThreadSlice>}
+     * @returns {Map.<string, Array<!tr.model.ThreadSlice>>}
      */
     static getSortedMainThreadEventsByFrame(
         rendererHelper, eventTitle, eventCategory) {
@@ -82,6 +82,26 @@ tr.exportTo('tr.metrics.sh', function() {
       const firstIndexOnOrAfterTimestamp =
           tr.b.findFirstTrueIndexInSortedArray(
               sortedEvents, e => e.start >= timestamp);
+
+      if (firstIndexOnOrAfterTimestamp === sortedEvents.length) {
+        return undefined;
+      }
+      return sortedEvents[firstIndexOnOrAfterTimestamp];
+    }
+
+    /**
+     * Returns earliest event in |sortedEvents| that starts after |timestamp|,
+     * or undefined if no such event exists.
+     *
+     * @param {!Array<!tr.model.TimedEvent>} sortedEvents - events sorted by
+     *     start time.
+     * @param {number} timestamp
+     * @returns {tr.model.Event|undefined}
+     */
+    static findNextEventStartingAfterTimestamp(sortedEvents, timestamp) {
+      const firstIndexOnOrAfterTimestamp =
+          tr.b.findFirstTrueIndexInSortedArray(
+              sortedEvents, e => e.start > timestamp);
 
       if (firstIndexOnOrAfterTimestamp === sortedEvents.length) {
         return undefined;

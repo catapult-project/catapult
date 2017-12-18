@@ -10,18 +10,19 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
 <link rel="import" href="/tracing/metrics/system_health/event_finder_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/time_to_interactive.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
 <link rel="import" href="/tracing/model/timed_event.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  const RESPONSIVENESS_THRESHOLD_MS = 50;
-  const INTERACTIVE_WINDOW_SIZE_MS = 5 * 1000;
+  const LONG_TASK_THRESHOLD_MS = 50;
   const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   const RelatedEventSet = tr.v.d.RelatedEventSet;
@@ -68,6 +69,12 @@ tr.exportTo('tr.metrics.sh', function() {
     .createLinear(0, 1e3, 20)  // 50ms step to 1s
     .addLinearBins(3e3, 20) // 100ms step to 3s
     .addExponentialBins(20e3, 20);
+
+  const TIME_TO_INTERACTIVE_BOUNDARIES = tr.v.HistogramBinBoundaries
+    // 90-th percentiile of TTI is around 40 seconds, across warm and cold
+    // loads. Data obtained through Cluster Telemetry analysis.
+    .createExponential(1, 40e3, 35)
+    .addExponentialBins(80e3, 15);
 
   const SUMMARY_OPTIONS = {
     avg: true,
@@ -251,66 +258,161 @@ tr.exportTo('tr.metrics.sh', function() {
     return mainThreadCpuTime;
   }
 
-  function addFirstInteractiveSample(samples, rendererHelper,
-      navigationStart, firstMeaningfulPaint, url) {
-    if (shouldIgnoreURL(url)) return;
-    const navigationStartTime = navigationStart.start;
-    let firstInteractive = Infinity;
-    let firstInteractiveCandidate = firstMeaningfulPaint;
-    let lastLongTaskEvent = undefined;
-    // Find the first interactive point X after firstMeaningfulPaint so that
-    // range [X, X + INTERACTIVE_WINDOW_SIZE_MS] contains no
-    // 'TaskQueueManager::ProcessTaskFromWorkQueues' slice which takes more than
-    // RESPONSIVENESS_THRESHOLD_MS.
-    // For more details on why TaskQueueManager::ProcessTaskFromWorkQueue is
-    // chosen as a proxy for all un-interruptable task on renderer thread, see
-    // https://github.com/GoogleChrome/lighthouse/issues/489
-    // TODO(nedn): replace this with just "const ev of rendererHelper..." once
-    // canary binary is updated.
-    // (https://github.com/catapult-project/catapult/issues/2586)
-    for (const ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
-      if (ev.start < firstInteractiveCandidate) continue;
-      const interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
-      if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE_MS) {
-        firstInteractive = firstInteractiveCandidate;
-        break;
-      }
-      if (ev.title === 'TaskQueueManager::ProcessTaskFromWorkQueue' &&
-          ev.duration > RESPONSIVENESS_THRESHOLD_MS) {
-        firstInteractiveCandidate = ev.end - 50;
-        lastLongTaskEvent = ev;
-      }
-    }
-    const navStartToFirstInteractiveRange = tr.b.math.Range.fromExplicitRange(
-        navigationStartTime, firstInteractive);
+  /**
+   * Object containing one value and associated diagnostics info for that value
+   * for a metric.
+   * @typedef {{value: number, diagnostics: !tr.v.d.DiagnosticMap}} MetricSample
+   */
 
+  /**
+   * Returns a MetricSample for interactivity metrics - First CPU Idle and Time
+   * to Interactive.
+   *
+   * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper
+   * @param {?number} eventTimestamp - Timestamp of the event for which the
+   *     sample is being generated.
+   * @param {tr.model.ThreadSlice} navigationStartEvent
+   * @param {number} firstMeaningfulPaintTime
+   * @param {number} domContentLoadedEndTime
+   * @param {string} url - URL of the current main frame document.
+   * @returns {MetricSample|undefined}
+   */
+  function decorateInteractivitySampleWithDiagnostics_(rendererHelper,
+      eventTimestamp, navigationStartEvent, firstMeaningfulPaintTime,
+      domContentLoadedEndTime, url) {
+    if (eventTimestamp === undefined) return undefined;
+    const navigationStartTime = navigationStartEvent.start;
+    const navStartToEventTimeRange =
+        tr.b.math.Range.fromExplicitRange(
+            navigationStartTime, eventTimestamp);
     const networkEvents = getNetworkEventsInRange(
-        rendererHelper.process, navStartToFirstInteractiveRange);
+        rendererHelper.process, navStartToEventTimeRange);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents,
-        navStartToFirstInteractiveRange);
-    const timeToFirstInteractive = navStartToFirstInteractiveRange.duration;
-    samples.push({
-      value: timeToFirstInteractive,
-      breakdownTree,
-      diagnostics: {
-        breakdown: createBreakdownDiagnostic(breakdownTree),
-        start: new RelatedEventSet(navigationStart),
-        lastLongTask: new RelatedEventSet(lastLongTaskEvent),
-        infos: new tr.v.d.GenericSet([{
+        navStartToEventTimeRange);
+    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+    return {
+      value: navStartToEventTimeRange.duration,
+      diagnostics: tr.v.d.DiagnosticMap.fromObject({
+        'Start': new RelatedEventSet(navigationStartEvent),
+        'Navigation infos': new tr.v.d.GenericSet([{
           url,
           pid: rendererHelper.pid,
-          start: navigationStartTime,
-          interactive: firstInteractive,
+          navigationStartTime,
+          firstMeaningfulPaintTime,
+          domContentLoadedEndTime,
+          // eventTimestamp can be derived from value and navigationStartEvent,
+          // but it's useful to directly see the value in the UI.
+          eventTimestamp,
         }]),
-      }
-    });
+        'Breakdown of [navStart, eventTimestamp]': breakdownDiagnostic,
+      }),
+    };
   }
 
   /**
-   * Computes Time to first meaningful paint (TTFMP) & time to interactive (TTI)
-   * for a renderer represented by |rendererHelper| and returns them as
-   * histogram samples.
+   * Returns MetricSample for Time to Interactive and First CPU Idle for the
+   * given parameters. See the time_to_interactive.html module for detailed
+   * description and implementation of these metrics. The two metrics are
+   * computed together in the same function because almost all the computed
+   * parameters, for example list of relevant long tasks, are same for these two
+   * metrics, and this helps avoid duplicate computation.
+   *
+   * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper - Renderer
+   *     helper for the renderer of interest.
+   * @param {tr.model.ThreadSlice} navigationStart - The navigation start
+   *     event for which interactivity metrics is being computed.
+   * @param {Map.<string, Array<!tr.model.ThreadSlice>>} frameToNavStartEvents -
+   *     Map from frame ids to sorted array of navigation start events.
+   * @param {Map.<string, Array<!tr.model.ThreadSlice>>}
+   *     frameToDomContentLoadedEndEvents - Map from frame ids to sorted array
+   *     of DOMContentLoadedEnd events.
+   * @param {number} firstMeaningfulPaintTime - Time of First Meaningful Paint
+   *     for this navigation.
+   * @param {string} url - URL of the current main frame document.
+   * @returns {{interactiveSample: MetricSample|undefined,
+   *     firstCpuIdleSample: MetricSample|undefined}}
+   */
+  function computeInteractivityMetricSample_(rendererHelper,
+      frameToNavStartEvents, frameToDomContentLoadedEndEvents, navigationStart,
+      firstMeaningfulPaintTime, url) {
+    if (shouldIgnoreURL(url)) return;
+
+    const frameIdRef = navigationStart.args.frame;
+    const nextNavigationStart =
+        EventFinderUtils.findNextEventStartingAfterTimestamp(
+            frameToNavStartEvents.get(frameIdRef) || [],
+            firstMeaningfulPaintTime);
+
+    const searchWindowEnd = nextNavigationStart !== undefined ?
+        nextNavigationStart.start :
+        // If no next navigationStart, search for quiet windows until
+        // the end of trace.
+        rendererHelper.modelHelper.chromeBounds.max;
+
+    const dclTimesForFrame =
+        frameToDomContentLoadedEndEvents.get(frameIdRef) || [];
+
+    const navigationStartTime = navigationStart.start;
+    const dclSearchRange = tr.b.math.Range.fromExplicitRange(
+        navigationStartTime, searchWindowEnd);
+    const dclTimesInWindow =
+        dclSearchRange.filterArray(dclTimesForFrame, event => event.start);
+
+    // Cannot determine TTI if DomContentLoadedEnd was never reached.
+    if (dclTimesInWindow.length === 0) {
+      return {
+        interactiveSample: undefined,
+        firstCpuIdleSample: undefined,
+      };
+    }
+
+    // TODO(catapult:#3796): Ideally a frame should reach DomContentLoadedEnd at
+    // most once within two navigationStarts, but sometimes there is a strange
+    // DclEnd event immediately following the navigationStart, and then the
+    // 'real' dclEnd happens later. It is not clear how to best determine the
+    // correct dclEnd value. For now, if there are multiple DclEnd events in the
+    // search window, we just pick the last one.
+    const domContentLoadedEndEvent =
+        dclTimesInWindow[dclTimesInWindow.length - 1];
+    const domContentLoadedEndTime = domContentLoadedEndEvent.start;
+
+    const mainThreadTasks =
+        [...rendererHelper.mainThread.findTopmostSlicesNamed(
+            'TaskQueueManager::ProcessTaskFromWorkQueue')];
+    const longTasks = mainThreadTasks.filter(
+        task => task.duration >= LONG_TASK_THRESHOLD_MS);
+    const longTasksInWindow = longTasks.filter(
+        task => task.range.intersectsExplicitRangeInclusive(
+            firstMeaningfulPaintTime, searchWindowEnd));
+
+    const resourceLoadEvents = getNetworkEventsInRange(rendererHelper.process,
+        tr.b.math.Range.fromExplicitRange(navigationStartTime,
+            searchWindowEnd));
+
+    const firstCpuIdleTime =
+        tr.metrics.sh.findFirstCpuIdleTime(
+            firstMeaningfulPaintTime, searchWindowEnd, domContentLoadedEndTime,
+            longTasksInWindow);
+    const interactiveTime =
+        tr.metrics.sh.findInteractiveTime(
+            firstMeaningfulPaintTime, searchWindowEnd, domContentLoadedEndTime,
+            longTasksInWindow, resourceLoadEvents);
+
+    return {
+      firstCpuIdleSample: decorateInteractivitySampleWithDiagnostics_(
+          rendererHelper, firstCpuIdleTime, navigationStart,
+          firstMeaningfulPaintTime, domContentLoadedEndTime, url),
+      interactiveSample: decorateInteractivitySampleWithDiagnostics_(
+          rendererHelper, interactiveTime, navigationStart,
+          firstMeaningfulPaintTime, domContentLoadedEndTime, url),
+    };
+  }
+
+  /**
+   * Computes Time to First Meaningful Paint (TTFMP), Time to Interactive (TTI),
+   * and Time to First CPU Idle (TTFCI) for a renderer represented by
+   * |rendererHelper| and returns them as histogram samples.
    *
    * First meaningful paint is the paint following the layout with the highest
    * "Layout Significance". The Layout Significance is computed inside Blink,
@@ -321,18 +423,17 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    * Design doc: https://goo.gl/vpaxv6
    *
-   * TTI is computed as the starting time of the timed window with size
-   * INTERACTIVE_WINDOW_SIZE_MS that happens after FMP in which there is no
-   * uninterruptable task on the main thread with size more than
-   * RESPONSIVENESS_THRESHOLD_MS.
-   *
-   * Design doc: https://goo.gl/ISWndc
+   * Time to Interactive and Time to First CPU Idle is based on heuristics
+   * involving main thread and network activity, as well as First Meaningful
+   * Paint and DOMContentLoadedEnd event. See time_to_interactive.html module
+   * for detailed description and implementation of these two metrics.
    */
-  function collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-      rendererHelper, frameToNavStartEvents) {
+  function collectFirstMeaningfulPaintAndInteractivityMetricsForRenderer(
+      rendererHelper, frameToNavStartEvents, frameToDomContentLoadedEndEvents) {
     const firstMeaningfulPaintSamples = [];
     const firstMeaningfulPaintCpuTimeSamples = [];
-    const firstInteractiveSamples = [];
+    const firstCpuIdleSamples = [];
+    const interactiveSamples = [];
 
     function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
       const data = addFirstMeaningfulPaintSample(
@@ -342,9 +443,13 @@ tr.exportTo('tr.metrics.sh', function() {
           firstMeaningfulPaintCpuTimeSamples, rendererHelper,
           frameIdRef, navigationStart, fmpMarkerEvent);
       if (data !== undefined) {
-        addFirstInteractiveSample(
-            firstInteractiveSamples, rendererHelper,
-            navigationStart, data.firstMeaningfulPaint, data.url);
+        const {interactiveSample, firstCpuIdleSample} =
+            computeInteractivityMetricSample_(
+                rendererHelper, frameToNavStartEvents,
+                frameToDomContentLoadedEndEvents, navigationStart,
+                data.firstMeaningfulPaint, data.url);
+        if (interactiveSample) interactiveSamples.push(interactiveSample);
+        if (firstCpuIdleSample) firstCpuIdleSamples.push(firstCpuIdleSample);
       }
     }
 
@@ -383,7 +488,8 @@ tr.exportTo('tr.metrics.sh', function() {
     return {
       firstMeaningfulPaintSamples,
       firstMeaningfulPaintCpuTimeSamples,
-      firstInteractiveSamples
+      firstCpuIdleSamples,
+      interactiveSamples,
     };
   }
 
@@ -391,6 +497,9 @@ tr.exportTo('tr.metrics.sh', function() {
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
             rendererHelper, 'navigationStart', 'blink.user_timing');
+    const frameToDomContentLoadedEndEvents =
+          EventFinderUtils.getSortedMainThreadEventsByFrame(
+              rendererHelper, 'domContentLoadedEventEnd', 'blink.user_timing');
     const firstPaintSamples = collectTimeToEvent(
         'loading', 'firstPaint',
         rendererHelper, frameToNavStartEvents);
@@ -401,16 +510,18 @@ tr.exportTo('tr.metrics.sh', function() {
         'blink.user_timing', 'loadEventStart',
         rendererHelper, frameToNavStartEvents);
     const {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
-        firstInteractiveSamples} =
-        collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-            rendererHelper, frameToNavStartEvents);
+        firstCpuIdleSamples, interactiveSamples} =
+        collectFirstMeaningfulPaintAndInteractivityMetricsForRenderer(
+            rendererHelper, frameToNavStartEvents,
+            frameToDomContentLoadedEndEvents);
     return {
       firstPaintSamples,
       firstContentfulPaintSamples,
       onLoadSamples,
       firstMeaningfulPaintSamples,
       firstMeaningfulPaintCpuTimeSamples,
-      firstInteractiveSamples
+      firstCpuIdleSamples,
+      interactiveSamples,
     };
   }
 
@@ -486,10 +597,16 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'CPU time to first meaningful paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
-    const firstInteractiveHistogram = histograms.createHistogram(
-        'timeToFirstInteractive', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: LOADING_METRIC_BOUNDARIES,
-          description: 'time to first interactive',
+    const timeToInteractiveHistogram = histograms.createHistogram(
+        'timeToInteractive', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
+          description: 'Time to Interactive',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    const timeToFirstCpuIdleHistogram = histograms.createHistogram(
+        'timeToFirstCpuIdle', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
+          description: 'Time to First CPU Idle',
           summaryOptions: SUMMARY_OPTIONS,
         });
 
@@ -519,8 +636,12 @@ tr.exportTo('tr.metrics.sh', function() {
           firstMeaningfulPaintCpuTimeHistogram,
           histograms);
       addSamplesToHistogram(
-          samplesSet.firstInteractiveSamples,
-          firstInteractiveHistogram,
+          samplesSet.interactiveSamples,
+          timeToInteractiveHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.firstCpuIdleSamples,
+          timeToFirstCpuIdleHistogram,
           histograms);
     }
   }
@@ -531,8 +652,6 @@ tr.exportTo('tr.metrics.sh', function() {
     loadingMetric,
     getNetworkEventsInRange,
     collectLoadingMetricsForRenderer,
-    RESPONSIVENESS_THRESHOLD_MS,
-    INTERACTIVE_WINDOW_SIZE_MS,
   };
 });
 </script>

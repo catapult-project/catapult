@@ -469,6 +469,14 @@ tr.b.unittest.testSuite(function() {
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'domContentLoadedEventEnd',
+        start: 9200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
         start: 9350,
@@ -492,7 +500,7 @@ tr.b.unittest.testSuite(function() {
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 14950,
+        start: 14900,
         duration: 500,
       }));
 

@@ -34,6 +34,13 @@ tr.b.unittest.testSuite(function() {
       duration: 0.0,
       args: {frame: '0xdeadbeef'}
     }));
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'domContentLoadedEventEnd',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
   }
 
   test('expectedQueueingTime', function() {
@@ -126,7 +133,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
-      addInteractiveTimestamp(rendererProcess, mainThread, 400);
+      addInteractiveTimestamp(rendererProcess, mainThread, 6000);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
@@ -146,7 +153,7 @@ tr.b.unittest.testSuite(function() {
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 9000,
+        start: 12000,
         duration: 10,
         cpuStart: 9000,
         cpuDuration: 10,

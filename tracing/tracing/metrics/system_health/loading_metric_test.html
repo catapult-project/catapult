@@ -430,197 +430,347 @@ tr.b.unittest.testSuite(function() {
         .get('breakdown').get('other'), 100);
   });
 
-  test('timeToInteractive', function() {
-    // Our renderer thread would looks like
-    //
-    // *                            *  [  main thread busy ]   *
-    // |                            |                          |
-    // |                            |                          |
-    // v                            v                          v
-    // First navigation             FMP                        TTI
-    // 200                          9200                      15400
+  function addFrameLoaderObject_(rendererProcess, timestamp) {
+    rendererProcess.objects.addSnapshot(
+        'ptr', 'loading', 'FrameLoader', timestamp, {
+          isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+          documentLoaderURL: 'http://example.com',
+        });
+  }
+
+  function addNavigationStart_(rendererMain, timestamp) {
+    rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'navigationStart',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
+  // Some utility functions to make tests easier to read.
+  function addFirstMeaningfulPaint_(rendererMain, timestamp) {
+    rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'loading',
+      title: 'firstMeaningfulPaintCandidate',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
+  function addDomContentLoadedEnd_(rendererMain, timestamp) {
+    rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'domContentLoadedEventEnd',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
+  function addTopLevelTask_(rendererMain, start, duration) {
+    rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'toplevel',
+      title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+      start,
+      duration,
+    }));
+  }
+
+  function addNetworkRequest_(rendererMain, start, duration) {
+    const networkEvents = [];
+    rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+      cat: 'disabled-by-default-network',
+      title: 'ResourceLoad',
+      start,
+      duration,
+    }));
+  }
+
+  test('interactivityMetrics_notAffectedByShortTasks', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const rendererProcess = model.getOrCreateProcess(1984);
       const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing',
-        title: 'navigationStart',
-        start: 200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {
-            isLoadingMainFrame: true,
-            frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'
-          });
 
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'firstMeaningfulPaintCandidate',
-        start: 9180,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addFirstMeaningfulPaint_(mainThread, 500);
+      addDomContentLoadedEnd_(mainThread, 600);
 
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'firstMeaningfulPaintCandidate',
-        start: 9200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
+      const mainThreadTopLevelTasks = [
+        {start: 800, duration: 100},   // Long task
+        {start: 1500, duration: 200},  // Last long task. TTI at 1700.
+        {start: 2000, duration: 49},   // Short task.
+      ];
+      for (const task of mainThreadTopLevelTasks) {
+        addTopLevelTask_(mainThread, task.start, task.duration);
+      }
 
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 9350,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 11150,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 12550,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 14950,
-        duration: 500,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 22150,
-        duration: 10,
-      }));
+      // New navigation to close the search window.
+      addNavigationStart_(mainThread, 7000);
     });
+
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.strictEqual(1, hist.running.count);
-    assert.strictEqual(15200, hist.running.mean);
-    const binsWithSampleDiagnosticMaps = hist.allBins.filter(
-        bin => bin.diagnosticMaps.length > 0);
-    const diagnostic = tr.b.getOnlyElement(binsWithSampleDiagnosticMaps[0]
-        .diagnosticMaps[0].get('infos'));
-    assert.strictEqual(diagnostic.start, 200);
-    assert.strictEqual(diagnostic.interactive, 15400);
-    assert.strictEqual(diagnostic.pid, 1984);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 1700 - 200 (navStart) = 1500.
+    assert.strictEqual(1500, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 1700 - 200 (navStart) = 1500.
+    assert.strictEqual(1500, firstCpuIdleHist.running.mean);
   });
 
-  test('multiTimeToInteractive', function() {
-    // Our renderer thread would looks like
-    //
-    // *           *  [  main thread busy ]     *        *           *
-    // |                   |                    |        |           |
-    // |                   |                    |        |           |
-    // v                   v                    v        v           v
-    // 1st navigation   1st FMP              2nd nav   1st TTI   2nd FMP & TTI
-    // 200                9200                12000     14500        16000
+  test('interactivityMetrics_longTaskBeforeFMP', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const rendererProcess = model.getOrCreateProcess(1984);
       const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing',
-        title: 'navigationStart',
-        start: 200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {
-            isLoadingMainFrame: true,
-            frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'
-          });
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'firstMeaningfulPaintCandidate',
-        start: 9180,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
 
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'firstMeaningfulPaintCandidate',
-        start: 9200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 9350,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 11150,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing',
-        title: 'navigationStart',
-        start: 12000,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 12550,
-        duration: 100,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 14950,
-        duration: 500,
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'firstMeaningfulPaintCandidate',
-        start: 16000,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
-        start: 29150,
-        duration: 10,
-      }));
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addTopLevelTask_(mainThread, 600, 200);
+      addFirstMeaningfulPaint_(mainThread, 1000);  // TTI at FMP.
+      // New navigation to close the search window.
+      addNavigationStart_(mainThread, 7000);
     });
+
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.strictEqual(2, hist.running.count);
-    assert.strictEqual(4000, hist.running.min);
-    assert.strictEqual(15200, hist.running.max);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 1000 - 200 (navStart) = 800.
+    assert.strictEqual(800, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 1000 - 200 (navStart) = 800.
+    assert.strictEqual(800, firstCpuIdleHist.running.mean);
+  });
+
+  test('interactivityMetrics_interactiveAtDCL', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addDomContentLoadedEnd_(mainThread, 3000);
+      // New navigation to close the search window.
+      addNavigationStart_(mainThread, 7000);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 3000 - 200 (navStart) = 2800.
+    assert.strictEqual(2800, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 3000 - 200 (navStart) = 2800.
+    assert.strictEqual(2800, firstCpuIdleHist.running.mean);
+  });
+
+  test('interactivityMetrics_networkBusyBlocksInteractivity', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addDomContentLoadedEnd_(mainThread, 1100);
+      // Network busy requires at least three network requests.
+      addNetworkRequest_(mainThread, 1000, 7000);
+      addNetworkRequest_(mainThread, 1001, 7001);
+      addNetworkRequest_(mainThread, 1002, 7002);
+      // 400ms task makes a "heavy task cluster" for  idle.
+      addTopLevelTask_(mainThread, 1200, 400);
+      // Next long task is more than five seconds away, but TTI is not reached
+      // yet since network is busy. TTI is at the at of this task.
+      addTopLevelTask_(mainThread, 6800, 200);
+      // New navigation to close the search window.
+      addNavigationStart_(mainThread, 13000);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 7000 - 200 (navStart) = 6800.
+    assert.strictEqual(6800, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 1600 - 200 (navStart) = 1400. CPU Idle is not affected by network.
+    assert.strictEqual(1400, firstCpuIdleHist.running.mean);
+  });
+
+  test('interactivityMetrics_notReportedIfTracingEndsEarly', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);
+      // Last task in the model. 2501 will be considered end of tracing.
+      addTopLevelTask_(mainThread, 2500, 1);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(0, ttiHist.numValues);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(0, firstCpuIdleHist.numValues);
+  });
+
+  test('interactivityMetrics_notReportedIfNextNavigationIsEarly', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);
+      // New navigation to close the search window. The window is not big enough
+      // to reach TTI.
+      addNavigationStart_(mainThread, 3000);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(0, ttiHist.numValues);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(0, firstCpuIdleHist.numValues);
+  });
+
+  test('interactivityMetrics_reportsValueForLastNavigation', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);
+      // Last task in the model. 8001 will be considered end of tracing, so
+      // there is sufficiently large window to detect TTI.
+      addTopLevelTask_(mainThread, 8000, 1);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 2400 - 200 (navStart) = 2200.
+    assert.strictEqual(2200, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 2400 - 200 (navStart) = 2200.
+    assert.strictEqual(2200, firstCpuIdleHist.running.mean);
+  });
+
+  test('interactivityMetrics_multipleRenderers', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const renderers =
+          [model.getOrCreateProcess(1984), model.getOrCreateProcess(1985)];
+
+      for (const i of [0, 1]) {
+        const rendererProcess = renderers[i];
+        const mainThread = rendererProcess.getOrCreateThread(2);
+        mainThread.name = 'CrRendererMain';
+        addNavigationStart_(mainThread, 200);
+        addFrameLoaderObject_(rendererProcess, 300);
+        addDomContentLoadedEnd_(mainThread, 600);
+        addFirstMeaningfulPaint_(mainThread, 1000);
+        // Durations are 400 and 800 for i value of 0 an 1.
+        addTopLevelTask_(mainThread, 2000, (i + 1) * 400);
+        // New navigation to close the search window.
+        addNavigationStart_(mainThread, 10000);
+      }
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(2, ttiHist.running.count);
+    // 2800 - 200 (navStart) = 2200, and 2400 - 200 = 2200.
+    assert.strictEqual(2600, ttiHist.running.max);
+    assert.strictEqual(2200, ttiHist.running.min);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(2, firstCpuIdleHist.running.count);
+    // 2800 - 200 (navStart) = 2200, and 2400 - 200 = 2200.
+    assert.strictEqual(2600, firstCpuIdleHist.running.max);
+    assert.strictEqual(2200, firstCpuIdleHist.running.min);
+  });
+
+  test('interactivityMetrics_eventsFromMultipleFrame', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      // No long task. TTI is reached at 3000.
+      addDomContentLoadedEnd_(mainThread, 3000);
+
+      // DomContentLoadedEnd and NavigationStart for a different frame.
+      rendererProcess.objects.addSnapshot(
+          'ptr', 'loading', 'FrameLoader', 4000, {
+            isLoadingMainFrame: true, frame: {id_ref: '0xffffffff'},
+            documentLoaderURL: 'http://example.com'
+          });
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 4000,
+        duration: 0.0,
+        args: {frame: '0xffffffff'},
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'domContentLoadedEventEnd',
+        start: 4500,
+        duration: 0.0,
+        args: {frame: '0xffffffff'}
+      }));
+
+      // Last task in the model. 8001 will be considered end of tracing, so
+      // there is sufficiently large window to detect TTI.
+      addTopLevelTask_(mainThread, 8000, 1);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    // 3000 - 200 (navStart) = 2800.
+    assert.strictEqual(2800, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    // 3000 - 200 (navStart) = 2800.
+    assert.strictEqual(2800, firstCpuIdleHist.running.mean);
   });
 
   test('webView', function() {

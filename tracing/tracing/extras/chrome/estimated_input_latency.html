@@ -43,10 +43,10 @@ tr.exportTo('tr.e.chrome', function() {
       const timestamps = [];
       interactiveTimestampsMap.set(rendererHelper.pid, timestamps);
       const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
-          rendererHelper).firstInteractiveSamples;
+          rendererHelper).interactiveSamples;
       for (const sample of samples) {
         timestamps.push(tr.b.getOnlyElement(
-            sample.diagnostics.infos).interactive);
+            sample.diagnostics.get('Navigation infos')).eventTimestamp);
       }
     }
     return interactiveTimestampsMap;

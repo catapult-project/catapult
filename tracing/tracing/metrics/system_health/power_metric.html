@@ -102,11 +102,12 @@ tr.exportTo('tr.metrics.sh', function() {
     const intervals = [];
     for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
-          rendererHelper).firstInteractiveSamples;
+          rendererHelper).interactiveSamples;
       for (const sample of samples) {
-        const info = tr.b.getOnlyElement(sample.diagnostics.infos);
+        const info = tr.b.getOnlyElement(
+            sample.diagnostics.get('Navigation infos'));
         intervals.push(tr.b.math.Range.fromExplicitRange(
-            info.start, info.interactive));
+            info.navigationStartTime, info.eventTimestamp));
       }
     }
     return intervals.sort((x, y) => x.min - y.min);

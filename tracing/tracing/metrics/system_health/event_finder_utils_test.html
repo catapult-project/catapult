@@ -116,8 +116,8 @@ tr.b.unittest.testSuite(function() {
             sortedEvents, 49));
   });
 
-  test('findNextEventStartingOnOrAfterTimestamp', () => {
-    const sortedEvents = [50, 100, 150, 200].map(ts =>
+  test('findNextEventStartingAfterTimestamp', () => {
+    const sortedEvents = [50, 50, 50, 200].map(ts =>
         tr.c.TestUtils.newSliceEx({
           cat: 'blink.user_timing',
           title: 'navigationStart',
@@ -125,15 +125,15 @@ tr.b.unittest.testSuite(function() {
           duration: 40.0}));
 
     assert.strictEqual(
-        EventFinderUtils.findNextEventStartingOnOrAfterTimestamp(
-            sortedEvents, 100).start,
-        100);
+        EventFinderUtils.findNextEventStartingAfterTimestamp(
+            sortedEvents, 49).start,
+        50);
     assert.strictEqual(
-        EventFinderUtils.findNextEventStartingOnOrAfterTimestamp(
-            sortedEvents, 101).start,
-        150);
+        EventFinderUtils.findNextEventStartingAfterTimestamp(
+            sortedEvents, 50).start,
+        200);
     assert.isUndefined(
-        EventFinderUtils.findNextEventStartingOnOrAfterTimestamp(
+        EventFinderUtils.findNextEventStartingAfterTimestamp(
             sortedEvents, 201));
   });
 });

@@ -50,12 +50,14 @@ tr.exportTo('tr.metrics.v8', function() {
     let interactiveTime = 0;
     for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
-          rendererHelper).firstInteractiveSamples;
+          rendererHelper).interactiveSamples;
       // TODO(fmeawad): Support multiple navigations.
       if (samples.length === 0) continue;
       if (interactiveTime !== 0) throw new Error('Too many navigations');
       const diagnostics = tr.b.getOnlyElement(samples).diagnostics;
-      interactiveTime = tr.b.getOnlyElement(diagnostics.infos).interactive;
+      interactiveTime =
+          tr.b.getOnlyElement(
+              diagnostics.get('Navigation infos')).eventTimestamp;
     }
     return interactiveTime;
   }

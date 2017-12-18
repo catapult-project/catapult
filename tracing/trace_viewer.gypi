@@ -209,6 +209,7 @@
       'tracing/metrics/system_health/new_cpu_time_metric.html',
       'tracing/metrics/system_health/power_metric.html',
       'tracing/metrics/system_health/responsiveness_metric.html',
+      'tracing/metrics/system_health/time_to_interactive.html',
       'tracing/metrics/system_health/utils.html',
       'tracing/metrics/system_health/webview_startup_metric.html',
       'tracing/metrics/tracing_metric.html',
