@@ -100,6 +100,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # might eventually scroll.
     args.append('--enable-gpu-benchmarking')
 
+    # Override the need for a user gesture in order to play media.
+    args.append('--autoplay-policy=no-user-gesture-required')
+
     if self.browser_options.disable_background_networking:
       args.append('--disable-background-networking')
     args.extend(self.GetReplayBrowserStartupArgs())
