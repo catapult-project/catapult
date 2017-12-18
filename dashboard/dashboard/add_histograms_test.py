@@ -12,10 +12,12 @@ import webtest
 
 from google.appengine.api import users
 
+from dashboard import add_point_queue
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
 from dashboard.api import api_auth
 from dashboard.api import api_request_handler
+from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -287,6 +289,59 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     for d in diagnostics:
       self.assertIn(d.name, names)
       names.remove(d.name)
+
+  def _TestDiagnosticsInternalOnly(self):
+    hists = [histogram_module.Histogram('hist', 'count')]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnostic(
+        reserved_infos.MASTERS.name,
+        histogram_module.GenericSet(['master']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BOTS.name,
+        histogram_module.GenericSet(['bot']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        histogram_module.GenericSet([12345]))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BENCHMARKS.name,
+        histogram_module.GenericSet(['benchmark']))
+
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_DiagnosticsInternalOnly_False(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['bot'])
+
+    self._TestDiagnosticsInternalOnly()
+
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    for d in diagnostics:
+      self.assertFalse(d.internal_only)
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_DiagnosticsInternalOnly_True(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['not_in_list'])
+
+    self._TestDiagnosticsInternalOnly()
+
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    for d in diagnostics:
+      self.assertTrue(d.internal_only)
 
 
 class AddHistogramsTest(testing_common.TestCase):
@@ -977,7 +1032,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
     with self.assertRaises(ValueError):
       add_histograms.FindSuiteLevelSparseDiagnostics(
-          histograms, utils.TestKey('M/B/Foo'), 12345)
+          histograms, utils.TestKey('M/B/Foo'), 12345, False)
 
   def testComputeTestPathWithStory(self):
     hist = histogram_module.Histogram('hist', 'count')

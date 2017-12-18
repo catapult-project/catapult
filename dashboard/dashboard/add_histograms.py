@@ -13,9 +13,11 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import add_point
+from dashboard import add_point_queue
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
+from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import histogram
 from tracing.value import histogram_set
@@ -103,22 +105,35 @@ def ProcessHistogramSet(histogram_dicts):
   if not isinstance(histogram_dicts, list):
     raise api_request_handler.BadRequestError(
         'HistogramSet JSON much be a list of dicts')
+
+  bot_whitelist_future = stored_object.GetAsync(
+      add_point_queue.BOT_WHITELIST_KEY)
+
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(histogram_dicts)
   histograms.ResolveRelatedHistograms()
   histograms.DeduplicateDiagnostics()
 
+  if len(histograms) == 0:
+    raise api_request_handler.BadRequestError(
+        'HistogramSet JSON must contain at least one histogram.')
+
   _LogDebugInfo(histograms)
 
   InlineDenseSharedDiagnostics(histograms)
   revision = ComputeRevision(histograms)
-  suite_key = GetSuiteKey(histograms)
+  master, bot, benchmark = _GetMasterBotBenchmarkFromHistogram(
+      histograms.GetFirstHistogram())
+  suite_key = utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
+
+  bot_whitelist = bot_whitelist_future.get_result()
+  internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
 
   # We'll skip the histogram-level sparse diagnostics because we need to
   # handle those with the histograms, below, so that we can properly assign
   # test paths.
   suite_level_sparse_diagnostic_entities = FindSuiteLevelSparseDiagnostics(
-      histograms, suite_key, revision)
+      histograms, suite_key, revision, internal_only)
 
   # TODO(eakuefner): Refactor master/bot computation to happen above this line
   # so that we can replace with a DiagnosticRef rather than a full diagnostic.
@@ -262,7 +277,8 @@ def _IsDifferent(diagnostic_a, diagnostic_b):
           diagnostic.Diagnostic.FromDict(diagnostic_b))
 
 
-def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision):
+def FindSuiteLevelSparseDiagnostics(
+    histograms, suite_key, revision, internal_only):
   diagnostics = {}
   for hist in histograms:
     for name, diag in hist.diagnostics.iteritems():
@@ -271,7 +287,8 @@ def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision):
         if existing_entity is None:
           diagnostics[name] = histogram.SparseDiagnostic(
               id=diag.guid, data=diag.AsDict(), test=suite_key,
-              start_revision=revision, end_revision=sys.maxint, name=name)
+              start_revision=revision, end_revision=sys.maxint, name=name,
+              internal_only=internal_only)
         elif existing_entity.key.id() != diag.guid:
           raise ValueError(
               name + ' diagnostics must be the same for all histograms')
@@ -285,15 +302,6 @@ def FindHistogramLevelSparseDiagnostics(guid, histograms):
     if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
       diagnostics[name] = diag
   return diagnostics
-
-
-def GetSuiteKey(histograms):
-  assert len(histograms) > 0
-  # TODO(eakuefner): Refactor this to coalesce the boilerplate (note that this
-  # is all also being done in add_histograms_queue's post handler)
-  master, bot, benchmark = _GetMasterBotBenchmarkFromHistogram(
-      histograms.GetFirstHistogram())
-  return utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
 
 
 def ComputeTestPath(suite_path, guid, histograms):
