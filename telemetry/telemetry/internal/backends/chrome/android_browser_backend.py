@@ -10,6 +10,7 @@ from telemetry.internal.platform import android_platform_backend as \
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
@@ -29,8 +30,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options)
 
-    self._port = None
-    # TODO(#1977): Move forwarder to network_controller.
     self._forwarder = None
 
     extensions_to_load = browser_options.extensions_to_load
@@ -131,10 +130,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # Setting local_port=0 allows the forwarder to pick an available port.
       self._forwarder = self.platform_backend.forwarder_factory.Create(
           local_port=0, remote_port=remote_devtools_port, reverse=True)
-      self._port = self._forwarder.local_port
 
       try:
-        self._WaitForBrowserToComeUp(remote_devtools_port)
+        self.BindDevToolsClient()
       except exceptions.BrowserGoneException:
         logging.critical('Failed to connect to browser.')
         if not (self.device.HasRoot() or self.device.NeedsSU()):
@@ -148,6 +146,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       except:
         self.Close()
         raise
+
+  def _GetDevToolsClientConfig(self):
+    # TODO(crbug.com/787834): Create forwarder here rather than in Start.
+    assert self._forwarder is not None
+    return devtools_client_backend.DevToolsClientConfig(
+        local_port=self._forwarder.local_port,
+        remote_port=self._forwarder.remote_port,
+        app_backend=self)
 
   def Foreground(self):
     package = self._backend_settings.package

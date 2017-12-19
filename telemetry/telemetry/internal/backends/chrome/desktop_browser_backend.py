@@ -24,6 +24,7 @@ from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.util import path
 
 
@@ -135,8 +136,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Content shell does not support extensions.')
 
     self._browser_directory = browser_directory
-    self._port = None
-    self._browser_target = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
     if self.is_logging_enabled:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
@@ -234,7 +233,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return app_path
     return None
 
-  def HasBrowserFinishedLaunching(self):
+  def _GetDevToolsClientConfig(self):
+    # TODO(crbug.com/787834): Split into reading DevToolsActivePort, retrying
+    # if needed, and setting up fowarder.
+
     # In addition to the functional check performed by the base class, quickly
     # check if the browser process is still alive.
     if not self.IsBrowserRunning():
@@ -252,11 +254,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if os.stat(port_file).st_size > 0:
         with open(port_file) as f:
           port_target = f.read().split('\n')
-          self._port = int(port_target[0])
+          local_port = int(port_target[0])
           if len(port_target) > 1 and port_target[1]:
-            self._browser_target = port_target[1]
-          logging.info('Discovered ephemeral port %s', self._port)
-          logging.info('Browser target: %s', self._browser_target)
+            browser_target = port_target[1]
+          else:
+            browser_target = None
+          logging.info('Discovered ephemeral port %s', local_port)
+          logging.info('Browser target: %s', browser_target)
           got_port = True
     except IOError:
       # Both stat and open can throw exceptions.
@@ -264,13 +268,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not got_port:
       # File isn't ready yet. Return false. Will retry.
       return False
-    return super(DesktopBrowserBackend, self).HasBrowserFinishedLaunching()
+
+    return devtools_client_backend.DevToolsClientConfig(
+        local_port=local_port,
+        browser_target=browser_target,
+        app_backend=self)
 
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
-    self._port = 0
-    logging.info('Requested remote debugging port: %d', self._port)
-    args.append('--remote-debugging-port=%i' % self._port)
+    args.append('--remote-debugging-port=0')  # Allow browser to choose a port.
     args.append('--enable-crash-reporter-for-testing')
     args.append('--disable-component-update')
     if not self._is_content_shell:
@@ -330,7 +336,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._proc = subprocess.Popen(args, env=env)
 
     try:
-      self._WaitForBrowserToComeUp()
+      self.BindDevToolsClient()
       # browser is foregrounded by default on Windows and Linux, but not Mac.
       if self.browser.platform.GetOSName() == 'mac':
         subprocess.Popen([

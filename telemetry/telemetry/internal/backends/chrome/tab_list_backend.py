@@ -105,7 +105,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     if not self._browser_backend.IsAppRunning():
       error.AddDebuggingMessage('The browser is not running. It probably '
                                 'crashed.')
-    elif not self._browser_backend.HasBrowserFinishedLaunching():
+    elif not self._browser_backend.HasDevToolsConnection():
       error.AddDebuggingMessage('The browser exists but cannot be reached.')
     else:
       error.AddDebuggingMessage('The browser exists and can be reached. '

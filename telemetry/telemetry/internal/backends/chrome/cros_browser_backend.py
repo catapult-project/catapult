@@ -11,6 +11,7 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
+from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 
 import py_utils
 
@@ -25,10 +26,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._cri = cri
     self._is_guest = is_guest
-    # TODO(#1977): Move forwarder to network_controller.
     self._forwarder = None
-    self._remote_debugging_port = None
-    self._port = None
 
     extensions_to_load = browser_options.extensions_to_load
 
@@ -58,7 +56,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def devtools_file_path(self):
     return '/home/chronos/DevToolsActivePort'
 
-  def HasBrowserFinishedLaunching(self):
+  def _GetDevToolsClientConfig(self):
+    # TODO(crbug.com/787834): Split into reading DevToolsActivePort, retrying
+    # if needed, and setting up fowarder.
     try:
       file_content = self._cri.GetFileContents(self.devtools_file_path)
     except (IOError, OSError):
@@ -67,22 +67,27 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if len(file_content) == 0:
       return False
     port_target = file_content.split('\n')
-    self._remote_debugging_port = int(port_target[0])
+    remote_port = int(port_target[0])
     # Use _remote_debugging_port for _port for now (local telemetry case)
     # Override it with the forwarded port below for the remote telemetry case.
-    self._port = self._remote_debugging_port
+    local_port = remote_port
     if len(port_target) > 1 and port_target[1]:
-      self._browser_target = port_target[1]
-    logging.info('Discovered ephemeral port %s', self._port)
-    logging.info('Browser target: %s', self._browser_target)
+      browser_target = port_target[1]
+    logging.info('Discovered ephemeral port %s', local_port)
+    logging.info('Browser target: %s', browser_target)
 
-    # TODO(#1977): Simplify when cross forwarder supports missing local ports.
+    # TODO(#1977): Can simplify using local forwarding and default ports.
     if not self._cri.local:
-      self._port = util.GetUnreservedAvailableLocalPort()
+      local_port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
-          local_port=self._port, remote_port=self._remote_debugging_port,
+          local_port=local_port, remote_port=remote_port,
           reverse=True)
-    return super(CrOSBrowserBackend, self).HasBrowserFinishedLaunching()
+
+    return devtools_client_backend.DevToolsClientConfig(
+        local_port=local_port,
+        remote_port=remote_port,
+        browser_target=browser_target,
+        app_backend=self)
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
@@ -168,7 +173,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Wait for new chrome and oobe.
     py_utils.WaitFor(lambda: pid != self.pid, 15)
-    self._WaitForBrowserToComeUp()
+    self.BindDevToolsClient()
     py_utils.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:
@@ -222,12 +227,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._cri.RmRF(os.path.dirname(e.local_path))
 
     self._cri = None
-
-  def WaitForBrowserToComeUp(self):
-    """If a restart is triggered, wait for the browser to come up, and reconnect
-    to devtools.
-    """
-    self._WaitForBrowserToComeUp()
 
   def IsBrowserRunning(self):
     if not self._cri:
@@ -313,8 +312,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     py_utils.WaitFor(self._IsLoggedIn, 900)
 
     # For incognito mode, the session manager actually relaunches chrome with
-    # new arguments, so we have to wait for the browser to come up.
-    self._WaitForBrowserToComeUp()
+    # new arguments, so we have to wait for the browser to come up and bind
+    # the new DevTools agent to this backend.
+    self.BindDevToolsClient()
 
     # Wait for extensions to load.
     if self._supports_extensions:

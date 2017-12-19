@@ -14,7 +14,6 @@ from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import tab_list_backend
-from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 from telemetry.internal.browser import web_contents
 from telemetry.testing import options_for_unittests
@@ -34,9 +33,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         supports_extensions=supports_extensions,
         browser_options=browser_options,
         tab_list_backend=tab_list_backend.TabListBackend)
-    self._port = None
-    self._browser_target = None
-
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None
 
@@ -160,39 +156,32 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       replay_args.append('--ignore-certificate-errors')
     return replay_args
 
-  def HasBrowserFinishedLaunching(self):
-    assert self._port, 'No DevTools port info available.'
-    devtools_config = devtools_client_backend.DevToolsClientConfig(
-        local_port=self._port, browser_target=self._browser_target,
-        app_backend=self)
-    return devtools_config.IsAgentReady()
+  def HasDevToolsConnection(self):
+    return self._devtools_client and self._devtools_client.IsAlive()
 
-  def _WaitForBrowserToComeUp(self, remote_devtools_port=None):
-    """ Wait for browser to come up.
+  def _GetDevToolsClientConfig(self):
+    """Clients should return a devtools_client_backend.DevToolsClientConfig"""
+    raise NotImplementedError
 
-    Args:
-      remote_devtools_port: The remote devtools port, if
-          any. Otherwise assumed to be the same as self._port.
-    """
+  def BindDevToolsClient(self):
+    """Find an existing DevTools agent and bind this browser backend to it."""
     if self._devtools_client:
       # In case we are launching a second browser instance (as is done by
       # the CrOS backend), ensure that the old devtools_client is closed,
       # otherwise re-creating it will fail.
       self._devtools_client.Close()
       self._devtools_client = None
+
     try:
       timeout = self.browser_options.browser_startup_timeout
-      py_utils.WaitFor(self.HasBrowserFinishedLaunching, timeout=timeout)
+      # TODO(crbug.com/787834): Subclasses should WaitFor the config if needed.
+      devtools_config = py_utils.WaitFor(
+          self._GetDevToolsClientConfig, timeout=timeout)
+      self._devtools_client = devtools_config.WaitForAndCreate(timeout=timeout)
     except (py_utils.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)
       raise exceptions.BrowserConnectionGoneException(self.browser, e)
-
-    self._devtools_client = devtools_client_backend.DevToolsClientConfig(
-        local_port=self._port,
-        remote_port=remote_devtools_port,
-        browser_target=self._browser_target,
-        app_backend=self).Create()
 
   def _WaitForExtensionsToLoad(self):
     """ Wait for all extensions to load.

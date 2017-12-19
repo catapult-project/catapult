@@ -27,9 +27,12 @@ class CrOSBrowserWithOOBE(browser.Browser):
     """
     return self._browser_backend.oobe_exists
 
-
-  def WaitForBrowserToComeUp(self):
+  def BindDevToolsClient(self):
     """If a restart is triggered, wait for the browser to come up, and reconnect
     to devtools.
     """
-    self._browser_backend.WaitForBrowserToComeUp()
+    self._browser_backend.BindDevToolsClient()
+
+  def WaitForBrowserToComeUp(self):
+    """DEPRECATED: Use BindDevToolsClient instead."""
+    self.BindDevToolsClient()
