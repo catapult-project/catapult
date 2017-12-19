@@ -4,8 +4,6 @@
 
 """Common media action functions."""
 
-import logging
-
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 
@@ -41,7 +39,6 @@ class MediaAction(page_action.PageAction):
       return True
     error = tab.EvaluateJavaScript('window.__error')
     if error:
-      logging.error('Detected media error while waiting for %s: %s', event_name,
-                    error)
-      return True
+      raise page_action.PageActionFailed(
+          'Detected media error while waiting for %s: %s' % (event_name, error))
     return False
