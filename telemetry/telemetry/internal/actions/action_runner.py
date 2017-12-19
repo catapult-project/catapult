@@ -11,7 +11,6 @@ from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.key_event import KeyPressAction
 from telemetry.internal.actions.load_media import LoadMediaAction
-from telemetry.internal.actions.loop import LoopAction
 from telemetry.internal.actions.mouse_click import MouseClickAction
 from telemetry.internal.actions.navigate import NavigateAction
 from telemetry.internal.actions.page_action import GESTURE_SOURCE_DEFAULT
@@ -744,26 +743,6 @@ class ActionRunner(object):
         seconds=seconds, selector=selector,
         timeout_in_seconds=timeout_in_seconds,
         log_time=log_time, label=label))
-
-  def LoopMedia(self, loop_count, selector=None, timeout_in_seconds=None):
-    """Loops a media playback.
-
-    Args:
-      loop_count: The number of times to loop the playback.
-      selector: A CSS selector describing the element. If none is
-          specified, loop the first media element on the page. If the
-          selector matches more than 1 media element, all of them will
-          be looped.
-      timeout_in_seconds: Maximum waiting time for the looped playback to
-          complete. 0 means do not wait. None (the default) means to
-          wait loop_count * 60 seconds.
-
-    Raises:
-      TimeoutException: If the maximum waiting time is exceeded.
-    """
-    self._RunAction(LoopAction(
-        loop_count=loop_count, selector=selector,
-        timeout_in_seconds=timeout_in_seconds))
 
   def ForceGarbageCollection(self):
     """Forces garbage collection on all relevant systems.
