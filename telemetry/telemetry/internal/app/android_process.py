@@ -44,12 +44,12 @@ class AndroidProcess(object):
       platform_backend = self._app_backend.platform_backend
       self._forwarder = platform_backend.forwarder_factory.Create(
           local_port=0, remote_port=self._remote_devtools_port, reverse=True)
-      devtools_port = self._forwarder.local_port
-      if devtools_client_backend.IsDevToolsAgentAvailable(
-          devtools_port, None, self._app_backend):
-        self._devtools_client = devtools_client_backend.DevToolsClientBackend(
-            devtools_port, None, self._remote_devtools_port,
-            self._app_backend)
+      devtools_config = devtools_client_backend.DevToolsClientConfig(
+          local_port=self._forwarder.local_port,
+          remote_port=self._forwarder.remote_port,
+          app_backend=self._app_backend)
+      if devtools_config.IsAgentReady():
+        self._devtools_client = devtools_config.Create()
 
   def GetWebViews(self):
     webviews = []

@@ -23,52 +23,110 @@ from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from tracing.trace_data import trace_data as trace_data_module
 
-
-BROWSER_INSPECTOR_WEBSOCKET_URL = 'ws://127.0.0.1:%i%s'
+import py_utils
 
 
 class TabNotFoundError(exceptions.Error):
   pass
 
 
-def IsDevToolsAgentAvailable(port, browser_target, app_backend):
-  """Returns True if a DevTools agent is available on the given port."""
-  if not browser_target:
-    browser_target = '/devtools/browser'
+class DevToolsClientConfig(object):
+  def __init__(self, local_port, app_backend,
+               remote_port=None, browser_target=None):
+    """Create an object with the details needed to identify a DevTools agent.
 
-  if (isinstance(app_backend, browser_backend.BrowserBackend) and
-      app_backend.supports_tracing):
-    inspector_websocket_instance = inspector_websocket.InspectorWebsocket()
+    Args:
+      local_port: The port to use to connect to DevTools agent.
+      app_backend: The app that contains the DevTools agent.
+      remote_port: In some cases (e.g., for an app running on Android device,
+        in addition to the local_port on the host platform we also need
+        to know the remote_port on the device so that we can uniquely
+        identify the DevTools agent.)
+      browser_target: An optional string to override the default path used to
+        establish a websocket connection with the browser inspector.
+    """
+    self._local_port = local_port
+    self._app_backend = app_backend
+    self._remote_port = remote_port or local_port
+    self._browser_target = browser_target or '/devtools/browser'
+    self._created = False
+
+  def __str__(self):
+    s = self.browser_target_url
+    if self.local_port != self.remote_port:
+      s = '%s (remote=%s)' % (s, self.remote_port)
+    return s
+
+  @property
+  def local_port(self):
+    return self._local_port
+
+  @property
+  def remote_port(self):
+    return self._remote_port
+
+  @property
+  def app_backend(self):
+    return self._app_backend
+
+  @property
+  def browser_target(self):
+    return self._browser_target
+
+  @property
+  def supports_tracing(self):
+    return (isinstance(self.app_backend, browser_backend.BrowserBackend)
+            and self.app_backend.supports_tracing)
+
+  @property
+  def browser_target_url(self):
+    return 'ws://127.0.0.1:%i%s' % (self.local_port, self.browser_target)
+
+  def WaitForAndCreate(self, timeout=None):
+    """Wait for the DevTools agent to be ready and connect to it.
+
+    Args:
+      timeout: Number of seconds to wait for the DevTools agent to become
+        available (defaults to 1 minute).
+    """
+    assert not self._created, 'DevTools client has already been created'
+    py_utils.WaitFor(self.IsAgentReady, timeout=timeout or 60)
+    return self.Create()
+
+  def Create(self):
+    """Create a DevToolsClientBackend with this config."""
+    assert not self._created, 'DevTools client has already been created'
+    devtools_client = DevToolsClientBackend(self)
+    self._created = True
+    return devtools_client
+
+  def IsAgentReady(self):
+    """Whether the DevTools agent is ready to establish a connection."""
+    if self.supports_tracing and not self._IsInspectorWebsocketReady():
+      return False
+
+    http = devtools_http.DevToolsHttp(self.local_port)
     try:
-      if not _IsInspectorWebsocketAvailable(
-          inspector_websocket_instance, port, browser_target):
-        return False
+      return _IsDevToolsAgentAvailable(http)
     finally:
-      inspector_websocket_instance.Disconnect()
+      http.Disconnect()
 
-  devtools_http_instance = devtools_http.DevToolsHttp(port)
-  try:
-    return _IsDevToolsAgentAvailable(devtools_http_instance)
-  finally:
-    devtools_http_instance.Disconnect()
-
-
-def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port,
-                                   browser_target):
-  try:
-    inspector_websocket_instance.Connect(
-        BROWSER_INSPECTOR_WEBSOCKET_URL % (port, browser_target), timeout=10)
-  except (websocket.WebSocketException, socket.error) as exc:
-    logging.info(
-        'Websocket at port %i not yet available: %s', port, exc)
-    return False
-  except Exception as exc: # pylint: disable=broad-except
-    logging.exception(
-        'Unidentified exception while checking if websocket at port %i is '
-        'available.', port)
-    return False
-  else:
-    return True
+  def _IsInspectorWebsocketReady(self):
+    ws = inspector_websocket.InspectorWebsocket()
+    try:
+      ws.Connect(self.browser_target_url, timeout=10)
+    except (websocket.WebSocketException, socket.error) as exc:
+      logging.info(
+          'Websocket at %s not yet ready: %s', self, exc)
+      return False
+    except Exception as exc: # pylint: disable=broad-except
+      logging.exception(
+          'Unexpected error checking if %s is ready.', self)
+      return False
+    else:
+      return True
+    finally:
+      ws.Disconnect()
 
 
 # TODO(nednguyen): Find a more reliable way to check whether the devtool agent
@@ -87,45 +145,39 @@ class DevToolsClientBackend(object):
   """An object that communicates with Chrome's devtools.
 
   This class owns a map of InspectorBackends. It is responsible for creating
-  them and destroying them.
+  and destroying them.
   """
-  def __init__(self, devtools_port, browser_target, remote_devtools_port,
-               app_backend):
+  def __init__(self, devtools_config):
     """Creates a new DevToolsClientBackend.
 
-    A DevTools agent must exist on the given devtools_port.
+    Clients should consider using DevToolsClientConfig.WaitForAndCreate rather
+    than directly instantiating this class.
 
     Args:
-      devtools_port: The port to use to connect to DevTools agent.
-      remote_devtools_port: In some cases (e.g., app running on
-          Android device, devtools_port is the forwarded port on the
-          host platform. We also need to know the remote_devtools_port
-          so that we can uniquely identify the DevTools agent.
-      app_backend: For the app that contains the DevTools agent.
+      devtools_config: A DevToolsClientConfig instance.
     """
-    self._devtools_port = devtools_port
-    self._browser_target = browser_target or '/devtools/browser'
-    self._remote_devtools_port = remote_devtools_port
-    self._devtools_http = devtools_http.DevToolsHttp(devtools_port)
+    self._devtools_config = devtools_config
     self._browser_inspector_websocket = None
     self._tracing_backend = None
     self._memory_backend = None
     self._system_info_backend = None
-    self._app_backend = app_backend
     self._wm_backend = None
-    self._devtools_context_map_backend = _DevToolsContextMapBackend(
-        self._app_backend, self)
-
     self._tab_ids = None
+
+    self._devtools_http = devtools_http.DevToolsHttp(
+        self._devtools_config.local_port)
+    self._devtools_context_map_backend = _DevToolsContextMapBackend(
+        self._devtools_config.app_backend, self)
 
     if not self.supports_tracing:
       return
+
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        self, self._app_backend.platform_backend)
+        self, self._devtools_config.app_backend.platform_backend)
 
     # Telemetry has started Chrome tracing if there is trace config, so start
     # tracing on this newly created devtools client if needed.
-    trace_config = (self._app_backend.platform_backend
+    trace_config = (self._devtools_config.app_backend.platform_backend
                     .tracing_controller_backend.GetChromeTraceConfig())
     if not trace_config:
       self._CreateTracingBackendIfNeeded(is_tracing_running=False)
@@ -140,20 +192,17 @@ class DevToolsClientBackend(object):
 
   @property
   def remote_port(self):
-    return self._remote_devtools_port
+    return self._devtools_config.remote_port
 
   @property
   def supports_tracing(self):
-    if not isinstance(self._app_backend, browser_backend.BrowserBackend):
-      return False
-    return self._app_backend.supports_tracing
+    return self._devtools_config.supports_tracing
 
   @property
   def supports_overriding_memory_pressure_notifications(self):
-    if not isinstance(self._app_backend, browser_backend.BrowserBackend):
-      return False
-    return self._app_backend.supports_overriding_memory_pressure_notifications
-
+    app_backend = self._devtools_config.app_backend
+    return (isinstance(app_backend, browser_backend.BrowserBackend)
+            and app_backend.supports_overriding_memory_pressure_notifications)
 
   @property
   def is_tracing_running(self):
@@ -169,7 +218,7 @@ class DevToolsClientBackend(object):
     # Chromium branch number 2512 (see crrev.com/1309243004 and
     # crrev.com/1353583002).
     if not chrome_tracing_agent.ChromeTracingAgent.IsStartupTracingSupported(
-        self._app_backend.platform_backend):
+        self._devtools_config.app_backend.platform_backend):
       return False
     # TODO(zhenw): Remove this once stable Chrome and reference browser have
     # passed 2512.
@@ -204,6 +253,7 @@ class DevToolsClientBackend(object):
 
     if self._devtools_context_map_backend:
       self._devtools_context_map_backend.Clear()
+      self._devtools_context_map_backend = None
 
     # Close the browser inspector socket last (in case the backend needs to
     # interact with it before closing).
@@ -214,7 +264,6 @@ class DevToolsClientBackend(object):
     assert self._devtools_http
     self._devtools_http.Disconnect()
     self._devtools_http = None
-
 
   @decorators.Cache
   def GetChromeBranchNumber(self):
@@ -342,18 +391,14 @@ class DevToolsClientBackend(object):
     if not self._system_info_backend:
       self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
       self._system_info_backend = system_info_backend.SystemInfoBackend(
-          self._BrowserTargetWebSocket())
+          self._devtools_config.browser_target_url)
 
   def _CreateAndConnectBrowserInspectorWebsocketIfNeeded(self):
     if not self._browser_inspector_websocket:
       self._browser_inspector_websocket = (
           inspector_websocket.InspectorWebsocket())
       self._browser_inspector_websocket.Connect(
-          self._BrowserTargetWebSocket(), timeout=10)
-
-  def _BrowserTargetWebSocket(self):
-    return (BROWSER_INSPECTOR_WEBSOCKET_URL % (
-        self._devtools_port, self._browser_target))
+          self._devtools_config.browser_target_url, timeout=10)
 
   def IsChromeTracingSupported(self):
     if not self.supports_tracing:
@@ -397,6 +442,7 @@ class DevToolsClientBackend(object):
       self._tracing_backend.StopTracing()
 
   def CollectChromeTracingData(self, trace_data_builder, timeout=60):
+    self._CreateTracingBackendIfNeeded()
     try:
       trace_data_builder.AddTraceFor(
           trace_data_module.TAB_ID_PART, self._tab_ids[:])
