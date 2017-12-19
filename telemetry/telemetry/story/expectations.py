@@ -183,7 +183,7 @@ class StoryExpectations(object):
         if condition.ShouldDisable(platform, finder_options):
           logging.info('%s is disabled on %s due to %s.',
                        story.name, condition, reason)
-          return reason
+          return reason if reason is not None else 'No reason given'
     return None
 
 

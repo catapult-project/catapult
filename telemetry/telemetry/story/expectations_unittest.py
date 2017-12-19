@@ -500,6 +500,19 @@ class StoryExpectationsTest(unittest.TestCase):
             [expectations.ALL], 'Too Long')
     FooExpectations()
 
+  def testDisableStoryWithNoReason(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableStory(
+            'story', [expectations.ALL_WIN], None)
+
+    e = FooExpectations()
+
+    self.platform.SetOSName('win')
+    reason = e.IsStoryDisabled(
+        MockStory('story'), self.platform, self.finder_options)
+    self.assertEqual(reason, 'No reason given')
+
   def testGetBrokenExpectationsNotMatching(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
@@ -674,4 +687,3 @@ class StoryExpectationsTest(unittest.TestCase):
         },
     }
     self.assertEqual(actual, expected)
-
