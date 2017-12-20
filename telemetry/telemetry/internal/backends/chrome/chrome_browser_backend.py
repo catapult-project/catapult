@@ -5,7 +5,6 @@
 import logging
 import os
 import pprint
-import re
 import shlex
 import sys
 
@@ -75,19 +74,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args = []
     args.extend(self.browser_options.extra_browser_args)
 
-    # TODO(crbug.com/760319): This is a hack to temporarily disable modal
-    # permission prompts on Android. Remove after implementing a longer term
-    # solution.
-    if self.browser_options.block_modal_permission_prompts:
-      for i, arg in enumerate(args):
-        if arg.startswith('--enable-features='):
-          args[i] = re.sub(r',\w+<PermissionPromptUIAndroidModal\b', '', arg)
-        elif arg.startswith('--force-fieldtrials='):
-          args[i] = re.sub(r'\bPermissionPromptUIAndroidModal/\w+/', '', arg)
-        elif arg.startswith('--disable-features='):
-          args[i] = ','.join([
-              args[i], 'ModalPermissionPrompts<PermissionPromptUIAndroidModal'])
-
     args.append('--enable-net-benchmarking')
     args.append('--metrics-recording-only')
     args.append('--no-default-browser-check')
@@ -99,6 +85,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # programmatically inspect a pageset's actions in order to determine if it
     # might eventually scroll.
     args.append('--enable-gpu-benchmarking')
+
+    # Suppress all permission prompts by atomatically denying them.
+    args.append('--deny-permission-prompts')
 
     # Override the need for a user gesture in order to play media.
     args.append('--autoplay-policy=no-user-gesture-required')
