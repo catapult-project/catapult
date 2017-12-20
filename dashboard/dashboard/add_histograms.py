@@ -161,12 +161,18 @@ def _BatchHistogramsIntoTasks(suite_path, histograms, revision):
   base_size = _MakeTask([]).size
   estimated_size = 0
 
+  duplicate_check = set()
+
   for hist in histograms:
     diagnostics = FindHistogramLevelSparseDiagnostics(hist.guid, histograms)
 
     # TODO(eakuefner): Don't compute full diagnostics, because we need anyway to
     # call GetOrCreate here and in the queue.
     test_path = ComputeTestPath(suite_path, hist.guid, histograms)
+
+    if test_path in duplicate_check:
+      logging.warning('Duplicate histogram detected: %s', test_path)
+    duplicate_check.add(test_path)
 
     # TODO(eakuefner): Batch these better than one per task.
     task_dict = _MakeTaskDict(hist, test_path, revision, diagnostics)
