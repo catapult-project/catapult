@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
 from telemetry.internal.actions import seek
 from telemetry.testing import tab_test_case
 
@@ -19,7 +18,6 @@ class SeekActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
-  @decorators.Disabled('chromeos')  # crbug.com/749890
   def testSeekWithNoSelector(self):
     """Tests that with no selector Seek  action seeks first media element."""
     action = seek.SeekAction(seconds=1, timeout_in_seconds=5)
@@ -29,7 +27,6 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
-  @decorators.Disabled('chromeos')  # crbug.com/749890
   def testSeekWithVideoSelector(self):
     """Tests that Seek action seeks video element matching selector."""
     action = seek.SeekAction(seconds=1, selector='#video_1',
@@ -43,7 +40,6 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
-  @decorators.Disabled('chromeos')  # crbug.com/749890
   def testSeekWithAllSelector(self):
     """Tests that Seek action seeks all video elements with selector='all'."""
     action = seek.SeekAction(seconds=1, selector='all',
@@ -57,7 +53,6 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
-  @decorators.Disabled('chromeos')  # crbug.com/749890
   def testSeekWaitForSeekTimeout(self):
     """Tests that wait_for_seeked timeouts if video does not seek."""
     action = seek.SeekAction(seconds=1, selector='#video_1',
