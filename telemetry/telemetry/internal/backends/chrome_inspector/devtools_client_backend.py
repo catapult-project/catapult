@@ -30,6 +30,13 @@ class TabNotFoundError(exceptions.Error):
   pass
 
 
+# The first WebSocket connections or calls against a newly-started
+# browser, specifically in Debug builds, can take a long time. Give
+# them 60s to complete instead of the default 10s used in many places
+# in this file.
+_FIRST_CALL_TIMEOUT = 60
+
+
 class DevToolsClientConfig(object):
   def __init__(self, local_port, app_backend,
                remote_port=None, browser_target=None):
@@ -397,8 +404,10 @@ class DevToolsClientBackend(object):
     if not self._browser_inspector_websocket:
       self._browser_inspector_websocket = (
           inspector_websocket.InspectorWebsocket())
+      # This may be the first call against the target browser, which
+      # may take a long time to start in Debug builds. Use a larger timeout.
       self._browser_inspector_websocket.Connect(
-          self._devtools_config.browser_target_url, timeout=10)
+          self._devtools_config.browser_target_url, timeout=_FIRST_CALL_TIMEOUT)
 
   def IsChromeTracingSupported(self):
     if not self.supports_tracing:
@@ -450,7 +459,7 @@ class DevToolsClientBackend(object):
     finally:
       self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
-  def GetSystemInfo(self, timeout):
+  def GetSystemInfo(self, timeout=_FIRST_CALL_TIMEOUT):
     self._CreateSystemInfoBackendIfNeeded()
     return self._system_info_backend.GetSystemInfo(timeout)
 

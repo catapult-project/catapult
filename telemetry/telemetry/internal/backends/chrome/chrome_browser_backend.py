@@ -293,11 +293,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return self.GetSystemInfo() != None
 
   def GetSystemInfo(self):
-    # TODO(crbug.com/706336): Remove this condional branch once crbug.com/704024
-    # is fixed.
-    if util.IsRunningOnCrosDevice():
-      return self.devtools_client.GetSystemInfo(timeout=30)
-    return self.devtools_client.GetSystemInfo(timeout=10)
+    return self.devtools_client.GetSystemInfo()
 
   @property
   def supports_memory_dumping(self):
