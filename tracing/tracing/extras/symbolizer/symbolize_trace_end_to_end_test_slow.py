@@ -2,6 +2,12 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+#
+# pylint: disable=line-too-long
+# To upload test files, use the command:
+# <path_to_depot_tools>/upload_to_google_storage.py --bucket chrome-partner-telemetry <path_to_data_dir>/linux_trace_v2_breakpad_postsymbolization.json.gz
+#
+# To run this test suite, use ./tracing/bin/run_symbolizer_tests
 
 import binascii
 import gzip
@@ -155,6 +161,16 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     self._RunSymbolizationOnTrace('windows_trace_v2_presymbolization.json.gz',
                                   'windows_trace_v2_postsymbolization.json.gz',
                                   [])
+
+
+  def testLinuxv2(self):
+    # The corresponding Linux breakpad symbols must be uploaded to
+    # "gs://chrome-partner-telemetry/desktop-symbolizer-test/64.0.3282.24/linux64/breakpad-info.zip"
+    # since the waterfall bots do not have access to the chrome-unsigned bucket.
+    self._RunSymbolizationOnTrace(
+        'linux_trace_v2_presymbolization.json.gz',
+        'linux_trace_v2_breakpad_postsymbolization.json.gz',
+        ['--use-breakpad-symbols'])
 
 
 if __name__ == '__main__':
