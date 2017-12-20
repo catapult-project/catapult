@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.testing import tab_test_case
 
@@ -10,6 +11,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
   def setUp(self):
     super(PinchActionTest, self).setUp()
 
+  @decorators.Disabled('android')  # crbug.com/796615
   def testPinchByApiCalledWithCorrectArguments(self):
     self.Navigate('blank.html')
     if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):

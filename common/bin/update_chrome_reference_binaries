@@ -46,7 +46,7 @@ _PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
 
 # Remove a channal name from this list to disable updating it.
 # Add one to enable updating it.
-_CHANNELS_TO_UPDATE = ['canary', 'dev', 'stable']
+_CHANNELS_TO_UPDATE = ['stable'] # 'canary', 'dev'
 
 
 # Omaha is Chrome's autoupdate server. It reports the current versions used
@@ -68,12 +68,12 @@ _PLATFORM_MAP = { 'mac_x86_64': UpdateInfo(omaha='mac',
                                            zip_name='chrome-mac.zip'),
                   'win_x86': UpdateInfo(omaha='win',
                                         gs_folder='desktop-*',
-                                        gs_build='win-pgo',
-                                        zip_name='chrome-win-pgo.zip'),
+                                        gs_build='win',
+                                        zip_name='chrome-win.zip'),
                   'win_AMD64': UpdateInfo(omaha='win',
                                           gs_folder='desktop-*',
-                                          gs_build='win64-pgo',
-                                          zip_name='chrome-win64-pgo.zip'),
+                                          gs_build='win64',
+                                          zip_name='chrome-win64.zip'),
                   'linux_x86_64': UpdateInfo(omaha='linux',
                                              gs_folder='desktop-*',
                                              gs_build='linux64',
@@ -98,10 +98,8 @@ def _ChannelVersionsMap(channel):
   omaha_versions_map = _OmahaVersionsMap(rows, channel)
   channel_versions_map = {}
   for platform in _PLATFORMS_TO_UPDATE:
-    print 'try updating platform %s' % platform
     omaha_platform = _PLATFORM_MAP[platform].omaha
     if omaha_platform in omaha_versions_map:
-      print 'updating platform %s' % platform
       channel_versions_map[platform] = omaha_versions_map[omaha_platform]
   return channel_versions_map
 
@@ -160,13 +158,16 @@ def UpdateBuilds():
   for channel in _CHANNELS_TO_UPDATE:
     channel_versions_map = _ChannelVersionsMap(channel)
     for platform in channel_versions_map:
+      print 'Downloading Chrome (%s channel) on %s' % (channel, platform)
       current_version = config.GetVersion('chrome_%s' % channel, platform)
       channel_version =  channel_versions_map.get(platform)
-      logging.warn('current: %s, channel: %s' % (current_version, channel_version))
+      print 'current: %s, channel: %s' % (current_version, channel_version)
       if current_version and current_version == channel_version:
         continue
       _QueuePlatformUpdate(platform, channel_version, config, channel)
     # TODO: move execute update jobs here, and add committing/uploading the cl.
+
+  print 'Updating chrome builds with downloaded binaries'
   config.ExecuteUpdateJobs(force=True)
 
 
