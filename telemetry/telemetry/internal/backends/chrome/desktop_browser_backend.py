@@ -180,10 +180,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # No matter whether we're using an existing profile directory or
     # creating a new one, always delete the well-known file containing
     # the active DevTools port number.
-    port_file = self._GetDevToolsActivePortPath()
-    if os.path.isfile(port_file):
+    devtools_file_path = self._GetDevToolsActivePortPath()
+    if os.path.isfile(devtools_file_path):
       try:
-        os.remove(port_file)
+        os.remove(devtools_file_path)
       except IOError as e:
         logging.critical('Unable to remove DevToolsActivePort file: %s' % e)
         sys.exit(1)
@@ -233,44 +233,34 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return app_path
     return None
 
-  def _GetDevToolsClientConfig(self):
-    # TODO(crbug.com/787834): Split into reading DevToolsActivePort, retrying
-    # if needed, and setting up fowarder.
+  def _FindDevToolsPortAndTarget(self):
+    devtools_file_path = self._GetDevToolsActivePortPath()
 
-    # In addition to the functional check performed by the base class, quickly
-    # check if the browser process is still alive.
-    if not self.IsBrowserRunning():
-      raise exceptions.ProcessGoneException(
-          "Return code: %d" % self._proc.returncode)
-    # Start DevTools on an ephemeral port and wait for the well-known file
-    # containing the port number to exist.
-    port_file = self._GetDevToolsActivePortPath()
-    if not os.path.isfile(port_file):
-      # File isn't ready yet. Return false. Will retry.
-      return False
-    # Attempt to avoid reading the file until it's populated.
-    got_port = False
-    try:
-      if os.stat(port_file).st_size > 0:
-        with open(port_file) as f:
-          port_target = f.read().split('\n')
-          local_port = int(port_target[0])
-          if len(port_target) > 1 and port_target[1]:
-            browser_target = port_target[1]
-          else:
-            browser_target = None
-          logging.info('Discovered ephemeral port %s', local_port)
-          logging.info('Browser target: %s', browser_target)
-          got_port = True
-    except IOError:
-      # Both stat and open can throw exceptions.
-      pass
-    if not got_port:
-      # File isn't ready yet. Return false. Will retry.
-      return False
+    def GetDevToolsFileLines():
+      if not os.path.isfile(devtools_file_path):
+        return None  # DevTools file not ready yet. Retry.
+      try:
+        # Attempt to avoid reading the file until it's populated.
+        if os.stat(devtools_file_path).st_size > 0:
+          with open(devtools_file_path) as f:
+            return [line.rstrip() for line in f]
+      except IOError:
+        return None  # Both stat and open can throw exceptions if not ready.
+
+    # Retry until file is readable and not empty.
+    lines = py_utils.WaitFor(
+        GetDevToolsFileLines,
+        timeout=self.browser_options.browser_startup_timeout)
+    devtools_port = int(lines[0])
+    browser_target = lines[1] if len(lines) >= 2 else None
+    return devtools_port, browser_target
+
+  def _GetDevToolsClientConfig(self):
+    # TODO(crbug.com/787834): Factor out to base class.
+    devtools_port, browser_target = self._FindDevToolsPortAndTarget()
 
     return devtools_client_backend.DevToolsClientConfig(
-        local_port=local_port,
+        local_port=devtools_port,
         browser_target=browser_target,
         app_backend=self)
 
@@ -348,6 +338,14 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except:
       self.Close()
       raise
+
+  def BindDevToolsClient(self):
+    # In addition to the work performed by the base class, quickly check if
+    # the browser process is still alive.
+    if not self.IsBrowserRunning():
+      raise exceptions.ProcessGoneException(
+          'Return code: %d' % self._proc.returncode)
+    super(DesktopBrowserBackend, self).BindDevToolsClient()
 
   @property
   def pid(self):
