@@ -58,16 +58,19 @@ def main():
   dicts_across_stories = merge_histograms.MergeHistograms(args.input_path, (
     'name', 'storyTags'))
 
-  # If any Histograms were only produced by a single story (e.g. if there's only
-  # 1 story in the benchmark, or only 1 story that causes a metric to generate a
-  # particular Histogram), then such Histograms will appear in both
-  # dicts_across_repeats and dicts_across_stories. Filter them out of
-  # dicts_across_stories. This is required to satisfy HistogramSet's requirement
-  # that no two Histograms have the same guid.
-  guids_across_repeats = [d['guid'] for d in dicts_across_repeats
-                          if 'type' not in d]
-  dicts_across_stories = [d for d in dicts_across_stories
-      if d['guid'] not in guids_across_repeats]
+  # After merging across stories, any histograms with fewer than 2 stories are
+  # duplicates of histograms from merging across repeats and can be discarded.
+  def _ShouldDiscard(hist):
+    s = hist.diagnostics.get(reserved_infos.STORIES.name, [])
+    return len(s) <= 1
+
+  histograms = histogram_set.HistogramSet()
+  histograms.ImportDicts(dicts_across_stories)
+  histograms.ResolveRelatedHistograms()
+  discard = [h.guid for h in histograms if _ShouldDiscard(h)]
+
+  dicts_across_stories = [
+      d for d in dicts_across_stories if d['guid'] not in discard]
 
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(dicts_across_repeats)
