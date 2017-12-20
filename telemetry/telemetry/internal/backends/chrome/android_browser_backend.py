@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
@@ -125,34 +123,28 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                         extras=user_agent_dict),
           blocking=True)
 
-      remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
-          self.device)
-      # Setting local_port=0 allows the forwarder to pick an available port.
-      self._forwarder = self.platform_backend.forwarder_factory.Create(
-          local_port=0, remote_port=remote_devtools_port, reverse=True)
-
       try:
         self.BindDevToolsClient()
-      except exceptions.BrowserGoneException:
-        logging.critical('Failed to connect to browser.')
-        if not (self.device.HasRoot() or self.device.NeedsSU()):
-          logging.critical(
-              'Resolve this by either: '
-              '(1) Flashing to a userdebug build OR '
-              '(2) Manually enabling web debugging in Chrome at '
-              'Settings > Developer tools > Enable USB Web debugging.')
-        self.Close()
-        raise
       except:
         self.Close()
         raise
 
+  def _FindDevToolsPortAndTarget(self):
+    devtools_port = self._backend_settings.GetDevtoolsRemotePort(self.device)
+    browser_target = None  # Use default
+    return devtools_port, browser_target
+
   def _GetDevToolsClientConfig(self):
-    # TODO(crbug.com/787834): Create forwarder here rather than in Start.
-    assert self._forwarder is not None
+    # TODO(crbug.com/787834): Factor out to base class.
+    devtools_port, browser_target = self._FindDevToolsPortAndTarget()
+
+    self._forwarder = self.platform_backend.forwarder_factory.Create(
+        local_port=None, remote_port=devtools_port, reverse=True)
+
     return devtools_client_backend.DevToolsClientConfig(
         local_port=self._forwarder.local_port,
         remote_port=self._forwarder.remote_port,
+        browser_target=browser_target,
         app_backend=self)
 
   def Foreground(self):
