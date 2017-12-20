@@ -87,7 +87,7 @@ class AndroidForwarder(forwarders.Forwarder):
     super(AndroidForwarder, self).__init__()
     self._device = device
     assert local_port, 'Local port must be given'
-    forwarder.Forwarder.Map([(remote_port, local_port)], self._device)
+    forwarder.Forwarder.Map([(remote_port or 0, local_port)], self._device)
     remote_port = forwarder.Forwarder.DevicePortForHostPort(local_port)
     self._StartedForwarding(local_port, remote_port)
     atexit_with_log.Register(self.Close)

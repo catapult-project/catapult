@@ -80,10 +80,6 @@ class PlatformBackend(object):
   def _CreateForwarderFactory(self):
     return do_nothing_forwarder.DoNothingForwarderFactory()
 
-  def GetPortPairForForwarding(self, local_port):
-    # TODO(#1977): Remove when all forwarders support default remote ports.
-    return (local_port, local_port)
-
   def GetRemotePort(self, port):
     return port
 

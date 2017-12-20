@@ -68,10 +68,8 @@ class NetworkControllerBackend(object):
     self._wpr_mode = wpr_mode
     try:
       local_port = self._StartTsProxyServer()
-      # TODO(#1977): Remove call to GetPortPairForForwarding when all
-      # forwarders support default remote ports.
       self._forwarder = self._platform_backend.forwarder_factory.Create(
-          *self._platform_backend.GetPortPairForForwarding(local_port))
+          local_port=local_port, remote_port=None)
     except Exception:
       self.Close()
       raise

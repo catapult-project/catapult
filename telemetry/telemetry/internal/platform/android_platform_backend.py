@@ -549,10 +549,6 @@ class AndroidPlatformBackend(
     self._device.RunShellCommand(
         ['sh', self._device_copy_script, source, dest], check_return=True)
 
-  def GetPortPairForForwarding(self, local_port):
-    # TODO(#1977): Remove when all forwarders support default remote ports.
-    return (local_port, 0)
-
   def RemoveProfile(self, package, ignore_list):
     """Delete application profile on device.
 

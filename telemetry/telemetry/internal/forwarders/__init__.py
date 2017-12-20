@@ -12,15 +12,12 @@ class ForwarderFactory(object):
     """Creates a forwarder to map a local (host) with a remote (device) port.
 
     By default this means mapping a known local_port with a remote_port. If the
-    remote_port missing (e.g. 0 or None) then the forwarder will choose an
+    remote_port is missing (e.g. 0 or None) then the forwarder will choose an
     available port on the device.
 
     Conversely, when reverse=True, a known remote_port is mapped to a
     local_port and, if this is missing, then the forwarder will choose an
     available port on the host.
-
-    # TODO(#1977): Ensure all implementations fully support the previous
-    # description regarding missing ports.
 
     Args:
       local_port: An http port on the local host.
