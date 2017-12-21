@@ -296,7 +296,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     status = ''
     if not self._IsCryptohomeMounted():
       status += 'Cryptohome not mounted. '
-    if not self.HasBrowserFinishedLaunching():
+    if not self.HasDevToolsConnection():
       status += 'Browser didn\'t launch. '
     if self.oobe_exists:
       status += 'OOBE not dismissed.'
