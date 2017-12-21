@@ -177,7 +177,8 @@ def _BatchHistogramsIntoTasks(suite_path, histograms, revision):
     # TODO(eakuefner): Batch these better than one per task.
     task_dict = _MakeTaskDict(hist, test_path, revision, diagnostics)
 
-    estimated_size += len(json.dumps(task_dict))
+    estimated_size_dict = len(json.dumps(task_dict))
+    estimated_size += estimated_size_dict
 
     # Creating the task directly and getting the size back is slow, so we just
     # keep a running total of estimated task size. A bit hand-wavy but the #
@@ -188,7 +189,8 @@ def _BatchHistogramsIntoTasks(suite_path, histograms, revision):
       t = _MakeTask(params)
       tasks.append(t)
       params = []
-      estimated_size = 0
+      estimated_size = estimated_size_dict
+
     params.append(task_dict)
 
   if params:
