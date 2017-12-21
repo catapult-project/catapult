@@ -11,13 +11,9 @@
 (function() {
   function PinchGestureOptions(opt_options) {
     if (opt_options) {
-      // The center of the pinch gesture, expressed as a ratio of the
-      // application viewport (i.e. unaffected by pinch-zoom and scrolling).
       this.left_anchor_ratio_ = opt_options.left_anchor_ratio;
       this.top_anchor_ratio_ = opt_options.top_anchor_ratio;
       this.scale_factor_ = opt_options.scale_factor;
-      // Speed of the pinch gesture in pixels per second. This is the speed of
-      // the relative motion between the two touch points.
       this.speed_ = opt_options.speed;
     } else {
       this.left_anchor_ratio_ = 0.5;
@@ -57,6 +53,7 @@
     // all coordinates in viewport space. crbug.com/610021.
     let anchorLeft;
     let anchorTop;
+    let speed = this.options_.speed_;
     if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
       anchorLeft =
           __GestureCommon_GetWindowWidth() *
@@ -64,6 +61,7 @@
       anchorTop =
           __GestureCommon_GetWindowHeight() *
           this.options_.top_anchor_ratio_;
+      speed = speed * chrome.gpuBenchmarking.pageScaleFactor();
     } else {
       const rect = __GestureCommon_GetBoundingVisibleRect(document.body);
       anchorLeft = rect.left + rect.width * this.options_.left_anchor_ratio_;
@@ -74,7 +72,7 @@
         this.options_.scale_factor_,
         anchorLeft, anchorTop,
         this.onGestureComplete_.bind(this),
-        this.options_.speed_);
+        speed);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {
