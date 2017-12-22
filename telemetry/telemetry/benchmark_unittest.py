@@ -135,12 +135,12 @@ class BenchmarkTest(unittest.TestCase):
 
     self.assertTrue(valid_predicate[0])
 
-  def testBenchmarkExpectations(self):
+  def testBenchmarkExpectationsEmpty(self):
     b = TestBenchmark(story_module.Story(
         name='test name',
         shared_state_class=shared_page_state.SharedPageState))
     self.assertIsInstance(
-        b.GetExpectations(), story_module.expectations.StoryExpectations)
+        b.expectations, story_module.expectations.StoryExpectations)
 
   def testGetOwners(self):
     @benchmark.Owner(emails=['alice@chromium.org'])

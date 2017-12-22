@@ -74,7 +74,7 @@ class Benchmark(command_line.Command):
       max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
-    self._expectations = self.GetExpectations()
+    self._expectations = expectations_module.StoryExpectations()
     self._max_failures = max_failures
     # TODO: There should be an assertion here that checks that only one of
     # the following is true:
@@ -332,15 +332,6 @@ class Benchmark(command_line.Command):
     parser = expectations_parser.TestExpectationParser(data)
     self._expectations.GetBenchmarkExpectationsFromParser(
         parser.expectations, self.Name())
-
-  # TODO(rnephew): Rename GetExpectations to CreateExpectations
-  def GetExpectations(self):
-    """Returns a StoryExpectation object.
-
-    This object is used to determine what stories are disabled. This needs to be
-    overridden by the subclass. It defaults to an empty expectations object.
-    """
-    return expectations_module.StoryExpectations()
 
   @property
   def expectations(self):
