@@ -11,20 +11,16 @@ found in the LICENSE file.
 <dom-module id="change-info">
   <template>
     <style include="base-style">
-      h3 {
-        font-weight: normal;
-        margin-bottom: 0.2em;
-        word-break: break-word;
+      p {
+        margin: 1em 0;
       }
     </style>
 
     <div>
       <loading-wrapper url="/api/gitiles" params="[[params(change)]]" response="{{commitInfo}}">
-        <h3>
+        <p>
           <a href="[[url(change)]]" target="_blank">[[subject(commitInfo)]]</a>
-        </h3>
-        <p class="byline">
-          By [[commitInfo.author.email]]<span class="middle-dot"></span>[[time(commitInfo)]]
+          <span class="byline">by [[author(commitInfo)]]</span>
         </p>
       </loading-wrapper>
     </div>
@@ -65,8 +61,8 @@ found in the LICENSE file.
         return commitInfo.message.split('\n')[0];
       },
 
-      time(commitInfo) {
-        return new Date(commitInfo.committer.time + 'Z').toLocaleString();
+      author(commitInfo) {
+        return commitInfo.author.email.split('@')[0];
       },
     });
   </script>
