@@ -404,10 +404,8 @@ class DevToolsClientBackend(object):
     if not self._browser_inspector_websocket:
       self._browser_inspector_websocket = (
           inspector_websocket.InspectorWebsocket())
-      # This may be the first call against the target browser, which
-      # may take a long time to start in Debug builds. Use a larger timeout.
       self._browser_inspector_websocket.Connect(
-          self._devtools_config.browser_target_url, timeout=_FIRST_CALL_TIMEOUT)
+          self._devtools_config.browser_target_url, timeout=10)
 
   def IsChromeTracingSupported(self):
     if not self.supports_tracing:
@@ -459,6 +457,11 @@ class DevToolsClientBackend(object):
     finally:
       self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
+  # This call may be made early during browser bringup and may cause the
+  # GPU process to launch, which takes a long time in Debug builds and
+  # has been seen to frequently exceed the default 10s timeout used
+  # throughout this file. Use a larger timeout by default. Callers
+  # typically do not override this.
   def GetSystemInfo(self, timeout=_FIRST_CALL_TIMEOUT):
     self._CreateSystemInfoBackendIfNeeded()
     return self._system_info_backend.GetSystemInfo(timeout)
