@@ -297,7 +297,10 @@ class _MultiStore(object):
         """Lock the entire multistore."""
         self._thread_lock.acquire()
         try:
-            self._file.open_and_lock()
+            # timeout=1 is a workaround for crbug/796137.
+            # This bug will be fixed in gsutil versions beyond
+            # version 4.28, but they aren't out yet (As of 12/22/2017).
+            self._file.open_and_lock(timeout=1)
         except (IOError, OSError) as e:
             if e.errno == errno.ENOSYS:
                 logger.warn('File system does not support locking the '
