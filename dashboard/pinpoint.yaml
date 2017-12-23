@@ -42,7 +42,7 @@ handlers:
   static_dir: dashboard/pinpoint/static
   secure: always
 
-- url: /dashboard/pinpoint/elements/(.*\.html)$
+- url: /elements/(.*\.html)$
   static_files: dashboard/pinpoint/elements/\1
   upload: dashboard/pinpoint/elements/.*\.html$
   secure: always
