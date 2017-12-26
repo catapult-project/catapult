@@ -5,7 +5,6 @@
 from telemetry import value
 from telemetry.web_perf.metrics import timeline_based_metric
 
-_PROCESS_CREATION = 'Startup.BrowserProcessCreation'
 _MAIN_ENTRY_POINT = 'Startup.BrowserMainEntryPoint'
 
 # A dictionary that maps metric names to a value, which can be either of
