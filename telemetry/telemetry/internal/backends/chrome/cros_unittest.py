@@ -25,13 +25,17 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
       self.assertTrue(
           self._cri.IsCryptohomeMounted(self._username, self._is_guest))
 
+      ephemeral_fs = self._cri.FilesystemMountedAt(
+          self._cri.EphemeralCryptohomePath(self._username))
+
       # TODO(achuith): Remove dependency on /home/chronos/user.
       chronos_fs = self._cri.FilesystemMountedAt('/home/chronos/user')
-      self.assertTrue(chronos_fs)
+      self.assertTrue(chronos_fs or ephemeral_fs)
       if self._is_guest:
-        self.assertTrue(chronos_fs.startswith('/dev/loop') or
-                        (chronos_fs == 'guestfs'))
-      else:
+        self.assertTrue(
+            (ephemeral_fs and ephemeral_fs.startswith('/dev/loop')) or
+            (chronos_fs == 'guestfs'))
+      elif chronos_fs:
         crypto_fs = self._cri.FilesystemMountedAt(
             self._cri.CryptohomePath(self._username))
         self.assertEquals(crypto_fs, chronos_fs)

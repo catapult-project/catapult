@@ -485,6 +485,13 @@ class CrOSInterface(object):
     mount_info = self._GetMountSourceAndTarget(path)
     return mount_info[0] if mount_info else None
 
+  def EphemeralCryptohomePath(self, user):
+    """Returns the ephemeral cryptohome mount poing for |user|."""
+    profile_path = self.CryptohomePath(user)
+    # Get user hash as last element of cryptohome path last.
+    return os.path.join('/run/cryptohome/ephemeral_mount/',
+                        os.path.basename(profile_path))
+
   def CryptohomePath(self, user):
     """Returns the cryptohome mount point for |user|."""
     stdout, stderr = self.RunCmdOnDevice(['cryptohome-path', 'user', "'%s'" %
@@ -495,13 +502,19 @@ class CrOSInterface(object):
 
   def IsCryptohomeMounted(self, username, is_guest):
     """Returns True iff |user|'s cryptohome is mounted."""
+    # Check whether it's ephemeral mount from a loop device.
+    profile_ephemeral_path = self.EphemeralCryptohomePath(username)
+    ephemeral_mount_info = self._GetMountSourceAndTarget(profile_ephemeral_path)
+    if ephemeral_mount_info:
+      return (ephemeral_mount_info[0].startswith('/dev/loop') and
+              ephemeral_mount_info[1] == profile_ephemeral_path)
+
     profile_path = self.CryptohomePath(username)
     mount_info = self._GetMountSourceAndTarget(profile_path)
     if mount_info:
       # Checks if the filesytem at |profile_path| is mounted on |profile_path|
       # itself. Before mounting cryptohome, it shows an upper directory (/home).
-      is_guestfs = ((mount_info[0] == 'guestfs') or
-                    mount_info[0].startswith('/dev/loop'))
+      is_guestfs = (mount_info[0] == 'guestfs')
       return is_guestfs == is_guest and mount_info[1] == profile_path
     return False
 
