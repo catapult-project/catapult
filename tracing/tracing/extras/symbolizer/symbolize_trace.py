@@ -867,30 +867,10 @@ class Trace(NodeWrapper):
       self._version = product_version.split('/', 1)[-1]
       self._os = metadata['os-name']
 
-      command_line = metadata['command_line']
       self._is_win = re.search('windows', metadata['os-name'], re.IGNORECASE)
       self._is_mac = re.search('mac', metadata['os-name'], re.IGNORECASE)
       self._is_linux = re.search('linux', metadata['os-name'], re.IGNORECASE)
       self._is_cros = re.search('cros', metadata['os-name'], re.IGNORECASE)
-
-      if self._is_win:
-        self._is_chromium = (
-            not re.search('Chrome SxS\\\\Application\\\\chrome.exe',
-                          command_line, re.IGNORECASE) and
-            not re.search('Chrome\\\\Application\\\\chrome.exe', command_line,
-                          re.IGNORECASE))
-      if self._is_mac:
-        self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
-
-      if self._is_linux:
-        self._is_chromium = not re.search('/usr/bin/google-chrome',
-                                          command_line,
-                                          re.IGNORECASE)
-
-      if self._is_cros:
-        self._is_chromium = not re.search('/opt/google/chrome/chrome',
-                                          command_line,
-                                          re.IGNORECASE)
 
       self._is_64bit = (
           re.search('x86_64', metadata['os-arch'], re.IGNORECASE) and
@@ -996,6 +976,10 @@ class Trace(NodeWrapper):
   @property
   def is_chromium(self):
     return self._is_chromium
+
+  @is_chromium.setter
+  def is_chromium(self, new_value):
+    self._is_chromium = new_value
 
   @property
   def is_mac(self):
@@ -1597,8 +1581,12 @@ def main(args):
       help='Trace file to symbolize (.json or .json.gz)')
 
   parser.add_argument(
-      '--no-backup', dest='backup', default='true', action='store_false',
+      '--no-backup', dest='backup', action='store_false',
       help="Don't create {} files".format(BACKUP_FILE_TAG))
+
+  parser.add_argument(
+      '--is-local-build', action='store_true',
+      help="Indicate that the memlog trace is from a local build of Chromium.")
 
   parser.add_argument(
       '--output-directory',
@@ -1649,6 +1637,8 @@ def main(args):
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file))
   print 'Trace loaded for %s/%s' % (trace.os, trace.version)
+
+  trace.is_chromium = options.is_local_build
 
   # Perform some sanity checks.
   if (trace.is_win and sys.platform != 'win32' and
