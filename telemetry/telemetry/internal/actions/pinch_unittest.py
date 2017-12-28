@@ -44,8 +44,9 @@ class PinchActionTest(tab_test_case.TabTestCase):
         800, action_runner.EvaluateJavaScript('window.__test_speed'))
 
   # TODO(bokan): It looks like pinch gestures don't quite work correctly on
-  # desktop. Disable for now and investigate later. https://crbug.com/787615
-  @decorators.Disabled('linux', 'mac', 'win')
+  # desktop and ChromeOS. Disable for now and investigate later.
+  # https://crbug.com/787615 and https://crbug.com/797834.
+  @decorators.Disabled('chromeos', 'linux', 'mac', 'win')
   def testPinchScale(self):
     starting_scale = self._tab.EvaluateJavaScript('window.visualViewport.scale')
 
@@ -82,8 +83,9 @@ class PinchActionTest(tab_test_case.TabTestCase):
   # Test that the anchor ratio correctly centers the pinch gesture at the
   # requested part of the viewport.
   # TODO(bokan): It looks like pinch gestures don't quite work correctly on
-  # desktop. Disable for now and investigate later. https://crbug.com/787615
-  @decorators.Disabled('linux', 'mac', 'win')
+  # desktop and ChromeOS. Disable for now and investigate later.
+  # https://crbug.com/787615 and https://crbug.com/797834.
+  @decorators.Disabled('chromeos', 'linux', 'mac', 'win')
   def testPinchAnchor(self):
     starting_scale = self._tab.EvaluateJavaScript('window.visualViewport.scale')
     self.assertEquals(1, starting_scale)
