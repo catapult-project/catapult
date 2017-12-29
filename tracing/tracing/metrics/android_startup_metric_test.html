@@ -26,6 +26,14 @@ tr.b.unittest.testSuite(function() {
         start: 6817.406,
         duration: 1745.50
       }));
+
+      // Data for the deprecated metric.
+      mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'startup',
+        title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+        start: 6817.406,
+        duration: 1745.50
+      }));
     });
   }
 
@@ -36,6 +44,12 @@ tr.b.unittest.testSuite(function() {
         'messageloop_start_time');
     assert.strictEqual(1, messageLoopStartHistogram.numValues);
     assert.strictEqual(1745.5, messageLoopStartHistogram.average);
+
+    // Test for the deprecated metric.
+    const messageLoopStartFromWallClockHistogram = histograms.getHistogramNamed(
+        'messageloop_start_time_computed_from_wall_clock');
+    assert.strictEqual(1, messageLoopStartFromWallClockHistogram.numValues);
+    assert.strictEqual(1745.5, messageLoopStartFromWallClockHistogram.average);
   });
 });
 </script>
