@@ -111,6 +111,14 @@ _SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP = """N: android=http://schemas.android.
       A: junit4=(type 0x12)0xffffffff (Raw: "true")
 """
 
+_NO_NAMESPACE_MANIFEST_DUMP = """E: manifest (line=1)
+  A: package="org.chromium.xyz" (Raw: "org.chromium.xyz")
+  E: instrumentation (line=8)
+    A: http://schemas.android.com/apk/res/android:label(0x01010001)="xyz" (Raw: "xyz")
+    A: http://schemas.android.com/apk/res/android:name(0x01010003)="org.chromium.RandomTestRunner" (Raw: "org.chromium.RandomTestRunner")
+    A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="org.chromium.random_package" (Raw:"org.chromium.random_pacakge")
+"""
+
 
 def _MockAaptDump(manifest_dump):
   return mock.patch(
@@ -205,6 +213,12 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEquals([('name1', 'value1'), ('name2', 'value2')],
                         helper.GetAllMetadata())
+
+  def testGetSingleInstrumentationName_strippedNamespaces(self):
+    with _MockAaptDump(_NO_NAMESPACE_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals('org.chromium.RandomTestRunner',
+                        helper.GetInstrumentationName())
 
 
 if __name__ == '__main__':

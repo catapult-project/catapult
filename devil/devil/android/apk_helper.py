@@ -35,6 +35,15 @@ def ToHelper(path_or_helper):
   return path_or_helper
 
 
+# To parse the manifest, the function uses a node stack where at each level of
+# the stack it keeps the currently in focus node at that level (of indentation
+# in the xmltree output, ie. depth in the tree). The height of the stack is
+# determinded by line indentation. When indentation is increased so is the stack
+# (by pushing a new empty node on to the stack). When indentation is decreased
+# the top of the stack is popped (sometimes multiple times, until indentation
+# matches the height of the stack). Each line parsed (either an attribute or an
+# element) is added to the node at the top of the stack (after the stack has
+# been popped/pushed due to indentation).
 def _ParseManifestFromApk(apk_path):
   aapt_output = aapt.Dump('xmltree', apk_path, 'AndroidManifest.xml')
 
@@ -42,17 +51,35 @@ def _ParseManifestFromApk(apk_path):
   node_stack = [parsed_manifest]
   indent = '  '
 
-  for line in aapt_output[1:]:
+  if aapt_output[0].startswith('N'):
+    # if the first line is a namespace then the root manifest is indented, and
+    # we need to add a dummy namespace node, then skip the first line (we dont
+    # care about namespaces).
+    node_stack.insert(0, {})
+    output_to_parse = aapt_output[1:]
+  else:
+    output_to_parse = aapt_output
+
+  for line in output_to_parse:
     if len(line) == 0:
       continue
+
+    # If namespaces are stripped, aapt still outputs the full url to the
+    # namespace and appends it to the attribute names.
+    line = line.replace('http://schemas.android.com/apk/res/android:', 'android:')
 
     indent_depth = 0
     while line[(len(indent) * indent_depth):].startswith(indent):
       indent_depth += 1
 
-    node_stack = node_stack[:indent_depth]
+    # Pop the stack until the height of the stack is the same is the depth of
+    # the current line within the tree.
+    node_stack = node_stack[:indent_depth + 1]
     node = node_stack[-1]
 
+    # Element nodes are a list of python dicts while attributes are just a dict.
+    # This is because multiple elements, at the same depth of tree and the same
+    # name, are all added to the same list keyed under the element name.
     m = _MANIFEST_ELEMENT_RE.match(line[len(indent) * indent_depth:])
     if m:
       manifest_key = m.group(1)
