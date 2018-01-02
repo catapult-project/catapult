@@ -53,22 +53,12 @@
   PinchAction.prototype.startPass_ = function() {
     this.beginMeasuringHook();
 
-    // TODO(bokan): Remove else-block once gpuBenchmarking is changed to take
-    // all coordinates in viewport space. crbug.com/610021.
-    let anchorLeft;
-    let anchorTop;
-    if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
-      anchorLeft =
+    const anchorLeft =
           __GestureCommon_GetWindowWidth() *
           this.options_.left_anchor_ratio_;
-      anchorTop =
+    const anchorTop =
           __GestureCommon_GetWindowHeight() *
           this.options_.top_anchor_ratio_;
-    } else {
-      const rect = __GestureCommon_GetBoundingVisibleRect(document.body);
-      anchorLeft = rect.left + rect.width * this.options_.left_anchor_ratio_;
-      anchorTop = rect.top + rect.height * this.options_.top_anchor_ratio_;
-    }
 
     chrome.gpuBenchmarking.pinchBy(
         this.options_.scale_factor_,

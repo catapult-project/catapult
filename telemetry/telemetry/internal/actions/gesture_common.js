@@ -52,24 +52,20 @@
 
   // Returns the bounding rect in the visual viewport's coordinates.
   function getBoundingVisibleRect(el) {
-    // Get the element bounding rect.
+    // Get the element bounding rect in the layout viewport.
     const rect = getBoundingRect(el);
 
-    // TODO(bokan): Remove this once gpuBenchmarking is changed to take all
-    // coordinates in viewport space. crbug.com/610021.
-    if ('gesturesExpectedInViewportCoordinates' in chrome.gpuBenchmarking) {
-      // Apply the visual viewport transform (i.e. pinch-zoom) to the bounding
-      // rect. The viewportX|Y values are in CSS pixels so they don't change
-      // with page scale. We first translate so that the viewport offset is
-      // at the origin and then we apply the scaling factor.
-      const scale = chrome.gpuBenchmarking.pageScaleFactor();
-      const visualViewportX = chrome.gpuBenchmarking.visualViewportX();
-      const visualViewportY = chrome.gpuBenchmarking.visualViewportY();
-      rect.top = (rect.top - visualViewportY) * scale;
-      rect.left = (rect.left - visualViewportX) * scale;
-      rect.width *= scale;
-      rect.height *= scale;
-    }
+    // Apply the visual viewport transform (i.e. pinch-zoom) to the bounding
+    // rect. The viewportX|Y values are in CSS pixels so they don't change
+    // with page scale. We first translate so that the viewport offset is
+    // at the origin and then we apply the scaling factor.
+    const scale = chrome.gpuBenchmarking.pageScaleFactor();
+    const visualViewportX = chrome.gpuBenchmarking.visualViewportX();
+    const visualViewportY = chrome.gpuBenchmarking.visualViewportY();
+    rect.top = (rect.top - visualViewportY) * scale;
+    rect.left = (rect.left - visualViewportX) * scale;
+    rect.width *= scale;
+    rect.height *= scale;
 
     // Get the window dimensions.
     const windowHeight = getWindowHeight();
