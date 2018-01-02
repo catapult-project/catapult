@@ -54,9 +54,9 @@ def main():
 
   # TODO(#3987): Refactor recipes to call merge_histograms separately.
   dicts_across_repeats = merge_histograms.MergeHistograms(args.input_path, (
-    'name', 'storyTags', 'stories'))
+    'name', 'stories'))
   dicts_across_stories = merge_histograms.MergeHistograms(args.input_path, (
-    'name', 'storyTags'))
+    'name',))
 
   # After merging across stories, any histograms with fewer than 2 stories are
   # duplicates of histograms from merging across repeats and can be discarded.
