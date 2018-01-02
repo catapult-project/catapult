@@ -9,12 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 
 <link rel="import" href="/elements/base-style.html">
-<link rel="import" href="/elements/job-page-change-table.html">
-<link rel="import" href="/elements/job-page-chart-icon.html">
-<link rel="import" href="/elements/job-page-chart.html">
-<link rel="import" href="/elements/job-page-header.html">
+<link rel="import" href="/elements/job-page/change-details.html">
+<link rel="import" href="/elements/job-page/job-chart-icon.html">
+<link rel="import" href="/elements/job-page/job-chart.html">
+<link rel="import" href="/elements/job-page/job-details.html">
+<link rel="import" href="/elements/job-page/patch-job-fab.html">
 <link rel="import" href="/elements/loading-wrapper.html">
-<link rel="import" href="/elements/patch-job-fab.html">
 
 <dom-module id="job-page">
   <template>
@@ -89,11 +89,11 @@ found in the LICENSE file.
       </p>
       <div class="columns">
         <div id="details-column">
-          <job-page-header job="[[job]]"></job-page-header>
+          <job-details job="[[job]]"></job-details>
         </div>
         <div id="main-column">
-          <job-page-chart job="[[job]]" change-index="{{changeIndex}}"></job-page-chart>
-          <job-page-change-table job="[[job]]" change-index="[[changeIndex]]"></job-page-change-table>
+          <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>
+          <change-details job="[[job]]" change-index="[[changeIndex]]"></change-details>
         </div>
       </div>
       <patch-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></patch-job-fab>

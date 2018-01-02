@@ -12,10 +12,10 @@ found in the LICENSE file.
 <script src="/flot/jquery.flot.fillbetween.min.js"></script>
 <script src="/flot/jquery.flot.selection.min.js"></script>
 
-<link rel="import" href="/elements/job-page-chart-dot.html">
-<link rel="import" href="/elements/job-page-chart-icon.html">
+<link rel="import" href="/elements/job-page/job-chart-dot.html">
+<link rel="import" href="/elements/job-page/job-chart-icon.html">
 
-<dom-module id="job-page-chart">
+<dom-module id="job-chart">
   <template>
     <style>
       #plot {
@@ -31,7 +31,7 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer({
-      is: 'job-page-chart',
+      is: 'job-chart',
 
       properties: {
         job: {
@@ -179,13 +179,13 @@ found in the LICENSE file.
           if (valuesByChange[i].length) {
             // Draw pulsing dots for important points.
             if (this.job.comparisons[i - 1] === 'different') {
-              const dot = document.createElement('job-page-chart-dot');
+              const dot = document.createElement('job-chart-dot');
               dot.setPosition(offset.left, offset.top);
               this.$.plot.appendChild(dot);
             }
           } else {
             // Draw icons for failed and pending attempts.
-            const status = document.createElement('job-page-chart-icon');
+            const status = document.createElement('job-chart-icon');
             status.setPosition(offset.left, offset.top);
             // TODO: Plumb through real "pending" information from the Job.
             if (this.job.comparisons[i] === 'pending' ||
