@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/diagnostics/all_diagnostics.html">
 <link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 
 <script>
@@ -17,6 +18,14 @@ tr.b.unittest.testSuite(function() {
     diagnostic.guid = 'foo';
     const clone = tr.v.d.Diagnostic.fromDict(diagnostic.asDict());
     assert.strictEqual('foo', clone.guid);
+  });
+
+  test('equalitySmokeTest', function() {
+    const infos = tr.v.d.Diagnostic.getAllRegisteredTypeInfos();
+
+    for (const info of infos) {
+      assert.hasOwnProperty(info, 'equals');
+    }
   });
 });
 </script>
