@@ -78,10 +78,20 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # TODO(#1977): Can simplify using local forwarding and default ports.
     if not self._cri.local:
-      local_port = util.GetUnreservedAvailableLocalPort()
-      self._forwarder = self._platform_backend.forwarder_factory.Create(
-          local_port=local_port, remote_port=remote_port,
-          reverse=True)
+      # This method may be called multiple times due to retries, so we should
+      # restart the forwarder if the ports changed.
+      if (self._forwarder is not None and
+          self._forwarder.remote_port != remote_port):
+        self._forwarder.Close()
+        self._forwarder = None
+
+      if self._forwarder is None:
+        local_port = util.GetUnreservedAvailableLocalPort()
+        self._forwarder = self._platform_backend.forwarder_factory.Create(
+            local_port=local_port, remote_port=remote_port,
+            reverse=True)
+      else:
+        local_port = self._forwarder.local_port
 
     return devtools_client_backend.DevToolsClientConfig(
         local_port=local_port,

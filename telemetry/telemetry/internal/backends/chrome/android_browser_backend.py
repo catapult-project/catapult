@@ -138,8 +138,16 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # TODO(crbug.com/787834): Factor out to base class.
     devtools_port, browser_target = self._FindDevToolsPortAndTarget()
 
-    self._forwarder = self.platform_backend.forwarder_factory.Create(
-        local_port=None, remote_port=devtools_port, reverse=True)
+    # This method may be called multiple times due to retries, so we should
+    # restart the forwarder if the ports changed.
+    if (self._forwarder is not None and
+        self._forwarder.remote_port != devtools_port):
+      self._forwarder.Close()
+      self._forwarder = None
+
+    if self._forwarder is None:
+      self._forwarder = self.platform_backend.forwarder_factory.Create(
+          local_port=None, remote_port=devtools_port, reverse=True)
 
     return devtools_client_backend.DevToolsClientConfig(
         local_port=self._forwarder.local_port,

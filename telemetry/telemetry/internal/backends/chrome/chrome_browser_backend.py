@@ -172,12 +172,22 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._devtools_client.Close()
       self._devtools_client = None
 
+    def GetDevToolsClient():
+      # On some platforms, if the agent is not ready it could mean that
+      # the DevTools config we got is for an older agent. It's thus important
+      # to re-read the config on each retry.
+      devtools_config = self._GetDevToolsClientConfig()
+      if not devtools_config:
+        return None  # Will retry.
+      logging.info('Got devtools config: %s', devtools_config)
+      if not devtools_config.IsAgentReady():
+        return None  # Will retry.
+      return devtools_config.Create()
+
     try:
-      timeout = self.browser_options.browser_startup_timeout
-      # TODO(crbug.com/787834): Subclasses should WaitFor the config if needed.
-      devtools_config = py_utils.WaitFor(
-          self._GetDevToolsClientConfig, timeout=timeout)
-      self._devtools_client = devtools_config.WaitForAndCreate(timeout=timeout)
+      self._devtools_client = py_utils.WaitFor(
+          GetDevToolsClient,
+          timeout=self.browser_options.browser_startup_timeout)
     except (py_utils.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)
