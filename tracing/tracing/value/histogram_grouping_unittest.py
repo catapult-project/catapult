@@ -6,22 +6,23 @@ import unittest
 
 from tracing.value import histogram
 from tracing.value import histogram_grouping
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 class HistogramGroupingUnittest(unittest.TestCase):
 
   def testBooleanTags(self):
     a_hist = histogram.Histogram('', 'count')
-    a_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    a_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['video', 'audio'])
     b_hist = histogram.Histogram('', 'count')
-    b_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    b_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['audio'])
     c_hist = histogram.Histogram('', 'count')
-    c_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    c_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['video'])
     d_hist = histogram.Histogram('', 'count')
-    d_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    d_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         [])
     groupings = histogram_grouping.BuildFromTags(
         ['audio', 'video'], reserved_infos.STORY_TAGS.name)
@@ -39,16 +40,16 @@ class HistogramGroupingUnittest(unittest.TestCase):
 
   def testKeyValueTags(self):
     a_hist = histogram.Histogram('', 'count')
-    a_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    a_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['case:load'])
     b_hist = histogram.Histogram('', 'count')
-    b_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    b_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['case:browse'])
     c_hist = histogram.Histogram('', 'count')
-    c_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    c_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         [])
     d_hist = histogram.Histogram('', 'count')
-    d_hist.diagnostics[reserved_infos.STORY_TAGS.name] = histogram.GenericSet(
+    d_hist.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
         ['case:load', 'case:browse'])
     groupings = histogram_grouping.BuildFromTags(
         ['case:load', 'case:browse'], reserved_infos.STORY_TAGS.name)
@@ -66,16 +67,16 @@ class HistogramGroupingUnittest(unittest.TestCase):
   def testDisplayLabel(self):
     hist = histogram.Histogram('test', 'count')
     self.assertEqual(histogram_grouping.DISPLAY_LABEL.callback(hist), 'Value')
-    hist.diagnostics[reserved_infos.LABELS.name] = histogram.GenericSet(['H'])
+    hist.diagnostics[reserved_infos.LABELS.name] = generic_set.GenericSet(['H'])
     self.assertEqual(histogram_grouping.DISPLAY_LABEL.callback(hist), 'H')
 
   def testGenericSet(self):
     grouping = histogram_grouping.GenericSetGrouping('foo')
     hist = histogram.Histogram('', 'count')
     self.assertEqual(grouping.callback(hist), '')
-    hist.diagnostics['foo'] = histogram.GenericSet(['baz'])
+    hist.diagnostics['foo'] = generic_set.GenericSet(['baz'])
     self.assertEqual(grouping.callback(hist), 'baz')
-    hist.diagnostics['foo'] = histogram.GenericSet(['baz', 'bar'])
+    hist.diagnostics['foo'] = generic_set.GenericSet(['baz', 'bar'])
     self.assertEqual(grouping.callback(hist), 'bar,baz')
 
   def testReservedGenericSetGroupings(self):

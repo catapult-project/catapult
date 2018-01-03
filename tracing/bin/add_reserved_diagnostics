@@ -14,9 +14,9 @@ sys.path.append(tracing_path)
 import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
 from py_utils import camel_case
-from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value import merge_histograms
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 def main():
@@ -77,7 +77,7 @@ def main():
   histograms.ImportDicts(dicts_across_stories)
 
   for name, value in names_to_values.iteritems():
-    histograms.AddSharedDiagnostic(name, histogram.GenericSet([value]))
+    histograms.AddSharedDiagnostic(name, generic_set.GenericSet([value]))
 
   results_json = json.dumps(histograms.AsDicts())
 

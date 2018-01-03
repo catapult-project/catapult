@@ -20,6 +20,7 @@ from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 TEST_HISTOGRAM = {
@@ -250,7 +251,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['http://unescaped_story']))
+        generic_set.GenericSet(['http://unescaped_story']))
 
     test_path = 'Chromium/win7/suite/metric'
     params = [{

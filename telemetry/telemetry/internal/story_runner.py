@@ -29,6 +29,7 @@ from telemetry.value import skip
 from telemetry.value import scalar
 from telemetry.web_perf import story_test
 from tracing.value import histogram
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
@@ -492,5 +493,5 @@ def _MakeDeviceInfoDiagnostics(state):
   for name, value in device_info_data.iteritems():
     if not value:
       continue
-    device_info_diangostics[name] = histogram.GenericSet([value])
+    device_info_diangostics[name] = generic_set.GenericSet([value])
   return device_info_diangostics

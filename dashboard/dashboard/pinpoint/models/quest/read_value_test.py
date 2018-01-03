@@ -10,6 +10,7 @@ import mock
 from dashboard.pinpoint.models.quest import read_value
 from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
@@ -240,10 +241,10 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:tir_label']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['story']))
+        generic_set.GenericSet(['story']))
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
         json.dumps(histograms.AsDicts()),
@@ -277,10 +278,10 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     histograms = histogram_set.HistogramSet([hist, hist2, hist3])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:tir_label']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['story']))
+        generic_set.GenericSet(['story']))
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
         json.dumps(histograms.AsDicts()),
@@ -302,10 +303,10 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
-        histogram_module.GenericSet(['trace_url1', 'trace_url2']))
+        generic_set.GenericSet(['trace_url1', 'trace_url2']))
     hist2 = histogram_module.Histogram('hist2', 'count')
     hist2.diagnostics[reserved_infos.TRACE_URLS.name] = (
-        histogram_module.GenericSet(['trace_url3']))
+        generic_set.GenericSet(['trace_url3']))
     histograms = histogram_set.HistogramSet([hist, hist2])
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
@@ -347,7 +348,7 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:tir_label']))
 
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
@@ -374,7 +375,7 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['story']))
+        generic_set.GenericSet(['story']))
 
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
@@ -402,14 +403,14 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
       hist.AddSample(1)
       hist.AddSample(2)
       hist.diagnostics[reserved_infos.STORIES.name] = (
-          histogram_module.GenericSet(['story%d' % i]))
+          generic_set.GenericSet(['story%d' % i]))
       hists.append(hist)
       samples.extend(hist.sample_values)
 
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:tir_label']))
 
     retrieve.side_effect = (
         {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},

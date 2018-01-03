@@ -7,7 +7,7 @@ import unittest
 from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic_ref
-
+from tracing.value.diagnostics import generic_set
 
 class HistogramSetUnittest(unittest.TestCase):
 
@@ -59,14 +59,14 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertIs(c2, rhm2.Get('z'))
 
   def testGetSharedDiagnosticsOfType(self):
-    d0 = histogram.GenericSet(['foo'])
+    d0 = generic_set.GenericSet(['foo'])
     d1 = histogram.DateRange(0)
     hs = histogram_set.HistogramSet()
     hs.AddSharedDiagnostic('generic', d0)
     hs.AddSharedDiagnostic('generic', d1)
-    diagnostics = hs.GetSharedDiagnosticsOfType(histogram.GenericSet)
+    diagnostics = hs.GetSharedDiagnosticsOfType(generic_set.GenericSet)
     self.assertEqual(len(diagnostics), 1)
-    self.assertIsInstance(diagnostics[0], histogram.GenericSet)
+    self.assertIsInstance(diagnostics[0], generic_set.GenericSet)
 
   def testImportDicts(self):
     hist = histogram.Histogram('', 'unitless')
@@ -89,7 +89,7 @@ class HistogramSetUnittest(unittest.TestCase):
   def testSharedDiagnostic(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
-    diag = histogram.GenericSet(['shared'])
+    diag = generic_set.GenericSet(['shared'])
     hists.AddSharedDiagnostic('generic', diag)
 
     # Serializing a single Histogram with a single shared diagnostic should
@@ -109,14 +109,14 @@ class HistogramSetUnittest(unittest.TestCase):
     hist2 = [h for h in hists2][0]
 
     self.assertIsInstance(
-        hist2.diagnostics.get('generic'), histogram.GenericSet)
+        hist2.diagnostics.get('generic'), generic_set.GenericSet)
     self.assertEqual(list(diag), list(hist2.diagnostics.get('generic')))
 
   def testReplaceSharedDiagnostic(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
-    diag0 = histogram.GenericSet(['shared0'])
-    diag1 = histogram.GenericSet(['shared1'])
+    diag0 = generic_set.GenericSet(['shared0'])
+    diag1 = generic_set.GenericSet(['shared1'])
     hists.AddSharedDiagnostic('generic0', diag0)
     hists.AddSharedDiagnostic('generic1', diag1)
 
@@ -132,8 +132,8 @@ class HistogramSetUnittest(unittest.TestCase):
   def testReplaceSharedDiagnostic_NonRefAddsToMap(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
-    diag0 = histogram.GenericSet(['shared0'])
-    diag1 = histogram.GenericSet(['shared1'])
+    diag0 = generic_set.GenericSet(['shared0'])
+    diag1 = generic_set.GenericSet(['shared1'])
     hists.AddSharedDiagnostic('generic0', diag0)
 
     guid0 = diag0.guid
@@ -144,13 +144,13 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertIsNotNone(hists.LookupDiagnostic(guid1))
 
   def testDeduplicateDiagnostics(self):
-    generic_a = histogram.GenericSet(['A'])
-    generic_b = histogram.GenericSet(['B'])
+    generic_a = generic_set.GenericSet(['A'])
+    generic_b = generic_set.GenericSet(['B'])
     date_a = histogram.DateRange(42)
     date_b = histogram.DateRange(57)
 
     a_hist = histogram.Histogram('a', 'unitless')
-    generic0 = histogram.GenericSet.FromDict(generic_a.AsDict())
+    generic0 = generic_set.GenericSet.FromDict(generic_a.AsDict())
     generic0.AddDiagnostic(generic_b)
     a_hist.diagnostics['generic'] = generic0
     date0 = histogram.DateRange.FromDict(date_a.AsDict())
@@ -158,7 +158,7 @@ class HistogramSetUnittest(unittest.TestCase):
     a_hist.diagnostics['date'] = date0
 
     b_hist = histogram.Histogram('b', 'unitless')
-    generic1 = histogram.GenericSet.FromDict(generic_a.AsDict())
+    generic1 = generic_set.GenericSet.FromDict(generic_a.AsDict())
     generic1.AddDiagnostic(generic_b)
     b_hist.diagnostics['generic'] = generic1
     date1 = histogram.DateRange.FromDict(date_a.AsDict())

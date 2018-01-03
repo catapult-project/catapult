@@ -13,7 +13,7 @@ from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
 from telemetry.web_perf import timeline_based_measurement
-from tracing.value import histogram
+from tracing.value.diagnostics import generic_set
 
 Owner = decorators.Owner # pylint: disable=invalid-name
 
@@ -197,7 +197,7 @@ class Benchmark(command_line.Command):
     benchmark_component = decorators.GetComponent(self)
     component_diagnostic_value = (
         [benchmark_component] if benchmark_component else [])
-    return histogram.GenericSet(component_diagnostic_value)
+    return generic_set.GenericSet(component_diagnostic_value)
 
   def GetOwners(self):
     """Returns a Generic Diagnostic containing the benchmark's owners' emails
@@ -206,7 +206,7 @@ class Benchmark(command_line.Command):
     Returns:
       Diagnostic with a list of the benchmark's owners' emails
     """
-    return histogram.GenericSet(decorators.GetEmails(self) or [])
+    return generic_set.GenericSet(decorators.GetEmails(self) or [])
 
   @decorators.Deprecated(
       2017, 7, 29, 'Use CreateCoreTimelineBasedMeasurementOptions instead.')

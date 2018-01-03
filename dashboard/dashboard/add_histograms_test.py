@@ -25,6 +25,7 @@ from dashboard.models import histogram
 from dashboard.models import sheriff
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 # pylint: disable=too-many-lines
@@ -175,25 +176,25 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       histograms = histogram_set.HistogramSet(hists)
       histograms.AddSharedDiagnostic(
           reserved_infos.MASTERS.name,
-          histogram_module.GenericSet(['master']))
+          generic_set.GenericSet(['master']))
       histograms.AddSharedDiagnostic(
           reserved_infos.BOTS.name,
-          histogram_module.GenericSet(['bot']))
+          generic_set.GenericSet(['bot']))
       histograms.AddSharedDiagnostic(
           reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-          histogram_module.GenericSet([revision]))
+          generic_set.GenericSet([revision]))
       histograms.AddSharedDiagnostic(
           reserved_infos.BENCHMARKS.name,
-          histogram_module.GenericSet(['benchmark']))
+          generic_set.GenericSet(['benchmark']))
       histograms.AddSharedDiagnostic(
           reserved_infos.OWNERS.name,
-          histogram_module.GenericSet([owner]))
+          generic_set.GenericSet([owner]))
       histograms.AddSharedDiagnostic(
           reserved_infos.DEVICE_IDS.name,
-          histogram_module.GenericSet([device]))
+          generic_set.GenericSet([device]))
       histograms.AddSharedDiagnostic(
           reserved_infos.STORIES.name,
-          histogram_module.GenericSet(['story1', 'story2']))
+          generic_set.GenericSet(['story1', 'story2']))
       return histograms
 
     hs = _CreateHistogram(1111, 'device1', 'owner1')
@@ -257,19 +258,19 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-        histogram_module.GenericSet([12345]))
+        generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.DEVICE_IDS.name,
-        histogram_module.GenericSet(['devie_foo']))
+        generic_set.GenericSet(['devie_foo']))
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
@@ -295,16 +296,16 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-        histogram_module.GenericSet([12345]))
+        generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
@@ -381,19 +382,19 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-        histogram_module.GenericSet([12345]))
+        generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.DEVICE_IDS.name,
-        histogram_module.GenericSet(['devie_foo']))
+        generic_set.GenericSet(['devie_foo']))
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
@@ -413,19 +414,19 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-        histogram_module.GenericSet([12345]))
+        generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.DEVICE_IDS.name,
-        histogram_module.GenericSet(['devie_foo']))
+        generic_set.GenericSet(['devie_foo']))
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
@@ -1007,23 +1008,23 @@ class AddHistogramsTest(testing_common.TestCase):
   def testFindHistogramLevelSparseDiagnostics(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic('foo', histogram_module.GenericSet(['bar']))
+    histograms.AddSharedDiagnostic('foo', generic_set.GenericSet(['bar']))
     histograms.AddSharedDiagnostic(
         reserved_infos.DEVICE_IDS.name,
-        histogram_module.GenericSet([]))
+        generic_set.GenericSet([]))
     diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(
         hist.guid, histograms)
 
     self.assertEqual(1, len(diagnostics))
     self.assertIsInstance(
         diagnostics[reserved_infos.DEVICE_IDS.name],
-        histogram_module.GenericSet)
+        generic_set.GenericSet)
 
   def testFindSuiteLevelSparseDiagnostics(self):
     def _CreateHistogram(hist, master):
       h = histogram_module.Histogram(hist, 'count')
       h.diagnostics[reserved_infos.MASTERS.name] = (
-          histogram_module.GenericSet([master]))
+          generic_set.GenericSet([master]))
       return h
 
     histograms = histogram_set.HistogramSet([
@@ -1039,16 +1040,16 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['http://story']))
+        generic_set.GenericSet(['http://story']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
         'master/bot/benchmark', hist.guid, histograms)
@@ -1059,19 +1060,19 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['http://story']))
+        generic_set.GenericSet(['http://story']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(
+        generic_set.GenericSet(
             ['group:media', 'ignored_tag', 'case:browse']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
@@ -1084,13 +1085,13 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
         'master/bot/benchmark', hist.guid, histograms)
@@ -1101,16 +1102,16 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.IS_REFERENCE_BUILD.name,
-        histogram_module.GenericSet([True]))
+        generic_set.GenericSet([True]))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
         'master/bot/benchmark', hist.guid, histograms)
@@ -1121,19 +1122,19 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.MASTERS.name,
-        histogram_module.GenericSet(['master']))
+        generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BOTS.name,
-        histogram_module.GenericSet(['bot']))
+        generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
-        histogram_module.GenericSet(['http://story']))
+        generic_set.GenericSet(['http://story']))
     histograms.AddSharedDiagnostic(
         reserved_infos.IS_REFERENCE_BUILD.name,
-        histogram_module.GenericSet([True]))
+        generic_set.GenericSet([True]))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
         'master/bot/benchmark', hist.guid, histograms)
@@ -1142,7 +1143,7 @@ class AddHistogramsTest(testing_common.TestCase):
   def testComputeRevision(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    chromium_commit = histogram_module.GenericSet([424242])
+    chromium_commit = generic_set.GenericSet([424242])
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     self.assertEqual(424242, add_histograms.ComputeRevision(histograms))
@@ -1150,7 +1151,7 @@ class AddHistogramsTest(testing_common.TestCase):
   def testComputeRevision_RaisesOnError(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    chromium_commit = histogram_module.GenericSet([424242, 0])
+    chromium_commit = generic_set.GenericSet([424242, 0])
     histograms.AddSharedDiagnostic(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     with self.assertRaises(api_request_handler.BadRequestError):
@@ -1161,7 +1162,7 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
-        histogram_module.GenericSet(['benchmark']))
+        generic_set.GenericSet(['benchmark']))
     add_histograms.InlineDenseSharedDiagnostics(histograms)
     self.assertTrue(hist.diagnostics[reserved_infos.BENCHMARKS.name].has_guid)
 
@@ -1171,7 +1172,7 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.LOG_URLS.name,
-        histogram_module.GenericSet(['http://foo']))
+        generic_set.GenericSet(['http://foo']))
     add_histograms._LogDebugInfo(histograms)
     mock_log.assert_called_once_with('Buildbot URL: %s', "['http://foo']")
 

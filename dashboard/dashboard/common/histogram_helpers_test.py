@@ -6,6 +6,7 @@ from dashboard.common import histogram_helpers
 from dashboard.common import testing_common
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
@@ -23,7 +24,7 @@ class HistogramHelpersTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(['foo', 'bar']))
+        generic_set.GenericSet(['foo', 'bar']))
     self.assertEqual('', histogram_helpers.GetTIRLabelFromHistogram(hist))
 
   def testGetTIRLabelFromHistogram_ValidTags_SortsByKey(self):
@@ -31,7 +32,7 @@ class HistogramHelpersTest(testing_common.TestCase):
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORY_TAGS.name,
-        histogram_module.GenericSet(
+        generic_set.GenericSet(
             ['z:last', 'ignore', 'a:first', 'me', 'm:middle']))
     self.assertEqual(
         'first_middle_last', histogram_helpers.GetTIRLabelFromHistogram(hist))

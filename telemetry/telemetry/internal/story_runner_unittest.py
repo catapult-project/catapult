@@ -40,6 +40,7 @@ from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 # This linter complains if we define classes nested inside functions.
@@ -706,7 +707,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs = self.results.histograms
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
-        histogram_module.GenericSet)
+        generic_set.GenericSet)
 
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
@@ -745,7 +746,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs = self.results.histograms
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
-        histogram_module.GenericSet)
+        generic_set.GenericSet)
 
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
@@ -778,7 +779,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs = self.results.histograms
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
-        histogram_module.GenericSet)
+        generic_set.GenericSet)
 
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
@@ -1376,7 +1377,7 @@ class StoryRunnerTest(unittest.TestCase):
       hs.ImportDicts(data)
 
       generic_diagnostics = hs.GetSharedDiagnosticsOfType(
-          histogram_module.GenericSet)
+          generic_set.GenericSet)
 
       self.assertGreater(len(generic_diagnostics), 0)
 
@@ -1412,7 +1413,7 @@ class StoryRunnerTest(unittest.TestCase):
       hs.ImportDicts(data)
 
       generic_diagnostics = hs.GetSharedDiagnosticsOfType(
-          histogram_module.GenericSet)
+          generic_set.GenericSet)
 
       self.assertGreater(len(generic_diagnostics), 0)
 
