@@ -69,6 +69,8 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     cls._browser_to_create = browser_finder.FindBrowser(browser_options)
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
+      cls.platform.SetFullPerformanceModeEnabled(
+          browser_options.full_performance_mode)
       cls.platform.network_controller.Open()
     else:
       assert cls.platform == cls._browser_to_create.platform, (
@@ -121,6 +123,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     if cls.platform:
       cls.platform.StopAllLocalServers()
       cls.platform.network_controller.Close()
+      cls.platform.SetFullPerformanceModeEnabled(False)
     if cls.browser:
       cls.StopBrowser()
 

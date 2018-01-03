@@ -86,9 +86,6 @@ class PlatformBackend(object):
   def GetSystemLog(self):
     return None
 
-  def DidCreateBrowser(self, browser, browser_backend):
-    browser_options = browser_backend.browser_options
-    self.SetFullPerformanceModeEnabled(browser_options.full_performance_mode)
 
   def IsRemoteDevice(self):
     """Check if target platform is on remote device.

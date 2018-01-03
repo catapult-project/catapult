@@ -48,6 +48,9 @@ class BrowserFinderOptions(optparse.Values):
 
     self.remote_platform_options = None
 
+    self.full_performance_mode = True
+
+    # TODO(crbug.com/798703): remove this
     self.no_performance_mode = False
 
   def __repr__(self):
@@ -282,7 +285,6 @@ class BrowserOptions(object):
     self._extra_browser_args = set()
     self.extra_wpr_args = []
     self.wpr_mode = wpr_modes.WPR_OFF
-    self.full_performance_mode = True
 
     # The amount of time Telemetry should wait for the browser to start.
     # This property is not exposed as a command line option.

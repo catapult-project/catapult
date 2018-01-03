@@ -36,7 +36,6 @@ class Browser(app.App):
       self._browser_backend = backend
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
-      self._platform_backend.DidCreateBrowser(self, self._browser_backend)
       self._browser_backend.SetBrowser(self)
       self._browser_backend.Start()
       self._LogBrowserInfo()

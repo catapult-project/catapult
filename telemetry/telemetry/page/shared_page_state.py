@@ -85,6 +85,8 @@ class SharedPageState(story_module.SharedState):
       wpr_mode = wpr_modes.WPR_REPLAY
     self._extra_wpr_args = browser_options.extra_wpr_args
 
+    self.platform.SetFullPerformanceModeEnabled(
+        finder_options.full_performance_mode)
     self.platform.network_controller.Open(wpr_mode)
     self.platform.Initialize()
 
