@@ -419,11 +419,12 @@ class _JobState(object):
       # Compare exceptions.
       values_a = tuple(bool(execution.exception) for execution in executions_a)
       values_b = tuple(bool(execution.exception) for execution in executions_b)
-      comparison = _CompareValues(values_a, values_b)
-      if comparison == _DIFFERENT:
-        return _DIFFERENT
-      elif comparison == _UNKNOWN:
-        any_unknowns = True
+      if values_a and values_b:
+        comparison = _CompareValues(values_a, values_b)
+        if comparison == _DIFFERENT:
+          return _DIFFERENT
+        elif comparison == _UNKNOWN:
+          any_unknowns = True
 
       # Compare result values.
       values_a = tuple(itertools.chain.from_iterable(
