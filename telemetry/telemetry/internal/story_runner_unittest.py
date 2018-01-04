@@ -1209,7 +1209,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
         mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results, exc),
+            root_mock.story, root_mock.results),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryTimeout_finallyException(self):

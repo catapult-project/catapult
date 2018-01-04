@@ -152,9 +152,9 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
           test.DidRunPage(state.platform)
         # And the following normally causes the browser to be closed.
         state.DidRunStory(results)
-      except Exception as exc: # pylint: disable=broad-except
+      except Exception: # pylint: disable=broad-except
         if not has_existing_exception:
-          state.DumpStateUponFailure(story, results, exc)
+          state.DumpStateUponFailure(story, results)
           raise
         # Print current exception and propagate existing exception.
         exception_formatter.PrintFormattedException(
