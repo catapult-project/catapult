@@ -34,6 +34,22 @@ class FindIsolate(quest.Quest):
     return _FindIsolateExecution(self._builder_name, self._target, change,
                                  self._previous_builds)
 
+  @classmethod
+  def FromDict(cls, arguments):
+    used_arguments = {}
+
+    configuration = arguments.get('configuration')
+    if not configuration:
+      raise TypeError('Missing "configuration" argument.')
+    used_arguments['configuration'] = configuration
+
+    target = arguments.get('target')
+    if not target:
+      raise TypeError('Missing "target" argument.')
+    used_arguments['target'] = target
+
+    return used_arguments, cls(configuration, target)
+
 
 class _FindIsolateExecution(execution.Execution):
 

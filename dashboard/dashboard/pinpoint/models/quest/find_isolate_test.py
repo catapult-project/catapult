@@ -15,7 +15,31 @@ from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import find_isolate
 
 
-class _FindIsolateTest(unittest.TestCase):
+class FindIsolateQuestTest(unittest.TestCase):
+
+  def testMissingArguments(self):
+    arguments = {'target': 'telemetry_perf_tests'}
+    # configuration is missing.
+    with self.assertRaises(TypeError):
+      find_isolate.FindIsolate.FromDict(arguments)
+
+    arguments = {'configuration': 'chromium-rel-mac11-pro'}
+    # target is missing.
+    with self.assertRaises(TypeError):
+      find_isolate.FindIsolate.FromDict(arguments)
+
+  def testAllArguments(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_tests',
+    }
+    expected = find_isolate.FindIsolate(
+        'chromium-rel-mac11-pro', 'telemetry_perf_tests')
+    self.assertEqual(find_isolate.FindIsolate.FromDict(arguments),
+                     (arguments, expected))
+
+
+class _FindIsolateExecutionTest(unittest.TestCase):
 
   def setUp(self):
     self.testbed = testbed.Testbed()
@@ -55,7 +79,7 @@ class _FindIsolateTest(unittest.TestCase):
     self.assertIsNone(execution.exception)
 
 
-class IsolateLookupTest(_FindIsolateTest):
+class IsolateLookupTest(_FindIsolateExecutionTest):
 
   def testIsolateLookupSuccess(self):
     change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
@@ -77,7 +101,7 @@ class IsolateLookupTest(_FindIsolateTest):
         execution.AsDict())
 
 
-class BuilderLookupTest(_FindIsolateTest):
+class BuilderLookupTest(_FindIsolateExecutionTest):
 
   def testSuccesfulBuilderLookupForAllBuilders(self):
     builder_testers = (
@@ -111,7 +135,7 @@ class BuilderLookupTest(_FindIsolateTest):
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
 @mock.patch('dashboard.services.buildbucket_service.Put')
-class BuildTest(_FindIsolateTest):
+class BuildTest(_FindIsolateExecutionTest):
 
   @mock.patch.object(change_module.GerritPatch, 'BuildParameters')
   def testBuildLifecycle(self, build_parameters, put, get_job_status):

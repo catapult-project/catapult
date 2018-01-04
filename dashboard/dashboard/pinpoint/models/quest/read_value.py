@@ -18,6 +18,7 @@ class ReadValueError(Exception):
 
 
 class ReadChartJsonValue(quest.Quest):
+  # TODO: Deprecated.
 
   def __init__(self, chart, tir_label=None, trace=None, statistic=None):
     self._chart = chart
@@ -48,6 +49,29 @@ class ReadChartJsonValue(quest.Quest):
     return _ReadChartJsonValueExecution(self._chart, self._tir_label,
                                         self._trace, self._statistic,
                                         isolate_hash)
+
+  @classmethod
+  def FromDict(cls, arguments):
+    used_arguments = {}
+
+    chart = arguments.get('chart')
+    if not chart:
+      return {}, None
+    used_arguments['chart'] = chart
+
+    tir_label = arguments.get('tir_label')
+    if tir_label:
+      used_arguments['tir_label'] = tir_label
+
+    trace = arguments.get('trace')
+    if trace:
+      used_arguments['trace'] = trace
+
+    statistic = arguments.get('statistic')
+    if statistic:
+      used_arguments['statistic'] = statistic
+
+    return used_arguments, cls(chart, tir_label, trace, statistic)
 
 
 class _ReadChartJsonValueExecution(execution.Execution):
@@ -139,6 +163,28 @@ class ReadHistogramsJsonValue(quest.Quest):
     return _ReadHistogramsJsonValueExecution(self._hist_name, self._tir_label,
                                              self._story, self._statistic,
                                              isolate_hash)
+
+  @classmethod
+  def FromDict(cls, arguments):
+    used_arguments = {}
+
+    chart = arguments.get('chart')
+    if chart:
+      used_arguments['chart'] = chart
+
+    tir_label = arguments.get('tir_label')
+    if tir_label:
+      used_arguments['tir_label'] = tir_label
+
+    trace = arguments.get('trace')
+    if trace:
+      used_arguments['trace'] = trace
+
+    statistic = arguments.get('statistic')
+    if statistic:
+      used_arguments['statistic'] = statistic
+
+    return used_arguments, cls(chart, tir_label, trace, statistic)
 
 
 class _ReadHistogramsJsonValueExecution(execution.Execution):
@@ -264,6 +310,23 @@ class ReadGraphJsonValue(quest.Quest):
   def Start(self, change, isolate_hash):
     del change
     return _ReadGraphJsonValueExecution(self._chart, self._trace, isolate_hash)
+
+  @classmethod
+  def FromDict(cls, arguments):
+    used_arguments = {}
+
+    chart = arguments.get('chart')
+    trace = arguments.get('trace')
+    if not (chart or trace):
+      return {}, None
+    if chart and not trace:
+      raise TypeError('"chart" specified but no "trace" given.')
+    if trace and not chart:
+      raise TypeError('"trace" specified but no "chart" given.')
+    used_arguments['chart'] = chart
+    used_arguments['trace'] = trace
+
+    return used_arguments, cls(chart, trace)
 
 
 class _ReadGraphJsonValueExecution(execution.Execution):

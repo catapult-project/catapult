@@ -14,7 +14,54 @@ from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
-class _ReadValueTest(unittest.TestCase):
+class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
+
+  def testMinimumArguments(self):
+    arguments = {}
+
+    expected = read_value.ReadHistogramsJsonValue(None, None, None)
+    self.assertEqual(read_value.ReadHistogramsJsonValue.FromDict(arguments),
+                     (arguments, expected))
+
+  def testAllArguments(self):
+    arguments = {
+        'chart': 'timeToFirst',
+        'tir_label': 'pcv1-cold',
+        'trace': 'trace_name',
+        'statistic': 'avg',
+    }
+
+    expected = read_value.ReadHistogramsJsonValue(
+        'timeToFirst', 'pcv1-cold', 'trace_name', 'avg')
+    self.assertEqual(read_value.ReadHistogramsJsonValue.FromDict(arguments),
+                     (arguments, expected))
+
+
+class ReadGraphJsonValueQuestTest(unittest.TestCase):
+
+  def testMissingArguments(self):
+    arguments = {'trace': 'trace_name'}
+
+    with self.assertRaises(TypeError):
+      read_value.ReadGraphJsonValue.FromDict(arguments)
+
+    arguments = {'chart': 'chart_name'}
+
+    with self.assertRaises(TypeError):
+      read_value.ReadGraphJsonValue.FromDict(arguments)
+
+  def testAllArguments(self):
+    arguments = {
+        'chart': 'chart_name',
+        'trace': 'trace_name',
+    }
+
+    expected = read_value.ReadGraphJsonValue('chart_name', 'trace_name')
+    self.assertEqual(read_value.ReadGraphJsonValue.FromDict(arguments),
+                     (arguments, expected))
+
+
+class _ReadValueExecutionTest(unittest.TestCase):
 
   def assertReadValueError(self, execution):
     self.assertTrue(execution.completed)
@@ -25,7 +72,7 @@ class _ReadValueTest(unittest.TestCase):
 
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')
-class ReadChartJsonValueTest(_ReadValueTest):
+class ReadChartJsonValueTest(_ReadValueExecutionTest):
 
   def testReadChartJsonValue(self, retrieve):
     retrieve.side_effect = (
@@ -231,7 +278,7 @@ class ReadChartJsonValueTest(_ReadValueTest):
 
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')
-class ReadHistogramsJsonValueTest(_ReadValueTest):
+class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
   def testReadHistogramsJsonValue(self, retrieve):
     hist = histogram_module.Histogram('hist', 'count')
@@ -509,7 +556,7 @@ class ReadHistogramsJsonValueTest(_ReadValueTest):
 
 
 @mock.patch('dashboard.services.isolate_service.Retrieve')
-class ReadGraphJsonValueTest(_ReadValueTest):
+class ReadGraphJsonValueTest(_ReadValueExecutionTest):
 
   def testReadGraphJsonValue(self, retrieve):
     retrieve.side_effect = (

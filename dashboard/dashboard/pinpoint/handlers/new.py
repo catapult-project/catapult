@@ -6,9 +6,9 @@ import json
 import webapp2
 
 from dashboard.api import api_auth
-from dashboard.pinpoint.handlers import quest_generator
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import quest as quest_module
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -50,7 +50,7 @@ class New(webapp2.RequestHandler):
       change_2['patch'] = self.request.get('patch')
 
     # Validate arguments and convert them to canonical internal representation.
-    arguments, quests = quest_generator.GenerateQuests(self.request)
+    arguments, quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(change_1, change_2)
 
@@ -90,3 +90,36 @@ def _ValidateBugId(bug_id):
 
 def _ValidateChanges(change_1, change_2):
   return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
+
+
+def _GenerateQuests(arguments):
+  """Generate a list of Quests from a dict of arguments.
+
+  GenerateQuests uses the arguments to infer what types of Quests the user wants
+  to run, and creates a list of Quests with the given configuration.
+
+  Arguments:
+    arguments: A dict or MultiDict containing arguments.
+
+  Returns:
+    A tuple of (arguments, quests), where arguments is a dict containing the
+    request arguments that were used, and quests is a list of Quests.
+  """
+  target = arguments.get('target')
+  if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
+    quest_classes = (quest_module.FindIsolate, quest_module.RunTest,
+                     quest_module.ReadHistogramsJsonValue)
+  else:
+    quest_classes = (quest_module.FindIsolate, quest_module.RunTest,
+                     quest_module.ReadGraphJsonValue)
+
+  used_arguments = {}
+  quests = []
+  for quest_class in quest_classes:
+    quest_arguments, quest = quest_class.FromDict(arguments)
+    if not quest:
+      return used_arguments, quests
+    used_arguments.update(quest_arguments)
+    quests.append(quest)
+
+  return used_arguments, quests
