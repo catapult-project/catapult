@@ -107,11 +107,6 @@ class HistogramSet(object):
 
     for hist in self:
       for name, candidate in hist.diagnostics.iteritems():
-        # TODO(#3695): Remove this check once equality is smoke-tested.
-        if not hasattr(candidate, '__eq__'):
-          self._shared_diagnostics_by_guid[candidate.guid] = candidate
-          continue
-
         diagnostics_to_histograms[candidate].append(hist)
 
         if name not in names_to_candidates:
