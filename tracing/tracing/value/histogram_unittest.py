@@ -4,7 +4,6 @@
 
 import json
 import math
-import sys
 import time
 import unittest
 
@@ -568,26 +567,6 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(2, hist.GetApproximatePercentile(0.7))
     self.assertEqual(3, hist.GetApproximatePercentile(0.9))
     self.assertEqual(4, hist.GetApproximatePercentile(1))
-
-class BreakdownUnittest(unittest.TestCase):
-
-  def testRoundtrip(self):
-    bd = histogram.Breakdown()
-    bd.Set('one', 1)
-    bd.Set('m1', -1)
-    bd.Set('inf', float('inf'))
-    bd.Set('nun', float('nan'))
-    bd.Set('ninf', float('-inf'))
-    bd.Set('long', 1 + sys.maxint)
-    d = bd.AsDict()
-    clone = diagnostic.Diagnostic.FromDict(d)
-    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
-    self.assertEqual(clone.Get('one'), 1)
-    self.assertEqual(clone.Get('m1'), -1)
-    self.assertEqual(clone.Get('inf'), float('inf'))
-    self.assertTrue(math.isnan(clone.Get('nun')))
-    self.assertEqual(clone.Get('ninf'), float('-inf'))
-    self.assertEqual(clone.Get('long'), 1 + sys.maxint)
 
 
 class TagMapUnittest(unittest.TestCase):

@@ -6,8 +6,9 @@ import importlib
 import sys
 
 
+# TODO(#3613): Flatten this to a list once diagnostics are in their own modules.
 _MODULES_BY_DIAGNOSTIC_NAME = {
-    'Breakdown': 'histogram',
+    'Breakdown': 'diagnostics.breakdown',
     'GenericSet': 'diagnostics.generic_set',
     'UnmergeableDiagnosticSet': 'histogram',
     'RelatedEventSet': 'histogram',
