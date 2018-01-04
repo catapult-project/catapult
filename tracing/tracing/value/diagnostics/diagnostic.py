@@ -54,7 +54,7 @@ class Diagnostic(object):
 
   @staticmethod
   def FromDict(dct):
-    cls = all_diagnostics.DIAGNOSTICS_BY_NAME.get(dct['type'])
+    cls = all_diagnostics.GetDiagnosticClassForName(dct['type'])
     if not cls:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
     diagnostic = cls.FromDict(dct)

@@ -49,21 +49,22 @@ def DiscoverPythonDiagnostics():
 def CheckPythonDiagnostics():
   discovered_diagnostics = DiscoverPythonDiagnostics()
 
-  registered_diagnostics = dict(
-      (camel_case.ToUnderscore(k), v)
-          for k, v in all_diagnostics.DIAGNOSTICS_BY_NAME.iteritems())
+  registered_diagnostic_names = [
+      camel_case.ToUnderscore(name)
+          for name in all_diagnostics.GetDiagnosticTypenames()]
 
   unregistered_diagnostics = (set(discovered_diagnostics.keys()) -
-      set(registered_diagnostics.keys()))
+      set(registered_diagnostic_names))
 
   return_code = 0
   if unregistered_diagnostics:
     print ('These diagnostics are unregistered: %s. Please add them to '
-           'tracing/tracing/value/histogram.py.' %
+           'tracing/tracing/value/diagnostics/all_diagnostics.py.' %
            ', '.join(unregistered_diagnostics))
     return_code = 1
 
-  for name, diagnostic in all_diagnostics.DIAGNOSTICS_BY_NAME.iteritems():
+  for name in all_diagnostics.GetDiagnosticTypenames():
+    diagnostic = all_diagnostics.GetDiagnosticClassForName(name)
     if name != diagnostic.__name__:
       print 'This diagnostic refers to the wrong class: %s: %s' % (
           name, diagnostic.__name__)

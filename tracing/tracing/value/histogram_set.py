@@ -76,7 +76,7 @@ class HistogramSet(object):
 
   def ImportDicts(self, dicts):
     for d in dicts:
-      if all_diagnostics.DIAGNOSTICS_BY_NAME.get(d.get('type')):
+      if d.get('type') in all_diagnostics.GetDiagnosticTypenames():
         diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:

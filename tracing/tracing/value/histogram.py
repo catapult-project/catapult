@@ -9,7 +9,6 @@ import numbers
 import random
 import uuid
 
-from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
@@ -1512,16 +1511,3 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
     'count': HistogramBinBoundaries.CreateExponential(1, 1e3, 20),
     'sigma': HistogramBinBoundaries.CreateLinear(-5, 5, 50),
 }
-
-
-all_diagnostics.DIAGNOSTICS_BY_NAME.update({
-    'Breakdown': Breakdown,
-    'GenericSet': GenericSet,
-    'UnmergeableDiagnosticSet': UnmergeableDiagnosticSet,
-    'RelatedEventSet': RelatedEventSet,
-    'DateRange': DateRange,
-    'TagMap': TagMap,
-    'RelatedHistogramBreakdown': RelatedHistogramBreakdown,
-    'RelatedHistogramMap': RelatedHistogramMap,
-    'RelatedNameMap': RelatedNameMap,
-})
