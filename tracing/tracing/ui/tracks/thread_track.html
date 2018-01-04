@@ -112,11 +112,11 @@ tr.exportTo('tr.ui.tracks', function() {
 
     appendAsyncSliceTracks_() {
       const subGroups = this.thread_.asyncSliceGroup.viewSubGroups;
+      // TODO(kraynov): Support nested sub-groups.
       subGroups.forEach(function(subGroup) {
         const asyncTrack = new tr.ui.tracks.AsyncSliceGroupTrack(this.viewport);
-        const title = subGroup.slices[0].viewSubGroupTitle;
         asyncTrack.group = subGroup;
-        asyncTrack.heading = title;
+        asyncTrack.heading = subGroup.title;
         if (asyncTrack.hasVisibleContent) {
           Polymer.dom(this).appendChild(asyncTrack);
         }

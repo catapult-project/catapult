@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome_config.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -30,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   test('asyncSliceGroupBounds_Basic', function() {
     const model = new tr.Model();
     const p1 = new Process(model, 1);
-    const t1 = new Thread(p1, 1);
+    const t1 = p1.getOrCreateThread(456);
     const g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
@@ -38,6 +39,112 @@ tr.b.unittest.testSuite(function() {
     g.updateBounds();
     assert.strictEqual(g.bounds.min, 0);
     assert.strictEqual(g.bounds.max, 2.5);
+  });
+
+  test('asyncSliceGroupChildEvents', function() {
+    const t1 = {};  // Fake thread.
+    const g = new AsyncSliceGroup(t1);
+    const sl1 = newAsyncSlice(0, 1, t1, t1);
+    const sl2 = newAsyncSlice(1, 3, t1, t1);
+    const sl2sub1 = newAsyncSlice(1, 2, t1, t1);
+    sl2.subSlices.push(sl2sub1);
+    const sl2sub1sub1 = newAsyncSlice(2, 1, t1, t1);
+    sl2sub1.subSlices.push(sl2sub1sub1);
+    const sl2sub2 = newAsyncSlice(3, 1, t1, t1);
+    sl2.subSlices.push(sl2sub2);
+    g.push(sl1);
+    g.push(sl2);
+
+    assert.sameMembers(
+        Array.from(g.childEvents()), [sl1, sl2, sl2sub1, sl2sub1sub1, sl2sub2]);
+  });
+
+  test('asyncSliceGroupShiftTimestamps', function() {
+    const t1 = {};  // Fake thread.
+    const g = new AsyncSliceGroup(t1);
+    const sl1 = newAsyncSlice(1, 2, t1, t1);
+    const sl2 = newAsyncSlice(3, 4, t1, t1);
+    const sl2sub1 = newAsyncSlice(3.5, 2, t1, t1);
+    sl2.subSlices.push(sl2sub1);
+    const sl2sub1sub1 = newAsyncSlice(4, 0.5, t1, t1);
+    sl2sub1.subSlices.push(sl2sub1sub1);
+    g.push(sl1);
+    g.push(sl2);
+
+    g.updateBounds();
+    assert.strictEqual(g.bounds.min, 1);
+    assert.strictEqual(g.bounds.max, 7);
+
+    g.shiftTimestampsForward(1.5);
+    g.updateBounds();
+    assert.strictEqual(g.bounds.min, 2.5);
+    assert.strictEqual(g.bounds.max, 8.5);
+    assert.strictEqual(sl2sub1.start, 5);
+    assert.strictEqual(sl2sub1.duration, 2);
+    assert.strictEqual(sl2sub1sub1.start, 5.5);
+    assert.strictEqual(sl2sub1sub1.duration, 0.5);
+  });
+
+  test('asyncSliceGroupViewSubGroups', function() {
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    p1.name = 'Renderer';
+    const t1 = p1.getOrCreateThread(321);
+    t1.name = 'MainThread';
+    const g = new AsyncSliceGroup(t1);
+    g.push(newAsyncSliceEx(
+        { title: 'VeryBusy',
+          start: 0, duration: 1 }));
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Foo',
+          start: 0.5, duration: 0.1 }));
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Bar',
+          start: 0.55, duration: 0.2 }));
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0x1ee7beef', title: 'WebFrameScheduler.Baz',
+          start: 0.3, duration: 0.3 }));
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0x1ee7beef', title: 'WebFrameScheduler.Baz',
+          start: 0.7, duration: 0.2 }));
+    g.push(newAsyncSliceEx(
+        { title: 'VeryBusy',
+          start: 1, duration: 1.5 }));
+    g.push(newAsyncSliceEx(
+        { title: 'Loading',
+          start: 0, duration: 5 }));
+    assert.strictEqual(g.length, 7);
+
+    const vsg = g.viewSubGroups;
+    assert.strictEqual(vsg.length, 4);
+    // Groups must be sorted by title.
+    assert.strictEqual(vsg[0].title, 'Loading');
+    assert.strictEqual(vsg[1].title, 'VeryBusy');
+    assert.strictEqual(vsg[2].title, 'WebFrame:ptr:0x1ee7beef');
+    assert.strictEqual(vsg[3].title, 'WebFrame:ptr:0xdeadbeef');
+    // Check nested view sub-groups.
+    assert.strictEqual(vsg[0].viewSubGroups.length, 0);
+    assert.strictEqual(vsg[1].viewSubGroups.length, 0);
+    const wf1vsg = vsg[2].viewSubGroups;
+    assert.strictEqual(wf1vsg.length, 1);
+    assert.strictEqual(wf1vsg[0].title, 'WebFrameScheduler.Baz');
+    assert.strictEqual(wf1vsg[0].getSettingsKey(),
+        'processes.Renderer.MainThread.' +
+        'WebFrame:ptr:0x1ee7beef.WebFrameScheduler.Baz');
+    const wf2vsg = vsg[3].viewSubGroups;
+    assert.strictEqual(wf2vsg.length, 2);
+    assert.strictEqual(wf2vsg[0].title, 'WebFrameScheduler.Bar');
+    assert.strictEqual(wf2vsg[0].getSettingsKey(),
+        'processes.Renderer.MainThread.' +
+        'WebFrame:ptr:0xdeadbeef.WebFrameScheduler.Bar');
+    assert.strictEqual(wf2vsg[1].title, 'WebFrameScheduler.Foo');
+    assert.strictEqual(wf2vsg[1].getSettingsKey(),
+        'processes.Renderer.MainThread.' +
+        'WebFrame:ptr:0xdeadbeef.WebFrameScheduler.Foo');
   });
 
   test('asyncSliceGroupStableId', function() {
@@ -65,4 +172,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

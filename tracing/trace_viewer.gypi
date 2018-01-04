@@ -68,6 +68,7 @@
       'tracing/extras/chrome/blame_context/frame_tree_node.html',
       'tracing/extras/chrome/blame_context/render_frame.html',
       'tracing/extras/chrome/blame_context/top_level.html',
+      'tracing/extras/chrome/blink/blink_scheduler_async_slice.html',
       'tracing/extras/chrome/cc/cc.html',
       'tracing/extras/chrome/cc/constants.html',
       'tracing/extras/chrome/cc/debug_colors.html',

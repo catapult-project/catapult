@@ -95,6 +95,13 @@ tr.exportTo('tr.model', function() {
       return this.title;
     },
 
+    // Certain AsyncSlices can provide a grouping key to group a set of
+    // independent tracks, while grouping by |viewSubGroupTitle| puts slices
+    // into a single (maybe multi-row but single) track.
+    get viewSubGroupGroupingKey() {
+      return undefined;
+    },
+
     get userFriendlyName() {
       return 'Async slice ' + this.title + ' at ' +
           tr.b.Unit.byName.timeStampInMs.format(this.start);
@@ -134,7 +141,11 @@ tr.exportTo('tr.model', function() {
         yield slice;
       }
       for (const slice of this.subSlices) {
-        yield* slice.enumerateAllDescendents();
+        // Slices might contain sub-events different from AsyncSlice.
+        // We don't go any deeper in that case.
+        if (slice.enumerateAllDescendents !== undefined) {
+          yield* slice.enumerateAllDescendents();
+        }
       }
     },
 
