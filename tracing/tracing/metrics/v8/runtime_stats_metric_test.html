@@ -216,7 +216,7 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.strictEqual(histograms.length, 50);
+    assert.strictEqual(histograms.length, 52);
     assert.strictEqual(histograms.sourceHistograms.length, 50);
 
     // A few of the top level ones.
@@ -224,6 +224,8 @@ tr.b.unittest.testSuite(function() {
     checkRuntimeHistogram_(histograms, 'API', 18, 0.198);
     checkRuntimeHistogram_(histograms, 'Compile', 6, 0.066);
     checkRuntimeHistogram_(histograms, 'Total', 95, 1.045);
+    // Lower level one for Blink.
+    checkRuntimeHistogram_(histograms, 'Blink_UpdateLayout', 15, 0.06);
   });
 
   test('runtimeStatsMetricUsingDomContentLoaded', function() {
