@@ -65,7 +65,8 @@ tr.exportTo('tr.metrics', function() {
         config = metadata.value;
       }
       if (metadata.name === 'metadata' && metadata.value &&
-          metadata.value['trace-config']) {
+          metadata.value['trace-config'] &&
+          metadata.value['trace-config'] !== '__stripped__') {
         config = JSON.parse(metadata.value['trace-config']);
       }
       if (config) {

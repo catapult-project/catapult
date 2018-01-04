@@ -180,5 +180,20 @@ tr.b.unittest.testSuite(function() {
         ['requiresDisabledCategoryMetric']});
     }, Error, 'Trace is missing required category "disabled-by-default-foo"');
   });
+
+  test('processStrippedConfig', function() {
+    const result = new tr.mre.MreResult();
+    const m = TestUtils.newModel(model => {
+      model.metadata = [{
+        name: 'metadata',
+        value: {
+          'trace-config': '__stripped__'
+        },
+      }];
+    });
+    tr.metrics.metricMapFunction(
+        result, m, {'metrics': ['sampleMetric']});
+    assert.lengthOf(result.failures, 0);
+  });
 });
 </script>
