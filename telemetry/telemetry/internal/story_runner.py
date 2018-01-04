@@ -357,14 +357,14 @@ def RunBenchmark(benchmark, finder_options):
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           expectations=expectations, metadata=benchmark.GetMetadata(),
           max_num_values=benchmark.MAX_NUM_VALUES)
-      return_code = min(254, len(results.failures))
+      return_code = 1 if results.failures else 0
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
     except Exception: # pylint: disable=broad-except
       results.telemetry_info.InterruptBenchmark()
       exception_formatter.PrintFormattedException()
-      return_code = 255
+      return_code = 2
 
     benchmark_owners = benchmark.GetOwners()
     benchmark_component = benchmark.GetBugComponents()
