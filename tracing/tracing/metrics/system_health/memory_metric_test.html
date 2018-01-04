@@ -34,6 +34,9 @@ tr.b.unittest.testSuite(function() {
   const count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
   const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
+  const StackFrame = tr.model.StackFrame;
+  const HeapEntry = tr.model.HeapEntry;
+  const HeapDump = tr.model.HeapDump;
 
   function memoryMetricTest(
       name, modelCallback, opt_options, expectedNumerics) {
@@ -401,6 +404,21 @@ tr.b.unittest.testSuite(function() {
       peakResidentBytes: 230,
       privateFootprintBytes: 240,
     };
+    const browserHeapDump = new HeapDump(pmdBrowser1);
+    const rootFrame1 = new StackFrame(
+        undefined, tr.b.GUID.allocateSimple(), undefined);
+    const childFrame1 = new StackFrame(
+        rootFrame1, tr.b.GUID.allocateSimple(), 'draw');
+    rootFrame1.addChild(childFrame1);
+    browserHeapDump.addEntry(
+        undefined, 'HTMLImportLoader', 1024, undefined);
+    browserHeapDump.addEntry(
+        rootFrame1, 'HTMLImportLoader', 1048576, undefined);
+    browserHeapDump.addEntry(undefined, '[unknown]', 17332, 42);
+    browserHeapDump.addEntry(childFrame1, '[unknown]', 26309, 10);
+    pmdBrowser1.heapDumps = {};
+    pmdBrowser1.heapDumps.malloc = browserHeapDump;
+
     const pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
     pmdRendererA1.memoryAllocatorDumps = (function() {
       const mallocDump =
@@ -575,6 +593,15 @@ tr.b.unittest.testSuite(function() {
       addOwnershipLink(partitionAllocDump, v8Dump);
       return [v8Dump, partitionAllocDump];
     })();
+    const rendererBHeapDump4 = new HeapDump(pmdRendererB4);
+    rendererBHeapDump4.addEntry(
+        undefined, 'BlinkObject', 1687992, undefined);
+    rendererBHeapDump4.addEntry(undefined, undefined, 2243546, 42);
+    rendererBHeapDump4.addEntry(undefined, 'BlinkObject', 1252376, 10);
+
+    pmdRendererB4.heapDumps = {};
+    pmdRendererB4.heapDumps.blinkgc = rendererBHeapDump4;
+
     const pmdGpu4 = addProcessMemoryDump(gmd4, pPpapi, {ts: 80});
     pmdGpu4.memoryAllocatorDumps = [
       newAllocatorDump(pmdGpu4, 'gpu',
@@ -628,6 +655,20 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'total size of all allocated objects reported by Chrome ' +
           'for all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:blinkgc:BlinkObject:heap_category_size':
+    {
+      value: [0, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for blinkgc:BlinkObject in ' +
+          'all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:blinkgc:heap_category_size':
+    {
+      value: [0, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for blinkgc in all processes ' +
+          'in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:shim_allocated_objects_size':
     {
@@ -685,6 +726,19 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of gpu in all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_chrome:heap_category_size': {
+      value: [17332, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total heap profiler category size reported by Chrome for ' +
+          'all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:malloc:[unknown]:heap_category_size':
+    {
+      value: [17332, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for malloc:[unknown] in all ' +
+          'processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_chrome:gpu:allocated_objects_size':
     {
       value: [25, 0, 0, 0],
@@ -696,6 +750,13 @@ tr.b.unittest.testSuite(function() {
       value: [8 + 16, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:malloc:heap_category_size':
+    {
+      value: [17332, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for malloc in all processes ' +
+          'in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:malloc:shim_allocated_objects_size':
     {
@@ -907,6 +968,19 @@ tr.b.unittest.testSuite(function() {
       description: 'total effective size reported by Chrome for the browser ' +
           'process in Chrome'
     },
+    'memory:chrome:browser_process:reported_by_chrome:heap_category_size': {
+      value: [17332, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total heap profiler category size reported by Chrome for ' +
+          'the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:malloc:[unknown]:heap_category_size':
+    {
+      value: [17332, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for malloc:[unknown] in the ' +
+          'browser process in Chrome'
+    },
     'memory:chrome:browser_process:reported_by_chrome:allocated_objects_size': {
       value: [4 + 40, 0, 4000, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -924,6 +998,13 @@ tr.b.unittest.testSuite(function() {
       value: [8, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:malloc:heap_category_size':
+    {
+      value: [17332, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for malloc in the browser ' +
+          'process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_chrome:malloc:allocated_objects_size':
     {
@@ -991,6 +1072,20 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects reported by ' +
               'Chrome for renderer processes in Chrome'
     },
+    'memory:chrome:renderer_processes:reported_by_chrome:blinkgc:BlinkObject:heap_category_size':
+    {
+      value: [0, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for blinkgc:BlinkObject in ' +
+          'renderer processes in Chrome'
+    },
+    'memory:chrome:renderer_processes:reported_by_chrome:blinkgc:heap_category_size':
+    {
+      value: [0, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'heap profiler category size for blinkgc in renderer ' +
+          'processes in Chrome'
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:peak_size':
     {
       value: [0, 2 + 20 + 200, 0, 0],
@@ -1004,6 +1099,12 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in renderer processes in ' +
               'Chrome'
+    },
+    'memory:chrome:renderer_processes:reported_by_chrome:heap_category_size': {
+      value: [0, 0, 1687992 + 1252376, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total heap profiler category size reported by Chrome for ' +
+          'renderer processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_chrome:malloc:allocated_objects_size':
     {

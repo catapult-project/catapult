@@ -204,6 +204,10 @@ tr.exportTo('tr.metrics.sh', function() {
             }
           });
 
+          // Add memory:<browser-name>:<process-name>:reported_by_chrome:
+          //    {malloc, blinkgc, partitionalloc}:<largestCategory>:...
+          addTopHeapDumpCategoryValue(processDump, addProcessScalar);
+
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:v8:
           //     {heap, allocated_by_malloc}:...
           addV8MemoryDumpValues(processDump, addProcessScalar);
@@ -219,6 +223,55 @@ tr.exportTo('tr.metrics.sh', function() {
             componentTree.values[i].total -= tracingNode.values[i].total;
           }
         }, values);
+  }
+
+  /**
+   * Add memory dump values for the top category in each allocator heap dump in
+   * the process dump.
+   *
+   * @param {!tr.model.ProcessMemoryDump} processDump The process memory dump.
+   * @param {!function} addProcessScalar The callback for adding a scalar value.
+   */
+  function addTopHeapDumpCategoryValue(processDump, addProcessScalar) {
+    if (!processDump.heapDumps) {
+      return;
+    }
+    for (const allocatorName in processDump.heapDumps) {
+      const heapDump = processDump.heapDumps[allocatorName];
+      if (heapDump.entries === undefined || heapDump.entries.length === 0) {
+        return;
+      }
+      // Create a map of category to total size.
+      const typeToSize = {};
+      for (let i = 0; i < heapDump.entries.length; i += 1) {
+        const entry = heapDump.entries[i];
+        // Count only the entries with empty backtrace which contains totals for
+        // the object type.
+        if (!entry.objectTypeName || entry.leafStackFrame) {
+          continue;
+        }
+        if (!typeToSize[entry.objectTypeName]) {
+          typeToSize[entry.objectTypeName] = 0;
+        }
+        typeToSize[entry.objectTypeName] += entry.size;
+      }
+
+      // Find the largest type in the heap dump.
+      let largestValue = 0;
+      let largestType = '';
+      for (const key in typeToSize) {
+        if (largestValue < typeToSize[key]) {
+          largestValue = typeToSize[key];
+          largestType = key;
+        }
+      }
+      addProcessScalar({
+        source: 'reported_by_chrome',
+        component: [allocatorName, largestType],
+        property: HEAP_CATEGORY_SIZE,
+        value: largestValue
+      });
+    }
   }
 
   /**
@@ -354,6 +407,17 @@ tr.exportTo('tr.metrics.sh', function() {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyName: 'peak size',
         componentPreposition: 'of'
+      });
+    }
+  };
+
+  const HEAP_CATEGORY_SIZE = {
+    name: 'heap_category_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'heap profiler category size',
+        componentPreposition: 'for'
       });
     }
   };
