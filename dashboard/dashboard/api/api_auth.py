@@ -18,7 +18,8 @@ OAUTH_CLIENT_ID_WHITELIST = [
     # This oauth client id is from chromiumdash.
     '377415874083-slpqb5ur4h9sdfk8anlq4qct9imivnmt.apps.googleusercontent.com',
     # This oauth client id is used to upload histograms from the perf waterfall.
-    '113172445342431053212'
+    '113172445342431053212',
+    'chromeperf@webrtc-perf-test.google.com.iam.gserviceaccount.com',
 ]
 OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
