@@ -65,7 +65,7 @@ class SharedAndroidState(story_module.SharedState):
     self._test.Measure(self._android_platform.tracing_controller, results)
 
   def DidRunStory(self, results):
-    self._test.DidRunStory(self._android_platform.tracing_controller)
+    self._test.DidRunStory(self._android_platform.tracing_controller, results)
     if self._android_app:
       self._android_app.Close()
       self._android_app = None
