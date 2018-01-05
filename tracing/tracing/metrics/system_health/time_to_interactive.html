@@ -236,7 +236,10 @@ tr.exportTo('tr.metrics.sh', function() {
                           ' miliseconds apart');
         }
 
-        if (durationBetweenTasks < 0) {
+        // Ideally the condition below should be durationBetweenTasks < 0, but
+        // sometimes, for rounding errors, the end time of one task may very
+        // slightly extend past the start time of the next.
+        if (durationBetweenTasks < -1e7) {
           throw new Error('Internal Error: List of tasks used to construct ' +
                           'TaskCluster must be sorted.');
         }
