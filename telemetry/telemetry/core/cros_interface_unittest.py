@@ -71,7 +71,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       self.assertTrue(cri.IsServiceRunning('openssh-server'))
 
-  # TODO(#1977): Fix this test.
+  # TODO(crbug.com/799484): Fix this test.
   @decorators.Disabled('all')
   def testGetRemotePortAndIsHTTPServerRunningOnPort(self):
     with self._GetCRI() as cri:

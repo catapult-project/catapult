@@ -394,6 +394,8 @@ class Platform(object):
 
   @property
   def http_server(self):
+    # TODO(crbug.com/799490): Ownership of the local server should be moved
+    # to the network_controller.
     return self._local_server_controller.GetRunningServer(
         memory_cache_http_server.MemoryCacheHTTPServer, None)
 
