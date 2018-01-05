@@ -114,7 +114,7 @@ class BrowserBackend(app_backend.AppBackend):
   def CollectTracingData(self, trace_data_builder):
     raise NotImplementedError()
 
-  def Start(self):
+  def Start(self, startup_args, startup_url=None):
     raise NotImplementedError()
 
   def IsBrowserRunning(self):

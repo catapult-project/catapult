@@ -87,36 +87,23 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self.platform_backend.PullProfile(
           self._backend_settings.package, self._output_profile_path)
 
-  def Start(self):
+  def Start(self, startup_args, startup_url=None):
     self.device.adb.Logcat(clear=True)
-    if self.browser_options.startup_url:
-      url = self.browser_options.startup_url
-    elif self.browser_options.profile_dir:
-      url = None
-    else:
-      # If we have no existing tabs start with a blank page since default
-      # startup with the NTP can lead to race conditions with Telemetry
-      url = 'about:blank'
-
     self.platform_backend.DismissCrashDialogIfNeeded()
-
     user_agent_dict = user_agent.GetChromeUserAgentDictFromType(
         self.browser_options.browser_user_agent_type)
-
-    browser_startup_args = self.GetBrowserStartupArgs()
     command_line_name = self._backend_settings.command_line_name
     with flag_changer.CustomCommandLineFlags(
-        self.device, command_line_name, browser_startup_args):
+        self.device, command_line_name, startup_args):
       # Stop existing browser, if any. This is done *after* setting the
       # command line flags, in case some other Android process manages to
       # trigger Chrome's startup before we do.
       self._StopBrowser()
       self._SetupProfile()
-
       self.device.StartActivity(
           intent.Intent(package=self._backend_settings.package,
                         activity=self._backend_settings.activity,
-                        action=None, data=url, category=None,
+                        action=None, data=startup_url, category=None,
                         extras=user_agent_dict),
           blocking=True)
 
@@ -162,6 +149,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         blocking=True)
 
   def GetBrowserStartupArgs(self):
+    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--enable-remote-debugging')
     args.append('--disable-fre')
@@ -172,6 +160,17 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # re-establishing socket connections.
     args.append('--user-data-dir=' + self.profile_directory)
     return args
+
+  def GetBrowserStartupUrl(self):
+    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
+    if self.browser_options.startup_url:
+      return self.browser_options.startup_url
+    elif self.browser_options.profile_dir:
+      return None
+    else:
+      # If we have no existing tabs start with a blank page since default
+      # startup with the NTP can lead to race conditions with Telemetry
+      return 'about:blank'
 
   def ForceJavaHeapGarbageCollection(self):
     # Send USR1 signal to force GC on Chrome processes forked from Zygote.

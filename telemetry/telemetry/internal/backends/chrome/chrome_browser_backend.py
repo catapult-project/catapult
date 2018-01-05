@@ -67,6 +67,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return [arg for arg in args if arg.startswith('--proxy-server=')]
 
   def GetBrowserStartupArgs(self):
+    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     assert not '--no-proxy-server' in self.browser_options.extra_browser_args, (
         '--no-proxy-server flag is disallowed as Chrome needs to be route to '
         'ts_proxy_server')
@@ -126,6 +127,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       args.extend(['--enable-logging', '--v=2'])
 
     return args
+
+  def GetBrowserStartupUrl(self):
+    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
+    return None
 
   # TODO(crbug.com/753948): remove this property once webview supports
   # --ignore-certificate-errors-spki-list.

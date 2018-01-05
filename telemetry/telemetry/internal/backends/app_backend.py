@@ -37,9 +37,6 @@ class AppBackend(object):
   def platform_backend(self):
     return self._platform_backend
 
-  def Start(self):
-    raise NotImplementedError
-
   def Foreground(self):
     # TODO(catapult:#2194): Remove the unnecessary pass below when the method
     # has been implemented on all concrete subclasses.
