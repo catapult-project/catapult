@@ -4,7 +4,7 @@
 """Parses the command line, discovers the appropriate benchmarks, and runs them.
 
 Handles benchmark configuration, but all the logic for
-actually running the benchmark is in Benchmark and PageRunner."""
+actually running the benchmark is in Benchmark and StoryRunner."""
 
 import argparse
 import logging

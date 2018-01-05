@@ -14,7 +14,7 @@ from telemetry.testing import fakes
 from telemetry.util import wpr_modes
 
 
-def SetUpPageRunnerArguments(options):
+def SetUpStoryRunnerArguments(options):
   parser = options.CreateParser()
   story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
