@@ -134,6 +134,10 @@ tr.exportTo('tr.metrics.sh', function() {
         ' for a given renderer while the page is interactive');
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
+      // Renderers with lifetime smaller than WINDOW_SIZE_MS do not have
+      // meaningful EQT.
+      if (rendererHelper.mainThread.bounds.duration < WINDOW_SIZE_MS) continue;
+
       const tasks = getTasks(rendererHelper);
       totalHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
