@@ -4,6 +4,7 @@
 
 import codecs
 import json
+import mock
 import os
 import shutil
 import tempfile
@@ -11,7 +12,6 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
-from telemetry.testing import system_stub
 from telemetry.value import trace
 from tracing_build import html2trace
 from tracing.trace_data import trace_data
@@ -31,13 +31,6 @@ class TestBase(unittest.TestCase):
         page_module.Page('http://www.foo.com/', story_set, story_set.base_dir,
                          name='http://www.foo.com/'))
     self.story_set = story_set
-
-    self._cloud_storage_stub = system_stub.Override(trace, ['cloud_storage'])
-
-  def tearDown(self):
-    if self._cloud_storage_stub:
-      self._cloud_storage_stub.Restore()
-      self._cloud_storage_stub = None
 
   @property
   def pages(self):
@@ -77,28 +70,31 @@ class ValueTest(TestBase):
 
     self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
 
-  def testAsDictWhenTraceSerializedAndUploaded(self):
+  @mock.patch('telemetry.value.trace.cloud_storage.Insert')
+  def testAsDictWhenTraceSerializedAndUploaded(self, insert_mock):
     tempdir = tempfile.mkdtemp()
     try:
+      file_path = os.path.join(tempdir, 'test.html')
       v = trace.TraceValue(
           None, trace_data.CreateTraceDataFromRawData([{'test': 1}]),
-          file_path=os.path.join(tempdir, 'test.html'),
+          file_path=file_path,
           upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
           remote_path='a.html',
           cloud_url='http://example.com/a.html')
       fh = v.Serialize()
-      # pylint: disable=no-member
-      trace.cloud_storage.SetCalculatedHashesForTesting(
-          {fh.GetAbsPath(): 123})
-      # pylint: enable=no-member
       cloud_url = v.UploadToCloud()
       d = v.AsDict()
       self.assertEqual(d['file_id'], fh.id)
       self.assertEqual(d['cloud_url'], cloud_url)
+      insert_mock.assert_called_with(
+          trace.cloud_storage.PUBLIC_BUCKET,
+          'a.html',
+          file_path)
     finally:
       shutil.rmtree(tempdir)
 
-  def testAsDictWhenTraceIsNotSerializedAndUploaded(self):
+  @mock.patch('telemetry.value.trace.cloud_storage.Insert')
+  def testAsDictWhenTraceIsNotSerializedAndUploaded(self, insert_mock):
     test_temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
       v = trace.TraceValue(
@@ -106,13 +102,13 @@ class ValueTest(TestBase):
           upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
           remote_path='a.html',
           cloud_url='http://example.com/a.html')
-      # pylint: disable=no-member
-      trace.cloud_storage.SetCalculatedHashesForTesting(
-          TestDefaultDict(123))
-      # pylint: enable=no-member
       cloud_url = v.UploadToCloud()
       d = v.AsDict()
       self.assertEqual(d['cloud_url'], cloud_url)
+      insert_mock.assert_called_with(
+          trace.cloud_storage.PUBLIC_BUCKET,
+          'a.html',
+          v.filename)
     finally:
       if os.path.exists(test_temp_file.name):
         test_temp_file.close()
