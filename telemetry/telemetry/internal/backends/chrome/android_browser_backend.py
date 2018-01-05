@@ -8,7 +8,6 @@ from telemetry.internal.platform import android_platform_backend as \
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
-from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
@@ -27,8 +26,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         android_platform_backend,
         supports_tab_control=backend_settings.supports_tab_control,
         supports_extensions=False, browser_options=browser_options)
-
-    self._forwarder = None
 
     extensions_to_load = browser_options.extensions_to_load
 
@@ -134,27 +131,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = None  # Use default
     return devtools_port, browser_target
 
-  def _GetDevToolsClientConfig(self):
-    # TODO(crbug.com/787834): Factor out to base class.
-    devtools_port, browser_target = self._FindDevToolsPortAndTarget()
-
-    # This method may be called multiple times due to retries, so we should
-    # restart the forwarder if the ports changed.
-    if (self._forwarder is not None and
-        self._forwarder.remote_port != devtools_port):
-      self._forwarder.Close()
-      self._forwarder = None
-
-    if self._forwarder is None:
-      self._forwarder = self.platform_backend.forwarder_factory.Create(
-          local_port=None, remote_port=devtools_port, reverse=True)
-
-    return devtools_client_backend.DevToolsClientConfig(
-        local_port=self._forwarder.local_port,
-        remote_port=self._forwarder.remote_port,
-        browser_target=browser_target,
-        app_backend=self)
-
   def Foreground(self):
     package = self._backend_settings.package
     activity = self._backend_settings.activity
@@ -256,9 +232,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
     self._StopBrowser()
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
     self._CollectProfile()
 
   def IsBrowserRunning(self):

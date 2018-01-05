@@ -10,7 +10,6 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
-from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 
 import py_utils
 
@@ -25,7 +24,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._cri = cri
     self._is_guest = is_guest
-    self._forwarder = None
 
     extensions_to_load = browser_options.extensions_to_load
 
@@ -56,43 +54,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _FindDevToolsPortAndTarget(self):
     devtools_file_path = self._GetDevToolsActivePortPath()
+    # GetFileContents may rise IOError or OSError, the caller will retry.
+    lines = self._cri.GetFileContents(devtools_file_path).splitlines()
+    if not lines:
+      raise EnvironmentError('DevTools file empty')
 
-    def GetDevToolsFileLines():
-      try:
-        return self._cri.GetFileContents(devtools_file_path).splitlines()
-      except (IOError, OSError):
-        return None  # DevTools file not ready yet. Retry.
-
-    # Retry until file is readable and not empty.
-    lines = py_utils.WaitFor(
-        GetDevToolsFileLines,
-        timeout=self.browser_options.browser_startup_timeout)
     devtools_port = int(lines[0])
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
-
-  def _GetDevToolsClientConfig(self):
-    # TODO(crbug.com/787834): Factor out to base class.
-    devtools_port, browser_target = self._FindDevToolsPortAndTarget()
-
-    # This method may be called multiple times due to retries, so we should
-    # restart the forwarder if the ports changed.
-    if (self._forwarder is not None and
-        self._forwarder.remote_port != devtools_port):
-      self._forwarder.Close()
-      self._forwarder = None
-
-    if self._forwarder is None:
-      # When the cri is local this creates a DoNothingForwarder, also setting
-      # local_port to None lets the forwarder pick a suitable port.
-      self._forwarder = self._platform_backend.forwarder_factory.Create(
-          local_port=None, remote_port=devtools_port, reverse=True)
-
-    return devtools_client_backend.DevToolsClientConfig(
-        local_port=self._forwarder.local_port,
-        remote_port=self._forwarder.remote_port,
-        browser_target=browser_target,
-        app_backend=self)
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
@@ -222,10 +191,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.CloseConnection()
 
     py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
-
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
 
     if self._cri:
       for e in self._extensions_to_load:

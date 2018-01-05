@@ -17,7 +17,7 @@ class AndroidProcess(object):
     self._app_backend = app_backend
     self._pid = pid
     self._name = name
-    # TODO(#1977): Move forwarder to network_controller.
+    # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
     self._forwarder = None
     self._devtools_client = None
 

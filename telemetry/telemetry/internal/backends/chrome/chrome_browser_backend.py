@@ -14,6 +14,7 @@ from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import tab_list_backend
+from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 from telemetry.internal.browser import web_contents
 from telemetry.testing import options_for_unittests
@@ -35,6 +36,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         tab_list_backend=tab_list_backend.TabListBackend)
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None
+    # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
+    self._forwarder = None
 
     self._output_profile_path = browser_options.output_profile_path
     self._extensions_to_load = browser_options.extensions_to_load
@@ -159,9 +162,48 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def HasDevToolsConnection(self):
     return self._devtools_client and self._devtools_client.IsAlive()
 
-  def _GetDevToolsClientConfig(self):
-    """Clients should return a devtools_client_backend.DevToolsClientConfig"""
+  def _FindDevToolsPortAndTarget(self):
+    """Clients should return a (devtools_port, browser_target) pair.
+
+    May also raise EnvironmentError (IOError or OSError) if this information
+    could not be determined; the call will be retried until it succeeds or
+    a timeout is met.
+    """
     raise NotImplementedError
+
+  def _GetDevToolsClient(self):
+    # If the agent does not appear to be ready, it could be because we got the
+    # details of an older agent that no longer exists. It's thus important to
+    # re-read and update the port and target on each retry.
+    try:
+      devtools_port, browser_target = self._FindDevToolsPortAndTarget()
+    except EnvironmentError:
+      return None  # Port information not ready, will retry.
+
+    # Since the method may be called multiple times due to retries, we need to
+    # restart the forwarder if the ports changed.
+    if (self._forwarder is not None and
+        self._forwarder.remote_port != devtools_port):
+      self._forwarder.Close()
+      self._forwarder = None
+
+    if self._forwarder is None:
+      # When running on a local platform this creates a DoNothingForwarder,
+      # and by setting local_port=None we let the forwarder choose a port.
+      self._forwarder = self.platform_backend.forwarder_factory.Create(
+          local_port=None, remote_port=devtools_port, reverse=True)
+
+    devtools_config = devtools_client_backend.DevToolsClientConfig(
+        local_port=self._forwarder.local_port,
+        remote_port=self._forwarder.remote_port,
+        browser_target=browser_target,
+        app_backend=self)
+
+    logging.info('Got devtools config: %s', devtools_config)
+    if not devtools_config.IsAgentReady():
+      return None  # Will retry.
+
+    return devtools_config.Create()
 
   def BindDevToolsClient(self):
     """Find an existing DevTools agent and bind this browser backend to it."""
@@ -172,21 +214,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._devtools_client.Close()
       self._devtools_client = None
 
-    def GetDevToolsClient():
-      # On some platforms, if the agent is not ready it could mean that
-      # the DevTools config we got is for an older agent. It's thus important
-      # to re-read the config on each retry.
-      devtools_config = self._GetDevToolsClientConfig()
-      if not devtools_config:
-        return None  # Will retry.
-      logging.info('Got devtools config: %s', devtools_config)
-      if not devtools_config.IsAgentReady():
-        return None  # Will retry.
-      return devtools_config.Create()
-
     try:
       self._devtools_client = py_utils.WaitFor(
-          GetDevToolsClient,
+          self._GetDevToolsClient,
           timeout=self.browser_options.browser_startup_timeout)
     except (py_utils.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
@@ -297,6 +327,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self._devtools_client:
       self._devtools_client.Close()
       self._devtools_client = None
+    if self._forwarder:
+      self._forwarder.Close()
+      self._forwarder = None
 
   @property
   def supports_system_info(self):

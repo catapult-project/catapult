@@ -24,7 +24,6 @@ from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
-from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.util import path
 
 
@@ -235,34 +234,19 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _FindDevToolsPortAndTarget(self):
     devtools_file_path = self._GetDevToolsActivePortPath()
+    if not os.path.isfile(devtools_file_path):
+      raise EnvironmentError('DevTools file doest not exist yet')
+    # Attempt to avoid reading the file until it's populated.
+    # Both stat and open may raise IOError if not ready, the caller will retry.
+    if os.stat(devtools_file_path).st_size > 0:
+      with open(devtools_file_path) as f:
+        lines = [line.rstrip() for line in f]
+    if not lines:
+      raise EnvironmentError('DevTools file empty')
 
-    def GetDevToolsFileLines():
-      if not os.path.isfile(devtools_file_path):
-        return None  # DevTools file not ready yet. Retry.
-      try:
-        # Attempt to avoid reading the file until it's populated.
-        if os.stat(devtools_file_path).st_size > 0:
-          with open(devtools_file_path) as f:
-            return [line.rstrip() for line in f]
-      except IOError:
-        return None  # Both stat and open can throw exceptions if not ready.
-
-    # Retry until file is readable and not empty.
-    lines = py_utils.WaitFor(
-        GetDevToolsFileLines,
-        timeout=self.browser_options.browser_startup_timeout)
     devtools_port = int(lines[0])
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
-
-  def _GetDevToolsClientConfig(self):
-    # TODO(crbug.com/787834): Factor out to base class.
-    devtools_port, browser_target = self._FindDevToolsPortAndTarget()
-
-    return devtools_client_backend.DevToolsClientConfig(
-        local_port=devtools_port,
-        browser_target=browser_target,
-        app_backend=self)
 
   def GetBrowserStartupArgs(self):
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
