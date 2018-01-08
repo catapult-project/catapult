@@ -4,7 +4,6 @@
 
 from py_trace_event import trace_event
 from telemetry.util import wpr_modes
-import logging
 
 
 class NetworkController(object):
@@ -23,15 +22,7 @@ class NetworkController(object):
   def is_open(self):
     return self._network_controller_backend.is_open
 
-  # TODO(crbug.com/786413): Remove method after clients switch to new API.
-  def InitializeIfNeeded(self, use_live_traffic=False):
-    self._network_controller_backend.Open(
-        wpr_modes.WPR_OFF if use_live_traffic else wpr_modes.WPR_REPLAY)
-
-  def Open(self, wpr_mode=None, extra_wpr_args=None):
-    # TODO(crbug.com/786413): Remove extra_wpr_args option.
-    if extra_wpr_args is not None:
-      logging.warning('extra_wpr_args option should be passed to StartReplay')
+  def Open(self, wpr_mode=None):
     if wpr_mode is None:
       wpr_mode = wpr_modes.WPR_REPLAY
     self._network_controller_backend.Open(wpr_mode)
