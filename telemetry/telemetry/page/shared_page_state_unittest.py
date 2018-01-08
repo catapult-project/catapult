@@ -5,20 +5,12 @@
 import unittest
 
 from telemetry.core import platform as platform_module
-from telemetry.internal import story_runner
 from telemetry.page import page
 from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.util import wpr_modes
-
-
-def SetUpStoryRunnerArguments(options):
-  parser = options.CreateParser()
-  story_runner.AddCommandLineArgs(parser)
-  options.MergeDefaultValues(parser.get_default_values())
-  story_runner.ProcessCommandLineArgs(parser, options)
 
 
 class DummyTest(legacy_page_test.LegacyPageTest):
