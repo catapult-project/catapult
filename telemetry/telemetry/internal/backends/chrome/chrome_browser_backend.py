@@ -74,6 +74,30 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     args = []
     args.extend(self.browser_options.extra_browser_args)
 
+    # Merge multiple instances of --enable-features and --disable-features since
+    # Chrome ends up using whatever switch it finds last instead of merging
+    # multiple instances.
+    # TODO(crbug.com/799411): Remove this once the smarter ChromeArgsBuilder is
+    # implemented.
+    disable_features = set()
+    enable_features = set()
+    temp_args = []
+    for arg in args:
+      if arg.startswith('--disable-features='):
+        disable_features.update(arg.split('=', 1)[1].split(','))
+      elif arg.startswith('--enable-features='):
+        enable_features.update(arg.split('=', 1)[1].split(','))
+      else:
+        temp_args.append(arg)
+
+    if disable_features:
+      temp_args.append(
+          '--disable-features=%s' % ','.join(disable_features))
+    if enable_features:
+      temp_args.append(
+          '--enable-features=%s' % ','.join(enable_features))
+    args = temp_args
+
     args.append('--enable-net-benchmarking')
     args.append('--metrics-recording-only')
     args.append('--no-default-browser-check')
