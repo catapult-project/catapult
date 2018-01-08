@@ -139,3 +139,26 @@ class ArtifactResultsUnittest(unittest.TestCase):
             'artifact_name': ['artifacts/bar.log', 'artifacts/bam.log'],
         }
     })
+
+  @mock.patch('telemetry.internal.results.artifact_results.shutil.move')
+  @mock.patch('telemetry.internal.results.artifact_results.os.makedirs')
+  def testIterTestAndArtifacts(self, make_patch, move_patch):
+    del make_patch, move_patch  # unused
+    ar = artifact_results.ArtifactResults(_abs_join('foo'))
+
+    ar.AddArtifact('foo', 'log', _abs_join(
+        'artifacts', 'foo.log'))
+    ar.AddArtifact('bar', 'screenshot', _abs_join(
+        'artifacts', 'bar.jpg'))
+
+    test_artifacts = {}
+
+    for test_name, artifacts in ar.IterTestAndArtifacts():
+      test_artifacts[test_name] = artifacts
+
+    self.assertEqual({
+        'foo': {'log': ['artifacts/foo.log']},
+        'bar': {'screenshot': ['artifacts/bar.jpg']}
+    }, test_artifacts)
+
+

@@ -13,6 +13,7 @@ import sys
 import tempfile
 import time
 import traceback
+import uuid
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -504,6 +505,26 @@ class PageTestResults(object):
   def UploadTraceFilesToCloud(self):
     for value in self.FindAllTraceValues():
       value.UploadToCloud()
+
+  #TODO(crbug.com/772216): Remove this once the uploading is done by Chromium
+  # test recipe.
+  def UploadArtifactsToCloud(self):
+    bucket = self.telemetry_info.upload_bucket
+    for test_name, artifacts in self._artifact_results.IterTestAndArtifacts():
+      for artifact_type in artifacts:
+        total_num_artifacts = len(artifacts[artifact_type])
+        for i, artifact_path in enumerate(artifacts[artifact_type]):
+          artifact_path = artifacts[artifact_type][i]
+          abs_artifact_path = os.path.abspath(os.path.join(
+              self._artifact_results.artifact_dir, '..', artifact_path))
+          remote_path = str(uuid.uuid1())
+          cloud_url = cloud_storage.Insert(
+              bucket, remote_path, abs_artifact_path)
+          sys.stderr.write(
+              'Uploading %s of page %s to %s (%d out of %d)\n' %
+              (artifact_type, test_name, cloud_url, i + 1,
+               total_num_artifacts))
+
 
   def UploadProfilingFilesToCloud(self):
     bucket = self.telemetry_info.upload_bucket

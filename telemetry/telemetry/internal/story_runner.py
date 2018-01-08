@@ -381,6 +381,7 @@ def RunBenchmark(benchmark, finder_options):
       if finder_options.upload_results:
         results.UploadTraceFilesToCloud()
         results.UploadProfilingFilesToCloud()
+        results.UploadArtifactsToCloud()
     finally:
       duration = time.time() - start
       results.AddSummaryValue(scalar.ScalarValue(

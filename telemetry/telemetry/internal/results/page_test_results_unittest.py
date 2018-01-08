@@ -4,9 +4,13 @@
 
 import os
 import unittest
+import mock
+
+from py_utils import tempfile_ext
 
 from telemetry import benchmark
 from telemetry import story
+from telemetry.internal.results import artifact_results
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
@@ -612,3 +616,46 @@ class PageTestResultsFilterTest(unittest.TestCase):
     # added anyway.
     self.assertEquals(len(results.all_page_specific_values), 1)
     self.assertIn(skip_value, results.all_page_specific_values)
+
+  @mock.patch('py_utils.cloud_storage.Insert')
+  def testUploadArtifactsToCloud(self, cloud_storage_insert_patch):
+    with tempfile_ext.NamedTemporaryDirectory(
+        prefix='artifact_tests') as tempdir:
+
+      ar = artifact_results.ArtifactResults(tempdir)
+      results = page_test_results.PageTestResults(
+          upload_bucket='abc', artifact_results=ar)
+
+
+      with results.CreateArtifact('story1', 'screenshot') as screenshot1:
+        pass
+
+      with results.CreateArtifact('story2', 'log') as log2:
+        pass
+
+      results.UploadArtifactsToCloud()
+      cloud_storage_insert_patch.assert_has_calls(
+          [mock.call('abc', mock.ANY, screenshot1.name),
+           mock.call('abc', mock.ANY, log2.name)],
+          any_order=True)
+
+  @mock.patch('py_utils.cloud_storage.Insert')
+  def testUploadArtifactsToCloud_withNoOpArtifact(
+      self, cloud_storage_insert_patch):
+    del cloud_storage_insert_patch  # unused
+    with tempfile_ext.NamedTemporaryDirectory(
+        prefix='artifact_tests') as tempdir:
+
+      ar = artifact_results.NoopArtifactResults(tempdir)
+      results = page_test_results.PageTestResults(
+          upload_bucket='abc', artifact_results=ar)
+
+
+      with results.CreateArtifact('story1', 'screenshot'):
+        pass
+
+      with results.CreateArtifact('story2', 'log'):
+        pass
+
+      # Just make sure that this does not crash
+      results.UploadArtifactsToCloud()
