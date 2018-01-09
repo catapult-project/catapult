@@ -33,7 +33,9 @@ class Quest(object):
       present.
 
     Raises:
+      KeyError: An argument must be one of a specific list of values.
       TypeError: A required argument is missing.
+      ValueError: An argument has an invalid format or value.
     """
     # TODO: This method should never return ({}, None) and always throw
     # TypeError instead. The distinction between the two cases is not clear; the

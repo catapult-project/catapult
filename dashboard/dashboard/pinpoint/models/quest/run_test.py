@@ -18,7 +18,8 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming_service
 
 
-_BOTS_TO_DIMENSIONS = 'bot_dimensions_map'
+_CONFIGURATION_TO_DIMENSIONS = 'bot_dimensions_map'
+_CONFIGURATION_TO_BROWSER = 'bot_browser_map_2'
 
 _SWARMING_EXTRA_ARGS = (
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
@@ -128,7 +129,7 @@ class RunTest(quest.Quest):
 
     benchmark = arguments.get('benchmark')
     if not benchmark:
-      return {}, None
+      raise TypeError('Missing "benchmark" argument.')
     used_arguments['benchmark'] = benchmark
     swarming_extra_args.append(benchmark)
 
@@ -146,10 +147,7 @@ class RunTest(quest.Quest):
     else:
       swarming_extra_args += ('--pageset-repeat', '1')
 
-    browser = arguments.get('browser')
-    if not browser:
-      raise TypeError('Missing "browser" argument.')
-    used_arguments['browser'] = browser
+    browser = _GetBrowser(arguments, used_arguments)
     swarming_extra_args += ('--browser', browser)
 
     extra_test_args = arguments.get('extra_test_args')
@@ -204,12 +202,29 @@ def _GetDimensions(arguments, used_arguments):
     used_arguments['dimensions'] = json.dumps(dimensions)
   elif configuration:
     used_arguments['configuration'] = configuration
-    bots_to_dimensions = namespaced_stored_object.Get(_BOTS_TO_DIMENSIONS)
-    dimensions = bots_to_dimensions[configuration]
+    configuration_to_dimensions = namespaced_stored_object.Get(
+        _CONFIGURATION_TO_DIMENSIONS)
+    dimensions = configuration_to_dimensions[configuration]
   else:
     raise TypeError('Missing a "configuration" or a "dimensions" argument.')
 
   return dimensions
+
+
+def _GetBrowser(arguments, used_arguments):
+  configuration = arguments.get('configuration')
+  browser = arguments.get('browser')
+  if browser:
+    used_arguments['browser'] = browser
+  elif configuration:
+    used_arguments['configuration'] = configuration
+    configuration_to_browser = namespaced_stored_object.Get(
+        _CONFIGURATION_TO_BROWSER)
+    browser = configuration_to_browser[configuration]
+  else:
+    raise TypeError('Missing a "configuration" or a "browser" argument.')
+
+  return browser
 
 
 class _RunTestExecution(execution_module.Execution):
