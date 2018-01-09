@@ -60,6 +60,10 @@ def GetFromBrowserOptions(browser_options):
   args.extend(user_agent.GetChromeUserAgentArgumentFromType(
       browser_options.browser_user_agent_type))
 
+  if browser_options.extensions_to_load:
+    args.append('--load-extension=%s' % ','.join(
+        ext.local_path for ext in browser_options.extensions_to_load))
+
   if browser_options.disable_component_extensions_with_background_pages:
     args.append('--disable-component-extensions-with-background-pages')
 
