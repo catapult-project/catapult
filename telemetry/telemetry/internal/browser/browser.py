@@ -29,7 +29,7 @@ class Browser(app.App):
     with browser_to_create.Create(options) as browser:
       ... do all your operations on browser here
   """
-  def __init__(self, backend, platform_backend):
+  def __init__(self, backend, platform_backend, startup_args):
     super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
     try:
@@ -39,7 +39,8 @@ class Browser(app.App):
       self._browser_backend.SetBrowser(self)
       # TODO(crbug.com/787834): Move the statup args and url computation out
       # of the browser backend and into the callers of this constructor.
-      startup_args = self._browser_backend.GetBrowserStartupArgs()
+      startup_args = list(startup_args)
+      startup_args.extend(self._browser_backend.GetBrowserStartupArgs())
       startup_url = self._browser_backend.GetBrowserStartupUrl()
       self._browser_backend.Start(startup_args, startup_url=startup_url)
       self._LogBrowserInfo()

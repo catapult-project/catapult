@@ -19,6 +19,7 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_backend
+from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
@@ -123,17 +124,16 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     pass
 
   def Create(self, finder_options):
-    self._InitPlatformIfNeeded()
-
     browser_options = finder_options.browser_options
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
 
+    self._InitPlatformIfNeeded()
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, browser_options, self._backend_settings)
-
     browser_backend.ClearCaches()
     try:
       return browser.Browser(
-          browser_backend, self._platform_backend)
+          browser_backend, self._platform_backend, startup_args)
     except Exception:
       exc_info = sys.exc_info()
       logging.error(

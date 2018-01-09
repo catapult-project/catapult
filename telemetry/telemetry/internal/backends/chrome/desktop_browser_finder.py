@@ -11,6 +11,7 @@ import dependency_manager  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
+from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.backends.chrome import desktop_browser_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
@@ -60,13 +61,15 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
 
+    browser_options = finder_options.browser_options
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+
     num_retries = 3
     for x in range(0, num_retries):
       returned_browser = None
       try:
         returned_browser = None
 
-        browser_options = finder_options.browser_options
         browser_backend = desktop_browser_backend.DesktopBrowserBackend(
             self._platform_backend,
             browser_options, self._local_executable,
@@ -75,7 +78,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         browser_backend.ClearCaches()
 
         returned_browser = browser.Browser(
-            browser_backend, self._platform_backend)
+            browser_backend, self._platform_backend, startup_args)
 
         return returned_browser
       except Exception: # pylint: disable=broad-except
