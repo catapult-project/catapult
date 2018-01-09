@@ -1,6 +1,11 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import os
+
+from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry.internal.browser import user_agent
 
 
@@ -76,5 +81,31 @@ def GetFromBrowserOptions(browser_options):
   elif (browser_options.logging_verbosity ==
         browser_options.SUPER_VERBOSE_LOGGING):
     args.extend(['--enable-logging', '--v=2'])
+
+  return args
+
+
+def GetReplayArgs(network_backend, supports_spki_list=True):
+  args = []
+  if not network_backend.is_open:
+    return args
+
+  proxy_port = network_backend.forwarder.remote_port
+  args.append('--proxy-server=socks://localhost:%s' % proxy_port)
+  if supports_spki_list:
+    # Ignore certificate errors for certs that are signed with Wpr's root.
+    # For more details on this flag, see crbug.com/753948.
+    wpr_public_hash_file = os.path.join(
+        util.GetCatapultDir(), 'web_page_replay_go', 'wpr_public_hash.txt')
+    if not os.path.exists(wpr_public_hash_file):
+      raise exceptions.PathMissingError(
+          'Unable to find %s' % wpr_public_hash_file)
+    with open(wpr_public_hash_file) as f:
+      wpr_public_hash = f.readline().strip()
+    args.append('--ignore-certificate-errors-spki-list=' + wpr_public_hash)
+  else:
+    # If --ignore-certificate-errors-spki-list is not supported ignore all
+    # certificate errors.
+    args.append('--ignore-certificate-errors')
 
   return args

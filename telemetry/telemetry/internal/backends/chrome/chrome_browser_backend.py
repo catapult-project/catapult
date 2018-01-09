@@ -3,13 +3,11 @@
 # found in the LICENSE file.
 
 import logging
-import os
 import pprint
 import shlex
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
@@ -67,51 +65,17 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def GetBrowserStartupArgs(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    args = self.GetReplayBrowserStartupArgs()
-
+    args = []
     extensions = [extension.local_path
                   for extension in self._extensions_to_load]
     extension_str = ','.join(extensions)
     if len(extensions) > 0:
       args.append('--load-extension=%s' % extension_str)
-
     return args
 
   def GetBrowserStartupUrl(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     return None
-
-  # TODO(crbug.com/753948): remove this property once webview supports
-  # --ignore-certificate-errors-spki-list.
-  @property
-  def is_webview(self):
-    return False
-
-  def GetReplayBrowserStartupArgs(self):
-    replay_args = []
-    network_backend = self.platform_backend.network_controller_backend
-    if not network_backend.is_open:
-      return []
-    proxy_port = network_backend.forwarder.remote_port
-    replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)
-    if not self.is_webview:
-      # Ignore certificate errors for certs that are signed with Wpr's root.
-      # For more details on this flag, see crbug.com/753948.
-      wpr_public_hash_file = os.path.join(util.GetCatapultDir(),
-                                          'web_page_replay_go',
-                                          'wpr_public_hash.txt')
-      if not os.path.exists(wpr_public_hash_file):
-        raise exceptions.PathMissingError('Unable to find %s' %
-                                          wpr_public_hash_file)
-      with open(wpr_public_hash_file) as f:
-        wpr_public_hash = f.readline().strip()
-        replay_args.append('--ignore-certificate-errors-spki-list=' +
-                           wpr_public_hash)
-    elif self.is_webview:
-      # --ignore-certificate-errors-spki-list doesn't work with webview yet
-      # (crbug.com/753948)
-      replay_args.append('--ignore-certificate-errors')
-    return replay_args
 
   def HasDevToolsConnection(self):
     return self._devtools_client and self._devtools_client.IsAlive()

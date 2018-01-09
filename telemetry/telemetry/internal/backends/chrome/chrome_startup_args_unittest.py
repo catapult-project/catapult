@@ -3,16 +3,29 @@
 # found in the LICENSE file.
 
 import unittest
+import mock
 
-from telemetry.internal.backends.chrome import chrome_browser_backend_unittest
 from telemetry.internal.backends.chrome import chrome_startup_args
+from telemetry.internal.browser import browser_options as browser_options_module
+from telemetry.util import wpr_modes
+
+
+class FakeBrowserOptions(browser_options_module.BrowserOptions):
+  def __init__(self, wpr_mode=wpr_modes.WPR_OFF):
+    super(FakeBrowserOptions, self).__init__()
+    self.wpr_mode = wpr_mode
+    self.browser_type = 'chrome'
+    self.browser_user_agent_type = 'desktop'
+    self.disable_background_networking = False
+    self.disable_component_extensions_with_background_pages = False
+    self.disable_default_apps = False
 
 
 class StartupArgsTest(unittest.TestCase):
   """Test expected inputs for GetBrowserStartupArgs."""
 
   def testFeaturesMerged(self):
-    browser_options = chrome_browser_backend_unittest.FakeBrowserOptions()
+    browser_options = FakeBrowserOptions()
     browser_options.AppendExtraBrowserArgs([
         '--disable-features=Feature1,Feature2',
         '--disable-features=Feature2,Feature3',
@@ -38,3 +51,38 @@ class StartupArgsTest(unittest.TestCase):
         enable_count += 1
     self.assertEqual(1, disable_count)
     self.assertEqual(1, enable_count)
+
+
+class ReplayStartupArgsTest(unittest.TestCase):
+  """Test expected inputs for GetReplayArgs."""
+  def testReplayOffGivesEmptyArgs(self):
+    network_backend = mock.Mock()
+    network_backend.is_open = False
+    network_backend.forwarder = None
+
+    self.assertEqual([], chrome_startup_args.GetReplayArgs(network_backend))
+
+  def testReplayArgsBasic(self):
+    network_backend = mock.Mock()
+    network_backend.is_open = True
+    network_backend.forwarder.remote_port = 789
+
+    expected_args = [
+        '--proxy-server=socks://localhost:789',
+        '--ignore-certificate-errors-spki-list='
+        'PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=']
+    self.assertItemsEqual(
+        expected_args,
+        chrome_startup_args.GetReplayArgs(network_backend))
+
+  def testReplayArgsNoSpkiSupport(self):
+    network_backend = mock.Mock()
+    network_backend.is_open = True
+    network_backend.forwarder.remote_port = 789
+
+    expected_args = [
+        '--proxy-server=socks://localhost:789',
+        '--ignore-certificate-errors']
+    self.assertItemsEqual(
+        expected_args,
+        chrome_startup_args.GetReplayArgs(network_backend, False))

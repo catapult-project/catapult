@@ -41,7 +41,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
           'Profile generation is not yet supported on CrOS.')
 
     browser_options = finder_options.browser_options
-    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    startup_args = self.GetBrowserStartupArgs(browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, browser_options, self._platform_backend.cri,
@@ -54,6 +54,12 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
           browser_backend, self._platform_backend, startup_args)
     return browser.Browser(
         browser_backend, self._platform_backend, startup_args)
+
+  def GetBrowserStartupArgs(self, browser_options):
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    startup_args.extend(chrome_startup_args.GetReplayArgs(
+        self._platform_backend.network_controller_backend))
+    return startup_args
 
   def SupportsOptions(self, browser_options):
     return (len(browser_options.extensions_to_load) == 0) or not self._is_guest

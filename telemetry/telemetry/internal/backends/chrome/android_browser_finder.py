@@ -125,7 +125,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def Create(self, finder_options):
     browser_options = finder_options.browser_options
-    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    startup_args = self.GetBrowserStartupArgs(browser_options)
 
     self._InitPlatformIfNeeded()
     browser_backend = android_browser_backend.AndroidBrowserBackend(
@@ -145,6 +145,19 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         logging.exception('Secondary failure while closing browser backend.')
 
       raise exc_info[0], exc_info[1], exc_info[2]
+
+  def GetBrowserStartupArgs(self, browser_options):
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+
+    # TODO(crbug.com/753948): spki-list is not yet supported on WebView,
+    # make this True when support is implemented.
+    supports_spki_list = not isinstance(
+        self._backend_settings,
+        android_browser_backend_settings.WebviewBackendSettings)
+    startup_args.extend(chrome_startup_args.GetReplayArgs(
+        self._platform_backend.network_controller_backend,
+        supports_spki_list=supports_spki_list))
+    return startup_args
 
   def SupportsOptions(self, browser_options):
     if len(browser_options.extensions_to_load) != 0:

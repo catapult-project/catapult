@@ -62,7 +62,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._InitPlatformIfNeeded()
 
     browser_options = finder_options.browser_options
-    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    startup_args = self.GetBrowserStartupArgs(browser_options)
 
     num_retries = 3
     for x in range(0, num_retries):
@@ -96,6 +96,12 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         # Re-raise the exception the last time through.
         if x == num_retries - 1:
           raise
+
+  def GetBrowserStartupArgs(self, browser_options):
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    startup_args.extend(chrome_startup_args.GetReplayArgs(
+        self._platform_backend.network_controller_backend))
+    return startup_args
 
   def SupportsOptions(self, browser_options):
     if ((len(browser_options.extensions_to_load) != 0)
