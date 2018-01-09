@@ -11,7 +11,7 @@ class CrOSBrowserWithOOBE(browser.Browser):
   def __init__(self, backend, platform_backend, startup_args):
     assert isinstance(backend, cros_browser_backend.CrOSBrowserBackend)
     super(CrOSBrowserWithOOBE, self).__init__(
-        backend, platform_backend. startup_args)
+        backend, platform_backend, startup_args)
 
   @property
   def oobe(self):
