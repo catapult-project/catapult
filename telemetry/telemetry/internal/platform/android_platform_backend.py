@@ -24,7 +24,6 @@ from telemetry.internal.platform.power_monitor import android_temperature_monito
 from telemetry.internal.platform.power_monitor import (
     android_power_monitor_controller)
 from telemetry.internal.platform.power_monitor import sysfs_power_monitor
-from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
 
@@ -61,6 +60,8 @@ _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
 _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
+_DEVICE_MEMTRACK_HELPER_LOCATION = '/data/local/tmp/profilers/memtrack_helper'
+_DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION = '/data/local/tmp/clear_system_cache'
 
 
 class AndroidPlatformBackend(
@@ -214,6 +215,10 @@ class AndroidPlatformBackend(
   def TakeScreenshot(self, file_path):
     return bool(self._device.TakeScreenshot(host_path=file_path))
 
+  def CooperativelyShutdown(self, proc, app_name):
+    # Suppress the 'abstract-method' lint warning.
+    return False
+
   def SetFullPerformanceModeEnabled(self, enabled):
     if not self._enable_performance_mode:
       logging.warning('CPU governor will not be set!')
@@ -249,12 +254,12 @@ class AndroidPlatformBackend(
       self.KillApplication('memtrack_helper')
       return
 
-    if not android_prebuilt_profiler_helper.InstallOnDevice(
-        self._device, 'memtrack_helper'):
-      raise Exception('Error installing memtrack_helper.')
-    self._device.RunShellCommand([
-        android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper'),
-        '-d'], as_root=True, check_return=True)
+    binary_manager.ReinstallAndroidHelperIfNeeded(
+        'memtrack_helper', _DEVICE_MEMTRACK_HELPER_LOCATION,
+        self._device)
+    self._device.RunShellCommand(
+        [_DEVICE_MEMTRACK_HELPER_LOCATION, '-d'], as_root=True,
+        check_return=True)
 
   def EnsureBackgroundApkInstalled(self):
     app = 'push_apps_to_background_apk'
@@ -304,7 +309,7 @@ class AndroidPlatformBackend(
     return ''  # TODO(kbr): Implement this.
 
   def CanFlushIndividualFilesFromSystemCache(self):
-    return False
+    return True
 
   def SupportFlushEntireSystemCache(self):
     return self._can_elevate_privilege
@@ -314,7 +319,12 @@ class AndroidPlatformBackend(
     cache.DropRamCaches()
 
   def FlushSystemCacheForDirectory(self, directory):
-    raise NotImplementedError()
+    binary_manager.ReinstallAndroidHelperIfNeeded(
+        'clear_system_cache', _DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION,
+        self._device)
+    self._device.RunShellCommand(
+        [_DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION, '--recurse', directory],
+        as_root=True, check_return=True)
 
   def FlushDnsCache(self):
     self._device.RunShellCommand(

@@ -15,12 +15,12 @@ from telemetry.internal.util import binary_manager
 from telemetry.core import platform as telemetry_platform
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
 
 from devil.android import md5sum  # pylint: disable=import-error
 
 
 _TEXT_SECTION = '.text'
+_DEVICE_PERF_LOCATION = '/data/local/tmp/profilers/perf'
 
 
 def _ElfMachineId(elf_file):
@@ -242,10 +242,11 @@ def PrepareDeviceForPerf(device):
   Returns:
     The path to the installed perf binary on the device.
   """
-  android_prebuilt_profiler_helper.InstallOnDevice(device, 'perf')
+  binary_manager.ReinstallAndroidHelperIfNeeded(
+      'perf', _DEVICE_PERF_LOCATION, device)
   # Make sure kernel pointers are not hidden.
   device.WriteFile('/proc/sys/kernel/kptr_restrict', '0', as_root=True)
-  return android_prebuilt_profiler_helper.GetDevicePath('perf')
+  return _DEVICE_PERF_LOCATION
 
 
 def GetToolchainBinaryPath(library_file, binary_name):

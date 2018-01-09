@@ -35,6 +35,7 @@ CloudStorageError = dependency_manager.CloudStorageError
 
 
 _binary_manager = None
+_installed_helpers = set()
 
 
 def NeedsInit():
@@ -149,6 +150,28 @@ def FetchBinaryDependencies(
     devil_env.config.Initialize()
     devil_env.config.PrefetchPaths(arch=platform.GetArchName())
     devil_env.config.PrefetchPaths()
+
+
+def ReinstallAndroidHelperIfNeeded(binary_name, install_path, device):
+  """ Install a binary helper to a specific location.
+
+  Args:
+    binary_name: (str) The name of the binary from binary_dependencies.json
+    install_path: (str) The path to install the binary at
+    device: (device_utils.DeviceUtils) a device to install the helper to
+  Raises:
+    Exception: When the binary could not be fetched or could not be pushed to
+        the device.
+  """
+  if (device.serial, install_path) in _installed_helpers:
+    return
+  host_path = FetchPath(binary_name, device.GetABI(), 'android')
+  if not host_path:
+    raise Exception(
+        '%s binary could not be fetched as %s', binary_name, host_path)
+  device.PushChangedFiles([(host_path, install_path)])
+  device.RunShellCommand(['chmod', '777', install_path], check_return=True)
+  _installed_helpers.add((device.serial, install_path))
 
 
 def _FetchReferenceBrowserBinary(platform):

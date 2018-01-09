@@ -329,11 +329,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     platform = self.platform_backend.platform
     platform.FlushDnsCache()
     if self.browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-      if platform.CanFlushIndividualFilesFromSystemCache():
-        platform.FlushSystemCacheForDirectory(
-            self.profile_directory)
-        platform.FlushSystemCacheForDirectory(
-            self.browser_directory)
+      if (platform.CanFlushIndividualFilesFromSystemCache() and
+          (self.profile_directory or self.browser_directory)):
+        if self.profile_directory:
+          platform.FlushSystemCacheForDirectory(self.profile_directory)
+        if self.browser_directory:
+          platform.FlushSystemCacheForDirectory(self.browser_directory)
       elif platform.SupportFlushEntireSystemCache():
         platform.FlushEntireSystemCache()
       else:

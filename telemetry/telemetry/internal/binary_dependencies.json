@@ -37,6 +37,14 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "bef4d4e7aac8a24cf205a944bf036690917a07ba",
+          "download_path": "bin/android/arm64-v8a/clear_system_cache"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "4d7d78b48963610c76bac4bb559f83cd1fad1db5",
+          "download_path": "bin/android/armeabi-v7a/clear_system_cache"
+        },
         "linux_x86_64": {
           "cloud_storage_hash": "20739db88864685f6a0be66879e34a83813352cc",
           "download_path": "bin/linux/x86_64/clear_system_cache"
