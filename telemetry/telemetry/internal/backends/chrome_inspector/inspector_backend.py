@@ -515,7 +515,14 @@ class InspectorBackend(object):
 
   @_HandleInspectorWebSocketExceptions
   def _EvaluateJavaScript(self, expression, context_id, timeout):
-    return self._runtime.Evaluate(expression, context_id, timeout)
+    try:
+      return self._runtime.Evaluate(expression, context_id, timeout)
+    except websocket.WebSocketTimeoutException as e:
+      # Assume the renderer's main thread is hung. Try to use DevTools
+      # to crash the target renderer process (on its IO thread) so we
+      # get a minidump we can symbolize.
+      self._runtime.Crash(context_id, timeout)
+      raise e
 
   @_HandleInspectorWebSocketExceptions
   def CollectGarbage(self):

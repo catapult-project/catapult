@@ -71,6 +71,18 @@ class InspectorRuntime(object):
                                             timeout=30)
     return self._all_context_ids
 
+  def Crash(self, context_id, timeout):
+    request = {
+        'method': 'Page.crash',
+    }
+    if context_id is not None:
+      self.EnableAllContexts()
+      request['params']['contextId'] = context_id
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.EvaluateException(res['error']['message'])
+    return res
+
   def RunInspectorCommand(self, command, timeout):
     """Runs an inspector command.
 
