@@ -36,7 +36,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._backend_settings = backend_settings
     self._saved_sslflag = ''
     self._app_ui = None
-    self._profile_directory = None
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
@@ -141,19 +140,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
         blocking=True)
 
-  def GetBrowserStartupArgs(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
-    args.append('--enable-remote-debugging')
-    args.append('--disable-fre')
-    args.append('--disable-external-intent-requests')
-    # Specifies the user profile directory, a prerequisite for
-    # --ignore-certificate-errors-spki-list, which allows Chrome to selectively
-    # bypass cert errors while exercising HTTP disk cache and avoiding
-    # re-establishing socket connections.
-    args.append('--user-data-dir=' + self.profile_directory)
-    return args
-
   def GetBrowserStartupUrl(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     if self.browser_options.startup_url:
@@ -205,10 +191,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def profile_directory(self):
-    if not self._profile_directory:
-      self._profile_directory = (
-          self.platform_backend.GetProfileDir(self._backend_settings.package))
-    return self._profile_directory
+    return self.platform_backend.GetProfileDir(self._backend_settings.package)
 
   @property
   def package(self):

@@ -120,6 +120,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
+  @property
+  def profile_directory(self):
+    return self._platform_backend.GetProfileDir(self._backend_settings.package)
+
   def _InitPlatformIfNeeded(self):
     pass
 
@@ -157,6 +161,15 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     startup_args.extend(chrome_startup_args.GetReplayArgs(
         self._platform_backend.network_controller_backend,
         supports_spki_list=supports_spki_list))
+
+    startup_args.append('--enable-remote-debugging')
+    startup_args.append('--disable-fre')
+    startup_args.append('--disable-external-intent-requests')
+
+    # Need to specify the user profile directory for
+    # --ignore-certificate-errors-spki-list to work.
+    startup_args.append('--user-data-dir=' + self.profile_directory)
+
     return startup_args
 
   def SupportsOptions(self, browser_options):
