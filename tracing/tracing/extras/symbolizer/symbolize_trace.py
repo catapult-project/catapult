@@ -1650,7 +1650,7 @@ def main(args):
   # Otherwise the trace is from Google Chrome. Assume that this is not a local
   # build of Google Chrome with symbols, and that we need to fetch symbols
   # from gcs.
-  if trace.is_chromium:
+  if trace.is_chromium or options.output_directory:
     if options.use_breakpad_symbols and options.breakpad_symbols_directory:
       # Local build with local symbols.
       FetchAndExtractBreakpadSymbols(
