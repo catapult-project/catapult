@@ -4,7 +4,7 @@ If the current default version is broken
 
 ## Find the target version to rollback to
 
-Check the [list of default versions](https://docs.google.com/spreadsheets/d/1MyxMZDSPedahmdh9EHGRxFdNMwVfBD4cB4jYGWuG6FM)
+Check the [list of default versions](https://docs.google.com/spreadsheets/d/1cf4OnANqjCqcYbo3e6QbY2nWL601a3V_56pa0vyguU0)
 of the Perf Dashboard. The current version should be at the top of the
 list, and the previous version should be directly under it.
 
