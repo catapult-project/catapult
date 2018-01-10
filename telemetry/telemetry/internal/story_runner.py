@@ -290,8 +290,7 @@ def RunBenchmark(benchmark, finder_options):
   """Run this test with the given options.
 
   Returns:
-    The number of failure values (up to 254) or 255 if there is an uncaught
-    exception.
+    1 if there is failure or 2 if there is an uncaught exception.
   """
   start = time.time()
   benchmark.CustomizeBrowserOptions(finder_options.browser_options)
