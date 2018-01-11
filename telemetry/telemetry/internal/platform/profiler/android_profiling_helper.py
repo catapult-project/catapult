@@ -280,7 +280,7 @@ def GetToolchainBinaryPath(library_file, binary_name):
   toolchain_version = toolchain_version.replace('.x', '')
 
   toolchain_path = os.path.abspath(os.path.join(
-      util.GetChromiumSrcDir(), 'third_party', 'android_tools', 'ndk',
+      util.GetChromiumSrcDir(), 'third_party', 'android_ndk',
       'toolchains', '%s-%s' % (toolchain_config, toolchain_version)))
   if not os.path.exists(toolchain_path):
     logging.warning(

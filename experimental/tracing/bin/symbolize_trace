@@ -1240,7 +1240,7 @@ TRIVIAL_PATHS = [
     'base/strings',
     'base/trace_event/malloc_dump_provider.cc',
     'skia/ext/SkMemory_new_handler.cpp',
-    'third_party/android_tools/ndk/sources/cxx-stl',
+    'third_party/android_ndk/sources/cxx-stl',
     'third_party/skia/src/core/SkArenaAlloc.cpp',
     'third_party/skia/src/core/SkMallocPixelRef.cpp',
     'third_party/WebKit/Source/platform/heap/BlinkGCMemoryDumpProvider.cpp',
