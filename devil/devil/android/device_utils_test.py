@@ -2011,6 +2011,8 @@ class DeviceUtilsStatDirectoryTest(DeviceUtilsTest):
     'drwxr-xr-x   6 root   root            1970-01-01 00:00 some_dir',
     '-rw-r--r--   1 root   root        723 1971-01-01 07:04 some_file',
     '-rw-r-----   1 root   root        327 2009-02-13 23:30 My Music File',
+    # Some Android versions escape spaces in file names
+    '-rw-rw-rw-   1 root   root          0 2018-01-11 13:35 Local\\ State',
     # Older Android versions do not print st_nlink
     'lrwxrwxrwx root     root              1970-01-01 00:00 lnk -> /some/path',
     'srwxrwx--- system   system            2016-05-31 17:25 a_socket1',
@@ -2022,8 +2024,8 @@ class DeviceUtilsStatDirectoryTest(DeviceUtilsTest):
   ]
 
   FILENAMES = [
-    'some_dir', 'some_file', 'My Music File', 'lnk', 'a_socket1',
-    'tmp', 'my_cmd', 'random', 'block_dev', 'silly']
+    'some_dir', 'some_file', 'My Music File', 'Local State', 'lnk',
+    'a_socket1', 'tmp', 'my_cmd', 'random', 'block_dev', 'silly']
 
   def getStatEntries(self, path_given='/', path_listed='/'):
     with self.assertCall(

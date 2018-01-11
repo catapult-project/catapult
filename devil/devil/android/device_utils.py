@@ -1841,7 +1841,14 @@ class DeviceUtils(object):
       m = _LONG_LS_OUTPUT_RE.match(line)
       if m:
         if m.group('filename') not in ['.', '..']:
-          entries.append(m.groupdict())
+          item = m.groupdict()
+          # A change in toybox is causing recent Android versions to escape
+          # spaces in file names. Here we just unquote those spaces. If we
+          # later find more essoteric characters in file names, a more careful
+          # unquoting mechanism may be needed. But hopefully not.
+          # See: https://goo.gl/JAebZj
+          item['filename'] = item['filename'].replace('\\ ', ' ')
+          entries.append(item)
       else:
         logger.info('Skipping: %s', line)
 
