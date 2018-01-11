@@ -37,8 +37,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._forwarder = None
 
     self._output_profile_path = browser_options.output_profile_path
-    # Convert to tuple to make sure we don't attempt to modify the list.
-    self._extensions_to_load = tuple(browser_options.extensions_to_load)
+    self._extensions_to_load = browser_options.extensions_to_load
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -65,10 +64,14 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return [arg for arg in args if arg.startswith('--proxy-server=')]
 
   def GetBrowserStartupArgs(self):
-    # TODO(crbug.com/787834): Obsolete method. New startup args should be
-    # defined in telemetry.internal.backends.chrome.chrome_startup_args.
-    # Remove when no longer called.
-    return []
+    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
+    args = []
+    extensions = [extension.local_path
+                  for extension in self._extensions_to_load]
+    extension_str = ','.join(extensions)
+    if len(extensions) > 0:
+      args.append('--load-extension=%s' % extension_str)
+    return args
 
   def GetBrowserStartupUrl(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
