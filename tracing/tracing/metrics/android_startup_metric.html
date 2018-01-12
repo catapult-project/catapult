@@ -13,10 +13,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   function androidStartupMetric(histograms, model) {
-    const messageLoopStartHistogramComputedFromWallClock =
-        histograms.createHistogram(
-            'messageloop_start_time_computed_from_wall_clock',
-            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
@@ -28,15 +24,6 @@ tr.exportTo('tr.metrics.sh', function() {
         if (ev.title ===
             'Startup.BrowserMessageLoopStartTimeFromMainEntry3') {
           messageLoopStartHistogram.addSample(ev.duration,
-              { events: new tr.v.d.RelatedEventSet([ev]) });
-        }
-
-        // This metric is deprecated. Keeping it for some time to compare with
-        // the new one recorded above. TODO(pasko): remove after a week worth of
-        // data in the dashboard.
-        if (ev.title ===
-            'Startup.BrowserMessageLoopStartTimeFromMainEntry2') {
-          messageLoopStartHistogramComputedFromWallClock.addSample(ev.duration,
               { events: new tr.v.d.RelatedEventSet([ev]) });
         }
       }
