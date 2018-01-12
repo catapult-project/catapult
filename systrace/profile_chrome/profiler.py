@@ -48,10 +48,12 @@ def _GetResults(trace_results, controller, output, compress, write_json,
     util.ArchiveData(trace_results, result)
   elif output:
     result = output
+    util.CreateDirectory(result)
     with open(result, 'wb') as f:
       f.write(trace_results[0].raw_data)
   else:
     result = trace_results[0].source_name
+    util.CreateDirectory(result)
     with open(result, 'wb') as f:
       f.write(trace_results[0].raw_data)
 
