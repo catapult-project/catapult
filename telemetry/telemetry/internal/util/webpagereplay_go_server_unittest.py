@@ -41,6 +41,7 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       r = urllib2.urlopen(req)
       self.assertEquals(r.getcode(), 200)
 
+  @decorators.Disabled('chromeos')  # crbug.com/801641
   @mock.patch('py_utils.atexit_with_log.Register')
   def testKillingWebPageReplayProcessUponStartupFailure(
       self, atexit_with_log_register_patch):
