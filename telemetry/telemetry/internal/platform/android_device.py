@@ -59,7 +59,7 @@ def GetDeviceSerials(blacklist):
 
   preferred_device = os.environ.get('ANDROID_SERIAL')
   if preferred_device in device_serials:
-    logging.warn(
+    logging.warning(
         'ANDROID_SERIAL is defined. Put %s in the first of the'
         'discovered devices list.' % preferred_device)
     device_serials.remove(preferred_device)
@@ -89,10 +89,10 @@ def GetDevice(finder_options):
 
   devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   if len(devices) == 0:
-    logging.warn('No android devices found.')
+    logging.warning('No android devices found.')
     return None
   if len(devices) > 1:
-    logging.warn(
+    logging.warning(
         'Multiple devices attached. Please specify one of the following:\n' +
         '\n'.join(['  --device=%s' % d.device_id for d in devices]))
     return None

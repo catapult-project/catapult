@@ -27,7 +27,7 @@ class _BaseAndroidDeviceTest(unittest.TestCase):
     self._healthy_device_mock = self._healthy_device_patcher.start()
     self._healthy_device_mock.side_effect = check_blacklist_arg
     self._android_device_stub = system_stub.Override(
-        android_device, ['subprocess', 'logging'])
+        android_device, ['subprocess'])
 
   def _GetMockDeviceUtils(self, device_serial):
     device = device_utils.DeviceUtils(device_serial)
@@ -50,41 +50,44 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
             android_device.AndroidDevice.GetAllConnectedDevices(None)))
 
   @decorators.Enabled('android')
-  def testNoAdbReturnsNone(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  def testNoAdbReturnsNone(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with (
         mock.patch('os.path.isabs', return_value=True)), (
             mock.patch('os.path.exists', return_value=False)):
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Disabled('all')
-  def testAdbNoDevicesReturnsNone(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  def testAdbNoDevicesReturnsNone(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = []
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Disabled('all')
-  def testAdbTwoDevicesReturnsNone(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  def testAdbTwoDevicesReturnsNone(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c'),
           self._GetMockDeviceUtils('015d14fec128220d')]
       device = android_device.GetDevice(finder_options)
-      self.assertEquals([
+      warning_mock.assert_called_with(
           'Multiple devices attached. Please specify one of the following:\n'
           '  --device=015d14fec128220c\n'
-          '  --device=015d14fec128220d'
-      ], self._android_device_stub.logging.warnings)
+          '  --device=015d14fec128220d')
       self.assertIsNone(device)
 
   @decorators.Enabled('android')
-  def testAdbPickOneDeviceReturnsDeviceInstance(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  def testAdbPickOneDeviceReturnsDeviceInstance(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     platform_options = remote_platform_options.AndroidPlatformOptions(
         device='555d14fecddddddd')  # pick one
@@ -94,49 +97,56 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
           self._GetMockDeviceUtils('015d14fec128220c'),
           self._GetMockDeviceUtils('555d14fecddddddd')]
       device = android_device.GetDevice(finder_options)
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertEquals('555d14fecddddddd', device.device_id)
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Disabled('all')
-  def testAdbOneDeviceReturnsDeviceInstance(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  def testAdbOneDeviceReturnsDeviceInstance(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c')]
       device = android_device.GetDevice(finder_options)
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertEquals('015d14fec128220c', device.device_id)
 
 
 class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+
   @decorators.Disabled('all')
-  def testAdbNoDeviceReturnsEmptyList(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  def testAdbNoDeviceReturnsEmptyList(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = []
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
       self.assertEquals(len(devices), 0)
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+
   @decorators.Disabled('all')
-  def testAdbOneDeviceReturnsListWithOneDeviceInstance(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  def testAdbOneDeviceReturnsListWithOneDeviceInstance(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c')]
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
       self.assertEquals(len(devices), 1)
       self.assertEquals('015d14fec128220c', devices[0].device_id)
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+
   @decorators.Disabled('all')
-  def testAdbMultipleDevicesReturnsListWithAllDeviceInstances(self):
+  @mock.patch('telemetry.internal.platform.android_device.logging.warning')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  def testAdbMultipleDevicesReturnsListWithAllDeviceInstances(self, warning_mock):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
@@ -144,7 +154,7 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
           self._GetMockDeviceUtils('015d14fec128220d'),
           self._GetMockDeviceUtils('015d14fec128220e')]
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals([], self._android_device_stub.logging.warnings)
+      self.assertEquals(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
       self.assertEquals(len(devices), 3)
       self.assertEquals(devices[0].guid, '015d14fec128220c')
