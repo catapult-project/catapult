@@ -20,7 +20,9 @@ OAUTH_CLIENT_ID_WHITELIST = [
     # This oauth client id is used to upload histograms from the perf waterfall.
     '113172445342431053212',
     'chromeperf@webrtc-perf-test.google.com.iam.gserviceaccount.com',
-    'catapult-uploader@fuchsia-infra.iam.gserviceaccount.com'
+    'catapult-uploader@fuchsia-infra.iam.gserviceaccount.com',
+    # This oauth client id used to upload histograms from cronet bots.
+    '113172445342431053212'
 ]
 OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
