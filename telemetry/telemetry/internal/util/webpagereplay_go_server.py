@@ -92,7 +92,6 @@ class ReplayServer(object):
 
     self.replay_process = None
 
-
   @classmethod
   def _GetGoBinaryPath(cls):
     if not cls._go_binary_path:
@@ -152,6 +151,9 @@ class ReplayServer(object):
 
   def _LogLines(self):
     """Yields the log lines."""
+    if not self._temp_log_file_path:
+      yield '(N/A)'
+      return
     if not os.path.isfile(self._temp_log_file_path):
       return
     with open(self._temp_log_file_path) as f:
@@ -160,8 +162,7 @@ class ReplayServer(object):
 
   def _IsStarted(self):
     """Returns true if the server is up and running."""
-    if self.replay_process.poll() is not None:
-      # The process terminated.
+    if not self._IsReplayProcessStarted():
       return False
 
     def HasIncompleteStartedPorts():
@@ -230,14 +231,20 @@ class ReplayServer(object):
       logging.info('WPR ports: %s' % self._started_ports)
       atexit_with_log.Register(self.StopServer)
       return dict(self._started_ports)
-    except py_utils.TimeoutException:
+    except Exception:
+      self.StopServer()
       raise ReplayNotStartedError(
           'Web Page Replay failed to start. Log output:\n%s' %
           ''.join(self._LogLines()))
 
+  def _IsReplayProcessStarted(self):
+    if not self.replay_process:
+      return False
+    return self.replay_process and self.replay_process.poll() is None
+
   def StopServer(self):
     """Stop Web Page Replay."""
-    if self._IsStarted():
+    if self._IsReplayProcessStarted():
       try:
         self._StopReplayProcess()
       finally:
@@ -260,7 +267,7 @@ class ReplayServer(object):
       try:
         # Use a SIGINT so that it can do graceful cleanup.
         self.replay_process.send_signal(signal.SIGINT)
-      except:  # pylint: disable=bare-except
+      except Exception:  # pylint: disable=broad-except
         # On Windows, we are left with no other option than terminate().
         is_primary_nameserver_changed_by_replay = (
             self._use_dns_server and self._replay_host == '127.0.0.1')
@@ -276,11 +283,12 @@ class ReplayServer(object):
               'Unable to stop Web-Page-Replay gracefully.\n'
               'Replay changed the DNS nameserver configuration to make replay '
               'the primary nameserver. That might not be restored!')
-        try:
-          self.replay_process.terminate()
-        except:  # pylint: disable=bare-except
-          pass
+        self.replay_process.terminate()
       self.replay_process.wait()
+    finally:
+      # Only reset replay_process to None if the process is stopped.
+      if self.replay_process.poll() is not None:
+        self.replay_process = None
 
   def _CreateTempLogFilePath(self):
     assert self._temp_log_file_path is None
