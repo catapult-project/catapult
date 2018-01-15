@@ -238,6 +238,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise EnvironmentError('DevTools file doest not exist yet')
     # Attempt to avoid reading the file until it's populated.
     # Both stat and open may raise IOError if not ready, the caller will retry.
+    lines = None
     if os.stat(devtools_file_path).st_size > 0:
       with open(devtools_file_path) as f:
         lines = [line.rstrip() for line in f]
