@@ -257,6 +257,10 @@ class BrowserFinderOptions(optparse.Values):
 
 class BrowserOptions(object):
   """Options to be used for launching a browser."""
+  # Allows clients to check whether they are dealing with a browser_options
+  # object, without having to import this module. This may be needed in some
+  # cases to avoid cyclic-imports.
+  IS_BROWSER_OPTIONS = True
 
   # Levels of browser logging.
   NO_LOGGING = 'none'

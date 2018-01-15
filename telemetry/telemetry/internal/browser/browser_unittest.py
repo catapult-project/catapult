@@ -293,6 +293,18 @@ class TestBrowserCreation(unittest.TestCase):
   def tearDown(self):
     self.browser_to_create.platform.network_controller.Close()
 
+  def testCreateWithBrowserSession(self):
+    browser_options = self.finder_options.browser_options
+    with self.browser_to_create.BrowserSession(browser_options) as browser:
+      tab = browser.tabs.New()
+      tab.Navigate('about:blank')
+      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+
+  def testCreateWithBadOptionsRaises(self):
+    with self.assertRaises(AssertionError):
+      with self.browser_to_create.BrowserSession(self.finder_options):
+        pass  # Do nothing.
+
   @decorators.Enabled('linux')
   # TODO(crbug.com/782691): enable this on Win
   # TODO(ashleymarie): Re-enable on mac (BUG=catapult:#3523)
