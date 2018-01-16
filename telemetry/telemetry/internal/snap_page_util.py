@@ -54,7 +54,7 @@ def _CreateBrowser(finder_options, enable_browser_log):
     finder_options.browser_options.logs_cloud_bucket = None
 
   possible_browser = browser_finder.FindBrowser(finder_options)
-  return possible_browser.Create(finder_options)
+  return possible_browser.BrowserSession(finder_options.browser_options)
 
 
 def _ReadSnapItSource(path):
@@ -111,8 +111,7 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
   """ Save the HTML snapshot of the page whose address is |url| to
   |snapshot_file|.
   """
-  browser = _CreateBrowser(finder_options, enable_browser_log)
-  try:
+  with _CreateBrowser(finder_options, enable_browser_log) as browser:
     tab = browser.tabs[0]
     tab.Navigate(url)
     if interactive:
@@ -189,9 +188,6 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
     snapshot_file.write(page_snapshot)
     for i in xrange(len(external_images)):
       _FetchImages(image_dir, i, external_images[i])
-
-  finally:
-    browser.Close()
 
 
 def SnapPage(finder_options, url, interactive, snapshot_path,

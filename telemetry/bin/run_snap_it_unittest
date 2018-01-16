@@ -22,8 +22,8 @@ _SNAP_IT_TEST_URL = 'file:///%s' % (os.path.join(
 
 def RunSnapItUnittest(finder_options):
   possible_browser = browser_finder.FindBrowser(finder_options)
-  browser = possible_browser.Create(finder_options)
-  try:
+  with possible_browser.BrowserSession(
+      finder_options.browser_options) as browser:
     tab = browser.tabs[0]
     tab.Navigate(_SNAP_IT_TEST_URL)
     tab.WaitForJavaScriptCondition('window.allTestDone')
@@ -38,8 +38,7 @@ def RunSnapItUnittest(finder_options):
     else:
       print 'All %s tests passed' % num_tests
       return 0
-  finally:
-    browser.Close()
+
 
 def main(args):
   binary_manager.InitDependencyManager([])
