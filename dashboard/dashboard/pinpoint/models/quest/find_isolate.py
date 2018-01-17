@@ -2,12 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
 
 
+_BOT_CONFIGURATIONS = 'bot_configurations'
 BUCKET = 'master.tryserver.chromium.perf'
 
 
@@ -17,8 +19,8 @@ class BuildError(Exception):
 
 class FindIsolate(quest.Quest):
 
-  def __init__(self, configuration, target):
-    self._builder_name = _BuilderNameForConfiguration(configuration)
+  def __init__(self, builder, target):
+    self._builder_name = builder
     self._target = target
 
     self._previous_builds = {}
@@ -38,17 +40,29 @@ class FindIsolate(quest.Quest):
   def FromDict(cls, arguments):
     used_arguments = {}
 
-    configuration = arguments.get('configuration')
-    if not configuration:
-      raise TypeError('Missing "configuration" argument.')
-    used_arguments['configuration'] = configuration
+    builder = _GetBuilder(arguments, used_arguments)
 
     target = arguments.get('target')
     if not target:
       raise TypeError('Missing "target" argument.')
     used_arguments['target'] = target
 
-    return used_arguments, cls(configuration, target)
+    return used_arguments, cls(builder, target)
+
+
+def _GetBuilder(arguments, used_arguments):
+  configuration = arguments.get('configuration')
+  builder = arguments.get('builder')
+  if builder:
+    used_arguments['builder'] = builder
+  elif configuration:
+    used_arguments['configuration'] = configuration
+    bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
+    builder = bots[configuration]['builder']
+  else:
+    raise TypeError('Missing a "configuration" or a "builder" argument.')
+
+  return builder
 
 
 class _FindIsolateExecution(execution.Execution):
@@ -66,6 +80,7 @@ class _FindIsolateExecution(execution.Execution):
   def _AsDict(self):
     return {
         'build': self._build,
+        'builder': self._builder_name,
     }
 
   def _Poll(self):
@@ -127,36 +142,6 @@ class _FindIsolateExecution(execution.Execution):
       buildbucket_info = _RequestBuild(self._builder_name, self._change)
       self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
-
-
-def _BuilderNameForConfiguration(configuration):
-  # TODO: This is hacky. Ideally, the dashboard gives us more structured data
-  # that we can use to figure out the builder name.
-  configuration = configuration.lower()
-
-  if 'health-plan' in configuration:
-    return 'arm-builder-rel'
-
-  if 'android' in configuration:
-    # Default to 64-bit, because we expect 64-bit usage to increase over time.
-    devices = ('nexus5', 'nexus6', 'nexus7', 'one')
-    if (any(device in configuration for device in devices) and
-        'nexus5x' not in configuration):
-      return 'Android Builder'
-    else:
-      return 'Android arm64 Builder'
-  elif 'linux' in configuration:
-    return 'Linux Builder'
-  elif 'mac' in configuration:
-    return 'Mac Builder'
-  elif 'win' in configuration:
-    if configuration == 'chromium-rel-win7-dual':
-      return 'Win Builder'
-    else:
-      return 'Win x64 Builder'
-  else:
-    raise NotImplementedError('Could not figure out what OS this configuration '
-                              'is for: %s' % configuration)
 
 
 def _RequestBuild(builder_name, change):

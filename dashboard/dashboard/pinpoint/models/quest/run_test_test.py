@@ -12,7 +12,7 @@ from dashboard.common import testing_common
 from dashboard.pinpoint.models.quest import run_test
 
 
-_MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
+_MIN_TELEMETRY_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
     '-v', '--upload-results', '--output-format=histograms',
     '--results-label', '',
@@ -22,7 +22,7 @@ _MIN_TELEMETRY_RUN_TEST_ARGUMENTS = [
 ]
 
 
-_ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
+_ALL_TELEMETRY_ARGUMENTS = [
     'speedometer', '--story-filter', 'http://www.fifa.com/',
     '--pageset-repeat', '1', '--browser', 'release',
     '--custom-arg', 'custom value',
@@ -34,7 +34,7 @@ _ALL_TELEMETRY_RUN_TEST_ARGUMENTS = [
 ]
 
 
-_STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS = [
+_STARTUP_BENCHMARK_ARGUMENTS = [
     'start_with_url.warm.startup_pages',
     '--pageset-repeat', '2', '--browser', 'release',
     '-v', '--upload-results', '--output-format=histograms',
@@ -45,7 +45,7 @@ _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS = [
 ]
 
 
-_MIN_GTEST_RUN_TEST_ARGUMENTS = [
+_MIN_GTEST_ARGUMENTS = [
     '--gtest_repeat=1',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
@@ -53,7 +53,7 @@ _MIN_GTEST_RUN_TEST_ARGUMENTS = [
 ]
 
 
-_ALL_GTEST_RUN_TEST_ARGUMENTS = [
+_ALL_GTEST_ARGUMENTS = [
     '--gtest_filter=test_name', '--gtest_repeat=1',
     '--custom-arg', 'custom value',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
@@ -79,17 +79,20 @@ _SWARMING_DIMENSIONS = [
 ]
 
 
-class TelemetryQuestTest(testing_common.TestCase):
+class _QuestTest(testing_common.TestCase):
 
   def setUp(self):
-    super(TelemetryQuestTest, self).setUp()
+    super(_QuestTest, self).setUp()
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
-    namespaced_stored_object.Set('bot_dimensions_map', {
-        'chromium-rel-mac11-pro': {},
+    namespaced_stored_object.Set('bot_configurations', {
+        'chromium-rel-mac11-pro': {
+            'browser': 'release',
+            'dimensions': {'key': 'value'},
+        },
     })
-    namespaced_stored_object.Set('bot_browser_map_2', {
-        'chromium-rel-mac11-pro': 'release',
-    })
+
+
+class TelemetryQuestTest(_QuestTest):
 
   def testMissingArguments(self):
     arguments = {
@@ -116,7 +119,7 @@ class TelemetryQuestTest(testing_common.TestCase):
         'benchmark': 'speedometer',
     }
 
-    expected = run_test.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS)
+    expected = run_test.RunTest({'key': 'value'}, _MIN_TELEMETRY_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
@@ -131,7 +134,7 @@ class TelemetryQuestTest(testing_common.TestCase):
     }
 
     expected = run_test.RunTest(
-        {'key': 'value'}, _ALL_TELEMETRY_RUN_TEST_ARGUMENTS)
+        {'key': 'value'}, _ALL_TELEMETRY_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
@@ -149,12 +152,12 @@ class TelemetryQuestTest(testing_common.TestCase):
   def testWithNoConfiguration(self):
     arguments = {
         'target': 'telemetry_perf_tests',
-        'dimensions': '{}',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'speedometer',
         'browser': 'release',
     }
 
-    expected = run_test.RunTest({}, _MIN_TELEMETRY_RUN_TEST_ARGUMENTS)
+    expected = run_test.RunTest({'key': 'value'}, _MIN_TELEMETRY_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
@@ -166,20 +169,12 @@ class TelemetryQuestTest(testing_common.TestCase):
         'browser': 'release',
     }
 
-    expected = run_test.RunTest({}, _STARTUP_BENCHMARK_RUN_TEST_ARGUMENTS)
+    expected = run_test.RunTest({'key': 'value'}, _STARTUP_BENCHMARK_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
 
-class GTestQuestTest(testing_common.TestCase):
-
-  def setUp(self):
-    super(GTestQuestTest, self).setUp()
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-    namespaced_stored_object.Set('bot_dimensions_map', {
-        'chromium-rel-mac11-pro': {},
-    })
-
+class GTestQuestTest(_QuestTest):
 
   def testMinimumArguments(self):
     arguments = {
@@ -187,7 +182,7 @@ class GTestQuestTest(testing_common.TestCase):
         'target': 'net_perftests',
     }
 
-    expected = run_test.RunTest({}, _MIN_GTEST_RUN_TEST_ARGUMENTS)
+    expected = run_test.RunTest({'key': 'value'}, _MIN_GTEST_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
@@ -200,7 +195,7 @@ class GTestQuestTest(testing_common.TestCase):
     }
 
     expected = run_test.RunTest(
-        {'key': 'value'}, _ALL_GTEST_RUN_TEST_ARGUMENTS)
+        {'key': 'value'}, _ALL_GTEST_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 

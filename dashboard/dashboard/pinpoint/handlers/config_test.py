@@ -23,14 +23,14 @@ class ConfigTest(testing_common.TestCase):
 
     self.SetCurrentUser('external@chromium.org')
 
-    namespaced_stored_object.Set('bot_dimensions_map', {
+    namespaced_stored_object.Set('bot_configurations', {
         'chromium-rel-mac11-pro': {},
     })
 
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
 
-    namespaced_stored_object.Set('bot_dimensions_map', {
+    namespaced_stored_object.Set('bot_configurations', {
         'internal-only-bot': {},
     })
 

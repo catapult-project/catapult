@@ -18,8 +18,7 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming_service
 
 
-_CONFIGURATION_TO_DIMENSIONS = 'bot_dimensions_map'
-_CONFIGURATION_TO_BROWSER = 'bot_browser_map_2'
+_BOT_CONFIGURATIONS = 'bot_configurations'
 
 _SWARMING_EXTRA_ARGS = (
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
@@ -202,9 +201,8 @@ def _GetDimensions(arguments, used_arguments):
     used_arguments['dimensions'] = json.dumps(dimensions)
   elif configuration:
     used_arguments['configuration'] = configuration
-    configuration_to_dimensions = namespaced_stored_object.Get(
-        _CONFIGURATION_TO_DIMENSIONS)
-    dimensions = configuration_to_dimensions[configuration]
+    bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
+    dimensions = bots[configuration]['dimensions']
   else:
     raise TypeError('Missing a "configuration" or a "dimensions" argument.')
 
@@ -218,9 +216,8 @@ def _GetBrowser(arguments, used_arguments):
     used_arguments['browser'] = browser
   elif configuration:
     used_arguments['configuration'] = configuration
-    configuration_to_browser = namespaced_stored_object.Get(
-        _CONFIGURATION_TO_BROWSER)
-    browser = configuration_to_browser[configuration]
+    bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
+    browser = bots[configuration]['browser']
   else:
     raise TypeError('Missing a "configuration" or a "browser" argument.')
 
