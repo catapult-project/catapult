@@ -277,14 +277,28 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self.devtools_client.SimulateMemoryPressureNotification(
         pressure_level, timeout)
 
-  # TODO: consider migrating profile_directory & browser_directory out of
-  # browser_backend so we don't have to rely on creating browser_backend
-  # before clearing browser caches.
+  def GetDirectoryPathsToFlushOsPageCacheFor(self):
+    """ Return a list of directories to purge from OS page cache.
+
+    Will only be called when page cache clearing is necessary for a benchmark.
+    The caller will then attempt to purge all files from OS page cache for each
+    returned directory recursively.
+    """
+    paths_to_flush = []
+    if self.profile_directory:
+      paths_to_flush.append(self.profile_directory)
+    if self.browser_directory:
+      paths_to_flush.append(self.browser_directory)
+    return paths_to_flush
+
+  # TODO(crbug.com/787834): consider migrating profile_directory &
+  # browser_directory out of browser_backend so we don't have to rely on
+  # creating browser_backend before clearing browser caches.
   def ClearCaches(self):
     """ Clear system caches related to browser.
 
-    This clears DNS caches, then clears system caches on file paths that are
-    related to the browser (if
+    This clears DNS caches, then clears OS page cache on file paths that are
+    related to the browser (iff
     browser_options.clear_sytem_cache_for_browser_and_profile_on_start is True).
 
     Note: this is done with best effort and may have no actual effects on the
@@ -293,17 +307,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     platform = self.platform_backend.platform
     platform.FlushDnsCache()
     if self.browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
+      paths_to_flush = self.GetDirectoryPathsToFlushOsPageCacheFor()
       if (platform.CanFlushIndividualFilesFromSystemCache() and
-          (self.profile_directory or self.browser_directory)):
-        if self.profile_directory:
-          platform.FlushSystemCacheForDirectory(self.profile_directory)
-        if self.browser_directory:
-          platform.FlushSystemCacheForDirectory(self.browser_directory)
+          paths_to_flush):
+        for path in paths_to_flush:
+          platform.FlushSystemCacheForDirectory(path)
       elif platform.SupportFlushEntireSystemCache():
         platform.FlushEntireSystemCache()
       else:
         logging.warning(
-            'Flush system cache is not supported. Did not flush system cache.')
+            'Flush system cache is not supported. Did not flush OS page cache.')
 
   @property
   def supports_cpu_metrics(self):
