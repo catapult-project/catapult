@@ -105,13 +105,25 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
         'starting WPR')
     assert not cls.browser, 'Browser is started. Must close it first'
 
-    cls.browser = cls._browser_to_create.Create(cls._browser_options)
+    try:
+      # TODO(crbug.com/803104): Note cls._browser_options actually is a
+      # FinderOptions object, and we need to access the real browser_option's
+      # contained inside.
+      cls._browser_to_create.SetUpEnvironment(
+          cls._browser_options.browser_options)
+      cls.browser = cls._browser_to_create.Create()
+    except Exception:
+      cls._browser_options.CleanUpEnvironment()
+      raise
 
   @classmethod
   def StopBrowser(cls):
     assert cls.browser, 'Browser is not started'
-    cls.browser.Close()
-    cls.browser = None
+    try:
+      cls.browser.Close()
+      cls.browser = None
+    finally:
+      cls._browser_options.CleanUpEnvironment()
 
   @classmethod
   def TearDownProcess(cls):
