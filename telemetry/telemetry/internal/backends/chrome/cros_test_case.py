@@ -29,19 +29,19 @@ class CrOSTestCase(unittest.TestCase):
                      gaia_id=None, dont_override_profile=False):
     """Finds and creates a browser for tests. if autotest_ext is True,
     also loads the autotest extension"""
-    options = options_for_unittests.GetCopy()
+    finder_options = options_for_unittests.GetCopy()
+    browser_options = finder_options.browser_options
 
     if autotest_ext:
       extension_path = os.path.join(util.GetUnittestDataDir(), 'autotest_ext')
       assert os.path.isdir(extension_path)
       self._load_extension = extension_to_load.ExtensionToLoad(
           path=extension_path,
-          browser_type=options.browser_type)
-      options.browser_options.extensions_to_load = [self._load_extension]
+          browser_type=finder_options.browser_type)
+      browser_options.extensions_to_load = [self._load_extension]
 
-    browser_to_create = browser_finder.FindBrowser(options)
+    browser_to_create = browser_finder.FindBrowser(finder_options)
     self.assertTrue(browser_to_create)
-    browser_options = options.browser_options
     browser_options.create_browser_with_oobe = True
     browser_options.auto_login = auto_login
     browser_options.gaia_login = gaia_login
@@ -53,7 +53,7 @@ class CrOSTestCase(unittest.TestCase):
     if gaia_id is not None:
       browser_options.gaia_id = gaia_id
 
-    return browser_to_create.Create(options)
+    return browser_to_create.BrowserSession(browser_options)
 
   def _GetAutotestExtension(self, browser):
     """Returns the autotest extension instance"""
