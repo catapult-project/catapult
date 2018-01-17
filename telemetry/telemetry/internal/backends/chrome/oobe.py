@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from functools import partial
 import logging
 
 from telemetry.core import exceptions
@@ -15,20 +14,6 @@ class Oobe(web_contents.WebContents):
   def __init__(self, inspector_backend):
     super(Oobe, self).__init__(inspector_backend)
 
-  def _GaiaIFrameContext(self):
-    all_context_ids = self.EnableAllContexts().copy()
-    logging.debug('Gaia page contexts: %r', all_context_ids)
-    for gaia_iframe_context in all_context_ids:
-      try:
-        if self.EvaluateJavaScript(
-            "document.readyState == 'complete' && "
-            "document.getElementById('Email') != null",
-            context_id=gaia_iframe_context):
-          return gaia_iframe_context
-      except exceptions.EvaluateException:
-        pass
-    return None
-
   def _GaiaWebviewContext(self):
     webview_contexts = self.GetWebviewContexts()
     for webview in webview_contexts:
@@ -40,6 +25,7 @@ class Oobe(web_contents.WebContents):
             bases.length > 0 ?
                 bases[0].href.indexOf('https://accounts.google.com/') == 0 : false;
             """):
+          py_utils.WaitFor(webview.HasReachedQuiescence, 20)
           return webview
       except exceptions.DevtoolsTargetCrashException:
         pass
@@ -89,55 +75,31 @@ class Oobe(web_contents.WebContents):
   def NavigateGaiaLogin(self, username, password,
                         enterprise_enroll=False,
                         for_user_triggered_enrollment=False):
-    """Logs in using the GAIA webview or IFrame, whichever is
-    present. |enterprise_enroll| allows for enterprise enrollment.
-    |for_user_triggered_enrollment| should be False for remora enrollment."""
+    """Logs in using the GAIA webview. |enterprise_enroll| allows for enterprise
+    enrollment. |for_user_triggered_enrollment| should be False for remora
+    enrollment."""
     self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
     if for_user_triggered_enrollment:
       self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
 
-    self._NavigateGaiaLogin(username, password, enterprise_enroll)
+    py_utils.WaitFor(self._GaiaWebviewContext, 20)
+    self._NavigateWebviewLogin(username, password,
+                               wait_for_close=not enterprise_enroll)
 
     if enterprise_enroll:
       self.WaitForJavaScriptCondition(
           'Oobe.isEnrollmentSuccessfulForTest()', timeout=30)
       self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
-  def _NavigateGaiaLogin(self, username, password, enterprise_enroll):
-    """Invokes NavigateIFrameLogin or NavigateWebViewLogin as appropriate."""
-    def _GetGaiaFunction():
-      if self._GaiaWebviewContext() is not None:
-        return partial(Oobe._NavigateWebViewLogin,
-                       wait_for_close=not enterprise_enroll)
-      elif self._GaiaIFrameContext() is not None:
-        return partial(Oobe._NavigateIFrameLogin,
-                       add_user_for_testing=not enterprise_enroll)
-      return None
-    py_utils.WaitFor(_GetGaiaFunction, 20)(self, username, password)
-
-  def _NavigateIFrameLogin(self, username, password, add_user_for_testing):
-    """Logs into the IFrame-based GAIA screen"""
-    gaia_iframe_context = py_utils.WaitFor(self._GaiaIFrameContext, timeout=30)
-
-    if add_user_for_testing:
-      self._ExecuteOobeApi('Oobe.showAddUserForTesting')
-    self.ExecuteJavaScript(
-        """
-        document.getElementById('Email').value= {{ username }};
-        document.getElementById('Passwd').value= {{ password }};
-        document.getElementById('signIn').click();""",
-        username=username,
-        password=password,
-        context_id=gaia_iframe_context)
-
-  def _NavigateWebViewLogin(self, username, password, wait_for_close):
-    """Logs into the webview-based GAIA screen"""
-    self._NavigateWebViewEntry('identifierId', username, 'identifierNext')
-    self._NavigateWebViewEntry('password', password, 'passwordNext')
+  def _NavigateWebviewLogin(self, username, password, wait_for_close):
+    """Logs into the webview-based GAIA screen."""
+    self._NavigateWebviewEntry('identifierId', username, 'identifierNext')
+    self._NavigateWebviewEntry('password', password, 'passwordNext')
     if wait_for_close:
       py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
 
-  def _NavigateWebViewEntry(self, field, value, next_field):
+  def _NavigateWebviewEntry(self, field, value, next_field):
+    """Navigate a username/password GAIA screen."""
     self._WaitForField(field)
     self._WaitForField(next_field)
     # This code supports both ChromeOS Gaia v1 and v2.
@@ -158,8 +120,7 @@ class Oobe(web_contents.WebContents):
         next_field=next_field)
 
   def _WaitForField(self, field):
-    gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)
-    py_utils.WaitFor(gaia_webview_context.HasReachedQuiescence, 20)
-    gaia_webview_context.WaitForJavaScriptCondition(
+    """Wait for username/password field to become available."""
+    self._GaiaWebviewContext().WaitForJavaScriptCondition(
         "document.getElementById({{ field }}) != null",
         field=field, timeout=20)
