@@ -3,7 +3,7 @@ service: pinpoint
 runtime: python27
 api_version: 1
 threadsafe: true
-instance_class: F1
+instance_class: F4_1G
 
 libraries:
 - name: pycrypto
@@ -54,7 +54,6 @@ handlers:
 
 - url: /results2/.*
   script: dashboard.pinpoint.dispatcher.APP
-  login: admin
   secure: always
 
 - url: /flot/(.*\.js)$
