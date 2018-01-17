@@ -3,11 +3,12 @@
 # found in the LICENSE file.
 
 import time
+import unittest
 
 from battor import battor_wrapper
 from telemetry import decorators
-from telemetry.core import platform as platform_module
-from telemetry.testing import browser_test_case
+from telemetry.internal.browser import browser_finder
+from telemetry.testing import options_for_unittests
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
@@ -123,57 +124,6 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     for i in xrange(1, len(markers)):
       self.assertLess(markers[i - 1].end, markers[i].start)
 
-  def _StartupTracing(self, platform):
-    # Stop browser
-    browser_test_case.teardown_browser()
-
-    # Start tracing
-    self.assertFalse(platform.tracing_controller.is_tracing_running)
-    config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    platform.tracing_controller.StartTracing(config)
-    self.assertTrue(platform.tracing_controller.is_tracing_running)
-
-    try:
-      # Start browser
-      self.setUpClass()
-      self._browser.tabs[0].Navigate('about:blank')
-      self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      self.assertEquals(platform, self._browser.platform)
-
-      # Calling start tracing again will return False
-      self.assertFalse(platform.tracing_controller.StartTracing(config))
-
-      trace_data, errors = platform.tracing_controller.StopTracing()
-      self.assertEqual(errors, [])
-      # Test that trace data is parsable
-      model_module.TimelineModel(trace_data)
-      self.assertFalse(platform.tracing_controller.is_tracing_running)
-      # Calling stop tracing again will raise exception
-      self.assertRaises(Exception, platform.tracing_controller.StopTracing)
-    finally:
-      if platform.tracing_controller.is_tracing_running:
-        platform.tracing_controller.StopTracing()
-      if self._browser:
-        self._browser.Close()
-        self._browser = None
-
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('all')
-  @decorators.Isolated
-  def testStartupTracingOnAndroid(self):
-    self._StartupTracing(self._browser.platform)
-
-  @decorators.Enabled('chromeos')
-  @decorators.Isolated
-  def testStartupTracingOnCrOS(self):
-    self._StartupTracing(self._browser.platform)
-
-  @decorators.Enabled('linux', 'mac', 'win')
-  @decorators.Isolated
-  def testStartupTracingOnDesktop(self):
-    self._StartupTracing(platform_module.GetHostPlatform())
-
   @decorators.Disabled('linux')  # crbug.com/673761
   def testBattOrTracing(self):
     test_platform = self._browser.platform.GetOSName()
@@ -194,3 +144,44 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertEqual(errors, [])
     self.assertTrue(
         trace_data.HasTracesFor(trace_data_module.BATTOR_TRACE_PART))
+
+
+class StartupTracingTest(unittest.TestCase):
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  @decorators.Disabled('android')
+  @decorators.Isolated
+  def testStartupTracing(self):
+    finder_options = options_for_unittests.GetCopy()
+    possible_browser = browser_finder.FindBrowser(finder_options)
+    if not possible_browser:
+      raise Exception('No browser found, cannot continue test.')
+    platform = possible_browser.platform
+
+    # Start tracing
+    self.assertFalse(platform.tracing_controller.is_tracing_running)
+    config = tracing_config.TracingConfig()
+    config.enable_chrome_trace = True
+    platform.tracing_controller.StartTracing(config)
+    self.assertTrue(platform.tracing_controller.is_tracing_running)
+
+    try:
+      # Start browser
+      with possible_browser.BrowserSession(
+          finder_options.browser_options) as browser:
+        browser.tabs[0].Navigate('about:blank')
+        browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+
+        # Calling start tracing again will return False
+        self.assertFalse(platform.tracing_controller.StartTracing(config))
+
+        trace_data, errors = platform.tracing_controller.StopTracing()
+        self.assertEqual(errors, [])
+        # Test that trace data is parseable
+        model_module.TimelineModel(trace_data)
+        self.assertFalse(platform.tracing_controller.is_tracing_running)
+        # Calling stop tracing again will raise exception
+        with self.assertRaises(Exception):
+          platform.tracing_controller.StopTracing()
+    finally:
+      if platform.tracing_controller.is_tracing_running:
+        platform.tracing_controller.StopTracing()
