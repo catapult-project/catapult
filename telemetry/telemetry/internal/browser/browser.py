@@ -21,13 +21,15 @@ from telemetry.internal.util import exception_formatter
 class Browser(app.App):
   """A running browser instance that can be controlled in a limited way.
 
-  To create a browser instance, use browser_finder.FindBrowser.
+  To create a browser instance, use browser_finder.FindBrowser, e.g:
 
-  Be sure to clean up after yourself by calling Close() when you are done with
-  the browser. Or better yet:
-    browser_to_create = FindBrowser(options)
-    with browser_to_create.Create(options) as browser:
-      ... do all your operations on browser here
+    possible_browser = browser_finder.FindBrowser(finder_options)
+    with possible_browser.BrowserSession(
+        finder_options.browser_options) as browser:
+      # Do all your operations on browser here.
+
+  See telemetry.internal.browser.possible_browser for more details and use
+  cases.
   """
   def __init__(self, backend, platform_backend, startup_args):
     super(Browser, self).__init__(app_backend=backend,
