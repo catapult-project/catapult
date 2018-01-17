@@ -48,8 +48,7 @@ class ChangeTest(_ChangeTest):
     c = change.Change([base_commit, dep], p)
 
     self.assertEqual(c, change.Change((base_commit, dep), p))
-    string = ('chromium@aaa7336 catapult@e0a2efb + '
-              'https://codereview.com/672011/2f0d5c7')
+    string = 'chromium@aaa7336 catapult@e0a2efb + 2f0d5c7'
     id_string = ('catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba '
                  'chromium@aaa7336c821888839f759c6c0a36b56c + '
                  'https://codereview.com/672011/2f0d5c7')

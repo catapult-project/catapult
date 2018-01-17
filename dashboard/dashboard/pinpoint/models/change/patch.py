@@ -26,7 +26,7 @@ class GerritPatch(collections.namedtuple(
   """
 
   def __str__(self):
-    return self.id_string
+    return self.revision[:7]
 
   @property
   def id_string(self):

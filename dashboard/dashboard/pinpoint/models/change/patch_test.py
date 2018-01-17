@@ -57,9 +57,8 @@ class GerritPatchTest(unittest.TestCase):
 
     other_patch = patch.GerritPatch(u'https://example.com', 672011, '2f0d5c7')
     self.assertEqual(p, other_patch)
-    string = 'https://example.com/672011/2f0d5c7'
-    self.assertEqual(str(p), string)
-    self.assertEqual(p.id_string, string)
+    self.assertEqual(str(p), '2f0d5c7')
+    self.assertEqual(p.id_string, 'https://example.com/672011/2f0d5c7')
 
   @mock.patch('dashboard.services.gerrit_service.GetChange')
   def testBuildParameters(self, get_change):
