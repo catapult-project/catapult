@@ -77,38 +77,6 @@ HTML Results: %(html_results)s
 _PERF_PROFILER_HTML_ROW = '<tr><td>%(title)s:</td><td><b>%(link)s</b></td>\n'
 _PERF_PROFILER_TEXT_ROW = '%(title)s: %(link)s\n'
 
-_BISECT_FYI_EMAIL_SUBJECT = (
-    'Bisect FYI Try Job Failed on %(bot)s for %(test_name)s.')
-
-_BISECT_FYI_EMAIL_HTML_BODY = """
-<font color="red"><b>Bisect FYI Try Job Failed</b></font>
-<br><br>
-%(message)s
-<br><br>
-A Bisect FYI Try Job for %(test_name)s was submitted on %(bot)s at
-<a href="%(job_url)s">%(job_url)s</a>.<br>
-<table cellpadding='4'>
-  <tr><td>Bot:</td><td><b>%(bot)s</b></td>
-  <tr><td>Test Case:</td><td><b>%(test_name)s</b></td>
-  <tr><td>Bisect Config:</td><td><b><pre>%(config)s</pre></b></td>
-  <tr><td>Error Details:</td><td><b><pre>%(errors)s</pre></b></td>
-  <tr><td>Bisect Results:</td><td><b><pre>%(results)s</pre></b></td>
-</table>
-"""
-
-_BISECT_FYI_EMAIL_TEXT_BODY = """
-Bisect FYI Try Job Failed
-
-Bot: %(bot)s
-Test Case: %(test_name)s
-Bisect Config: %(config)s
-Error Details: %(errors)s
-Bisect Results:
-%(results)s
-
-+++++++++++++++++++++++++++++++
-"""
-
 
 def GetPerfTryJobEmailReport(try_job_entity):
   """Gets the contents of the email to send once a perf try job completes."""
@@ -296,26 +264,3 @@ def GetAlertInfo(alert, test):
       'alerts_link': GetAlertsLink(sheriff_name),
   }
   return results
-
-
-def GetBisectFYITryJobEmailReport(job, message):
-  """Gets the contents of the email to send once a bisect FYI job completes."""
-  results_data = job.results_data
-  subject_dict = {
-      'bot': job.bot,
-      'test_name': job.job_name,
-  }
-  report_dict = {
-      'message': message,
-      'bot': job.bot,
-      'job_url': results_data['buildbot_log_url'],
-      'test_name': job.job_name,
-      'config': job.config if job.config else 'Undefined',
-      'errors': results_data.get('errors'),
-      'results': results_data.get('results'),
-  }
-
-  html = _BISECT_FYI_EMAIL_HTML_BODY % report_dict
-  text = _BISECT_FYI_EMAIL_TEXT_BODY % report_dict
-  subject = _BISECT_FYI_EMAIL_SUBJECT % subject_dict
-  return {'subject': subject, 'html': html, 'body': text}

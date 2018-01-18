@@ -12,14 +12,11 @@ import mock
 import webapp2
 import webtest
 
-from dashboard import bisect_fyi
-from dashboard import bisect_fyi_test
 from dashboard import layered_cache
 from dashboard import update_bug_with_results
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
-from dashboard.common import stored_object
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
@@ -49,7 +46,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
         'commit_info': 'commit_info',
         'revisions_links': ['http://src.chromium.org/viewvc/chrome?view='
                             'revision&revision=20798'],
-        'cl': '2a1781d64d'  # Should match config in bisect_fyi_test.py.
+        'cl': '2a1781d64d'
     },
     'revision_data': [
         {
@@ -584,142 +581,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         'Additional errors:\n'
         'The metric was not found in the test output.\n'
         'The test failed to produce parseable results.\n')
-
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
-  @mock.patch.object(
-      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
-      mock.MagicMock())
-  def testFYI_Send_No_Email_On_Success(self):
-    stored_object.Set(
-        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
-        bisect_fyi_test.TEST_FYI_CONFIGS)
-    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
-    bisect_config = test_config.get('bisect_config')
-    self._AddTryJob(12345, 'started', 'win_perf',
-                    results_data=_SAMPLE_BISECT_RESULTS_JSON,
-                    internal_only=True,
-                    config=utils.BisectConfigPythonString(bisect_config),
-                    job_type='bisect-fyi',
-                    job_name='positive_culprit',
-                    email='chris@email.com')
-
-    self.testapp.get('/update_bug_with_results')
-    messages = self.mail_stub.get_sent_messages()
-    self.assertEqual(0, len(messages))
-
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
-  @mock.patch.object(
-      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
-      mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
-      mock.MagicMock())
-  @mock.patch.object(
-      update_bug_with_results, '_ValidateBuildbucketResponse',
-      mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      buildbucket_service, 'GetJobStatus',
-      mock.MagicMock(
-          return_value=_MockBuildBucketResponse(
-              result='FAILURE',
-              updated_ts=int(round(time.time() * 1000000)))))
-  def testFYI_Failed_Job_SendEmail(self):
-    stored_object.Set(
-        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
-        bisect_fyi_test.TEST_FYI_CONFIGS)
-    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
-    bisect_config = test_config.get('bisect_config')
-    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
-    sample_bisect_results['status'] = 'failed'
-    self._AddTryJob(12345, 'started', 'win_perf',
-                    results_data=sample_bisect_results,
-                    internal_only=True,
-                    buildbucket_job_id='12345',
-                    config=utils.BisectConfigPythonString(bisect_config),
-                    job_type='bisect-fyi',
-                    job_name='positive_culprit',
-                    email='chris@email.com')
-
-    self.testapp.get('/update_bug_with_results')
-    messages = self.mail_stub.get_sent_messages()
-    self.assertEqual(1, len(messages))
-
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
-  @mock.patch.object(
-      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
-      mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
-      mock.MagicMock())
-  @mock.patch.object(
-      update_bug_with_results, '_ValidateBuildbucketResponse',
-      mock.MagicMock(side_effect=update_bug_with_results.BisectJobFailure))
-  @mock.patch.object(
-      buildbucket_service, 'GetJobStatus',
-      mock.MagicMock(
-          return_value=_MockBuildBucketResponse(
-              result='FAILURE',
-              updated_ts=int(round(time.time() * 1000000)))))
-  def testFYI_Failed_Job_SendEmail_On_Exception(self):
-    stored_object.Set(
-        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
-        bisect_fyi_test.TEST_FYI_CONFIGS)
-    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
-    bisect_config = test_config.get('bisect_config')
-    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
-    sample_bisect_results['status'] = 'failed'
-    self._AddTryJob(12345, 'started', 'win_perf',
-                    results_data=sample_bisect_results,
-                    internal_only=True,
-                    buildbucket_job_id='12345',
-                    config=utils.BisectConfigPythonString(bisect_config),
-                    job_type='bisect-fyi',
-                    job_name='positive_culprit',
-                    email='chris@email.com')
-
-    self.testapp.get('/update_bug_with_results')
-    messages = self.mail_stub.get_sent_messages()
-    self.assertEqual(1, len(messages))
-
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
-  @mock.patch.object(
-      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
-      mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
-      mock.MagicMock())
-  @mock.patch.object(
-      update_bug_with_results, '_ValidateBuildbucketResponse',
-      mock.MagicMock(return_value=False))
-  def testFYI_Failed_Job_NoSendEmail(self):
-    stored_object.Set(
-        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
-        bisect_fyi_test.TEST_FYI_CONFIGS)
-    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
-    bisect_config = test_config.get('bisect_config')
-    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
-    sample_bisect_results['status'] = 'failed'
-    self._AddTryJob(12345, 'started', 'win_perf',
-                    results_data=sample_bisect_results,
-                    internal_only=True,
-                    config=utils.BisectConfigPythonString(bisect_config),
-                    job_type='bisect-fyi',
-                    job_name='positive_culprit',
-                    email='chris@email.com')
-
-    self.testapp.get('/update_bug_with_results')
-    messages = self.mail_stub.get_sent_messages()
-    self.assertEqual(0, len(messages))
 
   @mock.patch.object(
       update_bug_with_results.quick_logger.QuickLogger,

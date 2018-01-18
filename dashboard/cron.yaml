@@ -35,10 +35,6 @@ cron:
   url: /update_test_suites
   schedule: every 20 minutes
 
-- description: Triggers bisect FYI jobs.
-  url: /bisect_fyi
-  schedule: every 24 hours
-
 # The backup cron job is disabled temporarily in order to check whether
 # it is responsible for increased cost on the weekends.
 # See: https://github.com/catapult-project/catapult/issues/1944

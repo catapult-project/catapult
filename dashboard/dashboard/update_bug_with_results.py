@@ -13,7 +13,6 @@ import traceback
 from google.appengine.api import mail
 from google.appengine.ext import ndb
 
-from dashboard import bisect_fyi
 from dashboard import bisect_report
 from dashboard import email_template
 from dashboard import layered_cache
@@ -145,12 +144,13 @@ def _CheckJob(job, issue_tracker):
   if job.job_type == 'perf-try':
     logging.info('Sending perf try job mail')
     _SendPerfTryJobEmail(job)
-  elif job.job_type == 'bisect-fyi':
-    logging.info('Checking FYI bisect job')
-    _CheckFYIBisectJob(job, issue_tracker)
-  else:
+  elif job.job_type == 'bisect':
     logging.info('Checking bisect job')
     _CheckBisectJob(job, issue_tracker)
+  else:
+    logging.error('Unknown job type: %s - %s', job.key.id(), job.job_type)
+    job.SetCompleted()
+    return
 
   if results_data and results_data.get('status') == COMPLETED:
     job.SetCompleted()
@@ -166,37 +166,6 @@ def _CheckBisectJob(job, issue_tracker):
     _PostFailedResult(job, issue_tracker)
     return
   _PostSuccessfulResult(job, issue_tracker)
-
-
-def _CheckFYIBisectJob(job, issue_tracker):
-  try:
-    if not job.buildbucket_job_id:
-      job.key.delete()
-      return
-
-    if not job.results_data:
-      raise BisectJobFailure('Bisect job completed, but results data is not '
-                             'found, bot might have failed to post results.')
-    # FAILED implies failed or cancelled jobs.
-    if job.status == FAILED:
-      raise BisectJobFailure(
-          _BUILD_FAILURE_REASON.get(
-              job.results_data.get('failure_reason'), 'Unknown'))
-    error_message = bisect_fyi.VerifyBisectFYIResults(job)
-    _PostSuccessfulResult(job, issue_tracker)
-    if not bisect_fyi.IsBugUpdated(job, issue_tracker):
-      error_message += '\nFailed to update bug with bisect results.'
-  except BisectJobFailure as e:
-    error_message = 'Bisect job failed because, %s' % e
-  except BugUpdateFailure as e:
-    error_message = 'Failed to update bug with bisect results: %s' % e
-  except Exception as e:  # pylint: disable=broad-except
-    error_message = 'Failed to update bug with bisect results: %s' % e
-  finally:
-    if ((job.results_data and job.results_data.get('status') == FAILED) or
-        error_message):
-      job.SetFailed()
-      _SendFYIBisectEmail(job, error_message)
 
 
 def _SendPerfTryJobEmail(job):
@@ -418,16 +387,6 @@ def _GetReviewersFromCulpritData(culprit_data):
       issue_data = json.loads(issue_response.content)
       reviewer_list.extend([str(item) for item in issue_data['reviewers']])
   return reviewer_list
-
-
-def _SendFYIBisectEmail(job, message):
-  """Sends an email to chrome-performance-monitoring-alerts with FYI results."""
-  email_data = email_template.GetBisectFYITryJobEmailReport(job, message)
-  mail.send_mail(sender='gasper-alerts@google.com',
-                 to='chrome-performance-monitoring-alerts@google.com',
-                 subject=email_data['subject'],
-                 body=email_data['body'],
-                 html=email_data['html'])
 
 
 def UpdateQuickLog(job, in_progress=False):
