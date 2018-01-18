@@ -142,8 +142,9 @@ class WindowsProcessCollector(ProcessCollector):
       return subprocess.check_output(
           self._GET_PERF_DATA_SHELL_COMMAND).strip().split('\n')[2:]
     except subprocess.CalledProcessError as e:
-      logging.warning('Error when running wmic command, which gave output: %s',
-                      e.output)
+      logging.warning(
+          'wmic failed with error code %d when running command, which gave '
+          'output: %s', e.returncode, e.output)
 
   def _ParseProcessString(self, proc_string):
     assert self._physicalMemoryBytes, 'Must call Init() before using collector'
