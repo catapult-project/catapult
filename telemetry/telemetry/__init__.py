@@ -79,8 +79,10 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mox3')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
-_AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'cv2', 'lib', 'cv2_*')
-_AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'numpy', 'lib', 'numpy_*')
+# Chromium's vpython environment already provides these modules as wheels.
+if not os.getenv('VIRTUAL_ENV'):
+  _AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'cv2', 'lib', 'cv2_*')
+  _AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'numpy', 'lib', 'numpy_*')
 
 # Install Telemtry global hooks.
 global_hooks.InstallHooks()
