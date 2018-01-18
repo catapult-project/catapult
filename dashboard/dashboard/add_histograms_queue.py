@@ -144,12 +144,13 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
 
   logging.info('Processing: %s', test_path)
 
+  hist = histogram_module.Histogram.FromDict(data_dict)
   test_path_parts = test_path.split('/')
   master = test_path_parts[0]
   bot = test_path_parts[1]
   test_name = '/'.join(test_path_parts[2:])
   internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
-  extra_args = GetUnitArgs(data_dict['unit'])
+  extra_args = GetUnitArgs(hist.unit)
 
   unescaped_story_name = _GetStoryFromDiagnosticsDict(params.get('diagnostics'))
 
@@ -161,27 +162,53 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
       unescaped_story_name=unescaped_story_name, **extra_args)
   test_key = parent_test.key
 
+  legacy_parent_tests = {}
+
+  if test_name.endswith('_ref'):
+    test_name = test_name[:-4]
+    ref_suffix = '_ref'
+  elif test_name.endswith('/ref'):
+    test_name = test_name[:-4]
+    ref_suffix = '/ref'
+  else:
+    ref_suffix = ''
+  for stat_name, scalar in hist.statistics_scalars.iteritems():
+    extra_args = GetUnitArgs(scalar.unit)
+    suffixed_name = '%s_%s%s' % (test_name, stat_name, ref_suffix)
+    legacy_parent_tests[stat_name] = add_point_queue.GetOrCreateAncestors(
+        master, bot, suffixed_name, internal_only=internal_only,
+        unescaped_story_name=unescaped_story_name, **extra_args)
+
   return [
-      _AddRowFromData(params, revision, parent_test, internal_only),
+      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
+                       internal_only),
       _AddHistogramFromData(params, revision, test_key, internal_only)]
 
 
 @ndb.tasklet
-def _AddRowFromData(params, revision, parent_test, internal_only):
+def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
+                     internal_only):
   data_dict = params['data']
-  test_path = params['test_path']
   test_key = parent_test.key
 
-  row = AddRow(data_dict, test_key, revision, test_path, internal_only)
-  if not row:
+  stat_names_to_test_keys = {k: v.key for k, v in
+                             legacy_parent_tests.iteritems()}
+  rows = AddRows(data_dict, test_key, stat_names_to_test_keys, revision,
+                 internal_only)
+  if not rows:
     raise ndb.Return()
 
-  yield row.put_async()
+  yield ndb.put_multi_async(rows)
 
   tests_keys = []
   is_monitored = parent_test.sheriff and parent_test.has_rows
   if is_monitored:
     tests_keys.append(parent_test.key)
+
+  for legacy_parent_test in legacy_parent_tests.itervalues():
+    is_monitored = legacy_parent_test.sheriff and legacy_parent_test.has_rows
+    if is_monitored:
+      tests_keys.append(legacy_parent_test.key)
 
   tests_keys = [
       k for k in tests_keys if not add_point_queue.IsRefBuild(k)]
@@ -189,7 +216,7 @@ def _AddRowFromData(params, revision, parent_test, internal_only):
   # Updating of the cached graph revisions should happen after put because
   # it requires the new row to have a timestamp, which happens upon put.
   futures = [
-      graph_revisions.AddRowsToCacheAsync([row]),
+      graph_revisions.AddRowsToCacheAsync(rows),
       find_anomalies.ProcessTestsAsync(tests_keys)]
   yield futures
 
@@ -254,22 +281,34 @@ def GetUnitArgs(unit):
   return unit_args
 
 
-def AddRow(histogram_dict, test_metadata_key, revision, test_path,
-           internal_only):
+def AddRows(histogram_dict, test_metadata_key, stat_names_to_test_keys,
+            revision, internal_only):
   h = histogram_module.Histogram.FromDict(histogram_dict)
   # TODO(eakuefner): Move this check into _PopulateNumericalFields once we
   # know that it's okay to put rows that don't have a value/error (see
   # https://github.com/catapult-project/catapult/issues/3564).
   if h.num_values == 0:
     return None
-  row_dict = _MakeRowDict(revision, test_path, h)
+
+  rows = []
+
+  row_dict = _MakeRowDict(revision, test_metadata_key.id(), h)
   properties = add_point.GetAndValidateRowProperties(row_dict)
   test_container_key = utils.GetTestContainerKey(test_metadata_key)
-  row = graph_data.Row(id=revision, parent=test_container_key,
-                       internal_only=internal_only, **properties)
-  return row
+  rows.append(graph_data.Row(id=revision, parent=test_container_key,
+                             internal_only=internal_only, **properties))
 
-def _MakeRowDict(revision, test_path, tracing_histogram):
+  for stat_name, suffixed_key in stat_names_to_test_keys.iteritems():
+    row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
+    properties = add_point.GetAndValidateRowProperties(row_dict)
+    test_container_key = utils.GetTestContainerKey(suffixed_key)
+    rows.append(graph_data.Row(
+        id=revision, parent=suffixed_key, internal_only=internal_only,
+        **properties))
+
+  return rows
+
+def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
   d = {}
   test_parts = test_path.split('/')
   d['master'] = test_parts[0]
@@ -299,7 +338,12 @@ def _MakeRowDict(revision, test_path, tracing_histogram):
 
     d['supplemental_columns'][annotation] = value[0]
 
-  _PopulateNumericalFields(d, tracing_histogram)
+  if stat_name is not None:
+    d['value'] = tracing_histogram.statistics_scalars[stat_name].value
+    if stat_name == 'avg':
+      d['error'] = tracing_histogram.standard_deviation
+  else:
+    _PopulateNumericalFields(d, tracing_histogram)
   return d
 
 def _PopulateNumericalFields(row_dict, tracing_histogram):

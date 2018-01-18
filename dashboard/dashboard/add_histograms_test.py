@@ -99,7 +99,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
   def testPost_Succeeds(self, mock_process_test, mock_graph_revisions):
     data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
     sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo2']).put()
+        id='my_sheriff1', email='a@chromium.org', patterns=[
+            '*/*/*/foo2', '*/*/*/foo2_avg']).put()
 
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -110,17 +111,23 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     self.assertEqual(1, len(histograms))
 
     tests = graph_data.TestMetadata.query().fetch()
+
     # Verify that an anomaly processing was called.
-    mock_process_test.assert_called_once_with([tests[1].key])
+    mock_process_test.assert_called_once_with([tests[1].key, tests[2].key])
 
     rows = graph_data.Row.query().fetch()
-    mock_graph_revisions.assert_called_once_with(rows)
+    # We want to verify that the method was called with all rows that have
+    # been added, but the ordering will be different because we produce
+    # the rows by iterating over a dict.
+    mock_graph_revisions.assert_called_once()
+    self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
 
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   @mock.patch.object(
-      add_histograms_queue, 'AddRow', mock.MagicMock(return_value=None))
+      add_histograms_queue, 'AddRows', mock.MagicMock(return_value=None))
   def testPost_EmptyHistogram_NotAdded(
       self, mock_process_test, mock_graph_revisions):
     data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
