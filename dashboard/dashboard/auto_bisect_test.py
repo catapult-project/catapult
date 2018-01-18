@@ -151,10 +151,10 @@ class StartNewBisectForBugTest(testing_common.TestCase):
   @mock.patch.object(auto_bisect.pinpoint_request, 'ResolveToGitHash',
                      mock.MagicMock(return_value='abc123'))
   def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_guess):
-    namespaced_stored_object.Set('bot_dimensions_map', {
-        'linux-pinpoint': [
-            {'key': 'foo', 'value': 'bar'}
-        ],
+    namespaced_stored_object.Set('bot_configurations', {
+        'linux-pinpoint': {
+            'dimensions': [{'key': 'foo', 'value': 'bar'}]
+        },
     })
 
     namespaced_stored_object.Set('repositories', {

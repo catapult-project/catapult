@@ -48,13 +48,13 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
     self.SetCurrentUser('foo@chromium.org')
 
-    namespaced_stored_object.Set('bot_dimensions_map', {
-        'mac': [
-            {'key': 'foo', 'value': 'mac_dimensions'}
-        ],
-        'android-webview-nexus5x': [
-            {'key': 'foo', 'value': 'android_dimensions'}
-        ]
+    namespaced_stored_object.Set('bot_configurations', {
+        'mac': {
+            'dimensions': [{'key': 'foo', 'value': 'mac_dimensions'}]
+        },
+        'android-webview-nexus5x': {
+            'dimensions': [{'key': 'foo', 'value': 'android_dimensions'}]
+        }
     })
 
     namespaced_stored_object.Set('repositories', {
@@ -312,13 +312,13 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
     self.SetCurrentUser('foo@chromium.org')
 
-    namespaced_stored_object.Set('bot_dimensions_map', {
-        'mac': [
-            {'key': 'foo', 'value': 'mac_dimensions'}
-        ],
-        'android-webview-nexus5x': [
-            {'key': 'foo', 'value': 'android_dimensions'}
-        ]
+    namespaced_stored_object.Set('bot_configurations', {
+        'mac': {
+            'dimensions': [{'key': 'foo', 'value': 'mac_dimensions'}]
+        },
+        'android-webview-nexus5x': {
+            'dimensions': [{'key': 'foo', 'value': 'android_dimensions'}]
+        }
     })
 
     namespaced_stored_object.Set('repositories', {

@@ -16,7 +16,7 @@ from dashboard.common import utils
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
-_BOTS_TO_DIMENSIONS = 'bot_dimensions_map'
+_BOT_CONFIGURATIONS = 'bot_configurations'
 _PINPOINT_REPOSITORIES = 'repositories'
 _ISOLATE_TARGETS = [
     'angle_perftests', 'cc_perftests', 'gpu_perftests',
@@ -115,11 +115,11 @@ def ParseTIRLabelChartNameAndTraceName(test_path_parts):
 
 
 def _BotDimensionsFromBotName(bot_name):
-  bots_to_dimensions = namespaced_stored_object.Get(_BOTS_TO_DIMENSIONS)
-  dimensions = bots_to_dimensions.get(bot_name)
-  if not dimensions:
+  bot_configurations = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
+  config = bot_configurations.get(bot_name)
+  if not config:
     raise InvalidParamsError('No dimensions for bot %s defined.' % bot_name)
-  return dimensions
+  return config['dimensions']
 
 
 def ParseStatisticNameFromChart(chart_name):
