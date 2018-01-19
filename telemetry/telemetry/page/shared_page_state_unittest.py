@@ -131,11 +131,11 @@ class SharedPageStateTests(unittest.TestCase):
     try:
       for p in (google_page, example_page, gmail_page):
         shared_state.WillRunStory(p)
-        # Fake possible browser saves the finder_options passed into it.
-        page_level_options = shared_state._possible_browser.finder_options
+        # Fake possible browser saves the browser_options passed into it.
+        page_level_options = shared_state._possible_browser.browser_options
         self.assertEqual(
             p.startup_url,
-            page_level_options.browser_options.startup_url)
+            page_level_options.startup_url)
         self.assertNotEqual(
             p.startup_url,
             shared_state._finder_options.browser_options.startup_url,
@@ -143,7 +143,7 @@ class SharedPageStateTests(unittest.TestCase):
         for page_level_argument in p.extra_browser_args:
           self.assertIn(
               page_level_argument,
-              page_level_options.browser_options.extra_browser_args)
+              page_level_options.extra_browser_args)
           self.assertNotIn(
               page_level_argument,
               shared_state._finder_options.browser_options.extra_browser_args,
