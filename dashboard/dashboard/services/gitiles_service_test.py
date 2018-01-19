@@ -16,6 +16,10 @@ class GitilesTest(unittest.TestCase):
     self._request_json = patcher.start()
     self.addCleanup(patcher.stop)
 
+    patcher = mock.patch('dashboard.services.request.Request')
+    self._request = patcher.start()
+    self.addCleanup(patcher.stop)
+
   def testCommitInfo(self):
     return_value = {
         'commit': 'commit_hash',
@@ -50,7 +54,8 @@ class GitilesTest(unittest.TestCase):
                                    'commit_hash'),
         return_value)
     self._request_json.assert_called_once_with(
-        'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON')
+        'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON',
+        use_cache=False)
 
   def testCommitRange(self):
     return_value = {
@@ -96,7 +101,8 @@ class GitilesTest(unittest.TestCase):
         return_value['log'])
     self._request_json.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+log/'
-        'commit_0_hash..commit_2_hash?format=JSON')
+        'commit_0_hash..commit_2_hash?format=JSON',
+        use_cache=False)
 
   def testCommitRangePaginated(self):
     return_value_1 = {
@@ -121,14 +127,33 @@ class GitilesTest(unittest.TestCase):
         return_value_1['log'] + return_value_2['log'])
 
   def testFileContents(self):
-    patcher = mock.patch('dashboard.services.request.Request')
-    request = patcher.start()
-    self.addCleanup(patcher.stop)
-
-    request.return_value = 'aGVsbG8='
+    self._request.return_value = 'aGVsbG8='
     self.assertEqual(
         gitiles_service.FileContents('https://chromium.googlesource.com/repo',
                                      'commit_hash', 'path'),
         'hello')
-    request.assert_called_once_with(
-        'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT')
+    self._request.assert_called_once_with(
+        'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT',
+        use_cache=False)
+
+  def testCache(self):
+    self._request_json.return_value = {'log': []}
+    self._request.return_value = 'aGVsbG8='
+
+    repository = 'https://chromium.googlesource.com/repo'
+    git_hash = '3a44bc56c4efa42a900a1c22b001559b81e457e9'
+
+    gitiles_service.CommitInfo(repository, git_hash)
+    self._request_json.assert_called_with(
+        '%s/+/%s?format=JSON' % (repository, git_hash),
+        use_cache=True)
+
+    gitiles_service.CommitRange(repository, git_hash, git_hash)
+    self._request_json.assert_called_with(
+        '%s/+log/%s..%s?format=JSON' % (repository, git_hash, git_hash),
+        use_cache=True)
+
+    gitiles_service.FileContents(repository, git_hash, 'path')
+    self._request.assert_called_with(
+        '%s/+/%s/path?format=TEXT' % (repository, git_hash),
+        use_cache=True)
