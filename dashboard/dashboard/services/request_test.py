@@ -90,6 +90,13 @@ class FailureAndRetryTest(_RequestTest):
     self._request.assert_called_with('https://example.com', method='GET')
     self.assertEqual(self._request.call_count, 2)
 
+  def testNotFound(self):
+    self._request.return_value = ({'status': '404'}, '')
+    with self.assertRaises(request.NotFoundError):
+      request.Request('https://example.com')
+    self._request.assert_called_with('https://example.com', method='GET')
+    self.assertEqual(self._request.call_count, 1)
+
   def testHttpErrorCodeSuccessOnRetry(self):
     failure_return_value = ({'status': '500'}, '')
     success_return_value = ({'status': '200'}, 'response')

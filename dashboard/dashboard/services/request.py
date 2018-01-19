@@ -16,6 +16,10 @@ _CACHE_DURATION = 60 * 60 * 24 * 7  # 1 week.
 _VULNERABILITY_PREFIX = ")]}'\n"
 
 
+class NotFoundError(httplib.HTTPException):
+  """Raised when a request gives a HTTP 404 error."""
+
+
 def RequestJson(*args, **kwargs):
   """Fetch a URL and JSON-decode the response.
 
@@ -41,6 +45,7 @@ def Request(url, method='GET', body=None, use_cache=False, **parameters):
     The reponse body.
 
   Raises:
+    NotFoundError: The HTTP status code is 404.
     httplib.HTTPException: The request or response is malformed, or there is a
         network or server error, or the HTTP status code is not 2xx.
   """
@@ -69,6 +74,8 @@ def Request(url, method='GET', body=None, use_cache=False, **parameters):
 
   try:
     content = _RequestAndProcessHttpErrors(url, **kwargs)
+  except NotFoundError:
+    raise
   except (httplib.HTTPException, socket.error):
     # Retry once.
     content = _RequestAndProcessHttpErrors(url, **kwargs)
@@ -83,6 +90,9 @@ def _RequestAndProcessHttpErrors(*args, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   http = utils.ServiceAccountHttp(timeout=10)
   response, content = http.request(*args, **kwargs)
+  if response['status'] == '404':
+    raise NotFoundError(
+        'HTTP status code %s: %s' % (response['status'], content))
   if not response['status'].startswith('2'):
     raise httplib.HTTPException(
         'HTTP status code %s: %s' % (response['status'], content))

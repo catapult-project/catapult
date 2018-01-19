@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import base64
 import httplib2
 import json
 import unittest
@@ -244,22 +243,6 @@ config = {
 _EXPECTED_CONFIG_DIFF = None
 _TEST_EXPECTED_BOT = None
 _TEST_EXPECTED_CONFIG_CONTENTS = None
-
-
-def _MockFetch(url=None, deadline=None):
-  del deadline
-  if start_try_job._BISECT_CONFIG_PATH in url:
-    return testing_common.FakeResponseObject(
-        200, base64.encodestring(_BISECT_CONFIG_CONTENTS))
-  elif start_try_job._PERF_CONFIG_PATH in url:
-    return testing_common.FakeResponseObject(
-        200, base64.encodestring(_PERF_CONFIG_CONTENTS))
-
-
-def _MockFailedFetch(url=None, deadline=None):
-  del url
-  del deadline
-  return testing_common.FakeResponseObject(404, {})
 
 
 def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
@@ -761,9 +744,6 @@ class StartBisectTest(testing_common.TestCase):
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
       mock.MagicMock(return_value='my-dashboard.appspot.com'))
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='33001'))
   @mock.patch.object(
@@ -804,9 +784,9 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual(issue_url, try_jobs[0].results_data['issue_url'])
     self.assertEqual('33001', try_jobs[0].results_data['issue_id'])
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      start_try_job.gitiles_service, 'FileContents',
+      mock.MagicMock(return_value=_PERF_CONFIG_CONTENTS))
   @mock.patch.object(
       start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
@@ -829,9 +809,9 @@ class StartBisectTest(testing_common.TestCase):
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      start_try_job.gitiles_service, 'FileContents',
+      mock.MagicMock(return_value=_PERF_CONFIG_CONTENTS))
   @mock.patch.object(
       start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
@@ -883,9 +863,9 @@ class StartBisectTest(testing_common.TestCase):
     try_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(try_jobs))
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFailedFetch))
+  @mock.patch.object(
+      start_try_job.gitiles_service, 'FileContents',
+      mock.MagicMock(side_effect=start_try_job.gitiles_service.NotFoundError))
   @mock.patch.object(
       start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
@@ -909,9 +889,6 @@ class StartBisectTest(testing_common.TestCase):
     try_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(try_jobs))
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(side_effect=_MockFetch))
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
       mock.MagicMock(return_value='my-dashboard.appspot.com'))

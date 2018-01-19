@@ -5,16 +5,11 @@
 """Functions for getting commit information from Gitiles."""
 
 import base64
-import json
 
-from google.appengine.api import urlfetch
-
-
-_PADDING = ")]}'\n"  # Gitiles padding.
+from dashboard.services import request
 
 
-class NotFoundError(Exception):
-  """Raised when Gitiles gives a HTTP 404 error."""
+NotFoundError = request.NotFoundError
 
 
 def CommitInfo(repository_url, git_hash):
@@ -30,11 +25,11 @@ def CommitInfo(repository_url, git_hash):
 
   Raises:
     NotFoundError: The repository or commit was not found in Gitiles.
-    urlfetch.Error: A network or HTTP error occurred.
+    httplib.HTTPException: A network or HTTP error occurred.
   """
   # TODO: Update the docstrings in this file.
   url = '%s/+/%s?format=JSON' % (repository_url, git_hash)
-  return _RequestJson(url)
+  return request.RequestJson(url)
 
 
 def CommitRange(repository_url, first_git_hash, last_git_hash):
@@ -54,13 +49,13 @@ def CommitRange(repository_url, first_git_hash, last_git_hash):
 
   Raises:
     NotFoundError: The repository or a commit was not found in Gitiles.
-    urlfetch.Error: A network or HTTP error occurred.
+    httplib.HTTPException: A network or HTTP error occurred.
   """
   commits = []
   while last_git_hash:
     url = '%s/+log/%s..%s?format=JSON' % (
         repository_url, first_git_hash, last_git_hash)
-    response = _RequestJson(url)
+    response = request.RequestJson(url)
     commits += response['log']
     last_git_hash = response.get('next')
   return commits
@@ -79,34 +74,7 @@ def FileContents(repository_url, git_hash, path):
 
   Raises:
     NotFoundError: The repository, commit, or file was not found in Gitiles.
-    urlfetch.Error: A network or HTTP error occurred.
+    httplib.HTTPException: A network or HTTP error occurred.
   """
   url = '%s/+/%s/%s?format=TEXT' % (repository_url, git_hash, path)
-  return base64.b64decode(_Request(url))
-
-
-def _RequestJson(url):
-  """Requests a URL and decodes the JSON result into a dict."""
-  return json.loads(_Request(url)[len(_PADDING):])
-
-
-def _Request(url):
-  """Requests a URL with one retry."""
-  try:
-    return _RequestAndProcessHttpErrors(url)
-  except urlfetch.Error:  # Maybe it's a transient error. Retry once.
-    return _RequestAndProcessHttpErrors(url)
-
-
-def _RequestAndProcessHttpErrors(url):
-  """Requests a URL, converting HTTP errors to Python exceptions."""
-  response = urlfetch.fetch(url, deadline=60)
-
-  if response.status_code == 404:
-    raise NotFoundError('Server returned HTTP code %d for %s' %
-                        (response.status_code, url))
-  elif response.status_code != 200:
-    raise urlfetch.Error('Server returned HTTP code %d for %s' %
-                         (response.status_code, url))
-
-  return response.content
+  return base64.b64decode(request.Request(url))

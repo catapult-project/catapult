@@ -33,9 +33,6 @@ from dashboard.services import issue_tracker_service
 from dashboard.services import rietveld_service
 
 
-# Path to the perf bisect script config file, relative to chromium/src.
-_BISECT_CONFIG_PATH = 'tools/auto_bisect/bisect.cfg'
-
 # Path to the perf trybot config file, relative to chromium/src.
 _PERF_CONFIG_PATH = 'tools/run-perf-test.cfg'
 
