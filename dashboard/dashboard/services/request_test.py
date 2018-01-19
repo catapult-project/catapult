@@ -8,12 +8,18 @@ import unittest
 
 import mock
 
+from google.appengine.ext import testbed
+
 from dashboard.services import request
 
 
 class _RequestTest(unittest.TestCase):
 
   def setUp(self):
+    self.testbed = testbed.Testbed()
+    self.testbed.activate()
+    self.testbed.init_memcache_stub()
+
     http = mock.MagicMock()
     self._request = http.request
 
@@ -99,3 +105,22 @@ class FailureAndRetryTest(_RequestTest):
     return_value = ({'status': '200'}, 'response')
     self._request.side_effect = socket.error, return_value
     self._TestRetry()
+
+
+class CacheTest(_RequestTest):
+
+  def testSetAndGet(self):
+    self._request.return_value = ({'status': '200'}, 'response')
+
+    response = request.Request('https://example.com', use_cache=True)
+    self.assertEqual(response, 'response')
+    self.assertEqual(self._request.call_count, 1)
+
+    response = request.Request('https://example.com', use_cache=True)
+    self.assertEqual(response, 'response')
+    self.assertEqual(self._request.call_count, 1)
+
+  def testRequestBody(self):
+    self._request.return_value = ({'status': '200'}, 'response')
+    with self.assertRaises(NotImplementedError):
+      request.Request('https://example.com', body='body', use_cache=True)
