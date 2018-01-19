@@ -4,7 +4,6 @@
 
 from telemetry import decorators
 from telemetry.page import page as page_module
-from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
 from telemetry.timeline import chrome_trace_category_filter
@@ -59,7 +58,6 @@ class FailedTimelinebasedMeasurementPage(page_module.Page):
 class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
   def setUp(self):
-    browser_test_case.teardown_browser()
     self._options = self.createDefaultRunnerOptions()
 
   def createDefaultRunnerOptions(self):

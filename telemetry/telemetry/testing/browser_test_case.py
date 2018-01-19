@@ -14,9 +14,6 @@ from telemetry.internal.util import path
 from telemetry.internal.util import ps_util
 from telemetry.testing import options_for_unittests
 
-current_browser_options = None
-current_browser = None
-
 
 class _MetaBrowserTestCase(type):
   """Metaclass for BrowserTestCase.
@@ -55,19 +52,12 @@ class _MetaBrowserTestCase(type):
     return WrappedMethod
 
 
-def teardown_browser():
-  global current_browser # pylint: disable=global-statement
-  global current_browser_options # pylint: disable=global-statement
-
-  if current_browser:
-    current_browser.Close()
-    current_browser.platform.network_controller.Close()
-  current_browser = None
-  current_browser_options = None
-
-
 class BrowserTestCase(unittest.TestCase):
   __metaclass__ = _MetaBrowserTestCase
+  _possible_browser = None
+  _platform = None
+  _browser = None
+  _device = None
 
   def setUp(self):
     # TODO(nedn): remove this debug log once crbug.com/766877 is resolved
@@ -76,38 +66,35 @@ class BrowserTestCase(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls._platform = None
-    global current_browser # pylint: disable=global-statement
-    global current_browser_options # pylint: disable=global-statement
-
-    options = options_for_unittests.GetCopy()
-
-    cls.CustomizeBrowserOptions(options.browser_options)
-    if not current_browser or (current_browser_options !=
-                               options.browser_options):
-      if current_browser:
-        teardown_browser()
-
-      browser_to_create = browser_finder.FindBrowser(options)
-      if not browser_to_create:
+    try:
+      options = options_for_unittests.GetCopy()
+      cls.CustomizeBrowserOptions(options.browser_options)
+      cls._possible_browser = browser_finder.FindBrowser(options)
+      if not cls._possible_browser:
         raise Exception('No browser found, cannot continue test.')
-      cls._platform = browser_to_create.platform
+      cls._platform = cls._possible_browser.platform
       cls._platform.network_controller.Open()
-
-      try:
-        current_browser = browser_to_create.Create(options)
-        current_browser_options = options.browser_options
-      except:
-        cls.tearDownClass()
-        raise
-    cls._browser = current_browser
-    cls._device = options.remote_platform_options.device
+      cls._possible_browser.SetUpEnvironment(options.browser_options)
+      cls._browser = cls._possible_browser.Create()
+      cls._device = options.remote_platform_options.device
+    except:
+      # Try to tear down the class upon any errors during set up.
+      cls.tearDownClass()
+      raise
 
   @classmethod
   def tearDownClass(cls):
-    if cls._platform:
+    cls._device = None
+    if cls._browser is not None:
+      cls._browser.Close()
+      cls._browser = None
+    if cls._possible_browser is not None:
+      cls._possible_browser.CleanUpEnvironment()
+      cls._possible_browser = None
+    if cls._platform is not None:
       cls._platform.StopAllLocalServers()
       cls._platform.network_controller.Close()
+      cls._platform = None
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):

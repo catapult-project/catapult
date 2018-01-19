@@ -293,9 +293,6 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
 
 
 def _TearDownProcess(child, context): # pylint: disable=unused-argument
-  # It's safe to call teardown_browser even if we did not start any browser
-  # in any of the tests.
-  browser_test_case.teardown_browser()
   options_for_unittests.Pop()
 
 
