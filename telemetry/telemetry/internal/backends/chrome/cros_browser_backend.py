@@ -145,7 +145,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '/org/chromium/SessionManager',
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
-            'array:string:"%s"' % ','.join(startup_args)]
+            'array:string:"%s"' % ','.join(startup_args),
+            'array:string:']
     logging.info(' '.join(args))
     self._cri.RunCmdOnDevice(args)
 
