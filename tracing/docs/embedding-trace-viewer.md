@@ -48,7 +48,7 @@ vulcanize or trace2html will show the current set of configs we support, which m
 `trace_viewer/extras/*_config.html`. Some of the other configs are smaller, leading to a more compact redistributable.
 
 # Customizing
-For more information on how to customize and extend trace viewer, see [Extending-and-Customizing-Trace-Viewer](Extending-and-Customizing-Trace-Viewer)
+For more information on how to customize and extend trace viewer, see [Extending-and-Customizing-Trace-Viewer](extending-and-customizing-trace-viewer.md)
 
 # Example
 See bin/index.html for an example of using the embedding system.
