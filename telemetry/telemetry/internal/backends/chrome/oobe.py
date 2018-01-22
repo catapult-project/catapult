@@ -78,6 +78,8 @@ class Oobe(web_contents.WebContents):
     """Logs in using the GAIA webview. |enterprise_enroll| allows for enterprise
     enrollment. |for_user_triggered_enrollment| should be False for remora
     enrollment."""
+    # TODO(achuith): Get rid of this call. crbug.com/804216.
+    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
     if for_user_triggered_enrollment:
       self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
 
