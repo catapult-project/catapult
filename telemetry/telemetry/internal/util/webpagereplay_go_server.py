@@ -151,10 +151,9 @@ class ReplayServer(object):
 
   def _LogLines(self):
     """Yields the log lines."""
-    if not self._temp_log_file_path:
+    if (not self._temp_log_file_path or
+        not os.path.isfile(self._temp_log_file_path)):
       yield '(N/A)'
-      return
-    if not os.path.isfile(self._temp_log_file_path):
       return
     with open(self._temp_log_file_path) as f:
       for line in f:
@@ -232,10 +231,9 @@ class ReplayServer(object):
       atexit_with_log.Register(self.StopServer)
       return dict(self._started_ports)
     except Exception:
-      self.StopServer()
+      log_output = self.StopServer()
       raise ReplayNotStartedError(
-          'Web Page Replay failed to start. Log output:\n%s' %
-          ''.join(self._LogLines()))
+          'Web Page Replay failed to start. Log output:\n%s' % log_output)
 
   def _IsReplayProcessStarted(self):
     if not self.replay_process:
@@ -243,13 +241,17 @@ class ReplayServer(object):
     return self.replay_process and self.replay_process.poll() is None
 
   def StopServer(self):
-    """Stop Web Page Replay."""
+    """Stop Web Page Replay.
+
+    This also attempts to return stdout/stderr logs of wpr process if there is
+    any. If there is none, '(N/A)' string is returned (see _LogLines()
+    implementation).
+    """
     if self._IsReplayProcessStarted():
-      try:
-        self._StopReplayProcess()
-      finally:
-        # TODO(rnephew): Upload logs to google storage. crbug.com/525787
-        self._CleanUpTempLogFilePath()
+      self._StopReplayProcess()
+    wpr_log_output = ''.join(self._LogLines())
+    self._CleanUpTempLogFilePath()
+    return wpr_log_output
 
   def _StopReplayProcess(self):
     if not self.replay_process:
