@@ -332,6 +332,9 @@ class BrowserOptions(object):
     del obj['_finder_options']
     return str(sorted(obj.items()))
 
+  def Copy(self):
+    return copy.deepcopy(self)
+
   def IsCrosBrowserOptions(self):
     return False
 
