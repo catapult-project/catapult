@@ -131,3 +131,20 @@ class CacheTest(_RequestTest):
     self._request.return_value = ({'status': '200'}, 'response')
     with self.assertRaises(NotImplementedError):
       request.Request('https://example.com', body='body', use_cache=True)
+
+
+class AuthTest(_RequestTest):
+
+  def testNoAuth(self):
+    http = mock.MagicMock()
+
+    patcher = mock.patch('httplib2.Http')
+    httplib2_http = patcher.start()
+    httplib2_http.return_value = http
+    self.addCleanup(patcher.stop)
+
+    http.request.return_value = ({'status': '200'}, 'response')
+    response = request.Request('https://example.com', use_auth=False)
+    http.request.assert_called_once_with('https://example.com', method='GET')
+    self.assertEqual(self._request.call_count, 0)
+    self.assertEqual(response, 'response')

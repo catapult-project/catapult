@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import httplib
+import httplib2
 import json
 import socket
 import urllib
@@ -32,7 +33,8 @@ def RequestJson(*args, **kwargs):
   return json.loads(content)
 
 
-def Request(url, method='GET', body=None, use_cache=False, **parameters):
+def Request(url, method='GET', body=None,
+            use_cache=False, use_auth=True, **parameters):
   """Fetch a URL while authenticated as the service account.
 
   Args:
@@ -73,12 +75,12 @@ def Request(url, method='GET', body=None, use_cache=False, **parameters):
       return content
 
   try:
-    content = _RequestAndProcessHttpErrors(url, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
   except NotFoundError:
     raise
   except (httplib.HTTPException, socket.error):
     # Retry once.
-    content = _RequestAndProcessHttpErrors(url, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
 
   if use_cache:
     memcache.add(key=url, value=content, time=_CACHE_DURATION)
@@ -86,10 +88,15 @@ def Request(url, method='GET', body=None, use_cache=False, **parameters):
   return content
 
 
-def _RequestAndProcessHttpErrors(*args, **kwargs):
+def _RequestAndProcessHttpErrors(url, use_auth, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
-  http = utils.ServiceAccountHttp(timeout=10)
-  response, content = http.request(*args, **kwargs)
+  if use_auth:
+    http = utils.ServiceAccountHttp(timeout=10)
+  else:
+    http = httplib2.Http(timeout=10)
+
+  response, content = http.request(url, **kwargs)
+
   if response['status'] == '404':
     raise NotFoundError(
         'HTTP status code %s: %s' % (response['status'], content))
