@@ -55,12 +55,15 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
         renderer_process, model.browser_process, model.surface_flinger_process,
-        model.gpu_process, [r.GetBounds() for r in interaction_records])
+        model.gpu_process, interaction_records)
+    has_ui_interactions = any(
+        [r.label.startswith("ui_") for r in interaction_records])
     has_surface_flinger_stats = model.surface_flinger_process is not None
-    self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats)
+    self._PopulateResultsFromStats(
+        results, stats, has_ui_interactions, has_surface_flinger_stats)
 
-  def _PopulateResultsFromStats(self, results, stats,
-                                has_surface_flinger_stats):
+  def _PopulateResultsFromStats(
+      self, results, stats, has_ui_interactions, has_surface_flinger_stats):
     page = results.current_page
     values = [
         self._ComputeQueueingDuration(page, stats),
@@ -74,7 +77,9 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                                          'main_thread_scroll_latency',
                                          stats.main_thread_scroll_latency)
     values.append(self._ComputeFirstGestureScrollUpdateLatencies(page, stats))
-    values += self._ComputeFrameTimeMetric(page, stats)
+    values += self._ComputeDisplayFrameTimeMetric(page, stats)
+    if has_ui_interactions:
+      values += self._ComputeUIFrameTimeMetric(page, stats)
     if has_surface_flinger_stats:
       values += self._ComputeSurfaceFlingerMetric(page, stats)
 
@@ -250,43 +255,52 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
         none_value_reason=none_value_reason,
         improvement_direction=improvement_direction.DOWN)
 
-  def _ComputeFrameTimeMetric(self, page, stats):
+  def _ComputeFrameTimeMetric(
+      self, prefix, page, frame_timestamps, frame_times):
     """Returns Values for the frame time metrics.
 
     This includes the raw and mean frame times, as well as the percentage of
     frames that were hitting 60 fps.
     """
-    frame_times = None
+    flatten_frame_times = None
     mean_frame_time = None
     percentage_smooth = None
     none_value_reason = None
-    if self._HasEnoughFrames(stats.frame_timestamps):
-      frame_times = perf_tests_helper.FlattenList(stats.frame_times)
-      mean_frame_time = round(statistics.ArithmeticMean(frame_times), 3)
+    if self._HasEnoughFrames(frame_timestamps):
+      flatten_frame_times = perf_tests_helper.FlattenList(frame_times)
+      mean_frame_time = round(statistics.ArithmeticMean(flatten_frame_times), 3)
       # We use 17ms as a somewhat looser threshold, instead of 1000.0/60.0.
       smooth_threshold = 17.0
-      smooth_count = sum(1 for t in frame_times if t < smooth_threshold)
-      percentage_smooth = float(smooth_count) / len(frame_times) * 100.0
+      smooth_count = sum(1 for t in flatten_frame_times if t < smooth_threshold)
+      percentage_smooth = float(smooth_count) / len(flatten_frame_times) * 100.0
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return (
         list_of_scalar_values.ListOfScalarValues(
-            page, 'frame_times', 'ms', frame_times,
+            page, '%sframe_times' % prefix, 'ms', flatten_frame_times,
             description='List of raw frame times, helpful to understand the '
                         'other metrics.',
             none_value_reason=none_value_reason,
             improvement_direction=improvement_direction.DOWN),
         scalar.ScalarValue(
-            page, 'mean_frame_time', 'ms', mean_frame_time,
+            page, '%smean_frame_time' % prefix, 'ms', mean_frame_time,
             description='Arithmetic mean of frame times.',
             none_value_reason=none_value_reason,
             improvement_direction=improvement_direction.DOWN),
         scalar.ScalarValue(
-            page, 'percentage_smooth', 'score', percentage_smooth,
+            page, '%spercentage_smooth' % prefix, 'score', percentage_smooth,
             description='Percentage of frames that were hitting 60 fps.',
             none_value_reason=none_value_reason,
             improvement_direction=improvement_direction.UP)
     )
+
+  def _ComputeDisplayFrameTimeMetric(self, page, stats):
+    return self._ComputeFrameTimeMetric(
+        '', page, stats.frame_timestamps, stats.frame_times)
+
+  def _ComputeUIFrameTimeMetric(self, page, stats):
+    return self._ComputeFrameTimeMetric(
+        'ui_', page, stats.ui_frame_timestamps, stats.ui_frame_times)
 
   def _ComputeFrameTimeDiscrepancy(self, page, stats):
     """Returns a Value for the absolute discrepancy of frame time stamps."""

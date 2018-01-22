@@ -128,18 +128,18 @@ def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
 
 class RenderingStats(object):
   def __init__(self, renderer_process, browser_process, surface_flinger_process,
-               gpu_process, timeline_ranges):
+               gpu_process, interaction_records):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other logging facilities), and providing them in a common format to classes
     that compute benchmark metrics from this data.
 
     Stats are lists of lists of numbers. The outer list stores one list per
-    timeline range.
+    interaction record.
 
     All *_time values are measured in milliseconds.
     """
-    assert len(timeline_ranges) > 0
+    assert len(interaction_records) > 0
     self.refresh_period = None
 
     timestamp_event_name, timestamp_process = GetTimeStampEventNameAndProcess(
@@ -153,6 +153,8 @@ class RenderingStats(object):
 
     self.frame_timestamps = []
     self.frame_times = []
+    self.ui_frame_timestamps = []
+    self.ui_frame_times = []
     self.approximated_pixel_percentages = []
     self.checkerboarded_pixel_percentages = []
     # End-to-end latency for input event - from when input event is
@@ -165,9 +167,12 @@ class RenderingStats(object):
     # Latency for a GestureScrollUpdate input event.
     self.gesture_scroll_update_latency = []
 
-    for timeline_range in timeline_ranges:
+    for record in interaction_records:
+      timeline_range = record.GetBounds()
       self.frame_timestamps.append([])
       self.frame_times.append([])
+      self.ui_frame_timestamps.append([])
+      self.ui_frame_times.append([])
       self.approximated_pixel_percentages.append([])
       self.checkerboarded_pixel_percentages.append([])
       self.input_event_latency.append([])
@@ -179,6 +184,8 @@ class RenderingStats(object):
       if timestamp_process:
         self._InitFrameTimestampsFromTimeline(
             timestamp_process, timestamp_event_name, timeline_range)
+      if record.label.startswith("ui_"):
+        self._InitUIFrameTimestampsFromTimeline(browser_process, timeline_range)
       self._InitImplThreadRenderingStatsFromTimeline(
           renderer_process, timeline_range)
       self._InitInputLatencyStatsFromTimeline(
@@ -210,11 +217,11 @@ class RenderingStats(object):
         latency for name, latency in event_latencies
         if name == GESTURE_SCROLL_UPDATE_EVENT_NAME]
 
-  def _GatherEvents(self, event_name, process, timeline_range):
+  def _GatherEvents(self, event_name, process, timeline_range, need_data=True):
     events = []
     for event in process.IterAllSlicesOfName(event_name):
       if event.start >= timeline_range.min and event.end <= timeline_range.max:
-        if 'data' not in event.args:
+        if need_data and 'data' not in event.args:
           continue
         events.append(event)
     events.sort(key=attrgetter('start'))
@@ -241,6 +248,14 @@ class RenderingStats(object):
     for event in self._GatherEvents(
         timestamp_event_name, process, timeline_range):
       self._AddFrameTimestamp(event)
+
+  def _InitUIFrameTimestampsFromTimeline(self, process, timeline_range):
+    event_name = 'FramePresented'
+    for event in self._GatherEvents(event_name, process, timeline_range, False):
+      self.ui_frame_timestamps[-1].append(event.start)
+      if len(self.ui_frame_timestamps[-1]) >= 2:
+        self.ui_frame_times[-1].append(
+            self.ui_frame_timestamps[-1][-1] - self.ui_frame_timestamps[-1][-2])
 
   def _InitImplThreadRenderingStatsFromTimeline(self, process, timeline_range):
     event_name = 'BenchmarkInstrumentation::ImplThreadRenderingStats'

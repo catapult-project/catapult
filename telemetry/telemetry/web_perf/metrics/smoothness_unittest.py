@@ -44,7 +44,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
       setattr(stats, stat, [[10, 20], [30, 40, 50]])
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.page)
-    self.metric._PopulateResultsFromStats(results, stats, False)
+    self.metric._PopulateResultsFromStats(results, stats, False, False)
     current_page_run = results.current_page_run
     self.assertTrue(current_page_run.ok)
     expected_values_count = 14
@@ -204,7 +204,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
     stats = _MockRenderingStats(frame_timestamps=self.good_timestamps,
                                 frame_times=[[10, 20], [30, 40, 50]])
     frame_times_value, mean_frame_time_value, percentage_smooth_value = (
-        self.metric._ComputeFrameTimeMetric(self.page, stats))
+        self.metric._ComputeDisplayFrameTimeMetric(self.page, stats))
     self.assertEquals([10, 20, 30, 40, 50], frame_times_value.values)
     self.assertEquals(30, mean_frame_time_value.value)
     self.assertEquals(20, percentage_smooth_value.value)
@@ -214,7 +214,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
         frame_timestamps=self.not_enough_frames_timestamps,
         frame_times=[[10, 20], [30, 40, 50]])
     frame_times_value, mean_frame_time_value, percentage_smooth_value = (
-        self.metric._ComputeFrameTimeMetric(self.page, stats))
+        self.metric._ComputeDisplayFrameTimeMetric(self.page, stats))
     self.assertEquals(None, frame_times_value.values)
     self.assertEquals(smoothness.NOT_ENOUGH_FRAMES_MESSAGE,
                       frame_times_value.none_value_reason)

@@ -6,10 +6,10 @@ import random
 import unittest
 
 from telemetry.timeline import async_slice
-from telemetry.timeline import bounds
 from telemetry.timeline import model
 from telemetry.util import perf_tests_helper
 from telemetry.util import statistics
+from telemetry.web_perf import timeline_interaction_record as tir_module
 from telemetry.web_perf.metrics import rendering_stats
 
 
@@ -336,10 +336,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     browser.FinalizeImport()
     renderer.FinalizeImport()
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, surface_flinger, None, timeline_ranges)
+        renderer, browser, surface_flinger, None, records)
 
     # Compare rendering stats to reference - Only SurfaceFlinger stats should
     # count
@@ -384,10 +384,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     browser.FinalizeImport()
     renderer.FinalizeImport()
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, gpu, timeline_ranges)
+        renderer, browser, None, gpu, records)
 
     # Compare rendering stats to reference - Only drm flip stats should
     # count
@@ -423,10 +423,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     browser.FinalizeImport()
     renderer.FinalizeImport()
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, timeline_ranges)
+        renderer, browser, None, None, records)
 
     # Compare rendering stats to reference - Only display stats should count
     self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
@@ -464,11 +464,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
     renderer.FinalizeImport()
 
     timeline_markers = timeline.FindTimelineMarkers(['ActionA', 'ActionB'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
 
-    stats = rendering_stats.RenderingStats(
-        renderer, None, None, None, timeline_ranges)
+    stats = rendering_stats.RenderingStats(renderer, None, None, None, records)
     self.assertEquals(0, len(stats.frame_timestamps[1]))
 
   def testFromTimeline(self):
@@ -549,10 +548,10 @@ class RenderingStatsUnitTest(unittest.TestCase):
 
     timeline_markers = timeline.FindTimelineMarkers(
         ['Action0', 'ActionA', 'ActionB', 'ActionA'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, timeline_ranges)
+        renderer, browser, None, None, records)
 
     # Compare rendering stats to reference.
     self.assertEquals(stats.frame_timestamps,
@@ -608,13 +607,13 @@ class RenderingStatsUnitTest(unittest.TestCase):
 
     timeline_markers = timeline.FindTimelineMarkers(
         ['ActionA', 'ActionB', 'ActionA'])
-    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
-                       for marker in timeline_markers]
-    for timeline_range in timeline_ranges:
-      if timeline_range.is_empty:
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
+    for record in records:
+      if record.GetBounds().is_empty:
         continue
       latency_events.extend(rendering_stats.GetLatencyEvents(
-          browser, timeline_range))
+          browser, record.GetBounds()))
 
     self.assertEquals(latency_events, ref_latency.input_event)
     event_latency_result = rendering_stats.ComputeEventLatencies(latency_events)
@@ -622,7 +621,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
                       ref_latency.input_event_latency)
 
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, timeline_ranges)
+        renderer, browser, None, None, records)
     self.assertEquals(
         perf_tests_helper.FlattenList(stats.input_event_latency),
         [latency for name, latency in ref_latency.input_event_latency
