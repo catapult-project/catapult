@@ -428,9 +428,9 @@ class _JobState(object):
 
       # Compare result values.
       values_a = tuple(_Mean(execution.result_values)
-                       for execution in executions_a)
+                       for execution in executions_a if execution.result_values)
       values_b = tuple(_Mean(execution.result_values)
-                       for execution in executions_b)
+                       for execution in executions_b if execution.result_values)
       if values_a and values_b:
         comparison = _CompareValues(values_a, values_b)
         if comparison == _DIFFERENT:
