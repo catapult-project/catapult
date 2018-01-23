@@ -352,6 +352,7 @@ func (r *RecordCommand) Run(c *cli.Context) {
 
 func (r *ReplayCommand) Run(c *cli.Context) {
 	archiveFileName := c.Args().First()
+	log.Printf("Loading archive file from %s\n", archiveFileName)
 	archive, err := webpagereplay.OpenArchive(archiveFileName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening archive file: %v", err)
