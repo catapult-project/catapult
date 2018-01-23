@@ -298,7 +298,8 @@ class ReplayServer(object):
     os.close(handle)
 
   def _CleanUpTempLogFilePath(self):
-    assert self._temp_log_file_path
+    if not self._temp_log_file_path:
+      return
     if logging.getLogger('').isEnabledFor(logging.DEBUG):
       with open(self._temp_log_file_path, 'r') as f:
         wpr_log_content = '\n'.join([
