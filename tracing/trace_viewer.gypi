@@ -213,6 +213,7 @@
       'tracing/metrics/system_health/time_to_interactive.html',
       'tracing/metrics/system_health/utils.html',
       'tracing/metrics/system_health/webview_startup_metric.html',
+      'tracing/metrics/tabs_metric.html',
       'tracing/metrics/tracing_metric.html',
       'tracing/metrics/v8/execution_metric.html',
       'tracing/metrics/v8/gc_metric.html',
