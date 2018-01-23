@@ -427,10 +427,10 @@ class _JobState(object):
           any_unknowns = True
 
       # Compare result values.
-      values_a = tuple(itertools.chain.from_iterable(
-          execution.result_values for execution in executions_a))
-      values_b = tuple(itertools.chain.from_iterable(
-          execution.result_values for execution in executions_b))
+      values_a = tuple(_Mean(execution.result_values)
+                       for execution in executions_a)
+      values_b = tuple(_Mean(execution.result_values)
+                       for execution in executions_b)
       if values_a and values_b:
         comparison = _CompareValues(values_a, values_b)
         if comparison == _DIFFERENT:
@@ -505,3 +505,7 @@ def _CompareValues(values_a, values_b):
   # The p-value is quite large. We're not suspicious that the two samples might
   # come from different distributions, and we don't care to investigate more.
   return _SAME
+
+
+def _Mean(values):
+  return float(sum(values)) / len(values)
