@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import base64
-import json
 import unittest
 import zlib
 
@@ -20,7 +19,7 @@ _ISOLATED_HASH = 'fc5e63011ae25b057b3097eba4413fc357c05cff'
 @mock.patch('dashboard.services.request.RequestJson')
 class IsolateServiceTest(unittest.TestCase):
 
-  def testRetrieveFile(self, request_json, request):
+  def testRetrieveUrl(self, request_json, request):
     request_json.return_value = {
         'url': 'https://isolateserver.storage.googleapis.com/default-gzip/' +
                _FILE_HASH
@@ -38,19 +37,13 @@ class IsolateServiceTest(unittest.TestCase):
         'https://isolateserver.storage.googleapis.com/default-gzip/' +
         _FILE_HASH, 'GET')
 
-  def testRetrieveIsolated(self, request_json, _):
-    expected_isolate_contents = {
-        'version': '1.6',
-        'algo': 'sha-1',
-        'files': {'output.json': {'h': _FILE_HASH, 'm': 416, 's': 71736}},
-    }
+  def testRetrieveContent(self, request_json, _):
     request_json.return_value = {
-        'content': base64.b64encode(zlib.compress(json.dumps(
-            expected_isolate_contents)))
+        'content': base64.b64encode(zlib.compress('file contents'))
     }
 
     isolate_contents = isolate_service.Retrieve(_ISOLATED_HASH)
-    self.assertEqual(isolate_contents, expected_isolate_contents)
+    self.assertEqual(isolate_contents, 'file contents')
 
     url = 'https://isolateserver.appspot.com/_ah/api/isolateservice/v1/retrieve'
     body = {

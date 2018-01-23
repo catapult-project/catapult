@@ -355,7 +355,7 @@ class _ReadGraphJsonValueExecution(execution.Execution):
 
 
 def _RetrieveOutputJson(isolate_hash, filename):
-  output_files = isolate_service.Retrieve(isolate_hash)['files']
+  output_files = json.loads(isolate_service.Retrieve(isolate_hash))['files']
 
   if filename not in output_files:
     raise ReadValueError("The test didn't produce %s." % filename)

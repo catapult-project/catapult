@@ -30,8 +30,7 @@ def Retrieve(digest):
     return zlib.decompress(request.Request(isolate_info['url'], 'GET'))
 
   if 'content' in isolate_info:
-    return json.loads(zlib.decompress(
-        base64.b64decode(isolate_info['content'])))
+    return zlib.decompress(base64.b64decode(isolate_info['content']))
 
   raise NotImplementedError(
       'Isolate information for %s is in an unknown format: %s' %

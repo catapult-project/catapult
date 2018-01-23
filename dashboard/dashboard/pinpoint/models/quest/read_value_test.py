@@ -63,6 +63,17 @@ class ReadGraphJsonValueQuestTest(unittest.TestCase):
 
 class _ReadValueExecutionTest(unittest.TestCase):
 
+  def setUp(self):
+    patcher = mock.patch('dashboard.services.isolate_service.Retrieve')
+    self._retrieve = patcher.start()
+    self.addCleanup(patcher.stop)
+
+  def SetOutputFileContents(self, contents):
+    self._retrieve.side_effect = (
+        '{"files": {"chartjson-output.json": {"h": "output json hash"}}}',
+        json.dumps(contents),
+    )
+
   def assertReadValueError(self, execution):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
@@ -71,20 +82,16 @@ class _ReadValueExecutionTest(unittest.TestCase):
     self.assertTrue(last_exception_line.startswith('ReadValueError'))
 
 
-@mock.patch('dashboard.services.isolate_service.Retrieve')
 class ReadChartJsonValueTest(_ReadValueExecutionTest):
 
-  def testReadChartJsonValue(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'tir_label@@chart_avg': {'trace name': {
-                'type': 'list_of_scalar_values',
-                'values': [0, 1, 2],
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
+  def testReadChartJsonValue(self):
+    self.SetOutputFileContents({'charts': {
+        'tir_label@@chart_avg': {'trace name': {
+            'type': 'list_of_scalar_values',
+            'values': [0, 1, 2],
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
 
     quest = read_value.ReadChartJsonValue(
         'chart', 'tir_label', 'trace name', 'avg')
@@ -96,113 +103,95 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadChartJsonValueWithNoStatistic(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'chart': {'trace name': {
-                'type': 'list_of_scalar_values',
-                'values': [0, 1, 2],
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
-
-    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
-
-  def testReadChartJsonValueWithNoTirLabel(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'chart': {'trace name': {
-                'type': 'list_of_scalar_values',
-                'values': [0, 1, 2],
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
-
-    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
-    self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
-
-  def testReadChartJsonValueWithMissingFile(self, retrieve):
-    retrieve.return_value = {'files': {}}
-
-    quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadChartJsonValueWithMissingChart(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {}}),
-    )
-
-    quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadChartJsonValueWithMissingTrace(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {}}}),
-    )
-
-    quest = read_value.ReadChartJsonValue('metric', 'test')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadChartJsonValueWithNoValues(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'summary': {
-            'type': 'list_of_scalar_values',
-            'values': None,
-        }}}}),
-    )
-
-    quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadChartJsonValueWithNoTest(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {'tir_label@@chart': {'summary': {
+  def testReadChartJsonValueWithNoStatistic(self):
+    self.SetOutputFileContents({'charts': {
+        'chart': {'trace name': {
             'type': 'list_of_scalar_values',
             'values': [0, 1, 2],
-        }}}}),
-    )
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
+
+    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+
+  def testReadChartJsonValueWithNoTirLabel(self):
+    self.SetOutputFileContents({'charts': {
+        'chart': {'trace name': {
+            'type': 'list_of_scalar_values',
+            'values': [0, 1, 2],
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
+
+    quest = read_value.ReadChartJsonValue('chart', None, 'trace name')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+
+  def testReadChartJsonValueWithMissingFile(self):
+    self._retrieve.return_value = '{"files": {}}'
+
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadChartJsonValueWithMissingChart(self):
+    self.SetOutputFileContents({'charts': {}})
+
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadChartJsonValueWithMissingTrace(self):
+    self.SetOutputFileContents({'charts': {'tir_label@@chart': {}}})
+
+    quest = read_value.ReadChartJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadChartJsonValueWithNoValues(self):
+    self.SetOutputFileContents({'charts': {'tir_label@@chart': {'summary': {
+        'type': 'list_of_scalar_values',
+        'values': None,
+    }}}})
+
+    quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadChartJsonValueWithNoTest(self):
+    self.SetOutputFileContents({'charts': {'tir_label@@chart': {'summary': {
+        'type': 'list_of_scalar_values',
+        'values': [0, 1, 2],
+    }}}})
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', None)
     execution = quest.Start(None, 'output hash')
@@ -213,23 +202,20 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('chartjson hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testHistogram(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'tir_label@@chart': {'trace name': {
-                'type': 'histogram',
-                'buckets': [
-                    {'low': 0, 'count': 2},
-                    {'low': 0, 'high': 2, 'count': 3},
-                ],
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
+  def testHistogram(self):
+    self.SetOutputFileContents({'charts': {
+        'tir_label@@chart': {'trace name': {
+            'type': 'histogram',
+            'buckets': [
+                {'low': 0, 'count': 2},
+                {'low': 0, 'high': 2, 'count': 3},
+            ],
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
@@ -237,20 +223,17 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
 
     self.assertEqual(execution.result_values, (0, 0, 1, 1, 1))
 
-  def testHistogramWithLargeSample(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'tir_label@@chart': {'trace name': {
-                'type': 'histogram',
-                'buckets': [
-                    {'low': 0, 'count': 20000},
-                    {'low': 0, 'high': 2, 'count': 30000},
-                ],
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
+  def testHistogramWithLargeSample(self):
+    self.SetOutputFileContents({'charts': {
+        'tir_label@@chart': {'trace name': {
+            'type': 'histogram',
+            'buckets': [
+                {'low': 0, 'count': 20000},
+                {'low': 0, 'high': 2, 'count': 30000},
+            ],
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
@@ -258,17 +241,14 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
 
     self.assertEqual(execution.result_values, tuple([0] * 4000 + [1] * 6000))
 
-  def testScalar(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'chartjson hash'}}},
-        json.dumps({'charts': {
-            'tir_label@@chart': {'trace name': {
-                'type': 'scalar',
-                'value': 2.5,
-            }},
-            'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
-        }}),
-    )
+  def testScalar(self):
+    self.SetOutputFileContents({'charts': {
+        'tir_label@@chart': {'trace name': {
+            'type': 'scalar',
+            'value': 2.5,
+        }},
+        'trace': {'trace name': {'cloud_url': 'trace url', 'page_id': 1}},
+    }})
 
     quest = read_value.ReadChartJsonValue('chart', 'tir_label', 'trace name')
     execution = quest.Start(None, 'output hash')
@@ -277,10 +257,9 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (2.5,))
 
 
-@mock.patch('dashboard.services.isolate_service.Retrieve')
 class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
-  def testReadHistogramsJsonValue(self, retrieve):
+  def testReadHistogramsJsonValue(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.AddSample(1)
@@ -292,10 +271,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', 'story')
     execution = quest.Start(None, 'output hash')
@@ -306,10 +282,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsJsonValueMultipleHistograms(self, retrieve):
+  def testReadHistogramsJsonValueMultipleHistograms(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.AddSample(1)
@@ -329,10 +305,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', 'story')
     execution = quest.Start(None, 'output hash')
@@ -343,10 +316,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2, 0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsTraceUrls(self, retrieve):
+  def testReadHistogramsTraceUrls(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
@@ -355,10 +328,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist2.diagnostics[reserved_infos.TRACE_URLS.name] = (
         generic_set.GenericSet(['trace_url3']))
     histograms = histogram_set.HistogramSet([hist, hist2])
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(hist.name, None, None)
     execution = quest.Start(None, 'output hash')
@@ -384,10 +354,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         execution.AsDict())
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsJsonValueWithNoTirLabel(self, retrieve):
+  def testReadHistogramsJsonValueWithNoTirLabel(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.AddSample(1)
@@ -397,10 +367,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(hist.name, 'tir_label', None)
     execution = quest.Start(None, 'output hash')
@@ -411,10 +378,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsJsonValueWithNoStory(self, retrieve):
+  def testReadHistogramsJsonValueWithNoStory(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
     hist.AddSample(1)
@@ -424,10 +391,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
 
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(hist.name, None, 'story')
     execution = quest.Start(None, 'output hash')
@@ -438,10 +402,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsJsonValueSummary(self, retrieve):
+  def testReadHistogramsJsonValueSummary(self):
     samples = []
     hists = []
     for i in xrange(10):
@@ -459,10 +423,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(
         hists[0].name, 'tir_label', None)
@@ -474,23 +435,11 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, tuple(samples))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('histograms hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadHistogramsJsonValueWithMissingFile(self, retrieve):
-    retrieve.return_value = {'files': {}}
-
-    quest = read_value.ReadHistogramsJsonValue('metric', 'test')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadHistogramsJsonValueEmptyHistogramSet(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps([]),
-    )
+  def testReadHistogramsJsonValueWithMissingFile(self):
+    self._retrieve.return_value = '{"files": {}}'
 
     quest = read_value.ReadHistogramsJsonValue('metric', 'test')
     execution = quest.Start(None, 'output hash')
@@ -498,13 +447,19 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
     self.assertReadValueError(execution)
 
-  def testReadHistogramsJsonValueWithMissingHistogram(self, retrieve):
+  def testReadHistogramsJsonValueEmptyHistogramSet(self):
+    self.SetOutputFileContents([])
+
+    quest = read_value.ReadHistogramsJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadHistogramsJsonValueWithMissingHistogram(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue('does_not_exist', None, None)
     execution = quest.Start(None, 'output hash')
@@ -512,13 +467,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
     self.assertReadValueError(execution)
 
-  def testReadHistogramsJsonValueWithNoValues(self, retrieve):
+  def testReadHistogramsJsonValueWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue('chart', None, None)
     execution = quest.Start(None, 'output hash')
@@ -526,13 +478,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
     self.assertReadValueError(execution)
 
-  def testReadHistogramsJsonValueTirLabelWithNoValues(self, retrieve):
+  def testReadHistogramsJsonValueTirLabelWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue('chart', 'tir_label', None)
     execution = quest.Start(None, 'output hash')
@@ -540,13 +489,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
 
     self.assertReadValueError(execution)
 
-  def testReadHistogramsJsonValueStoryWithNoValues(self, retrieve):
+  def testReadHistogramsJsonValueStoryWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'histograms hash'}}},
-        json.dumps(histograms.AsDicts()),
-    )
+    self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue('chart', None, 'story')
     execution = quest.Start(None, 'output hash')
@@ -555,14 +501,11 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertReadValueError(execution)
 
 
-@mock.patch('dashboard.services.isolate_service.Retrieve')
 class ReadGraphJsonValueTest(_ReadValueExecutionTest):
 
-  def testReadGraphJsonValue(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'graphjson hash'}}},
-        json.dumps({'chart': {'traces': {'trace': ['126444.869721', '0.0']}}}),
-    )
+  def testReadGraphJsonValue(self):
+    self.SetOutputFileContents(
+        {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}})
 
     quest = read_value.ReadGraphJsonValue('chart', 'trace')
     execution = quest.Start(None, 'output hash')
@@ -573,23 +516,11 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (126444.869721,))
     self.assertEqual(execution.result_arguments, {})
 
-    expected_calls = [mock.call('output hash'), mock.call('graphjson hash')]
-    self.assertEqual(retrieve.mock_calls, expected_calls)
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
-  def testReadGraphJsonValueWithMissingFile(self, retrieve):
-    retrieve.return_value = {'files': {}}
-
-    quest = read_value.ReadGraphJsonValue('metric', 'test')
-    execution = quest.Start(None, 'output hash')
-    execution.Poll()
-
-    self.assertReadValueError(execution)
-
-  def testReadGraphJsonValueWithMissingChart(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'graphjson hash'}}},
-        json.dumps({}),
-    )
+  def testReadGraphJsonValueWithMissingFile(self):
+    self._retrieve.return_value = '{"files": {}}'
 
     quest = read_value.ReadGraphJsonValue('metric', 'test')
     execution = quest.Start(None, 'output hash')
@@ -597,11 +528,17 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
 
     self.assertReadValueError(execution)
 
-  def testReadGraphJsonValueWithMissingTrace(self, retrieve):
-    retrieve.side_effect = (
-        {'files': {'chartjson-output.json': {'h': 'graphjson hash'}}},
-        json.dumps({'chart': {'traces': {}}}),
-    )
+  def testReadGraphJsonValueWithMissingChart(self):
+    self.SetOutputFileContents({})
+
+    quest = read_value.ReadGraphJsonValue('metric', 'test')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
+  def testReadGraphJsonValueWithMissingTrace(self):
+    self.SetOutputFileContents({'chart': {'traces': {}}})
 
     quest = read_value.ReadGraphJsonValue('metric', 'test')
     execution = quest.Start(None, 'output hash')
