@@ -105,6 +105,25 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
     startup_args.extend(chrome_startup_args.GetReplayArgs(
         self._platform_backend.network_controller_backend))
+
+    # Setting port=0 allows the browser to choose a suitable port.
+    startup_args.append('--remote-debugging-port=0')
+    startup_args.append('--enable-crash-reporter-for-testing')
+    startup_args.append('--disable-component-update')
+
+    if not self._is_content_shell:
+      startup_args.append('--window-size=1280,1024')
+      if self._flash_path:
+        startup_args.append('--ppapi-flash-path=%s' % self._flash_path)
+        # Also specify the version of Flash as a large version, so that it is
+        # not overridden by the bundled or component-updated version of Flash.
+        startup_args.append('--ppapi-flash-version=99.9.999.999')
+
+    trace_config_file = (self._platform_backend.tracing_controller_backend
+                         .GetChromeTraceConfigFile())
+    if trace_config_file:
+      startup_args.append('--trace-config-file=%s' % trace_config_file)
+
     return startup_args
 
   def SupportsOptions(self, browser_options):

@@ -252,25 +252,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetBrowserStartupArgs(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
-    args.append('--remote-debugging-port=0')  # Allow browser to choose a port.
-    args.append('--enable-crash-reporter-for-testing')
-    args.append('--disable-component-update')
-    if not self._is_content_shell:
-      args.append('--window-size=1280,1024')
-      if self._flash_path:
-        args.append('--ppapi-flash-path=%s' % self._flash_path)
-        # Also specify the version of Flash as a large version, so that it is
-        # not overridden by the bundled or component-updated version of Flash.
-        args.append('--ppapi-flash-version=99.9.999.999')
-      if not self.browser_options.dont_override_profile:
-        args.append('--user-data-dir=%s' % self._tmp_profile_dir)
+    if self._is_content_shell:
+      args.append('--data-path=%s' % self.profile_directory)
+    elif self.browser_options.dont_override_profile:
+      pass  # Do nothing.
     else:
-      args.append('--data-path=%s' % self._tmp_profile_dir)
-
-    trace_config_file = (self.platform_backend.tracing_controller_backend
-                         .GetChromeTraceConfigFile())
-    if trace_config_file:
-      args.append('--trace-config-file=%s' % trace_config_file)
+      args.append('--user-data-dir=%s' % self.profile_directory)
     return args
 
   def GetBrowserStartupUrl(self):
