@@ -63,51 +63,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
-  def GetBrowserStartupArgs(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
-
-    logging_patterns = ['*/chromeos/net/*',
-                        '*/chromeos/login/*',
-                        'chrome_browser_main_posix']
-    vmodule = '--vmodule='
-    for pattern in logging_patterns:
-      vmodule += '%s=2,' % pattern
-    vmodule = vmodule.rstrip(',')
-
-    args.extend([
-        '--enable-smooth-scrolling',
-        '--enable-threaded-compositing',
-        # Allow devtools to connect to chrome.
-        '--remote-debugging-port=0',
-        # Open a maximized window.
-        '--start-maximized',
-        # Disable system startup sound.
-        '--ash-disable-system-sounds',
-        # Ignore DMServer errors for policy fetches.
-        '--allow-failed-policy-fetch-for-test',
-        # Skip user image selection screen, and post login screens.
-        '--oobe-skip-postlogin',
-        # Disable chrome logging redirect. crbug.com/724273.
-        '--disable-logging-redirect',
-        # Debug logging.
-        vmodule
-    ])
-
-    # If we're using GAIA, skip to login screen, and do not disable GAIA
-    # services.
-    if self.browser_options.gaia_login:
-      args.append('--oobe-skip-to-login')
-    elif self.browser_options.disable_gaia_services:
-      args.append('--disable-gaia-services')
-
-    trace_config_file = (self.platform_backend.tracing_controller_backend
-                         .GetChromeTraceConfigFile())
-    if trace_config_file:
-      args.append('--trace-config-file=%s' % trace_config_file)
-
-    return args
-
   @property
   def pid(self):
     return self._cri.GetChromePid()

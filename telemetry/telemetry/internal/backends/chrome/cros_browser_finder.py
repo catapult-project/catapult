@@ -59,6 +59,43 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
     startup_args.extend(chrome_startup_args.GetReplayArgs(
         self._platform_backend.network_controller_backend))
+
+    vmodule = ','.join('%s=2' % pattern for pattern in [
+        '*/chromeos/net/*',
+        '*/chromeos/login/*',
+        'chrome_browser_main_posix'])
+
+    startup_args.extend([
+        '--enable-smooth-scrolling',
+        '--enable-threaded-compositing',
+        # Allow devtools to connect to chrome.
+        '--remote-debugging-port=0',
+        # Open a maximized window.
+        '--start-maximized',
+        # Disable system startup sound.
+        '--ash-disable-system-sounds',
+        # Ignore DMServer errors for policy fetches.
+        '--allow-failed-policy-fetch-for-test',
+        # Skip user image selection screen, and post login screens.
+        '--oobe-skip-postlogin',
+        # Disable chrome logging redirect. crbug.com/724273.
+        '--disable-logging-redirect',
+        # Debug logging.
+        '--vmodule=%s' % vmodule,
+    ])
+
+    # If we're using GAIA, skip to login screen, and do not disable GAIA
+    # services.
+    if browser_options.gaia_login:
+      startup_args.append('--oobe-skip-to-login')
+    elif browser_options.disable_gaia_services:
+      startup_args.append('--disable-gaia-services')
+
+    trace_config_file = (self._platform_backend.tracing_controller_backend
+                         .GetChromeTraceConfigFile())
+    if trace_config_file:
+      startup_args.append('--trace-config-file=%s' % trace_config_file)
+
     return startup_args
 
   def SupportsOptions(self, browser_options):
