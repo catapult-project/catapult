@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import webapp2
 import webtest
 
@@ -103,10 +104,10 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_ValidData(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    response = self.testapp.post('/create_health_report',
-                                 _SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    response = self.testapp.post('/create_health_report', config)
     self.assertIn('my_sample_config', response)
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
     self.assertTrue(table_entity.internal_only)
@@ -138,12 +139,11 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_TwoPostsSameNameReturnsError(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
-    response = self.testapp.post('/create_health_report',
-                                 _SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    self.testapp.post('/create_health_report', config)
+    response = self.testapp.post('/create_health_report', config)
     self.assertIn('my_sample_config already exists.', response)
 
   def testPost_InvalidBots(self):
@@ -163,19 +163,19 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_InternalOnlyAndPublicBots(self):
     self._AddMixedBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    self.testapp.post('/create_health_report', config)
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
     self.assertTrue(table_entity.internal_only)
 
   def testPost_PublicOnlyBots(self):
     self._AddPublicBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    self.testapp.post('/create_health_report', config)
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
     self.assertFalse(table_entity.internal_only)
 
@@ -196,8 +196,6 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_InvalidTests(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
     response = self.testapp.post('/create_health_report', {
         'tableName': 'myName',
         'tableBots': 'ChromiumPerf/linux',
@@ -213,14 +211,14 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_GetTableConfigList(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    _ALT_SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
-    self.testapp.post('/create_health_report',
-                      _ALT_SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    alt_config = copy.deepcopy(_ALT_SAMPLE_TABLE_CONFIG)
+    alt_config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    self.testapp.post('/create_health_report', config)
+    self.testapp.post('/create_health_report', alt_config)
 
     response = self.testapp.post('/create_health_report', {
         'getTableConfigList': True,
@@ -233,10 +231,10 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_GetTableConfigDetailsForEdit(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+
+    self.testapp.post('/create_health_report', config)
 
     response = self.testapp.post('/create_health_report', {
         'getTableConfigDetails': 'my_sample_config',
@@ -263,16 +261,16 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_TwoPostsSameNameAsEdit(self):
     self._AddInternalBotsToDataStore()
-    _SAMPLE_TABLE_CONFIG['xsrf_token'] = xsrf.GenerateToken(
-        users.get_current_user())
-    self.testapp.post('/create_health_report',
-                      _SAMPLE_TABLE_CONFIG)
-    _SAMPLE_TABLE_CONFIG['override'] = 1
-    _SAMPLE_TABLE_CONFIG['tableLayout'] = (
+    config = copy.deepcopy(_SAMPLE_TABLE_CONFIG)
+    config['xsrf_token'] = xsrf.GenerateToken(users.get_current_user())
+    self.testapp.post('/create_health_report', config)
+
+    config['override'] = 1
+    config['tableLayout'] = (
         '{"my_test_suite/my_test": ["Foreground", "New Name 1"], '
         '"my_test_suite/my_other_test": ["Foreground", "New Name 2"]}')
-    response = self.testapp.post('/create_health_report',
-                                 _SAMPLE_TABLE_CONFIG)
+    response = self.testapp.post('/create_health_report', config)
+
     self.assertIn('my_sample_config', response)
     self.assertNotIn('already exists.', response)
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
