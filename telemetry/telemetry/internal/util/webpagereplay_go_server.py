@@ -226,7 +226,9 @@ class ReplayServer(object):
           self._cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
-      py_utils.WaitFor(self._IsStarted, 30)
+      # TODO(crbug.com/805418): consider changing this to wait with I/O
+      # timeout.
+      py_utils.WaitFor(self._IsStarted, 60)
       logging.info('WPR ports: %s' % self._started_ports)
       atexit_with_log.Register(self.StopServer)
       return dict(self._started_ports)
