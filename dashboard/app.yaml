@@ -5,6 +5,7 @@ runtime: python27
 api_version: 1
 threadsafe: false
 instance_class: F4_1G
+skip_files: ^py_utils/bin
 
 libraries:
 - name: jinja2
