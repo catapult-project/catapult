@@ -13,7 +13,7 @@ API explorer: https://goo.gl/uxPUZo
 from dashboard.services import request
 
 
-API_BASE_URL = 'https://chromium-swarm.appspot.com/_ah/api/swarming/v1/'
+API_BASE_URL = 'https://chromium-swarm.appspot.com/api/swarming/v1/'
 
 
 class Bot(object):
