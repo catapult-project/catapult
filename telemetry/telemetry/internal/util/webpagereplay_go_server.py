@@ -228,7 +228,7 @@ class ReplayServer(object):
     try:
       # TODO(crbug.com/805418): consider changing this to wait with I/O
       # timeout.
-      py_utils.WaitFor(self._IsStarted, 60)
+      py_utils.WaitFor(self._IsStarted, timeout=60)
       logging.info('WPR ports: %s' % self._started_ports)
       atexit_with_log.Register(self.StopServer)
       return dict(self._started_ports)
