@@ -74,11 +74,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self._backend_settings.package,
           self._backend_settings.profile_ignore_list)
 
-  def _CollectProfile(self):
-    if self._output_profile_path:
-      self.platform_backend.PullProfile(
-          self._backend_settings.package, self._output_profile_path)
-
   def Start(self, startup_args, startup_url=None):
     self.device.adb.Logcat(clear=True)
     self.platform_backend.DismissCrashDialogIfNeeded()
@@ -236,7 +231,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
     self._StopBrowser()
-    self._CollectProfile()
 
   def IsBrowserRunning(self):
     return self.platform_backend.IsAppRunning(self._backend_settings.package)

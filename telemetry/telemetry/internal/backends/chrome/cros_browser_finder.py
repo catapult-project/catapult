@@ -41,10 +41,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     if finder_options is not None:
       self.SetUpEnvironment(finder_options.browser_options)
 
-    if self._browser_options.output_profile_path:
-      raise NotImplementedError(
-          'Profile generation is not yet supported on CrOS.')
-
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(

@@ -278,9 +278,6 @@ class BrowserOptions(object):
 
     self.extensions_to_load = []
 
-    # If set, copy the generated profile to this path on exit.
-    self.output_profile_path = None
-
     # When set to True, the browser will use the default profile.  Telemetry
     # will not provide an alternate profile directory.
     self.dont_override_profile = False

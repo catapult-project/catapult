@@ -578,40 +578,6 @@ class AndroidPlatformBackend(
       return
     self._device.RemovePath(files, recursive=True, as_root=True)
 
-  def PullProfile(self, package, output_profile_path):
-    """Copy application profile from device to host machine.
-
-    Args:
-      package: The full package name string of the application for which the
-        profile is to be copied.
-      output_profile_dir: Location where profile to be stored on host machine.
-    """
-    profile_dir = self.GetProfileDir(package)
-    logging.info("Pulling profile directory from device: '%s'->'%s'.",
-                 profile_dir, output_profile_path)
-    # To minimize bandwidth it might be good to look at whether all the data
-    # pulled down is really needed e.g. .pak files.
-    if not os.path.exists(output_profile_path):
-      os.makedirs(output_profile_path)
-    problem_files = []
-    for filename in self._device.ListDirectory(profile_dir, as_root=True):
-      # Don't pull lib, since it is created by the installer.
-      if filename == 'lib':
-        continue
-      source = posixpath.join(profile_dir, filename)
-      dest = os.path.join(output_profile_path, filename)
-      try:
-        self._device.PullFile(source, dest, timeout=240)
-      except device_errors.CommandFailedError:
-        problem_files.append(source)
-    if problem_files:
-      # Some paths (e.g. 'files', 'app_textures') consistently fail to be
-      # pulled from the device.
-      logging.warning(
-          'There were errors retrieving the following paths from the profile:')
-      for filepath in problem_files:
-        logging.warning('- %s', filepath)
-
   def GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored
     based on Android convention.

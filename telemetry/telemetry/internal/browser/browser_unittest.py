@@ -5,7 +5,6 @@
 import logging
 import os
 import re
-import shutil
 import tempfile
 import unittest
 
@@ -16,7 +15,6 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.platform import gpu_device
 from telemetry.internal.platform import gpu_info
 from telemetry.internal.platform import system_info
-from telemetry.internal.util import path
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.timeline import tracing_config
@@ -24,7 +22,7 @@ from telemetry.timeline import tracing_config
 from devil.android import app_ui
 
 import mock
-import py_utils
+
 
 class IntentionalException(Exception):
   pass
@@ -194,33 +192,6 @@ class BrowserLoggingTest(browser_test_case.BrowserTestCase):
         os.path.isfile(self._browser._browser_backend.log_file_path))
 
 
-def _GenerateBrowserProfile(number_of_tabs):
-  """ Generate a browser profile which browser had |number_of_tabs| number of
-  tabs opened before it was closed.
-      Returns:
-        profile_dir: the directory of profile.
-  """
-  profile_dir = tempfile.mkdtemp()
-  options = options_for_unittests.GetCopy()
-  options.browser_options.output_profile_path = profile_dir
-  browser_to_create = browser_finder.FindBrowser(options)
-  browser_to_create.platform.network_controller.Open()
-  try:
-    with browser_to_create.BrowserSession(options.browser_options) as browser:
-      browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
-      blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
-      blank_url = browser.platform.http_server.UrlOf(blank_file_path)
-      browser.foreground_tab.Navigate(blank_url)
-      browser.foreground_tab.WaitForDocumentReadyStateToBeComplete()
-      for _ in xrange(number_of_tabs - 1):
-        tab = browser.tabs.New()
-        tab.Navigate(blank_url)
-        tab.WaitForDocumentReadyStateToBeComplete()
-    return profile_dir
-  finally:
-    browser_to_create.platform.network_controller.Close()
-
-
 class BrowserCreationTest(unittest.TestCase):
   def setUp(self):
     self.mock_browser_backend = mock.MagicMock()
@@ -246,42 +217,6 @@ class BrowserCreationTest(unittest.TestCase):
           self.mock_browser_backend, self.mock_platform_backend,
           self.fake_startup_args)
     self.assertIn('Boom!', context.exception.message)
-
-
-class BrowserRestoreSessionTest(unittest.TestCase):
-
-  @classmethod
-  def setUpClass(cls):
-    cls._number_of_tabs = 4
-    cls._profile_dir = _GenerateBrowserProfile(cls._number_of_tabs)
-    cls._options = options_for_unittests.GetCopy()
-    cls._options.browser_options.AppendExtraBrowserArgs(
-        ['--restore-last-session'])
-    cls._options.browser_options.profile_dir = cls._profile_dir
-    cls._browser_to_create = browser_finder.FindBrowser(cls._options)
-    cls._browser_to_create.platform.network_controller.Open()
-
-  @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos', 'win', 'mac')
-  # TODO(nednguyen): Enable this test on windowsn platform
-  def testRestoreBrowserWithMultipleTabs(self):
-    with self._browser_to_create.BrowserSession(
-        self._options.browser_options) as browser:
-      # The number of tabs will be self._number_of_tabs + 1 as it includes the
-      # old tabs and a new blank tab.
-      expected_number_of_tabs = self._number_of_tabs + 1
-      try:
-        py_utils.WaitFor(
-            lambda: len(browser.tabs) == expected_number_of_tabs, 10)
-      except:
-        logging.error('Number of tabs is %s' % len(browser.tabs))
-        raise
-      self.assertEquals(expected_number_of_tabs, len(browser.tabs))
-
-  @classmethod
-  def tearDownClass(cls):
-    cls._browser_to_create.platform.network_controller.Close()
-    shutil.rmtree(cls._profile_dir)
 
 
 class TestBrowserCreation(unittest.TestCase):

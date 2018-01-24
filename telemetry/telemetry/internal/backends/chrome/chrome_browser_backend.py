@@ -36,7 +36,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
     self._forwarder = None
 
-    self._output_profile_path = browser_options.output_profile_path
     self._extensions_to_load = browser_options.extensions_to_load
 
     if (self.browser_options.dont_override_profile and
