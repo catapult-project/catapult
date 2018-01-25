@@ -51,12 +51,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     # pylint: disable=protected-access
     self._platform_backend = self._platform._platform_backend
 
-  def Create(self, finder_options=None):
-    # TODO(crbug.com/801578): Remove finder_options arg when all clients
-    # have switched to the new API.
-    if finder_options is not None:
-      self.SetUpEnvironment(finder_options.browser_options)
-
+  def Create(self):
     if self._flash_path and not os.path.exists(self._flash_path):
       logging.warning(
           'Could not find Flash at %s. Continuing without Flash.\n'

@@ -233,15 +233,6 @@ class TestBrowserCreation(unittest.TestCase):
   def tearDown(self):
     self.browser_to_create.platform.network_controller.Close()
 
-  # TODO(crbug.com/801578): This test should still pass while clients are being
-  # migrated to the new API to create browsers. When support for the old API
-  # is removed, this test should then fail and be removed.
-  def testCreateWithoutEnvironment(self):
-    with self.browser_to_create.Create(self.finder_options) as browser:
-      tab = browser.tabs.New()
-      tab.Navigate('about:blank')
-      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
-
   def testCreateWithBrowserSession(self):
     with self.browser_to_create.BrowserSession(self.browser_options) as browser:
       tab = browser.tabs.New()

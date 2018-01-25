@@ -148,12 +148,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def _InitPlatformIfNeeded(self):
     pass
 
-  def Create(self, finder_options=None):
-    # TODO(crbug.com/801578): Remove finder_options arg when all clients
-    # have switched to the new API.
-    if finder_options is not None:
-      self.SetUpEnvironment(finder_options.browser_options)
-
+  def Create(self):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     self._InitPlatformIfNeeded()

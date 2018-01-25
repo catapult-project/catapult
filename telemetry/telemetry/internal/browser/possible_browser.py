@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import contextlib
-import logging
 
 from telemetry.internal.app import possible_app
 
@@ -63,19 +62,13 @@ class PossibleBrowser(possible_app.PossibleApp):
       self.CleanUpEnvironment()
 
   def SetUpEnvironment(self, browser_options):
-    # TODO(crbug.com/801578): Make this a strict check after all clients
-    # make sure of cleaning up the environment after themselves.
-    if self._browser_options is not None:
-      logging.warning(
-          'Browser environment was not cleaned up, make sure to update the '
-          'client creating this browser. See crbug.com/801578 for details.')
+    assert self._browser_options is None, (
+        'Browser environment is already set up.')
     # Check we were called with browser_options and not finder_options.
     assert getattr(browser_options, 'IS_BROWSER_OPTIONS', False)
     self._browser_options = browser_options
 
-  def Create(self, finder_options=None):
-    # TODO(crbug.com/801578): Remove finder_options arg when all clients
-    # have switched to the new API.
+  def Create(self):
     raise NotImplementedError()
 
   def CleanUpEnvironment(self):

@@ -211,11 +211,7 @@ class FakePossibleBrowser(object):
     """The browser object that will be returned through later API calls."""
     return self._returned_browser
 
-  def Create(self, finder_options=None):
-    # TODO(crbug.com/801578): Remove finder_options arg when all clients
-    # have switched to the new API.
-    if finder_options is not None:
-      self.SetUpEnvironment(finder_options.browser_options)
+  def Create(self):
     if self.execute_on_startup is not None:
       self.execute_on_startup()
     if self.execute_after_browser_creation is not None:
