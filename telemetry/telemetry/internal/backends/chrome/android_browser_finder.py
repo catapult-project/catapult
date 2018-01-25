@@ -121,6 +121,27 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
   @property
+  def browser_directory(self):
+    # On Android L+ the directory where base APK resides is also used for
+    # keeping extracted native libraries and .odex. Here is an example layout:
+    # /data/app/$package.apps.chrome-1/
+    #                                  base.apk
+    #                                  lib/arm/libchrome.so
+    #                                  oat/arm/base.odex
+    # Declaring this toplevel directory as 'browser_directory' allows the cold
+    # startup benchmarks to flush OS pagecache for the native library, .odex and
+    # the APK.
+    apks = self._platform_backend.device.GetApplicationPaths(
+        self._backend_settings.package)
+    # A package can map to multiple APKs iff the package overrides the app on
+    # the system image. Such overrides should not happen on perf bots.
+    assert len(apks) == 1
+    base_apk = apks[0]
+    if not base_apk or not base_apk.endswith('/base.apk'):
+      return None
+    return base_apk[:-9]
+
+  @property
   def profile_directory(self):
     return self._platform_backend.GetProfileDir(self._backend_settings.package)
 
@@ -137,7 +158,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
     browser_backend = android_browser_backend.AndroidBrowserBackend(
-        self._platform_backend, self._browser_options, self._backend_settings)
+        self._platform_backend, self._browser_options,
+        self.browser_directory, self.profile_directory,
+        self._backend_settings)
     browser_backend.ClearCaches()
     try:
       return browser.Browser(

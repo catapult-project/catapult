@@ -18,24 +18,25 @@ from devil.android.sdk import intent
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, android_platform_backend, browser_options,
-               backend_settings):
+               browser_directory, profile_directory, backend_settings):
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
         android_platform_backend,
-        supports_tab_control=backend_settings.supports_tab_control,
-        supports_extensions=False, browser_options=browser_options)
-
-    extensions_to_load = browser_options.extensions_to_load
-
-    if len(extensions_to_load) > 0:
-      raise browser_backend.ExtensionsNotSupportedException(
-          'Android browser does not support extensions.')
+        browser_options=browser_options,
+        supports_extensions=False,
+        supports_tab_control=backend_settings.supports_tab_control)
+    self._browser_directory = browser_directory
+    self._profile_directory = profile_directory
+    self._backend_settings = backend_settings
 
     # Initialize fields so that an explosion during init doesn't break in Close.
-    self._backend_settings = backend_settings
     self._saved_sslflag = ''
     self._app_ui = None
+
+    if len(self._extensions_to_load) > 0:
+      raise browser_backend.ExtensionsNotSupportedException(
+          'Android browser does not support extensions.')
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
@@ -182,27 +183,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def browser_directory(self):
-    # On Android L+ the directory where base APK resides is also used for
-    # keeping extracted native libraries and .odex. Here is an example layout:
-    # /data/app/$package.apps.chrome-1/
-    #                                  base.apk
-    #                                  lib/arm/libchrome.so
-    #                                  oat/arm/base.odex
-    # Declaring this toplevel directory as 'browser_directory' allows the cold
-    # startup benchmarks to flush OS pagecache for the native library, .odex and
-    # the APK.
-    apks = self.device.GetApplicationPaths(self._backend_settings.package)
-    # A package can map to multiple APKs iff the package overrides the app on
-    # the system image. Such overrides should not happen on perf bots.
-    assert len(apks) == 1
-    base_apk = apks[0]
-    if not base_apk or not base_apk.endswith('/base.apk'):
-      return None
-    return base_apk[:-9]
+    return self._browser_directory
 
   @property
   def profile_directory(self):
-    return self.platform_backend.GetProfileDir(self._backend_settings.package)
+    return self._profile_directory
 
   def GetDirectoryPathsToFlushOsPageCacheFor(self):
     paths_to_flush = []
