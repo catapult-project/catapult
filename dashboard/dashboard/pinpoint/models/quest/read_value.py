@@ -103,11 +103,15 @@ class _ReadChartJsonValueExecution(execution.Execution):
     chartjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
 
     # Get and cache any trace URLs.
+    unique_trace_urls = set()
     if 'trace' in chartjson['charts']:
       traces = chartjson['charts']['trace']
       traces = sorted(traces.iteritems(), key=lambda item: item[1]['page_id'])
-      for name, details in traces:
-        self._trace_urls.append({'name': name, 'url': details['cloud_url']})
+      unique_trace_urls.update([d['cloud_url'] for _, d in traces])
+
+    sorted_urls = sorted(unique_trace_urls)
+    self._trace_urls = [
+        {'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
 
     # Look up chart.
     if self._tir_label:
@@ -216,12 +220,15 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     matching_histograms = histograms.GetHistogramsNamed(self._hist_name)
 
     # Get and cache any trace URLs.
+    unique_trace_urls = set()
     for hist in histograms:
       trace_urls = hist.diagnostics.get(reserved_infos.TRACE_URLS.name)
       if trace_urls:
-        for t in list(trace_urls):
-          self._trace_urls.append({'name': hist.name, 'url': t})
-    self._trace_urls = sorted(self._trace_urls, key=lambda x: x['name'])
+        unique_trace_urls.update(trace_urls)
+
+    sorted_urls = sorted(unique_trace_urls)
+    self._trace_urls = [
+        {'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
 
     # Filter the histograms by tir_label and story. Getting either the
     # tir_label or the story from a histogram involves pulling out and
