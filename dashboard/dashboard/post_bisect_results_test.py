@@ -13,7 +13,6 @@ from dashboard import bisect_report
 from dashboard import post_bisect_results
 from dashboard.common import testing_common
 from dashboard.models import try_job
-from dashboard.services import rietveld_service
 
 _SAMPLE_BISECT_RESULTS_JSON = {
     'try_job_id': 6789,
@@ -73,21 +72,6 @@ class PostBisectResultsTest(testing_common.TestCase):
          post_bisect_results.PostBisectResultsHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
-    self._AddRietveldConfig()
-
-  def _AddRietveldConfig(self):
-    """Adds a RietveldConfig entity to the datastore.
-
-    This is used in order to get the Rietveld URL when requests are made to the
-    handler in te tests below. In the real datastore, the RietveldConfig entity
-    would contain credentials.
-    """
-    rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@email.com',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com',
-        internal_server_url='https://test-rietveld.appspot.com').put()
 
   def testPost(self):
     job_key = try_job.TryJob(id=6789, rietveld_issue_id=200034).put()

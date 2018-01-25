@@ -15,7 +15,6 @@ import httplib2
 
 from google.appengine.api import users
 from google.appengine.api import app_identity
-from google.appengine.api import urlfetch
 
 from dashboard import buildbucket_job
 from dashboard import can_bisect
@@ -28,9 +27,7 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job
 from dashboard.services import buildbucket_service
-from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
-from dashboard.services import rietveld_service
 
 
 # Path to the perf trybot config file, relative to chromium/src.
@@ -107,7 +104,6 @@ class StartBisectHandler(request_handler.RequestHandler):
   value of the "step" parameter:
     "prefill-info": Returns JSON with some info to fill into the form.
     "perform-bisect": Triggers a bisect job.
-    "perform-perf-try": Triggers a perf try job.
   """
 
   def post(self):
@@ -130,8 +126,6 @@ class StartBisectHandler(request_handler.RequestHandler):
       result = _PrefillInfo(self.request.get('test_path'))
     elif step == 'perform-bisect':
       result = self._PerformBisectStep(user)
-    elif step == 'perform-perf-try':
-      result = self._PerformPerfTryStep(user)
     else:
       result = {'error': 'Invalid parameters.'}
 
@@ -180,35 +174,6 @@ class StartBisectHandler(request_handler.RequestHandler):
       results = {'error': iie.message}
     if 'error' in results and bisect_job.key:
       bisect_job.key.delete()
-    return results
-
-  def _PerformPerfTryStep(self, user):
-    """Gathers the parameters required for a perf try job and starts the job."""
-    perf_config = _GetPerfTryConfig(
-        bisect_bot=self.request.get('bisect_bot'),
-        suite=self.request.get('suite'),
-        good_revision=self.request.get('good_revision'),
-        bad_revision=self.request.get('bad_revision'),
-        chrome_trace_filter_string=self.request.get(
-            'chrome_trace_filter_string'),
-        atrace_filter_string=self.request.get('atrace_filter_string'))
-
-    if 'error' in perf_config:
-      return perf_config
-
-    config_python_string = 'config = %s\n' % json.dumps(
-        perf_config, sort_keys=True, indent=2, separators=(',', ': '))
-
-    perf_job = try_job.TryJob(
-        bot=self.request.get('bisect_bot'),
-        config=config_python_string,
-        bug_id=-1,
-        email=user.email(),
-        job_type='perf-try')
-
-    results = _PerformPerfTryJob(perf_job)
-    if 'error' in results and perf_job.key:
-      perf_job.key.delete()
     return results
 
 
@@ -696,70 +661,6 @@ def PerformBisect(bisect_job):
         utils.ServiceAccountHttp())
     issue_tracker.AddBugComment(bisect_job.bug_id, comment, send_email=False)
   return result
-
-
-def _PerformPerfTryJob(perf_job):
-  """Performs the perf try job on the try bot.
-
-  This creates a patch, uploads it, then tells Rietveld to try the patch.
-
-  Args:
-    perf_job: TryJob entity with initialized bot name and config.
-
-  Returns:
-    A dictionary containing the result; if successful, this dictionary contains
-    the field "issue_id", otherwise it contains "error".
-  """
-  assert perf_job.bot and perf_job.config
-
-  if not perf_job.key:
-    perf_job.put()
-
-  bot = perf_job.bot
-  email = perf_job.email
-
-  config_dict = perf_job.GetConfigDict()
-  config_dict['try_job_id'] = perf_job.key.id()
-  perf_job.config = utils.BisectConfigPythonString(config_dict)
-
-  # Get the base config file contents and make a patch.
-  try:
-    base_config = gitiles_service.FileContents(
-        'https://chromium.googlesource.com/chromium/src', 'master',
-        _PERF_CONFIG_PATH)
-  except (urlfetch.Error, gitiles_service.NotFoundError):
-    base_config = None
-
-  if not base_config:
-    return {'error': 'Error downloading base config'}
-  patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, perf_job.config, _PERF_CONFIG_PATH)
-
-  # Upload the patch to Rietveld.
-  server = rietveld_service.RietveldService()
-  subject = 'Perf Try Job on behalf of %s' % email
-  issue_id, patchset_id = server.UploadPatch(subject,
-                                             patch,
-                                             base_checksum,
-                                             base_hashes,
-                                             base_config,
-                                             _PERF_CONFIG_PATH)
-
-  if not issue_id:
-    return {'error': 'Error uploading patch to rietveld_service.'}
-  url = 'https://codereview.chromium.org/%s/' % issue_id
-
-  # Tell Rietveld to try the patch.
-  master = 'tryserver.chromium.perf'
-  trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
-  if trypatch_success:
-    # Create TryJob entity. The update_bug_with_results cron job will be
-    # tracking the job.
-    perf_job.rietveld_issue_id = int(issue_id)
-    perf_job.rietveld_patchset_id = int(patchset_id)
-    perf_job.SetStarted()
-    return {'issue_id': issue_id}
-  return {'error': 'Error starting try job. Try to fix at %s' % url}
 
 
 def LogBisectResult(job, comment):

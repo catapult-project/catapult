@@ -13,8 +13,6 @@ See https://github.com/catapult-project/catapult/issues/1905
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/pinpoint-perf-job-dialog.html">
-<link rel="import" href="/dashboard/elements/trace-form.html">
-<link rel="import" href="/dashboard/static/pinpoint.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="trace-button">
@@ -40,13 +38,6 @@ See https://github.com/catapult-project/catapult/issues/1905
         id="button"
         disabled$={{!traceInfo.canBisect}}
         on-click="onTrace">Request Debug Trace</paper-button>
-    <trace-form
-        id="trace"
-        xsrf-token="{{xsrfToken}}"
-        earlier-revision="{{traceInfo.goodRev}}"
-        later-revision="{{traceInfo.badRev}}"
-        test-path="{{traceInfo.testPath}}"
-        bug-id="{{bugId}}"></trace-form>
     <pinpoint-perf-job-dialog
         id="pinpoint"
         xsrf-token="{{xsrfToken}}"
@@ -74,14 +65,7 @@ See https://github.com/catapult-project/catapult/issues/1905
          * Displays the trace-form when the trace button is clicked.
          */
         onTrace() {
-          const testPathParts = this.traceInfo.testPath.split('/');
-          const botName = testPathParts[1];
-
-          if (d.PINPOINT_BOTS.indexOf(botName) != -1) {
-            this.$.pinpoint.show();
-          } else {
-            this.$.trace.show();
-          }
+          this.$.pinpoint.show();
         }
       });
     })();

@@ -21,7 +21,6 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
 from dashboard.services import buildbucket_service
-from dashboard.services import rietveld_service
 
 _SAMPLE_BISECT_RESULTS_JSON = {
     'try_job_id': 6789,
@@ -188,7 +187,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         '/update_bug_with_results',
         update_bug_with_results.UpdateBugWithResultsHandler)])
     self.testapp = webtest.TestApp(app)
-    self._AddRietveldConfig()
 
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
@@ -197,20 +195,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
             'repository_url': 'https://chromium.googlesource.com/chromium/src'
         },
     })
-
-  def _AddRietveldConfig(self):
-    """Adds a RietveldConfig entity to the datastore.
-
-    This is used in order to get the Rietveld URL when requests are made to the
-    handler in te tests below. In the real datastore, the RietveldConfig entity
-    would contain credentials.
-    """
-    rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@google.com',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com',
-        internal_server_url='https://test-rietveld.appspot.com').put()
 
   def _AddTryJob(self, bug_id, status, bot, **kwargs):
     job = try_job.TryJob(bug_id=bug_id, status=status, bot=bot, **kwargs)

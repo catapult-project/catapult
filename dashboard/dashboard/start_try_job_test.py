@@ -21,7 +21,6 @@ from dashboard.models import bug_data
 from dashboard.models import graph_data
 from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
-from dashboard.services import rietveld_service
 
 # pylint: disable=too-many-lines
 
@@ -309,13 +308,6 @@ class StartBisectTest(testing_common.TestCase):
             'ChromiumPerf': 'master.tryserver.chromium.perf'
         })
     testing_common.SetSheriffDomains(['chromium.org'])
-    # Add fake Rietveld auth info.
-    rietveld_config = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com')
-    rietveld_config.put()
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
   def testPost_InvalidUser_ShowsErrorMessage(self):
@@ -746,9 +738,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(return_value='my-dashboard.appspot.com'))
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='33001'))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisect(self, _):
     self.SetCurrentUser('foo@chromium.org')
 
@@ -784,64 +773,9 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual(issue_url, try_jobs[0].results_data['issue_url'])
     self.assertEqual('33001', try_jobs[0].results_data['issue_id'])
 
-  @mock.patch.object(
-      start_try_job.gitiles_service, 'FileContents',
-      mock.MagicMock(return_value=_PERF_CONFIG_CONTENTS))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
-  def testPerformPerfTry(self):
-    self.SetCurrentUser('foo@chromium.org')
-
-    query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
-        'suite': 'dromaeo.jslibstylejquery',
-        'good_revision': '215806',
-        'bad_revision': '215828',
-        'step': 'perform-perf-try',
-    }
-    global _EXPECTED_CONFIG_DIFF
-    global _TEST_EXPECTED_CONFIG_CONTENTS
-    global _TEST_EXPECTED_BOT
-    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
-    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
-    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
-    response = self.testapp.post('/start_try_job', query_parameters)
-    self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
-
-  @mock.patch.object(
-      start_try_job.gitiles_service, 'FileContents',
-      mock.MagicMock(return_value=_PERF_CONFIG_CONTENTS))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
-  def testPerformPerfTryWithTracing(self):
-    self.SetCurrentUser('foo@chromium.org')
-
-    query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
-        'suite': 'dromaeo.jslibstylejquery',
-        'good_revision': '215806',
-        'bad_revision': '215828',
-        'step': 'perform-perf-try',
-        'chrome_trace_filter_string': 'toplevel',
-        'atrace_filter_string': 'battor',
-    }
-    global _EXPECTED_CONFIG_DIFF
-    global _TEST_EXPECTED_CONFIG_CONTENTS
-    global _TEST_EXPECTED_BOT
-    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_TRACING_DIFF
-    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
-    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
-    response = self.testapp.post('/start_try_job', query_parameters)
-    self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
-
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(side_effect=httplib2.HttpLib2Error))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisectStep_DeleteJobOnFailedBisect(self, _):
     self.SetCurrentUser('foo@chromium.org')
     query_parameters = {
@@ -859,32 +793,6 @@ class StartBisectTest(testing_common.TestCase):
     _TEST_EXPECTED_BOT = 'linux_perf_bisect'
 
     query_parameters['step'] = 'perform-bisect'
-    self.testapp.post('/start_try_job', query_parameters)
-    try_jobs = try_job.TryJob.query().fetch()
-    self.assertEqual(0, len(try_jobs))
-
-  @mock.patch.object(
-      start_try_job.gitiles_service, 'FileContents',
-      mock.MagicMock(side_effect=start_try_job.gitiles_service.NotFoundError))
-  @mock.patch.object(
-      start_try_job.rietveld_service.RietveldService, 'MakeRequest',
-      mock.MagicMock(side_effect=_MockMakeRequest))
-  def testPerformPerfTryStep_DeleteJobOnFailedBisect(self):
-    self.SetCurrentUser('foo@chromium.org')
-    query_parameters = {
-        'bisect_bot': 'linux_perf_bisect',
-        'suite': 'dromaeo.jslibstylejquery',
-        'good_revision': '215806',
-        'bad_revision': '215828',
-    }
-    global _EXPECTED_CONFIG_DIFF
-    global _TEST_EXPECTED_CONFIG_CONTENTS
-    global _TEST_EXPECTED_BOT
-    _EXPECTED_CONFIG_DIFF = _EXPECTED_PERF_CONFIG_DIFF
-    _TEST_EXPECTED_CONFIG_CONTENTS = _PERF_CONFIG_CONTENTS
-    _TEST_EXPECTED_BOT = 'linux_perf_bisect'
-
-    query_parameters['step'] = 'perform-perf-try'
     self.testapp.post('/start_try_job', query_parameters)
     try_jobs = try_job.TryJob.query().fetch()
     self.assertEqual(0, len(try_jobs))

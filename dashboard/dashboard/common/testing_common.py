@@ -20,7 +20,6 @@ from google.appengine.ext import testbed
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
-from dashboard.services import rietveld_service
 
 _QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 
@@ -60,15 +59,6 @@ class TestCase(unittest.TestCase):
 
   def tearDown(self):
     self.testbed.deactivate()
-
-  def _AddFakeRietveldConfig(self):
-    """Sets up fake service account credentials for tests."""
-    rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='foo@bar.com',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com',
-        internal_server_url='https://test-rietveld.appspot.com').put()
 
   def ExecuteTaskQueueTasks(self, handler_name, task_queue_name):
     """Executes all of the tasks on the queue until there are none left."""
