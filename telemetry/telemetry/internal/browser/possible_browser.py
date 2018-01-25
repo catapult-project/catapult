@@ -72,10 +72,19 @@ class PossibleBrowser(possible_app.PossibleApp):
     raise NotImplementedError()
 
   def CleanUpEnvironment(self):
-    # Subclasses should take into account that this method may be called
-    # even if SetUpEnvironment was not called, or was only partially executed
-    # due to exceptions.
-    self._browser_options = None
+    if self._browser_options is None:
+      return  # No environment to clean up.
+    try:
+      self._TearDownEnvironment()
+    finally:
+      self._browser_options = None
+
+  def _TearDownEnvironment(self):
+    # Subclasses may override this method to perform any needed clean up
+    # operations on the environment. It won't be called if the environment
+    # has already been cleaned up or never set up, but may be called even if
+    # SetUpEnvironment was only partially executed due to exceptions.
+    pass
 
   def SupportsOptions(self, browser_options):
     """Tests for extension support."""

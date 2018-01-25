@@ -27,6 +27,9 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.util import path
 
 
+DEVTOOLS_ACTIVE_PORT_FILE = 'DevToolsActivePort'
+
+
 def ParseCrashpadDateTime(date_time_str):
   # Python strptime does not support time zone parsing, strip it.
   date_time_parts = date_time_str.split()
@@ -102,47 +105,43 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a locally-executed browser instance, on Linux,
   Mac or Windows.
   """
-  def __init__(self, desktop_platform_backend, browser_options, executable,
-               flash_path, is_content_shell, browser_directory):
+  def __init__(self, desktop_platform_backend, browser_options,
+               browser_directory, profile_directory,
+               executable, flash_path, is_content_shell):
     super(DesktopBrowserBackend, self).__init__(
         desktop_platform_backend,
-        supports_tab_control=not is_content_shell,
+        browser_options=browser_options,
         supports_extensions=not is_content_shell,
-        browser_options=browser_options)
+        supports_tab_control=not is_content_shell)
+    self._browser_directory = browser_directory
+    self._profile_directory = profile_directory
+    self._executable = executable
+    self._flash_path = flash_path
+    self._is_content_shell = is_content_shell
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
-    self._tmp_profile_dir = None
     self._tmp_output_file = None
     # pylint: disable=invalid-name
     self._most_recent_symbolized_minidump_paths = set([])
     self._minidump_path_crashpad_retrieval = {}
     # pylint: enable=invalid-name
 
-    self._executable = executable
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
 
-    assert not flash_path or os.path.exists(flash_path)
-    self._flash_path = flash_path
+    if self._flash_path and not os.path.exists(self._flash_path):
+      raise RuntimeError('Flash path does not exist: %s' % self._flash_path)
 
-    self._is_content_shell = is_content_shell
-
-    extensions_to_load = browser_options.extensions_to_load
-
-    if len(extensions_to_load) > 0 and is_content_shell:
+    if len(self._extensions_to_load) > 0 and self._is_content_shell:
       raise browser_backend.ExtensionsNotSupportedException(
           'Content shell does not support extensions.')
 
-    self._browser_directory = browser_directory
     self._tmp_minidump_dir = tempfile.mkdtemp()
     if self.is_logging_enabled:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
     else:
       self._log_file_path = None
-
-    # TODO(perezju): Consider whether this can be moved to the Start method.
-    self._SetupProfile()
 
   @property
   def is_logging_enabled(self):
@@ -160,46 +159,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return (self.browser_options.logs_cloud_bucket and self.log_file_path and
             os.path.isfile(self.log_file_path))
 
-  def _SetupProfile(self):
-    if self.browser_options.dont_override_profile:
-      self._tmp_profile_dir = None
-      return
-
-    self._tmp_profile_dir = tempfile.mkdtemp()
-    profile_dir = self.browser_options.profile_dir
-    if profile_dir:
-      if self._is_content_shell:
-        logging.critical('Profiles cannot be used with content shell')
-        sys.exit(1)
-      logging.info("Using profile directory:'%s'.", profile_dir)
-      shutil.rmtree(self._tmp_profile_dir)
-      shutil.copytree(profile_dir, self._tmp_profile_dir)
-
-      # As we're using an existing profile directory, we need to make sure to
-      # delete the well-known file containing the active DevTools port number.
-      devtools_file_path = self._GetDevToolsActivePortPath()
-      if os.path.isfile(devtools_file_path):
-        try:
-          os.remove(devtools_file_path)
-        except IOError as e:
-          logging.critical('Unable to remove DevToolsActivePort file: %s' % e)
-          sys.exit(1)
-
-  def _CollectProfile(self):
-    if self._tmp_profile_dir and os.path.exists(self._tmp_profile_dir):
-      # If we don't need the profile after the run then cleanup.
-      shutil.rmtree(self._tmp_profile_dir, ignore_errors=True)
-      self._tmp_profile_dir = None
-
   def _GetDevToolsActivePortPath(self):
-    return os.path.join(self.profile_directory, 'DevToolsActivePort')
+    return os.path.join(self.profile_directory, DEVTOOLS_ACTIVE_PORT_FILE)
 
   def _GetCdbPath(self):
     # cdb.exe might have been co-located with the browser's executable
     # during the build, but that's not a certainty. (This is only done
     # in Chromium builds on the bots, which is why it's not a hard
     # requirement.) See if it's available.
-    colocated_cdb = os.path.join(self._browser_directory, 'cdb', 'cdb.exe')
+    colocated_cdb = os.path.join(self.browser_directory, 'cdb', 'cdb.exe')
     if path.IsExecutable(colocated_cdb):
       return colocated_cdb
     possible_paths = (
@@ -327,7 +295,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @property
   def profile_directory(self):
-    return self._tmp_profile_dir
+    return self._profile_directory
 
   def IsBrowserRunning(self):
     return self._proc and self._proc.poll() == None
@@ -488,7 +456,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # the one starting from the exception context record.
       # Specify kb instead of k in order to get four arguments listed, for
       # easier diagnosis from stacks.
-      output = subprocess.check_output([cdb, '-y', self._browser_directory,
+      output = subprocess.check_output([cdb, '-y', self.browser_directory,
                                         '-c', '.ecxr;.lastevent;kb30;~*kb30;q',
                                         '-z', minidump])
       # The output we care about starts with "Last event:" or possibly
@@ -517,7 +485,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
     GenerateBreakpadSymbols(minidump, arch_name, os_name,
-                            symbols_path, self._browser_directory)
+                            symbols_path, self.browser_directory)
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
@@ -632,8 +600,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.warning('Proceed to kill the browser.')
       self._proc.kill()
     self._proc = None
-
-    self._CollectProfile()
 
     if self._tmp_output_file:
       self._tmp_output_file.close()

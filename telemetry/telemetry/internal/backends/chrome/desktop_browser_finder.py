@@ -5,7 +5,9 @@
 
 import logging
 import os
+import shutil
 import sys
+import tempfile
 
 import dependency_manager  # pylint: disable=import-error
 
@@ -36,11 +38,16 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
     self._browser_directory = browser_directory
+    self._profile_directory = None
     self.is_local_build = is_local_build
 
   def __repr__(self):
     return 'PossibleDesktopBrowser(type=%s, executable=%s, flash=%s)' % (
         self.browser_type, self._local_executable, self._flash_path)
+
+  @property
+  def profile_directory(self):
+    return self._profile_directory
 
   def _InitPlatformIfNeeded(self):
     if self._platform:
@@ -50,6 +57,35 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     # pylint: disable=protected-access
     self._platform_backend = self._platform._platform_backend
+
+  def SetUpEnvironment(self, browser_options):
+    super(PossibleDesktopBrowser, self).SetUpEnvironment(browser_options)
+    if self._browser_options.dont_override_profile:
+      return
+
+    # If given, this directory's contents will be used to seed the profile.
+    source_profile = self._browser_options.profile_dir
+    if source_profile and self._is_content_shell:
+      raise RuntimeError('Profiles cannot be used with content shell')
+
+    self._profile_directory = tempfile.mkdtemp()
+    if source_profile:
+      logging.info('Seeding profile directory from: %s', source_profile)
+      shutil.copytree(source_profile, self._profile_directory)
+
+      # When using an existing profile directory, we need to make sure to
+      # delete the file containing the active DevTools port number.
+      devtools_file_path = os.path.join(
+          self._profile_directory,
+          desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
+      if os.path.isfile(devtools_file_path):
+        os.remove(devtools_file_path)
+
+  def _TearDownEnvironment(self):
+    if self._profile_directory and os.path.exists(self._profile_directory):
+      # Remove the profile directory, which was hosted on a temp dir.
+      shutil.rmtree(self._profile_directory, ignore_errors=True)
+      self._profile_directory = None
 
   def Create(self):
     if self._flash_path and not os.path.exists(self._flash_path):
@@ -71,8 +107,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
         browser_backend = desktop_browser_backend.DesktopBrowserBackend(
             self._platform_backend, self._browser_options,
-            self._local_executable, self._flash_path,
-            self._is_content_shell, self._browser_directory)
+            self._browser_directory, self._profile_directory,
+            self._local_executable, self._flash_path, self._is_content_shell)
 
         browser_backend.ClearCaches()
 
