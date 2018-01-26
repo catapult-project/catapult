@@ -15,8 +15,10 @@ OAUTH_CLIENT_ID_WHITELIST = [
     '62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com',
     # This oauth client id is from the 'chromeperf' API console.
     '62121018386-h08uiaftreu4dr3c4alh3l7mogskvb7i.apps.googleusercontent.com',
-    # This oauth client id is from chromiumdash.
+    # This oauth client id is from chromiumdash-staging.
     '377415874083-slpqb5ur4h9sdfk8anlq4qct9imivnmt.apps.googleusercontent.com',
+    # This oauth client id is from chromiumdash.
+    '975044924533-p122oecs8h6eibv5j5a8fmj82b0ct0nk.apps.googleusercontent.com',
     # This oauth client id is used to upload histograms from the perf waterfall.
     '113172445342431053212',
     'chromeperf@webrtc-perf-test.google.com.iam.gserviceaccount.com',
