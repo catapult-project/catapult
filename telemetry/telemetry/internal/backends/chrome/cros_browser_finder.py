@@ -4,6 +4,7 @@
 """Finds CrOS browsers that can be controlled by telemetry."""
 
 import logging
+import posixpath
 
 from telemetry.core import cros_interface
 from telemetry.core import platform as platform_module
@@ -32,6 +33,17 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
 
+  @property
+  def browser_directory(self):
+    result = self._platform_backend.cri.GetChromeProcess()
+    if result and 'path' in result:
+      return posixpath.dirname(result['path'])
+    return None
+
+  @property
+  def profile_directory(self):
+    return '/home/chronos/Default'
+
   def _InitPlatformIfNeeded(self):
     pass
 
@@ -45,7 +57,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, self._browser_options,
-        self._platform_backend.cri, self._is_guest)
+        self.browser_directory, self.profile_directory,
+        self._is_guest)
 
     browser_backend.ClearCaches()
 
