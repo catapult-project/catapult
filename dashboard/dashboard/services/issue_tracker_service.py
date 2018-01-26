@@ -116,7 +116,18 @@ class IssueTrackerService(object):
       reason = _GetErrorReason(e)
       # Retry without owner if we cannot set owner to this issue.
       if retry and 'The user does not exist' in reason:
-        _RemoveOwnerAndCC(body)
+        # Remove both the owner and the cc list.
+        # TODO (crbug.com/806392): We should probably figure out which user it
+        # is rather than removing all of them.
+        if 'owner' in body['updates']:
+          del body['updates']['owner']
+        if 'cc' in body['updates']:
+          del body['updates']['cc']
+        return self._MakeCommentRequest(bug_id, body, retry=False)
+      elif retry and 'Issue owner must be a project member' in reason:
+        # Remove the owner but retain the cc list.
+        if 'owner' in body['updates']:
+          del body['updates']['owner']
         return self._MakeCommentRequest(bug_id, body, retry=False)
       # This error reason is received when issue is deleted.
       elif 'User is not allowed to view this issue' in reason:
@@ -253,15 +264,6 @@ class IssueTrackerService(object):
       if ignore_error:
         return None
       raise e
-
-
-def _RemoveOwnerAndCC(request_body):
-  if 'updates' not in request_body:
-    return
-  if 'owner' in request_body['updates']:
-    del request_body['updates']['owner']
-  if 'cc' in request_body['updates']:
-    del request_body['updates']['cc']
 
 
 def _GetErrorReason(request_error):
