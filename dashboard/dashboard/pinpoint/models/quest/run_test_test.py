@@ -14,7 +14,7 @@ from dashboard.pinpoint.models.quest import run_test
 
 _MIN_TELEMETRY_ARGUMENTS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
-    '-v', '--upload-results', '--output-format=histograms',
+    '-v', '--upload-results', '--output-format', 'histograms',
     '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
@@ -26,7 +26,7 @@ _ALL_TELEMETRY_ARGUMENTS = [
     'speedometer', '--story-filter', 'http://www.fifa.com/',
     '--pageset-repeat', '1', '--browser', 'release',
     '--custom-arg', 'custom value',
-    '-v', '--upload-results', '--output-format=histograms',
+    '-v', '--upload-results', '--output-format', 'histograms',
     '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
@@ -37,11 +37,22 @@ _ALL_TELEMETRY_ARGUMENTS = [
 _STARTUP_BENCHMARK_ARGUMENTS = [
     'start_with_url.warm.startup_pages',
     '--pageset-repeat', '2', '--browser', 'release',
-    '-v', '--upload-results', '--output-format=histograms',
+    '-v', '--upload-results', '--output-format', 'histograms',
     '--results-label', '',
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
+]
+
+
+_WEBVIEW_ARGUMENTS = [
+    'speedometer', '--pageset-repeat', '1', '--browser', 'android-webview',
+    '-v', '--upload-results', '--output-format', 'histograms',
+    '--results-label', '',
+    '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
+    '--isolated-script-test-chartjson-output',
+    '${ISOLATED_OUTDIR}/chartjson-output.json',
+    '--webview-embedder-apk', '../../out/Release/apks/SystemWebViewShell.apk',
 ]
 
 
@@ -166,10 +177,21 @@ class TelemetryQuestTest(_QuestTest):
         'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
         'benchmark': 'start_with_url.warm.startup_pages',
-        'browser': 'release',
     }
 
     expected = run_test.RunTest({'key': 'value'}, _STARTUP_BENCHMARK_ARGUMENTS)
+    self.assertEqual(run_test.RunTest.FromDict(arguments),
+                     (arguments, expected))
+
+  def testWebviewFlag(self):
+    arguments = {
+        'configuration': 'chromium-rel-mac11-pro',
+        'target': 'telemetry_perf_webview_tests',
+        'benchmark': 'speedometer',
+        'browser': 'android-webview',
+    }
+
+    expected = run_test.RunTest({'key': 'value'}, _WEBVIEW_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
 
