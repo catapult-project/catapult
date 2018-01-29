@@ -2,8 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-import time
+import py_utils
 
 
 class AndroidBrowserBackendSettings(object):
@@ -88,28 +87,10 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
 
   def GetDevtoolsRemotePort(self, device):
     # The DevTools socket name for WebView depends on the activity PID's.
-    retries = 0
-    timeout = 1
-    pid = None
-    while True:
-      pids = device.GetPids(self.package)
-      if not pids or self.package not in pids:
-        time.sleep(timeout)
-        retries += 1
-        timeout *= 2
-        if retries == 4:
-          logging.critical('android_browser_backend: Timeout while waiting for '
-                           'activity %s:%s to come up',
-                           self.package,
-                           self.activity)
-          raise Exception('Timeout waiting for PID.')
-      if len(pids.get(self.package, [])) > 1:
-        raise Exception(
-            'At most one instance of process %s expected but found pids: '
-            '%s' % (self.package, pids))
-      if len(pids.get(self.package, [])) == 1:
-        pid = pids[self.package][0]
-        break
+    def get_activity_pid():
+      return device.GetApplicationPids(self.package, at_most_one=True)
+
+    pid = py_utils.WaitFor(get_activity_pid, timeout=30)
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
 
