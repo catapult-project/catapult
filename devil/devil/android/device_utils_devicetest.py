@@ -212,12 +212,10 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
 
   def testRestartAdbd(self):
     def get_adbd_pid():
-      # TODO(catapult:#3215): Migrate to device.GetPids().
-      ps_output = self.device.RunShellCommand(['ps'], check_return=True)
-      for ps_line in ps_output:
-        if 'adbd' in ps_line:
-          return ps_line.split()[1]
-      self.fail('Unable to find adbd')
+      try:
+        return next(p.pid for p in self.device.ListProcesses('adbd'))
+      except StopIteration:
+        self.fail('Unable to find adbd')
 
     old_adbd_pid = get_adbd_pid()
     self.device.RestartAdbd()
