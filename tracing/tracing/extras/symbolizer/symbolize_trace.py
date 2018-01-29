@@ -406,8 +406,8 @@ class MemoryMap(NodeWrapper):
       if previous_region is not None:
         if region == previous_region:
           continue
-        assert region.start_address >= previous_region.end_address, \
-            'Regions {} and {} overlap.'.format(previous_region, region)
+        if region.start_address < previous_region.end_address:
+          print 'Regions {} and {} overlap.'.format(previous_region, region)
       previous_region = region
       self._regions.append(region)
 
