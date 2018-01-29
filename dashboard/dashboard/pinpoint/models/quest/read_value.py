@@ -267,6 +267,9 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     if not self._statistic:
       return hist.sample_values
 
+    if not hist.sample_values:
+      return []
+
     # TODO(simonhatch): Use Histogram.getStatisticScalar when it's ported from
     # js.
     if self._statistic == 'avg':

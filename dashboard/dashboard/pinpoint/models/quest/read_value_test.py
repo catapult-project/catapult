@@ -319,6 +319,51 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     expected_calls = [mock.call('output hash'), mock.call('output json hash')]
     self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
+  def testReadHistogramsJsonValueStatistic(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        generic_set.GenericSet(['group:tir_label']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        generic_set.GenericSet(['story']))
+    self.SetOutputFileContents(histograms.AsDicts())
+
+    quest = read_value.ReadHistogramsJsonValue(
+        hist.name, 'tir_label', 'story', statistic='avg')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (1,))
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+
+  def testReadHistogramsJsonValueStatisticNoSamples(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        generic_set.GenericSet(['group:tir_label']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        generic_set.GenericSet(['story']))
+    self.SetOutputFileContents(histograms.AsDicts())
+
+    quest = read_value.ReadHistogramsJsonValue(
+        hist.name, 'tir_label', 'story', statistic='avg')
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertReadValueError(execution)
+
   def testReadHistogramsJsonValueMultipleHistograms(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
