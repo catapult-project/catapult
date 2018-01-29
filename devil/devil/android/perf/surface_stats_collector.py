@@ -110,12 +110,11 @@ class SurfaceStatsCollector(object):
     return not len(results)
 
   def GetSurfaceFlingerPid(self):
-    pids_dict = self._device.GetPids('surfaceflinger')
-    if not pids_dict:
+    try:
+      # Returns the first matching PID found.
+      return next(p.pid for p in self._device.ListProcesses('surfaceflinger'))
+    except StopIteration:
       raise Exception('Unable to get surface flinger process id')
-    # TODO(cataput:#3378): Do more strict checks in GetPids when possible.
-    # For now it just returns the first pid found of some matching process.
-    return pids_dict.popitem()[1][0]
 
   def _GetSurfaceFlingerFrameData(self):
     """Returns collected SurfaceFlinger frame timing data.
