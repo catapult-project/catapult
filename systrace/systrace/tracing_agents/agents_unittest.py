@@ -43,8 +43,5 @@ class BaseAgentTest(unittest.TestCase):
       blocking=True, force_stop=True)
 
   def GetChromeProcessID(self):
-    chrome_processes = self.device.GetPids(self.package_info.package)
-    if (self.package_info.package in chrome_processes and
-        len(chrome_processes[self.package_info.package]) > 0):
-      return chrome_processes[self.package_info.package][0]
-    return None
+    return self.device.GetApplicationPids(
+        self.package_info.package, at_most_one=True)
