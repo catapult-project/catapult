@@ -372,7 +372,9 @@ class AndroidPlatformBackend(
                          (application, line))
 
   def IsApplicationRunning(self, application):
-    return len(self._device.GetPids(application)) > 0
+    # For Android apps |application| is usually the package name of the app.
+    # Note that the string provided must match the process name exactly.
+    return bool(self._device.GetApplicationPids(application))
 
   def CanLaunchApplication(self, application):
     if not self._installed_applications:
