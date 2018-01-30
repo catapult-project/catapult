@@ -270,16 +270,7 @@ class AndroidPlatformBackend(
     self.InstallApplication(host_path)
 
   def GetChildPids(self, pid):
-    child_pids = []
-    ps = self.GetPsOutput(['pid', 'name'])
-    for curr_pid, curr_name in ps:
-      if int(curr_pid) == pid:
-        name = curr_name
-        for curr_pid, curr_name in ps:
-          if curr_name.startswith(name) and curr_name != name:
-            child_pids.append(int(curr_pid))
-        break
-    return child_pids
+    return [p.pid for p in self._device.ListProcesses() if p.ppid == pid]
 
   @decorators.Cache
   def GetCommandLine(self, pid):
