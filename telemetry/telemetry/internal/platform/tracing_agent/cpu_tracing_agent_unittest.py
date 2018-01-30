@@ -54,7 +54,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self.assertFalse(cpu_tracing_agent.CpuTracingAgent.IsSupported(
         FakeAndroidPlatformBackend()))
 
-  @decorators.Enabled('linux', 'mac', 'win')
+  # Flaky on Win (crbug.com/803210).
+  @decorators.Enabled('linux', 'mac')
   def testStartAgentTracing(self):
     self.assertFalse(self._agent._snapshot_ongoing)
     self.assertFalse(self._agent._snapshots)
@@ -101,7 +102,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     builder = builder.AsData()
     self.assertTrue(builder.HasTracesFor(trace_data.CPU_TRACE_DATA))
 
-  @decorators.Enabled('linux', 'mac', 'win')
+  # Flaky on Win (crbug.com/803210).
+  @decorators.Enabled('linux', 'mac')
   def testCollectAgentTraceDataFormat(self):
     builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
@@ -137,7 +139,8 @@ class CpuTracingAgentTest(unittest.TestCase):
 
       self.assertTrue(found_unittest_process)
 
-  @decorators.Enabled('linux', 'mac', 'win')
+  # Flaky on Win (crbug.com/803210).
+  @decorators.Enabled('linux', 'mac')
   def testTraceSpecifiesTelemetryClockDomain(self):
     builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
