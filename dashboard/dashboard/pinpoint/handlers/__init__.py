@@ -12,3 +12,4 @@ from dashboard.pinpoint.handlers.migrate import Migrate
 from dashboard.pinpoint.handlers.new import New
 from dashboard.pinpoint.handlers.results2 import Results2
 from dashboard.pinpoint.handlers.run import Run
+from dashboard.pinpoint.handlers.stats import Stats
