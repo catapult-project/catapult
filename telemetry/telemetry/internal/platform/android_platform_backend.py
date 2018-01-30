@@ -283,10 +283,10 @@ class AndroidPlatformBackend(
 
   @decorators.Cache
   def GetCommandLine(self, pid):
-    ps = self.GetPsOutput(['pid', 'name'], pid)
-    if not ps:
+    try:
+      return next(p.name for p in self._device.ListProcesses() if p.pid == pid)
+    except StopIteration:
       raise exceptions.ProcessGoneException()
-    return ps[0][1]
 
   @decorators.Cache
   def GetArchName(self):
@@ -445,24 +445,26 @@ class AndroidPlatformBackend(
     return self._device.ReadFile(fname, as_root=True)
 
   def GetPsOutput(self, columns, pid=None):
-    assert columns == ['pid', 'name'] or columns == ['pid'], \
-        'Only know how to return pid and name. Requested: ' + columns
+    """Get information about processes provided via the ps command.
+
+    Args:
+      columns: a list of strings with the ps columns to return; supports those
+        defined in device_utils.PS_COLUMNS, currently: 'name', 'pid', 'ppid'.
+      pid: if given only return rows for processes matching the given pid.
+
+    Returns:
+      A list of rows, one for each process found. Each row is in turn a list
+      with the values corresponding to each of the requested columns.
+    """
+    unknown = [c for c in columns if c not in device_utils.PS_COLUMNS]
+    assert not unknown, 'Requested unknown columns: %s. Supported: %s.' % (
+        ', '.join(unknown), ', '.join(device_utils.PS_COLUMNS))
+
+    processes = self._device.ListProcesses()
     if pid is not None:
-      pid = str(pid)
-    procs_pids = self._device.GetPids()
-    output = []
-    for curr_name, pids_list in procs_pids.iteritems():
-      for curr_pid in pids_list:
-        if columns == ['pid', 'name']:
-          row = [curr_pid, curr_name]
-        else:
-          row = [curr_pid]
-        if pid is not None:
-          if curr_pid == pid:
-            return [row]
-        else:
-          output.append(row)
-    return output
+      processes = [p for p in processes if p.pid == pid]
+
+    return [[getattr(p, c) for c in columns] for p in processes]
 
   def RunCommand(self, command):
     return '\n'.join(self._device.RunShellCommand(

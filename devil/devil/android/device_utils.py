@@ -200,7 +200,8 @@ _PARCEL_RESULT_RE = re.compile(
 _EBUSY_RE = re.compile(
     r'mkdir failed for ([^,]*), Device or resource busy')
 
-ProcessInfo = collections.namedtuple('ProcessInfo', ['name', 'pid', 'ppid'])
+PS_COLUMNS = ('name', 'pid', 'ppid')
+ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
 
 
 @decorators.WithExplicitTimeoutAndRetries(
