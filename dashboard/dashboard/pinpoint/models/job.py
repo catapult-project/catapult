@@ -28,12 +28,28 @@ _TASK_INTERVAL = 10
 
 
 _REPEAT_COUNT_INCREASE = 10
+# TODO: We don't really need a max repeat count if the significance level and
+# questionable significance levels cross each other. There will naturally be a
+# point where we decide that it's not worth it to run any more repeats.
 _MAX_REPEAT_COUNT = 50
 
 
-_QUESTIONABLE_SIGNIFICANCE_LEVEL = 0.2
+# The questionable significance levels are determined by first picking two
+# representative samples of size 10. Take their p-value. Then repeat for each i,
+# multiplying the sample size by i. To calculate these values:
+# import math
+# from dashboard.pinpoint.models import mann_whitney_u
+# a = [0] * 10
+# b = [0] * 9 + [1]
+# print 1
+# for i in xrange(1, 10):
+#   pvalue = mann_whitney_u.MannWhitneyU(a * i, b * i)
+#   print math.ceil(pvalue * 10000) / 10000
+_QUESTIONABLE_SIGNIFICANCE_LEVELS = (
+    1.0000, 0.3682, 0.1625, 0.0815, 0.0428, 0.0230,
+    0.0126, 0.0070, 0.0039, 0.0022, 0.0013, 0.0007,
+)
 _SIGNIFICANCE_LEVEL = 0.001
-_MINIMUM_VALUE_COUNT = 8
 
 
 _DIFFERENT = 'different'
@@ -482,14 +498,6 @@ def _CompareValues(values_a, values_b):
     # A sample has no values in it.
     return _UNKNOWN
 
-  if (len(values_a) < _MINIMUM_VALUE_COUNT or
-      len(values_b) < _MINIMUM_VALUE_COUNT):
-    # There are few enough values that the significance test would never reject
-    # the null hypothesis. We'd like more information. This can happen if a lot
-    # of the test runs fail, so we don't have a lot of performance numbers to
-    # work with.
-    return _UNKNOWN
-
   p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
 
   if p_value < _SIGNIFICANCE_LEVEL:
@@ -497,7 +505,9 @@ def _CompareValues(values_a, values_b):
     # hypothesis.
     return _DIFFERENT
 
-  if p_value < _QUESTIONABLE_SIGNIFICANCE_LEVEL:
+  index = min(len(values_a), len(values_b)) / 10
+  questionable_significance_level = _QUESTIONABLE_SIGNIFICANCE_LEVELS[index]
+  if p_value < questionable_significance_level:
     # The p-value is not less than the significance level, but it's small enough
     # to be suspicious. We'd like to investigate more closely.
     return _UNKNOWN
