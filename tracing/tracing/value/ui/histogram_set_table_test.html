@@ -158,6 +158,26 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('3', scalarSpans[1].unit.format(scalarSpans[1].value));
   });
 
+  test('autoShowAll', async function() {
+    const histograms = new tr.v.HistogramSet();
+    const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
+    const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
+    const related = new tr.v.d.RelatedHistogramMap();
+    related.set('0', bHist);
+    aHist.diagnostics.set('r', related);
+    const table = await buildTable(this, histograms);
+
+    let cells = getNameCells(table);
+    assert.lengthOf(cells, 1);
+    assert.strictEqual('a', cells[0].row.name);
+
+    await table.viewState.update({searchQuery: 'b'});
+    assert.isTrue(table.viewState.showAll);
+    cells = getNameCells(table);
+    assert.lengthOf(cells, 1);
+    assert.strictEqual('b', cells[0].row.name);
+  });
+
   test('viewShowAll', async function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
