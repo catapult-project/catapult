@@ -119,10 +119,8 @@ def get_device_status_unsafe(device):
 
   # Process
   try:
-    # TODO(catapult:#3215): Migrate to device.GetPids()
-    lines = device.RunShellCommand(['ps'], check_return=True)
-    status['processes'] = len(lines) - 1 # Ignore the header row.
-  except device_errors.AdbShellCommandFailedError:
+    status['processes'] = len(device.ListProcesses())
+  except device_errors.AdbCommandFailedError:
     logging.exception('Unable to count process list.')
 
   # CPU Temps
