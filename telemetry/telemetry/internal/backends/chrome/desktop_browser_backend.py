@@ -208,17 +208,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
-  def GetBrowserStartupArgs(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    args = super(DesktopBrowserBackend, self).GetBrowserStartupArgs()
-    if self._is_content_shell:
-      args.append('--data-path=%s' % self.profile_directory)
-    elif self.browser_options.dont_override_profile:
-      pass  # Do nothing.
-    else:
-      args.append('--user-data-dir=%s' % self.profile_directory)
-    return args
-
   def GetBrowserStartupUrl(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     return self.browser_options.startup_url
