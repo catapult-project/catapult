@@ -13,6 +13,7 @@ import tempfile
 import traceback
 import uuid
 
+from battor import battor_error
 from py_trace_event import trace_event
 from py_utils import discover
 from telemetry.core import exceptions
@@ -62,6 +63,26 @@ class TracingControllerBackend(object):
     self._trace_log = None
     self._is_tracing_controllable = True
     self._telemetry_info = None
+    self._nonfatal_exceptions = []
+
+  @contextlib.contextmanager
+  def _CollectNonfatalException(self, context_description):
+    """Collects any nonfatal exceptions that occur in the context, adding them
+    to self._nonfatal_exceptions and logging them.
+
+    Args:
+      context_description: A string description of the context to be used in
+          logging.
+    """
+    try:
+      yield
+    except Exception as e: # pylint: disable=broad-except
+      if isinstance(e, battor_error.BattOrError):
+        logging.exception(
+            'NONFATAL exception encountered during %s:', context_description)
+        self._nonfatal_exceptions.append(e)
+      else:
+        raise
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:
@@ -85,12 +106,12 @@ class TracingControllerBackend(object):
     self.StartAgentTracing(config, timeout)
     for agent_class in self._supported_agents_classes:
       agent = agent_class(self._platform_backend)
-      with trace_event.trace(
-          'StartAgentTracing',
-          agent=str(agent.__class__.__name__)):
-        started = agent.StartAgentTracing(config, timeout)
-      if started:
-        self._active_agents_instances.append(agent)
+      with trace_event.trace('StartAgentTracing',
+                             agent=str(agent.__class__.__name__)):
+        with self._CollectNonfatalException('StartAgentTracing'):
+          if agent.StartAgentTracing(config, timeout):
+            self._active_agents_instances.append(agent)
+
     return True
 
   def _GenerateClockSyncId(self):
@@ -112,20 +133,20 @@ class TracingControllerBackend(object):
     raised_exception_messages = []
     for agent in self._active_agents_instances + [self]:
       try:
-        with trace_event.trace(
-            'StopAgentTracing',
-            agent=str(agent.__class__.__name__)):
-          agent.StopAgentTracing()
+        with trace_event.trace('StopAgentTracing',
+                               agent=str(agent.__class__.__name__)):
+          with self._CollectNonfatalException('StopAgentTracing'):
+            agent.StopAgentTracing()
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     for agent in self._active_agents_instances + [self]:
       try:
-        with trace_event.trace(
-            'CollectAgentTraceData',
-            agent=str(agent.__class__.__name__)):
-          agent.CollectAgentTraceData(builder)
+        with trace_event.trace('CollectAgentTraceData',
+                               agent=str(agent.__class__.__name__)):
+          with self._CollectNonfatalException('CollectAgentTraceData'):
+            agent.CollectAgentTraceData(builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -139,9 +160,7 @@ class TracingControllerBackend(object):
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
-    # TODO(charliea): Instead of always returning an empty list, instead make
-    # BattOr errors nonfatal and return them here.
-    return (builder.AsData(), [])
+    return (builder.AsData(), self._nonfatal_exceptions)
 
   def FlushTracing(self):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'
@@ -152,12 +171,12 @@ class TracingControllerBackend(object):
     for agent in self._active_agents_instances:
       try:
         if agent.SupportsFlushingAgentTracing():
-          with trace_event.trace(
-              'FlushAgentTracing',
-              agent=str(agent.__class__.__name__)):
-            agent.FlushAgentTracing(self._current_state.config,
-                                    self._current_state.timeout,
-                                    self._current_state.builder)
+          with trace_event.trace('FlushAgentTracing',
+                                 agent=str(agent.__class__.__name__)):
+            with self._CollectNonfatalException('FlushAgentTracing'):
+              agent.FlushAgentTracing(self._current_state.config,
+                                      self._current_state.timeout,
+                                      self._current_state.builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -207,12 +226,12 @@ class TracingControllerBackend(object):
       for agent in self._active_agents_instances:
         if agent.SupportsExplicitClockSync():
           sync_id = self._GenerateClockSyncId()
-          with trace_event.trace(
-              'RecordClockSyncMarker',
-              agent=str(agent.__class__.__name__),
-              sync_id=sync_id):
-            agent.RecordClockSyncMarker(sync_id,
-                                        self._RecordIssuerClockSyncMarker)
+          with trace_event.trace('RecordClockSyncMarker',
+                                 agent=str(agent.__class__.__name__),
+                                 sync_id=sync_id):
+            with self._CollectNonfatalException('RecordClockSyncMarker'):
+              agent.RecordClockSyncMarker(sync_id,
+                                          self._RecordIssuerClockSyncMarker)
 
   def IsChromeTracingSupported(self):
     return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
