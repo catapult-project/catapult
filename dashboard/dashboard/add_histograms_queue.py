@@ -268,7 +268,10 @@ def _ShouldFilter(test_name, benchmark_name):
     return 'memory:' in test_name
   if benchmark_name.startswith('system_health'):
     return True
-
+  if benchmark_name.startswith('v8.browsing'):
+    if 'memory:unknown_browser' in test_name or 'memory:chrome' in test_name:
+      return 'renderer_processes' in test_name
+  return False
 
 @ndb.tasklet
 def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
