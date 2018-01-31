@@ -131,6 +131,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   const URL_BLACKLIST = [
+    // Blank URLs are usually initial empty document.
+    '',
     'about:blank',
     // Chrome on Android creates main frames with the below URL for plugins.
     'data:text/html,pluginplaceholderdata',
