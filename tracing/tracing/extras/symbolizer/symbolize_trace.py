@@ -478,11 +478,9 @@ class StringMap(NodeWrapper):
     """Clears all string mappings."""
     if self._string_by_id:
       self._modified = True
-      # ID #0 means 'no entry' and must always be present. Carry it over.
-      null_string = self._string_by_id[0]
+
       self._string_by_id = {}
       self._id_by_string = {}
-      self._Insert(0, null_string)
       self._max_string_id = 0
 
   def AddString(self, string):

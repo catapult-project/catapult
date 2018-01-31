@@ -9,8 +9,6 @@
 #
 # To run this test suite, use ./tracing/bin/run_symbolizer_tests
 
-import binascii
-import gzip
 import json
 import os
 import shutil
@@ -41,39 +39,38 @@ def _DownloadFromCloudStorage(path):
   cloud_storage.GetIfChanged(path, cloud_storage.PARTNER_BUCKET)
 
 
-def GetJSonCrc(root):
-  checksum = 0
-  if isinstance(root, dict):
-    for key, value in root.iteritems():
-      checksum = checksum ^ (GetJSonCrc(key) + GetJSonCrc(value))
-  elif isinstance(root, list):
-    for value in root:
-      checksum = checksum ^ GetJSonCrc(value)
-  else:
-    checksum = binascii.crc32(json.dumps(root))
-  return checksum
-
-
-def GetTraceCrc(filename):
-  with gzip.open(filename, 'rb') as fd:
-    content = json.loads(fd.read())
-    checksum = GetJSonCrc(content)
-  return checksum
-
-
 class SymbolizeTraceEndToEndTest(unittest.TestCase):
+  def _ValidateTrace(self, trace_path, expectations):
+    with symbolize_trace.OpenTraceFile(trace_path, 'r') as trace_file:
+      trace = symbolize_trace.Trace(json.load(trace_file))
+    # Find the browser process.
+    browser = None
+    for process in trace.processes:
+      if process.name == expectations['process']:
+        browser = process
+    self.assertTrue(browser)
 
-  def _RunSymbolizationOnTrace(self, pre_symbolization, post_symbolization,
+    # Look for a frame with a symbolize name, and check that it has the right
+    # parent.
+    frames = browser.stack_frame_map.frame_by_id
+    exact = expectations['frame_exact']
+    found = False
+    for _, frame in frames.items():
+      if frame.name.strip() == exact['frame_name']:
+        parent_id = frame.parent_id
+        if frames[parent_id].name.strip() == exact['parent_name']:
+          found = True
+          break
+
+    self.assertTrue(found)
+
+
+  def _RunSymbolizationOnTrace(self, pre_symbolization, expectations,
                                extra_options):
     trace_presymbolization_path = os.path.join(
         _THIS_DIR_PATH, 'data', pre_symbolization)
     _DownloadFromCloudStorage(trace_presymbolization_path)
     self.assertTrue(os.path.exists(trace_presymbolization_path))
-
-    trace_postsymbolization_path = os.path.join(
-        _THIS_DIR_PATH, 'data', post_symbolization)
-    _DownloadFromCloudStorage(trace_postsymbolization_path)
-    self.assertTrue(os.path.exists(trace_postsymbolization_path))
 
     temporary_fd, temporary_trace = tempfile.mkstemp(suffix='.json.gz')
 
@@ -94,48 +91,56 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
       symbolization_options += ['--addr2line-executable', addr2line_path]
 
     # Execute symbolization and compare results with the expected trace.
-    temporary_trace_crc = None
-    expected_crc = None
     try:
       shutil.copy(trace_presymbolization_path, temporary_trace)
       self.assertTrue(symbolize_trace.main(symbolization_options))
-      temporary_trace_crc = GetTraceCrc(temporary_trace)
-      expected_crc = GetTraceCrc(trace_postsymbolization_path)
+      self._ValidateTrace(temporary_trace, expectations)
     finally:
       os.close(temporary_fd)
       if os.path.exists(temporary_trace):
         os.remove(temporary_trace)
 
-    # Checksums must match.
-    self.assertTrue(temporary_trace_crc and expected_crc and
-                    temporary_trace_crc == expected_crc)
 
-  def testMacv1(self):
+  def testMacv2(self):
     if sys.platform != 'darwin':
       return
-
     # The corresponding macOS Chrome symbols must be uploaded to
-    # "gs://chrome-partner-telemetry/desktop-symbolizer-test/61.0.3135.4/mac64/"
-    # "Google Chrome.dSYM.tar.bz2"
+    # "gs://chrome-partner-telemetry/desktop-symbolizer-test/66.0.3334.0/mac64/Google Chrome.dSYM.tar.bz2"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
-    self._RunSymbolizationOnTrace('mac_trace_v1_presymbolization.json.gz',
-                                  'mac_trace_v1_postsymbolization.json.gz',
-                                  [])
-
-  def testMacv1Breakpad(self):
-    # The trace produced by the breakpad symbolizer is slightly different for
-    # function name that are omitted. Breakpad is producing "<name omitted>"
-    # for some function name. See:
-    # https://cs.chromium.org/chromium/src/breakpad/src/common/dwarf_cu_to_module.cc?l=551&rcl=7a65a47345a86c9e9a3fbc2e92a756a429a0c82f
+    expectations = {}
+    expectations['process'] = 'Browser'
+    expectations['frame_exact'] = {
+        'parent_name': 'ProfileImpl::OnPrefsLoaded(Profile::CreateMode, bool)',
+        'frame_name': 'ProfileImpl::OnLocaleReady()'
+    }
     self._RunSymbolizationOnTrace(
-        'mac_trace_v1_presymbolization.json.gz',
-        'mac_trace_v1_breakpad_postsymbolisation.json.gz',
-        ['--use-breakpad-symbols'])
+        'mac_trace_v2_presymbolization.json.gz',
+        expectations, [])
+
+  def testMacv2Breakpad(self):
+    # The corresponding macOS Chrome symbols must be uploaded to
+    # "gs://chrome-partner-telemetry/desktop-symbolizer-test/66.0.3334.0/mac64/breakpad-info"
+    # since the waterfall bots do not have access to the chrome-unsigned bucket.
+    expectations = {}
+    expectations['process'] = 'Browser'
+    expectations['frame_exact'] = {
+        'parent_name': 'ProfileImpl::OnPrefsLoaded(Profile::CreateMode, bool)',
+        'frame_name': 'ProfileImpl::OnLocaleReady()'
+    }
+    self._RunSymbolizationOnTrace(
+        'mac_trace_v2_presymbolization.json.gz',
+        expectations, ['--use-breakpad-symbols'])
 
   def testWin64v1(self):
     if sys.platform != 'win32':
       return
 
+    expectations = {}
+    expectations['process'] = 'Browser'
+    expectations['frame_exact'] = {
+        'parent_name': 'ChromeMain',
+        'frame_name': 'content::ContentMain'
+    }
     # The corresponding Win64 Chrome symbols must be uploaded to
     # "gs://chrome-partner-telemetry/desktop-symbolizer-test/61.0.3130.0/"
     # "win64-pgo/chrome-win32-syms.zip"
@@ -144,13 +149,19 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # "win64-pgo/chrome-win64-pgo.zip"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
     self._RunSymbolizationOnTrace('windows_trace_v1_presymbolization.json.gz',
-                                  'windows_trace_v1_postsymbolization.json.gz',
+                                  expectations,
                                   [])
 
   def testWin64v2(self):
     if sys.platform != 'win32':
       return
 
+    expectations = {}
+    expectations['process'] = 'Browser'
+    expectations['frame_exact'] = {
+        'parent_name': 'base::MessagePumpWin::Run',
+        'frame_name': 'base::MessagePumpForUI::DoRunLoop'
+    }
     # The corresponding Win64 Chrome symbols must be uploaded to
     # "gs://chrome-partner-telemetry/desktop-symbolizer-test/61.0.3142.0/"
     # "win64-pgo/chrome-win32-syms.zip"
@@ -159,7 +170,7 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # "win64-pgo/chrome-win64-pgo.zip"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
     self._RunSymbolizationOnTrace('windows_trace_v2_presymbolization.json.gz',
-                                  'windows_trace_v2_postsymbolization.json.gz',
+                                  expectations,
                                   [])
 
 
@@ -167,9 +178,15 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
     # The corresponding Linux breakpad symbols must be uploaded to
     # "gs://chrome-partner-telemetry/desktop-symbolizer-test/64.0.3282.24/linux64/breakpad-info.zip"
     # since the waterfall bots do not have access to the chrome-unsigned bucket.
+    expectations = {}
+    expectations['process'] = 'Renderer'
+    expectations['frame_exact'] = {
+        'parent_name': 'cc::LayerTreeSettings::LayerTreeSettings(cc::LayerTreeSettings const&)',
+        'frame_name': 'viz::ResourceSettings::ResourceSettings(viz::ResourceSettings const&)'
+    }
     self._RunSymbolizationOnTrace(
         'linux_trace_v2_presymbolization.json.gz',
-        'linux_trace_v2_breakpad_postsymbolization.json.gz',
+        expectations,
         ['--use-breakpad-symbols'])
 
 
