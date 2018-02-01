@@ -103,50 +103,11 @@ class BenchmarkTest(unittest.TestCase):
     with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
 
-  def testBenchmarkPredicate(self):
-    class PredicateBenchmark(TestBenchmark):
-      @classmethod
-      def ValueCanBeAddedPredicate(cls, value, is_first_result):
-        return False
-
-    original_run_fn = story_runner.Run
-    valid_predicate = [False]
-
-    def RunStub(test, story_set_module, finder_options, results,
-                *args, **kwargs): # pylint: disable=unused-argument
-      predicate = results._value_can_be_added_predicate
-      valid = predicate == PredicateBenchmark.ValueCanBeAddedPredicate
-      valid_predicate[0] = valid
-
-    story_runner.Run = RunStub
-
-    try:
-      options = options_for_unittests.GetCopy()
-      options.output_formats = ['none']
-      options.suppress_gtest_report = True
-      parser = optparse.OptionParser()
-      benchmark.AddCommandLineArgs(parser)
-      options.MergeDefaultValues(parser.get_default_values())
-
-      b = PredicateBenchmark(page.Page(url='about:blank', name='about:blank'))
-      b.Run(options)
-    finally:
-      story_runner.Run = original_run_fn
-
-    self.assertTrue(valid_predicate[0])
-
   def testBenchmarkWithOverridenShouldAddValue(self):
     class ShouldNotAddValueBenchmark(TestBenchmark):
-      # Necessary until we clean up VCBAP because we need to use the conjunction
-      # of VCBAP and ShouldAddValue until all usages are ported.
-      # pylint: disable=unused-argument
-      @classmethod
-      def ValueCanBeAddedPredicate(cls, value, is_first_result):
-        return False
 
-      # pylint: disable=unused-argument
       @classmethod
-      def ShouldAddValue(cls, value, is_first_result):
+      def ShouldAddValue(cls, unused_value, unused_is_first_result):
         return False
 
     original_run_fn = story_runner.Run

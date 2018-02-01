@@ -324,7 +324,6 @@ def RunBenchmark(benchmark, finder_options):
       # benchmark name and disabled state.
       with results_options.CreateResults(
           benchmark_metadata, finder_options,
-          benchmark.ValueCanBeAddedPredicate,
           should_add_value=benchmark.ShouldAddValue,
           benchmark_enabled=False
           ) as results:
@@ -353,7 +352,6 @@ def RunBenchmark(benchmark, finder_options):
 
   with results_options.CreateResults(
       benchmark_metadata, finder_options,
-      benchmark.ValueCanBeAddedPredicate,
       should_add_value=benchmark.ShouldAddValue,
       benchmark_enabled=True) as results:
     try:
