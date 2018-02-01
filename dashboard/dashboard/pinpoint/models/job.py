@@ -18,6 +18,7 @@ from google.appengine.runtime import apiproxy_errors
 from dashboard.common import utils
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
+from dashboard.pinpoint.models import kolmogorov_smirnov
 from dashboard.pinpoint.models import mann_whitney_u
 from dashboard.services import issue_tracker_service
 
@@ -498,7 +499,14 @@ def _CompareValues(values_a, values_b):
     # A sample has no values in it.
     return _UNKNOWN
 
-  p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
+  # MWU is bad at detecting changes in variance, and K-S is bad with discrete
+  # distributions. So use both. We want low p-values for the below examples.
+  #        a                     b               MWU(a, b)  KS(a, b)
+  # [0]*20            [0]*15+[1]*5                0.0097     0.4973
+  # range(10, 30)     range(10)+range(30, 40)     0.4946     0.0082
+  p_value = min(
+      kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b),
+      mann_whitney_u.MannWhitneyU(values_a, values_b))
 
   if p_value < _SIGNIFICANCE_LEVEL:
     # The p-value is less than the significance level. Reject the null
