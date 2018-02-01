@@ -501,7 +501,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def pages(self):
     return self.story_set.stories
 
-  def testFilterValue(self):
+  def testFilterValueLegacy(self):
     def AcceptValueNamed_a(value, _):
       return value.name == 'a'
     results = page_test_results.PageTestResults(
@@ -528,7 +528,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
         [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
         [(v.name, v.page.url) for v in results.all_page_specific_values])
 
-  def testFilterIsFirstResult(self):
+  def testFilterIsFirstResultLegacy(self):
     def AcceptSecondValues(_, is_first_result):
       return not is_first_result
     results = page_test_results.PageTestResults(
@@ -579,7 +579,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
                      for v in results.all_page_specific_values]
     self.assertEquals(expected_values, actual_values)
 
-  def testFailureValueCannotBeFiltered(self):
+  def testFailureValueCannotBeFilteredLegacy(self):
     def AcceptValueNamed_a(value, _):
       return value.name == 'a'
     results = page_test_results.PageTestResults(
@@ -598,11 +598,127 @@ class PageTestResultsFilterTest(unittest.TestCase):
     self.assertEquals(len(results.all_page_specific_values), 1)
     self.assertIn(failure_value, results.all_page_specific_values)
 
-  def testSkipValueCannotBeFiltered(self):
+  def testSkipValueCannotBeFilteredLegacy(self):
     def AcceptValueNamed_a(value, _):
       return value.name == 'a'
     results = page_test_results.PageTestResults(
         value_can_be_added_predicate=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    skip_value = skip.SkipValue(self.pages[0], 'skip for testing')
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 8,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(skip_value)
+    results.DidRunPage(self.pages[0])
+    results.PrintSummary()
+
+    # Although predicate says only accept value with named 'a', skip value is
+    # added anyway.
+    self.assertEquals(len(results.all_page_specific_values), 1)
+    self.assertIn(skip_value, results.all_page_specific_values)
+
+  def testFilterValue(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'd', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[1])
+    results.PrintSummary()
+    self.assertEquals(
+        [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
+        [(v.name, v.page.url) for v in results.all_page_specific_values])
+
+  def testFilterIsFirstResult(self):
+    def AcceptSecondValues(_, is_first_result):
+      return not is_first_result
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptSecondValues)
+
+    # First results (filtered out)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 7,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 8,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[0])
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'a', 'seconds', 5,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'd', 'seconds', 6,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[1])
+
+    # Second results
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 4,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[0])
+    results.WillRunPage(self.pages[1])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'a', 'seconds', 1,
+        improvement_direction=improvement_direction.UP))
+    results.AddValue(scalar.ScalarValue(
+        self.pages[1], 'd', 'seconds', 2,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[1])
+    results.PrintSummary()
+    expected_values = [
+        ('a', 'http://www.foo.com/', 3),
+        ('b', 'http://www.foo.com/', 4),
+        ('a', 'http://www.bar.com/', 1),
+        ('d', 'http://www.bar.com/', 2)]
+    actual_values = [(v.name, v.page.url, v.value)
+                     for v in results.all_page_specific_values]
+    self.assertEquals(expected_values, actual_values)
+
+  def testFailureValueCannotBeFiltered(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 8,
+        improvement_direction=improvement_direction.UP))
+    failure_value = failure.FailureValue.FromMessage(self.pages[0], 'failure')
+    results.AddValue(failure_value)
+    results.DidRunPage(self.pages[0])
+    results.PrintSummary()
+
+    # Although predicate says only accept values named 'a', the failure value is
+    # added anyway.
+    self.assertEquals(len(results.all_page_specific_values), 1)
+    self.assertIn(failure_value, results.all_page_specific_values)
+
+  def testSkipValueCannotBeFiltered(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
     results.WillRunPage(self.pages[0])
     skip_value = skip.SkipValue(self.pages[0], 'skip for testing')
     results.AddValue(scalar.ScalarValue(

@@ -180,6 +180,24 @@ class Benchmark(command_line.Command):
     """
     return True
 
+  @classmethod
+  def ShouldAddValue(cls, name, from_first_story_run):
+    """Returns whether the named value should be added to PageTestResults.
+
+    Override this method to customize the logic of adding values to test
+    results. FailureValues, SkipValues, and TraceValues will be added regardless
+    of logic here.
+
+    Args:
+      name: The string name of a value being added.
+      from_first_story_run: True if the named value was produced during the
+          first run of the corresponding story.
+
+    Returns:
+      True if the value should be added to the test results, False otherwise.
+    """
+    return True
+
   def CustomizeBrowserOptions(self, options):
     """Add browser options that are required by this benchmark."""
 

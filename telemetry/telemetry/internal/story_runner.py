@@ -324,7 +324,9 @@ def RunBenchmark(benchmark, finder_options):
       # benchmark name and disabled state.
       with results_options.CreateResults(
           benchmark_metadata, finder_options,
-          benchmark.ValueCanBeAddedPredicate, benchmark_enabled=False
+          benchmark.ValueCanBeAddedPredicate,
+          should_add_value=benchmark.ShouldAddValue,
+          benchmark_enabled=False
           ) as results:
         results.PrintSummary()
       # When a disabled benchmark is run we now want to return success since
@@ -351,7 +353,9 @@ def RunBenchmark(benchmark, finder_options):
 
   with results_options.CreateResults(
       benchmark_metadata, finder_options,
-      benchmark.ValueCanBeAddedPredicate, benchmark_enabled=True) as results:
+      benchmark.ValueCanBeAddedPredicate,
+      should_add_value=benchmark.ShouldAddValue,
+      benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           expectations=expectations, metadata=benchmark.GetMetadata(),

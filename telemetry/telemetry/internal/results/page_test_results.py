@@ -176,6 +176,7 @@ class PageTestResults(object):
   def __init__(self, output_formatters=None,
                progress_reporter=None, trace_tag='', output_dir=None,
                value_can_be_added_predicate=lambda v, is_first: True,
+               should_add_value=lambda v, is_first: True,
                benchmark_enabled=True, upload_bucket=None,
                artifact_results=None):
     """
@@ -194,6 +195,10 @@ class PageTestResults(object):
           or trace.TraceValue) and a boolean (True when the value is part of
           the first result for the story). It returns True if the value
           can be added to the test results and False otherwise.
+      should_add_value: A function that takes two arguments: a value name and
+          a boolean (True when the value belongs to the first run of the
+          corresponding story). It returns True if the value should be added
+          to the test results and False otherwise.
       artifact_results: An artifact results object. This is used to contain
           any artifacts from tests. Stored so that clients can call AddArtifact.
     """
@@ -208,6 +213,7 @@ class PageTestResults(object):
     self._trace_tag = trace_tag
     self._output_dir = output_dir
     self._value_can_be_added_predicate = value_can_be_added_predicate
+    self._should_add_value = should_add_value
 
     self._current_page_run = None
     self._all_page_runs = []
@@ -423,7 +429,8 @@ class PageTestResults(object):
     if not (isinstance(value, skip.SkipValue) or
             isinstance(value, failure.FailureValue) or
             isinstance(value, trace.TraceValue) or
-            self._value_can_be_added_predicate(value, is_first_result)):
+            (self._value_can_be_added_predicate(value, is_first_result) and
+             self._should_add_value(value.name, is_first_result))):
       return
     # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._current_page_run.AddValue(value)
