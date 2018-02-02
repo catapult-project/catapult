@@ -88,8 +88,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(800, hist.running.mean);
     const fcpResourceLoading = histograms.getHistogramNamed(
         'timeToFirstContentfulPaint:resource_loading');
-    assert.strictEqual(hist.diagnostics.get('breakdown').get(
-        'resource_loading'), fcpResourceLoading);
+    assert.strictEqual(
+        hist.diagnostics.get('breakdown').get(
+            'resource_loading'),
+        'timeToFirstContentfulPaint:resource_loading');
     assert.strictEqual(fcpResourceLoading.sum, 100);
     assert.strictEqual(tr.b.getOnlyElement(hist.getBinForValue(
         800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);

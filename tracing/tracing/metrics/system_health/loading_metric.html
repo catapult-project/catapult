@@ -554,10 +554,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
           let relatedNames = histogram.diagnostics.get('breakdown');
           if (!relatedNames) {
-            relatedNames = new tr.v.d.RelatedHistogramBreakdown();
+            relatedNames = new tr.v.d.RelatedNameMap();
             histogram.diagnostics.set('breakdown', relatedNames);
           }
-          relatedNames.set(category, relatedHist);
+          relatedNames.set(category, relatedName);
         }
         relatedHist.addSample(breakdown.total, {
           breakdown: tr.v.d.Breakdown.fromEntries(
