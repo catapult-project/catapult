@@ -27,14 +27,6 @@ from dashboard.services import issue_tracker_service
 # finish, but don't want to consume too many resources.
 _TASK_INTERVAL = 10
 
-
-_REPEAT_COUNT_INCREASE = 10
-# TODO: We don't really need a max repeat count if the significance level and
-# questionable significance levels cross each other. There will naturally be a
-# point where we decide that it's not worth it to run any more repeats.
-_MAX_REPEAT_COUNT = 50
-
-
 # The questionable significance levels are determined by first picking two
 # representative samples of size 10. Take their p-value. Then repeat for each i,
 # multiplying the sample size by i. To calculate these values:
@@ -51,6 +43,7 @@ _QUESTIONABLE_SIGNIFICANCE_LEVELS = (
     0.0126, 0.0070, 0.0039, 0.0022, 0.0013, 0.0007,
 )
 _SIGNIFICANCE_LEVEL = 0.001
+_REPEAT_COUNT_INCREASE = 10
 
 
 _DIFFERENT = 'different'
@@ -288,9 +281,7 @@ class _JobState(object):
 
   def AddAttempts(self, change):
     assert change in self._attempts
-    attempt_count = min(_REPEAT_COUNT_INCREASE,
-                        _MAX_REPEAT_COUNT - len(self._attempts[change]))
-    for _ in xrange(attempt_count):
+    for _ in xrange(_REPEAT_COUNT_INCREASE):
       self._attempts[change].append(
           attempt_module.Attempt(self._quests, change))
 
@@ -308,10 +299,9 @@ class _JobState(object):
 
     For every pair of adjacent Changes, compare their results as probability
     distributions. If the results are different, find the midpoint of the
-    Changes and add it to the Job.
-
-    If the results are inconclusive, add more Attempts to the Changes unless
-    we've hit _MAX_REPEAT_COUNT.
+    Changes and add it to the Job. If the results are the same, do nothing.
+    If the results are inconclusive, add more Attempts to the Change with fewer
+    Attempts until we decide they are the same or different.
 
     The midpoint can only be added if the second Change represents a commit that
     comes after the first Change. Otherwise, this method won't explore further.
@@ -337,8 +327,10 @@ class _JobState(object):
         self.AddChange(midpoint, index)
 
       elif comparison == _UNKNOWN:
-        self.AddAttempts(change_a)
-        self.AddAttempts(change_b)
+        if len(self._attempts[change_a]) <= len(self._attempts[change_b]):
+          self.AddAttempts(change_a)
+        else:
+          self.AddAttempts(change_b)
 
   def ScheduleWork(self):
     work_left = False
