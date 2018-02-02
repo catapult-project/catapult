@@ -180,5 +180,36 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.story_filter, 'foo');
     assert.strictEqual(params.bisect_mode, 'functional');
   }, testOptionsOverwriteSimpleXhr);
+
+  test('onCreateJob validate params alerts', async function() {
+    const mockResponse = {
+      'jobId': 12345
+    };
+    const page = document.createElement('pinpoint-job-dialog');
+    this.addHTMLOutput(page);
+
+    page.bug_id = 123;
+    page.test_path = 'master/bot/suite/foo';
+    page.start_commit = '1234567890';
+    page.end_commit = '0987654321';
+    page.start_repository = 'chromium';
+    page.end_repository = 'chromium';
+    await page.show();
+    page.story_filter = 'foo';
+    page.alerts = [{key: 'abc123'}];
+
+    let params;
+    simple_xhr.asPromise = function(_, p) {
+      params = p;
+      return new Promise(function(resolve, reject) {
+        resolve({jobId: 12345});
+      });
+    };
+
+    await page.onCreateJob();
+    page.close();
+
+    assert.strictEqual(params.alerts, JSON.stringify(['abc123']));
+  }, testOptionsOverwriteSimpleXhr);
 });
 </script>

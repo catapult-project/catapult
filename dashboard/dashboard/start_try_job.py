@@ -15,6 +15,7 @@ import httplib2
 
 from google.appengine.api import users
 from google.appengine.api import app_identity
+from google.appengine.ext import ndb
 
 from dashboard import buildbucket_job
 from dashboard import can_bisect
@@ -168,8 +169,13 @@ class StartBisectHandler(request_handler.RequestHandler):
         internal_only=internal_only,
         job_type='bisect')
 
+    alert_keys = self.request.get('alerts')
+    alerts = None
+    if alert_keys:
+      alerts = [ndb.Key(urlsafe=a).get() for a in json.loads(alert_keys)]
+
     try:
-      results = PerformBisect(bisect_job)
+      results = PerformBisect(bisect_job, alerts=alerts)
     except request_handler.InvalidInputError as iie:
       results = {'error': iie.message}
     if 'error' in results and bisect_job.key:
@@ -620,7 +626,7 @@ def _CreatePatch(base_config, config_changes, config_path):
   return (patch, base_checksum, base_hashes)
 
 
-def PerformBisect(bisect_job):
+def PerformBisect(bisect_job, alerts=None):
   """Starts the bisect job.
 
   This creates a patch, uploads it, then tells Rietveld to try the patch.
@@ -654,6 +660,10 @@ def PerformBisect(bisect_job):
     bisect_job.results_data = {'issue_url': 'N/A', 'issue_id': 'N/A'}
   bisect_job.results_data.update(result)
   bisect_job.put()
+
+  if alerts:
+    for a in alerts:
+      a.recipe_bisects.append(bisect_job.key)
 
   if bisect_job.bug_id:
     logging.info('Commenting on bug %s for bisect job', bisect_job.bug_id)

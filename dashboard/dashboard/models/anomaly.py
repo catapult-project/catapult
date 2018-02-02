@@ -109,6 +109,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # The corresponding units from the TestMetaData entity.
   units = ndb.StringProperty(indexed=False)
 
+  recipe_bisects = ndb.KeyProperty(repeated=True, indexed=False)
+  pinpoint_bisects = ndb.StringProperty(repeated=True, indexed=False)
+
   @property
   def percent_changed(self):
     """The percent change from before the anomaly to after."""

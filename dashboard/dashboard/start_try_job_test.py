@@ -17,6 +17,7 @@ from dashboard import start_try_job
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.common import namespaced_stored_object
+from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import graph_data
 from dashboard.models import try_job
@@ -772,6 +773,40 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual(1, len(try_jobs))
     self.assertEqual(issue_url, try_jobs[0].results_data['issue_url'])
     self.assertEqual('33001', try_jobs[0].results_data['issue_id'])
+
+  @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
+  @mock.patch(
+      'google.appengine.api.app_identity.get_default_version_hostname',
+      mock.MagicMock(return_value='my-dashboard.appspot.com'))
+  @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
+                     mock.MagicMock(return_value='33001'))
+  def testPerformBisect_AddsToAlert(self, _):
+    self.SetCurrentUser('foo@chromium.org')
+
+    # Create bug.
+    bug_data.Bug(id=12345).put()
+
+    test_key = utils.TestKey('M/B/S/foo')
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1, end_revision=2, test=test_key)
+    anomaly_entity.put()
+
+    query_parameters = {
+        'bisect_bot': 'win_perf_bisect',
+        'suite': 'dromaeo.jslibstylejquery',
+        'metric': 'jslib/jslib',
+        'good_revision': '215806',
+        'bad_revision': '215828',
+        'repeat_count': '20',
+        'max_time_minutes': '20',
+        'bug_id': 12345,
+        'step': 'perform-bisect',
+        'alerts': json.dumps([anomaly_entity.key.urlsafe()])
+    }
+    self.testapp.post('/start_try_job', query_parameters)
+
+    try_jobs = try_job.TryJob.query().fetch(use_cache=False)
+    self.assertEqual([try_jobs[0].key], anomaly_entity.recipe_bisects)
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',

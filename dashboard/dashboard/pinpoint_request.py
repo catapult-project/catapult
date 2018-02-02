@@ -46,7 +46,17 @@ class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
       self.response.write(json.dumps({'error': e.message}))
       return
 
-    self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
+    results = pinpoint_service.NewJob(pinpoint_params)
+
+    alert_keys = job_params.get('alerts')
+    if 'jobId' in results and alert_keys:
+      alerts = json.loads(alert_keys)
+      for alert_urlsafe_key in alerts:
+        alert = ndb.Key(urlsafe=alert_urlsafe_key).get()
+        alert.pinpoint_bisects.append(results['jobId'])
+        alert.put()
+
+    self.response.write(json.dumps(results))
 
 
 class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):

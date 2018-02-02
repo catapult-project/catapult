@@ -12,6 +12,7 @@ from dashboard import pinpoint_request
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.services import pinpoint_service
 
@@ -363,6 +364,56 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(pinpoint_service, 'NewJob')
+  @mock.patch.object(
+      pinpoint_request, 'PinpointParamsFromBisectParams',
+      mock.MagicMock(return_value={'test': 'result'}))
+  def testPost_Succeeds_AddsToAlert(self, mock_pinpoint):
+    mock_pinpoint.return_value = {'jobId': 'bar'}
+    self.SetCurrentUser('foo@chromium.org')
+
+    test_key = utils.TestKey('M/B/S/foo')
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1, end_revision=2, test=test_key)
+    anomaly_entity.put()
+
+    params = {
+        'a': 'b', 'c': 'd',
+        'alerts': json.dumps([anomaly_entity.key.urlsafe()])}
+    response = self.testapp.post('/pinpoint/new', params)
+
+    expected_args = mock.call({'test': 'result'})
+    self.assertEqual([expected_args], mock_pinpoint.call_args_list)
+    self.assertEqual({'jobId': 'bar'}, json.loads(response.body))
+    self.assertEqual(['bar'], anomaly_entity.pinpoint_bisects)
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(pinpoint_service, 'NewJob')
+  @mock.patch.object(
+      pinpoint_request, 'PinpointParamsFromBisectParams',
+      mock.MagicMock(return_value={'test': 'result'}))
+  def testPost_Fails_AddsToAlert(self, mock_pinpoint):
+    mock_pinpoint.return_value = {'error': 'bar'}
+    self.SetCurrentUser('foo@chromium.org')
+
+    test_key = utils.TestKey('M/B/S/foo')
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1, end_revision=2, test=test_key)
+    anomaly_entity.put()
+
+    params = {
+        'a': 'b', 'c': 'd',
+        'alerts': json.dumps([anomaly_entity.key.urlsafe()])}
+    response = self.testapp.post('/pinpoint/new', params)
+
+    expected_args = mock.call({'test': 'result'})
+    self.assertEqual([expected_args], mock_pinpoint.call_args_list)
+    self.assertEqual({'error': 'bar'}, json.loads(response.body))
+    self.assertEqual([], anomaly_entity.pinpoint_bisects)
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))

@@ -130,7 +130,8 @@ was just clicked.
         <div class="card-actions">
           <bisect-button dialog-confirm xsrf-token="{{xsrfToken}}"
                          bug-id="{{bugId}}"
-                         bisect-info="{{bisectInfo}}"></bisect-button>
+                         bisect-info="{{bisectInfo}}"
+                         alerts="[[alerts]]"></bisect-button>
           <trace-button dialog-confirm xsrf-token="{{xsrfToken}}"
                         bug-id="{{bugId}}"
                         trace-info="{{bisectInfo}}"></trace-button>
