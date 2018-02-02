@@ -82,6 +82,10 @@ def GetFromBrowserOptions(browser_options):
         browser_options.SUPER_VERBOSE_LOGGING):
     args.extend(['--enable-logging', '--v=2'])
 
+  extensions = [e.local_path for e in browser_options.extensions_to_load]
+  if extensions:
+    args.append('--load-extension=%s' % ','.join(extensions))
+
   return args
 
 

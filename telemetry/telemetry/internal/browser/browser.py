@@ -39,10 +39,8 @@ class Browser(app.App):
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self._browser_backend.SetBrowser(self)
-      # TODO(crbug.com/787834): Move the statup args and url computation out
-      # of the browser backend and into the callers of this constructor.
-      startup_args = list(startup_args)
-      startup_args.extend(self._browser_backend.GetBrowserStartupArgs())
+      # TODO(crbug.com/787834): Move url computation out of the browser backend
+      # and into the callers of this constructor.
       startup_url = self._browser_backend.GetBrowserStartupUrl()
       self._browser_backend.Start(startup_args, startup_url=startup_url)
       self._LogBrowserInfo()

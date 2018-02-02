@@ -4,6 +4,7 @@
 """Finds CrOS browsers that can be controlled by telemetry."""
 
 import logging
+import os
 import posixpath
 
 from telemetry.core import cros_interface
@@ -15,6 +16,8 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import cros_device
+
+import py_utils
 
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
@@ -46,6 +49,38 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   def _InitPlatformIfNeeded(self):
     pass
+
+  def SetUpEnvironment(self, browser_options):
+    super(PossibleCrOSBrowser, self).SetUpEnvironment(browser_options)
+
+    # Copy extensions to temp directories on the device.
+    # Note that we also perform this copy locally to ensure that
+    # the owner of the extensions is set to chronos.
+    cri = self._platform_backend.cri
+    for extension in self._browser_options.extensions_to_load:
+      extension_dir = cri.RunCmdOnDevice(
+          ['mktemp', '-d', '/tmp/extension_XXXXX'])[0].rstrip()
+      # TODO(crbug.com/807645): We should avoid having mutable objects
+      # stored within the browser options.
+      extension.local_path = posixpath.join(
+          extension_dir, os.path.basename(extension.path))
+      cri.PushFile(extension.path, extension_dir)
+      cri.Chown(extension_dir)
+
+    def browser_ready():
+      return cri.GetChromePid() is not None
+
+    cri.RestartUI(self._browser_options.clear_enterprise_policy)
+    py_utils.WaitFor(browser_ready, timeout=20)
+
+    # Delete test user's cryptohome vault (user data directory).
+    if not self._browser_options.dont_override_profile:
+      cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
+                          '--user=%s' % self._browser_options.username])
+
+  def _TearDownEnvironment(self):
+    for extension in self._browser_options.extensions_to_load:
+      self._platform_backend.cri.RmRF(posixpath.dirname(extension.local_path))
 
   def Create(self):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)

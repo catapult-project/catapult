@@ -62,16 +62,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return True
     return [arg for arg in args if arg.startswith('--proxy-server=')]
 
-  def GetBrowserStartupArgs(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    args = []
-    extensions = [extension.local_path
-                  for extension in self._extensions_to_load]
-    extension_str = ','.join(extensions)
-    if len(extensions) > 0:
-      args.append('--load-extension=%s' % extension_str)
-    return args
-
   def GetBrowserStartupUrl(self):
     # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
     return None
