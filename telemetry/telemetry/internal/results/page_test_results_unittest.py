@@ -617,6 +617,18 @@ class PageTestResultsFilterTest(unittest.TestCase):
     self.assertEquals(len(results.all_page_specific_values), 1)
     self.assertIn(skip_value, results.all_page_specific_values)
 
+  def testFilterHistogram(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddHistogram(histogram_module.Histogram('a', 'count'))
+    results.AddHistogram(histogram_module.Histogram('b', 'count'))
+
+    self.assertEquals(len(results.histograms), 1)
+    self.assertEquals(results.histograms.GetFirstHistogram().name, 'a')
+
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud(self, cloud_storage_insert_patch):
     with tempfile_ext.NamedTemporaryDirectory(

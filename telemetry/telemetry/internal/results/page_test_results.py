@@ -394,6 +394,13 @@ class PageTestResults(object):
     self._all_stories.add(self._current_page_run.story)
     self._current_page_run = None
 
+  def AddHistogram(self, histogram):
+    assert self._current_page_run, 'Not currently running test.'
+    is_first_result = (
+        self._current_page_run.story not in self._all_stories)
+    if self._should_add_value(histogram.name, is_first_result):
+      self._histograms.AddHistogram(histogram)
+
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
     assert self._benchmark_enabled, 'Cannot add value to disabled results'
