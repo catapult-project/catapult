@@ -7,6 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/assert_utils.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/extras/chrome/estimated_input_latency.html">
 <link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
@@ -24,24 +27,6 @@ tr.b.unittest.testSuite(function() {
       tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow;
   const weightedExpectedQueueingTime = tr.e.chrome.weightedExpectedQueueingTime;
   const assertRangeEquals = tr.b.assertRangeEquals;
-
-  // Default renderer process ID for tests that use only one renderer process.
-  const RENDERER_PROCESS_ID = 1;
-
-  const MAIN_THREAD_ID = 2;
-
-  function createTestModel(rendererCallback) {
-    return tr.c.TestUtils.newModel(model => {
-      const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-      const mainThread = rendererProcess.getOrCreateThread(MAIN_THREAD_ID);
-
-      // The name is required because the Chrome model helper checks for it to
-      // decide if it supports the model.
-      mainThread.name = 'CrRendererMain';
-
-      rendererCallback(rendererProcess);
-    });
-  }
 
   function newSchedulerTask(startTime, duration) {
     return tr.c.TestUtils.newSliceEx({
@@ -109,8 +94,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('getNavStartTimestamps', () => {
-    const model = createTestModel(rendererProcess => {
-      const mainThread = rendererProcess.getOrCreateThread(MAIN_THREAD_ID);
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(model => {
+      const mainThread = model.rendererMain;
       addNavigationStart(mainThread, 0);
       addNavigationStart(mainThread, 10);
       addNavigationStart(mainThread, 30);
@@ -118,7 +103,8 @@ tr.b.unittest.testSuite(function() {
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    const rendererHelper = chromeHelper.rendererHelpers[RENDERER_PROCESS_ID];
+    const rendererHelper = chromeHelper.rendererHelpers[
+        model.rendererProcess.pid];
     const navStartTimestamps = getNavStartTimestamps(rendererHelper);
 
     // It is ok to assert equality for floating point numbers here because
@@ -132,10 +118,10 @@ tr.b.unittest.testSuite(function() {
    * our EIL implementation.
    */
   test('getInteractiveTimestamps', () => {
-    const model = createTestModel(rendererProcess => {
-      addTestFrame(rendererProcess);
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(model => {
+      addTestFrame(model.rendererProcess);
 
-      const mainThread = rendererProcess.getOrCreateThread(MAIN_THREAD_ID);
+      const mainThread = model.rendererMain;
       addNavigationStart(mainThread, 0);
       addFMPCandidate(mainThread, 5000);
       addDomContentLoadedEnd(mainThread, 5000);
@@ -154,36 +140,37 @@ tr.b.unittest.testSuite(function() {
 
     const interactiveTimestampsMap = getInteractiveTimestamps(model);
     const interactiveTimestamps =
-        interactiveTimestampsMap.get(RENDERER_PROCESS_ID);
+        interactiveTimestampsMap.get(model.rendererProcess.pid);
     assert.deepEqual(
         interactiveTimestamps.sort((a, b) => a - b), [5000, 110000]);
   });
 
   test('getInteractiveTimestampsMultiRenderer', () => {
-    const model = tr.c.TestUtils.newModel(model => {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcesses = [];
-      for (let pid = 1; pid <= 5; pid++) {
-        const rendererProcess = model.getOrCreateProcess(pid);
-        const mainThread = rendererProcess.getOrCreateThread(pid + 10);
+      // ChromeModel creates one renderer. We create rest of them here.
+      for (let i = 1; i <= 5; i++) {
+        const rendererProcess = model.getOrCreateProcess(i + 100);
+        const mainThread = rendererProcess.getOrCreateThread(i + 100 + 10);
         mainThread.name = 'CrRendererMain';
 
         addTestFrame(rendererProcess);
-        addNavigationStart(mainThread, pid * 1000);
-        addFMPCandidate(mainThread, pid * 1000 + 2000);
-        addDomContentLoadedEnd(mainThread, pid * 1000 + 2000);
-        addNavigationStart(mainThread, pid * 10000);
-        addFMPCandidate(mainThread, pid * 10000 + 2000);
-        addDomContentLoadedEnd(mainThread, pid * 10000 + 2000);
+        addNavigationStart(mainThread, i * 1000);
+        addFMPCandidate(mainThread, i * 1000 + 2000);
+        addDomContentLoadedEnd(mainThread, i * 1000 + 2000);
+        addNavigationStart(mainThread, i * 10000);
+        addFMPCandidate(mainThread, i * 10000 + 2000);
+        addDomContentLoadedEnd(mainThread, i * 10000 + 2000);
         addDummyTask(mainThread, 100000);
       }
     });
 
     const interactiveTimestampsMap = getInteractiveTimestamps(model);
-    assert.deepEqual(interactiveTimestampsMap.get(1), [3000, 12000]);
-    assert.deepEqual(interactiveTimestampsMap.get(2), [4000, 22000]);
-    assert.deepEqual(interactiveTimestampsMap.get(3), [5000, 32000]);
-    assert.deepEqual(interactiveTimestampsMap.get(4), [6000, 42000]);
-    assert.deepEqual(interactiveTimestampsMap.get(5), [7000, 52000]);
+    assert.deepEqual(interactiveTimestampsMap.get(101), [3000, 12000]);
+    assert.deepEqual(interactiveTimestampsMap.get(102), [4000, 22000]);
+    assert.deepEqual(interactiveTimestampsMap.get(103), [5000, 32000]);
+    assert.deepEqual(interactiveTimestampsMap.get(104), [6000, 42000]);
+    assert.deepEqual(interactiveTimestampsMap.get(105), [7000, 52000]);
   });
 
   test('singlePostInteractiveWindow', () => {

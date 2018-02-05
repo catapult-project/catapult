@@ -7,10 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/category_util.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/extras/chrome/event_finder_utils.html">
+<link rel="import" href="/tracing/extras/chrome/time_to_interactive.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
-<link rel="import" href="/tracing/metrics/system_health/event_finder_utils.html">
-<link rel="import" href="/tracing/metrics/system_health/time_to_interactive.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
@@ -27,7 +27,7 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   const RelatedEventSet = tr.v.d.RelatedEventSet;
   const hasCategoryAndName = tr.metrics.sh.hasCategoryAndName;
-  const EventFinderUtils = tr.metrics.sh.EventFinderUtils;
+  const EventFinderUtils = tr.e.chrome.EventFinderUtils;
 
   /**
    * @param  {!tr.model.Process} process
@@ -112,24 +112,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return targetEvents;
   }
 
-  function findFirstMeaningfulPaintCandidates(rendererHelper) {
-    const candidatesForFrameId = {};
-    for (const ev of rendererHelper.process.getDescendantEvents()) {
-      if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate')) {
-        continue;
-      }
-      if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      const frameIdRef = ev.args.frame;
-      if (frameIdRef === undefined) continue;
-      let list = candidatesForFrameId[frameIdRef];
-      if (list === undefined) {
-        candidatesForFrameId[frameIdRef] = list = [];
-      }
-      list.push(ev);
-    }
-    return candidatesForFrameId;
-  }
-
   const URL_BLACKLIST = [
     // Blank URLs are usually initial empty document.
     '',
@@ -183,13 +165,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
-      frameIdRef, navigationStart, fmpMarkerEvent) {
-    const snapshot = findFrameLoaderSnapshotAt(
-        rendererHelper, frameIdRef, fmpMarkerEvent.start);
-    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
-    const url = snapshot.args.documentLoaderURL;
-    if (shouldIgnoreURL(url)) return;
-
+      navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.start, fmpMarkerEvent.start);
     const networkEvents = getNetworkEventsInRange(
@@ -212,18 +188,12 @@ tr.exportTo('tr.metrics.sh', function() {
         }]),
       }
     });
-    return {firstMeaningfulPaint: fmpMarkerEvent.start, url};
   }
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
-      frameIdRef, navigationStart, fmpMarkerEvent) {
+      navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
-    const snapshot = findFrameLoaderSnapshotAt(
-        rendererHelper, frameIdRef, fmpMarkerEvent.start);
-    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
-    const url = snapshot.args.documentLoaderURL;
-    if (shouldIgnoreURL(url)) return;
 
     const mainThreadCpuTime = getMainThreadCpuTime(
         rendererHelper, navStartToFMPCpuRange);
@@ -312,196 +282,11 @@ tr.exportTo('tr.metrics.sh', function() {
     };
   }
 
-  /**
-   * Returns MetricSample for Time to Interactive and First CPU Idle for the
-   * given parameters. See the time_to_interactive.html module for detailed
-   * description and implementation of these metrics. The two metrics are
-   * computed together in the same function because almost all the computed
-   * parameters, for example list of relevant long tasks, are same for these two
-   * metrics, and this helps avoid duplicate computation.
-   *
-   * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper - Renderer
-   *     helper for the renderer of interest.
-   * @param {tr.model.ThreadSlice} navigationStart - The navigation start
-   *     event for which interactivity metrics is being computed.
-   * @param {Map.<string, Array<!tr.model.ThreadSlice>>} frameToNavStartEvents -
-   *     Map from frame ids to sorted array of navigation start events.
-   * @param {Map.<string, Array<!tr.model.ThreadSlice>>}
-   *     frameToDomContentLoadedEndEvents - Map from frame ids to sorted array
-   *     of DOMContentLoadedEnd events.
-   * @param {number} firstMeaningfulPaintTime - Time of First Meaningful Paint
-   *     for this navigation.
-   * @param {string} url - URL of the current main frame document.
-   * @returns {{interactiveSample: MetricSample|undefined,
-   *     firstCpuIdleSample: MetricSample|undefined}}
-   */
-  function computeInteractivityMetricSample_(rendererHelper,
-      frameToNavStartEvents, frameToDomContentLoadedEndEvents, navigationStart,
-      firstMeaningfulPaintTime, url) {
-    if (shouldIgnoreURL(url)) return;
-
-    const frameIdRef = navigationStart.args.frame;
-    const nextNavigationStart =
-        EventFinderUtils.findNextEventStartingAfterTimestamp(
-            frameToNavStartEvents.get(frameIdRef) || [],
-            firstMeaningfulPaintTime);
-
-    const searchWindowEnd = nextNavigationStart !== undefined ?
-        nextNavigationStart.start :
-        // If no next navigationStart, search for quiet windows until
-        // the end of trace.
-        rendererHelper.modelHelper.chromeBounds.max;
-
-    const dclTimesForFrame =
-        frameToDomContentLoadedEndEvents.get(frameIdRef) || [];
-
-    const navigationStartTime = navigationStart.start;
-    const dclSearchRange = tr.b.math.Range.fromExplicitRange(
-        navigationStartTime, searchWindowEnd);
-    const dclTimesInWindow =
-        dclSearchRange.filterArray(dclTimesForFrame, event => event.start);
-
-    // Cannot determine TTI if DomContentLoadedEnd was never reached.
-    if (dclTimesInWindow.length === 0) {
-      return {
-        interactiveSample: undefined,
-        firstCpuIdleSample: undefined,
-      };
-    }
-
-    // TODO(catapult:#3796): Ideally a frame should reach DomContentLoadedEnd at
-    // most once within two navigationStarts, but sometimes there is a strange
-    // DclEnd event immediately following the navigationStart, and then the
-    // 'real' dclEnd happens later. It is not clear how to best determine the
-    // correct dclEnd value. For now, if there are multiple DclEnd events in the
-    // search window, we just pick the last one.
-    const domContentLoadedEndEvent =
-        dclTimesInWindow[dclTimesInWindow.length - 1];
-    const domContentLoadedEndTime = domContentLoadedEndEvent.start;
-
-    const mainThreadTasks =
-        [...rendererHelper.mainThread.findTopmostSlicesNamed(
-            'TaskQueueManager::ProcessTaskFromWorkQueue')];
-    const longTasks = mainThreadTasks.filter(
-        task => task.duration >= LONG_TASK_THRESHOLD_MS);
-    const longTasksInWindow = longTasks.filter(
-        task => task.range.intersectsExplicitRangeInclusive(
-            firstMeaningfulPaintTime, searchWindowEnd));
-
-    const resourceLoadEvents = getNetworkEventsInRange(rendererHelper.process,
-        tr.b.math.Range.fromExplicitRange(navigationStartTime,
-            searchWindowEnd));
-
-    const firstCpuIdleTime =
-        tr.metrics.sh.findFirstCpuIdleTime(
-            firstMeaningfulPaintTime, searchWindowEnd, domContentLoadedEndTime,
-            longTasksInWindow);
-    const interactiveTime =
-        tr.metrics.sh.findInteractiveTime(
-            firstMeaningfulPaintTime, searchWindowEnd, domContentLoadedEndTime,
-            longTasksInWindow, resourceLoadEvents);
-
-    return {
-      firstCpuIdleSample: decorateInteractivitySampleWithDiagnostics_(
-          rendererHelper, firstCpuIdleTime, navigationStart,
-          firstMeaningfulPaintTime, domContentLoadedEndTime, url),
-      interactiveSample: decorateInteractivitySampleWithDiagnostics_(
-          rendererHelper, interactiveTime, navigationStart,
-          firstMeaningfulPaintTime, domContentLoadedEndTime, url),
-    };
-  }
-
-  /**
-   * Computes Time to First Meaningful Paint (TTFMP), Time to Interactive (TTI),
-   * and Time to First CPU Idle (TTFCI) for a renderer represented by
-   * |rendererHelper| and returns them as histogram samples.
-   *
-   * First meaningful paint is the paint following the layout with the highest
-   * "Layout Significance". The Layout Significance is computed inside Blink,
-   * by FirstMeaningfulPaintDetector class. It logs
-   * "firstMeaningfulPaintCandidate" event every time the Layout Significance
-   * marks a record. TTFMP is the time between NavigationStart and the last
-   * firstMeaningfulPaintCandidate event.
-   *
-   * Design doc: https://goo.gl/vpaxv6
-   *
-   * Time to Interactive and Time to First CPU Idle is based on heuristics
-   * involving main thread and network activity, as well as First Meaningful
-   * Paint and DOMContentLoadedEnd event. See time_to_interactive.html module
-   * for detailed description and implementation of these two metrics.
-   */
-  function collectFirstMeaningfulPaintAndInteractivityMetricsForRenderer(
-      rendererHelper, frameToNavStartEvents, frameToDomContentLoadedEndEvents) {
-    const firstMeaningfulPaintSamples = [];
-    const firstMeaningfulPaintCpuTimeSamples = [];
-    const firstCpuIdleSamples = [];
-    const interactiveSamples = [];
-
-    function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
-      const data = addFirstMeaningfulPaintSample(
-          firstMeaningfulPaintSamples, rendererHelper,
-          frameIdRef, navigationStart, fmpMarkerEvent);
-      addFirstMeaningfulPaintCpuTimeSample(
-          firstMeaningfulPaintCpuTimeSamples, rendererHelper,
-          frameIdRef, navigationStart, fmpMarkerEvent);
-      if (data !== undefined) {
-        const {interactiveSample, firstCpuIdleSample} =
-            computeInteractivityMetricSample_(
-                rendererHelper, frameToNavStartEvents,
-                frameToDomContentLoadedEndEvents, navigationStart,
-                data.firstMeaningfulPaint, data.url);
-        if (interactiveSample) interactiveSamples.push(interactiveSample);
-        if (firstCpuIdleSample) firstCpuIdleSamples.push(firstCpuIdleSample);
-      }
-    }
-
-    const candidatesForFrameId =
-        findFirstMeaningfulPaintCandidates(rendererHelper);
-
-    for (const frameIdRef in candidatesForFrameId) {
-      let navigationStart = undefined;
-      let lastCandidate = undefined;
-
-      // Iterate over the FMP candidates, remembering the last one.
-      for (const ev of candidatesForFrameId[frameIdRef]) {
-        const navigationStartForThisCandidate =
-          EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
-              frameToNavStartEvents.get(frameIdRef) || [], ev.start);
-        // Ignore candidate w/o preceding navigationStart, as they are not
-        // attributed to any TTFMP.
-        if (navigationStartForThisCandidate === undefined) continue;
-
-        if (navigationStart !== navigationStartForThisCandidate) {
-          // New navigation is found. Compute TTFMP for current navigation,
-          // and reset the state variables.
-          if (navigationStart !== undefined && lastCandidate !== undefined) {
-            addSamples(frameIdRef, navigationStart, lastCandidate);
-          }
-          navigationStart = navigationStartForThisCandidate;
-        }
-        lastCandidate = ev;
-      }
-
-      // Compute TTFMP for the last navigation.
-      if (lastCandidate !== undefined) {
-        addSamples(frameIdRef, navigationStart, lastCandidate);
-      }
-    }
-    return {
-      firstMeaningfulPaintSamples,
-      firstMeaningfulPaintCpuTimeSamples,
-      firstCpuIdleSamples,
-      interactiveSamples,
-    };
-  }
-
   function collectLoadingMetricsForRenderer(rendererHelper) {
+    const model = rendererHelper.modelHelper.model;
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
             rendererHelper, 'navigationStart', 'blink.user_timing');
-    const frameToDomContentLoadedEndEvents =
-          EventFinderUtils.getSortedMainThreadEventsByFrame(
-              rendererHelper, 'domContentLoadedEventEnd', 'blink.user_timing');
     const firstPaintSamples = collectTimeToEvent(
         'loading', 'firstPaint',
         rendererHelper, frameToNavStartEvents);
@@ -511,11 +296,46 @@ tr.exportTo('tr.metrics.sh', function() {
     const onLoadSamples = collectTimeToEvent(
         'blink.user_timing', 'loadEventStart',
         rendererHelper, frameToNavStartEvents);
-    const {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
-        firstCpuIdleSamples, interactiveSamples} =
-        collectFirstMeaningfulPaintAndInteractivityMetricsForRenderer(
-            rendererHelper, frameToNavStartEvents,
-            frameToDomContentLoadedEndEvents);
+
+    // TODO(mythria): For loading metric it is not required to collect
+    // these per renderer. Since we combine all these samples into a
+    // single histogram anyway. Currently, this function is used outside
+    // loading metric in power_metric, estimated_input_latency and
+    // runtimeStats metric. Once we remove that dependency cleanup this
+    // code by collecting all samples at once instead of once per renderer.
+    // Add FMP, firstCpuIdle and interactive samples from load UE
+    const interactiveSamples = [];
+    const firstCpuIdleSamples = [];
+    const firstMeaningfulPaintSamples = [];
+    const firstMeaningfulPaintCpuTimeSamples = [];
+    for (const expectation of model.userModel.expectations) {
+      if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
+      if (shouldIgnoreURL(expectation.url)) continue;
+      if (expectation.renderProcess.pid !== rendererHelper.pid) continue;
+      if (expectation.fmpEvent !== undefined) {
+        addFirstMeaningfulPaintSample(firstMeaningfulPaintSamples,
+            rendererHelper, expectation.navigationStart, expectation.fmpEvent,
+            expectation.url);
+        addFirstMeaningfulPaintCpuTimeSample(firstMeaningfulPaintCpuTimeSamples,
+            rendererHelper, expectation.navigationStart, expectation.fmpEvent,
+            expectation.url);
+      }
+      if (expectation.firstCpuIdleTime !== undefined) {
+        firstCpuIdleSamples.push(decorateInteractivitySampleWithDiagnostics_(
+            rendererHelper, expectation.firstCpuIdleTime,
+            expectation.navigationStart,
+            expectation.fmpEvent.start,
+            expectation.domContentLoadedEndEvent.start, expectation.url));
+      }
+      if (expectation.timeToInteractive !== undefined) {
+        interactiveSamples.push(decorateInteractivitySampleWithDiagnostics_(
+            rendererHelper, expectation.timeToInteractive,
+            expectation.navigationStart,
+            expectation.fmpEvent.start,
+            expectation.domContentLoadedEndEvent.start, expectation.url));
+      }
+    }
+
     return {
       firstPaintSamples,
       firstContentfulPaintSamples,

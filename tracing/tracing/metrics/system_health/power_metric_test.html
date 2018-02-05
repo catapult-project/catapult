@@ -6,6 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/importer/find_input_expectations.html">
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
@@ -80,13 +83,11 @@ tr.b.unittest.testSuite(function() {
   test('powerMetric_computesChromeBoundsCorrectly', function() {
     // Tests if Chrome bounds are computed correctly when there
     // are both browser and renderer threads in the trace.
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const rendererThread = rendererProcess.getOrCreateThread(1);
-      rendererThread.name = 'CrRendererMain';
-      const browserProcess = model.getOrCreateProcess(5678);
-      const browserThread = browserProcess.getOrCreateThread(2);
-      browserThread.name = 'CrBrowserMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const rendererThread = model.rendererMain;
+      const browserProcess = model.browserProcess;
+      const browserThread = model.browserMain;
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -117,10 +118,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_noPowerSeries', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -143,10 +143,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_emptyPowerSeries', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -187,10 +186,7 @@ tr.b.unittest.testSuite(function() {
 
   test('powerMetric_emptyChromeTrace', function() {
     const histograms = new tr.v.HistogramSet();
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (let i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
@@ -208,10 +204,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_powerSeriesStartsLate', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -244,10 +239,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_powerSeriesEndsEarly', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -319,10 +313,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_story_minAvgMax', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -437,10 +430,9 @@ tr.b.unittest.testSuite(function() {
   test('powerMetric_loading_oneInterval_samplesBeyondChrome', function() {
     // Interval of load is [200, 15400].
     // Trace goes until 22150.
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -532,10 +524,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_loading_noMeaningfulPaint', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -599,10 +590,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_scroll_oneStageEachType', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -634,10 +624,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_scroll_multipleStagesEachType', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -673,10 +662,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_video_oneStageEachType', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -708,10 +696,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_video_multipleStagesEachType', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1234);
-      const mainThread = rendererProcess.getOrCreateThread(1);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',

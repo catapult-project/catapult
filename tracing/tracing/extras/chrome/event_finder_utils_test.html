@@ -6,13 +6,13 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/metrics/system_health/event_finder_utils.html">
+<link rel="import" href="/tracing/extras/chrome/event_finder_utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 
 <script>
 'use strict';
 
-const EventFinderUtils = tr.metrics.sh.EventFinderUtils;
+const EventFinderUtils = tr.e.chrome.EventFinderUtils;
 
 tr.b.unittest.testSuite(function() {
   test('getSortedMainThreadEventsByFrame', () => {

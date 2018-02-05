@@ -21,7 +21,9 @@ tr.exportTo('tr.model.um', function() {
     DOES_LOAD_SUBTYPE_NAME_EXIST[LOAD_SUBTYPE_NAMES[key]] = true;
   }
 
-  function LoadExpectation(parentModel, initiatorTitle, start, duration) {
+  function LoadExpectation(parentModel, initiatorTitle, start, duration,
+      renderer, navigationStart, fmpEvent, dclEndEvent, cpuIdleTime,
+      timeToInteractive, url, frameId) {
     if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle]) {
       throw new Error(initiatorTitle + ' is not in LOAD_SUBTYPE_NAMES');
     }
@@ -31,7 +33,7 @@ tr.exportTo('tr.model.um', function() {
 
     // |renderProcess| is the renderer process that contains the loading
     // RenderFrame.
-    this.renderProcess = undefined;
+    this.renderProcess = renderer;
 
     // |renderMainThread| is the CrRendererMain thread in the |renderProcess|
     // that contains the loading RenderFrame.
@@ -50,6 +52,27 @@ tr.exportTo('tr.model.um', function() {
 
     // Startup LoadExpectations do not have renderProcess, routingId, or
     // parentRoutingId. Maybe RenderLoadExpectation should be a separate class?
+
+    // Navigation start event. The start of this event is the start time of
+    // load expectation.
+    this.navigationStart = navigationStart;
+
+    // First meaningful event corresponding to the navigation start event.
+    this.fmpEvent = fmpEvent;
+
+    // DomcontentLoadedEndEvent corresponding to the navigation start event.
+    this.domContentLoadedEndEvent = dclEndEvent;
+
+    // The computed firstCpuIdleTime. Please look at time_to_interactive.html
+    // for further details about this.
+    this.firstCpuIdleTime = cpuIdleTime;
+
+    // The time at which renderer is interactive. Please look at
+    // time_to_interactive.html for further details on how this is computed.
+    this.timeToInteractive = timeToInteractive;
+
+    this.url = url;
+    this.frameId = frameId;
   }
 
   LoadExpectation.prototype = {

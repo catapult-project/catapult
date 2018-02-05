@@ -6,9 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/extras/v8/v8_thread_slice.html">
 <link rel="import" href="/tracing/metrics/v8/runtime_stats_metric.html">
-<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -46,10 +48,9 @@ tr.b.unittest.testSuite(function() {
     // v                  v                                    v
     // First navigation   FMP                                  TTI
     // 200                9200                                 15400
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -60,6 +61,20 @@ tr.b.unittest.testSuite(function() {
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'});
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'domContentLoadedEventEnd',
+        start: 10000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',
@@ -237,10 +252,9 @@ tr.b.unittest.testSuite(function() {
     // v                      v                      v
     // First navigation      DCL                    DCL
     // 200                   1300                   2400
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',

@@ -6,19 +6,16 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/metrics/system_health/time_to_interactive.html">
+<link rel="import" href="/tracing/extras/chrome/time_to_interactive.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  const findInteractiveTime =
-      tr.metrics.sh.findInteractiveTime;
-  const findFirstCpuIdleTime =
-      tr.metrics.sh.findFirstCpuIdleTime;
-  const requiredFCIWindowSizeMs =
-        tr.metrics.sh.requiredFCIWindowSizeMs;
-  const findFCITaskClusters = tr.metrics.sh.findFCITaskClusters;
+  const findInteractiveTime = tr.e.chrome.findInteractiveTime;
+  const findFirstCpuIdleTime = tr.e.chrome.findFirstCpuIdleTime;
+  const requiredFCIWindowSizeMs = tr.e.chrome.requiredFCIWindowSizeMs;
+  const findFCITaskClusters = tr.e.chrome.findFCITaskClusters;
 
   test('findInteractiveTime_' +
        'doesNotWaitForTasksFarAwayWithoutNetworkRequests', () => {

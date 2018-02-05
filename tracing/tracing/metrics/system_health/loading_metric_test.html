@@ -6,6 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -14,10 +17,9 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('timeToFirstPaint', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -48,10 +50,9 @@ tr.b.unittest.testSuite(function() {
 
 
   test('timeToFirstContentfulPaint', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -98,10 +99,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       // warm cache navigation
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -167,10 +167,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('timeToFirstMeaningfulPaint', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -214,10 +213,9 @@ tr.b.unittest.testSuite(function() {
   //                        |                       |
   //                       1160                    1480
   test('cpuTimeToFirstMeaningfulPaint_withEmbeddedSlices', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -277,10 +275,9 @@ tr.b.unittest.testSuite(function() {
   //                   |                            |
   //                  1160                         1280
   test('cpuTimeToFirstMeaningfulPaint_withIntersectingBoundary', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -347,10 +344,9 @@ tr.b.unittest.testSuite(function() {
   //                |                            |
   //               1160                         1280
   test('cpuTimeToFirstMeaningfulPaint_multipleRenderers', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess1 = model.getOrCreateProcess(1);
-      let mainThread = rendererProcess1.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess1 = model.rendererProcess;
+      let mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -384,8 +380,8 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: 50
       }));
 
-      const rendererProcess2 = model.getOrCreateProcess(2);
-      mainThread = rendererProcess2.getOrCreateThread(2);
+      const rendererProcess2 = model.getOrCreateProcess(10);
+      mainThread = rendererProcess2.getOrCreateThread(20);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -491,10 +487,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('interactivityMetrics_notAffectedByShortTasks', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -527,10 +522,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_longTaskBeforeFMP', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -554,10 +548,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_interactiveAtDCL', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -580,10 +573,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_networkBusyBlocksInteractivity', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -615,10 +607,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_notReportedIfTracingEndsEarly', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -638,10 +629,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_notReportedIfNextNavigationIsEarly', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -662,10 +652,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_reportsValueForLastNavigation', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -690,7 +679,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_multipleRenderers', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const renderers =
           [model.getOrCreateProcess(1984), model.getOrCreateProcess(1985)];
 
@@ -724,10 +713,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interactivityMetrics_eventsFromMultipleFrame', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
@@ -776,9 +764,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webView', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const process = model.getOrCreateProcess(1);
-      const rendererThread = process.getOrCreateThread(2);
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const process = model.rendererProcess;
+      const rendererThread = model.rendererMain;
       rendererThread.name = 'Chrome_InProcRendererThread';
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -807,10 +795,6 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
       }));
-      // This lets ChromeModelHelper recognize this process as a renderer
-      // process.
-      const compositorThread = process.getOrCreateThread(3);
-      compositorThread.name = 'Compositor';
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);

@@ -6,6 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/metrics/system_health/expected_queueing_time_metric.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -44,10 +47,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('expectedQueueingTime', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
@@ -91,10 +93,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTime_noInteractive', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
@@ -128,10 +129,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTime_multipleInteractive', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       addInteractiveTimestamp(rendererProcess, mainThread, 6000);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -169,10 +169,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTime_multipleRenderersAggregates', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
@@ -219,10 +218,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTime_relatedV8Histograms', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
@@ -287,10 +285,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTimeRCS', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const rendererProcess = model.getOrCreateProcess(1984);
-      const mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',

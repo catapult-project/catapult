@@ -11,12 +11,25 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.metrics.sh', function() {
+tr.exportTo('tr.e.chrome', function() {
   /**
    * Utility class providing methods to efficiently find events.
    * TODO(4023) This should be merged with thread/process helper.
    */
   class EventFinderUtils {
+
+    /**
+     * Returns true if |category| is one of the categories of |event|, and
+     * |event| has title |title|.
+     *
+     * TODO(dproy): Make this a method on a suitable parent class of the
+     * event/slice classes that are used with this function.
+     */
+    static hasCategoryAndName(event, category, title) {
+      return event.title === title && event.category &&
+        tr.b.getCategoryParts(event.category).includes(category);
+    }
+
     /**
      * Returns a map of frame id to main thread slices of |rendererHelper| with
      * title |eventTitle| and categry |eventCategory|, sorted by start
@@ -34,7 +47,7 @@ tr.exportTo('tr.metrics.sh', function() {
       // Events yielded by childEvents() are sorted by start time.
       for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
         if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-        if (!tr.metrics.sh.hasCategoryAndName(ev, eventCategory, eventTitle)) {
+        if (!this.hasCategoryAndName(ev, eventCategory, eventTitle)) {
           continue;
         }
 
@@ -68,6 +81,27 @@ tr.exportTo('tr.metrics.sh', function() {
       if (firstIndexAfterTimestamp === 0) return undefined;
       return sortedEvents[firstIndexAfterTimestamp - 1];
     }
+
+    /**
+     * Returns latest event in |sortedEvents| that starts before
+     * |timestamp|, or undefined if no such event exists.
+     *
+     * @param {!Array<!tr.model.TimedEvent>} sortedEvents - events sorted by
+     *     start time.
+     * @param {number} timestamp
+     * @returns {tr.model.TimedEvent|undefined}
+     */
+    static findLastEventStartingBeforeTimestamp(sortedEvents, timestamp) {
+      const firstIndexAfterTimestamp =
+          tr.b.findFirstTrueIndexInSortedArray(
+              sortedEvents, e => e.start >= timestamp);
+      // We found the first index after the timestamp, so the index immediately
+      // before it is the index we're looking for. If the first index after
+      // timestamp is 0, then there is no index on or before timestamp.
+      if (firstIndexAfterTimestamp === 0) return undefined;
+      return sortedEvents[firstIndexAfterTimestamp - 1];
+    }
+
 
     /**
      * Returns earliest event in |sortedEvents| that starts on or after
