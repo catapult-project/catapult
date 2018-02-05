@@ -5,7 +5,6 @@
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
-from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
 
@@ -24,19 +23,15 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     super(AndroidBrowserBackend, self).__init__(
         android_platform_backend,
         browser_options=browser_options,
+        browser_directory=browser_directory,
+        profile_directory=profile_directory,
         supports_extensions=False,
         supports_tab_control=backend_settings.supports_tab_control)
-    self._browser_directory = browser_directory
-    self._profile_directory = profile_directory
     self._backend_settings = backend_settings
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._saved_sslflag = ''
     self._app_ui = None
-
-    if len(self._extensions_to_load) > 0:
-      raise browser_backend.ExtensionsNotSupportedException(
-          'Android browser does not support extensions.')
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
@@ -180,14 +175,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not pids:
       raise exceptions.BrowserGoneException(self.browser)
     return pids[0]
-
-  @property
-  def browser_directory(self):
-    return self._browser_directory
-
-  @property
-  def profile_directory(self):
-    return self._profile_directory
 
   def GetDirectoryPathsToFlushOsPageCacheFor(self):
     paths_to_flush = []

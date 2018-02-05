@@ -35,7 +35,9 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
       options.browser_options.logs_cloud_bucket = 'ABC'
       options.browser_options.logs_cloud_remote_path = 'def'
 
-      b = FakeBrowserBackend(None, False, options.browser_options, None)
+      b = FakeBrowserBackend(
+          platform_backend=None, browser_options=options.browser_options,
+          supports_extensions=False, tab_list_backend=None)
       self.assertEquals(b.GetLogFileContents(), 'This is a\ntest log file.\n')
       with mock.patch('py_utils.cloud_storage.Insert') as mock_insert:
         b.UploadLogsToCloudStorage()

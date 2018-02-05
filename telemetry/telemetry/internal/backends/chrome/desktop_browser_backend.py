@@ -22,7 +22,6 @@ import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
-from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.util import path
 
@@ -111,10 +110,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     super(DesktopBrowserBackend, self).__init__(
         desktop_platform_backend,
         browser_options=browser_options,
+        browser_directory=browser_directory,
+        profile_directory=profile_directory,
         supports_extensions=not is_content_shell,
         supports_tab_control=not is_content_shell)
-    self._browser_directory = browser_directory
-    self._profile_directory = profile_directory
     self._executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -132,10 +131,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if self._flash_path and not os.path.exists(self._flash_path):
       raise RuntimeError('Flash path does not exist: %s' % self._flash_path)
-
-    if len(self._extensions_to_load) > 0 and self._is_content_shell:
-      raise browser_backend.ExtensionsNotSupportedException(
-          'Content shell does not support extensions.')
 
     self._tmp_minidump_dir = tempfile.mkdtemp()
     if self.is_logging_enabled:
@@ -277,14 +272,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._proc:
       return self._proc.pid
     return None
-
-  @property
-  def browser_directory(self):
-    return self._browser_directory
-
-  @property
-  def profile_directory(self):
-    return self._profile_directory
 
   def IsBrowserRunning(self):
     return self._proc and self._proc.poll() == None

@@ -24,19 +24,26 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   once a remote-debugger port has been established."""
   # It is OK to have abstract methods. pylint: disable=abstract-method
 
-  def __init__(self, platform_backend, supports_tab_control,
-               supports_extensions, browser_options):
+  def __init__(self, platform_backend, browser_options,
+               browser_directory, profile_directory,
+               supports_extensions, supports_tab_control):
     super(ChromeBrowserBackend, self).__init__(
         platform_backend=platform_backend,
-        supports_extensions=supports_extensions,
         browser_options=browser_options,
+        supports_extensions=supports_extensions,
         tab_list_backend=tab_list_backend.TabListBackend)
+    self._browser_directory = browser_directory
+    self._profile_directory = profile_directory
     self._supports_tab_control = supports_tab_control
+
     self._devtools_client = None
     # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
     self._forwarder = None
 
     self._extensions_to_load = browser_options.extensions_to_load
+    if not supports_extensions and len(self._extensions_to_load) > 0:
+      raise browser_backend.ExtensionsNotSupportedException(
+          'Extensions are not supported on the selected browser')
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -184,11 +191,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   @property
   def browser_directory(self):
-    raise NotImplementedError()
+    return self._browser_directory
 
   @property
   def profile_directory(self):
-    raise NotImplementedError()
+    return self._profile_directory
 
   @property
   def supports_tab_control(self):

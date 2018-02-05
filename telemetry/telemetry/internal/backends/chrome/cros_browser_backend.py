@@ -20,10 +20,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     super(CrOSBrowserBackend, self).__init__(
         cros_platform_backend,
         browser_options=browser_options,
+        browser_directory=browser_directory,
+        profile_directory=profile_directory,
         supports_extensions=not is_guest,
         supports_tab_control=True)
-    self._browser_directory = browser_directory
-    self._profile_directory = profile_directory
     self._is_guest = is_guest
     self._cri = cros_platform_backend.cri
 
@@ -48,14 +48,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   @property
   def pid(self):
     return self._cri.GetChromePid()
-
-  @property
-  def browser_directory(self):
-    return self._browser_directory
-
-  @property
-  def profile_directory(self):
-    return self._profile_directory
 
   def __del__(self):
     self.Close()
