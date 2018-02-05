@@ -12,6 +12,7 @@ import sys
 from py_utils import dependency_util
 from devil import base_error
 from devil.android import apk_helper
+from devil.android import flag_changer
 
 from telemetry.core import exceptions
 from telemetry.core import platform
@@ -83,6 +84,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         android_platform._platform_backend)  # pylint: disable=protected-access
     self._backend_settings = backend_settings
     self._local_apk = None
+    self._flag_changer = None
 
     if browser_type == 'exact':
       if not os.path.exists(apk_name):
@@ -148,10 +150,42 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def _InitPlatformIfNeeded(self):
     pass
 
-  def Create(self):
-    startup_args = self.GetBrowserStartupArgs(self._browser_options)
+  def _SetupProfile(self):
+    if self._browser_options.dont_override_profile:
+      return
+    if self._browser_options.profile_dir:
+      # Push profile_dir path on the host to the device.
+      self._platform_backend.PushProfile(
+          self._backend_settings.package,
+          self._browser_options.profile_dir)
+    else:
+      self._platform_backend.RemoveProfile(
+          self._backend_settings.package,
+          self._backend_settings.profile_ignore_list)
 
-    self._InitPlatformIfNeeded()
+  def SetUpEnvironment(self, browser_options):
+    super(PossibleAndroidBrowser, self).SetUpEnvironment(browser_options)
+    self._platform_backend.DismissCrashDialogIfNeeded()
+    device = self._platform_backend.device
+    startup_args = self.GetBrowserStartupArgs(self._browser_options)
+    device.adb.Logcat(clear=True)
+
+    self._flag_changer = flag_changer.FlagChanger(
+        device, self._backend_settings.command_line_name)
+    self._flag_changer.ReplaceFlags(startup_args)
+    # Stop any existing browser found already running on the device. This is
+    # done *after* setting the command line flags, in case some other Android
+    # process manages to trigger Chrome's startup before we do.
+    self._platform_backend.StopApplication(self._backend_settings.package)
+    self._SetupProfile()
+
+  def _TearDownEnvironment(self):
+    try:
+      self._flag_changer.Restore()
+    finally:
+      self._flag_changer = None
+
+  def Create(self):
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
@@ -159,7 +193,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     browser_backend.ClearCaches()
     try:
       return browser.Browser(
-          browser_backend, self._platform_backend, startup_args)
+          browser_backend, self._platform_backend, startup_args=())
     except Exception:
       exc_info = sys.exc_info()
       logging.error(

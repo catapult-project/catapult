@@ -10,7 +10,6 @@ from telemetry.internal.browser import user_agent
 
 from devil.android import app_ui
 from devil.android import device_signal
-from devil.android import flag_changer
 from devil.android.sdk import intent
 
 
@@ -58,43 +57,23 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # stopping also clears the app state in Android's activity manager.
     self.platform_backend.StopApplication(self._backend_settings.package)
 
-  def _SetupProfile(self):
-    if self.browser_options.dont_override_profile:
-      return
-    if self.browser_options.profile_dir:
-      self.platform_backend.PushProfile(
-          self._backend_settings.package,
-          self.browser_options.profile_dir)
-    else:
-      self.platform_backend.RemoveProfile(
-          self._backend_settings.package,
-          self._backend_settings.profile_ignore_list)
-
   def Start(self, startup_args, startup_url=None):
-    self.device.adb.Logcat(clear=True)
-    self.platform_backend.DismissCrashDialogIfNeeded()
+    assert not startup_args, (
+        'Startup arguments for Android should be set during '
+        'possible_browser.SetUpEnvironment')
     user_agent_dict = user_agent.GetChromeUserAgentDictFromType(
         self.browser_options.browser_user_agent_type)
-    command_line_name = self._backend_settings.command_line_name
-    with flag_changer.CustomCommandLineFlags(
-        self.device, command_line_name, startup_args):
-      # Stop existing browser, if any. This is done *after* setting the
-      # command line flags, in case some other Android process manages to
-      # trigger Chrome's startup before we do.
-      self._StopBrowser()
-      self._SetupProfile()
-      self.device.StartActivity(
-          intent.Intent(package=self._backend_settings.package,
-                        activity=self._backend_settings.activity,
-                        action=None, data=startup_url, category=None,
-                        extras=user_agent_dict),
-          blocking=True)
-
-      try:
-        self.BindDevToolsClient()
-      except:
-        self.Close()
-        raise
+    self.device.StartActivity(
+        intent.Intent(package=self._backend_settings.package,
+                      activity=self._backend_settings.activity,
+                      action=None, data=startup_url, category=None,
+                      extras=user_agent_dict),
+        blocking=True)
+    try:
+      self.BindDevToolsClient()
+    except:
+      self.Close()
+      raise
 
   def _FindDevToolsPortAndTarget(self):
     devtools_port = self._backend_settings.GetDevtoolsRemotePort(self.device)
