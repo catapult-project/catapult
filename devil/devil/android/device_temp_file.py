@@ -79,13 +79,11 @@ class DeviceTempFile(object):
 
 
 class NamedDeviceTemporaryDirectory(object):
-  """A named temporary directory on a device.
-
-  Behaves like tempfile_ext.NamdedTemporaryDirectory.
-  """
+  """A named temporary directory on a device."""
 
   def __init__(self, adb, suffix='', prefix='tmp', dir='/data/local/tmp'):
-    """Find an unused temporary directory path on the device and create it.
+    """Find an unused temporary directory path on the device. The directory is
+    not created until it is used with a 'with' statement.
 
     When this object is closed, the directory will be deleted on the device.
 
@@ -100,7 +98,6 @@ class NamedDeviceTemporaryDirectory(object):
     self._adb = adb
     self.name = _GenerateName(prefix, suffix, dir)
     self.name_quoted = cmd_helper.SingleQuote(self.name)
-    self._adb.Shell('mkdir -p %s' % self.name)
 
   def close(self):
     """Deletes the temporary directory from the device."""
@@ -115,6 +112,7 @@ class NamedDeviceTemporaryDirectory(object):
         name='delete_temporary_dir(%s)' % self._adb.GetDeviceSerial()).start()
 
   def __enter__(self):
+    self._adb.Shell('mkdir -p %s' % self.name)
     return self
 
   def __exit__(self, exc_type, exc_val, exc_tb):
