@@ -435,6 +435,9 @@ class PageTestResults(object):
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)
 
+  def AddSharedDiagnostic(self, name, diagnostic):
+    self._histograms.AddSharedDiagnostic(name, diagnostic)
+
   def CreateArtifact(self, story, name):
     return self._artifact_results.CreateArtifact(story, name)
 

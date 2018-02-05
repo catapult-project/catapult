@@ -429,7 +429,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[0])
     results.DidRunPage(self.pages[0])
     results.CleanUp()
-    results.histograms.AddSharedDiagnostic(
+    results.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name,
         generic_set.GenericSet(['benchmark_name']))
 
