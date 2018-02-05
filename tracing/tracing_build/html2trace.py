@@ -15,8 +15,8 @@ GZIP_HEADER_BYTES = b'\x1f\x8b'
 # Regular expressions for matching the beginning and end of trace data in HTML
 # traces. See tracing/extras/importer/trace2html_importer.html.
 TRACE_DATA_START_LINE_RE = re.compile(
-    r'^<\s*script id="viewer-data" type="(application\/json|text\/plain)">$')
-TRACE_DATA_END_LINE_RE = re.compile(r'^<\/\s*script>$')
+    r'^<\s*script id="viewer-data" type="(application\/json|text\/plain)">\r?$')
+TRACE_DATA_END_LINE_RE = re.compile(r'^<\/\s*script>\r?$')
 
 
 def IsHTMLTrace(trace_file_handle):

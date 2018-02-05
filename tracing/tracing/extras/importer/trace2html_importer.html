@@ -31,12 +31,12 @@ tr.exportTo('tr.e.importer', function() {
     while (true) {
       if (!r.advanceToLineMatching(
           new RegExp('^<\s*script id="viewer-data" ' +
-                     'type="(application\/json|text\/plain)">$'))) {
+                     'type="(application\/json|text\/plain)">\r?$'))) {
         break;
       }
 
       r.beginSavingLines();
-      if (!r.advanceToLineMatching(/^<\/\s*script>$/)) return;
+      if (!r.advanceToLineMatching(/^<\/\s*script>\r?$/)) return;
 
       let rawEvents = r.endSavingLinesAndGetResult();
 

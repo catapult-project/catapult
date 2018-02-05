@@ -41,5 +41,33 @@ tr.b.unittest.testSuite(function() {
     });
     assert.deepEqual(subTracesAsStrings, ['hello', 'world']);
   });
+
+  test('windowsLineEndings', function() {
+    const htmlLines = [
+      '<!DOCTYPE html>',
+      '<script id="viewer-data" type="application/json">',
+      Base64.btoa('hello'),
+      '<\/script>',
+      '<script id="viewer-data" type="text/plain">',
+      Base64.btoa('world'),
+      '<\/script>',
+      '</html>'
+    ];
+    const htmlText = htmlLines.join('\r\n');
+    assert.isTrue(tr.e.importer.Trace2HTMLImporter.canImport(htmlText));
+
+    const m = new tr.Model();
+    const imp = new tr.e.importer.Trace2HTMLImporter(m, htmlText);
+    const subTracesAsBuffers = imp.extractSubtraces();
+    const subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
+      let str = '';
+      const ary = new Uint8Array(buffer);
+      for (let i = 0; i < ary.length; i++) {
+        str += String.fromCharCode(ary[i]);
+      }
+      return str;
+    });
+    assert.deepEqual(subTracesAsStrings, ['hello', 'world']);
+  });
 });
 </script>

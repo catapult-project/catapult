@@ -11,7 +11,8 @@ found in the LICENSE file.
 tr.exportTo('tr.importer', function() {
   class SimpleLineReader {
     constructor(text) {
-      this.data_ = text instanceof tr.b.TraceStream ? text : text.split('\n');
+      this.data_ = text instanceof tr.b.TraceStream ?
+          text : text.split(new RegExp('\r?\n'));
       this.curLine_ = 0;
       this.readLastLine_ = false;
       this.savedLines_ = undefined;
@@ -26,7 +27,13 @@ tr.exportTo('tr.importer', function() {
         } else if (this.data_ instanceof tr.b.TraceStream) {
           this.curLine_++;
           const line = this.data_.readUntilDelimiter('\n');
-          lastLine = line.endsWith('\n') ? line.slice(0, -1) : line;
+          if (line.endsWith('\r\n')) {
+            lastLine = line.slice(0, -2);
+          } else if (line.endsWith('\n')) {
+            lastLine = line.slice(0, -1);
+          } else {
+            lastLine = line;
+          }
         } else {
           this.curLine_++;
           lastLine = this.data_[this.curLine_ - 1];
