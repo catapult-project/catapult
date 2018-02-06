@@ -47,7 +47,22 @@ class GerritPatch(collections.namedtuple(
     }
 
   def AsDict(self):
-    return self._asdict()
+    patch_info = gerrit_service.GetChange(
+        self.server, self.change, fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS'))
+    # TODO: Cache this stuff in memcache.
+    revision_info = patch_info['revisions'][self.revision]
+    return {
+        'server': self.server,
+        'change': self.change,
+        'revision': self.revision,
+
+        'url': '%s/c/%s/+/%d/%d' % (
+            self.server, patch_info['project'],
+            patch_info['_number'], revision_info['_number']),
+        'subject': patch_info['subject'],
+        'time': revision_info['created'],
+        'author': revision_info['uploader']['email'],
+    }
 
   @classmethod
   def FromDict(cls, data):

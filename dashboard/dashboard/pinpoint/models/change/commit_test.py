@@ -10,6 +10,16 @@ from dashboard.pinpoint.models.change import commit
 
 
 _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
+_GITILES_COMMIT_INFO = {
+    'author': {'email': 'author@chromium.org'},
+    'commit': 'aaa7336',
+    'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
+    'message': 'Subject.\n\n'
+               'Commit message.\n'
+               'Reviewed-by: Reviewer Name <reviewer1@chromium.org>\n'
+               'Reviewed-by: Reviewer Name <reviewer2@chromium.org>\n'
+               'Cr-Commit-Position: refs/heads/master@{#437745}',
+}
 
 
 class _CommitTest(testing_common.TestCase):
@@ -70,12 +80,20 @@ deps_os = {
     ))
     self.assertEqual(c.Deps(), expected)
 
-  def testAsDict(self):
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testAsDict(self, commit_info):
+    commit_info.return_value = _GITILES_COMMIT_INFO
+
     c = commit.Commit('chromium', 'aaa7336')
     expected = {
         'repository': 'chromium',
         'git_hash': 'aaa7336',
         'url': _CHROMIUM_URL + '/+/aaa7336',
+        'subject': 'Subject.',
+        'author': 'author@chromium.org',
+        'reviewers': ['reviewer1@chromium.org', 'reviewer2@chromium.org'],
+        'time': 'Fri Jan 01 00:01:00 2016',
+        'commit_position': 437745,
     }
     self.assertEqual(c.AsDict(), expected)
 

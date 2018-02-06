@@ -23,13 +23,23 @@ _COMMENT_COMPLETED_NO_DIFFERENCES = (
 https://testbed.example.com/job/1""")
 
 
-_COMMENT_COMPLETED_ONE_DIFFERENCE = (
+_COMMENT_COMPLETED_WITH_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
 https://testbed.example.com/job/1
 
-<b>Subject.</b>
-By author@chromium.org \xb7 Fri Jan 01 00:01:00 2016
-chromium @ git_hash
+<b>Subject.</b> by author@chromium.org
+https://example.com/repository/+/git_hash
+
+Understanding performance regressions:
+  http://g.co/ChromePerformanceRegressions""")
+
+
+_COMMENT_COMPLETED_WITH_PATCH = (
+    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+https://testbed.example.com/job/1
+
+<b>Subject.</b> by author@chromium.org
+https://codereview.com/c/672011/2f0d5c7
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -39,13 +49,11 @@ _COMMENT_COMPLETED_TWO_DIFFERENCES = (
     u"""<b>\U0001f4cd Found significant differences after each of 2 commits.</b>
 https://testbed.example.com/job/1
 
-<b>Subject.</b>
-By author1@chromium.org \xb7 Fri Jan 01 00:01:00 2016
-chromium @ git_hash_1
+<b>Subject.</b> by author1@chromium.org
+https://example.com/repository/+/git_hash_1
 
-<b>Subject.</b>
-By author2@chromium.org \xb7 Fri Jan 02 00:01:00 2016
-chromium @ git_hash_2
+<b>Subject.</b> by author2@chromium.org
+https://example.com/repository/+/git_hash_2
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -101,17 +109,18 @@ class BugCommentTest(testing_common.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job._JobState, 'Differences')
-  def testCompletedOneDifference(self, differences, commit_info):
+  def testCompletedWithCommit(self, differences, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(1, c)]
-    commit_info.return_value = {
-        'author': {'email': 'author@chromium.org'},
-        'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
-        'message': 'Subject.\n\n'
-                   'Commit message.\n'
-                   'Reviewed-by: Reviewer Name <reviewer@chromium.org>',
+    commit_as_dict.return_value = {
+        'repository': 'chromium',
+        'git_hash': 'git_hash',
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'reviewers': ['reviewer@chromium.org'],
+        'url': 'https://example.com/repository/+/git_hash',
     }
 
     j = job.Job.New({}, [], False, bug_id=123456)
@@ -119,31 +128,54 @@ class BugCommentTest(testing_common.TestCase):
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_ONE_DIFFERENCE,
+        123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
         cc_list=['author@chromium.org', 'reviewer@chromium.org'])
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job._JobState, 'Differences')
-  def testCompletedMultipleDifferences(self, differences, commit_info):
+  def testCompletedWithPatch(self, differences, patch_as_dict):
+    commits = (change.Commit('chromium', 'git_hash'),)
+    patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
+    c = change.Change(commits, patch)
+    differences.return_value = [(1, c)]
+    patch_as_dict.return_value = {
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
+    }
+
+    j = job.Job.New({}, [], False, bug_id=123456)
+    j.put()
+    j.Run()
+
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_WITH_PATCH,
+        status='Assigned', owner='author@chromium.org',
+        cc_list=['author@chromium.org'])
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job._JobState, 'Differences')
+  def testCompletedMultipleDifferences(self, differences, commit_as_dict):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
     differences.return_value = [(1, c1), (2, c2)]
-    commit_info.side_effect = (
+    commit_as_dict.side_effect = (
         {
-            'author': {'email': 'author1@chromium.org'},
-            'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
-            'message': 'Subject.\n\n'
-                       'Commit message.\n'
-                       'Reviewed-by: Reviewer Name <reviewer1@chromium.org>',
+            'repository': 'chromium',
+            'git_hash': 'git_hash_1',
+            'author': 'author1@chromium.org',
+            'subject': 'Subject.',
+            'reviewers': ['reviewer1@chromium.org'],
+            'url': 'https://example.com/repository/+/git_hash_1',
         },
         {
-            'author': {'email': 'author2@chromium.org'},
-            'committer': {'time': 'Fri Jan 02 00:01:00 2016'},
-            'message': 'Subject.\n\n'
-                       'Commit message.\n'
-                       'Reviewed-by: Reviewer Name <reviewer1@chromium.org>\n'
-                       'Reviewed-by: Reviewer Name <reviewer2@chromium.org>',
+            'repository': 'chromium',
+            'git_hash': 'git_hash_2',
+            'author': 'author2@chromium.org',
+            'subject': 'Subject.',
+            'reviewers': ['reviewer1@chromium.org', 'reviewer2@chromium.org'],
+            'url': 'https://example.com/repository/+/git_hash_2',
         },
     )
 

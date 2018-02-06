@@ -7,7 +7,6 @@ import datetime
 import itertools
 import logging
 import os
-import re
 import traceback
 import uuid
 
@@ -53,7 +52,6 @@ _UNKNOWN = 'unknown'
 
 
 _CRYING_CAT_FACE = u'\U0001f63f'
-_MIDDLE_DOT = u'\xb7'
 _ROUND_PUSHPIN = u'\U0001f4cd'
 
 
@@ -147,15 +145,17 @@ class Job(ndb.Model):
     cc_list = set()
     commit_details = []
     for _, change in differences:
-      commit_info = change.last_commit.Details()
+      if change.patch:
+        commit_info = change.patch.AsDict()
+      else:
+        commit_info = change.last_commit.AsDict()
 
-      author = commit_info['author']['email']
-      owner = author  # TODO: Assign the largest difference, not the last one.
-      cc_list.add(author)
-      cc_list |= frozenset(re.findall('Reviewed-by: .+ <(.+)>',
-                                      commit_info['message']))
-      commit_details.append(_FormatCommitForBug(
-          change.last_commit, commit_info))
+      # TODO: Assign the largest difference, not the last one.
+      owner = commit_info['author']
+      cc_list.add(commit_info['author'])
+      if 'reviewers' in commit_info:
+        cc_list |= frozenset(commit_info['reviewers'])
+      commit_details.append(_FormatCommitForBug(commit_info))
 
     # Header.
     if len(differences) == 1:
@@ -453,14 +453,9 @@ class _JobState(object):
     return _SAME
 
 
-def _FormatCommitForBug(commit, commit_info):
-  subject = '<b>%s</b>' % commit_info['message'].split('\n', 1)[0]
-  author = commit_info['author']['email']
-  time = commit_info['committer']['time']
-
-  byline = 'By %s %s %s' % (author, _MIDDLE_DOT, time)
-  git_link = commit.repository + ' @ ' + commit.git_hash
-  return '\n'.join((subject, byline, git_link))
+def _FormatCommitForBug(commit_info):
+  subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
+  return '\n'.join((subject, commit_info['url']))
 
 
 def _ExecutionsPerQuest(attempts):

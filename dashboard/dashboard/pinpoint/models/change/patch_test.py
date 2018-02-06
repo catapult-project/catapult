@@ -10,13 +10,16 @@ from dashboard.pinpoint.models.change import patch
 
 
 _GERRIT_CHANGE_INFO = {
+    '_number': 658277,
     'id': 'repo~branch~id',
     'project': 'chromium/src',
-    '_number': 658277,
+    'subject': 'Subject',
     'current_revision': 'current revision',
     'revisions': {
         'current revision': {
             '_number': 5,
+            'created': '2018-02-01 23:46:56.000000000',
+            'uploader': {'email': 'author@example.org'},
             'fetch': {
                 'http': {
                     'url': 'https://googlesource.com/chromium/src',
@@ -26,6 +29,8 @@ _GERRIT_CHANGE_INFO = {
         },
         'other revision': {
             '_number': 4,
+            'created': '2018-02-01 23:46:56.000000000',
+            'uploader': {'email': 'author@example.org'},
             'fetch': {
                 'http': {
                     'url': 'https://googlesource.com/chromium/src',
@@ -76,12 +81,19 @@ class GerritPatchTest(unittest.TestCase):
     }
     self.assertEqual(p.BuildParameters(), expected)
 
-  def testAsDict(self):
-    p = patch.GerritPatch('https://example.com', 672011, '2f0d5c7')
+  @mock.patch('dashboard.services.gerrit_service.GetChange')
+  def testAsDict(self, get_change):
+    get_change.return_value = _GERRIT_CHANGE_INFO
+
+    p = patch.GerritPatch('https://example.com', 658277, 'current revision')
     expected = {
         'server': 'https://example.com',
-        'change': 672011,
-        'revision': '2f0d5c7',
+        'change': 658277,
+        'revision': 'current revision',
+        'url': 'https://example.com/c/chromium/src/+/658277/5',
+        'subject': 'Subject',
+        'author': 'author@example.org',
+        'time': '2018-02-01 23:46:56.000000000',
     }
     self.assertEqual(p.AsDict(), expected)
 

@@ -60,7 +60,12 @@ class ChangeTest(_ChangeTest):
     self.assertEqual(c.commits, (base_commit, dep))
     self.assertEqual(c.patch, p)
 
-  def testAsDict(self):
+  @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  def testAsDict(self, commit_as_dict, patch_as_dict):
+    commit_as_dict.side_effect = (
+        {'git_hash': 'aaa7336c82'}, {'git_hash': 'e0a2efbb3d'})
+    patch_as_dict.return_value = {'revision': '2f0d5c7'}
     commits = (commit.Commit('chromium', 'aaa7336c82'),
                commit.Commit('catapult', 'e0a2efbb3d'))
     p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
@@ -68,22 +73,10 @@ class ChangeTest(_ChangeTest):
 
     expected = {
         'commits': [
-            {
-                'repository': 'chromium',
-                'git_hash': 'aaa7336c82',
-                'url': _CHROMIUM_URL + '/+/aaa7336c82',
-            },
-            {
-                'repository': 'catapult',
-                'git_hash': 'e0a2efbb3d',
-                'url': _CATAPULT_URL + '/+/e0a2efbb3d',
-            },
+            {'git_hash': 'aaa7336c82'},
+            {'git_hash': 'e0a2efbb3d'},
         ],
-        'patch': {
-            'server': 'https://codereview.com',
-            'change': 672011,
-            'revision': '2f0d5c7',
-        },
+        'patch': {'revision': '2f0d5c7'},
     }
     self.assertEqual(c.AsDict(), expected)
 
