@@ -11,6 +11,7 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf.metrics import smoothness
 from tracing.value import histogram
+from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -162,6 +163,12 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(results.AsHistogramDicts())
+    gs = new_hs.GetFirstHistogram().diagnostics[
+        reserved_infos.BENCHMARKS.name]
+    self.assertIsInstance(gs, generic_set.GenericSet)
 
   # Disabled flags: crbug.com/765114.
   @decorators.Disabled('reference')

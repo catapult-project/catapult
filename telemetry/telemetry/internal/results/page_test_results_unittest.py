@@ -423,6 +423,18 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         '{\n  \"enabled\": false,\n  ' +
         '\"benchmark_name\": \"benchmark_name\"\n}\n')
 
+  def testImportHistogramDicts(self):
+    hs = histogram_set.HistogramSet()
+    hs.AddHistogram(histogram_module.Histogram('foo', 'count'))
+    hs.AddSharedDiagnostic('bar', generic_set.GenericSet(['baz']))
+    histogram_dicts = hs.AsDicts()
+    results = page_test_results.PageTestResults()
+    results.telemetry_info.benchmark_start_epoch = 1501773200
+    results.WillRunPage(self.pages[0])
+    results.ImportHistogramDicts(histogram_dicts)
+    results.DidRunPage(self.pages[0])
+    self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
+
   def testAddSharedDiagnostic(self):
     results = page_test_results.PageTestResults()
     results.telemetry_info.benchmark_start_epoch = 1501773200
@@ -527,6 +539,22 @@ class PageTestResultsFilterTest(unittest.TestCase):
     self.assertEquals(
         [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
         [(v.name, v.page.url) for v in results.all_page_specific_values])
+
+  def testFilterValueWithImportHistogramDicts(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    hs = histogram_set.HistogramSet()
+    hs.AddHistogram(histogram_module.Histogram('a', 'count'))
+    hs.AddHistogram(histogram_module.Histogram('b', 'count'))
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.ImportHistogramDicts(hs.AsDicts())
+    results.DidRunPage(self.pages[0])
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(results.AsHistogramDicts())
+    self.assertEquals(len(new_hs), 1)
 
   def testFilterIsFirstResult(self):
     def AcceptSecondValues(_, is_first_result):

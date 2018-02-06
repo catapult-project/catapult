@@ -401,6 +401,17 @@ class PageTestResults(object):
     if self._should_add_value(histogram.name, is_first_result):
       self._histograms.AddHistogram(histogram)
 
+  def ImportHistogramDicts(self, histogram_dicts):
+    assert self._current_page_run, 'Not currently running test.'
+    is_first_result = (
+        self._current_page_run.story not in self._all_stories)
+    dicts_to_add = []
+    for d in histogram_dicts:
+      # If there's a type field, it's a diagnostic.
+      if 'type' in d or self._should_add_value(d['name'], is_first_result):
+        dicts_to_add.append(d)
+    self._histograms.ImportDicts(dicts_to_add)
+
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
     assert self._benchmark_enabled, 'Cannot add value to disabled results'
