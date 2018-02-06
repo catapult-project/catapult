@@ -57,7 +57,7 @@ def FindMemoryDumps(filename):
   processes = {}
 
   with OpenTraceFile(filename, 'r') as f:
-    data = json.loads(f.read().decode('ascii'))
+    data = json.loads(f.read().decode('utf-8'))
 
     for event in data['traceEvents']:
       pid = event['pid']
@@ -146,7 +146,12 @@ def ResolveMemoryDumpFields(entries, stackframes, types):
     return types[type_id]
 
   for entry in entries:
-    entry.stackframe = ResolveStackTrace(entry.stackframe, stackframes)
+    # Stackframe may be -1 (18446744073709551615L) when not stackframe are
+    # available.
+    if entry.stackframe not in stackframes:
+      entry.stackframe = []
+    else:
+      entry.stackframe = ResolveStackTrace(entry.stackframe, stackframes)
     entry.type = ResolveType(entry.type, types)
 
 
