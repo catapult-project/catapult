@@ -6,6 +6,7 @@
 
 import json
 import logging
+import re
 
 from google.appengine.api import app_identity
 from google.appengine.api import urlfetch
@@ -15,12 +16,15 @@ from google.appengine.ext import ndb
 from dashboard import auto_bisect
 from dashboard import oauth2_decorator
 from dashboard import short_uri
+from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
+from dashboard.services import crrev_service
+from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 
 # A list of bug labels to suggest for all performance regression bugs.
@@ -155,13 +159,17 @@ class FileBugHandler(request_handler.RequestHandler):
     template_params = {'bug_id': bug_id}
     if all(k.kind() == 'Anomaly' for k in alert_keys):
       logging.info('Kicking bisect for bug ' + str(bug_id))
-      bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
-      if 'error' in bisect_result:
-        logging.info('Failed to kick bisect for ' + str(bug_id))
-        template_params['bisect_error'] = bisect_result['error']
+      culprit_rev = _GetSingleCLForAnomalies(alerts)
+      if culprit_rev is not None:
+        _AssignBugToCLAuthor(bug_id, alerts[0], dashboard_issue_tracker_service)
       else:
-        logging.info('Successfully kicked bisect for ' + str(bug_id))
-        template_params.update(bisect_result)
+        bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
+        if 'error' in bisect_result:
+          logging.info('Failed to kick bisect for ' + str(bug_id))
+          template_params['bisect_error'] = bisect_result['error']
+        else:
+          logging.info('Successfully kicked bisect for ' + str(bug_id))
+          template_params.update(bisect_result)
     else:
       kinds = set()
       for k in alert_keys:
@@ -331,3 +339,49 @@ def _GetAllCurrentVersionsFromOmahaProxy():
   except ValueError:
     logging.error('OmahaProxy did not return valid JSON.')
   return []
+
+
+def _GetSingleCLForAnomalies(alerts):
+  """If all anomalies were caused by the same culprit, return it. Else None."""
+  revision = alerts[0].start_revision
+  if not all(a.start_revision == revision and
+             a.end_revision == revision for a in alerts):
+    return None
+  return revision
+
+def _AssignBugToCLAuthor(bug_id, alert, service):
+  """Assigns the bug to the author of the given revision."""
+  rev = str(auto_bisect.GetRevisionForBisect(alert.end_revision, alert.test))
+  # TODO(sullivan, dtu): merge this with similar pinoint code.
+  if re.match(r'^[0-9]{5,7}$', rev):
+    # This is a commit position, need the git hash.
+    result = crrev_service.GetNumbering(
+        number=rev,
+        numbering_identifier='refs/heads/master',
+        numbering_type='COMMIT_POSITION',
+        project='chromium',
+        repo='chromium/src')
+    rev = result['git_sha']
+  if not re.match(r'[a-fA-F0-9]{40}$', rev):
+    # This still isn't a git hash; can't assign bug.
+    return
+
+  repository_url = None
+  repositories = namespaced_stored_object.Get('repositories')
+  test_path = utils.TestPath(alert.test)
+  if test_path.startswith('ChromiumPerf'):
+    repository_url = repositories['chromium']['repository_url']
+  elif test_path.startswith('ClankInternal'):
+    repository_url = repositories['clank']['repository_url']
+  if not repository_url:
+    # Can't get committer info from this repository.
+    return
+
+  commit_info = gitiles_service.CommitInfo(repository_url, rev)
+  author = commit_info['author']['email']
+  service.AddBugComment(
+      bug_id,
+      'Assigning to %s because this is the only CL in range:\n%s' % (
+          author, commit_info['message']),
+      status='Assigned',
+      owner=author)

@@ -148,8 +148,8 @@ def _MakeBisectTryJob(bug_id, test_anomaly, test):
   Raises:
     NotBisectableError: A valid bisect config could not be created.
   """
-  good_revision = _GetRevisionForBisect(test_anomaly.start_revision - 1, test)
-  bad_revision = _GetRevisionForBisect(test_anomaly.end_revision, test)
+  good_revision = GetRevisionForBisect(test_anomaly.start_revision - 1, test)
+  bad_revision = GetRevisionForBisect(test_anomaly.end_revision, test)
   if not can_bisect.IsValidRevisionForBisect(good_revision):
     raise NotBisectableError('Invalid "good" revision: %s.' % good_revision)
   if not can_bisect.IsValidRevisionForBisect(bad_revision):
@@ -253,7 +253,7 @@ def _CompareAnomalyBisectability(a1, a2):
   return 0
 
 
-def _GetRevisionForBisect(revision, test_key):
+def GetRevisionForBisect(revision, test_key):
   """Gets a start or end revision value which can be used when bisecting.
 
   Note: This logic is parallel to that in elements/chart-container.html

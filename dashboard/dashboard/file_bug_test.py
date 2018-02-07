@@ -17,11 +17,13 @@ from dashboard import mock_oauth2_decorator
 # pylint: enable=unused-import
 
 from dashboard import file_bug
+from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import sheriff
+from dashboard.services import crrev_service
 
 
 class MockIssueTrackerService(object):
@@ -70,30 +72,32 @@ class FileBugTest(testing_common.TestCase):
     file_bug.issue_tracker_service.IssueTrackerService = self.original_service
     self.UnsetCurrentUser()
 
-  def _AddSampleAlerts(self, is_chromium=True):
+  def _AddSampleAlerts(self, master='ChromiumPerf', has_commit_positions=True):
     """Adds sample data and returns a dict of rev to anomaly key."""
     # Add sample sheriff, masters, bots, and tests.
     sheriff_key = sheriff.Sheriff(
         id='Sheriff',
         labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
-    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
+    testing_common.AddTests([master], ['linux'], {
         'scrolling': {
             'first_paint': {},
             'mean_frame_time': {},
         }
     })
-    test_path1 = 'ChromiumPerf/linux/scrolling/first_paint'
-    test_path2 = 'ChromiumPerf/linux/scrolling/mean_frame_time'
+    test_path1 = '%s/linux/scrolling/first_paint' % master
+    test_path2 = '%s/linux/scrolling/mean_frame_time' % master
     test_key1 = utils.TestKey(test_path1)
     test_key2 = utils.TestKey(test_path2)
     anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
     anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
+    anomaly_key3 = self._AddAnomaly(112015, 112015, test_key2, sheriff_key)
     rows_1 = testing_common.AddRows(test_path1, [112005])
     rows_2 = testing_common.AddRows(test_path2, [112010])
-    if is_chromium:
+    rows_2 = testing_common.AddRows(test_path2, [112015])
+    if has_commit_positions:
       rows_1[0].r_commit_pos = 112005
       rows_2[0].r_commit_pos = 112010
-    return (anomaly_key1, anomaly_key2)
+    return (anomaly_key1, anomaly_key2, anomaly_key3)
 
   def _AddSampleClankAlerts(self):
     """Adds sample data and returns a dict of rev to anomaly key.
@@ -188,16 +192,22 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
-  def _PostSampleBug(self, is_chromium=True, is_clankium=False):
-    if is_clankium:
+  def _PostSampleBug(self,
+                     has_commit_positions=True,
+                     master='ChromiumPerf',
+                     is_single_rev=False):
+    if master == 'ClankInternal':
       alert_keys = self._AddSampleClankAlerts()
     else:
-      alert_keys = self._AddSampleAlerts(is_chromium)
+      alert_keys = self._AddSampleAlerts(master, has_commit_positions)
+    if is_single_rev:
+      alert_keys = alert_keys[2].urlsafe()
+    else:
+      alert_keys = '%s,%s' % (alert_keys[0].urlsafe(), alert_keys[1].urlsafe())
     response = self.testapp.post(
         '/file_bug',
         [
-            ('keys', '%s,%s' % (alert_keys[0].urlsafe(),
-                                alert_keys[1].urlsafe())),
+            ('keys', alert_keys),
             ('summary', 's'),
             ('description', 'd\n'),
             ('finish', 'true'),
@@ -243,6 +253,78 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
+              mock.MagicMock(return_value={
+                  'author': {'email': 'foo@bar.com'},
+                  'message': 'My first commit!'}))
+  def testGet_WithFinish_CreatesBugSingleRevOwner(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories',
+        {"chromium": {
+            "repository_url": "https://chromium.googlesource.com/chromium/src"
+        }})
+    self.service.bug_id = 277761
+    response = self._PostSampleBug(is_single_rev=True)
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self.service.add_comment_args[1]
+    self.assertIn(
+        'Assigning to foo@bar.com because this is the only CL in range',
+        comment)
+    self.assertIn('My first commit', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
+              mock.MagicMock(return_value={
+                  'author': {'email': 'foo@bar.com'},
+                  'message': 'My first commit!'}))
+  def testGet_WithFinish_CreatesBugSingleRevDifferentMasterOwner(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories',
+        {"chromium": {
+            "repository_url": "https://chromium.googlesource.com/chromium/src"
+        }})
+    self.service.bug_id = 277761
+    response = self._PostSampleBug(is_single_rev=True, master='Foo')
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self.service.add_comment_args[1]
+    self.assertNotIn(
+        'Assigning to foo@bar.com because this is the only CL in range',
+        comment)
+    self.assertNotIn('My first commit', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[
           {
               'versions': [
@@ -277,12 +359,12 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
-  def testGet_WithFinish_LabelsBugWithNoMilestoneBecauseNotChromium(self):
+  def testGet_WithFinish_LabelsBugWithNoMilestoneBecauseNoCommitPos(self):
     # Here, we expect to return no Milestone label because the alerts do not
     # contain r_commit_pos (and therefore aren't chromium). Assuming
     # testGet_WithFinish_LabelsBugWithMilestone passes, M-2
     # would be the label that it would get if the alert was Chromium.
-    self._PostSampleBug(is_chromium=False)
+    self._PostSampleBug(has_commit_positions=False)
     labels = self.service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
@@ -307,7 +389,7 @@ class FileBugTest(testing_common.TestCase):
     # which revision to check. There are 3 branching points to ensure we are
     # actually changing the revision that is checked to r_commit_pos instead
     # of just displaying the highest one (previous behavior).
-    self._PostSampleBug(is_clankium=True)
+    self._PostSampleBug(master='ClankInternal')
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
