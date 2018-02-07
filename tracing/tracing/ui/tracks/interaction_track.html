@@ -47,9 +47,8 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.subRows_.length) {
         return this.subRows_;
       }
-      this.subRows_.push.apply(this.subRows_,
-          tr.ui.tracks.AsyncSliceGroupTrack.prototype.buildSubRows_.call(
-          {}, slices, true));
+      this.subRows_.push(
+          ...tr.ui.tracks.groupAsyncSlicesIntoSubRows(slices, true));
       return this.subRows_;
     },
 

@@ -75,83 +75,97 @@ tr.exportTo('tr.ui.tracks', function() {
       containerToTrackMap.addContainer(this.group, this);
     },
 
-    /**
-     * Breaks up the list of slices into N rows, each of which is a list of
-     * slices that are non overlapping.
-     *
-     * It uses a very simple approach: walk through the slices in sorted order
-     * by start time. For each slice, try to fit it in an existing subRow. If
-     * it doesn't fit in any subrow, make another subRow. It then fits nested
-     * subSlices recursively into rows below parent slice according to which
-     * nested level the child is in.
-     */
-    buildSubRows_(slices, opt_skipSort) {
-      if (!opt_skipSort) {
-        slices.sort(function(x, y) {
-          return x.start - y.start;
-        });
-      }
-
-      // Helper function that returns true if it can put the slice on row n.
-      const findLevel = function(sliceToPut, rows, n) {
-        if (n >= rows.length) {
-          return true; // We always can make empty rows to put the slice.
-        }
-        const subRow = rows[n];
-        const lastSliceInSubRow = subRow[subRow.length - 1];
-        if (sliceToPut.start >= lastSliceInSubRow.end) {
-          if (sliceToPut.subSlices === undefined ||
-              sliceToPut.subSlices.length === 0) {
-            return true;
-          }
-          // Make sure nested sub slices can be fitted in as well.
-          for (const subSlice of sliceToPut.subSlices) {
-            if (!findLevel(subSlice, rows, n + 1)) {
-              return false;
-            }
-          }
-          return true;
-        }
-        return false;
-      };
-
-      const subRows = [];
-      for (const slice of slices) {
-        let found = false;
-        let index = subRows.length;
-        for (let j = 0; j < subRows.length; j++) {
-          if (findLevel(slice, subRows, j)) {
-            found = true;
-            index = j;
-            break;
-          }
-        }
-        if (!found) {
-          subRows.push([]);
-        }
-        subRows[index].push(slice);
-
-        // Fit subSlices recursively into rows below parent.
-        const fitSubSlicesRecursively = function(subSlices, level, rows) {
-          if (subSlices === undefined || subSlices.length === 0) {
-            return;
-          }
-          if (level === rows.length) {
-            rows.push([]);
-          }
-          for (const subSlice of subSlices) {
-            rows[level].push(subSlice);
-            fitSubSlicesRecursively(subSlice.subSlices, level + 1, rows);
-          }
-        };
-        fitSubSlicesRecursively(slice.subSlices, index + 1, subRows);
-      }
-      return subRows;
+    buildSubRows_(slices) {
+      // TODO(kraynov): Support sub-groups.
+      return groupAsyncSlicesIntoSubRows(slices);
     }
   };
 
+  /**
+   * Strip away wrapper slice which are used to group slices into
+   * a single track but provides no information themselves.
+   */
+  function stripSlice_(slice) {
+    if (slice.subSlices !== undefined && slice.subSlices.length === 1) {
+      const subSlice = slice.subSlices[0];
+      if (tr.b.math.approximately(subSlice.start, slice.start, 1) &&
+          tr.b.math.approximately(subSlice.duration, slice.duration, 1)) {
+        return subSlice;
+      }
+    }
+    return slice;
+  }
+
+  /**
+   * Unwrap the list of non-overlapping slices into a number of rows where
+   * the top row holds original slices and additional rows hold nested slices
+   * of ones from the row above them.
+   */
+  function makeLevelSubRows_(slices) {
+    const rows = [];
+    const putSlice = (slice, level) => {
+      while (rows.length <= level) {
+        rows.push([]);
+      }
+      rows[level].push(slice);
+    };
+    const putSliceRecursively = (slice, level) => {
+      putSlice(slice, level);
+      if (slice.subSlices !== undefined) {
+        for (const subSlice of slice.subSlices) {
+          putSliceRecursively(subSlice, level + 1);
+        }
+      }
+    };
+
+    for (const slice of slices) {
+      putSliceRecursively(stripSlice_(slice), 0);
+    }
+    return rows;
+  }
+
+  /**
+   * Breaks up the list of slices into a number of rows:
+   * - Which contain non-overlapping slices.
+   * - If slice has nested slices, they're placed onto the row below.
+   * Sorting may be skipped if slices are already sorted by start timestamp.
+   */
+  function groupAsyncSlicesIntoSubRows(slices, opt_skipSort) {
+    if (!opt_skipSort) {
+      slices.sort((x, y) => x.start - y.start);
+    }
+
+    // The algorithm is fairly simple:
+    // - Level is a group of rows, where the top row holds original slices and
+    //   additional rows hold nested slices of ones from the row above them.
+    // - Make a level by putting sorted slices, skipping if one's overlapping.
+    // - Repeat and make more levels while we're having residual slices left.
+    const rows = [];
+    let slicesLeft = slices;
+    while (slicesLeft.length !== 0) {
+      // Make a level.
+      const fit = [];
+      const unfit = [];
+      let levelEndTime = -1;
+
+      for (const slice of slicesLeft) {
+        if (slice.start >= levelEndTime) {
+          // Assuming nested slices lie within parent's boundaries.
+          levelEndTime = slice.end;
+          fit.push(slice);
+        } else {
+          unfit.push(slice);
+        }
+      }
+      rows.push(...makeLevelSubRows_(fit));
+      slicesLeft = unfit;
+    }
+    return rows;
+  }
+
   return {
     AsyncSliceGroupTrack,
+    groupAsyncSlicesIntoSubRows,
   };
 });
 </script>

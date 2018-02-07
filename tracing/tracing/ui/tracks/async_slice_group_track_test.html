@@ -21,6 +21,7 @@ tr.b.unittest.testSuite(function() {
   const ThreadTrack = tr.ui.tracks.ThreadTrack;
   const newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
   const newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
+  const groupAsyncSlicesIntoSubRows = tr.ui.tracks.groupAsyncSlicesIntoSubRows;
 
   test('filterSubRows', function() {
     const model = new tr.Model();
@@ -33,6 +34,57 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(track.children.length, 1);
     assert.isTrue(track.hasVisibleContent);
+  });
+
+  test('groupAsyncSlicesIntoSubRows_empty', function() {
+    const rows = groupAsyncSlicesIntoSubRows([]);
+    assert.strictEqual(rows.length, 0);
+  });
+
+  test('groupAsyncSlicesIntoSubRows_trivial', function() {
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    const t1 = new Thread(p1, 1);
+
+    const s1 = newAsyncSlice(10, 200, t1, t1);
+    const s2 = newAsyncSlice(300, 30, t1, t1);
+
+    const slices = [s2, s1];
+    const rows = groupAsyncSlicesIntoSubRows(slices);
+
+    assert.strictEqual(rows.length, 1);
+    assert.sameMembers(rows[0], [s1, s2]);
+  });
+
+  test('groupAsyncSlicesIntoSubRows_nonTrivial', function() {
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    const t1 = new Thread(p1, 1);
+
+    const s1 = newAsyncSlice(10, 200, t1, t1);  // Should be stripped.
+    const s1s1 = newAsyncSlice(10, 200, t1, t1);
+    s1.subSlices = [s1s1];
+
+    const s2 = newAsyncSlice(300, 30, t1, t1);
+    const s2s1 = newAsyncSlice(300, 10, t1, t1);
+    const s2s2 = newAsyncSlice(310, 20, t1, t1);  // Should not be stripped.
+    const s2s2s1 = newAsyncSlice(310, 20, t1, t1);
+    s2s2.subSlices = [s2s2s1];
+    s2.subSlices = [s2s2, s2s1];
+
+    const s3 = newAsyncSlice(200, 50, t1, t1);  // Overlaps with s1.
+    const s3s1 = newAsyncSlice(220, 5, t1, t1);
+    s3.subSlices = [s3s1];
+
+    const slices = [s2, s3, s1];
+    const rows = groupAsyncSlicesIntoSubRows(slices);
+
+    assert.strictEqual(rows.length, 5);
+    assert.sameMembers(rows[0], [s1s1, s2]);
+    assert.sameMembers(rows[1], [s2s1, s2s2]);
+    assert.sameMembers(rows[2], [s2s2s1]);
+    assert.sameMembers(rows[3], [s3]);
+    assert.sameMembers(rows[4], [s3s1]);
   });
 
   test('rebuildSubRows_twoNonOverlappingSlices', function() {
