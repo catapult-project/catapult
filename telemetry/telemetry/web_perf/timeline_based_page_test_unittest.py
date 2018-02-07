@@ -11,7 +11,6 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf.metrics import smoothness
 from tracing.value import histogram
-from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
