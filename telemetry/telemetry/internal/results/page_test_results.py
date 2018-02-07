@@ -27,6 +27,7 @@ from telemetry.value import skip
 from telemetry.value import trace
 
 from tracing.value import convert_chart_json
+from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -231,15 +232,11 @@ class PageTestResults(object):
   def telemetry_info(self):
     return self._telemetry_info
 
-  @property
-  def histograms(self):
-    return self._histograms
-
   def AsHistogramDicts(self):
-    return self.histograms.AsDicts()
+    return self._histograms.AsDicts()
 
   def PopulateHistogramSet(self, benchmark_metadata):
-    if len(self.histograms):
+    if len(self._histograms):
       return
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
@@ -261,8 +258,8 @@ class PageTestResults(object):
       logging.error('Error converting chart json to Histograms:\n' +
                     vinn_result.stdout)
       return []
-    self.histograms.ImportDicts(json.loads(vinn_result.stdout))
-    self.histograms.ResolveRelatedHistograms()
+    self._histograms.ImportDicts(json.loads(vinn_result.stdout))
+    self._histograms.ResolveRelatedHistograms()
 
   def __copy__(self):
     cls = self.__class__
@@ -394,12 +391,18 @@ class PageTestResults(object):
     self._all_stories.add(self._current_page_run.story)
     self._current_page_run = None
 
-  def AddHistogram(self, histogram):
+  def AddDurationHistogram(self, duration_in_milliseconds):
+    hist = histogram.Histogram(
+        'benchmark_total_duration', 'ms_smallerIsBetter')
+    hist.AddSample(duration_in_milliseconds)
+    self._histograms.AddHistogram(hist)
+
+  def AddHistogram(self, hist):
     assert self._current_page_run, 'Not currently running test.'
     is_first_result = (
         self._current_page_run.story not in self._all_stories)
-    if self._should_add_value(histogram.name, is_first_result):
-      self._histograms.AddHistogram(histogram)
+    if self._should_add_value(hist.name, is_first_result):
+      self._histograms.AddHistogram(hist)
 
   def ImportHistogramDicts(self, histogram_dicts):
     assert self._current_page_run, 'Not currently running test.'

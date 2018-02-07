@@ -469,8 +469,10 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         'benchmark_name', 'benchmark_description')
     results.PopulateHistogramSet(benchmark_metadata)
 
-    self.assertEquals(1, len(results.histograms))
-    self.assertEquals('a', list(results.histograms)[0].name)
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(results.AsHistogramDicts())
+    self.assertEquals(1, len(hs))
+    self.assertEquals('a', hs.GetFirstHistogram().name)
 
   def testPopulateHistogramSet_UsesHistogramSetData(self):
     original_diagnostic = generic_set.GenericSet(['benchmark_name'])
@@ -478,8 +480,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results = page_test_results.PageTestResults()
     results.telemetry_info.benchmark_start_epoch = 1501773200
     results.WillRunPage(self.pages[0])
-    results.histograms.AddHistogram(histogram_module.Histogram('foo', 'count'))
-    results.histograms.AddSharedDiagnostic(
+    results.AddHistogram(histogram_module.Histogram('foo', 'count'))
+    results.AddSharedDiagnostic(
         reserved_infos.BENCHMARKS.name, original_diagnostic)
     results.DidRunPage(self.pages[0])
     results.CleanUp()
@@ -654,8 +656,10 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results.AddHistogram(histogram_module.Histogram('a', 'count'))
     results.AddHistogram(histogram_module.Histogram('b', 'count'))
 
-    self.assertEquals(len(results.histograms), 1)
-    self.assertEquals(results.histograms.GetFirstHistogram().name, 'a')
+    histogram_dicts = results.AsHistogramDicts()
+
+    self.assertEquals(len(histogram_dicts), 1)
+    self.assertEquals(histogram_dicts[0]['name'], 'a')
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud(self, cloud_storage_insert_patch):

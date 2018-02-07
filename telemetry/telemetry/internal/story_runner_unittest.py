@@ -678,8 +678,8 @@ class StoryRunnerTest(unittest.TestCase):
 
       # pylint: disable=unused-argument
       def RunPage(self, _, _2, results):
-        results.histograms.ImportDicts([
-            histogram_module.Histogram('hist', 'count').AsDict()])
+        results.AddHistogram(
+            histogram_module.Histogram('hist', 'count'))
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -691,13 +691,12 @@ class StoryRunnerTest(unittest.TestCase):
         test, story_set, self.options, self.results,
         metadata=EmptyMetadataForTest())
 
-    hs = self.results.histograms
+    dicts = self.results.AsHistogramDicts()
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(dicts)
 
     self.assertEqual(1, len(hs))
-
-    h = hs.GetFirstHistogram()
-
-    self.assertEqual('hist', h.name)
+    self.assertEqual('hist', hs.GetFirstHistogram().name)
 
   def testRunStoryAddsDeviceInfo(self):
     story_set = story_module.StorySet()
@@ -705,7 +704,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, self.options, self.results,
                      metadata=EmptyMetadataForTest())
 
-    hs = self.results.histograms
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(self.results.AsHistogramDicts())
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
         generic_set.GenericSet)
@@ -744,7 +744,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, self.options, self.results,
                      metadata=EmptyMetadataForTest())
 
-    hs = self.results.histograms
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(self.results.AsHistogramDicts())
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
         generic_set.GenericSet)
@@ -765,8 +766,8 @@ class StoryRunnerTest(unittest.TestCase):
 
       # pylint: disable=unused-argument
       def RunPage(self, _, _2, results):
-        results.histograms.ImportDicts([
-            histogram_module.Histogram('hist', 'count').AsDict()])
+        results.AddHistogram(
+            histogram_module.Histogram('hist', 'count'))
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -777,7 +778,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(Test(), story_set, self.options, self.results,
                      metadata=EmptyMetadataForTest())
 
-    hs = self.results.histograms
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(self.results.AsHistogramDicts())
 
     generic_diagnostics = hs.GetSharedDiagnosticsOfType(
         generic_set.GenericSet)
@@ -806,7 +808,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, self.options, self.results,
                      metadata=EmptyMetadataForTest())
 
-    hs = self.results.histograms
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
       if type(diagnostic) == histogram_module.TagMap:
@@ -845,7 +848,8 @@ class StoryRunnerTest(unittest.TestCase):
           metadata=EmptyMetadataForTest())
     self.assertIn('FooBarzException', self.fake_stdout.getvalue())
 
-    hs = self.results.histograms
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
       if type(diagnostic) == histogram_module.TagMap:
