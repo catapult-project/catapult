@@ -6,8 +6,6 @@ import unittest
 import os
 
 from tracing.mre import function_handle
-from tracing.mre import failure
-from tracing.mre import job as job_module
 
 from telemetry import page
 from telemetry import story
@@ -23,17 +21,6 @@ def _SingleFileFunctionHandle(filename, function_name, guid):
 
 
 class TranslateCommonValuesTest(unittest.TestCase):
-  def testTranslateMreFailure(self):
-    map_function_handle = _SingleFileFunctionHandle('foo.html', 'Foo', '2')
-    job = job_module.Job(map_function_handle, '1')
-
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
-
-    f = failure.Failure(job, 'foo', '/a.json', 'MyFailure', 'failure', 'stack')
-    fv = common_value_helpers.TranslateMreFailure(f, p)
-
-    self.assertIn('stack', str(fv))
 
   def testTranslateScalarValue(self):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))

@@ -24,7 +24,6 @@ from telemetry import page
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
-from telemetry.value import failure
 from telemetry.value import skip
 from telemetry.value import scalar
 from telemetry.web_perf import story_test
@@ -97,7 +96,7 @@ def CaptureLogsAsArtifacts(results, test_name):
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
-  def ProcessError(exc=None, description=None):
+  def ProcessError(exc=None, handleable=True):
     state.DumpStateUponFailure(story, results)
 
     # Dump app crash, if present
@@ -107,9 +106,9 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         if minidump_path:
           results.AddArtifact(story.name, 'minidump', minidump_path)
 
-    # Note: adding the FailureValue to the results object also normally
-    # cause the progress_reporter to log it in the output.
-    results.AddValue(failure.FailureValue(story, sys.exc_info(), description))
+    # Note: calling Fail on the results object also normally causes the
+    # progress_reporter to log it in the output.
+    results.Fail(sys.exc_info(), handleable=handleable)
 
   with CaptureLogsAsArtifacts(results, story.name):
     try:
@@ -137,7 +136,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       results.AddValue(
           skip.SkipValue(story, 'Unsupported page action: %s' % exc))
     except Exception:
-      ProcessError(description='Unhandlable exception raised.')
+      ProcessError(handleable=False)
       raise
     finally:
       has_existing_exception = (sys.exc_info() != (None, None, None))
@@ -226,7 +225,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           num_values = len(results.all_page_specific_values)
           if num_values > max_num_values:
             msg = 'Too many values: %d > %d' % (num_values, max_num_values)
-            results.AddValue(failure.FailureValue.FromMessage(None, msg))
+            results.Fail(msg)
 
           device_info_diags = _MakeDeviceInfoDiagnostics(state)
         except exceptions.Error:

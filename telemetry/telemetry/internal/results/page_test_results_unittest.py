@@ -52,8 +52,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testFailures(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
-    results.AddValue(
-        failure.FailureValue(self.pages[0], self.CreateException()))
+    results.Fail(self.CreateException())
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
@@ -87,8 +86,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testPassesNoSkips(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
-    results.AddValue(
-        failure.FailureValue(self.pages[0], self.CreateException()))
+    results.Fail(self.CreateException())
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
@@ -247,14 +245,14 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
         improvement_direction=improvement_direction.UP))
-    results.AddValue(failure.FailureValue.FromMessage(self.pages[0], 'message'))
+    results.Fail('message')
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
     results.AddValue(scalar.ScalarValue(
         self.pages[1], 'a', 'seconds', 7,
         improvement_direction=improvement_direction.UP))
-    results.AddValue(failure.FailureValue.FromMessage(self.pages[1], 'message'))
+    results.Fail('message')
     results.DidRunPage(self.pages[1])
 
     results.PrintSummary()
@@ -305,8 +303,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    value2 = failure.FailureValue.FromMessage(self.pages[1], 'Failure')
-    results.AddValue(value2)
+    results.Fail('Failure')
     results.DidRunPage(self.pages[1])
 
     results.WillRunPage(self.pages[2])
@@ -317,7 +314,11 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[2])
 
     self.assertEquals(
-        [value1, value2, value3], results.all_page_specific_values)
+        results.all_page_specific_values[0], value1)
+    self.assertIsInstance(
+        results.all_page_specific_values[1], failure.FailureValue)
+    self.assertEquals(
+        results.all_page_specific_values[2], value3)
 
   def testFindValues(self):
     results = page_test_results.PageTestResults()
@@ -618,15 +619,15 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'b', 'seconds', 8,
         improvement_direction=improvement_direction.UP))
-    failure_value = failure.FailureValue.FromMessage(self.pages[0], 'failure')
-    results.AddValue(failure_value)
+    results.Fail('failure')
     results.DidRunPage(self.pages[0])
     results.PrintSummary()
 
     # Although predicate says only accept values named 'a', the failure value is
     # added anyway.
     self.assertEquals(len(results.all_page_specific_values), 1)
-    self.assertIn(failure_value, results.all_page_specific_values)
+    self.assertIsInstance(results.all_page_specific_values[0],
+                          failure.FailureValue)
 
   def testSkipValueCannotBeFiltered(self):
     def AcceptValueNamed_a(name, _):

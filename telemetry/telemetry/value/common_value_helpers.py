@@ -3,13 +3,8 @@
 # found in the LICENSE file.
 
 import copy
-from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
-
-
-def TranslateMreFailure(mre_failure, page):
-  return failure.FailureValue.FromMessage(page, mre_failure.stack)
 
 
 def TranslateScalarValue(scalar_value, page):

@@ -29,7 +29,6 @@ from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
-from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
@@ -235,13 +234,12 @@ class TestOnlyException(Exception):
   pass
 
 
-class FailureValueMatcher(object):
-  def __init__(self, expected_exception_message):
-    self._expected_exception_message = expected_exception_message
+class ExcInfoMatcher(object):
+  def __init__(self, message):
+    self.message = message
 
   def __eq__(self, other):
-    return (isinstance(other, failure.FailureValue) and
-            other.exc_info[1].message == self._expected_exception_message)
+    return isinstance(other[1], Exception) and self.message == other[1].message
 
 
 class SkipValueMatcher(object):
@@ -1095,7 +1093,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1129,7 +1127,7 @@ class StoryRunnerTest(unittest.TestCase):
               root_mock.story, root_mock.results),
           mock.call.results.AddArtifact(
               root_mock.story.name, 'minidump', temp_file_path),
-          mock.call.results.AddValue(FailureValueMatcher('foo')),
+          mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
           mock.call.test.DidRunStory(
               root_mock.state.platform, root_mock.results),
           mock.call.state.DidRunStory(root_mock.results),
@@ -1153,7 +1151,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1190,7 +1188,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=False),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1235,7 +1233,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.RunStory(root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1256,7 +1254,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
@@ -1298,7 +1296,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.AddValue(FailureValueMatcher('foo')),
+        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=False),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 

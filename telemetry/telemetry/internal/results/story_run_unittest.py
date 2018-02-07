@@ -8,7 +8,6 @@ from telemetry.internal.results import story_run
 from telemetry.story import shared_state
 from telemetry.story import story_set
 from telemetry import story as story_module
-from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.value import skip
@@ -34,7 +33,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testStoryRunFailed(self):
     run = story_run.StoryRun(self.stories[0])
-    run.AddValue(failure.FailureValue.FromMessage(self.stories[0], 'test'))
+    run.Fail('test')
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
     self.assertFalse(run.skipped)
@@ -43,14 +42,14 @@ class StoryRunTest(unittest.TestCase):
     run.AddValue(scalar.ScalarValue(
         self.stories[0], 'a', 's', 1,
         improvement_direction=improvement_direction.UP))
-    run.AddValue(failure.FailureValue.FromMessage(self.stories[0], 'test'))
+    run.Fail('test')
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
     self.assertFalse(run.skipped)
 
   def testStoryRunSkipped(self):
     run = story_run.StoryRun(self.stories[0])
-    run.AddValue(failure.FailureValue.FromMessage(self.stories[0], 'test'))
+    run.Fail('test')
     run.AddValue(skip.SkipValue(self.stories[0], 'test'))
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)

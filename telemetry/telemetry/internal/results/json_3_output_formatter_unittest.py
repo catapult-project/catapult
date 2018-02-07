@@ -15,7 +15,6 @@ from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
 from telemetry.testing import options_for_unittests
-from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.value import skip
@@ -190,8 +189,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._story_set[0])
 
     results.WillRunPage(self._story_set[1])
-    v1 = failure.FailureValue.FromMessage(results.current_page, 'fake_failure')
-    results.AddValue(v1)
+    results.Fail('fake_failure')
     results.DidRunPage(self._story_set[1])
 
     d = json_3_output_formatter.ResultsAsDict(results)

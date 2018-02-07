@@ -14,6 +14,13 @@ class StoryRun(object):
   def AddValue(self, value):
     self._values.append(value)
 
+  def Fail(self, exc_info_or_message):
+    if isinstance(exc_info_or_message, basestring):
+      self.AddValue(failure.FailureValue.FromMessage(
+          self.story, exc_info_or_message))
+    else:
+      self.AddValue(failure.FailureValue(self.story, exc_info_or_message))
+
   @property
   def story(self):
     return self._story

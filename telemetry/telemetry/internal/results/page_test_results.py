@@ -452,6 +452,19 @@ class PageTestResults(object):
   def AddSharedDiagnostic(self, name, diagnostic):
     self._histograms.AddSharedDiagnostic(name, diagnostic)
 
+  def Fail(self, exc_info_or_message, handleable=True):
+    assert self._current_page_run, 'Not currently running test.'
+    if not handleable:
+      description = 'Unhandleable exception raised.'
+    else:
+      description = None
+    if isinstance(exc_info_or_message, basestring):
+      self.AddValue(failure.FailureValue.FromMessage(
+          self.current_page, exc_info_or_message))
+    else:
+      self.AddValue(failure.FailureValue(
+          self.current_page, exc_info_or_message, description))
+
   def CreateArtifact(self, story, name):
     return self._artifact_results.CreateArtifact(story, name)
 
