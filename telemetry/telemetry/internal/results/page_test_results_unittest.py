@@ -68,7 +68,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testSkips(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
-    results.AddValue(skip.SkipValue(self.pages[0], 'testing reason'))
+    results.Skip('testing reason')
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
@@ -93,7 +93,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[1])
 
     results.WillRunPage(self.pages[2])
-    results.AddValue(skip.SkipValue(self.pages[2], 'testing reason'))
+    results.Skip('testing reason')
     results.DidRunPage(self.pages[2])
 
     self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
@@ -635,18 +635,17 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results = page_test_results.PageTestResults(
         should_add_value=AcceptValueNamed_a)
     results.WillRunPage(self.pages[0])
-    skip_value = skip.SkipValue(self.pages[0], 'skip for testing')
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'b', 'seconds', 8,
         improvement_direction=improvement_direction.UP))
-    results.AddValue(skip_value)
+    results.Skip('skip for testing')
     results.DidRunPage(self.pages[0])
     results.PrintSummary()
 
     # Although predicate says only accept value with named 'a', skip value is
     # added anyway.
     self.assertEquals(len(results.all_page_specific_values), 1)
-    self.assertIn(skip_value, results.all_page_specific_values)
+    self.assertIsInstance(results.all_page_specific_values[0], skip.SkipValue)
 
   def testFilterHistogram(self):
     def AcceptValueNamed_a(name, _):

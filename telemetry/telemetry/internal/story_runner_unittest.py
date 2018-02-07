@@ -32,7 +32,6 @@ import mock
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
-from telemetry.value import skip
 from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
@@ -240,11 +239,6 @@ class ExcInfoMatcher(object):
 
   def __eq__(self, other):
     return isinstance(other[1], Exception) and self.message == other[1].message
-
-
-class SkipValueMatcher(object):
-  def __eq__(self, other):
-    return isinstance(other, skip.SkipValue)
 
 
 class _Measurement(legacy_page_test.LegacyPageTest):
@@ -1169,7 +1163,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.RunStory(root_mock.results),
-        mock.call.results.AddValue(SkipValueMatcher()),
+        mock.call.results.Skip('Unsupported page action: foo'),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1271,7 +1265,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact(root_mock.story.name, 'logs'),
         mock.call.test.WillRunStory(root_mock.state.platform),
-        mock.call.results.AddValue(SkipValueMatcher()),
+        mock.call.results.Skip('Unsupported page action: foo'),
         mock.call.test.DidRunStory(
             root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),

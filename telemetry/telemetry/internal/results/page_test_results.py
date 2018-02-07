@@ -465,6 +465,10 @@ class PageTestResults(object):
       self.AddValue(failure.FailureValue(
           self.current_page, exc_info_or_message, description))
 
+  def Skip(self, reason):
+    assert self._current_page_run, 'Not currently running test.'
+    self.AddValue(skip.SkipValue(self.current_page, reason))
+
   def CreateArtifact(self, story, name):
     return self._artifact_results.CreateArtifact(story, name)
 

@@ -10,7 +10,6 @@ from telemetry.story import story_set
 from telemetry import story as story_module
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
-from telemetry.value import skip
 
 
 # pylint: disable=abstract-method
@@ -50,7 +49,7 @@ class StoryRunTest(unittest.TestCase):
   def testStoryRunSkipped(self):
     run = story_run.StoryRun(self.stories[0])
     run.Fail('test')
-    run.AddValue(skip.SkipValue(self.stories[0], 'test'))
+    run.Skip('test')
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
@@ -59,7 +58,7 @@ class StoryRunTest(unittest.TestCase):
     run.AddValue(scalar.ScalarValue(
         self.stories[0], 'a', 's', 1,
         improvement_direction=improvement_direction.UP))
-    run.AddValue(skip.SkipValue(self.stories[0], 'test'))
+    run.Skip('test')
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)

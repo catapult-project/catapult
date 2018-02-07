@@ -12,7 +12,6 @@ from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.testing import fakes
 from telemetry.testing import stream
-from telemetry.value import skip
 
 
 _GROUPING_KEY_DEFAULT = {'1': '2'}
@@ -135,9 +134,7 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
-    results.AddValue(
-        skip.SkipValue(test_story_set.stories[0],
-                       'Page skipped for testing reason'))
+    results.Skip('Page skipped for testing reason')
     results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
@@ -239,9 +236,7 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
-    results.AddValue(skip.SkipValue(
-        test_story_set.stories[0],
-        'Page skipped for testing reason'))
+    results.Skip('Page skipped for testing reason')
     results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()

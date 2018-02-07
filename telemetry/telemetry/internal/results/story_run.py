@@ -21,6 +21,9 @@ class StoryRun(object):
     else:
       self.AddValue(failure.FailureValue(self.story, exc_info_or_message))
 
+  def Skip(self, reason):
+    self.AddValue(skip.SkipValue(self.story, reason))
+
   @property
   def story(self):
     return self._story

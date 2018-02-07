@@ -24,7 +24,6 @@ from telemetry import page
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
-from telemetry.value import skip
 from telemetry.value import scalar
 from telemetry.web_perf import story_test
 from tracing.value import histogram
@@ -117,10 +116,9 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       state.WillRunStory(story)
 
       if not state.CanRunStory(story):
-        results.AddValue(skip.SkipValue(
-            story,
+        results.Skip(
             'Skipped because story is not supported '
-            '(SharedState.CanRunStory() returns False).'))
+            '(SharedState.CanRunStory() returns False).')
         return
       state.RunStory(results)
       if isinstance(test, story_test.StoryTest):
@@ -133,8 +131,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       ProcessError(exc)
       raise
     except page_action.PageActionNotSupported as exc:
-      results.AddValue(
-          skip.SkipValue(story, 'Unsupported page action: %s' % exc))
+      results.Skip('Unsupported page action: %s' % exc)
     except Exception:
       ProcessError(handleable=False)
       raise
@@ -213,7 +210,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           disabled = expectations.IsStoryDisabled(
               story, state.platform, finder_options)
           if disabled and not finder_options.run_disabled_tests:
-            results.AddValue(skip.SkipValue(story, disabled))
+            results.Skip(disabled)
             results.DidRunPage(story)
             continue
 
