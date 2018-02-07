@@ -496,6 +496,11 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.create_browser_with_oobe = False
     # Clear enterprise policy before logging in.
     self.clear_enterprise_policy = True
+    # By default, allow policy fetches to fail. A side effect is that the user
+    # profile may become initialized before policy is available.
+    # When this is set to True, chrome will not allow policy fetches to fail and
+    # block user profile initialization on policy initialization.
+    self.expect_policy_fetch = False
     # Disable GAIA/enterprise services.
     self.disable_gaia_services = True
 

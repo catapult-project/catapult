@@ -117,8 +117,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--start-maximized',
         # Disable system startup sound.
         '--ash-disable-system-sounds',
-        # Ignore DMServer errors for policy fetches.
-        '--allow-failed-policy-fetch-for-test',
         # Skip user image selection screen, and post login screens.
         '--oobe-skip-postlogin',
         # Disable chrome logging redirect. crbug.com/724273.
@@ -126,6 +124,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         # Debug logging.
         '--vmodule=%s' % vmodule,
     ])
+
+    if not browser_options.expect_policy_fetch:
+      startup_args.append('--allow-failed-policy-fetch-for-test')
 
     # If we're using GAIA, skip to login screen, and do not disable GAIA
     # services.
