@@ -7,7 +7,6 @@ import time
 from collections import defaultdict
 
 from tracing.metrics import metric_runner
-from tracing.value import histogram_set
 
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model as model_module
@@ -314,12 +313,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     for f in mre_result.failures:
       results.Fail(f.stack)
 
-    histograms = histogram_set.HistogramSet()
-    histograms.ImportDicts(mre_result.pairs.get('histograms', []))
-    histograms.ResolveRelatedHistograms()
-
-    for h in histograms:
-      results.AddHistogram(h)
+    histogram_dicts = mre_result.pairs.get('histograms', [])
+    results.ImportHistogramDicts(histogram_dicts)
 
     for d in mre_result.pairs.get('scalars', []):
       results.AddValue(common_value_helpers.TranslateScalarValue(d, page))
