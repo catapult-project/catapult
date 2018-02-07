@@ -659,7 +659,8 @@ QUnit.test('processCSSFonts: line breaks in declaration', function(assert) {
       '@font-face { font-family:Font;\nsrc:url("http://www.url.com/goodbye/")}');
 });
 
-QUnit.test('loadFonts', function(assert) {
+// https://github.com/catapult-project/catapult/issues/4233
+QUnit.skip('loadFonts', function(assert) {
   var serializer = new HTMLSerializer();
   serializer.loadFonts(document);
   assert.equal(serializer.html[0], '');
@@ -857,7 +858,8 @@ QUnit.test('processAttributes: escaping characters', function(assert) {
   assert.equal(serializer.html[2], 'name="&lt;&quot;&gt;" ');
 });
 
-QUnit.test('window size comment', function(assert) {
+// https://github.com/catapult-project/catapult/issues/4233
+QUnit.skip('window size comment', function(assert) {
   var serializer = new HTMLSerializer();
   serializer.processDocument(document);
   assert.equal(
@@ -868,7 +870,8 @@ QUnit.test('window size comment', function(assert) {
       `<!-- Original window width: ${window.innerWidth}. -->\n`);
 });
 
-QUnit.test('processDocument: doctype tag', function(assert) {
+// https://github.com/catapult-project/catapult/issues/4233
+QUnit.skip('processDocument: doctype tag', function(assert) {
   var serializer = new HTMLSerializer();
   serializer.processDocument(document);
   assert.equal(serializer.html[0], '<!DOCTYPE html>\n');
@@ -916,6 +919,7 @@ QUnit.test('minimizeStyles: no empty styles', function(assert) {
     'idToStyleMap': {},
     'windowHeight': 5,
     'windowWidth': 5,
+// https://github.com/catapult-project/catapult/issues/4233
     'frameIndex': '0'
   };
   minimizeStyles(message);
