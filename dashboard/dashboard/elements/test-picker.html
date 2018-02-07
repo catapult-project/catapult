@@ -119,11 +119,11 @@ found in the LICENSE file.
           try {
             const diagnostics = await simple_xhr.asPromise(
                 '/get_diagnostics', params);
+            if (diagnostics.length === 0) return undefined;
+            return tr.v.d.Diagnostic.fromDict(diagnostics[0]);
           } catch (e) {
             return undefined;
           }
-          if (diagnostics.length === 0) return undefined;
-          return tr.v.d.Diagnostic.fromDict(diagnostics[0]);
         }
       }
 
