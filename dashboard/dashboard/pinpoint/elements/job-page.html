@@ -75,7 +75,7 @@ found in the LICENSE file.
         <span id="running" class="badge">Running</span>
       </template>
     </h1>
-    <loading-wrapper url="/api/job" params="[[params(routeData.jobId)]]" response="{{job}}">
+    <loading-wrapper url="/api/job?o=STATE" params="[[params(routeData.jobId)]]" response="{{job}}">
       <p class="byline">
         <template is="dom-if" if="[[job.bug_id]]">
           <a href="https://crbug.com/[[job.bug_id]]">Issue [[job.bug_id]]</a>

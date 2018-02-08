@@ -298,6 +298,12 @@ def PinpointParamsFromBisectParams(params):
   # Histogram names don't include the statistic, so split these
   chart_name, statistic_name = ParseStatisticNameFromChart(chart_name)
 
+  alert_key = ''
+  if params.get('alerts'):
+    alert_keys = json.loads(params.get('alerts'))
+    if alert_keys:
+      alert_key = alert_keys[0]
+
   return {
       'configuration': bot_name,
       'benchmark': suite,
@@ -314,5 +320,9 @@ def PinpointParamsFromBisectParams(params):
       'auto_explore': '1',
       'target': target,
       'email': email,
-      'name': job_name
+      'name': job_name,
+      'tags': json.dumps({
+          'test_path': test_path,
+          'alert': alert_key
+      }),
   }

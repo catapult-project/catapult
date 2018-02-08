@@ -41,8 +41,8 @@ class JobsTest(unittest.TestCase):
         auto_explore=True)
     job.put()
 
-    data = json.loads(self.testapp.get('/jobs').body)
+    data = json.loads(self.testapp.get('/jobs?o=STATE').body)
 
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
-    self.assertEqual(job.AsDict(include_state=False), data['jobs'][0])
+    self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])

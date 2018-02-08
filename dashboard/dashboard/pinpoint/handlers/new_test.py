@@ -165,3 +165,61 @@ class NewTest(testing_common.TestCase):
         'https://testbed.example.com/job/%s' % result['jobId'])
     job = job_module.Job.query().get()
     self.assertEqual(None, job.bug_id)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+  @mock.patch(
+      'dashboard.services.issue_tracker_service.IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  @mock.patch.object(gitiles_service, 'CommitRange')
+  def testPost_ValidTags(self, mock_commit_range):
+    mock_commit_range.return_value = [
+        {'commit': '1'},
+        {'commit': '2'},
+        {'commit': '3'},
+    ]
+    request = dict(_BASE_REQUEST)
+    request['tags'] = json.dumps({'key': 'value'})
+    response = self.testapp.post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+  @mock.patch(
+      'dashboard.services.issue_tracker_service.IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  @mock.patch.object(gitiles_service, 'CommitRange')
+  def testPost_InvalidTags(self, mock_commit_range):
+    mock_commit_range.return_value = [
+        {'commit': '1'},
+        {'commit': '2'},
+        {'commit': '3'},
+    ]
+    request = dict(_BASE_REQUEST)
+    request['tags'] = json.dumps(['abc'])
+    response = self.testapp.post('/api/new', request, status=200)
+    self.assertIn('error', json.loads(response.body))
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+  @mock.patch(
+      'dashboard.services.issue_tracker_service.IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  @mock.patch.object(gitiles_service, 'CommitRange')
+  def testPost_InvalidTagType(self, mock_commit_range):
+    mock_commit_range.return_value = [
+        {'commit': '1'},
+        {'commit': '2'},
+        {'commit': '3'},
+    ]
+    request = dict(_BASE_REQUEST)
+    request['tags'] = json.dumps({'abc': 123})
+    response = self.testapp.post('/api/new', request, status=200)
+    self.assertIn('error', json.loads(response.body))

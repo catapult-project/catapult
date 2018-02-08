@@ -12,6 +12,7 @@ from dashboard.pinpoint.models import quest as quest_module
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
+_ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 
 
 class New(webapp2.RequestHandler):
@@ -53,13 +54,15 @@ class New(webapp2.RequestHandler):
     arguments, quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(change_1, change_2)
+    tags = _ValidateTags(self.request.get('tags'))
 
     # Create job.
     job = job_module.Job.New(
         arguments=arguments,
         quests=quests,
         auto_explore=auto_explore,
-        bug_id=bug_id)
+        bug_id=bug_id,
+        tags=tags)
 
     # Add changes.
     for c in changes:
@@ -76,6 +79,22 @@ class New(webapp2.RequestHandler):
         'jobId': job.job_id,
         'jobUrl': job.url,
     }))
+
+
+def _ValidateTags(tags):
+  if not tags:
+    return {}
+
+  tags_dict = json.loads(tags)
+
+  if not isinstance(tags_dict, dict):
+    raise ValueError(_ERROR_TAGS_DICT)
+
+  for k, v in tags_dict.iteritems():
+    if not isinstance(k, basestring) or not isinstance(v, basestring):
+      raise ValueError(_ERROR_TAGS_DICT)
+
+  return tags_dict
 
 
 def _ValidateBugId(bug_id):

@@ -380,6 +380,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'alerts': json.dumps(['123'])
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -394,6 +395,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('1', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
+    self.assertEqual(
+        params['test_path'],
+        json.loads(results['tags'])['test_path'])
+    self.assertEqual('123', json.loads(results['tags'])['alert'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))

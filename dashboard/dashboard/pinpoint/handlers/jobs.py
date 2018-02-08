@@ -18,10 +18,11 @@ class Jobs(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
   def get(self):
-    self.response.out.write(json.dumps(_GetJobs()))
+    self.response.out.write(
+        json.dumps(_GetJobs(self.request.get_all('o'))))
 
 
-def _GetJobs():
+def _GetJobs(options):
   query = job_module.Job.query().order(-job_module.Job.created)
   job_future = query.fetch_async(limit=_MAX_JOBS_TO_FETCH)
   count_future = job_module.Job.query().count_async(limit=_MAX_JOBS_TO_COUNT)
@@ -34,6 +35,6 @@ def _GetJobs():
 
   jobs = job_future.get_result()
   for job in jobs:
-    result['jobs'].append(job.AsDict(include_state=False))
+    result['jobs'].append(job.AsDict(options))
 
   return result

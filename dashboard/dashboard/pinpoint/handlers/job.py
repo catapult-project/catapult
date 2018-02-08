@@ -26,4 +26,5 @@ class Job(webapp2.RequestHandler):
       self.response.write(json.dumps({'error': 'Unknown job id.'}))
       return
 
-    self.response.write(json.dumps(job.AsDict()))
+    opts = self.request.get_all('o')
+    self.response.write(json.dumps(job.AsDict(opts)))
