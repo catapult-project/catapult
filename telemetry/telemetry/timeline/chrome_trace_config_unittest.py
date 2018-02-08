@@ -58,6 +58,27 @@ class ChromeTraceConfigTests(unittest.TestCase):
          'record-until-full'),
         config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
+    # Test correct modification of config after enabling systrace.
+    config.SetEnableSystrace()
+    # Test enable systrace with trace config for startup tracing.
+    self.assertEquals({
+        'excluded_categories': ['y'],
+        'included_categories': ['x', 'disabled-by-default-z'],
+        'record_mode': 'record-until-full',
+        'synthetic_delays': ['DELAY(7;foo)'],
+        'enable_systrace': True
+    }, config.GetChromeTraceConfigForStartupTracing())
+
+    # And test again with modern API.
+    self.assertEquals({
+        'excludedCategories': ['y'],
+        'includedCategories': ['x', 'disabled-by-default-z'],
+        'recordMode': 'recordUntilFull',
+        'syntheticDelays': ['DELAY(7;foo)'],
+        'enableSystrace': True
+    }, config.GetChromeTraceConfigForDevTools())
+
+
   def testMemoryDumpConfigFormat(self):
     config = chrome_trace_config.ChromeTraceConfig()
     config.record_mode = chrome_trace_config.ECHO_TO_CONSOLE

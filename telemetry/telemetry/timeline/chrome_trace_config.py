@@ -23,6 +23,7 @@ RECORD_MODE_MAP = {
     ECHO_TO_CONSOLE: 'trace-to-console'
 }
 
+ENABLE_SYSTRACE_PARAM = 'enable_systrace'
 
 def ConvertStringToCamelCase(string):
   """Convert an underscore/hyphen-case string to its camel-case counterpart.
@@ -66,6 +67,7 @@ class ChromeTraceConfig(object):
     self._category_filter = (
         chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None
+    self._enable_systrace = False
 
   def SetLowOverheadFilter(self):
     self._category_filter = (
@@ -83,6 +85,10 @@ class ChromeTraceConfig(object):
   def category_filter(self):
     return self._category_filter
 
+  @property
+  def enable_systrace(self):
+    return self._enable_systrace
+
   def SetCategoryFilter(self, cf):
     if isinstance(cf, chrome_trace_category_filter.ChromeTraceCategoryFilter):
       self._category_filter = cf
@@ -96,6 +102,9 @@ class ChromeTraceConfig(object):
     else:
       raise TypeError(
           'Must pass SetMemoryDumpConfig a MemoryDumpConfig instance')
+
+  def SetEnableSystrace(self):
+    self._enable_systrace = True
 
   @property
   def record_mode(self):
@@ -119,6 +128,8 @@ class ChromeTraceConfig(object):
     result.update(self._category_filter.GetDictForChromeTracing())
     if self._memory_dump_config:
       result.update(self._memory_dump_config.GetDictForChromeTracing())
+    if self._enable_systrace:
+      result.update({ENABLE_SYSTRACE_PARAM: True})
     return result
 
   @property
@@ -155,6 +166,8 @@ class ChromeTraceConfig(object):
     if result[RECORD_MODE_PARAM]:
       result[RECORD_MODE_PARAM] = ConvertStringToCamelCase(
           result[RECORD_MODE_PARAM])
+    if self._enable_systrace:
+      result.update({ENABLE_SYSTRACE_PARAM: True})
     return ConvertDictKeysToCamelCaseRecursively(result)
 
   def GetChromeTraceCategoriesAndOptionsForDevTools(self):

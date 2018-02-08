@@ -84,6 +84,13 @@ class BrowserOptionsTest(unittest.TestCase):
     self.assertEquals(options.browser_options.extra_browser_args,
                       set(['--foo', '--bar']))
 
+  def testEnableSystrace(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args(['--enable-systrace'])
+
+    self.assertTrue(options.enable_systrace)
+
   def testMergeDefaultValues(self):
     options = browser_options.BrowserFinderOptions()
     options.already_true = True

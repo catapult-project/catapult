@@ -279,6 +279,8 @@ class Benchmark(command_line.Command):
         if category not in categories:
           categories.append(category)
       tbm_options.config.atrace_config.categories = categories
+    if options and options.enable_systrace:
+      tbm_options.config.chrome_trace_config.SetEnableSystrace()
     return tbm_options
 
 

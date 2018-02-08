@@ -133,6 +133,10 @@ class BrowserFinderOptions(optparse.Values):
         '--extra-atrace-categories', dest='extra_atrace_categories', type=str,
         help='Comma-separated list of extra atrace categories. Use atrace'
              ' --list_categories to get full list.')
+    group.add_option(
+        '--enable-systrace', dest='enable_systrace', action='store_true',
+        help='Enable collection of systrace. (Useful on ChromeOS where'
+             ' atrace is not supported; collects scheduling information.)')
     parser.add_option_group(group)
 
     # Platform options

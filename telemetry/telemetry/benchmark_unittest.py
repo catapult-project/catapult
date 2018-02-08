@@ -249,7 +249,7 @@ class BenchmarkTest(unittest.TestCase):
     tbm = b.CreatePageTest(options)
     self.assertEqual(
         'net,rail,toplevel',
-        tbm._tbm_options.category_filter.stable_filter_string)
+        tbm.tbm_options.category_filter.stable_filter_string)
 
   def testAtraceOptionsTurnsOnAtrace(self):
     class TbmBenchmark(benchmark.Benchmark):
@@ -266,10 +266,10 @@ class BenchmarkTest(unittest.TestCase):
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
-    self.assertTrue(tbm._tbm_options.config.enable_atrace_trace)
+    self.assertTrue(tbm.tbm_options.config.enable_atrace_trace)
     self.assertEqual(
         ['foo', 'bar'],
-        tbm._tbm_options.config.atrace_config.categories)
+        tbm.tbm_options.config.atrace_config.categories)
 
   def testAdditionalAtraceCategories(self):
     class TbmBenchmark(benchmark.Benchmark):
@@ -287,10 +287,26 @@ class BenchmarkTest(unittest.TestCase):
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
-    self.assertTrue(tbm._tbm_options.config.enable_atrace_trace)
+    self.assertTrue(tbm.tbm_options.config.enable_atrace_trace)
     self.assertEqual(
         ['string', 'foo', 'stuff', 'bar'],
-        tbm._tbm_options.config.atrace_config.categories)
+        tbm.tbm_options.config.atrace_config.categories)
+
+  def testEnableSystrace(self):
+    class TbmBenchmark(benchmark.Benchmark):
+      def CreateCoreTimelineBasedMeasurementOptions(self):
+        return timeline_based_measurement.Options()
+
+    options = options_for_unittests.GetCopy()
+    options.enable_systrace = True
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
+
+    b = TbmBenchmark(None)
+    tbm = b.CreatePageTest(options)
+    self.assertTrue(
+        tbm.tbm_options.config.chrome_trace_config.enable_systrace)
 
   def testCanRunOnPlatformReturnTrue(self):
     b = TestBenchmark(story_module.Story(

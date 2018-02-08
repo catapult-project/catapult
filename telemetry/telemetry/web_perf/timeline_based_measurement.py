@@ -341,3 +341,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
     for metric in all_metrics:
       metric.AddWholeTraceResults(model, results)
+
+  @property
+  def tbm_options(self):
+    return self._tbm_options
