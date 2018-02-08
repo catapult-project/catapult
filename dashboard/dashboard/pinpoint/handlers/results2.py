@@ -4,9 +4,9 @@
 
 """Provides the web interface for displaying a results2 file."""
 
+import cStringIO
+from multiprocessing import pool
 import os
-import StringIO
-import threading
 import webapp2
 
 from dashboard.pinpoint.models import job as job_module
@@ -27,17 +27,26 @@ class Results2(webapp2.RequestHandler):
       job_data = _GetJobData(job_id)
 
       histogram_dicts = _FetchHistogramsDataFromJobData(job_data)
-
       vulcanized_html = _ReadVulcanizedHistogramsViewer()
-      vulcanized_html_and_histograms = StringIO.StringIO()
+      output_stream = cStringIO.StringIO()
+
       render_histograms_viewer.RenderHistogramsViewer(
-          histogram_dicts, vulcanized_html_and_histograms,
+          histogram_dicts, output_stream,
           vulcanized_html=vulcanized_html)
-      self.response.out.write(vulcanized_html_and_histograms.getvalue())
+      self.response.out.write(output_stream.getvalue())
+
     except Results2Error as e:
       self.response.set_status(400)
       self.response.out.write(e.message)
       return
+
+
+def _GetJobData(job_id):
+  job = job_module.JobFromId(job_id)
+  if not job:
+    raise Results2Error('Error: Job %s missing' % job_id)
+
+  return job.AsDict()
 
 
 def _ReadVulcanizedHistogramsViewer():
@@ -49,56 +58,60 @@ def _ReadVulcanizedHistogramsViewer():
 
 
 def _FetchHistogramsDataFromJobData(job_data):
-  histogram_dicts = []
-  threads = []
-  lock = threading.Lock()
-
-  test_index = -1
-  for i in xrange(len(job_data['quests'])):
-    if job_data['quests'][i] == 'Test':
-      test_index = i
+  quest_index = None
+  for quest_index in xrange(len(job_data['quests'])):
+    if job_data['quests'][quest_index] == 'Test':
       break
-
-  if test_index == -1:
+  else:
     raise Results2Error('No Test quest.')
 
-  for current_attempt in job_data['attempts']:
-    for execution_dict in current_attempt:
-      executions = execution_dict.get('executions')
-      if not executions:
-        continue
-      result_arguments = executions[test_index].get('result_arguments', {})
-      isolate_hash = result_arguments.get('isolate_hash')
-      if not isolate_hash:
-        continue
+  isolate_hashes = []
 
-      t = threading.Thread(
-          target=_FetchHistogramFromIsolate,
-          args=(isolate_hash, histogram_dicts, lock))
-      threads.append(t)
+  # If there are differences, only include Changes with differences.
+  for change_index in xrange(len(job_data['changes'])):
+    if not _IsChangeDifferent(job_data, change_index):
+      continue
+    isolate_hashes += _GetIsolateHashesForChange(
+        job_data, change_index, quest_index)
 
-  # We use threading since httplib2 provides no async functions.
-  for t in threads:
-    t.start()
-  for t in threads:
-    t.join()
+  # Otherwise, just include all Changes.
+  if not isolate_hashes:
+    for change_index in xrange(len(job_data['changes'])):
+      isolate_hashes += _GetIsolateHashesForChange(
+          job_data, change_index, quest_index)
 
-  return histogram_dicts
+  thread_pool = pool.ThreadPool(len(isolate_hashes))
+  return thread_pool.map(_FetchHistogramFromIsolate, isolate_hashes)
 
 
-def _GetJobData(job_id):
-  job = job_module.JobFromId(job_id)
-  if not job:
-    raise Results2Error('Error: Job %s missing' % job_id)
+def _IsChangeDifferent(job_data, change_index):
+  if (change_index > 0 and
+      job_data['comparisons'][change_index - 1] == 'different'):
+    return True
 
-  job_data = job.AsDict()
-  return job_data
+  if (change_index < len(job_data['changes']) - 1 and
+      job_data['comparisons'][change_index] == 'different'):
+    return True
+
+  return False
 
 
-def _FetchHistogramFromIsolate(isolate_hash, histogram_dicts, lock):
-  histogram_output = read_value._RetrieveOutputJson(
-      isolate_hash, 'chartjson-output.json')
-  if not histogram_output:
-    return
-  with lock:
-    histogram_dicts.extend(histogram_output)
+def _GetIsolateHashesForChange(job_data, change_index, quest_index):
+  isolate_hashes = []
+  attempts = job_data['attempts'][change_index]
+  for attempt_info in attempts:
+    executions = attempt_info['executions']
+    if quest_index >= len(executions):
+      continue
+
+    result_arguments = executions[quest_index]['result_arguments']
+    if 'isolate_hash' not in result_arguments:
+      continue
+
+    isolate_hashes.append(result_arguments['isolate_hash'])
+
+  return isolate_hashes
+
+
+def _FetchHistogramFromIsolate(isolate_hash):
+  return read_value._RetrieveOutputJson(isolate_hash, 'chartjson-output.json')

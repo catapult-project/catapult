@@ -2,126 +2,58 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import mock
 import unittest
 
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
-
 from dashboard.pinpoint.handlers import results2
 
 
-_JOB_DATA = json.loads("""{
-    "status": "Completed",
-    "auto_explore": true,
-    "updated": "2017-10-23T15:30:48.735320",
-    "bug_id": 776741,
+_ATTEMPT_DATA = {
+    "executions": [{"result_arguments": {"isolate_hash": "e26a40a0d4"}}]
+}
+
+
+_JOB_NO_DIFFERENCES = {
+    "changes": [{}, {}, {}, {}],
+    "quests": ["Test"],
+    "comparisons": ["same", "same", "same"],
     "attempts": [
-        [
-            {
-                "executions": [
-                    {},
-                    {
-                        "result_arguments": {
-                            "isolate_hash": "e26a40a0d4"
-                        }
-                    },
-                    {}
-                ]
-            },
-            {
-                "executions": [
-                    {},
-                    {
-                        "result_arguments": {
-                            "isolate_hash": "83e9b6432e"
-                        }
-                    },
-                    {}
-                ]
-            }
-        ],
-        [
-            {
-                "executions": [
-                    {},
-                    {
-                        "result_arguments": {
-                            "isolate_hash": "678eb8256b"
-                        }
-                    },
-                    {}
-                ]
-            },
-            {
-                "executions": [
-                    {},
-                    {
-                        "result_arguments": {
-                            "isolate_hash": "c95da9ad1e"
-                        }
-                    },
-                    {}
-                ]
-            }
-        ]
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
     ],
-    "result_values": [],
-    "exception": null,
-    "job_id": "16bde7af780000",
-    "created": "2017-10-23T15:21:12.215800",
-    "arguments": {},
-    "quests": [
-        "Build",
-        "Test",
-        "Values"
-    ],
-    "comparisons": [
-        "same"
-    ],
-    "changes": [
-        {
-            "commits": [
-                {
-                    "url": "http://foo",
-                    "git_hash": "8833d9a9b6b99a1c035fac53998629aa2b513cda",
-                    "repository": "chromium"
-                }
-            ],
-            "patch": null
-        },
-        {
-            "commits": [
-                {
-                    "url": "http://foo",
-                    "git_hash": "0e4ade6da647251e91094be95f952ebada19ce03",
-                    "repository": "chromium"
-                }
-            ],
-            "patch": null
-        }
-    ]
-}""")
-
-_HISTOGRAM_DATA = [
-    {
-        'binBoundaries': [1, [1, 1000, 20]],
-        'diagnostics': {
-        },
-        'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
-        'name': 'foo2',
-        'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
-        'sampleValues': [1, 2, 3],
-        'unit': 'count'
-    }
-]
+}
 
 
-class Results2Test(unittest.TestCase):
+_JOB_WITH_DIFFERENCES = {
+    "changes": [{}, {}, {}, {}],
+    "quests": ["Test"],
+    "comparisons": ["same", "different", "different"],
+    "attempts": [
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
+        [_ATTEMPT_DATA],
+    ],
+}
+
+
+_JOB_MISSING_EXECUTIONS = {
+    "changes": [{}, {}],
+    "quests": ["Test"],
+    "comparisons": ["same"],
+    "attempts": [
+        [_ATTEMPT_DATA, {"executions": []}],
+        [{"executions": []}, _ATTEMPT_DATA],
+    ],
+}
+
+
+class _Results2Test(unittest.TestCase):
 
   def setUp(self):
     app = webapp2.WSGIApplication([
@@ -130,39 +62,59 @@ class Results2Test(unittest.TestCase):
     self.testapp = webtest.TestApp(app)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
 
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_datastore_v3_stub()
-    self.testbed.init_memcache_stub()
-    ndb.get_context().clear_cache()
+    self._job_from_id = mock.MagicMock()
+    patcher = mock.patch.object(results2.job_module, 'JobFromId',
+                                self._job_from_id)
+    self.addCleanup(patcher.stop)
+    patcher.start()
 
-  def tearDown(self):
-    self.testbed.deactivate()
+  def _SetJob(self, job):
+    self._job_from_id.return_value = job
 
-  @mock.patch.object(
-      results2, '_GetJobData', mock.MagicMock(return_value=_JOB_DATA))
-  @mock.patch.object(
-      results2.read_value, '_RetrieveOutputJson',
-      mock.MagicMock(return_value=None))
-  @mock.patch.object(
-      results2, '_ReadVulcanizedHistogramsViewer',
-      mock.MagicMock(return_value='fake_viewer'))
-  @mock.patch.object(
-      results2.render_histograms_viewer, 'RenderHistogramsViewer')
-  @mock.patch('uuid.uuid4', mock.MagicMock(return_value='fake_guid'))
-  def testPost_RetrieveFails(self, mock_render):
-    self.testapp.get('/results2/123')
 
-    mock_render.assert_called_with(
-        [], mock.ANY, vulcanized_html='fake_viewer')
+class FailureTest(_Results2Test):
 
-  def testPost_InvalidJob(self):
+  def testGet_InvalidJob(self):
+    self._SetJob(None)
     response = self.testapp.get('/results2/123', status=400)
     self.assertIn('Error', response.body)
 
-  @mock.patch.object(
-      results2, '_GetJobData', mock.MagicMock(return_value={'quests': []}))
-  def testPost_JobHasNoTestQuest(self):
+  def testGet_JobHasNoTestQuest(self):
+    self._SetJob(_JobStub({'quests': []}))
     response = self.testapp.get('/results2/123', status=400)
     self.assertIn('No Test quest', response.body)
 
+
+@mock.patch.object(results2.read_value, '_RetrieveOutputJson',
+                   mock.MagicMock(return_value='a'))
+@mock.patch.object(results2, 'open', mock.mock_open(read_data='fake_viewer'),
+                   create=True)
+@mock.patch.object(results2.render_histograms_viewer, 'RenderHistogramsViewer')
+class SuccessTest(_Results2Test):
+
+  def testGet_NoDifferences(self, mock_render):
+    self._SetJob(_JobStub(_JOB_NO_DIFFERENCES))
+    self.testapp.get('/results2/123')
+    mock_render.assert_called_with(
+        ['a', 'a', 'a', 'a'], mock.ANY, vulcanized_html='fake_viewer')
+
+  def testGet_WithDifferences(self, mock_render):
+    self._SetJob(_JobStub(_JOB_WITH_DIFFERENCES))
+    self.testapp.get('/results2/123')
+    mock_render.assert_called_with(
+        ['a', 'a', 'a'], mock.ANY, vulcanized_html='fake_viewer')
+
+  def testGet_MissingExecutions(self, mock_render):
+    self._SetJob(_JobStub(_JOB_MISSING_EXECUTIONS))
+    self.testapp.get('/results2/123')
+    mock_render.assert_called_with(
+        ['a', 'a'], mock.ANY, vulcanized_html='fake_viewer')
+
+
+class _JobStub(object):
+
+  def __init__(self, job_dict):
+    self._job_dict = job_dict
+
+  def AsDict(self):
+    return self._job_dict
