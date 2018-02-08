@@ -47,12 +47,18 @@ tr.b.unittest.testSuite(function() {
         sub: [
           {title: 'VrShellGl::AcquireFrame', wall: 2, cpu: 2},
           {title: 'VrShellGl::AcquireFrame', wall: 2.5, cpu: 1.5},
-          {title: 'UiScene::OnBeginFrame.UpdateAnimations', wall: 3, cpu: 2},
-          {title: 'UiScene::OnBeginFrame.UpdateAnimations', wall: 2, cpu: 1},
+          {
+            title: 'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
+            wall: 3,
+            cpu: 2
+          },
+          {
+            title: 'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
+            wall: 2,
+            cpu: 1
+          },
           {title: 'UiScene::OnBeginFrame.UpdateBindings', wall: 3, cpu: 2},
           {title: 'UiScene::OnBeginFrame.UpdateBindings', wall: 2, cpu: 1},
-          {title: 'UiScene::OnBeginFrame.UpdateOpacity', wall: 3, cpu: 2},
-          {title: 'UiScene::OnBeginFrame.UpdateOpacity', wall: 2, cpu: 1},
           {
             title: 'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
             wall: 3,
@@ -129,24 +135,19 @@ tr.b.unittest.testSuite(function() {
         0.5, TOLERANCE);
 
     assert.closeTo(
-        histograms.getHistogramNamed('update_animations_wall').average, 2.5,
-        TOLERANCE);
+        histograms.getHistogramNamed('update_animations_and_opacity_wall')
+            .average,
+        2.5, TOLERANCE);
     assert.closeTo(
-        histograms.getHistogramNamed('update_animations_cpu').average, 1.5,
-        TOLERANCE);
+        histograms.getHistogramNamed('update_animations_and_opacity_cpu')
+            .average,
+        1.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('update_bindings_wall').average, 2.5,
         TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('update_bindings_cpu').average, 1.5,
-        TOLERANCE);
-
-    assert.closeTo(
-        histograms.getHistogramNamed('update_opacity_wall').average, 2.5,
-        TOLERANCE);
-    assert.closeTo(
-        histograms.getHistogramNamed('update_opacity_cpu').average, 1.5,
         TOLERANCE);
 
     assert.closeTo(

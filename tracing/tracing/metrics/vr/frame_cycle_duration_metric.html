@@ -36,20 +36,15 @@ tr.exportTo('tr.metrics.vr', function() {
         createHistograms(histograms, 'submit_frame',
           {description: 'Duration to submit a frame to GVR'}));
     histogramsByEventTitle.set(
-        'UiScene::OnBeginFrame.UpdateAnimations',
+        'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
         createHistograms(
-            histograms, 'update_animations',
-            {description: 'Duration to apply animation changes'}));
+            histograms, 'update_animations_and_opacity',
+            {description: 'Duration to apply animation and opacity changes'}));
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateBindings',
         createHistograms(
             histograms, 'update_bindings',
             {description: 'Duration to push binding values'}));
-    histogramsByEventTitle.set(
-        'UiScene::OnBeginFrame.UpdateOpacity',
-        createHistograms(
-            histograms, 'update_opacity',
-            {description: 'Duration to calculate inherited opacity'}));
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
         createHistograms(histograms, 'update_textures_and_sizes', {
