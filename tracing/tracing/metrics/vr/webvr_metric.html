@@ -88,6 +88,12 @@ tr.exportTo('tr.metrics.vr', function() {
       }
     }
 
+    // Make sure we always report a value for WebVR FPS so that failing to
+    // submit frames will show up as a regression
+    if (!('value' in WEBVR_COUNTERS.get('gpu.WebVR FPS').samples)) {
+      WEBVR_COUNTERS.get('gpu.WebVR FPS').samples.value = [0];
+    }
+
     for (const [key, value] of WEBVR_COUNTERS) {
       for (const [seriesName, samples] of Object.entries(value.samples)) {
         let histogramName = value.name;

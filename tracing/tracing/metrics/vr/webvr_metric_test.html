@@ -64,5 +64,23 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(javascriptValue.min, 5);
     assert.strictEqual(javascriptValue.average, 5.5);
   });
+
+  test('webvrMetric_alwaysReportFps', function() {
+    const histograms = new tr.v.HistogramSet();
+    const model = tr.c.TestUtils.newModel();
+    tr.metrics.vr.webvrMetric(histograms, model);
+
+    const fpsValue = histograms.getHistogramNamed('webvr_fps');
+    assert.strictEqual(fpsValue.max, 0);
+    assert.strictEqual(fpsValue.min, 0);
+
+    const renderingValue = histograms.getHistogramNamed(
+        'webvr_frame_time_rendering');
+    assert.strictEqual(renderingValue, undefined);
+
+    const javascriptValue = histograms.getHistogramNamed(
+        'webvr_frame_time_javascript');
+    assert.strictEqual(javascriptValue, undefined);
+  });
 });
 </script>
