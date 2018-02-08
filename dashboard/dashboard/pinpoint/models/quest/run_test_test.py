@@ -229,14 +229,14 @@ class _RunTestExecutionTest(unittest.TestCase):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '36000',
+        'expiration_secs': '86400',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _CreateSwarmingArgs(label),
             'dimensions': [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}] +
                           _SWARMING_DIMENSIONS,
             'execution_timeout_secs': '7200',
-            'io_timeout_secs': '3600',
+            'io_timeout_secs': '1200',
         },
     }
     swarming_tasks_new.assert_called_with(body)
@@ -246,7 +246,7 @@ class _RunTestExecutionTest(unittest.TestCase):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '36000',
+        'expiration_secs': '86400',
         'properties': {
             'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _CreateSwarmingArgs(label),
@@ -255,7 +255,7 @@ class _RunTestExecutionTest(unittest.TestCase):
                 {'key': 'id', 'value': 'bot id'},
             ],
             'execution_timeout_secs': '7200',
-            'io_timeout_secs': '3600',
+            'io_timeout_secs': '1200',
         },
     }
     swarming_tasks_new.assert_called_with(body)

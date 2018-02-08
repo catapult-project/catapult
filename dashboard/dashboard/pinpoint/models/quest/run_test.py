@@ -300,13 +300,13 @@ class _RunTestExecution(execution_module.Execution):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '36000',  # 10 hours.
+        'expiration_secs': '86400',  # 1 day.
         'properties': {
             'inputs_ref': {'isolated': self._isolate_hash},
             'extra_args': self._extra_args,
             'dimensions': dimensions,
             'execution_timeout_secs': '7200',  # 2 hours.
-            'io_timeout_secs': '3600',
+            'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
         },
     }
     response = swarming_service.Tasks().New(body)
