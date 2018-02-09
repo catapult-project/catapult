@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from dashboard.pinpoint.handlers.config import Config
-from dashboard.pinpoint.handlers.gitiles import Gitiles
 from dashboard.pinpoint.handlers.isolate import Isolate
 from dashboard.pinpoint.handlers.job import Job
 from dashboard.pinpoint.handlers.jobs import Jobs

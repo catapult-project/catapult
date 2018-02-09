@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/elements/base-style.html">
-<link rel="import" href="/elements/loading-wrapper.html">
 
 <dom-module id="change-info">
   <template>
@@ -16,14 +15,10 @@ found in the LICENSE file.
       }
     </style>
 
-    <div>
-      <loading-wrapper url="/api/gitiles" params="[[params(change)]]" response="{{commitInfo}}">
-        <p>
-          <a href="[[url(change)]]" target="_blank">[[subject(commitInfo)]]</a>
-          <span class="byline">by [[author(commitInfo)]]</span>
-        </p>
-      </loading-wrapper>
-    </div>
+    <p>
+      <a href="[[url(change)]]" target="_blank">[[subject(change)]]</a>
+      <span class="byline">by [[author(change)]]</span>
+    </p>
   </template>
 
   <script>
@@ -34,35 +29,26 @@ found in the LICENSE file.
       properties: {
         change: {
           type: Object
-        },
-
-        commitInfo: {
-          type: Object
         }
       },
 
-      params(change) {
-        const commit = this.lastCommit_(this.change);
-        return {
-          repository: commit.repository,
-          git_hash: commit.git_hash
-        };
-      },
-
-      url(change) {
-        return this.lastCommit_(change).url;
-      },
-
-      lastCommit_(change) {
+      visibleCommit_(change) {
+        if (change.patch) {
+          return change.patch;
+        }
         return change.commits[change.commits.length - 1];
       },
 
-      subject(commitInfo) {
-        return commitInfo.message.split('\n')[0];
+      url(change) {
+        return this.visibleCommit_(change).url;
       },
 
-      author(commitInfo) {
-        return commitInfo.author.email.split('@')[0];
+      subject(change) {
+        return this.visibleCommit_(change).subject;
+      },
+
+      author(change) {
+        return this.visibleCommit_(change).author;
       },
     });
   </script>

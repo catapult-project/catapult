@@ -12,7 +12,6 @@ from dashboard.pinpoint import handlers
 _URL_MAPPING = [
     # Public API.
     webapp2.Route(r'/api/config', handlers.Config),
-    webapp2.Route(r'/api/gitiles', handlers.Gitiles),
     webapp2.Route(r'/api/isolate', handlers.Isolate),
     webapp2.Route(r'/api/isolate/<builder_name>/<git_hash>/<target>',
                   handlers.Isolate),
