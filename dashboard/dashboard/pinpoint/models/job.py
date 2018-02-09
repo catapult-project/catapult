@@ -213,8 +213,7 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      if self.auto_explore:
-        self.state.Explore()
+      self.state.Explore()
       work_left = self.state.ScheduleWork()
 
       # Schedule moar task.
@@ -327,7 +326,7 @@ class _JobState(object):
       change_b = self._changes[index]
       comparison = self._Compare(change_a, change_b)
 
-      if comparison == _DIFFERENT:
+      if comparison == _DIFFERENT and self.auto_explore:
         try:
           midpoint = change_module.Change.Midpoint(change_a, change_b)
         except change_module.NonLinearError:
