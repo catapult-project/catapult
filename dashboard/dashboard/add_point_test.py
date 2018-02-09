@@ -1223,6 +1223,13 @@ class AddPointTest(testing_common.TestCase):
     t = k.get()
     self.assertEqual('http://www.cnn.com/story', t.unescaped_story_name)
 
+  def testPost_FormatV1_BadCharts_Rejected(self):
+    chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    chart['chart_data']['charts'] = {'test': False}
+    self.testapp.post(
+        '/add_point', {'data': json.dumps(chart)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
   def testPost_FormatV1_BadMaster_Rejected(self):
     """Tests that attempting to post with no master name will error."""
     chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)

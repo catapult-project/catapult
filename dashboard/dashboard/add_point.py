@@ -165,6 +165,26 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       self.ReportError(error.message, status=400)
 
 
+def _ValidateDashboardJson(dash_json_dict):
+  assert type(dash_json_dict) is dict
+  # A Dashboard JSON dict should at least have all charts coming from the
+  # same master, bot and rev. It can contain multiple charts, however.
+  if not dash_json_dict.get('master'):
+    raise BadRequestError('No master name given.')
+  if not dash_json_dict.get('bot'):
+    raise BadRequestError('No bot name given.')
+  if not dash_json_dict.get('point_id'):
+    raise BadRequestError('No point_id number given.')
+  if not dash_json_dict.get('chart_data'):
+    raise BadRequestError('No chart data given.')
+
+  charts = dash_json_dict.get('chart_data', {}).get('charts', {})
+
+  for _, v in charts.iteritems():
+    if not isinstance(v, dict):
+      raise BadRequestError('Expected be dict: %s' % str(v))
+
+
 def _DashboardJsonToRawRows(dash_json_dict):
   """Formats a Dashboard JSON dict as a list of row dicts.
 
@@ -182,17 +202,8 @@ def _DashboardJsonToRawRows(dash_json_dict):
     AssertionError: The given argument wasn't a dict.
     BadRequestError: The content of the input wasn't valid.
   """
-  assert type(dash_json_dict) is dict
-  # A Dashboard JSON dict should at least have all charts coming from the
-  # same master, bot and rev. It can contain multiple charts, however.
-  if not dash_json_dict.get('master'):
-    raise BadRequestError('No master name given.')
-  if not dash_json_dict.get('bot'):
-    raise BadRequestError('No bot name given.')
-  if not dash_json_dict.get('point_id'):
-    raise BadRequestError('No point_id number given.')
-  if not dash_json_dict.get('chart_data'):
-    raise BadRequestError('No chart data given.')
+  _ValidateDashboardJson(dash_json_dict)
+
   test_suite_name = _TestSuiteName(dash_json_dict)
 
   chart_data = dash_json_dict.get('chart_data', {})
