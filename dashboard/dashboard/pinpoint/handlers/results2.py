@@ -5,8 +5,9 @@
 """Provides the web interface for displaying a results2 file."""
 
 import cStringIO
-from multiprocessing import pool
 import os
+import Queue
+import threading
 import webapp2
 
 from dashboard.pinpoint.models import job as job_module
@@ -80,8 +81,22 @@ def _FetchHistogramsDataFromJobData(job_data):
       isolate_hashes += _GetIsolateHashesForChange(
           job_data, change_index, quest_index)
 
-  thread_pool = pool.ThreadPool(len(isolate_hashes))
-  return thread_pool.map(_FetchHistogramFromIsolate, isolate_hashes)
+  # Fetch the histograms in separate threads.
+  threads = []
+  histogram_queue = Queue.Queue()
+  for isolate_hash in isolate_hashes:
+    thread = threading.Thread(target=_FetchHistogramFromIsolate,
+                              args=(isolate_hash, histogram_queue))
+    thread.start()
+    threads.append(thread)
+
+  for thread in threads:
+    thread.join()
+
+  histograms = []
+  while not histogram_queue.empty():
+    histograms.append(histogram_queue.get())
+  return histograms
 
 
 def _IsChangeDifferent(job_data, change_index):
@@ -113,5 +128,6 @@ def _GetIsolateHashesForChange(job_data, change_index, quest_index):
   return isolate_hashes
 
 
-def _FetchHistogramFromIsolate(isolate_hash):
-  return read_value._RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
+def _FetchHistogramFromIsolate(isolate_hash, output_queue):
+  output_queue.put(read_value._RetrieveOutputJson(
+      isolate_hash, 'chartjson-output.json'))
