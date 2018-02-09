@@ -47,7 +47,7 @@ def _GetJobData(job_id):
   if not job:
     raise Results2Error('Error: Job %s missing' % job_id)
 
-  return job.AsDict()
+  return job.AsDict(options=(job_module.OPTION_STATE,))
 
 
 def _ReadVulcanizedHistogramsViewer():
@@ -95,7 +95,7 @@ def _FetchHistogramsDataFromJobData(job_data):
 
   histograms = []
   while not histogram_queue.empty():
-    histograms.append(histogram_queue.get())
+    histograms += histogram_queue.get()
   return histograms
 
 

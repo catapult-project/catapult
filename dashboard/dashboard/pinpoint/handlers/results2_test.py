@@ -86,7 +86,7 @@ class FailureTest(_Results2Test):
 
 
 @mock.patch.object(results2.read_value, '_RetrieveOutputJson',
-                   mock.MagicMock(return_value='a'))
+                   mock.MagicMock(return_value=['a']))
 @mock.patch.object(results2, 'open', mock.mock_open(read_data='fake_viewer'),
                    create=True)
 @mock.patch.object(results2.render_histograms_viewer, 'RenderHistogramsViewer')
@@ -116,5 +116,6 @@ class _JobStub(object):
   def __init__(self, job_dict):
     self._job_dict = job_dict
 
-  def AsDict(self):
+  def AsDict(self, options=None):
+    del options
     return self._job_dict
