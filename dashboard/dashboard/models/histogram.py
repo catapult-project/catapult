@@ -18,7 +18,7 @@ class JsonModel(internal_only_model.InternalOnlyModel):
   # access them repeatedly.
   _use_memcache = False
 
-  data = ndb.JsonProperty()
+  data = ndb.JsonProperty(compressed=True)
   test = ndb.KeyProperty(graph_data.TestMetadata)
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
