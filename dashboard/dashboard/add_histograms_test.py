@@ -1155,6 +1155,15 @@ class AddHistogramsTest(testing_common.TestCase):
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     self.assertEqual(424242, add_histograms.ComputeRevision(histograms))
 
+  def testComputeRevision_NotInteger_Raises(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    histograms = histogram_set.HistogramSet([hist])
+    chromium_commit = generic_set.GenericSet(['123'])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
+    with self.assertRaises(api_request_handler.BadRequestError):
+      add_histograms.ComputeRevision(histograms)
+
   def testComputeRevision_RaisesOnError(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
