@@ -1,14 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-import contextlib
-import logging
-import socket
-
 from telemetry.internal import forwarders
 
-import py_utils
 
 
 class Error(Exception):
@@ -49,21 +43,6 @@ class DoNothingForwarder(forwarders.Forwarder):
     super(DoNothingForwarder, self).__init__()
     local_port, remote_port = _ValidatePorts(local_port, remote_port)
     self._StartedForwarding(local_port, remote_port)
-    self._WaitForConnectionEstablished()
-
-  def _WaitForConnectionEstablished(self):
-    address = (self.host_ip, self.local_port)
-
-    def CanConnect():
-      with contextlib.closing(socket.socket()) as s:
-        return s.connect_ex(address) == 0
-
-    try:
-      py_utils.WaitFor(CanConnect, timeout=10)
-      logging.debug('Connection test succeeded for %s:%d', *address)
-    except py_utils.TimeoutException:
-      raise ConnectionError('Unable to connect to address: %s:%d' % address)
-
 
 def _ValidatePorts(local_port, remote_port):
   if not local_port:
