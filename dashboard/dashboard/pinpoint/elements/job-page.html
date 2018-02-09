@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/elements/job-page/job-chart-icon.html">
 <link rel="import" href="/elements/job-page/job-chart.html">
 <link rel="import" href="/elements/job-page/job-details.html">
-<link rel="import" href="/elements/job-page/patch-job-fab.html">
+<link rel="import" href="/elements/job-page/job-menu-fab.html">
 <link rel="import" href="/elements/loading-wrapper.html">
 
 <dom-module id="job-page">
@@ -53,12 +53,6 @@ found in the LICENSE file.
         flex: 3;
         margin: 0 0.5em;
       }
-
-      patch-job-fab {
-        bottom: 2em;
-        position: fixed;
-        right: 2em;
-      }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{routeData}}"></app-route>
@@ -96,7 +90,7 @@ found in the LICENSE file.
           <change-details job="[[job]]" change-index="[[changeIndex]]"></change-details>
         </div>
       </div>
-      <patch-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></patch-job-fab>
+      <job-menu-fab job="[[job]]" auth-headers="[[authHeaders]]"></job-menu-fab>
     </loading-wrapper>
   </template>
 

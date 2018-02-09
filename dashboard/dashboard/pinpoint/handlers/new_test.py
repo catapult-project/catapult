@@ -90,6 +90,37 @@ class NewTest(testing_common.TestCase):
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))
   @mock.patch.object(gitiles_service, 'CommitRange')
+  def testPost_WithChanges(self, mock_commit_range):
+    mock_commit_range.return_value = [
+        {'commit': '1'},
+        {'commit': '2'},
+        {'commit': '3'},
+    ]
+    base_request = {}
+    base_request.update(_BASE_REQUEST)
+    del base_request['start_git_hash']
+    del base_request['start_repository']
+    del base_request['end_git_hash']
+    del base_request['end_repository']
+    base_request['changes'] = json.dumps([
+        {'commits': [{'repository': 'src', 'git_hash': '1'}]},
+        {'commits': [{'repository': 'src', 'git_hash': '3'}]}])
+
+    response = self.testapp.post('/api/new', base_request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    self.assertEqual(
+        result['jobUrl'],
+        'https://testbed.example.com/job/%s' % result['jobId'])
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+  @mock.patch(
+      'dashboard.services.issue_tracker_service.IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  @mock.patch.object(gitiles_service, 'CommitRange')
   @mock.patch('dashboard.pinpoint.models.change.patch.FromDict')
   def testPost_WithPatch(self, mock_patch, mock_commit_range):
     mock_commit_range.return_value = [

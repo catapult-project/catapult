@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright 2017 The Chromium Authors. All rights reserved.
+Copyright 2018 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -10,19 +10,13 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/components/paper-fab/paper-fab.html">
-<link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 
 <link rel="import" href="/elements/base-style.html">
 
-
-<dom-module id="patch-job-fab">
+<dom-module id="rerun-job-fab">
   <template>
     <style include="base-style">
-      paper-input {
-        min-width: 40em;
-      }
-
       paper-fab {
         color: var(--paper-grey-700);
         --paper-fab-background: white;
@@ -34,22 +28,22 @@ found in the LICENSE file.
     </style>
 
     <app-location route="{{route}}"></app-location>
-    <paper-fab mini id="try-fab" icon="forward" on-tap="openDialog"></paper-fab>
-    <paper-tooltip for="try-fab" position="left">Test a patch</paper-tooltip>
-    <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
-      <h2>Test a patch with this configuration</h2>
+    <paper-fab mini id="job-fab" icon="refresh" on-tap="openDialog"></paper-fab>
+    <paper-tooltip for="job-fab" position="left">Re-run this job</paper-tooltip>
+    <paper-dialog id="job_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
+      <h2>Re-run this job?</h2>
       <div>
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
-        <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+        <iron-form id="job_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="auto_explore" value="0">
+            <input type="hidden" name="auto_explore" value="[[job.auto_explore]]">
             <input type="hidden" name="bug_id" value="[[job.bug_id]]">
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">
             </template>
-            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+
           </form>
         </iron-form>
       </div>
@@ -62,11 +56,15 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer({
-      is: 'patch-job-fab',
+      is: 'rerun-job-fab',
 
       properties: {
         error: Object,
         job: Object,
+      },
+
+      openDialog() {
+        this.$.job_dialog.open();
       },
 
       getArguments(job) {
@@ -74,25 +72,21 @@ found in the LICENSE file.
         for (const key in job.arguments) {
           tuples.push({key, value: job.arguments[key]});
         }
-        tuples.push({key: 'start_repository', value: 'chromium'});
-        tuples.push({key: 'end_repository', value: 'chromium'});
-        tuples.push({key: 'start_git_hash', value: 'HEAD'});
-        tuples.push({key: 'end_git_hash', value: 'HEAD'});
+        tuples.push({
+          key: 'changes',
+          value: JSON.stringify(
+              [job.changes[0], job.changes[job.changes.length - 1]])});
         return tuples;
       },
 
-      openDialog() {
-        this.$.try_dialog.open();
-      },
-
       submit() {
-        this.$.try_form.submit();
+        this.$.job_form.submit();
         // Add a delay for the exit animation.
         this.async(this.resetForm, 500);
       },
 
       resetForm() {
-        this.$.try_form.reset();
+        this.$.job_form.reset();
         this.error = null;
       },
 
@@ -102,7 +96,7 @@ found in the LICENSE file.
 
       handleResponse(event) {
         this.set('route.path', '/job/' + event.detail.response.jobId);
-        this.$.try_dialog.close();
+        this.$.job_dialog.close();
       },
     });
   </script>

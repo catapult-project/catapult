@@ -27,33 +27,15 @@ class New(webapp2.RequestHandler):
   def _WriteErrorMessage(self, message):
     self.response.out.write(json.dumps({'error': message}))
 
-  @api_auth.Authorize
   def _CreateJob(self):
     """Start a new Pinpoint job."""
     auto_explore = self.request.get('auto_explore') == '1'
     bug_id = self.request.get('bug_id')
 
-    change_1 = {
-        'commits': [{
-            'repository': self.request.get('start_repository'),
-            'git_hash': self.request.get('start_git_hash')
-        }],
-    }
-
-    change_2 = {
-        'commits': [{
-            'repository': self.request.get('end_repository'),
-            'git_hash': self.request.get('end_git_hash')
-        }]
-    }
-
-    if self.request.get('patch'):
-      change_2['patch'] = self.request.get('patch')
-
     # Validate arguments and convert them to canonical internal representation.
     arguments, quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
-    changes = _ValidateChanges(change_1, change_2)
+    changes = _ValidateChanges(self.request.params)
     tags = _ValidateTags(self.request.get('tags'))
 
     # Create job.
@@ -107,7 +89,28 @@ def _ValidateBugId(bug_id):
     raise ValueError(_ERROR_BUG_ID)
 
 
-def _ValidateChanges(change_1, change_2):
+def _ValidateChanges(arguments):
+  changes = arguments.get('changes')
+  if changes:
+    return [change.Change.FromDict(c) for c in json.loads(changes)]
+
+  change_1 = {
+      'commits': [{
+          'repository': arguments.get('start_repository'),
+          'git_hash': arguments.get('start_git_hash')
+      }],
+  }
+
+  change_2 = {
+      'commits': [{
+          'repository': arguments.get('end_repository'),
+          'git_hash': arguments.get('end_git_hash')
+      }]
+  }
+
+  if arguments.get('patch'):
+    change_2['patch'] = arguments.get('patch')
+
   return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
 
 
