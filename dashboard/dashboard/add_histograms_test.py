@@ -25,6 +25,7 @@ from dashboard.models import histogram
 from dashboard.models import sheriff
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
+from tracing.value.diagnostics import breakdown
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -93,6 +94,47 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     mock_oauth = oauth_patcher.start()
     SetGooglerOAuth(mock_oauth)
 
+  def _CreateHistogram(
+      self, master=None, bot=None, benchmark=None, commit_position=None,
+      device=None, owner=None, stories=None, samples=None, max_samples=None):
+    hists = [histogram_module.Histogram('hist', 'count')]
+    if max_samples:
+      hists[0].max_num_sample_values = max_samples
+    if samples:
+      for s in samples:
+        hists[0].AddSample(s)
+
+    histograms = histogram_set.HistogramSet(hists)
+    if master:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.MASTERS.name,
+          generic_set.GenericSet([master]))
+    if bot:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.BOTS.name,
+          generic_set.GenericSet([bot]))
+    if commit_position:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+          generic_set.GenericSet([commit_position]))
+    if benchmark:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.BENCHMARKS.name,
+          generic_set.GenericSet([benchmark]))
+    if owner:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.OWNERS.name,
+          generic_set.GenericSet([owner]))
+    if device:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.DEVICE_IDS.name,
+          generic_set.GenericSet([device]))
+    if stories:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.STORIES.name,
+          generic_set.GenericSet(stories))
+    return histograms
+
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
@@ -122,6 +164,24 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     mock_graph_revisions.assert_called_once()
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
+  def testPost_PurgesBinData(self):
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', commit_position=1)
+    b = breakdown.Breakdown()
+    dm = histogram_module.DiagnosticMap()
+    dm['breakdown'] = b
+    hs.GetFirstHistogram().AddSample(0, dm)
+    data = json.dumps(hs.AsDicts())
+
+    self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    histograms = histogram.Histogram.query().fetch()
+    hist = histogram_module.Histogram.FromDict(histograms[0].data)
+    for b in hist.bins:
+      for dm in b.diagnostic_maps:
+        self.assertEqual(0, len(dm))
 
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
@@ -178,33 +238,11 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
       mock.MagicMock())
   def testPost_DeduplicateByName(self):
-    def _CreateHistogram(revision, device, owner):
-      hists = [histogram_module.Histogram('hist', 'count')]
-      histograms = histogram_set.HistogramSet(hists)
-      histograms.AddSharedDiagnostic(
-          reserved_infos.MASTERS.name,
-          generic_set.GenericSet(['master']))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.BOTS.name,
-          generic_set.GenericSet(['bot']))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-          generic_set.GenericSet([revision]))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.BENCHMARKS.name,
-          generic_set.GenericSet(['benchmark']))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.OWNERS.name,
-          generic_set.GenericSet([owner]))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.DEVICE_IDS.name,
-          generic_set.GenericSet([device]))
-      histograms.AddSharedDiagnostic(
-          reserved_infos.STORIES.name,
-          generic_set.GenericSet(['story1', 'story2']))
-      return histograms
 
-    hs = _CreateHistogram(1111, 'device1', 'owner1')
+
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
+        commit_position=1111, device='device1', owner='owner1')
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -214,7 +252,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(6, len(diagnostics))
 
-    hs = _CreateHistogram(1112, 'device1', 'owner1')
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
+        commit_position=1112, device='device1', owner='owner1')
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -224,7 +264,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(6, len(diagnostics))
 
-    hs = _CreateHistogram(1113, 'device2', 'owner1')
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
+        commit_position=1113, device='device2', owner='owner1')
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -234,7 +276,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(7, len(diagnostics))
 
-    hs = _CreateHistogram(1114, 'device2', 'owner2')
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
+        commit_position=1114, device='device2', owner='owner2')
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -244,7 +288,9 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(8, len(diagnostics))
 
-    hs = _CreateHistogram(1115, 'device2', 'owner2')
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
+        commit_position=1115, device='device2', owner='owner2')
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
