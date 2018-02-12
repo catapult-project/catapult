@@ -42,10 +42,6 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     elif isinstance(value, skip.SkipValue):
       print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
           value.page.name, value.reason)
-    # TODO(chrishenry): Consider outputting metric values as well. For
-    # e.g., it can replace BuildbotOutputFormatter in
-    # --output-format=html, which we used only so that users can grep
-    # the results without opening results.html.
 
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
