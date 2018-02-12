@@ -52,6 +52,9 @@ def build_wpr_go(os_name, os_arch):
   if os_arch == 'aarch64':
     os_arch = 'arm64'
 
+  if os_arch == 'mipsel':
+    os_arch = 'mipsle'
+
   # go build command recognizes 'darwin' but not 'mac'.
   if os_name == 'mac':
     os_name = 'darwin'
@@ -103,6 +106,7 @@ _SUPPORTED_PLATFORMS = (
   ('win', 'AMD64'),
   ('linux', 'armv7l'),
   ('linux', 'aarch64'),
+  ('linux', 'mipsel')
 )
 
 

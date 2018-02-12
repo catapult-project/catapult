@@ -365,6 +365,11 @@
           "download_path": "bin/linux/armv7l/wpr",
           "version_in_cs": "9c248ceff82b9e28e3a28950535fa36b063f6fc8"
         },
+        "linux_mips": {
+          "local_paths": [
+            "bin/linux/mips/wpr"
+          ]
+        },
         "linux_x86_64": {
           "cloud_storage_hash": "469ff9564b7589f697a95e751b94c2e044a5c96b",
           "download_path": "bin/linux/x86_64/wpr",
