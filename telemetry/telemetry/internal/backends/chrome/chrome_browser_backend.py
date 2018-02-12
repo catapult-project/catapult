@@ -5,6 +5,7 @@
 import logging
 import pprint
 import shlex
+import socket
 import sys
 
 from telemetry.core import exceptions
@@ -13,6 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
+from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import web_contents
 from telemetry.testing import options_for_unittests
 
@@ -250,7 +252,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return self.GetSystemInfo() != None
 
   def GetSystemInfo(self):
-    return self.devtools_client.GetSystemInfo()
+    try:
+      return self.devtools_client.GetSystemInfo()
+    except (websocket.WebSocketException, socket.error) as e:
+      if not self.IsBrowserRunning():
+        raise exceptions.BrowserGoneException(self.browser, e)
+      raise exceptions.BrowserConnectionGoneException(self.browser, e)
 
   @property
   def supports_memory_dumping(self):
