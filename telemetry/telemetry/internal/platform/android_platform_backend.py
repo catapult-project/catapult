@@ -362,6 +362,10 @@ class AndroidPlatformBackend(
         raise ValueError('Failed to start "%s" with error\n  %s' %
                          (application, line))
 
+  def StartActivity(self, intent, blocking):
+    """Starts an activity for the given intent on the device."""
+    self._device.StartActivity(intent, blocking=blocking)
+
   def IsApplicationRunning(self, application):
     # For Android apps |application| is usually the package name of the app.
     # Note that the string provided must match the process name exactly.

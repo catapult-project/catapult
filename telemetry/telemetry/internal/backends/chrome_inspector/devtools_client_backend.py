@@ -273,9 +273,13 @@ class DevToolsClientBackend(object):
     self._devtools_http = None
 
   @decorators.Cache
+  def GetVersion(self):
+    """Return the version dict as provided by the DevTools agent."""
+    return self._devtools_http.RequestJson('version')
+
   def GetChromeBranchNumber(self):
     # Detect version information.
-    resp = self._devtools_http.RequestJson('version')
+    resp = self.GetVersion()
     if 'Protocol-Version' in resp:
       if 'Browser' in resp:
         branch_number_match = re.search(r'Chrome/\d+\.\d+\.(\d+)\.\d+',

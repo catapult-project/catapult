@@ -177,6 +177,9 @@ class PlatformBackend(object):
       self, application, parameters=None, elevate_privilege=False):
     raise NotImplementedError()
 
+  def StartActivity(self, intent, blocking):
+    raise NotImplementedError()
+
   def IsApplicationRunning(self, application):
     raise NotImplementedError()
 

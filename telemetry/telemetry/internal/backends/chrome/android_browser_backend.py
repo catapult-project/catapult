@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
@@ -74,6 +76,18 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except:
       self.Close()
       raise
+
+  def BindDevToolsClient(self):
+    super(AndroidBrowserBackend, self).BindDevToolsClient()
+    package = self.devtools_client.GetVersion().get('Android-Package')
+    if package is None:
+      logging.warning('Could not determine package name from DevTools client.')
+    elif package == self._backend_settings.package:
+      logging.info('Successfully connected to %s DevTools client', package)
+    else:
+      raise exceptions.BrowserGoneException(
+          self.browser, 'Expected connection to %s but got %s.' % (
+              self._backend_settings.package, package))
 
   def _FindDevToolsPortAndTarget(self):
     devtools_port = self._backend_settings.GetDevtoolsRemotePort(self.device)

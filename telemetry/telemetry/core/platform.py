@@ -215,6 +215,10 @@ class Platform(object):
         parameters,
         elevate_privilege=elevate_privilege)
 
+  def StartActivity(self, intent, blocking=False):
+    """Starts an activity for the given intent on the device."""
+    return self._platform_backend.StartActivity(intent, blocking)
+
   def IsApplicationRunning(self, application):
     """Returns whether an application is currently running."""
     return self._platform_backend.IsApplicationRunning(application)

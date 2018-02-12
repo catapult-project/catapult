@@ -70,6 +70,7 @@ CHROME_PACKAGE_NAMES = {
     ],
 }
 
+
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
   def __init__(self, browser_type, finder_options, android_platform,
@@ -121,6 +122,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
+
+  @property
+  def settings(self):
+    """Get the backend_settings for this possible browser."""
+    return self._backend_settings
 
   @property
   def browser_directory(self):
@@ -180,20 +186,39 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._SetupProfile()
 
   def _TearDownEnvironment(self):
-    try:
-      self._flag_changer.Restore()
-    finally:
-      self._flag_changer = None
+    self._RestoreCommandLineFlags()
+
+  def _RestoreCommandLineFlags(self):
+    if self._flag_changer is not None:
+      try:
+        self._flag_changer.Restore()
+      finally:
+        self._flag_changer = None
 
   def Create(self):
+    """Launch the browser on the device and return a Browser object."""
+    return self._GetBrowserInstance(existing=False)
+
+  def FindExistingBrowser(self):
+    """Find a browser running on the device and bind a Browser object to it.
+
+    The returned Browser object will only be bound to a running browser
+    instance whose package name matches the one specified by the backend
+    settings of this possible browser.
+    """
+    return self._GetBrowserInstance(existing=True)
+
+  def _GetBrowserInstance(self, existing=False):
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
         self._backend_settings)
+    # TODO(crbug.com/811244): Move cache clearing to environment set up.
     browser_backend.ClearCaches()
     try:
       return browser.Browser(
-          browser_backend, self._platform_backend, startup_args=())
+          browser_backend, self._platform_backend, startup_args=(),
+          find_existing=existing)
     except Exception:
       exc_info = sys.exc_info()
       logging.error(
@@ -205,6 +230,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         logging.exception('Secondary failure while closing browser backend.')
 
       raise exc_info[0], exc_info[1], exc_info[2]
+    finally:
+      # After the browser has been launched (or not) it's fine to restore the
+      # command line flags on the device.
+      self._RestoreCommandLineFlags()
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)

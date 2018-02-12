@@ -31,7 +31,8 @@ class Browser(app.App):
   See telemetry.internal.browser.possible_browser for more details and use
   cases.
   """
-  def __init__(self, backend, platform_backend, startup_args):
+  def __init__(self, backend, platform_backend, startup_args,
+               find_existing=False):
     super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
     try:
@@ -39,10 +40,13 @@ class Browser(app.App):
       self._platform_backend = platform_backend
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self._browser_backend.SetBrowser(self)
-      # TODO(crbug.com/787834): Move url computation out of the browser backend
-      # and into the callers of this constructor.
-      startup_url = self._browser_backend.GetBrowserStartupUrl()
-      self._browser_backend.Start(startup_args, startup_url=startup_url)
+      if find_existing:
+        self._browser_backend.BindDevToolsClient()
+      else:
+        # TODO(crbug.com/787834): Move url computation out of the browser
+        # backend and into the callers of this constructor.
+        startup_url = self._browser_backend.GetBrowserStartupUrl()
+        self._browser_backend.Start(startup_args, startup_url=startup_url)
       self._LogBrowserInfo()
       self._profiling_controller = profiling_controller.ProfilingController(
           self._browser_backend.profiling_controller_backend)
