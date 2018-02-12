@@ -24,8 +24,10 @@ from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.tools import script_common
 from devil.constants import exit_codes
+from devil.utils import find_usb_devices
 from devil.utils import logging_common
 from devil.utils import lsusb
+from devil.utils import usb_hubs
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,7 @@ def DeviceStatus(devices, blacklist):
         'serial': '<serial>',
         'adb_status': str,
         'usb_status': bool,
+        'usb_port': str,
         'blacklisted': bool,
         # only if the device is connected and not blacklisted
         'type': ro.build.product,
@@ -91,6 +94,11 @@ def DeviceStatus(devices, blacklist):
     for a in adb_wrapper.AdbWrapper.Devices(desired_state=None, long_list=True)
   }
   usb_devices = set(lsusb.get_android_devices())
+  port_mapping = {}
+  for hub in find_usb_devices.GetAllPhysicalPortToSerialMaps(
+      usb_hubs.ALL_HUBS, fast=True):
+    # Reverse the mapping.
+    port_mapping.update((serial, str(port)) for port, serial in hub.iteritems())
 
   def blacklisting_device_status(device):
     serial = device.adb.GetDeviceSerial()
@@ -103,6 +111,7 @@ def DeviceStatus(devices, blacklist):
       'serial': serial,
       'adb_status': adb_status,
       'usb_status': usb_status,
+      'usb_port': port_mapping.get(serial, 'unknown'),
     }
 
     if not IsBlacklisted(serial, blacklist):
@@ -168,6 +177,7 @@ def _LogStatuses(statuses):
     blacklisted = status.get('blacklisted')
     logger.info('  USB status: %s',
                 'online' if status.get('usb_status') else 'offline')
+    logger.info('  USB port number: %s', status.get('usb_port'))
     logger.info('  ADB status: %s', adb_status)
     logger.info('  Blacklisted: %s', str(blacklisted))
     if adb_status == 'device' and not blacklisted:
