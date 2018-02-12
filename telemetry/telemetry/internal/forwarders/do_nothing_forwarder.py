@@ -35,8 +35,6 @@ class DoNothingForwarder(forwarders.Forwarder):
 
   A PortsMismatchError is raised if local and remote ports are not equal.
   Otherwise, the "do nothing" forwarder does not make sense.
-
-  A ConnectionError is raised if the port does not support TCP connections.
   """
 
   def __init__(self, local_port, remote_port):
