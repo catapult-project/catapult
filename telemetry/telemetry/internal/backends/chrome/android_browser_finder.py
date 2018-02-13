@@ -205,6 +205,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     The returned Browser object will only be bound to a running browser
     instance whose package name matches the one specified by the backend
     settings of this possible browser.
+
+    A BrowserGoneException is raised if the browser cannot be found.
     """
     return self._GetBrowserInstance(existing=True)
 
