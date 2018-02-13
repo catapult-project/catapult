@@ -81,7 +81,11 @@ def parse_options(argv):
   options, categories = parser.parse_args(argv[1:])
 
   if options.output_file is None:
-    options.output_file = 'trace.json' if options.write_json else 'trace.html'
+    base = 'trace'
+    if options.from_file is not None:
+      base = os.path.splitext(options.from_file)[0]
+    suffix = '.json' if options.write_json else '.html'
+    options.output_file = base + suffix
 
   if options.link_assets or options.asset_dir != 'trace-viewer':
     parser.error('--link-assets and --asset-dir are deprecated.')
