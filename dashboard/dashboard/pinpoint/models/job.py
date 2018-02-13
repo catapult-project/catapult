@@ -213,7 +213,7 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      self.state.Explore()
+      self.state.Explore(self.auto_explore)
       work_left = self.state.ScheduleWork()
 
       # Schedule moar task.
@@ -303,7 +303,7 @@ class _JobState(object):
     self._attempts[change] = []
     self.AddAttempts(change)
 
-  def Explore(self):
+  def Explore(self, auto_explore):
     """Compare Changes and bisect by adding additional Changes as needed.
 
     For every pair of adjacent Changes, compare their results as probability
@@ -316,6 +316,9 @@ class _JobState(object):
     comes after the first Change. Otherwise, this method won't explore further.
     For example, if Change A is repo@abc, and Change B is repo@abc + patch,
     there's no way to pick additional Changes to try.
+
+    Arguments:
+      auto_explore: Iff True, automatically add additional Changes to try.
     """
     # This loop adds Changes to the _changes list while looping through it.
     # The Change insertion simultaneously uses and modifies the list indices.
@@ -326,7 +329,7 @@ class _JobState(object):
       change_b = self._changes[index]
       comparison = self._Compare(change_a, change_b)
 
-      if comparison == _DIFFERENT and self.auto_explore:
+      if comparison == _DIFFERENT and auto_explore:
         try:
           midpoint = change_module.Change.Midpoint(change_a, change_b)
         except change_module.NonLinearError:
