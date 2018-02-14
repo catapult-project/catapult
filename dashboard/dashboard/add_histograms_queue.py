@@ -58,6 +58,7 @@ LEGACY_BENCHMARKS = [
     'blink_perf.parser',
     'blink_perf.shadow_dom',
     'blink_perf.svg',
+    'cronet_perf_tests',
     'dromaeo',
     'dummy_benchmark.noisy_benchmark_1',
     'dummy_benchmark.stable_benchmark_1',
