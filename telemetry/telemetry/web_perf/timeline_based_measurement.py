@@ -257,7 +257,6 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
     platform.tracing_controller.telemetry_info = results.telemetry_info
-    # TODO(charliea): Add all nonfatal errors to results as FailureValues.
     trace_result, _ = platform.tracing_controller.StopTracing()
     trace_value = trace.TraceValue(
         results.current_page, trace_result,
@@ -286,7 +285,6 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def DidRunStory(self, platform, results):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
-      # TODO(charliea): Add all nonfatal errors to results as FailureValues.
       trace_result, _ = platform.tracing_controller.StopTracing()
       trace_value = trace.TraceValue(
           results.current_page, trace_result,
