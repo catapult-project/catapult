@@ -153,6 +153,16 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def profile_directory(self):
     return self._platform_backend.GetProfileDir(self._backend_settings.package)
 
+  def _GetPathsForOsPageCacheFlushing(self):
+    paths_to_flush = [self.profile_directory]
+    # On N+ the Monochrome is the most widely used configuration. Since Webview
+    # is used often, the typical usage is closer to have the DEX and the native
+    # library be resident in memory. Skip the pagecache flushing for browser
+    # directory on N+.
+    if self._platform_backend.device.build_version_sdk < 24:
+      paths_to_flush.append(self.browser_directory)
+    return paths_to_flush
+
   def _InitPlatformIfNeeded(self):
     pass
 
@@ -215,8 +225,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
         self._backend_settings)
-    # TODO(crbug.com/811244): Move cache clearing to environment set up.
-    browser_backend.ClearCaches()
+    self._ClearCachesOnStart()
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args=(),

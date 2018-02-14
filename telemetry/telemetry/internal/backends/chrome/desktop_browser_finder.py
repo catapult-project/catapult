@@ -46,6 +46,10 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         self.browser_type, self._local_executable, self._flash_path)
 
   @property
+  def browser_directory(self):
+    return self._browser_directory
+
+  @property
   def profile_directory(self):
     return self._profile_directory
 
@@ -57,6 +61,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     # pylint: disable=protected-access
     self._platform_backend = self._platform._platform_backend
+
+  def _GetPathsForOsPageCacheFlushing(self):
+    return [self.profile_directory, self.browser_directory]
 
   def SetUpEnvironment(self, browser_options):
     super(PossibleDesktopBrowser, self).SetUpEnvironment(browser_options)
@@ -110,7 +117,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
             self._browser_directory, self._profile_directory,
             self._local_executable, self._flash_path, self._is_content_shell)
 
-        browser_backend.ClearCaches()
+        self._ClearCachesOnStart()
 
         returned_browser = browser.Browser(
             browser_backend, self._platform_backend, startup_args)

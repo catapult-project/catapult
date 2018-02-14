@@ -50,6 +50,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def _InitPlatformIfNeeded(self):
     pass
 
+  def _GetPathsForOsPageCacheFlushing(self):
+    return [self.profile_directory, self.browser_directory]
+
   def SetUpEnvironment(self, browser_options):
     super(PossibleCrOSBrowser, self).SetUpEnvironment(browser_options)
 
@@ -90,7 +93,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self.browser_directory, self.profile_directory,
         self._is_guest)
 
-    browser_backend.ClearCaches()
+    self._ClearCachesOnStart()
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(

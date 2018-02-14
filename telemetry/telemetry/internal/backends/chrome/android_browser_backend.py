@@ -169,19 +169,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise exceptions.BrowserGoneException(self.browser)
     return pids[0]
 
-  def GetDirectoryPathsToFlushOsPageCacheFor(self):
-    paths_to_flush = []
-    if self.profile_directory:
-      paths_to_flush.append(self.profile_directory)
-    # On N+ the Monochrome is the most widely used configuration. Since Webview
-    # is used often, the typical usage is closer to have the DEX and the native
-    # library be resident in memory. Skip the pagecache flushing for browser
-    # directory on N+.
-    if self.device.build_version_sdk < 24:
-      if self.browser_directory:
-        paths_to_flush.append(self.browser_directory)
-    return paths_to_flush
-
   @property
   def package(self):
     return self._backend_settings.package
