@@ -29,7 +29,7 @@ class New(webapp2.RequestHandler):
 
   def _CreateJob(self):
     """Start a new Pinpoint job."""
-    auto_explore = self.request.get('auto_explore') == '1'
+    auto_explore = _ParseBool(self.request.get('auto_explore'))
     bug_id = self.request.get('bug_id')
 
     # Validate arguments and convert them to canonical internal representation.
@@ -61,6 +61,10 @@ class New(webapp2.RequestHandler):
         'jobId': job.job_id,
         'jobUrl': job.url,
     }))
+
+
+def _ParseBool(value):
+  return value == '1' or value.lower() == 'true'
 
 
 def _ValidateTags(tags):

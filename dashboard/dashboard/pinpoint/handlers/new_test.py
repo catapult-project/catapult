@@ -90,6 +90,29 @@ class NewTest(testing_common.TestCase):
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))
   @mock.patch.object(gitiles_service, 'CommitRange')
+  def testPost_AutoExploreTrue(self, mock_commit_range):
+    mock_commit_range.return_value = [
+        {'commit': '1'},
+        {'commit': '2'},
+        {'commit': '3'},
+    ]
+    params = {}
+    params.update(_BASE_REQUEST)
+    params['auto_explore'] = True
+    response = self.testapp.post('/api/new', params, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertTrue(job.auto_explore)
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+  @mock.patch(
+      'dashboard.services.issue_tracker_service.IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  @mock.patch.object(gitiles_service, 'CommitRange')
   def testPost_WithChanges(self, mock_commit_range):
     mock_commit_range.return_value = [
         {'commit': '1'},
