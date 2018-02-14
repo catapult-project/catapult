@@ -22,7 +22,6 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run
-from telemetry.value import failure
 from telemetry.value import skip
 from telemetry.value import trace
 
@@ -240,8 +239,7 @@ class PageTestResults(object):
       return
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
-        benchmark_metadata, self.all_page_specific_values,
-        self.all_summary_values)
+        benchmark_metadata, self)
     info = self.telemetry_info
     chart_json['label'] = info.label
     chart_json['benchmarkStartMs'] = info.benchmark_start_epoch * 1000.0
@@ -339,9 +337,12 @@ class PageTestResults(object):
     return failed_pages
 
   @property
-  def failures(self):
-    values = self.all_page_specific_values
-    return [v for v in values if isinstance(v, failure.FailureValue)]
+  def had_failures(self):
+    return any(run.failed for run in self.all_page_runs)
+
+  @property
+  def num_failed(self):
+    return sum(1 for run in self.all_page_runs if run.failed)
 
   @property
   def skipped_values(self):
@@ -441,7 +442,6 @@ class PageTestResults(object):
         value.tir_label = story_keys_label
 
     if not (isinstance(value, skip.SkipValue) or
-            isinstance(value, failure.FailureValue) or
             isinstance(value, trace.TraceValue) or
             self._should_add_value(value.name, is_first_result)):
       return
@@ -452,18 +452,23 @@ class PageTestResults(object):
   def AddSharedDiagnostic(self, name, diagnostic):
     self._histograms.AddSharedDiagnostic(name, diagnostic)
 
-  def Fail(self, exc_info_or_message, handleable=True):
+  def Fail(self, failure):
+    """Mark the current story run as failed.
+
+    This method will print a GTest-style failure annotation and mark the
+    current story run as failed.
+
+    Args:
+      failure: A string or exc_info describing the reason for failure.
+    """
+    # TODO(#4258): Relax this assertion.
     assert self._current_page_run, 'Not currently running test.'
-    if not handleable:
-      description = 'Unhandleable exception raised.'
+    self.current_page_run.SetFailed()
+    if isinstance(failure, basestring):
+      failure_str = 'Failure recorded: %s' % failure
     else:
-      description = None
-    if isinstance(exc_info_or_message, basestring):
-      self.AddValue(failure.FailureValue.FromMessage(
-          self.current_page, exc_info_or_message))
-    else:
-      self.AddValue(failure.FailureValue(
-          self.current_page, exc_info_or_message, description))
+      failure_str = ''.join(traceback.format_exception(*failure))
+    self._progress_reporter.DidFail(failure_str)
 
   def Skip(self, reason):
     assert self._current_page_run, 'Not currently running test.'

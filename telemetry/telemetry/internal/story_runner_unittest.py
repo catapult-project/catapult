@@ -297,7 +297,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(
         test, story_set, self.options, self.results,
         metadata=EmptyMetadataForTest())
-    self.assertEquals(0, len(self.results.failures))
+    self.assertFalse(self.results.had_failures)
     self.assertEquals(number_stories,
                       GetNumberOfSuccessfulPageRuns(self.results))
 
@@ -362,7 +362,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(
         test, story_set, self.options, self.results,
         metadata=EmptyMetadataForTest())
-    self.assertEquals(0, len(self.results.failures))
+    self.assertFalse(self.results.had_failures)
     self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
 
     self.assertEquals(3*EXPECTED_CALLS_IN_ORDER,
@@ -426,7 +426,7 @@ class StoryRunnerTest(unittest.TestCase):
     calls_in_order = GetCallsInOrder() # pylint: disable=no-value-for-parameter
     self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
-  def testAppCrashExceptionCausesFailureValue(self):
+  def testAppCrashExceptionCausesFailure(self):
     self.SuppressExceptionFormatting()
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
@@ -438,7 +438,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(
         DummyTest(), story_set, self.options, self.results,
         metadata=EmptyMetadataForTest())
-    self.assertEquals(1, len(self.results.failures))
+    self.assertTrue(self.results.had_failures)
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
     self.assertIn('App Foo crashes', self.fake_stdout.getvalue())
 
@@ -518,7 +518,7 @@ class StoryRunnerTest(unittest.TestCase):
         test, story_set, self.options, self.results,
         metadata=EmptyMetadataForTest())
     self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(self.results.failures))
+    self.assertTrue(self.results.had_failures)
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
 
   def testAppCrashThenRaiseInTearDownFatal(self):
@@ -564,7 +564,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEqual(['app-crash', 'dump-state', 'tear-down-state'],
                      unit_test_events)
     # The AppCrashException gets added as a failure.
-    self.assertEquals(1, len(self.results.failures))
+    self.assertTrue(self.results.had_failures)
 
   def testPagesetRepeat(self):
     story_set = story_module.StorySet()
@@ -582,7 +582,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(
         _Measurement(), story_set, self.options, results,
         metadata=EmptyMetadataForTest())
-    summary = summary_module.Summary(results.all_page_specific_values)
+    summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     blank_value = list_of_scalar_values.ListOfScalarValues(
@@ -597,7 +597,7 @@ class StoryRunnerTest(unittest.TestCase):
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(4, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     self.assertEquals(3, len(values))
     self.assertIn(blank_value, values)
     self.assertIn(green_value, values)
@@ -613,12 +613,12 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations(),
                      metadata=EmptyMetadataForTest())
-    summary = summary_module.Summary(results.all_page_specific_values)
+    summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(1, GetNumberOfSkippedPageRuns(results))
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     self.assertEquals(0, len(values))
 
   def testRunStoryOneDisabledOneNot(self):
@@ -633,12 +633,12 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations(),
                      metadata=EmptyMetadataForTest())
-    summary = summary_module.Summary(results.all_page_specific_values)
+    summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(1, GetNumberOfSkippedPageRuns(results))
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     self.assertEquals(2, len(values))
 
   def testRunStoryDisabledOverriddenByFlag(self):
@@ -652,12 +652,12 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations(),
                      metadata=EmptyMetadataForTest())
-    summary = summary_module.Summary(results.all_page_specific_values)
+    summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(0, GetNumberOfSkippedPageRuns(results))
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     self.assertEquals(2, len(values))
 
   def testRunStoryPopulatesHistograms(self):
@@ -994,7 +994,7 @@ class StoryRunnerTest(unittest.TestCase):
         results, max_failures=runner_max_failures,
         metadata=EmptyMetadataForTest())
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
-    self.assertEquals(expected_num_failures, len(results.failures))
+    self.assertTrue(results.had_failures)
     for ii, story in enumerate(story_set.stories):
       self.assertEqual(story.was_run, ii < expected_num_failures)
 
@@ -1087,7 +1087,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1121,7 +1121,7 @@ class StoryRunnerTest(unittest.TestCase):
               root_mock.story, root_mock.results),
           mock.call.results.AddArtifact(
               root_mock.story.name, 'minidump', temp_file_path),
-          mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
+          mock.call.results.Fail(ExcInfoMatcher('foo')),
           mock.call.test.DidRunStory(
               root_mock.state.platform, root_mock.results),
           mock.call.state.DidRunStory(root_mock.results),
@@ -1145,7 +1145,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1182,7 +1182,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=False),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1227,7 +1227,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.RunStory(root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1248,7 +1248,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=True),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
@@ -1290,7 +1290,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo'), handleable=False),
+        mock.call.results.Fail(ExcInfoMatcher('foo')),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
@@ -1485,7 +1485,7 @@ class StoryRunnerTest(unittest.TestCase):
         _Measurement(), story_set, self.options, self.results,
         metadata=EmptyMetadataForTest(),
         max_num_values=0)
-    self.assertEquals(1, len(self.results.failures))
+    self.assertTrue(self.results.had_failures)
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
     self.assertIn('Too many values: 1 > 0', self.fake_stdout.getvalue())
 

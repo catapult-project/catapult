@@ -95,7 +95,7 @@ def CaptureLogsAsArtifacts(results, test_name):
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
-  def ProcessError(exc=None, handleable=True):
+  def ProcessError(exc=None):
     state.DumpStateUponFailure(story, results)
 
     # Dump app crash, if present
@@ -107,7 +107,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
 
     # Note: calling Fail on the results object also normally causes the
     # progress_reporter to log it in the output.
-    results.Fail(sys.exc_info(), handleable=handleable)
+    results.Fail(sys.exc_info())
 
   with CaptureLogsAsArtifacts(results, story.name):
     try:
@@ -133,7 +133,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     except page_action.PageActionNotSupported as exc:
       results.Skip('Unsupported page action: %s' % exc)
     except Exception:
-      ProcessError(handleable=False)
+      ProcessError()
       raise
     finally:
       has_existing_exception = (sys.exc_info() != (None, None, None))
@@ -220,6 +220,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
 
           num_values = len(results.all_page_specific_values)
+          # TODO(#4259): Convert this to an exception-based failure
           if num_values > max_num_values:
             msg = 'Too many values: %d > %d' % (num_values, max_num_values)
             results.Fail(msg)
@@ -249,7 +250,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             exception_formatter.PrintFormattedException(
                 msg='Exception from result processing:')
         if (effective_max_failures is not None and
-            len(results.failures) > effective_max_failures):
+            results.num_failed > effective_max_failures):
           logging.error('Too many failures. Aborting.')
           return
   finally:
@@ -354,11 +355,13 @@ def RunBenchmark(benchmark, finder_options):
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           expectations=expectations, metadata=benchmark.GetMetadata(),
           max_num_values=benchmark.MAX_NUM_VALUES)
-      return_code = 1 if results.failures else 0
+      return_code = 1 if results.had_failures else 0
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
     except Exception: # pylint: disable=broad-except
+      logging.fatal(
+          'Benchmark execution interrupted by a fatal exception.')
       results.telemetry_info.InterruptBenchmark()
       exception_formatter.PrintFormattedException()
       return_code = 2
