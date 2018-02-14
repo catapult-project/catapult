@@ -439,6 +439,44 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     expected_calls = [mock.call('output hash'), mock.call('output json hash')]
     self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
+  def testReadHistogramsDiagnosticRefSkipTraceUrls(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
+        generic_set.GenericSet(['trace_url1', 'trace_url2']))
+    hist2 = histogram_module.Histogram('hist2', 'count')
+    hist2.diagnostics[reserved_infos.TRACE_URLS.name] = (
+        generic_set.GenericSet(['trace_url3']))
+    hist2.diagnostics[reserved_infos.TRACE_URLS.name].guid = 'foo'
+    histograms = histogram_set.HistogramSet([hist, hist2])
+    self.SetOutputFileContents(histograms.AsDicts())
+
+    quest = read_value.ReadHistogramsJsonValue(hist.name, None, None)
+    execution = quest.Start(None, 'output hash')
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, (0,))
+    self.assertEqual(
+        {
+            'result_values': (0,),
+            'completed': True,
+            'exception': None,
+            'result_arguments': {},
+            'details': {
+                'traces': [
+                    {'url': 'trace_url1', 'name': 'trace_url1'},
+                    {'url': 'trace_url2', 'name': 'trace_url2'},
+                ]
+            }
+        },
+        execution.AsDict())
+    self.assertEqual(execution.result_arguments, {})
+
+    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+
   def testReadHistogramsJsonValueWithNoTirLabel(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)
