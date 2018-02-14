@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import copy
+import json
 import unittest
 
 import mock
@@ -148,6 +149,24 @@ class TelemetryQuestTest(_QuestTest):
         {'key': 'value'}, _ALL_TELEMETRY_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments),
                      (arguments, expected))
+
+  def testStringExtraTestArgs(self):
+    arguments = {
+        'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
+        'benchmark': 'speedometer',
+        'browser': 'release',
+        'story': 'http://www.fifa.com/',
+        'extra_test_args': '--custom-arg "custom value"',
+    }
+    expected_arguments = copy.copy(arguments)
+    expected_arguments['extra_test_args'] = json.dumps(
+        ['--custom-arg', 'custom value'])
+
+    expected = run_test.RunTest(
+        {'key': 'value'}, _ALL_TELEMETRY_ARGUMENTS)
+    self.assertEqual(run_test.RunTest.FromDict(arguments),
+                     (expected_arguments, expected))
 
   def testInvalidExtraTestArgs(self):
     arguments = {

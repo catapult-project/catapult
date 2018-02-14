@@ -11,6 +11,7 @@ modify the Quest.
 import collections
 import copy
 import json
+import shlex
 
 from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models.quest import execution as execution_module
@@ -151,7 +152,12 @@ class RunTest(quest.Quest):
 
     extra_test_args = arguments.get('extra_test_args')
     if extra_test_args:
-      extra_test_args = json.loads(extra_test_args)
+      # We accept a json list, or a string. If it can't be loaded as json, we
+      # fall back to assuming it's a string argument.
+      try:
+        extra_test_args = json.loads(extra_test_args)
+      except ValueError:
+        extra_test_args = shlex.split(extra_test_args)
       if not isinstance(extra_test_args, list):
         raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
       used_arguments['extra_test_args'] = json.dumps(extra_test_args)
