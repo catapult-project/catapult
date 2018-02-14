@@ -15,6 +15,18 @@ found in the LICENSE file.
 tr.exportTo('tr.importer', function() {
   const LONG_TASK_THRESHOLD_MS = 50;
 
+  // Titles for top level tasks in the scheduler. Any input event queued during
+  // a top level task cannot be handled until the end of that task.
+  const TOP_LEVEL_TASK_TITLES = [
+    // Old name of scheduler top level tasks. Preserved for backwards
+    // compatibility with old traces.
+    'TaskQueueManager::ProcessTaskFromWorkQueue',
+    // This is the name of top level scheduler tasks as of
+    // https://crrev.com/c/883346.
+    'ThreadControllerImpl::DoWork',
+  ];
+
+
   /**
    * @param  {!tr.model.Process} process
    * @param  {!tr.b.math.Range} range
@@ -100,9 +112,12 @@ tr.exportTo('tr.importer', function() {
     }
 
     const firstMeaningfulPaintTime = fmpEvent.start;
-    const mainThreadTasks =
-        [...rendererHelper.mainThread.findTopmostSlicesNamed(
-            'TaskQueueManager::ProcessTaskFromWorkQueue')];
+    const mainThreadTasks = [];
+    for (const title of TOP_LEVEL_TASK_TITLES) {
+      mainThreadTasks.push(
+          ...rendererHelper.mainThread.findTopmostSlicesNamed(title));
+    }
+
     const longTasks = mainThreadTasks.filter(
         task => task.duration >= LONG_TASK_THRESHOLD_MS);
     const longTasksInWindow = longTasks.filter(

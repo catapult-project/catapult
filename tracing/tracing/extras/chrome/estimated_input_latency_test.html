@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   function newSchedulerTask(startTime, duration) {
     return tr.c.TestUtils.newSliceEx({
       cat: 'toplevel',
-      title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+      title: 'ThreadControllerImpl::DoWork',
       start: startTime,
       duration
     });

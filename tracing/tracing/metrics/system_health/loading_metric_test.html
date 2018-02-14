@@ -242,7 +242,7 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        title: 'ThreadControllerImpl::DoWork',
         start: 100,
         duration: 300,
         cpuStart: 1000,
@@ -304,7 +304,7 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        title: 'ThreadControllerImpl::DoWork',
         start: 100,
         duration: 200,
         cpuStart: 1060,
@@ -312,7 +312,7 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        title: 'ThreadControllerImpl::DoWork',
         start: 500,
         duration: 200,
         cpuStart: 1250,
@@ -409,7 +409,7 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        title: 'ThreadControllerImpl::DoWork',
         start: 300,
         duration: 200,
         cpuStart: 1170,
@@ -470,7 +470,7 @@ tr.b.unittest.testSuite(function() {
   function addTopLevelTask_(rendererMain, start, duration) {
     rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'toplevel',
-      title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+      title: 'ThreadControllerImpl::DoWork',
       start,
       duration,
     }));
