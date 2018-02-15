@@ -13,7 +13,7 @@ import urllib
 import urllib2
 
 
-_BASE_URL = 'https://chromium.googlesource.com/'
+_BASE_URL = 'https://chromium.googlesource.com'
 # Can be up to 10,000.
 _REVISION_COUNT = 1000
 
