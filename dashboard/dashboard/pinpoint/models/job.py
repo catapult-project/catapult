@@ -513,6 +513,7 @@ def _CompareValues(values_a, values_b):
     return _DIFFERENT
 
   index = min(len(values_a), len(values_b)) / 10
+  index = min(index, len(_QUESTIONABLE_SIGNIFICANCE_LEVELS) - 1)
   questionable_significance_level = _QUESTIONABLE_SIGNIFICANCE_LEVELS[index]
   if p_value < questionable_significance_level:
     # The p-value is not less than the significance level, but it's small enough
