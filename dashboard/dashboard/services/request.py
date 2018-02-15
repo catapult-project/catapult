@@ -9,6 +9,7 @@ import socket
 import urllib
 
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch_errors
 
 from dashboard.common import utils
 
@@ -78,7 +79,8 @@ def Request(url, method='GET', body=None,
     content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
   except NotFoundError:
     raise
-  except (httplib.HTTPException, socket.error):
+  except (httplib.HTTPException, socket.error,
+          urlfetch_errors.InternalTransientError):
     # Retry once.
     content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
 
@@ -91,9 +93,9 @@ def Request(url, method='GET', body=None,
 def _RequestAndProcessHttpErrors(url, use_auth, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   if use_auth:
-    http = utils.ServiceAccountHttp(timeout=10)
+    http = utils.ServiceAccountHttp(timeout=30)
   else:
-    http = httplib2.Http(timeout=10)
+    http = httplib2.Http(timeout=30)
 
   response, content = http.request(url, **kwargs)
 

@@ -8,6 +8,7 @@ import unittest
 
 import mock
 
+from google.appengine.api import urlfetch_errors
 from google.appengine.ext import testbed
 
 from dashboard.services import request
@@ -24,8 +25,8 @@ class _RequestTest(unittest.TestCase):
     self._request = http.request
 
     patcher = mock.patch('dashboard.common.utils.ServiceAccountHttp')
-    service_account_http = patcher.start()
-    service_account_http.return_value = http
+    self._service_account_http = patcher.start()
+    self._service_account_http.return_value = http
     self.addCleanup(patcher.stop)
 
 
@@ -34,6 +35,7 @@ class SuccessTest(_RequestTest):
   def testRequest(self):
     self._request.return_value = ({'status': '200'}, 'response')
     response = request.Request('https://example.com')
+    self._service_account_http.assert_called_once_with(timeout=30)
     self._request.assert_called_once_with('https://example.com', method='GET')
     self.assertEqual(response, 'response')
 
@@ -86,6 +88,13 @@ class FailureAndRetryTest(_RequestTest):
   def testSocketError(self):
     self._request.side_effect = socket.error
     with self.assertRaises(socket.error):
+      request.Request('https://example.com')
+    self._request.assert_called_with('https://example.com', method='GET')
+    self.assertEqual(self._request.call_count, 2)
+
+  def testInternalTransientError(self):
+    self._request.side_effect = urlfetch_errors.InternalTransientError
+    with self.assertRaises(urlfetch_errors.InternalTransientError):
       request.Request('https://example.com')
     self._request.assert_called_with('https://example.com', method='GET')
     self.assertEqual(self._request.call_count, 2)
@@ -145,6 +154,8 @@ class AuthTest(_RequestTest):
 
     http.request.return_value = ({'status': '200'}, 'response')
     response = request.Request('https://example.com', use_auth=False)
+
+    httplib2_http.assert_called_once_with(timeout=30)
     http.request.assert_called_once_with('https://example.com', method='GET')
     self.assertEqual(self._request.call_count, 0)
     self.assertEqual(response, 'response')
