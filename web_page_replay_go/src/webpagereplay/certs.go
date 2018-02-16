@@ -94,6 +94,7 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 	template.NotBefore = time.Now()
 	// Certs cannot be valid for longer than 39 mths.
 	template.NotAfter = template.NotBefore.Add(39 * 30 * 24 * time.Hour)
+	template.SignatureAlgorithm = rootCert.SignatureAlgorithm
 	template.PublicKey = rootCert.PublicKey
 	var buf [20]byte
 	if _, err := io.ReadFull(rand.Reader, buf[:]); err != nil {
