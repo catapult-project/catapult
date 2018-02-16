@@ -15,17 +15,17 @@ _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
 
 _COMMENT_STARTED = (
     u"""\U0001f4cd Pinpoint job started.
-https://testbed.example.com/job/1""")
+https://example.com/job/foo""")
 
 
 _COMMENT_COMPLETED_NO_DIFFERENCES = (
     u"""<b>\U0001f4cd Couldn't reproduce a difference.</b>
-https://testbed.example.com/job/1""")
+https://example.com/job/foo""")
 
 
 _COMMENT_COMPLETED_WITH_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
-https://testbed.example.com/job/1
+https://example.com/job/foo
 
 <b>Subject.</b> by author@chromium.org
 https://example.com/repository/+/git_hash
@@ -36,7 +36,7 @@ Understanding performance regressions:
 
 _COMMENT_COMPLETED_WITH_PATCH = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
-https://testbed.example.com/job/1
+https://example.com/job/foo
 
 <b>Subject.</b> by author@chromium.org
 https://codereview.com/c/672011/2f0d5c7
@@ -47,7 +47,7 @@ Understanding performance regressions:
 
 _COMMENT_COMPLETED_TWO_DIFFERENCES = (
     u"""<b>\U0001f4cd Found significant differences after each of 2 commits.</b>
-https://testbed.example.com/job/1
+https://example.com/job/foo
 
 <b>Subject.</b> by author1@chromium.org
 https://example.com/repository/+/git_hash_1
@@ -61,10 +61,11 @@ Understanding performance regressions:
 
 _COMMENT_FAILED = (
     u"""\U0001f63f Pinpoint job stopped with an error.
-https://testbed.example.com/job/1""")
+https://example.com/job/foo""")
 
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
+@mock.patch.object(job.Job, 'url', 'https://example.com/job/foo')
 class BugCommentTest(testing_common.TestCase):
 
   def setUp(self):

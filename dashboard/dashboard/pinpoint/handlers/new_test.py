@@ -37,6 +37,7 @@ _BASE_REQUEST = {
 }
 
 
+@mock.patch.object(new.job_module.Job, 'url', 'https://example.com/job/foo')
 class NewTest(testing_common.TestCase):
 
   def setUp(self):
@@ -78,9 +79,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'], 'https://example.com/job/foo')
 
   @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   @mock.patch(
@@ -132,9 +131,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', base_request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'], 'https://example.com/job/foo')
 
   @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
   @mock.patch(
@@ -159,9 +156,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', params, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'], 'https://example.com/job/foo')
     mock_patch.assert_called_with(params['patch'])
 
   @mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
@@ -214,9 +209,7 @@ class NewTest(testing_common.TestCase):
     response = self.testapp.post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'], 'https://example.com/job/foo')
     job = job_module.Job.query().get()
     self.assertEqual(None, job.bug_id)
 
