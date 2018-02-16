@@ -402,19 +402,33 @@ def _IsGroupMemberCacheKey(identity, group):
 
 
 def ServiceAccountHttp(*args, **kwargs):
-  """Returns the Credentials of the service account if available."""
-  account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
-  if not account_details:
-    raise KeyError('Service account credentials not found.')
+  """Returns the Credentials of the service account.
 
-  client.logger.setLevel(logging.WARNING)
-  credentials = client.SignedJwtAssertionCredentials(
-      service_account_name=account_details['client_email'],
-      private_key=account_details['private_key'],
-      scope=EMAIL_SCOPE)
+  Just prior to the first request, the Http object makes a request to
+  https://accounts.google.com/o/oauth2/token to get an oauth token. The Http
+  object is cached in memcache to reduce the number of extraneous requests.
 
-  http = httplib2.Http(*args, **kwargs)
-  credentials.authorize(http)
+  Arguments:
+    args, kwargs: Arguments passed through to httplib2.Http().
+
+  Raises:
+    KeyError: The service account credentials were not found.
+  """
+  http = memcache.get(SERVICE_ACCOUNT_KEY)
+  if not http:
+    account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
+    if not account_details:
+      raise KeyError('Service account credentials not found.')
+
+    client.logger.setLevel(logging.WARNING)
+    credentials = client.SignedJwtAssertionCredentials(
+        service_account_name=account_details['client_email'],
+        private_key=account_details['private_key'],
+        scope=EMAIL_SCOPE)
+
+    http = httplib2.Http(*args, **kwargs)
+    credentials.authorize(http)
+    memcache.add(SERVICE_ACCOUNT_KEY, http, time=60 * 50)  # Less than 1 hour.
   return http
 
 
