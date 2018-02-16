@@ -234,6 +234,13 @@ class LogcatMonitor(object):
         self._record_file.close()
         self._record_file = None
 
+  def close(self):
+    """An alias for Close.
+
+    Allows LogcatMonitors to be used with contextlib.closing.
+    """
+    self.Close()
+
   def __enter__(self):
     """Starts the logcat monitor."""
     self.Start()
