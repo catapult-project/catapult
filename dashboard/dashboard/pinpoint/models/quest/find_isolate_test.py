@@ -52,8 +52,7 @@ class FindIsolateQuestTest(testing_common.TestCase):
         'target': 'telemetry_perf_tests',
     }
     expected = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
-    self.assertEqual(find_isolate.FindIsolate.FromDict(arguments),
-                     (arguments, expected))
+    self.assertEqual(find_isolate.FindIsolate.FromDict(arguments), expected)
 
 
 class _FindIsolateExecutionTest(unittest.TestCase):

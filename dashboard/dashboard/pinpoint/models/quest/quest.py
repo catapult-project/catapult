@@ -25,12 +25,10 @@ class Quest(object):
     """Returns a Quest, configured from a dict of arguments.
 
     Arguments:
-    arguments: A dict or MultiDict containing arguments.
+      arguments: A dict or MultiDict containing arguments.
 
     Returns:
-      A tuple of (arguments, quests), where arguments is a dict containing the
-      request arguments that were used. ({}, None) if none of the parameters are
-      present.
+      A Quest object, or None if none of the parameters are present.
 
     Raises:
       KeyError: An argument must be one of a specific list of values.

@@ -33,14 +33,14 @@ class New(webapp2.RequestHandler):
     bug_id = self.request.get('bug_id')
 
     # Validate arguments and convert them to canonical internal representation.
-    arguments, quests = _GenerateQuests(self.request.params)
+    quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(self.request.params)
     tags = _ValidateTags(self.request.get('tags'))
 
     # Create job.
     job = job_module.Job.New(
-        arguments=arguments,
+        arguments=self.request.params.mixed(),
         quests=quests,
         auto_explore=auto_explore,
         bug_id=bug_id,
@@ -139,13 +139,11 @@ def _GenerateQuests(arguments):
     quest_classes = (quest_module.FindIsolate, quest_module.RunTest,
                      quest_module.ReadGraphJsonValue)
 
-  used_arguments = {}
   quests = []
   for quest_class in quest_classes:
-    quest_arguments, quest = quest_class.FromDict(arguments)
+    quest = quest_class.FromDict(arguments)
     if not quest:
-      return used_arguments, quests
-    used_arguments.update(quest_arguments)
+      break
     quests.append(quest)
 
-  return used_arguments, quests
+  return quests

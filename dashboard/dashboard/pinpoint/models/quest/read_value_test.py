@@ -17,11 +17,8 @@ from tracing.value.diagnostics import reserved_infos
 class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
 
   def testMinimumArguments(self):
-    arguments = {}
-
     expected = read_value.ReadHistogramsJsonValue(None, None, None)
-    self.assertEqual(read_value.ReadHistogramsJsonValue.FromDict(arguments),
-                     (arguments, expected))
+    self.assertEqual(read_value.ReadHistogramsJsonValue.FromDict({}), expected)
 
   def testAllArguments(self):
     arguments = {
@@ -34,7 +31,7 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
     expected = read_value.ReadHistogramsJsonValue(
         'timeToFirst', 'pcv1-cold', 'trace_name', 'avg')
     self.assertEqual(read_value.ReadHistogramsJsonValue.FromDict(arguments),
-                     (arguments, expected))
+                     expected)
 
 
 class ReadGraphJsonValueQuestTest(unittest.TestCase):
@@ -58,7 +55,7 @@ class ReadGraphJsonValueQuestTest(unittest.TestCase):
 
     expected = read_value.ReadGraphJsonValue('chart_name', 'trace_name')
     self.assertEqual(read_value.ReadGraphJsonValue.FromDict(arguments),
-                     (arguments, expected))
+                     expected)
 
 
 class _ReadValueExecutionTest(unittest.TestCase):

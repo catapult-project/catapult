@@ -38,25 +38,21 @@ class FindIsolate(quest.Quest):
 
   @classmethod
   def FromDict(cls, arguments):
-    used_arguments = {}
-
-    builder = _GetBuilder(arguments, used_arguments)
+    builder = _GetBuilder(arguments)
 
     target = arguments.get('target')
     if not target:
       raise TypeError('Missing "target" argument.')
-    used_arguments['target'] = target
 
-    return used_arguments, cls(builder, target)
+    return cls(builder, target)
 
 
-def _GetBuilder(arguments, used_arguments):
+def _GetBuilder(arguments):
   configuration = arguments.get('configuration')
   builder = arguments.get('builder')
   if builder:
-    used_arguments['builder'] = builder
+    pass
   elif configuration:
-    used_arguments['configuration'] = configuration
     bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
     builder = bots[configuration]['builder']
   else:
