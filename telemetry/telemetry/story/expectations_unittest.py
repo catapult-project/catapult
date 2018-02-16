@@ -500,6 +500,15 @@ class StoryExpectationsTest(unittest.TestCase):
             [expectations.ALL], 'Too Long')
     FooExpectations()
 
+  def testDisableStoryWithLongNameContainsHtml(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableStory(
+            '123456789012345678901234567890123456789012345678901234567890123456'
+            '789012345.html?and_some_get_parameters',
+            [expectations.ALL], 'Too Long')
+    FooExpectations()
+
   def testDisableStoryWithNoReason(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):

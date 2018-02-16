@@ -151,7 +151,7 @@ class StoryExpectations(object):
     """
     # TODO(rnephew): Remove http check when old stories that use urls as names
     # are removed.
-    if not story_name.startswith('http'):
+    if not (story_name.startswith('http') or '.html' in story_name):
       # Decrease to 50 after we shorten names of existing tests.
       assert len(story_name) < 75, (
           "Story name exceeds limit of 75 characters. This limit is in place to"
