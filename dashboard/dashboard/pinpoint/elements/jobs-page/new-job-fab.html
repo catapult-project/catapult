@@ -30,16 +30,6 @@ found in the LICENSE file.
       .error {
         color: var(--paper-red-500);
       }
-
-      .columns {
-        display: flex;
-        margin: 0 -0.5em;
-      }
-
-      .column {
-        flex: 1;
-        margin: 0 0.5em;
-      }
     </style>
 
     <app-location route="{{route}}"></app-location>
@@ -60,34 +50,19 @@ found in the LICENSE file.
             <input type="hidden" name="start_git_hash" value="HEAD">
             <input type="hidden" name="end_git_hash" value="HEAD">
             <input type="hidden" name="target" value="telemetry_perf_tests">
-            <div class="columns">
-              <div class="column">
-                <h3>Build</h3>
-                <paper-input name="bug_id" label="Bug ID"></paper-input>
-                <paper-input name="patch" label="Gerrit URL" required></paper-input>
-                <paper-dropdown-menu name="configuration" label="Configuration" horizontal-align="left" required>
-                  <!-- TODO: remove "class" after Polymer 2.0 migration -->
-                  <paper-listbox class="dropdown-content" slot="dropdown-content">
-                    <template is="dom-repeat" items="[[config.configurations]]">
-                      <paper-item>[[item]]</paper-item>
-                    </template>
-                  </paper-listbox>
-                </paper-dropdown-menu>
-              </div>
-              <div class="column">
-                <h3>Test</h3>
-                <paper-input name="benchmark" label="Benchmark"></paper-input>
-                <paper-input name="story" label="Story"></paper-input>
-                <paper-input name="extra_test_args" label="Extra Test Arguments"></paper-input>
-              </div>
-              <div class="column">
-                <h3>Values</h3>
-                <paper-input name="chart" label="Chart"></paper-input>
-                <paper-input name="tir_label" label="TIR Label"></paper-input>
-                <paper-input name="trace" label="Trace"></paper-input>
-                <paper-input name="statistic" label="Statistic"></paper-input>
-              </div>
-            </div>
+            <paper-input name="bug_id" label="Bug ID"></paper-input>
+            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+            <paper-dropdown-menu name="configuration" label="Bot" horizontal-align="left" required>
+              <!-- TODO: remove "class" after Polymer 2.0 migration -->
+              <paper-listbox class="dropdown-content" slot="dropdown-content">
+                <template is="dom-repeat" items="[[config.configurations]]">
+                  <paper-item>[[item]]</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-input name="benchmark" label="Benchmark"></paper-input>
+            <paper-input name="story" label="Story (optional)"></paper-input>
+            <paper-input name="extra_test_args" label="Extra Test Arguments (optional)"></paper-input>
           </form>
         </iron-form>
       </div>
