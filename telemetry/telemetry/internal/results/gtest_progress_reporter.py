@@ -5,6 +5,7 @@
 import time
 
 from telemetry.internal.results import progress_reporter
+from telemetry.value import failure
 from telemetry.value import skip
 
 
@@ -34,13 +35,13 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
   def DidAddValue(self, value):
     super(GTestProgressReporter, self).DidAddValue(value)
-    if isinstance(value, skip.SkipValue):
+    if isinstance(value, failure.FailureValue):
+      print >> self._output_stream, failure.GetStringFromExcInfo(
+          value.exc_info)
+      self._output_stream.flush()
+    elif isinstance(value, skip.SkipValue):
       print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
           value.page.name, value.reason)
-
-  def DidFail(self, failure_str):
-    print >> self._output_stream, failure_str
-    self._output_stream.flush()
 
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
@@ -82,7 +83,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     if len(failed_runs) > 0:
       unit = 'test' if len(failed_runs) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
-          (len(failed_runs), unit))
+          (len(page_test_results.failures), unit))
       for failed_run in failed_runs:
         print >> self._output_stream, '[  FAILED  ]  %s%s' % (
             failed_run.story.name,

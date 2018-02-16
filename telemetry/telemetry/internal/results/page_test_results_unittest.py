@@ -17,6 +17,7 @@ from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.testing import stream
+from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
@@ -60,8 +61,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
     self.assertEqual(set([self.pages[1]]), results.pages_that_succeeded)
 
-    self.assertEqual(len(results.all_page_runs), 2)
-    self.assertTrue(results.had_failures)
+    self.assertEqual(2, len(results.all_page_runs))
     self.assertTrue(results.all_page_runs[0].failed)
     self.assertTrue(results.all_page_runs[1].ok)
 
@@ -292,6 +292,33 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     self.assertEquals(
         [value1, value2, value3], results.all_page_specific_values)
+
+  def testGetAllValuesForSuccessfulPagesOnePageFails(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    value1 = scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP)
+    results.AddValue(value1)
+    results.DidRunPage(self.pages[0])
+
+    results.WillRunPage(self.pages[1])
+    results.Fail('Failure')
+    results.DidRunPage(self.pages[1])
+
+    results.WillRunPage(self.pages[2])
+    value3 = scalar.ScalarValue(
+        self.pages[2], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP)
+    results.AddValue(value3)
+    results.DidRunPage(self.pages[2])
+
+    self.assertEquals(
+        results.all_page_specific_values[0], value1)
+    self.assertIsInstance(
+        results.all_page_specific_values[1], failure.FailureValue)
+    self.assertEquals(
+        results.all_page_specific_values[2], value3)
 
   def testFindValues(self):
     results = page_test_results.PageTestResults()
@@ -582,6 +609,25 @@ class PageTestResultsFilterTest(unittest.TestCase):
     actual_values = [(v.name, v.page.url, v.value)
                      for v in results.all_page_specific_values]
     self.assertEquals(expected_values, actual_values)
+
+  def testFailureValueCannotBeFiltered(self):
+    def AcceptValueNamed_a(name, _):
+      return name == 'a'
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptValueNamed_a)
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'b', 'seconds', 8,
+        improvement_direction=improvement_direction.UP))
+    results.Fail('failure')
+    results.DidRunPage(self.pages[0])
+    results.PrintSummary()
+
+    # Although predicate says only accept values named 'a', the failure value is
+    # added anyway.
+    self.assertEquals(len(results.all_page_specific_values), 1)
+    self.assertIsInstance(results.all_page_specific_values[0],
+                          failure.FailureValue)
 
   def testSkipValueCannotBeFiltered(self):
     def AcceptValueNamed_a(name, _):

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.value import failure
 from telemetry.value import skip
 
 
@@ -126,7 +127,13 @@ def GroupStably(all_values, key_func):
   merge_groups = {}
   merge_groups_in_creation_order = []
   for value in all_values:
-    if isinstance(value, skip.SkipValue):
+    # TODO(chrishenry): This is temporary. When we figure out the
+    # right summarization strategy for page runs with failures/skips, we
+    # should use that instead.
+    should_skip_value = (isinstance(value, failure.FailureValue) or
+                         isinstance(value, skip.SkipValue))
+
+    if should_skip_value:
       continue
 
     key = key_func(value)

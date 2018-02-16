@@ -4,6 +4,7 @@
 
 from collections import defaultdict
 
+from telemetry.value import failure
 from telemetry.value import merge_values
 from telemetry.value import skip
 
@@ -34,13 +35,16 @@ class Summary(object):
       ]
 
   """
-  def __init__(self, results, key_func=merge_values.DefaultKeyFunc):
-    self._had_failures = results.had_failures
+  def __init__(self, all_page_specific_values,
+               key_func=merge_values.DefaultKeyFunc):
+    had_failures = any(
+        isinstance(v, failure.FailureValue) for v in all_page_specific_values)
+    self.had_failures = had_failures
     self._computed_per_page_values = []
     self._computed_summary_values = []
     self._interleaved_computed_per_page_values_and_summaries = []
     self._key_func = key_func
-    self._ComputePerPageValues(results.all_page_specific_values)
+    self._ComputePerPageValues(all_page_specific_values)
 
   @property
   def computed_per_page_values(self):
@@ -63,7 +67,7 @@ class Summary(object):
   def _ComputePerPageValues(self, all_page_specific_values):
     all_successful_page_values = [
         v for v in all_page_specific_values if not (isinstance(
-            v, skip.SkipValue))]
+            v, failure.FailureValue) or isinstance(v, skip.SkipValue))]
 
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
@@ -105,7 +109,7 @@ class Summary(object):
     # summary key so that we can find them when printing out value names in
     # alphabetical order.
     merged_pages_value_by_key = {}
-    if not self._had_failures:
+    if not self.had_failures:
       for value in merge_values.MergeLikeValuesFromDifferentPages(
           merged_page_values, self._key_func):
         value_key = self._key_func(value)
