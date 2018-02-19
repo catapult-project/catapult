@@ -5,14 +5,21 @@
 import argparse
 import csv
 import dashboard_api
+import logging
+import oauth2client.tools
+import os
 
 
-# pylint: disable=line-too-long
-HELP_SITE = 'https://developers.google.com/api-client-library/python/auth/service-accounts#creatinganaccount'
+# For help creating service account credentials see:
+# https://developers.google.com/api-client-library/python/auth/service-accounts#creatinganaccount
+
+DEFAULT_USER_CREDENTIALS_PATH = os.path.join(
+    os.path.dirname(__file__), 'user-credentials.json')
 
 
 def Main():
-  parser = argparse.ArgumentParser()
+  logging.basicConfig(level=logging.INFO)
+  parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
   parser.add_argument('-b', '--benchmark', required=True,
                       help='Benchmark to pull data for.')
   parser.add_argument('-f', '--filters', action='append',
@@ -20,16 +27,18 @@ def Main():
                             'enter multiple filter strings.'))
   parser.add_argument('-d', '--days', default=30, type=int,
                       help='Number of days to collect data for. Default 30')
-  parser.add_argument('--credentials',
-                      help=('Path to json credentials file. See %s for '
-                            'information about generating this.' % HELP_SITE))
+  parser.add_argument('--service-account-json',
+                      help=('Path to json credentials file for a service '
+                            'account. Falls back to user credentials if not '
+                            'provided.'))
+  parser.add_argument('--user-credentials-json',
+                      help='Path to file where to store user credentials',
+                      default=DEFAULT_USER_CREDENTIALS_PATH)
   parser.add_argument('--output-path', default='timeseries_data.csv',
                       help='Path to save file to. Default: alert_noise.json')
   args = parser.parse_args()
 
-  dashboard_communicator = dashboard_api.PerfDashboardCommunicator(
-      json_key_path=args.credentials)
-
+  dashboard_communicator = dashboard_api.PerfDashboardCommunicator(args)
   with open(args.output_path, 'wb') as fp:
     csv_writer = csv.writer(fp)
     for row in dashboard_communicator.GetAllTimeseriesForBenchmark(

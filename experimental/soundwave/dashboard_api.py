@@ -1,7 +1,11 @@
 import httplib2
 import json
-from oauth2client import client
-from oauth2client import service_account # pylint: disable=no-name-in-module
+import logging
+import oauth2client.client
+import oauth2client.file
+from oauth2client import service_account  # pylint: disable=no-name-in-module
+import oauth2client.tools
+import os
 import time
 import urllib
 
@@ -12,59 +16,45 @@ class PerfDashboardCommunicator(object):
   OAUTH_CLIENT_ID = (
       '62121018386-h08uiaftreu4dr3c4alh3l7mogskvb7i.apps.googleusercontent.com')
   OAUTH_CLIENT_SECRET = 'vc1fZfV1cZC6mgDSHV-KSPOz'
-  SCOPES = 'https://www.googleapis.com/auth/userinfo.email'
+  SCOPES = ['https://www.googleapis.com/auth/userinfo.email']
 
-  def __init__(self, json_key_path=None, auto_authorize=True):
-    self._json_key_path = json_key_path
-    self._creds = None
-    if auto_authorize:
-      self._creds = self.AuthorizeAccount()
+  def __init__(self, flags):
+    self._credentials = None
+    if flags.service_account_json:
+      self._AuthorizeAccountServiceAccount(flags.service_account_json)
+    else:
+      self._AuthorizeAccountUserAccount(flags)
 
-  def AuthorizeAccount(self):
-    """A factory for authorized account credentials."""
-    if self._json_key_path:
-      try:
-        return self._AuthorizeAccountServiceAccount(self._json_key_path)
-      except Exception:  # pylint: disable=broad-except
-        print ('Failure authenticating with service account. Falling back to '
-               'user authentication.')
-    return self._AuthorizeAccountUserAccount()
+  @property
+  def has_credentials(self):
+    return self._credentials and not self._credentials.invalid
 
-  def _AuthorizeAccountServiceAccount(self, json_key):
+  def _AuthorizeAccountServiceAccount(self, json_keyfile):
     """Used to create service account credentials for the dashboard.
 
-    args:
-      json_key: Path to json file that contains credentials.
-    returns:
-      A credentials object for communicating with the dashboard.
+    Args:
+      json_keyfile: Path to json file that contains credentials.
     """
-    creds = service_account.ServiceAccountCredentials.from_json_keyfile_name(
-        json_key, [self.SCOPES])
-    return creds
+    self._credentials = (
+        service_account.ServiceAccountCredentials.from_json_keyfile_name(
+            json_keyfile, self.SCOPES))
 
-  def _AuthorizeAccountUserAccount(self):
+  def _AuthorizeAccountUserAccount(self, flags):
     """Used to create user account credentials for the performance dashboard.
 
-    returns:
-      A credentials object for communicating with the dashboard.
+    Args:
+      flags: An argparse.Namespace as returned by argparser.parse_args; in
+        addition to oauth2client.tools.argparser flags should also have set a
+        user_credentials_json flag.
     """
-    flow = client.OAuth2WebServerFlow(
-        self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET, [self.SCOPES],
-        approval_prompt='force')
-    flow.redirect_uri = client.OOB_CALLBACK_URN
-    print('Go to the followinhg link in your browser:\n'
-          '    %s\n' % flow.step1_get_authorize_url())
-    code = raw_input('Enter verification code: ').strip()
-    try:
-      creds = flow.step2_exchange(code)
-      return creds
-    except client.FlowExchangeError:
-      print 'User authentication has failed.'
-      raise
-
-  def _CreateAuthorizedConnection(self):
-    assert self._creds, "Must have valid credentials to create a connection"
-    return self._creds.authorize(httplib2.Http())
+    store = oauth2client.file.Storage(flags.user_credentials_json)
+    if os.path.exists(flags.user_credentials_json):
+      self._credentials = store.locked_get()
+    if not self.has_credentials:
+      flow = oauth2client.client.OAuth2WebServerFlow(
+          self.OAUTH_CLIENT_ID, self.OAUTH_CLIENT_SECRET, self.SCOPES,
+          prompt='consent')
+      self._credentials = oauth2client.tools.run_flow(flow, store, flags)
 
   def _MakeApiRequest(self, request, retry=3, delay=3):
     """Used to communicate with perf dashboard.
@@ -75,8 +65,9 @@ class PerfDashboardCommunicator(object):
     returns:
       Contents of the response from the dashboard.
     """
-    print 'Making API request: %s' % request
-    connection = self._CreateAuthorizedConnection()
+    assert self.has_credentials
+    logging.info('Making API request: %s', request)
+    connection = self._credentials.authorize(httplib2.Http())
     resp, content = connection.request(
         self.REQUEST_URL + request,
         method="POST",
