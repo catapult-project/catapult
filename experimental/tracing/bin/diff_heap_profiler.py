@@ -68,9 +68,9 @@ def FindMemoryDumps(filename):
 
       # Retrieve process informations.
       if event['ph'] == 'M':
-        if event['name'] == 'process_name':
+        if event['name'] == 'process_name' and 'name' in event['args']:
           process.name = event['args']['name']
-        if event['name'] == 'process_labels':
+        if event['name'] == 'process_labels' and 'labels' in event['args']:
           process.labels = event['args']['labels']
 
       if event['name'] == 'typeNames':
