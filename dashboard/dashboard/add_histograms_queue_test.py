@@ -85,6 +85,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123
     }]
     self.testapp.post('/add_histograms_queue', json.dumps(params))
@@ -127,6 +128,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123
     }]
     self.testapp.post('/add_histograms_queue', json.dumps(params))
@@ -159,6 +161,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123,
         'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
@@ -199,6 +202,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123,
         'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
@@ -231,6 +235,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123,
         'diagnostics': {
             'benchmarks': TEST_BENCHMARKS,
@@ -257,6 +262,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': hists[0].AsDict(),
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123,
         'diagnostics': {
             'stories': hists[0].diagnostics.get('stories').AsDict(),
@@ -275,6 +281,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123
     }]
     self.testapp.post('/add_histograms_queue', json.dumps(params))
@@ -290,6 +297,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
+        'benchmark_description': None,
         'revision': 123
     }]
     self.testapp.post('/add_histograms_queue', json.dumps(params))

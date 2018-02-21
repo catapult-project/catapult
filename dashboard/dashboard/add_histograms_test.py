@@ -96,7 +96,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def _CreateHistogram(
       self, master=None, bot=None, benchmark=None, commit_position=None,
-      device=None, owner=None, stories=None, samples=None, max_samples=None):
+      device=None, owner=None, stories=None, benchmark_description=None,
+      samples=None, max_samples=None):
     hists = [histogram_module.Histogram('hist', 'count')]
     if max_samples:
       hists[0].max_num_sample_values = max_samples
@@ -121,6 +122,10 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       histograms.AddSharedDiagnostic(
           reserved_infos.BENCHMARKS.name,
           generic_set.GenericSet([benchmark]))
+    if benchmark_description:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.BENCHMARK_DESCRIPTIONS.name,
+          generic_set.GenericSet([benchmark_description]))
     if owner:
       histograms.AddSharedDiagnostic(
           reserved_infos.OWNERS.name,
@@ -139,20 +144,25 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_Succeeds(self, mock_process_test, mock_graph_revisions):
-    data = json.dumps(_SAMPLE_HISTOGRAM_END_TO_END)
+    hs = self._CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=123,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+    data = json.dumps(hs.AsDicts())
     sheriff.Sheriff(
         id='my_sheriff1', email='a@chromium.org', patterns=[
-            '*/*/*/foo2', '*/*/*/foo2_avg']).put()
+            '*/*/*/hist', '*/*/*/hist_avg']).put()
 
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
-    self.assertEqual(3, len(diagnostics))
+    self.assertEqual(4, len(diagnostics))
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
 
     tests = graph_data.TestMetadata.query().fetch()
+
+    self.assertEqual('Benchmark description.', tests[0].description)
 
     # Verify that an anomaly processing was called.
     mock_process_test.assert_called_once_with([tests[1].key, tests[2].key])

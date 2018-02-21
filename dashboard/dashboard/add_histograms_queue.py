@@ -210,6 +210,7 @@ def _PrewarmGets(params):
 def _ProcessRowAndHistogram(params, bot_whitelist):
   revision = int(params['revision'])
   test_path = params['test_path']
+  benchmark_description = params['benchmark_description']
   data_dict = params['data']
 
   logging.info('Processing: %s', test_path)
@@ -229,7 +230,8 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
   # https://github.com/catapult-project/catapult/issues/4096
   parent_test = add_point_queue.GetOrCreateAncestors(
       master, bot, test_name, internal_only=internal_only,
-      unescaped_story_name=unescaped_story_name, **extra_args)
+      unescaped_story_name=unescaped_story_name,
+      benchmark_description=benchmark_description, **extra_args)
   test_key = parent_test.key
 
   benchmark_name = test_path_parts[2]
