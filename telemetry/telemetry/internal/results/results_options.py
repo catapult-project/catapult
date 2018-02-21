@@ -204,6 +204,7 @@ def CreateResults(benchmark_metadata, options,
       artifact_results=artifacts)
 
   results.telemetry_info.benchmark_name = benchmark_metadata.name
+  results.telemetry_info.benchmark_descriptions = benchmark_metadata.description
   results.telemetry_info.benchmark_start_epoch = time.time()
   if options.results_label:
     results.telemetry_info.label = options.results_label

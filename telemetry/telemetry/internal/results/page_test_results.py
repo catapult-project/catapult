@@ -36,6 +36,7 @@ class TelemetryInfo(object):
     self._benchmark_name = None
     self._benchmark_start_epoch = None
     self._benchmark_interrupted = False
+    self._benchmark_descriptions = None
     self._label = None
     self._story_name = ''
     self._story_tags = set()
@@ -70,6 +71,16 @@ class TelemetryInfo(object):
     assert self.benchmark_start_epoch is None, (
         'benchmark_start_epoch must be set exactly once')
     self._benchmark_start_epoch = benchmark_start_epoch
+
+  @property
+  def benchmark_descriptions(self):
+    return self._benchmark_descriptions
+
+  @benchmark_descriptions.setter
+  def benchmark_descriptions(self, benchmark_descriptions):
+    assert self._benchmark_descriptions is None, (
+        'benchmark_descriptions must be set exactly once')
+    self._benchmark_descriptions = benchmark_descriptions
 
   @property
   def trace_start_ms(self):
@@ -162,6 +173,8 @@ class TelemetryInfo(object):
     d = {}
     d[reserved_infos.BENCHMARKS.name] = [self.benchmark_name]
     d[reserved_infos.BENCHMARK_START.name] = self.benchmark_start_epoch * 1000
+    d[reserved_infos.BENCHMARK_DESCRIPTIONS.name] = [
+        self.benchmark_descriptions]
     if self.label:
       d[reserved_infos.LABELS.name] = [self.label]
     d[reserved_infos.STORIES.name] = [self._story_name]
