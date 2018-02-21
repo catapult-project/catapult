@@ -414,7 +414,10 @@ class PageTestResults(object):
     assert self._current_page_run, 'Not currently running test.'
     is_first_result = (
         self._current_page_run.story not in self._all_stories)
-    if self._should_add_value(hist.name, is_first_result):
+    # TODO(eakuefner): Stop doing this once AddValue doesn't exist
+    stat_names = [
+        '%s_%s' % (hist.name, s) for  s in hist.statistics_scalars.iterkeys()]
+    if any(self._should_add_value(s, is_first_result) for s in stat_names):
       self._histograms.AddHistogram(hist)
 
   def ImportHistogramDicts(self, histogram_dicts):

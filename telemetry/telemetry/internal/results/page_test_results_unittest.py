@@ -649,17 +649,44 @@ class PageTestResultsFilterTest(unittest.TestCase):
 
   def testFilterHistogram(self):
     def AcceptValueNamed_a(name, _):
-      return name == 'a'
+      return name.startswith('a')
     results = page_test_results.PageTestResults(
         should_add_value=AcceptValueNamed_a)
     results.WillRunPage(self.pages[0])
-    results.AddHistogram(histogram_module.Histogram('a', 'count'))
-    results.AddHistogram(histogram_module.Histogram('b', 'count'))
+    hist0 = histogram_module.Histogram('a', 'count')
+    # Necessary to make sure avg is added
+    hist0.AddSample(0)
+    results.AddHistogram(hist0)
+    hist1 = histogram_module.Histogram('b', 'count')
+    hist1.AddSample(0)
+    results.AddHistogram(hist1)
 
     histogram_dicts = results.AsHistogramDicts()
 
     self.assertEquals(len(histogram_dicts), 1)
     self.assertEquals(histogram_dicts[0]['name'], 'a')
+
+  def testFilterHistogram_AllStatsNotFiltered(self):
+    def AcceptNonAverage(name, _):
+      return not name.endswith('avg')
+    results = page_test_results.PageTestResults(
+        should_add_value=AcceptNonAverage)
+    results.WillRunPage(self.pages[0])
+    hist0 = histogram_module.Histogram('a', 'count')
+    # Necessary to make sure avg is added
+    hist0.AddSample(0)
+    results.AddHistogram(hist0)
+    hist1 = histogram_module.Histogram('a_avg', 'count')
+    # Necessary to make sure avg is added
+    hist1.AddSample(0)
+    results.AddHistogram(hist1)
+
+    histogram_dicts = results.AsHistogramDicts()
+    histogram_dicts.sort(key=lambda h: h['name'])
+
+    self.assertEquals(len(histogram_dicts), 2)
+    self.assertEquals(histogram_dicts[0]['name'], 'a')
+    self.assertEquals(histogram_dicts[1]['name'], 'a_avg')
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud(self, cloud_storage_insert_patch):
