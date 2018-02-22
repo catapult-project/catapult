@@ -13,8 +13,11 @@ import sys
 
 SOUNDWAVE_ROOT_PATH = os.path.normpath(os.path.join(
     os.path.dirname(__file__), '..'))
+PY_UTILS_PATH = os.path.normpath(os.path.join(
+    SOUNDWAVE_ROOT_PATH, '..', '..', 'common', 'py_utils'))
 
 sys.path.append(SOUNDWAVE_ROOT_PATH)
+sys.path.append(PY_UTILS_PATH)
 
 from soundwave import dashboard_api
 

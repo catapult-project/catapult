@@ -10,8 +10,44 @@ import oauth2client.file
 from oauth2client import service_account  # pylint: disable=no-name-in-module
 import oauth2client.tools
 import os
-import time
 import urllib
+
+from py_utils import retry_util
+
+
+class RequestError(OSError):
+  """Exception class for errors while making a request."""
+  def __init__(self, response, content):
+    self.response = response
+    self.content = content
+    try:
+      # Try to find error message within returned content.
+      message = json.loads(content)['error']
+    except StandardError:
+      # Otherwise use the entire content itself.
+      message = content
+    super(RequestError, self).__init__(
+        'Request returned HTTP Error %s: %s' % (response['status'], message))
+
+
+class ClientError(RequestError):
+  """Exception for 4xx HTTP client errors."""
+  pass
+
+class ServerError(RequestError):
+  """Exception for 5xx HTTP server errors."""
+  pass
+
+
+def BuildRequestError(response, content):
+  """Build the correct RequestError depending on the response status."""
+  if response['status'].startswith('4'):
+    return ClientError(response, content)
+  elif response['status'].startswith('5'):
+    return ServerError(response, content)
+  else:
+    # Fall back to the base class.
+    return RequestError(response, content)
 
 
 class PerfDashboardCommunicator(object):
@@ -60,7 +96,8 @@ class PerfDashboardCommunicator(object):
           prompt='consent')
       self._credentials = oauth2client.tools.run_flow(flow, store, flags)
 
-  def _MakeApiRequest(self, request, retry=3, delay=3):
+  @retry_util.RetryOnException(ServerError, retries=3)
+  def _MakeApiRequest(self, request, retries=None):
     """Used to communicate with perf dashboard.
 
     args:
@@ -69,6 +106,7 @@ class PerfDashboardCommunicator(object):
     returns:
       Contents of the response from the dashboard.
     """
+    del retries  # Handled by the decorator.
     assert self.has_credentials
     logging.info('Making API request: %s', request)
     connection = self._credentials.authorize(httplib2.Http())
@@ -77,14 +115,8 @@ class PerfDashboardCommunicator(object):
         method="POST",
         headers={'Content-length': 0})
     if resp['status'] != '200':
-      print ('Response: %s\nContent: %s\nError detected while making api '
-             'request. Returned: %s' % (resp, content, resp['status']))
-      if retry:
-        print ('Retrying command after %s seconds. %s retries left...'
-               % (delay, retry - 1))
-        time.sleep(delay)
-        return self._MakeApiRequest(request, retry=retry-1, delay=delay*2)
-    return  json.loads(content)
+      raise BuildRequestError(resp, content)
+    return json.loads(content)
 
   def ListTestPaths(self, benchmark, sheriff=False):
     """Lists test paths for the given benchmark.
