@@ -276,8 +276,6 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
   def testPostHistogram_OnlyCreatesAvgRowForMemoryBenchmark(self):
     test_path = 'Chromium/win7/memory_desktop/memory:chrome'
-    benchmarks = copy.deepcopy(TEST_BENCHMARKS)
-    benchmarks['values'] = ['memory.desktop']
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
@@ -290,10 +288,47 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(len(rows), 2)
     self.assertTrue(rows[1].key.parent().id().endswith('_avg'))
 
+  def testPostHistogram_KeepsWeirdStatistics(self):
+    test_path = 'Chromium/win7/memory_desktop/memory:chrome'
+    hist = histogram_module.Histogram.FromDict(TEST_HISTOGRAM)
+    hist.CustomizeSummaryOptions({
+        'percentile': [0.9]
+    })
+
+    params = [{
+        'data': hist.AsDict(),
+        'test_path': test_path,
+        'revision': 123,
+        'benchmark_description': None
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(len(rows), 3)
+    self.assertTrue(rows[2].key.parent().id().endswith('_pct_090'))
+
+  def testPostHistogram_FiltersV8Stats(self):
+    test_path = 'Chromium/win7/v8.browsing_desktop/v8-gc-blah'
+
+    params = [{
+        'data': TEST_HISTOGRAM,
+        'test_path': test_path,
+        'revision': 123,
+        'benchmark_description': None
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(len(rows), 2)
+    self.assertEqual(
+        rows[0].key.parent().id(),
+        'Chromium/win7/v8.browsing_desktop/v8-gc-blah')
+    self.assertEqual(
+        rows[1].key.parent().id(),
+        'Chromium/win7/v8.browsing_desktop/v8-gc-blah_avg')
+
   def testPostHistogram_CreatesNoLegacyRowsForLegacyTest(self):
     test_path = 'Chromium/win7/blink_perf.dom/foo'
-    benchmarks = copy.deepcopy(TEST_BENCHMARKS)
-    benchmarks['values'] = ['blink_perf.dom']
     params = [{
         'data': TEST_HISTOGRAM,
         'test_path': test_path,

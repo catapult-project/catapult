@@ -114,6 +114,20 @@ LEGACY_BENCHMARKS = [
 ]
 
 
+STATS_BLACKLIST = ['std', 'count', 'max', 'min', 'sum']
+
+
+V8_WHITELIST = [
+    'v8-gc-full-mark-compactor',
+    'v8-gc-incremental-finalize',
+    'v8-gc-incremental-step',
+    'v8-gc-latency-mark-compactor',
+    'v8-gc-memory-mark-compactor',
+    'v8-gc-scavenger',
+    'v8-gc-total',
+]
+
+
 class BadRequestError(Exception):
   pass
 
@@ -248,12 +262,12 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
     ref_suffix = ''
 
   # TODO(#4213): Stop doing this.
-  if _ShouldFilter(test_name, benchmark_name):
-    statistics_scalars = {'avg': statistics_scalars['avg']}
-  elif benchmark_name in LEGACY_BENCHMARKS:
+  if benchmark_name in LEGACY_BENCHMARKS:
     statistics_scalars = {}
 
   for stat_name, scalar in statistics_scalars.iteritems():
+    if _ShouldFilter(test_name, benchmark_name, stat_name):
+      continue
     extra_args = GetUnitArgs(scalar.unit)
     suffixed_name = '%s_%s%s' % (test_name, stat_name, ref_suffix)
     legacy_parent_tests[stat_name] = add_point_queue.GetOrCreateAncestors(
@@ -266,14 +280,19 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
       _AddHistogramFromData(params, revision, test_key, internal_only)]
 
 
-def _ShouldFilter(test_name, benchmark_name):
+def _ShouldFilter(test_name, benchmark_name, stat_name):
   if benchmark_name.startswith('memory') or benchmark_name.startswith('media'):
-    return 'memory:' in test_name
+    if 'memory:' in test_name and stat_name in STATS_BLACKLIST:
+      return True
   if benchmark_name.startswith('system_health'):
-    return True
+    if stat_name in STATS_BLACKLIST:
+      return True
   if benchmark_name.startswith('v8.browsing'):
     if 'memory:unknown_browser' in test_name or 'memory:chrome' in test_name:
-      return 'renderer_processes' in test_name
+      is_from_renderer_processes = 'render_processes' in test_name
+      return not is_from_renderer_processes and stat_name in STATS_BLACKLIST
+    if 'v8-gc' in test_name:
+      return not test_name in V8_WHITELIST and stat_name in STATS_BLACKLIST
   return False
 
 @ndb.tasklet
