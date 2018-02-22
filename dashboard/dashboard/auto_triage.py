@@ -15,8 +15,8 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import find_anomalies
-from dashboard import math_utils
 from dashboard import quick_logger
+from dashboard.common import math_utils
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.common import datastore_hooks

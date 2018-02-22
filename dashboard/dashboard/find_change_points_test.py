@@ -5,7 +5,7 @@
 import unittest
 
 from dashboard import find_change_points
-from dashboard import math_utils
+from dashboard.common import math_utils
 
 
 class FindChangePointsTest(unittest.TestCase):

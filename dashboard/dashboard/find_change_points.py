@@ -17,8 +17,8 @@ See: http://en.wikipedia.org/wiki/Step_detection
 import collections
 
 from dashboard import find_step
-from dashboard import math_utils
 from dashboard import ttest
+from dashboard.common import math_utils
 
 # Maximum number of points to consider at one time.
 _MAX_WINDOW_SIZE = 50

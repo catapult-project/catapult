@@ -27,7 +27,7 @@ import bisect
 import collections
 import math
 
-from dashboard import math_utils
+from dashboard.common import math_utils
 
 
 # A container for the results of a t-test.

@@ -5,7 +5,7 @@
 import math
 import unittest
 
-from dashboard import math_utils
+from dashboard.common import math_utils
 
 
 class MathUtilsTest(unittest.TestCase):

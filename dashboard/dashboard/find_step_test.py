@@ -6,7 +6,7 @@ import math
 import unittest
 
 from dashboard import find_step
-from dashboard import math_utils
+from dashboard.common import math_utils
 
 # Sample data where there is a small-ish step upwards around revision 304772.
 _QUITE_STEPPISH = [

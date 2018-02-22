@@ -11,7 +11,7 @@ http://goo.gl/yikYZY
 
 import math
 
-from dashboard import math_utils
+from dashboard.common import math_utils
 
 
 def FindStep(data_series, score_threshold=4.0):
