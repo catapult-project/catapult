@@ -96,20 +96,21 @@ def GetReplayArgs(network_backend, supports_spki_list=True):
 
   proxy_port = network_backend.forwarder.remote_port
   args.append('--proxy-server=socks://localhost:%s' % proxy_port)
-  if supports_spki_list:
-    # Ignore certificate errors for certs that are signed with Wpr's root.
-    # For more details on this flag, see crbug.com/753948.
-    wpr_public_hash_file = os.path.join(
-        util.GetCatapultDir(), 'web_page_replay_go', 'wpr_public_hash.txt')
-    if not os.path.exists(wpr_public_hash_file):
-      raise exceptions.PathMissingError(
-          'Unable to find %s' % wpr_public_hash_file)
-    with open(wpr_public_hash_file) as f:
-      wpr_public_hash = f.readline().strip()
-    args.append('--ignore-certificate-errors-spki-list=' + wpr_public_hash)
-  else:
-    # If --ignore-certificate-errors-spki-list is not supported ignore all
-    # certificate errors.
-    args.append('--ignore-certificate-errors')
+  if not network_backend.use_live_traffic:
+    if supports_spki_list:
+      # Ignore certificate errors for certs that are signed with Wpr's root.
+      # For more details on this flag, see crbug.com/753948.
+      wpr_public_hash_file = os.path.join(
+          util.GetCatapultDir(), 'web_page_replay_go', 'wpr_public_hash.txt')
+      if not os.path.exists(wpr_public_hash_file):
+        raise exceptions.PathMissingError(
+            'Unable to find %s' % wpr_public_hash_file)
+      with open(wpr_public_hash_file) as f:
+        wpr_public_hash = f.readline().strip()
+      args.append('--ignore-certificate-errors-spki-list=' + wpr_public_hash)
+    else:
+      # If --ignore-certificate-errors-spki-list is not supported ignore all
+      # certificate errors.
+      args.append('--ignore-certificate-errors')
 
   return args
