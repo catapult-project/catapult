@@ -288,6 +288,23 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(len(rows), 2)
     self.assertTrue(rows[1].key.parent().id().endswith('_avg'))
 
+  def testPostHistogram_SuffixesHistogramName(self):
+    test_path = 'Chromium/win7/memory_desktop/memory:chrome/bogus_page'
+    params = [{
+        'data': TEST_HISTOGRAM,
+        'test_path': test_path,
+        'benchmark_description': None,
+        'revision': 123
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(len(rows), 2)
+    parts = rows[1].key.parent().id().split('/')
+    self.assertEqual(len(parts), 5)
+    self.assertTrue(parts[3].endswith('_avg'))
+    self.assertFalse(parts[4].endswith('_avg'))
+
   def testPostHistogram_KeepsWeirdStatistics(self):
     test_path = 'Chromium/win7/memory_desktop/memory:chrome'
     hist = histogram_module.Histogram.FromDict(TEST_HISTOGRAM)
