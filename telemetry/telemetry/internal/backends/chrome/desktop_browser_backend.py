@@ -546,7 +546,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # now, just solve this particular problem. See Issue 424024.
       if self.browser.platform.CooperativelyShutdown(self._proc, "chrome"):
         try:
-          py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+          # Use a long timeout to handle slow Windows debug
+          # (see crbug.com/815004)
+          py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=15)
           logging.info('Successfully shut down browser cooperatively')
         except py_utils.TimeoutException as e:
           logging.warning('Failed to cooperatively shutdown. ' +
