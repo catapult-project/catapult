@@ -336,13 +336,10 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     rows = graph_data.Row.query().fetch()
-    self.assertEqual(len(rows), 2)
+    self.assertEqual(len(rows), 1)
     self.assertEqual(
         rows[0].key.parent().id(),
         'Chromium/win7/v8.browsing_desktop/v8-gc-blah')
-    self.assertEqual(
-        rows[1].key.parent().id(),
-        'Chromium/win7/v8.browsing_desktop/v8-gc-blah_avg')
 
   def testPostHistogram_CreatesNoLegacyRowsForLegacyTest(self):
     test_path = 'Chromium/win7/blink_perf.dom/foo'

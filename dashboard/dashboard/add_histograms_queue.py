@@ -6,6 +6,7 @@
 
 import json
 import logging
+import re
 import sys
 
 from google.appengine.ext import ndb
@@ -115,17 +116,6 @@ LEGACY_BENCHMARKS = [
 
 
 STATS_BLACKLIST = ['std', 'count', 'max', 'min', 'sum']
-
-
-V8_WHITELIST = [
-    'v8-gc-full-mark-compactor',
-    'v8-gc-incremental-finalize',
-    'v8-gc-incremental-step',
-    'v8-gc-latency-mark-compactor',
-    'v8-gc-memory-mark-compactor',
-    'v8-gc-scavenger',
-    'v8-gc-total',
-]
 
 
 class BadRequestError(Exception):
@@ -280,19 +270,65 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
 
 
 def _ShouldFilter(test_name, benchmark_name, stat_name):
-  if benchmark_name.startswith('memory') or benchmark_name.startswith('media'):
+  if benchmark_name.startswith('memory') and not benchmark_name.startswith(
+      'memory.long_running'):
     if 'memory:' in test_name and stat_name in STATS_BLACKLIST:
       return True
+  if benchmark_name.startswith('memory.long_running'):
+    value_name = '%s_%s' % (test_name, stat_name)
+    return not _ShouldAddMemoryLongRunningValue(value_name)
+  if benchmark_name == 'media.desktop' or benchmark_name == 'media.mobile':
+    value_name = '%s_%s' % (test_name, stat_name)
+    return not _ShouldAddMediaValue(value_name)
   if benchmark_name.startswith('system_health'):
     if stat_name in STATS_BLACKLIST:
       return True
   if benchmark_name.startswith('v8.browsing'):
-    if 'memory:unknown_browser' in test_name or 'memory:chrome' in test_name:
-      is_from_renderer_processes = 'render_processes' in test_name
-      return not is_from_renderer_processes and stat_name in STATS_BLACKLIST
-    if 'v8-gc' in test_name:
-      return not test_name in V8_WHITELIST and stat_name in STATS_BLACKLIST
+    value_name = '%s_%s' % (test_name, stat_name)
+    return not _ShouldAddV8BrowsingValue(value_name)
   return False
+
+
+def _ShouldAddMediaValue(value_name):
+  media_re = re.compile(
+      r'(?<!dump)(?<!process)_(std|count|max|min|sum|pct_\d{4}(_\d+)?)$')
+  return not media_re.search(value_name)
+
+
+def _ShouldAddMemoryLongRunningValue(value_name):
+  v8_re = re.compile(
+      r'renderer_processes:'
+      r'(reported_by_chrome:v8|reported_by_os:system_memory:[^:]+$)')
+  if 'memory:chrome' in value_name:
+    return ('renderer:subsystem:v8' in value_name or
+            'renderer:vmstats:overall' in value_name or
+            bool(v8_re.search(value_name)))
+  return 'v8' in value_name
+
+
+def _ShouldAddV8BrowsingValue(value_name):
+  v8_gc_re = re.compile(
+      r'^v8-gc-('
+      r'full-mark-compactor_|'
+      r'incremental-finalize_|'
+      r'incremental-step_|'
+      r'latency-mark-compactor_|'
+      r'memory-mark-compactor_|'
+      r'scavenger_|'
+      r'total_)')
+  stats_re = re.compile(r'_(std|count|min|sum|pct_\d{4}(_\d+)?)$')
+  v8_stats_re = re.compile(
+      r'_(idle_deadline_overrun|percentage_idle|outside_idle)')
+  if 'memory:unknown_browser' in value_name:
+    return ('renderer_processes' in value_name and
+            not stats_re.search(value_name))
+  if 'memory:chrome' in value_name:
+    return ('renderer_processes' in value_name and
+            not stats_re.search(value_name))
+  if 'v8-gc' in value_name:
+    return v8_gc_re.search(value_name) and not v8_stats_re.search(value_name)
+  return True
+
 
 @ndb.tasklet
 def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
