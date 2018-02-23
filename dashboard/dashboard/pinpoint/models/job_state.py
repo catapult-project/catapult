@@ -131,6 +131,12 @@ class JobState(object):
         attempt.ScheduleWork()
         work_left = True
 
+    # TODO: Skip this for functional jobs.
+    if not work_left and self._attempts and all(
+        a.failed for attempts in self._attempts.itervalues() for a in attempts):
+      raise Exception('All of the attempts failed. See the individual '
+                      'attempts for details on each error.')
+
     return work_left
 
   def Differences(self):
