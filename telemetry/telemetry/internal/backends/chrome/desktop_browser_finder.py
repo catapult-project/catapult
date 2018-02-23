@@ -53,6 +53,12 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def profile_directory(self):
     return self._profile_directory
 
+  @property
+  def last_modification_time(self):
+    if os.path.exists(self._local_executable):
+      return os.path.getmtime(self._local_executable)
+    return -1
+
   def _InitPlatformIfNeeded(self):
     if self._platform:
       return
@@ -179,10 +185,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def UpdateExecutableIfNeeded(self):
     pass
 
-  def last_modification_time(self):
-    if os.path.exists(self._local_executable):
-      return os.path.getmtime(self._local_executable)
-    return -1
 
 def SelectDefaultBrowser(possible_browsers):
   local_builds_by_date = [

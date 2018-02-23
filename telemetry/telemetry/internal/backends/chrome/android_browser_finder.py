@@ -153,6 +153,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def profile_directory(self):
     return self._platform_backend.GetProfileDir(self._backend_settings.package)
 
+  @property
+  def last_modification_time(self):
+    if self.HaveLocalAPK():
+      return os.path.getmtime(self._local_apk)
+    return -1
+
   def _GetPathsForOsPageCacheFlushing(self):
     paths_to_flush = [self.profile_directory]
     # On N+ the Monochrome is the most widely used configuration. Since Webview
@@ -290,17 +296,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
                    self._webview_embedder_apk)
       self.platform.InstallApplication(self._webview_embedder_apk)
 
-  def LastModificationTime(self):
-    if self.HaveLocalAPK():
-      return os.path.getmtime(self._local_apk)
-    return -1
-
 
 def SelectDefaultBrowser(possible_browsers):
   """Return the newest possible browser."""
   if not possible_browsers:
     return None
-  return max(possible_browsers, key=lambda b: b.LastModificationTime())
+  return max(possible_browsers, key=lambda b: b.last_modification_time)
 
 
 def CanFindAvailableBrowsers():

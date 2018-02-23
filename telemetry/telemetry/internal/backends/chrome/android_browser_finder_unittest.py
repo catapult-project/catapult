@@ -162,12 +162,10 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.assertNotIn('reference', [b.browser_type for b in possible_browsers])
 
 
-class FakePossibleBrowser(object):
-  def __init__(self, LastModificationTime):
-    self._last_modification_time = LastModificationTime
-
-  def LastModificationTime(self):
-    return self._last_modification_time
+def _MockPossibleBrowser(modified_at):
+  m = mock.Mock(spec=android_browser_finder.PossibleAndroidBrowser)
+  m.last_modification_time = modified_at
+  return m
 
 
 class SelectDefaultBrowserTest(unittest.TestCase):
@@ -175,16 +173,16 @@ class SelectDefaultBrowserTest(unittest.TestCase):
     self.assertIsNone(android_browser_finder.SelectDefaultBrowser([]))
 
   def testSinglePossibleReturnsSame(self):
-    possible_browsers = [FakePossibleBrowser(LastModificationTime=1)]
+    possible_browsers = [_MockPossibleBrowser(modified_at=1)]
     self.assertIs(
         possible_browsers[0],
         android_browser_finder.SelectDefaultBrowser(possible_browsers))
 
   def testListGivesNewest(self):
     possible_browsers = [
-        FakePossibleBrowser(LastModificationTime=2),
-        FakePossibleBrowser(LastModificationTime=3),  # newest
-        FakePossibleBrowser(LastModificationTime=1),
+        _MockPossibleBrowser(modified_at=2),
+        _MockPossibleBrowser(modified_at=3),  # newest
+        _MockPossibleBrowser(modified_at=1),
         ]
     self.assertIs(
         possible_browsers[1],

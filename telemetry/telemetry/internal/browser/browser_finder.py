@@ -75,7 +75,7 @@ def FindBrowser(options):
   if options.browser_type == None:
     if default_browsers:
       default_browser = sorted(default_browsers,
-                               key=lambda b: b.last_modification_time())[-1]
+                               key=lambda b: b.last_modification_time)[-1]
 
       logging.warning('--browser omitted. Using most recent local build: %s',
                       default_browser.browser_type)
