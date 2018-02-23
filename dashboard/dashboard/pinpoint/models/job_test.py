@@ -110,7 +110,7 @@ class BugCommentTest(testing_common.TestCase):
         123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
-  @mock.patch.object(job._JobState, 'Differences')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithCommit(self, differences, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(1, c)]
@@ -133,7 +133,7 @@ class BugCommentTest(testing_common.TestCase):
         cc_list=['author@chromium.org', 'reviewer@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
-  @mock.patch.object(job._JobState, 'Differences')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithPatch(self, differences, patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
@@ -155,7 +155,7 @@ class BugCommentTest(testing_common.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
-  @mock.patch.object(job._JobState, 'Differences')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences(self, differences, commit_as_dict):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
@@ -189,11 +189,12 @@ class BugCommentTest(testing_common.TestCase):
         cc_list=['author1@chromium.org', 'author2@chromium.org',
                  'reviewer1@chromium.org', 'reviewer2@chromium.org'])
 
+  @mock.patch.object(job.job_state.JobState, 'Explore',
+                     mock.MagicMock(side_effect=AssertionError))
   def testFailed(self):
     j = job.Job.New({}, [], False, bug_id=123456)
     j.put()
-    j.state = None  # No state object is an AttributeError.
-    with self.assertRaises(AttributeError):
+    with self.assertRaises(AssertionError):
       j.Run()
 
     self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)

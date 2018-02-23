@@ -4,15 +4,11 @@
 
 import webapp2
 
-from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import job
 
 
 class Run(webapp2.RequestHandler):
   """Handler that runs a Pinpoint job."""
 
   def post(self, job_id):
-    job = job_module.JobFromId(job_id)
-    try:
-      job.Run()
-    finally:
-      job.put()
+    job.JobFromId(job_id).Run()

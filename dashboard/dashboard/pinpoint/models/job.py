@@ -7,6 +7,7 @@ import os
 import traceback
 import uuid
 
+from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
@@ -156,7 +157,7 @@ class Job(ndb.Model):
     self._PostBugComment(comment, status='Assigned',
                          cc_list=sorted(cc_list), owner=owner)
 
-  def _Fail(self):
+  def Fail(self):
     self.exception = traceback.format_exc()
 
     title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
@@ -194,12 +195,23 @@ class Job(ndb.Model):
       else:
         self._Complete()
     except BaseException:
-      self._Fail()
+      self.Fail()
       raise
     finally:
       # Don't use `auto_now` for `updated`. When we do data migration, we need
       # to be able to modify the Job without changing the Job's completion time.
       self.updated = datetime.datetime.now()
+      try:
+        self.put()
+      except datastore_errors.BadRequestError:
+        # The _JobState is too large to fit in an ndb property.
+        # Load the Job from before we updated it, and fail it.
+        job = self.key.get(use_cache=False)
+        job.task = None
+        job.Fail()
+        job.updated = datetime.datetime.now()
+        job.put()
+        raise
 
   def AsDict(self, options=None):
     d = {
