@@ -28,6 +28,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     importer.registerEventHandler('clock_set_rate',
         ClockParser.prototype.traceMarkWriteClockEvent.bind(this));
+    importer.registerEventHandler('clk_set_rate',
+        ClockParser.prototype.traceMarkWriteClkEvent.bind(this));
 
     this.model_ = importer.model_;
     this.ppids_ = {};
@@ -36,14 +38,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   ClockParser.prototype = {
     __proto__: Parser.prototype,
 
-    traceMarkWriteClockEvent(eventName, cpuNumber, pid, ts,
-        eventBase, threadName) {
-      const event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
-
-
-      const name = event[1];
-      const rate = parseInt(event[2]);
-
+    clockMark(name, rate, ts) {
       const ctr = this.model_.kernel
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
@@ -55,7 +50,23 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       ctr.series.forEach(function(series) {
         series.addCounterSample(ts, rate);
       });
+    },
 
+    traceMarkWriteClockEvent(eventName, cpuNumber, pid, ts,
+        eventBase, threadName) {
+      const event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      const name = event[1];
+      const rate = parseInt(event[2]);
+      this.clockMark(name, rate, ts);
+      return true;
+    },
+
+    traceMarkWriteClkEvent(eventName, cpuNumber, pid, ts,
+        eventBase, threadName) {
+      const event = /(\S+) (\d+)/.exec(eventBase.details);
+      const name = event[1];
+      const rate = parseInt(event[2]);
+      this.clockMark(name, rate, ts);
       return true;
     }
   };

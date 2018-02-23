@@ -42,7 +42,13 @@ tr.b.unittest.testSuite(function() {
           'fout_apll state=200000000 cpu_id=0',
 
       'cfinteractive-23    [000] d..2  8113.515254: clock_set_rate: ' +
-          'fout_apll state=500000000 cpu_id=0'
+          'fout_apll state=500000000 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.694455: clk_set_rate: ' +
+          'fout_apll 200000000',
+
+      'cfinteractive-23    [000] d..2  8113.715254: clk_set_rate: ' +
+          'fout_apll 500000000'
     ];
 
     const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
@@ -53,7 +59,7 @@ tr.b.unittest.testSuite(function() {
     const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);
 
-    assert.strictEqual(counters[0].series[0].samples.length, 10);
+    assert.strictEqual(counters[0].series[0].samples.length, 12);
   });
 });
 </script>

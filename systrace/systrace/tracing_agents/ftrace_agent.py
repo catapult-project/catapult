@@ -46,7 +46,8 @@ all_categories = {
     },
     "freq": {
           "desc": "CPU Frequency",
-          "req": ["power/cpu_frequency/", "power/clock_set_rate/"]
+          "req": ["power/cpu_frequency/"],
+          "opt": ["power/clock_set_rate/", "clk/clk_set_rate/"]
     },
     "irq": {
           "desc": "CPU IRQS and IPIS",
