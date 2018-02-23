@@ -61,6 +61,50 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(counters[0].series[0].samples.length, 12);
   });
+
+  test('clock state', function() {
+    const lines = [
+      'cfinteractive-23    [000] d..2  8113.233768: clock_enable: ' +
+          'fout_apll state=1 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.249509: clock_disable: ' +
+          'fout_apll state=0 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.289796: clock_enable: ' +
+          'fout_apll state=1 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.294568: clock_disable: ' +
+          'fout_apll state=0 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.309509: clock_enable: ' +
+          'fout_apll state=1 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.388732: clock_disable: ' +
+          'fout_apll state=0 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.410182: clock_enable: ' +
+          'fout_apll state=1 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.414872: clock_disable: ' +
+          'fout_apll state=0 cpu_id=0',
+
+      'cfinteractive-23    [000] d..2  8113.694455: clk_enable: ' +
+          'fout_apll',
+
+      'cfinteractive-23    [000] d..2  8113.715254: clk_disable: ' +
+          'fout_apll'
+    ];
+
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
+    assert.isFalse(m.hasImportWarnings);
+
+    const counters = m.getAllCounters();
+    assert.strictEqual(counters.length, 1);
+
+    assert.strictEqual(counters[0].series[0].samples.length, 10);
+  });
 });
 </script>
 
