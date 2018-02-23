@@ -36,9 +36,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       this.defaultToCollapsedWhenSubRowCountMoreThan = 1;
 
-      this.itemsGroupedOnLastUpdateContents_ = undefined;
-
-      this.currentSubRows_ = [];
+      this.currentSubRowsWithHeadings_ = undefined;
       this.expanded_ = true;
     },
 
@@ -49,6 +47,19 @@ tr.exportTo('tr.ui.tracks', function() {
     setItemsToGroup(itemsToGroup, opt_groupingSource) {
       this.itemsToGroup_ = itemsToGroup;
       this.groupingSource_ = opt_groupingSource;
+      this.currentSubRowsWithHeadings_ = undefined;
+      this.updateContents_();
+      this.updateExpandedStateFromGroupingSource_();
+    },
+
+    /**
+     * Opt-out from using buildSubRows_() and provide prebuilt rows.
+     * Array of {row: [rowItems...], heading} dicts is expected as an argument.
+     */
+    setPrebuiltSubRows(groupingSource, subRowsWithHeadings) {
+      this.itemsToGroup_ = undefined;
+      this.groupingSource_ = groupingSource;
+      this.currentSubRowsWithHeadings_ = subRowsWithHeadings;
       this.updateContents_();
       this.updateExpandedStateFromGroupingSource_();
     },
@@ -59,7 +70,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     set heading(h) {
       this.heading_ = h;
-      this.updateContents_();
+      this.updateHeadingAndTooltip_();
     },
 
     get tooltip() {
@@ -68,11 +79,11 @@ tr.exportTo('tr.ui.tracks', function() {
 
     set tooltip(t) {
       this.tooltip_ = t;
-      this.updateContents_();
+      this.updateHeadingAndTooltip_();
     },
 
     get subRows() {
-      return this.currentSubRows_;
+      return this.currentSubRowsWithHeadings_.map(elem => elem.row);
     },
 
     get hasVisibleContent() {
@@ -145,35 +156,46 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateContents_() {
       tr.ui.tracks.ContainerTrack.prototype.updateContents_.call(this);
-      if (!this.itemsToGroup_) {
-        this.updateHeadingAndTooltip_();
-        this.currentSubRows_ = [];
+      this.detach();  // Clear sub-tracks.
+
+      if (this.currentSubRowsWithHeadings_ === undefined) {
+        // No prebuilt rows, build it.
+        if (this.itemsToGroup_ === undefined) {
+          return;
+        }
+        const subRows = this.buildSubRows_(this.itemsToGroup_);
+        this.currentSubRowsWithHeadings_ = subRows.map(row => {
+          return {row, heading: undefined};
+        });
+      }
+      if (this.currentSubRowsWithHeadings_ === undefined ||
+          this.currentSubRowsWithHeadings_.length === 0) {
         return;
       }
 
-      if (this.areArrayContentsSame_(this.itemsGroupedOnLastUpdateContents_,
-          this.itemsToGroup_)) {
-        this.updateHeadingAndTooltip_();
-        return;
-      }
-
-      this.itemsGroupedOnLastUpdateContents_ = this.itemsToGroup_;
-
-      this.detach();
-      if (!this.itemsToGroup_.length) {
-        this.currentSubRows_ = [];
-        return;
-      }
-      const subRows = this.buildSubRows_(this.itemsToGroup_);
-      this.currentSubRows_ = subRows;
-      for (let srI = 0; srI < subRows.length; srI++) {
-        const subRow = subRows[srI];
-        if (!subRow.length) continue;
-
-        const track = this.addSubTrack_(subRow);
+      const addSubTrackEx = (items, opt_heading) => {
+        const track = this.addSubTrack_(items);
+        if (opt_heading !== undefined) {
+          track.heading = opt_heading;
+        }
         track.addEventListener(
             'heading-clicked', this.onHeadingClicked_.bind(this));
+      };
+
+      if (this.currentSubRowsWithHeadings_[0].heading !== undefined &&
+          this.currentSubRowsWithHeadings_[0].heading !== this.heading_) {
+        // Create an empty row to render the group's title there.
+        addSubTrackEx([]);
       }
+
+      for (const subRowWithHeading of this.currentSubRowsWithHeadings_) {
+        const subRow = subRowWithHeading.row;
+        if (subRow.length === 0) {
+          continue;
+        }
+        addSubTrackEx(subRow, subRowWithHeading.heading);
+      }
+
       this.updateHeadingAndTooltip_();
       this.expandedStateChanged_();
     },

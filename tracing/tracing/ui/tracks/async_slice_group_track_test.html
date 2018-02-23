@@ -180,6 +180,32 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(subRows[0][1], g.slices[2]);
   });
 
+  test('rebuildSubRows_twoViewSubGroups', function() {
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    const t1 = new Thread(p1, 1);
+    const g = new AsyncSliceGroup(t1);
+    g.push(newAsyncSliceNamed('foo', 0, 1, t1, t1));
+    g.push(newAsyncSliceNamed('foo', 2, 1, t1, t1));
+    g.push(newAsyncSliceNamed('bar', 1, 2, t1, t1));
+    g.push(newAsyncSliceNamed('bar', 3, 2, t1, t1));
+    g.updateBounds();
+
+    const track = new AsyncSliceGroupTrack(new tr.ui.TimelineViewport());
+    track.group = g;
+    track.heading = 'sup';
+
+    assert.strictEqual(track.subRows.length, 2);
+    const subTracks = Polymer.dom(track).children;
+    assert.strictEqual(subTracks.length, 3);
+    assert.strictEqual(subTracks[0].slices.length, 0);
+    assert.strictEqual(subTracks[1].slices.length, 2);
+    assert.strictEqual(subTracks[2].slices.length, 2);
+    const headings =
+        [subTracks[0].heading, subTracks[1].heading, subTracks[2].heading];
+    assert.sameMembers(headings, ['foo', 'bar', 'sup']);
+  });
+
   // Tests that no slices and their sub slices overlap.
   test('rebuildSubRows_NonOverlappingSubSlices', function() {
     const model = new tr.Model();

@@ -46,23 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     set group(group) {
       this.group_ = group;
-
-      // Hide top-level slices that contain 1 sub-slice, which are used to group
-      // the sub-slices into a single track, but provide no information
-      // themselves.
-      const slices = [];
-      for (const slice of this.group_.slices) {
-        if (slice.subSlices.length === 1 &&
-            tr.b.math.approximately(slice.subSlices[0].start, slice.start, 1) &&
-            tr.b.math.approximately(
-                slice.subSlices[0].duration, slice.duration, 1)) {
-          slices.push(slice.subSlices[0]);
-        } else {
-          slices.push(slice);
-        }
-      }
-
-      this.setItemsToGroup(slices, this.group_);
+      this.buildAndSetSubRows_();
     },
 
     get eventContainer() {
@@ -75,15 +59,39 @@ tr.exportTo('tr.ui.tracks', function() {
       containerToTrackMap.addContainer(this.group, this);
     },
 
-    buildSubRows_(slices) {
-      // TODO(kraynov): Support sub-groups.
-      return groupAsyncSlicesIntoSubRows(slices);
+    buildAndSetSubRows_() {
+      if (this.group_.viewSubGroups.length <= 1) {
+        // No nested groups or just only one, the most common case.
+        const rows = groupAsyncSlicesIntoSubRows(this.group_.slices);
+        const rowsWithHeadings = rows.map(row => {
+          return {row, heading: undefined};
+        });
+        this.setPrebuiltSubRows(this.group_, rowsWithHeadings);
+        return;
+      }
+
+      // We have nested grouping level (no further levels supported),
+      // so process sub-groups separately and preserve their titles.
+      const rowsWithHeadings = [];
+      for (const subGroup of this.group_.viewSubGroups) {
+        const subGroupRows = groupAsyncSlicesIntoSubRows(subGroup.slices);
+        if (subGroupRows.length === 0) {
+          continue;
+        }
+        for (let i = 0; i < subGroupRows.length; i++) {
+          rowsWithHeadings.push({
+            row: subGroupRows[i],
+            heading: (i === 0 ? subGroup.title : '')
+          });
+        }
+      }
+      this.setPrebuiltSubRows(this.group_, rowsWithHeadings);
     }
   };
 
   /**
    * Strip away wrapper slice which are used to group slices into
-   * a single track but provides no information themselves.
+   * a single track but provide no information themselves.
    */
   function stripSlice_(slice) {
     if (slice.subSlices !== undefined && slice.subSlices.length === 1) {
