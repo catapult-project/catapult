@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 
 import datetime
+import os
 import traceback
 import uuid
 
-from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
@@ -96,8 +96,7 @@ class Job(ndb.Model):
 
   @property
   def url(self):
-    return 'https://%s/job/%s' % (
-        app_identity.get_default_version_hostname(), self.job_id)
+    return 'https://%s/job/%s' % (os.environ['HTTP_HOST'], self.job_id)
 
   def AddChange(self, change):
     self.state.AddChange(change)
