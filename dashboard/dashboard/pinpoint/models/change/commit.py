@@ -64,6 +64,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       if isinstance(dep_value, basestring):
         dep_string = dep_value
       else:
+        if 'url' not in dep_value:
+          # We don't support DEPS that are CIPD packages.
+          continue
         dep_string = dep_value['url']
 
       dep_string_parts = dep_string.split('@')

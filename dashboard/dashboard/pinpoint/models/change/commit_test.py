@@ -60,8 +60,16 @@ vars = {
 deps = {
   'src/v8': Var('chromium_git') + '/v8/v8.git' + '@' + 'c092edb',
   'src/third_party/lighttpd': {
-      'url': Var('chromium_git') + '/deps/lighttpd.git' + '@' + '9dfa55d',
-      'condition': 'checkout_mac or checkout_win',
+    'url': Var('chromium_git') + '/deps/lighttpd.git' + '@' + '9dfa55d',
+    'condition': 'checkout_mac or checkout_win',
+  },
+  'src/third_party/intellij': {
+    'packages': [{
+      'package': 'chromium/third_party/intellij',
+      'version': 'version:12.0-cr0',
+    }],
+    'condition': 'checkout_android',
+    'dep_type': 'cipd',
   },
 }
 deps_os = {
