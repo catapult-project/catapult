@@ -302,6 +302,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         'trackDetailedModelStats': True
     }
 
+    logging.warning('Starting to compute metrics on trace')
     start = time.time()
     mre_result = metric_runner.RunMetric(
         trace_value.filename, metrics, extra_import_options,
