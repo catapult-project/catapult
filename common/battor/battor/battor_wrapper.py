@@ -137,7 +137,8 @@ class BattOrWrapper(object):
     self._dm = dependency_manager.DependencyManager(
         [dependency_manager.BaseConfig(config)])
     self._battor_agent_binary = self._dm.FetchPath(
-        'battor_agent_binary', '%s_%s' % (sys.platform, platform.machine()))
+        'battor_agent_binary',
+        '%s_%s' % (py_utils.GetHostOsName(), py_utils.GetHostArchName()))
 
     self._autoflash = autoflash
     self._serial_log_bucket = serial_log_bucket
