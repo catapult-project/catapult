@@ -60,35 +60,35 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "darwin_x86_64": {
-          "cloud_storage_hash": "b0eeb16faf045881fa9057b45ab0aa0c1be4437e",
+          "cloud_storage_hash": "154613804a1855a4871422bf99aa8e0dd0d7f62e",
           "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
         },
         "linux2_x86_64": {
-          "cloud_storage_hash": "1bb94e25558a518daf015efd43d9c01aac3fff55",
+          "cloud_storage_hash": "f53e15b97301e9dab00e893800ec67a98e9f13ea",
           "download_path": "../bin/linux2/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
         },
         "win32_AMD64": {
-          "cloud_storage_hash": "f457cb470c9e6c6d77e09617ce639c38c0d7dd1a",
+          "cloud_storage_hash": "4095a9159dd189ec591679e43b14d34ae30335eb",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win32_x86": {
-          "cloud_storage_hash": "f457cb470c9e6c6d77e09617ce639c38c0d7dd1a",
+          "cloud_storage_hash": "4095a9159dd189ec591679e43b14d34ae30335eb",
           "download_path": "../bin/win/x86_64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win_AMD64": {
-          "cloud_storage_hash": "f457cb470c9e6c6d77e09617ce639c38c0d7dd1a",
+          "cloud_storage_hash": "4095a9159dd189ec591679e43b14d34ae30335eb",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
@@ -101,12 +101,12 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "default": {
-          "cloud_storage_hash": "1b9baf70da451adedc8dcc5c2c35ef8313629d41",
+          "cloud_storage_hash": "0649655f78698368a16a4e9ec37967b80528fdbf",
           "download_path": "../bin/battor/battor_firmware.hex",
           "local_paths": [
             "../bin/override/battor_firmware.hex"
           ],
-          "version_in_cs": "1c79bb0"
+          "version_in_cs": "de05458"
         }
       }
     }
