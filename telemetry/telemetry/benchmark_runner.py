@@ -23,18 +23,6 @@ from telemetry.util import matching
 from py_utils import discover
 
 
-# Right now, we only have one of each of our power perf bots. This means that
-# all eligible Telemetry benchmarks are run unsharded, which results in very
-# long (12h) cycle times. We'd like to reduce the number of tests that we run
-# on each bot drastically until we get more of the same hardware to shard tests
-# with, but we can't do so until we've verified that the hardware configuration
-# is a viable one for Chrome Telemetry tests. This is done by seeing at least
-# one all-green test run. As this happens for each bot, we'll add it to this
-# whitelist, making it eligible to run only BattOr power tests.
-GOOD_POWER_PERF_BOT_WHITELIST = [
-    'Mac Power Dual-GPU Perf', 'Mac Power Low-End Perf'
-]
-
 DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
     '%(message)s')
