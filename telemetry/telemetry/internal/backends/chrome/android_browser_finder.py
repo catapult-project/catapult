@@ -308,8 +308,8 @@ def CanFindAvailableBrowsers():
   return android_device.CanDiscoverDevices()
 
 
-def _CanPossiblyHandlePath(apk_path):
-  return apk_path and apk_path[-4:].lower() == '.apk'
+def CanPossiblyHandlePath(target_path):
+  return os.path.splitext(target_path.lower())[1] == '.apk'
 
 
 def FindAllBrowserTypes(options):
@@ -324,24 +324,35 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   possible_browsers = []
 
   # Add the exact APK if given.
-  if _CanPossiblyHandlePath(finder_options.browser_executable):
-    package_name = apk_helper.GetPackageName(finder_options.browser_executable)
-    try:
-      backend_settings = next(
-          backend_settings for target_package, backend_settings, _
-          in CHROME_PACKAGE_NAMES.itervalues()
-          if package_name == target_package)
-    except StopIteration:
-      raise exceptions.UnknownPackageError(
-          '%s specified by --browser-executable has an unknown package: %s' %
-          (finder_options.browser_executable, package_name))
+  if (finder_options.browser_executable and
+      CanPossiblyHandlePath(finder_options.browser_executable)):
+    apk_name = os.path.basename(finder_options.browser_executable)
+    normalized_path = os.path.expanduser(finder_options.browser_executable)
+    exact_package = apk_helper.GetPackageName(normalized_path)
+    package_info = next(
+        (info for info in CHROME_PACKAGE_NAMES.itervalues()
+         if info[0] == exact_package or info[2] == apk_name), None)
 
-    possible_browsers.append(PossibleAndroidBrowser(
-        'exact',
-        finder_options,
-        android_platform,
-        backend_settings(package_name),
-        finder_options.browser_executable))
+    # It is okay if the APK name or package doesn't match any of known chrome
+    # browser APKs, since it may be of a different browser.
+    if package_info:
+      if not exact_package:
+        raise exceptions.PackageDetectionError(
+            'Unable to find package for %s specified by --browser-executable' %
+            normalized_path)
+
+      [package, backend_settings, _] = package_info
+      if package == exact_package:
+        possible_browsers.append(PossibleAndroidBrowser(
+            'exact',
+            finder_options,
+            android_platform,
+            backend_settings(package),
+            normalized_path))
+      else:
+        raise exceptions.UnknownPackageError(
+            '%s specified by --browser-executable has an unknown package: %s' %
+            (normalized_path, exact_package))
 
   # Add the reference build if found.
   os_version = dependency_util.GetChromeApkOsVersion(
