@@ -44,7 +44,7 @@ found in the LICENSE file.
         </template>
         <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="auto_explore" value="0">
+            <input type="hidden" name="auto_explore" value="false">
             <input type="hidden" name="bug_id" value="[[job.bug_id]]">
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">

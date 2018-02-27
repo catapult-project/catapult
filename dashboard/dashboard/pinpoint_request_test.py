@@ -116,16 +116,13 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
     self.assertEqual('mac', results['configuration'])
     self.assertEqual('system_health', results['benchmark'])
-    self.assertEqual('', results['chart'])
     self.assertEqual('telemetry_perf_tests', results['target'])
-    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('0', results['auto_explore'])
-    self.assertEqual('', results['bug_id'])
-    self.assertEqual('', results['story'])
+    self.assertEqual('false', results['auto_explore'])
     self.assertEqual(
         ['--extra-trace-args', 'abc,123,foo'],
         json.loads(results['extra_test_args']))
@@ -145,15 +142,13 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
     self.assertEqual('android-webview-nexus5x', results['configuration'])
     self.assertEqual('system_health', results['benchmark'])
-    self.assertEqual('', results['chart'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
-    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('0', results['auto_explore'])
-    self.assertEqual('', results['bug_id'])
+    self.assertEqual('false', results['auto_explore'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
@@ -388,12 +383,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('cc_perftests', results['benchmark'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('cc_perftests', results['target'])
-    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('1', results['auto_explore'])
+    self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual(
         params['test_path'],
@@ -419,12 +414,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_tests', results['target'])
-    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('1', results['auto_explore'])
+    self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual('foo', results['story'])
 
@@ -447,12 +442,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
-    self.assertEqual('foo@chromium.org', results['email'])
+    self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('1', results['auto_explore'])
+    self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
 
   @mock.patch.object(

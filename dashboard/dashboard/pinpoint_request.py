@@ -203,19 +203,14 @@ def PinpointParamsFromPerfTryParams(params):
   return {
       'configuration': bot_name,
       'benchmark': suite,
-      'trace': '',
-      'chart': '',
-      'tir_label': '',
-      'story': '',
       'start_repository': start_repository,
       'end_repository': end_repository,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'extra_test_args': extra_test_args,
-      'bug_id': '',
-      'auto_explore': '0',
+      'auto_explore': 'false',
       'target': target,
-      'email': email,
+      'user': email,
       'name': job_name
   }
 
@@ -317,9 +312,9 @@ def PinpointParamsFromBisectParams(params):
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
-      'auto_explore': '1',
+      'auto_explore': 'true',
       'target': target,
-      'email': email,
+      'user': email,
       'name': job_name,
       'tags': json.dumps({
           'test_path': test_path,

@@ -5,6 +5,8 @@
 import json
 import webapp2
 
+from google.appengine.api import users
+
 from dashboard.api import api_auth
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
@@ -36,6 +38,7 @@ class New(webapp2.RequestHandler):
     quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(self.request.params)
+    user = self.request.get('user')
     tags = _ValidateTags(self.request.get('tags'))
 
     # Create job.
@@ -43,6 +46,7 @@ class New(webapp2.RequestHandler):
         arguments=self.request.params.mixed(),
         quests=quests,
         auto_explore=auto_explore,
+        user=user or users.get_current_user().email(),
         bug_id=bug_id,
         tags=tags)
 

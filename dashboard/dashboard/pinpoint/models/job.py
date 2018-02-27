@@ -63,6 +63,9 @@ class Job(ndb.Model):
   # If False, only run the Changes explicitly added by the user.
   auto_explore = ndb.BooleanProperty(required=True)
 
+  # Email of the job creator.
+  user = ndb.StringProperty()
+
   # TODO: The bug id is only used for posting bug comments when a job starts and
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
@@ -72,11 +75,13 @@ class Job(ndb.Model):
   tags = ndb.JsonProperty()
 
   @classmethod
-  def New(cls, arguments, quests, auto_explore, bug_id=None, tags=None):
+  def New(cls, arguments, quests, auto_explore,
+          user=None, bug_id=None, tags=None):
     # Create job.
     return cls(
         arguments=arguments,
         auto_explore=auto_explore,
+        user=user,
         bug_id=bug_id,
         tags=tags,
         state=job_state.JobState(quests))
