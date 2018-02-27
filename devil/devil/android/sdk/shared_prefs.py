@@ -277,7 +277,7 @@ class SharedPrefs(object):
     # to the shared_prefs directory, which mimics the behavior of a file
     # created by the app itself
     if self._device.build_version_sdk >= version_codes.MARSHMALLOW:
-      security_context = self._GetSecurityContext(self.package)
+      security_context = self._device.GetSecurityContextForPackage(self.package)
       if security_context == None:
         raise device_errors.CommandFailedError(
             'Failed to get security context for %s' % self.package)
@@ -406,15 +406,3 @@ class SharedPrefs(object):
       pref.set(value)
       self._changed = True
       logger.info('Setting property: %s', pref)
-
-  def _GetSecurityContext(self, package):
-    for line in self._device.RunShellCommand(['ls', '-Z', '/data/data/'],
-                                             as_root=True, check_return=True):
-      split_line = line.split()
-      # ls -Z output differs between Android versions, but the package is
-      # always last and the context always starts with "u:object"
-      if split_line[-1] == package:
-        for column in split_line:
-          if column.startswith('u:object'):
-            return column
-    return None

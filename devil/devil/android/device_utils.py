@@ -670,6 +670,27 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError(
         'Could not find data directory for %s', package)
 
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetSecurityContextForPackage(self, package, timeout=None, retries=None):
+    """Gets the SELinux security context for the given package.
+
+    Args:
+      package: Name of the package.
+
+    Returns:
+      The package's security context as a string, or None if not found.
+    """
+    for line in self.RunShellCommand(['ls', '-Z', '/data/data/'],
+                                     as_root=True, check_return=True):
+      split_line = line.split()
+      # ls -Z output differs between Android versions, but the package is
+      # always last and the context always starts with "u:object"
+      if split_line[-1] == package:
+        for column in split_line:
+          if column.startswith('u:object'):
+            return column
+    return None
+
   def TakeBugReport(self, path, timeout=60*5, retries=None):
     """Takes a bug report and dumps it to the specified path.
 

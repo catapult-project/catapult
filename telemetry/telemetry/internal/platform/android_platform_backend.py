@@ -541,6 +541,7 @@ class AndroidPlatformBackend(
     uid = re.search(r'\d+', id_line).group()
     files = self._device.ListDirectory(profile_dir, as_root=True)
     paths = [posixpath.join(profile_dir, f) for f in files if f != 'lib']
+    security_context = self._device.GetSecurityContextForPackage(package)
     for path in paths:
       # TODO(crbug.com/628617): Implement without ignoring shell errors.
       # Note: need to pass command as a string for the shell to expand the *'s.
@@ -548,6 +549,11 @@ class AndroidPlatformBackend(
       self._device.RunShellCommand(
           'chown %s.%s %s' % (uid, uid, extended_path),
           check_return=False, shell=True)
+      # Not having the correct SELinux security context can prevent Chrome from
+      # loading files even though the mode/group/owner combination should allow
+      # it.
+      self._device.RunShellCommand(['chcon', '-R', security_context, path],
+                                   as_root=True, check_return=True)
 
   def _EfficientDeviceDirectoryCopy(self, source, dest):
     if not self._device_copy_script:
