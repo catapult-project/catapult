@@ -357,11 +357,6 @@ class PageTestResults(object):
   def num_failed(self):
     return sum(1 for run in self.all_page_runs if run.failed)
 
-  # TODO(#4229): Remove this once tools/perf is migrated.
-  @property
-  def failures(self):
-    return [None] * self.num_failed
-
   @property
   def skipped_values(self):
     values = self.all_page_specific_values
