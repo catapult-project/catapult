@@ -17,6 +17,9 @@ class ProgressReporter(object):
   def DidAddValue(self, value):
     pass
 
+  def DidFail(self, exc_info_or_message):
+    pass
+
   def WillRunPage(self, page_test_results):
     pass
 

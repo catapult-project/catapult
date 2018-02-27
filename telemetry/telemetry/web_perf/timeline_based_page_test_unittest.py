@@ -81,7 +81,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     v = results.FindAllPageSpecificValuesFromIRNamed(
         'CenterAnimation', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
@@ -102,7 +102,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
     v = results.FindAllPageSpecificValuesFromIRNamed(
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
@@ -120,7 +120,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)
 
-    self.assertEquals(1, len(results.failures))
+    self.assertTrue(results.had_failures)
     self.assertEquals(1, len(results.FindAllTraceValues()))
 
   # Fails on chromeos: crbug.com/483212
@@ -137,7 +137,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)
 
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
 
     histogram_dicts = results.AsHistogramDicts()
     hs = histogram_set.HistogramSet()
@@ -186,7 +186,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, runner_options)
 
-    self.assertEquals(0, len(results.failures))
+    self.assertFalse(results.had_failures)
 
     DUMP_COUNT_METRIC = 'memory:chrome:all_processes:dump_count'
     dumps_detailed = results.FindAllPageSpecificValuesNamed(
@@ -217,7 +217,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)
 
-    self.assertEquals(0, len(results.failures), results.failures)
+    self.assertFalse(results.had_failures)
     v_ttfcp_max = results.FindAllPageSpecificValuesNamed(
         'timeToFirstContentfulPaint_max')
     self.assertEquals(len(v_ttfcp_max), 1)
