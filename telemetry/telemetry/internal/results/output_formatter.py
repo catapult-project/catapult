@@ -50,7 +50,7 @@ class OutputFormatter(object):
     return self._output_stream
 
 
-def SummarizePageSpecificValues(results):
+def SummarizePageSpecificValues(page_specific_values):
   """Summarize results appropriately for TBM and legacy benchmarks.
 
   For benchmarks that are timeline-based, we need to summarize not once, but
@@ -63,12 +63,13 @@ def SummarizePageSpecificValues(results):
   """
   # Default summary uses merge_values.DefaultKeyFunc to summarize both by name
   # and tir_label.
-  summary = summary_module.Summary(results)
+  summary = summary_module.Summary(page_specific_values)
   values = summary.interleaved_computed_per_page_values_and_summaries
 
-  if any(v.tir_label for v in results.all_page_specific_values):
+  if any(v.tir_label for v in page_specific_values):
     summary_by_name_only = summary_module.Summary(
-        results, key_func=lambda v: v.name)
+        page_specific_values,
+        key_func=lambda v: v.name)
     values.extend(
         summary_by_name_only.interleaved_computed_per_page_values_and_summaries
     )

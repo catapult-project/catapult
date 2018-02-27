@@ -432,7 +432,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.skipped_values))
-    self.assertFalse(results.had_failures)
+    self.assertEquals(0, len(results.failures))
 
   def testRunPageWithProfilingFlag(self):
     story_set = story.StorySet()
@@ -460,7 +460,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
           Measurement(), story_set, options, results,
           metadata=EmptyMetadataForTest())
       self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
-      self.assertFalse(results.had_failures)
+      self.assertEquals(0, len(results.failures))
       self.assertEquals(0, len(results.all_page_specific_values))
       self.assertTrue(os.path.isfile(
           os.path.join(options.output_dir, 'blank_html.html')))
@@ -488,7 +488,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                      metadata=EmptyMetadataForTest())
     return results
 
-  def testSingleTabMeansCrashWillCauseFailure(self):
+  def testSingleTabMeansCrashWillCauseFailureValue(self):
     self.CaptureFormattedException()
 
     class SingleTabTest(legacy_page_test.LegacyPageTest):
@@ -500,7 +500,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = self._RunPageTestThatRaisesAppCrashException(
         test, max_failures=1)
     self.assertEquals([], GetSuccessfulPageRuns(results))
-    self.assertEquals(2, results.num_failed)  # max_failures + 1
+    self.assertEquals(2, len(results.failures))  # max_failures + 1
     self.assertFormattedExceptionIsEmpty()
 
   def testWebPageReplay(self):
@@ -534,7 +534,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                   msg='URL: %s' % story_set.stories[1].url)
 
     self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
-    self.assertFalse(results.had_failures)
+    self.assertEquals(0, len(results.failures))
 
   def testScreenShotTakenForFailedPage(self):
     self.CaptureFormattedException()
@@ -568,7 +568,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, options, results,
                      max_failures=2,
                      metadata=EmptyMetadataForTest())
-    self.assertTrue(results.had_failures)
+    self.assertEquals(1, len(results.failures))
     if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
       self.assertEquals(1, len(results.pages_to_profiling_files))
       self.assertIn(failing_page,
@@ -605,7 +605,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, options, results,
                      max_failures=2,
                      metadata=EmptyMetadataForTest())
-    self.assertTrue(results.had_failures)
+    self.assertEquals(1, len(results.failures))
     self.assertEquals(0, len(results.pages_to_profiling_files))
 
 
@@ -636,7 +636,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(DummyTest(), story_set, self.options, results,
                      max_failures=2,
                      metadata=EmptyMetadataForTest())
-    self.assertTrue(results.had_failures)
+    self.assertEquals(1, len(results.failures))
     self.assertEquals(0, len(results.pages_to_profiling_files))
 
   def testScreenShotTakenForFailedPageOnSupportedPlatform(self):
@@ -673,7 +673,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
         story_runner.Run(DummyTest(), story_set, self.options, results,
                          max_failures=2,
                          metadata=EmptyMetadataForTest())
-        self.assertTrue(results.had_failures)
+        self.assertEquals(1, len(results.failures))
         artifacts = results._artifact_results.GetTestArtifacts(
             failing_page.name)
         self.assertIsNotNone(artifacts)

@@ -80,7 +80,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     measurement = PageTestForBlank()
     all_results = self.RunMeasurement(
         measurement, story_set, options=self._options)
-    self.assertFalse(all_results.had_failures)
+    self.assertEquals(0, len(all_results.failures))
 
   def testGotQueryParams(self):
     story_set = self.CreateStorySetFromFileInUnittestDataDir(
@@ -88,14 +88,14 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     measurement = PageTestQueryParams()
     all_results = self.RunMeasurement(
         measurement, story_set, options=self._options)
-    self.assertFalse(all_results.had_failures)
+    self.assertEquals(0, len(all_results.failures))
 
   def testFailure(self):
     story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
     measurement = PageTestThatFails()
     all_results = self.RunMeasurement(
         measurement, story_set, options=self._options)
-    self.assertTrue(all_results.had_failures)
+    self.assertEquals(1, len(all_results.failures))
 
   # This test is disabled because it runs against live sites, and needs to be
   # fixed. crbug.com/179038
@@ -124,7 +124,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
+      self.assertEquals(0, len(all_results.failures))
 
       # Now replay it and verify that google.com is found but foo.com is not.
       self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
@@ -135,7 +135,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       story_set.pages = [page_module.Page(foo_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
-      self.assertTrue(all_results.had_failures)
+      self.assertEquals(1, len(all_results.failures))
 
       story_set._wpr_archive_info = archive_info.WprArchiveInfo(
           '', json.loads(archive_info_template % (test_archive, google_url)),
@@ -143,7 +143,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
       story_set.pages = [page_module.Page(google_url, story_set)]
       all_results = self.RunMeasurement(
           measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
+      self.assertEquals(0, len(all_results.failures))
 
       self.assertTrue(os.path.isfile(test_archive))
 

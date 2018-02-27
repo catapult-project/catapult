@@ -9,6 +9,7 @@ import unittest
 from telemetry import story
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.value import failure
 from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
@@ -54,7 +55,7 @@ class SummaryTest(TestBase):
     results.AddValue(v1)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
@@ -84,7 +85,7 @@ class SummaryTest(TestBase):
     results.AddValue(v0)
     results.DidRunPage(page0)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
@@ -129,7 +130,7 @@ class SummaryTest(TestBase):
     # Note, page[2] does not report a 'b' metric.
     results.DidRunPage(page2)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
@@ -174,7 +175,8 @@ class SummaryTest(TestBase):
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
     results.AddValue(v0)
-    results.Fail('message')
+    v1 = failure.FailureValue.FromMessage(page0, 'message')
+    results.AddValue(v1)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
@@ -183,7 +185,7 @@ class SummaryTest(TestBase):
     results.AddValue(v2)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(
@@ -213,7 +215,8 @@ class SummaryTest(TestBase):
     v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
     results.AddValue(v1)
-    results.Fail('message')
+    v2 = failure.FailureValue.FromMessage(page1, 'message')
+    results.AddValue(v2)
     results.DidRunPage(page1)
 
     results.WillRunPage(page0)
@@ -228,7 +231,7 @@ class SummaryTest(TestBase):
     results.AddValue(v4)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
@@ -271,7 +274,7 @@ class SummaryTest(TestBase):
     results.AddValue(v3)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
@@ -307,7 +310,7 @@ class SummaryTest(TestBase):
     results.AddValue(v1)
     results.DidRunPage(page0)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     page0_aggregated = list_of_scalar_values.ListOfScalarValues(
@@ -341,7 +344,7 @@ class SummaryTest(TestBase):
     results.AddValue(v1)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     b_summary = list_of_scalar_values.ListOfScalarValues(
@@ -374,7 +377,7 @@ class SummaryTest(TestBase):
     results.AddValue(v1)
     results.DidRunPage(page1)
 
-    summary = summary_module.Summary(results)
+    summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     self.assertEquals(2, len(values))
@@ -408,7 +411,8 @@ class SummaryTest(TestBase):
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(
-        results, key_func=lambda v: True)
+        results.all_page_specific_values,
+        key_func=lambda v: True)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     v0_list = list_of_scalar_values.ListOfScalarValues(

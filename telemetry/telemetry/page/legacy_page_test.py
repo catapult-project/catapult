@@ -119,7 +119,7 @@ class LegacyPageTest(object):
     """Override to check test assertions and perform measurement.
 
     When adding measurement results, call results.AddValue(...) for
-    each result. Raise an exception or call results.Fail upon
+    each result. Raise an exception or add a failure.FailureValue on
     failure. legacy_page_test.py also provides several base exception classes
     to use.
 
