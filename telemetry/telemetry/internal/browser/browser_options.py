@@ -425,11 +425,13 @@ class BrowserOptions(object):
     if self.profile_type == 'default':
       self.dont_override_profile = True
 
-    if self.profile_dir and self.profile_type != 'clean':
-      logging.critical(
-          "It's illegal to specify both --profile-type and --profile-dir.\n"
-          "For more information see: http://goo.gl/ngdGD5")
-      sys.exit(1)
+    if self.profile_dir:
+      if self.profile_type != 'clean':
+        logging.critical(
+            "It's illegal to specify both --profile-type and --profile-dir.\n"
+            "For more information see: http://goo.gl/ngdGD5")
+        sys.exit(1)
+      self.profile_dir = os.path.abspath(self.profile_dir)
 
     if self.profile_dir and not os.path.isdir(self.profile_dir):
       logging.critical(
