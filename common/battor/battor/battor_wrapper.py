@@ -405,7 +405,8 @@ class BattOrWrapper(object):
     assert not self._battor_shell, 'Cannot flash BattOr with open shell'
 
     avrdude_binary = self._dm.FetchPath(
-        'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
+        'avrdude_binary',
+        '%s_%s' % (py_utils.GetHostOsName(), py_utils.GetHostArchName()))
     # Sanitize hex file path for windows. It contains <drive>:/ which avrdude
     # is not capable of handling.
     _, hex_path = os.path.splitdrive(hex_path)
