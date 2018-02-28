@@ -9,6 +9,7 @@ import mock
 from pyfakefs import fake_filesystem_unittest
 
 from telemetry.core import android_platform
+from telemetry.core import exceptions
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import android_platform_backend
 from telemetry.internal.util import binary_manager
@@ -113,20 +114,17 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
                       android_browser_finder._FindAllPossibleBrowsers,
                       self.finder_options, self.fake_platform)
 
-  def testNoErrorWithUnrecognizedApkName(self):
-    if not self.finder_options.chrome_root:
-      self.skipTest('--chrome-root is not specified, skip the test')
+  def testErrorWithUnrecognizedApkName(self):
     self.fs.CreateFile(
         '/foo/unknown.apk')
     self.finder_options.browser_executable = '/foo/unknown.apk'
+    self._get_package_name_mock.return_value = 'org.foo.bar'
 
-    possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
-        self.finder_options, self.fake_platform)
-    self.assertNotIn('exact', [b.browser_type for b in possible_browsers])
+    with self.assertRaises(exceptions.UnknownPackageError):
+      android_browser_finder._FindAllPossibleBrowsers(
+          self.finder_options, self.fake_platform)
 
   def testCanLaunchExactWithUnrecognizedApkNameButKnownPackageName(self):
-    if not self.finder_options.chrome_root:
-      self.skipTest('--chrome-root is not specified, skip the test')
     self.fs.CreateFile(
         '/foo/MyFooBrowser.apk')
     self._get_package_name_mock.return_value = 'org.chromium.chrome'
