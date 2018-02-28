@@ -19,7 +19,9 @@ tr.exportTo('tr.v.d', function() {
    */
   function stableStringify(obj) {
     let replacer;
-    if (!(obj instanceof Array)) replacer = Object.keys(obj).sort();
+    if (!(obj instanceof Array) && obj !== null) {
+      replacer = Object.keys(obj).sort();
+    }
     return JSON.stringify(obj, replacer);
   }
 

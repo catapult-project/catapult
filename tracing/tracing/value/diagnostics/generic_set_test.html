@@ -37,5 +37,13 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(ab, 1);
     assert.strictEqual(tr.b.getOnlyElement(a), tr.b.getOnlyElement(ab));
   });
+
+  test('addDiagnosticWithNull', function() {
+    const a = new tr.v.d.GenericSet([]);
+    const b = new tr.v.d.GenericSet([null]);
+    a.addDiagnostic(b);
+    assert.lengthOf(a, 1);
+    assert.isTrue(a.has(null));
+  });
 });
 </script>
