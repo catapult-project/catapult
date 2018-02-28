@@ -341,7 +341,6 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
   rows = AddRows(data_dict, test_key, stat_names_to_test_keys, revision,
                  internal_only)
   if not rows:
-    print "FOOBAR"
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows)
