@@ -172,8 +172,9 @@ class TelemetryInfo(object):
     d = {}
     d[reserved_infos.BENCHMARKS.name] = [self.benchmark_name]
     d[reserved_infos.BENCHMARK_START.name] = self.benchmark_start_epoch * 1000
-    d[reserved_infos.BENCHMARK_DESCRIPTIONS.name] = [
-        self.benchmark_descriptions]
+    if self.benchmark_descriptions:
+      d[reserved_infos.BENCHMARK_DESCRIPTIONS.name] = [
+          self.benchmark_descriptions]
     if self.label:
       d[reserved_infos.LABELS.name] = [self.label]
     d[reserved_infos.STORIES.name] = [self._story_name]
