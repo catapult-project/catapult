@@ -157,7 +157,7 @@ class List(command_line.OptparseCommand):
 class Run(command_line.OptparseCommand):
   """Run one or more benchmarks (default)"""
 
-  usage = 'benchmark_name [page_set] [<options>]'
+  usage = 'benchmark_name [<options>]'
 
   @classmethod
   def CreateParser(cls):
