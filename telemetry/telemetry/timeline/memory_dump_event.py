@@ -219,7 +219,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     category = ROOT_CATEGORY
     while category:
       path = posixpath.join(path, category.name)
-      self.GetMemoryBucket(path).AddRegion(vm_region['bs'])
+      if 'bs' in vm_region:
+        self.GetMemoryBucket(path).AddRegion(vm_region['bs'])
       mapped_file = vm_region['mf']
       category = category.GetMatchingChild(mapped_file)
 
