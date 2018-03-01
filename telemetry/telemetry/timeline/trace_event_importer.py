@@ -464,7 +464,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         self._model.browser_process = thread.parent
 
   def _SetGpuProcess(self):
-    gpu_thread_names = ['DrmThread', 'CrGpuMain', 'VizMain', 'CompositorThread']
+    gpu_thread_names = [
+        'DrmThread', 'CrGpuMain', 'VizMain', 'VizCompositorThread']
     for thread in self._model.GetAllThreads():
       if thread.name in gpu_thread_names:
         self._model.gpu_process = thread.parent
