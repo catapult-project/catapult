@@ -18,12 +18,8 @@ appstats_SHELL_OK = True
 # Directories in catapult/third_party required by uploader/corpus cleanup.
 THIRD_PARTY_LIBRARIES = [
     'apiclient',
-    'uritemplate',
-]
-# Directories in trace_processor/third_party required by uploader/corpus
-# cleanup.
-THIRD_PARTY_LIBRARIES_IN_TRACE_PROCESSOR = [
     'cloudstorage',
+    'uritemplate',
 ]
 # Libraries bundled with the App Engine SDK.
 THIRD_PARTY_LIBRARIES_IN_SDK = [
@@ -43,7 +39,6 @@ def _AddThirdPartyLibraries():
   # before deploying. If the directories aren't there (e.g. when running tests)
   # then just ignore it.
   for library_dir in (THIRD_PARTY_LIBRARIES +
-                      THIRD_PARTY_LIBRARIES_IN_TRACE_PROCESSOR +
                       THIRD_PARTY_LIBRARIES_IN_SDK):
     if os.path.exists(library_dir):
       vendor.add(os.path.join(os.path.dirname(__file__), library_dir))

@@ -20,6 +20,8 @@
 
 __all__ = ['add_sync_methods']
 
+import logging
+import os
 import random
 import time
 
@@ -27,11 +29,37 @@ from . import api_utils
 
 try:
   from google.appengine.api import app_identity
+  from google.appengine.api import lib_config
   from google.appengine.ext import ndb
 except ImportError:
   from google.appengine.api import app_identity
+  from google.appengine.api import lib_config
   from google.appengine.ext import ndb
 
+
+
+@ndb.tasklet
+def _make_token_async(scopes, service_account_id):
+  """Get a fresh authentication token.
+
+  Args:
+    scopes: A list of scopes.
+    service_account_id: Internal-use only.
+
+  Raises:
+    An ndb.Return with a tuple (token, expiration_time) where expiration_time is
+    seconds since the epoch.
+  """
+  rpc = app_identity.create_rpc()
+  app_identity.make_get_access_token_call(rpc, scopes, service_account_id)
+  token, expires_at = yield rpc
+  raise ndb.Return((token, expires_at))
+
+
+class _ConfigDefaults(object):
+  TOKEN_MAKER = _make_token_async
+
+_config = lib_config.register('cloudstorage', _ConfigDefaults.__dict__)
 
 
 def _make_sync_method(name):
@@ -84,24 +112,6 @@ class _AE_TokenStorage_(ndb.Model):
   expires = ndb.FloatProperty()
 
 
-@ndb.tasklet
-def _make_token_async(scopes, service_account_id):
-  """Get a fresh authentication token.
-
-  Args:
-    scopes: A list of scopes.
-    service_account_id: Internal-use only.
-
-  Raises:
-    An ndb.Return with a tuple (token, expiration_time) where expiration_time is
-    seconds since the epoch.
-  """
-  rpc = app_identity.create_rpc()
-  app_identity.make_get_access_token_call(rpc, scopes, service_account_id)
-  token, expires_at = yield rpc
-  raise ndb.Return((token, expires_at))
-
-
 class _RestApi(object):
   """Base class for REST-based API wrapper classes.
 
@@ -131,7 +141,7 @@ class _RestApi(object):
       scopes = [scopes]
     self.scopes = scopes
     self.service_account_id = service_account_id
-    self.make_token_async = token_maker or _make_token_async
+    self.make_token_async = token_maker or _config.TOKEN_MAKER
     if not retry_params:
       retry_params = api_utils._get_default_retry_params()
     self.retry_params = retry_params
@@ -204,7 +214,9 @@ class _RestApi(object):
     """
     key = '%s,%s' % (self.service_account_id, ','.join(self.scopes))
     ts = yield _AE_TokenStorage_.get_by_id_async(
-        key, use_cache=True, use_memcache=True,
+        key,
+        use_cache=True,
+        use_memcache=self.retry_params.memcache_access_token,
         use_datastore=self.retry_params.save_access_token)
     if refresh or ts is None or ts.expires < (
         time.time() + self.expiration_headroom):
@@ -215,7 +227,8 @@ class _RestApi(object):
       if timeout > 0:
         yield ts.put_async(memcache_timeout=timeout,
                            use_datastore=self.retry_params.save_access_token,
-                           use_cache=True, use_memcache=True)
+                           use_cache=True,
+                           use_memcache=self.retry_params.memcache_access_token)
     raise ndb.Return(ts.token)
 
   @ndb.tasklet
@@ -241,7 +254,15 @@ class _RestApi(object):
     """
     headers = {} if headers is None else dict(headers)
     headers.update(self.user_agent)
-    self.token = yield self.get_token_async()
+    try:
+      self.token = yield self.get_token_async()
+    except app_identity.InternalError, e:
+      if os.environ.get('DATACENTER', '').endswith('sandman'):
+        self.token = None
+        logging.warning('Could not fetch an authentication token in sandman '
+                     'based Appengine devel setup; proceeding without one.')
+      else:
+        raise e
     if self.token:
       headers['authorization'] = 'OAuth ' + self.token
 
