@@ -40,6 +40,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
     return {'bug': {
         'author': issue.get('author', {}).get('name'),
+        'owner': issue.get('owner', {}).get('name'),
         'legacy_bisects': [{
             'status': b.status,
             'bot': b.bot,
@@ -62,6 +63,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
         'id': bug_id,
         'labels': issue.get('labels', []),
         'published': issue.get('published'),
+        'updated': issue.get('updated'),
         'state': issue.get('state'),
         'status': issue.get('status'),
         'summary': issue.get('summary'),
@@ -77,4 +79,3 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
         'cl': culprit.get('cl'),
         'subject': culprit.get('subject'),
     }
-

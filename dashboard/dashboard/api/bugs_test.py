@@ -65,6 +65,7 @@ class MockIssueTrackerService(object):
             'Foo>Bar',
         ],
         'published': '2017-06-28T01:26:53',
+        'updated': '2018-03-01T16:16:22',
     }
 
   @classmethod
@@ -131,6 +132,9 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual('Fixed', bug.get('status'))
     self.assertEqual('closed', bug.get('state'))
     self.assertEqual('author@chromium.org', bug.get('author'))
+    self.assertEqual('owner@chromium.org', bug.get('owner'))
+    self.assertEqual('2017-06-28T01:26:53', bug.get('published'))
+    self.assertEqual('2018-03-01T16:16:22', bug.get('updated'))
     self.assertEqual(2, len(bug.get('comments')))
     self.assertEqual('Comment two', bug.get('comments')[1].get('content'))
     self.assertEqual(
