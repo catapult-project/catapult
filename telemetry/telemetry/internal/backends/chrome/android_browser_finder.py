@@ -16,7 +16,6 @@ from devil.android import flag_changer
 
 from telemetry.core import exceptions
 from telemetry.core import platform
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_backend
@@ -30,43 +29,39 @@ from telemetry.internal.util import binary_manager
 CHROME_PACKAGE_NAMES = {
     'android-content-shell': [
         'org.chromium.content_shell_apk',
-        android_browser_backend_settings.ContentShellBackendSettings,
-        'ContentShell.apk'
+        android_browser_backend_settings.ContentShellBackendSettings
     ],
     'android-webview': [
         'org.chromium.webview_shell',
-        android_browser_backend_settings.WebviewBackendSettings,
-        'SystemWebView.apk'
+        android_browser_backend_settings.WebviewBackendSettings
     ],
     'android-webview-instrumentation': [
         'org.chromium.android_webview.shell',
-        android_browser_backend_settings.WebviewShellBackendSettings,
-        'WebViewInstrumentation.apk'
+        android_browser_backend_settings.WebviewShellBackendSettings
     ],
     'android-chromium': [
         'org.chromium.chrome',
-        android_browser_backend_settings.ChromeBackendSettings,
-        'ChromePublic.apk'
+        android_browser_backend_settings.ChromePublicBackendSettings
     ],
     'android-chrome': [
         'com.google.android.apps.chrome',
-        android_browser_backend_settings.ChromeBackendSettings, 'Chrome.apk'
+        android_browser_backend_settings.ChromeBackendSettings
     ],
     'android-chrome-beta': [
         'com.chrome.beta',
-        android_browser_backend_settings.ChromeBackendSettings, None
+        android_browser_backend_settings.ChromeBaseBackendSettings
     ],
     'android-chrome-dev': [
         'com.chrome.dev',
-        android_browser_backend_settings.ChromeBackendSettings, None
+        android_browser_backend_settings.ChromeBaseBackendSettings
     ],
     'android-chrome-canary': [
         'com.chrome.canary',
-        android_browser_backend_settings.ChromeBackendSettings, None
+        android_browser_backend_settings.ChromeBaseBackendSettings
     ],
     'android-system-chrome': [
         'com.android.chrome',
-        android_browser_backend_settings.ChromeBackendSettings, None
+        android_browser_backend_settings.ChromeBaseBackendSettings
     ],
 }
 
@@ -74,7 +69,7 @@ CHROME_PACKAGE_NAMES = {
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
   def __init__(self, browser_type, finder_options, android_platform,
-               backend_settings, apk_name):
+               backend_settings, local_apk=None):
     super(PossibleAndroidBrowser, self).__init__(
         browser_type, 'android', backend_settings.supports_tab_control)
     assert browser_type in FindAllBrowserTypes(finder_options), (
@@ -84,35 +79,15 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._platform_backend = (
         android_platform._platform_backend)  # pylint: disable=protected-access
     self._backend_settings = backend_settings
-    self._local_apk = None
+    self._local_apk = local_apk
     self._flag_changer = None
 
-    if browser_type == 'exact':
-      if not os.path.exists(apk_name):
-        raise exceptions.PathMissingError(
-            'Unable to find exact apk %s specified by --browser-executable' %
-            apk_name)
-      self._local_apk = apk_name
-    elif browser_type == 'reference':
-      if not os.path.exists(apk_name):
-        raise exceptions.PathMissingError(
-            'Unable to find reference apk at expected location %s.' % apk_name)
-      self._local_apk = apk_name
-    elif apk_name:
-      assert finder_options.chrome_root, (
-          'Must specify Chromium source to use apk_name')
-      chrome_root = finder_options.chrome_root
-      candidate_apks = []
-      for build_path in util.GetBuildDirectories(chrome_root):
-        apk_full_name = os.path.join(build_path, 'apks', apk_name)
-        if os.path.exists(apk_full_name):
-          last_changed = os.path.getmtime(apk_full_name)
-          candidate_apks.append((last_changed, apk_full_name))
+    if self._local_apk is None and finder_options.chrome_root is not None:
+      self._local_apk = self._backend_settings.FindLocalApk(
+          self._platform_backend.device, finder_options.chrome_root)
 
-      if candidate_apks:
-        # Find the candidate .apk with the latest modification time.
-        newest_apk_path = sorted(candidate_apks)[-1][1]
-        self._local_apk = newest_apk_path
+    # At this point the local_apk, if any, must exist.
+    assert self._local_apk is None or os.path.exists(self._local_apk)
 
     self._webview_embedder_apk = None
     if finder_options.webview_embedder_apk:
@@ -155,7 +130,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @property
   def last_modification_time(self):
-    if self.HaveLocalAPK():
+    if self._HaveLocalAPK():
       return os.path.getmtime(self._local_apk)
     return -1
 
@@ -279,19 +254,24 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
-  def HaveLocalAPK(self):
+  def _HaveLocalAPK(self):
     return self._local_apk and os.path.exists(self._local_apk)
 
-  def HaveWebViewEmbedderAPK(self):
+  def _HaveWebViewEmbedderAPK(self):
     return bool(self._webview_embedder_apk)
+
+  def IsAvailable(self):
+    """Returns True if the browser is or can be installed on the platform."""
+    return self._HaveLocalAPK() or self.platform.CanLaunchApplication(
+        self.settings.package)
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
-    if self.HaveLocalAPK():
+    if self._HaveLocalAPK():
       logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(self._local_apk)
 
-    if self.HaveWebViewEmbedderAPK():
+    if self._HaveWebViewEmbedderAPK():
       logging.warn('Installing %s on device if needed.',
                    self._webview_embedder_apk)
       self.platform.InstallApplication(self._webview_embedder_apk)
@@ -325,10 +305,15 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
 
   # Add the exact APK if given.
   if _CanPossiblyHandlePath(finder_options.browser_executable):
+    if not os.path.exists(finder_options.browser_executable):
+      raise exceptions.PathMissingError(
+          'Unable to find exact apk specified by --browser-executable=%s' %
+          finder_options.browser_executable)
+
     package_name = apk_helper.GetPackageName(finder_options.browser_executable)
     try:
       backend_settings = next(
-          backend_settings for target_package, backend_settings, _
+          backend_settings for target_package, backend_settings
           in CHROME_PACKAGE_NAMES.itervalues()
           if package_name == target_package)
     except StopIteration:
@@ -357,7 +342,7 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   if reference_build and os.path.exists(reference_build):
     # TODO(aiolos): how do we stably map the android chrome_stable apk to the
     # correct package name?
-    package, backend_settings, _ = CHROME_PACKAGE_NAMES['android-chrome']
+    package, backend_settings = CHROME_PACKAGE_NAMES['android-chrome']
     possible_browsers.append(PossibleAndroidBrowser(
         'reference',
         finder_options,
@@ -367,16 +352,11 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
 
   # Add any known local versions.
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
-    package, backend_settings, apk_name = package_info
-    if apk_name and not finder_options.chrome_root:
-      continue
-    b = PossibleAndroidBrowser(name,
-                               finder_options,
-                               android_platform,
-                               backend_settings(package),
-                               apk_name)
-    if b.platform.CanLaunchApplication(package) or b.HaveLocalAPK():
-      possible_browsers.append(b)
+    package, backend_settings = package_info
+    p_browser = PossibleAndroidBrowser(
+        name, finder_options, android_platform, backend_settings(package))
+    if p_browser.IsAvailable():
+      possible_browsers.append(p_browser)
   return possible_browsers
 
 
