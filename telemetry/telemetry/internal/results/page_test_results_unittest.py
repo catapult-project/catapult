@@ -536,13 +536,13 @@ class PageTestResultsFilterTest(unittest.TestCase):
         [(v.name, v.page.url) for v in results.all_page_specific_values])
 
   def testFilterValueWithImportHistogramDicts(self):
-    def AcceptValueNamed_a(name, _):
-      return name == 'a'
+    def AcceptValueStartsWith_a(name, _):
+      return name.startswith('a')
     hs = histogram_set.HistogramSet()
     hs.AddHistogram(histogram_module.Histogram('a', 'count'))
     hs.AddHistogram(histogram_module.Histogram('b', 'count'))
     results = page_test_results.PageTestResults(
-        should_add_value=AcceptValueNamed_a)
+        should_add_value=AcceptValueStartsWith_a)
     results.WillRunPage(self.pages[0])
     results.ImportHistogramDicts(hs.AsDicts())
     results.DidRunPage(self.pages[0])

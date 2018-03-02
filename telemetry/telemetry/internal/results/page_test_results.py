@@ -418,25 +418,29 @@ class PageTestResults(object):
     self._histograms.AddHistogram(hist)
 
   def AddHistogram(self, hist):
+    if self._ShouldAddHistogram(hist):
+      self._histograms.AddHistogram(hist)
+
+  def ImportHistogramDicts(self, histogram_dicts):
+    dicts_to_add = []
+    for d in histogram_dicts:
+      # If there's a type field, it's a diagnostic.
+      if 'type' in d:
+        dicts_to_add.append(d)
+      else:
+        hist = histogram.Histogram.FromDict(d)
+        if self._ShouldAddHistogram(hist):
+          dicts_to_add.append(d)
+    self._histograms.ImportDicts(dicts_to_add)
+
+  def _ShouldAddHistogram(self, hist):
     assert self._current_page_run, 'Not currently running test.'
     is_first_result = (
         self._current_page_run.story not in self._all_stories)
     # TODO(eakuefner): Stop doing this once AddValue doesn't exist
     stat_names = [
         '%s_%s' % (hist.name, s) for  s in hist.statistics_scalars.iterkeys()]
-    if any(self._should_add_value(s, is_first_result) for s in stat_names):
-      self._histograms.AddHistogram(hist)
-
-  def ImportHistogramDicts(self, histogram_dicts):
-    assert self._current_page_run, 'Not currently running test.'
-    is_first_result = (
-        self._current_page_run.story not in self._all_stories)
-    dicts_to_add = []
-    for d in histogram_dicts:
-      # If there's a type field, it's a diagnostic.
-      if 'type' in d or self._should_add_value(d['name'], is_first_result):
-        dicts_to_add.append(d)
-    self._histograms.ImportDicts(dicts_to_add)
+    return any(self._should_add_value(s, is_first_result) for s in stat_names)
 
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
