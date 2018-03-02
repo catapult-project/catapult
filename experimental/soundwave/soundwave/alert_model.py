@@ -11,7 +11,15 @@ _Alert = collections.namedtuple('Alert', [
     'key', 'timestamp', 'test_suite', 'measurement', 'bot', 'test_case',
     'start_revision', 'end_revision',
     'median_before_anomaly', 'median_after_anomaly', 'units', 'improvement',
-    'bug_id', 'bisect_status'])
+    'bug_id', 'status', 'bisect_status'])
+
+
+_CODE_TO_STATUS = {
+    -2: 'ignored',
+    -1: 'invalid',
+    None: 'untriaged',
+    # Any positive integer represents a bug_id and maps to a 'triaged' status.
+}
 
 
 def _IsoFormatStrToTimestamp(value):
@@ -33,4 +41,12 @@ class Alert(_Alert):
     kwargs['test_suite'] = data['testsuite']
     kwargs['measurement'], kwargs['test_case'] = data['test'].split('/', 1)
     kwargs['bot'] = '/'.join([data['master'], data['bot']])
+    # Separate bug_id from alert status.
+    bug_id = data['bug_id']
+    if bug_id in _CODE_TO_STATUS:
+      kwargs['status'] = _CODE_TO_STATUS[bug_id]
+      kwargs['bug_id'] = None
+    else:
+      assert bug_id > 0
+      kwargs['status'] = 'triaged'
     return cls(**kwargs)

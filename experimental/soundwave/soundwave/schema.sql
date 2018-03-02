@@ -18,5 +18,6 @@ CREATE TABLE IF NOT EXISTS alerts (
   units TEXT,
   improvement BOOLEAN NOT NULL,
   bug_id INTEGER,
+  status TEXT NOT NULL,
   bisect_status TEXT
 );
