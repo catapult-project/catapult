@@ -32,7 +32,7 @@ tr.exportTo('tr.metrics.vr', function() {
     histogramsByEventTitle.set('VrShellGl::UpdateController',
         createHistograms(histograms, 'update_controller',
           {description: 'Duration to query input from the controller'}));
-    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitWhenReady',
+    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitNow',
         createHistograms(histograms, 'submit_frame',
           {description: 'Duration to submit a frame to GVR'}));
     histogramsByEventTitle.set(
