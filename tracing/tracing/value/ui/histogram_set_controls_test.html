@@ -128,26 +128,26 @@ tr.b.unittest.testSuite(function() {
     const controls = buildControls(this);
     const showAll = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'show_all');
-    assert.strictEqual(controls.viewState.showAll, false);
-    assert.strictEqual(showAll.checked, false);
-    controls.viewState.showAll = true;
+    assert.strictEqual(controls.viewState.showAll, true);
     assert.strictEqual(showAll.checked, true);
+    controls.viewState.showAll = false;
+    assert.strictEqual(showAll.checked, false);
   });
 
   test('controlShowAll', function() {
     const controls = buildControls(this);
     const showAll = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'show_all');
-    assert.strictEqual(controls.viewState.showAll, false);
-    assert.strictEqual(showAll.checked, false);
-    showAll.click();
-    assert.strictEqual(showAll.checked, true);
     assert.strictEqual(controls.viewState.showAll, true);
+    assert.strictEqual(showAll.checked, true);
+    showAll.click();
+    assert.strictEqual(showAll.checked, false);
+    assert.strictEqual(controls.viewState.showAll, false);
     const showAllLabel = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.tagName === 'LABEL' && e.htmlFor === 'show_all');
     showAllLabel.click();
-    assert.strictEqual(showAll.checked, false);
-    assert.strictEqual(controls.viewState.showAll, false);
+    assert.strictEqual(showAll.checked, true);
+    assert.strictEqual(controls.viewState.showAll, true);
   });
 
   test('viewReferenceDisplayLabel', function() {

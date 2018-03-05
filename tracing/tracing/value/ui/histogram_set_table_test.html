@@ -168,7 +168,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
 
     let cells = getNameCells(table);
-    assert.lengthOf(cells, 1);
+    assert.lengthOf(cells, 2);
     assert.strictEqual('a', cells[0].row.name);
 
     await table.viewState.update({searchQuery: 'b'});
@@ -188,14 +188,14 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
 
     let cells = getNameCells(table);
-    assert.lengthOf(cells, 1);
-    assert.strictEqual('a', cells[0].row.name);
-
-    await table.viewState.update({showAll: true});
-    cells = getNameCells(table);
     assert.lengthOf(cells, 2);
     assert.strictEqual('a', cells[0].row.name);
     assert.strictEqual('b', cells[1].row.name);
+
+    await table.viewState.update({showAll: false});
+    cells = getNameCells(table);
+    assert.lengthOf(cells, 1);
+    assert.strictEqual('a', cells[0].row.name);
   });
 
   test('viewSortColumnIndex', async function() {
@@ -1200,6 +1200,7 @@ tr.b.unittest.testSuite(function() {
     fooHist.diagnostics.set('breakdown', breakdown);
 
     const table = await buildTable(this, histograms);
+    await table.viewState.update({showAll: false});
 
     let fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (

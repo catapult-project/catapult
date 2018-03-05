@@ -110,34 +110,34 @@ tr.b.unittest.testSuite(function() {
     await hsl.viewState.update({referenceDisplayLabel: 'bar'});
     assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&g=name.stories');
 
-    await hsl.viewState.update({showAll: true});
-    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&a=&g=name.stories');
+    await hsl.viewState.update({showAll: false});
+    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&m=&g=name.stories');
 
     await hsl.viewState.update({sortColumnIndex: 2});
-    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2');
+    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2');
 
     await hsl.viewState.update({sortDescending: true});
-    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=');
+    assert.strictEqual(locus.hash, '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=');
 
     await hsl.viewState.update({constrainNameColumn: false});
     assert.strictEqual(locus.hash,
-        '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0');
+        '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0');
 
     const rowState = new tr.v.ui.HistogramSetTableRowState();
     rowState.cells.set('Value', new tr.v.ui.HistogramSetTableCellState());
     await hsl.viewState.update({tableRowStates: new Map([['fmp', rowState]])});
     assert.strictEqual(locus.hash,
-        '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0');
+        '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0');
 
     await hsl.viewState.tableRowStates.get('fmp').update({isExpanded: true});
     assert.strictEqual(locus.hash,
-        '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1)');
+        '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1)');
 
     await hsl.viewState.tableRowStates.get('fmp').cells.get('Value').update({
       isOpen: true,
     });
     assert.strictEqual(locus.hash,
-        '#q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1.c-(Value-(o-1)))');
+        '#q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1.c-(Value-(o-1)))');
   });
 
   test('viewStateUpdateSearch', async function() {
@@ -161,34 +161,34 @@ tr.b.unittest.testSuite(function() {
     await hsl.viewState.update({referenceDisplayLabel: 'bar'});
     assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&g=name.stories');
 
-    await hsl.viewState.update({showAll: true});
-    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.stories');
+    await hsl.viewState.update({showAll: false});
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&m=&g=name.stories');
 
     await hsl.viewState.update({sortColumnIndex: 2});
-    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2');
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2');
 
     await hsl.viewState.update({sortDescending: true});
-    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=');
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=');
 
     await hsl.viewState.update({constrainNameColumn: false});
     assert.strictEqual(locus.search,
-        '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0');
+        '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0');
 
     const rowState = new tr.v.ui.HistogramSetTableRowState();
     rowState.cells.set('Value', new tr.v.ui.HistogramSetTableCellState());
     await hsl.viewState.update({tableRowStates: new Map([['fmp', rowState]])});
     assert.strictEqual(locus.search,
-        '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0');
+        '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0');
 
     await hsl.viewState.tableRowStates.get('fmp').update({isExpanded: true});
     assert.strictEqual(locus.search,
-        '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1)');
+        '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1)');
 
     await hsl.viewState.tableRowStates.get('fmp').cells.get('Value').update({
       isOpen: true,
     });
     assert.strictEqual(locus.search,
-        '?q=foo&r=bar&s=avg&a=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1.c-(Value-(o-1)))');
+        '?q=foo&r=bar&s=avg&m=&g=name.stories&c=2&d=&n=0&t=fmp-(e-1.c-(Value-(o-1)))');
   });
 
   test('popStateSearch', async function() {
@@ -196,11 +196,11 @@ tr.b.unittest.testSuite(function() {
     const hsl = new tr.v.ui.HistogramSetLocation(locus);
     await hsl.build(new tr.v.ui.HistogramSetViewState());
 
-    await locus.popState('?q=foo&r=bar&s=qux&a=&c=2&d=&g=name.stories');
+    await locus.popState('?q=foo&r=bar&s=qux&m=&c=2&d=&g=name.stories');
     assert.strictEqual('foo', hsl.viewState.searchQuery);
     assert.strictEqual('bar', hsl.viewState.referenceDisplayLabel);
     assert.strictEqual('qux', hsl.viewState.displayStatisticName);
-    assert.isTrue(hsl.viewState.showAll);
+    assert.isFalse(hsl.viewState.showAll);
     assert.lengthOf(hsl.viewState.groupings, 2);
     assert.strictEqual('name', hsl.viewState.groupings[0].key);
     assert.strictEqual('stories', hsl.viewState.groupings[1].key);
