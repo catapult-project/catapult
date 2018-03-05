@@ -4,11 +4,11 @@
 
 import os
 import tempfile
+import StringIO
 import unittest
 
 from telemetry import benchmark
 from telemetry import benchmark_runner
-from telemetry.testing import stream
 import mock
 
 
@@ -31,7 +31,7 @@ class BenchmarkBar(benchmark.Benchmark):
 class BenchmarkRunnerUnittest(unittest.TestCase):
 
   def setUp(self):
-    self._stream = stream.TestOutputStream()
+    self._stream = StringIO.StringIO()
     self._mock_possible_browser = mock.MagicMock()
     self._mock_possible_browser.browser_type = 'TestBrowser'
 
@@ -44,7 +44,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
     benchmark_runner.PrintBenchmarkList([BenchmarkBar, BenchmarkFoo],
                                         self._mock_possible_browser, None,
                                         self._stream)
-    self.assertEquals(expected_printed_stream, self._stream.output_data)
+    self.assertEquals(expected_printed_stream, self._stream.getvalue())
 
   def testPrintBenchmarkListWithOneDisabledBenchmark(self):
     expected_printed_stream = (
@@ -69,7 +69,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
                                           expectations_file.name,
                                           self._stream)
 
-      self.assertEquals(expected_printed_stream, self._stream.output_data)
+      self.assertEquals(expected_printed_stream, self._stream.getvalue())
 
     finally:
       os.remove(expectations_file.name)

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import StringIO
 import traceback
 
 from telemetry import story
@@ -11,7 +12,6 @@ from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.testing import fakes
-from telemetry.testing import stream
 
 
 _GROUPING_KEY_DEFAULT = {'1': '2'}
@@ -49,7 +49,7 @@ class GTestProgressReporterTest(
     super(GTestProgressReporterTest, self).setUp()
     self._fake_timer = fakes.FakeTimer(gtest_progress_reporter)
 
-    self._output_stream = stream.TestOutputStream()
+    self._output_stream = StringIO.StringIO()
     self._reporter = gtest_progress_reporter.GTestProgressReporter(
         self._output_stream)
 
@@ -69,7 +69,7 @@ class GTestProgressReporterTest(
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 1 test.\n\n')
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleSuccessPageWithGroupingKeys(self):
     test_story_set = _MakeStorySet()
@@ -84,7 +84,7 @@ class GTestProgressReporterTest(
     expected = ("[ RUN      ] http://www.fus.com/@{'1': '2'}\n"
                 "[       OK ] http://www.fus.com/@{'1': '2'} (7 ms)\n"
                 "[  PASSED  ] 1 test.\n\n")
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleFailedPage(self):
     test_story_set = _MakeStorySet()
@@ -105,7 +105,7 @@ class GTestProgressReporterTest(
                 '[  FAILED  ] 1 test, listed below:\n'
                 '[  FAILED  ]  http://www.foo.com/\n\n'
                 '1 FAILED TEST\n\n' % exception_trace)
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleFailedPageWithGroupingKeys(self):
     test_story_set = _MakeStorySet()
@@ -126,7 +126,7 @@ class GTestProgressReporterTest(
                 "[  FAILED  ] 1 test, listed below:\n"
                 "[  FAILED  ]  http://www.fus.com/@{'1': '2'}\n\n"
                 "1 FAILED TEST\n\n" % exception_trace)
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleSkippedPage(self):
     test_story_set = _MakeStorySet()
@@ -143,7 +143,7 @@ class GTestProgressReporterTest(
                 ' Page skipped for testing reason =====\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 1 test.\n\n')
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testPassAndFailedPages(self):
     test_story_set = _MakeStorySet()
@@ -202,7 +202,7 @@ class GTestProgressReporterTest(
                 "[  FAILED  ]  http://www.ro.com/@{'1': '2'}\n\n"
                 "3 FAILED TESTS\n\n"
                 % (exception_trace, exception_trace, exception_trace))
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testStreamingResults(self):
     test_story_set = _MakeStorySet()
@@ -215,7 +215,7 @@ class GTestProgressReporterTest(
     results.DidRunPage(test_story_set.stories[0])
     expected = ('[ RUN      ] http://www.foo.com/\n'
                 '[       OK ] http://www.foo.com/ (7 ms)\n')
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
     results.WillRunPage(test_story_set.stories[1])
     self._fake_timer.SetTime(0.009)
@@ -249,4 +249,4 @@ class GTestProgressReporterTest(
                 'Skipped pages:\n'
                 'http://www.foo.com/\n'
                 '\n')
-    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
