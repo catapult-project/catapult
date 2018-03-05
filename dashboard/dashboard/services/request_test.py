@@ -141,6 +141,19 @@ class CacheTest(_RequestTest):
     with self.assertRaises(NotImplementedError):
       request.Request('https://example.com', body='body', use_cache=True)
 
+  @mock.patch.object(request.memcache, 'add',
+                     mock.MagicMock(side_effect=ValueError))
+  def testResponseTooLarge(self):
+    self._request.return_value = ({'status': '200'}, 'response')
+
+    response = request.Request('https://example.com', use_cache=True)
+    self.assertEqual(response, 'response')
+    self.assertEqual(self._request.call_count, 1)
+
+    response = request.Request('https://example.com', use_cache=True)
+    self.assertEqual(response, 'response')
+    self.assertEqual(self._request.call_count, 2)
+
 
 class AuthTest(_RequestTest):
 

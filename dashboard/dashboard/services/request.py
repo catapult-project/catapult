@@ -85,7 +85,11 @@ def Request(url, method='GET', body=None,
     content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
 
   if use_cache:
-    memcache.add(key=url, value=content, time=_CACHE_DURATION)
+    try:
+      memcache.add(key=url, value=content, time=_CACHE_DURATION)
+    except ValueError:
+      # Max memcache size is 1000000 bytes.
+      pass
 
   return content
 
