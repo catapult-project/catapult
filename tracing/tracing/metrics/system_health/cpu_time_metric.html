@@ -60,23 +60,7 @@ tr.exportTo('tr.metrics.sh', function() {
       let processCpuTime = 0;
       for (const tid in process.threads) {
         const thread = process.threads[tid];
-        let threadCpuTime = 0;
-        thread.sliceGroup.topLevelSlices.forEach(function(slice) {
-          if (slice.duration === 0) return;
-          if (!slice.cpuDuration) return;
-          const sliceRange = tr.b.math.Range.fromExplicitRange(
-              slice.start, slice.end);
-          const intersection = rangeOfInterest.findIntersection(sliceRange);
-          const fractionOfSliceInsideRangeOfInterest =
-              intersection.duration / slice.duration;
-
-          // We assume that if a slice doesn't lie entirely inside the range of
-          // interest, then the CPU time is evenly distributed inside of the
-          // slice.
-          threadCpuTime +=
-              slice.cpuDuration * fractionOfSliceInsideRangeOfInterest;
-        });
-        processCpuTime += threadCpuTime;
+        processCpuTime += thread.getCpuTimeForRange(rangeOfInterest);
       }
       allProcessCpuTime += processCpuTime;
     }

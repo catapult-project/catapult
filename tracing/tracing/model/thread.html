@@ -235,43 +235,31 @@ tr.exportTo('tr.model', function() {
       return i;
     },
 
-    /*
-     * Returns an object with the CPU number used as keys,
-     * and the value of each key object is the amount of milliseconds spent
-     * running on this CPU.
-     * Additionally, stats.total contains the total time
-     * spent running on all CPUs.
+    /**
+     * Returns the total cpu time consumed within |range| by this thread.
      */
-    getCpuStatsForRange(range) {
-      const stats = {};
-      stats.total = 0;
+    getCpuTimeForRange(range) {
+      let totalCpuTime = 0;
+      tr.b.iterateOverIntersectingIntervals(
+          this.sliceGroup.topLevelSlices,
+          slice => slice.start, slice => slice.end,
+          range.min, range.max,
+          slice => {
+            if (slice.duration === 0) return;
+            if (!slice.cpuDuration) return;
 
-      if (!this.timeSlices) return stats;
+            const intersection = range.findIntersection(slice.range);
+            const fractionOfSliceInsideRangeOfInterest =
+                intersection.duration / slice.duration;
 
-      function addStatsForSlice(threadTimeSlice) {
-        const freqRange = tr.b.math.Range.fromExplicitRange(
-            threadTimeSlice.start, threadTimeSlice.end);
-        const intersection = freqRange.findIntersection(range);
+            // We assume that if a slice doesn't lie entirely inside the range
+            // of interest, then the CPU time is evenly distributed inside of
+            // the slice.
+            totalCpuTime +=
+                slice.cpuDuration * fractionOfSliceInsideRangeOfInterest;
+          });
 
-        if (threadTimeSlice.schedulingState ===
-            tr.model.SCHEDULING_STATE.RUNNING) {
-          const cpu = threadTimeSlice.cpuOnWhichThreadWasRunning;
-          if (!(cpu.cpuNumber in stats)) {
-            stats[cpu.cpuNumber] = 0;
-          }
-
-          stats[cpu.cpuNumber] += intersection.duration;
-          stats.total += intersection.duration;
-        }
-      }
-
-      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
-          function(x) { return x.start; },
-          function(x) { return x.end; },
-          range.min,
-          range.max,
-          addStatsForSlice);
-      return stats;
+      return totalCpuTime;
     },
 
     getSchedulingStatsForRange(start, end) {
