@@ -204,6 +204,11 @@ class Job(ndb.Model):
       try:
         self.put()
       except datastore_errors.BadRequestError:
+        if self.task:
+          queue = taskqueue.Queue('job-queue')
+          queue.delete_tasks(taskqueue.Task(name=self.task))
+        self.task = None
+
         # The _JobState is too large to fit in an ndb property.
         # Load the Job from before we updated it, and fail it.
         job = self.key.get(use_cache=False)
