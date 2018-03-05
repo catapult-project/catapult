@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/jquery/jquery-2.1.4.min.js"></script>
+<!-- Each import of flot reinitializes it, clearing all the plugins from
+  previous imports. Try to import flot only once across the entire app. -->
+<script src="/flot/jquery.flot.min.js"></script>
+<script src="/flot/jquery.flot.errorbars.min.js"></script>
+
+<link rel="import" href="/elements/job-page/job-chart.html">
+<link rel="import" href="/elements/job-page/values-histogram.html">
+
+<dom-module id="job-charts">
+  <template>
+    <style>
+      .columns {
+        display: flex;
+      }
+
+      job-chart {
+        flex: 5;
+      }
+
+      values-histogram {
+        flex: 1;
+      }
+    </style>
+
+    <div class="columns">
+      <job-chart job-data="[[jobData(job)]]" change-index="{{changeIndex}}"></job-chart>
+      <values-histogram job-data="[[jobData(job)]]" change-index="[[changeIndex]]"></values-histogram>
+    </div>
+  </template>
+
+  <script>
+    'use strict';
+    Polymer({
+      is: 'job-charts',
+
+      properties: {
+        job: {
+          type: Object,
+        },
+
+        changeIndex: {
+          type: Number,
+          notify: true
+        },
+      },
+
+      jobData(job) {
+        const [valuesByChange, isNumeric] = computeValuesByChange(job);
+        const bounds = computeBounds(valuesByChange, isNumeric);
+
+        const state = [];
+        for (let i = 0; i < job.changes.length; ++i) {
+          const changeData = this.job.changes[i];
+          const lastCommit = changeData.commits[changeData.commits.length - 1];
+          let change = lastCommit.commit_position ||
+            lastCommit.git_hash.substring(0, 7);
+          if (changeData.patch) {
+            change += ' + ' + changeData.patch.author.split('@')[0];
+          }
+          state.push({
+            change,
+            comparisons: {
+              before: this.job.comparisons[i - 1],
+              after: this.job.comparisons[i]
+            },
+            values: valuesByChange[i],
+          });
+        }
+
+        return {bounds, state};
+      }
+    });
+
+    function computeValuesByChange(job) {
+      let valuesByChange = job.result_values.map(
+          valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
+
+      // TODO: Don't guess.
+      const isNumeric = valuesByChange.some(row => row.length);
+
+      // No numeric data. Show "success rate" instead.
+      if (!isNumeric) {
+        valuesByChange = [];
+        // TODO: Create a MergeAttempts helper function.
+        for (const attempts of job.attempts) {
+          const exceptions = [];
+          for (const attempt of attempts) {
+            const lastExecution =
+              attempt.executions[attempt.executions.length - 1];
+            exceptions.push(lastExecution.exception);
+          }
+          const sum = exceptions.filter(exception => !exception).length;
+          valuesByChange.push([sum / exceptions.length]);
+        }
+      }
+
+      return [valuesByChange, isNumeric];
+    }
+
+    function computeBounds(valuesByChange, isNumeric) {
+      let lowerBound = 0;
+      let upperBound = 1;
+
+      if (isNumeric) {
+        // Numeric data. Set the bounds based on the data.
+        // The bounds are the interdecile range of all points, and at the
+        // same time ensuring that every median point shows up on the graph.
+        const allValues = [].concat(...valuesByChange);
+        const changeMedians =
+          valuesByChange.filter(v => v.length).map(v => percentile(v, 0.5));
+        lowerBound =
+          Math.min(percentile(allValues, 0.1), Math.min(...changeMedians));
+        upperBound =
+          Math.max(percentile(allValues, 0.9), Math.max(...changeMedians));
+        if (!(isFinite(lowerBound) && isFinite(upperBound))) {
+          lowerBound = 0;
+          upperBound = 0;
+        }
+        if (lowerBound == upperBound) {
+          lowerBound -= 1;
+          upperBound += 1;
+        }
+      }
+
+      const padding = 0.1 * (upperBound - lowerBound);
+      lowerBound -= padding;
+      upperBound += padding;
+
+      return [lowerBound, upperBound];
+    }
+
+    function percentile(values, p) {
+      values.sort(function(a, b) {return a - b;});
+      const index = (values.length - 1) * p;
+      const lower = Math.floor(index);
+      const upper = Math.ceil(index);
+      const weight = index % 1;
+      return values[lower] * (1 - weight) + values[upper] * weight;
+    }
+  </script>
+</dom-module>

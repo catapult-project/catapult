@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/elements/base-style.html">
 <link rel="import" href="/elements/job-page/change-details.html">
 <link rel="import" href="/elements/job-page/job-chart-icon.html">
-<link rel="import" href="/elements/job-page/job-chart.html">
+<link rel="import" href="/elements/job-page/job-charts.html">
 <link rel="import" href="/elements/job-page/job-details.html">
 <link rel="import" href="/elements/job-page/job-menu-fab.html">
 <link rel="import" href="/elements/loading-wrapper.html">
@@ -86,7 +86,7 @@ found in the LICENSE file.
           <job-details job="[[job]]"></job-details>
         </div>
         <div id="main-column">
-          <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>
+          <job-charts job="[[job]]" change-index="{{changeIndex}}"></job-charts>
           <change-details job="[[job]]" change-index="[[changeIndex]]"></change-details>
         </div>
       </div>
@@ -105,17 +105,12 @@ found in the LICENSE file.
         },
 
         changeIndex: {
-          type: Number,
-          value: null,
+          type: Number
         }
       },
 
       params(jobId) {
         return {job_id: jobId};
-      },
-
-      deselected() {
-        this.set('changeIndex', null);
       },
 
       failed(job) {

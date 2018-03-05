@@ -5,14 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<script src="/jquery/jquery-2.1.4.min.js"></script>
-<script src="/flot/jquery.flot.min.js"></script>
-
 <dom-module id="values-histogram">
   <template>
     <style>
       #plot {
-        min-height: 200px;
+        height: 240px;
+        margin-top: 1em;
         width: 100%;
       }
     </style>
@@ -26,9 +24,14 @@ found in the LICENSE file.
       is: 'values-histogram',
 
       properties: {
-        values: {
-          type: Array,
-          observer: '_valuesChanged'
+        jobData: {
+          type: Object,
+          observer: '_jobDataChanged',
+        },
+
+        changeIndex: {
+          type: Number,
+          observer: '_changeIndexChanged',
         },
 
         // The Flot Plot object, returned by $.plot.
@@ -37,44 +40,57 @@ found in the LICENSE file.
         }
       },
 
-      _valuesChanged() {
-        this.async(this.draw);
+      _jobDataChanged() {
+        this.async(this.draw, 1);
+      },
+
+      _changeIndexChanged() {
+        this.async(this.draw, 1);
       },
 
       draw() {
-        const values = this.values;
-
-        // Calculate bounds.
-        let min = 0;
-        let max = 1;
-
-        min = Math.min(...values);
-        max = Math.max(...values);
-        if (min == max) {
-          min -= 1;
-          max += 1;
+        if (this.changeIndex === null) {
+          return;
+        }
+        if (!this.jobData) {
+          return;
         }
 
-        // Calculate buckets.
-        const bucketCount = Math.round(Math.log(values.length) * 4 + 1);
-        const buckets = new Array(bucketCount).fill(0);
-        for (const value of values) {
-          let index = Math.floor((value - min) / (max - min) * buckets.length);
-          if (index == buckets.length) {
-            index -= 1;
-          }
-          buckets[index] += 1;
-        }
+        const values = this.jobData.state[this.changeIndex].values;
 
-        // Convert buckets to a format that flot likes.
+        // Get bounds.
+        const min = this.jobData.bounds[0];
+        const max = this.jobData.bounds[1];
+
+        let barWidth = 1;
         const seriesData = [];
-        for (let i = 0; i < buckets.length; ++i) {
-          seriesData.push([i * (max - min) / bucketCount + min, buckets[i]]);
+        if (values.length) {
+          // Calculate buckets.
+          // TODO: Calculate bucketCount based on the average number of values
+          // across all commits with values, to ensure it doesn't change from
+          // commit to commit.
+          const bucketCount =
+            Math.max(Math.round(Math.log(values.length) * 4 + 1), 10);
+          const buckets = new Array(bucketCount).fill(0);
+          for (const value of values) {
+            let index = Math.floor((value - min) / (max - min) * bucketCount);
+            if (index == bucketCount) {
+              index -= 1;
+            }
+            buckets[index] += 1;
+          }
+          barWidth = (max - min) / bucketCount;
+
+          // Convert buckets to a format that flot likes.
+          for (let i = 0; i < bucketCount; ++i) {
+            seriesData.push([buckets[i], i * (max - min) / bucketCount + min]);
+          }
         }
 
-        const data = [{
+        const plotData = [{
           bars: {
-            barWidth: (max - min) / bucketCount,
+            barWidth,
+            horizontal: true,
             show: true
           },
           color: '#3f51b5',
@@ -88,11 +104,12 @@ found in the LICENSE file.
             borderWidth: 1,
             borderColor: 'rgba(0, 0, 0, 0.5)'
           },
-          xaxis: {min, max}
+          xaxis: {tickLength: 0},
+          yaxis: {min, max, tickFormatter: (val, axis) => ''}
         };
 
         // Plot the chart!
-        this.chart = $.plot(this.$.plot, data, options);
+        this.chart = $.plot(this.$.plot, plotData, options);
       }
     });
   </script>

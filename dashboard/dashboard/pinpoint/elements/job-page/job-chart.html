@@ -5,13 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<script src="/jquery/jquery-2.1.4.min.js"></script>
-<script src="/flot/jquery.flot.min.js"></script>
-<script src="/flot/jquery.flot.crosshair.min.js"></script>
-<script src="/flot/jquery.flot.errorbars.js"></script>
-<script src="/flot/jquery.flot.fillbetween.min.js"></script>
-<script src="/flot/jquery.flot.selection.min.js"></script>
-
 <link rel="import" href="/elements/job-page/job-chart-dot.html">
 <link rel="import" href="/elements/job-page/job-chart-icon.html">
 
@@ -21,7 +14,7 @@ found in the LICENSE file.
       #plot {
         height: 240px;
         margin-top: 1em;
-        min-width: 500px;
+        width: 100%;
       }
     </style>
 
@@ -34,9 +27,9 @@ found in the LICENSE file.
       is: 'job-chart',
 
       properties: {
-        job: {
+        jobData: {
           type: Object,
-          observer: '_jobChanged',
+          observer: '_jobDataChanged',
         },
 
         changeIndex: {
@@ -57,7 +50,6 @@ found in the LICENSE file.
 
       onPlotClick(event, pos, item) {
         if (item == null) {
-          this.set('changeIndex', null);
           return;
         }
 
@@ -68,79 +60,43 @@ found in the LICENSE file.
         this.set('changeIndex', index);
       },
 
-      _jobChanged() {
+      _jobDataChanged() {
+        this.setChangeIndex();
         this.async(this.draw, 1);
       },
 
+      setChangeIndex() {
+        // TODO: Choose the largest difference, not just any difference.
+        for (let i = 0; i < this.jobData.state.length; ++i) {
+          if (this.jobData.state[i].comparisons.before === 'different') {
+            this.set('changeIndex', i);
+            return;
+          }
+        }
+        // TODO: If no statistical difference, choose the largest delta.
+        this.set('changeIndex', this.jobData.state.length - 1);
+      },
+
       draw() {
-        let valuesByChange = this.job.result_values.map(
-            valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
-
-        const anyNumbers = valuesByChange.some(row => row.length);
-        // No numeric data. Show "success rate" instead.
-        if (!anyNumbers) {
-          valuesByChange = [];
-          // TODO: Create a MergeAttempts helper function.
-          for (const attempts of this.job.attempts) {
-            const exceptions = [];
-            for (const attempt of attempts) {
-              const lastExecution =
-                attempt.executions[attempt.executions.length - 1];
-              exceptions.push(lastExecution.exception);
-            }
-            const sum = exceptions.filter(exception => !exception).length;
-            valuesByChange.push([sum / exceptions.length]);
-          }
-        }
-
-        // Calculate the chart bounds.
-        let lowerBound = 0;
-        let upperBound = 1;
-
-        if (anyNumbers) {
-          // Numeric data. Set the bounds based on the data.
-          // The bounds are the interquartile range of all points, but at the
-          // same time ensuring that every median point shows up on the graph.
-          const allValues = [].concat(...valuesByChange);
-          const changeMedians =
-            valuesByChange.filter(v => v.length).map(v => percentile(v, 0.5));
-          lowerBound =
-            Math.min(percentile(allValues, 0.25), Math.min(...changeMedians));
-          upperBound =
-            Math.max(percentile(allValues, 0.75), Math.max(...changeMedians));
-          if (!(isFinite(lowerBound) && isFinite(upperBound))) {
-            lowerBound = 0;
-            upperBound = 0;
-          }
-          if (lowerBound == upperBound) {
-            lowerBound -= 1;
-            upperBound += 1;
-          }
-        }
-
-        const padding = 0.2 * (upperBound - lowerBound);
-        lowerBound -= padding;
-        upperBound += padding;
-
         // Calculate the data series, points, and error bars.
-        const data = [];
+        const plotData = [];
 
         let seriesData = [];
-        for (let i = 0; i < valuesByChange.length; ++i) {
-          const values = valuesByChange[i];
-          if (!values.length) {
+        for (let i = 0; i < this.jobData.state.length; ++i) {
+          const changeData = this.jobData.state[i];
+          if (!changeData.values.length) {
             continue;
           }
 
-          const mid = percentile(values, 0.5);
-          const lowError = mid - Math.min(...values);
-          const highError = Math.max(...values) - mid;
+          const mid = percentile(changeData.values, 0.5);
+          const lowError = mid - Math.min(...changeData.values);
+          const highError = Math.max(...changeData.values) - mid;
           seriesData.push([i, mid, lowError, highError]);
 
-          if (this.job.comparisons[i] !== 'same' &&
-              this.job.comparisons[i] !== 'unknown') {
+          if (changeData.comparisons.after !== 'same' &&
+              changeData.comparisons.after !== 'unknown') {
             if (seriesData.length) {
-              data.push(annotateSeries(seriesData));
+              plotData.push(annotateSeries(seriesData));
               seriesData = [];
             }
           }
@@ -157,28 +113,30 @@ found in the LICENSE file.
           },
           xaxis: {
             min: -0.5,
-            max: valuesByChange.length - 0.5,
-            show: false
+            max: this.jobData.state.length - 0.5,
+            ticks: this.jobData.state.map((d, i) => [i, d.change]),
+            tickLength: 0
           },
           yaxis: {
-            min: lowerBound,
-            max: upperBound
+            min: this.jobData.bounds[0],
+            max: this.jobData.bounds[1]
           }
         };
 
         // Plot the chart!
-        const chart = $.plot(this.$.plot, data, options);
+        const chart = $.plot(this.$.plot, plotData, options);
 
         // Draw overlays.
-        for (let i = 0; i < valuesByChange.length; ++i) {
-          const y = valuesByChange[i].length ?
-            percentile(valuesByChange[i], 0.5) :
-            (lowerBound + upperBound) / 2;
+        for (let i = 0; i < this.jobData.state.length; ++i) {
+          const changeData = this.jobData.state[i];
+          const y = changeData.values.length ?
+            percentile(changeData.values, 0.5) :
+            (this.jobData.bounds[0] + this.jobData.bounds[1]) / 2;
           const offset = chart.pointOffset({x: i, y});
 
-          if (valuesByChange[i].length) {
+          if (changeData.values.length) {
             // Draw pulsing dots for important points.
-            if (this.job.comparisons[i - 1] === 'different') {
+            if (changeData.comparisons.before === 'different') {
               const dot = document.createElement('job-chart-dot');
               dot.setPosition(offset.left, offset.top);
               this.$.plot.appendChild(dot);
@@ -188,8 +146,8 @@ found in the LICENSE file.
             const status = document.createElement('job-chart-icon');
             status.setPosition(offset.left, offset.top);
             // TODO: Plumb through real "pending" information from the Job.
-            if (this.job.comparisons[i] === 'pending' ||
-                this.job.comparisons[i - 1] === 'pending') {
+            if (changeData.comparisons.before === 'pending' ||
+                changeData.comparisons.after === 'pending') {
               status.setType('pending');
             } else {
               status.setType('failed');

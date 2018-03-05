@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/elements/base-style.html">
 <link rel="import" href="/elements/job-page/change-info.html">
 <link rel="import" href="/elements/job-page/execution-details.html">
-<link rel="import" href="/elements/job-page/values-histogram.html">
 
 <dom-module id="change-details">
   <template>
@@ -44,9 +43,6 @@ found in the LICENSE file.
           <div class="column">
             <h2>[[testTitle]]</h2>
             <execution-details attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="2"></execution-details>
-            <template is="dom-if" if="[[resultValues.length]]">
-              <values-histogram values="[[resultValues]]"></values-histogram>
-            </template>
           </div>
         </template>
       </div>
@@ -92,8 +88,6 @@ found in the LICENSE file.
         this.testTitle = this.job.quests[2];
 
         this.attempts = this.job.attempts[this.changeIndex];
-
-        this.resultValues = this.job.result_values[this.changeIndex][2];
       },
 
       isShowing(changeIndex) {
