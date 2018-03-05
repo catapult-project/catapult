@@ -358,9 +358,10 @@ class MemoryMap(NodeWrapper):
     regions = []
     for region_node in process_mmaps_node['vm_regions']:
       file_offset = long(region_node['fo'], 16) if 'fo' in region_node else 0
+      file_path = region_node['mf'].replace(" (deleted)", "")
       region = self.Region(long(region_node['sa'], 16),
                            long(region_node['sz'], 16),
-                           region_node['mf'],
+                           file_path,
                            file_offset)
       # Keep track of code-identifier when present.
       if 'ts' in region_node and 'sz' in region_node:
