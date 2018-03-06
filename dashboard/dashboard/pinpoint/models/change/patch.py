@@ -81,13 +81,25 @@ class GerritPatch(collections.namedtuple(
 
     Raises:
       KeyError: The patch doesn't have the given revision.
+      ValueError: The URL has an unrecognized format.
     """
     if isinstance(data, basestring):
       url_parts = urlparse.urlparse(data)
       server = urlparse.urlunsplit(
           (url_parts.scheme, url_parts.netloc, '', '', ''))
-      change = url_parts.path.rsplit('/', 1)[-1]
-      revision = None
+
+      path_parts = iter(url_parts.path.split('/'))
+      for path_part in path_parts:
+        if path_part == '+':
+          break
+      else:
+        raise ValueError('Unknown URL format.')
+
+      change = path_parts.next()
+      try:
+        revision = int(path_parts.next())
+      except StopIteration:
+        revision = None
     else:
       server = data['server']
       change = data['change']

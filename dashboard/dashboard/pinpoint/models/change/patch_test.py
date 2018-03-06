@@ -54,6 +54,20 @@ class FromDictTest(unittest.TestCase):
         'https://example.com', 'repo~branch~id', 'current revision')
     self.assertEqual(p, expected)
 
+  @mock.patch('dashboard.services.gerrit_service.GetChange')
+  def testFromDictGerritWithRevision(self, get_change):
+    get_change.return_value = _GERRIT_CHANGE_INFO
+
+    p = patch.FromDict('https://example.com/c/repo/+/658277/4')
+
+    expected = patch.GerritPatch(
+        'https://example.com', 'repo~branch~id', 'other revision')
+    self.assertEqual(p, expected)
+
+  def testFromDictBadUrl(self):
+    with self.assertRaises(ValueError):
+      patch.FromDict('https://example.com/not/a/gerrit/url')
+
 
 class GerritPatchTest(unittest.TestCase):
 
