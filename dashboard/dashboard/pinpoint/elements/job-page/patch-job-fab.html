@@ -44,8 +44,6 @@ found in the LICENSE file.
         </template>
         <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="auto_explore" value="false">
-            <input type="hidden" name="bug_id" value="[[job.bug_id]]">
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">
             </template>
@@ -70,14 +68,19 @@ found in the LICENSE file.
       },
 
       getArguments(job) {
+        const args = Object.assign({}, job.arguments);
+        args.auto_explore = false;
+        args.start_repository = 'chromium';
+        args.start_git_hash = 'HEAD';
+        args.end_repository = 'chromium';
+        args.end_git_hash = 'HEAD';
+        delete args.name;
+        delete args.user;
+
         const tuples = [];
-        for (const key in job.arguments) {
-          tuples.push({key, value: job.arguments[key]});
+        for (const key in args) {
+          tuples.push({key, value: args[key]});
         }
-        tuples.push({key: 'start_repository', value: 'chromium'});
-        tuples.push({key: 'end_repository', value: 'chromium'});
-        tuples.push({key: 'start_git_hash', value: 'HEAD'});
-        tuples.push({key: 'end_git_hash', value: 'HEAD'});
         return tuples;
       },
 

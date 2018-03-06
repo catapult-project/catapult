@@ -38,8 +38,6 @@ found in the LICENSE file.
         </template>
         <iron-form id="job_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="auto_explore" value="[[job.auto_explore]]">
-            <input type="hidden" name="bug_id" value="[[job.bug_id]]">
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">
             </template>
@@ -68,14 +66,14 @@ found in the LICENSE file.
       },
 
       getArguments(job) {
+        const args = Object.assign({}, job.arguments);
+        delete args.name;
+        delete args.user;
+
         const tuples = [];
-        for (const key in job.arguments) {
-          tuples.push({key, value: job.arguments[key]});
+        for (const key in args) {
+          tuples.push({key, value: args[key]});
         }
-        tuples.push({
-          key: 'changes',
-          value: JSON.stringify(
-              [job.changes[0], job.changes[job.changes.length - 1]])});
         return tuples;
       },
 
