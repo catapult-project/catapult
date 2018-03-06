@@ -35,6 +35,10 @@ class Alert(_Alert):
   columns = _Alert._fields
 
   @classmethod
+  def FromTuple(cls, row):
+    return cls._make(row)
+
+  @classmethod
   def FromJson(cls, data):
     kwargs = {k: data[k] for k in cls.columns if k in data}
     kwargs['timestamp'] = _IsoFormatStrToTimestamp(data['timestamp'])
