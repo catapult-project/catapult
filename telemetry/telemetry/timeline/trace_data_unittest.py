@@ -21,7 +21,7 @@ class TraceDataTest(unittest.TestCase):
       ri = trace_data.CreateTraceDataFromRawData({'traceEvents': [1, 2, 3]})
       ri.Serialize(trace_path)
       with open(trace_path) as f:
-        json_traces = html2trace.ReadTracesFromHTMLFilePath(f)
+        json_traces = html2trace.ReadTracesFromHTMLFile(f)
       self.assertEqual(json_traces, [{'traceEvents': [1, 2, 3]}])
     finally:
       shutil.rmtree(test_dir)

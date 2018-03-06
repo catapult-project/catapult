@@ -54,9 +54,9 @@ def CopyTraceDataFromHTMLFilePath(html_file_handle, trace_path,
   return saved_paths
 
 
-def ReadTracesFromHTMLFilePath(html_file_handle):
+def ReadTracesFromHTMLFile(file_handle):
   """Returns a list of inflated JSON traces extracted from an HTML file."""
-  return map(json.load, _ExtractTraceDataFromHTMLFile(html_file_handle))
+  return map(json.load, _ExtractTraceDataFromHTMLFile(file_handle))
 
 
 def _ExtractTraceDataFromHTMLFile(html_file_handle, unzip_data=True):

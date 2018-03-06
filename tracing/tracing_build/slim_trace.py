@@ -72,7 +72,7 @@ class HTMLTraceExtractor(TraceExtractor):
     return html2trace.IsHTMLTrace(trace_file_handle)
 
   def ExtractTracesFromFile(self, trace_file_handle):
-    return html2trace.ReadTracesFromHTMLFilePath(trace_file_handle)
+    return html2trace.ReadTracesFromHTMLFile(trace_file_handle)
 
 
 class JsonTraceExtractor(TraceExtractor):

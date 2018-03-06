@@ -309,9 +309,10 @@ def LoadHTMLTrace(filename):
   """Load a trace from a vulcanized HTML trace file."""
   trace_components = collections.defaultdict(list)
 
-  for sub_trace in html2trace.ReadTracesFromHTMLFilePath(filename):
-    for name, component in TraceAsDict(sub_trace).iteritems():
-      trace_components[name].append(component)
+  with open(filename) as file_handle:
+    for sub_trace in html2trace.ReadTracesFromHTMLFile(file_handle):
+      for name, component in TraceAsDict(sub_trace).iteritems():
+        trace_components[name].append(component)
 
   trace = {}
   for name, components in trace_components.iteritems():
