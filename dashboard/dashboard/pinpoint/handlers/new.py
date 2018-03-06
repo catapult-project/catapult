@@ -29,6 +29,7 @@ class New(webapp2.RequestHandler):
   def _WriteErrorMessage(self, message):
     self.response.out.write(json.dumps({'error': message}))
 
+  @api_auth.Authorize
   def _CreateJob(self):
     """Start a new Pinpoint job."""
     auto_explore = _ParseBool(self.request.get('auto_explore'))

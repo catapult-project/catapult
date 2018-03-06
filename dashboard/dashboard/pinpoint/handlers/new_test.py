@@ -30,14 +30,10 @@ _BASE_REQUEST = {
 }
 
 
-@mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
-@mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
-            mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-class NewTest(testing_common.TestCase):
+class _NewTest(testing_common.TestCase):
 
   def setUp(self):
-    super(NewTest, self).setUp()
+    super(_NewTest, self).setUp()
 
     app = webapp2.WSGIApplication([
         webapp2.Route(r'/api/new', new.New),
@@ -57,6 +53,29 @@ class NewTest(testing_common.TestCase):
         'catapult': {'repository_url': 'http://catapult'},
         'src': {'repository_url': 'http://src'},
     })
+
+
+
+@mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
+            mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+class NewAuthTest(_NewTest):
+
+  @mock.patch.object(api_auth, '_AuthorizeOauthUser',
+                     mock.MagicMock(side_effect=api_auth.OAuthError()))
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  def testPost_FailsOauth(self):
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    result = json.loads(response.body)
+    self.assertEqual({'error': 'User authentication error'}, result)
+
+
+@mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
+            mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+@mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+class NewTest(_NewTest):
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))
