@@ -35,6 +35,7 @@ tr.exportTo('tr.metrics.vr', function() {
     histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitNow',
         createHistograms(histograms, 'submit_frame',
           {description: 'Duration to submit a frame to GVR'}));
+    // Scene update metrics.
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
         createHistograms(
@@ -60,6 +61,62 @@ tr.exportTo('tr.metrics.vr', function() {
         'UiScene::OnBeginFrame.UpdateWorldSpaceTransform',
         createHistograms(histograms, 'update_world_space_transforms', {
           description: 'Duration to calculate element transforms in world space'
+        }));
+    // Draw metrics.
+    histogramsByEventTitle.set(
+        'UiRenderer::DrawUiView',
+        createHistograms(histograms, 'draw_ui', {
+          description: 'Duration to draw the UI'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawTexturedQuad',
+        createHistograms(histograms, 'draw_textured_quad', {
+          description: 'Duration to draw a textured element'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawGradientQuad',
+        createHistograms(histograms, 'draw_gradient_quad', {
+          description: 'Duration to draw a gradient element'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawGradientGridQuad',
+        createHistograms(histograms, 'draw_gradient_grid_quad', {
+          description: 'Duration to draw a gradient grid element'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawController',
+        createHistograms(histograms, 'draw_controller', {
+          description: 'Duration to draw the controller'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawLaser',
+        createHistograms(histograms, 'draw_laser', {
+          description: 'Duration to draw the laser'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawReticle',
+        createHistograms(histograms, 'draw_reticle', {
+          description: 'Duration to draw the reticle'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawShadow',
+        createHistograms(histograms, 'draw_shadow', {
+          description: 'Duration to draw a shadow element'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawStars',
+        createHistograms(histograms, 'draw_stars', {
+          description: 'Duration to draw the stars'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawBackground',
+        createHistograms(histograms, 'draw_background', {
+          description: 'Duration to draw the textured background'
+        }));
+    histogramsByEventTitle.set(
+        'UiElementRenderer::DrawKeyboard',
+        createHistograms(histograms, 'draw_keyboard', {
+          description: 'Duration to draw the keyboard'
         }));
 
     const chromeHelper = model.getOrCreateHelper(

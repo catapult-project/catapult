@@ -42,8 +42,8 @@ tr.b.unittest.testSuite(function() {
     const durations = [
       {
         title: 'VrShellGl::DrawFrame',
-        wall: 50,
-        cpu: 45,
+        wall: 290,
+        cpu: 245,
         sub: [
           {title: 'VrShellGl::AcquireFrame', wall: 2, cpu: 2},
           {title: 'VrShellGl::AcquireFrame', wall: 2.5, cpu: 1.5},
@@ -83,6 +83,41 @@ tr.b.unittest.testSuite(function() {
           },
           {title: 'VrShellGl::UpdateController', wall: 1, cpu: 0.5},
           {title: 'VrShellGl::UpdateController', wall: 0.5, cpu: 0.4},
+          {
+            title: 'UiRenderer::DrawUiView',
+            wall: 220,
+            cpu: 200,
+            sub: [
+              {title: 'UiElementRenderer::DrawTexturedQuad', wall: 1, cpu: 0.5},
+              {title: 'UiElementRenderer::DrawTexturedQuad', wall: 2, cpu: 1},
+              {title: 'UiElementRenderer::DrawGradientQuad', wall: 3, cpu: 2},
+              {title: 'UiElementRenderer::DrawGradientQuad', wall: 4, cpu: 3},
+              {
+                title: 'UiElementRenderer::DrawGradientGridQuad',
+                wall: 5,
+                cpu: 4
+              },
+              {
+                title: 'UiElementRenderer::DrawGradientGridQuad',
+                wall: 6,
+                cpu: 5
+              },
+              {title: 'UiElementRenderer::DrawController', wall: 7, cpu: 6},
+              {title: 'UiElementRenderer::DrawController', wall: 8, cpu: 7},
+              {title: 'UiElementRenderer::DrawLaser', wall: 9, cpu: 8},
+              {title: 'UiElementRenderer::DrawLaser', wall: 10, cpu: 9},
+              {title: 'UiElementRenderer::DrawReticle', wall: 11, cpu: 10},
+              {title: 'UiElementRenderer::DrawReticle', wall: 12, cpu: 11},
+              {title: 'UiElementRenderer::DrawShadow', wall: 13, cpu: 12},
+              {title: 'UiElementRenderer::DrawShadow', wall: 14, cpu: 13},
+              {title: 'UiElementRenderer::DrawStars', wall: 15, cpu: 14},
+              {title: 'UiElementRenderer::DrawStars', wall: 16, cpu: 15},
+              {title: 'UiElementRenderer::DrawBackground', wall: 17, cpu: 16},
+              {title: 'UiElementRenderer::DrawBackground', wall: 18, cpu: 17},
+              {title: 'UiElementRenderer::DrawKeyboard', wall: 19, cpu: 18},
+              {title: 'UiElementRenderer::DrawKeyboard', wall: 20, cpu: 19},
+            ]
+          },
           {title: 'VrShellGl::DrawFrameSubmitNow', wall: 3, cpu: 0.5},
           {
             title: 'VrShellGl::DrawFrameSubmitNow',
@@ -99,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       model.userModel.expectations.push(
           new tr.model.um.AnimationExpectation(model,
-              tr.model.um.INITIATOR_TYPE.VR, 0, 71));
+              tr.model.um.INITIATOR_TYPE.VR, 0, 311));
       const browserProcess = model.getOrCreateProcess(0);
       const browserMainThread = browserProcess.getOrCreateThread(0);
       browserMainThread.name = 'CrBrowserMain';
@@ -112,9 +147,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.vr.frameCycleDurationMetric(histograms, model);
 
     assert.closeTo(histograms.getHistogramNamed('draw_frame_wall').average,
-        35, TOLERANCE);
+        155, TOLERANCE);
     assert.closeTo(histograms.getHistogramNamed('draw_frame_cpu').average,
-        27.5, TOLERANCE);
+        127.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('acquire_frame_wall').average,
@@ -172,6 +207,105 @@ tr.b.unittest.testSuite(function() {
         histograms.getHistogramNamed('update_world_space_transforms_cpu')
             .average,
         1.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_ui_wall')
+            .average,
+        220, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_ui_cpu')
+            .average,
+        200, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_textured_quad_wall')
+            .average,
+        1.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_textured_quad_cpu')
+            .average,
+        0.75, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_gradient_quad_wall')
+            .average,
+        3.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_gradient_quad_cpu')
+            .average,
+        2.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_gradient_grid_quad_wall')
+            .average,
+        5.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_gradient_grid_quad_cpu')
+            .average,
+        4.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_controller_wall')
+            .average,
+        7.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_controller_cpu')
+            .average,
+        6.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_laser_wall')
+            .average,
+        9.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_laser_cpu')
+            .average,
+        8.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_reticle_wall')
+            .average,
+        11.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_reticle_cpu')
+            .average,
+        10.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_shadow_wall')
+            .average,
+        13.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_shadow_cpu')
+            .average,
+        12.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_stars_wall')
+            .average,
+        15.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_stars_cpu')
+            .average,
+        14.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_background_wall')
+            .average,
+        17.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_background_cpu')
+            .average,
+        16.5, TOLERANCE);
+
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_keyboard_wall')
+            .average,
+        19.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_keyboard_cpu')
+            .average,
+        18.5, TOLERANCE);
   });
 });
 </script>
