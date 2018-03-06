@@ -192,14 +192,14 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
       navigationStart, fmpMarkerEvent, url) {
-    const navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
-        navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
+    const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
+        navigationStart.start, fmpMarkerEvent.start);
 
-    const mainThreadCpuTime = getMainThreadCpuTime(
-        rendererHelper, navStartToFMPCpuRange);
+    const mainThreadCpuTime =
+        rendererHelper.mainThread.getCpuTimeForRange(navStartToFMPRange);
 
     const breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
-        rendererHelper.mainThread, navStartToFMPCpuRange);
+        rendererHelper.mainThread, navStartToFMPRange);
     samples.push({
       value: mainThreadCpuTime,
       breakdownTree,
@@ -215,19 +215,6 @@ tr.exportTo('tr.metrics.sh', function() {
         }]),
       }
     });
-  }
-
-  function getMainThreadCpuTime(rendererHelper, rangeOfInterest) {
-    let mainThreadCpuTime = 0;
-    for (const slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
-      if (!slice.cpuDuration) continue;
-      const sliceRange = tr.b.math.Range.fromExplicitRange(slice.cpuStart,
-          slice.cpuStart + slice.cpuDuration);
-      const intersection = rangeOfInterest.findIntersection(sliceRange);
-      mainThreadCpuTime += intersection.duration;
-    }
-
-    return mainThreadCpuTime;
   }
 
   /**

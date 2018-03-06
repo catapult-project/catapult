@@ -205,13 +205,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(800, hist.running.mean);
   });
 
-  //             [--------------------------]
-  //             |  [-------------]         |
-  //             |  |             |         |
-  //             v  v             v         v
-  // CPU Time: 1000 1150  Start 1175      1200     FMP
-  //                        |                       |
-  //                       1160                    1480
+  //             [-------CPU: 300-----------]
+  //             |  [---CPU: 100---]        |
+  //             |  |              |        |
+  //             v  v              v        v
+  // Ts:        100 200   Start   300      500     600
+  //                |                               |
+  //              Start                            FMP
   test('cpuTimeToFirstMeaningfulPaint_withEmbeddedSlices', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
@@ -244,9 +244,9 @@ tr.b.unittest.testSuite(function() {
         cat: 'toplevel',
         title: 'ThreadControllerImpl::DoWork',
         start: 100,
-        duration: 300,
+        duration: 400,
         cpuStart: 1000,
-        cpuDuration: 200,
+        cpuDuration: 300,
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -254,26 +254,26 @@ tr.b.unittest.testSuite(function() {
         start: 200,
         duration: 100,
         cpuStart: 1150,
-        cpuDuration: 25,
+        cpuDuration: 100,
       }));
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     const hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
-    assert.deepEqual(hist.sampleValues, [40]);
-    const histBin = hist.getBinForValue(40);
+    assert.deepEqual(hist.sampleValues, [225]);
+    const histBin = hist.getBinForValue(225);
+    assert.closeTo(histBin.diagnosticMaps[0]
+        .get('breakdown').get('other'), 400 / 3, 0.1);
     assert.strictEqual(histBin.diagnosticMaps[0]
-        .get('breakdown').get('other'), 35);
-    assert.strictEqual(histBin.diagnosticMaps[0]
-        .get('breakdown').get('resource_loading'), 15);
+        .get('breakdown').get('resource_loading'), 100);
   });
 
   //             [-------------]        [------------------]
   //             |             |        |                  |
   //             v             v        v                  v
-  // CPU Time: 1060   Start  1240      1250        FMP    1350
-  //                   |                            |
-  //                  1160                         1280
+  // Ts:        100   Start   300      500        FMP     700
+  //                   |                           |
+  //                  200                         600
   test('cpuTimeToFirstMeaningfulPaint_withIntersectingBoundary', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
@@ -323,7 +323,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.loadingMetric(histograms, model);
     const hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.strictEqual(1, hist.running.count);
-    assert.strictEqual(110, hist.running.mean);
+    assert.strictEqual(140, hist.running.mean);
   });
 
   // Render 1:
