@@ -7,7 +7,7 @@
       "file_info": {
         "mac_x86_64": {
           "cloud_storage_hash": "6de6324c279ea75c79c68cab4c2ddcc68da1b286",
-          "download_path": "../bin/darwin/x86_64/avrdude",
+          "download_path": "../bin/mac/x86_64/avrdude",
           "local_paths": [
             "../bin/override/avrdude"
           ]
@@ -54,7 +54,7 @@
       "file_info": {
         "mac_x86_64": {
           "cloud_storage_hash": "b0eeb16faf045881fa9057b45ab0aa0c1be4437e",
-          "download_path": "../bin/darwin/x86_64/battor_agent",
+          "download_path": "../bin/mac/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
