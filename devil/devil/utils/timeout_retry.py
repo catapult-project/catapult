@@ -109,7 +109,8 @@ def WaitFor(condition, wait_period=5, max_tries=None):
       # pylint: disable=no-member
       timeout_thread_group.GetRemainingTime(wait_period,
           suffix=' waiting for condition %r' % condition_name)
-    time.sleep(wait_period)
+    if wait_period:
+      time.sleep(wait_period)
   return None
 
 

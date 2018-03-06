@@ -47,10 +47,13 @@ class ReraiserThread(threading.Thread):
       func: callable to call on a new thread.
       args: list of positional arguments for callable, defaults to empty.
       kwargs: dictionary of keyword arguments for callable, defaults to empty.
-      name: thread name, defaults to Thread-N.
+      name: thread name, defaults to the function name.
     """
-    if not name and func.__name__ != '<lambda>':
-      name = func.__name__
+    if not name:
+      if hasattr(func, '__name__') and func.__name__ != '<lambda>':
+        name = func.__name__
+      else:
+        name = 'anonymous'
     super(ReraiserThread, self).__init__(name=name)
     if not args:
       args = []
