@@ -23,30 +23,16 @@ found in the LICENSE file.
       }
     </style>
 
-    <template is="dom-if" if="[[isShowing(changeIndex)]]">
-      <change-info change="[[change(changeIndex)]]"></change-info>
+    <change-info change="[[change(job, changeIndex)]]"></change-info>
 
-      <div class="columns">
+    <div class="columns">
+      <template is="dom-repeat" items="[[job.quests]]">
         <div class="column">
-          <h2>[[buildTitle]]</h2>
-          <execution-details attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="0"></execution-details>
+          <h2>[[item]]</h2>
+          <execution-details attempts="[[attempts(job, changeIndex)]]" attempt-index="{{attemptIndex}}" quest-index="[[index]]"></execution-details>
         </div>
-
-        <template is="dom-if" if="[[runTitle]]">
-          <div class="column">
-            <h2>[[runTitle]]</h2>
-            <execution-details attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="1"></execution-details>
-          </div>
-        </template>
-
-        <template is="dom-if" if="[[testTitle]]">
-          <div class="column">
-            <h2>[[testTitle]]</h2>
-            <execution-details attempts="[[attempts]]" attempt-index="{{attemptIndex}}" quest-index="2"></execution-details>
-          </div>
-        </template>
-      </div>
-    </template>
+      </template>
+    </div>
   </template>
 
   <script>
@@ -56,43 +42,26 @@ found in the LICENSE file.
 
       properties: {
         job: {
-          type: Object,
+          type: Object
         },
 
-        attempts: {
-          type: Object,
+        changeIndex: {
+          type: Number
         },
 
         attemptIndex: {
           type: Number,
-        },
-
-        changeIndex: {
-          type: Number,
-          observer: '_changeIndexChanged'
+          value: 0
         },
       },
 
-      change(changeIndex) {
-        return this.job.changes[changeIndex];
+      change(job, changeIndex) {
+        return job.changes[changeIndex];
       },
 
-      _changeIndexChanged() {
-        if (this.changeIndex === null) {
-          return;
-        }
-
-        // TODO: Do this with data binding instead.
-        this.buildTitle = this.job.quests[0];
-        this.runTitle = this.job.quests[1];
-        this.testTitle = this.job.quests[2];
-
-        this.attempts = this.job.attempts[this.changeIndex];
+      attempts(job, changeIndex) {
+        return job.attempts[changeIndex];
       },
-
-      isShowing(changeIndex) {
-        return changeIndex !== null;
-      }
     });
   </script>
 </dom-module>

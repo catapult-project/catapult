@@ -33,9 +33,14 @@ found in the LICENSE file.
       },
 
       visibleCommit_(change) {
+        if (!change) {
+          return {};
+        }
+
         if (change.patch) {
           return change.patch;
         }
+
         return change.commits[change.commits.length - 1];
       },
 
