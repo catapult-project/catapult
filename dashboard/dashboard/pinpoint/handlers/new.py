@@ -5,7 +5,7 @@
 import json
 import webapp2
 
-from google.appengine.api import users
+from google.appengine.api import oauth
 
 from dashboard.api import api_auth
 from dashboard.pinpoint.models import change
@@ -15,6 +15,10 @@ from dashboard.pinpoint.models import quest as quest_module
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
+
+_OAUTH_SCOPES = (
+    'https://www.googleapis.com/auth/userinfo.email',
+)
 
 
 class New(webapp2.RequestHandler):
@@ -39,7 +43,7 @@ class New(webapp2.RequestHandler):
     quests = _GenerateQuests(self.request.params)
     bug_id = _ValidateBugId(bug_id)
     changes = _ValidateChanges(self.request.params)
-    user = self.request.get('user')
+    user = _ValidateUser(self.request.params)
     tags = _ValidateTags(self.request.get('tags'))
 
     # Create job.
@@ -47,7 +51,7 @@ class New(webapp2.RequestHandler):
         arguments=self.request.params.mixed(),
         quests=quests,
         auto_explore=auto_explore,
-        user=user or users.get_current_user().email(),
+        user=user,
         bug_id=bug_id,
         tags=tags)
 
@@ -121,6 +125,10 @@ def _ValidateChanges(arguments):
     change_2['patch'] = arguments.get('patch')
 
   return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
+
+
+def _ValidateUser(arguments):
+  return arguments.get('user') or oauth.get_current_user(_OAUTH_SCOPES).email()
 
 
 def _GenerateQuests(arguments):
