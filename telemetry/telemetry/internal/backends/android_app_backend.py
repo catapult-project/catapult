@@ -68,7 +68,8 @@ class AndroidAppBackend(app_backend.AppBackend):
     if self._app_has_webviews:
       webview_startup_args = self.GetWebviewStartupArgs()
       command_line_name = (
-          android_browser_backend_settings.ANDROID_WEBVIEW.command_line_name)
+          android_browser_backend_settings.WebviewBackendSettings(
+              'android-webview')).command_line_name
       with flag_changer.CustomCommandLineFlags(
           self.device, command_line_name, webview_startup_args):
         self._LaunchAndWaitForApplication()

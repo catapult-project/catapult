@@ -26,8 +26,44 @@ from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
 
 
-ANDROID_BACKEND_SETTINGS = (
-    android_browser_backend_settings.ANDROID_BACKEND_SETTINGS)
+CHROME_PACKAGE_NAMES = {
+    'android-content-shell': [
+        'org.chromium.content_shell_apk',
+        android_browser_backend_settings.ContentShellBackendSettings
+    ],
+    'android-webview': [
+        'org.chromium.webview_shell',
+        android_browser_backend_settings.WebviewBackendSettings
+    ],
+    'android-webview-instrumentation': [
+        'org.chromium.android_webview.shell',
+        android_browser_backend_settings.WebviewShellBackendSettings
+    ],
+    'android-chromium': [
+        'org.chromium.chrome',
+        android_browser_backend_settings.ChromePublicBackendSettings
+    ],
+    'android-chrome': [
+        'com.google.android.apps.chrome',
+        android_browser_backend_settings.ChromeBackendSettings
+    ],
+    'android-chrome-beta': [
+        'com.chrome.beta',
+        android_browser_backend_settings.ChromeBaseBackendSettings
+    ],
+    'android-chrome-dev': [
+        'com.chrome.dev',
+        android_browser_backend_settings.ChromeBaseBackendSettings
+    ],
+    'android-chrome-canary': [
+        'com.chrome.canary',
+        android_browser_backend_settings.ChromeBaseBackendSettings
+    ],
+    'android-system-chrome': [
+        'com.android.chrome',
+        android_browser_backend_settings.ChromeBaseBackendSettings
+    ],
+}
 
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
@@ -193,9 +229,16 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+
+    # TODO(crbug.com/753948): spki-list is not yet supported on WebView,
+    # make this True when support is implemented.
+    supports_spki_list = not isinstance(
+        self._backend_settings,
+        android_browser_backend_settings.WebviewBackendSettings)
     startup_args.extend(chrome_startup_args.GetReplayArgs(
         self._platform_backend.network_controller_backend,
-        supports_spki_list=self._backend_settings.supports_spki_list))
+        supports_spki_list=supports_spki_list))
+
     startup_args.append('--enable-remote-debugging')
     startup_args.append('--disable-fre')
     startup_args.append('--disable-external-intent-requests')
@@ -251,8 +294,7 @@ def _CanPossiblyHandlePath(apk_path):
 
 def FindAllBrowserTypes(options):
   del options  # unused
-  browser_types = [b.browser_type for b in ANDROID_BACKEND_SETTINGS]
-  return browser_types + ['exact', 'reference']
+  return CHROME_PACKAGE_NAMES.keys() + ['exact', 'reference']
 
 
 def _FindAllPossibleBrowsers(finder_options, android_platform):
@@ -271,7 +313,9 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
     package_name = apk_helper.GetPackageName(finder_options.browser_executable)
     try:
       backend_settings = next(
-          b for b in ANDROID_BACKEND_SETTINGS if b.package == package_name)
+          backend_settings for target_package, backend_settings
+          in CHROME_PACKAGE_NAMES.itervalues()
+          if package_name == target_package)
     except StopIteration:
       raise exceptions.UnknownPackageError(
           '%s specified by --browser-executable has an unknown package: %s' %
@@ -281,7 +325,7 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
         'exact',
         finder_options,
         android_platform,
-        backend_settings,
+        backend_settings(package_name),
         finder_options.browser_executable))
 
   # Add the reference build if found.
@@ -297,18 +341,20 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
 
   if reference_build and os.path.exists(reference_build):
     # TODO(aiolos): how do we stably map the android chrome_stable apk to the
-    # correct backend settings?
+    # correct package name?
+    package, backend_settings = CHROME_PACKAGE_NAMES['android-chrome']
     possible_browsers.append(PossibleAndroidBrowser(
         'reference',
         finder_options,
         android_platform,
-        android_browser_backend_settings.ANDROID_CHROME,
+        backend_settings(package),
         reference_build))
 
-  # Add any other known available browsers.
-  for settings in ANDROID_BACKEND_SETTINGS:
+  # Add any known local versions.
+  for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
+    package, backend_settings = package_info
     p_browser = PossibleAndroidBrowser(
-        settings.browser_type, finder_options, android_platform, settings)
+        name, finder_options, android_platform, backend_settings(package))
     if p_browser.IsAvailable():
       possible_browsers.append(p_browser)
   return possible_browsers
