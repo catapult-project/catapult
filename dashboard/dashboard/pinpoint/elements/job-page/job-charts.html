@@ -95,7 +95,9 @@ found in the LICENSE file.
           for (const attempt of attempts) {
             const lastExecution =
               attempt.executions[attempt.executions.length - 1];
-            exceptions.push(lastExecution.exception);
+            if (lastExecution) {
+              exceptions.push(lastExecution.exception);
+            }
           }
           const sum = exceptions.filter(exception => !exception).length;
           valuesByChange.push([sum / exceptions.length]);
