@@ -118,7 +118,7 @@ tr.b.unittest.testSuite(function() {
             "out": {
               "pid": 1,
               "tid": 3,
-              "state": 1
+              "state": 3
             },
             "in": {
               "pid": 1,
@@ -154,6 +154,30 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(cpu.slices[1].title, 'proc1:thread2');
     assert.closeTo(cpu.slices[1].duration, 0.001, 1e-5);
+
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+
+    const thread2Slices =
+      m.getOrCreateProcess(1).getOrCreateThread(2).timeSlices;
+    assert.strictEqual(thread2Slices[0].schedulingState,
+        SCHEDULING_STATE.RUNNABLE);
+    assert.closeTo(thread2Slices[0].start, 0.001, 1e-5);
+    assert.closeTo(thread2Slices[0].duration, 0.001, 1e-5);
+    assert.strictEqual(thread2Slices[1].schedulingState,
+        SCHEDULING_STATE.RUNNING);
+    assert.closeTo(thread2Slices[1].start, 0.002, 1e-5);
+    assert.closeTo(thread2Slices[1].duration, 0.001, 1e-5);
+
+    const thread3Slices =
+      m.getOrCreateProcess(1).getOrCreateThread(3).timeSlices;
+    assert.strictEqual(thread3Slices[0].schedulingState,
+        SCHEDULING_STATE.RUNNING);
+    assert.closeTo(thread3Slices[0].start, 0.001, 1e-5);
+    assert.closeTo(thread3Slices[0].duration, 0.001, 1e-5);
+    assert.strictEqual(thread3Slices[1].schedulingState,
+        SCHEDULING_STATE.SLEEPING);
+    assert.closeTo(thread3Slices[1].start, 0.002, 1e-5);
+    assert.closeTo(thread3Slices[1].duration, 0.001, 1e-5);
   });
 });
 </script>

@@ -16,6 +16,15 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
   const IMPORT_PRIORITY = 0;
   const IDLE_THREAD_THRESHOLD = 6444000000;
 
+  // Zircon thread state constants from:
+  // https://fuchsia.googlesource.com/zircon/+/master/docs/syscalls/object_get_info.md
+  const ZX_THREAD_STATE_NEW = 0;
+  const ZX_THREAD_STATE_RUNNING = 1;
+  const ZX_THREAD_STATE_SUSPENDED = 2;
+  const ZX_THREAD_STATE_BLOCKED = 3;
+  const ZX_THREAD_STATE_DYING = 4;
+  const ZX_THREAD_STATE_DEAD = 5;
+
   class FuchsiaImporter extends tr.importer.Importer {
     constructor(model, eventData) {
       super(model, eventData);
@@ -25,6 +34,7 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
       this.parsers_ = [];
       this.threadInfo_ = new Map();
       this.processNames_ = new Map();
+      this.threadStates_ = new Map();
     }
 
     static canImport(eventData) {
@@ -54,6 +64,37 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
     finalizeImport() {
     }
 
+    isIdleThread(tid) {
+      // There's not a good way to detect the kernel's idle threads right now
+      // so we're stuck with assuming that large numbered threads are idle ones.
+      return tid > IDLE_THREAD_THRESHOLD;
+    }
+
+    recordThreadState_(tid, timestamp, state) {
+      if (this.isIdleThread(tid)) {
+        return;
+      }
+      const states =
+        this.threadStates_.has(tid) ? this.threadStates_.get(tid) : [];
+      states.push({'ts': timestamp, state});
+      this.threadStates_.set(tid, states);
+    }
+
+    // Context switch events take the form:
+    // {
+    //     "ph": "k",
+    //     "ts": 151981130.88743783,
+    //     "cpu": 1,
+    //     "out": {
+    //       "pid": 25977,
+    //       "tid": 28909,
+    //       "state": 3
+    //     },
+    //     "in": {
+    //       "pid": 0,
+    //       "tid": 6444931392
+    //     }
+    //   },
     processContextSwitchEvent_(event) {
       let tid = event.in.tid;
       let threadName = tid.toString();
@@ -70,15 +111,41 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
 
       const name = procName + threadName;
 
-      // There's not a good way to detect the kernel's idle threads right now
-      // so we're stuck with assuming that large numbered threads are idle ones.
-      if (tid > IDLE_THREAD_THRESHOLD) {
+      if (this.isIdleThread(tid)) {
         tid = undefined; // Fake kernel idle task
       }
 
       const cpu = this.model_.kernel.getOrCreateCpu(event.cpu);
-      cpu.switchActiveThread(tr.b.Unit.timestampFromUs(event.ts),
-                             {}, tid, name, tid);
+      const timestamp = tr.b.Unit.timestampFromUs(event.ts);
+      cpu.switchActiveThread(timestamp, {}, tid, name, tid);
+
+      const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+      this.recordThreadState_(tid, timestamp, SCHEDULING_STATE.RUNNING);
+
+      let outState = SCHEDULING_STATE.UNKNOWN;
+
+      switch (event.out.state) {
+        case ZX_THREAD_STATE_NEW:
+          outState = SCHEDULING_STATE.RUNNABLE;
+          break;
+
+        case ZX_THREAD_STATE_RUNNING:
+          outState = SCHEDULING_STATE.RUNNABLE;
+          break;
+
+        case ZX_THREAD_STATE_BLOCKED:
+          outState = SCHEDULING_STATE.SLEEPING;
+          break;
+
+        case ZX_THREAD_STATE_SUSPENDED:
+          outState = SCHEDULING_STATE.STOPPED;
+          break;
+
+        case ZX_THREAD_STATE_DEAD:
+          outState = SCHEDULING_STATE.TASK_DEAD;
+          break;
+      }
+      this.recordThreadState_(event.out.tid, timestamp, outState);
     }
 
     processProcessInfoEvent_(event) {
@@ -118,6 +185,25 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
       }
     }
 
+    postProcessStates_() {
+      for (const [tid, states] of this.threadStates_) {
+        if (!this.threadInfo_.has(tid)) {
+          continue;
+        }
+        const pid = this.threadInfo_.get(tid).pid;
+        const thread = this.model_.getOrCreateProcess(
+            pid).getOrCreateThread(tid);
+        const slices = [];
+        for (let i = 0; i < states.length - 1; i++) {
+          slices.push(new tr.model.ThreadTimeSlice(
+            thread, states[i].state, '',
+            states[i].ts, {}, states[i + 1].ts - states[i].ts));
+        }
+
+        thread.timeSlices = slices;
+      }
+    }
+
     /**
      * Imports the data in this.events_ into model_.
      */
@@ -125,6 +211,7 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
       for (const event of this.events_) {
         this.processEvent_(event);
       }
+      this.postProcessStates_();
     }
   }
 
