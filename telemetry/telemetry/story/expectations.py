@@ -319,9 +319,11 @@ ANDROID_NEXUS6 = _TestConditionLogicalOrConditions(
     [_ANDROID_NEXUS6, _ANDROID_NEXUS6AOSP], 'Nexus 6')
 ANDROID_NEXUS6P = _TestConditionByAndroidModel('Nexus 6P')
 ANDROID_NEXUS7 = _TestConditionByAndroidModel('Nexus 7')
-ANDROID_ONE = _TestConditionByAndroidModel(
-    'W6210', 'Cherry Mobile Android One')
+ANDROID_GO = _TestConditionByAndroidModel('gobo', 'Android Go')
+ANDROID_ONE = _TestConditionByAndroidModel('W6210', 'Android One')
 ANDROID_SVELTE = _TestConditionAndroidSvelte()
+ANDROID_LOW_END = _TestConditionLogicalOrConditions(
+    [ANDROID_GO, ANDROID_SVELTE, ANDROID_ONE], 'Android Low End')
 ANDROID_WEBVIEW = _TestConditionAndroidWebview()
 ANDROID_NOT_WEBVIEW = _TestConditionAndroidNotWebview()
 # MAC_10_11 Includes:
@@ -337,7 +339,11 @@ ANDROID_NEXUS5X_WEBVIEW = _TestConditionLogicalAndConditions(
 
 EXPECTATION_NAME_MAP = {
     'All': ALL,
+    'Android_Go': ANDROID_GO,
+    'Android_One': ANDROID_ONE,
+    'Cherry_Mobile_Android_One': ANDROID_ONE,  # TODO(crbug.com/819577): Remove.
     'Android_Svelte': ANDROID_SVELTE,
+    'Android_Low_End': ANDROID_LOW_END,
     'Android_Webview': ANDROID_WEBVIEW,
     'Android_but_not_webview': ANDROID_NOT_WEBVIEW,
     'Mac': ALL_MAC,
@@ -352,7 +358,6 @@ EXPECTATION_NAME_MAP = {
     'Nexus_6': ANDROID_NEXUS6,
     'Nexus_6P': ANDROID_NEXUS6P,
     'Nexus_7': ANDROID_NEXUS7,
-    'Cherry_Mobile_Android_One': ANDROID_ONE,
     'Mac_10.11': MAC_10_11,
     'Mac_10.12': MAC_10_12,
     'Nexus6_Webview': ANDROID_NEXUS6_WEBVIEW,
