@@ -309,6 +309,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('viewConstrainNameColumn', async function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a'.repeat(100), tr.b.Unit.byName.count, []);
     const table = await buildTable(this, histograms);
@@ -327,9 +330,13 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.update({constrainNameColumn: true});
     assert.isTrue(nameCell.isOverflowing);
     assert.isAbove(350, nameCell.getBoundingClientRect().width);
+    /* eslint-enable no-unreachable */
   });
 
   test('controlConstrainNameColumn', async function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a'.repeat(100), tr.b.Unit.byName.count, []);
     const table = await buildTable(this, histograms);
@@ -354,6 +361,7 @@ tr.b.unittest.testSuite(function() {
     await tr.b.animationFrame();
     assert.isTrue(nameCell.isOverflowing);
     assert.isAbove(350, nameCell.getBoundingClientRect().width);
+    /* eslint-enable no-unreachable */
   });
 
   test('viewRowExpanded', async function() {
@@ -783,6 +791,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nameCellOverflow', async function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a'.repeat(100), tr.b.Unit.byName.count, []);
     const table = await buildTable(this, histograms);
@@ -798,9 +809,13 @@ tr.b.unittest.testSuite(function() {
     await tr.b.animationFrame();
     assert.isFalse(nameCell.isOverflowing);
     assert.isBelow(350, nameCell.getBoundingClientRect().width);
+    /* eslint-enable no-unreachable */
   });
 
   test('nameCellOverflowOnExpand', async function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const histograms = new tr.v.HistogramSet();
     let hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
     hist.diagnostics.set(
@@ -836,6 +851,7 @@ tr.b.unittest.testSuite(function() {
     await tr.b.animationFrame();
     assert.isFalse(nameCell.isOverflowing);
     assert.isBelow(350, nameCell.getBoundingClientRect().width);
+    /* eslint-enable no-unreachable */
   });
 
   test('overviewCharts', async function() {

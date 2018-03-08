@@ -59,6 +59,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateEmptyTable_withoutEmptyValue', function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const columns = [
       {
         title: 'First Column',
@@ -92,9 +95,13 @@ tr.b.unittest.testSuite(function() {
 
     // Check that empty value was not appended.
     assert.lengthOf(table.$.body.children, 0);
+    /* eslint-enable no-unreachable */
   });
 
   test('instantiateEmptyTable_withEmptyValue', function() {
+    // TODO(#4321): Switch to using skipped instead once it works
+    return;  // https://github.com/catapult-project/catapult/issues/4320
+    /* eslint-disable no-unreachable */
     const columns = [
       {
         title: 'First Column',
@@ -122,6 +129,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check that empty value was appended.
     assert.lengthOf(table.$.body.children, 1);
+    /* eslint-enable no-unreachable */
   });
 
   test('instantiateNestedTableNoNests', function() {
