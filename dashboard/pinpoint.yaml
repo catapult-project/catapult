@@ -19,6 +19,11 @@ handlers:
   secure: always
   auth_fail_action: unauthorized
 
+- url: /api/generate-results2/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /api/run/.*
   script: dashboard.pinpoint.dispatcher.APP
   login: admin
@@ -51,10 +56,6 @@ handlers:
   static_dir: vulcanized_histograms_viewer/
   secure: always
   application_readable: true
-
-- url: /results2/.*
-  script: dashboard.pinpoint.dispatcher.APP
-  secure: always
 
 - url: /flot/(.*\.js)$
   static_files: flot/\1

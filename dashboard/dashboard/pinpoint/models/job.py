@@ -14,6 +14,7 @@ from google.appengine.runtime import apiproxy_errors
 
 from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
+from dashboard.pinpoint.models import results2
 from dashboard.services import issue_tracker_service
 
 
@@ -115,6 +116,11 @@ class Job(ndb.Model):
     self._PostBugComment(comment, send_email=False)
 
   def _Complete(self):
+    try:
+      results2.ScheduleResults2Generation(self)
+    except taskqueue.Error:
+      pass
+
     # Format bug comment.
     differences = tuple(self.state.Differences())
 

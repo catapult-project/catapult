@@ -12,6 +12,7 @@ _CATAPULT_PATH = os.path.abspath(
 THIRD_PARTY_LIBRARIES = [
     'apiclient',
     'beautifulsoup4',
+    'cloudstorage',
     'graphy',
     'html5lib-python',
     'httplib2',
