@@ -79,13 +79,6 @@ found in the LICENSE file.
 
       submit() {
         this.$.job_form.submit();
-        // Add a delay for the exit animation.
-        this.async(this.resetForm, 500);
-      },
-
-      resetForm() {
-        this.$.job_form.reset();
-        this.error = null;
       },
 
       handleError(event) {

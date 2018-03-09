@@ -22,10 +22,8 @@ class New(webapp2.RequestHandler):
     try:
       self._CreateJob()
     except (api_auth.ApiAuthException, KeyError, TypeError, ValueError) as e:
-      self._WriteErrorMessage(e.message)
-
-  def _WriteErrorMessage(self, message):
-    self.response.out.write(json.dumps({'error': message}))
+      self.response.set_status(400)
+      self.response.out.write(json.dumps({'error': e.message}))
 
   @api_auth.Authorize
   def _CreateJob(self):

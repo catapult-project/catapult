@@ -66,7 +66,7 @@ class NewAuthTest(_NewTest):
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))
   def testPost_FailsOauth(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=400)
     result = json.loads(response.body)
     self.assertEqual({'error': 'User authentication error'}, result)
 
@@ -139,7 +139,7 @@ class NewTest(_NewTest):
   def testPost_MissingTarget(self):
     request = dict(_BASE_REQUEST)
     del request['target']
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.testapp.post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
@@ -147,20 +147,20 @@ class NewTest(_NewTest):
   def testPost_InvalidTestConfig(self):
     request = dict(_BASE_REQUEST)
     del request['configuration']
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.testapp.post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(
       gitiles_service, 'CommitInfo',
       mock.MagicMock(side_effect=gitiles_service.NotFoundError('message')))
   def testPost_InvalidChange(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=400)
     self.assertEqual({'error': 'message'}, json.loads(response.body))
 
   def testPost_InvalidBug(self):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = 'not_an_int'
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.testapp.post('/api/new', request, status=400)
     self.assertEqual({'error': new._ERROR_BUG_ID},
                      json.loads(response.body))
 
@@ -192,7 +192,7 @@ class NewTest(_NewTest):
   def testPost_InvalidTags(self):
     request = dict(_BASE_REQUEST)
     request['tags'] = json.dumps(['abc'])
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.testapp.post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
@@ -200,7 +200,7 @@ class NewTest(_NewTest):
   def testPost_InvalidTagType(self):
     request = dict(_BASE_REQUEST)
     request['tags'] = json.dumps({'abc': 123})
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.testapp.post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
