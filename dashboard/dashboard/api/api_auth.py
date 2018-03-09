@@ -85,3 +85,15 @@ def Authorize(function_to_wrap):
 
     return function_to_wrap(*args, **kwargs)
   return Wrapper
+
+
+def Email():
+  """Retrieves the email address of the logged-in user.
+
+  Returns:
+    The email address, as a string or None if there is no user logged in.
+  """
+  try:
+    return oauth.get_current_user(OAUTH_SCOPES).email()
+  except oauth.InvalidOAuthParametersError:
+    return None

@@ -5,8 +5,6 @@
 import json
 import webapp2
 
-from google.appengine.api import oauth
-
 from dashboard.api import api_auth
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
@@ -15,10 +13,6 @@ from dashboard.pinpoint.models import quest as quest_module
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
-
-_OAUTH_SCOPES = (
-    'https://www.googleapis.com/auth/userinfo.email',
-)
 
 
 class New(webapp2.RequestHandler):
@@ -128,7 +122,7 @@ def _ValidateChanges(arguments):
 
 
 def _ValidateUser(arguments):
-  return arguments.get('user') or oauth.get_current_user(_OAUTH_SCOPES).email()
+  return arguments.get('user') or api_auth.Email()
 
 
 def _GenerateQuests(arguments):

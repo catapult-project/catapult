@@ -5,6 +5,7 @@
 import mock
 import unittest
 
+from google.appengine.api import oauth
 from google.appengine.api import users
 
 from dashboard.api import api_auth
@@ -26,16 +27,20 @@ class ApiAuthTest(testing_common.TestCase):
   def setUp(self):
     super(ApiAuthTest, self).setUp()
 
-    patcher = mock.patch.object(api_auth, 'oauth')
+    patcher = mock.patch.object(api_auth.oauth, 'get_current_user')
     self.addCleanup(patcher.stop)
-    self.mock_oauth = patcher.start()
+    self.mock_get_current_user = patcher.start()
+
+    patcher = mock.patch.object(api_auth.oauth, 'get_client_id')
+    self.addCleanup(patcher.stop)
+    self.mock_get_client_id = patcher.start()
 
     patcher = mock.patch.object(datastore_hooks, 'SetPrivilegedRequest')
     self.addCleanup(patcher.stop)
     self.mock_set_privileged_request = patcher.start()
 
   def testPost_NoUser(self):
-    self.mock_oauth.get_current_user.return_value = None
+    self.mock_get_current_user.return_value = None
 
     @api_auth.Authorize
     def FuncThatNeedsAuth():
@@ -47,8 +52,8 @@ class ApiAuthTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
   def testPost_OAuthUser(self):
-    self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
-    self.mock_oauth.get_client_id.return_value = (
+    self.mock_get_current_user.return_value = _AUTHORIZED_USER
+    self.mock_get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
     @api_auth.Authorize
@@ -61,7 +66,7 @@ class ApiAuthTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
   def testPost_OAuthUser_ServiceAccount(self):
-    self.mock_oauth.get_current_user.return_value = _SERVICE_ACCOUNT_USER
+    self.mock_get_current_user.return_value = _SERVICE_ACCOUNT_USER
 
     @api_auth.Authorize
     def FuncThatNeedsAuth():
@@ -73,7 +78,7 @@ class ApiAuthTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
   def testPost_OAuthUser_ServiceAccount_NotInChromeperfAccess(self):
-    self.mock_oauth.get_current_user.return_value = _SERVICE_ACCOUNT_USER
+    self.mock_get_current_user.return_value = _SERVICE_ACCOUNT_USER
 
     @api_auth.Authorize
     def FuncThatNeedsAuth():
@@ -84,7 +89,7 @@ class ApiAuthTest(testing_common.TestCase):
     self.assertFalse(self.mock_set_privileged_request.called)
 
   def testPost_AuthorizedUser_NotInWhitelist(self):
-    self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
+    self.mock_get_current_user.return_value = _AUTHORIZED_USER
 
     @api_auth.Authorize
     def FuncThatNeedsAuth():
@@ -96,8 +101,8 @@ class ApiAuthTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
   def testPost_OAuthUser_User_NotInChromeperfAccess(self):
-    self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
-    self.mock_oauth.get_client_id.return_value = (
+    self.mock_get_current_user.return_value = _AUTHORIZED_USER
+    self.mock_get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
     @api_auth.Authorize
@@ -110,8 +115,8 @@ class ApiAuthTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
   def testPost_OAuthUser_User_InChromeperfAccess(self):
-    self.mock_oauth.get_current_user.return_value = _AUTHORIZED_USER
-    self.mock_oauth.get_client_id.return_value = (
+    self.mock_get_current_user.return_value = _AUTHORIZED_USER
+    self.mock_get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
     @api_auth.Authorize
@@ -123,7 +128,7 @@ class ApiAuthTest(testing_common.TestCase):
     self.assertTrue(self.mock_set_privileged_request.called)
 
   def testPost_OauthUser_Unauthorized(self):
-    self.mock_oauth.get_current_user.return_value = _UNAUTHORIZED_USER
+    self.mock_get_current_user.return_value = _UNAUTHORIZED_USER
 
     @api_auth.Authorize
     def FuncThatNeedsAuth():
@@ -132,6 +137,14 @@ class ApiAuthTest(testing_common.TestCase):
     with self.assertRaises(api_auth.OAuthError):
       FuncThatNeedsAuth()
     self.assertFalse(self.mock_set_privileged_request.called)
+
+  def testEmail(self):
+    self.mock_get_current_user.return_value = _UNAUTHORIZED_USER
+    self.assertEqual(api_auth.Email(), 'test@chromium.org')
+
+  def testEmail_NoUser(self):
+    self.mock_get_current_user.side_effect = oauth.InvalidOAuthParametersError
+    self.assertIsNone(api_auth.Email())
 
 
 if __name__ == '__main__':
