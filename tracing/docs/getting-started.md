@@ -16,6 +16,6 @@ Contributing New Stuff
 ======================
  * Join our Google Groups: [trace-viewer](https://groups.google.com/forum/#!forum/trace-viewer), [trace-viewer-bugs](https://groups.google.com/forum/#!forum/trace-viewer-bugs)
  * Learn how to start: [Contributing](https://github.com/catapult-project/catapult/blob/master/CONTRIBUTING.md)
- * Read the [Trace Viewer style guide](https://docs.google.com/document/d/1MMOfywou2Oaho4jOttUk-ZSJcHVd5G5BTsD48rPrBtQ/edit)
+ * Read the [Trace Viewer style guide](https://github.com/catapult-project/catapult/blob/master/docs/style-guide.md)
  * Pick a feature from the [tracing wish list](https://docs.google.com/a/chromium.org/document/d/1T1UJHIgImSEPSugCt2TFrkNsraBFITPHpYFGDJStePc/preview).
  * Familiarize yourself with the [[Trace-Viewer's-Internals]] and our [[Trace-Viewer-Components]].
