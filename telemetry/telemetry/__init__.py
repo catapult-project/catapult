@@ -4,7 +4,6 @@
 """A library for cross-platform browser tests."""
 import os
 import sys
-import glob
 
 try:
   # This enables much better stack upon native code crashes.
@@ -35,17 +34,6 @@ def _InsertPath(path):
 def _AddDirToPythonPath(*path_parts):
   path = _JoinPath(*path_parts)
   _InsertPath(path)
-
-
-# Matches only 0 or 1 glob results
-def _AddOptionalSingleGlobToPythonPath(*match_path_parts):
-  absolute_match_path = _JoinPath(*match_path_parts)
-  paths = glob.glob(absolute_match_path)
-  if len(paths) > 1:
-    raise ImportError('More than one result was found for glob {}'
-                      .format(absolute_match_path))
-  for path in paths:
-    _InsertPath(path)
 
 
 # Add Catapult dependencies to our path.
@@ -79,10 +67,6 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mox3')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
-# Chromium's vpython environment already provides these modules as wheels.
-if not os.getenv('VIRTUAL_ENV'):
-  _AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'cv2', 'lib', 'cv2_*')
-  _AddOptionalSingleGlobToPythonPath(_TELEMETRY_3P, 'numpy', 'lib', 'numpy_*')
 
 # Install Telemtry global hooks.
 global_hooks.InstallHooks()

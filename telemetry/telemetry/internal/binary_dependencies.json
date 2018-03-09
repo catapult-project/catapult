@@ -59,30 +59,6 @@
         }
       }
     },
-    "cv2": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "linux_x86_64": {
-          "cloud_storage_hash": "85be3046d2fef651206d7daadbd1b34af2a005f5",
-          "download_path": "../../third_party/cv2/lib/cv2.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "2.4.13.2"
-        },
-        "mac_x86_64": {
-          "cloud_storage_hash": "02c027767869d9910a71df103cb4d021dc1f57bd",
-          "download_path": "../../third_party/cv2/lib/cv2.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "2.4.13.2"
-        },
-        "win_AMD64": {
-          "cloud_storage_hash": "d94d3574832f062cd8431c81955f5a3034bf1c4b",
-          "download_path": "../../third_party/cv2/lib/cv2.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "2.4.12.3"
-        }
-      }
-    },
     "determine_if_keychain_entry_is_decryptable": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
@@ -256,30 +232,6 @@
         "mac_x86_64": {
           "cloud_storage_hash": "76c5983fc9e9316a9d4251ba3e68b955c4fc9bf3",
           "download_path": "bin/mac/x86_64/minidump_stackwalk"
-        }
-      }
-    },
-    "numpy": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "linux_x86_64": {
-          "cloud_storage_hash": "58b6664311a625727f246e3783571dad940bd934",
-          "download_path": "../../third_party/numpy/lib/numpy.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "1.11.3"
-        },
-        "mac_x86_64": {
-          "cloud_storage_hash": "6d7e32ab79a73c91b4c3c0a708a3790818be6e78",
-          "download_path": "../../third_party/numpy/lib/numpy.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "1.11.3"
-        },
-        "win_AMD64": {
-          "cloud_storage_hash": "55eac39ca132ee3128e285f0cf08bb397ec12079",
-          "download_path": "../../third_party/numpy/lib/numpy.zip",
-          "path_within_archive": ".",
-          "version_in_cs": "1.11.3"
         }
       }
     },
