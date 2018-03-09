@@ -7,6 +7,8 @@ import os
 
 from telemetry.core import util
 
+from devil.android.sdk import version_codes
+
 import py_utils
 
 
@@ -53,14 +55,18 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
     # By default return the devtools_port defined in the constructor.
     return self.devtools_port
 
-  def FindLocalApk(self, device, chrome_root):
+  def GetApkName(self, device):
     # Subclasses may override this method to pick the correct apk based on
     # specific device features.
     del device  # Unused.
-    if self.apk_name is None:
+    return self.apk_name
+
+  def FindLocalApk(self, device, chrome_root):
+    apk_name = self.GetApkName(device)
+    if apk_name is None:
       return None
     else:
-      return _FindLocalApk(chrome_root, self.apk_name)
+      return _FindLocalApk(chrome_root, apk_name)
 
 
 class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
@@ -73,6 +79,16 @@ class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
     kwargs.setdefault('supports_tab_control', True)
     kwargs.setdefault('supports_spki_list', True)
     return super(GenericChromeBackendSettings, cls).__new__(cls, **kwargs)
+
+
+class ChromeBackendSettings(GenericChromeBackendSettings):
+  def GetApkName(self, device):
+    assert self.apk_name is None
+    # The APK to install depends on the OS version of the deivce.
+    if device.build_version_sdk >= version_codes.NOUGAT:
+      return 'Monochrome.apk'
+    else:
+      return 'Chrome.apk'
 
 
 class WebviewBasedBackendSettings(AndroidBrowserBackendSettings):
@@ -125,11 +141,9 @@ ANDROID_CHROMIUM = GenericChromeBackendSettings(
     package='org.chromium.chrome',
     apk_name='ChromePublic.apk')
 
-ANDROID_CHROME = GenericChromeBackendSettings(
+ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
-    package='com.google.android.apps.chrome',
-    # TODO(crbug.com/813047): Should override FindLocalApk instead.
-    apk_name='Chrome.apk')
+    package='com.google.android.apps.chrome')
 
 ANDROID_CHROME_BETA = GenericChromeBackendSettings(
     browser_type='android-chrome-beta',
