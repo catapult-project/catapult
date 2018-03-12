@@ -12,19 +12,43 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
+  const MESSAGE_LOOP_EVENT_NAME =
+      'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
+  const NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME =
+      'Navigation timeToNetworkStack';
   function androidStartupMetric(histograms, model) {
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    let browserStart;
     if (!chromeHelper) return;
     for (const helper of chromeHelper.browserHelpers) {
       for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
-        if (ev.title ===
-            'Startup.BrowserMessageLoopStartTimeFromMainEntry3') {
+        if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
           messageLoopStartHistogram.addSample(ev.duration,
               { events: new tr.v.d.RelatedEventSet([ev]) });
+          browserStart = ev.start;
+        }
+      }
+    }
+
+    // The request start histogram below is extracted from a navigation event,
+    // which is a subject to delays because of browser main thread being jammed.
+    // A better metric would be to take the time when the request headers hit
+    // the network (in particular, after turnaround through disk cache). This
+    // would require taking the HTTP_STREAM_JOB event from NetLog with the right
+    // URL. TODO(pasko): Find out how to pass the correct URL here and take
+    // events from the netlog.
+    const requestStartHistogram = histograms.createHistogram(
+        'request_start_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    for (const helper of chromeHelper.browserHelpers) {
+      for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
+        if (ev.title === NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME) {
+          requestStartHistogram.addSample(ev.end - browserStart,
+              {events: new tr.v.d.RelatedEventSet([ev])});
         }
       }
     }
