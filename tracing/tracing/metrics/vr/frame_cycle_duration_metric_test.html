@@ -30,7 +30,8 @@ tr.b.unittest.testSuite(function() {
         cpuEnd: currentTime + duration.cpu,
       };
       const slice = tr.c.TestUtils.newSliceEx(option);
-      slice.subSlices = createSubSlices(duration.sub, currentTime, sliceGroup);
+      slice.subSlices = createSubSlices(
+          duration.sub, currentTime + 0.1, sliceGroup);
       sliceGroup.pushSlice(slice);
       slices.push(slice);
       currentTime += Math.max(duration.wall, duration.cpu) + 1;
@@ -42,8 +43,8 @@ tr.b.unittest.testSuite(function() {
     const durations = [
       {
         title: 'VrShellGl::DrawFrame',
-        wall: 290,
-        cpu: 245,
+        wall: 390,
+        cpu: 340,
         sub: [
           {title: 'VrShellGl::AcquireFrame', wall: 2, cpu: 2},
           {title: 'VrShellGl::AcquireFrame', wall: 2.5, cpu: 1.5},
@@ -85,13 +86,13 @@ tr.b.unittest.testSuite(function() {
           {title: 'VrShellGl::UpdateController', wall: 0.5, cpu: 0.4},
           {
             title: 'UiRenderer::DrawUiView',
-            wall: 220,
-            cpu: 200,
+            wall: 250,
+            cpu: 230,
             sub: [
               {title: 'UiElementRenderer::DrawTexturedQuad', wall: 1, cpu: 0.5},
-              {title: 'UiElementRenderer::DrawTexturedQuad', wall: 2, cpu: 1},
               {title: 'UiElementRenderer::DrawGradientQuad', wall: 3, cpu: 2},
               {title: 'UiElementRenderer::DrawGradientQuad', wall: 4, cpu: 3},
+              {title: 'UiElementRenderer::DrawTexturedQuad', wall: 2, cpu: 1},
               {
                 title: 'UiElementRenderer::DrawGradientGridQuad',
                 wall: 5,
@@ -118,6 +119,27 @@ tr.b.unittest.testSuite(function() {
               {title: 'UiElementRenderer::DrawKeyboard', wall: 20, cpu: 19},
             ]
           },
+          {
+            title: 'UiRenderer::DrawUiView',
+            wall: 80,
+            cpu: 75,
+            sub: [
+              {title: 'UiElementRenderer::DrawTexturedQuad', wall: 2, cpu: 1},
+              {title: 'UiElementRenderer::DrawGradientQuad', wall: 3, cpu: 2},
+              {
+                title: 'UiElementRenderer::DrawGradientGridQuad',
+                wall: 4,
+                cpu: 3
+              },
+              {title: 'UiElementRenderer::DrawController', wall: 5, cpu: 4},
+              {title: 'UiElementRenderer::DrawLaser', wall: 6, cpu: 5},
+              {title: 'UiElementRenderer::DrawReticle', wall: 7, cpu: 6},
+              {title: 'UiElementRenderer::DrawShadow', wall: 8, cpu: 7},
+              {title: 'UiElementRenderer::DrawStars', wall: 9, cpu: 8},
+              {title: 'UiElementRenderer::DrawBackground', wall: 10, cpu: 9},
+              {title: 'UiElementRenderer::DrawKeyboard', wall: 11, cpu: 10},
+            ]
+          },
           {title: 'VrShellGl::DrawFrameSubmitNow', wall: 3, cpu: 0.5},
           {
             title: 'VrShellGl::DrawFrameSubmitNow',
@@ -134,7 +156,7 @@ tr.b.unittest.testSuite(function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       model.userModel.expectations.push(
           new tr.model.um.AnimationExpectation(model,
-              tr.model.um.INITIATOR_TYPE.VR, 0, 311));
+              tr.model.um.INITIATOR_TYPE.VR, 0, 411));
       const browserProcess = model.getOrCreateProcess(0);
       const browserMainThread = browserProcess.getOrCreateThread(0);
       browserMainThread.name = 'CrBrowserMain';
@@ -147,9 +169,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.vr.frameCycleDurationMetric(histograms, model);
 
     assert.closeTo(histograms.getHistogramNamed('draw_frame_wall').average,
-        155, TOLERANCE);
+        205, TOLERANCE);
     assert.closeTo(histograms.getHistogramNamed('draw_frame_cpu').average,
-        127.5, TOLERANCE);
+        175, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('acquire_frame_wall').average,
@@ -211,101 +233,101 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(
         histograms.getHistogramNamed('draw_ui_wall')
             .average,
-        220, TOLERANCE);
+        165, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_ui_cpu')
             .average,
-        200, TOLERANCE);
+        152.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_textured_quad_wall')
             .average,
-        1.5, TOLERANCE);
+        2.5, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_textured_quad_cpu')
             .average,
-        0.75, TOLERANCE);
+        1.25, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_gradient_quad_wall')
             .average,
-        3.5, TOLERANCE);
+        5, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_gradient_quad_cpu')
             .average,
-        2.5, TOLERANCE);
+        3.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_gradient_grid_quad_wall')
             .average,
-        5.5, TOLERANCE);
+        7.5, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_gradient_grid_quad_cpu')
             .average,
-        4.5, TOLERANCE);
+        6, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_controller_wall')
             .average,
-        7.5, TOLERANCE);
+        10, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_controller_cpu')
-            .average,
-        6.5, TOLERANCE);
-
-    assert.closeTo(
-        histograms.getHistogramNamed('draw_laser_wall')
-            .average,
-        9.5, TOLERANCE);
-    assert.closeTo(
-        histograms.getHistogramNamed('draw_laser_cpu')
             .average,
         8.5, TOLERANCE);
 
     assert.closeTo(
+        histograms.getHistogramNamed('draw_laser_wall')
+            .average,
+        12.5, TOLERANCE);
+    assert.closeTo(
+        histograms.getHistogramNamed('draw_laser_cpu')
+            .average,
+        11, TOLERANCE);
+
+    assert.closeTo(
         histograms.getHistogramNamed('draw_reticle_wall')
             .average,
-        11.5, TOLERANCE);
+        15, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_reticle_cpu')
             .average,
-        10.5, TOLERANCE);
+        13.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_shadow_wall')
             .average,
-        13.5, TOLERANCE);
+        17.5, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_shadow_cpu')
             .average,
-        12.5, TOLERANCE);
+        16.0, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_stars_wall')
             .average,
-        15.5, TOLERANCE);
+        20, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_stars_cpu')
             .average,
-        14.5, TOLERANCE);
+        18.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_background_wall')
             .average,
-        17.5, TOLERANCE);
+        22.5, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_background_cpu')
             .average,
-        16.5, TOLERANCE);
+        21, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('draw_keyboard_wall')
             .average,
-        19.5, TOLERANCE);
+        25, TOLERANCE);
     assert.closeTo(
         histograms.getHistogramNamed('draw_keyboard_cpu')
             .average,
-        18.5, TOLERANCE);
+        23.5, TOLERANCE);
   });
 });
 </script>

@@ -119,6 +119,10 @@ tr.exportTo('tr.metrics.vr', function() {
           description: 'Duration to draw the keyboard'
         }));
 
+    // Maps from the GUID of a UiRenderer::DrawUiView slice to each of its
+    // children slices.
+    const drawUiSubSlicesMap = new Map();
+
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
@@ -169,12 +173,48 @@ tr.exportTo('tr.metrics.vr', function() {
               continue;
             }
 
+            // There can be multiple UiElementRenderer::Draw... events per frame
+            // but this metric should calculate the across frame average of
+            // durations. Thus, collect UiElementRenderer::Draw... slices here
+            // in order to process them below.
+            if (event.parentSlice &&
+                event.parentSlice.title === 'UiRenderer::DrawUiView') {
+              const guid = event.parentSlice.guid;
+              if (!drawUiSubSlicesMap.has(guid)) {
+                drawUiSubSlicesMap.set(guid, []);
+              }
+              drawUiSubSlicesMap.get(guid).push(event);
+              continue;
+            }
+
             const {wall: wallHist, cpu: cpuHist} =
               histogramsByEventTitle.get(event.title);
             wallHist.addSample(event.duration);
             cpuHist.addSample(event.cpuDuration);
           }
         }
+      }
+    }
+
+    // Calculate the average of the per frame sums of UiElementRenderer::Draw...
+    // events.
+    for (const subSlices of drawUiSubSlicesMap.values()) {
+      const eventMap = new Map();
+      for (const event of subSlices) {
+        if (!eventMap.has(event.title)) {
+          eventMap.set(event.title, {
+            wall: 0,
+            cpu: 0
+          });
+        }
+        eventMap.get(event.title).wall += event.duration;
+        eventMap.get(event.title).cpu += event.cpuDuration;
+      }
+      for (const [title, values] of eventMap.entries()) {
+        const {wall: wallHist, cpu: cpuHist} =
+              histogramsByEventTitle.get(title);
+        wallHist.addSample(values.wall);
+        cpuHist.addSample(values.cpu);
       }
     }
   }
