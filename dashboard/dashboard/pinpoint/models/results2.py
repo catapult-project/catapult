@@ -45,8 +45,12 @@ class _GcsFileStream(object):
     self._gcs_file.close()
 
 
+def _GetCloudStorageName(job_id):
+  return '/results2-public/%s.html' % job_id
+
+
 def GetCachedResults2(job):
-  filename = '/chromeperf.appspot.com/results2/%s.html' % job.job_id
+  filename = _GetCloudStorageName(job.job_id)
   results = cloudstorage.listbucket(filename)
 
   for _ in results:
@@ -59,7 +63,7 @@ def ScheduleResults2Generation(job):
   try:
     # Don't want several tasks creating results2, so create task with specific
     # name to deduplicate.
-    task_name = 'results2-%s' % job.job_id
+    task_name = 'results2-public-%s' % job.job_id
     taskqueue.add(
         queue_name='job-queue', url='/api/generate-results2/' + job.job_id,
         name=task_name)
@@ -76,7 +80,7 @@ def GenerateResults2(job):
 
   CachedResults2(job_id=job.job_id).put()
 
-  filename = '/chromeperf.appspot.com/results2/%s.html' % job.job_id
+  filename = _GetCloudStorageName(job.job_id)
   gcs_file = _GcsFileStream(
       filename, 'w', content_type='text/html',
       retry_params=cloudstorage.RetryParams(backoff_factor=1.1))

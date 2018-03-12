@@ -63,7 +63,7 @@ class GetCachedResults2Test(unittest.TestCase):
     url = results2.GetCachedResults2(job)
 
     self.assertEqual(
-        'https://storage.cloud.google.com/chromeperf.appspot.com/results2/'
+        'https://storage.cloud.google.com/results2-public/'
         '%s.html' % job.job_id,
         url)
 
