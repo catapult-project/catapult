@@ -266,6 +266,9 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       story_runner.Run(
           test, story_set, options, results, metadata=EmptyMetadataForTest())
+      self.assertFalse(results.had_failures)
+      self.assertIn('slow', latencies_by_page_in_ms)
+      self.assertIn('fast', latencies_by_page_in_ms)
       # Slow page should be slower than fast page by at least 300 ms (roundtrip
       # time of 2G) - 2 ms (roundtrip time of Wifi)
       self.assertGreater(latencies_by_page_in_ms['slow'],
