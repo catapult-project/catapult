@@ -27,7 +27,7 @@ OAUTH_CLIENT_ID_WHITELIST = [
     'catapult-uploader@fuchsia-infra.iam.gserviceaccount.com',
     # This oauth client id is used to upload histograms from Fuchsia dev
     # builders.
-    'garnet-ci-builder-dev@fuchsia-infra.iam.gserviceaccount.com'
+    'garnet-ci-builder-dev@fuchsia-infra.iam.gserviceaccount.com',
     # This oauth client id used to upload histograms from cronet bots.
     '113172445342431053212'
 ]
