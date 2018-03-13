@@ -14,8 +14,7 @@ from dependency_manager import base_config # pylint: disable=import-error
 
 
 _SUPPORTED_ARCHS = [
-    'linux2_x86_64', 'darwin_x86_64', 'win_AMD64', 'win32_AMD64', 'win32_x86',
-    'default'
+    'linux_x86_64', 'mac_x86_64', 'win_AMD64', 'win_x86', 'default'
 ]
 _DEFAULT_DEP = 'battor_agent_binary'
 _DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__), '..', 'battor',
