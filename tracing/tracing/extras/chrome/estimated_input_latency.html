@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
+<link rel="import" href="/tracing/extras/chrome/event_finder_utils.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
@@ -42,12 +42,20 @@ tr.exportTo('tr.e.chrome', function() {
     for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       const timestamps = [];
       interactiveTimestampsMap.set(rendererHelper.pid, timestamps);
-      const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
-          rendererHelper).interactiveSamples;
-      for (const sample of samples) {
-        timestamps.push(tr.b.getOnlyElement(
-            sample.diagnostics.get('Navigation infos')).eventTimestamp);
+    }
+    for (const expectation of model.userModel.expectations) {
+      if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
+      if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(
+          expectation.url)) {
+        continue;
       }
+      if (expectation.timeToInteractive === undefined) continue;
+      if (interactiveTimestampsMap.get(expectation.renderProcess.pid) ===
+        undefined) {
+        interactiveTimestampsMap.set(expectation.renderProcess.pid, []);
+      }
+      interactiveTimestampsMap.get(expectation.renderProcess.pid).push(
+          expectation.timeToInteractive);
     }
     return interactiveTimestampsMap;
   }

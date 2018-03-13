@@ -12,12 +12,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.chrome', function() {
+  // We want to ignore chrome internal URLs when computing metrics.
+  const CHROME_INTERNAL_URLS = [
+    // Blank URLs are usually initial empty document.
+    '',
+    'about:blank',
+    // Chrome on Android creates main frames with the below URL for plugins.
+    'data:text/html,pluginplaceholderdata',
+    // Special URL used to start a navigation to an unreachable error page.
+    'chrome-error://chromewebdata/'
+  ];
+
   /**
    * Utility class providing methods to efficiently find events.
    * TODO(4023) This should be merged with thread/process helper.
    */
   class EventFinderUtils {
-
     /**
      * Returns true if |category| is one of the categories of |event|, and
      * |event| has title |title|.
@@ -146,6 +156,7 @@ tr.exportTo('tr.e.chrome', function() {
 
   return {
     EventFinderUtils,
+    CHROME_INTERNAL_URLS,
   };
 });
 </script>

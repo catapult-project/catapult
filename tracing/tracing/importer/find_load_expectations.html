@@ -26,6 +26,13 @@ tr.exportTo('tr.importer', function() {
     'ThreadControllerImpl::DoWork',
   ];
 
+  const IGNORE_URLS = [
+    // Blank URLs correspond to initial empty loads and we want to ignore
+    // them.
+    '',
+    'about:blank',
+  ];
+
 
   /**
    * @param  {!tr.model.Process} process
@@ -155,8 +162,8 @@ tr.exportTo('tr.importer', function() {
    *     event for which loading metrics is being computed.
    * @param {tr.model.ThreadSlice} fmpEvent - The first meaningful paint
    *     event for which loading metrics is being computed.
-   * @param {tr.model.ThreadSlice} nextNavigationStart - The next navigation
-   *     start event if there is one. Undefined otherwise.
+   * @param {number} searchWindowEnd - The end of the current navigation either
+   *     because new navigation has started or the trace has ended.
    * @param {string} url - URL of the current main frame document.
    * @param {number} frameId - fameId.
    * @returns {{start: {number}, duration: {number},
@@ -166,13 +173,7 @@ tr.exportTo('tr.importer', function() {
    */
   function constructLoadingExpectation_(rendererHelper,
       frameToDomContentLoadedEndEvents, navigationStart, fmpEvent,
-      nextNavigationStart, url, frameId) {
-    const searchWindowEnd = nextNavigationStart !== undefined ?
-        nextNavigationStart.start :
-        // If no next navigationStart, search for quiet windows until
-        // the end of trace.
-        rendererHelper.modelHelper.chromeBounds.max;
-
+      searchWindowEnd, url, frameId) {
     // Find when dom content has loaded.
     const dclTimesForFrame =
         frameToDomContentLoadedEndEvents.get(frameId) || [];
@@ -244,49 +245,58 @@ tr.exportTo('tr.importer', function() {
           tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
               rendererHelper, 'domContentLoadedEventEnd', 'blink.user_timing');
 
-    function addSamples(frameIdRef, navigationStart, fmpMarkerEvent,
-        nextNavigationStart) {
-      const timestamp = fmpMarkerEvent === undefined ?
-        navigationStart.start : fmpMarkerEvent.start;
-      const snapshot = findFrameLoaderSnapshotAt(
-          rendererHelper, frameIdRef, timestamp);
-      if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
-      const url = snapshot.args.documentLoaderURL;
-
+    function addSamples(frameIdRef, navigationStart, fmpCandidateEvents,
+        searchWindowEnd, url) {
+      let fmpMarkerEvent =
+            tr.e.chrome.EventFinderUtils.
+              findLastEventStartingOnOrBeforeTimestamp(fmpCandidateEvents,
+                searchWindowEnd);
+      if (fmpMarkerEvent !== undefined &&
+        navigationStart.start > fmpMarkerEvent.start) {
+        // Don't use fmpCandidate if it is not corresponding this navigation.
+        fmpMarkerEvent = undefined;
+      }
       samples.push(constructLoadingExpectation_(
           rendererHelper, frameToDomContentLoadedEndEvents, navigationStart,
-          fmpMarkerEvent, nextNavigationStart, url, frameIdRef));
+          fmpMarkerEvent, searchWindowEnd, url, frameIdRef));
     }
 
     const candidatesForFrameId =
         findFirstMeaningfulPaintCandidates(rendererHelper);
 
     for (const [frameIdRef, navStartEvents] of frameToNavStartEvents) {
-      const fmpCandidateList = candidatesForFrameId[frameIdRef] || [];
+      const fmpCandidateEvents = candidatesForFrameId[frameIdRef] || [];
+      let prevNavigation = {navigationEvent: undefined, url: undefined};
 
-      // Iterate over navigationStart events and add a load expectation
-      // for each of these events
-      for (let index = 0; index < navStartEvents.length - 1; index++) {
+      for (let index = 0; index < navStartEvents.length; index++) {
         const currNavigation = navStartEvents[index];
-        const nextNavigation = navStartEvents[index + 1];
+        const snapshot = findFrameLoaderSnapshotAt(
+            rendererHelper, frameIdRef, currNavigation.start);
+        if (!snapshot || !snapshot.args.isLoadingMainFrame) continue;
+        const url = snapshot.args.documentLoaderURL;
 
-        const fmpCandidate =
-          tr.e.chrome.EventFinderUtils.findLastEventStartingBeforeTimestamp(
-              fmpCandidateList, nextNavigation.start);
-        if (fmpCandidate !== undefined &&
-            currNavigation.start <= fmpCandidate.start) {
-          // Use the fmpCandidate if it is corresponding to this navigation.
-          addSamples(frameIdRef, currNavigation, fmpCandidate, nextNavigation);
-        } else {
-          // No fmpEvent corresponding to this navigation
-          addSamples(frameIdRef, currNavigation, undefined, nextNavigation);
+        // Filter navigationStartEvents that do not correspond to a loading main
+        // page. Sometimes we get the navigationStartEvents corresponding to
+        // i-frames with snapshot.args.isLoadingMainFrame set to true and the
+        // url is set to ''. We should ignore these navigationStart events.
+        if (IGNORE_URLS.includes(url)) continue;
+
+        if (prevNavigation.navigationEvent !== undefined) {
+          // Add a LoadExpectation for the previous navigation ending on or
+          // before current navigation.
+          addSamples(frameIdRef, prevNavigation.navigationEvent,
+              fmpCandidateEvents, currNavigation.start, prevNavigation.url);
         }
+
+        prevNavigation = {navigationEvent: currNavigation, url};
       }
 
-      // Handle the last navigationStart here. Since there is
-      // no next navigation pick the last fmpCandidate for fmpEvent.
-      addSamples(frameIdRef, navStartEvents[navStartEvents.length - 1],
-          fmpCandidateList[fmpCandidateList.length - 1], undefined);
+      // Handle the last navigation here.
+      if (prevNavigation.navigationEvent !== undefined) {
+        addSamples(frameIdRef, prevNavigation.navigationEvent,
+            fmpCandidateEvents, rendererHelper.modelHelper.chromeBounds.max,
+            prevNavigation.url);
+      }
     }
     return samples;
   }

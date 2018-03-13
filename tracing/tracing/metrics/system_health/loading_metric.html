@@ -112,18 +112,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return targetEvents;
   }
 
-  const URL_BLACKLIST = [
-    // Blank URLs are usually initial empty document.
-    '',
-    'about:blank',
-    // Chrome on Android creates main frames with the below URL for plugins.
-    'data:text/html,pluginplaceholderdata',
-    // Special URL used to start a navigation to an unreachable error page.
-    'chrome-error://chromewebdata/'
-  ];
-  function shouldIgnoreURL(url) {
-    return URL_BLACKLIST.includes(url);
-  }
 
   function collectTimeToEvent(
       category, eventName, rendererHelper, frameToNavStartEvents) {
@@ -136,7 +124,7 @@ tr.exportTo('tr.metrics.sh', function() {
         findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
       if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
       const url = snapshot.args.documentLoaderURL;
-      if (shouldIgnoreURL(url)) continue;
+      if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(url)) continue;
       const navigationStartEvent =
           EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
               frameToNavStartEvents.get(frameIdRef) || [], ev.start);
@@ -283,7 +271,6 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
-    const model = rendererHelper.modelHelper.model;
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
             rendererHelper, 'navigationStart', 'blink.user_timing');
@@ -297,12 +284,15 @@ tr.exportTo('tr.metrics.sh', function() {
         'blink.user_timing', 'loadEventStart',
         rendererHelper, frameToNavStartEvents);
 
-    // TODO(mythria): For loading metric it is not required to collect
-    // these per renderer. Since we combine all these samples into a
-    // single histogram anyway. Currently, this function is used outside
-    // loading metric in power_metric, estimated_input_latency and
-    // runtimeStats metric. Once we remove that dependency cleanup this
-    // code by collecting all samples at once instead of once per renderer.
+    return {
+      frameToNavStartEvents,
+      firstPaintSamples,
+      firstContentfulPaintSamples,
+      onLoadSamples,
+    };
+  }
+
+  function collectMetricsFromLoadExpectations(model, chromeHelper) {
     // Add FMP, firstCpuIdle and interactive samples from load UE
     const interactiveSamples = [];
     const firstCpuIdleSamples = [];
@@ -310,8 +300,11 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstMeaningfulPaintCpuTimeSamples = [];
     for (const expectation of model.userModel.expectations) {
       if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
-      if (shouldIgnoreURL(expectation.url)) continue;
-      if (expectation.renderProcess.pid !== rendererHelper.pid) continue;
+      if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(expectation.url)) {
+        continue;
+      }
+      const rendererHelper = chromeHelper.rendererHelpers[
+        expectation.renderProcess.pid];
       if (expectation.fmpEvent !== undefined) {
         addFirstMeaningfulPaintSample(firstMeaningfulPaintSamples,
             rendererHelper, expectation.navigationStart, expectation.fmpEvent,
@@ -337,9 +330,6 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     return {
-      firstPaintSamples,
-      firstContentfulPaintSamples,
-      onLoadSamples,
       firstMeaningfulPaintSamples,
       firstMeaningfulPaintCpuTimeSamples,
       firstCpuIdleSamples,
@@ -449,23 +439,25 @@ tr.exportTo('tr.metrics.sh', function() {
           histograms);
       addSamplesToHistogram(
           samplesSet.onLoadSamples, onLoadHistogram, histograms);
-      addSamplesToHistogram(
-          samplesSet.firstMeaningfulPaintSamples,
-          firstMeaningfulPaintHistogram,
-          histograms);
-      addSamplesToHistogram(
-          samplesSet.firstMeaningfulPaintCpuTimeSamples,
-          firstMeaningfulPaintCpuTimeHistogram,
-          histograms);
-      addSamplesToHistogram(
-          samplesSet.interactiveSamples,
-          timeToInteractiveHistogram,
-          histograms);
-      addSamplesToHistogram(
-          samplesSet.firstCpuIdleSamples,
-          timeToFirstCpuIdleHistogram,
-          histograms);
     }
+
+    const samplesSet = collectMetricsFromLoadExpectations(model, chromeHelper);
+    addSamplesToHistogram(
+        samplesSet.firstMeaningfulPaintSamples,
+        firstMeaningfulPaintHistogram,
+        histograms);
+    addSamplesToHistogram(
+        samplesSet.firstMeaningfulPaintCpuTimeSamples,
+        firstMeaningfulPaintCpuTimeHistogram,
+        histograms);
+    addSamplesToHistogram(
+        samplesSet.interactiveSamples,
+        timeToInteractiveHistogram,
+        histograms);
+    addSamplesToHistogram(
+        samplesSet.firstCpuIdleSamples,
+        timeToFirstCpuIdleHistogram,
+        histograms);
   }
 
   tr.metrics.MetricRegistry.register(loadingMetric);
@@ -473,7 +465,6 @@ tr.exportTo('tr.metrics.sh', function() {
   return {
     loadingMetric,
     getNetworkEventsInRange,
-    collectLoadingMetricsForRenderer,
   };
 });
 </script>
