@@ -214,6 +214,10 @@ class Job(ndb.Model):
       self.updated = datetime.datetime.now()
       try:
         self.put()
+      except (datastore_errors.Timeout,
+              datastore_errors.TransactionFailedError):
+        # Retry once.
+        self.put()
       except datastore_errors.BadRequestError:
         if self.task:
           queue = taskqueue.Queue('job-queue')
