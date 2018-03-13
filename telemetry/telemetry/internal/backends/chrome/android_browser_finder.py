@@ -53,11 +53,20 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # At this point the local_apk, if any, must exist.
     assert self._local_apk is None or os.path.exists(self._local_apk)
 
-    self._webview_embedder_apk = None
-    if finder_options.webview_embedder_apk:
-      self._webview_embedder_apk = finder_options.webview_embedder_apk
-      assert os.path.exists(self._webview_embedder_apk), (
-          '%s does not exist.' % self._webview_embedder_apk)
+    self._embedder_apk = None
+    if self._backend_settings.requires_embedder:
+      if finder_options.webview_embedder_apk:
+        self._embedder_apk = finder_options.webview_embedder_apk
+      else:
+        self._embedder_apk = self._backend_settings.FindEmbedderApk(
+            self._local_apk, finder_options.chrome_root)
+    elif finder_options.webview_embedder_apk:
+      logging.warning(
+          'No embedder needed for %s, ignoring --webview-embedder-apk option',
+          self._backend_settings.browser_type)
+
+    # At this point the embedder_apk, if any, must exist.
+    assert self._embedder_apk is None or os.path.exists(self._embedder_apk)
 
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
@@ -94,7 +103,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @property
   def last_modification_time(self):
-    if self._HaveLocalAPK():
+    if self._local_apk:
       return os.path.getmtime(self._local_apk)
     return -1
 
@@ -211,27 +220,22 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return False
     return True
 
-  def _HaveLocalAPK(self):
-    return self._local_apk and os.path.exists(self._local_apk)
-
-  def _HaveWebViewEmbedderAPK(self):
-    return bool(self._webview_embedder_apk)
-
   def IsAvailable(self):
     """Returns True if the browser is or can be installed on the platform."""
-    return self._HaveLocalAPK() or self.platform.CanLaunchApplication(
+    has_local_apks = self._local_apk and (
+        not self._backend_settings.requires_embedder or self._embedder_apk)
+    return has_local_apks or self.platform.CanLaunchApplication(
         self.settings.package)
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
-    if self._HaveLocalAPK():
+    if self._local_apk:
       logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(self._local_apk)
 
-    if self._HaveWebViewEmbedderAPK():
-      logging.warn('Installing %s on device if needed.',
-                   self._webview_embedder_apk)
-      self.platform.InstallApplication(self._webview_embedder_apk)
+    if self._embedder_apk:
+      logging.warn('Installing %s on device if needed.', self._embedder_apk)
+      self.platform.InstallApplication(self._embedder_apk)
 
 
 def SelectDefaultBrowser(possible_browsers):
@@ -260,6 +264,12 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   if not android_platform:
     return []
   possible_browsers = []
+
+  if finder_options.webview_embedder_apk and not os.path.exists(
+      finder_options.webview_embedder_apk):
+    raise exceptions.PathMissingError(
+        'Unable to find apk specified by --webview-embedder-apk=%s' %
+        finder_options.browser_executable)
 
   # Add the exact APK if given.
   if _CanPossiblyHandlePath(finder_options.browser_executable):

@@ -14,7 +14,8 @@ import py_utils
 
 _BackendSettingsTuple = collections.namedtuple('_BackendSettingsTuple', [
     'browser_type', 'package', 'activity', 'command_line_name',
-    'devtools_port', 'apk_name', 'supports_tab_control', 'supports_spki_list'])
+    'devtools_port', 'apk_name', 'embedder_apk_name',
+    'supports_tab_control', 'supports_spki_list'])
 
 
 class AndroidBrowserBackendSettings(_BackendSettingsTuple):
@@ -35,6 +36,9 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
     apk_name: Default apk name as built on a chromium checkout, used to
       find local apks on the host platform. Subclasses may override
       how this value is interpreted.
+    embedder_apk_name: Name of an additional apk needed, also expected to be
+      found in the chromium checkout, used as an app which embbeds e.g.
+      the WebView implementation given by the apk_name above.
     supports_tab_control: Whether this browser variant supports the concept
       of tabs.
     supports_spki_list: Whether this browser supports spki-list for ignoring
@@ -49,6 +53,10 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
   def profile_ignore_list(self):
     # Don't delete lib, since it is created by the installer.
     return ('lib', )
+
+  @property
+  def requires_embedder(self):
+    return self.embedder_apk_name is not None
 
   def GetDevtoolsRemotePort(self, device):
     del device
@@ -76,6 +84,7 @@ class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
     kwargs.setdefault('command_line_name', 'chrome-command-line')
     kwargs.setdefault('devtools_port', 'localabstract:chrome_devtools_remote')
     kwargs.setdefault('apk_name', None)
+    kwargs.setdefault('embedder_apk_name', None)
     kwargs.setdefault('supports_tab_control', True)
     kwargs.setdefault('supports_spki_list', True)
     return super(GenericChromeBackendSettings, cls).__new__(cls, **kwargs)
@@ -97,6 +106,7 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
     kwargs.setdefault('devtools_port',
                       'localabstract:webview_devtools_remote_{pid}')
     kwargs.setdefault('apk_name', None)
+    kwargs.setdefault('embedder_apk_name', None)
     kwargs.setdefault('supports_tab_control', False)
     # TODO(crbug.com/753948): Switch to True when spki-list support is
     # implemented on WebView.
@@ -123,6 +133,19 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
     else:
       return 'SystemWebViewGoogle.apk'
 
+  def FindEmbedderApk(self, apk_path, chrome_root):
+    if apk_path is not None:
+      # Try to find the embedder next to the local apk found.
+      embedder_apk_path = os.path.join(
+          os.path.dirname(apk_path), self.embedder_apk_name)
+      if os.path.exists(embedder_apk_path):
+        return embedder_apk_path
+    if chrome_root is not None:
+      # Otherwise fall back to an APK found on chrome_root
+      return _FindLocalApk(chrome_root, self.embedder_apk_name)
+    else:
+      return None
+
 
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     browser_type='android-content-shell',
@@ -131,6 +154,7 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     command_line_name='content-shell-command-line',
     devtools_port='localabstract:content_shell_devtools_remote',
     apk_name='ContentShell.apk',
+    embedder_apk_name=None,
     supports_tab_control=False,
     supports_spki_list=True)
 
@@ -138,7 +162,8 @@ ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview',
     package='org.chromium.webview_shell',
     activity='org.chromium.webview_shell.TelemetryActivity',
-    command_line_name='webview-command-line')
+    command_line_name='webview-command-line',
+    embedder_apk_name='SystemWebViewShell.apk')
 
 ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
