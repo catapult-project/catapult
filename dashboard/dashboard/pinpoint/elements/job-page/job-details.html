@@ -11,6 +11,15 @@ found in the LICENSE file.
 <dom-module id="job-details">
   <template>
     <style include="base-style">
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      li {
+        margin: 0.5em 0;
+      }
+
       th {
         text-align: right;
         vertical-align: top;
@@ -20,6 +29,19 @@ found in the LICENSE file.
         word-break: break-all;
       }
     </style>
+
+    <ul>
+      <template is="dom-if" if="[[job.bug_id]]">
+        <li>
+          <a href="https://crbug.com/[[job.bug_id]]" target="_blank">
+            Issue [[job.bug_id]]
+          </a>
+      </template>
+      <li>
+        <a href="/results2/[[job.job_id]]" target="_blank">
+          Analyze benchmark results
+        </a>
+    </ul>
 
     <template is="dom-if" if="[[hasDifferences(job)]]">
       <h2>Differences found after commits</h2>
