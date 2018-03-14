@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import calendar
 import collections
-import datetime
+
+from soundwave import utils
 
 
 _Alert = collections.namedtuple('Alert', [
@@ -22,13 +22,6 @@ _CODE_TO_STATUS = {
 }
 
 
-def _IsoFormatStrToTimestamp(value):
-  # Parse a string produced by datetime.isoformat(), assuming UTC time zone,
-  # and convert to a Unix timestamp.
-  d = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
-  return calendar.timegm(d.timetuple())
-
-
 class Alert(_Alert):
   __slots__ = ()
   name = 'alerts'
@@ -41,7 +34,7 @@ class Alert(_Alert):
   @classmethod
   def FromJson(cls, data):
     kwargs = {k: data[k] for k in cls.columns if k in data}
-    kwargs['timestamp'] = _IsoFormatStrToTimestamp(data['timestamp'])
+    kwargs['timestamp'] = utils.IsoFormatStrToTimestamp(data['timestamp'])
     kwargs['test_suite'] = data['testsuite']
     kwargs['measurement'], kwargs['test_case'] = data['test'].split('/', 1)
     kwargs['bot'] = '/'.join([data['master'], data['bot']])

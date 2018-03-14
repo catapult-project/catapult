@@ -21,3 +21,17 @@ CREATE TABLE IF NOT EXISTS alerts (
   status TEXT NOT NULL,
   bisect_status TEXT
 );
+
+CREATE TABLE IF NOT EXISTS bugs (
+  id INTEGER PRIMARY KEY,
+  summary TEXT NOT NULL,
+  published INTEGER NOT NULL,
+  updated INTEGER NOT NULL,
+  state TEXT NOT NULL,
+  status TEXT NOT NULL,
+  author TEXT NOT NULL,
+  owner TEXT,
+  cc TEXT,
+  components TEXT,
+  labels TEXT
+)

@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import unittest
 
-from soundwave import alert_model
+from soundwave import models
 from soundwave import commands
 from soundwave import dashboard_api
 from soundwave import database
@@ -49,7 +49,7 @@ class TestCommands(unittest.TestCase):
     }
 
     expected_alerts = [
-        alert_model.Alert(
+        models.Alert(
             key='abc123',
             timestamp=1234567890,
             test_suite='loading.mobile',
@@ -68,15 +68,51 @@ class TestCommands(unittest.TestCase):
         )
     ]
 
+    self.communicator.GetBugData.return_value = {
+        'bug': {
+            'id': 55555,
+            'summary': '10% regression in timeToFirstInteractive!',
+            'published': '2009-02-13T23:31:30.000',
+            'updated': '2009-02-13T23:31:35.000',  # five seconds later.
+            'state': 'open',
+            'status': 'Untriaged',
+            'author': 'perf-sheriff@chromium.org',
+            'owner': None,
+            'cc': [],
+            'components': ['Speed>Metrics'],
+            'labels': ['Type-Bug-Regression', 'Performance-Sheriff']
+        }
+    }
+
+    expected_bugs = [
+        models.Bug(
+            id=55555,
+            summary='10% regression in timeToFirstInteractive!',
+            published=1234567890,
+            updated=1234567895,
+            state='open',
+            status='Untriaged',
+            author='perf-sheriff@chromium.org',
+            owner=None,
+            cc=None,
+            components='Speed>Metrics',
+            labels='Type-Bug-Regression,Performance-Sheriff',
+        )
+    ]
+
     # Run command to fetch alerts and store in database.
     commands.FetchAlertsData(self.args)
 
     # Read back from database.
     with database.Database(self.args.database_file) as db:
-      alerts = list(db.IterItems(alert_model.Alert))
+      alerts = list(db.IterItems(models.Alert))
+      bugs = list(db.IterItems(models.Bug))
 
-    # Check we find all expected alerts.
+    # Check we find all expected alerts and bugs.
     self.assertItemsEqual(alerts, expected_alerts)
+    self.assertItemsEqual(self.communicator.GetBugData.call_args_list,
+                          [mock.call(55555)])
+    self.assertItemsEqual(bugs, expected_bugs)
 
 
 if __name__ == '__main__':
