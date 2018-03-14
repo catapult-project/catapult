@@ -47,15 +47,9 @@ tr.exportTo('tr.metrics.vr', function() {
             histograms, 'update_bindings',
             {description: 'Duration to push binding values'}));
     histogramsByEventTitle.set(
-        'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
-        createHistograms(histograms, 'update_textures_and_sizes', {
-          description: 'Duration to redraw textures and update element sizes'
-        }));
-    histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateLayout',
         createHistograms(histograms, 'update_layout', {
-          description:
-              'Duration to reposition elements according to their layout'
+          description: 'Duration to compute element sizes, layout and textures'
         }));
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateWorldSpaceTransform',

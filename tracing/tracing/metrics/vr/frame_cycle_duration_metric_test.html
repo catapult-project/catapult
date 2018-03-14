@@ -60,16 +60,6 @@ tr.b.unittest.testSuite(function() {
           },
           {title: 'UiScene::OnBeginFrame.UpdateBindings', wall: 3, cpu: 2},
           {title: 'UiScene::OnBeginFrame.UpdateBindings', wall: 2, cpu: 1},
-          {
-            title: 'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
-            wall: 3,
-            cpu: 2
-          },
-          {
-            title: 'UiScene::OnBeginFrame.UpdateTexturesAndSizes',
-            wall: 2,
-            cpu: 1
-          },
           {title: 'UiScene::OnBeginFrame.UpdateLayout', wall: 3, cpu: 2},
           {title: 'UiScene::OnBeginFrame.UpdateLayout', wall: 2, cpu: 1},
           {
@@ -206,13 +196,6 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(
         histograms.getHistogramNamed('update_bindings_cpu').average, 1.5,
         TOLERANCE);
-
-    assert.closeTo(
-        histograms.getHistogramNamed('update_textures_and_sizes_wall').average,
-        2.5, TOLERANCE);
-    assert.closeTo(
-        histograms.getHistogramNamed('update_textures_and_sizes_cpu').average,
-        1.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('update_layout_wall').average, 2.5,
