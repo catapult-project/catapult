@@ -46,27 +46,3 @@ class AndroidBackendSettingsUnittest(unittest.TestCase):
     self.assertEqual(
         android_browser_backend_settings.ANDROID_CHROME.GetApkName(device),
         'Monochrome.apk')
-
-  def testWebViewApkOnAOSP(self):
-    device = mock.Mock()
-    device.build_version_sdk = version_codes.NOUGAT
-    device.build_description = 'some aosp device on N'
-    self.assertEqual(
-        android_browser_backend_settings.ANDROID_WEBVIEW.GetApkName(device),
-        'SystemWebView.apk')
-
-  def testSystemWebViewApkOnMarshmallow(self):
-    device = mock.Mock()
-    device.build_version_sdk = version_codes.MARSHMALLOW
-    device.build_description = 'some device on M'
-    self.assertEqual(
-        android_browser_backend_settings.ANDROID_WEBVIEW.GetApkName(device),
-        'SystemWebViewGoogle.apk')
-
-  def testMonochromeApkForWebViewOnNougat(self):
-    device = mock.Mock()
-    device.build_version_sdk = version_codes.NOUGAT
-    device.build_description = 'some device on N'
-    self.assertEqual(
-        android_browser_backend_settings.ANDROID_WEBVIEW.GetApkName(device),
-        'Monochrome.apk')

@@ -91,17 +91,16 @@ class ChromeBackendSettings(GenericChromeBackendSettings):
       return 'Chrome.apk'
 
 
-class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
+class WebviewBasedBackendSettings(AndroidBrowserBackendSettings):
   def __new__(cls, **kwargs):
     # Provide some defaults common to WebView based backends.
     kwargs.setdefault('devtools_port',
                       'localabstract:webview_devtools_remote_{pid}')
-    kwargs.setdefault('apk_name', None)
     kwargs.setdefault('supports_tab_control', False)
     # TODO(crbug.com/753948): Switch to True when spki-list support is
     # implemented on WebView.
     kwargs.setdefault('supports_spki_list', False)
-    return super(WebViewBasedBackendSettings, cls).__new__(cls, **kwargs)
+    return super(WebviewBasedBackendSettings, cls).__new__(cls, **kwargs)
 
   def GetDevtoolsRemotePort(self, device):
     # The DevTools port for WebView based backends depends on the browser PID.
@@ -110,18 +109,6 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
 
     pid = py_utils.WaitFor(get_activity_pid, timeout=30)
     return self.devtools_port.format(pid=pid)
-
-
-class WebViewBackendSettings(WebViewBasedBackendSettings):
-  def GetApkName(self, device):
-    assert self.apk_name is None
-    # The APK to install depends on the OS version of the deivce.
-    if 'aosp' in device.build_description:
-      return 'SystemWebView.apk'
-    elif device.build_version_sdk >= version_codes.NOUGAT:
-      return 'Monochrome.apk'
-    else:
-      return 'SystemWebViewGoogle.apk'
 
 
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
@@ -134,13 +121,15 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     supports_tab_control=False,
     supports_spki_list=True)
 
-ANDROID_WEBVIEW = WebViewBackendSettings(
+ANDROID_WEBVIEW = WebviewBasedBackendSettings(
     browser_type='android-webview',
     package='org.chromium.webview_shell',
     activity='org.chromium.webview_shell.TelemetryActivity',
-    command_line_name='webview-command-line')
+    command_line_name='webview-command-line',
+    # TODO(crbug.com/813047): Should override FindLocalApk instead.
+    apk_name='SystemWebView.apk')
 
-ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
+ANDROID_WEBVIEW_INSTRUMENTATION = WebviewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
     package='org.chromium.android_webview.shell',
     activity='org.chromium.android_webview.shell.AwShellActivity',
