@@ -58,7 +58,7 @@ def _ProcessTest(test_key):
     logging.error('No sheriff for %s', test_key)
     raise ndb.Return(None)
 
-  config = anomaly_config.GetAnomalyConfigDict(test)
+  config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
   max_num_rows = config.get('max_window_size', DEFAULT_NUM_POINTS)
   rows = yield GetRowsToAnalyzeAsync(test, max_num_rows)
   # If there were no rows fetched, then there's nothing to analyze.

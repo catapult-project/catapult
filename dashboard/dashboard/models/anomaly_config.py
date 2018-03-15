@@ -48,6 +48,7 @@ def CleanConfigDict(config_dict):
           if key in _VALID_ANOMALY_CONFIG_PARAMETERS}
 
 
+@ndb.synctasklet
 def GetAnomalyConfigDict(test):
   """Gets the anomaly threshold config for the given test.
 
@@ -57,14 +58,20 @@ def GetAnomalyConfigDict(test):
   Returns:
     A dictionary with threshold parameters for the given test.
   """
+  result = yield GetAnomalyConfigDictAsync(test)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def GetAnomalyConfigDictAsync(test):
   if not test.overridden_anomaly_config:
-    return {}
-  anomaly_config = test.overridden_anomaly_config.get()
+    raise ndb.Return({})
+  anomaly_config = yield test.overridden_anomaly_config.get_async()
   if not anomaly_config:
     logging.warning('No AnomalyConfig fetched from key %s for test %s',
                     test.overridden_anomaly_config, test.test_path)
     # The the overridden_anomaly_config property should be reset
     # in the pre-put hook of the TestMetadata entity.
     test.put()
-    return {}
-  return CleanConfigDict(anomaly_config.config)
+    raise ndb.Return({})
+  raise ndb.Return(CleanConfigDict(anomaly_config.config))
