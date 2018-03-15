@@ -494,11 +494,11 @@ class PageTestResults(object):
     """
     # TODO(#4258): Relax this assertion.
     assert self._current_page_run, 'Not currently running test.'
-    self.current_page_run.SetFailed()
     if isinstance(failure, basestring):
       failure_str = 'Failure recorded: %s' % failure
     else:
       failure_str = ''.join(traceback.format_exception(*failure))
+    self._current_page_run.SetFailed(failure_str)
     self._progress_reporter.DidFail(failure_str)
 
   def Skip(self, reason):
