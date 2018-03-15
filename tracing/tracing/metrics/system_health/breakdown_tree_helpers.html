@@ -19,6 +19,56 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   /**
+   * Returns the total self time of |event| within |rangeOfInterest|. Total self
+   * time is computed by finding time ranges that do not contain a descendant
+   * slice. Example:
+   *
+   *       [                      A                     ]
+   *       |        [     B    ]           [   C    ]   |
+   *       |        |   [ D  ] |           |        |   |
+   *       |        |          |           |        |   |
+   *       v        v          v           v        v   v
+   *  Ts : 0        50         80   100   150      180  200
+   * RoI :                           [                  ]
+   *
+   * Total self time for A within |rangeOfInterest| is 100 - 30 = 70.
+   *
+   * @param {!tr.b.Event} event
+   * @param {!tr.b.math.Range} rangeOfInterest
+   * @return {number}
+   */
+  function getWallClockSelfTime_(event, rangeOfInterest) {
+    if (event.duration === 0) return 0;
+
+    const selfTimeRanges = [rangeOfInterest.findIntersection(event.range)];
+    for (const subSlice of event.subSlices) {
+      if (selfTimeRanges.length === 0) return 0;
+
+      const lastRange = selfTimeRanges.pop();
+      selfTimeRanges.push(
+          ...tr.b.math.Range.findDifference(lastRange, subSlice.range));
+    }
+
+    return tr.b.math.Statistics.sum(selfTimeRanges, r => r.duration);
+  }
+
+  /**
+   * Returns the CPU self time of |event| within |rangeOfInterest|. CPU self
+   * time of a slice is assumed to be evenly distributed over the wall clock
+   * self time ranges of the slice.
+   *
+   * @param {!tr.b.Event} event
+   * @param {!tr.b.math.Range} rangeOfInterest
+   * @return {number}
+   */
+  function getCPUSelfTime_(event, rangeOfInterest) {
+    if (event.duration === 0 || event.selfTime === 0) return 0;
+    if (event.cpuSelfTime === undefined) return 0;
+    const cpuTimeDensity = event.cpuSelfTime / event.selfTime;
+    return getWallClockSelfTime_(event, rangeOfInterest) * cpuTimeDensity;
+  }
+
+  /**
   * @callback getEventAttributeCallback
   * @param {!tr.b.Event} event The event to read an attribute from.
   * @return {number} The value of the attribute.
@@ -26,14 +76,11 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
   * Generate a breakdown tree from all slices of |mainThread| in
-  * |rangeOfInterest|. The callback functions |getEventStart|,
-  * |getEventDuration| and |getEventSelfTime| specify how to get start,
-  * duration and selftime from a given event.
+  * |rangeOfInterest|. The callback function |getEventSelfTime| specify how to
+  * get self time from a given event.
   *
   * @param  {!tr.model.Thread} mainThread
   * @param  {!tr.b.math.Range} rangeOfInterest
-  * @callback {getEventAttributeCallback} getEventStart
-  * @callback {getEventAttributeCallback} getEventDuration
   * @callback {getEventAttributeCallback} getEventSelfTime
   * @return {Object.<string, Object>} A time breakdown object whose keys are
   * Chrome userfriendly title & values are an object that show the total spent
@@ -51,33 +98,38 @@ tr.exportTo('tr.metrics.sh', function() {
   *     ...
   *   }
   */
-  function generateTimeBreakdownTree(mainThread, rangeOfInterest, getEventStart,
-      getEventDuration, getEventSelfTime) {
+  function generateTimeBreakdownTree(mainThread, rangeOfInterest,
+      getEventSelfTime) {
     if (mainThread === null) return;
     const breakdownTree = {};
     for (const title of
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
       breakdownTree[title] = {total: 0, events: {}};
     }
-    for (const event of mainThread.getDescendantEvents()) {
-      const eventStart = getEventStart(event);
-      const eventDuration = getEventDuration(event);
-      const eventSelfTime = getEventSelfTime(event);
-      const eventEnd = eventStart + eventDuration;
-      if (!rangeOfInterest.intersectsExplicitRangeExclusive(
-          eventStart, eventEnd)) {
-        continue;
-      }
-      if (eventSelfTime === undefined) continue;
+    // We do not look at async slices here.
+    for (const event of mainThread.sliceGroup.childEvents()) {
+      if (!rangeOfInterest.intersectsRangeExclusive(event.range)) continue;
+      const eventSelfTime = getEventSelfTime(event, rangeOfInterest);
       const title =
           tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent(event);
+
+      breakdownTree[title].total += eventSelfTime;
+      if (breakdownTree[title].events[event.title] === undefined) {
+        breakdownTree[title].events[event.title] = 0;
+      }
+      breakdownTree[title].events[event.title] +=
+        eventSelfTime;
+
       let timeIntersectionRatio = 0;
-      if (eventDuration > 0) {
+      if (event.duration > 0) {
         timeIntersectionRatio =
             rangeOfInterest.findExplicitIntersectionDuration(
-                eventStart, eventEnd) / eventDuration;
+                event.start, event.end) / event.duration;
       }
 
+      // TODO(#3846): v8_runtime is being double counted.
+      // TODO(#3846): v8_runtime slice name is wrong. It's 'stats'.
+      // TODO(#4296): v8_runtime should not be added for cpu time.
       const v8Runtime = event.args['runtime-call-stat'];
       if (v8Runtime !== undefined) {
         const v8RuntimeObject = JSON.parse(v8Runtime);
@@ -95,29 +147,6 @@ tr.exportTo('tr.metrics.sh', function() {
           }
         }
       }
-      //        [     Slice 1       ]   [      Slice  2   ]   [    Slice 3   ]
-      //            [  Slice 4    ]                             [ Slice 5 ]
-      //              [ Slice 6 ]                                  |
-      //                 |                                         |
-      //                 |                                         |
-      //                 v                                         v
-      //                start                                     end
-      //
-      // For the case where the |start| or |end| overlapped with some existing
-      // slice (see above diagram), we approximate the overlapped self-time
-      // by multiplying the ratio of overlapped wall time to the self-time.
-      // There should be way to compute the exact number, but in practice,
-      // this should rarely happen, and when it does, the overlapped range
-      // is relative small so that using approximation here should be good
-      // enough.
-      const approximatedSelfTimeContribution =
-          eventSelfTime * timeIntersectionRatio;
-      breakdownTree[title].total += approximatedSelfTimeContribution;
-      if (breakdownTree[title].events[event.title] === undefined) {
-        breakdownTree[title].events[event.title] = 0;
-      }
-      breakdownTree[title].events[event.title] +=
-          approximatedSelfTimeContribution;
     }
     return breakdownTree;
   }
@@ -170,15 +199,27 @@ tr.exportTo('tr.metrics.sh', function() {
     breakdownTree.idle = {total: totalFreeDuration, events: {}};
 
     let totalBlockedDuration = rangeOfInterest.duration;
-    for (const component of Object.values(breakdownTree)) {
+    for (const [title, component] of Object.entries(breakdownTree)) {
+      // v8_runtime is a subcategory of script_execute.
+      // See github.com/catapult-project/catapult/commit/f3881d commit message.
+      // TODO(#2572) Make user friendly category hierarchy friend so this is not
+      // needed.
+      if (title === 'v8_runtime') continue;
       totalBlockedDuration -= component.total;
     }
+
     breakdownTree.blocked_on_network = {
-      total: totalBlockedDuration,
+      // Clamp breakdown at 0 to prevent negative values.
+      // TODO(#4299): Since we do not explicitly prevent overlapping slices on
+      // the same thread, slices can end up with negative wall clock self time
+      // and thus breakdown values can be negative. If we can prevent
+      // overlapping slices in the model, we can do this clamping for very small
+      // (e.g. < -0.1) values, accounting only for floating point errors, and
+      // fail loudly otherwise.
+      total: Math.max(totalBlockedDuration, 0),
       events: {}
     };
   }
-
 
   /**
   * Generate a breakdown that attributes where wall clock time goes in
@@ -204,12 +245,8 @@ tr.exportTo('tr.metrics.sh', function() {
   */
   function generateWallClockTimeBreakdownTree(
       mainThread, networkEvents, rangeOfInterest) {
-    function getEventStart(e) { return e.start; }
-    function getEventDuration(e) { return e.duration; }
-    function getEventSelfTime(e) { return e.selfTime; }
     const breakdownTree = generateTimeBreakdownTree(
-        mainThread, rangeOfInterest, getEventStart, getEventDuration,
-        getEventSelfTime);
+        mainThread, rangeOfInterest, getWallClockSelfTime_);
     const mainThreadEventsInRange = tr.model.helpers.getSlicesIntersectingRange(
         rangeOfInterest, mainThread.sliceGroup.topLevelSlices);
     addIdleAndBlockByNetworkBreakdown_(
@@ -219,10 +256,14 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
   * Generate a breakdown that attributes where CPU time goes in
-  * |rangeOfInterestCpuTime| on the renderer thread.
+  * |rangeOfInterest| on the renderer thread.
+  *
+  * Due to approximations, it is possible for breakdowns to not add up to total
+  * CPU time in |rangeOfInterest|. Note that |rangeOfInterest| is a range of
+  * wall times, not CPU time.
   *
   * @param {!tr.model.Thread} mainThread
-  * @param {!tr.b.math.Range} rangeOfInterestCpuTime
+  * @param {!tr.b.math.Range} rangeOfInterest
   * @return {Object.<string, Object>} A time breakdown object whose keys are
   * Chrome userfriendly titles & values are an object that shows the total
   * CPU time spent in |rangeOfInterestCpuTime|, and the list of event labels
@@ -239,12 +280,9 @@ tr.exportTo('tr.metrics.sh', function() {
   *     ...
   *   }
   */
-  function generateCpuTimeBreakdownTree(mainThread, rangeOfInterestCpuTime) {
-    function getEventStart(e) { return e.cpuStart; }
-    function getEventDuration(e) { return e.cpuDuration; }
-    function getEventSelfTime(e) { return e.cpuSelfTime; }
-    return generateTimeBreakdownTree(mainThread, rangeOfInterestCpuTime,
-        getEventStart, getEventDuration, getEventSelfTime);
+  function generateCpuTimeBreakdownTree(mainThread, rangeOfInterest) {
+    return generateTimeBreakdownTree(mainThread, rangeOfInterest,
+        getCPUSelfTime_);
   }
 
   return {
