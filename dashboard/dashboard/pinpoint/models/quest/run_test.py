@@ -13,7 +13,6 @@ import copy
 import json
 import shlex
 
-from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming_service
@@ -141,7 +140,9 @@ class RunTest(quest.Quest):
     else:
       swarming_extra_args += ('--pageset-repeat', '1')
 
-    browser = _GetBrowser(arguments)
+    browser = arguments.get('browser')
+    if not browser:
+      raise TypeError('Missing "browser" argument.')
     swarming_extra_args += ('--browser', browser)
 
     extra_test_args = arguments.get('extra_test_args')
@@ -192,31 +193,14 @@ class RunTest(quest.Quest):
 
 
 def _GetDimensions(arguments):
-  configuration = arguments.get('configuration')
   dimensions = arguments.get('dimensions')
-  if dimensions:
+  if not dimensions:
+    raise TypeError('Missing a "dimensions" argument.')
+
+  if isinstance(dimensions, basestring):
     dimensions = json.loads(dimensions)
-  elif configuration:
-    bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
-    dimensions = bots[configuration]['dimensions']
-  else:
-    raise TypeError('Missing a "configuration" or a "dimensions" argument.')
 
   return dimensions
-
-
-def _GetBrowser(arguments):
-  configuration = arguments.get('configuration')
-  browser = arguments.get('browser')
-  if browser:
-    pass
-  elif configuration:
-    bots = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
-    browser = bots[configuration]['browser']
-  else:
-    raise TypeError('Missing a "configuration" or a "browser" argument.')
-
-  return browser
 
 
 class _RunTestExecution(execution_module.Execution):

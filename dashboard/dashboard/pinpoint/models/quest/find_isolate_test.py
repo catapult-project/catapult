@@ -10,45 +10,26 @@ from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
 from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import find_isolate
 
 
-class FindIsolateQuestTest(testing_common.TestCase):
+class FindIsolateQuestTest(unittest.TestCase):
 
-  def setUp(self):
-    super(FindIsolateQuestTest, self).setUp()
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-    namespaced_stored_object.Set('bot_configurations', {
-        'chromium-rel-mac11-pro': {
-            'builder': 'Mac Builder',
-        },
-    })
-
-  def testMissingArguments(self):
+  def testMissingBuilder(self):
     arguments = {'target': 'telemetry_perf_tests'}
-    # configuration is missing.
     with self.assertRaises(TypeError):
       find_isolate.FindIsolate.FromDict(arguments)
 
-    arguments = {'configuration': 'chromium-rel-mac11-pro'}
-    # target is missing.
+  def testMissingTarget(self):
+    arguments = {'builder': 'Mac Builder'}
     with self.assertRaises(TypeError):
-      find_isolate.FindIsolate.FromDict(arguments)
-
-  def testUnknownConfiguration(self):
-    arguments = {
-        'configuration': 'not a real bot',
-        'target': 'telemetry_perf_tests',
-    }
-    with self.assertRaises(KeyError):
       find_isolate.FindIsolate.FromDict(arguments)
 
   def testAllArguments(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
+        'builder': 'Mac Builder',
         'target': 'telemetry_perf_tests',
     }
     expected = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')

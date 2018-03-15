@@ -7,8 +7,6 @@ import unittest
 
 import mock
 
-from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models.quest import run_test
 
 
@@ -90,44 +88,41 @@ _SWARMING_DIMENSIONS = [
 ]
 
 
-class _QuestTest(testing_common.TestCase):
+class TelemetryQuestTest(unittest.TestCase):
 
-  def setUp(self):
-    super(_QuestTest, self).setUp()
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-    namespaced_stored_object.Set('bot_configurations', {
-        'chromium-rel-mac11-pro': {
-            'browser': 'release',
-            'dimensions': {'key': 'value'},
-        },
-    })
-
-
-class TelemetryQuestTest(_QuestTest):
-
-  def testMissingArguments(self):
+  def testMissingDimensions(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
-        # benchmark is missing.
+        'benchmark': 'speedometer',
+        'browser': 'release',
     }
     with self.assertRaises(TypeError):
       run_test.RunTest.FromDict(arguments)
 
-  def testUnknownConfiguration(self):
+  def testMissingBenchmark(self):
     arguments = {
-        'configuration': 'unknown configuration',
         'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
+        'browser': 'release',
+    }
+    with self.assertRaises(TypeError):
+      run_test.RunTest.FromDict(arguments)
+
+  def testMissingBrowser(self):
+    arguments = {
+        'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'speedometer',
     }
-    with self.assertRaises(KeyError):
+    with self.assertRaises(TypeError):
       run_test.RunTest.FromDict(arguments)
 
   def testMinimumArguments(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'speedometer',
+        'browser': 'release',
     }
 
     expected = run_test.RunTest({'key': 'value'}, _MIN_TELEMETRY_ARGUMENTS)
@@ -145,6 +140,17 @@ class TelemetryQuestTest(_QuestTest):
 
     expected = run_test.RunTest(
         {'key': 'value'}, _ALL_TELEMETRY_ARGUMENTS)
+    self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
+
+  def testDictDimensions(self):
+    arguments = {
+        'target': 'telemetry_perf_tests',
+        'dimensions': {'key': 'value'},
+        'benchmark': 'speedometer',
+        'browser': 'release',
+    }
+
+    expected = run_test.RunTest({'key': 'value'}, _MIN_TELEMETRY_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
 
   def testStringExtraTestArgs(self):
@@ -163,31 +169,22 @@ class TelemetryQuestTest(_QuestTest):
 
   def testInvalidExtraTestArgs(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'speedometer',
+        'browser': 'release',
         'extra_test_args': '"this is a string"',
     }
 
     with self.assertRaises(TypeError):
       run_test.RunTest.FromDict(arguments)
 
-  def testWithNoConfiguration(self):
+  def testStartupBenchmarkRepeatCount(self):
     arguments = {
         'target': 'telemetry_perf_tests',
         'dimensions': '{"key": "value"}',
-        'benchmark': 'speedometer',
-        'browser': 'release',
-    }
-
-    expected = run_test.RunTest({'key': 'value'}, _MIN_TELEMETRY_ARGUMENTS)
-    self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
-
-  def testStartupBenchmarkRepeatCount(self):
-    arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
-        'target': 'telemetry_perf_tests',
         'benchmark': 'start_with_url.warm.startup_pages',
+        'browser': 'release',
     }
 
     expected = run_test.RunTest({'key': 'value'}, _STARTUP_BENCHMARK_ARGUMENTS)
@@ -195,8 +192,8 @@ class TelemetryQuestTest(_QuestTest):
 
   def testWebviewFlag(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
         'target': 'telemetry_perf_webview_tests',
+        'dimensions': '{"key": "value"}',
         'benchmark': 'speedometer',
         'browser': 'android-webview',
     }
@@ -205,12 +202,12 @@ class TelemetryQuestTest(_QuestTest):
     self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
 
 
-class GTestQuestTest(_QuestTest):
+class GTestQuestTest(unittest.TestCase):
 
   def testMinimumArguments(self):
     arguments = {
-        'configuration': 'chromium-rel-mac11-pro',
         'target': 'net_perftests',
+        'dimensions': '{"key": "value"}',
     }
 
     expected = run_test.RunTest({'key': 'value'}, _MIN_GTEST_ARGUMENTS)
@@ -226,6 +223,15 @@ class GTestQuestTest(_QuestTest):
 
     expected = run_test.RunTest(
         {'key': 'value'}, _ALL_GTEST_ARGUMENTS)
+    self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
+
+  def testDictDimensions(self):
+    arguments = {
+        'target': 'net_perftests',
+        'dimensions': {'key': 'value'},
+    }
+
+    expected = run_test.RunTest({'key': 'value'}, _MIN_GTEST_ARGUMENTS)
     self.assertEqual(run_test.RunTest.FromDict(arguments), expected)
 
 

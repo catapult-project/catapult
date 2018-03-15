@@ -46,7 +46,7 @@ class _NewTest(testing_common.TestCase):
         'chromium-rel-mac11-pro': {
             'browser': 'release',
             'builder': 'Mac Builder',
-            'dimensions': {},
+            'dimensions': {'key': 'value'},
         },
     })
     namespaced_stored_object.Set('repositories', {
@@ -55,10 +55,6 @@ class _NewTest(testing_common.TestCase):
     })
 
 
-
-@mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
-            mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 class NewAuthTest(_NewTest):
 
   @mock.patch.object(api_auth, '_AuthorizeOauthUser',
@@ -81,6 +77,24 @@ class NewTest(_NewTest):
       return_value={'commit': 'abc'}))
   def testPost(self):
     response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    self.assertEqual(
+        result['jobUrl'],
+        'https://testbed.example.com/job/%s' % result['jobId'])
+
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  def testPost_NoConfiguration(self):
+    # TODO: Make this test agnostic to the parameters the Quests take.
+    request = dict(_BASE_REQUEST)
+    request.update({
+        'builder': 'Mac Builder',
+        'dimensions': '{"key": "value"}',
+        'browser': 'android-webview',
+    })
+    del request['configuration']
+    response = self.testapp.post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(

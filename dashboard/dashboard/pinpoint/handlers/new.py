@@ -6,9 +6,13 @@ import json
 import webapp2
 
 from dashboard.api import api_auth
+from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
+
+
+_BOT_CONFIGURATIONS = 'bot_configurations'
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -28,15 +32,24 @@ class New(webapp2.RequestHandler):
   @api_auth.Authorize
   def _CreateJob(self):
     """Start a new Pinpoint job."""
-    auto_explore = _ParseBool(self.request.get('auto_explore'))
-    bug_id = self.request.get('bug_id')
+    # "configuration" is a special argument that maps to a list of preset
+    # arguments. Pull any arguments from the specified "configuration", if any.
+    configuration = self.request.get('configuration')
+    if configuration:
+      configurations = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
+      arguments = configurations[configuration]
+    else:
+      arguments = {}
+    # Override the configuration arguments with the API-provided arguments.
+    arguments.update(self.request.params.mixed())
 
     # Validate arguments and convert them to canonical internal representation.
-    quests = _GenerateQuests(self.request.params)
-    bug_id = _ValidateBugId(bug_id)
-    changes = _ValidateChanges(self.request.params)
-    user = _ValidateUser(self.request.params)
-    tags = _ValidateTags(self.request.get('tags'))
+    auto_explore = _ParseBool(arguments.get('auto_explore'))
+    quests = _GenerateQuests(arguments)
+    bug_id = _ValidateBugId(arguments.get('bug_id'))
+    changes = _ValidateChanges(arguments)
+    user = _ValidateUser(arguments)
+    tags = _ValidateTags(arguments.get('tags'))
 
     # Create job.
     job = job_module.Job.New(
