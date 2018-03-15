@@ -14,7 +14,7 @@ from dashboard.common import stored_object
 from dashboard.pinpoint.models import job
 
 
-_BATCH_SIZE = 1
+_BATCH_SIZE = 10
 _STATUS_KEY = 'job_migration_status'
 
 

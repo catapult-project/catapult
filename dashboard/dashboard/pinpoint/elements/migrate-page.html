@@ -83,7 +83,9 @@ found in the LICENSE file.
       },
 
       submit() {
-        this.$.migrate_form.submit();
+        // TODO: After Polymer 2.0, use:
+        // this.shadowRoot.getElementById('migrate_form').submit();
+        Polymer.dom(this.root).querySelector('#migrate_form').submit();
       },
 
       handleResponse(event) {
