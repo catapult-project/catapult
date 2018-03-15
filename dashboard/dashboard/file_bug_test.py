@@ -124,12 +124,16 @@ class FileBugTest(testing_common.TestCase):
                                     test_key1, sheriff_key)
     anomaly_key2 = self._AddAnomaly(1476193320, 1476201870,
                                     test_key2, sheriff_key)
+    anomaly_key3 = self._AddAnomaly(1476193390, 1476193390,
+                                    test_key2, sheriff_key)
     rows_1 = testing_common.AddRows(test_path1, [1476201840])
     rows_2 = testing_common.AddRows(test_path2, [1476201870])
+    rows_3 = testing_common.AddRows(test_path2, [1476193390])
     # These will be the revisions used to determine label.
     rows_1[0].r_commit_pos = 112005
     rows_2[0].r_commit_pos = 112010
-    return (anomaly_key1, anomaly_key2)
+    rows_3[0].r_commit_pos = 112015
+    return (anomaly_key1, anomaly_key2, anomaly_key3)
 
   def _AddAnomaly(self, start_rev, end_rev, test_key, sheriff_key):
     return anomaly.Anomaly(
@@ -285,6 +289,60 @@ class FileBugTest(testing_common.TestCase):
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
     self.assertIn('My first commit', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
+  def testGet_WithFinish_SingleRevOwner_Clank_Skips(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories',
+        {"chromium": {
+            "repository_url": "https://chromium.googlesource.com/chromium/src"
+        }})
+    self.service.bug_id = 277761
+    response = self._PostSampleBug(is_single_rev=True, master='ClankInternal')
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self.service.add_comment_args[1]
+    self.assertNotIn(
+        'Assigning to foo@bar.com because this is the only CL in range',
+        comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
+  def testGet_WithFinish_SingleRevOwner_InvalidRepository_Skips(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories',
+        {"chromium": {
+            "repository_url": "https://chromium.googlesource.com/chromium/src"
+        }})
+    self.service.bug_id = 277761
+    response = self._PostSampleBug(is_single_rev=True, master='FakeMaster')
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self.service.add_comment_args[1]
+    self.assertNotIn(
+        'Assigning to foo@bar.com because this is the only CL in range',
+        comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(

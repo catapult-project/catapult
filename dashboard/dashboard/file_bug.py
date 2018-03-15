@@ -351,9 +351,21 @@ def _GetSingleCLForAnomalies(alerts):
 
 def _AssignBugToCLAuthor(bug_id, alert, service):
   """Assigns the bug to the author of the given revision."""
+  repository_url = None
+  repositories = namespaced_stored_object.Get('repositories')
+  test_path = utils.TestPath(alert.test)
+  if test_path.startswith('ChromiumPerf'):
+    repository_url = repositories['chromium']['repository_url']
+  elif test_path.startswith('ClankInternal'):
+    repository_url = repositories['clank']['repository_url']
+  if not repository_url:
+    # Can't get committer info from this repository.
+    return
+
   rev = str(auto_bisect.GetRevisionForBisect(alert.end_revision, alert.test))
   # TODO(sullivan, dtu): merge this with similar pinoint code.
-  if re.match(r'^[0-9]{5,7}$', rev):
+  if (re.match(r'^[0-9]{5,7}$', rev) and
+      repository_url == repositories['chromium']['repository_url']):
     # This is a commit position, need the git hash.
     result = crrev_service.GetNumbering(
         number=rev,
@@ -364,17 +376,6 @@ def _AssignBugToCLAuthor(bug_id, alert, service):
     rev = result['git_sha']
   if not re.match(r'[a-fA-F0-9]{40}$', rev):
     # This still isn't a git hash; can't assign bug.
-    return
-
-  repository_url = None
-  repositories = namespaced_stored_object.Get('repositories')
-  test_path = utils.TestPath(alert.test)
-  if test_path.startswith('ChromiumPerf'):
-    repository_url = repositories['chromium']['repository_url']
-  elif test_path.startswith('ClankInternal'):
-    repository_url = repositories['clank']['repository_url']
-  if not repository_url:
-    # Can't get committer info from this repository.
     return
 
   commit_info = gitiles_service.CommitInfo(repository_url, rev)
