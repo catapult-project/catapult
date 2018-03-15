@@ -268,7 +268,3 @@ class Job(ndb.Model):
 def _FormatCommitForBug(commit_info):
   subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
   return '\n'.join((subject, commit_info['url']))
-
-
-# TODO: Remove after data migration.
-_JobState = job_state.JobState

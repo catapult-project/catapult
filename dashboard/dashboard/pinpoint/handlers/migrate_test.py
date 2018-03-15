@@ -11,6 +11,7 @@ import webtest
 from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import migrate
 from dashboard.pinpoint.models import job
+from dashboard.pinpoint.models import job_state
 
 
 class MigrateTest(testing_common.TestCase):
@@ -96,14 +97,14 @@ class MigrateTest(testing_common.TestCase):
     self.assertTrue(task['body'])
 
   def testJobsMigrated(self):
-    job._JobState.__setstate__ = _JobStateSetState
+    job_state.JobState.__setstate__ = _JobStateSetState
 
     self.testapp.post('/migrate', status=200)
     self.testapp.post('/migrate', status=200)
     params = {'cursor': 'Ch8SGWoMdGVzdGJlZC10ZXN0cgkLEgNKb2IYAQwYACAA'}
     self.testapp.post('/migrate', params, status=200)
 
-    del job._JobState.__setstate__
+    del job_state.JobState.__setstate__
 
     jobs = job.Job.query().fetch()
     for j in jobs:
