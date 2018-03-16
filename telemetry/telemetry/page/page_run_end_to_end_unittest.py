@@ -231,7 +231,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     slow_page = page_module.Page(
         'file://green_rect.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='slow',
-        traffic_setting=traffic_setting_module.REGULAR_2G)
+        traffic_setting=traffic_setting_module.GOOD_3G)
     fast_page = page_module.Page(
         'file://green_rect.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='fast',
@@ -274,10 +274,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       self.assertFalse(results.had_failures, msg=''.join(failure_messages))
       self.assertIn('slow', latencies_by_page_in_ms)
       self.assertIn('fast', latencies_by_page_in_ms)
-      # Slow page should be slower than fast page by at least 300 ms (roundtrip
-      # time of 2G) - 2 ms (roundtrip time of Wifi)
+      # Slow page should be slower than fast page by at least 40 ms (roundtrip
+      # time of good 3G) - 2 ms (roundtrip time of Wifi)
       self.assertGreater(latencies_by_page_in_ms['slow'],
-                         latencies_by_page_in_ms['fast'] + 300 - 2)
+                         latencies_by_page_in_ms['fast'] + 40 - 2)
 
   # Ensure that story_runner allows the test to customize the browser
   # before it launches.
