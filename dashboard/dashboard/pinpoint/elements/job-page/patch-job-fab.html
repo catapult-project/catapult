@@ -70,9 +70,7 @@ found in the LICENSE file.
       getArguments(job) {
         const args = Object.assign({}, job.arguments);
         args.auto_explore = false;
-        args.start_repository = 'chromium';
         args.start_git_hash = 'HEAD';
-        args.end_repository = 'chromium';
         args.end_git_hash = 'HEAD';
         delete args.name;
         delete args.patch;

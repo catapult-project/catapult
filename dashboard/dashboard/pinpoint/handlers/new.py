@@ -114,14 +114,14 @@ def _ValidateChanges(arguments):
 
   change_1 = {
       'commits': [{
-          'repository': arguments.get('start_repository'),
+          'repository': arguments.get('repository'),
           'git_hash': arguments.get('start_git_hash')
       }],
   }
 
   change_2 = {
       'commits': [{
-          'repository': arguments.get('end_repository'),
+          'repository': arguments.get('repository'),
           'git_hash': arguments.get('end_git_hash')
       }]
   }

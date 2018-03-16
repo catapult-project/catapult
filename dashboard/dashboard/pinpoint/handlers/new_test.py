@@ -23,9 +23,7 @@ _BASE_REQUEST = {
     'benchmark': 'speedometer',
     'auto_explore': '1',
     'bug_id': '12345',
-    'start_repository': 'src',
     'start_git_hash': '1',
-    'end_repository': 'src',
     'end_git_hash': '3',
 }
 
@@ -47,6 +45,7 @@ class _NewTest(testing_common.TestCase):
             'browser': 'release',
             'builder': 'Mac Builder',
             'dimensions': {'key': 'value'},
+            'repository': 'src',
         },
     })
     namespaced_stored_object.Set('repositories', {
@@ -92,6 +91,7 @@ class NewTest(_NewTest):
         'builder': 'Mac Builder',
         'dimensions': '{"key": "value"}',
         'browser': 'android-webview',
+        'repository': 'src',
     })
     del request['configuration']
     response = self.testapp.post('/api/new', request, status=200)
@@ -119,9 +119,7 @@ class NewTest(_NewTest):
     base_request = {}
     base_request.update(_BASE_REQUEST)
     del base_request['start_git_hash']
-    del base_request['start_repository']
     del base_request['end_git_hash']
-    del base_request['end_repository']
     base_request['changes'] = json.dumps([
         {'commits': [{'repository': 'src', 'git_hash': '1'}]},
         {'commits': [{'repository': 'src', 'git_hash': '3'}]}])
