@@ -182,7 +182,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
     runner_options = self.createDefaultRunnerOptions()
     runner_options.browser_options.AppendExtraBrowserArgs(
-        ['--enable-heap-profiling'])
+        ['--memlog=all', '--memlog-sampling', '--memlog-stack-mode=pseudo'])
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, runner_options)
 

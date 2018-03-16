@@ -5,13 +5,13 @@
 """Grabs before/after memory dumps using the devtools remote protocol.
 
 To use it you first start Chrome with remote debugging enabled then run the
-script which will take a memory dump, wait for you to press enter, take 
+script which will take a memory dump, wait for you to press enter, take
 another memory dump and finally save a trace file. For example:
 
 On OSX:
 $ /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
     --remote-debugging-port=9222 \\
-    --enable-heap-profiling
+    --memlog=all --memlog-sampling --memlog-stack-mode=pseudo \\
 $ ./tracing/bin/memory_infra_remote_dump --port=9222
 ...
 [Press enter to stop tracing]
@@ -20,7 +20,7 @@ $ ./tracing/bin/memory_infra_remote_dump --port=9222
 
 On Android:
 $ ./build/android/adb_chrome_public_command_line \\
-    --enable-heap-profiling \\
+    --memlog=all --memlog-sampling --memlog-stack-mode=pseudo \\
     --enable-remote-debugging
 $ ./build/android/adb_run_chrome_public
 $ adb forward tcp:1234 localabstract:chrome_devtools_remote
@@ -94,7 +94,7 @@ class TracingDevtoolsClient(object):
         self.req_memory_dump()
 
     self.send('Tracing.end')
- 
+
     # Wait for trace completion
     print 'Flushing trace'
     resp = self.recv()
