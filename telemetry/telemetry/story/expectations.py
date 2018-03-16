@@ -341,7 +341,6 @@ EXPECTATION_NAME_MAP = {
     'All': ALL,
     'Android_Go': ANDROID_GO,
     'Android_One': ANDROID_ONE,
-    'Cherry_Mobile_Android_One': ANDROID_ONE,  # TODO(crbug.com/819577): Remove.
     'Android_Svelte': ANDROID_SVELTE,
     'Android_Low_End': ANDROID_LOW_END,
     'Android_Webview': ANDROID_WEBVIEW,
