@@ -135,7 +135,7 @@ class StoryExpectations(object):
         if condition.ShouldDisable(platform, finder_options):
           logging.info('Benchmark permanently disabled on %s due to %s.',
                        condition, reason)
-          return reason
+          return reason if reason is not None else 'No reason given'
     return None
 
   def DisableStory(self, story_name, conditions, reason):

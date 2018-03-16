@@ -509,6 +509,17 @@ class StoryExpectationsTest(unittest.TestCase):
             [expectations.ALL], 'Too Long')
     FooExpectations()
 
+  def testDisableBenchmarkWithNoReason(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableBenchmark([expectations.ALL_WIN], None)
+
+    e = FooExpectations()
+
+    self.platform.SetOSName('win')
+    reason = e.IsBenchmarkDisabled(self.platform, self.finder_options)
+    self.assertEqual(reason, 'No reason given')
+
   def testDisableStoryWithNoReason(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
