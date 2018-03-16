@@ -35,7 +35,7 @@ found in the LICENSE file.
         [[jobCount(jobs)]]
       </span>
     </h1>
-    <loading-wrapper url="/api/jobs" response="{{jobs}}">
+    <loading-wrapper url="/api/jobs" headers="[[authHeaders]]" response="{{jobs}}">
       <jobs-table id="jobs-table"
           jobs="[[jobs.jobs]]"
           sort-by="[[queryParams.sortBy]]"

@@ -7,6 +7,7 @@
 import json
 import webapp2
 
+from dashboard.api import api_auth
 from dashboard.pinpoint.models import job as job_module
 
 
@@ -23,9 +24,15 @@ class Jobs(webapp2.RequestHandler):
 
 
 def _GetJobs(options):
-  query = job_module.Job.query().order(-job_module.Job.created)
+  user = api_auth.Email()
+  if user:
+    query = job_module.Job.query(job_module.Job.user == user)
+  else:
+    query = job_module.Job.query()
+
+  query = query.order(-job_module.Job.created)
   job_future = query.fetch_async(limit=_MAX_JOBS_TO_FETCH)
-  count_future = job_module.Job.query().count_async(limit=_MAX_JOBS_TO_COUNT)
+  count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT)
 
   result = {
       'jobs': [],

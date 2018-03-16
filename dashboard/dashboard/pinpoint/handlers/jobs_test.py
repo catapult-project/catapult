@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import mock
 import unittest
 
 import webapp2
@@ -33,16 +34,29 @@ class JobsTest(unittest.TestCase):
   def tearDown(self):
     self.testbed.deactivate()
 
-  def testPost_ValidRequest(self):
-    # Create job.
-    job = job_module.Job.New(
-        arguments={},
-        quests=(),
-        auto_explore=True)
+  @mock.patch.object(jobs.api_auth, 'Email', mock.MagicMock(return_value=None))
+  def testGet_NoUser(self):
+    job = job_module.Job.New({}, (), True)
     job.put()
 
     data = json.loads(self.testapp.get('/jobs?o=STATE').body)
 
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
+    self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])
+
+  @mock.patch.object(jobs.api_auth, 'Email',
+                     mock.MagicMock(return_value='lovely.user@example.com'))
+  def testGet_WithUser(self):
+    job = job_module.Job.New({}, (), True)
+    job.put()
+    job = job_module.Job.New({}, (), True, user='lovely.user@example.com')
+    job.put()
+    job = job_module.Job.New({}, (), True, user='lovely.user@example.com')
+    job.put()
+
+    data = json.loads(self.testapp.get('/jobs?o=STATE').body)
+
+    self.assertEqual(2, data['count'])
+    self.assertEqual(2, len(data['jobs']))
     self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])

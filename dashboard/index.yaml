@@ -153,6 +153,13 @@ indexes:
   - name: timestamp
     direction: desc
 
+# Used to query for "My Jobs".
+- kind: Job
+  properties:
+  - name: user
+  - name: created
+    direction: desc
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
