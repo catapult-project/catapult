@@ -342,7 +342,11 @@ def ComputeTestPath(suite_path, guid, histograms):
   # If a Histogram is not a summary, then its 'stories' diagnostic will contain
   # the singular name of its story.
   story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
-  if story_name and len(story_name) == 1:
+  is_summary_diag = hist.diagnostics.get(reserved_infos.IS_SUMMARY.name)
+  is_summary = (is_summary_diag and
+                len(is_summary_diag) == 1 and
+                list(is_summary_diag)[0] == True)
+  if story_name and len(story_name) == 1 and not is_summary:
     escaped_story_name = add_point.EscapeName(list(story_name)[0])
     path += '/' + escaped_story_name
     if is_ref:

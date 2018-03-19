@@ -58,23 +58,15 @@ def main():
   dicts_across_stories = merge_histograms.MergeHistograms(args.input_path, (
     'name',))
 
-  # After merging across stories, any histograms with fewer than 2 stories are
-  # duplicates of histograms from merging across repeats and can be discarded.
-  def _ShouldDiscard(hist):
-    s = hist.diagnostics.get(reserved_infos.STORIES.name, [])
-    return len(s) <= 1
-
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(dicts_across_stories)
   histograms.ResolveRelatedHistograms()
-  discard = [h.guid for h in histograms if _ShouldDiscard(h)]
+  for histogram in histograms:
+    histogram.diagnostics[
+        reserved_infos.IS_SUMMARY.name] = generic_set.GenericSet([True])
 
-  dicts_across_stories = [
-      d for d in dicts_across_stories if d['guid'] not in discard]
-
-  histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(dicts_across_repeats)
-  histograms.ImportDicts(dicts_across_stories)
+  histograms.DeduplicateDiagnostics()
 
   for name, value in names_to_values.iteritems():
     histograms.AddSharedDiagnostic(name, generic_set.GenericSet([value]))
