@@ -389,6 +389,15 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
+  def testPost_BadBenchmarkName_DataRejected(self):
+    """Tests that an error is returned when the test name has too many parts."""
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['test_suite_name'] = 'no/slashes'
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Illegal slash in test suite name', response.body)
+
   def testPost_TestNameHasDoubleUnderscores_Rejected(self):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'my_test_suite/__my_test__'

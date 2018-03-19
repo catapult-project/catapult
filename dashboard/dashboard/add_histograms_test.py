@@ -196,6 +196,30 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       for dm in b.diagnostic_maps:
         self.assertEqual(0, len(dm))
 
+  def testPost_IllegalMasterName_Fails(self):
+    hs = self._CreateHistogram(
+        master='m/m', bot='b', benchmark='s', commit_position=1, samples=[1])
+    data = json.dumps(hs.AsDicts())
+
+    response = self.testapp.post('/add_histograms', {'data': data}, status=400)
+    self.assertIn('Illegal slash', response.body)
+
+  def testPost_IllegalBotName_Fails(self):
+    hs = self._CreateHistogram(
+        master='m', bot='b/b', benchmark='s', commit_position=1, samples=[1])
+    data = json.dumps(hs.AsDicts())
+
+    response = self.testapp.post('/add_histograms', {'data': data}, status=400)
+    self.assertIn('Illegal slash', response.body)
+
+  def testPost_IllegalSuiteName_Fails(self):
+    hs = self._CreateHistogram(
+        master='m', bot='b', benchmark='s/s', commit_position=1, samples=[1])
+    data = json.dumps(hs.AsDicts())
+
+    response = self.testapp.post('/add_histograms', {'data': data}, status=400)
+    self.assertIn('Illegal slash', response.body)
+
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
@@ -786,8 +810,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'type': 'GenericSet'
         }
     ])
-    # TODO: Should be a 400 error,
-    self.testapp.post('/add_histograms', {'data': data}, status=200)
+
+    self.testapp.post('/add_histograms', {'data': data}, status=400)
 
   def testPostHistogramFailsWithoutBuildbotInfo(self):
     data = json.dumps([
@@ -812,8 +836,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'unit': 'count'
         }
     ])
-    # TODO: Should be a 400 error,
-    self.testapp.post('/add_histograms', {'data': data}, status=200)
+
+    self.testapp.post('/add_histograms', {'data': data}, status=400)
 
   def testPostHistogramFailsWithoutChromiumCommit(self):
     data = json.dumps([
@@ -843,8 +867,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'name': 'foo',
             'unit': 'count'}
     ])
-    # TODO: Should be a 400 error,
-    self.testapp.post('/add_histograms', {'data': data}, status=200)
+
+    self.testapp.post('/add_histograms', {'data': data}, status=400)
 
   def testPostHistogramFailsWithoutBenchmark(self):
     data = json.dumps([
@@ -875,8 +899,8 @@ class AddHistogramsTest(testing_common.TestCase):
             'unit': 'count'
         }
     ])
-    # TODO: Should be a 400 error,
-    self.testapp.post('/add_histograms', {'data': data}, status=200)
+
+    self.testapp.post('/add_histograms', {'data': data}, status=400)
 
   def testPostHistogram_AddsSparseDiagnosticByName(self):
     data = json.dumps([
@@ -1083,8 +1107,7 @@ class AddHistogramsTest(testing_common.TestCase):
             'unit': 'count'
         }])
 
-    # TODO(simonhatch): The endpoint is swallowing all exceptions for now.
-    self.testapp.post('/add_histograms', {'data': data})
+    self.testapp.post('/add_histograms', {'data': data}, status=500)
 
   def testFindHistogramLevelSparseDiagnostics(self):
     hist = histogram_module.Histogram('hist', 'count')

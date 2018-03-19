@@ -252,12 +252,19 @@ def _TestSuiteName(dash_json_dict):
   present or it is None, the dashboard will fall back to using "benchmark_name"
   in the "chart_data" dict.
   """
+  name = None
   if dash_json_dict.get('test_suite_name'):
-    return dash_json_dict['test_suite_name']
-  try:
-    return dash_json_dict['chart_data']['benchmark_name']
-  except KeyError as e:
-    raise BadRequestError('Could not find test suite name. ' + e.message)
+    name = dash_json_dict['test_suite_name']
+  else:
+    try:
+      name = dash_json_dict['chart_data']['benchmark_name']
+    except KeyError as e:
+      raise BadRequestError('Could not find test suite name. ' + e.message)
+
+  if '/' in name:
+    raise BadRequestError('Illegal slash in test suite name: %s' % name)
+
+  return name
 
 
 def _AddTasks(data):

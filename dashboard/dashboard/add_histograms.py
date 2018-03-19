@@ -7,7 +7,6 @@
 import json
 import logging
 import sys
-import traceback
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -65,27 +64,14 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
   def AuthorizedPost(self):
     datastore_hooks.SetPrivilegedRequest()
 
-    try:
-      data_str = self.request.get('data')
-      if not data_str:
-        raise api_request_handler.BadRequestError('Missing "data" parameter')
+    data_str = self.request.get('data')
+    if not data_str:
+      raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-      logging.info('Received data: %s', data_str)
+    logging.info('Received data: %s', data_str)
 
-      histogram_dicts = json.loads(data_str)
-      ProcessHistogramSet(histogram_dicts)
-    except api_request_handler.BadRequestError:
-      # TODO(simonhatch, eakuefner: Remove this later.
-      # When this has all stabilized a bit, remove and let this 400 to clients,
-      # but for now to preven the waterfall from re-uploading over and over
-      # while we bug fix, let's just log the error.
-      # https://github.com/catapult-project/catapult/issues/4019
-      logging.error(traceback.format_exc())
-    except Exception:  # pylint: disable=broad-except
-      # TODO(simonhatch, eakuefner: Remove this later.
-      # We shouldn't be catching ALL exceptions, this is just while the
-      # stability of the endpoint is being worked on.
-      logging.error(traceback.format_exc())
+    histogram_dicts = json.loads(data_str)
+    ProcessHistogramSet(histogram_dicts)
 
 
 def _LogDebugInfo(histograms):
@@ -138,6 +124,8 @@ def ProcessHistogramSet(histogram_dicts):
       reserved_infos.BENCHMARK_DESCRIPTIONS.name,
       histograms.GetFirstHistogram(), optional=True)
 
+  _ValidateMasterBotBenchmarkName(master, bot, benchmark)
+
   suite_key = utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
 
   bot_whitelist = bot_whitelist_future.get_result()
@@ -161,6 +149,12 @@ def ProcessHistogramSet(histogram_dicts):
       suite_key.id(), histograms, revision, benchmark_description)
 
   _QueueHistogramTasks(tasks)
+
+
+def _ValidateMasterBotBenchmarkName(master, bot, benchmark):
+  for n in (master, bot, benchmark):
+    if '/' in n:
+      raise api_request_handler.BadRequestError('Illegal slash in %s' % n)
 
 
 def _MakeTask(params):
