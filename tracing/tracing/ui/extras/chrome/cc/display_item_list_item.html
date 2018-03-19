@@ -51,24 +51,22 @@ An element displaying basic information about a display item in a list view.
     </style>
     <div class="header">
       {{name}}
-      <template is="dom-if" if="{{_computeIf(richDetails)}}">
+      <template is="dom-if" if="{{_computeIfSKP(richDetails)}}">
         <a class="extra" href$="{{_computeHref(richDetails)}}"
            download="drawing.skp" on-click="{{stopPropagation}}">SKP</a>
       </template>
     </div>
     <div class="details">
-      <template if="{{rawDetails}}">
+      <template is="dom-if" if="{{rawDetails}}">
         <div class="raw-details">{{rawDetails}}</div>
       </template>
-      <template is="dom-if" if="{{richDetails}}" bind="{{richDetails}}">
+      <template is="dom-if" if="{{richDetails}}">
         <dl>
-          <template is="dom-if" if="{{cullRect}}" bind="{{cullRect}}">
-            <dt>Cull rect</dt>
-            <dd>{{x}},{{y}} {{width}}&times;{{height}}</dd>
-          </template>
-          <template is="dom-if" if="{{visualRect}}" bind="{{visualRect}}">
+          <template is="dom-if" if="{{richDetails.visualRect}}">
             <dt>Visual rect</dt>
-            <dd>{{x}},{{y}} {{width}}&times;{{height}}</dd>
+            <dd>{{richDetails.visualRect.x}},{{richDetails.visualRect.y}}
+                {{richDetails.visualRect.width}}&times;{{richDetails.visualRect.height}}
+            </dd>
           </template>
         </dl>
       </template>
@@ -124,7 +122,7 @@ An element displaying basic information about a display item in a list view.
       e.stopPropagation();
     },
 
-    _computeIf(richDetails) {
+    _computeIfSKP(richDetails) {
       return richDetails && richDetails.skp64;
     },
 
