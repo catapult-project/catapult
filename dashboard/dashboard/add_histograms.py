@@ -383,7 +383,7 @@ def ComputeRevision(histograms):
   # TODO(eakuefner): Allow users to specify other types of revisions to be used
   # for computing revisions of dashboard points. See
   # https://github.com/catapult-project/catapult/issues/3623.
-  if not isinstance(commit_position, int):
+  if not type(commit_position) in (long, int):
     raise api_request_handler.BadRequestError(
         'Commit Position must be an integer.')
   return commit_position
