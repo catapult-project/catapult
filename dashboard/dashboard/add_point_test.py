@@ -389,14 +389,54 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
 
-  def testPost_BadBenchmarkName_DataRejected(self):
+  def testPost_BenchmarkName_Slash_DataRejected(self):
     """Tests that an error is returned when the test name has too many parts."""
     point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     point['test_suite_name'] = 'no/slashes'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.assertIn('Illegal slash in test suite name', response.body)
+    self.assertIn('Illegal slash in test_suite_name', response.body)
+
+  def testPost_BenchmarkName_NotString_DataRejected(self):
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['test_suite_name'] = ['name']
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Error: test_suite_name must be a string', response.body)
+
+  def testPost_BotName_Slash_DataRejected(self):
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['bot'] = 'no/slashes'
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Illegal slash in bot', response.body)
+
+  def testPost_BotName_NotString_DataRejected(self):
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['bot'] = ['name']
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Error: bot must be a string', response.body)
+
+  def testPost_MasterName_Slash_DataRejected(self):
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['master'] = 'no/slashes'
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Illegal slash in master', response.body)
+
+  def testPost_MasterName_NotString_DataRejected(self):
+    point = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    point['master'] = ['name']
+    response = self.testapp.post(
+        '/add_point', {'data': json.dumps(point)}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.assertIn('Error: master must be a string', response.body)
 
   def testPost_TestNameHasDoubleUnderscores_Rejected(self):
     point = copy.deepcopy(_SAMPLE_POINT)

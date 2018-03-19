@@ -165,14 +165,22 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       self.ReportError(error.message, status=400)
 
 
+def _ValidateNameString(value, name):
+  if not value:
+    raise BadRequestError('No %s name given.' % name)
+  if not isinstance(value, basestring):
+    raise BadRequestError('Error: %s must be a string' % name)
+  if '/' in value:
+    raise BadRequestError('Illegal slash in %s' % name)
+
+
 def _ValidateDashboardJson(dash_json_dict):
   assert type(dash_json_dict) is dict
   # A Dashboard JSON dict should at least have all charts coming from the
   # same master, bot and rev. It can contain multiple charts, however.
-  if not dash_json_dict.get('master'):
-    raise BadRequestError('No master name given.')
-  if not dash_json_dict.get('bot'):
-    raise BadRequestError('No bot name given.')
+  _ValidateNameString(dash_json_dict.get('master'), 'master')
+  _ValidateNameString(dash_json_dict.get('bot'), 'bot')
+
   if not dash_json_dict.get('point_id'):
     raise BadRequestError('No point_id number given.')
   if not dash_json_dict.get('chart_data'):
@@ -261,8 +269,7 @@ def _TestSuiteName(dash_json_dict):
     except KeyError as e:
       raise BadRequestError('Could not find test suite name. ' + e.message)
 
-  if '/' in name:
-    raise BadRequestError('Illegal slash in test suite name: %s' % name)
+  _ValidateNameString(name, 'test_suite_name')
 
   return name
 
@@ -594,10 +601,8 @@ def _ValidateMasterBotTest(master, bot, test):
   if len(test.split('/')) > graph_data.MAX_TEST_ANCESTORS:
     raise BadRequestError('Invalid test name: %s' % test)
 
-  # The master and bot names have just one part.
-  if '/' in master or '/' in bot:
-    raise BadRequestError('Illegal slash in master or bot name.')
-
+  _ValidateNameString(master, 'master')
+  _ValidateNameString(bot, 'bot')
   _ValidateTestPath('%s/%s/%s' % (master, bot, test))
 
 
