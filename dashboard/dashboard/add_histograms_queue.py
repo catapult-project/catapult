@@ -220,6 +220,10 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
   logging.info('Processing: %s', test_path)
 
   hist = histogram_module.Histogram.FromDict(data_dict)
+
+  if hist.num_values == 0:
+    return []
+
   test_path_parts = test_path.split('/')
   master = test_path_parts[0]
   bot = test_path_parts[1]

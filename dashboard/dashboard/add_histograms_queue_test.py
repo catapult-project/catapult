@@ -252,20 +252,21 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(len(diagnostics), 3)
 
   def testPostHistogram_StoresUnescapedStoryName(self):
-    hists = [histogram_module.Histogram('hist', 'count')]
-    histograms = histogram_set.HistogramSet(hists)
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(42)
+    histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnostic(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['http://unescaped_story']))
 
     test_path = 'Chromium/win7/suite/metric'
     params = [{
-        'data': hists[0].AsDict(),
+        'data': hist.AsDict(),
         'test_path': test_path,
         'benchmark_description': None,
         'revision': 123,
         'diagnostics': {
-            'stories': hists[0].diagnostics.get('stories').AsDict(),
+            'stories': hist.diagnostics.get('stories').AsDict(),
         }
     }]
     self.testapp.post('/add_histograms_queue', json.dumps(params))
@@ -353,6 +354,24 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     rows = graph_data.Row.query().fetch()
     self.assertEqual(len(rows), 1)
+
+  def testPostHistogram_EmptyCreatesNoTestsOrRowsOrHistograms(self):
+    test_path = 'Chromium/win7/blink_perf.dom/foo'
+    hist = histogram_module.Histogram('foo', 'count')
+    params = [{
+        'data': hist.AsDict(),
+        'test_path': test_path,
+        'benchmark_description': None,
+        'revision': 123
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(len(rows), 0)
+    tests = graph_data.TestMetadata.query().fetch()
+    self.assertEqual(len(tests), 0)
+    hists = histogram.Histogram.query().fetch()
+    self.assertEqual(len(hists), 0)
 
   def testGetUnitArgs_Up(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')
