@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/model/event.html">
 
@@ -35,6 +36,10 @@ tr.exportTo('tr.model', function() {
 
     get end() {
       return this.start + this.duration;
+    },
+
+    get boundsRange() {
+      return tr.b.math.Range.fromExplicitRange(this.start, this.end);
     },
 
     addBoundsToRange(range) {
