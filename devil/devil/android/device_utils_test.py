@@ -2525,6 +2525,20 @@ class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
       self.device.SetEnforce(enabled='0')  # Not recommended but it works!
 
 
+class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
+
+  def testSetWebViewImplementation_success(self):
+    with self.assertCall(self.call.adb.Shell(
+        'cmd webviewupdate set-webview-implementation foo.org'), 'Success'):
+      self.device.SetWebViewImplementation('foo.org')
+
+  def testSetWebViewImplementation_failure(self):
+    with self.assertCall(self.call.adb.Shell(
+        'cmd webviewupdate set-webview-implementation foo.org'), 'Oops!'):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.SetWebViewImplementation('foo.org')
+
+
 class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
 
   def testTakeScreenshot_fileNameProvided(self):

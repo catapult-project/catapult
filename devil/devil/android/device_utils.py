@@ -2459,6 +2459,30 @@ class DeviceUtils(object):
         check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def SetWebViewImplementation(self, package_name, timeout=None, retries=None):
+    """Select the WebView implementation to the specified package.
+
+    Args:
+      package_name: The package name of a WebView implementation. The package
+        must be already installed on the device.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    output = self.RunShellCommand(
+        ['cmd', 'webviewupdate', 'set-webview-implementation', package_name],
+        single_line=True, check_return=True)
+    if output == 'Success':
+      logging.info('WebView provider set to: %s', package_name)
+    else:
+      raise device_errors.CommandFailedError(
+          'Error setting WebView provider: %s' % output, str(self))
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def TakeScreenshot(self, host_path=None, timeout=None, retries=None):
     """Takes a screenshot of the device.
 
