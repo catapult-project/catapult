@@ -308,6 +308,59 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('b', nameCells[2].row.name);
   });
 
+  test('sortMissing', async function() {
+    // Missing cells should be treated as zero for sorting purposes. The
+    // comparator must not return undefined or NaN.
+    const histograms = new tr.v.HistogramSet();
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['x'])],
+      ]),
+    });
+    histograms.createHistogram('b', tr.b.Unit.byName.count, [2], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['x'])],
+      ]),
+    });
+    // 'c','x' intentionally missing
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['y'])],
+      ]),
+    });
+    // 'b','y' intentionally missing
+    histograms.createHistogram('c', tr.b.Unit.byName.count, [-1], {
+      diagnostics: new Map([
+        [tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['y'])],
+      ]),
+    });
+    const table = await buildTable(this, histograms);
+    await table.viewState.update({sortColumnIndex: 2});
+    let cells = getNameCells(table);
+    assert.lengthOf(cells, 3);
+    assert.strictEqual('c', cells[0].row.name);
+    assert.strictEqual('b', cells[1].row.name);
+    assert.strictEqual('a', cells[2].row.name);
+    await table.viewState.update({sortDescending: true});
+    cells = getNameCells(table);
+    assert.lengthOf(cells, 3);
+    assert.strictEqual('a', cells[0].row.name);
+    assert.strictEqual('b', cells[1].row.name);
+    assert.strictEqual('c', cells[2].row.name);
+    await table.viewState.update({sortColumnIndex: 1});
+    cells = getNameCells(table);
+    assert.lengthOf(cells, 3);
+    assert.strictEqual('b', cells[0].row.name);
+    assert.strictEqual('a', cells[1].row.name);
+    assert.strictEqual('c', cells[2].row.name);
+    await table.viewState.update({sortDescending: false});
+    cells = getNameCells(table);
+    assert.lengthOf(cells, 3);
+    assert.strictEqual('c', cells[0].row.name);
+    assert.strictEqual('a', cells[1].row.name);
+    assert.strictEqual('b', cells[2].row.name);
+  });
+
   test('viewConstrainNameColumn', async function() {
     // TODO(#4321): Switch to using skipped instead once it works
     return;  // https://github.com/catapult-project/catapult/issues/4320

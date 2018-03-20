@@ -202,33 +202,38 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     compareCells(other, displayLabel) {
-      const cellA = this.columns.get(displayLabel);
-      const cellB = other.columns.get(displayLabel);
-      if (!(cellA instanceof tr.v.Histogram) ||
-          !(cellB instanceof tr.v.Histogram)) {
-        return undefined;
-      }
-
-      let referenceCellA;
-      let referenceCellB;
-
       // If a reference column is selected, compare the absolute deltas
       // between the two cells and their references.
       const referenceDisplayLabel = this.rootViewState.referenceDisplayLabel;
+      let referenceCellA;
+      let referenceCellB;
       if (referenceDisplayLabel &&
           referenceDisplayLabel !== displayLabel) {
         referenceCellA = this.columns.get(referenceDisplayLabel);
         referenceCellB = other.columns.get(referenceDisplayLabel);
       }
 
-      const statisticA = cellA.getAvailableStatisticName(
-          this.rootViewState.displayStatisticName, referenceCellA);
-      const statisticB = cellB.getAvailableStatisticName(
-          this.rootViewState.displayStatisticName, referenceCellB);
-      const scalarA = cellA.getStatisticScalar(statisticA, referenceCellA);
-      const scalarB = cellB.getStatisticScalar(statisticB, referenceCellB);
-      const valueA = scalarA ? scalarA.value : undefined;
-      const valueB = scalarB ? scalarB.value : undefined;
+      const cellA = this.columns.get(displayLabel);
+      let valueA = 0;
+      if (cellA instanceof tr.v.Histogram) {
+        const statisticA = cellA.getAvailableStatisticName(
+            this.rootViewState.displayStatisticName, referenceCellA);
+        const scalarA = cellA.getStatisticScalar(statisticA, referenceCellA);
+        if (scalarA) {
+          valueA = scalarA.value;
+        }
+      }
+
+      const cellB = other.columns.get(displayLabel);
+      let valueB = 0;
+      if (cellB instanceof tr.v.Histogram) {
+        const statisticB = cellB.getAvailableStatisticName(
+            this.rootViewState.displayStatisticName, referenceCellB);
+        const scalarB = cellB.getStatisticScalar(statisticB, referenceCellB);
+        if (scalarB) {
+          valueB = scalarB.value;
+        }
+      }
 
       return valueA - valueB;
     }
