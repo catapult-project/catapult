@@ -38,8 +38,3 @@ file. Look for a line like:
 Update the number to the git hash you want to roll to, and [contribute a
 codereview to chrome](http://www.chromium.org/developers/contributing-code)
 for your edit. If you are a Chromium committer, feel free to TBR this.
-
-Please also test the change on android\_optional\_gpu\_tests\_rel trybot.
-This can be accomplished by adding
-CQ\_INCLUDE\_TRYBOTS=master.tryserver.chromium.android:android\_optional\_gpu\_tests\_rel
-to the commit message.
