@@ -68,3 +68,7 @@ class GenericSet(diagnostic.Diagnostic):
   @staticmethod
   def FromDict(dct):
     return GenericSet(dct['values'])
+
+  def GetOnlyElement(self):
+    assert len(self) == 1
+    return self._values[0]

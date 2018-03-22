@@ -184,11 +184,9 @@ def _GetStoryFromDiagnosticsDict(diagnostics):
   if not story_name:
     return None
 
-  # TODO(simonhatch): Use GenericSetGetOnlyElement when it's available
-  # https://github.com/catapult-project/catapult/issues/4110
   story_name = diagnostic.Diagnostic.FromDict(story_name)
   if story_name and len(story_name) == 1:
-    return list(story_name)[0]
+    return story_name.GetOnlyElement()
   return None
 
 
@@ -470,8 +468,8 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
   # histogram and all its diagnostics including the full set of trace urls.
   trace_url_set = tracing_histogram.diagnostics.get(
       reserved_infos.TRACE_URLS.name)
-  if trace_url_set:
-    d['supplemental_columns']['a_tracing_uri'] = list(trace_url_set)[0]
+  if trace_url_set and len(trace_url_set) == 1:
+    d['supplemental_columns']['a_tracing_uri'] = trace_url_set.GetOnlyElement()
 
   for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.iteritems():
     revision_info = tracing_histogram.diagnostics.get(diag_name)

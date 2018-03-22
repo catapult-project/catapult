@@ -335,7 +335,7 @@ def ComputeTestPath(suite_path, guid, histograms):
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
   if is_ref and len(is_ref) == 1:
-    is_ref = list(is_ref)[0]
+    is_ref = is_ref.GetOnlyElement()
 
   # If a Histogram represents a summary across multiple stories, then its
   # 'stories' diagnostic will contain the names of all of the stories.
@@ -345,9 +345,9 @@ def ComputeTestPath(suite_path, guid, histograms):
   is_summary_diag = hist.diagnostics.get(reserved_infos.IS_SUMMARY.name)
   is_summary = (is_summary_diag and
                 len(is_summary_diag) == 1 and
-                list(is_summary_diag)[0] == True)
+                is_summary_diag.GetOnlyElement() == True)
   if story_name and len(story_name) == 1 and not is_summary:
-    escaped_story_name = add_point.EscapeName(list(story_name)[0])
+    escaped_story_name = add_point.EscapeName(story_name.GetOnlyElement())
     path += '/' + escaped_story_name
     if is_ref:
       path += '_ref'
@@ -369,7 +369,7 @@ def _GetDiagnosticValue(name, hist, optional=False):
   _CheckRequest(
       len(value) == 1,
       'Histograms must have exactly 1 "%s"' % name)
-  return list(value)[0]
+  return value.GetOnlyElement()
 
 
 def ComputeRevision(histograms):

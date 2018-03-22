@@ -89,3 +89,12 @@ class GenericSetUnittest(unittest.TestCase):
     a_set.AddDiagnostic(c_set)
     self.assertEqual(len(a_set), 1 + len(b_set))
     self.assertIn(c_dict, a_set)
+
+  def testGetOnlyElement(self):
+    gs = generic_set.GenericSet(['foo'])
+    self.assertEqual(gs.GetOnlyElement(), 'foo')
+
+  def testGetOnlyElementRaises(self):
+    gs = generic_set.GenericSet([])
+    with self.assertRaises(AssertionError):
+      gs.GetOnlyElement()
