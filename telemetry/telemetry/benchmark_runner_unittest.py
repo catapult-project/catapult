@@ -10,11 +10,20 @@ import unittest
 
 from telemetry import benchmark
 from telemetry import benchmark_runner
+from telemetry import story as story_module
+from telemetry import page as page_module
 import mock
 
 
 class BenchmarkFoo(benchmark.Benchmark):
   """Benchmark foo for testing."""
+
+  def page_set(self):
+    page = page_module.Page('http://example.com', name='dummy_page',
+                            tags=['foo', 'bar'])
+    story_set = story_module.StorySet()
+    story_set.AddStory(page)
+    return story_set
 
   @classmethod
   def Name(cls):
@@ -23,6 +32,9 @@ class BenchmarkFoo(benchmark.Benchmark):
 
 class BenchmarkBar(benchmark.Benchmark):
   """Benchmark bar for testing."""
+
+  def page_set(self):
+    return story_module.StorySet()
 
   @classmethod
   def Name(cls):
@@ -33,6 +45,7 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
 
   def setUp(self):
     self._stream = StringIO.StringIO()
+    self._json_stream = StringIO.StringIO()
     self._mock_possible_browser = mock.MagicMock()
     self._mock_possible_browser.browser_type = 'TestBrowser'
 
@@ -76,13 +89,17 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
       os.remove(expectations_file.name)
 
   def testPrintBenchmarkListInJSON(self):
-    expected_printed_stream = json.dumps([
-        {'name': BenchmarkFoo.Name(),
-         'description': BenchmarkFoo.Description(),
-         'enabled': True},
-        {'name': BenchmarkBar.Name(),
-         'description': BenchmarkBar.Description(),
-         'enabled': False}], indent=4, sort_keys=True, separators=(',', ': '))
+    expected_json_stream = json.dumps(
+        sorted([
+            {'name': BenchmarkFoo.Name(),
+             'description': BenchmarkFoo.Description(),
+             'enabled': True,
+             'story_tags': ['bar', 'foo']},
+            {'name': BenchmarkBar.Name(),
+             'description': BenchmarkBar.Description(),
+             'enabled': False,
+             'story_tags': []}], key=lambda b: b['name']),
+        indent=4, sort_keys=True, separators=(',', ': '))
 
     expectations_file_contents = (
         '# tags: All\n'
@@ -96,9 +113,9 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
       benchmark_runner.PrintBenchmarkList([BenchmarkFoo, BenchmarkBar],
                                           self._mock_possible_browser,
                                           expectations_file.name,
-                                          self._stream, as_json=True)
+                                          self._stream, self._json_stream)
 
-      self.assertEquals(expected_printed_stream, self._stream.getvalue())
+      self.assertEquals(expected_json_stream, self._json_stream.getvalue())
 
     finally:
       os.remove(expectations_file.name)
