@@ -41,9 +41,6 @@ def GetFromBrowserOptions(browser_options):
   args.append('--no-default-browser-check')
   args.append('--no-first-run')
 
-  # Not to show info bars which interfere with tests that assume no info bars.
-  args.append('--enable-automation')
-
   # Turn on GPU benchmarking extension for all runs. The only side effect of
   # the extension being on is that render stats are tracked. This is believed
   # to be effectively free. And, by doing so here, it avoids us having to
