@@ -189,7 +189,7 @@ class BugCommentTest(testing_common.TestCase):
         cc_list=['author1@chromium.org', 'author2@chromium.org',
                  'reviewer1@chromium.org', 'reviewer2@chromium.org'])
 
-  @mock.patch.object(job.job_state.JobState, 'Explore',
+  @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError))
   def testFailed(self):
     j = job.Job.New({}, [], False, bug_id=123456)

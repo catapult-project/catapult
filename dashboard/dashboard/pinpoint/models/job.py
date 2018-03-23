@@ -197,7 +197,8 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      self.state.Explore(self.auto_explore)
+      if self.auto_explore:
+        self.state.Explore()
       work_left = self.state.ScheduleWork()
 
       # Schedule moar task.
