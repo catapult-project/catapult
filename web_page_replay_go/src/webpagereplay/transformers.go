@@ -81,7 +81,7 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 	// Transform and recompress as needed.
 	body = f(body)
 	if isCompressed {
-		body, _, err = compressBody(ce, body)
+		body, _, err = CompressBody(ce, body)
 		if err != nil {
 			return failEarly(body, err)
 		}
@@ -136,9 +136,9 @@ func decompressBody(ce string, compressed []byte) ([]byte, error) {
 	return ioutil.ReadAll(r)
 }
 
-// compressBody reads a response body and compresses according to the given Accept-Encoding.
+// CompressBody reads a response body and compresses according to the given Accept-Encoding.
 // The chosen compressed encoding is returned along with the compressed body.
-func compressBody(ae string, uncompressed []byte) ([]byte, string, error) {
+func CompressBody(ae string, uncompressed []byte) ([]byte, string, error) {
 	var buf bytes.Buffer
 	var w io.WriteCloser
 	outCE := ""

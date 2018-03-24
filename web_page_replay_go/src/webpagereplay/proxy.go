@@ -113,7 +113,7 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		body, ce, err := compressBody(clientAE, body)
+		body, ce, err := CompressBody(clientAE, body)
 		if err != nil {
 			logf("error recompressing response body: %v", err)
 			w.WriteHeader(http.StatusNotFound)
