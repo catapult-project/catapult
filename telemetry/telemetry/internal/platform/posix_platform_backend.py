@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import distutils.spawn
+# pylint: disable=import-error
+# pylint: disable=no-name-in-module
+import distutils.spawn as spawn
 import logging
 import os
 import re
@@ -87,7 +89,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return command[0] if command else None
 
   def CanLaunchApplication(self, application):
-    return bool(distutils.spawn.find_executable(application))
+    return bool(spawn.find_executable(application))
 
   def IsApplicationRunning(self, application):
     ps_output = self.GetPsOutput(['command'])
@@ -100,7 +102,7 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     assert application, 'Must specify application to launch'
 
     if os.path.sep not in application:
-      application = distutils.spawn.find_executable(application)
+      application = spawn.find_executable(application)
       assert application, 'Failed to find application in path'
 
     args = [application]

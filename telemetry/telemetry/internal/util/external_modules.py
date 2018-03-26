@@ -5,7 +5,7 @@
 import importlib
 import logging
 
-from distutils import version
+from distutils import version  # pylint: disable=no-name-in-module
 
 # LooseVersion allows versions like "1.8.0rc1" (default numpy on macOS Sierra)
 # and "2.4.13.2" (a version of OpenCV 2.x).
