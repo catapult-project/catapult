@@ -22,9 +22,12 @@ found in the LICENSE file.
 <dom-module id="new-job-fab">
   <template>
     <style include="base-style">
-      paper-dropdown-menu,
-      paper-input {
-        min-width: 30em;
+      paper-dropdown-menu {
+        width: 100%;
+      }
+
+      paper-dialog {
+        width: 30em;
       }
 
       .error {
@@ -38,6 +41,9 @@ found in the LICENSE file.
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Run a try job</h2>
       <div>
+        <p>
+          See the performance impact of a patch on a benchmark. A try job runs
+          HEAD and HEAD + patch, and compares all the metrics between the two.
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>

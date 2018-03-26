@@ -19,8 +19,8 @@ found in the LICENSE file.
 <dom-module id="patch-job-fab">
   <template>
     <style include="base-style">
-      paper-input {
-        min-width: 40em;
+      paper-dialog {
+        width: 40em;
       }
 
       paper-fab {
@@ -39,6 +39,9 @@ found in the LICENSE file.
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Test a patch with this configuration</h2>
       <div>
+        <p>
+          See the impact of a patch on this job's metric. A patch job runs HEAD
+          and HEAD + patch with the same configuration and metric as this job.
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
