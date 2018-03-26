@@ -86,37 +86,6 @@ class HistogramSetUnittest(unittest.TestCase):
     with self.assertRaises(Exception):
       hists.AddHistogram(hist2)
 
-  def testFilterHistogram(self):
-    a = histogram.Histogram('a', 'unitless')
-    b = histogram.Histogram('b', 'unitless')
-    c = histogram.Histogram('c', 'unitless')
-    hs = histogram_set.HistogramSet([a, b, c])
-    hs.FilterHistograms(lambda h: h.name == 'b')
-
-    names = set(['a', 'c'])
-    for h in hs:
-      self.assertIn(h.name, names)
-      names.remove(h.name)
-    self.assertEqual(0, len(names))
-
-  def testRemoveOrphanedDiagnostics(self):
-    da = generic_set.GenericSet(['a'])
-    db = generic_set.GenericSet(['b'])
-    a = histogram.Histogram('a', 'unitless')
-    b = histogram.Histogram('b', 'unitless')
-    hs = histogram_set.HistogramSet([a])
-    hs.AddSharedDiagnostic('a', da)
-    hs.AddHistogram(b)
-    hs.AddSharedDiagnostic('b', db)
-    hs.FilterHistograms(lambda h: h.name == 'a')
-
-    dicts = hs.AsDicts()
-    self.assertEqual(3, len(dicts))
-
-    hs.RemoveOrphanedDiagnostics()
-    dicts = hs.AsDicts()
-    self.assertEqual(2, len(dicts))
-
   def testSharedDiagnostic(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
