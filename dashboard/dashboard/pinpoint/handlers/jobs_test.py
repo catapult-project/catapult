@@ -59,4 +59,6 @@ class JobsTest(unittest.TestCase):
 
     self.assertEqual(2, data['count'])
     self.assertEqual(2, len(data['jobs']))
-    self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])
+
+    sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
+    self.assertEqual(job.AsDict([job_module.OPTION_STATE]), sorted_data[-1])
