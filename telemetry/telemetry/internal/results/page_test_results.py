@@ -416,10 +416,17 @@ class PageTestResults(object):
     hist = histogram.Histogram(
         'benchmark_total_duration', 'ms_smallerIsBetter')
     hist.AddSample(duration_in_milliseconds)
-    # TODO(eakuefner): Add his diagnostic in AddHistogram().
-    # https://github.com/catapult-project/catapult/issues/4244
+    # TODO(#4244): Do this generally.
     hist.diagnostics[reserved_infos.LABELS.name] = generic_set.GenericSet(
         [self.telemetry_info.label])
+    hist.diagnostics[reserved_infos.BENCHMARKS.name] = generic_set.GenericSet(
+        [self.telemetry_info.benchmark_name])
+    hist.diagnostics[reserved_infos.BENCHMARK_START.name] = histogram.DateRange(
+        self.telemetry_info.benchmark_start_epoch)
+    if self.telemetry_info.benchmark_descriptions:
+      hist.diagnostics[
+          reserved_infos.BENCHMARK_DESCRIPTIONS.name] = generic_set.GenericSet([
+              self.telemetry_info.benchmark_descriptions])
     self._histograms.AddHistogram(hist)
 
   def AddHistogram(self, hist):
