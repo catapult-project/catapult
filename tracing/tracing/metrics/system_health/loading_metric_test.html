@@ -436,13 +436,13 @@ tr.b.unittest.testSuite(function() {
         });
   }
 
-  function addNavigationStart_(rendererMain, timestamp) {
+  function addNavigationStart_(rendererMain, timestamp, opt_data) {
     rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink.user_timing',
       title: 'navigationStart',
       start: timestamp,
       duration: 0.0,
-      args: {frame: '0xdeadbeef'}
+      args: {frame: '0xdeadbeef', data: opt_data}
     }));
   }
 
@@ -485,6 +485,46 @@ tr.b.unittest.testSuite(function() {
       duration,
     }));
   }
+
+  test('loadExpectationMetrics_urlDirectlyFromNavStartEvent', function() {
+    // If the navigation start event contains the URL, we should not require a
+    // FrameLoader snapshot before the event. See https://crbug.com/824761.
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+
+      addNavigationStart_(mainThread, 200,
+          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+      // FrameLoader creation time after navigation start.
+      rendererProcess.objects.idWasCreated(
+          'ptr', 'loading', 'FrameLoader', 250);
+      rendererProcess.objects.addSnapshot(
+          'ptr', 'loading', 'FrameLoader', 300, {
+            isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com',
+          });
+
+      addFirstMeaningfulPaint_(mainThread, 500);
+      addDomContentLoadedEnd_(mainThread, 600);
+
+      // New navigation to close the search window.
+      addNavigationStart_(mainThread, 7000,
+          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const fmpHist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
+    assert.strictEqual(1, fmpHist.running.count);
+    assert.strictEqual(300, fmpHist.running.mean);
+    // Both TTI and First CPU Idle firing at DCL.
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(1, ttiHist.running.count);
+    assert.strictEqual(400, ttiHist.running.mean);
+    const firstCpuIdleHist = histograms.getHistogramNamed('timeToFirstCpuIdle');
+    assert.strictEqual(1, firstCpuIdleHist.running.count);
+    assert.strictEqual(400, firstCpuIdleHist.running.mean);
+  });
 
   test('interactivityMetrics_notAffectedByShortTasks', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {

@@ -270,16 +270,26 @@ tr.exportTo('tr.importer', function() {
 
       for (let index = 0; index < navStartEvents.length; index++) {
         const currNavigation = navStartEvents[index];
-        const snapshot = findFrameLoaderSnapshotAt(
-            rendererHelper, frameIdRef, currNavigation.start);
-        if (!snapshot || !snapshot.args.isLoadingMainFrame) continue;
-        const url = snapshot.args.documentLoaderURL;
+        let url;
+        let isLoadingMainFrame = false;
+
+        if (currNavigation.args.data) {
+          url = currNavigation.args.data.documentLoaderURL;
+          isLoadingMainFrame = currNavigation.args.data.isLoadingMainFrame;
+        } else {
+          // TODO(#4358): Delete old path of obtaining URL.
+          const snapshot = findFrameLoaderSnapshotAt(
+              rendererHelper, frameIdRef, currNavigation.start);
+          if (snapshot) {
+            url = snapshot.args.documentLoaderURL;
+            isLoadingMainFrame = snapshot.args.isLoadingMainFrame;
+          }
+        }
 
         // Filter navigationStartEvents that do not correspond to a loading main
-        // page. Sometimes we get the navigationStartEvents corresponding to
-        // i-frames with snapshot.args.isLoadingMainFrame set to true and the
-        // url is set to ''. We should ignore these navigationStart events.
-        if (IGNORE_URLS.includes(url)) continue;
+        // frame, or has a URL that we do not care about.
+        if (!isLoadingMainFrame) continue;
+        if (url === undefined || IGNORE_URLS.includes(url)) continue;
 
         if (prevNavigation.navigationEvent !== undefined) {
           // Add a LoadExpectation for the previous navigation ending on or
