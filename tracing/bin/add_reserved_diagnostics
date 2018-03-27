@@ -49,8 +49,11 @@ def main():
       ctor = arg_names_to_infos[name].entry_type
       names_to_values[diagnostic_name] = ctor(value)
 
+  with open(args.input_path, 'r') as f:
+    dicts = json.loads(f.read())
+
   results_json = add_reserved_diagnostics.AddReservedDiagnostics(
-      args.input_path, names_to_values)
+      dicts, names_to_values)
 
   if args.stdout:
     print results_json

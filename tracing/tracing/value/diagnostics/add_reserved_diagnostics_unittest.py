@@ -3,37 +3,136 @@
 # found in the LICENSE file.
 
 import json
-import os
 import unittest
-import tempfile
 
 from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import add_reserved_diagnostics
 from tracing.value.diagnostics import generic_set
+from tracing.value.diagnostics import reserved_infos
 
 class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
-  def testAddReservedDiagnostics_Adds(self):
-    h = histogram.Histogram('foo', 'count')
-    hs = histogram_set.HistogramSet([h])
+  def _CreateHistogram(self, name, stories=None):
+    h = histogram.Histogram(name, 'count')
+    if stories:
+      h.diagnostics[reserved_infos.STORIES.name] = generic_set.GenericSet(
+          stories)
+    return h
 
-    f = tempfile.NamedTemporaryFile(delete=False)
-    json.dump(hs.AsDicts(), f)
-    f.close()
+  def testAddReservedDiagnostics_InvalidDiagnostic_Raises(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo')])
+
+    with self.assertRaises(AssertionError):
+      add_reserved_diagnostics.AddReservedDiagnostics(
+          hs.AsDicts(), {'SOME INVALID DIAGNOSTIC': 'bar'})
+
+  def testAddReservedDiagnostics_DiagnosticsAdded(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('bar', stories=['bar1']),
+        self._CreateHistogram('bar', stories=['bar2']),
+        self._CreateHistogram('blah')])
+
     new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
-        f.name, {'benchmarks': 'bar'})
+        hs.AsDicts(), {'benchmarks': 'bar'})
 
     new_hs = histogram_set.HistogramSet()
     new_hs.ImportDicts(json.loads(new_hs_json))
-    os.remove(f.name)
 
-    self.assertEqual(len(new_hs), 2)
-    new_h = [h for h in new_hs.GetHistogramsNamed('foo') if 'isSummary' in
-             h.diagnostics][0]
+    for h in new_hs:
+      self.assertIn('benchmarks', h.diagnostics)
+      benchmarks = list(h.diagnostics['benchmarks'])
+      self.assertEqual(['bar'], benchmarks)
 
-    self.assertEqual(len(new_h.diagnostics), 2)
-    self.assertIsInstance(new_h.diagnostics['benchmarks'],
-                          generic_set.GenericSet)
-    self.assertEqual(len(new_h.diagnostics['benchmarks']), 1)
-    self.assertEqual(new_h.diagnostics['benchmarks'].GetOnlyElement(), 'bar')
+  def testAddReservedDiagnostics_SummaryAddedToMerged(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('bar', stories=['bar1']),
+        self._CreateHistogram('bar', stories=['bar2']),
+        self._CreateHistogram('blah')])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    expected = [
+        ['foo1', True, ['foo1']],
+        ['foo1', False, ['foo1']],
+        ['bar', True, ['bar1', 'bar2']],
+        ['bar', False, ['bar1']],
+        ['bar', False, ['bar2']],
+        ['blah', False, []]]
+
+    for h in new_hs:
+      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      stories = sorted(list(h.diagnostics.get(reserved_infos.STORIES.name, [])))
+      self.assertIn([h.name, is_summary, stories], expected)
+      expected.remove([h.name, is_summary, stories])
+
+  def testAddReservedDiagnostics_Repeats_Merged(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('foo1', stories=['foo1']),
+        self._CreateHistogram('foo2', stories=['foo2'])])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    expected = [
+        ['foo1', True], ['foo1', False],
+        ['foo2', True], ['foo2', False]]
+
+    for h in new_hs:
+      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      self.assertIn([h.name, is_summary], expected)
+      expected.remove([h.name, is_summary])
+
+  def testAddReservedDiagnostics_Stories_Merged(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo', stories=['foo1']),
+        self._CreateHistogram('foo', stories=['foo2']),
+        self._CreateHistogram('bar', stories=['bar'])])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    expected = [
+        ['foo', True, ['foo1', 'foo2']],
+        ['foo', False, ['foo1']], ['foo', False, ['foo2']],
+        ['bar', True, ['bar']], ['bar', False, ['bar']]]
+
+    for h in new_hs:
+      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
+      self.assertIn([h.name, is_summary, stories], expected)
+      expected.remove([h.name, is_summary, stories])
+
+  def testAddReservedDiagnostics_NoStories_Unmerged(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo'),
+        self._CreateHistogram('foo'),
+        self._CreateHistogram('bar')])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    for h in new_hs:
+      self.assertNotIn(reserved_infos.IS_SUMMARY.name, h.diagnostics)
+
+    self.assertEqual(2, len(new_hs.GetHistogramsNamed('foo')))
+    self.assertEqual(1, len(new_hs.GetHistogramsNamed('bar')))

@@ -20,6 +20,21 @@ class HistogramSet(object):
   def shared_diagnostics(self):
     return self._shared_diagnostics_by_guid.itervalues()
 
+  def RemoveOrphanedDiagnostics(self):
+    orphans = set(self._shared_diagnostics_by_guid.keys())
+    for h in self._histograms_by_guid.itervalues():
+      for d in h.diagnostics.itervalues():
+        if d.guid in orphans:
+          orphans.remove(d.guid)
+    for guid in orphans:
+      del self._shared_diagnostics_by_guid[guid]
+
+  def FilterHistograms(self, discard):
+    self._histograms_by_guid = dict(
+        (guid, hist)
+        for guid, hist in self._histograms_by_guid.iteritems()
+        if not discard(hist))
+
   def AddHistogram(self, hist, diagnostics=None):
     if hist.guid in self._histograms_by_guid:
       raise ValueError('Cannot add same Histogram twice')
