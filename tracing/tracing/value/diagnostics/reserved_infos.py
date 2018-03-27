@@ -72,3 +72,7 @@ def AllInfos():
   for info in globals().itervalues():
     if isinstance(info, _Info):
       yield info
+
+def AllNames():
+  for info in AllInfos():
+    yield info.name
