@@ -12,6 +12,11 @@ found in the LICENSE file.
 tr.exportTo('tr.e.blink', function() {
   class BlinkSchedulerAsyncSlice extends tr.model.AsyncSlice {
     get viewSubGroupGroupingKey() {
+      if (this.title.startsWith('FrameScheduler.')) {
+        return 'Frame' + this.id;
+      }
+      // Deprecated (renamed in newer versions of Chrome).
+      // TODO(#4364): Remove after 30 May 2018.
       if (this.title.startsWith('WebFrameScheduler.')) {
         return 'WebFrame' + this.id;
       }

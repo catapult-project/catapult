@@ -97,19 +97,19 @@ tr.b.unittest.testSuite(function() {
           start: 0, duration: 1 }));
     g.push(newAsyncSliceEx(
         { cat: 'renderer.scheduler',
-          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Foo',
+          id: ':ptr:0xdeadbeef', title: 'FrameScheduler.Foo',
           start: 0.5, duration: 0.1 }));
     g.push(newAsyncSliceEx(
         { cat: 'renderer.scheduler',
-          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Bar',
+          id: ':ptr:0xdeadbeef', title: 'FrameScheduler.Bar',
           start: 0.55, duration: 0.2 }));
     g.push(newAsyncSliceEx(
         { cat: 'renderer.scheduler',
-          id: ':ptr:0x1ee7beef', title: 'WebFrameScheduler.Baz',
+          id: ':ptr:0x1ee7beef', title: 'FrameScheduler.Baz',
           start: 0.3, duration: 0.3 }));
     g.push(newAsyncSliceEx(
         { cat: 'renderer.scheduler',
-          id: ':ptr:0x1ee7beef', title: 'WebFrameScheduler.Baz',
+          id: ':ptr:0x1ee7beef', title: 'FrameScheduler.Baz',
           start: 0.7, duration: 0.2 }));
     g.push(newAsyncSliceEx(
         { title: 'VeryBusy',
@@ -122,29 +122,54 @@ tr.b.unittest.testSuite(function() {
     const vsg = g.viewSubGroups;
     assert.strictEqual(vsg.length, 4);
     // Groups must be sorted by title.
-    assert.strictEqual(vsg[0].title, 'Loading');
-    assert.strictEqual(vsg[1].title, 'VeryBusy');
-    assert.strictEqual(vsg[2].title, 'WebFrame:ptr:0x1ee7beef');
-    assert.strictEqual(vsg[3].title, 'WebFrame:ptr:0xdeadbeef');
+    assert.strictEqual(vsg[0].title, 'Frame:ptr:0x1ee7beef');
+    assert.strictEqual(vsg[1].title, 'Frame:ptr:0xdeadbeef');
+    assert.strictEqual(vsg[2].title, 'Loading');
+    assert.strictEqual(vsg[3].title, 'VeryBusy');
     // Check nested view sub-groups.
-    assert.strictEqual(vsg[0].viewSubGroups.length, 0);
-    assert.strictEqual(vsg[1].viewSubGroups.length, 0);
-    const wf1vsg = vsg[2].viewSubGroups;
+    assert.strictEqual(vsg[2].viewSubGroups.length, 0);
+    assert.strictEqual(vsg[3].viewSubGroups.length, 0);
+    const wf1vsg = vsg[0].viewSubGroups;
     assert.strictEqual(wf1vsg.length, 1);
-    assert.strictEqual(wf1vsg[0].title, 'WebFrameScheduler.Baz');
+    assert.strictEqual(wf1vsg[0].title, 'FrameScheduler.Baz');
     assert.strictEqual(wf1vsg[0].getSettingsKey(),
         'processes.Renderer.MainThread.' +
-        'WebFrame:ptr:0x1ee7beef.WebFrameScheduler.Baz');
-    const wf2vsg = vsg[3].viewSubGroups;
+        'Frame:ptr:0x1ee7beef.FrameScheduler.Baz');
+    const wf2vsg = vsg[1].viewSubGroups;
     assert.strictEqual(wf2vsg.length, 2);
-    assert.strictEqual(wf2vsg[0].title, 'WebFrameScheduler.Bar');
+    assert.strictEqual(wf2vsg[0].title, 'FrameScheduler.Bar');
     assert.strictEqual(wf2vsg[0].getSettingsKey(),
         'processes.Renderer.MainThread.' +
-        'WebFrame:ptr:0xdeadbeef.WebFrameScheduler.Bar');
-    assert.strictEqual(wf2vsg[1].title, 'WebFrameScheduler.Foo');
+        'Frame:ptr:0xdeadbeef.FrameScheduler.Bar');
+    assert.strictEqual(wf2vsg[1].title, 'FrameScheduler.Foo');
     assert.strictEqual(wf2vsg[1].getSettingsKey(),
         'processes.Renderer.MainThread.' +
-        'WebFrame:ptr:0xdeadbeef.WebFrameScheduler.Foo');
+        'Frame:ptr:0xdeadbeef.FrameScheduler.Foo');
+  });
+
+  // Deprecated (renamed in newer versions of Chrome).
+  // TODO(#4364): Remove after 30 May 2018.
+  test('asyncSliceGroupViewSubGroupsOldName', function() {
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    p1.name = 'Renderer';
+    const t1 = p1.getOrCreateThread(321);
+    t1.name = 'MainThread';
+    const g = new AsyncSliceGroup(t1);
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Foo',
+          start: 0.5, duration: 0.1 }));
+    g.push(newAsyncSliceEx(
+        { cat: 'renderer.scheduler',
+          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Bar',
+          start: 0.55, duration: 0.2 }));
+    assert.strictEqual(g.length, 2);
+
+    const vsg = g.viewSubGroups;
+    assert.strictEqual(vsg.length, 1);
+    assert.strictEqual(vsg[0].title, 'WebFrame:ptr:0xdeadbeef');
+    assert.strictEqual(vsg[0].viewSubGroups.length, 2);
   });
 
   test('asyncSliceGroupStableId', function() {
