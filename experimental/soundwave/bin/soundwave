@@ -62,6 +62,9 @@ def Main():
       '-f', '--filters', action='append',
       help=('Only get data for timeseries whose path contains all the given '
             'substrings.'))
+  subparser.add_argument(
+      '-s', '--sheriff', default='Chromium Perf Sheriff',
+      help='Only get data for timeseries for this sheriff rotation')
 
   args = parser.parse_args()
   if args.action == 'alerts':

@@ -36,5 +36,5 @@ def FetchTimeseriesData(args):
   with open(args.output_path, 'wb') as fp:
     csv_writer = csv.writer(fp)
     for row in dashboard_communicator.GetAllTimeseriesForBenchmark(
-        args.benchmark, args.days, args.filters):
+        args.benchmark, args.days, args.filters, args.sheriff):
       csv_writer.writerow(row)

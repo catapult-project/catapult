@@ -134,7 +134,7 @@ class PerfDashboardCommunicator(object):
     """
     r = 'list_timeseries/%s' % benchmark
     if sheriff:
-      r += '?sheriff=%s' % sheriff
+      r += '?sheriff=%s' % urllib.quote(sheriff)
     return self._MakeApiRequest(r)
 
   def GetTimeseries(self, test_path, days=30):
@@ -156,7 +156,7 @@ class PerfDashboardCommunicator(object):
        'test_path': test_path}
     """
     options = urllib.urlencode({'num_days': days})
-    r = 'timeseries/%s?%s' % (urllib.quote_plus(test_path), options)
+    r = 'timeseries/%s?%s' % (urllib.quote(test_path), options)
     return self._MakeApiRequest(r)
 
   def GetBugData(self, bug_id):
@@ -168,19 +168,22 @@ class PerfDashboardCommunicator(object):
     options = urllib.urlencode({'benchmark': benchmark})
     return self._MakeApiRequest('alerts/history/%d?%s' % (days, options))
 
-  def GetAllTimeseriesForBenchmark(self, benchmark, days=30, filters=None):
+  def GetAllTimeseriesForBenchmark(self, benchmark, days=30, filters=None,
+                                   sheriff=None):
     """ Generator function returning timeseries entries for a benchmark.
 
     args:
       benchmark: benchmark you want data for.
       days: number of days to return data for.
-      filter: A list of strings. The metric must contain all of the strings
+      filter: A list of strings. The metric must contain all of the strings.
+      sheriff: Search for timeseries for the specific sheriff rotation only. If
+          not specified, 'Chrome Perf Sheriff' is used by default on the server.
 
     yields:
       Timeseries data point.
     """
     header = ['bot', 'benchmark', 'metric', 'story']
-    test_paths = self.ListTestPaths(benchmark)
+    test_paths = self.ListTestPaths(benchmark, sheriff=sheriff)
     for tp in test_paths:
       if not filters or all(f in tp for f in filters):
         ts = self.GetTimeseries(tp, days=days)
