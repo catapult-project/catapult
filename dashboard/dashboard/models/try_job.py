@@ -98,6 +98,11 @@ class TryJob(internal_only_model.InternalOnlyModel):
       bug_data.SetBisectStatus(self.bug_id, 'completed')
     bisect_stats.UpdateBisectStats(self.bot, 'completed')
 
+  def GetCulpritCL(self):
+    if not self.results_data:
+      return None
+    return self.results_data.get('culprit_data', {}).get('cl')
+
   def GetConfigDict(self):
     return json.loads(self.config.split('=', 1)[1])
 

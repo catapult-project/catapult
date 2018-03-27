@@ -406,6 +406,49 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'GetIssue',
+      mock.MagicMock(
+          return_value={
+              'id': 123,
+              'status': 'Assigned'
+          }))
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_BisectCulpritHasAuthor_DoesNotMergeIntoBugWithMultipleCulprits(
+      self, mock_update_bug):
+    data = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    self._AddTryJob(123, 'completed', 'win_perf', results_data=data)
+    layered_cache.SetExternal('commit_hash_2a1781d64d', '123')
+
+    data = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    data['culprit_data']['email'] = 'some-person-2@foo.bar'
+    data['culprit_data']['cl'] = 'BBBBBBBB'
+    self._AddTryJob(123, 'completed', 'linux_perf', results_data=data)
+    layered_cache.SetExternal('commit_hash_BBBBBBBB', '123')
+
+    self._AddTryJob(456, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_RESULTS_JSON)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        cc_list=['author@email.com', 'prasadv@google.com'],
+        merge_issue=None, labels=None, owner='author@email.com',
+        status='Assigned')
+
+    # Should have skipped updating cache.
+    self.assertEqual(
+        layered_cache.GetExternal('commit_hash_2a1781d64d'), '456')
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
       update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_FailedRevisionResponse(self, mock_add_bug):
