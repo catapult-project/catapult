@@ -42,10 +42,11 @@ found in the LICENSE file.
         <p>
           See the impact of a patch on this job's metric. A patch job runs HEAD
           and HEAD + patch with the same configuration and metric as this job.
+        </p>
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
-        <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+        <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">

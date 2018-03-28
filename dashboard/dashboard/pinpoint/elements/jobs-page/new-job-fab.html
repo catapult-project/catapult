@@ -44,11 +44,12 @@ found in the LICENSE file.
         <p>
           See the performance impact of a patch on a benchmark. A try job runs
           HEAD and HEAD + patch, and compares all the metrics between the two.
+        </p>
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
         <iron-ajax auto url="/api/config" last-response="{{config}}"></iron-ajax>
-        <iron-form id="try_form" with-credentials headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+        <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
             <input type="hidden" name="auto_explore" value="false">
             <input type="hidden" name="start_git_hash" value="HEAD">
