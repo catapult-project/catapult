@@ -34,6 +34,17 @@ tr.b.unittest.testSuite(function() {
         start: 7502.50,
         duration: 12.25
       }));
+
+      const rendererProcess = model.getOrCreateProcess(3);
+      const rendererMainThread = rendererProcess.getOrCreateThread(4);
+      rendererMainThread.name = 'CrRendererMain';
+      rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading,rail,devtools.timeline',
+        title: 'firstContentfulPaint',
+        start: 8400.125,
+        duration: 0.0,
+        args: {frame: '0x0'}
+      }));
     });
   }
 
@@ -48,6 +59,10 @@ tr.b.unittest.testSuite(function() {
         'request_start_time');
     assert.strictEqual(1, requestStartHistogram.numValues);
     assert.strictEqual(714.625, requestStartHistogram.average);
+    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
+        'first_contentful_paint_time');
+    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
+    assert.strictEqual(1600, firstContentfulPaintHistogram.average);
   });
 });
 </script>
