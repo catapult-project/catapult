@@ -187,6 +187,27 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False, env=None):
   return (status, stdout)
 
 
+def StartCmd(args, cwd=None, shell=False, env=None):
+  """Starts a subprocess and returns a handle to the process.
+
+  Args:
+    args: A string or a sequence of program arguments. The program to execute is
+      the string or the first item in the args sequence.
+    cwd: If not None, the subprocess's current directory will be changed to
+      |cwd| before it's executed.
+    shell: Whether to execute args as a shell command. Must be True if args
+      is a string and False if args is a sequence.
+    env: If not None, a mapping that defines environment variables for the
+      subprocess.
+
+  Returns:
+    A process handle from subprocess.Popen.
+  """
+  _ValidateAndLogCommand(args, cwd, shell)
+  return Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+               shell=shell, cwd=cwd, env=env)
+
+
 def GetCmdStatusOutputAndError(args, cwd=None, shell=False, env=None):
   """Executes a subprocess and returns its exit code, output, and errors.
 

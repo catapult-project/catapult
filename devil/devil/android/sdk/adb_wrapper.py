@@ -482,6 +482,19 @@ class AdbWrapper(object):
           'File pulled from the device did not arrive on the host: %s' % local,
           device_serial=str(self))
 
+  def StartShell(self, cmd):
+    """Starts a subprocess on the device and returns a handle to the process.
+
+    Args:
+      args: A sequence of program arguments. The executable to run is the first
+        item in the sequence.
+
+    Returns:
+      An instance of subprocess.Popen associated with the live process.
+    """
+    return cmd_helper.StartCmd(
+        self._BuildAdbCmd(['shell'] + cmd, self._device_serial))
+
   def Shell(self, command, expect_status=0, timeout=DEFAULT_TIMEOUT,
             retries=DEFAULT_RETRIES):
     """Runs a shell command on the device.
