@@ -213,28 +213,6 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     self.assertEqual(
         {'error': 'Some reason'}, result)
 
-  def testStartNewBisectForBug_Pinpoint_UnsupportedMaster_Error(self):
-    testing_common.AddTests(
-        ['SomeOtherMaster'], ['linux-pinpoint'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('SomeOtherMaster/linux-pinpoint/sunspider/score')
-    testing_common.AddRows(
-        'SomeOtherMaster/linux-pinpoint/sunspider/score',
-        {
-            11999: {
-                'r_foo': '9e29b5bcd08357155b2859f87227d50ed60cf857'
-            },
-            12500: {
-                'r_foo': 'fc34e5346446854637311ad7793a95d56e314042'
-            }
-        })
-    anomaly.Anomaly(
-        bug_id=333, test=test_key,
-        start_revision=12000, end_revision=12501,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(333)
-    self.assertEqual(
-        {'error': 'Unsupported master: SomeOtherMaster'}, result)
-
 
 if __name__ == '__main__':
   unittest.main()

@@ -94,8 +94,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -107,8 +105,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'extra_test_args': json.dumps(
             ['--extra-trace-args', 'abc,123,foo']),
     }
@@ -118,9 +114,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('telemetry_perf_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
-    self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('false', results['auto_explore'])
     self.assertEqual(
@@ -134,8 +128,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -144,53 +136,9 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
-    self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('false', results['auto_explore'])
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_StartRepositoryInvalid_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'foo',
-        'end_repository': 'chromium',
-        'extra_test_args': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_StartRepositoryNoChromium_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'v8',
-        'end_repository': 'chromium',
-        'extra_test_args': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_EndRepositoryNoChromium_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'v8',
-        'extra_test_args': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
@@ -202,8 +150,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '1234',
         'end_commit': '5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -220,8 +166,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -229,38 +173,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertFalse(mock_crrev.called)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_InvalidRepositoryCommitPosition(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': '123',
-        'end_commit': '456',
-        'start_repository': 'v8',
-        'end_repository': 'v8',
-        'extra_test_args': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={'error': {'message': 'foo'}}))
-  def testPinpointParams_CrrevFails(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': '123',
-        'end_commit': '456',
-        'start_repository': 'v8',
-        'end_repository': 'v8',
-        'extra_test_args': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
 
 
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
@@ -370,8 +282,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -384,9 +294,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo', results['chart'])
     self.assertEqual('cc_perftests', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
-    self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
@@ -402,8 +310,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'story_filter': 'foo',
         'bisect_mode': 'performance',
@@ -415,9 +321,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
-    self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
@@ -430,8 +334,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -443,9 +345,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo', results['chart'])
     self.assertEqual('telemetry_perf_webview_tests', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('chromium', results['start_repository'])
     self.assertEqual('abcd1234', results['start_git_hash'])
-    self.assertEqual('chromium', results['end_repository'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
     self.assertEqual(1, results['bug_id'])
@@ -457,8 +357,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/blink_perf/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -476,8 +374,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/http___bar.html',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -497,8 +393,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -517,8 +411,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'foo',
         'story_filter': '',
@@ -534,8 +426,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': 1,
         'bisect_mode': 'functional',
         'story_filter': '',
@@ -549,51 +439,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_StartRepositoryInvalid_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'foo',
-        'end_repository': 'chromium',
-        'bisect_mode': 'performance',
-        'story_filter': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromBisectParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_StartRepositoryNoChromium_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'v8',
-        'end_repository': 'chromium',
-        'bisect_mode': 'performance',
-        'story_filter': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromBisectParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_EndRepositoryNoChromium_RaisesError(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'v8',
-        'bisect_mode': 'performance',
-        'story_filter': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromBisectParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   @mock.patch.object(
       pinpoint_request.crrev_service, 'GetNumbering',
       mock.MagicMock(return_value={'git_sha': 'abcd'}))
@@ -602,8 +447,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '1234',
         'end_commit': '5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': '',
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -622,8 +465,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
-        'start_repository': 'chromium',
-        'end_repository': 'chromium',
         'bug_id': '',
         'bisect_mode': 'performance',
         'story_filter': '',
@@ -636,39 +477,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  def testPinpointParams_InvalidRepositoryCommitPosition(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': '123',
-        'end_commit': '456',
-        'start_repository': 'v8',
-        'end_repository': 'v8',
-        'bisect_mode': 'performance',
-        'story_filter': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromBisectParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={'error': {'message': 'foo'}}))
-  def testPinpointParams_CrrevFails(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': '123',
-        'end_commit': '456',
-        'start_repository': 'v8',
-        'end_repository': 'v8',
-        'bisect_mode': 'performance',
-        'story_filter': '',
-    }
-    with self.assertRaises(pinpoint_request.InvalidParamsError):
-      pinpoint_request.PinpointParamsFromBisectParams(params)
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_SplitsStatistics(self):
     statistic_types = ['avg', 'min', 'max', 'sum', 'std', 'count']
 
@@ -677,8 +485,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
           'test_path': 'ChromiumPerf/mac/system_health/foo_%s' % s,
           'start_commit': 'abcd1234',
           'end_commit': 'efgh5678',
-          'start_repository': 'chromium',
-          'end_repository': 'chromium',
           'bisect_mode': 'performance',
           'story_filter': '',
           'bug_id': -1,

@@ -90,8 +90,6 @@ tr.b.unittest.testSuite(function() {
     page.test_path = 'master/bot/suite/foo';
     page.start_git_hash = '1234567890';
     page.end_git_hash = '0987654321';
-    page.start_repository = 'chromium';
-    page.end_repository = 'chromium';
     await page.show();
 
     page.close();
@@ -117,8 +115,6 @@ tr.b.unittest.testSuite(function() {
     page.test_path = 'master/bot/suite/foo';
     page.start_commit = '1234567890';
     page.end_commit = '0987654321';
-    page.start_repository = 'chromium';
-    page.end_repository = 'chromium';
     await page.show();
     page.story_filter = 'foo';
 
@@ -137,8 +133,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
     assert.strictEqual(params.start_commit, '1234567890');
     assert.strictEqual(params.end_commit, '0987654321');
-    assert.strictEqual(params.start_repository, 'chromium');
-    assert.strictEqual(params.end_repository, 'chromium');
     assert.strictEqual(params.story_filter, 'foo');
     assert.strictEqual(params.bisect_mode, 'performance');
   }, testOptionsOverwriteSimpleXhr);
@@ -154,8 +148,6 @@ tr.b.unittest.testSuite(function() {
     page.test_path = 'master/bot/suite/foo';
     page.start_commit = '1234567890';
     page.end_commit = '0987654321';
-    page.start_repository = 'chromium';
-    page.end_repository = 'chromium';
     await page.show();
     page.story_filter = 'foo';
     page.$.functional.click();
@@ -175,8 +167,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
     assert.strictEqual(params.start_commit, '1234567890');
     assert.strictEqual(params.end_commit, '0987654321');
-    assert.strictEqual(params.start_repository, 'chromium');
-    assert.strictEqual(params.end_repository, 'chromium');
     assert.strictEqual(params.story_filter, 'foo');
     assert.strictEqual(params.bisect_mode, 'functional');
   }, testOptionsOverwriteSimpleXhr);
@@ -192,8 +182,6 @@ tr.b.unittest.testSuite(function() {
     page.test_path = 'master/bot/suite/foo';
     page.start_commit = '1234567890';
     page.end_commit = '0987654321';
-    page.start_repository = 'chromium';
-    page.end_repository = 'chromium';
     await page.show();
     page.story_filter = 'foo';
     page.alerts = [{key: 'abc123'}];

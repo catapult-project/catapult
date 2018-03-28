@@ -86,20 +86,10 @@ def _StartBisectForBug(bug_id):
 
 def _StartPinpointBisect(bug_id, test_anomaly, test):
   # Convert params to Pinpoint compatible
-  master_to_depot = {
-      'ChromiumPerf': 'chromium'
-  }
-  if not test.master_name in master_to_depot:
-    raise NotBisectableError('Unsupported master: %s' % test.master_name)
-
-  repository = master_to_depot[test.master_name]
-
   params = {
       'test_path': test.test_path,
       'start_commit': test_anomaly.start_revision - 1,
       'end_commit': test_anomaly.end_revision,
-      'start_repository': repository,
-      'end_repository': repository,
       'bug_id': bug_id,
       'bisect_mode': 'performance',
       'story_filter': start_try_job.GuessStoryFilter(test.test_path),

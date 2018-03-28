@@ -115,8 +115,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
     assert.strictEqual(params.start_commit, '1234567890');
     assert.strictEqual(params.end_commit, '0987654321');
-    assert.strictEqual(params.start_repository, 'chromium');
-    assert.strictEqual(params.end_repository, 'chromium');
     assert.deepEqual(JSON.parse(params.extra_test_args), [
       '--extra-chrome-categories', 'a,b,c'
     ]);
@@ -154,8 +152,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(params.test_path, 'master/bot/suite/foo');
     assert.strictEqual(params.start_commit, '1234567890');
     assert.strictEqual(params.end_commit, '0987654321');
-    assert.strictEqual(params.start_repository, 'chromium');
-    assert.strictEqual(params.end_repository, 'chromium');
     assert.deepEqual(JSON.parse(params.extra_test_args), [
       '--extra-atrace-categories', '1,2,3'
     ]);
