@@ -60,16 +60,7 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
 
     for (const label in breakdownTree) {
-      // We have seen subtle bugs that make breakdowns negative before. We
-      // should complain loudly if that happens.
-      if (breakdownTree[label].total < 0) {
-        throw new Error('Breakdown total cannot be negative');
-      }
-      // Do not add zero values to breakdown to reduce bloat when serialized.
-      // See catapult:#4267.
-      if (breakdownTree[label].total > 0) {
-        breakdownDiagnostic.set(label, breakdownTree[label].total);
-      }
+      breakdownDiagnostic.set(label, breakdownTree[label].total);
     }
     return breakdownDiagnostic;
   }
