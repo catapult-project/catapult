@@ -18,6 +18,11 @@ _COMMENT_STARTED = (
 https://testbed.example.com/job/1""")
 
 
+_COMMENT_COMPLETED_NO_COMPARISON = (
+    u"""<b>\U0001f4cd Job complete. See results below.</b>
+https://testbed.example.com/job/1""")
+
+
 _COMMENT_COMPLETED_NO_DIFFERENCES = (
     u"""<b>\U0001f4cd Couldn't reproduce a difference.</b>
 https://testbed.example.com/job/1""")
@@ -101,8 +106,16 @@ class BugCommentTest(testing_common.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_STARTED, send_email=False)
 
-  def testCompletedNoDifference(self):
+  def testCompletedNoComparison(self):
     j = job.Job.New({}, [], False, bug_id=123456)
+    j.put()
+    j.Run()
+
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_NO_COMPARISON)
+
+  def testCompletedNoDifference(self):
+    j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
 
@@ -123,7 +136,7 @@ class BugCommentTest(testing_common.TestCase):
         'url': 'https://example.com/repository/+/git_hash',
     }
 
-    j = job.Job.New({}, [], False, bug_id=123456)
+    j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
 
@@ -145,7 +158,7 @@ class BugCommentTest(testing_common.TestCase):
         'url': 'https://codereview.com/c/672011/2f0d5c7',
     }
 
-    j = job.Job.New({}, [], False, bug_id=123456)
+    j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
 
@@ -179,7 +192,7 @@ class BugCommentTest(testing_common.TestCase):
         },
     )
 
-    j = job.Job.New({}, [], False, bug_id=123456)
+    j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
 

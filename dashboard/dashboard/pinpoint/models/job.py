@@ -122,6 +122,14 @@ class Job(ndb.Model):
       pass
 
     # Format bug comment.
+
+    if not self.auto_explore:
+      # There is no comparison metric.
+      title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
+      self._PostBugComment('\n'.join((title, self.url)))
+      return
+
+    # There is a comparison metric.
     differences = tuple(self.state.Differences())
 
     if not differences:
