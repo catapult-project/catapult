@@ -1,5 +1,5 @@
-oauth2client.contrib.xsrfutil module
-====================================
+oauth2client\.contrib\.xsrfutil module
+======================================
 
 .. automodule:: oauth2client.contrib.xsrfutil
     :members:

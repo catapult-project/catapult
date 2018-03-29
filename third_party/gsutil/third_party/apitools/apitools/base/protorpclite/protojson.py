@@ -283,11 +283,19 @@ class ProtoJson(object):
                 valid_value = [self.decode_field(field, item)
                                for item in value]
                 setattr(message, field.name, valid_value)
-            else:
-                # This is just for consistency with the old behavior.
-                if value == []:
-                    continue
+                continue
+            # This is just for consistency with the old behavior.
+            if value == []:
+                continue
+            try:
                 setattr(message, field.name, self.decode_field(field, value))
+            except messages.DecodeError:
+                # Save unknown enum values.
+                if not isinstance(field, messages.EnumField):
+                    raise
+                variant = self.__find_variant(value)
+                if variant:
+                    message.set_unrecognized_field(key, value, variant)
 
         return message
 

@@ -1,5 +1,5 @@
-oauth2client.contrib.keyring_storage module
-===========================================
+oauth2client\.contrib\.keyring\_storage module
+==============================================
 
 .. automodule:: oauth2client.contrib.keyring_storage
     :members:

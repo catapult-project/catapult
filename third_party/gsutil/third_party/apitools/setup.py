@@ -29,7 +29,8 @@ except ImportError:
 # Python version and OS.
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
-    'oauth2client>=1.5.2,<4.0.0dev',
+    'fasteners>=0.14',
+    'oauth2client>=1.4.12',
     'six>=1.9.0',
     ]
 
@@ -53,7 +54,7 @@ py_version = platform.python_version()
 if py_version < '2.7':
     REQUIRED_PACKAGES.append('argparse>=1.2.1')
 
-_APITOOLS_VERSION = '0.5.16'
+_APITOOLS_VERSION = '0.5.22'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
@@ -63,7 +64,7 @@ setuptools.setup(
     version=_APITOOLS_VERSION,
     description='client libraries for humans',
     long_description=README,
-    url='http://github.com/craigcitro/apitools',
+    url='http://github.com/google/apitools',
     author='Craig Citro',
     author_email='craigcitro@google.com',
     # Contained modules and scripts.

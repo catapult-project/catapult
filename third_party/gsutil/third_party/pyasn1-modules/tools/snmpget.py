@@ -1,10 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+#
+# This file is part of pyasn1-modules software.
+#
+# Copyright (c) 2005-2017, Ilya Etingof <etingof@gmail.com>
+# License: http://pyasn1.sf.net/license.html
 #
 # Generate SNMPGET request, parse response
 #
-from pyasn1.codec.ber import encoder, decoder
+import socket
+import sys
+
+from pyasn1.codec.ber import decoder
+from pyasn1.codec.ber import encoder
+
 from pyasn1_modules import rfc1157
-import sys, socket
 
 if len(sys.argv) != 4:
     print("""Usage:
@@ -32,6 +41,7 @@ sock.sendto(encoder.encode(msg), (sys.argv[2], 161))
 
 substrate, _ = sock.recvfrom(2048)
 
+# noinspection PyRedeclaration
 rMsg, _ = decoder.decode(substrate, asn1Spec=msg)
 
 print('received: %s' % rMsg.prettyPrint())

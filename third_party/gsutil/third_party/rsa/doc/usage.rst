@@ -1,7 +1,7 @@
 .. _usage:
 
 Usage
-==================================================
+=====
 
 This section describes the usage of the Python-RSA module.
 
@@ -23,23 +23,26 @@ the public key, the receiver can verifying that a message was signed
 by the owner of the private key, and that the message was not modified
 after signing.
 
+
 Generating keys
---------------------------------------------------
+---------------
 
 You can use the :py:func:`rsa.newkeys` function to create a keypair:
 
+    >>> import rsa
     >>> (pubkey, privkey) = rsa.newkeys(512)
 
 Alternatively you can use :py:meth:`rsa.PrivateKey.load_pkcs1` and
 :py:meth:`rsa.PublicKey.load_pkcs1` to load keys from a file:
 
-    >>> with open('private.pem') as privatefile:
+    >>> import rsa
+    >>> with open('private.pem', mode='rb') as privatefile:
     ...     keydata = privatefile.read()
-    >>> pubkey = rsa.PrivateKey.load_pkcs1(keydata)
+    >>> privkey = rsa.PrivateKey.load_pkcs1(keydata)
 
 
 Time to generate a key
-++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++
 
 Generating a keypair may take a long time, depending on the number of
 bits required. The number of bits determines the cryptographic
@@ -88,7 +91,7 @@ generates a 4096-bit key in 3.5 seconds on the same machine as used
 above. See :ref:`openssl` for more information.
 
 Key size requirements
---------------------------------------------------
+---------------------
 
 Python-RSA version 3.0 introduced PKCS#1-style random padding. This
 means that 11 bytes (88 bits) of your key are no longer usable for
@@ -115,7 +118,7 @@ on the used hash method:
 
 
 Encryption and decryption
---------------------------------------------------
+-------------------------
 
 To encrypt or decrypt a message, use :py:func:`rsa.encrypt` resp.
 :py:func:`rsa.decrypt`. Let's say that Alice wants to send a message
@@ -125,21 +128,25 @@ that only Bob can read.
    done such that Alice knows for sure that the key is really Bob's
    (for example by handing over a USB stick that contains the key).
 
+    >>> import rsa
     >>> (bob_pub, bob_priv) = rsa.newkeys(512)
 
-#. Alice writes a message
+#. Alice writes a message, and encodes it in UTF-8. The RSA module
+   only operates on bytes, and not on strings, so this step is
+   necessary.
 
-    >>> message = 'hello Bob!'
+    >>> message = 'hello Bob!'.encode('utf8')
 
 #. Alice encrypts the message using Bob's public key, and sends the
    encrypted message.
 
+    >>> import rsa
     >>> crypto = rsa.encrypt(message, bob_pub)
 
 #. Bob receives the message, and decrypts it with his private key.
 
     >>> message = rsa.decrypt(crypto, bob_priv)
-    >>> print message
+    >>> print(message.decode('utf8'))
     hello Bob!
 
 Since Bob kept his private key *private*, Alice can be sure that he is
@@ -158,9 +165,9 @@ Altering the encrypted information will *likely* cause a
 :py:class:`rsa.pkcs1.DecryptionError`. If you want to be *sure*, use
 :py:func:`rsa.sign`.
 
-    >>> crypto = encrypt('hello', pub_key)
-    >>> crypto = 'X' + crypto[1:] # change the first byte
-    >>> decrypt(crypto, priv_key)
+    >>> crypto = rsa.encrypt(b'hello', bob_pub)
+    >>> crypto = crypto[:-1] + b'X' # change the last byte
+    >>> rsa.decrypt(crypto, bob_priv)
     Traceback (most recent call last):
     ...
     rsa.pkcs1.DecryptionError: Decryption failed
@@ -175,7 +182,7 @@ Altering the encrypted information will *likely* cause a
     makes cracking the keys easier.
 
 Low-level operations
-++++++++++++++++++++++++++++++
+++++++++++++++++++++
 
 The core RSA algorithm operates on large integers. These operations
 are considered low-level and are supported by the
@@ -183,7 +190,7 @@ are considered low-level and are supported by the
 functions.
 
 Signing and verification
---------------------------------------------------
+------------------------
 
 You can create a detached signature for a message using the
 :py:func:`rsa.sign` function:
@@ -237,7 +244,7 @@ In that case the file is hashed in 1024-byte blocks at the time.
 .. _bigfiles:
 
 Working with big files
---------------------------------------------------
+----------------------
 
 RSA can only encrypt messages that are smaller than the key. A couple
 of bytes are lost on random padding, and the rest is available for the
@@ -246,7 +253,7 @@ message (512 bit = 64 bytes, 11 bytes are used for random padding and
 other stuff).
 
 How it usually works
-++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++
 
 The most common way to use RSA with larger files uses a block cypher
 like AES or DES3 to encrypt the file with a random key, then encrypt
@@ -273,7 +280,25 @@ the encrypted key to the recipient. The complete flow is:
     encryption for you.
 
 Only using Python-RSA: the VARBLOCK format
-+++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++
+
+.. warning::
+
+    The VARBLOCK format is NOT recommended for general use, has been deprecated since
+    Python-RSA 3.4, and will be removed in a future release. It's vulnerable to a
+    number of attacks:
+
+    1. decrypt/encrypt_bigfile() does not implement `Authenticated encryption`_ nor
+       uses MACs to verify messages before decrypting public key encrypted messages.
+
+    2. decrypt/encrypt_bigfile() does not use hybrid encryption (it uses plain RSA)
+       and has no method for chaining, so block reordering is possible.
+
+    See `issue #19 on Github`_ for more information.
+
+.. _Authenticated encryption: https://en.wikipedia.org/wiki/Authenticated_encryption
+.. _issue #19 on Github: https://github.com/sybrenstuvel/python-rsa/issues/13
+
 
 As far as we know, there is no pure-Python AES encryption. Previous
 versions of Python-RSA included functionality to encrypt large files

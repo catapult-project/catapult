@@ -1,5 +1,5 @@
-oauth2client.crypt module
-=========================
+oauth2client\.crypt module
+==========================
 
 .. automodule:: oauth2client.crypt
     :members:

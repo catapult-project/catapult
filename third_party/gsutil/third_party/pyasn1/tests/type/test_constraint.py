@@ -2,7 +2,7 @@
 # This file is part of pyasn1 software.
 #
 # Copyright (c) 2005-2017, Ilya Etingof <etingof@gmail.com>
-# License: http://pyasn1.sf.net/license.html
+# License: http://snmplabs.com/pyasn1/license.html
 #
 import sys
 
@@ -14,7 +14,8 @@ except ImportError:
 
 from tests.base import BaseTestCase
 
-from pyasn1.type import constraint, error
+from pyasn1.type import constraint
+from pyasn1.type import error
 
 
 class SingleValueConstraintTestCase(BaseTestCase):

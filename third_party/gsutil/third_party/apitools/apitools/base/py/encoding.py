@@ -88,10 +88,9 @@ def RegisterFieldTypeCodec(encoder, decoder):
     return Register
 
 
-# TODO(craigcitro): Delete this function with the switch to proto2.
 def CopyProtoMessage(message):
-    codec = protojson.ProtoJson()
-    return codec.decode_message(type(message), codec.encode_message(message))
+    """Make a deep copy of a message."""
+    return JsonToMessage(type(message), MessageToJson(message))
 
 
 def MessageToJson(message, include_fields=None):
@@ -116,7 +115,8 @@ def MessageToDict(message):
     return json.loads(MessageToJson(message))
 
 
-def DictToProtoMap(properties, additional_property_type, sort_items=False):
+def DictToAdditionalPropertyMessage(properties, additional_property_type,
+                                    sort_items=False):
     """Convert the given dictionary to an AdditionalProperty message."""
     items = properties.items()
     if sort_items:
@@ -125,7 +125,7 @@ def DictToProtoMap(properties, additional_property_type, sort_items=False):
     for key, value in items:
         map_.append(additional_property_type.AdditionalProperty(
             key=key, value=value))
-    return additional_property_type(additional_properties=map_)
+    return additional_property_type(additionalProperties=map_)
 
 
 def PyValueToMessage(message_type, value):
@@ -437,12 +437,19 @@ def _DecodeUnrecognizedFields(message, pair_type):
     return new_values
 
 
+def _CopyProtoMessageVanillaProtoJson(message):
+    codec = protojson.ProtoJson()
+    return codec.decode_message(type(message), codec.encode_message(message))
+
+
 def _EncodeUnknownFields(message):
     """Remap unknown fields in message out of message.source."""
     source = _UNRECOGNIZED_FIELD_MAPPINGS.get(type(message))
     if source is None:
         return message
-    result = CopyProtoMessage(message)
+    # CopyProtoMessage uses _ProtoJsonApiTools, which uses this message. Use
+    # the vanilla protojson-based copy function to avoid infinite recursion.
+    result = _CopyProtoMessageVanillaProtoJson(message)
     pairs_field = message.field_by_name(source)
     if not isinstance(pairs_field, messages.MessageField):
         raise exceptions.InvalidUserInputError(

@@ -3,13 +3,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, sys, shutil, argparse, subprocess, unittest
+import os, sys, shutil, argparse, subprocess, unittest, io
 import pexpect, pexpect.replwrap
-from tempfile import TemporaryFile, mkdtemp
+from tempfile import TemporaryFile, NamedTemporaryFile, mkdtemp
 
-TEST_DIR = os.path.abspath(os.path.dirname(__file__))
-BASE_DIR = os.path.dirname(TEST_DIR)
-sys.path.insert(0, BASE_DIR)
+TEST_DIR = os.path.abspath(os.path.dirname(__file__))  # noqa
+BASE_DIR = os.path.dirname(TEST_DIR)  # noqa
+sys.path.insert(0, BASE_DIR)  # noqa
 
 from argparse import ArgumentParser, SUPPRESS
 from argcomplete import (
@@ -17,9 +17,10 @@ from argcomplete import (
     CompletionFinder,
     split_line,
     ExclusiveCompletionFinder,
-    _check_module
+    _check_module,
+    shellcode
 )
-from argcomplete.completers import FilesCompleter, DirectoriesCompleter
+from argcomplete.completers import FilesCompleter, DirectoriesCompleter, SuppressCompleter
 from argcomplete.compat import USING_PYTHON2, str, sys_encoding, ensure_str, ensure_bytes
 
 IFS = "\013"
@@ -69,8 +70,7 @@ class TestArgcomplete(unittest.TestCase):
         command = ensure_str(command)
 
         if point is None:
-            # Adjust point for wide chars
-            point = str(len(command.encode(sys_encoding)))
+            point = str(len(command))
         with TemporaryFile() as t:
             os.environ["COMP_LINE"] = ensure_bytes(command) if USING_PYTHON2 else command
             os.environ["COMP_POINT"] = point
@@ -135,6 +135,30 @@ class TestArgcomplete(unittest.TestCase):
             parser = ArgumentParser()
             parser.add_argument("--foo")
             parser.add_argument("--bar", help=SUPPRESS)
+            return parser
+
+        expected_outputs = (
+            ("prog ", ["--foo", "-h", "--help"]),
+            ("prog --b", [""])
+        )
+
+        for cmd, output in expected_outputs:
+            self.assertEqual(set(self.run_completer(make_parser(), cmd)), set(output))
+
+        expected_outputs = (
+            ("prog ", ["--foo", "--bar", "-h", "--help"]),
+            ("prog --b", ["--bar "])
+        )
+
+        for cmd, output in expected_outputs:
+            self.assertEqual(set(self.run_completer(make_parser(), cmd, print_suppressed=True)), set(output))
+
+    def test_suppress_completer(self):
+        def make_parser():
+            parser = ArgumentParser()
+            parser.add_argument("--foo")
+            arg = parser.add_argument("--bar")
+            arg.completer = SuppressCompleter()
             return parser
 
         expected_outputs = (
@@ -714,6 +738,19 @@ class TestArgcomplete(unittest.TestCase):
         self.assertEqual(set(self.run_completer(make_parser(), 'prog -3 "')), {"\"'"})
         self.assertEqual(set(self.run_completer(make_parser(), "prog -3 '")), {"\"'"})
 
+    def test_shellcode_utility(self):
+        with NamedTemporaryFile() as fh:
+            sc = shellcode("prog", use_defaults=True, shell="bash", complete_arguments=None)
+            fh.write(sc.encode())
+            fh.flush()
+            subprocess.check_call(['bash', '-n', fh.name])
+        with NamedTemporaryFile() as fh:
+            sc = shellcode("prog", use_defaults=False, shell="bash", complete_arguments=["-o", "nospace"])
+            fh.write(sc.encode())
+            fh.flush()
+            subprocess.check_call(['bash', '-n', fh.name])
+        sc = shellcode("prog", use_defaults=False, shell="tcsh", complete_arguments=["-o", "nospace"])
+        sc = shellcode("prog", use_defaults=False, shell="woosh", complete_arguments=["-o", "nospace"])
 
 class TestArgcompleteREPL(unittest.TestCase):
     def setUp(self):
@@ -1052,6 +1089,14 @@ class _TestSh(object):
     def test_completion_environment(self):
         self.assertEqual(self.sh.run_command('prog env o\t'), 'ok\r\n')
 
+    def test_comp_point(self):
+        # Use environment variable to change how prog behaves
+        self.assertEqual(self.sh.run_command('export POINT=1'), '')
+        self.assertEqual(self.sh.run_command('prog point hi\t'), '13\r\n')
+        self.assertEqual(self.sh.run_command('prog point hi \t'), '14\r\n')
+        self.assertEqual(self.sh.run_command('prog point 你好嘚瑟\t'), '15\r\n')
+        self.assertEqual(self.sh.run_command('prog point 你好嘚瑟 \t'), '16\r\n')
+
 
 class TestBash(_TestSh, unittest.TestCase):
     expected_failures = [
@@ -1132,6 +1177,8 @@ class TestTcsh(_TestSh, unittest.TestCase):
         'test_continuation',
         'test_parse_special_characters',
         'test_parse_special_characters_dollar',
+        # Test case doesn't work under tcsh, could be fixed.
+        'test_comp_point',
     ]
 
     def setUp(self):

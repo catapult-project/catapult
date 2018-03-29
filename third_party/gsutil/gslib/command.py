@@ -83,6 +83,7 @@ from gslib.ui_controller import UIController
 from gslib.ui_controller import UIThread
 from gslib.util import CheckMultiprocessingAvailableAndInit
 from gslib.util import GetConfigFilePaths
+from gslib.util import GetMaxConcurrentCompressedUploads
 from gslib.util import HaveFileUrls
 from gslib.util import HaveProviderUrls
 from gslib.util import IS_WINDOWS
@@ -220,7 +221,7 @@ global total_tasks, call_completed_map, global_return_values_map
 global need_pool_or_done_cond, caller_id_finished_count, new_pool_needed
 global current_max_recursive_level, shared_vars_map, shared_vars_list_map
 global class_map, worker_checking_level_lock, failure_count, thread_stats
-global glob_status_queue, ui_controller
+global glob_status_queue, ui_controller, concurrent_compressed_upload_lock
 
 
 def InitializeMultiprocessingVariables():
@@ -294,6 +295,7 @@ def InitializeMultiprocessingVariables():
   global need_pool_or_done_cond, caller_id_finished_count, new_pool_needed
   global current_max_recursive_level, shared_vars_map, shared_vars_list_map
   global class_map, worker_checking_level_lock, failure_count, glob_status_queue
+  global concurrent_compressed_upload_lock
 
   manager = multiprocessing.Manager()
 
@@ -366,6 +368,11 @@ def InitializeMultiprocessingVariables():
   # undefined behavior when trying to interact with a non-existent queue.
   glob_status_queue = manager.Queue(MAX_QUEUE_SIZE)
 
+  # Semaphore lock used to prevent resource exhaustion when running many
+  # compressed uploads in parallel.
+  concurrent_compressed_upload_lock = manager.BoundedSemaphore(
+      GetMaxConcurrentCompressedUploads())
+
 
 def TeardownMultiprocessingProcesses():
   """Should be called by signal handlers prior to shut down."""
@@ -393,6 +400,7 @@ def InitializeThreadingVariables():
   global need_pool_or_done_cond, call_completed_map, class_map, thread_stats
   global task_queues, caller_id_lock, caller_id_counter, glob_status_queue
   global worker_checking_level_lock, current_max_recursive_level
+  global concurrent_compressed_upload_lock
   caller_id_counter = ProcessAndThreadSafeInt(False)
   caller_id_finished_count = AtomicDict()
   caller_id_lock = threading.Lock()
@@ -409,6 +417,8 @@ def InitializeThreadingVariables():
   task_queues = []
   total_tasks = AtomicDict()
   worker_checking_level_lock = threading.Lock()
+  concurrent_compressed_upload_lock = threading.BoundedSemaphore(
+      GetMaxConcurrentCompressedUploads())
 
 
 # Each subclass of Command must define a property named 'command_spec' that is
@@ -450,6 +460,7 @@ class Command(HelpProvider):
 
   _commands_with_subcommands_and_subopts = ('acl',
                                             'defacl',
+                                            'kms',
                                             'label',
                                             'logging',
                                             'notification',

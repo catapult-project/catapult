@@ -1,5 +1,5 @@
-oauth2client.file module
-========================
+oauth2client\.file module
+=========================
 
 .. automodule:: oauth2client.file
     :members:

@@ -1,5 +1,5 @@
 Introduction & history
-==================================================
+======================
 
 Python-RSA's history starts in 2006. As a student assignment for the
 University of Amsterdam we wrote a RSA implementation. We chose Python
@@ -7,7 +7,7 @@ for various reasons; one of the most important reasons was the
 `unlimited precision integer`_ support.
 
 .. _`unlimited precision integer`:
-    http://docs.python.org/library/stdtypes.html#numeric-types-int-float-long-complex
+    https://docs.python.org/3/library/stdtypes.html#numeric-types-int-float-complex
 
 It started out as just a module for calculating large primes, and RSA
 encryption, decryption, signing and verification using those large

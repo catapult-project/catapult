@@ -102,7 +102,7 @@ class GsUtilTestCase(unittest.TestCase):
   def MakeTempUnicodeName(self, kind, prefix=''):
     return self.MakeTempName(kind, prefix=prefix) + '材'
 
-  def CreateTempDir(self, test_files=0):
+  def CreateTempDir(self, test_files=0, contents=None):
     """Creates a temporary directory on disk.
 
     The directory and all of its contents will be deleted after the test.
@@ -110,6 +110,7 @@ class GsUtilTestCase(unittest.TestCase):
     Args:
       test_files: The number of test files to place in the directory or a list
                   of test file names.
+      contents: The contents for each generated test file.
 
     Returns:
       The path to the new temporary directory.
@@ -121,7 +122,10 @@ class GsUtilTestCase(unittest.TestCase):
     except TypeError:
       test_files = [self.MakeTempName('file') for _ in range(test_files)]
     for i, name in enumerate(test_files):
-      self.CreateTempFile(tmpdir=tmpdir, file_name=name, contents='test %d' % i)
+      contents_file = contents
+      if contents_file is None:
+        contents_file = 'test %d' % i
+      self.CreateTempFile(tmpdir=tmpdir, file_name=name, contents=contents_file)
     return tmpdir
 
   def CreateTempFifo(self, tmpdir=None, file_name=None):

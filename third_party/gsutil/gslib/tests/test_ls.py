@@ -24,6 +24,7 @@ import time
 
 import gslib
 from gslib.cs_api_map import ApiSelector
+from gslib.project_id import PopulateProjectId
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
@@ -61,6 +62,9 @@ from gslib.util import Retry
 from gslib.util import UTF8
 import mock
 
+KMS_XML_SKIP_MSG = ('gsutil does not support KMS operations for S3 buckets, '
+                    'or listing KMS keys with the XML API.')
+
 
 class TestLsUnit(testcase.GsUtilUnitTestCase):
   """Unit tests for ls command."""
@@ -85,7 +89,7 @@ class TestLsUnit(testcase.GsUtilUnitTestCase):
     # Print out attributes of object message.
     with CaptureStdout() as output:
       PrintFullInfoAboutObject(obj_ref)
-    output = "\n".join(output)
+    output = '\n'.join(output)
 
     # Verify that no Storage class update time field displays since it's the
     # same as Creation time.
@@ -111,7 +115,7 @@ class TestLsUnit(testcase.GsUtilUnitTestCase):
     # Print out attributes of object message.
     with CaptureStdout() as output2:
       PrintFullInfoAboutObject(obj_ref2)
-    output2 = "\n".join(output2)
+    output2 = '\n'.join(output2)
 
     # Verify that Creation time and Storage class update time fields display and
     # are the same as the times set in the object message.
@@ -276,7 +280,7 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     output_items = stdout.split()
     self.assertTrue(output_items[0].isdigit())
     # Throws exception if time string is not formatted correctly.
-    time_created = time.strptime(stdout.split()[1], '%Y-%m-%dT%H:%M:%SZ')
+    time.strptime(stdout.split()[1], '%Y-%m-%dT%H:%M:%SZ')
     self.assertEqual(output_items[2], suri(obj_uri))
 
   def test_one_object_with_L(self):
@@ -808,3 +812,44 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
                             expected_status=1,
                             return_stderr=True)
     self.assertIn('Invalid non-ASCII', stderr)
+
+  def set_default_kms_key_on_bucket(self, bucket_uri):
+    # Make sure our keyRing and cryptoKey exist.
+    keyring_fqn = self.kms_api.CreateKeyRing(
+        PopulateProjectId(None), testcase.KmsTestingResources.KEYRING_NAME,
+        location=testcase.KmsTestingResources.KEYRING_LOCATION)
+    key_fqn = self.kms_api.CreateCryptoKey(
+        keyring_fqn, testcase.KmsTestingResources.CONSTANT_KEY_NAME)
+    # Make sure that the service account for the desired bucket's parent project
+    # is authorized to encrypt with the key above.
+    self.RunGsUtil(['kms', 'encryption', '-k', key_fqn, suri(bucket_uri)])
+    return key_fqn
+
+  @SkipForXML(KMS_XML_SKIP_MSG)
+  @SkipForS3(KMS_XML_SKIP_MSG)
+  def test_default_kms_key_listed_for_bucket(self):
+    bucket_uri = self.CreateBucket()
+
+    # Default KMS key is not set by default.
+    stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)
+    self.assertRegexpMatches(stdout, r'Default KMS key:\s+None')
+
+    # Default KMS key's name should be listed after being set on the bucket.
+    key_fqn = self.set_default_kms_key_on_bucket(bucket_uri)
+    stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)
+    self.assertRegexpMatches(stdout, r'Default KMS key:\s+%s' % key_fqn)
+
+  @SkipForXML(KMS_XML_SKIP_MSG)
+  @SkipForS3(KMS_XML_SKIP_MSG)
+  def test_kms_key_listed_for_kms_encrypted_object(self):
+    bucket_uri = self.CreateBucket()
+    key_fqn = self.set_default_kms_key_on_bucket(bucket_uri)
+    # Copy an object into our bucket and encrypt using the key from above.
+    obj_uri = self.CreateObject(
+        bucket_uri=bucket_uri, object_name='foo', contents='foo',
+        kms_key_name=key_fqn)
+
+    stdout = self.RunGsUtil(['ls', '-L', suri(obj_uri)], return_stdout=True)
+
+    self.assertRegexpMatches(stdout, r'KMS key:\s+%s' % key_fqn)
+

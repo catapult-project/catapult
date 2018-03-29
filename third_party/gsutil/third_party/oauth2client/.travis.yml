@@ -1,34 +1,46 @@
 language: python
-python: 2.7
 sudo: false
+
+matrix:
+  include:
+  - python: 2.7
+    env: TOX_ENV=flake8
+  - python: 2.7
+    env: TOX_ENV=docs
+  - python: 2.7
+    env: TOX_ENV=gae
+  - python: 2.7
+    env: TOX_ENV=py27
+  - python: 3.4
+    env: TOX_ENV=py34
+  - python: 3.5
+    env: TOX_ENV=py35
+  - python: 2.7
+    env: TOX_ENV=system-tests
+  - python: 3.4
+    env: TOX_ENV=system-tests3
+  - python: 2.7
+    env: TOX_ENV=cover
 env:
-  matrix:
-  - TOX_ENV=py26
-  - TOX_ENV=py27
-  - TOX_ENV=py33
-  - TOX_ENV=py34
-  - TOX_ENV=pypy
-  - TOX_ENV=docs
-  - TOX_ENV=system-tests
-  - TOX_ENV=system-tests3
-  - TOX_ENV=gae
   global:
   - GAE_PYTHONPATH=${HOME}/.cache/google_appengine
 cache:
   directories:
   - ${HOME}/.cache
+  - ${HOME}/.pyenv
 install:
 - ./scripts/install.sh
 script:
 - ./scripts/run.sh
 after_success:
-- if [[ "${TOX_ENV}" == "py27" ]]; then tox -e coveralls; fi
+- if [[ "${TOX_ENV}" == "cover" ]]; then coveralls; fi
 notifications:
   email: false
 
 deploy:
   provider: pypi
   user: gcloudpypi
+  distributions: sdist bdist_wheel
   password:
     secure: "C9ImNa5kbdnrQNfX9ww4PUtQIr3tN+nfxl7eDkP1B8Qr0QNYjrjov7x+DLImkKvmoJd3dxYtYIpLE9esObUHu0gKHYxqymNHtuAAyoBOUfPtmp0vIEse9brNKMtaey5Ngk7ZWz9EHKBBqRHxqgN+Giby+K9Ta3K3urJIq6urYhE="
   on:

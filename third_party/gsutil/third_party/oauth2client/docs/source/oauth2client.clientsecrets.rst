@@ -1,5 +1,5 @@
-oauth2client.clientsecrets module
-=================================
+oauth2client\.clientsecrets module
+==================================
 
 .. automodule:: oauth2client.clientsecrets
     :members:

@@ -14,21 +14,21 @@
 
 """Unit tests for oauth2client.contrib.dictionary_storage"""
 
-import unittest2
+import unittest
 
-from oauth2client import GOOGLE_TOKEN_URI
-from oauth2client.client import OAuth2Credentials
-from oauth2client.contrib.dictionary_storage import DictionaryStorage
+import oauth2client
+from oauth2client import client
+from oauth2client.contrib import dictionary_storage
 
 
 def _generate_credentials(scopes=None):
-    return OAuth2Credentials(
+    return client.OAuth2Credentials(
         'access_tokenz',
         'client_idz',
         'client_secretz',
         'refresh_tokenz',
         '3600',
-        GOOGLE_TOKEN_URI,
+        oauth2client.GOOGLE_TOKEN_URI,
         'Test',
         id_token={
             'sub': '123',
@@ -37,12 +37,12 @@ def _generate_credentials(scopes=None):
         scopes=scopes)
 
 
-class DictionaryStorageTests(unittest2.TestCase):
+class DictionaryStorageTests(unittest.TestCase):
 
     def test_constructor_defaults(self):
         dictionary = {}
         key = 'test-key'
-        storage = DictionaryStorage(dictionary, key)
+        storage = dictionary_storage.DictionaryStorage(dictionary, key)
 
         self.assertEqual(dictionary, storage._dictionary)
         self.assertEqual(key, storage._key)
@@ -51,17 +51,18 @@ class DictionaryStorageTests(unittest2.TestCase):
     def test_constructor_explicit(self):
         dictionary = {}
         key = 'test-key'
-        storage = DictionaryStorage(dictionary, key)
+        storage = dictionary_storage.DictionaryStorage(dictionary, key)
 
         lock = object()
-        storage = DictionaryStorage(dictionary, key, lock=lock)
+        storage = dictionary_storage.DictionaryStorage(
+            dictionary, key, lock=lock)
         self.assertEqual(storage._lock, lock)
 
     def test_get(self):
         credentials = _generate_credentials()
         dictionary = {}
         key = 'credentials'
-        storage = DictionaryStorage(dictionary, key)
+        storage = dictionary_storage.DictionaryStorage(dictionary, key)
 
         self.assertIsNone(storage.get())
 
@@ -78,7 +79,7 @@ class DictionaryStorageTests(unittest2.TestCase):
         credentials = _generate_credentials()
         dictionary = {}
         key = 'credentials'
-        storage = DictionaryStorage(dictionary, key)
+        storage = dictionary_storage.DictionaryStorage(dictionary, key)
 
         storage.put(credentials)
         returned = storage.get()
@@ -94,7 +95,7 @@ class DictionaryStorageTests(unittest2.TestCase):
         credentials = _generate_credentials()
         dictionary = {}
         key = 'credentials'
-        storage = DictionaryStorage(dictionary, key)
+        storage = dictionary_storage.DictionaryStorage(dictionary, key)
 
         storage.put(credentials)
 
@@ -104,7 +105,3 @@ class DictionaryStorageTests(unittest2.TestCase):
 
         self.assertNotIn(key, dictionary)
         self.assertIsNone(storage.get())
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest2.main()

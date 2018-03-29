@@ -54,7 +54,8 @@ _DETAILED_HELP_TEXT = ("""
 <B>DESCRIPTION</B>
   The gsutil update command downloads the latest gsutil release, checks its
   version, and offers to let you update to it if it differs from the version
-  you're currently running.
+  you're currently running. Note that this functionality is not available if
+  you're using a gsutil installation from a package manager or the Cloud SDK.
 
   Once you say "Y" to the prompt of whether to install the update, the gsutil
   update command locates where the running copy of gsutil is installed,

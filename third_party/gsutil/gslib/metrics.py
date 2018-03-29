@@ -411,7 +411,7 @@ class MetricsCollector(object):
 
     data = urllib.urlencode(sorted(params))
     self._metrics.append(Metric(endpoint=self.endpoint, method='POST',
-                                 body=data, user_agent=self.user_agent))
+                                body=data, user_agent=self.user_agent))
 
   # TODO: Collect CPU usage (Linux-only), latency to first byte, and slowest
   # thread process.
@@ -690,7 +690,8 @@ class MetricsCollector(object):
         category=_GA_PERFSUM_CATEGORY, action=action,
         execution_time=apply_execution_time, **custom_params)
 
-  def ReportMetrics(self, wait_for_report=False, log_level=None):
+  def ReportMetrics(
+      self, wait_for_report=False, log_level=None, log_file_path=None):
     """Reports the collected metrics using a separate async process.
 
     Args:
@@ -698,6 +699,10 @@ class MetricsCollector(object):
         subprocess to exit for testing purposes.
       log_level: int, The subprocess logger's level of debugging for testing
         purposes.
+      log_file_path: str, The file that the metrics_reporter module should
+        write its logs to. If not supplied, the metrics_reporter module will
+        use a predetermined default path. This parameter is intended for use
+        by tests that need to evaluate the contents of the file at this path.
     """
     self._CollectCommandAndErrorMetrics()
     self._CollectPerformanceSummaryMetric()
@@ -716,10 +721,16 @@ class MetricsCollector(object):
     logging.debug(self._metrics)
     self._metrics = []
 
+    if log_file_path is not None:
+      # If the path is not None, we'll need to surround the path with quotes
+      # so that the path is passed as a string to the metrics_reporter module.
+      log_file_path = '"%s"' % log_file_path
+
     reporting_code = ('from gslib.metrics_reporter import ReportMetrics; '
-                      'ReportMetrics("{0}", {1})').format(
+                      'ReportMetrics("{0}", {1}, log_file_path={2})').format(
                           temp_metrics_file.name,
-                          log_level).encode('string-escape')
+                          log_level,
+                          log_file_path).encode('string-escape')
     execution_args = [sys.executable, '-c', reporting_code]
     exec_env = os.environ.copy()
     exec_env['PYTHONPATH'] = os.pathsep.join(sys.path)

@@ -267,11 +267,7 @@ class DefAclCommand(Command):
     # permission they'll get an AccessDeniedException.
     current_acl = bucket.defaultObjectAcl
 
-    modification_count = 0
-    for change in self.changes:
-      modification_count += change.Execute(
-          url, current_acl, 'defacl', self.logger)
-    if modification_count == 0:
+    if self._ApplyAclChangesAndReturnChangeCount(url, current_acl) == 0:
       self.logger.info('No changes to %s', url)
       return
 
@@ -286,6 +282,7 @@ class DefAclCommand(Command):
       self.gsutil_api.PatchBucket(url.bucket_name, bucket_metadata,
                                   preconditions=preconditions,
                                   provider=url.scheme, fields=['id'])
+      self.logger.info('Updated default ACL on %s', url)
     except BadRequestException as e:
       # Don't retry on bad requests, e.g. invalid email address.
       raise CommandException('Received bad request from server: %s' % str(e))
@@ -294,7 +291,12 @@ class DefAclCommand(Command):
       raise CommandException('Failed to set acl for %s. Please ensure you have '
                              'OWNER-role access to this resource.' % url)
 
-    self.logger.info('Updated default ACL on %s', url)
+  def _ApplyAclChangesAndReturnChangeCount(self, storage_url, defacl_message):
+    modification_count = 0
+    for change in self.changes:
+      modification_count += change.Execute(
+          storage_url, defacl_message, 'defacl', self.logger)
+    return modification_count
 
   def RunCommand(self):
     """Command entry point for the defacl command."""

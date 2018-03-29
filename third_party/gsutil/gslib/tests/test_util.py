@@ -38,7 +38,7 @@ import mock
 class TestUtil(testcase.GsUtilUnitTestCase):
   """Tests for utility functions."""
 
-  def test_MakeHumanReadable(self):
+  def testMakeHumanReadable(self):
     """Tests converting byte counts to human-readable strings."""
     self.assertEqual(util.MakeHumanReadable(0), '0 B')
     self.assertEqual(util.MakeHumanReadable(1023), '1023 B')
@@ -50,7 +50,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     self.assertEqual(util.MakeHumanReadable(1024 ** 5), '1 PiB')
     self.assertEqual(util.MakeHumanReadable(1024 ** 6), '1 EiB')
 
-  def test_MakeBitsHumanReadable(self):
+  def testMakeBitsHumanReadable(self):
     """Tests converting bit counts to human-readable strings."""
     self.assertEqual(util.MakeBitsHumanReadable(0), '0 bit')
     self.assertEqual(util.MakeBitsHumanReadable(1023), '1023 bit')
@@ -62,7 +62,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     self.assertEqual(util.MakeBitsHumanReadable(1024 ** 5), '1 Pibit')
     self.assertEqual(util.MakeBitsHumanReadable(1024 ** 6), '1 Eibit')
 
-  def test_HumanReadableToBytes(self):
+  def testHumanReadableToBytes(self):
     """Tests converting human-readable strings to byte counts."""
     self.assertEqual(util.HumanReadableToBytes('1'), 1)
     self.assertEqual(util.HumanReadableToBytes('15'), 15)
@@ -96,7 +96,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     self.assertEqual(util.HumanReadableToBytes('1EB'), 1024 ** 6)
     self.assertEqual(util.HumanReadableToBytes('1EiB'), 1024 ** 6)
 
-  def test_CompareVersions(self):
+  def testCompareVersions(self):
     """Tests CompareVersions for various use cases."""
     # CompareVersions(first, second) returns (g, m), where
     #   g is True if first known to be greater than second, else False.
@@ -176,7 +176,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
       line = util.MakeMetadataLine(*(params.args), **(params.kwargs))
       self.assertEqual(line, params.expected)
 
-  def test_ProxyInfoFromEnvironmentVar(self):
+  def testProxyInfoFromEnvironmentVar(self):
     """Tests ProxyInfoFromEnvironmentVar for various cases."""
     valid_variables = ['http_proxy', 'https_proxy']
     if not util.IS_WINDOWS:
@@ -234,7 +234,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
   @mock.patch.object(util.http_wrapper,
                      'HandleExceptionsAndRebuildHttpConnections')
   @mock.patch.object(util.logging, 'info')
-  def test_WarnAfterManyRetriesHandler(self, mock_log_info_fn, mock_wrapped_fn):
+  def testWarnAfterManyRetriesHandler(self, mock_log_info_fn, mock_wrapped_fn):
     # The only ExceptionRetryArgs attributes that the function cares about are
     # num_retries and total_wait_sec; we can pass None for the other values.
     retry_args_over_threshold = util.http_wrapper.ExceptionRetryArgs(
@@ -252,7 +252,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     # Check that we did emit a message.
     self.assertTrue(mock_log_info_fn.called)
 
-  def test_UIDecimalShort(self):
+  def testUIDecimalShort(self):
     """Tests DecimalShort for UI."""
     self.assertEqual('12.3b', DecimalShort(12345678910))
     self.assertEqual('123.5m', DecimalShort(123456789))
@@ -263,7 +263,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     self.assertEqual('43.2q', DecimalShort(43.25 * 10**15))
     self.assertEqual('43250.0q', DecimalShort(43.25 * 10**18))
 
-  def test_UIPrettyTime(self):
+  def testUIPrettyTime(self):
     """Tests PrettyTime for UI."""
     self.assertEqual('25:02:10', PrettyTime(90130))
     self.assertEqual('01:00:00', PrettyTime(3600))
@@ -271,7 +271,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
     self.assertEqual('100+ hrs', PrettyTime(3600*100))
     self.assertEqual('999+ hrs', PrettyTime(3600*10000))
 
-  def test_UIHumanReadableWithDecimalPlaces(self):
+  def testUIHumanReadableWithDecimalPlaces(self):
     """Tests HumanReadableWithDecimalPlaces for UI."""
     self.assertEqual('1.0 GiB', HumanReadableWithDecimalPlaces(1024**3 +
                                                                1024**2 * 10,
@@ -328,3 +328,10 @@ class TestUtil(testcase.GsUtilUnitTestCase):
 
     self.DoTestAddQueryParamToUrl(old_url, param_name, param_val, expected_url)
 
+  @mock.patch.object(util, 'GetMaxUploadCompressionBufferSize')
+  def testGetMaxConcurrentCompressedUploadsMinimum(self, mock_config):
+    """Test GetMaxConcurrentCompressedUploads returns at least 1."""
+    mock_config.return_value = 0
+    self.assertEqual(util.GetMaxConcurrentCompressedUploads(), 1)
+    mock_config.return_value = -1
+    self.assertEqual(util.GetMaxConcurrentCompressedUploads(), 1)

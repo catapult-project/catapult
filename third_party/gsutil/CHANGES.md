@@ -1,3 +1,56 @@
+Release 4.30 (release date: 2018-03-28)
+=======================================
+New features
+------------------
+- Added Cloud KMS support for Google Cloud Storage resources, allowing the use
+  of customer-managed encryption keys (CMEKs). Bucket-related functionality
+  includes the new "kms" command, which can be used to get or set a bucket's
+  default KMS key. Concerning objects, users may now specify the CMEK to be used
+  for encryption via their boto config file, in the "encryption_key" attribute.
+  In this way, users may specify either a CSEK or a CMEK to encrypt new objects,
+  but not both. For more information, see "gsutil help encryption".
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+
+Release 4.29 (release date: 2018-03-14)
+=======================================
+New features
+------------------
+- Added transport compression support, available through the "-j" and "-J"
+  options for the "cp", "mv", and "rsync" commands. This is useful when
+  uploading files with highly-compressible content. When specificed, files being
+  uploaded are compressed on-the-fly in memory, sent to GCS, and uncompressed by
+  GCS before they are stored. See "gsutil help cp" for additional information.
+- When "use_magicfile=True" is set in the boto config file, gsutil will now
+  append the detected charset, if present, to the object's Content-Type metadata
+  field. For example, a Content-Type might be populated with
+  "text/html; charset=us-ascii" rather than simply "text/html".
+
+Bug Fixes
+------------------
+- Improved error handling and logging for upload resumption.
+- After encountering a PreconditionException, the "acl ch" command will now
+  re-fetch the object generation before retrying.
+- Fixed issue with parsing lifecycle conditions when using the XML API.
+  Conditions whose values could be evaluated by Python as "falsy" (e.g. setting
+  an "age" condition to the number 0 or "isLive" to false) would be omitted from
+  the lifecycle configuration when "prefer_api=xml" was set in the boto config
+  file. Note that the JSON API is preferred by default, so most users were
+  unlikely to encounter this issue.
+- For commands that fetch bucket ACLs or default ACLs, when the user does not
+  have storage.buckets.getIamPolicy on the GCS bucket, using the XML API will
+  now behave consistently with the JSON API and display ACL/default ACL fields
+  as empty, rather than throwing a CommandException.
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+- The "signurl" command now uses signature V4 signing format to generate URLs.
+
+
 Release 4.28 (release date: 2017-10-11)
 =======================================
 New features

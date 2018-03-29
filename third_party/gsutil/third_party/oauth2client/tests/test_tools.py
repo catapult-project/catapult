@@ -12,25 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import socket
 import sys
 import threading
+import unittest
 
 import mock
 from six.moves.urllib import request
-import unittest2
 
-from oauth2client.client import FlowExchangeError
-from oauth2client.client import OOB_CALLBACK_URN
+from oauth2client import client
 from oauth2client import tools
 
-try:
-    import argparse
-except ImportError:  # pragma: NO COVER
-    raise unittest2.SkipTest('argparase unavailable.')
 
-
-class TestClientRedirectServer(unittest2.TestCase):
+class TestClientRedirectServer(unittest.TestCase):
     """Test the ClientRedirectServer and ClientRedirectHandler classes."""
 
     def test_ClientRedirectServer(self):
@@ -40,7 +35,8 @@ class TestClientRedirectServer(unittest2.TestCase):
         httpd = tools.ClientRedirectServer(('localhost', 0),
                                            tools.ClientRedirectHandler)
         code = 'foo'
-        url = 'http://localhost:%i?code=%s' % (httpd.server_address[1], code)
+        url = 'http://localhost:{0}?code={1}'.format(
+            httpd.server_address[1], code)
         t = threading.Thread(target=httpd.handle_request)
         t.setDaemon(True)
         t.start()
@@ -51,7 +47,7 @@ class TestClientRedirectServer(unittest2.TestCase):
         self.assertEqual(httpd.query_params.get('code'), code)
 
 
-class TestRunFlow(unittest2.TestCase):
+class TestRunFlow(unittest.TestCase):
 
     def setUp(self):
         self.server = mock.Mock()
@@ -68,11 +64,10 @@ class TestRunFlow(unittest2.TestCase):
         self.server_flags = argparse.Namespace(
             noauth_local_webserver=False,
             logging_level='INFO',
-            auth_host_port=[8080,],
+            auth_host_port=[8080, ],
             auth_host_name='localhost')
 
-    @mock.patch.object(sys, 'argv',
-        ['ignored', '--noauth_local_webserver'])
+    @mock.patch.object(sys, 'argv', ['ignored', '--noauth_local_webserver'])
     @mock.patch('oauth2client.tools.logging')
     @mock.patch('oauth2client.tools.input')
     def test_run_flow_no_webserver(self, input_mock, logging_mock):
@@ -82,7 +77,7 @@ class TestRunFlow(unittest2.TestCase):
         returned_credentials = tools.run_flow(self.flow, self.storage)
 
         self.assertEqual(self.credentials, returned_credentials)
-        self.assertEqual(self.flow.redirect_uri, OOB_CALLBACK_URN)
+        self.assertEqual(self.flow.redirect_uri, client.OOB_CALLBACK_URN)
         self.flow.step2_exchange.assert_called_once_with(
             'auth_code', http=None)
         self.storage.put.assert_called_once_with(self.credentials)
@@ -99,16 +94,16 @@ class TestRunFlow(unittest2.TestCase):
             self.flow, self.storage, flags=self.flags)
 
         self.assertEqual(self.credentials, returned_credentials)
-        self.assertEqual(self.flow.redirect_uri, OOB_CALLBACK_URN)
+        self.assertEqual(self.flow.redirect_uri, client.OOB_CALLBACK_URN)
         self.flow.step2_exchange.assert_called_once_with(
             'auth_code', http=None)
-    
+
     @mock.patch('oauth2client.tools.logging')
     @mock.patch('oauth2client.tools.input')
     def test_run_flow_no_webserver_exchange_error(
             self, input_mock, logging_mock):
         input_mock.return_value = 'auth_code'
-        self.flow.step2_exchange.side_effect = FlowExchangeError()
+        self.flow.step2_exchange.side_effect = client.FlowExchangeError()
 
         # Error while exchanging.
         with self.assertRaises(SystemExit):
@@ -149,8 +144,7 @@ class TestRunFlow(unittest2.TestCase):
 
         # Exchange returned an error code.
         with self.assertRaises(SystemExit):
-            returned_credentials = tools.run_flow(
-                self.flow, self.storage, flags=self.server_flags)
+            tools.run_flow(self.flow, self.storage, flags=self.server_flags)
 
         self.assertTrue(self.server.handle_request.called)
 
@@ -161,11 +155,10 @@ class TestRunFlow(unittest2.TestCase):
             self, webbrowser_open_mock, server_ctor_mock, logging_mock):
         server_ctor_mock.return_value = self.server
         self.server.query_params = {}
-        
+
         # No code found in response
         with self.assertRaises(SystemExit):
-            returned_credentials = tools.run_flow(
-                self.flow, self.storage, flags=self.server_flags)
+            tools.run_flow(self.flow, self.storage, flags=self.server_flags)
 
         self.assertTrue(self.server.handle_request.called)
 
@@ -183,17 +176,13 @@ class TestRunFlow(unittest2.TestCase):
             self.flow, self.storage, flags=self.server_flags)
 
         self.assertEqual(self.credentials, returned_credentials)
-        self.assertEqual(self.flow.redirect_uri, OOB_CALLBACK_URN)
+        self.assertEqual(self.flow.redirect_uri, client.OOB_CALLBACK_URN)
         self.flow.step2_exchange.assert_called_once_with(
             'auth_code', http=None)
         self.assertTrue(server_ctor_mock.called)
         self.assertFalse(self.server.handle_request.called)
 
 
-class TestMessageIfMissing(unittest2.TestCase):
+class TestMessageIfMissing(unittest.TestCase):
     def test_message_if_missing(self):
         self.assertIn('somefile.txt', tools.message_if_missing('somefile.txt'))
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest.main()

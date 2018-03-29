@@ -19,10 +19,9 @@ set -ev
 
 # If we're on Travis, we need to set up the environment.
 if [[ "${TRAVIS}" == "true" ]]; then
-  # If merging to master and not a pull request, run system test.
-  if [[ "${TRAVIS_BRANCH}" == "master" ]] && \
-         [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
-    echo "Running in Travis during merge, decrypting stored key file."
+  # If secure variables are available, run system test.
+  if [[ "${TRAVIS_SECURE_ENV_VARS}" ]]; then
+    echo "Running in Travis, decrypting stored key file."
     # Convert encrypted JSON key file into decrypted file to be used.
     openssl aes-256-cbc -K ${OAUTH2CLIENT_KEY} \
         -iv ${OAUTH2CLIENT_IV} \
@@ -34,8 +33,8 @@ if [[ "${TRAVIS}" == "true" ]]; then
         -in tests/data/key.p12.enc \
         -out ${OAUTH2CLIENT_TEST_P12_KEY_PATH} -d
     # Convert encrypted User JSON key file into decrypted file to be used.
-    openssl aes-256-cbc -K ${OAUTH2CLIENT_KEY} \
-        -iv ${OAUTH2CLIENT_IV} \
+    openssl aes-256-cbc -K ${encrypted_1ee98544e5ca_key} \
+        -iv ${encrypted_1ee98544e5ca_iv} \
         -in tests/data/user-key.json.enc \
         -out ${OAUTH2CLIENT_TEST_USER_KEY_PATH} -d
   else

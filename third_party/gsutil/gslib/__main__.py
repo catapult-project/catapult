@@ -354,10 +354,14 @@ def main():
       _ConfigureLogging(level=logging.WARNING)
     else:
       _ConfigureLogging(level=logging.INFO)
-      # oauth2client uses info logging in places that would better
+      # oauth2client uses INFO and WARNING logging in places that would better
       # correspond to gsutil's debug logging (e.g., when refreshing
-      # access tokens).
+      # access tokens), so we bump the threshold one level higher where
+      # appropriate.
       oauth2client.client.logger.setLevel(logging.WARNING)
+      oauth2client.contrib.multiprocess_file_storage.logger.setLevel(
+          logging.ERROR)
+      oauth2client.transport._LOGGER.setLevel(logging.WARNING)
 
     if not CERTIFICATE_VALIDATION_ENABLED:
       sys.stderr.write(HTTP_WARNING)

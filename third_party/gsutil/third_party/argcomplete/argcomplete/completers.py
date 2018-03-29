@@ -92,3 +92,17 @@ class _FilteredFilesCompleter(object):
 class DirectoriesCompleter(_FilteredFilesCompleter):
     def __init__(self):
         _FilteredFilesCompleter.__init__(self, predicate=os.path.isdir)
+
+class SuppressCompleter(object):
+    """
+    A completer used to suppress the completion of specific arguments
+    """
+
+    def __init__(self):
+        pass
+
+    def suppress(self):
+        """
+        Decide if the completion should be suppressed
+        """
+        return True

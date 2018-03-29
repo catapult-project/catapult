@@ -18,15 +18,18 @@ from __future__ import absolute_import
 
 import os
 import socket
+import StringIO
 import sys
 
 import boto
-
+from gslib.commands.perfdiag import _GenerateFileData
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import RUN_S3_TESTS
 from gslib.tests.util import unittest
 from gslib.util import IS_WINDOWS
+import mock
 
 
 class TestPerfDiag(testcase.GsUtilIntegrationTestCase):
@@ -72,27 +75,35 @@ class TestPerfDiag(testcase.GsUtilIntegrationTestCase):
     self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
 
   def _run_throughput_test(self, test_name, num_processes, num_threads,
-                           parallelism_strategy=None):
+                           parallelism_strategy=None, compression_ratio=None):
     bucket_uri = self.CreateBucket()
 
     cmd = ['perfdiag', '-n', str(num_processes * num_threads),
            '-s', '1024', '-c', str(num_processes), '-k', str(num_threads),
            '-t', test_name]
-    if parallelism_strategy:
+    if compression_ratio is not None:
+      cmd += ['-j', str(compression_ratio)]
+    if parallelism_strategy is not None:
       cmd += ['-p', parallelism_strategy]
     cmd += [suri(bucket_uri)]
 
-    self.RunGsUtil(cmd)
+    stderr_default = self.RunGsUtil(cmd, return_stderr=True)
+    stderr_custom = None
     if self._should_run_with_custom_endpoints():
-      self.RunGsUtil(self._custom_endpoint_flags + cmd)
+      stderr_custom = self.RunGsUtil(
+          self._custom_endpoint_flags + cmd, return_stderr=True)
     self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
+    return (stderr_default, stderr_custom)
 
   def _run_each_parallel_throughput_test(self, test_name, num_processes,
-                                         num_threads):
-    self._run_throughput_test(test_name, num_processes, num_threads, 'fan')
+                                         num_threads, compression_ratio=None):
+    self._run_throughput_test(test_name, num_processes, num_threads, 'fan',
+                              compression_ratio=compression_ratio)
     if not RUN_S3_TESTS:
-      self._run_throughput_test(test_name, num_processes, num_threads, 'slice')
-      self._run_throughput_test(test_name, num_processes, num_threads, 'both')
+      self._run_throughput_test(test_name, num_processes, num_threads, 'slice',
+                                compression_ratio=compression_ratio)
+      self._run_throughput_test(test_name, num_processes, num_threads, 'both',
+                                compression_ratio=compression_ratio)
 
   def test_write_throughput_single_process_single_thread(self):
     self._run_throughput_test('wthru', 1, 1)
@@ -166,6 +177,32 @@ class TestPerfDiag(testcase.GsUtilIntegrationTestCase):
     self.assertIn('Number of listing calls made:', stdout)
     self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
 
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  def test_gzip_write_throughput_single_process_single_thread(self):
+    (stderr_default, _) = self._run_throughput_test(
+        'wthru', 1, 1, compression_ratio=50)
+    self.assertIn('Gzip compression ratio: 50', stderr_default)
+    self.assertIn('Gzip transport encoding writes: True', stderr_default)
+    (stderr_default, _) = self._run_throughput_test(
+        'wthru_file', 1, 1, compression_ratio=50)
+    self.assertIn('Gzip compression ratio: 50', stderr_default)
+    self.assertIn('Gzip transport encoding writes: True', stderr_default)
+
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  def test_gzip_write_throughput_single_process_multi_thread(self):
+    self._run_each_parallel_throughput_test(
+        'wthru', 1, 2, compression_ratio=50)
+    self._run_each_parallel_throughput_test(
+        'wthru_file', 1, 2, compression_ratio=50)
+
+  @unittest.skipIf(IS_WINDOWS, 'Multiprocessing is not supported on Windows')
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  def test_gzip_write_throughput_multi_process_multi_thread(self):
+    self._run_each_parallel_throughput_test(
+        'wthru', 2, 2, compression_ratio=50)
+    self._run_each_parallel_throughput_test(
+        'wthru_file', 2, 2, compression_ratio=50)
+
 
 class TestPerfDiagUnitTests(testcase.GsUtilUnitTestCase):
   """Unit tests for perfdiag command."""
@@ -182,3 +219,39 @@ class TestPerfDiagUnitTests(testcase.GsUtilUnitTestCase):
     self.assertNotIn(
         'Listing produced more than the expected %d object(s).' % test_objects,
         mock_log_handler.messages['warning'])
+
+  @mock.patch('os.urandom')
+  def test_generate_file_data(self, mock_urandom):
+    """Test the right amount of random and sequential data is generated."""
+    def urandom(length):
+      return 'a' * length
+    mock_urandom.side_effect = urandom
+
+    fp = StringIO.StringIO()
+    _GenerateFileData(fp, 1000, 100, 1000)
+    self.assertEqual('a' * 1000, fp.getvalue())
+    self.assertEqual(1000, fp.tell())
+
+    fp = StringIO.StringIO()
+    _GenerateFileData(fp, 1000, 50, 1000)
+    self.assertIn('a' * 500, fp.getvalue())
+    self.assertIn('x' * 500, fp.getvalue())
+    self.assertEqual(1000, fp.tell())
+
+    fp = StringIO.StringIO()
+    _GenerateFileData(fp, 1001, 50, 1001)
+    self.assertIn('a' * 501, fp.getvalue())
+    self.assertIn('x' * 500, fp.getvalue())
+    self.assertEqual(1001, fp.tell())
+
+  @mock.patch('os.urandom')
+  def test_generate_file_data_repeat(self, mock_urandom):
+    """Test that random data repeats when exhausted."""
+    def urandom(length):
+      return 'a' * length
+    mock_urandom.side_effect = urandom
+
+    fp = StringIO.StringIO()
+    _GenerateFileData(fp, 8, 50, 4)
+    self.assertEqual('aaxxaaxx', fp.getvalue())
+    self.assertEqual(8, fp.tell())

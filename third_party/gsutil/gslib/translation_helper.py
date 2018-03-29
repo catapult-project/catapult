@@ -476,19 +476,21 @@ class LifecycleTranslation(object):
             boto_rule.action = boto.gs.lifecycle.SET_STORAGE_CLASS
             boto_rule.action_text = rule_message.action.storageClass
         if rule_message.condition:
-          if rule_message.condition.age:
+          if rule_message.condition.age is not None:
             boto_rule.conditions[boto.gs.lifecycle.AGE] = (
                 str(rule_message.condition.age))
           if rule_message.condition.createdBefore:
             boto_rule.conditions[boto.gs.lifecycle.CREATED_BEFORE] = (
                 str(rule_message.condition.createdBefore))
-          if rule_message.condition.isLive:
+          if rule_message.condition.isLive is not None:
             boto_rule.conditions[boto.gs.lifecycle.IS_LIVE] = (
-                str(rule_message.condition.isLive))
+                # Note that the GCS XML API only accepts "false" or "true"
+                # in all lower case.
+                str(rule_message.condition.isLive).lower())
           if rule_message.condition.matchesStorageClass:
             boto_rule.conditions[boto.gs.lifecycle.MATCHES_STORAGE_CLASS] = [
                 str(sc) for sc in rule_message.condition.matchesStorageClass]
-          if rule_message.condition.numNewerVersions:
+          if rule_message.condition.numNewerVersions is not None:
             boto_rule.conditions[boto.gs.lifecycle.NUM_NEWER_VERSIONS] = (
                 str(rule_message.condition.numNewerVersions))
         boto_lifecycle.append(boto_rule)
@@ -523,8 +525,17 @@ class LifecycleTranslation(object):
               LifecycleTranslation.TranslateBotoLifecycleTimestamp(
                   boto_rule.conditions[boto.gs.lifecycle.CREATED_BEFORE]))
         if boto.gs.lifecycle.IS_LIVE in boto_rule.conditions:
-          lifecycle_rule.condition.isLive = bool(
-              boto_rule.conditions[boto.gs.lifecycle.IS_LIVE])
+          boto_is_live_str = (
+              boto_rule.conditions[boto.gs.lifecycle.IS_LIVE].lower())
+          if boto_is_live_str == 'true':
+            lifecycle_rule.condition.isLive = True
+          elif boto_is_live_str == 'false':
+            lifecycle_rule.condition.isLive = False
+          else:
+            raise CommandException(
+                'Got an invalid Boto value for IsLive condition ("%s"), '
+                'expected "true" or "false".' %
+                boto_rule.conditions[boto.gs.lifecycle.IS_LIVE])
         if boto.gs.lifecycle.MATCHES_STORAGE_CLASS in boto_rule.conditions:
           for storage_class in (
               boto_rule.conditions[boto.gs.lifecycle.MATCHES_STORAGE_CLASS]):

@@ -19,9 +19,11 @@ from __future__ import absolute_import
 import io
 import sys
 
+from boto import config
+
 from gslib.cloud_api import EncryptionException
-from gslib.encryption_helper import CryptoTupleFromKey
-from gslib.encryption_helper import FindMatchingCryptoKey
+from gslib.encryption_helper import CryptoKeyWrapperFromKey
+from gslib.encryption_helper import FindMatchingCSEKInBotoConfig
 from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.util import ObjectIsGzipEncoded
@@ -38,6 +40,7 @@ _CAT_BUCKET_LISTING_FIELDS = ['bucket',
 
 
 class CatHelper(object):
+  """Provides methods for the "cat" command and associated functionality."""
 
   def __init__(self, command_obj):
     """Initializes the helper object.
@@ -103,19 +106,19 @@ class CatHelper(object):
           # TODO: Get only the needed fields here.
           for blr in self.command_obj.WildcardIterator(url_str).IterObjects(
               bucket_listing_fields=_CAT_BUCKET_LISTING_FIELDS):
-            decryption_tuple = None
+            decryption_keywrapper = None
             if (blr.root_object and
                 blr.root_object.customerEncryption and
                 blr.root_object.customerEncryption.keySha256):
-              decryption_key = FindMatchingCryptoKey(
-                  blr.root_object.customerEncryption.keySha256)
+              decryption_key = FindMatchingCSEKInBotoConfig(
+                  blr.root_object.customerEncryption.keySha256, config)
               if not decryption_key:
                 raise EncryptionException(
                     'Missing decryption key with SHA256 hash %s. No decryption '
                     'key matches object %s' % (
                         blr.root_object.customerEncryption.keySha256,
                         blr.url_string))
-              decryption_tuple = CryptoTupleFromKey(decryption_key)
+              decryption_keywrapper = CryptoKeyWrapperFromKey(decryption_key)
 
             did_some_work = True
             if show_header:
@@ -133,7 +136,7 @@ class CatHelper(object):
                   start_byte=start_byte, end_byte=end_byte,
                   object_size=cat_object.size,
                   generation=storage_url.generation,
-                  decryption_tuple=decryption_tuple,
+                  decryption_tuple=decryption_keywrapper,
                   provider=storage_url.scheme)
             else:
               with open(storage_url.object_name, 'rb') as f:

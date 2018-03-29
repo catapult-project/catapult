@@ -203,31 +203,32 @@ _DETAILED_HELP_TEXT = ("""
             Lifecycle configuration:      None
             Requester Pays enabled:       True
             Labels:                       None
+            Default KMS key:              None
             Time created:                 Thu, 14 Jan 2016 19:25:17 GMT
             Time updated:                 Thu, 08 Jun 2017 21:17:59 GMT
             Metageneration:               1
             ACL:
-    [
-      {
-        "entity": "project-owners-867489160491",
-        "projectTeam": {
-          "projectNumber": "867489160491",
-          "team": "owners"
-        },
-        "role": "OWNER"
-      }
-    ]
+              [
+                {
+                  "entity": "project-owners-867489160491",
+                  "projectTeam": {
+                    "projectNumber": "867489160491",
+                    "team": "owners"
+                  },
+                  "role": "OWNER"
+                }
+              ]
             Default ACL:
-    [
-      {
-        "entity": "project-owners-867489160491",
-        "projectTeam": {
-          "projectNumber": "867489160491",
-          "team": "owners"
-        },
-        "role": "OWNER"
-      }
-    ]
+              [
+                {
+                  "entity": "project-owners-867489160491",
+                  "projectTeam": {
+                    "projectNumber": "867489160491",
+                    "team": "owners"
+                  },
+                  "role": "OWNER"
+                }
+              ]
 
   Note that some fields above (time created, time updated, metageneration) are
   not available with the (non-default) XML API.
@@ -335,6 +336,11 @@ class LsCommand(Command):
           bucket.labels, pretty_print=True)
     else:
       fields['labels'] = 'None'
+    if bucket.encryption and bucket.encryption.defaultKmsKeyName:
+      fields['default_kms_key'] = bucket.encryption.defaultKmsKeyName
+    else:
+      fields['default_kms_key'] = 'None'
+    fields['encryption_config'] = 'Present' if bucket.encryption else 'None'
     # Fields not available in all APIs (e.g. the XML API)
     if bucket.metageneration:
       fields['metageneration'] = bucket.metageneration
@@ -378,7 +384,8 @@ class LsCommand(Command):
            '\tCORS configuration: \t\t{cors_config}\n'
            '\tLifecycle configuration:\t{lifecycle_config}\n'
            '\tRequester Pays enabled:\t\t{requester_pays}\n'
-           '\tLabels:\t\t\t\t{labels}\n' +
+           '\tLabels:\t\t\t\t{labels}\n'
+           '\tDefault KMS key:\t\t{default_kms_key}\n' +
            time_created_line +
            time_updated_line +
            metageneration_line +
@@ -487,6 +494,7 @@ class LsCommand(Command):
                          'billing',
                          'cors',
                          'defaultObjectAcl',
+                         'encryption',
                          'labels',
                          'location',
                          'logging',

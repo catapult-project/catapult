@@ -11,15 +11,15 @@ encryption and decryption, signing and verifying signatures, and key
 generation according to PKCS#1 version 1.5.
 
 If you have the time and skill to improve the implementation, by all
-means be my guest. The best way is to clone the `Mercurial
+means be my guest. The best way is to clone the `Git
 repository`_ and send me a merge request when you've got something
 worth merging.
 
-.. _`Mercurial repository`: https://bitbucket.org/sybren/python-rsa
+.. _`Git repository`: https://github.com/sybrenstuvel/python-rsa
 
 
 Security notice
---------------------------------------------------
+---------------
 
 This RSA implementation has seen the eyes of a security expert, and it
 uses an industry standard random padding method. However, there are
@@ -34,7 +34,7 @@ judgement to decide whether this module is secure enough for your
 application.
 
 Contents
---------------------------------------------------
+--------
 
 .. toctree::
     :maxdepth: 2

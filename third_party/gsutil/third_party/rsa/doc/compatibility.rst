@@ -1,5 +1,5 @@
 Compatibility with standards
-==================================================
+============================
 
 .. index:: OpenSSL
 .. index:: compatibility
@@ -30,7 +30,7 @@ Public keys:
 .. _openssl:
 
 Interoperability with OpenSSL
---------------------------------------------------
+-----------------------------
 
 You can create a 512-bit RSA key in OpenSSL as follows::
 
@@ -50,7 +50,7 @@ Encryption and decryption is also compatible::
     hello there
 
 Interoperability with PKCS#8
---------------------------------------------------
+----------------------------
 
 The standard PKCS#8 is widely used, and more complex than the PKCS#1
 v1.5 supported by Python-RSA. In order to extract a key from the

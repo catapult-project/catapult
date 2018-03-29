@@ -1,3 +1,37 @@
+Changes for v1.9.4 (2018-02-13)
+===============================
+
+-  Use the correct interpreter when checking wrappers (#226)
+
+-  Provide shellcode as a module function (#237)
+
+Changes for v1.9.3 (2017-11-16)
+===============================
+
+-  Fix handling of COMP\_POINT (#236)
+
+-  Fix crash when writing unicode to debug\_stream in Python 2 (#230)
+
+Changes for v1.9.2 (2017-08-23)
+===============================
+
+-  Fix release
+
+Changes for v1.9.1 (2017-08-23)
+===============================
+
+-  Fix release
+
+Changes for v1.9.0 (2017-08-23)
+===============================
+
+-  Add SuppressCompleter to skip completion for specific arguments while
+   allowing help text (#224)
+
+-  Redirect all output to debug stream in debug mode (#206)
+
+-  Complete python -m module (#204)
+
 Changes for v1.8.2 (2017-01-26)
 ===============================
 

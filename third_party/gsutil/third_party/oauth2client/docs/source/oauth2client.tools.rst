@@ -1,5 +1,5 @@
-oauth2client.tools module
-=========================
+oauth2client\.tools module
+==========================
 
 .. automodule:: oauth2client.tools
     :members:

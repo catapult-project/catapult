@@ -1,5 +1,5 @@
-oauth2client.contrib.django_util.signals module
-===============================================
+oauth2client\.contrib\.django\_util\.signals module
+===================================================
 
 .. automodule:: oauth2client.contrib.django_util.signals
     :members:

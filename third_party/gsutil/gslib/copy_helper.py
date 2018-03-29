@@ -46,6 +46,7 @@ from boto import config
 import crcmod
 
 import gslib
+from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import ArgumentException
 from gslib.cloud_api import CloudApi
 from gslib.cloud_api import EncryptionException
@@ -56,6 +57,7 @@ from gslib.cloud_api import ResumableDownloadException
 from gslib.cloud_api import ResumableUploadAbortException
 from gslib.cloud_api import ResumableUploadException
 from gslib.cloud_api import ResumableUploadStartOverException
+from gslib.cloud_api import ServiceException
 from gslib.cloud_api_helper import GetDownloadSerializationData
 from gslib.commands.compose import MAX_COMPOSE_ARITY
 from gslib.commands.config import DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE
@@ -65,10 +67,10 @@ from gslib.commands.config import DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS
 from gslib.commands.config import DEFAULT_SLICED_OBJECT_DOWNLOAD_THRESHOLD
 from gslib.cs_api_map import ApiSelector
 from gslib.daisy_chain_wrapper import DaisyChainWrapper
-from gslib.encryption_helper import CryptoTupleFromKey
-from gslib.encryption_helper import FindMatchingCryptoKey
-from gslib.encryption_helper import GetEncryptionTuple
-from gslib.encryption_helper import GetEncryptionTupleAndSha256Hash
+from gslib.encryption_helper import CryptoKeyType
+from gslib.encryption_helper import CryptoKeyWrapperFromKey
+from gslib.encryption_helper import FindMatchingCSEKInBotoConfig
+from gslib.encryption_helper import GetEncryptionKeyWrapper
 from gslib.exception import CommandException
 from gslib.exception import HashMismatchException
 from gslib.file_part import FilePart
@@ -162,7 +164,7 @@ global global_copy_helper_opts
 global open_files_map, open_files_lock
 open_files_map = (
     AtomicDict() if not CheckMultiprocessingAvailableAndInit().is_available
-    else AtomicDict(manager=gslib.util.manager))
+    else AtomicDict(manager=gslib.util.manager))  # pylint: disable=invalid-name
 
 # We don't allow multiple processes on Windows, so using a process-safe lock
 # would be unnecessary.
@@ -206,10 +208,12 @@ UPLOAD_RETURN_FIELDS = ['crc32c', 'customerEncryption', 'etag', 'generation',
 #               of components and final object.
 # tracker_file: tracker file for this component.
 # tracker_file_lock: tracker file lock for tracker file(s).
+# gzip_encoded: Whether to use gzip transport encoding for the upload.
 PerformParallelUploadFileToObjectArgs = namedtuple(
     'PerformParallelUploadFileToObjectArgs',
     'filename file_start file_length src_url dst_url canned_acl '
-    'content_type tracker_file tracker_file_lock encryption_key_sha256')
+    'content_type tracker_file tracker_file_lock encryption_key_sha256 '
+    'gzip_encoded')
 
 PerformSlicedDownloadObjectToFileArgs = namedtuple(
     'PerformSlicedDownloadObjectToFileArgs',
@@ -260,6 +264,20 @@ suggested_sliced_transfers = (
     AtomicDict() if not CheckMultiprocessingAvailableAndInit().is_available
     else AtomicDict(manager=gslib.util.manager))
 suggested_sliced_transfers_lock = CreateLock()
+
+
+# TODO(KMS, Compose): Remove this once we support compose across CMEK-encrypted
+# components, making such parallel composite uploads possible.
+global bucket_metadata_pcu_check, bucket_metadata_pcu_check_lock
+# When considering whether we should perform a parallel composite upload to a
+# gs bucket, we check if the bucket metadata contains a defaultKmsKeyName. If
+# so, we don't do a pcu. Additionally, we only want to perform this check once,
+# hence the lock.
+#
+# Becomes True or False once populated. If we ever allow multiple destination
+# arguments to cp, this could become a dict of bucket name -> bool.
+bucket_metadata_pcu_check = None
+bucket_metadata_pcu_check_lock = CreateLock()
 
 
 class FileConcurrencySkipError(Exception):
@@ -315,7 +333,8 @@ def _PerformParallelUploadFileToObject(cls, args, thread_state=None):
                                 preconditions, gsutil_api, cls.logger, cls,
                                 _ParallelCopyExceptionHandler,
                                 gzip_exts=None, allow_splitting=False,
-                                is_component=True)
+                                is_component=True,
+                                gzip_encoded=args.gzip_encoded)
     finally:
       if global_copy_helper_opts.canned_acl:
         gsutil_api.prefer_api = orig_prefer_api
@@ -884,7 +903,8 @@ def CheckForDirFileConflict(exp_src_url, dst_url):
 
 def _PartitionFile(fp, file_size, src_url, content_type, canned_acl,
                    dst_bucket_url, random_prefix, tracker_file,
-                   tracker_file_lock, encryption_key_sha256=None):
+                   tracker_file_lock, encryption_key_sha256=None,
+                   gzip_encoded=False):
   """Partitions a file into FilePart objects to be uploaded and later composed.
 
   These objects, when composed, will match the original file. This entails
@@ -904,6 +924,7 @@ def _PartitionFile(fp, file_size, src_url, content_type, canned_acl,
     tracker_file: The path to the parallel composite upload tracker file.
     tracker_file_lock: The lock protecting access to the tracker file.
     encryption_key_sha256: Encryption key SHA256 for use in this upload, if any.
+    gzip_encoded: Whether to use gzip transport encoding for the upload.
 
   Returns:
     dst_args: The destination URIs for the temporary component objects.
@@ -940,7 +961,8 @@ def _PartitionFile(fp, file_size, src_url, content_type, canned_acl,
     offset = i * component_size
     func_args = PerformParallelUploadFileToObjectArgs(
         fp.name, offset, file_part_length, src_url, tmp_dst_url, canned_acl,
-        content_type, tracker_file, tracker_file_lock, encryption_key_sha256)
+        content_type, tracker_file, tracker_file_lock, encryption_key_sha256,
+        gzip_encoded)
     file_names.append(temp_file_name)
     dst_args[temp_file_name] = func_args
 
@@ -963,7 +985,8 @@ def _GetComponentNumber(component):
 
 def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
                                canned_acl, file_size, preconditions, gsutil_api,
-                               command_obj, copy_exception_handler, logger):
+                               command_obj, copy_exception_handler, logger,
+                               gzip_encoded=False):
   """Uploads a local file to a cloud object using parallel composite upload.
 
   The file is partitioned into parts, and then the parts are uploaded in
@@ -981,6 +1004,7 @@ def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
     command_obj: Command object (for calling Apply).
     copy_exception_handler: Copy exception handler (for use in Apply).
     logger: logging.Logger for outputting log messages.
+    gzip_encoded: Whether to use gzip transport encoding for the upload.
 
   Returns:
     Elapsed upload time, uploaded Object with generation, crc32c, and size
@@ -990,7 +1014,9 @@ def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
   dst_bucket_url = StorageUrlFromString(dst_url.bucket_url_string)
   api_selector = gsutil_api.GetApiSelector(provider=dst_url.scheme)
 
-  encryption_tuple, encryption_key_sha256 = GetEncryptionTupleAndSha256Hash()
+  encryption_keywrapper = GetEncryptionKeyWrapper(config)
+  encryption_key_sha256 = (encryption_keywrapper.crypto_key_sha256
+                           if encryption_keywrapper else None)
 
   # Determine which components, if any, have already been successfully
   # uploaded.
@@ -1025,7 +1051,7 @@ def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
   dst_args = _PartitionFile(
       fp, file_size, src_url, dst_obj_metadata.contentType, canned_acl,
       dst_bucket_url, random_prefix, tracker_file_name, tracker_file_lock,
-      encryption_key_sha256=encryption_key_sha256)
+      encryption_key_sha256=encryption_key_sha256, gzip_encoded=gzip_encoded)
 
   (components_to_upload, existing_components, existing_objects_to_delete) = (
       FilterExistingComponents(dst_args, existing_components, dst_bucket_url,
@@ -1089,7 +1115,7 @@ def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
     composed_object = gsutil_api.ComposeObject(
         request_components, dst_obj_metadata, preconditions=preconditions,
         provider=dst_url.scheme, fields=['crc32c', 'generation', 'size'],
-        encryption_tuple=encryption_tuple)
+        encryption_tuple=encryption_keywrapper)
 
     try:
       # Make sure only to delete things that we know were successfully
@@ -1144,7 +1170,8 @@ def _DoParallelCompositeUpload(fp, src_url, dst_url, dst_obj_metadata,
 
 
 def _ShouldDoParallelCompositeUpload(logger, allow_splitting, src_url, dst_url,
-                                     file_size, canned_acl=None):
+                                     file_size, gsutil_api, canned_acl=None,
+                                     kms_keyname=None):
   """Determines whether parallel composite upload strategy should be used.
 
   Args:
@@ -1153,12 +1180,22 @@ def _ShouldDoParallelCompositeUpload(logger, allow_splitting, src_url, dst_url,
     src_url: FileUrl corresponding to a local file.
     dst_url: CloudUrl corresponding to destination cloud object.
     file_size: The size of the source file, in bytes.
+    gsutil_api: CloudApi that may be used to check if the destination bucket
+        has any metadata attributes set that would discourage us from using
+        parallel composite uploads.
     canned_acl: Canned ACL to apply to destination object, if any.
+    kms_keyname: Cloud KMS key name to encrypt destination, if any.
 
   Returns:
     True iff a parallel upload should be performed on the source file.
   """
-  global suggested_slice_transfers, suggested_sliced_transfers_lock
+  # TODO(KMS, Compose): Until we ensure service-side that we have efficient
+  # compose functionality over objects with distinct KMS encryption keys (CMEKs)
+  # or distinct CSEKs, don't utilize parallel composite uploads.
+  if kms_keyname:
+    return False
+
+  global suggested_sliced_transfers, suggested_sliced_transfers_lock
   parallel_composite_upload_threshold = HumanReadableToBytes(config.get(
       'GSUtil', 'parallel_composite_upload_threshold',
       DEFAULT_PARALLEL_COMPOSITE_UPLOAD_THRESHOLD))
@@ -1193,9 +1230,49 @@ def _ShouldDoParallelCompositeUpload(logger, allow_splitting, src_url, dst_url,
             'composite objects.')) + '\n')
         suggested_sliced_transfers['suggested'] = True
 
-  return (all_factors_but_size
+  if not (all_factors_but_size
           and parallel_composite_upload_threshold > 0
-          and file_size >= parallel_composite_upload_threshold)
+          and file_size >= parallel_composite_upload_threshold):
+    return False
+
+  # TODO(KMS, Compose): Once GCS supports compose operations over
+  # CMEK-encrypted objects, remove this check and return the boolean result of
+  # the predicate above, minus the top-level "not" operator.
+  #
+  # To avoid unnecessary API calls, we only perform this check once we're sure
+  # we'd otherwise do a parallel composite upload. To prevent gsutil from
+  # attempting parallel composite uploads to a bucket with its defaultKmsKeyName
+  # metadata attribute set, we check once for this attribute. We then cache that
+  # result so that each copy operation can check there, rather than having to
+  # do its own duplicate API call to check for this.
+  #
+  # Pre-emptive check; while this is susceptible to race conditions at the start
+  # of this gsutil invocation, and not reliable in the case where we see
+  # bucket_metadata_pcu_check has not been populated yet, it helps to avoid
+  # the slowdown of acquiring a lock in the case where the variable HAS been
+  # populated.
+  global bucket_metadata_pcu_check, bucket_metadata_pcu_check_lock
+  if bucket_metadata_pcu_check is not None:
+    return bucket_metadata_pcu_check
+  with bucket_metadata_pcu_check_lock:
+    # Check again once we've attained the lock; it's possible that between the
+    # time we checked above and now, another thread released the lock and
+    # populated bucket_metadata_pcu_check.
+    if bucket_metadata_pcu_check is not None:
+      return bucket_metadata_pcu_check
+
+    try:
+      bucket = gsutil_api.GetBucket(dst_url.bucket_name,
+                                    provider=dst_url.scheme,
+                                    fields=['id', 'encryption'])
+      if bucket.encryption and bucket.encryption.defaultKmsKeyName:
+        bucket_metadata_pcu_check = False
+      else:
+        bucket_metadata_pcu_check = True
+    except ServiceException:
+      # Treat an API call failure as if we checked and there was no key.
+      bucket_metadata_pcu_check = True
+    return bucket_metadata_pcu_check
 
 
 def ExpandUrlToSingleBlr(url_str, gsutil_api, debug, project_id,
@@ -1376,8 +1453,8 @@ def _CopyObjToObjInTheCloud(src_url, src_obj_metadata, dst_url,
   Raises:
     CommandException: if errors encountered.
   """
-  decryption_tuple = CryptoTupleFromKey(decryption_key)
-  encryption_tuple = GetEncryptionTuple()
+  decryption_keywrapper = CryptoKeyWrapperFromKey(decryption_key)
+  encryption_keywrapper = GetEncryptionKeyWrapper(config)
 
   start_time = time.time()
 
@@ -1392,7 +1469,8 @@ def _CopyObjToObjInTheCloud(src_url, src_obj_metadata, dst_url,
       canned_acl=global_copy_helper_opts.canned_acl,
       preconditions=preconditions, progress_callback=progress_callback,
       provider=dst_url.scheme, fields=UPLOAD_RETURN_FIELDS,
-      decryption_tuple=decryption_tuple, encryption_tuple=encryption_tuple)
+      decryption_tuple=decryption_keywrapper,
+      encryption_tuple=encryption_keywrapper)
 
   end_time = time.time()
 
@@ -1432,20 +1510,20 @@ def _SetContentTypeFromFile(src_url, dst_obj_metadata):
       real_file_path = os.path.realpath(object_name)
       if config.getbool('GSUtil', 'use_magicfile', False) and not IS_WINDOWS:
         try:
-          p = subprocess.Popen(['file', '--mime-type', real_file_path],
+          p = subprocess.Popen(['file', '-b', '--mime', real_file_path],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
           output, error = p.communicate()
           p.stdout.close()
           p.stderr.close()
           if p.returncode != 0 or error:
             raise CommandException(
-                'Encountered error running "file --mime-type %s" '
+                'Encountered error running "file -b --mime %s" '
                 '(returncode=%d).\n%s' % (real_file_path, p.returncode, error))
-          # Parse output by removing line delimiter and splitting on last ":
-          content_type = output.rstrip().rpartition(': ')[2]
+          # Parse output by removing line delimiter
+          content_type = output.rstrip()
         except OSError as e:  # 'file' executable may not always be present.
           raise CommandException(
-              'Encountered OSError running "file --mime-type %s"\n%s' % (
+              'Encountered OSError running "file -b --mime %s"\n%s' % (
                   real_file_path, e))
       else:
         content_type = mimetypes.guess_type(real_file_path)[0]
@@ -1457,7 +1535,8 @@ def _SetContentTypeFromFile(src_url, dst_obj_metadata):
 # pylint: disable=undefined-variable
 def _UploadFileToObjectNonResumable(src_url, src_obj_filestream,
                                     src_obj_size, dst_url, dst_obj_metadata,
-                                    preconditions, gsutil_api):
+                                    preconditions, gsutil_api,
+                                    gzip_encoded=False):
   """Uploads the file using a non-resumable strategy.
 
   This function does not support component transfers.
@@ -1470,6 +1549,7 @@ def _UploadFileToObjectNonResumable(src_url, src_obj_filestream,
     dst_obj_metadata: Metadata for the target object.
     preconditions: Preconditions for the upload, if any.
     gsutil_api: gsutil Cloud API instance to use for the upload.
+    gzip_encoded: Whether to use gzip transport encoding for the upload.
 
   Returns:
     Elapsed upload time, uploaded Object with generation, md5, and size fields
@@ -1484,7 +1564,7 @@ def _UploadFileToObjectNonResumable(src_url, src_obj_filestream,
       progress_callback = pickle.loads(test_fp.read()).call
   start_time = time.time()
 
-  encryption_tuple = GetEncryptionTuple()
+  encryption_keywrapper = GetEncryptionKeyWrapper(config)
 
   if src_url.IsStream() or src_url.IsFifo():
     # TODO: gsutil-beta: Provide progress callbacks for streaming uploads.
@@ -1492,15 +1572,15 @@ def _UploadFileToObjectNonResumable(src_url, src_obj_filestream,
         src_obj_filestream, object_metadata=dst_obj_metadata,
         canned_acl=global_copy_helper_opts.canned_acl,
         preconditions=preconditions, progress_callback=progress_callback,
-        encryption_tuple=encryption_tuple, provider=dst_url.scheme,
-        fields=UPLOAD_RETURN_FIELDS)
+        encryption_tuple=encryption_keywrapper, provider=dst_url.scheme,
+        fields=UPLOAD_RETURN_FIELDS, gzip_encoded=gzip_encoded)
   else:
     uploaded_object = gsutil_api.UploadObject(
         src_obj_filestream, object_metadata=dst_obj_metadata,
         canned_acl=global_copy_helper_opts.canned_acl, size=src_obj_size,
         preconditions=preconditions, progress_callback=progress_callback,
-        encryption_tuple=encryption_tuple, provider=dst_url.scheme,
-        fields=UPLOAD_RETURN_FIELDS)
+        encryption_tuple=encryption_keywrapper, provider=dst_url.scheme,
+        fields=UPLOAD_RETURN_FIELDS, gzip_encoded=gzip_encoded)
   end_time = time.time()
   elapsed_time = end_time - start_time
 
@@ -1511,7 +1591,7 @@ def _UploadFileToObjectNonResumable(src_url, src_obj_filestream,
 def _UploadFileToObjectResumable(src_url, src_obj_filestream,
                                  src_obj_size, dst_url, dst_obj_metadata,
                                  preconditions, gsutil_api, logger,
-                                 is_component=False):
+                                 is_component=False, gzip_encoded=False):
   """Uploads the file using a resumable strategy.
 
   Args:
@@ -1524,6 +1604,7 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
     gsutil_api: gsutil Cloud API instance to use for the upload.
     logger: for outputting log messages.
     is_component: indicates whether this is a single component or whole file.
+    gzip_encoded: Whether to use gzip transport encoding for the upload.
 
   Returns:
     Elapsed upload time, uploaded Object with generation, md5, and size fields
@@ -1533,7 +1614,9 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
       dst_url, TrackerFileType.UPLOAD,
       gsutil_api.GetApiSelector(provider=dst_url.scheme))
 
-  encryption_tuple, encryption_key_sha256 = GetEncryptionTupleAndSha256Hash()
+  encryption_keywrapper = GetEncryptionKeyWrapper(config)
+  encryption_key_sha256 = (encryption_keywrapper.crypto_key_sha256
+                           if encryption_keywrapper else None)
 
   def _UploadTrackerCallback(serialization_data):
     """Creates a new tracker file for starting an upload from scratch.
@@ -1594,11 +1677,13 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
           canned_acl=global_copy_helper_opts.canned_acl,
           preconditions=preconditions, provider=dst_url.scheme,
           size=src_obj_size, serialization_data=tracker_data,
-          encryption_tuple=encryption_tuple, fields=UPLOAD_RETURN_FIELDS,
+          encryption_tuple=encryption_keywrapper, fields=UPLOAD_RETURN_FIELDS,
           tracker_callback=_UploadTrackerCallback,
-          progress_callback=progress_callback)
+          progress_callback=progress_callback, gzip_encoded=gzip_encoded)
       retryable = False
     except ResumableUploadStartOverException, e:
+      logger.info('Caught ResumableUploadStartOverException for upload of %s.'
+                  % src_url.url_string)
       # This can happen, for example, if the server sends a 410 response code.
       # In that case the current resumable upload ID can't be reused, so delete
       # the tracker file and try again up to max retries.
@@ -1610,12 +1695,24 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
       # If the server sends a 404 response code, then the upload should only
       # be restarted if it was the object (and not the bucket) that was missing.
       try:
+        logger.info('Checking that bucket %s exists before retrying upload...'
+                     % dst_obj_metadata.bucket)
         gsutil_api.GetBucket(dst_obj_metadata.bucket, provider=dst_url.scheme)
+      except AccessDeniedException:
+        # Proceed with deleting the tracker file in the event that the bucket
+        # exists, but the user does not have permission to view its metadata.
+        pass
       except NotFoundException:
         raise
+      finally:
+        DeleteTrackerFile(tracker_file_name)
+        logger.info('Deleted tracker file %s for resumable upload of %s before '
+                    'retrying.' % (tracker_file_name, src_url.url_string))
 
-      logger.info('Restarting upload from scratch after exception %s', e)
-      DeleteTrackerFile(tracker_file_name)
+      logger.info(
+           'Restarting upload of %s from scratch (retry #%d) after exception '
+           'indicating we need to start over with a new resumable upload ID: %s'
+           % (src_url.url_string, num_startover_attempts, e))
       tracker_data = None
       src_obj_filestream.seek(0)
       # Reset the progress callback handler.
@@ -1625,10 +1722,6 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
           component_num=component_num,
           dst_url=dst_url, operation_name='Uploading').call
 
-      logger.info('\n'.join(textwrap.wrap(
-          'Resumable upload of %s failed with a response code indicating we '
-          'need to start over with a new resumable upload ID. Backing off '
-          'and retrying.' % src_url.url_string)))
       # Report the retryable error to the global status queue.
       PutToQueueWithTimeout(
           gsutil_api.status_queue,
@@ -1649,23 +1742,63 @@ def _UploadFileToObjectResumable(src_url, src_obj_filestream,
   return (elapsed_time, uploaded_object)
 
 
-def _CompressFileForUpload(src_url, src_obj_filestream, src_obj_size, logger):
+def _SelectUploadCompressionStrategy(
+    object_name, is_component=False, gzip_exts=False, gzip_encoded=False):
+  """Selects how an upload should be compressed.
+
+  This is a helper function for _UploadFileToObject.
+
+  Args:
+    object_name: The object name of the source FileUrl.
+    is_component: indicates whether this is a single component or whole file.
+    gzip_exts: List of file extensions to gzip prior to upload, if any.
+               If gzip_exts is GZIP_ALL_FILES, gzip all files.
+    gzip_encoded: Whether to use gzip transport encoding for the upload. Used
+        in conjunction with gzip_exts for selecting which files will be
+        encoded. Streaming files compressed is only supported on the JSON GCS
+        API.
+
+  Returns:
+    A tuple: (If the file should be gzipped locally, if the file should be gzip
+    transport encoded).
+  """
+  zipped_file = False
+  gzip_encoded_file = False
+  fname_parts = object_name.split('.')
+
+  # If gzip_encoded and is_component are marked as true, the file was already
+  # filtered through the original gzip_exts filter and we must compress the
+  # component via gzip transport encoding.
+  if gzip_encoded and is_component:
+    gzip_encoded_file = True
+  elif (gzip_exts == GZIP_ALL_FILES or
+        (gzip_exts and len(fname_parts) > 1 and fname_parts[-1] in gzip_exts)):
+    zipped_file = not gzip_encoded
+    gzip_encoded_file = gzip_encoded
+
+  return zipped_file, gzip_encoded_file
+
+
+def _ApplyZippedUploadCompression(
+    src_url, src_obj_filestream, src_obj_size, logger):
   """Compresses a to-be-uploaded local file to save bandwidth.
+
+  This is a helper function for _UploadFileToObject.
 
   Args:
     src_url: Source FileUrl.
     src_obj_filestream: Read stream of the source file - will be consumed
-                        and closed.
+      and closed.
     src_obj_size: Size of the source file.
     logger: for outputting log messages.
 
   Returns:
-    StorageUrl path to compressed file, compressed file size.
+    StorageUrl path to compressed file, read stream of the compressed file,
+    compressed file size.
   """
   # TODO: Compress using a streaming model as opposed to all at once here.
   if src_obj_size >= MIN_SIZE_COMPUTE_LOGGING:
-    logger.info(
-        'Compressing %s (to tmp)...', src_url)
+    logger.info('Compressing %s (to tmp)...', src_url)
   (gzip_fh, gzip_path) = tempfile.mkstemp()
   gzip_fp = None
   try:
@@ -1694,14 +1827,74 @@ def _CompressFileForUpload(src_url, src_obj_filestream, src_obj_size, logger):
     os.close(gzip_fh)
     src_obj_filestream.close()
   gzip_size = os.path.getsize(gzip_path)
-  return StorageUrlFromString(gzip_path), gzip_size
+  compressed_filestream = open(gzip_path, 'rb')
+  return StorageUrlFromString(gzip_path), compressed_filestream, gzip_size
 
 
-def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
-                        dst_url, dst_obj_metadata, preconditions, gsutil_api,
-                        logger, command_obj, copy_exception_handler,
-                        gzip_exts=None, allow_splitting=True,
-                        is_component=False):
+def _DelegateUploadFileToObject(
+    upload_delegate, upload_url, upload_stream, zipped_file, gzip_encoded_file,
+    parallel_composite_upload, logger):
+  """Handles setup and tear down logic for uploads.
+
+  This is a helper function for _UploadFileToObject.
+
+  Args:
+    upload_delegate: Function that handles uploading the file.
+    upload_url: StorageURL path to the file.
+    upload_stream: Read stream of the file being uploaded. This will be closed
+      after the upload.
+    zipped_file: Flag for if the file is locally compressed prior to calling
+      this function. If true, the local temporary file is deleted after the
+      upload.
+    gzip_encoded_file: Flag for if the file will be uploaded with the gzip
+      transport encoding. If true, a lock is used to limit resource usage.
+    parallel_composite_upload: Set to true if this upload represents a
+      top-level parallel composite upload (not an upload of a component). If
+      true, resource locking is skipped.
+    logger: For outputting log messages.
+
+  Returns:
+    The elapsed upload time, the uploaded object.
+  """
+  elapsed_time = None
+  uploaded_object = None
+  try:
+    # Parallel transport compressed uploads use a signifcant amount of memory.
+    # The number of threads that may run concurrently are restricted as a
+    # result. Parallel composite upload's don't actually upload data, but
+    # instead fork for each component and calling _UploadFileToObject
+    # individually. The parallel_composite_upload flag is false for the actual
+    # upload invocation.
+    if gzip_encoded_file and not parallel_composite_upload:
+      with gslib.command.concurrent_compressed_upload_lock:
+        elapsed_time, uploaded_object = upload_delegate()
+    else:
+      elapsed_time, uploaded_object = upload_delegate()
+
+  finally:
+    if zipped_file:
+      try:
+        os.unlink(upload_url.object_name)
+      # Windows sometimes complains the temp file is locked when you try to
+      # delete it.
+      except Exception:  # pylint: disable=broad-except
+        logger.warning(
+            'Could not delete %s. This can occur in Windows because the '
+            'temporary file is still locked.', upload_url.object_name)
+
+    # In the zipped_file case, this is the gzip stream. When the gzip stream is
+    # created, the original source stream is closed in
+    # _ApplyZippedUploadCompression. This means that we do not have to
+    # explicitly close the source stream here in the zipped_file case.
+    upload_stream.close()
+  return elapsed_time, uploaded_object
+
+
+def _UploadFileToObject(
+    src_url, src_obj_filestream, src_obj_size, dst_url, dst_obj_metadata,
+    preconditions, gsutil_api, logger, command_obj, copy_exception_handler,
+    gzip_exts=None, allow_splitting=True, is_component=False,
+    gzip_encoded=False):
   """Uploads a local file to an object.
 
   Args:
@@ -1720,6 +1913,10 @@ def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
     allow_splitting: Whether to allow the file to be split into component
                      pieces for an parallel composite upload.
     is_component: indicates whether this is a single component or whole file.
+    gzip_encoded: Whether to use gzip transport encoding for the upload. Used
+        in conjunction with gzip_exts for selecting which files will be
+        encoded. Streaming files compressed is only supported on the JSON GCS
+        API.
 
   Returns:
     (elapsed_time, bytes_transferred, dst_url with generation,
@@ -1733,16 +1930,18 @@ def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
     if content_language:
       dst_obj_metadata.contentLanguage = content_language
 
-  fname_parts = src_url.object_name.split('.')
   upload_url = src_url
   upload_stream = src_obj_filestream
   upload_size = src_obj_size
-  zipped_file = False
-  if (gzip_exts == GZIP_ALL_FILES or
-      (gzip_exts and len(fname_parts) > 1 and fname_parts[-1] in gzip_exts)):
-    upload_url, upload_size = _CompressFileForUpload(
+
+  zipped_file, gzip_encoded_file = _SelectUploadCompressionStrategy(
+      src_url.object_name, is_component, gzip_exts, gzip_encoded)
+  # The component's parent already printed this debug message.
+  if gzip_encoded_file and not is_component:
+    logger.debug('Using compressed transport encoding for %s.', src_url)
+  elif zipped_file:
+    upload_url, upload_stream, upload_size = _ApplyZippedUploadCompression(
         src_url, src_obj_filestream, src_obj_size, logger)
-    upload_stream = open(upload_url.object_name, 'rb')
     dst_obj_metadata.contentEncoding = 'gzip'
     # If we're sending an object with gzip encoding, it's possible it also
     # has an incompressible content type. Google Cloud Storage will remove
@@ -1756,7 +1955,6 @@ def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
       dst_obj_metadata.cacheControl = 'no-transform'
     elif 'no-transform' not in dst_obj_metadata.cacheControl.lower():
       dst_obj_metadata.cacheControl += ',no-transform'
-    zipped_file = True
 
   if not is_component:
     PutToQueueWithTimeout(
@@ -1771,7 +1969,10 @@ def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
 
   parallel_composite_upload = _ShouldDoParallelCompositeUpload(
       logger, allow_splitting, upload_url, dst_url, src_obj_size,
-      canned_acl=global_copy_helper_opts.canned_acl)
+      gsutil_api, canned_acl=global_copy_helper_opts.canned_acl,
+      kms_keyname=dst_obj_metadata.kmsKeyName)
+  non_resumable_upload = (upload_size < ResumableThreshold() or
+                          src_url.IsStream() or src_url.IsFifo())
 
   if ((src_url.IsStream() or src_url.IsFifo()) and
       gsutil_api.GetApiSelector(provider=dst_url.scheme) == ApiSelector.JSON):
@@ -1789,37 +1990,35 @@ def _UploadFileToObject(src_url, src_obj_filestream, src_obj_size,
   else:
     wrapped_filestream = upload_stream
 
-  try:
-    if parallel_composite_upload:
-      elapsed_time, uploaded_object = _DoParallelCompositeUpload(
-          upload_stream, upload_url, dst_url, dst_obj_metadata,
-          global_copy_helper_opts.canned_acl, upload_size, preconditions,
-          gsutil_api, command_obj, copy_exception_handler, logger)
-    elif (upload_size < ResumableThreshold() or
-          src_url.IsStream() or
-          src_url.IsFifo()):
-      elapsed_time, uploaded_object = _UploadFileToObjectNonResumable(
-          upload_url, wrapped_filestream, upload_size, dst_url,
-          dst_obj_metadata, preconditions, gsutil_api)
-    else:
-      elapsed_time, uploaded_object = _UploadFileToObjectResumable(
-          upload_url, wrapped_filestream, upload_size, dst_url,
-          dst_obj_metadata, preconditions, gsutil_api, logger,
-          is_component=is_component)
+  def CallParallelCompositeUpload():
+    return _DoParallelCompositeUpload(
+        upload_stream, upload_url, dst_url, dst_obj_metadata,
+        global_copy_helper_opts.canned_acl, upload_size, preconditions,
+        gsutil_api, command_obj, copy_exception_handler, logger,
+        gzip_encoded=gzip_encoded_file)
 
-  finally:
-    if zipped_file:
-      try:
-        os.unlink(upload_url.object_name)
-      # Windows sometimes complains the temp file is locked when you try to
-      # delete it.
-      except Exception:  # pylint: disable=broad-except
-        logger.warning(
-            'Could not delete %s. This can occur in Windows because the '
-            'temporary file is still locked.', upload_url.object_name)
-    # In the gzip case, this is the gzip stream.  _CompressFileForUpload will
-    # have already closed the original source stream.
-    upload_stream.close()
+  def CallNonResumableUpload():
+    return _UploadFileToObjectNonResumable(
+        upload_url, wrapped_filestream, upload_size, dst_url,
+        dst_obj_metadata, preconditions, gsutil_api,
+        gzip_encoded=gzip_encoded_file)
+
+  def CallResumableUpload():
+    return _UploadFileToObjectResumable(
+        upload_url, wrapped_filestream, upload_size, dst_url,
+        dst_obj_metadata, preconditions, gsutil_api, logger,
+        is_component=is_component, gzip_encoded=gzip_encoded_file)
+
+  if parallel_composite_upload:
+    delegate = CallParallelCompositeUpload
+  elif non_resumable_upload:
+    delegate = CallNonResumableUpload
+  else:
+    delegate = CallResumableUpload
+
+  elapsed_time, uploaded_object = _DelegateUploadFileToObject(
+      delegate, upload_url, upload_stream, zipped_file, gzip_encoded_file,
+      parallel_composite_upload, logger)
 
   if not parallel_composite_upload:
     try:
@@ -2437,7 +2636,7 @@ def _DownloadObjectToFileResumable(src_url, src_obj_metadata, dst_url,
           download_strategy=CloudApi.DownloadStrategy.RESUMABLE,
           provider=src_url.scheme, serialization_data=serialization_data,
           digesters=digesters, progress_callback=progress_callback,
-          decryption_tuple=CryptoTupleFromKey(decryption_key))
+          decryption_tuple=CryptoKeyWrapperFromKey(decryption_key))
 
   except ResumableDownloadException as e:
     logger.warning('Caught ResumableDownloadException (%s) for download of %s.',
@@ -2496,7 +2695,7 @@ def _DownloadObjectToFileNonResumable(src_url, src_obj_metadata, dst_url,
         download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
         provider=src_url.scheme, serialization_data=serialization_data,
         digesters=digesters, progress_callback=progress_callback,
-        decryption_tuple=CryptoTupleFromKey(decryption_key))
+        decryption_tuple=CryptoKeyWrapperFromKey(decryption_key))
   finally:
     if fp:
       fp.close()
@@ -2857,7 +3056,7 @@ def _CopyObjToObjDaisyChainMode(src_url, src_obj_metadata, dst_url,
       progress_callback = pickle.loads(test_fp.read()).call
 
   compressed_encoding = ObjectIsGzipEncoded(src_obj_metadata)
-  encryption_tuple = GetEncryptionTuple()
+  encryption_keywrapper = GetEncryptionKeyWrapper(config)
 
   start_time = time.time()
   upload_fp = DaisyChainWrapper(
@@ -2872,7 +3071,7 @@ def _CopyObjToObjDaisyChainMode(src_url, src_obj_metadata, dst_url,
         canned_acl=global_copy_helper_opts.canned_acl,
         preconditions=preconditions, provider=dst_url.scheme,
         fields=UPLOAD_RETURN_FIELDS, size=src_obj_metadata.size,
-        encryption_tuple=encryption_tuple)
+        encryption_tuple=encryption_keywrapper)
   else:
     # TODO: Support process-break resumes. This will resume across connection
     # breaks and server errors, but the tracker callback is a no-op so this
@@ -2887,7 +3086,7 @@ def _CopyObjToObjDaisyChainMode(src_url, src_obj_metadata, dst_url,
             gsutil_api.status_queue, src_url=src_url, dst_url=dst_url,
             operation_name='Uploading').call,
         tracker_callback=_DummyTrackerCallback,
-        encryption_tuple=encryption_tuple)
+        encryption_tuple=encryption_keywrapper)
   end_time = time.time()
 
   try:
@@ -2901,11 +3100,11 @@ def _CopyObjToObjDaisyChainMode(src_url, src_obj_metadata, dst_url,
           etag=uploaded_object.etag)
       dst_obj_metadata.name = (dst_url.object_name +
                                _RENAME_ON_HASH_MISMATCH_SUFFIX)
-      decryption_tuple = CryptoTupleFromKey(decryption_key)
+      decryption_keywrapper = CryptoKeyWrapperFromKey(decryption_key)
       gsutil_api.CopyObject(corrupted_obj_metadata,
                             dst_obj_metadata, provider=dst_url.scheme,
-                            decryption_tuple=decryption_tuple,
-                            encryption_tuple=encryption_tuple)
+                            decryption_tuple=decryption_keywrapper,
+                            encryption_tuple=encryption_keywrapper)
     # If the digest doesn't match, delete the object.
     gsutil_api.DeleteObject(dst_url.bucket_name, dst_url.object_name,
                             generation=uploaded_object.generation,
@@ -3059,7 +3258,7 @@ def MaybeSkipUnsupportedObject(src_url, src_obj_metadata):
     raise SkipGlacierError()
 
 
-def GetDecryptionKey(src_url, src_obj_metadata):
+def GetDecryptionCSEK(src_url, src_obj_metadata):
   """Ensures a matching decryption key is available for the source object.
 
   Args:
@@ -3075,8 +3274,8 @@ def GetDecryptionKey(src_url, src_obj_metadata):
     matching key is found, or None if object is not encrypted.
   """
   if src_obj_metadata.customerEncryption:
-    decryption_key = FindMatchingCryptoKey(
-        src_obj_metadata.customerEncryption.keySha256)
+    decryption_key = FindMatchingCSEKInBotoConfig(
+        src_obj_metadata.customerEncryption.keySha256, config)
     if not decryption_key:
       raise EncryptionException(
           'Missing decryption key with SHA256 hash %s. No decryption key '
@@ -3087,10 +3286,10 @@ def GetDecryptionKey(src_url, src_obj_metadata):
 
 # pylint: disable=undefined-variable
 # pylint: disable=too-many-statements
-def PerformCopy(logger, src_url, dst_url, gsutil_api,
-                command_obj, copy_exception_handler, src_obj_metadata=None,
-                allow_splitting=True, headers=None, manifest=None,
-                gzip_exts=None, is_rsync=False, preserve_posix=False):
+def PerformCopy(
+    logger, src_url, dst_url, gsutil_api, command_obj, copy_exception_handler,
+    src_obj_metadata=None, allow_splitting=True, headers=None, manifest=None,
+    gzip_exts=None, is_rsync=False, preserve_posix=False, gzip_encoded=False):
   """Performs copy from src_url to dst_url, handling various special cases.
 
   Args:
@@ -3109,10 +3308,13 @@ def PerformCopy(logger, src_url, dst_url, gsutil_api,
                      pieces for an parallel composite upload or download.
     headers: optional headers to use for the copy operation.
     manifest: optional manifest for tracking copy operations.
-    gzip_exts: List of file extensions to gzip prior to upload, if any.
+    gzip_exts: List of file extensions to gzip, if any.
                If gzip_exts is GZIP_ALL_FILES, gzip all files.
     is_rsync: Whether or not the caller is the rsync command.
     preserve_posix: Whether or not to preserve posix attributes.
+    gzip_encoded: Whether to use gzip transport encoding for the upload. Used
+        in conjunction with gzip_exts. Streaming files compressed is only
+        supported on the JSON GCS API.
 
   Returns:
     (elapsed_time, bytes_transferred, version-specific dst_url) excluding
@@ -3153,7 +3355,7 @@ def PerformCopy(logger, src_url, dst_url, gsutil_api,
     if global_copy_helper_opts.perform_mv:
       WarnIfMvEarlyDeletionChargeApplies(src_url, src_obj_metadata, logger)
     MaybeSkipUnsupportedObject(src_url, src_obj_metadata)
-    decryption_key = GetDecryptionKey(src_url, src_obj_metadata)
+    decryption_key = GetDecryptionCSEK(src_url, src_obj_metadata)
 
     src_obj_size = src_obj_metadata.size
     dst_obj_metadata.contentType = src_obj_metadata.contentType
@@ -3250,6 +3452,13 @@ def PerformCopy(logger, src_url, dst_url, gsutil_api,
       src_obj_metadata.bucket = src_url.bucket_name
     else:
       _SetContentTypeFromFile(src_url, dst_obj_metadata)
+    # Only set KMS key name if destination provider is 'gs'.
+    encryption_keywrapper = GetEncryptionKeyWrapper(config)
+    if (encryption_keywrapper and
+        encryption_keywrapper.crypto_type == CryptoKeyType.CMEK and
+        dst_url.scheme == 'gs'):
+      dst_obj_metadata.kmsKeyName = encryption_keywrapper.crypto_key
+
   if src_obj_metadata:
     # Note that CopyObjectMetadata only copies specific fields. We intentionally
     # do not copy storageClass, as the bucket's default storage class should be
@@ -3303,7 +3512,7 @@ def PerformCopy(logger, src_url, dst_url, gsutil_api,
           src_url, src_obj_filestream, src_obj_size, dst_url,
           dst_obj_metadata, preconditions, gsutil_api, logger, command_obj,
           copy_exception_handler, gzip_exts=gzip_exts,
-          allow_splitting=allow_splitting)
+          allow_splitting=allow_splitting, gzip_encoded=gzip_encoded)
     else:  # dst_url.IsFileUrl()
       PutToQueueWithTimeout(
           gsutil_api.status_queue,

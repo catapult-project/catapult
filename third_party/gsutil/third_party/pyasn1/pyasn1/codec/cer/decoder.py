@@ -2,12 +2,12 @@
 # This file is part of pyasn1 software.
 #
 # Copyright (c) 2005-2017, Ilya Etingof <etingof@gmail.com>
-# License: http://pyasn1.sf.net/license.html
+# License: http://snmplabs.com/pyasn1/license.html
 #
-from pyasn1.type import univ
+from pyasn1 import error
 from pyasn1.codec.ber import decoder
 from pyasn1.compat.octets import oct2int
-from pyasn1 import error
+from pyasn1.type import univ
 
 __all__ = ['decode']
 
@@ -32,7 +32,7 @@ class BooleanDecoder(decoder.AbstractSimpleDecoder):
             value = 0
         else:
             raise error.PyAsn1Error('Unexpected Boolean payload: %s' % byte)
-        return self._createComponent(asn1Spec, tagSet, value), tail
+        return self._createComponent(asn1Spec, tagSet, value, **options), tail
 
 # TODO: prohibit non-canonical encoding
 BitStringDecoder = decoder.BitStringDecoder
@@ -63,15 +63,17 @@ class Decoder(decoder.Decoder):
 
 #: Turns CER octet stream into an ASN.1 object.
 #:
-#: Takes CER octetstream and decode it into an ASN.1 object
+#: Takes CER octet-stream and decode it into an ASN.1 object
 #: (e.g. :py:class:`~pyasn1.type.base.PyAsn1Item` derivative) which
 #: may be a scalar or an arbitrary nested structure.
 #:
 #: Parameters
 #: ----------
 #: substrate: :py:class:`bytes` (Python 3) or :py:class:`str` (Python 2)
-#:     CER octetstream
+#:     CER octet-stream
 #:
+#: Keyword Args
+#: ------------
 #: asn1Spec: any pyasn1 type object e.g. :py:class:`~pyasn1.type.base.PyAsn1Item` derivative
 #:     A pyasn1 type object to act as a template guiding the decoder. Depending on the ASN.1 structure
 #:     being decoded, *asn1Spec* may or may not be required. Most common reason for
@@ -85,6 +87,28 @@ class Decoder(decoder.Decoder):
 #:
 #: Raises
 #: ------
-#: : :py:class:`pyasn1.error.PyAsn1Error`
+#: :py:class:`~pyasn1.error.PyAsn1Error`
 #:     On decoding errors
+#:
+#: Examples
+#: --------
+#: Decode CER serialisation without ASN.1 schema
+#:
+#: .. code-block:: pycon
+#:
+#:    >>> s, _ = decode(b'0\x80\x02\x01\x01\x02\x01\x02\x02\x01\x03\x00\x00')
+#:    >>> str(s)
+#:    SequenceOf:
+#:     1 2 3
+#:
+#: Decode CER serialisation with ASN.1 schema
+#:
+#: .. code-block:: pycon
+#:
+#:    >>> seq = SequenceOf(componentType=Integer())
+#:    >>> s, _ = decode(b'0\x80\x02\x01\x01\x02\x01\x02\x02\x01\x03\x00\x00', asn1Spec=seq)
+#:    >>> str(s)
+#:    SequenceOf:
+#:     1 2 3
+#:
 decode = Decoder(tagMap, decoder.typeMap)

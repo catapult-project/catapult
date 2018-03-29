@@ -16,10 +16,11 @@
 
 set -ev
 
+# If in the pypy environment, activate the never version of pypy provided by
+# pyenv.
 if [[ "${TOX_ENV}" == "pypy" ]]; then
-    PYENV_ROOT="${HOME}/.pyenv"
-    PATH="${PYENV_ROOT}/bin:${PATH}"
-    eval "$(pyenv init -)"
-    pyenv global pypy-2.6.0
+    PATH="${HOME}/.pyenv/versions/pypy-2.6.0/bin:${PATH}"
+    export PATH
 fi
+
 tox -e ${TOX_ENV}

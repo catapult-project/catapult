@@ -24,8 +24,11 @@ from gslib.posix_util import MODE_ATTR
 from gslib.posix_util import MTIME_ATTR
 from gslib.posix_util import NA_TIME
 from gslib.posix_util import UID_ATTR
+from gslib.project_id import PopulateProjectId
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForGS
 from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import BuildErrorRegex
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import ORPHANED_FILE
@@ -53,7 +56,7 @@ if not IS_WINDOWS:
   from gslib.tests.util import USER_ID
 # pylint: enable=g-import-not-at-top
 
-NO_CHANGES = 'Building synchronization state...\nStarting synchronization\n'
+NO_CHANGES = 'Building synchronization state...\nStarting synchronization...\n'
 if not UsingCrcmodExtension(crcmod):
   NO_CHANGES = SLOW_CRCMOD_RSYNC_WARNING + '\n' + NO_CHANGES
 
@@ -2142,3 +2145,141 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
       self.assertEquals(listing1, expected_list_results)
       self.assertEquals(listing2, expected_list_results)
     _Check()
+
+  @SkipForS3('No compressed transport encoding support for S3.')
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  @SequentialAndParallelTransfer
+  def test_gzip_transport_encoded_all_upload(self):
+    """Test gzip encoded files upload correctly."""
+    # Setup the bucket and local data.
+    file_names = ('test', 'test.txt', 'test.xml')
+    local_uris = []
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    contents = 'x' * 10000
+    # Create local files.
+    for file_name in file_names:
+      local_uris.append(self.CreateTempFile(tmpdir, contents, file_name))
+    # Upload the data.
+    stderr = self.RunGsUtil(
+        ['-D', 'rsync', '-J', '-r', tmpdir, suri(bucket_uri)],
+        return_stderr=True)
+    self.AssertNObjectsInBucket(bucket_uri, len(local_uris))
+    # Ensure the correct files were marked for compression.
+    for local_uri in local_uris:
+      self.assertIn(
+          'Using compressed transport encoding for file://%s.' % (local_uri),
+          stderr)
+    # Ensure the progress logger sees a gzip encoding.
+    self.assertIn('send: Using gzip transport encoding for the request.',
+                  stderr)
+
+  @SkipForS3('No compressed transport encoding support for S3.')
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  @SequentialAndParallelTransfer
+  def test_gzip_transport_encoded_filtered_upload(self):
+    """Test gzip encoded files upload correctly."""
+    # Setup the bucket and local data.
+    file_names_valid = ('test.txt', 'photo.txt')
+    file_names_invalid = ('file', 'test.png', 'test.xml')
+    local_uris_valid = []
+    local_uris_invalid = []
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    contents = 'x' * 10000
+    # Create local files.
+    for file_name in file_names_valid:
+      local_uris_valid.append(self.CreateTempFile(tmpdir, contents, file_name))
+    for file_name in file_names_invalid:
+      local_uris_invalid.append(
+          self.CreateTempFile(tmpdir, contents, file_name))
+    # Upload the data.
+    stderr = self.RunGsUtil(
+        ['-D', 'rsync', '-j', 'txt', '-r', tmpdir, suri(bucket_uri)],
+        return_stderr=True)
+    self.AssertNObjectsInBucket(
+        bucket_uri, len(file_names_valid) + len(file_names_invalid))
+    # Ensure the correct files were marked for compression.
+    for local_uri in local_uris_valid:
+      self.assertIn(
+          'Using compressed transport encoding for file://%s.' % (local_uri),
+          stderr)
+    for local_uri in local_uris_invalid:
+      self.assertNotIn(
+          'Using compressed transport encoding for file://%s.' % (local_uri),
+          stderr)
+    # Ensure the progress logger sees a gzip encoding.
+    self.assertIn('send: Using gzip transport encoding for the request.',
+                  stderr)
+
+  @SkipForS3('No compressed transport encoding support for S3.')
+  @SkipForXML('No compressed transport encoding support for the XML API.')
+  @SequentialAndParallelTransfer
+  def test_gzip_transport_encoded_all_upload_parallel(self):
+    """Test gzip encoded files upload correctly."""
+    # Setup the bucket and local data.
+    file_names = ('test', 'test.txt', 'test.xml')
+    local_uris = []
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    contents = 'x' * 10000
+    for file_name in file_names:
+      local_uris.append(self.CreateTempFile(tmpdir, contents, file_name))
+    # Upload the data.
+    stderr = self.RunGsUtil(
+        ['-D', '-m', 'rsync', '-J', '-r', tmpdir, suri(bucket_uri)],
+        return_stderr=True)
+    self.AssertNObjectsInBucket(bucket_uri, len(local_uris))
+    # Ensure the correct files were marked for compression.
+    for local_uri in local_uris:
+      self.assertIn(
+          'Using compressed transport encoding for file://%s.' % (local_uri),
+          stderr)
+    # Ensure the progress logger sees a gzip encoding.
+    self.assertIn('send: Using gzip transport encoding for the request.',
+                  stderr)
+
+  def authorize_project_to_use_testing_kms_key(
+      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
+    # Make sure our keyRing and cryptoKey exist.
+    keyring_fqn = self.kms_api.CreateKeyRing(
+        PopulateProjectId(None), testcase.KmsTestingResources.KEYRING_NAME,
+        location=testcase.KmsTestingResources.KEYRING_LOCATION)
+    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
+    # Make sure that the service account for our default project is authorized
+    # to use our test KMS key.
+    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
+    return key_fqn
+
+  @SkipForS3('Test uses gs-specific KMS encryption')
+  def test_kms_key_applied_to_dest_objects(self):
+    bucket_uri = self.CreateBucket()
+    cloud_container_suri = suri(bucket_uri) + '/foo'
+    obj_name = 'bar'
+    tmp_dir = self.CreateTempDir()
+    self.CreateTempFile(tmpdir=tmp_dir, file_name=obj_name, contents=obj_name)
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
+
+    # Rsync the object from our tmpdir to a GCS bucket, specifying a KMS key.
+    with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn)]):
+      self.RunGsUtil(['rsync', tmp_dir, cloud_container_suri])
+
+    # Make sure the new object is encrypted with the specified KMS key.
+    with SetBotoConfigForTest([('GSUtil', 'prefer_api', 'json')]):
+      stdout = self.RunGsUtil(
+          ['ls', '-L', '%s/%s' % (cloud_container_suri, obj_name)],
+          return_stdout=True)
+    self.assertRegexpMatches(stdout, r'KMS key:\s+%s' % key_fqn)
+
+  @SkipForGS('Tests that gs-specific encryption settings are skipped for s3.')
+  def test_kms_key_specified_will_not_prevent_non_kms_copy_to_s3(self):
+    tmp_dir = self.CreateTempDir()
+    self.CreateTempFile(tmpdir=tmp_dir, contents='foo')
+    bucket_uri = self.CreateBucket()
+    dummy_key = ('projects/myproject/locations/global/keyRings/mykeyring/'
+                 'cryptoKeys/mykey')
+
+    # Would throw an exception if the command failed because of invalid
+    # formatting (i.e. specifying KMS key in a request to S3's API).
+    with SetBotoConfigForTest([('GSUtil', 'prefer_api', 'json')]):
+      self.RunGsUtil(['rsync', tmp_dir, suri(bucket_uri)])

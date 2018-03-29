@@ -1,4 +1,4 @@
-# Copyright 2012-2015, Andrey Kislyuk and argcomplete contributors.
+# Copyright 2012-2017, Andrey Kislyuk and argcomplete contributors.
 # Licensed under the Apache License. See https://github.com/kislyuk/argcomplete for more info.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -6,8 +6,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os, sys, argparse, contextlib
 from . import completers, my_shlex as shlex
 from .compat import USING_PYTHON2, str, sys_encoding, ensure_str, ensure_bytes
-from .completers import FilesCompleter
+from .completers import FilesCompleter, SuppressCompleter
 from .my_argparse import IntrospectiveArgumentParser, action_is_satisfied, action_is_open, action_is_greedy
+from .shellintegration import shellcode # noqa
 
 _DEBUG = "_ARC_DEBUG" in os.environ
 
@@ -15,6 +16,11 @@ debug_stream = sys.stderr
 
 def debug(*args):
     if _DEBUG:
+        if USING_PYTHON2:
+            # debug_stream has to be binary mode in Python 2.
+            # Attempting to write unicode directly uses the default ascii conversion.
+            # Convert any unicode to bytes, leaving non-string input alone.
+            args = [ensure_bytes(x) if isinstance(x, str) else x for x in args]
         print(file=debug_stream, *args)
 
 BASH_FILE_COMPLETION_FALLBACK = 79
@@ -194,12 +200,6 @@ class CompletionFinder(object):
         comp_line = os.environ["COMP_LINE"]
         comp_point = int(os.environ["COMP_POINT"])
 
-        # Adjust comp_point for wide chars
-        if USING_PYTHON2:
-            comp_point = len(comp_line[:comp_point].decode(sys_encoding))
-        else:
-            comp_point = len(comp_line.encode(sys_encoding)[:comp_point].decode(sys_encoding))
-
         comp_line = ensure_str(comp_line)
         cword_prequote, cword_prefix, cword_suffix, comp_words, last_wordbreak_pos = split_line(comp_line, comp_point)
 
@@ -211,8 +211,11 @@ class CompletionFinder(object):
         start = int(os.environ["_ARGCOMPLETE"]) - 1
         comp_words = comp_words[start:]
 
-        debug("\nLINE: '{l}'\nPREQUOTE: '{pq}'\nPREFIX: '{p}'".format(l=comp_line, pq=cword_prequote, p=cword_prefix),
-              "\nSUFFIX: '{s}'".format(s=cword_suffix),
+        debug("\nLINE: {!r}".format(comp_line),
+              "\nPOINT: {!r}".format(comp_point),
+              "\nPREQUOTE: {!r}".format(cword_prequote),
+              "\nPREFIX: {!r}".format(cword_prefix),
+              "\nSUFFIX: {!r}".format(cword_suffix),
               "\nWORDS:", comp_words)
 
         completions = self._get_completions(comp_words, cword_prefix, cword_prequote, last_wordbreak_pos)
@@ -346,8 +349,12 @@ class CompletionFinder(object):
 
         option_completions = []
         for action in parser._actions:
-            if action.help == argparse.SUPPRESS and not self.print_suppressed:
-                continue
+            if not self.print_suppressed:
+                completer = getattr(action, "completer", None)
+                if isinstance(completer, SuppressCompleter) and completer.suppress():
+                    continue
+                if action.help == argparse.SUPPRESS:
+                    continue
             if not self._action_allowed(action, parser):
                 continue
             if not isinstance(action, argparse._SubParsersAction):

@@ -629,7 +629,7 @@ class TestAcl(TestAclBase):
 
   def testAclGetWithoutFullControl(self):
     object_uri = self.CreateObject(contents='foo')
-    expected_error_regex = r'Anonymous user(s)? do(es)? not have'
+    expected_error_regex = r'Anonymous \S+ do(es)? not have'
     with self.SetAnonymousBotoCreds():
       stderr = self.RunGsUtil(self._get_acl_prefix + [suri(object_uri)],
                               return_stderr=True, expected_status=1)

@@ -34,8 +34,8 @@ _DETAILED_HELP_TEXT = ("""
     following command would cause gsutil to set the Content-Type and
     Cache-Control for each of the files being uploaded:
 
-      gsutil -h "Content-Type:text/html" \
-             -h "Cache-Control:public, max-age=3600" cp -r images \
+      gsutil -h "Content-Type:text/html" \\
+             -h "Cache-Control:public, max-age=3600" cp -r images \\
              gs://bucket/images
 
     Note that -h is an option on the gsutil command, not the cp sub-command.
@@ -72,7 +72,7 @@ _DETAILED_HELP_TEXT = ("""
 
   Here's an example of uploading a set of objects to allow caching:
 
-    gsutil -h "Cache-Control:public,max-age=3600" cp -a public-read \
+    gsutil -h "Cache-Control:public,max-age=3600" cp -a public-read \\
            -r html gs://bucket/html
 
   This command would upload all files in the html directory (and subdirectories)
@@ -108,8 +108,8 @@ _DETAILED_HELP_TEXT = ("""
   following example for Linux:
 
     echo "Highly compressible text" | gzip > foo.txt
-    gsutil -h "Content-Encoding:gzip" \
-           -h "Content-Type:text/plain" \
+    gsutil -h "Content-Encoding:gzip" \\
+           -h "Content-Type:text/plain" \\
            cp foo.txt gs://bucket/compressed
 
   Note that this is different from uploading a gzipped object foo.txt.gz with
@@ -133,7 +133,7 @@ _DETAILED_HELP_TEXT = ("""
   You can set Content-Disposition on your objects, to specify presentation
   information about the data being transmitted. Here's an example:
 
-    gsutil -h 'Content-Disposition:attachment; filename=filename.ext' \
+    gsutil -h 'Content-Disposition:attachment; filename=filename.ext' \\
            cp -r attachments gs://bucket/attachments
 
   Setting the Content-Disposition allows you to control presentation style

@@ -37,8 +37,8 @@ class Binding(_messages.Message):
       or `joe@example.com`.   * `serviceAccount:{emailid}`: An email address
       that represents a service    account. For example, `my-other-
       app@appspot.gserviceaccount.com`.  * `group:{emailid}`: An email address
-      that represents a Google group.    For example, `admins@example.com`.  *
-      `domain:{domain}`: A Google Apps domain name that represents all the
+      that represents a Google group.    For example, `admins@example.com`.
+      * `domain:{domain}`: A Google Apps domain name that represents all the
       users of that domain. For example, `google.com` or `example.com`.
     role: Role that is assigned to `members`. For example, `roles/viewer`,
       `roles/editor`, or `roles/owner`. Required
@@ -125,8 +125,8 @@ class ModifyPushConfigRequest(_messages.Message):
     pushConfig: The push configuration for future deliveries.  An empty
       `pushConfig` indicates that the Pub/Sub system should stop pushing
       messages from the given subscription and allow messages to be pulled and
-      acknowledged - effectively pausing the subscription if `Pull` is not
-      called.
+      acknowledged - effectively pausing the subscription if `Pull` or
+      `StreamingPull` is not called.
   """
 
   pushConfig = _messages.MessageField('PushConfig', 1)
@@ -148,9 +148,8 @@ class Policy(_messages.Message):
   developer's guide](https://cloud.google.com/iam).
 
   Fields:
-    bindings: Associates a list of `members` to a `role`. Multiple `bindings`
-      must not be specified for the same `role`. `bindings` with no members
-      will result in an error.
+    bindings: Associates a list of `members` to a `role`. `bindings` with no
+      members will result in an error.
     etag: `etag` is used for optimistic concurrency control as a way to help
       prevent simultaneous updates of a policy from overwriting each other. It
       is strongly suggested that systems make use of the `etag` in the read-
@@ -245,8 +244,8 @@ class PubsubProjectsSnapshotsGetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being requested.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
   """
 
   resource = _messages.StringField(1, required=True)
@@ -257,8 +256,8 @@ class PubsubProjectsSnapshotsSetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being specified.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
     setIamPolicyRequest: A SetIamPolicyRequest resource to be passed as the
       request body.
   """
@@ -272,8 +271,8 @@ class PubsubProjectsSnapshotsTestIamPermissionsRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy detail is being
-      requested. `resource` is usually specified as a path. For example, a
-      Project resource is specified as `projects/{project}`.
+      requested. See the operation documentation for the appropriate value for
+      this field.
     testIamPermissionsRequest: A TestIamPermissionsRequest resource to be
       passed as the request body.
   """
@@ -312,8 +311,8 @@ class PubsubProjectsSubscriptionsGetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being requested.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
   """
 
   resource = _messages.StringField(1, required=True)
@@ -393,8 +392,8 @@ class PubsubProjectsSubscriptionsSetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being specified.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
     setIamPolicyRequest: A SetIamPolicyRequest resource to be passed as the
       request body.
   """
@@ -408,8 +407,8 @@ class PubsubProjectsSubscriptionsTestIamPermissionsRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy detail is being
-      requested. `resource` is usually specified as a path. For example, a
-      Project resource is specified as `projects/{project}`.
+      requested. See the operation documentation for the appropriate value for
+      this field.
     testIamPermissionsRequest: A TestIamPermissionsRequest resource to be
       passed as the request body.
   """
@@ -434,8 +433,8 @@ class PubsubProjectsTopicsGetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being requested.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
   """
 
   resource = _messages.StringField(1, required=True)
@@ -488,8 +487,8 @@ class PubsubProjectsTopicsSetIamPolicyRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy is being specified.
-      `resource` is usually specified as a path. For example, a Project
-      resource is specified as `projects/{project}`.
+      See the operation documentation for the appropriate value for this
+      field.
     setIamPolicyRequest: A SetIamPolicyRequest resource to be passed as the
       request body.
   """
@@ -521,8 +520,8 @@ class PubsubProjectsTopicsTestIamPermissionsRequest(_messages.Message):
 
   Fields:
     resource: REQUIRED: The resource for which the policy detail is being
-      requested. `resource` is usually specified as a path. For example, a
-      Project resource is specified as `projects/{project}`.
+      requested. See the operation documentation for the appropriate value for
+      this field.
     testIamPermissionsRequest: A TestIamPermissionsRequest resource to be
       passed as the request body.
   """
@@ -569,12 +568,12 @@ class PushConfig(_messages.Message):
     AttributesValue: Endpoint configuration attributes.  Every endpoint has a
       set of API supported attributes that can be used to control different
       aspects of the message delivery.  The currently supported attribute is
-      `x-goog-version`, which you can use to change the format of the push
+      `x-goog-version`, which you can use to change the format of the pushed
       message. This attribute indicates the version of the data expected by
-      the endpoint. This controls the shape of the envelope (i.e. its fields
-      and metadata). The endpoint version is based on the version of the
-      Pub/Sub API.  If not present during the `CreateSubscription` call, it
-      will default to the version of the API used to make such call. If not
+      the endpoint. This controls the shape of the pushed message (i.e., its
+      fields and metadata). The endpoint version is based on the version of
+      the Pub/Sub API.  If not present during the `CreateSubscription` call,
+      it will default to the version of the API used to make such call. If not
       present during a `ModifyPushConfig` call, its value will not be changed.
       `GetSubscription` calls will always return a valid version, even if the
       subscription was created without this attribute.  The possible values
@@ -586,12 +585,12 @@ class PushConfig(_messages.Message):
     attributes: Endpoint configuration attributes.  Every endpoint has a set
       of API supported attributes that can be used to control different
       aspects of the message delivery.  The currently supported attribute is
-      `x-goog-version`, which you can use to change the format of the push
+      `x-goog-version`, which you can use to change the format of the pushed
       message. This attribute indicates the version of the data expected by
-      the endpoint. This controls the shape of the envelope (i.e. its fields
-      and metadata). The endpoint version is based on the version of the
-      Pub/Sub API.  If not present during the `CreateSubscription` call, it
-      will default to the version of the API used to make such call. If not
+      the endpoint. This controls the shape of the pushed message (i.e., its
+      fields and metadata). The endpoint version is based on the version of
+      the Pub/Sub API.  If not present during the `CreateSubscription` call,
+      it will default to the version of the API used to make such call. If not
       present during a `ModifyPushConfig` call, its value will not be changed.
       `GetSubscription` calls will always return a valid version, even if the
       subscription was created without this attribute.  The possible values
@@ -608,17 +607,18 @@ class PushConfig(_messages.Message):
     """Endpoint configuration attributes.  Every endpoint has a set of API
     supported attributes that can be used to control different aspects of the
     message delivery.  The currently supported attribute is `x-goog-version`,
-    which you can use to change the format of the push message. This attribute
-    indicates the version of the data expected by the endpoint. This controls
-    the shape of the envelope (i.e. its fields and metadata). The endpoint
-    version is based on the version of the Pub/Sub API.  If not present during
-    the `CreateSubscription` call, it will default to the version of the API
-    used to make such call. If not present during a `ModifyPushConfig` call,
-    its value will not be changed. `GetSubscription` calls will always return
-    a valid version, even if the subscription was created without this
-    attribute.  The possible values for this attribute are:  * `v1beta1`: uses
-    the push format defined in the v1beta1 Pub/Sub API. * `v1` or `v1beta2`:
-    uses the push format defined in the v1 Pub/Sub API.
+    which you can use to change the format of the pushed message. This
+    attribute indicates the version of the data expected by the endpoint. This
+    controls the shape of the pushed message (i.e., its fields and metadata).
+    The endpoint version is based on the version of the Pub/Sub API.  If not
+    present during the `CreateSubscription` call, it will default to the
+    version of the API used to make such call. If not present during a
+    `ModifyPushConfig` call, its value will not be changed. `GetSubscription`
+    calls will always return a valid version, even if the subscription was
+    created without this attribute.  The possible values for this attribute
+    are:  * `v1beta1`: uses the push format defined in the v1beta1 Pub/Sub
+    API. * `v1` or `v1beta2`: uses the push format defined in the v1 Pub/Sub
+    API.
 
     Messages:
       AdditionalProperty: An additional property for a AttributesValue object.
@@ -747,13 +747,15 @@ class Subscription(_messages.Message):
       be delivered again during that time (on a best-effort basis).  For pull
       subscriptions, this value is used as the initial value for the ack
       deadline. To override this value for a given message, call
-      `ModifyAckDeadline` with the corresponding `ack_id` if using pull. The
-      minimum custom deadline you can specify is 10 seconds. The maximum
-      custom deadline you can specify is 600 seconds (10 minutes). If this
-      parameter is 0, a default value of 10 seconds is used.  For push
-      delivery, this value is also used to set the request timeout for the
-      call to the push endpoint.  If the subscriber never acknowledges the
-      message, the Pub/Sub system will eventually redeliver the message.
+      `ModifyAckDeadline` with the corresponding `ack_id` if using non-
+      streaming pull or send the `ack_id` in a
+      `StreamingModifyAckDeadlineRequest` if using streaming pull. The minimum
+      custom deadline you can specify is 10 seconds. The maximum custom
+      deadline you can specify is 600 seconds (10 minutes). If this parameter
+      is 0, a default value of 10 seconds is used.  For push delivery, this
+      value is also used to set the request timeout for the call to the push
+      endpoint.  If the subscriber never acknowledges the message, the Pub/Sub
+      system will eventually redeliver the message.
     name: The name of the subscription. It must have the format
       `"projects/{project}/subscriptions/{subscription}"`. `{subscription}`
       must start with a letter, and contain only letters (`[A-Za-z]`), numbers
@@ -814,11 +816,8 @@ class Topic(_messages.Message):
 
 
 encoding.AddCustomJsonFieldMapping(
-    StandardQueryParameters, 'f__xgafv', '$.xgafv',
-    package=u'pubsub')
+    StandardQueryParameters, 'f__xgafv', '$.xgafv')
 encoding.AddCustomJsonEnumMapping(
-    StandardQueryParameters.FXgafvValueValuesEnum, '_1', '1',
-    package=u'pubsub')
+    StandardQueryParameters.FXgafvValueValuesEnum, '_1', '1')
 encoding.AddCustomJsonEnumMapping(
-    StandardQueryParameters.FXgafvValueValuesEnum, '_2', '2',
-    package=u'pubsub')
+    StandardQueryParameters.FXgafvValueValuesEnum, '_2', '2')

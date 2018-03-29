@@ -1,6 +1,10 @@
+[run]
+branch = True
+
 [report]
 omit =
     */samples/*
+    */conftest.py
     # Don't report coverage over platform-specific modules.
     oauth2client/contrib/_fcntl_opener.py
     oauth2client/contrib/_win32_opener.py

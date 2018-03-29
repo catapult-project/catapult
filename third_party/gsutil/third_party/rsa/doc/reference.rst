@@ -1,11 +1,11 @@
 Reference
-==================================================
+=========
 
 This is the class and function reference. For more usage information
 see the :ref:`usage` page.
 
 Functions
---------------------------------------------------
+---------
 
 .. autofunction:: rsa.encrypt
 
@@ -19,7 +19,15 @@ Functions
 
 
 Classes
---------------------------------------------------
+-------
+
+.. note::
+
+    Storing public and private keys via the `pickle` module is possible.
+    However, it is insecure to load a key from an untrusted source.
+    The pickle module is not secure against erroneous or maliciously
+    constructed data. Never unpickle data received from an untrusted
+    or unauthenticated source.
 
 .. autoclass:: rsa.PublicKey
     :members:
@@ -30,7 +38,7 @@ Classes
     :inherited-members:
 
 Exceptions
---------------------------------------------------
+----------
 
 .. autoclass:: rsa.pkcs1.CryptoError(Exception)
 
@@ -42,7 +50,13 @@ Exceptions
 .. index:: VARBLOCK (file format)
 
 Module: rsa.bigfile
---------------------------------------------------
+-------------------
+
+.. warning::
+
+    The :py:mod:`rsa.bigfile` module is NOT recommended for general use, has been
+    deprecated since Python-RSA 3.4, and will be removed in a future release. It's
+    vulnerable to a number of attacks. See :ref:`bigfiles` for more information.
 
 The :py:mod:`rsa.bigfile` module contains functions for encrypting and
 decrypting files that are larger than the RSA key. See
@@ -55,7 +69,13 @@ decrypting files that are larger than the RSA key. See
 .. _VARBLOCK:
 
 The VARBLOCK file format
-++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++
+
+.. warning::
+
+    The VARBLOCK format is NOT recommended for general use, has been deprecated since
+    Python-RSA 3.4, and will be removed in a future release. It's vulnerable to a
+    number of attacks. See :ref:`bigfiles` for more information.
 
 The VARBLOCK file format allows us to encrypt files that are larger
 than the RSA key. The format is as follows; || denotes byte string
@@ -75,11 +95,11 @@ The varint-format was taken from Google's Protobuf_, and allows us to
 efficiently encode an arbitrarily long integer.
 
 .. _Protobuf:
-    http://code.google.com/apis/protocolbuffers/docs/encoding.html#varints
+    https://code.google.com/apis/protocolbuffers/docs/encoding.html#varints
 
 
 Module: rsa.core
---------------------------------------------------
+----------------
 
 At the core of the RSA encryption method lie these functions. They
 both operate on (arbitrarily long) integers only. They probably aren't

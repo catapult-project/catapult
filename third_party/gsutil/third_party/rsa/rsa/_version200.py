@@ -1,11 +1,24 @@
-"""RSA module
+# -*- coding: utf-8 -*-
+#
+#  Copyright 2011 Sybren A. Stüvel <sybren@stuvel.eu>
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
-Module for calculating large primes, and RSA encryption, decryption,
-signing and verification. Includes generating public and private keys.
+"""Deprecated version of the RSA module
 
-WARNING: this implementation does not use random padding, compression of the
-cleartext input to prevent repetitions, or other common security improvements.
-Use with care.
+.. deprecated:: 3.0
+
+    This submodule is deprecated and will be completely removed as of version 4.0.
 
 """
 
@@ -23,6 +36,8 @@ from rsa._compat import byte
 # Display a warning that this insecure version is imported.
 import warnings
 warnings.warn('Insecure version of the RSA module is imported as %s' % __name__)
+warnings.warn('This submodule is deprecated and will be completely removed as of version 4.0.',
+              DeprecationWarning)
 
 
 def bit_size(number):
@@ -43,13 +58,7 @@ def gcd(p, q):
     
 
 def bytes2int(bytes):
-    """Converts a list of bytes or a string to an integer
-
-    >>> (((128 * 256) + 64) * 256) + 15
-    8405007
-    >>> l = [128, 64, 15]
-    >>> bytes2int(l)              #same as bytes2int('\x80@\x0f')
-    8405007
+    r"""Converts a list of bytes or a string to an integer
     """
 
     if not (type(bytes) is types.ListType or type(bytes) is types.StringType):
@@ -83,9 +92,6 @@ def int2bytes(number):
 def to64(number):
     """Converts a number in the range of 0 to 63 into base 64 digit
     character in the range of '0'-'9', 'A'-'Z', 'a'-'z','-','_'.
-    
-    >>> to64(10)
-    'A'
     """
 
     if not (type(number) is types.LongType or type(number) is types.IntType):
@@ -112,9 +118,6 @@ def to64(number):
 def from64(number):
     """Converts an ordinal character value in the range of
     0-9,A-Z,a-z,-,_ to a number in the range of 0-63.
-    
-    >>> from64(49)
-    1
     """
 
     if not (type(number) is types.LongType or type(number) is types.IntType):
@@ -141,9 +144,6 @@ def from64(number):
 def int2str64(number):
     """Converts a number to a string of base64 encoded characters in
     the range of '0'-'9','A'-'Z,'a'-'z','-','_'.
-    
-    >>> int2str64(123456789)
-    '7MyqL'
     """
 
     if not (type(number) is types.LongType or type(number) is types.IntType):
@@ -161,9 +161,6 @@ def int2str64(number):
 def str642int(string):
     """Converts a base64 encoded string into an integer.
     The chars of this string in in the range '0'-'9','A'-'Z','a'-'z','-','_'
-    
-    >>> str642int('7MyqL')
-    123456789
     """
 
     if not (type(string) is types.ListType or type(string) is types.StringType):
@@ -254,11 +251,6 @@ def randomized_primality_testing(n, k):
 
 def is_prime(number):
     """Returns True if the number is prime, and False otherwise.
-
-    >>> is_prime(42)
-    0
-    >>> is_prime(41)
-    1
     """
 
     if randomized_primality_testing(number, 6):
@@ -272,14 +264,6 @@ def is_prime(number):
 def getprime(nbits):
     """Returns a prime number of max. 'math.ceil(nbits/8)*8' bits. In
     other words: nbits is rounded up to whole bytes.
-
-    >>> p = getprime(8)
-    >>> is_prime(p-1)
-    0
-    >>> is_prime(p)
-    1
-    >>> is_prime(p+1)
-    0
     """
 
     while True:

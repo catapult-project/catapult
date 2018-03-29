@@ -22,7 +22,7 @@ import time
 
 from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import CloudApi
-from gslib.encryption_helper import CryptoTupleFromKey
+from gslib.encryption_helper import CryptoKeyWrapperFromKey
 from gslib.util import CreateLock
 from gslib.util import TRANSFER_BUFFER_SIZE
 
@@ -129,8 +129,7 @@ class DaisyChainWrapper(object):
     self.src_obj_size = src_obj_size
     self.src_url = src_url
     self.compressed_encoding = compressed_encoding
-    self.decryption_tuple = CryptoTupleFromKey(decryption_key)
-
+    self.decryption_tuple = CryptoKeyWrapperFromKey(decryption_key)
 
     # This is safe to use the upload and download thread because the download
     # thread calls only GetObjectMedia, which creates a new HTTP connection

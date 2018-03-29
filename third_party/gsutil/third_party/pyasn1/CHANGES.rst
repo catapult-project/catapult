@@ -1,5 +1,50 @@
 
-Revision 0.3.7, released XX-09-2017
+Revision 0.4.2, released 23-11-2017
+-----------------------------------
+
+- Fixed explicit tag splitting in chunked encoding mode at
+  OctetString and BitString encoders
+
+Revision 0.4.1, released 23-11-2017
+-----------------------------------
+
+- ANY DEFINED BY clause support implemented
+- Encoders refactored to take either a value (as ASN.1 object)
+  or a Python value plus ASN.1 schema
+- BitString decoder optimised for better performance when running on
+  constructed encoding
+- Constructed types' .getComponentBy*() methods accept the `default`
+  parameter to return instead if schema object is to be returned
+- Constructed types' .getComponentBy*() methods accept the `instantiate`
+  parameter to disable automatic inner component instantiation
+- The ASN.1 types' `__repr__` implementation reworked for better readability
+  at the cost of not being `eval`-compliant
+- Most ASN.1 types' `__str__` magic methods (except for OctetString and
+  character types) reworked to call `.prettyPrint()` rather than
+  `.prettyPrint` calling `__str__` as it was before. The intention is
+  to eventually deprecate `.prettyPrint()` in favor of `str()`.
+  The other related change is that `str()` of enumerations and boolean
+  types will return string label instead of number.
+- Fixed Choice.clear() to fully reset internal state of the object
+- Sphinx documentation rearranged, simplified and reworded
+- The `isValue` singleton is now the only way to indicate ASN.1 schema
+  as opposed to ASN.1 schema instance. The legacy `None` initializer
+  support has been removed.
+- Changed `Null` object initialization behaviour: previous default
+  value (`''`) is not set anymore. Thus `Null()` call produces a
+  ASN.1 schema object, while `Null('')` - value object.
+- Migrated all docs and references from SourceForge
+- Imports PEP8'ed
+- Fixed ASN.1 encoder not to omit empty substrate produced for inner
+  component if the inner component belongs to the simple class (as
+  opposed to constructed class)
+- Fixed CER/DER encoders to respect tagged CHOICE when ordering
+  SET components
+- Fixed ASN.1 types not to interfere with the Pickle protocol
+- Fixed Sequence/SequenceOf types decoding heuristics in schema-less
+  decoding mode
+
+Revision 0.3.7, released 04-10-2017
 -----------------------------------
 
 - Fixed ASN.1 time types pickling/deepcopy'ing
@@ -136,14 +181,14 @@ Revision 0.2.3, released 25-02-2017
 - Improved SEQUENCE/SET/CHOICE decoding performance by maintaining a single shared
   NamedType object for all instances of SEQUENCE/SET object.
 - Improved INTEGER encoding/decoding by switching to Python's built-in
-  integer serialization functions.
+  integer serialisation functions.
 - Improved BitString performance by rebasing it onto Python int type and leveraging
-  fast Integer serialization functions.
+  fast Integer serialisation functions.
 - BitString type usability improved in many ways: for example bitshifting and
   numeric operation on BitString is now possible.
 - Minor ObjectIdentifier type performance optimization.
 - ASN.1 character types refactored to keep unicode contents internally
-  (rather than serialized octet stream) and duck-type it directly.
+  (rather than serialised octet stream) and duck-type it directly.
 - ASN.1 OctetString initialized from a Python object performs bytes()
   on it when running on Python 3 (used to do str() which is probably
   less logical).
@@ -165,9 +210,9 @@ Revision 0.2.2, released 07-02-2017
 -----------------------------------
 
 - FIX TO A SECURITY WEAKNESS: define length only decoders could have successfully
-  processed indefinite length serialization.
+  processed indefinite length serialisation.
 - FIX TO A SECURITY WEAKNESS: canonical decoders (CER/DER) may have successfully
-  consumed non-canonical variations of (otherwise valid) serialization.
+  consumed non-canonical variations of (otherwise valid) serialisation.
 - Broken Enumerated subtyping fixed.
 
 Revision 0.2.1, released 05-02-2017

@@ -4,6 +4,10 @@
 
 This is a client library for accessing resources protected by OAuth 2.0.
 
+**Note**: oauth2client is now deprecated. No more features will be added to the
+libraries and the core team is turning down support. We recommend you use
+[google-auth](https://google-auth.readthedocs.io) and [oauthlib](http://oauthlib.readthedocs.io/).
+
 Installation
 ============
 
@@ -23,7 +27,7 @@ agreement.
 Supported Python Versions
 =========================
 
-We support Python 2.6, 2.7, 3.3+. More information [in the docs][2].
+We support Python 2.7 and 3.4+. More information [in the docs][2].
 
 [1]: https://github.com/google/oauth2client/blob/master/CONTRIBUTING.md
 [2]: https://oauth2client.readthedocs.io/#supported-python-versions

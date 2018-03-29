@@ -70,7 +70,7 @@ _SYNOPSIS = """
   gsutil perfdiag [-i in.json]
   gsutil perfdiag [-o out.json] [-n objects] [-c processes]
       [-k threads] [-p parallelism type] [-y slices] [-s size] [-d directory]
-      [-t tests] url...
+      [-t tests] [-j ratio] url...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -203,6 +203,13 @@ _DETAILED_HELP_TEXT = ("""
   -i          Reads the JSON output file created using the -o command and prints
               a formatted description of the results.
 
+  -j          Applies gzip transport encoding and sets the target compression
+              ratio for the generated test files. This ratio can be an integer
+              between 0 and 100 (inclusive), with 0 generating a file with
+              uniform data, and 100 generating random data. When you specify
+              the -j option, files being uploaded are compressed in-memory and
+              on-the-wire only. See cp -j for specific semantics.
+
 
 <B>MEASURING AVAILABILITY</B>
   The perfdiag command ignores the boto num_retries configuration parameter.
@@ -246,13 +253,13 @@ SliceDownloadTuple = namedtuple(
 # names are the same as documented in PerfDiagCommand.Upload.
 FanUploadTuple = namedtuple(
     'FanUploadTuple',
-    'need_to_slice file_name object_name use_file')
+    'need_to_slice file_name object_name use_file gzip_encoded')
 
 # Describes one slice in a sliced upload.
 # Field names are the same as documented in PerfDiagCommand.Upload.
 SliceUploadTuple = namedtuple(
     'SliceUploadTuple',
-    'file_name object_name use_file file_start file_size')
+    'file_name object_name use_file file_start file_size gzip_encoded')
 
 # Dict storing file_path:FileDataTuple for each temporary file used by
 # perfdiag. This data should be kept outside of the PerfDiagCommand class
@@ -311,9 +318,10 @@ def _UploadObject(cls, args, thread_state=None):
   gsutil_api = GetCloudApiInstance(cls, thread_state)
   if args.need_to_slice:
     cls.PerformSlicedUpload(args.file_name, args.object_name, args.use_file,
-                            gsutil_api)
+                            gsutil_api, gzip_encoded=args.gzip_encoded)
   else:
-    cls.Upload(args.file_name, args.object_name, gsutil_api, args.use_file)
+    cls.Upload(args.file_name, args.object_name, gsutil_api, args.use_file,
+               gzip_encoded=args.gzip_encoded)
 
 
 def _UploadSlice(cls, args, thread_state=None):
@@ -326,7 +334,7 @@ def _UploadSlice(cls, args, thread_state=None):
   """
   gsutil_api = GetCloudApiInstance(cls, thread_state)
   cls.Upload(args.file_name, args.object_name, gsutil_api, args.use_file,
-             args.file_start, args.file_size)
+             args.file_start, args.file_size, gzip_encoded=args.gzip_encoded)
 
 
 def _DeleteWrapper(cls, object_name, thread_state=None):
@@ -360,6 +368,37 @@ class DummyFile(object):
     pass
 
 
+def _GenerateFileData(fp, file_size=0, random_ratio=100,
+                      max_unique_random_bytes=5242883):
+  """Writes data into a file like object.
+
+  Args:
+    fp: A file like object to write the data to.
+    file_size: The amount of data to write to the file.
+    random_ratio: The percentage of randomly generated data to write. This can
+        be any number between 0 and 100 (inclusive), with 0 producing uniform
+        data, and 100 producing random data.
+    max_unique_random_bytes: The maximum number of bytes to generate
+                             pseudo-randomly before beginning to repeat
+                             bytes. The default was chosen as the next prime
+                             larger than 5 MiB.
+  """
+  # Normalize the ratio.
+  random_ratio /= 100.0
+  random_bytes = os.urandom(min(file_size, max_unique_random_bytes))
+  total_bytes_written = 0
+  while total_bytes_written < file_size:
+    num_bytes = min(max_unique_random_bytes, file_size - total_bytes_written)
+    # Calculate the amount of random and sequential data to write and
+    # resolve rounding errors by adjusting the random bytes to write.
+    num_bytes_seq = int(num_bytes * (1 - random_ratio))
+    num_bytes_random = num_bytes - num_bytes_seq
+
+    fp.write(random_bytes[:num_bytes_random])
+    fp.write(b'x' * num_bytes_seq)
+    total_bytes_written += num_bytes
+
+
 # Many functions in perfdiag re-define a temporary function based on a
 # variable from a loop, resulting in a false positive from the linter.
 # pylint: disable=cell-var-from-loop
@@ -373,7 +412,7 @@ class PerfDiagCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=0,
       max_args=1,
-      supported_sub_args='n:c:k:p:y:s:d:t:m:i:o:',
+      supported_sub_args='n:c:k:p:y:s:d:t:m:i:o:j:',
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -441,10 +480,6 @@ class PerfDiagCommand(Command):
   # bottleneck at high throughput rates, so we increase it.
   KEY_BUFFER_SIZE = 16384
 
-  # The maximum number of bytes to generate pseudo-randomly before beginning
-  # to repeat bytes. This number was chosen as the next prime larger than 5 MiB.
-  MAX_UNIQUE_RANDOM_BYTES = 5242883
-
   # Maximum amount of time, in seconds, we will wait for object listings to
   # reflect what we expect in the listing tests.
   MAX_LISTING_WAIT_TIME = 60.0
@@ -484,7 +519,8 @@ class PerfDiagCommand(Command):
       self.logger.info('This is a large operation, and could take a while.')
 
   def _MakeTempFile(self, file_size=0, mem_metadata=False,
-                    mem_data=False, prefix='gsutil_test_file'):
+                    mem_data=False, prefix='gsutil_test_file',
+                    random_ratio=100):
     """Creates a temporary file of the given size and returns its path.
 
     Args:
@@ -495,6 +531,9 @@ class PerfDiagCommand(Command):
                 temp_file_dict[fpath].data
       prefix: The prefix to use for the temporary file. Defaults to
               gsutil_test_file.
+      random_ratio: The percentage of randomly generated data to write. This
+          can be any number between 0 and 100 (inclusive), with 0 producing
+          uniform data, and 100 producing random data.
 
     Returns:
       The file path of the created temporary file.
@@ -502,14 +541,7 @@ class PerfDiagCommand(Command):
     fd, fpath = tempfile.mkstemp(suffix='.bin', prefix=prefix,
                                  dir=self.directory, text=False)
     with os.fdopen(fd, 'wb') as fp:
-      random_bytes = os.urandom(min(file_size,
-                                    self.MAX_UNIQUE_RANDOM_BYTES))
-      total_bytes_written = 0
-      while total_bytes_written < file_size:
-        num_bytes = min(self.MAX_UNIQUE_RANDOM_BYTES,
-                        file_size - total_bytes_written)
-        fp.write(random_bytes[:num_bytes])
-        total_bytes_written += num_bytes
+      _GenerateFileData(fp, file_size, random_ratio)
 
     if mem_metadata or mem_data:
       with open(fpath, 'rb') as fp:
@@ -559,7 +591,8 @@ class PerfDiagCommand(Command):
       # instead of creating N objects, in order to avoid excessive memory usage.
       if self.diag_tests.intersection((self.RTHRU, self.WTHRU)):
         self.mem_thru_file_name = self._MakeTempFile(
-            self.thru_filesize, mem_metadata=True, mem_data=True)
+            self.thru_filesize, mem_metadata=True, mem_data=True,
+            random_ratio=self.gzip_compression_ratio)
         self.mem_thru_object_name = os.path.basename(self.mem_thru_file_name)
 
       # For tests that use disk I/O, it is necessary to create N objects in
@@ -577,8 +610,9 @@ class PerfDiagCommand(Command):
                               MakeHumanReadable(self.thru_filesize)))
           self._WarnIfLargeData()
           for _ in range(self.num_objects):
-            file_name = self._MakeTempFile(self.thru_filesize,
-                                           mem_metadata=True)
+            file_name = self._MakeTempFile(
+                self.thru_filesize, mem_metadata=True,
+                random_ratio=self.gzip_compression_ratio)
             self.thru_file_names.append(file_name)
             self.thru_object_names.append(os.path.basename(file_name))
         else:
@@ -803,7 +837,7 @@ class PerfDiagCommand(Command):
         process_count=self.processes, thread_count=self.threads)
 
   def PerformFannedUpload(self, need_to_slice, file_names, object_names,
-                          use_file):
+                          use_file, gzip_encoded=False):
     """Performs a parallel upload of multiple files using the fan strategy.
 
     The metadata for file_name should be present in temp_file_dict prior
@@ -817,18 +851,23 @@ class PerfDiagCommand(Command):
       object_names: A list, corresponding by by index to file_names, of object
                     names to upload data to.
       use_file: If true, use disk I/O, otherwise read upload data from memory.
+      gzip_encoded: Flag for if the file will be uploaded with the gzip
+                    transport encoding. If true, a lock is used to limit
+                    resource usage.
     """
     args = []
     for i in range(len(file_names)):
       args.append(FanUploadTuple(
-          need_to_slice, file_names[i], object_names[i], use_file))
+          need_to_slice, file_names[i], object_names[i], use_file,
+          gzip_encoded))
     self.Apply(
         _UploadObject, args, _PerfdiagExceptionHandler,
         ('total_requests', 'request_errors'), arg_checker=DummyArgChecker,
         parallel_operations_override=self.ParallelOverrideReason.PERFDIAG,
         process_count=self.processes, thread_count=self.threads)
 
-  def PerformSlicedUpload(self, file_name, object_name, use_file, gsutil_api):
+  def PerformSlicedUpload(self, file_name, object_name, use_file, gsutil_api,
+                          gzip_encoded=False):
     """Performs a parallel upload of a file using the slice strategy.
 
     The metadata for file_name should be present in temp_file_dict prior
@@ -840,6 +879,9 @@ class PerfDiagCommand(Command):
       object_name: The name of the object to upload to.
       use_file: If true, use disk I/O, otherwise read upload data from memory.
       gsutil_api: CloudApi instance to use for operations in this thread.
+      gzip_encoded: Flag for if the file will be uploaded with the gzip
+                    transport encoding. If true, a semaphore is used to limit
+                    resource usage.
     """
     # Divide the file into components.
     component_size = DivideAndCeil(self.thru_filesize, self.num_slices)
@@ -851,8 +893,9 @@ class PerfDiagCommand(Command):
       component_start = i * component_size
       component_size = min(component_size,
                            temp_file_dict[file_name].size - component_start)
-      args.append(SliceUploadTuple(file_name, component_object_names[i],
-                                   use_file, component_start, component_size))
+      args.append(SliceUploadTuple(
+          file_name, component_object_names[i], use_file, component_start,
+          component_size, gzip_encoded))
 
     # Upload the components in parallel.
     try:
@@ -980,10 +1023,13 @@ class PerfDiagCommand(Command):
          MakeHumanReadable(self.thru_filesize)))
     self._WarnIfLargeData()
 
-    self.results[test_name] = {'file_size': self.thru_filesize,
-                               'processes': self.processes,
-                               'threads': self.threads,
-                               'parallelism': self.parallel_strategy}
+    self.results[test_name] = {
+        'file_size': self.thru_filesize,
+        'processes': self.processes,
+        'threads': self.threads,
+        'parallelism': self.parallel_strategy,
+        'gzip_encoded_writes': self.gzip_encoded_writes,
+        'gzip_compression_ratio': self.gzip_compression_ratio}
 
     # Warmup the TCP connection.
     warmup_obj_name = os.path.basename(self.tcp_warmup_file)
@@ -1007,16 +1053,20 @@ class PerfDiagCommand(Command):
     t0 = time.time()
     if self.processes == 1 and self.threads == 1:
       for i in range(self.num_objects):
-        self.Upload(file_names[i], object_names[i], self.gsutil_api, use_file)
+        self.Upload(
+            file_names[i], object_names[i], self.gsutil_api, use_file,
+            gzip_encoded=self.gzip_encoded_writes)
     else:
       if self.parallel_strategy in (self.FAN, self.BOTH):
         need_to_slice = (self.parallel_strategy == self.BOTH)
-        self.PerformFannedUpload(need_to_slice, file_names, object_names,
-                                 use_file)
+        self.PerformFannedUpload(
+            need_to_slice, file_names, object_names, use_file,
+            gzip_encoded=self.gzip_encoded_writes)
       elif self.parallel_strategy == self.SLICE:
         for i in range(self.num_objects):
-          self.PerformSlicedUpload(file_names[i], object_names[i], use_file,
-                                   self.gsutil_api)
+          self.PerformSlicedUpload(
+              file_names[i], object_names[i], use_file,
+              self.gsutil_api, gzip_encoded=self.gzip_encoded_writes)
     t1 = time.time()
 
     time_took = t1 - t0
@@ -1045,7 +1095,7 @@ class PerfDiagCommand(Command):
                                  prefix=list_prefix)
       object_name = os.path.basename(fpath)
       list_objects.append(object_name)
-      args.append(FanUploadTuple(False, fpath, object_name, False))
+      args.append(FanUploadTuple(False, fpath, object_name, False, False))
       self.temporary_objects.add(object_name)
 
     # Add the objects to the bucket.
@@ -1131,7 +1181,7 @@ class PerfDiagCommand(Command):
     }
 
   def Upload(self, file_name, object_name, gsutil_api, use_file=False,
-             file_start=0, file_size=None):
+             file_start=0, file_size=None, gzip_encoded=False):
     """Performs an upload to the test bucket.
 
     The file is uploaded to the bucket referred to by self.bucket_url, and has
@@ -1147,7 +1197,9 @@ class PerfDiagCommand(Command):
                   (only should be specified for sliced uploads)
       file_size: The size of the file to upload.
                  (only should be specified for sliced uploads)
-
+      gzip_encoded: Flag for if the file will be uploaded with the gzip
+                    transport encoding. If true, a lock is used to limit
+                    resource usage.
     Returns:
       Uploaded Object Metadata.
     """
@@ -1170,13 +1222,24 @@ class PerfDiagCommand(Command):
         if file_size < ResumableThreshold():
           return gsutil_api.UploadObject(
               fp, upload_target, provider=self.provider, size=file_size,
-              fields=['name', 'mediaLink', 'size'])
+              fields=['name', 'mediaLink', 'size'],
+              gzip_encoded=gzip_encoded)
         else:
           return gsutil_api.UploadObjectResumable(
               fp, upload_target, provider=self.provider, size=file_size,
               fields=['name', 'mediaLink', 'size'],
-              tracker_callback=_DummyTrackerCallback)
-      return self._RunOperation(_InnerUpload)
+              tracker_callback=_DummyTrackerCallback,
+              gzip_encoded=gzip_encoded)
+
+      # Because perfdiag does not go through copy_helper, it misses the
+      # resource lock. Here, if the upload is compressed, the lock is applied
+      # manually.
+      def _InnerUploadLock():
+        with gslib.command.concurrent_compressed_upload_lock:
+          return _InnerUpload()
+
+      upload_func = _InnerUploadLock if gzip_encoded else _InnerUpload
+      return self._RunOperation(upload_func)
     finally:
       if fp:
         fp.close()
@@ -1836,6 +1899,9 @@ class PerfDiagCommand(Command):
     self.input_file = None
     # From -m.
     self.metadata_keys = {}
+    # From -j.
+    self.gzip_encoded_writes = False
+    self.gzip_compression_ratio = 100
 
     if self.sub_opts:
       for o, a in self.sub_opts:
@@ -1895,6 +1961,16 @@ class PerfDiagCommand(Command):
             raise CommandException("Could not decode input file (-i): '%s'." %
                                    a)
           return
+        if o == '-j':
+          self.gzip_encoded_writes = True
+          try:
+            self.gzip_compression_ratio = int(a)
+          except ValueError:
+            self.gzip_compression_ratio = -1
+          if (self.gzip_compression_ratio < 0 or
+              self.gzip_compression_ratio > 100):
+            raise CommandException(
+                'The -j parameter must be between 0 and 100 (inclusive).')
 
     # If parallelism is specified, default parallelism strategy to fan.
     if (self.processes > 1 or self.threads > 1) and not self.parallel_strategy:
@@ -1956,14 +2032,18 @@ class PerfDiagCommand(Command):
         'Number of threads: %d\n'
         'Parallelism strategy: %s\n'
         'Throughput file size: %s\n'
-        'Diagnostics to run: %s',
+        'Diagnostics to run: %s\n'
+        'Gzip compression ratio: %s\n'
+        'Gzip transport encoding writes: %s',
         self.num_objects,
         self.bucket_url,
         self.processes,
         self.threads,
         self.parallel_strategy,
         MakeHumanReadable(self.thru_filesize),
-        (', '.join(self.diag_tests)))
+        (', '.join(self.diag_tests)),
+        self.gzip_compression_ratio,
+        self.gzip_encoded_writes)
 
     try:
       self._SetUp()

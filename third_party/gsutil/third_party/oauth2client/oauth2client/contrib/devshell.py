@@ -19,12 +19,8 @@ import json
 import os
 import socket
 
-from oauth2client._helpers import _to_bytes
+from oauth2client import _helpers
 from oauth2client import client
-
-# Expose utcnow() at module level to allow for
-# easier testing (by replacing with a stub).
-_UTCNOW = datetime.datetime.utcnow
 
 DEVSHELL_ENV = 'DEVSHELL_CLIENT_PORT'
 
@@ -40,6 +36,7 @@ class CommunicationError(Error):
 
 class NoDevshellServer(Error):
     """Error when no Developer Shell server can be contacted."""
+
 
 # The request for credential information to the Developer Shell client socket
 # is always an empty PBLite-formatted JSON object, so just define it as a
@@ -83,8 +80,8 @@ def _SendRecv():
     sock.connect(('localhost', port))
 
     data = CREDENTIAL_INFO_REQUEST_JSON
-    msg = '%s\n%s' % (len(data), data)
-    sock.sendall(_to_bytes(msg, encoding='utf-8'))
+    msg = '{0}\n{1}'.format(len(data), data)
+    sock.sendall(_helpers._to_bytes(msg, encoding='utf-8'))
 
     header = sock.recv(6).decode()
     if '\n' not in header:
@@ -121,13 +118,18 @@ class DevshellCredentials(client.GoogleCredentials):
             user_agent)
         self._refresh(None)
 
-    def _refresh(self, http_request):
+    def _refresh(self, http):
+        """Refreshes the access token.
+
+        Args:
+            http: unused HTTP object
+        """
         self.devshell_response = _SendRecv()
         self.access_token = self.devshell_response.access_token
         expires_in = self.devshell_response.expires_in
         if expires_in is not None:
             delta = datetime.timedelta(seconds=expires_in)
-            self.token_expiry = _UTCNOW() + delta
+            self.token_expiry = client._UTCNOW() + delta
         else:
             self.token_expiry = None
 

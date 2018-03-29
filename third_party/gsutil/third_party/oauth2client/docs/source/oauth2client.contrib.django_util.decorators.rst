@@ -1,5 +1,5 @@
-oauth2client.contrib.django_util.decorators module
-==================================================
+oauth2client\.contrib\.django\_util\.decorators module
+======================================================
 
 .. automodule:: oauth2client.contrib.django_util.decorators
     :members:

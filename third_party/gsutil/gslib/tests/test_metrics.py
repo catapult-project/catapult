@@ -36,7 +36,6 @@ from gslib.cs_api_map import ApiSelector
 import gslib.exception
 from gslib.gcs_json_api import GcsJsonApi
 from gslib.metrics import MetricsCollector
-from gslib.metrics_reporter import LOG_FILE_PATH
 from gslib.metrics_tuple import Metric
 from gslib.tests.mock_logging_handler import MockLoggingHandler
 import gslib.tests.testcase as testcase
@@ -666,24 +665,40 @@ class TestMetricsIntegrationTests(testcase.GsUtilIntegrationTestCase):
   @mock.patch('time.time', new=mock.MagicMock(return_value=0))
   def testMetricsPosting(self):
     """Tests the metrics posting process as performed in metrics_reporter.py."""
-    # Clear the log file.
-    open(LOG_FILE_PATH, 'w').close()
-    metrics.LogCommandParams(
-        global_opts=[('-y', 'value'), ('-z', ''), ('-x', '')])
+    # Windows has odd restrictions about attempting to open a named tempfile
+    # while it's open. Regardless of platform, we don't need the file to be open
+    # or even exist; we only need a valid file path to create a log file at.
+    metrics_file = tempfile.NamedTemporaryFile()
+    metrics_file_name = metrics_file.name
+    metrics_file.close()
+
+    # Logging statements will create a file at the path we just fetched. Make
+    # sure we clean up the file afterward.
+    def MetricsTempFileCleanup(file_path):
+      try:
+        os.unlink(file_path)
+      except OSError:
+        # Don't fail if the file was already cleaned up.
+        pass
+    self.addCleanup(MetricsTempFileCleanup, metrics_file_name)
 
     # Collect a metric and set log level for the metrics_reporter subprocess.
-    def CollectMetricAndSetLogLevel(log_level):
+    def CollectMetricAndSetLogLevel(log_level, log_file_path):
       metrics.LogCommandParams(command_name='cmd1', subcommands=['action1'],
                                sub_opts=[('optb', ''), ('opta', '')])
       metrics.LogFatalError(gslib.exception.CommandException('test'))
 
       # Wait for report to make sure the log is written before we check it.
-      self.collector.ReportMetrics(wait_for_report=True, log_level=log_level)
+      self.collector.ReportMetrics(wait_for_report=True, log_level=log_level,
+                                   log_file_path=log_file_path)
       self.assertEqual([], self.collector._metrics)
 
+    metrics.LogCommandParams(
+        global_opts=[('-y', 'value'), ('-z', ''), ('-x', '')])
+
     # The log file should be empty unless the debug option is specified.
-    CollectMetricAndSetLogLevel(logging.DEBUG)
-    with open(LOG_FILE_PATH, 'rb') as metrics_log:
+    CollectMetricAndSetLogLevel(logging.DEBUG, metrics_file.name)
+    with open(metrics_file.name, 'rb') as metrics_log:
       log_text = metrics_log.read()
     expected_response = (
         'Metric(endpoint=\'https://example.com\', method=\'POST\', '
@@ -694,13 +709,13 @@ class TestMetricsIntegrationTests(testcase.GsUtilIntegrationTestCase):
     self.assertIn(expected_response, log_text)
     self.assertIn('RESPONSE: 200', log_text)
 
-    CollectMetricAndSetLogLevel(logging.INFO)
-    with open(LOG_FILE_PATH, 'rb') as metrics_log:
+    CollectMetricAndSetLogLevel(logging.INFO, metrics_file.name)
+    with open(metrics_file.name, 'rb') as metrics_log:
       log_text = metrics_log.read()
     self.assertEqual(log_text, '')
 
-    CollectMetricAndSetLogLevel(logging.WARN)
-    with open(LOG_FILE_PATH, 'rb') as metrics_log:
+    CollectMetricAndSetLogLevel(logging.WARN, metrics_file.name)
+    with open(metrics_file.name, 'rb') as metrics_log:
       log_text = metrics_log.read()
     self.assertEqual(log_text, '')
 

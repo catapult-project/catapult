@@ -15,10 +15,12 @@
 import json
 import os
 
-import httplib2
 from six.moves import http_client
+
+import oauth2client
 from oauth2client import client
-from oauth2client.service_account import ServiceAccountCredentials
+from oauth2client import service_account
+from oauth2client import transport
 
 
 JSON_KEY_PATH = os.getenv('OAUTH2CLIENT_TEST_JSON_KEY_PATH')
@@ -36,8 +38,8 @@ USER_INFO = 'https://www.googleapis.com/oauth2/v2/userinfo'
 
 def _require_environ():
     if (JSON_KEY_PATH is None or P12_KEY_PATH is None or
-        P12_KEY_EMAIL is None or USER_KEY_PATH is None or
-        USER_KEY_EMAIL is None):
+            P12_KEY_EMAIL is None or USER_KEY_PATH is None or
+            USER_KEY_EMAIL is None):
         raise EnvironmentError('Expected environment variables to be set:',
                                'OAUTH2CLIENT_TEST_JSON_KEY_PATH',
                                'OAUTH2CLIENT_TEST_P12_KEY_PATH',
@@ -54,8 +56,8 @@ def _require_environ():
 
 
 def _check_user_info(credentials, expected_email):
-    http = credentials.authorize(httplib2.Http())
-    response, content = http.request(USER_INFO)
+    http = credentials.authorize(transport.get_http_object())
+    response, content = transport.request(http, USER_INFO)
     if response.status != http_client.OK:
         raise ValueError('Expected 200 OK response.')
 
@@ -66,14 +68,14 @@ def _check_user_info(credentials, expected_email):
 
 
 def run_json():
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        JSON_KEY_PATH, scopes=SCOPE)
+    factory = service_account.ServiceAccountCredentials.from_json_keyfile_name
+    credentials = factory(JSON_KEY_PATH, scopes=SCOPE)
     service_account_email = credentials._service_account_email
     _check_user_info(credentials, service_account_email)
 
 
 def run_p12():
-    credentials = ServiceAccountCredentials.from_p12_keyfile(
+    credentials = service_account.ServiceAccountCredentials.from_p12_keyfile(
         P12_KEY_EMAIL, P12_KEY_PATH, scopes=SCOPE)
     _check_user_info(credentials, P12_KEY_EMAIL)
 
@@ -88,7 +90,7 @@ def run_user_json():
         client_secret=client_credentials['client_secret'],
         refresh_token=client_credentials['refresh_token'],
         token_expiry=None,
-        token_uri=client.GOOGLE_TOKEN_URI,
+        token_uri=oauth2client.GOOGLE_TOKEN_URI,
         user_agent='Python client library',
     )
 

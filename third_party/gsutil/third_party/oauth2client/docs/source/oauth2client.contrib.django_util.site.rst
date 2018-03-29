@@ -1,5 +1,5 @@
-oauth2client.contrib.django_util.site module
-============================================
+oauth2client\.contrib\.django\_util\.site module
+================================================
 
 .. automodule:: oauth2client.contrib.django_util.site
     :members:

@@ -722,7 +722,7 @@ class TestUi(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(['-m', 'rewrite', '-k', '-I'], stdin=stdin_arg,
                               return_stderr=True)
-    self.AssertObjectUsesEncryptionKey(stdin_arg, TEST_ENCRYPTION_KEY2)
+    self.AssertObjectUsesCSEK(stdin_arg, TEST_ENCRYPTION_KEY2)
     num_objects = 1
     total_size = len('bar')
     CheckUiOutputWithMFlag(self, stderr, num_objects, total_size)
@@ -744,7 +744,7 @@ class TestUi(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(['rewrite', '-k', '-I'], stdin=stdin_arg,
                               return_stderr=True)
-    self.AssertObjectUsesEncryptionKey(stdin_arg, TEST_ENCRYPTION_KEY2)
+    self.AssertObjectUsesCSEK(stdin_arg, TEST_ENCRYPTION_KEY2)
     num_objects = 1
     total_size = len('bar')
     CheckUiOutputWithNoMFlag(self, stderr, num_objects, total_size)

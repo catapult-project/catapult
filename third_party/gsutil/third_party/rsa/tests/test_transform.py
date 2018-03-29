@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
+#
+#  Copyright 2011 Sybren A. Stüvel <sybren@stuvel.eu>
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
-
-import unittest2
+import unittest
 from rsa._compat import b
 from rsa.transform import int2bytes, bytes2int, _int2bytes
 
 
-class Test_int2bytes(unittest2.TestCase):
+class Test_int2bytes(unittest.TestCase):
     def test_accuracy(self):
         self.assertEqual(int2bytes(123456789), b('\x07[\xcd\x15'))
         self.assertEqual(_int2bytes(123456789), b('\x07[\xcd\x15'))

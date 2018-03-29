@@ -135,5 +135,5 @@ upload: html
 	@echo
 	@echo "UPLOADING to webserver"
 	@echo
-	rsync _build/html/* sybren@stuvel.eu:stuvel.eu/manager/files/python-rsa-doc/ -va
+	rsync _build/html/* stuvel@stuvel.eu:site-stuvel.eu/htdocs/python-rsa-doc/ -va --delete
 

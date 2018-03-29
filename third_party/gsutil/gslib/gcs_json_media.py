@@ -20,19 +20,24 @@ import copy
 import cStringIO
 import httplib
 import logging
+import re
 import socket
 import types
 import urlparse
 
 from apitools.base.py import exceptions as apitools_exceptions
-import httplib2
-from httplib2 import parse_uri
 
 from gslib.cloud_api import BadRequestException
 from gslib.progress_callback import ProgressCallbackWithTimeout
 from gslib.util import DEBUGLEVEL_DUMP_REQUESTS
+from gslib.util import LazyWrapper
 from gslib.util import SSL_TIMEOUT
 from gslib.util import TRANSFER_BUFFER_SIZE
+import httplib2
+from httplib2 import parse_uri
+
+# A regex for matching any series of decimal digits.
+DECIMAL_REGEX = LazyWrapper(lambda: (re.compile(r'\d+')))
 
 
 class BytesTransferredContainer(object):
@@ -96,6 +101,10 @@ class UploadCallbackConnectionClassFactory(object):
       GCS_JSON_BUFFER_SIZE = outer_buffer_size
       callback_processor = None
       size = outer_total_size
+      header_encoding = ''
+      header_length = None
+      header_range = None
+      size_modifier = 1.0
 
       def __init__(self, *args, **kwargs):
         kwargs['timeout'] = SSL_TIMEOUT
@@ -134,6 +143,70 @@ class UploadCallbackConnectionClassFactory(object):
           # we must run the risk of Nagle
           self.send(message_body)
 
+      def putheader(self, header, *values):
+        """Overrides HTTPConnection.putheader.
+
+        Send a request header line to the server. For example:
+        h.putheader('Accept', 'text/html').
+
+        This override records the content encoding, length, and range of the
+        payload. For uploads where the content-range difference does not match
+        the content-length, progress printing will under-report progress. These
+        headers are used to calculate a multiplier to correct the progress.
+
+        For example: the content-length for gzip transport encoded data
+        represents the compressed size of the data while the content-range
+        difference represents the uncompressed size. Dividing the
+        content-range difference by the content-length gives the ratio to
+        multiply the progress by to correctly report the relative progress.
+
+        Args:
+          header: The header.
+          *values: A set of values for the header.
+        """
+        if header == 'content-encoding':
+          value = ''.join([str(v) for v in values])
+          self.header_encoding = value
+          if outer_debug == DEBUGLEVEL_DUMP_REQUESTS and outer_logger:
+            outer_logger.debug(
+                'send: Using gzip transport encoding for the request.')
+        elif header == 'content-length':
+          try:
+            value = int(''.join([str(v) for v in values]))
+            self.header_length = value
+          except ValueError:
+            pass
+        elif header == 'content-range':
+          try:
+            # There are 3 valid header formats:
+            #  '*/%d', '%d-%d/*', and '%d-%d/%d'
+            value = ''.join([str(v) for v in values])
+            ranges = DECIMAL_REGEX().findall(value)
+            # If there are 2 or more range values, they will always
+            # correspond to the start and end ranges in the header.
+            if len(ranges) > 1:
+              # Subtract the end position from the start position.
+              self.header_range = (int(ranges[1]) - int(ranges[0])) + 1
+          except ValueError:
+            pass
+        # If the content header is gzip, and a range and length are set,
+        # update the modifier.
+        if (self.header_encoding == 'gzip' and self.header_length
+            and self.header_range):
+          # Update the modifier
+          self.size_modifier = self.header_range / float(self.header_length)
+          # Reset the headers
+          self.header_encoding = ''
+          self.header_length = None
+          self.header_range = None
+          # Log debug information to catch in tests.
+          if outer_debug == DEBUGLEVEL_DUMP_REQUESTS and outer_logger:
+            outer_logger.debug(
+                'send: Setting progress modifier to %s.'
+                % (self.size_modifier))
+        # Propagate header values.
+        httplib.HTTPSConnection.putheader(self, header, *values)
+
       def send(self, data, num_metadata_bytes=0):
         """Overrides HTTPConnection.send.
 
@@ -167,6 +240,9 @@ class UploadCallbackConnectionClassFactory(object):
               num_metadata_bytes -= sent_data_bytes
               sent_data_bytes = 0
           if self.callback_processor:
+            # Modify the sent data bytes by the size modifier. These are
+            # stored as floats, so the result should be floored.
+            sent_data_bytes = int(sent_data_bytes * self.size_modifier)
             # TODO: We can't differentiate the multipart upload
             # metadata in the request body from the actual upload bytes, so we
             # will actually report slightly more bytes than desired to the

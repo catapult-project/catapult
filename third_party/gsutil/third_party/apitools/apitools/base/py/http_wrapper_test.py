@@ -17,7 +17,6 @@
 import socket
 
 import httplib2
-import oauth2client
 from six.moves import http_client
 import unittest2
 
@@ -25,6 +24,15 @@ from mock import patch
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
+
+# pylint: disable=ungrouped-imports
+try:
+    from oauth2client.client import HttpAccessTokenRefreshError
+    from oauth2client.client import AccessTokenRefreshError
+    _TOKEN_REFRESH_STATUS_AVAILABLE = True
+except ImportError:
+    from oauth2client.client import AccessTokenRefreshError
+    _TOKEN_REFRESH_STATUS_AVAILABLE = False
 
 
 class _MockHttpRequest(object):
@@ -57,6 +65,51 @@ class HttpWrapperTest(unittest2.TestCase):
     def testRequestBodyWithLen(self):
         http_wrapper.Request(body='burrito')
 
+    @unittest2.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
+                      'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
+    def testExceptionHandlerHttpAccessTokenError(self):
+        exception_arg = HttpAccessTokenRefreshError(status=503)
+        retry_args = http_wrapper.ExceptionRetryArgs(
+            http={'connections': {}}, http_request=_MockHttpRequest(),
+            exc=exception_arg, num_retries=0, max_retry_wait=0,
+            total_wait_sec=0)
+
+        # Disable time.sleep for this handler as it is called with
+        # a minimum value of 1 second.
+        with patch('time.sleep', return_value=None):
+            http_wrapper.HandleExceptionsAndRebuildHttpConnections(
+                retry_args)
+
+    @unittest2.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
+                      'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
+    def testExceptionHandlerHttpAccessTokenErrorRaises(self):
+        exception_arg = HttpAccessTokenRefreshError(status=200)
+        retry_args = http_wrapper.ExceptionRetryArgs(
+            http={'connections': {}}, http_request=_MockHttpRequest(),
+            exc=exception_arg, num_retries=0, max_retry_wait=0,
+            total_wait_sec=0)
+
+        # Disable time.sleep for this handler as it is called with
+        # a minimum value of 1 second.
+        with self.assertRaises(HttpAccessTokenRefreshError):
+            with patch('time.sleep', return_value=None):
+                http_wrapper.HandleExceptionsAndRebuildHttpConnections(
+                    retry_args)
+
+    def testExceptionHandlerAccessTokenErrorRaises(self):
+        exception_arg = AccessTokenRefreshError()
+        retry_args = http_wrapper.ExceptionRetryArgs(
+            http={'connections': {}}, http_request=_MockHttpRequest(),
+            exc=exception_arg, num_retries=0, max_retry_wait=0,
+            total_wait_sec=0)
+
+        # Disable time.sleep for this handler as it is called with
+        # a minimum value of 1 second.
+        with self.assertRaises(AccessTokenRefreshError):
+            with patch('time.sleep', return_value=None):
+                http_wrapper.HandleExceptionsAndRebuildHttpConnections(
+                    retry_args)
+
     def testDefaultExceptionHandler(self):
         """Ensures exception handles swallows (retries)"""
         mock_http_content = 'content'.encode('utf8')
@@ -68,7 +121,6 @@ class HttpWrapperTest(unittest2.TestCase):
                 socket.gaierror(),
                 httplib2.ServerNotFoundError(),
                 ValueError(),
-                oauth2client.client.HttpAccessTokenRefreshError(status=503),
                 exceptions.RequestError(),
                 exceptions.BadStatusCodeError(
                     {'status': 503}, mock_http_content, 'url'),

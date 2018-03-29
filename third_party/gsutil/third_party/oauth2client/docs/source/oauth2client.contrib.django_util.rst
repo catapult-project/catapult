@@ -1,5 +1,5 @@
-oauth2client.contrib.django_util package
-========================================
+oauth2client\.contrib\.django\_util package
+===========================================
 
 Submodules
 ----------
@@ -8,6 +8,7 @@ Submodules
 
    oauth2client.contrib.django_util.apps
    oauth2client.contrib.django_util.decorators
+   oauth2client.contrib.django_util.models
    oauth2client.contrib.django_util.signals
    oauth2client.contrib.django_util.site
    oauth2client.contrib.django_util.storage

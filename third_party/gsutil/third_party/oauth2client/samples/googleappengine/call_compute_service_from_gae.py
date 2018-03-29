@@ -1,8 +1,9 @@
 # To be used to test GoogleCredentials.get_application_default()
 # from devel GAE (ie, dev_appserver.py).
 
-import webapp2
 from googleapiclient.discovery import build
+import webapp2
+
 from oauth2client.client import GoogleCredentials
 
 
@@ -23,4 +24,4 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(get_instances())
 
 
-app = webapp2.WSGIApplication([('/', MainPage),], debug=True)
+app = webapp2.WSGIApplication([('/', MainPage), ], debug=True)

@@ -1,5 +1,5 @@
-oauth2client.service_account module
-===================================
+oauth2client\.service\_account module
+=====================================
 
 .. automodule:: oauth2client.service_account
     :members:

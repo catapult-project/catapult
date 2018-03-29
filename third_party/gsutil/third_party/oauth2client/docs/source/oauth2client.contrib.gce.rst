@@ -1,5 +1,5 @@
-oauth2client.contrib.gce module
-===============================
+oauth2client\.contrib\.gce module
+=================================
 
 .. automodule:: oauth2client.contrib.gce
     :members:

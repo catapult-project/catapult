@@ -62,7 +62,16 @@ def YieldFromList(
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
         if batch_size_attribute:
-            request_batch_size = min(batch_size, limit or batch_size)
+            # On Py3, None is not comparable so min() below will fail.
+            # On Py2, None is always less than any number so if batch_size
+            # is None, the request_batch_size will always be None regardless
+            # of the value of limit. This doesn't generally strike me as the
+            # correct behavior, but this change preserves the existing Py2
+            # behavior on Py3.
+            if batch_size is None:
+                request_batch_size = None
+            else:
+                request_batch_size = min(batch_size, limit or batch_size)
             setattr(request, batch_size_attribute, request_batch_size)
         response = getattr(service, method)(request,
                                             global_params=global_params)

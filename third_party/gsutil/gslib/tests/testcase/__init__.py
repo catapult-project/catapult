@@ -17,4 +17,5 @@
 from __future__ import absolute_import
 
 from gslib.tests.testcase.integration_testcase import GsUtilIntegrationTestCase
+from gslib.tests.testcase.integration_testcase import KmsTestingResources
 from gslib.tests.testcase.unit_testcase import GsUtilUnitTestCase

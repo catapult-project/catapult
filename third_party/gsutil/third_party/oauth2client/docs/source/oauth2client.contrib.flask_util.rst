@@ -1,5 +1,5 @@
-oauth2client.contrib.flask_util module
-======================================
+oauth2client\.contrib\.flask\_util module
+=========================================
 
 .. automodule:: oauth2client.contrib.flask_util
     :members:

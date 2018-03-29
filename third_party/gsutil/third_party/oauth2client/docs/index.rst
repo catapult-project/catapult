@@ -107,18 +107,24 @@ contributor license agreement.
 Supported Python Versions
 -------------------------
 
-We support Python 2.6, 2.7, 3.3+. (Whatever this file says, the truth is
+We support Python 2.7 and 3.4+. (Whatever this file says, the truth is
 always represented by our `tox.ini`_).
 
 .. _tox.ini: https://github.com/google/oauth2client/blob/master/tox.ini
 
 We explicitly decided to support Python 3 beginning with version
-3.3. Reasons for this include:
+3.4. Reasons for this include:
 
 * Encouraging use of newest versions of Python 3
 * Following the lead of prominent `open-source projects`_
 * Unicode literal support which
   allows for a cleaner codebase that works in both Python 2 and Python 3
+* Prominent projects like `django`_ have `dropped support`_ for earlier
+  versions (3.3 support dropped in December 2015, and 2.6 support
+  `dropped`_ in September 2014)
 
 .. _open-source projects: http://docs.python-requests.org/en/latest/
 .. _Unicode literal support: https://www.python.org/dev/peps/pep-0414/
+.. _django: https://docs.djangoproject.com/
+.. _dropped support: https://docs.djangoproject.com/en/1.9/faq/install/#what-python-version-can-i-use-with-django
+.. _dropped: https://docs.djangoproject.com/en/1.7/faq/install/#what-python-version-can-i-use-with-django

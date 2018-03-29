@@ -45,8 +45,8 @@ if not IS_WINDOWS:
   import pwd
 
   USER_ID = os.getuid()
-  USER_NAME = LazyWrapper(lambda: (pwd.getpwuid(USER_ID).pw_name))
-  PRIMARY_GID = LazyWrapper(lambda: (pwd.getpwuid(USER_ID).pw_gid))
+  USER_NAME = LazyWrapper(lambda: pwd.getpwuid(USER_ID).pw_name)
+  PRIMARY_GID = LazyWrapper(lambda: os.getgid())
 
   # Get a list of all groups on the system where the current username is listed
   # as a member of the group in the gr_mem group attribute. Make this a list of

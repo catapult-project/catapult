@@ -2,10 +2,11 @@
 
 # See:  https://developers.google.com/accounts/docs/OAuth2ForDevices
 
+from googleapiclient.discovery import build
 import httplib2
 from six.moves import input
+
 from oauth2client.client import OAuth2WebServerFlow
-from googleapiclient.discovery import build
 
 CLIENT_ID = "some+client+id"
 CLIENT_SECRET = "some+client+secret"

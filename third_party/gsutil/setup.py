@@ -35,15 +35,17 @@ management tasks, including:
 """
 
 requires = [
-    'argcomplete>=1.8.2',
+    'argcomplete>=1.9.4',
     'boto==2.48.0',
     'crcmod>=1.7',
+    'fasteners>=0.14.1',
     'gcs-oauth2-boto-plugin>=1.14',
-    'google-apitools==0.5.16',
+    'google-apitools>=0.5.22',
     'httplib2>=0.10.3',
     # TODO: Sync submodule with tag referenced here once #339 is fixed in mock.
     'mock==2.0.0',
-    'oauth2client==2.2.0',
+    'monotonic>=1.4',
+    'oauth2client==4.1.2',
     'pyOpenSSL>=0.13',
     'python-gflags>=2.0',
     'retry_decorator>=1.0.0',

@@ -16,11 +16,13 @@
 
 from __future__ import absolute_import
 
+from boto import config
+
 from gslib.bucket_listing_ref import BucketListingObject
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
-from gslib.encryption_helper import GetEncryptionTuple
+from gslib.encryption_helper import GetEncryptionKeyWrapper
 from gslib.exception import CommandException
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
@@ -71,12 +73,13 @@ _DETAILED_HELP_TEXT = ("""
   There is a limit (currently %d) to the total number of components
   for a given composite object. This means you can append to each object at most
   %d times.
-  
+
   There is a per-project rate limit (currently %d) to the number of components
   you can compose per second. This rate counts both the components being
   appended to a composite object as well as the components being copied when
   the composite object of which they are a part is copied.
-""" % (MAX_COMPOSE_ARITY, MAX_COMPONENT_COUNT, MAX_COMPONENT_COUNT - 1, MAX_COMPONENT_RATE))
+""" % (MAX_COMPOSE_ARITY, MAX_COMPONENT_COUNT, MAX_COMPONENT_COUNT - 1,
+       MAX_COMPONENT_RATE))
 
 
 class ComposeCommand(Command):
@@ -175,4 +178,5 @@ class ComposeCommand(Command):
         target_url, len(components))
     self.gsutil_api.ComposeObject(
         components, dst_obj_metadata, preconditions=preconditions,
-        provider=target_url.scheme, encryption_tuple=GetEncryptionTuple())
+        provider=target_url.scheme,
+        encryption_tuple=GetEncryptionKeyWrapper(config))

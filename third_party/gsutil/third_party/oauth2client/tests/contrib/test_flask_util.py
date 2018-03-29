@@ -15,75 +15,52 @@
 """Unit tests for the Flask utilities"""
 
 import datetime
-import httplib2
 import json
-import unittest2
+import logging
+import unittest
 
 import flask
-import six.moves.http_client as httplib
 import mock
+import six.moves.http_client as httplib
 import six.moves.urllib.parse as urlparse
 
-from oauth2client import GOOGLE_AUTH_URI
-from oauth2client import GOOGLE_TOKEN_URI
+import oauth2client
+from oauth2client import client
 from oauth2client import clientsecrets
-from oauth2client.contrib.flask_util import _get_flow_for_token
-from oauth2client.contrib.flask_util import UserOAuth2 as FlaskOAuth2
-from oauth2client.client import OAuth2Credentials
+from oauth2client.contrib import flask_util
+from tests import http_mock
 
 
-__author__ = 'jonwayne@google.com (Jon Wayne Parrott)'
+DEFAULT_RESP = """\
+{
+    "access_token": "foo_access_token",
+    "expires_in": 3600,
+    "extra": "value",
+    "refresh_token": "foo_refresh_token"
+}
+"""
 
 
-class Http2Mock(object):
-    """Mock httplib2.Http for code exchange / refresh"""
-
-    def __init__(self, status=httplib.OK, **kwargs):
-        self.status = status
-        self.content = {
-            'access_token': 'foo_access_token',
-            'refresh_token': 'foo_refresh_token',
-            'expires_in': 3600,
-            'extra': 'value',
-        }
-        self.content.update(kwargs)
-
-    def request(self, token_uri, method, body, headers, *args, **kwargs):
-        self.body = body
-        self.headers = headers
-        return (self, json.dumps(self.content).encode('utf-8'))
-
-    def __enter__(self):
-        self.httplib2_orig = httplib2.Http
-        httplib2.Http = self
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        httplib2.Http = self.httplib2_orig
-
-    def __call__(self, *args, **kwargs):
-        return self
-
-
-class FlaskOAuth2Tests(unittest2.TestCase):
+class FlaskOAuth2Tests(unittest.TestCase):
 
     def setUp(self):
         self.app = flask.Flask(__name__)
         self.app.testing = True
         self.app.config['SECRET_KEY'] = 'notasecert'
-        self.oauth2 = FlaskOAuth2(
+        self.app.logger.setLevel(logging.CRITICAL)
+        self.oauth2 = flask_util.UserOAuth2(
             self.app,
             client_id='client_idz',
             client_secret='client_secretz')
 
     def _generate_credentials(self, scopes=None):
-        return OAuth2Credentials(
+        return client.OAuth2Credentials(
             'access_tokenz',
             'client_idz',
             'client_secretz',
             'refresh_tokenz',
             datetime.datetime.utcnow() + datetime.timedelta(seconds=3600),
-            GOOGLE_TOKEN_URI,
+            oauth2client.GOOGLE_TOKEN_URI,
             'Test',
             id_token={
                 'sub': '123',
@@ -92,7 +69,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             scopes=scopes)
 
     def test_explicit_configuration(self):
-        oauth2 = FlaskOAuth2(
+        oauth2 = flask_util.UserOAuth2(
             flask.Flask(__name__), client_id='id', client_secret='secret')
 
         self.assertEqual(oauth2.client_id, 'id')
@@ -105,7 +82,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
         with mock.patch('oauth2client.clientsecrets.loadfile',
                         return_value=return_val):
 
-            oauth2 = FlaskOAuth2(
+            oauth2 = flask_util.UserOAuth2(
                 flask.Flask(__name__), client_secrets_file='file.json')
 
             self.assertEqual(oauth2.client_id, 'id')
@@ -113,19 +90,19 @@ class FlaskOAuth2Tests(unittest2.TestCase):
 
     def test_delayed_configuration(self):
         app = flask.Flask(__name__)
-        oauth2 = FlaskOAuth2()
+        oauth2 = flask_util.UserOAuth2()
         oauth2.init_app(app, client_id='id', client_secret='secret')
         self.assertEqual(oauth2.app, app)
 
     def test_explicit_storage(self):
         storage_mock = mock.Mock()
-        oauth2 = FlaskOAuth2(
+        oauth2 = flask_util.UserOAuth2(
             flask.Flask(__name__), storage=storage_mock, client_id='id',
             client_secret='secret')
         self.assertEqual(oauth2.storage, storage_mock)
 
     def test_explicit_scopes(self):
-        oauth2 = FlaskOAuth2(
+        oauth2 = flask_util.UserOAuth2(
             flask.Flask(__name__), scopes=['1', '2'], client_id='id',
             client_secret='secret')
         self.assertEqual(oauth2.scopes, ['1', '2'])
@@ -137,17 +114,16 @@ class FlaskOAuth2Tests(unittest2.TestCase):
 
         with mock.patch('oauth2client.clientsecrets.loadfile',
                         return_value=return_val):
-            self.assertRaises(
-                ValueError,
-                FlaskOAuth2,
-                flask.Flask(__name__), client_secrets_file='file.json')
+            with self.assertRaises(ValueError):
+                flask_util.UserOAuth2(flask.Flask(__name__),
+                                      client_secrets_file='file.json')
 
     def test_app_configuration(self):
         app = flask.Flask(__name__)
         app.config['GOOGLE_OAUTH2_CLIENT_ID'] = 'id'
         app.config['GOOGLE_OAUTH2_CLIENT_SECRET'] = 'secret'
 
-        oauth2 = FlaskOAuth2(app)
+        oauth2 = flask_util.UserOAuth2(app)
 
         self.assertEqual(oauth2.client_id, 'id')
         self.assertEqual(oauth2.client_secret, 'secret')
@@ -161,16 +137,14 @@ class FlaskOAuth2Tests(unittest2.TestCase):
 
             app = flask.Flask(__name__)
             app.config['GOOGLE_OAUTH2_CLIENT_SECRETS_FILE'] = 'file.json'
-            oauth2 = FlaskOAuth2(app)
+            oauth2 = flask_util.UserOAuth2(app)
 
             self.assertEqual(oauth2.client_id, 'id2')
             self.assertEqual(oauth2.client_secret, 'secret2')
 
     def test_no_configuration(self):
-        self.assertRaises(
-            ValueError,
-            FlaskOAuth2,
-            flask.Flask(__name__))
+        with self.assertRaises(ValueError):
+            flask_util.UserOAuth2(flask.Flask(__name__))
 
     def test_create_flow(self):
         with self.app.test_request_context():
@@ -194,7 +168,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
         # Test extra args specified in the constructor.
         app = flask.Flask(__name__)
         app.config['SECRET_KEY'] = 'notasecert'
-        oauth2 = FlaskOAuth2(
+        oauth2 = flask_util.UserOAuth2(
             app, client_id='client_id', client_secret='secret',
             extra_arg='test')
 
@@ -209,7 +183,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             q = urlparse.parse_qs(location.split('?', 1)[1])
             state = json.loads(q['state'][0])
 
-            self.assertIn(GOOGLE_AUTH_URI, location)
+            self.assertIn(oauth2client.GOOGLE_AUTH_URI, location)
             self.assertNotIn(self.oauth2.client_secret, location)
             self.assertIn(self.oauth2.client_id, q['client_id'])
             self.assertEqual(
@@ -241,7 +215,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             with client.session_transaction() as session:
                 session.update(flask.session)
                 csrf_token = session['google_oauth2_csrf_token']
-                flow = _get_flow_for_token(csrf_token)
+                flow = flask_util._get_flow_for_token(csrf_token)
                 state = flow.params['state']
 
         return state
@@ -249,7 +223,12 @@ class FlaskOAuth2Tests(unittest2.TestCase):
     def test_callback_view(self):
         self.oauth2.storage = mock.Mock()
         with self.app.test_client() as client:
-            with Http2Mock() as http:
+            with mock.patch(
+                    'oauth2client.transport.get_http_object') as new_http:
+                # Set-up mock.
+                http = http_mock.HttpMock(data=DEFAULT_RESP)
+                new_http.return_value = http
+                # Run tests.
                 state = self._setup_callback_state(client)
 
                 response = client.get(
@@ -260,6 +239,9 @@ class FlaskOAuth2Tests(unittest2.TestCase):
                 self.assertIn(self.oauth2.client_secret, http.body)
                 self.assertIn('codez', http.body)
                 self.assertTrue(self.oauth2.storage.put.called)
+
+                # Check the mocks were called.
+                new_http.assert_called_once_with()
 
     def test_authorize_callback(self):
         self.oauth2.authorize_callback = mock.Mock()
@@ -275,6 +257,18 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             response = client.get('/oauth2callback?state={}&error=something')
             self.assertEqual(response.status_code, httplib.BAD_REQUEST)
             self.assertIn('something', response.data.decode('utf-8'))
+
+        # Error supplied to callback with html
+        with self.app.test_client() as client:
+            with client.session_transaction() as session:
+                session['google_oauth2_csrf_token'] = 'tokenz'
+
+            response = client.get(
+                '/oauth2callback?state={}&error=<script>something<script>')
+            self.assertEqual(response.status_code, httplib.BAD_REQUEST)
+            self.assertIn(
+                '&lt;script&gt;something&lt;script&gt;',
+                response.data.decode('utf-8'))
 
         # CSRF mismatch
         with self.app.test_client() as client:
@@ -299,10 +293,19 @@ class FlaskOAuth2Tests(unittest2.TestCase):
         with self.app.test_client() as client:
             state = self._setup_callback_state(client)
 
-            with Http2Mock(status=httplib.INTERNAL_SERVER_ERROR):
+            with mock.patch(
+                    'oauth2client.transport.get_http_object') as new_http:
+                # Set-up mock.
+                new_http.return_value = http_mock.HttpMock(
+                    headers={'status': httplib.INTERNAL_SERVER_ERROR},
+                    data=DEFAULT_RESP)
+                # Run tests.
                 response = client.get(
                     '/oauth2callback?state={0}&code=codez'.format(state))
                 self.assertEqual(response.status_code, httplib.BAD_REQUEST)
+
+                # Check the mocks were called.
+                new_http.assert_called_once_with()
 
         # Invalid state json
         with self.app.test_client() as client:
@@ -334,9 +337,8 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             self.assertTrue(self.oauth2.credentials is None)
             self.assertTrue(self.oauth2.user_id is None)
             self.assertTrue(self.oauth2.email is None)
-            self.assertRaises(
-                ValueError,
-                self.oauth2.http)
+            with self.assertRaises(ValueError):
+                self.oauth2.http()
             self.assertFalse(self.oauth2.storage.get())
             self.oauth2.storage.delete()
 
@@ -436,7 +438,7 @@ class FlaskOAuth2Tests(unittest2.TestCase):
         self.app = flask.Flask(__name__)
         self.app.testing = True
         self.app.config['SECRET_KEY'] = 'notasecert'
-        self.oauth2 = FlaskOAuth2(
+        self.oauth2 = flask_util.UserOAuth2(
             self.app,
             client_id='client_idz',
             client_secret='client_secretz',
@@ -478,7 +480,8 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             # Starting the authorization flow should include the
             # include_granted_scopes parameter as well as the scopes.
             response = client.get(response.headers['Location'][17:])
-            q = urlparse.parse_qs(response.headers['Location'].split('?', 1)[1])
+            q = urlparse.parse_qs(
+                response.headers['Location'].split('?', 1)[1])
             self.assertIn('include_granted_scopes', q)
             self.assertEqual(
                 set(q['scope'][0].split(' ')),
@@ -498,7 +501,10 @@ class FlaskOAuth2Tests(unittest2.TestCase):
     def test_incremental_auth_exchange(self):
         self._create_incremental_auth_app()
 
-        with Http2Mock():
+        with mock.patch('oauth2client.transport.get_http_object') as new_http:
+            # Set-up mock.
+            new_http.return_value = http_mock.HttpMock(data=DEFAULT_RESP)
+            # Run tests.
             with self.app.test_client() as client:
                 state = self._setup_callback_state(
                     client,
@@ -514,16 +520,21 @@ class FlaskOAuth2Tests(unittest2.TestCase):
                 self.assertTrue(
                     credentials.has_scopes(['email', 'one', 'two']))
 
+            # Check the mocks were called.
+            new_http.assert_called_once_with()
+
     def test_refresh(self):
+        token_val = 'new_token'
+        json_resp = '{"access_token": "%s"}' % (token_val,)
+        http = http_mock.HttpMock(data=json_resp)
         with self.app.test_request_context():
             with mock.patch('flask.session'):
                 self.oauth2.storage.put(self._generate_credentials())
 
-                self.oauth2.credentials.refresh(
-                    Http2Mock(access_token='new_token'))
+                self.oauth2.credentials.refresh(http)
 
                 self.assertEqual(
-                    self.oauth2.storage.get().access_token, 'new_token')
+                    self.oauth2.storage.get().access_token, token_val)
 
     def test_delete(self):
         with self.app.test_request_context():
@@ -532,7 +543,3 @@ class FlaskOAuth2Tests(unittest2.TestCase):
             self.oauth2.storage.delete()
 
             self.assertNotIn('google_oauth2_credentials', flask.session)
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest2.main()

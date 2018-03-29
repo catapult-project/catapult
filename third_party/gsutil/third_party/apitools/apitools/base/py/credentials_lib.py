@@ -17,6 +17,7 @@
 """Common credentials classes and constructors."""
 from __future__ import print_function
 
+import contextlib
 import datetime
 import json
 import os
@@ -28,11 +29,26 @@ import oauth2client
 import oauth2client.client
 from oauth2client import service_account
 from oauth2client import tools  # for gflags declarations
+import six
 from six.moves import http_client
 from six.moves import urllib
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
+
+# App Engine does not support ctypes which are required for the
+# monotonic time used in fasteners. Conversely, App Engine does
+# not support colocated concurrent processes, so process locks
+# are not needed.
+try:
+    import fasteners
+    _FASTENERS_AVAILABLE = True
+except ImportError as import_error:
+    server_env = os.environ.get('SERVER_SOFTWARE', '')
+    if not (server_env.startswith('Development') or
+            server_env.startswith('Google App Engine')):
+        raise import_error
+    _FASTENERS_AVAILABLE = False
 
 # Note: we try the oauth2client imports two ways, to accomodate layout
 # changes in oauth2client 2.0+. We can remove these once we no longer
@@ -45,14 +61,14 @@ except ImportError:
     from oauth2client import gce
 
 try:
-    from oauth2client.contrib import locked_file
+    from oauth2client.contrib import multiprocess_file_storage
+    _NEW_FILESTORE = True
 except ImportError:
-    from oauth2client import locked_file
-
-try:
-    from oauth2client.contrib import multistore_file
-except ImportError:
-    from oauth2client import multistore_file
+    _NEW_FILESTORE = False
+    try:
+        from oauth2client.contrib import multistore_file
+    except ImportError:
+        from oauth2client import multistore_file
 
 try:
     import gflags
@@ -193,19 +209,6 @@ def ServiceAccountCredentialsFromP12File(
                 user_agent=user_agent)
 
 
-def _EnsureFileExists(filename):
-    """Touches a file; returns False on error, True on success."""
-    if not os.path.exists(filename):
-        old_umask = os.umask(0o177)
-        try:
-            open(filename, 'a+b').close()
-        except OSError:
-            return False
-        finally:
-            os.umask(old_umask)
-    return True
-
-
 def _GceMetadataRequest(relative_url, use_metadata_ip=False):
     """Request the given url from the GCE metadata service."""
     if use_metadata_ip:
@@ -265,7 +268,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         # catch and squelch the warning.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            super(GceAssertionCredentials, self).__init__(scopes, **kwds)
+            super(GceAssertionCredentials, self).__init__(scope=scopes, **kwds)
 
     @classmethod
     def Get(cls, *args, **kwds):
@@ -288,29 +291,20 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             'scopes': sorted(list(scopes)) if scopes else None,
             'svc_acct_name': self.__service_account_name,
         }
-        with cache_file_lock:
-            if _EnsureFileExists(cache_filename):
-                cache_file = locked_file.LockedFile(
-                    cache_filename, 'r+b', 'rb')
-                try:
-                    cache_file.open_and_lock()
-                    cached_creds_str = cache_file.file_handle().read()
-                    if cached_creds_str:
-                        # Cached credentials metadata dict.
-                        cached_creds = json.loads(cached_creds_str)
-                        if (creds['svc_acct_name'] ==
-                                cached_creds['svc_acct_name']):
-                            if (creds['scopes'] in
-                                    (None, cached_creds['scopes'])):
-                                scopes = cached_creds['scopes']
-                except KeyboardInterrupt:
-                    raise
-                except:  # pylint: disable=bare-except
-                    # Treat exceptions as a cache miss.
-                    pass
-                finally:
-                    cache_file.unlock_and_close()
-        return scopes
+        cache_file = _MultiProcessCacheFile(cache_filename)
+        try:
+            cached_creds_str = cache_file.LockedRead()
+            if not cached_creds_str:
+                return None
+            cached_creds = json.loads(cached_creds_str)
+            if creds['svc_acct_name'] == cached_creds['svc_acct_name']:
+                if creds['scopes'] in (None, cached_creds['scopes']):
+                    return cached_creds['scopes']
+        except KeyboardInterrupt:
+            raise
+        except:  # pylint: disable=bare-except
+            # Treat exceptions as a cache miss.
+            pass
 
     def _WriteCacheFile(self, cache_filename, scopes):
         """Writes the credential metadata to the cache file.
@@ -322,28 +316,18 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
           cache_filename: Cache filename to check.
           scopes: Scopes for the desired credentials.
         """
-        with cache_file_lock:
-            if _EnsureFileExists(cache_filename):
-                cache_file = locked_file.LockedFile(
-                    cache_filename, 'r+b', 'rb')
-                try:
-                    cache_file.open_and_lock()
-                    if cache_file.is_locked():
-                        creds = {  # Credentials metadata dict.
-                            'scopes': sorted(list(scopes)),
-                            'svc_acct_name': self.__service_account_name}
-                        cache_file.file_handle().write(
-                            json.dumps(creds, encoding='ascii'))
-                        # If it's not locked, the locking process will
-                        # write the same data to the file, so just
-                        # continue.
-                except KeyboardInterrupt:
-                    raise
-                except:  # pylint: disable=bare-except
-                    # Treat exceptions as a cache miss.
-                    pass
-                finally:
-                    cache_file.unlock_and_close()
+        # Credentials metadata dict.
+        creds = {'scopes': sorted(list(scopes)),
+                 'svc_acct_name': self.__service_account_name}
+        creds_str = json.dumps(creds)
+        cache_file = _MultiProcessCacheFile(cache_filename)
+        try:
+            cache_file.LockedWrite(creds_str)
+        except KeyboardInterrupt:
+            raise
+        except:  # pylint: disable=bare-except
+            # Treat exceptions as a cache miss.
+            pass
 
     def _ScopesFromMetadataServer(self, scopes):
         """Returns instance scopes based on GCE metadata server."""
@@ -428,14 +412,26 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         if self.store:
             self.store.locked_put(self)
 
+    def to_json(self):
+        # OAuth2Client made gce.AppAssertionCredentials unserializable as of
+        # v3.0, but we need those credentials to be serializable for use with
+        # this library, so we use AppAssertionCredentials' parent's to_json
+        # method.
+        # pylint: disable=bad-super-call
+        return super(gce.AppAssertionCredentials, self).to_json()
+
     @classmethod
     def from_json(cls, json_data):
         data = json.loads(json_data)
         kwargs = {}
         if 'cache_filename' in data.get('kwargs', []):
             kwargs['cache_filename'] = data['kwargs']['cache_filename']
-        credentials = GceAssertionCredentials(scopes=[data['scope']],
-                                              **kwargs)
+        # Newer versions of GceAssertionCredentials don't have a "scope"
+        # attribute.
+        scope_list = None
+        if 'scope' in data:
+            scope_list = [data['scope']]
+        credentials = GceAssertionCredentials(scopes=scope_list, **kwargs)
         if 'access_token' in data:
             credentials.access_token = data['access_token']
         if 'token_expiry' in data:
@@ -537,11 +533,18 @@ def _GetRunFlowFlags(args=None):
 # TODO(craigcitro): Switch this from taking a path to taking a stream.
 def CredentialsFromFile(path, client_info, oauth2client_args=None):
     """Read credentials from a file."""
-    credential_store = multistore_file.get_credential_storage(
-        path,
-        client_info['client_id'],
-        client_info['user_agent'],
-        client_info['scope'])
+    user_agent = client_info['user_agent']
+    scope_key = client_info['scope']
+    if not isinstance(scope_key, six.string_types):
+        scope_key = ':'.join(scope_key)
+    storage_key = client_info['client_id'] + user_agent + scope_key
+
+    if _NEW_FILESTORE:
+        credential_store = multiprocess_file_storage.MultiprocessFileStorage(
+            path, storage_key)
+    else:
+        credential_store = multistore_file.get_credential_storage_custom_string_key(  # noqa
+            path, storage_key)
     if hasattr(FLAGS, 'auth_local_webserver'):
         FLAGS.auth_local_webserver = False
     credentials = credential_store.get()
@@ -566,6 +569,115 @@ def CredentialsFromFile(path, client_info, oauth2client_args=None):
                 raise exceptions.CredentialsError(
                     'Communication error creating credentials: %s' % e)
     return credentials
+
+
+class _MultiProcessCacheFile(object):
+    """Simple multithreading and multiprocessing safe cache file.
+
+    Notes on behavior:
+    * the fasteners.InterProcessLock object cannot reliably prevent threads
+      from double-acquiring a lock. A threading lock is used in addition to
+      the InterProcessLock. The threading lock is always acquired first and
+      released last.
+    * The interprocess lock will not deadlock. If a process can not acquire
+      the interprocess lock within `_lock_timeout` the call will return as
+      a cache miss or unsuccessful cache write.
+    * App Engine environments cannot be process locked because (1) the runtime
+      does not provide monotonic time and (2) different processes may or may
+      not share the same machine. Because of this, process locks are disabled
+      and locking is only guaranteed to protect against multithreaded access.
+    """
+
+    _lock_timeout = 1
+    _encoding = 'utf-8'
+    _thread_lock = threading.Lock()
+
+    def __init__(self, filename):
+        self._file = None
+        self._filename = filename
+        if _FASTENERS_AVAILABLE:
+            self._process_lock_getter = self._ProcessLockAcquired
+            self._process_lock = fasteners.InterProcessLock(
+                '{0}.lock'.format(filename))
+        else:
+            self._process_lock_getter = self._DummyLockAcquired
+            self._process_lock = None
+
+    @contextlib.contextmanager
+    def _ProcessLockAcquired(self):
+        """Context manager for process locks with timeout."""
+        try:
+            is_locked = self._process_lock.acquire(timeout=self._lock_timeout)
+            yield is_locked
+        finally:
+            if is_locked:
+                self._process_lock.release()
+
+    @contextlib.contextmanager
+    def _DummyLockAcquired(self):
+        """Lock context manager for environments without process locks."""
+        yield True
+
+    def LockedRead(self):
+        """Acquire an interprocess lock and dump cache contents.
+
+        This method safely acquires the locks then reads a string
+        from the cache file. If the file does not exist and cannot
+        be created, it will return None. If the locks cannot be
+        acquired, this will also return None.
+
+        Returns:
+          cache data - string if present, None on failure.
+        """
+        file_contents = None
+        with self._thread_lock:
+            if not self._EnsureFileExists():
+                return None
+            with self._process_lock_getter() as acquired_plock:
+                if not acquired_plock:
+                    return None
+                with open(self._filename, 'rb') as f:
+                    file_contents = f.read().decode(encoding=self._encoding)
+        return file_contents
+
+    def LockedWrite(self, cache_data):
+        """Acquire an interprocess lock and write a string.
+
+        This method safely acquires the locks then writes a string
+        to the cache file. If the string is written successfully
+        the function will return True, if the write fails for any
+        reason it will return False.
+
+        Args:
+          cache_data: string or bytes to write.
+
+        Returns:
+          bool: success
+        """
+        if isinstance(cache_data, six.text_type):
+            cache_data = cache_data.encode(encoding=self._encoding)
+
+        with self._thread_lock:
+            if not self._EnsureFileExists():
+                return False
+            with self._process_lock_getter() as acquired_plock:
+                if not acquired_plock:
+                    return False
+                with open(self._filename, 'wb') as f:
+                    f.write(cache_data)
+                return True
+
+    def _EnsureFileExists(self):
+        """Touches a file; returns False on error, True on success."""
+        if not os.path.exists(self._filename):
+            old_umask = os.umask(0o177)
+            try:
+                open(self._filename, 'a+b').close()
+            except OSError:
+                return False
+            finally:
+                os.umask(old_umask)
+        return True
 
 
 # TODO(craigcitro): Push this into oauth2client.

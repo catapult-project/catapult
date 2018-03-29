@@ -122,34 +122,38 @@ def CheckAndGetCredentials(logger):
     raise
 
 
-def GetCredentialStoreKeyDict(credentials, api_version):
+def GetCredentialStoreKey(credentials, api_version):
   """Disambiguates a credential for caching in a credential store.
 
   Different credential types have different fields that identify them.
-  This function assembles relevant information in a dict and returns it.
+  This function assembles relevant information in a string to be used as the key
+  for accessing a credential.
 
   Args:
     credentials: An OAuth2Credentials object.
     api_version: JSON API version being used.
 
   Returns:
-    Dict of relevant identifiers for credentials.
+    A string that can be used as the key to identify a credential, e.g.
+    "v1-909320924072.apps.googleusercontent.com-1/rEfrEshtOkEn"
   """
   # TODO: If scopes ever become available in the credentials themselves,
-  # include them in the key dict.
-  key_dict = {'api_version': api_version}
+  # include them in the key.
+  key_parts = [api_version]
   # pylint: disable=protected-access
   if isinstance(credentials, devshell.DevshellCredentials):
-    key_dict['user_email'] = credentials.user_email
+    key_parts.append(credentials.user_email)
   elif isinstance(credentials, ServiceAccountCredentials):
-    key_dict['_service_account_email'] = credentials._service_account_email
+    key_parts.append(credentials._service_account_email)
   elif isinstance(credentials, oauth2client.client.OAuth2Credentials):
     if credentials.client_id and credentials.client_id != 'null':
-      key_dict['client_id'] = credentials.client_id
-    key_dict['refresh_token'] = credentials.refresh_token
+      key_parts.append(credentials.client_id)
+    else:
+      key_parts.append('noclientid')
+    key_parts.append(credentials.refresh_token or 'norefreshtoken')
   # pylint: enable=protected-access
 
-  return key_dict
+  return '-'.join(key_parts)
 
 
 def _GetProviderTokenUri():

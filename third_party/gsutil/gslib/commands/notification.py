@@ -165,7 +165,7 @@ _CREATE_DESCRIPTION = """
   Create a notification config that will only send an event when a new object
   has been created:
 
-    gsutil notification create -f json -t OBJECT_FINALIZE gs://example-bucket
+    gsutil notification create -f json -e OBJECT_FINALIZE gs://example-bucket
 
   Create a topic and notification config that will only send an event when
   an object beginning with "photos/" is affected:
@@ -222,6 +222,20 @@ _CREATE_DESCRIPTION = """
             not specified, this command will choose a topic whose project is
             your default project and whose ID is the same as the Cloud Storage
             bucket name.
+
+<B>NEXT STEPS</B>
+  Once the create command has succeeded, Cloud Storage will publish a message to
+  the specified Cloud Pub/Sub topic when eligible changes occur. In order to
+  receive these message, you will need to create a Pub/Sub subscription for your
+  Pub/Sub topic. To learn more about creating Pub/Sub subscriptions, see `the
+  Pub/Sub Subscriber Overview <https://cloud.google.com/pubsub/docs/subscriber>`_.
+
+  You can create a simple Pub/Sub subscription using the `gcloud` command-line
+  tool. For example, to create a new subscription on the topic "myNewTopic" and
+  attempt to pull messages from it, you could run:
+
+    gcloud beta pubsub subscriptions create --topic myNewTopic testSubscription
+    gcloud beta pubsub subscriptions pull --auto-ack testSubscription
 """
 
 _WATCHBUCKET_DESCRIPTION = """
@@ -231,8 +245,8 @@ _WATCHBUCKET_DESCRIPTION = """
 
   The app_url parameter must be an HTTPS URL to an application that will be
   notified of changes to any object in the bucket. The URL endpoint must be
-  a verified domain on your project. See
-  `Notification Authorization <https://cloud.google.com/storage/docs/object-change-notification#_Authorization>`_
+  a verified domain on your project. See `Notification Authorization
+  <https://cloud.google.com/storage/docs/object-change-notification#_Authorization>`_
   for details.
 
   The optional id parameter can be used to assign a unique identifier to the
@@ -286,8 +300,9 @@ _DESCRIPTION = """
   Storage integration with Google Cloud Pub/Sub.
 """ + _CREATE_DESCRIPTION + _LIST_DESCRIPTION + _DELETE_DESCRIPTION + """
 <B>OBJECT CHANGE NOTIFICATIONS</B>
-  For more information on the Object Change Notification feature, please see:
-  https://cloud.google.com/storage/docs/object-change-notification
+  For more information on the Object Change Notification feature, please see
+  `the Object Change Notification docs
+  <https://cloud.google.com/storage/docs/object-change-notification>`_.
 
   The "watchbucket" and "stopchannel" sub-commands enable and disable Object
   Change Notifications.
@@ -320,9 +335,9 @@ which is not authorized for your project. Please ensure that you are using
 Service Account authentication and that the Service Account's project is
 authorized for the application URL. Notification endpoint URLs must also be
 whitelisted in your Cloud Console project. To do that, the domain must also be
-verified using Google Webmaster Tools. For instructions, please see:
-
-  https://cloud.google.com/storage/docs/object-change-notification#_Authorization
+verified using Google Webmaster Tools. For instructions, please see
+`Notification Authorization
+<https://cloud.google.com/storage/docs/object-change-notification#_Authorization>`_.
 """
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)

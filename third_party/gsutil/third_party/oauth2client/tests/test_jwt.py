@@ -17,23 +17,18 @@
 import os
 import tempfile
 import time
+import unittest
 
 import mock
-import unittest2
+from six.moves import http_client
 
-from .http_mock import HttpMockSequence
-from oauth2client.client import Credentials
-from oauth2client.client import VerifyJwtTokenError
-from oauth2client.client import verify_id_token
-from oauth2client.client import HAS_OPENSSL
-from oauth2client.client import HAS_CRYPTO
+from oauth2client import _helpers
+from oauth2client import client
 from oauth2client import crypt
-from oauth2client.file import Storage
-from oauth2client.service_account import _PASSWORD_DEFAULT
-from oauth2client.service_account import ServiceAccountCredentials
-
-
-__author__ = 'jcgregorio@google.com (Joe Gregorio)'
+from oauth2client import file as file_module
+from oauth2client import service_account
+from oauth2client import transport
+from tests import http_mock
 
 
 _FORMATS_TO_CONSTRUCTOR_ARGS = {
@@ -51,7 +46,7 @@ def datafile(filename):
         return file_obj.read()
 
 
-class CryptTests(unittest2.TestCase):
+class CryptTests(unittest.TestCase):
 
     def setUp(self):
         self.format_ = 'p12'
@@ -118,43 +113,54 @@ class CryptTests(unittest2.TestCase):
         self.assertEqual('billy bob', contents['user'])
         self.assertEqual('data', contents['metadata']['meta'])
 
+    def _verify_http_mock(self, http):
+        self.assertEqual(http.requests, 1)
+        self.assertEqual(http.uri, client.ID_TOKEN_VERIFICATION_CERTS)
+        self.assertEqual(http.method, 'GET')
+        self.assertIsNone(http.body)
+        self.assertIsNone(http.headers)
+
     def test_verify_id_token_with_certs_uri(self):
         jwt = self._create_signed_jwt()
 
-        http = HttpMockSequence([
-            ({'status': '200'}, datafile('certs.json')),
-        ])
-
-        contents = verify_id_token(
+        http = http_mock.HttpMock(data=datafile('certs.json'))
+        contents = client.verify_id_token(
             jwt, 'some_audience_address@testing.gserviceaccount.com',
             http=http)
         self.assertEqual('billy bob', contents['user'])
         self.assertEqual('data', contents['metadata']['meta'])
 
+        # Verify mocks.
+        self._verify_http_mock(http)
+
     def test_verify_id_token_with_certs_uri_default_http(self):
         jwt = self._create_signed_jwt()
 
-        http = HttpMockSequence([
-            ({'status': '200'}, datafile('certs.json')),
-        ])
+        http = http_mock.HttpMock(data=datafile('certs.json'))
 
-        with mock.patch('oauth2client.client._cached_http', new=http):
-            contents = verify_id_token(
+        with mock.patch('oauth2client.transport._CACHED_HTTP', new=http):
+            contents = client.verify_id_token(
                 jwt, 'some_audience_address@testing.gserviceaccount.com')
 
         self.assertEqual('billy bob', contents['user'])
         self.assertEqual('data', contents['metadata']['meta'])
 
+        # Verify mocks.
+        self._verify_http_mock(http)
+
     def test_verify_id_token_with_certs_uri_fails(self):
         jwt = self._create_signed_jwt()
+        test_email = 'some_audience_address@testing.gserviceaccount.com'
 
-        http = HttpMockSequence([
-            ({'status': '404'}, datafile('certs.json')),
-        ])
+        http = http_mock.HttpMock(
+            headers={'status': http_client.NOT_FOUND},
+            data=datafile('certs.json'))
 
-        self.assertRaises(VerifyJwtTokenError, verify_id_token, jwt,
-                          'some_audience_address@testing.gserviceaccount.com',
-                          http=http)
+        with self.assertRaises(client.VerifyJwtTokenError):
+            client.verify_id_token(jwt, test_email, http=http)
+
+        # Verify mocks.
+        self._verify_http_mock(http)
 
     def test_verify_id_token_bad_tokens(self):
         private_key = datafile('privatekey.' + self.format_)
@@ -167,7 +173,7 @@ class CryptTests(unittest2.TestCase):
 
         # Bad signature
         jwt = b'.'.join([b'foo',
-                         crypt._urlsafe_b64encode('{"a":"b"}'),
+                         _helpers._urlsafe_b64encode('{"a":"b"}'),
                          b'baz'])
         self._check_jwt_failure(jwt, 'Invalid token signature')
 
@@ -217,7 +223,7 @@ class CryptTests(unittest2.TestCase):
         # of from_string().
         public_key = datafile('privatekey.pem')
         verifier = self.verifier.from_string(public_key, is_x509_cert=False)
-        self.assertTrue(isinstance(verifier, self.verifier))
+        self.assertIsInstance(verifier, self.verifier)
 
 
 class PEMCryptTestsPyCrypto(CryptTests):
@@ -236,16 +242,20 @@ class PEMCryptTestsOpenSSL(CryptTests):
         self.verifier = crypt.OpenSSLVerifier
 
 
-class SignedJwtAssertionCredentialsTests(unittest2.TestCase):
+class SignedJwtAssertionCredentialsTests(unittest.TestCase):
 
     def setUp(self):
+        self.orig_signer = crypt.Signer
         self.format_ = 'p12'
         crypt.Signer = crypt.OpenSSLSigner
+
+    def tearDown(self):
+        crypt.Signer = self.orig_signer
 
     def _make_credentials(self):
         private_key = datafile('privatekey.' + self.format_)
         signer = crypt.Signer.from_string(private_key)
-        credentials = ServiceAccountCredentials(
+        credentials = service_account.ServiceAccountCredentials(
             'some_account@example.com', signer,
             scopes='read+write',
             sub='joe@example.org')
@@ -253,25 +263,27 @@ class SignedJwtAssertionCredentialsTests(unittest2.TestCase):
             credentials._private_key_pkcs8_pem = private_key
         elif self.format_ == 'p12':
             credentials._private_key_pkcs12 = private_key
-            credentials._private_key_password = _PASSWORD_DEFAULT
+            credentials._private_key_password = (
+                service_account._PASSWORD_DEFAULT)
         else:  # pragma: NO COVER
             raise ValueError('Unexpected format.')
         return credentials
 
     def test_credentials_good(self):
         credentials = self._make_credentials()
-        http = HttpMockSequence([
-            ({'status': '200'}, b'{"access_token":"1/3w","expires_in":3600}'),
-            ({'status': '200'}, 'echo_request_headers'),
+        http = http_mock.HttpMockSequence([
+            ({'status': http_client.OK},
+             b'{"access_token":"1/3w","expires_in":3600}'),
+            ({'status': http_client.OK}, 'echo_request_headers'),
         ])
         http = credentials.authorize(http)
-        resp, content = http.request('http://example.org')
+        resp, content = transport.request(http, 'http://example.org')
         self.assertEqual(b'Bearer 1/3w', content[b'Authorization'])
 
     def test_credentials_to_from_json(self):
         credentials = self._make_credentials()
         json = credentials.to_json()
-        restored = Credentials.new_from_json(json)
+        restored = client.Credentials.new_from_json(json)
         self.assertEqual(credentials._private_key_pkcs12,
                          restored._private_key_pkcs12)
         self.assertEqual(credentials._private_key_password,
@@ -279,14 +291,16 @@ class SignedJwtAssertionCredentialsTests(unittest2.TestCase):
         self.assertEqual(credentials._kwargs, restored._kwargs)
 
     def _credentials_refresh(self, credentials):
-        http = HttpMockSequence([
-            ({'status': '200'}, b'{"access_token":"1/3w","expires_in":3600}'),
-            ({'status': '401'}, b''),
-            ({'status': '200'}, b'{"access_token":"3/3w","expires_in":3600}'),
-            ({'status': '200'}, 'echo_request_headers'),
+        http = http_mock.HttpMockSequence([
+            ({'status': http_client.OK},
+             b'{"access_token":"1/3w","expires_in":3600}'),
+            ({'status': http_client.UNAUTHORIZED}, b''),
+            ({'status': http_client.OK},
+             b'{"access_token":"3/3w","expires_in":3600}'),
+            ({'status': http_client.OK}, 'echo_request_headers'),
         ])
         http = credentials.authorize(http)
-        _, content = http.request('http://example.org')
+        _, content = transport.request(http, 'http://example.org')
         return content
 
     def test_credentials_refresh_without_storage(self):
@@ -299,7 +313,7 @@ class SignedJwtAssertionCredentialsTests(unittest2.TestCase):
 
         filehandle, filename = tempfile.mkstemp()
         os.close(filehandle)
-        store = Storage(filename)
+        store = file_module.Storage(filename)
         store.put(credentials)
         credentials.set_store(store)
 
@@ -313,24 +327,28 @@ class PEMSignedJwtAssertionCredentialsOpenSSLTests(
         SignedJwtAssertionCredentialsTests):
 
     def setUp(self):
+        self.orig_signer = crypt.Signer
         self.format_ = 'pem'
         crypt.Signer = crypt.OpenSSLSigner
+
+    def tearDown(self):
+        crypt.Signer = self.orig_signer
 
 
 class PEMSignedJwtAssertionCredentialsPyCryptoTests(
         SignedJwtAssertionCredentialsTests):
 
     def setUp(self):
+        self.orig_signer = crypt.Signer
         self.format_ = 'pem'
         crypt.Signer = crypt.PyCryptoSigner
 
+    def tearDown(self):
+        crypt.Signer = self.orig_signer
 
-class TestHasOpenSSLFlag(unittest2.TestCase):
+
+class TestHasOpenSSLFlag(unittest.TestCase):
 
     def test_true(self):
-        self.assertEqual(True, HAS_OPENSSL)
-        self.assertEqual(True, HAS_CRYPTO)
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest2.main()
+        self.assertEqual(True, client.HAS_OPENSSL)
+        self.assertEqual(True, client.HAS_CRYPTO)

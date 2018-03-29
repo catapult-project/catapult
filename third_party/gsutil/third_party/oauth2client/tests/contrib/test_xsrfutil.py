@@ -19,7 +19,7 @@ import unittest
 
 import mock
 
-from oauth2client._helpers import _to_bytes
+from oauth2client import _helpers
 from oauth2client.contrib import xsrfutil
 
 # Jan 17 2008, 5:40PM
@@ -34,24 +34,22 @@ TEST_EXTRA_INFO_1 = b'extra_info_1'
 TEST_EXTRA_INFO_2 = b'more_extra_info'
 
 
-__author__ = 'jcgregorio@google.com (Joe Gregorio)'
-
-
 class Test_generate_token(unittest.TestCase):
 
     def test_bad_positional(self):
         # Need 2 positional arguments.
-        self.assertRaises(TypeError, xsrfutil.generate_token, None)
+        with self.assertRaises(TypeError):
+            xsrfutil.generate_token(None)
         # At most 2 positional arguments.
-        self.assertRaises(TypeError, xsrfutil.generate_token, None, None, None)
+        with self.assertRaises(TypeError):
+            xsrfutil.generate_token(None, None, None)
 
     def test_it(self):
         digest = b'foobar'
-        curr_time = 1440449755.74
-        digester = mock.MagicMock()
-        digester.digest = mock.MagicMock(name='digest', return_value=digest)
+        digester = mock.Mock()
+        digester.digest = mock.Mock(name='digest', return_value=digest)
         with mock.patch('oauth2client.contrib.xsrfutil.hmac') as hmac:
-            hmac.new = mock.MagicMock(name='new', return_value=digester)
+            hmac.new = mock.Mock(name='new', return_value=digester)
             token = xsrfutil.generate_token(TEST_KEY,
                                             TEST_USER_ID_1,
                                             action_id=TEST_ACTION_ID_1,
@@ -60,16 +58,16 @@ class Test_generate_token(unittest.TestCase):
             digester.digest.assert_called_once_with()
 
             expected_digest_calls = [
-                mock.call.update(_to_bytes(str(TEST_USER_ID_1))),
+                mock.call.update(_helpers._to_bytes(str(TEST_USER_ID_1))),
                 mock.call.update(xsrfutil.DELIMITER),
                 mock.call.update(TEST_ACTION_ID_1),
                 mock.call.update(xsrfutil.DELIMITER),
-                mock.call.update(_to_bytes(str(TEST_TIME))),
+                mock.call.update(_helpers._to_bytes(str(TEST_TIME))),
             ]
             self.assertEqual(digester.method_calls, expected_digest_calls)
 
             expected_token_as_bytes = (digest + xsrfutil.DELIMITER +
-                                       _to_bytes(str(TEST_TIME)))
+                                       _helpers._to_bytes(str(TEST_TIME)))
             expected_token = base64.urlsafe_b64encode(
                 expected_token_as_bytes)
             self.assertEqual(token, expected_token)
@@ -77,13 +75,13 @@ class Test_generate_token(unittest.TestCase):
     def test_with_system_time(self):
         digest = b'foobar'
         curr_time = 1440449755.74
-        digester = mock.MagicMock()
-        digester.digest = mock.MagicMock(name='digest', return_value=digest)
+        digester = mock.Mock()
+        digester.digest = mock.Mock(name='digest', return_value=digest)
         with mock.patch('oauth2client.contrib.xsrfutil.hmac') as hmac:
-            hmac.new = mock.MagicMock(name='new', return_value=digester)
+            hmac.new = mock.Mock(name='new', return_value=digester)
 
             with mock.patch('oauth2client.contrib.xsrfutil.time') as time:
-                time.time = mock.MagicMock(name='time', return_value=curr_time)
+                time.time = mock.Mock(name='time', return_value=curr_time)
                 # when= is omitted
                 token = xsrfutil.generate_token(TEST_KEY,
                                                 TEST_USER_ID_1,
@@ -94,16 +92,17 @@ class Test_generate_token(unittest.TestCase):
                 digester.digest.assert_called_once_with()
 
                 expected_digest_calls = [
-                    mock.call.update(_to_bytes(str(TEST_USER_ID_1))),
+                    mock.call.update(_helpers._to_bytes(str(TEST_USER_ID_1))),
                     mock.call.update(xsrfutil.DELIMITER),
                     mock.call.update(TEST_ACTION_ID_1),
                     mock.call.update(xsrfutil.DELIMITER),
-                    mock.call.update(_to_bytes(str(int(curr_time)))),
+                    mock.call.update(_helpers._to_bytes(str(int(curr_time)))),
                 ]
                 self.assertEqual(digester.method_calls, expected_digest_calls)
 
-                expected_token_as_bytes = (digest + xsrfutil.DELIMITER +
-                                           _to_bytes(str(int(curr_time))))
+                expected_token_as_bytes = (
+                    digest + xsrfutil.DELIMITER +
+                    _helpers._to_bytes(str(int(curr_time))))
                 expected_token = base64.urlsafe_b64encode(
                     expected_token_as_bytes)
                 self.assertEqual(token, expected_token)
@@ -113,10 +112,11 @@ class Test_validate_token(unittest.TestCase):
 
     def test_bad_positional(self):
         # Need 3 positional arguments.
-        self.assertRaises(TypeError, xsrfutil.validate_token, None, None)
+        with self.assertRaises(TypeError):
+            xsrfutil.validate_token(None, None)
         # At most 3 positional arguments.
-        self.assertRaises(TypeError, xsrfutil.validate_token,
-                          None, None, None, None)
+        with self.assertRaises(TypeError):
+            xsrfutil.validate_token(None, None, None, None)
 
     def test_no_token(self):
         key = token = user_id = None
@@ -137,9 +137,9 @@ class Test_validate_token(unittest.TestCase):
         curr_time = token_time + xsrfutil.DEFAULT_TIMEOUT_SECS + 1
 
         key = user_id = None
-        token = base64.b64encode(_to_bytes(str(token_time)))
+        token = base64.b64encode(_helpers._to_bytes(str(token_time)))
         with mock.patch('oauth2client.contrib.xsrfutil.time') as time:
-            time.time = mock.MagicMock(name='time', return_value=curr_time)
+            time.time = mock.Mock(name='time', return_value=curr_time)
             self.assertFalse(xsrfutil.validate_token(key, token, user_id))
             time.time.assert_called_once_with()
 
@@ -148,7 +148,7 @@ class Test_validate_token(unittest.TestCase):
         curr_time = token_time + xsrfutil.DEFAULT_TIMEOUT_SECS + 1
 
         key = user_id = None
-        token = base64.b64encode(_to_bytes(str(token_time)))
+        token = base64.b64encode(_helpers._to_bytes(str(token_time)))
         self.assertFalse(xsrfutil.validate_token(key, token, user_id,
                                                  current_time=curr_time))
 
@@ -160,7 +160,7 @@ class Test_validate_token(unittest.TestCase):
         key = object()
         user_id = object()
         action_id = object()
-        token = base64.b64encode(_to_bytes(str(token_time)))
+        token = base64.b64encode(_helpers._to_bytes(str(token_time)))
         generated_token = b'a'
         # Make sure the token length comparison will fail.
         self.assertNotEqual(len(token), len(generated_token))
@@ -181,7 +181,7 @@ class Test_validate_token(unittest.TestCase):
         key = object()
         user_id = object()
         action_id = object()
-        token = base64.b64encode(_to_bytes(str(token_time)))
+        token = base64.b64encode(_helpers._to_bytes(str(token_time)))
         # It is encoded as b'MTIzNDU2Nzg5', which has length 12.
         generated_token = b'M' * 12
         # Make sure the token length comparison will succeed, but the token
@@ -205,7 +205,7 @@ class Test_validate_token(unittest.TestCase):
         key = object()
         user_id = object()
         action_id = object()
-        token = base64.b64encode(_to_bytes(str(token_time)))
+        token = base64.b64encode(_helpers._to_bytes(str(token_time)))
         with mock.patch('oauth2client.contrib.xsrfutil.generate_token',
                         return_value=token) as gen_tok:
             self.assertTrue(xsrfutil.validate_token(key, token, user_id,
@@ -288,7 +288,3 @@ class XsrfUtilTests(unittest.TestCase):
                                                  None,
                                                  TEST_USER_ID_1,
                                                  action_id=TEST_ACTION_ID_1))
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest.main()

@@ -49,6 +49,7 @@ disable =
     cyclic-import,
     fixme,
     import-error,
+    inconsistent-return-statements,
     locally-disabled,
     locally-enabled,
     no-member,

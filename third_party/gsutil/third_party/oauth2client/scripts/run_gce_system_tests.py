@@ -15,24 +15,24 @@
 import json
 import unittest
 
-import httplib2
 from six.moves import http_client
 from six.moves import urllib
 
-from oauth2client import GOOGLE_TOKEN_INFO_URI
-from oauth2client.client import GoogleCredentials
-from oauth2client.contrib.gce import AppAssertionCredentials
+import oauth2client
+from oauth2client import client
+from oauth2client import transport
+from oauth2client.contrib import gce
 
 
 class TestComputeEngine(unittest.TestCase):
 
     def test_application_default(self):
-        default_creds = GoogleCredentials.get_application_default()
-        self.assertIsInstance(default_creds, AppAssertionCredentials)
+        default_creds = client.GoogleCredentials.get_application_default()
+        self.assertIsInstance(default_creds, gce.AppAssertionCredentials)
 
     def test_token_info(self):
-        credentials = AppAssertionCredentials([])
-        http = httplib2.Http()
+        credentials = gce.AppAssertionCredentials([])
+        http = transport.get_http_object()
 
         # First refresh to get the access token.
         self.assertIsNone(credentials.access_token)
@@ -41,9 +41,9 @@ class TestComputeEngine(unittest.TestCase):
 
         # Then check the access token against the token info API.
         query_params = {'access_token': credentials.access_token}
-        token_uri = (GOOGLE_TOKEN_INFO_URI + '?' +
+        token_uri = (oauth2client.GOOGLE_TOKEN_INFO_URI + '?' +
                      urllib.parse.urlencode(query_params))
-        response, content = http.request(token_uri)
+        response, content = transport.request(http, token_uri)
         self.assertEqual(response.status, http_client.OK)
 
         content = content.decode('utf-8')

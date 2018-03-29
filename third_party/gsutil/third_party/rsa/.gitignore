@@ -1,12 +1,17 @@
 *.py[co]
 *.egg-info
+.*.swp
 
-.idea/
+/.idea/
 
-dist/
-distribute*.tar.gz
-distribute*.egg
+/dist/
+/distribute*.tar.gz
+/distribute*.egg
 
-.tox/
-.coverage
-.coverage.*
+/.tox/
+/.coverage
+/.coverage.*
+/.cache/
+
+/build/
+/doc/_build/

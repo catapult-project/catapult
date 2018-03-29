@@ -25,9 +25,12 @@ from gslib.cloud_api import ResumableUploadException
 from gslib.cloud_api import ResumableUploadStartOverException
 from gslib.cloud_api import ServiceException
 from gslib.command import CreateGsutilLogger
+from gslib.copy_helper import _DelegateUploadFileToObject
 from gslib.copy_helper import _GetPartitionInfo
+from gslib.copy_helper import _SelectUploadCompressionStrategy
 from gslib.copy_helper import _SetContentTypeFromFile
 from gslib.copy_helper import FilterExistingComponents
+from gslib.copy_helper import GZIP_ALL_FILES
 from gslib.copy_helper import PerformParallelUploadFileToObjectArgs
 from gslib.copy_helper import WarnIfMvEarlyDeletionChargeApplies
 from gslib.gcs_json_api import GcsJsonApi
@@ -121,7 +124,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_uploaded_correctly = PerformParallelUploadFileToObjectArgs(
         fpath_uploaded_correctly, 0, 1, fpath_uploaded_correctly_url,
         object_uploaded_correctly_url, '', empty_object, tracker_file,
-        tracker_file_lock, None)
+        tracker_file_lock, None, False)
 
     # Not yet uploaded, but needed.
     fpath_not_uploaded = self.CreateTempFile(file_name='foo2', contents='2')
@@ -131,7 +134,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_not_uploaded = PerformParallelUploadFileToObjectArgs(
         fpath_not_uploaded, 0, 1, fpath_not_uploaded_url,
         object_not_uploaded_url, '', empty_object, tracker_file,
-        tracker_file_lock, None)
+        tracker_file_lock, None, False)
 
     # Already uploaded, but contents no longer match. Even though the contents
     # differ, we don't delete this since the bucket is not versioned and it
@@ -151,7 +154,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_wrong_contents = PerformParallelUploadFileToObjectArgs(
         fpath_wrong_contents, 0, 1, fpath_wrong_contents_url,
         object_wrong_contents_url, '', empty_object, tracker_file,
-        tracker_file_lock, None)
+        tracker_file_lock, None, False)
 
     # Exists in tracker file, but component object no longer exists.
     fpath_remote_deleted = self.CreateTempFile(file_name='foo5', contents='5')
@@ -159,7 +162,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
         str(fpath_remote_deleted))
     args_remote_deleted = PerformParallelUploadFileToObjectArgs(
         fpath_remote_deleted, 0, 1, fpath_remote_deleted_url, '', '',
-        empty_object, tracker_file, tracker_file_lock, None)
+        empty_object, tracker_file, tracker_file_lock, None, False)
 
     # Exists in tracker file and already uploaded, but no longer needed.
     fpath_no_longer_used = self.CreateTempFile(file_name='foo6', contents='6')
@@ -228,7 +231,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_uploaded_correctly = PerformParallelUploadFileToObjectArgs(
         fpath_uploaded_correctly, 0, 1, fpath_uploaded_correctly_url,
         object_uploaded_correctly_url, object_uploaded_correctly.generation,
-        empty_object, tracker_file, tracker_file_lock, None)
+        empty_object, tracker_file, tracker_file_lock, None, False)
 
     # Duplicate object name in tracker file, but uploaded correctly.
     fpath_duplicate = fpath_uploaded_correctly
@@ -245,7 +248,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
         fpath_duplicate, 0, 1, fpath_duplicate_url,
         duplicate_uploaded_correctly_url,
         duplicate_uploaded_correctly.generation, empty_object, tracker_file,
-        tracker_file_lock, None)
+        tracker_file_lock, None, False)
 
     # Already uploaded, but contents no longer match.
     fpath_wrong_contents = self.CreateTempFile(file_name='foo4', contents='4')
@@ -263,7 +266,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_wrong_contents = PerformParallelUploadFileToObjectArgs(
         fpath_wrong_contents, 0, 1, fpath_wrong_contents_url,
         wrong_contents_url, '', empty_object, tracker_file,
-        tracker_file_lock, None)
+        tracker_file_lock, None, False)
 
     dst_args = {fpath_uploaded_correctly: args_uploaded_correctly,
                 fpath_wrong_contents: args_wrong_contents}
@@ -333,7 +336,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
 
     exc = apitools_exceptions.TransferError('Aborting transfer')
     translated_exc = gsutil_api._TranslateApitoolsResumableUploadException(exc)
-    self.assertTrue(isinstance(translated_exc, ResumableUploadAbortException)) 
+    self.assertTrue(isinstance(translated_exc, ResumableUploadAbortException))
     exc = apitools_exceptions.TransferError('additional bytes left in stream')
     translated_exc = gsutil_api._TranslateApitoolsResumableUploadException(exc)
     self.assertTrue(isinstance(translated_exc, ResumableUploadAbortException))
@@ -363,7 +366,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
     # The file command should detect HTML in the real file.
     with SetBotoConfigForTest([('GSUtil', 'use_magicfile', 'True')]):
       _SetContentTypeFromFile(src_url_stub, dst_obj_metadata_mock)
-    self.assertEqual('text/html', dst_obj_metadata_mock.contentType)
+    self.assertEqual(
+        'text/html; charset=us-ascii', dst_obj_metadata_mock.contentType)
 
     dst_obj_metadata_mock = mock.MagicMock(contentType=None)
     # The mimetypes module should guess based on the real file's extension.
@@ -434,3 +438,99 @@ class TestCpFuncs(GsUtilUnitTestCase):
       WarnIfMvEarlyDeletionChargeApplies(src_url, not_old_enough_nearline_obj,
                                          test_logger)
       mocked_warn.assert_not_called()
+
+  def testSelectUploadCompressionStrategyAll(self):
+    paths = ('file://test', 'test.xml', 'test.py')
+    exts = GZIP_ALL_FILES
+    for path in paths:
+      zipped, gzip_encoded = _SelectUploadCompressionStrategy(
+          path, False, exts, False)
+      self.assertTrue(zipped)
+      self.assertFalse(gzip_encoded)
+      zipped, gzip_encoded = _SelectUploadCompressionStrategy(
+          path, False, exts, True)
+      self.assertFalse(zipped)
+      self.assertTrue(gzip_encoded)
+
+  def testSelectUploadCompressionStrategyFilter(self):
+    zipped, gzip_encoded = _SelectUploadCompressionStrategy(
+        'test.xml', False, ['xml'], False)
+    self.assertTrue(zipped)
+    self.assertFalse(gzip_encoded)
+    zipped, gzip_encoded = _SelectUploadCompressionStrategy(
+        'test.xml', False, ['yaml'], False)
+    self.assertFalse(zipped)
+    self.assertFalse(gzip_encoded)
+
+  def testSelectUploadCompressionStrategyComponent(self):
+    zipped, gzip_encoded = _SelectUploadCompressionStrategy(
+        'test.xml', True, ['not_matching'], True)
+    self.assertFalse(zipped)
+    self.assertTrue(gzip_encoded)
+
+  def testDelegateUploadFileToObjectNormal(self):
+    mock_stream = mock.Mock()
+    mock_stream.close = mock.Mock()
+    def DelegateUpload():
+      return 'a', 'b'
+    elapsed_time, uploaded_object = _DelegateUploadFileToObject(
+        DelegateUpload, 'url', mock_stream, False, False, False, None)
+    # Ensure results are passed through.
+    self.assertEqual(elapsed_time, 'a')
+    self.assertEqual(uploaded_object, 'b')
+    # Ensure close was called.
+    self.assertTrue(mock_stream.close.called)
+
+  @mock.patch('os.unlink')
+  def testDelegateUploadFileToObjectZipped(self, mock_unlink):
+    mock_stream = mock.Mock()
+    mock_stream.close = mock.Mock()
+    mock_upload_url = mock.Mock()
+    mock_upload_url.object_name = 'Sample'
+    def DelegateUpload():
+      return 'a', 'b'
+    elapsed_time, uploaded_object = _DelegateUploadFileToObject(
+        DelegateUpload, mock_upload_url, mock_stream, True, False, False, None)
+    # Ensure results are passed through.
+    self.assertEqual(elapsed_time, 'a')
+    self.assertEqual(uploaded_object, 'b')
+    # Ensure the file was unlinked.
+    self.assertTrue(mock_unlink.called)
+    # Ensure close was called.
+    self.assertTrue(mock_stream.close.called)
+
+  @mock.patch('gslib.command.concurrent_compressed_upload_lock')
+  def testDelegateUploadFileToObjectGzipEncoded(self, mock_lock):
+    mock_stream = mock.Mock()
+    mock_stream.close = mock.Mock()
+    def DelegateUpload():
+      # Ensure the lock was aquired before the delegate was called.
+      self.assertTrue(mock_lock.__enter__.called)
+      return 'a', 'b'
+    elapsed_time, uploaded_object = _DelegateUploadFileToObject(
+        DelegateUpload, 'url', mock_stream, False, True, False, None)
+    # Ensure results are passed through.
+    self.assertEqual(elapsed_time, 'a')
+    self.assertEqual(uploaded_object, 'b')
+    # Ensure close was called.
+    self.assertTrue(mock_stream.close.called)
+    # Ensure the lock was released.
+    self.assertTrue(mock_lock.__exit__.called)
+
+  @mock.patch('gslib.command.concurrent_compressed_upload_lock')
+  def testDelegateUploadFileToObjectGzipEncodedComposite(self, mock_lock):
+    mock_stream = mock.Mock()
+    mock_stream.close = mock.Mock()
+    def DelegateUpload():
+      # Ensure the lock was not aquired before the delegate was called.
+      self.assertFalse(mock_lock.__enter__.called)
+      return 'a', 'b'
+    elapsed_time, uploaded_object = _DelegateUploadFileToObject(
+        DelegateUpload, 'url', mock_stream, False, True, True, None)
+    # Ensure results are passed through.
+    self.assertEqual(elapsed_time, 'a')
+    self.assertEqual(uploaded_object, 'b')
+    # Ensure close was called.
+    self.assertTrue(mock_stream.close.called)
+    # Ensure the lock was released.
+    self.assertFalse(mock_lock.__exit__.called)

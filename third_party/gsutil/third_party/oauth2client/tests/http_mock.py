@@ -12,31 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Copy of googleapiclient.http's mock functionality."""
+"""HTTP helpers mock functionality."""
 
-import httplib2
 
-# TODO(craigcitro): Find a cleaner way to share this code with googleapiclient.
+from six.moves import http_client
+
+
+class ResponseMock(dict):
+    """Mock HTTP response"""
+
+    def __init__(self, vals=None):
+        if vals is None:
+            vals = {}
+        self.update(vals)
+        self.status = int(self.get('status', http_client.OK))
 
 
 class HttpMock(object):
-    """Mock of httplib2.Http"""
+    """Mock of HTTP object."""
 
-    def __init__(self, headers=None):
+    def __init__(self, headers=None, data=None):
         """HttpMock constructor.
 
         Args:
             headers: dict, header to return with response
         """
         if headers is None:
-            headers = {'status': '200'}
-        self.data = None
+            headers = {'status': http_client.OK}
+        self.data = data
         self.response_headers = headers
         self.headers = None
         self.uri = None
         self.method = None
         self.body = None
         self.headers = None
+        self.requests = 0
 
     def request(self, uri,
                 method='GET',
@@ -48,22 +58,24 @@ class HttpMock(object):
         self.method = method
         self.body = body
         self.headers = headers
-        return httplib2.Response(self.response_headers), self.data
+        self.redirections = redirections
+        self.requests += 1
+        return ResponseMock(self.response_headers), self.data
 
 
 class HttpMockSequence(object):
-    """Mock of httplib2.Http
+    """Mock of HTTP object with multiple return values.
 
     Mocks a sequence of calls to request returning different responses for each
     call. Create an instance initialized with the desired response headers
-    and content and then use as if an httplib2.Http instance::
+    and content and then use as if an HttpMock instance::
 
         http = HttpMockSequence([
             ({'status': '401'}, b''),
             ({'status': '200'}, b'{"access_token":"1/3w","expires_in":3600}'),
             ({'status': '200'}, 'echo_request_headers'),
         ])
-        resp, content = http.request("http://examples.com")
+        resp, content = http.request('http://examples.com')
 
     There are special values you can pass in for content to trigger
     behavours that are helpful in testing.
@@ -80,7 +92,6 @@ class HttpMockSequence(object):
             iterable: iterable, a sequence of pairs of (headers, body)
         """
         self._iterable = iterable
-        self.follow_redirects = True
         self.requests = []
 
     def request(self, uri,
@@ -90,7 +101,12 @@ class HttpMockSequence(object):
                 redirections=1,
                 connection_type=None):
         resp, content = self._iterable.pop(0)
-        self.requests.append({'uri': uri, 'body': body, 'headers': headers})
+        self.requests.append({
+            'method': method,
+            'uri': uri,
+            'body': body,
+            'headers': headers,
+        })
         # Read any underlying stream before sending the request.
         body_stream_content = (body.read()
                                if getattr(body, 'read', None) else None)
@@ -99,7 +115,7 @@ class HttpMockSequence(object):
         elif content == 'echo_request_body':
             content = (body
                        if body_stream_content is None else body_stream_content)
-        return httplib2.Response(resp), content
+        return ResponseMock(resp), content
 
 
 class CacheMock(object):

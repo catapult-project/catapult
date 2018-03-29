@@ -1,10 +1,10 @@
 Name: gsutil
 Short Name: gsutil
 URL: https://cloud.google.com/storage/docs/gsutil
-Version: 4.28
-Date: 2015-10-01
+Version: 4.30
+Date: 2018-03-28
 License: Apache 2.0
-License File: no
+License File: LICENSE
 Security Critical: no
 
 Description:
@@ -19,8 +19,3 @@ management tasks, including:
 
 Local Modifications:
 _ Added this file.
-_ Edited third_party/oauth2client/oauth2client/contrib/multistore_file.py
-  to have non-zero timeout to workaround a broken lock file issue. This
-  is already fixed upstream, but they haven't done a new release version
-  yet. This local modification can be removed as soon as this library is
-  updated past 4.28.

@@ -19,10 +19,9 @@ an OAuth 2.0 protected service.
 """
 
 import json
+
 import six
 
-
-__author__ = 'jcgregorio@google.com (Joe Gregorio)'
 
 # Properties that make a client_secrets.json file valid.
 TYPE_WEB = 'web'
@@ -93,17 +92,17 @@ def _validate_clientsecrets(clientsecrets_dict):
 
     if client_type not in VALID_CLIENT:
         raise InvalidClientSecretsError(
-            'Unknown client type: %s.' % (client_type,))
+            'Unknown client type: {0}.'.format(client_type))
 
     for prop_name in VALID_CLIENT[client_type]['required']:
         if prop_name not in client_info:
             raise InvalidClientSecretsError(
-                'Missing property "%s" in a client type of "%s".' %
-                (prop_name, client_type))
+                'Missing property "{0}" in a client type of "{1}".'.format(
+                    prop_name, client_type))
     for prop_name in VALID_CLIENT[client_type]['string']:
         if client_info[prop_name].startswith('[['):
             raise InvalidClientSecretsError(
-                'Property "%s" is not configured.' % prop_name)
+                'Property "{0}" is not configured.'.format(prop_name))
     return client_type, client_info
 
 

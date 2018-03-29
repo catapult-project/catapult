@@ -175,7 +175,8 @@ class CloudApiDelegator(CloudApi):
     if using_gs_hmac and configured_encryption:
       raise CommandException(
           'gsutil does not support HMAC credentials with customer-supplied '
-          'encryption keys. Please generate and include non-HMAC credentials '
+          'encryption keys (CSEK) or customer-managed KMS encryption keys '
+          '(CMEK). Please generate and include non-HMAC credentials '
           'in your .boto configuration file, or to access public encrypted '
           'objects, remove your HMAC credentials.')
     # If we have only HMAC credentials for Google Cloud Storage, we must use
@@ -187,7 +188,7 @@ class CloudApiDelegator(CloudApi):
     # every HTTP call.
     elif using_gs_hmac:
       api = ApiSelector.XML
-    # Customer-supplied encryption keys are currently only supported in the
+    # CSEK and CMEK encryption keys are currently only supported in the
     # JSON API implementation (GcsJsonApi). We can't stop XML API users from
     # interacting with encrypted objects, since we don't know the object is
     # encrypted until after the API call is made, but if they specify
@@ -277,32 +278,36 @@ class CloudApiDelegator(CloudApi):
 
   def UploadObject(self, upload_stream, object_metadata, size=None,
                    canned_acl=None, preconditions=None, progress_callback=None,
-                   encryption_tuple=None, provider=None, fields=None):
+                   encryption_tuple=None, provider=None, fields=None,
+                   gzip_encoded=False):
     return self._GetApi(provider).UploadObject(
         upload_stream, object_metadata, size=size, canned_acl=canned_acl,
         preconditions=preconditions, progress_callback=progress_callback,
-        encryption_tuple=encryption_tuple, fields=fields)
+        encryption_tuple=encryption_tuple, fields=fields,
+        gzip_encoded=gzip_encoded)
 
   def UploadObjectStreaming(self, upload_stream, object_metadata,
                             canned_acl=None, preconditions=None,
                             progress_callback=None, encryption_tuple=None,
-                            provider=None, fields=None):
+                            provider=None, fields=None, gzip_encoded=False):
     return self._GetApi(provider).UploadObjectStreaming(
         upload_stream, object_metadata, canned_acl=canned_acl,
         preconditions=preconditions, progress_callback=progress_callback,
-        encryption_tuple=encryption_tuple, fields=fields)
+        encryption_tuple=encryption_tuple, fields=fields,
+        gzip_encoded=gzip_encoded)
 
   def UploadObjectResumable(
       self, upload_stream, object_metadata, canned_acl=None, preconditions=None,
       size=None, serialization_data=None, tracker_callback=None,
       progress_callback=None, encryption_tuple=None, provider=None,
-      fields=None):
+      fields=None, gzip_encoded=False):
     return self._GetApi(provider).UploadObjectResumable(
         upload_stream, object_metadata, canned_acl=canned_acl,
         preconditions=preconditions, size=size,
         serialization_data=serialization_data,
         tracker_callback=tracker_callback, progress_callback=progress_callback,
-        encryption_tuple=encryption_tuple, fields=fields)
+        encryption_tuple=encryption_tuple, fields=fields,
+        gzip_encoded=gzip_encoded)
 
   def CopyObject(self, src_obj_metadata, dst_obj_metadata, src_generation=None,
                  canned_acl=None, preconditions=None, progress_callback=None,

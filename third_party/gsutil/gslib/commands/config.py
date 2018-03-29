@@ -102,10 +102,13 @@ _DETAILED_HELP_TEXT = ("""
   option. Service accounts are useful for authenticating on behalf of a service
   or application (as opposed to a user).
 
-  When you run gsutil config -e, you will be prompted for your service account
-  email address and the path to your private key file. To get this data,
-  follow the instructions on
-  `Service Accounts <https://cloud.google.com/storage/docs/authentication#generating-a-private-key>`_.
+  When you run gsutil config -e, you will be prompted for the path to your
+  private key file and, if not using a JSON key file, your service account
+  email address and key file password. To get this data, follow the instructions
+  on `Service Accounts <https://cloud.google.com/storage/docs/authentication#generating-a-private-key>`_.
+  Using this information, gsutil populates the "gs_service_key_file" attribute,
+  along with "gs_service_client_id" and "gs_service_key_file_password" if not
+  using a JSON key file.
 
   Note that your service account will NOT be considered an Owner for the
   purposes of API access (see "gsutil help creds" for more information about
@@ -170,6 +173,9 @@ _DETAILED_HELP_TEXT = ("""
       gs_oauth2_refresh_token
       gs_port
       gs_secret_access_key
+      gs_service_client_id
+      gs_service_key_file
+      gs_service_key_file_password
       s3_host
       s3_port
 
@@ -197,6 +203,7 @@ _DETAILED_HELP_TEXT = ("""
       disable_analytics_prompt
       encryption_key
       json_api_version
+      max_upload_compression_buffer_size
       parallel_composite_upload_component_size
       parallel_composite_upload_threshold
       sliced_object_download_component_size
@@ -322,6 +329,12 @@ DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE = '50M'
 DEFAULT_SLICED_OBJECT_DOWNLOAD_THRESHOLD = '150M'
 DEFAULT_SLICED_OBJECT_DOWNLOAD_COMPONENT_SIZE = '200M'
 DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS = 4
+
+# Compressed transport encoded uploads buffer chunks of compressed data. When
+# running many uploads in parallel, compression may consume more memory than
+# available. This restricts the number of compressed transport encoded uploads
+# running in parallel such that they don't consume more memory than set here.
+DEFAULT_MAX_UPLOAD_COMPRESSION_BUFFER_SIZE = '2G'
 
 CONFIG_BOTO_SECTION_CONTENT = """
 [Boto]
@@ -471,18 +484,32 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # Note: Parallel composite uploads should not be used with NEARLINE or COLDLINE
 # storage class buckets, as doing this incurs an early deletion charge for
 # each component object.
+#
+# Note: Parallel composite uploads are not enabled with Cloud KMS encrypted
+# objects as a source or destination, as composition with KMS objects is not yet
+# supported.
+
 #parallel_composite_upload_threshold = %(parallel_composite_upload_threshold)s
 #parallel_composite_upload_component_size = %(parallel_composite_upload_component_size)s
 
 # 'sliced_object_download_threshold' and
 # 'sliced_object_download_component_size' have analogous functionality to
 # their respective parallel_composite_upload config values.
-# 'sliced_object_download_max_components' specifies the maximum number of 
+# 'sliced_object_download_max_components' specifies the maximum number of
 # slices to be used when performing a sliced object download. It is not
 # restricted by MAX_COMPONENT_COUNT.
 #sliced_object_download_threshold = %(sliced_object_download_threshold)s
 #sliced_object_download_component_size = %(sliced_object_download_component_size)s
 #sliced_object_download_max_components = %(sliced_object_download_max_components)s
+
+# Compressed transport encoded uploads buffer chunks of compressed data. When
+# running a composite upload and/or many uploads in parallel, compression may
+# consume more memory than available. This setting restricts the number of
+# compressed transport encoded uploads running in parallel such that they
+# don't consume more memory than set here. This is 2GiB by default.
+# Values can be provided either in bytes or as human-readable values
+# (e.g., "2G" to represent 2 gibibytes)
+#max_upload_compression_buffer_size = %(max_upload_compression_buffer_size)s
 
 # 'task_estimation_threshold' controls how many files or objects gsutil
 # processes before it attempts to estimate the total work that will be
@@ -492,8 +519,8 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # listing calls; to disable it entirely, set this value to 0.
 #task_estimation_threshold=%(task_estimation_threshold)s
 
-# 'use_magicfile' specifies if the 'file --mime-type <filename>' command should
-# be used to guess content types instead of the default filename extension-based
+# 'use_magicfile' specifies if the 'file --mime <filename>' command should be
+# used to guess content types instead of the default filename extension-based
 # mechanism. Available on UNIX and MacOS (and possibly on Windows, if you're
 # running Cygwin or some other package that provides implementations of
 # UNIX-like commands). When available and enabled use_magicfile should be more
@@ -579,7 +606,9 @@ content_language = en
        'sliced_object_download_max_components': (
            DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS),
        'max_component_count': MAX_COMPONENT_COUNT,
-       'task_estimation_threshold': DEFAULT_TASK_ESTIMATION_THRESHOLD}
+       'task_estimation_threshold': DEFAULT_TASK_ESTIMATION_THRESHOLD,
+       'max_upload_compression_buffer_size': (
+           DEFAULT_MAX_UPLOAD_COMPRESSION_BUFFER_SIZE)}
 
 CONFIG_OAUTH2_CONFIG_CONTENT = """
 [OAuth2]

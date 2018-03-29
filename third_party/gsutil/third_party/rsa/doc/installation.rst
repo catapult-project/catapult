@@ -1,5 +1,5 @@
 Installation
-==================================================
+============
 
 Installation can be done in various ways. The simplest form uses pip
 or easy_install. Either one will work::
@@ -20,16 +20,15 @@ or if that doesn't work::
     sudo python setup.py install
 
 
-The sources are tracked in our `Mercurial repository`_ at
-bitbucket.org. It also hosts the `issue tracker`_.
+The sources are tracked in our `Git repository`_ at
+Github. It also hosts the `issue tracker`_.
 
-.. _`Mercurial repository`: https://bitbucket.org/sybren/python-rsa
-.. _`issue tracker`:
-    https://bitbucket.org/sybren/python-rsa/issues?status=new&status=open
+.. _`Git repository`: https://github.com/sybrenstuvel/python-rsa.git
+.. _`issue tracker`: https://github.com/sybrenstuvel/python-rsa/issues
 
 
 Dependencies
---------------------------------------------------
+------------
 
 Python-RSA has very few dependencies. As a matter of fact, to use it
 you only need Python itself. Loading and saving keys does require an
@@ -38,25 +37,19 @@ described above, you should be ready to go.
 
 
 Development dependencies
---------------------------------------------------
+------------------------
 
 In order to start developing on Python-RSA you need a bit more. Use
-pip to install the development requirements in a virtual environment
-for Python 2.x::
+pip to install the development requirements in a virtual environment::
 
-    virtualenv python-rsa-venv-py2x
-    . python-rsa-venv-py2x/bin/activate
-    pip install -r python-rsa/requirements-dev-py2x.txt
+    virtualenv -p /path/to/your-python-version python-rsa-venv
+    . python-rsa-venv/bin/activate
+    pip install -r python-rsa/requirements.txt
 
-or Python 3.x::
 
-    virtualenv python-rsa-venv-py3x
-    . python-rsa-venv-py3x/bin/activate
-    pip install -r python-rsa/requirements-dev-py3x.txt
+Once these are installed, use Git_ to get a copy of the source::
 
-Once these are installed, use Mercurial_ to get a copy of the source::
-
-    hg clone https://bitbucket.org/sybren/python-rsa
+    hg clone https://github.com/sybrenstuvel/python-rsa.git
     python setup.py develop
 
-.. _Mercurial: http://hg-scm.com/
+.. _Git: https://git-scm.com/

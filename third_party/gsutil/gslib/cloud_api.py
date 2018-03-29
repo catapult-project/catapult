@@ -343,6 +343,8 @@ class CloudApi(object):
     ONE_SHOT = 'oneshot'
     RESUMABLE = 'resumable'
 
+  # TODO: Change {de,en}cryption_tuple field names, as they don't actually
+  # accept tuples.
   def GetObjectMedia(self, bucket_name, object_name, download_stream,
                      provider=None, generation=None, object_size=None,
                      compressed_encoding=False,
@@ -377,8 +379,8 @@ class CloudApi(object):
                  update(bytes) and digest() using that algorithm.
                  Implementation can set the digester value to None to indicate
                  bytes were not successfully digested on-the-fly.
-      decryption_tuple: Optional CryptoTuple for decrypting an encrypted
-          object.
+      decryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        decrypting an encrypted object.
 
     Raises:
       ArgumentException for errors during input validation.
@@ -392,7 +394,8 @@ class CloudApi(object):
 
   def UploadObject(self, upload_stream, object_metadata, canned_acl=None,
                    size=None, preconditions=None, progress_callback=None,
-                   encryption_tuple=None, provider=None, fields=None):
+                   encryption_tuple=None, provider=None, fields=None,
+                   gzip_encoded=False):
     """Uploads object data and metadata.
 
     Args:
@@ -406,11 +409,12 @@ class CloudApi(object):
       progress_callback: Optional callback function for progress notifications.
                          Receives calls with arguments
                          (bytes_transferred, total_size).
-      encryption_tuple: Optional CryptoTuple for encrypting the uploaded
-          object.
+      encryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        encrypting the uploaded object.
       provider: Cloud storage provider to connect to.  If not present,
                 class-wide default is used.
       fields: If present, return only these Object metadata fields.
+      gzip_encoded: Whether to use gzip transport encoding for the upload.
 
     Raises:
       ArgumentException for errors during input validation.
@@ -424,7 +428,7 @@ class CloudApi(object):
   def UploadObjectStreaming(self, upload_stream, object_metadata,
                             canned_acl=None, preconditions=None,
                             progress_callback=None, encryption_tuple=None,
-                            provider=None, fields=None):
+                            provider=None, fields=None, gzip_encoded=False):
     """Uploads object data and metadata.
 
     Args:
@@ -438,11 +442,12 @@ class CloudApi(object):
                          Receives calls with arguments
                          (bytes_transferred, total_size), but fills in only
                          bytes_transferred.
-      encryption_tuple: Optional CryptoTuple for encrypting the uploaded
-          object.
+      encryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        encrypting the uploaded object.
       provider: Cloud storage provider to connect to.  If not present,
                 class-wide default is used.
       fields: If present, return only these Object metadata fields.
+      gzip_encoded: Whether to use gzip transport encoding for the upload.
 
     Raises:
       ArgumentException for errors during input validation.
@@ -457,7 +462,7 @@ class CloudApi(object):
       self, upload_stream, object_metadata, canned_acl=None,
       size=None, preconditions=None, serialization_data=None,
       tracker_callback=None, progress_callback=None, encryption_tuple=None,
-      provider=None, fields=None):
+      provider=None, fields=None, gzip_encoded=False):
     """Uploads object data and metadata using a resumable upload strategy.
 
     Args:
@@ -478,12 +483,13 @@ class CloudApi(object):
       progress_callback: Optional callback function for progress notifications.
                          Receives calls with arguments
                          (bytes_transferred, total_size).
-      encryption_tuple: Optional CryptoTuple for encrypting the uploaded
-          object.
+      encryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        encrypting the uploaded object.
       provider: Cloud storage provider to connect to.  If not present,
                 class-wide default is used.
       fields: If present, return only these Object metadata fields when the
               upload is complete.
+      gzip_encoded: Whether to use gzip transport encoding for the upload.
 
     Raises:
       ArgumentException for errors during input validation.
@@ -494,6 +500,8 @@ class CloudApi(object):
     """
     raise NotImplementedError('UploadObjectResumable must be overloaded')
 
+  # TODO: Change {de,en}cryption_tuple field names, as they don't actually
+  # accept tuples.
   def CopyObject(self, src_obj_metadata, dst_obj_metadata, src_generation=None,
                  canned_acl=None, preconditions=None, progress_callback=None,
                  max_bytes_per_call=None, encryption_tuple=None,
@@ -514,11 +522,12 @@ class CloudApi(object):
                          (bytes_transferred, total_size).
       max_bytes_per_call: Integer describing maximum number of bytes
                           to rewrite per service call.
-      encryption_tuple: Optional CryptoTuple for encrypting the destination
-          object.
-      decryption_tuple: Optional CryptoTuple for decrypting the source
-          object. If supplied without encryption_tuple, destination object will
-          be written without customer-supplied encryption.
+      encryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        encrypting the destination object.
+      decryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        decrypting the source object. If supplied without
+                        encryption_tuple, destination object will be written
+                        without customer-supplied encryption.
       provider: Cloud storage provider to connect to.  If not present,
                 class-wide default is used.
       fields: If present, return only these Object metadata fields.
@@ -543,8 +552,9 @@ class CloudApi(object):
       dst_obj_metadata: Metadata for the destination object including bucket
                         and object name.
       preconditions: Destination object preconditions for the request.
-      encryption_tuple: Optional CryptoTuple for decrypting source objects
-          and encrypting the destination object.
+      encryption_tuple: Optional encryption_helper.CryptoKeyWrapper for
+                        decrypting source objects and encrypting the destination
+                        object.
       provider: Cloud storage provider to connect to.  If not present,
                 class-wide default is used.
       fields: If present, return only these Object metadata fields.
@@ -707,19 +717,6 @@ class CloudApi(object):
       List of notification objects.
     """
     raise NotImplementedError('ListNotificationConfig must be overloaded')
-
-
-class CryptoTuple(object):
-  """Class describing an encryption/decryption key for cloud API requests."""
-
-  def __init__(self, crypto_key):
-    """Initialize the CryptoTuple.
-
-    Args:
-      crypto_key: Base64-encoded string of encryption key.
-    """
-    self.crypto_key = crypto_key
-    self.crypto_alg = 'AES256'  # Only currently supported encryption algorithm.
 
 
 class Preconditions(object):

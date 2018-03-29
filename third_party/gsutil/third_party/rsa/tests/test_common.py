@@ -1,13 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+#  Copyright 2011 Sybren A. Stüvel <sybren@stuvel.eu>
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
-import unittest2
+import unittest
 import struct
 from rsa._compat import byte, b
 from rsa.common import byte_size, bit_size, _bit_size
 
 
-class Test_byte(unittest2.TestCase):
+class TestByte(unittest.TestCase):
     def test_values(self):
         self.assertEqual(byte(0), b('\x00'))
         self.assertEqual(byte(255), b('\xff'))
@@ -16,7 +30,8 @@ class Test_byte(unittest2.TestCase):
         self.assertRaises(struct.error, byte, 256)
         self.assertRaises(struct.error, byte, -1)
 
-class Test_byte_size(unittest2.TestCase):
+
+class TestByteSize(unittest.TestCase):
     def test_values(self):
         self.assertEqual(byte_size(1 << 1023), 128)
         self.assertEqual(byte_size((1 << 1024) - 1), 128)
@@ -41,7 +56,8 @@ class Test_byte_size(unittest2.TestCase):
         self.assertRaises(TypeError, byte_size, "")
         self.assertRaises(TypeError, byte_size, None)
 
-class Test_bit_size(unittest2.TestCase):
+
+class TestBitSize(unittest.TestCase):
     def test_zero(self):
         self.assertEqual(bit_size(0), 0)
 

@@ -95,7 +95,7 @@ _DETAILED_HELP_TEXT = ("""
   -c class          Specifies the default storage class. Default is "Standard".
 
   -l location       Can be any multi-regional or regional location. See
-                    https://cloud.google.com/storage/docs/storage-classes
+                    https://cloud.google.com/storage/docs/bucket-locations
                     for a discussion of this distinction. Default is US.
                     Locations are case insensitive.
 

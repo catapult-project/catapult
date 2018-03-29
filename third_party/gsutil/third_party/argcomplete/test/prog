@@ -25,6 +25,10 @@ def print_output(*args, **kwargs):
     return ['foo']
 
 
+def get_comp_point(*args, **kwargs):
+    return [os.environ['COMP_POINT']]
+
+
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 subparsers.add_parser('basic').add_argument('arg', choices=['foo', 'bar', 'baz'])
@@ -35,8 +39,17 @@ subparsers.add_parser('quote').add_argument('arg', choices=["1'1", '2"2'])
 subparsers.add_parser('break').add_argument('arg', choices=['a:b:c', 'a:b:d'])
 subparsers.add_parser('env').add_argument('arg').completer = check_environ
 subparsers.add_parser('debug').add_argument('arg').completer = print_output
+subparsers.add_parser('point', add_help=False).add_argument('arg', nargs='*').completer = get_comp_point
 
 
-argcomplete.autocomplete(parser)
+if 'POINT' in os.environ:
+    argcomplete.autocomplete(parser, validator=lambda x, y: True)
+else:
+    argcomplete.autocomplete(parser)
+
 args = parser.parse_args()
-print(args.arg)
+
+if 'POINT' in os.environ:
+    print(args.arg[-1])
+else:
+    print(args.arg)

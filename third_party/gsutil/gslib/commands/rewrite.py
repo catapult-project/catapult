@@ -20,14 +20,16 @@ import sys
 import time
 
 from apitools.base.py import encoding
+from boto import config
 
 from gslib.cloud_api import EncryptionException
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
-from gslib.encryption_helper import CryptoTupleFromKey
-from gslib.encryption_helper import FindMatchingCryptoKey
-from gslib.encryption_helper import GetEncryptionTupleAndSha256Hash
+from gslib.encryption_helper import CryptoKeyType
+from gslib.encryption_helper import CryptoKeyWrapperFromKey
+from gslib.encryption_helper import GetEncryptionKeyWrapper
+from gslib.encryption_helper import MAX_DECRYPTION_KEYS
 from gslib.exception import CommandException
 from gslib.name_expansion import NameExpansionIterator
 from gslib.name_expansion import SeekAheadNameExpansionIterator
@@ -67,7 +69,8 @@ _DETAILED_HELP_TEXT = ("""
     gsutil rewrite -k gs://bucket/**
 
   will update all objects in gs://bucket with the current encryption key
-  from your boto config file.
+  from your boto config file, which may either be a base64-encoded CSEK or the
+  fully-qualified name of a Cloud KMS key.
 
   You can also use the -r option to specify recursive object transform; this is
   synonymous with the ** wildcard. Thus, either of the following two commands
@@ -125,30 +128,34 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>OPTIONS</B>
-  -f          Continues silently (without printing error messages) despite
-              errors when rewriting multiple objects. If some of the objects
-              could not be rewritten, gsutil's exit status will be non-zero
-              even if this flag is set. This option is implicitly set when
-              running "gsutil -m rewrite ...".
+  -f            Continues silently (without printing error messages) despite
+                errors when rewriting multiple objects. If some of the objects
+                could not be rewritten, gsutil's exit status will be non-zero
+                even if this flag is set. This option is implicitly set when
+                running "gsutil -m rewrite ...".
 
-  -I          Causes gsutil to read the list of objects to rewrite from stdin.
-              This allows you to run a program that generates the list of
-              objects to rewrite.
+  -I            Causes gsutil to read the list of objects to rewrite from stdin.
+                This allows you to run a program that generates the list of
+                objects to rewrite.
 
-  -k          Rewrite the objects to the current encryption key specific in
-              your boto configuration file. If encryption_key is specified,
-              encrypt all objects with this key. If encryption_key is
-              unspecified, decrypt all objects. See `gsutil help encryption`
-              for details on encryption configuration.
+  -k            Rewrite objects with the current encryption key specified in
+                your boto configuration file. The value for encryption_key may
+                be either a base64-encoded CSEK or a fully-qualified KMS key
+                name. If encryption_key is specified, encrypt all objects with
+                this key. If encryption_key is unspecified, this will decrypt
+                all objects (except when the destination bucket has a default
+                KMS key set, in which case that will be used to encrypt the
+                objects). See `gsutil help encryption` for details on encryption
+                configuration.
 
-  -O          Rewrite objects with the bucket's default object ACL instead of
-              the existing object ACL. This is needed if you do not have
-              OWNER permission on the object.
+  -O            Rewrite objects with the bucket's default object ACL instead of
+                the existing object ACL. This is needed if you do not have
+                OWNER permission on the object.
 
-  -R, -r      The -R and -r options are synonymous. Causes bucket or bucket
-              subdirectory contents to be rewritten recursively.
+  -R, -r        The -R and -r options are synonymous. Causes bucket or bucket
+                subdirectory contents to be rewritten recursively.
 
-  -s <class>  Rewrite objects using the specified storage class.
+  -s <class>    Rewrite objects using the specified storage class.
 """)
 
 
@@ -216,6 +223,7 @@ class RewriteCommand(Command):
   def RunCommand(self):
     """Command entry point for the rewrite command."""
     self.continue_on_error = self.parallel_operations
+    self.csek_hash_to_keywrapper = {}
     self.dest_storage_class = None
     self.no_preserve_acl = False
     self.read_args_from_stdin = False
@@ -223,8 +231,10 @@ class RewriteCommand(Command):
     self.transform_types = set()
 
     self.op_failure_count = 0
-    self.boto_file_encryption_tuple, self.boto_file_encryption_sha256 = (
-        GetEncryptionTupleAndSha256Hash())
+    self.boto_file_encryption_keywrapper = GetEncryptionKeyWrapper(config)
+    self.boto_file_encryption_sha256 = (
+        self.boto_file_encryption_keywrapper.crypto_key_sha256
+        if self.boto_file_encryption_keywrapper else None)
 
     if self.sub_opts:
       for o, a in self.sub_opts:
@@ -288,6 +298,23 @@ class RewriteCommand(Command):
           seek_ahead_url_strs, self.recursion_requested,
           all_versions=self.all_versions, project_id=self.project_id)
 
+    # Rather than have each worker repeatedly calculate the sha256 hash for each
+    # decryption_key in the boto config, do this once now and cache the results.
+    for i in range(0, MAX_DECRYPTION_KEYS):
+      key_number = i + 1
+      keywrapper = CryptoKeyWrapperFromKey(
+          config.get('GSUtil', 'decryption_key%s' % str(key_number), None))
+      if keywrapper is None:
+        # Stop at first attribute absence in lexicographical iteration.
+        break
+      if keywrapper.crypto_type == CryptoKeyType.CSEK:
+        self.csek_hash_to_keywrapper[keywrapper.crypto_key_sha256] = keywrapper
+    # Also include the encryption_key, since it should be used to decrypt and
+    # then encrypt if the object's CSEK should remain the same.
+    if self.boto_file_encryption_sha256 is not None:
+      self.csek_hash_to_keywrapper[self.boto_file_encryption_sha256] = (
+          self.boto_file_encryption_keywrapper)
+
     # Perform rewrite requests in parallel (-m) mode, if requested.
     self.Apply(_RewriteFuncWrapper, name_expansion_iterator,
                _RewriteExceptionHandler,
@@ -305,11 +332,6 @@ class RewriteCommand(Command):
   def RewriteFunc(self, name_expansion_result, thread_state=None):
     gsutil_api = GetCloudApiInstance(self, thread_state=thread_state)
     transform_url = name_expansion_result.expanded_storage_url
-    # Make a local copy of the requested transformations for each thread. As
-    # a redundant transformation for one object might not be redundant for
-    # another, we wouldn't want to remove it from the transform_types set that
-    # all threads share.
-    transforms_to_perform = set(self.transform_types)
 
     self.CheckProvider(transform_url)
 
@@ -332,19 +354,40 @@ class RewriteCommand(Command):
     # encryption key configuration matches the boto configuration, because
     # gsutil maintains an invariant that all objects it writes use the
     # encryption_key value (including decrypting if no key is present).
+
+    # Store metadata about src encryption to make logic below easier to read.
+    src_encryption_kms_key = (
+        src_metadata.kmsKeyName if src_metadata.kmsKeyName else None)
+
     src_encryption_sha256 = None
     if (src_metadata.customerEncryption and
         src_metadata.customerEncryption.keySha256):
       src_encryption_sha256 = src_metadata.customerEncryption.keySha256
 
-    should_encrypt_target = self.boto_file_encryption_sha256 is not None
-    source_was_encrypted = src_encryption_sha256 is not None
-    using_same_encryption_key_value = (
-        src_encryption_sha256 == self.boto_file_encryption_sha256)
+    src_was_encrypted = (src_encryption_sha256 is not None or
+                         src_encryption_kms_key is not None)
+
+    # Also store metadata about dest encryption.
+    dest_encryption_kms_key = None
+    if (self.boto_file_encryption_keywrapper is not None and
+        self.boto_file_encryption_keywrapper.crypto_type == CryptoKeyType.CMEK):
+      dest_encryption_kms_key = self.boto_file_encryption_keywrapper.crypto_key
+
+    dest_encryption_sha256 = None
+    if (self.boto_file_encryption_keywrapper is not None and
+        self.boto_file_encryption_keywrapper.crypto_type == CryptoKeyType.CSEK):
+      dest_encryption_sha256 = (
+          self.boto_file_encryption_keywrapper.crypto_key_sha256)
+
+    should_encrypt_dest = self.boto_file_encryption_keywrapper is not None
+
+    encryption_unchanged = (
+        src_encryption_sha256 == dest_encryption_sha256 and
+        src_encryption_kms_key == dest_encryption_kms_key)
 
     # Prevent accidental key rotation.
-    if (_TransformTypes.CRYPTO_KEY not in transforms_to_perform and
-        not using_same_encryption_key_value):
+    if (_TransformTypes.CRYPTO_KEY not in self.transform_types and
+        not encryption_unchanged):
       raise EncryptionException(
           'The "-k" flag was not passed to the rewrite command, but the '
           'encryption_key value in your boto config file did not match the key '
@@ -352,66 +395,76 @@ class RewriteCommand(Command):
           'using a different key, you must specify the "-k" flag.' %
           (transform_url, src_encryption_sha256))
 
-    # Remove any redundant changes.
+    # Determine if we can skip this rewrite operation (this should only be done
+    # when ALL of the specified transformations are redundant).
+    redundant_transforms = []
 
-    # STORAGE_CLASS transform should be skipped if the target storage class
-    # matches the existing storage class.
-    if (_TransformTypes.STORAGE_CLASS in transforms_to_perform and
+    # STORAGE_CLASS transform is redundant if the target storage class matches
+    # the existing storage class.
+    if (_TransformTypes.STORAGE_CLASS in self.transform_types and
         self.dest_storage_class == NormalizeStorageClass(
             src_metadata.storageClass)):
-      transforms_to_perform.remove(_TransformTypes.STORAGE_CLASS)
-      self.logger.info('Redundant transform: %s already had storage class of '
-                       '%s.' % (transform_url, src_metadata.storageClass))
+      redundant_transforms.append('storage class')
 
-    # CRYPTO_KEY transform should be skipped if we're using the same encryption
+    # CRYPTO_KEY transform is redundant if we're using the same encryption
     # key (if any) that was used to encrypt the source.
-    if (_TransformTypes.CRYPTO_KEY in transforms_to_perform and
-        using_same_encryption_key_value):
-      if self.boto_file_encryption_sha256 is None:
-        log_msg = '%s is already decrypted.' % transform_url
-      else:
-        log_msg = '%s already has current encryption key.' % transform_url
-      transforms_to_perform.remove(_TransformTypes.CRYPTO_KEY)
-      self.logger.info('Redundant transform: %s' % log_msg)
+    if (_TransformTypes.CRYPTO_KEY in self.transform_types and
+        encryption_unchanged):
+      redundant_transforms.append('encryption key')
 
-    if not transforms_to_perform:
-      self.logger.info(
-          'Skipping %s, all transformations were redundant.' % transform_url)
+    if len(redundant_transforms) == len(self.transform_types):
+      self.logger.info('Skipping %s, all transformations were redundant: %s' %
+                       (transform_url, redundant_transforms))
       return
 
-    # Make a deep copy of the source metadata.
-    dst_metadata = encoding.PyValueToMessage(
+    # First make a deep copy of the source metadata, then overwrite any
+    # requested attributes (e.g. if a storage class change was specified).
+    dest_metadata = encoding.PyValueToMessage(
         apitools_messages.Object, encoding.MessageToPyValue(src_metadata))
 
     # Remove some unnecessary/invalid fields.
-    dst_metadata.customerEncryption = None
-    dst_metadata.generation = None
+    dest_metadata.generation = None
     # Service has problems if we supply an ID, but it is responsible for
     # generating one, so it is not necessary to include it here.
-    dst_metadata.id = None
-    decryption_tuple = None
-    # Use a generic operation name by default - this can be altered below for
-    # specific transformations (encryption changes, etc.).
-    operation_name = 'Rewriting'
+    dest_metadata.id = None
+    # Ensure we don't copy over the KMS key name or CSEK key info from the
+    # source object; those should only come from the boto config's
+    # encryption_key value.
+    dest_metadata.customerEncryption = None
+    dest_metadata.kmsKeyName = None
 
-    if source_was_encrypted:
-      decryption_key = FindMatchingCryptoKey(src_encryption_sha256)
-      if not decryption_key:
+    # Both a storage class change and CMEK encryption should be set as part of
+    # the dest object's metadata. CSEK encryption, if specified, is added to the
+    # request later via headers obtained from the keywrapper value passed to
+    # encryption_tuple.
+    if _TransformTypes.STORAGE_CLASS in self.transform_types:
+      dest_metadata.storageClass = self.dest_storage_class
+    if dest_encryption_kms_key is not None:
+      dest_metadata.kmsKeyName = dest_encryption_kms_key
+
+    # Make sure we have the CSEK key necessary to decrypt.
+    decryption_keywrapper = None
+    if src_encryption_sha256 is not None:
+      if src_encryption_sha256 in self.csek_hash_to_keywrapper:
+        decryption_keywrapper = (
+            self.csek_hash_to_keywrapper[src_encryption_sha256])
+      else:
         raise EncryptionException(
             'Missing decryption key with SHA256 hash %s. No decryption key '
             'matches object %s' % (src_encryption_sha256, transform_url))
-      decryption_tuple = CryptoTupleFromKey(decryption_key)
 
-    if _TransformTypes.CRYPTO_KEY in transforms_to_perform:
-      if not source_was_encrypted:
-        operation_name = 'Encrypting'
-      elif not should_encrypt_target:
+    operation_name = 'Rewriting'
+    if _TransformTypes.CRYPTO_KEY in self.transform_types:
+      if src_was_encrypted and should_encrypt_dest:
+        if not encryption_unchanged:
+          operation_name = 'Rotating'
+        # Else, keep "Rewriting". This might occur when -k was specified and was
+        # redundant, but we're performing the operation anyway because some
+        # other transformation was not redundant.
+      elif src_was_encrypted and not should_encrypt_dest:
         operation_name = 'Decrypting'
-      else:
-        operation_name = 'Rotating'
-
-    if _TransformTypes.STORAGE_CLASS in transforms_to_perform:
-      dst_metadata.storageClass = self.dest_storage_class
+      elif not src_was_encrypted and should_encrypt_dest:
+        operation_name = 'Encrypting'
 
     # TODO: Remove this call (used to verify tests) and make it processed by
     # the UIThread.
@@ -429,10 +482,10 @@ class RewriteCommand(Command):
         operation_name=operation_name).call
 
     gsutil_api.CopyObject(
-        src_metadata, dst_metadata, src_generation=transform_url.generation,
+        src_metadata, dest_metadata, src_generation=transform_url.generation,
         preconditions=self.preconditions, progress_callback=progress_callback,
-        decryption_tuple=decryption_tuple,
-        encryption_tuple=self.boto_file_encryption_tuple,
+        decryption_tuple=decryption_keywrapper,
+        encryption_tuple=self.boto_file_encryption_keywrapper,
         provider=transform_url.scheme, fields=[])
 
     # Message indicating end of operation.

@@ -15,25 +15,24 @@
 """Unit tests for oauth2client._pure_python_crypt."""
 
 import os
+import unittest
 
 import mock
 from pyasn1_modules import pem
 import rsa
 import six
-import unittest2
 
-from oauth2client._helpers import _from_bytes
+from oauth2client import _helpers
 from oauth2client import _pure_python_crypt
-from oauth2client.crypt import RsaSigner
-from oauth2client.crypt import RsaVerifier
+from oauth2client import crypt
 
 
-class TestRsaVerifier(unittest2.TestCase):
+class TestRsaVerifier(unittest.TestCase):
 
     PUBLIC_KEY_FILENAME = os.path.join(os.path.dirname(__file__),
                                        'data', 'privatekey.pub')
     PUBLIC_CERT_FILENAME = os.path.join(os.path.dirname(__file__),
-                                       'data', 'public_cert.pem')
+                                        'data', 'public_cert.pem')
     PRIVATE_KEY_FILENAME = os.path.join(os.path.dirname(__file__),
                                         'data', 'privatekey.pem')
 
@@ -51,25 +50,25 @@ class TestRsaVerifier(unittest2.TestCase):
 
     def test_verify_success(self):
         to_sign = b'foo'
-        signer = RsaSigner.from_string(self._load_private_key_bytes())
+        signer = crypt.RsaSigner.from_string(self._load_private_key_bytes())
         actual_signature = signer.sign(to_sign)
 
-        verifier = RsaVerifier.from_string(self._load_public_key_bytes(),
-                                           is_x509_cert=False)
+        verifier = crypt.RsaVerifier.from_string(
+            self._load_public_key_bytes(), is_x509_cert=False)
         self.assertTrue(verifier.verify(to_sign, actual_signature))
 
     def test_verify_unicode_success(self):
         to_sign = u'foo'
-        signer = RsaSigner.from_string(self._load_private_key_bytes())
+        signer = crypt.RsaSigner.from_string(self._load_private_key_bytes())
         actual_signature = signer.sign(to_sign)
 
-        verifier = RsaVerifier.from_string(self._load_public_key_bytes(),
-                                           is_x509_cert=False)
+        verifier = crypt.RsaVerifier.from_string(
+            self._load_public_key_bytes(), is_x509_cert=False)
         self.assertTrue(verifier.verify(to_sign, actual_signature))
 
     def test_verify_failure(self):
-        verifier = RsaVerifier.from_string(self._load_public_key_bytes(),
-                                           is_x509_cert=False)
+        verifier = crypt.RsaVerifier.from_string(
+            self._load_public_key_bytes(), is_x509_cert=False)
         bad_signature1 = b''
         self.assertFalse(verifier.verify(b'foo', bad_signature1))
         bad_signature2 = b'a'
@@ -77,26 +76,30 @@ class TestRsaVerifier(unittest2.TestCase):
 
     def test_from_string_pub_key(self):
         public_key = self._load_public_key_bytes()
-        verifier = RsaVerifier.from_string(public_key, is_x509_cert=False)
-        self.assertIsInstance(verifier, RsaVerifier)
+        verifier = crypt.RsaVerifier.from_string(
+            public_key, is_x509_cert=False)
+        self.assertIsInstance(verifier, crypt.RsaVerifier)
         self.assertIsInstance(verifier._pubkey, rsa.key.PublicKey)
 
     def test_from_string_pub_key_unicode(self):
-        public_key = _from_bytes(self._load_public_key_bytes())
-        verifier = RsaVerifier.from_string(public_key, is_x509_cert=False)
-        self.assertIsInstance(verifier, RsaVerifier)
+        public_key = _helpers._from_bytes(self._load_public_key_bytes())
+        verifier = crypt.RsaVerifier.from_string(
+            public_key, is_x509_cert=False)
+        self.assertIsInstance(verifier, crypt.RsaVerifier)
         self.assertIsInstance(verifier._pubkey, rsa.key.PublicKey)
 
     def test_from_string_pub_cert(self):
         public_cert = self._load_public_cert_bytes()
-        verifier = RsaVerifier.from_string(public_cert, is_x509_cert=True)
-        self.assertIsInstance(verifier, RsaVerifier)
+        verifier = crypt.RsaVerifier.from_string(
+            public_cert, is_x509_cert=True)
+        self.assertIsInstance(verifier, crypt.RsaVerifier)
         self.assertIsInstance(verifier._pubkey, rsa.key.PublicKey)
 
     def test_from_string_pub_cert_unicode(self):
-        public_cert = _from_bytes(self._load_public_cert_bytes())
-        verifier = RsaVerifier.from_string(public_cert, is_x509_cert=True)
-        self.assertIsInstance(verifier, RsaVerifier)
+        public_cert = _helpers._from_bytes(self._load_public_cert_bytes())
+        verifier = crypt.RsaVerifier.from_string(
+            public_cert, is_x509_cert=True)
+        self.assertIsInstance(verifier, crypt.RsaVerifier)
         self.assertIsInstance(verifier._pubkey, rsa.key.PublicKey)
 
     def test_from_string_pub_cert_failure(self):
@@ -105,11 +108,11 @@ class TestRsaVerifier(unittest2.TestCase):
         with mock.patch('rsa.pem.load_pem',
                         return_value=true_der + b'extra') as load_pem:
             with self.assertRaises(ValueError):
-                RsaVerifier.from_string(cert_bytes, is_x509_cert=True)
+                crypt.RsaVerifier.from_string(cert_bytes, is_x509_cert=True)
             load_pem.assert_called_once_with(cert_bytes, 'CERTIFICATE')
 
 
-class TestRsaSigner(unittest2.TestCase):
+class TestRsaSigner(unittest.TestCase):
 
     PKCS1_KEY_FILENAME = os.path.join(os.path.dirname(__file__),
                                       'data', 'privatekey.pem')
@@ -132,53 +135,49 @@ class TestRsaSigner(unittest2.TestCase):
 
     def test_from_string_pkcs1(self):
         key_bytes = self._load_pkcs1_key_bytes()
-        signer = RsaSigner.from_string(key_bytes)
-        self.assertIsInstance(signer, RsaSigner)
+        signer = crypt.RsaSigner.from_string(key_bytes)
+        self.assertIsInstance(signer, crypt.RsaSigner)
         self.assertIsInstance(signer._key, rsa.key.PrivateKey)
 
     def test_from_string_pkcs1_unicode(self):
-        key_bytes = _from_bytes(self._load_pkcs1_key_bytes())
-        signer = RsaSigner.from_string(key_bytes)
-        self.assertIsInstance(signer, RsaSigner)
+        key_bytes = _helpers._from_bytes(self._load_pkcs1_key_bytes())
+        signer = crypt.RsaSigner.from_string(key_bytes)
+        self.assertIsInstance(signer, crypt.RsaSigner)
         self.assertIsInstance(signer._key, rsa.key.PrivateKey)
 
     def test_from_string_pkcs8(self):
         key_bytes = self._load_pkcs8_key_bytes()
-        signer = RsaSigner.from_string(key_bytes)
-        self.assertIsInstance(signer, RsaSigner)
+        signer = crypt.RsaSigner.from_string(key_bytes)
+        self.assertIsInstance(signer, crypt.RsaSigner)
         self.assertIsInstance(signer._key, rsa.key.PrivateKey)
 
     def test_from_string_pkcs8_extra_bytes(self):
         key_bytes = self._load_pkcs8_key_bytes()
         _, pem_bytes = pem.readPemBlocksFromFile(
-            six.StringIO(_from_bytes(key_bytes)),
+            six.StringIO(_helpers._from_bytes(key_bytes)),
             _pure_python_crypt._PKCS8_MARKER)
 
         with mock.patch('pyasn1.codec.der.decoder.decode') as mock_decode:
             key_info, remaining = None, 'extra'
             mock_decode.return_value = (key_info, remaining)
             with self.assertRaises(ValueError):
-                RsaSigner.from_string(key_bytes)
+                crypt.RsaSigner.from_string(key_bytes)
             # Verify mock was called.
             mock_decode.assert_called_once_with(
                 pem_bytes, asn1Spec=_pure_python_crypt._PKCS8_SPEC)
 
     def test_from_string_pkcs8_unicode(self):
-        key_bytes = _from_bytes(self._load_pkcs8_key_bytes())
-        signer = RsaSigner.from_string(key_bytes)
-        self.assertIsInstance(signer, RsaSigner)
+        key_bytes = _helpers._from_bytes(self._load_pkcs8_key_bytes())
+        signer = crypt.RsaSigner.from_string(key_bytes)
+        self.assertIsInstance(signer, crypt.RsaSigner)
         self.assertIsInstance(signer._key, rsa.key.PrivateKey)
 
     def test_from_string_pkcs12(self):
         key_bytes = self._load_pkcs12_key_bytes()
         with self.assertRaises(ValueError):
-            RsaSigner.from_string(key_bytes)
+            crypt.RsaSigner.from_string(key_bytes)
 
     def test_from_string_bogus_key(self):
         key_bytes = 'bogus-key'
         with self.assertRaises(ValueError):
-            RsaSigner.from_string(key_bytes)
-
-
-if __name__ == '__main__':  # pragma: NO COVER
-    unittest2.main()
+            crypt.RsaSigner.from_string(key_bytes)

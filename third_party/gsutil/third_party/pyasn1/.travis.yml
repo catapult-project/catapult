@@ -13,7 +13,8 @@ python:
   - "pypy3"
 install:
   - pip install codecov
-  - pip install --no-deps .
+  - pip install -r requirements.txt -r devel-requirements.txt
+  - pip install -e .
 script:
   - PYTHONPATH=.:$PYTHONPATH python tests/__main__.py
 after_success:
