@@ -203,22 +203,3 @@ class TestPageRun(unittest.TestCase):
         mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab)
     ]
     self.assertEquals(mock_shared_state.mock_calls, expected)
-
-  def testNoGarbageCollectionCalls(self):
-    mock_shared_state = mock.Mock()
-
-    class NonGarbageCollectPage(page.Page):
-
-      def __init__(self, url):
-        super(NonGarbageCollectPage, self).__init__(url, name=url)
-        self._collect_garbage_before_run = False
-
-    p = NonGarbageCollectPage('file://foo.html')
-    p.Run(mock_shared_state)
-    expected = [
-        mock.call.page_test.WillNavigateToPage(
-            p, mock_shared_state.current_tab),
-        mock.call.page_test.RunNavigateSteps(p, mock_shared_state.current_tab),
-        mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab)
-    ]
-    self.assertEquals(mock_shared_state.mock_calls, expected)

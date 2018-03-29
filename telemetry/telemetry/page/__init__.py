@@ -46,10 +46,6 @@ class Page(story.Story):
         'Invalid traffic setting: %s' % traffic_setting)
     self._traffic_setting = traffic_setting
 
-    # Whether to collect garbage on the page before navigating & performing
-    # page actions.
-    self._collect_garbage_before_run = True
-
     # These attributes can be set dynamically by the page.
     self.synthetic_delays = dict()
     self._startup_url = startup_url
@@ -89,9 +85,8 @@ class Page(story.Story):
     current_tab = shared_state.current_tab
     # Collect garbage from previous run several times to make the results more
     # stable if needed.
-    if self._collect_garbage_before_run:
-      for _ in xrange(0, 5):
-        current_tab.CollectGarbage()
+    for _ in xrange(0, 5):
+      current_tab.CollectGarbage()
     shared_state.page_test.WillNavigateToPage(self, current_tab)
     shared_state.page_test.RunNavigateSteps(self, current_tab)
     shared_state.page_test.DidNavigateToPage(self, current_tab)
