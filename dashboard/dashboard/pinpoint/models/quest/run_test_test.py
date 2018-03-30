@@ -281,8 +281,8 @@ def _CreateSwarmingArgs(label):
   return swarming_args_with_results_label
 
 
-@mock.patch('dashboard.services.swarming_service.Tasks.New')
-@mock.patch('dashboard.services.swarming_service.Task.Result')
+@mock.patch('dashboard.services.swarming.Tasks.New')
+@mock.patch('dashboard.services.swarming.Task.Result')
 class RunTestFullTest(_RunTestExecutionTest):
 
   def testSuccess(self, swarming_task_result, swarming_tasks_new):
@@ -353,8 +353,8 @@ class RunTestFullTest(_RunTestExecutionTest):
     self.assertNewTaskHasDimensions(swarming_tasks_new, 'change_2')
 
 
-@mock.patch('dashboard.services.swarming_service.Tasks.New')
-@mock.patch('dashboard.services.swarming_service.Task.Result')
+@mock.patch('dashboard.services.swarming.Tasks.New')
+@mock.patch('dashboard.services.swarming.Task.Result')
 class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
   def testSwarmingError(self, swarming_task_result, swarming_tasks_new):
@@ -391,8 +391,8 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     self.assertTrue(last_exception_line.startswith('SwarmingTestError'))
 
 
-@mock.patch('dashboard.services.swarming_service.Tasks.New')
-@mock.patch('dashboard.services.swarming_service.Task.Result')
+@mock.patch('dashboard.services.swarming.Tasks.New')
+@mock.patch('dashboard.services.swarming.Task.Result')
 class BotIdHandlingTest(_RunTestExecutionTest):
 
   def testFirstExecutionFailedWithNoBotId(

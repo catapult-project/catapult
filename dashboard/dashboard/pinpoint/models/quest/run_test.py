@@ -15,7 +15,7 @@ import shlex
 
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
-from dashboard.services import swarming_service
+from dashboard.services import swarming
 
 
 _BOT_CONFIGURATIONS = 'bot_configurations'
@@ -231,7 +231,9 @@ class _RunTestExecution(execution_module.Execution):
       self._StartTask()
       return
 
-    result = swarming_service.Task(self._task_id).Result()
+    # TODO: Pass the Swarming server through the parameters. crbug.com/822008
+    result = swarming.Swarming(
+        'https://chromium-swarm.appspot.com').Task(self._task_id).Result()
 
     if 'bot_id' in result:
       # Set bot_id to pass the info back to the Quest.
@@ -286,6 +288,8 @@ class _RunTestExecution(execution_module.Execution):
             'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
         },
     }
-    response = swarming_service.Tasks().New(body)
+    # TODO: Pass the Swarming server through the parameters. crbug.com/822008
+    response = swarming.Swarming(
+        'https://chromium-swarm.appspot.com').Tasks().New(body)
 
     self._task_id = response['task_id']

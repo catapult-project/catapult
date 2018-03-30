@@ -6,7 +6,7 @@ import unittest
 
 import mock
 
-from dashboard.services import swarming_service
+from dashboard.services import swarming
 
 
 class _SwarmingTest(unittest.TestCase):
@@ -23,18 +23,18 @@ class _SwarmingTest(unittest.TestCase):
 
   def _AssertRequestMadeOnce(self, path, *args, **kwargs):
     self._request_json.assert_called_once_with(
-        swarming_service.API_BASE_URL + path, *args, **kwargs)
+        'https://server/api/swarming/v1/' + path, *args, **kwargs)
 
 
 class BotTest(_SwarmingTest):
 
   def testGet(self):
-    response = swarming_service.Bot('bot_id').Get()
+    response = swarming.Swarming('https://server').Bot('bot_id').Get()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('bot/bot_id/get')
 
   def testTasks(self):
-    response = swarming_service.Bot('bot_id').Tasks()
+    response = swarming.Swarming('https://server').Bot('bot_id').Tasks()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('bot/bot_id/tasks')
 
@@ -42,7 +42,7 @@ class BotTest(_SwarmingTest):
 class BotsTest(_SwarmingTest):
 
   def testList(self):
-    response = swarming_service.Bots().List(
+    response = swarming.Swarming('https://server').Bots().List(
         'CkMSPWoQ', {'pool': 'Chrome-perf', 'a': 'b'}, False, 1, True)
     self._AssertCorrectResponse(response)
 
@@ -55,28 +55,28 @@ class BotsTest(_SwarmingTest):
 class TaskTest(_SwarmingTest):
 
   def testCancel(self):
-    response = swarming_service.Task('task_id').Cancel()
+    response = swarming.Swarming('https://server').Task('task_id').Cancel()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/cancel', method='POST')
 
   def testRequest(self):
-    response = swarming_service.Task('task_id').Request()
+    response = swarming.Swarming('https://server').Task('task_id').Request()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/request')
 
   def testResult(self):
-    response = swarming_service.Task('task_id').Result()
+    response = swarming.Swarming('https://server').Task('task_id').Result()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/result')
 
   def testResultWithPerformanceStats(self):
-    response = swarming_service.Task('task_id').Result(True)
+    response = swarming.Swarming('https://server').Task('task_id').Result(True)
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/result',
                                 include_performance_stats=True)
 
   def testStdout(self):
-    response = swarming_service.Task('task_id').Stdout()
+    response = swarming.Swarming('https://server').Task('task_id').Stdout()
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/stdout')
 
@@ -107,6 +107,6 @@ class TasksTest(_SwarmingTest):
         ],
     }
 
-    response = swarming_service.Tasks().New(body)
+    response = swarming.Swarming('https://server').Tasks().New(body)
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('tasks/new', method='POST', body=body)
