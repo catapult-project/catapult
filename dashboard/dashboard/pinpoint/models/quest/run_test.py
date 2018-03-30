@@ -18,13 +18,11 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 
 
-_BOT_CONFIGURATIONS = 'bot_configurations'
-
-_SWARMING_EXTRA_ARGS = (
+_DEFAULT_EXTRA_ARGS = [
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
     '--isolated-script-test-chartjson-output',
     '${ISOLATED_OUTDIR}/chartjson-output.json',
-)
+]
 
 
 class RunTestError(Exception):
@@ -82,21 +80,21 @@ class RunTest(quest.Quest):
     return 'Test'
 
   def Start(self, change, isolate_hash):
-    index = self._execution_counts[change]
-    self._execution_counts[change] += 1
+    return self._Start(change, isolate_hash, self._extra_args)
 
-    # For results2 to differentiate between runs, we need telemetry to
-    # append --results-label=foo to the runs. Since this is where we're given
-    # the actual change that's being run, we look for the dummy
-    # --results-label in extra_args and fill it in with the change string.
-    # https://github.com/catapult-project/catapult/issues/3998
-    extra_args = copy.copy(self._extra_args)
+  def _Start(self, change, isolate_hash, extra_args):
+    # TODO: Remove after there are no more jobs running RunTest quests
+    # (instead of RunTelemetryTest quests).
     try:
-      results_label_index = self._extra_args.index('--results-label')
+      results_label_index = extra_args.index('--results-label')
+      extra_args = copy.copy(extra_args)
       extra_args[results_label_index+1] = str(change)
     except ValueError:
       # If it's not there, this is probably a gtest
       pass
+
+    index = self._execution_counts[change]
+    self._execution_counts[change] += 1
 
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(
@@ -111,43 +109,19 @@ class RunTest(quest.Quest):
 
   @classmethod
   def FromDict(cls, arguments):
-    # TODO: Create separate Telemetry and GTest subclasses.
-    target = arguments.get('target')
-    if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
-      return cls._TelemetryFromDict(arguments)
-    else:
-      return cls._GTestFromDict(arguments)
+    return cls._FromDict(arguments, [])
 
   @classmethod
-  def _TelemetryFromDict(cls, arguments):
-    swarming_extra_args = []
-
-    benchmark = arguments.get('benchmark')
-    if not benchmark:
-      raise TypeError('Missing "benchmark" argument.')
-    swarming_extra_args.append(benchmark)
-
-    dimensions = _GetDimensions(arguments)
-
-    story = arguments.get('story')
-    if story:
-      swarming_extra_args += ('--story-filter', story)
-
-    # TODO: Workaround for crbug.com/677843.
-    if (benchmark.startswith('startup.warm') or
-        benchmark.startswith('start_with_url.warm')):
-      swarming_extra_args += ('--pageset-repeat', '2')
-    else:
-      swarming_extra_args += ('--pageset-repeat', '1')
-
-    browser = arguments.get('browser')
-    if not browser:
-      raise TypeError('Missing "browser" argument.')
-    swarming_extra_args += ('--browser', browser)
+  def _FromDict(cls, arguments, swarming_extra_args):
+    dimensions = arguments.get('dimensions')
+    if not dimensions:
+      raise TypeError('Missing a "dimensions" argument.')
+    if isinstance(dimensions, basestring):
+      dimensions = json.loads(dimensions)
 
     extra_test_args = arguments.get('extra_test_args')
     if extra_test_args:
-      # We accept a json list, or a string. If it can't be loaded as json, we
+      # We accept a json list or a string. If it can't be loaded as json, we
       # fall back to assuming it's a string argument.
       try:
         extra_test_args = json.loads(extra_test_args)
@@ -157,50 +131,7 @@ class RunTest(quest.Quest):
         raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
       swarming_extra_args += extra_test_args
 
-    swarming_extra_args += (
-        '-v', '--upload-results', '--output-format', 'histograms',
-        '--results-label', '')
-    swarming_extra_args += _SWARMING_EXTRA_ARGS
-    if browser == 'android-webview':
-      # TODO: Share code with the perf waterfall configs. crbug.com/771680
-      swarming_extra_args += ('--webview-embedder-apk',
-                              '../../out/Release/apks/SystemWebViewShell.apk')
-
-    return cls(dimensions, swarming_extra_args)
-
-  @classmethod
-  def _GTestFromDict(cls, arguments):
-    swarming_extra_args = []
-
-    dimensions = _GetDimensions(arguments)
-
-    test = arguments.get('test')
-    if test:
-      swarming_extra_args.append('--gtest_filter=' + test)
-
-    swarming_extra_args.append('--gtest_repeat=1')
-
-    extra_test_args = arguments.get('extra_test_args')
-    if extra_test_args:
-      extra_test_args = json.loads(extra_test_args)
-      if not isinstance(extra_test_args, list):
-        raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
-      swarming_extra_args += extra_test_args
-
-    swarming_extra_args += _SWARMING_EXTRA_ARGS
-
-    return cls(dimensions, swarming_extra_args)
-
-
-def _GetDimensions(arguments):
-  dimensions = arguments.get('dimensions')
-  if not dimensions:
-    raise TypeError('Missing a "dimensions" argument.')
-
-  if isinstance(dimensions, basestring):
-    dimensions = json.loads(dimensions)
-
-  return dimensions
+    return cls(dimensions, swarming_extra_args + _DEFAULT_EXTRA_ARGS)
 
 
 class _RunTestExecution(execution_module.Execution):

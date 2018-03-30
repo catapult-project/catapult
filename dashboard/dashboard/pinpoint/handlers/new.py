@@ -151,10 +151,10 @@ def _GenerateQuests(arguments):
   """
   target = arguments.get('target')
   if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
-    quest_classes = (quest_module.FindIsolate, quest_module.RunTest,
+    quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
                      quest_module.ReadHistogramsJsonValue)
   else:
-    quest_classes = (quest_module.FindIsolate, quest_module.RunTest,
+    quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
                      quest_module.ReadGraphJsonValue)
 
   quests = []

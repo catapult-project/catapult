@@ -6,7 +6,8 @@ from dashboard.pinpoint.models.quest.quest import Quest
 from dashboard.pinpoint.models.quest.execution import Execution
 
 from dashboard.pinpoint.models.quest.find_isolate import FindIsolate
-from dashboard.pinpoint.models.quest.run_test import RunTest
+from dashboard.pinpoint.models.quest.run_gtest import RunGTest
+from dashboard.pinpoint.models.quest.run_telemetry_test import RunTelemetryTest
 from dashboard.pinpoint.models.quest.read_value import ReadChartJsonValue
 from dashboard.pinpoint.models.quest.read_value import ReadGraphJsonValue
 from dashboard.pinpoint.models.quest.read_value import ReadHistogramsJsonValue
