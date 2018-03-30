@@ -7,7 +7,7 @@ import json
 from dashboard.common import histogram_helpers
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
-from dashboard.services import isolate_service
+from dashboard.services import isolate
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
@@ -338,12 +338,14 @@ class _ReadGraphJsonValueExecution(execution.Execution):
 
 
 def _RetrieveOutputJson(isolate_hash, filename):
-  output_files = json.loads(isolate_service.Retrieve(isolate_hash))['files']
+  # TODO: Plumb isolate_server through the parameters. crbug.com/822008
+  server = 'https://isolateserver.appspot.com'
+  output_files = json.loads(isolate.Retrieve(server, isolate_hash))['files']
 
   if filename not in output_files:
     raise ReadValueError("The test didn't produce %s." % filename)
   output_json_isolate_hash = output_files[filename]['h']
-  return json.loads(isolate_service.Retrieve(output_json_isolate_hash))
+  return json.loads(isolate.Retrieve(server, output_json_isolate_hash))
 
 
 def _GetStoryFromHistogram(hist):

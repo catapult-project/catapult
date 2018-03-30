@@ -61,7 +61,7 @@ class ReadGraphJsonValueQuestTest(unittest.TestCase):
 class _ReadValueExecutionTest(unittest.TestCase):
 
   def setUp(self):
-    patcher = mock.patch('dashboard.services.isolate_service.Retrieve')
+    patcher = mock.patch('dashboard.services.isolate.Retrieve')
     self._retrieve = patcher.start()
     self.addCleanup(patcher.stop)
 
@@ -77,6 +77,18 @@ class _ReadValueExecutionTest(unittest.TestCase):
     self.assertIsInstance(execution.exception, basestring)
     last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('ReadValueError'))
+
+  def assertReadValueSuccess(self, execution):
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_arguments, {})
+
+  def assertRetrievedOutputJson(self):
+    expected_calls = [
+        mock.call('https://isolateserver.appspot.com', 'output hash'),
+        mock.call('https://isolateserver.appspot.com', 'output json hash'),
+    ]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
 
 
 class ReadChartJsonValueTest(_ReadValueExecutionTest):
@@ -95,13 +107,9 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadChartJsonTraceUrls(self):
     self.SetOutputFileContents({'charts': {
@@ -120,10 +128,8 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
 
     self.assertEqual(
         {
@@ -150,13 +156,9 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadChartJsonValueWithNoTirLabel(self):
     self.SetOutputFileContents({'charts': {
@@ -171,13 +173,9 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadChartJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'
@@ -228,13 +226,9 @@ class ReadChartJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testHistogram(self):
     self.SetOutputFileContents({'charts': {
@@ -308,13 +302,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueStatistic(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -335,13 +325,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (1,))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueStatisticNoSamples(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -387,13 +373,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2, 0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsTraceUrls(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -413,8 +395,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
@@ -431,10 +412,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
             }
         },
         execution.AsDict())
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsDiagnosticRefSkipTraceUrls(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -452,8 +430,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
@@ -469,10 +446,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
             }
         },
         execution.AsDict())
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueWithNoTirLabel(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -490,13 +464,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueWithNoStory(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -514,13 +484,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (0, 1, 2))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueSummary(self):
     samples = []
@@ -547,13 +513,9 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, tuple(samples))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'
@@ -628,13 +590,9 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'output hash')
     execution.Poll()
 
-    self.assertTrue(execution.completed)
-    self.assertFalse(execution.failed)
+    self.assertReadValueSuccess(execution)
     self.assertEqual(execution.result_values, (126444.869721,))
-    self.assertEqual(execution.result_arguments, {})
-
-    expected_calls = [mock.call('output hash'), mock.call('output json hash')]
-    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+    self.assertRetrievedOutputJson()
 
   def testReadGraphJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'

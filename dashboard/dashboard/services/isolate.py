@@ -17,8 +17,8 @@ import zlib
 from dashboard.services import request
 
 
-def Retrieve(digest):
-  url = 'https://isolateserver.appspot.com/_ah/api/isolateservice/v1/retrieve'
+def Retrieve(server, digest):
+  url = server + '/_ah/api/isolateservice/v1/retrieve'
   body = {
       'namespace': {'namespace': 'default-gzip'},
       'digest': digest,

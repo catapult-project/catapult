@@ -8,7 +8,7 @@ import zlib
 
 import mock
 
-from dashboard.services import isolate_service
+from dashboard.services import isolate
 
 
 _FILE_HASH = 'c6911f39564106542b28081c81bde61c43121bda'
@@ -26,10 +26,10 @@ class IsolateServiceTest(unittest.TestCase):
     }
     request.return_value = zlib.compress('file contents')
 
-    file_contents = isolate_service.Retrieve(_FILE_HASH)
+    file_contents = isolate.Retrieve('https://isolate.com', _FILE_HASH)
     self.assertEqual(file_contents, 'file contents')
 
-    url = 'https://isolateserver.appspot.com/_ah/api/isolateservice/v1/retrieve'
+    url = 'https://isolate.com/_ah/api/isolateservice/v1/retrieve'
     body = {'namespace': {'namespace': 'default-gzip'}, 'digest': _FILE_HASH}
     request_json.assert_called_once_with(url, 'POST', body)
 
@@ -42,10 +42,10 @@ class IsolateServiceTest(unittest.TestCase):
         'content': base64.b64encode(zlib.compress('file contents'))
     }
 
-    isolate_contents = isolate_service.Retrieve(_ISOLATED_HASH)
+    isolate_contents = isolate.Retrieve('https://isolate.com', _ISOLATED_HASH)
     self.assertEqual(isolate_contents, 'file contents')
 
-    url = 'https://isolateserver.appspot.com/_ah/api/isolateservice/v1/retrieve'
+    url = 'https://isolate.com/_ah/api/isolateservice/v1/retrieve'
     body = {
         'namespace': {'namespace': 'default-gzip'},
         'digest': _ISOLATED_HASH,
@@ -56,4 +56,4 @@ class IsolateServiceTest(unittest.TestCase):
     request_json.return_value = {}
 
     with self.assertRaises(NotImplementedError):
-      isolate_service.Retrieve('digest')
+      isolate.Retrieve('https://isolate.com', 'digest')
