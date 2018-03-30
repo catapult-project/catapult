@@ -442,6 +442,35 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(
         layered_cache.GetExternal('commit_hash_2a1781d64d'), '456')
 
+  @mock.patch('logging.error')
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'GetIssue',
+      mock.MagicMock(
+          return_value={
+              'id': 123,
+              'status': 'Assigned'
+          }))
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_BisectNoResultsData_NoException(self, mock_logging_error):
+    data = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    data['culprit_data'] = None
+    self._AddTryJob(123, 'completed', 'win_perf', results_data=data)
+    layered_cache.SetExternal('commit_hash_2a1781d64d', '123')
+
+    data = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    data['culprit_data'] = None
+    self._AddTryJob(123, 'completed', 'linux_perf', results_data=data)
+    layered_cache.SetExternal('commit_hash_BBBBBBBB', '123')
+
+    self._AddTryJob(456, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_RESULTS_JSON)
+
+    self.testapp.get('/update_bug_with_results')
+    self.assertEqual(0, mock_logging_error.call_count)
+
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))

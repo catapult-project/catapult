@@ -101,7 +101,9 @@ class TryJob(internal_only_model.InternalOnlyModel):
   def GetCulpritCL(self):
     if not self.results_data:
       return None
-    return self.results_data.get('culprit_data', {}).get('cl')
+    # culprit_data can be undefined or explicitly set to None
+    culprit_data = self.results_data.get('culprit_data') or {}
+    return culprit_data.get('cl')
 
   def GetConfigDict(self):
     return json.loads(self.config.split('=', 1)[1])
