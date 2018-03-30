@@ -10,6 +10,7 @@ from telemetry.story import story_set
 from telemetry import story as story_module
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
+import time
 
 
 # pylint: disable=abstract-method
@@ -31,12 +32,15 @@ class StoryRunTest(unittest.TestCase):
     return self.story_set.stories
 
   def testStoryRunFailed(self):
+    start_time = time.time()
     run = story_run.StoryRun(self.stories[0])
     run.SetFailed('abc')
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
     self.assertFalse(run.skipped)
     self.assertEquals(run.failure_str, 'abc')
+    self.assertAlmostEqual(run.duration,
+                           time.time() - start_time, 1)
 
     run = story_run.StoryRun(self.stories[0])
     run.AddValue(scalar.ScalarValue(
@@ -49,6 +53,7 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, 'something is wrong')
 
   def testStoryRunSkipped(self):
+    start_time = time.time()
     run = story_run.StoryRun(self.stories[0])
     run.SetFailed('oops')
     run.Skip('test')
@@ -56,6 +61,8 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
     self.assertEquals(run.failure_str, 'oops')
+    self.assertAlmostEqual(run.duration,
+                           time.time() - start_time, 1)
 
     run = story_run.StoryRun(self.stories[0])
     run.AddValue(scalar.ScalarValue(
@@ -68,11 +75,15 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, None)
 
   def testStoryRunSucceeded(self):
+    start_time = time.time()
     run = story_run.StoryRun(self.stories[0])
+    run.SetSucceeded()
     self.assertTrue(run.ok)
     self.assertFalse(run.failed)
     self.assertFalse(run.skipped)
     self.assertEquals(run.failure_str, None)
+    self.assertAlmostEqual(run.duration,
+                           time.time() - start_time, 1)
 
     run = story_run.StoryRun(self.stories[0])
     run.AddValue(scalar.ScalarValue(

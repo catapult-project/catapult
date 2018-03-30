@@ -66,6 +66,12 @@ def ResultsAsDict(page_test_results, artifacts=None):
     else:
       test['is_unexpected'] = test['is_unexpected'] or status != expected
 
+    if 'time' not in test:
+      test['time'] = run.duration
+      test['times'] = [run.duration]
+    else:
+      test['times'].append(run.duration)
+
     story_artifacts = artifacts and artifacts.GetTestArtifacts(run.story.name)
     if story_artifacts:
       test['artifacts'] = dict(story_artifacts)

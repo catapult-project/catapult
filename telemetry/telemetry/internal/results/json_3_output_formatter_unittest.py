@@ -248,6 +248,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
     test_page = page_module.Page(
         'http://www.foo.com/', story_set, story_set.base_dir, name='Foo')
+    start_time = time.time()
     results.WillRunPage(test_page)
     v0 = scalar.ScalarValue(
         results.current_page,
@@ -270,13 +271,12 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(json_test_results['path_delimiter'], '/')
     self.assertAlmostEqual(json_test_results['seconds_since_epoch'],
                            time.time(), delta=1)
-    self.assertEquals(json_test_results['tests'], {
-        'test_benchmark': {
-            'Foo': {
-                'actual': 'PASS',
-                'expected': 'PASS',
-                'is_unexpected': False
-            }
-        }
-    })
+    testBenchmarkFoo = json_test_results['tests']['test_benchmark']['Foo']
+    self.assertEquals(testBenchmarkFoo['actual'], 'PASS')
+    self.assertEquals(testBenchmarkFoo['expected'], 'PASS')
+    self.assertFalse(testBenchmarkFoo['is_unexpected'])
+    self.assertAlmostEqual(testBenchmarkFoo['time'],
+                           time.time() - start_time, 1)
+    self.assertAlmostEqual(testBenchmarkFoo['times'][0],
+                           time.time() - start_time, 1)
     self.assertEquals(json_test_results['version'], 3)
