@@ -9,7 +9,9 @@ should be delegated to a higher level (ex. DeviceUtils).
 """
 
 import collections
-import distutils.version
+# pylint: disable=import-error
+# pylint: disable=no-name-in-module
+import distutils.version as du_version
 import errno
 import logging
 import os
@@ -422,8 +424,8 @@ class AdbWrapper(object):
     """
     VerifyLocalFileExists(local)
 
-    if (distutils.version.LooseVersion(self.Version()) <
-        distutils.version.LooseVersion('1.0.36')):
+    if (du_version.LooseVersion(self.Version()) <
+        du_version.LooseVersion('1.0.36')):
 
       # Different versions of adb handle pushing a directory to an existing
       # directory differently.
@@ -671,8 +673,8 @@ class AdbWrapper(object):
     Returns:
       The output of adb forward --list as a string.
     """
-    if (distutils.version.LooseVersion(self.Version()) >=
-        distutils.version.LooseVersion('1.0.36')):
+    if (du_version.LooseVersion(self.Version()) >=
+        du_version.LooseVersion('1.0.36')):
       # Starting in 1.0.36, this can occasionally fail with a protocol fault.
       # As this interrupts all connections with all devices, we instead just
       # return an empty list. This may give clients an inaccurate result, but

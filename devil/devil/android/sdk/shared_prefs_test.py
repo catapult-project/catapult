@@ -166,6 +166,19 @@ class SharedPrefsTest(unittest.TestCase):
       # contents were not modified
       self.assertEquals(prefs.AsDict(), self.expected_data)
 
+  def testEncryptedPath(self):
+    type(self.device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.MARSHMALLOW)
+    with shared_prefs.SharedPrefs(self.device, 'com.some.package',
+        'prefs.xml', use_encrypted_path=True) as prefs:
+      self.assertTrue(prefs.path.startswith('/data/data'))
+
+    type(self.device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.NOUGAT)
+    with shared_prefs.SharedPrefs(self.device, 'com.some.package',
+        'prefs.xml', use_encrypted_path=True) as prefs:
+      self.assertTrue(prefs.path.startswith('/data/user_de/0'))
+
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
   unittest.main(verbosity=2)

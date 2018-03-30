@@ -671,16 +671,20 @@ class DeviceUtils(object):
         'Could not find data directory for %s', package)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetSecurityContextForPackage(self, package, timeout=None, retries=None):
+  def GetSecurityContextForPackage(self, package, encrypted=False, timeout=None,
+      retries=None):
     """Gets the SELinux security context for the given package.
 
     Args:
       package: Name of the package.
+      encrypted: Whether to check in the encrypted data directory
+          (/data/user_de/0/) or the unencrypted data directory (/data/data/).
 
     Returns:
       The package's security context as a string, or None if not found.
     """
-    for line in self.RunShellCommand(['ls', '-Z', '/data/data/'],
+    directory = '/data/user_de/0/' if encrypted else '/data/data/'
+    for line in self.RunShellCommand(['ls', '-Z', directory],
                                      as_root=True, check_return=True):
       split_line = line.split()
       # ls -Z output differs between Android versions, but the package is

@@ -133,7 +133,7 @@ class AndroidPlatformBackend(
       self._system_ui = app_ui.AppUi(self.device, 'com.android.systemui')
     return self._system_ui
 
-  def GetSharedPrefs(self, package, filename):
+  def GetSharedPrefs(self, package, filename, use_encrypted_path=False):
     """Creates a Devil SharedPrefs instance.
 
     See devil.android.sdk.shared_prefs for the documentation of the returned
@@ -144,12 +144,15 @@ class AndroidPlatformBackend(
           instance will be for.
       filename: A string containing the specific settings file of the app that
           the SharedPrefs instance will be for.
+      use_encrypted_path: Whether to use the newer device-encrypted path
+          (/data/user_de/) instead of the older unencrypted path (/data/data/).
 
     Returns:
       A reference to a SharedPrefs object for the given package and filename
       on whatever device the platform backend has a reference to.
     """
-    return shared_prefs.SharedPrefs(self._device, package, filename)
+    return shared_prefs.SharedPrefs(
+        self._device, package, filename, use_encrypted_path=use_encrypted_path)
 
   def IsSvelte(self):
     description = self._device.GetProp('ro.build.description', cache=True)
