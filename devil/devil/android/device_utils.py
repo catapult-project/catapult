@@ -1227,6 +1227,29 @@ class DeviceUtils(object):
         raise device_errors.CommandFailedError(line, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def StartService(self, intent_obj, user_id=None, timeout=None, retries=None):
+    """Start a service on the device.
+
+    Args:
+      intent_obj: An Intent object to send describing the service to start.
+      user_id: A specific user to start the service as, defaults to current.
+      timeout: Timeout in seconds.
+      retries: Number of retries
+
+    Raises:
+      CommandFailedError if the service could not be started.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    cmd = ['am', 'start-service']
+    if user_id:
+      cmd.extend(['--user', str(user_id)])
+    cmd.extend(intent_obj.am_args)
+    for line in self.RunShellCommand(cmd, check_return=True):
+      if line.startswith('Error:'):
+        raise device_errors.CommandFailedError(line, str(self))
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def StartInstrumentation(self, component, finish=True, raw=False,
                            extras=None, timeout=None, retries=None):
     if extras is None:

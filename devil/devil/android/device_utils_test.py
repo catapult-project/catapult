@@ -1415,6 +1415,43 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
       self.device.StartActivity(test_intent)
 
 
+class DeviceUtilsStartServiceTest(DeviceUtilsTest):
+  def testStartService_success(self):
+    test_intent = intent.Intent(action='android.intent.action.START',
+                                package='test.package',
+                                activity='.Main')
+    with self.assertCall(
+        self.call.adb.Shell('am start-service '
+                            '-a android.intent.action.START '
+                            '-n test.package/.Main'),
+        'Starting service: Intent { act=android.intent.action.START }'):
+      self.device.StartService(test_intent)
+
+  def testStartService_failure(self):
+    test_intent = intent.Intent(action='android.intent.action.START',
+                                package='test.package',
+                                activity='.Main')
+    with self.assertCall(
+        self.call.adb.Shell('am start-service '
+                            '-a android.intent.action.START '
+                            '-n test.package/.Main'),
+        'Error: Failed to start test service'):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.StartService(test_intent)
+
+  def testStartService_withUser(self):
+    test_intent = intent.Intent(action='android.intent.action.START',
+                                package='test.package',
+                                activity='.Main')
+    with self.assertCall(
+        self.call.adb.Shell('am start-service '
+                            '--user TestUser '
+                            '-a android.intent.action.START '
+                            '-n test.package/.Main'),
+        'Starting service: Intent { act=android.intent.action.START }'):
+      self.device.StartService(test_intent, user_id='TestUser')
+
+
 class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
 
   def testStartInstrumentation_nothing(self):

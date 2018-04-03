@@ -82,3 +82,11 @@ class AndroidPlatform(platform.Platform):
         self._platform_backend, start_intent, is_app_ready_predicate,
         app_has_webviews)
     return android_app.AndroidApp(app_backend, self._platform_backend)
+
+  def StartAndroidService(self, start_intent):
+    """Starts an Android service specified by |start_intent|.
+
+    Args:
+      start_intent: The intent to use to start the service
+    """
+    self._platform_backend.device.StartService(start_intent)
