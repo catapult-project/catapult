@@ -454,7 +454,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     self.assertEqual(2, len(a_fields))
     self.assertEqual('http://google.com/', row.a_tracing_uri)
-    self.assertEqual('http://log.url/', row.a_stdio_url)
+    self.assertEqual('http://log.url/', row.a_stdio_uri)
 
   def testAddRows_WithCustomSummaryOptions(self):
     test_path = 'Chromium/win7/suite/metric'
