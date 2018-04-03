@@ -10,8 +10,6 @@ More about isolates:
 https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.md
 """
 
-import hashlib
-
 from google.appengine.ext import ndb
 
 
@@ -60,5 +58,4 @@ class Isolate(ndb.Model):
 def _Key(builder_name, change, target):
   # The key must be stable across machines, platforms,
   # Python versions, and Python invocations.
-  string = '\n'.join((builder_name, change.id_string, target))
-  return hashlib.sha256(string).hexdigest()
+  return '\n'.join((builder_name, change.id_string, target))
