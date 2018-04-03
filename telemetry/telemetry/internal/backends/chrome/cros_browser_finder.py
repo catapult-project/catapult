@@ -12,6 +12,7 @@ from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.backends.chrome import cros_browser_backend
 from telemetry.internal.backends.chrome import cros_browser_with_oobe
+from telemetry.internal.backends.chrome import gpu_compositing_checker
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import possible_browser
@@ -98,8 +99,12 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
           browser_backend, self._platform_backend, startup_args)
-    return browser.Browser(
+    returned_browser = browser.Browser(
         browser_backend, self._platform_backend, startup_args)
+    if self._browser_options.assert_gpu_compositing:
+      gpu_compositing_checker.AssertGpuCompositingEnabled(
+          returned_browser.GetSystemInfo())
+    return returned_browser
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)

@@ -20,6 +20,7 @@ from telemetry import decorators
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_backend
 from telemetry.internal.backends.chrome import chrome_startup_args
+from telemetry.internal.backends.chrome import gpu_compositing_checker
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
@@ -181,9 +182,13 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self._backend_settings)
     self._ClearCachesOnStart()
     try:
-      return browser.Browser(
+      returned_browser = browser.Browser(
           browser_backend, self._platform_backend, startup_args=(),
           find_existing=existing)
+      if self._browser_options.assert_gpu_compositing:
+        gpu_compositing_checker.AssertGpuCompositingEnabled(
+            returned_browser.GetSystemInfo())
+      return returned_browser
     except Exception:
       exc_info = sys.exc_info()
       logging.error(

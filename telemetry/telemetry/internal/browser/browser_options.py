@@ -287,6 +287,8 @@ class BrowserOptions(object):
     self.dont_override_profile = False
     self.profile_dir = None
     self.profile_type = None
+
+    self.assert_gpu_compositing = False
     self._extra_browser_args = set()
     self.extra_wpr_args = []
     self.wpr_mode = wpr_modes.WPR_OFF
@@ -386,6 +388,10 @@ class BrowserOptions(object):
               "directory. Note that logging affects the browser's "
               'performance. Supported values: %s. Defaults to %s.' % (
                   ', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
+    group.add_option(
+        '--assert-gpu-compositing',
+        dest='assert_gpu_compositing', action='store_true',
+        help='Assert the browser uses gpu compositing and not software path.')
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
