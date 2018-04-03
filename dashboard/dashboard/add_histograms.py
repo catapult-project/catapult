@@ -329,23 +329,24 @@ def ComputeTestPath(suite_path, guid, histograms):
   hist = histograms.LookupHistogram(guid)
   path = '%s/%s' % (suite_path, hist.name)
 
+  # If a Histogram represents a summary across multiple stories, then its
+  # 'stories' diagnostic will contain the names of all of the stories.
+  # If a Histogram is not a summary, then its 'stories' diagnostic will contain
+  # the singular name of its story.
+  is_summary_diag = hist.diagnostics.get(reserved_infos.IS_SUMMARY.name)
+  is_summary = (is_summary_diag and
+                len(is_summary_diag) == 1 and
+                is_summary_diag.GetOnlyElement() == True)
+
   tir_label = histogram_helpers.GetTIRLabelFromHistogram(hist)
-  if tir_label:
+  if tir_label and not is_summary:
     path += '/' + tir_label
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
   if is_ref and len(is_ref) == 1:
     is_ref = is_ref.GetOnlyElement()
 
-  # If a Histogram represents a summary across multiple stories, then its
-  # 'stories' diagnostic will contain the names of all of the stories.
-  # If a Histogram is not a summary, then its 'stories' diagnostic will contain
-  # the singular name of its story.
   story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
-  is_summary_diag = hist.diagnostics.get(reserved_infos.IS_SUMMARY.name)
-  is_summary = (is_summary_diag and
-                len(is_summary_diag) == 1 and
-                is_summary_diag.GetOnlyElement() == True)
   if story_name and len(story_name) == 1 and not is_summary:
     escaped_story_name = add_point.EscapeName(story_name.GetOnlyElement())
     path += '/' + escaped_story_name

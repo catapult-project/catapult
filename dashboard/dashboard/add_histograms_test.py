@@ -95,7 +95,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def _CreateHistogram(
       self, master=None, bot=None, benchmark=None, commit_position=None,
-      device=None, owner=None, stories=None, benchmark_description=None,
+      device=None, owner=None, stories=None, story_tags=None,
+      benchmark_description=None,
       samples=None, max_samples=None, is_ref=False, is_summary=None):
     hists = [histogram_module.Histogram('hist', 'count')]
     if max_samples:
@@ -137,6 +138,10 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
       histograms.AddSharedDiagnostic(
           reserved_infos.STORIES.name,
           generic_set.GenericSet(stories))
+    if story_tags:
+      histograms.AddSharedDiagnostic(
+          reserved_infos.STORY_TAGS.name,
+          generic_set.GenericSet(story_tags))
     if is_ref:
       histograms.AddSharedDiagnostic(
           reserved_infos.IS_REFERENCE_BUILD.name,
@@ -455,7 +460,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
   def testPost_SetsCorrectTestPathForSummary(self):
     histograms = self._CreateHistogram(
         'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
-        is_summary=True, samples=[42])
+        story_tags=['group:media', 'case:browse'], is_summary=True,
+        samples=[42])
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
