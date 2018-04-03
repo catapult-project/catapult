@@ -487,6 +487,7 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
 
   if stat_name is not None:
     d['value'] = tracing_histogram.statistics_scalars[stat_name].value
+    d['error'] = 0.0
     if stat_name == 'avg':
       d['error'] = tracing_histogram.standard_deviation
   else:
