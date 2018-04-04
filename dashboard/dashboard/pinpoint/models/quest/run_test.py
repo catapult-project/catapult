@@ -30,6 +30,19 @@ class RunTestError(Exception):
   pass
 
 
+class SwarmingExpiredError(StandardError):
+
+  def __init__(self, task_id):
+    self.task_id = task_id
+    super(SwarmingExpiredError, self).__init__(
+        'The swarming task %s expired. The bots are probably overloaded, '
+        'or may be misconfigured.' % self.task_id)
+
+  def __reduce__(self):
+    # http://stackoverflow.com/a/36342588
+    return SwarmingExpiredError, (self.task_id,)
+
+
 class SwarmingTaskError(RunTestError):
 
   def __init__(self, task_id, state):
@@ -172,6 +185,9 @@ class _RunTestExecution(execution_module.Execution):
 
     if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
       return
+
+    if result['state'] == 'EXPIRED':
+      raise SwarmingExpiredError(self._task_id)
 
     if result['state'] != 'COMPLETED':
       raise SwarmingTaskError(self._task_id, result['state'])

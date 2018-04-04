@@ -223,6 +223,19 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 @mock.patch('dashboard.services.swarming.Task.Result')
 class BotIdHandlingTest(_RunTestExecutionTest):
 
+  def testExecutionExpired(
+      self, swarming_task_result, swarming_tasks_new):
+    # If the Swarming task expires, the bots are overloaded or the dimensions
+    # don't correspond to any bot. Raise an error that's fatal to the Job.
+    swarming_tasks_new.return_value = {'task_id': 'task id'}
+    swarming_task_result.return_value = {'state': 'EXPIRED'}
+
+    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    execution = quest.Start('change_1', 'input isolate hash')
+    execution.Poll()
+    with self.assertRaises(run_test.SwarmingExpiredError):
+      execution.Poll()
+
   def testFirstExecutionFailedWithNoBotId(
       self, swarming_task_result, swarming_tasks_new):
     # If the first Execution fails before it gets a bot ID, it's likely it
@@ -230,7 +243,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     # wouldn't have any better luck, and failing fast is less complex than
     # handling retries.
     swarming_tasks_new.return_value = {'task_id': 'task id'}
-    swarming_task_result.return_value = {'state': 'EXPIRED'}
+    swarming_task_result.return_value = {'state': 'CANCELED'}
 
     quest = run_test.RunTest([{'key': 'value'}], ['arg'])
     execution = quest.Start('change_1', 'input isolate hash')
