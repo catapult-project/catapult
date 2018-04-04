@@ -604,6 +604,7 @@ class PageTestResults(object):
           remote_path = str(uuid.uuid1())
           cloud_url = cloud_storage.Insert(
               bucket, remote_path, abs_artifact_path)
+          artifacts[artifact_type][i] = cloud_url
           sys.stderr.write(
               'Uploading %s of page %s to %s (%d out of %d)\n' %
               (artifact_type, test_name, cloud_url, i + 1,

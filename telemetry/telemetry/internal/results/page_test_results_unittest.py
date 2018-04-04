@@ -694,6 +694,8 @@ class PageTestResultsFilterTest(unittest.TestCase):
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud(self, cloud_storage_insert_patch):
+    cs_path_name = 'https://cs_foo'
+    cloud_storage_insert_patch.return_value = cs_path_name
     with tempfile_ext.NamedTemporaryDirectory(
         prefix='artifact_tests') as tempdir:
 
@@ -713,6 +715,12 @@ class PageTestResultsFilterTest(unittest.TestCase):
           [mock.call('abc', mock.ANY, screenshot1.name),
            mock.call('abc', mock.ANY, log2.name)],
           any_order=True)
+
+      # Assert that the path is now the cloud storage path
+      for _, artifacts in ar.IterTestAndArtifacts():
+        for artifact_type in artifacts:
+          for i, _ in enumerate(artifacts[artifact_type]):
+            self.assertEquals(cs_path_name, artifacts[artifact_type][i])
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud_withNoOpArtifact(
