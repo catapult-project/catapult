@@ -410,7 +410,6 @@ class PageTestResults(object):
     self._progress_reporter.DidRunPage(self)
     self._all_page_runs.append(self._current_page_run)
     self._all_stories.add(self._current_page_run.story)
-    self._current_page_run.SetSucceeded()
     self._current_page_run = None
 
   def AddDurationHistogram(self, duration_in_milliseconds):

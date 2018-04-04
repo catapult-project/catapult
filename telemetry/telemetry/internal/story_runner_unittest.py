@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import itertools
 import json
 import math
 import os
@@ -148,6 +149,14 @@ class DummyLocalStory(story_module.Story):
   @property
   def url(self):
     return 'data:,'
+
+
+class DummyPage(page_module.Page):
+  def __init__(self, page_set, name):
+    super(DummyPage, self).__init__(
+        url='file://dummy_pages/dummy_page.html',
+        name=name,
+        page_set=page_set)
 
 
 class _DisableBenchmarkExpectations(
@@ -1461,6 +1470,47 @@ class StoryRunnerTest(unittest.TestCase):
         hist = hists[0]
         self.assertEqual(hist.num_values, 1)
         self.assertAlmostEqual(hist.sample_values[0], 60000)
+      finally:
+        shutil.rmtree(tmp_path)
+
+  def testRunBenchmarkStoryTimeDuration(self):
+    class FakeBenchmarkWithStories(FakeBenchmark):
+      def __init__(self):
+        super(FakeBenchmarkWithStories, self).__init__()
+
+      @classmethod
+      def Name(cls):
+        return 'fake_with_stories'
+
+      def page_set(self):
+        number_stories = 3
+        story_set = story_module.StorySet()
+        for i in xrange(number_stories):
+          story_set.AddStory(DummyPage(story_set, name='story_%d' % i))
+        return story_set
+
+    fake_benchmark = FakeBenchmarkWithStories()
+    options = self._GenerateBaseBrowserFinderOptions()
+    options.output_formats = ['json-test-results']
+    options.pageset_repeat = 2
+
+    tmp_path = tempfile.mkdtemp()
+
+    with mock.patch('telemetry.internal.story_runner.time.time') as time_patch:
+      time_patch.side_effect = itertools.count()
+      try:
+        options.output_dir = tmp_path
+        story_runner.RunBenchmark(fake_benchmark, options)
+        with open(os.path.join(tmp_path, 'test-results.json')) as f:
+          json_results = json.load(f)
+          for fake_benchmark in json_results['tests']:
+            stories = json_results['tests'][fake_benchmark]
+            for story in stories:
+              result = stories[story]
+              times = result['times']
+              self.assertEqual(len(times), 2, times)
+              for t in times:
+                self.assertGreater(t, 1)
       finally:
         shutil.rmtree(tmp_path)
 

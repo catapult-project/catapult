@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.value import skip
-import time
 
 
 class StoryRun(object):
@@ -12,8 +11,7 @@ class StoryRun(object):
     self._values = []
     self._failed = False
     self._failure_str = None
-    self._begin_timestamp = time.time()
-    self._end_timestamp = None
+    self._duration = None
 
   def AddValue(self, value):
     self._values.append(value)
@@ -21,13 +19,12 @@ class StoryRun(object):
   def SetFailed(self, failure_str):
     self._failed = True
     self._failure_str = failure_str
-    self._end_timestamp = time.time()
 
   def Skip(self, reason):
     self.AddValue(skip.SkipValue(self.story, reason))
 
-  def SetSucceeded(self):
-    self._end_timestamp = time.time()
+  def SetDuration(self, duration_in_seconds):
+    self._duration = duration_in_seconds
 
   @property
   def story(self):
@@ -61,4 +58,4 @@ class StoryRun(object):
 
   @property
   def duration(self):
-    return self._end_timestamp - self._begin_timestamp
+    return self._duration
