@@ -270,6 +270,7 @@ def PinpointParamsFromBisectParams(params):
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
       'auto_explore': 'true',
+      'comparison_mode': bisect_mode,
       'target': target,
       'user': email,
       'name': job_name,

@@ -73,7 +73,6 @@ found in the LICENSE file.
 
       getArguments(job) {
         const args = Object.assign({}, job.arguments);
-        args.auto_explore = true;
         args.start_git_hash = 'HEAD';
         args.end_git_hash = 'HEAD';
         delete args.name;

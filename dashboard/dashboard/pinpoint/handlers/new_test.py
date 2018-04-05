@@ -49,7 +49,6 @@ class _NewTest(testing_common.TestCase):
         },
     })
     namespaced_stored_object.Set('repositories', {
-        'catapult': {'repository_url': 'http://catapult'},
         'src': {'repository_url': 'http://src'},
     })
 
@@ -112,6 +111,36 @@ class NewTest(_NewTest):
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
     self.assertTrue(job.auto_explore)
+
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  def testPost_ComparisonModeFunctional(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'functional'
+    response = self.testapp.post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual(job.comparison_mode, job_module.ComparisonMode.FUNCTIONAL)
+
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  def testPost_ComparisonModePerformance(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'performance'
+    response = self.testapp.post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual(job.comparison_mode, job_module.ComparisonMode.PERFORMANCE)
+
+  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
+      return_value={'commit': 'abc'}))
+  def testPost_ComparisonModeUnknown(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'invalid comparison mode'
+    response = self.testapp.post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))

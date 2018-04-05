@@ -297,6 +297,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
+    self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual(
         params['test_path'],
@@ -324,6 +325,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
+    self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual('foo', results['story'])
 
@@ -348,6 +350,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual('true', results['auto_explore'])
+    self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
 
   @mock.patch.object(
@@ -433,6 +436,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
+    self.assertEqual('functional', results['comparison_mode'])
     self.assertEqual('', results['tir_label'])
     self.assertEqual('', results['chart'])
     self.assertEqual('', results['trace'])

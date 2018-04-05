@@ -45,6 +45,7 @@ class New(webapp2.RequestHandler):
 
     # Validate arguments and convert them to canonical internal representation.
     auto_explore = _ParseBool(arguments.get('auto_explore'))
+    comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
     quests = _GenerateQuests(arguments)
     bug_id = _ValidateBugId(arguments.get('bug_id'))
     changes = _ValidateChanges(arguments)
@@ -56,6 +57,7 @@ class New(webapp2.RequestHandler):
         arguments=self.request.params.mixed(),
         quests=quests,
         auto_explore=auto_explore,
+        comparison_mode=comparison_mode,
         user=user,
         bug_id=bug_id,
         tags=tags)
@@ -79,6 +81,17 @@ class New(webapp2.RequestHandler):
 
 def _ParseBool(value):
   return value == '1' or value.lower() == 'true'
+
+
+def _ValidateComparisonMode(comparison_mode):
+  if not comparison_mode:
+    return None
+  if comparison_mode == 'functional':
+    return job_module.ComparisonMode.FUNCTIONAL
+  if comparison_mode == 'performance':
+    return job_module.ComparisonMode.PERFORMANCE
+  raise ValueError('`comparison_mode` should be "functional", '
+                   '"performance", or None. Got "%s".' % comparison_mode)
 
 
 def _ValidateTags(tags):

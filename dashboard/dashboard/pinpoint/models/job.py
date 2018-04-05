@@ -10,7 +10,9 @@ import uuid
 from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
+from google.appengine.ext.ndb import msgprop
 from google.appengine.runtime import apiproxy_errors
+from protorpc import messages
 
 from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
@@ -41,6 +43,11 @@ def JobFromId(job_id):
   return job_key.get()
 
 
+class ComparisonMode(messages.Enum):
+  FUNCTIONAL = 1
+  PERFORMANCE = 2
+
+
 class Job(ndb.Model):
   """A Pinpoint job."""
 
@@ -64,6 +71,10 @@ class Job(ndb.Model):
   # If False, only run the Changes explicitly added by the user.
   auto_explore = ndb.BooleanProperty(required=True)
 
+  # The metric to use when determining whether to add additional Attempts or
+  # Changes to the Job. If None, the Job will use a fixed number of Attempts.
+  comparison_mode = msgprop.EnumProperty(ComparisonMode)
+
   # TODO: The bug id is only used for posting bug comments when a job starts and
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
@@ -76,12 +87,13 @@ class Job(ndb.Model):
   tags = ndb.JsonProperty()
 
   @classmethod
-  def New(cls, arguments, quests, auto_explore,
+  def New(cls, arguments, quests, auto_explore, comparison_mode=None,
           user=None, bug_id=None, tags=None):
     # Create job.
     return cls(
         arguments=arguments,
         auto_explore=auto_explore,
+        comparison_mode=comparison_mode,
         user=user,
         bug_id=bug_id,
         tags=tags,
