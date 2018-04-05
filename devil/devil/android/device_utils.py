@@ -1241,7 +1241,11 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    cmd = ['am', 'start-service']
+    # For whatever reason, startservice was changed to start-service on O and
+    # above.
+    cmd = ['am', 'startservice']
+    if self.build_version_sdk >= version_codes.O:
+      cmd[1] = 'start-service'
     if user_id:
       cmd.extend(['--user', str(user_id)])
     cmd.extend(intent_obj.am_args)

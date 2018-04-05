@@ -1420,36 +1420,55 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
     test_intent = intent.Intent(action='android.intent.action.START',
                                 package='test.package',
                                 activity='.Main')
-    with self.assertCall(
-        self.call.adb.Shell('am start-service '
-                            '-a android.intent.action.START '
-                            '-n test.package/.Main'),
-        'Starting service: Intent { act=android.intent.action.START }'):
-      self.device.StartService(test_intent)
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(
+          self.call.adb.Shell('am startservice '
+                              '-a android.intent.action.START '
+                              '-n test.package/.Main'),
+          'Starting service: Intent { act=android.intent.action.START }'):
+        self.device.StartService(test_intent)
 
   def testStartService_failure(self):
     test_intent = intent.Intent(action='android.intent.action.START',
                                 package='test.package',
                                 activity='.Main')
-    with self.assertCall(
-        self.call.adb.Shell('am start-service '
-                            '-a android.intent.action.START '
-                            '-n test.package/.Main'),
-        'Error: Failed to start test service'):
-      with self.assertRaises(device_errors.CommandFailedError):
-        self.device.StartService(test_intent)
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(
+          self.call.adb.Shell('am startservice '
+                              '-a android.intent.action.START '
+                              '-n test.package/.Main'),
+          'Error: Failed to start test service'):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.StartService(test_intent)
 
   def testStartService_withUser(self):
     test_intent = intent.Intent(action='android.intent.action.START',
                                 package='test.package',
                                 activity='.Main')
-    with self.assertCall(
-        self.call.adb.Shell('am start-service '
-                            '--user TestUser '
-                            '-a android.intent.action.START '
-                            '-n test.package/.Main'),
-        'Starting service: Intent { act=android.intent.action.START }'):
-      self.device.StartService(test_intent, user_id='TestUser')
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(
+          self.call.adb.Shell('am startservice '
+                              '--user TestUser '
+                              '-a android.intent.action.START '
+                              '-n test.package/.Main'),
+          'Starting service: Intent { act=android.intent.action.START }'):
+        self.device.StartService(test_intent, user_id='TestUser')
+
+  def testStartService_onOreo(self):
+    test_intent = intent.Intent(action='android.intent.action.START',
+                                package='test.package',
+                                activity='.Main')
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.O):
+      with self.assertCall(
+          self.call.adb.Shell('am start-service '
+                              '-a android.intent.action.START '
+                              '-n test.package/.Main'),
+          'Starting service: Intent { act=android.intent.action.START }'):
+        self.device.StartService(test_intent)
 
 
 class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
