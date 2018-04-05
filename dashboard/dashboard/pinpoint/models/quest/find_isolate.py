@@ -15,6 +15,13 @@ class BuildError(Exception):
   """Raised when the build fails."""
 
 
+class IsolateNotFoundError(StandardError):
+  """Raised when the build succeeds, but Pinpoint can't find the isolate.
+
+  This error is fatal to the Job.
+  """
+
+
 class FindIsolate(quest.Quest):
 
   def __init__(self, builder, target):
@@ -107,8 +114,9 @@ class _FindIsolateExecution(execution.Execution):
     else:
       if self._CheckCompleted():
         return
-      raise BuildError('Buildbucket says the build completed successfully, '
-                       "but Pinpoint can't find the isolate hash.")
+      raise IsolateNotFoundError(
+          'Buildbucket says the build completed successfully, '
+          "but Pinpoint can't find the isolate hash.")
 
   def _RequestBuild(self):
     """Requests a build.

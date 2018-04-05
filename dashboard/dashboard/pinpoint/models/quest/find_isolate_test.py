@@ -240,6 +240,5 @@ class BuildTest(_FindIsolateExecutionTest):
             'result': 'SUCCESS',
         }
     }
-    execution.Poll()
-
-    self.assertExecutionFailure(execution, find_isolate.BuildError)
+    with self.assertRaises(find_isolate.IsolateNotFoundError):
+      execution.Poll()
