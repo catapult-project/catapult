@@ -342,6 +342,23 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         rows[0].key.parent().id(),
         'Chromium/win7/v8.browsing_desktop/v8-gc-blah')
 
+  def testPostHistogram_FiltersBenchmarkTotalDuration(self):
+    test_path = 'Chromium/win7/benchmark/benchmark_total_duration'
+
+    params = [{
+        'data': TEST_HISTOGRAM,
+        'test_path': test_path,
+        'revision': 123,
+        'benchmark_description': None
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(len(rows), 1)
+    self.assertEqual(
+        rows[0].key.parent().id(),
+        'Chromium/win7/benchmark/benchmark_total_duration')
+
   def testPostHistogram_CreatesNoLegacyRowsForLegacyTest(self):
     test_path = 'Chromium/win7/blink_perf.dom/foo'
     params = [{

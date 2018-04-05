@@ -288,6 +288,8 @@ def _ShouldFilter(test_name, benchmark_name, stat_name):
   if benchmark_name.startswith('v8.browsing'):
     value_name = '%s_%s' % (test_name, stat_name)
     return not _ShouldAddV8BrowsingValue(value_name)
+  if test_name == 'benchmark_total_duration':
+    return True
   return False
 
 
