@@ -2,17 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
-import os
-
-from telemetry import decorators
-from telemetry import story
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
 from telemetry.util import wpr_modes
-from telemetry.wpr import archive_info
 
 
 class PageTestThatFails(legacy_page_test.LegacyPageTest):
@@ -96,60 +90,6 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     all_results = self.RunMeasurement(
         measurement, story_set, options=self._options)
     self.assertTrue(all_results.had_failures)
-
-  # This test is disabled because it runs against live sites, and needs to be
-  # fixed. crbug.com/179038
-  @decorators.Disabled('all')
-  def testRecordAndReplay(self):
-    test_archive = '/tmp/google.wpr'
-    google_url = 'http://www.google.com/'
-    foo_url = 'http://www.foo.com/'
-    archive_info_template = ("""
-{
-"archives": {
-  "%s": ["%s"]
-}
-}
-""")
-    try:
-      story_set = story.StorySet.PageSet()
-      measurement = PageTestForReplay()
-
-      # First record an archive with only www.google.com.
-      self._options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
-
-      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', json.loads(archive_info_template % (test_archive, google_url)),
-          story_set.bucket)
-      story_set.pages = [page_module.Page(google_url, story_set)]
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
-
-      # Now replay it and verify that google.com is found but foo.com is not.
-      self._options.browser_options.wpr_mode = wpr_modes.WPR_REPLAY
-
-      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', json.loads(archive_info_template % (test_archive, foo_url)),
-          story_set.bucket)
-      story_set.pages = [page_module.Page(foo_url, story_set)]
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertTrue(all_results.had_failures)
-
-      story_set._wpr_archive_info = archive_info.WprArchiveInfo(
-          '', json.loads(archive_info_template % (test_archive, google_url)),
-          story_set.bucket)
-      story_set.pages = [page_module.Page(google_url, story_set)]
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
-
-      self.assertTrue(os.path.isfile(test_archive))
-
-    finally:
-      if os.path.isfile(test_archive):
-        os.remove(test_archive)
 
   def testRunActions(self):
     story_set = self.CreateEmptyPageSet()
