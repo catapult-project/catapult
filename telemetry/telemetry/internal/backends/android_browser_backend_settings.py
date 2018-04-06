@@ -219,7 +219,7 @@ def _FindLocalApk(chrome_root, apk_name):
     if os.path.exists(apk_path):
       last_changed = os.path.getmtime(apk_path)
       # Keep the most recently updated apk only.
-      if last_changed is None or last_changed > found_last_changed:
+      if found_last_changed is None or last_changed > found_last_changed:
         found_apk_path = apk_path
         found_last_changed = last_changed
 
