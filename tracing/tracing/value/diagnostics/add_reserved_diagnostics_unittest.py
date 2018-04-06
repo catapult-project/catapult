@@ -13,11 +13,14 @@ from tracing.value.diagnostics import reserved_infos
 
 class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
-  def _CreateHistogram(self, name, stories=None):
+  def _CreateHistogram(self, name, stories=None, tags=None):
     h = histogram.Histogram(name, 'count')
     if stories:
       h.diagnostics[reserved_infos.STORIES.name] = generic_set.GenericSet(
           stories)
+    if tags:
+      h.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
+          tags)
     return h
 
   def testAddReservedDiagnostics_InvalidDiagnostic_Raises(self):
@@ -119,6 +122,8 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
       self.assertIn([h.name, is_summary, stories], expected)
       expected.remove([h.name, is_summary, stories])
 
+    self.assertEqual(0, len(expected))
+
   def testAddReservedDiagnostics_NoStories_Unmerged(self):
     hs = histogram_set.HistogramSet([
         self._CreateHistogram('foo'),
@@ -136,3 +141,30 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
     self.assertEqual(2, len(new_hs.GetHistogramsNamed('foo')))
     self.assertEqual(1, len(new_hs.GetHistogramsNamed('bar')))
+
+  def testAddReservedDiagnostics_WithTags(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo', ['bar'], ['baz']),
+        self._CreateHistogram('foo', ['bar'], ['qux'])])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    expected = [
+        [u'foo', False, [u'bar'], [u'qux']],
+        [u'foo', False, [u'bar'], [u'baz']],
+        [u'foo', True, [u'bar'], [u'baz']],
+        [u'foo', True, [u'bar'], [u'qux']]
+    ]
+
+    for h in new_hs:
+      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
+      tags = sorted(list(h.diagnostics[reserved_infos.STORY_TAGS.name]))
+      self.assertIn([h.name, is_summary, stories, tags], expected)
+      expected.remove([h.name, is_summary, stories, tags])
+
+    self.assertEqual(0, len(expected))

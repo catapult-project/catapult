@@ -469,7 +469,7 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
                                add_histograms.TASK_QUEUE_NAME)
 
     tests = graph_data.TestMetadata.query().fetch()
-    self.assertEqual(8, len(tests))  # suite + hist + stats
+    self.assertEqual(15, len(tests))  # suite + hist + stats per tir label
     for test in tests:
       self.assertNotEqual(test.key.id(), 'master/bot/benchmark/hist/story')
 

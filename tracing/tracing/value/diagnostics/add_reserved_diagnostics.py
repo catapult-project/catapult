@@ -52,10 +52,10 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
     # This call combines all repetitions of a metric for a given story into a
     # single histogram.
     dicts_across_repeats = merge_histograms.MergeHistograms(temp.name, (
-        'name', 'stories'))
+        'name', 'storyTags', 'stories'))
     # This call creates summary metrics across each set of stories.
     dicts_across_stories = merge_histograms.MergeHistograms(temp.name, (
-        'name',))
+        'name', 'storyTags'))
 
   # Now load everything into one histogram set. First we load the summary
   # histograms, since we need to mark them with IS_SUMMARY.

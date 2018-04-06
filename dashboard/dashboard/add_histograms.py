@@ -339,7 +339,7 @@ def ComputeTestPath(suite_path, guid, histograms):
                 is_summary_diag.GetOnlyElement() == True)
 
   tir_label = histogram_helpers.GetTIRLabelFromHistogram(hist)
-  if tir_label and not is_summary:
+  if tir_label:
     path += '/' + tir_label
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
