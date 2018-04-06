@@ -21,6 +21,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
         selector=selector, event=event)
 
   @decorators.Disabled('win', 'linux', 'chromeos')  # crbug.com/749890
+  @decorators.Disabled('mac')  # crbug.com/829346
   def testAwaitedEventIsConfigurable(self):
     """It's possible to wait for different events."""
     action = LoadMediaAction(selector='#video_1', timeout_in_seconds=0.1,
