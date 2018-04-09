@@ -465,6 +465,27 @@ class DeviceUtils_GetApplicationVersionTest(DeviceUtilsTest):
         self.device.GetApplicationVersion('com.android.chrome')
 
 
+class DeviceUtils_GetPackageArchitectureTest(DeviceUtilsTest):
+
+  def test_GetPackageArchitecture_exists(self):
+    with self.assertCall(
+        self.call.device._RunPipedShellCommand(
+            'dumpsys package com.android.chrome | grep -F primaryCpuAbi'),
+        ['  primaryCpuAbi=armeabi-v7a']):
+      self.assertEquals(
+          'armeabi-v7a',
+          self.device.GetPackageArchitecture('com.android.chrome'))
+
+  def test_GetPackageArchitecture_notExists(self):
+    with self.assertCall(
+        self.call.device._RunPipedShellCommand(
+            'dumpsys package com.android.chrome | grep -F primaryCpuAbi'),
+        []):
+      self.assertEquals(
+          None,
+          self.device.GetPackageArchitecture('com.android.chrome'))
+
+
 class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
 
   def testGetApplicationDataDirectory_exists(self):

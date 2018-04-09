@@ -649,6 +649,22 @@ class DeviceUtils(object):
         'Version name for %s not found on dumpsys output' % package, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetPackageArchitecture(self, package, timeout=None, retries=None):
+    """Get the architecture of a package installed on the device.
+
+    Args:
+      package: Name of the package.
+
+    Returns:
+      A string with the architecture, or None if the package is missing.
+    """
+    lines = self._GetDumpsysOutput(['package', package], 'primaryCpuAbi')
+    if lines:
+      _, _, package_arch = lines[-1].partition('=')
+      return package_arch.strip()
+    return None
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationDataDirectory(self, package, timeout=None, retries=None):
     """Get the data directory on the device for the given package.
 
@@ -2382,6 +2398,29 @@ class DeviceUtils(object):
         continue
       processes.append(ProcessInfo(**row))
     return processes
+
+  def _GetDumpsysOutput(self, extra_args, pattern=None):
+    """Runs |dumpsys| command on the device and returns its output.
+
+    This private method implements support for filtering the output by a given
+    |pattern|, but does not do any output parsing.
+    """
+    try:
+      cmd = ['dumpsys'] + extra_args
+      if pattern:
+        cmd = ' '.join(cmd_helper.SingleQuote(s) for s in cmd)
+        return self._RunPipedShellCommand(
+            '%s | grep -F %s' % (cmd, cmd_helper.SingleQuote(pattern)))
+      else:
+        cmd = ['dumpsys'] + extra_args
+        return self.RunShellCommand(cmd, check_return=True, large_output=True)
+    except device_errors.AdbShellCommandFailedError as e:
+      if e.status and isinstance(e.status, list) and not e.status[0]:
+        # If dumpsys succeeded but grep failed, there were no lines matching
+        # the given pattern.
+        return []
+      else:
+        raise
 
   # TODO(#4103): Remove after migrating clients to ListProcesses.
   @decorators.WithTimeoutAndRetriesFromInstance()
