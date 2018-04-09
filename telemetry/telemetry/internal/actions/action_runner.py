@@ -41,7 +41,7 @@ _MEMORY_DUMP_WAIT_TIME = 3
 # Time to wait in seconds after forcing garbage collection to allow its
 # effects to propagate. Experimentally determined on an Android One device
 # that Java Heap garbage collection can take ~5 seconds to complete.
-_GARBAGE_COLLECTION_WAIT_TIME = 6
+_GARBAGE_COLLECTION_PROPAGATION_TIME = 6
 
 
 class ActionRunner(object):
@@ -752,13 +752,22 @@ class ActionRunner(object):
     - JavaScript on the current renderer.
     - System caches (on supported platforms).
     """
+    # 1) Perform V8 and Blink garbage collection. This may free java wrappers.
+    self._tab.CollectGarbage()
+    # 2) Perform Java garbage collection
     if self._tab.browser.supports_java_heap_garbage_collection:
       self._tab.browser.ForceJavaHeapGarbageCollection()
-    self._tab.CollectGarbage()
+    # 3) Flush system caches. This affects GPU memory.
     if self._tab.browser.platform.SupportFlushEntireSystemCache():
       self._tab.browser.platform.FlushEntireSystemCache()
-    self.Wait(_GARBAGE_COLLECTION_WAIT_TIME)
-
+    # 4) Wait until the effect of Java GC and system cache flushing propagates.
+    self.Wait(_GARBAGE_COLLECTION_PROPAGATION_TIME)
+    # 5) Re-do V8 and Blink garbage collection to free garbage allocated
+    # while waiting.
+    self._tab.CollectGarbage()
+    # 6) Finally, finish with V8 and Blink garbage collection because some
+    # objects require V8 GC => Blink GC => V8 GC roundtrip.
+    self._tab.CollectGarbage()
 
   def SimulateMemoryPressureNotification(self, pressure_level):
     """Simulate memory pressure notification.
