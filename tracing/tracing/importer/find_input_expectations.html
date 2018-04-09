@@ -89,10 +89,10 @@ tr.exportTo('tr.importer', function() {
     'VrShellGl::DrawUiView',
     'VrShellGl::UpdateController',
   ];
-  /* 500 ms is a bit arbitrary, but it reliably avoids all the jank caused by
+  /* 1s is a bit arbitrary, but it reliably avoids all the jank caused by
    * VR entry.
    */
-  const VR_RESPONSE_MS = 500;
+  const VR_RESPONSE_MS = 1000;
 
   /**
    * If there's less than this much time between the end of one event and the
@@ -866,7 +866,7 @@ tr.exportTo('tr.importer', function() {
     let lastResponseEvent;
 
     for (const event of events) {
-      // Categorize the first 500 ms of VR time as entry/response
+      // Categorize the first 1s of VR time as entry/response
       // TODO(bsheedy): Make this smarter by basing response duration off trace
       // data instead of a fixed duration
       if (event.range.min < vrAnimationStart) {

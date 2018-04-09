@@ -49,9 +49,9 @@ tr.b.unittest.testSuite(function() {
 
       const series = new tr.model.CounterSeries('gpu.WebVR FPS');
       series.addCounterSample(0, 1);
-      series.addCounterSample(490, 2);
-      series.addCounterSample(505, 3);
-      series.addCounterSample(1000, 4);
+      series.addCounterSample(990, 2);
+      series.addCounterSample(1005, 3);
+      series.addCounterSample(1500, 4);
       model.gpuProcess.getOrCreateCounter('gpu',
           'WebVR FPS').addSeries(series);
 
@@ -59,21 +59,21 @@ tr.b.unittest.testSuite(function() {
           {title: 'VrShellGl::DrawFrame', start: 5, end: 10,
             type: tr.model.ThreadSlice}));
       model.gpuMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          {title: 'VrShellGl::DrawFrame', start: 495, end: 500,
+          {title: 'VrShellGl::DrawFrame', start: 995, end: 1000,
             type: tr.model.ThreadSlice}));
       model.gpuMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          {title: 'VrShellGl::DrawFrame', start: 510, end: 550,
+          {title: 'VrShellGl::DrawFrame', start: 1010, end: 1050,
             type: tr.model.ThreadSlice}));
     };
 
     verifier.expectedUEs = [
-      {title: 'VR Response', start: 0, end: 500, eventCount: 4},
-      {title: 'VR Animation', start: 500, end: 1000, eventCount: 4},
+      {title: 'VR Response', start: 0, end: 1000, eventCount: 4},
+      {title: 'VR Animation', start: 1000, end: 1500, eventCount: 4},
     ];
 
     verifier.expectedSegments = [
-      {start: 0, end: 500, expectations: [verifier.expectedUEs[0]]},
-      {start: 500, end: 1000, expectations: [verifier.expectedUEs[1]]},
+      {start: 0, end: 1000, expectations: [verifier.expectedUEs[0]]},
+      {start: 1000, end: 1500, expectations: [verifier.expectedUEs[1]]},
     ];
 
     verifier.verify();
