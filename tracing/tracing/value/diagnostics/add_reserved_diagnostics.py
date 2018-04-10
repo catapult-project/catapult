@@ -32,6 +32,54 @@ def TempFile():
     os.unlink(temp.name)
 
 
+def GetTIRLabelFromHistogram(hist):
+  tags = hist.diagnostics.get(reserved_infos.STORY_TAGS.name) or []
+
+  tags_to_use = [t.split(':') for t in tags if ':' in t]
+
+  return '_'.join(v for _, v in sorted(tags_to_use))
+
+
+def ComputeTestPath(hist):
+  path = hist.name
+
+  # If a Histogram represents a summary across multiple stories, then its
+  # 'stories' diagnostic will contain the names of all of the stories.
+  # If a Histogram is not a summary, then its 'stories' diagnostic will contain
+  # the singular name of its story.
+  is_summary = list(
+      hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
+
+  tir_label = GetTIRLabelFromHistogram(hist)
+  if tir_label and (
+      not is_summary or reserved_infos.STORY_TAGS.name in is_summary):
+    path += '/' + tir_label
+
+  is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
+  if is_ref and len(is_ref) == 1:
+    is_ref = is_ref.GetOnlyElement()
+
+  story_name = hist.diagnostics.get(reserved_infos.STORIES.name)
+  if story_name and len(story_name) == 1 and not is_summary:
+    escaped_story_name = story_name.GetOnlyElement()
+    path += '/' + escaped_story_name
+    if is_ref:
+      path += '_ref'
+  elif is_ref:
+    path += '/ref'
+
+  return path
+
+
+def _MergeHistogramSetByPath(hs):
+  with TempFile() as temp:
+    temp.write(json.dumps(hs.AsDicts()))
+    temp.close()
+
+    return merge_histograms.MergeHistograms(temp.name, (
+        reserved_infos.TEST_PATH.name,))
+
+
 def AddReservedDiagnostics(histogram_dicts, names_to_values):
   # We need to generate summary statistics for anything that had a story, so
   # filter out every histogram with no stories, then merge. If you keep the
@@ -45,29 +93,53 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
       lambda h: h.diagnostics.get(reserved_infos.STORIES.name, []))
 
   # TODO(#3987): Refactor recipes to call merge_histograms separately.
-  with TempFile() as temp:
-    temp.write(json.dumps(hs_with_stories.AsDicts()))
-    temp.close()
+  # This call combines all repetitions of a metric for a given story into a
+  # single histogram.
+  hs = histogram_set.HistogramSet()
+  hs.ImportDicts(hs_with_stories.AsDicts())
 
-    # This call combines all repetitions of a metric for a given story into a
-    # single histogram.
-    dicts_across_repeats = merge_histograms.MergeHistograms(temp.name, (
-        'name', 'dashboardTags', 'stories'))
-    # This call creates summary metrics across each set of stories.
-    dicts_across_stories = merge_histograms.MergeHistograms(temp.name, (
-        'name', 'dashboardTags'))
+  for h in hs:
+    h.diagnostics[reserved_infos.TEST_PATH.name] = (
+        generic_set.GenericSet([ComputeTestPath(h)]))
+
+  dicts_across_repeats = _MergeHistogramSetByPath(hs)
+
+
+  # This call creates summary metrics across each set of stories.
+  hs = histogram_set.HistogramSet()
+  hs.ImportDicts(hs_with_stories.AsDicts())
+  hs.FilterHistograms(lambda h: not GetTIRLabelFromHistogram(h))
+
+  for h in hs:
+    h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
+        generic_set.GenericSet(['name', 'storyTags']))
+    h.diagnostics[reserved_infos.TEST_PATH.name] = (
+        generic_set.GenericSet([ComputeTestPath(h)]))
+
+  dicts_across_stories = _MergeHistogramSetByPath(hs)
+
+
+  # This call creates summary metrics across each set of stories.
+  hs = histogram_set.HistogramSet()
+  hs.ImportDicts(hs_with_stories.AsDicts())
+
+  for h in hs:
+    h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
+        generic_set.GenericSet(['name']))
+    h.diagnostics[reserved_infos.TEST_PATH.name] = (
+        generic_set.GenericSet([ComputeTestPath(h)]))
+
+  dicts_across_names = _MergeHistogramSetByPath(hs)
+
 
   # Now load everything into one histogram set. First we load the summary
-  # histograms, since we need to mark them with IS_SUMMARY.
+  # histograms, since we need to mark them with SUMMARY_KEYS.
   # After that we load the rest, and then apply all the diagnostics specified
   # on the command line. Finally, since we end up with a lot of diagnostics
   # that no histograms refer to, we make sure to prune those.
   histograms = histogram_set.HistogramSet()
+  histograms.ImportDicts(dicts_across_names)
   histograms.ImportDicts(dicts_across_stories)
-  for h in histograms:
-    h.diagnostics[
-        reserved_infos.IS_SUMMARY.name] = generic_set.GenericSet([True])
-
   histograms.ImportDicts(dicts_across_repeats)
   histograms.ImportDicts(hs_with_no_stories.AsDicts())
   histograms.DeduplicateDiagnostics()

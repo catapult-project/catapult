@@ -136,19 +136,6 @@ tr.exportTo('tr.v', function() {
         return benchmarksStr + '\n' + start.toString();
       });
 
-  HistogramGrouping.DASHBOARD_TAGS = new HistogramGrouping(
-      'dashboardTags', hist => {
-        // On the dashboard, only tags that have ":"
-        const diag = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORY_TAGS);
-        if (diag === undefined) return '';
-        let parts = Array.from(diag);
-        parts = parts.filter(p => p.indexOf(':') >= 0);
-        parts = parts.map(p => p.split(':')[1]);
-        parts.sort();
-        return parts.join('_');
-      });
-
-
   class GenericSetGrouping extends HistogramGrouping {
     constructor(name) {
       super(name, undefined);
@@ -178,6 +165,7 @@ tr.exportTo('tr.v', function() {
     tr.v.d.RESERVED_NAMES.STORIES,
     tr.v.d.RESERVED_NAMES.STORYSET_REPEATS,
     tr.v.d.RESERVED_NAMES.STORY_TAGS,
+    tr.v.d.RESERVED_NAMES.TEST_PATH,
   ];
 
   for (const name of GenericSetGrouping.NAMES) {

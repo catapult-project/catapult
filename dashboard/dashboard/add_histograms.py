@@ -333,13 +333,12 @@ def ComputeTestPath(suite_path, guid, histograms):
   # 'stories' diagnostic will contain the names of all of the stories.
   # If a Histogram is not a summary, then its 'stories' diagnostic will contain
   # the singular name of its story.
-  is_summary_diag = hist.diagnostics.get(reserved_infos.IS_SUMMARY.name)
-  is_summary = (is_summary_diag and
-                len(is_summary_diag) == 1 and
-                is_summary_diag.GetOnlyElement() == True)
+  is_summary = list(
+      hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
 
   tir_label = histogram_helpers.GetTIRLabelFromHistogram(hist)
-  if tir_label:
+  if tir_label and (
+      not is_summary or reserved_infos.STORY_TAGS.name in is_summary):
     path += '/' + tir_label
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)

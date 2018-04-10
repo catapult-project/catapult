@@ -148,8 +148,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
           generic_set.GenericSet([True]))
     if is_summary is not None:
       histograms.AddSharedDiagnostic(
-          reserved_infos.IS_SUMMARY.name,
-          generic_set.GenericSet([is_summary]))
+          reserved_infos.SUMMARY_KEYS.name,
+          generic_set.GenericSet(is_summary))
     return histograms
 
   @mock.patch.object(
@@ -460,7 +460,7 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
   def testPost_SetsCorrectTestPathForSummary(self):
     histograms = self._CreateHistogram(
         'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
-        story_tags=['group:media', 'case:browse'], is_summary=True,
+        story_tags=['group:media', 'case:browse'], is_summary=['name'],
         samples=[42])
 
     self.testapp.post(
@@ -469,14 +469,63 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
                                add_histograms.TASK_QUEUE_NAME)
 
     tests = graph_data.TestMetadata.query().fetch()
-    self.assertEqual(15, len(tests))  # suite + hist + stats per tir label
+
+    expected = [
+        'master/bot/benchmark',
+        'master/bot/benchmark/hist',
+        'master/bot/benchmark/hist_avg',
+        'master/bot/benchmark/hist_count',
+        'master/bot/benchmark/hist_max',
+        'master/bot/benchmark/hist_min',
+        'master/bot/benchmark/hist_std',
+        'master/bot/benchmark/hist_sum',
+    ]
+
     for test in tests:
-      self.assertNotEqual(test.key.id(), 'master/bot/benchmark/hist/story')
+      self.assertIn(test.key.id(), expected)
+      expected.remove(test.key.id())
+    self.assertEqual(0, len(expected))
+
+  def testPost_SetsCorrectTestPathForTIRLabelSummary(self):
+    histograms = self._CreateHistogram(
+        'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
+        story_tags=['group:media', 'case:browse'],
+        is_summary=['name', 'storyTags'], samples=[42])
+
+    self.testapp.post(
+        '/add_histograms', {'data': json.dumps(histograms.AsDicts())})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    tests = graph_data.TestMetadata.query().fetch()
+
+    expected = [
+        'master/bot/benchmark',
+        'master/bot/benchmark/hist',
+        'master/bot/benchmark/hist/browse_media',
+        'master/bot/benchmark/hist_avg',
+        'master/bot/benchmark/hist_avg/browse_media',
+        'master/bot/benchmark/hist_count',
+        'master/bot/benchmark/hist_count/browse_media',
+        'master/bot/benchmark/hist_max',
+        'master/bot/benchmark/hist_max/browse_media',
+        'master/bot/benchmark/hist_min',
+        'master/bot/benchmark/hist_min/browse_media',
+        'master/bot/benchmark/hist_std',
+        'master/bot/benchmark/hist_std/browse_media',
+        'master/bot/benchmark/hist_sum',
+        'master/bot/benchmark/hist_sum/browse_media',
+    ]
+
+    for test in tests:
+      self.assertIn(test.key.id(), expected)
+      expected.remove(test.key.id())
+    self.assertEqual(0, len(expected))
 
   def testPost_SetsCorrectTestPathForNonSummary(self):
     histograms = self._CreateHistogram(
         'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
-        is_summary=False, samples=[42])
+        is_summary=None, samples=[42])
 
     self.testapp.post(
         '/add_histograms', {'data': json.dumps(histograms.AsDicts())})

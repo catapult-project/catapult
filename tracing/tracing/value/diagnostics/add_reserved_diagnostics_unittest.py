@@ -65,18 +65,22 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        ['foo1', True, ['foo1']],
-        ['foo1', False, ['foo1']],
-        ['bar', True, ['bar1', 'bar2']],
-        ['bar', False, ['bar1']],
-        ['bar', False, ['bar2']],
-        ['blah', False, []]]
+        [u'foo1', [], [u'foo1']],
+        [u'bar', [], [u'bar1']],
+        [u'blah', [], []],
+        [u'bar', [u'name'], [u'bar1', u'bar2']],
+        [u'foo1', [u'name'], [u'foo1']],
+        [u'bar', [], [u'bar2']],
+    ]
 
     for h in new_hs:
-      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      is_summary = sorted(
+          list(h.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, [])))
       stories = sorted(list(h.diagnostics.get(reserved_infos.STORIES.name, [])))
       self.assertIn([h.name, is_summary, stories], expected)
       expected.remove([h.name, is_summary, stories])
+
+    self.assertEqual(0, len(expected))
 
   def testAddReservedDiagnostics_Repeats_Merged(self):
     hs = histogram_set.HistogramSet([
@@ -91,13 +95,19 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        ['foo1', True], ['foo1', False],
-        ['foo2', True], ['foo2', False]]
+        [u'foo2', [u'name']],
+        [u'foo1', [u'name']],
+        [u'foo2', []],
+        [u'foo1', []],
+    ]
 
     for h in new_hs:
-      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      is_summary = sorted(
+          list(h.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, [])))
       self.assertIn([h.name, is_summary], expected)
       expected.remove([h.name, is_summary])
+
+    self.assertEqual(0, len(expected))
 
   def testAddReservedDiagnostics_Stories_Merged(self):
     hs = histogram_set.HistogramSet([
@@ -112,12 +122,16 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        ['foo', True, ['foo1', 'foo2']],
-        ['foo', False, ['foo1']], ['foo', False, ['foo2']],
-        ['bar', True, ['bar']], ['bar', False, ['bar']]]
+        [u'foo', [], [u'foo2']],
+        [u'foo', [u'name'], [u'foo1', u'foo2']],
+        [u'bar', [u'name'], [u'bar']],
+        [u'foo', [], [u'foo1']],
+        [u'bar', [], [u'bar']],
+    ]
 
     for h in new_hs:
-      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      is_summary = sorted(
+          list(h.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, [])))
       stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
       self.assertIn([h.name, is_summary, stories], expected)
       expected.remove([h.name, is_summary, stories])
@@ -137,7 +151,7 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     for h in new_hs:
-      self.assertNotIn(reserved_infos.IS_SUMMARY.name, h.diagnostics)
+      self.assertNotIn(reserved_infos.SUMMARY_KEYS.name, h.diagnostics)
 
     self.assertEqual(2, len(new_hs.GetHistogramsNamed('foo')))
     self.assertEqual(1, len(new_hs.GetHistogramsNamed('bar')))
@@ -155,14 +169,16 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        [u'foo', False, [u'bar'], [u't:1']],
-        [u'foo', False, [u'bar'], [u't:2']],
-        [u'foo', True, [u'bar'], [u't:1']],
-        [u'foo', True, [u'bar'], [u't:2']]
+        [u'foo', [u'name'], [u'bar'], [u't:1', u't:2']],
+        [u'foo', [], [u'bar'], [u't:1']],
+        [u'foo', [], [u'bar'], [u't:2']],
+        [u'foo', [u'name', u'storyTags'], [u'bar'], [u't:1']],
+        [u'foo', [u'name', u'storyTags'], [u'bar'], [u't:2']],
     ]
 
     for h in new_hs:
-      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      is_summary = sorted(
+          list(h.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, [])))
       stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
       tags = sorted(list(h.diagnostics[reserved_infos.STORY_TAGS.name]))
       self.assertIn([h.name, is_summary, stories, tags], expected)
@@ -185,12 +201,14 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        [u'foo', True, ['story1'], ['ignored', 't:1']],
-        [u'foo', False, ['story1'], ['ignored', 't:1']],
+        [u'foo', [u'name', u'storyTags'], [u'story1'], [u'ignored', u't:1']],
+        [u'foo', [], [u'story1'], [u'ignored', u't:1']],
+        [u'foo', [u'name'], [u'story1'], [u'ignored', u't:1']],
     ]
 
     for h in new_hs:
-      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      is_summary = sorted(
+          list(h.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, [])))
       stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
       tags = sorted(list(h.diagnostics[reserved_infos.STORY_TAGS.name]))
       self.assertIn([h.name, is_summary, stories, tags], expected)
