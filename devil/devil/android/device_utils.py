@@ -2347,9 +2347,8 @@ class DeviceUtils(object):
     """
     try:
       ps_cmd = 'ps'
-      # ps behavior was changed in Android above N, http://crbug.com/686716
-      if (self.build_version_sdk >= version_codes.NOUGAT_MR1
-          and self.build_id[0] > 'N'):
+      # ps behavior was changed in Android O and above, http://crbug.com/686716
+      if self.build_version_sdk >= version_codes.O:
         ps_cmd = 'ps -e'
       if pattern:
         return self._RunPipedShellCommand(
