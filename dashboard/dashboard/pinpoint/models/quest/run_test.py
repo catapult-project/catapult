@@ -35,7 +35,7 @@ class SwarmingExpiredError(StandardError):
   def __init__(self, task_id):
     self.task_id = task_id
     super(SwarmingExpiredError, self).__init__(
-        'The swarming task %s expired. The bots are probably overloaded, '
+        'The swarming task %s expired. The bots are likely overloaded or dead, '
         'or may be misconfigured.' % self.task_id)
 
   def __reduce__(self):

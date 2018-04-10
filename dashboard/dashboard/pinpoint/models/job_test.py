@@ -66,7 +66,9 @@ Understanding performance regressions:
 
 _COMMENT_FAILED = (
     u"""\U0001f63f Pinpoint job stopped with an error.
-https://testbed.example.com/job/1""")
+https://testbed.example.com/job/1
+
+Error string""")
 
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
@@ -256,7 +258,7 @@ class BugCommentTest(testing_common.TestCase):
                  'reviewer1@chromium.org', 'reviewer2@chromium.org'])
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
-                     mock.MagicMock(side_effect=AssertionError))
+                     mock.MagicMock(side_effect=AssertionError('Error string')))
   def testFailed(self):
     j = job.Job.New({}, [], False, bug_id=123456)
     j.put()
