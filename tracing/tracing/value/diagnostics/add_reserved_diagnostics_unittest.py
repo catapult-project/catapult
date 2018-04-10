@@ -144,8 +144,9 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
   def testAddReservedDiagnostics_WithTags(self):
     hs = histogram_set.HistogramSet([
-        self._CreateHistogram('foo', ['bar'], ['baz']),
-        self._CreateHistogram('foo', ['bar'], ['qux'])])
+        self._CreateHistogram('foo', ['bar'], ['t:1']),
+        self._CreateHistogram('foo', ['bar'], ['t:2'])
+    ])
 
     new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
         hs.AsDicts(), {'benchmarks': 'bar'})
@@ -154,10 +155,38 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     new_hs.ImportDicts(json.loads(new_hs_json))
 
     expected = [
-        [u'foo', False, [u'bar'], [u'qux']],
-        [u'foo', False, [u'bar'], [u'baz']],
-        [u'foo', True, [u'bar'], [u'baz']],
-        [u'foo', True, [u'bar'], [u'qux']]
+        [u'foo', False, [u'bar'], [u't:1']],
+        [u'foo', False, [u'bar'], [u't:2']],
+        [u'foo', True, [u'bar'], [u't:1']],
+        [u'foo', True, [u'bar'], [u't:2']]
+    ]
+
+    for h in new_hs:
+      is_summary = reserved_infos.IS_SUMMARY.name in h.diagnostics
+      stories = sorted(list(h.diagnostics[reserved_infos.STORIES.name]))
+      tags = sorted(list(h.diagnostics[reserved_infos.STORY_TAGS.name]))
+      self.assertIn([h.name, is_summary, stories, tags], expected)
+      expected.remove([h.name, is_summary, stories, tags])
+
+    self.assertEqual(0, len(expected))
+
+  def testAddReservedDiagnostics_WithTags_SomeIgnored(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram(
+            'foo', stories=['story1'], tags=['t:1', 'ignored']),
+        self._CreateHistogram(
+            'foo', stories=['story1'], tags=['t:1']),
+    ])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    expected = [
+        [u'foo', True, ['story1'], ['ignored', 't:1']],
+        [u'foo', False, ['story1'], ['ignored', 't:1']],
     ]
 
     for h in new_hs:
