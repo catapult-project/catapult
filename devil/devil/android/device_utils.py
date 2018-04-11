@@ -1553,8 +1553,14 @@ class DeviceUtils(object):
       to_delete = device_checksums.keys()
 
     def cache_commit_func():
-      new_sums = {posixpath.join(device_path, path[len(host_path) + 1:]): val
-                  for path, val in host_checksums.iteritems()}
+      # When host_path is a not a directory, the path.join() call below would
+      # have an '' as the second argument, causing an unwanted / to be appended.
+      if os.path.isfile(host_path):
+        assert len(host_checksums) == 1
+        new_sums = {device_path: host_checksums[host_path]}
+      else:
+        new_sums = {posixpath.join(device_path, path[len(host_path) + 1:]): val
+                    for path, val in host_checksums.iteritems()}
       cache_entry = [ignore_other_files, new_sums]
       self._cache['device_path_checksums'][device_path] = cache_entry
 
@@ -1676,6 +1682,8 @@ class DeviceUtils(object):
       except zip_utils.ZipFailedError:
         return False
 
+      logger.info('Pushing %d files via .zip of size %d', len(files),
+                  os.path.getsize(zip_path))
       self.NeedsSU()
       with device_temp_file.DeviceTempFile(
           self.adb, suffix='.zip') as device_temp:

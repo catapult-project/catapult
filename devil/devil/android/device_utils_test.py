@@ -1768,6 +1768,8 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
          mock_zip_temp_dir),
         (mock.call.devil.utils.zip_utils.WriteZipFile(
             '/test/temp/dir/tmp.zip', test_files)),
+        (mock.call.os.path.getsize(
+            '/test/temp/dir/tmp.zip'), 123),
         (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb,
                                                                  suffix='.zip'),
