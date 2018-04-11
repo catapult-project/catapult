@@ -79,6 +79,14 @@ def _MergeHistogramSetByPath(hs):
     return merge_histograms.MergeHistograms(temp.name, (
         reserved_infos.TEST_PATH.name,))
 
+def _GetAndDeleteHadFailures(hs):
+  had_failures = False
+  for h in hs:
+    had_failures_diag = h.diagnostics.get(reserved_infos.HAD_FAILURES.name)
+    if had_failures_diag:
+      del h.diagnostics[reserved_infos.HAD_FAILURES.name]
+      had_failures = True
+  return had_failures
 
 def AddReservedDiagnostics(histogram_dicts, names_to_values):
   # We need to generate summary statistics for anything that had a story, so
@@ -102,35 +110,39 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
     h.diagnostics[reserved_infos.TEST_PATH.name] = (
         generic_set.GenericSet([ComputeTestPath(h)]))
 
+  _GetAndDeleteHadFailures(hs)
   dicts_across_repeats = _MergeHistogramSetByPath(hs)
 
+  had_failures = _GetAndDeleteHadFailures(hs_with_stories)
 
-  # This call creates summary metrics across each set of stories.
-  hs = histogram_set.HistogramSet()
-  hs.ImportDicts(hs_with_stories.AsDicts())
-  hs.FilterHistograms(lambda h: not GetTIRLabelFromHistogram(h))
+  if not had_failures:
+    # This call creates summary metrics across each tag set of stories.
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(hs_with_stories.AsDicts())
+    hs.FilterHistograms(lambda h: not GetTIRLabelFromHistogram(h))
 
-  for h in hs:
-    h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
-        generic_set.GenericSet(['name', 'storyTags']))
-    h.diagnostics[reserved_infos.TEST_PATH.name] = (
-        generic_set.GenericSet([ComputeTestPath(h)]))
+    for h in hs:
+      h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
+          generic_set.GenericSet(['name', 'storyTags']))
+      h.diagnostics[reserved_infos.TEST_PATH.name] = (
+          generic_set.GenericSet([ComputeTestPath(h)]))
 
-  dicts_across_stories = _MergeHistogramSetByPath(hs)
+    dicts_across_stories = _MergeHistogramSetByPath(hs)
 
+    # This call creates summary metrics across the entire story set.
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(hs_with_stories.AsDicts())
 
-  # This call creates summary metrics across each set of stories.
-  hs = histogram_set.HistogramSet()
-  hs.ImportDicts(hs_with_stories.AsDicts())
+    for h in hs:
+      h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
+          generic_set.GenericSet(['name']))
+      h.diagnostics[reserved_infos.TEST_PATH.name] = (
+          generic_set.GenericSet([ComputeTestPath(h)]))
 
-  for h in hs:
-    h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
-        generic_set.GenericSet(['name']))
-    h.diagnostics[reserved_infos.TEST_PATH.name] = (
-        generic_set.GenericSet([ComputeTestPath(h)]))
-
-  dicts_across_names = _MergeHistogramSetByPath(hs)
-
+    dicts_across_names = _MergeHistogramSetByPath(hs)
+  else:
+    dicts_across_stories = []
+    dicts_across_names = []
 
   # Now load everything into one histogram set. First we load the summary
   # histograms, since we need to mark them with SUMMARY_KEYS.

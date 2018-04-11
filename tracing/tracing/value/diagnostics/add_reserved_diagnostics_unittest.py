@@ -13,7 +13,7 @@ from tracing.value.diagnostics import reserved_infos
 
 class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
-  def _CreateHistogram(self, name, stories=None, tags=None):
+  def _CreateHistogram(self, name, stories=None, tags=None, had_failures=False):
     h = histogram.Histogram(name, 'count')
     if stories:
       h.diagnostics[reserved_infos.STORIES.name] = generic_set.GenericSet(
@@ -21,6 +21,9 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     if tags:
       h.diagnostics[reserved_infos.STORY_TAGS.name] = generic_set.GenericSet(
           tags)
+    if had_failures:
+      h.diagnostics[reserved_infos.HAD_FAILURES.name] = generic_set.GenericSet(
+          [True])
     return h
 
   def testAddReservedDiagnostics_InvalidDiagnostic_Raises(self):
@@ -215,3 +218,20 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
       expected.remove([h.name, is_summary, stories, tags])
 
     self.assertEqual(0, len(expected))
+
+  def testAddReservedDiagnostics_OmitsSummariesIfHadFailures(self):
+    hs = histogram_set.HistogramSet([
+        self._CreateHistogram('foo', ['bar'], had_failures=True)])
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    self.assertEqual(len(new_hs), 1)
+
+    h = new_hs.GetFirstHistogram()
+    self.assertEqual(h.name, 'foo')
+    self.assertNotIn(reserved_infos.SUMMARY_KEYS.name, h.diagnostics)
+    self.assertNotIn(reserved_infos.HAD_FAILURES.name, h.diagnostics)

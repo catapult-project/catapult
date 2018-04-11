@@ -47,6 +47,7 @@ class TelemetryInfo(object):
     self._trace_remote_path = None
     self._output_dir = output_dir
     self._trace_local_path = None
+    self._had_failures = None
 
   @property
   def upload_bucket(self):
@@ -114,6 +115,16 @@ class TelemetryInfo(object):
   @property
   def storyset_repeat_counter(self):
     return self._storyset_repeat_counter
+
+  @property
+  def had_failures(self):
+    return self._had_failures
+
+  @had_failures.setter
+  def had_failures(self, had_failures):
+    assert self.had_failures is None, (
+        'had_failures cannot be set more than once')
+    self._had_failures = had_failures
 
   def InterruptBenchmark(self):
     self._benchmark_interrupted = True
@@ -184,6 +195,8 @@ class TelemetryInfo(object):
     d[reserved_infos.STORYSET_REPEATS.name] = [self.storyset_repeat_counter]
     d[reserved_infos.TRACE_START.name] = self.trace_start_ms
     d[reserved_infos.TRACE_URLS.name] = [self.trace_url]
+    if self.had_failures:
+      d[reserved_infos.HAD_FAILURES.name] = [self.had_failures]
     return d
 
 
