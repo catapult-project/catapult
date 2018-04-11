@@ -36,6 +36,7 @@ class ListTimeseriesTest(testing_common.TestCase):
         'v8': {
             'sunspider': {'Total': {}},
             'octane': {'Total': {}},
+            'memory': {'Total': {}},
         },
         'page_cycler': {
             'warm': {'cnn': {}, 'facebook': {}, 'yahoo': {}},
@@ -45,8 +46,14 @@ class ListTimeseriesTest(testing_common.TestCase):
 
     sheriff.Sheriff(
         id='V8 Perf Sheriff', email='v8@v8.com', patterns=[
-            '*/*/v8/*',
-            '*/*/v8/*/*'
+            '*/*/v8/sunspider/*',
+            '*/*/v8/octane/*',
+            '*/*/v8/octane'
+        ]).put()
+
+    sheriff.Sheriff(
+        id='V8 Memory Sheriff', email='v8-memory@v8.com', patterns=[
+            '*/*/v8/memory/*',
         ]).put()
 
     sheriff.Sheriff(
@@ -55,7 +62,7 @@ class ListTimeseriesTest(testing_common.TestCase):
             '*/*/page_cycler/warm/*'
         ]).put()
     for bot in ['linux', 'win', 'mac']:
-      for path in ['sunspider/Total', 'octane/Total', 'octane']:
+      for path in ['sunspider/Total', 'octane/Total', 'octane', 'memory/Total']:
         testing_common.AddRows(
             'ChromiumPerf/%s/v8/%s' % (bot, path), [200, 300, 400, 500])
       for page in ['warm/cnn',
@@ -123,6 +130,30 @@ class ListTimeseriesTest(testing_common.TestCase):
         'ChromiumPerf/win/v8/sunspider/Total',
         'ChromiumPerf/win/v8/octane/Total',
         'ChromiumPerf/win/v8/octane',
+    ]), set(paths))
+
+  @mock.patch.object(api_auth, 'oauth')
+  def testPost_AllSheriff_ListsAllV8Perf(self, mock_oauth):
+    mock_oauth.get_current_user.return_value = GOOGLER_USER
+    mock_oauth.get_client_id.return_value = (
+        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self._AddData()
+
+    response = self.testapp.post('/api/list_timeseries/v8', {'sheriff': 'all'})
+    paths = json.loads(response.body)
+    self.assertEqual(set([
+        'ChromiumPerf/mac/v8/sunspider/Total',
+        'ChromiumPerf/mac/v8/octane/Total',
+        'ChromiumPerf/mac/v8/octane',
+        'ChromiumPerf/mac/v8/memory/Total',
+        'ChromiumPerf/linux/v8/sunspider/Total',
+        'ChromiumPerf/linux/v8/octane/Total',
+        'ChromiumPerf/linux/v8/octane',
+        'ChromiumPerf/linux/v8/memory/Total',
+        'ChromiumPerf/win/v8/sunspider/Total',
+        'ChromiumPerf/win/v8/octane/Total',
+        'ChromiumPerf/win/v8/octane',
+        'ChromiumPerf/win/v8/memory/Total',
     ]), set(paths))
 
 

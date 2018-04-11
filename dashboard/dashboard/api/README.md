@@ -94,8 +94,11 @@ The bugs API returns the following JSON about the bug:
  URL patterns for accessing timeseries:
 
   * `/api/list_timeseries/benchmark`: List all the monitored timeseries
-    associated with `benchmark`. Takes an optional `sheriff` param in postdata.
-    Returns an array of test_paths (master/bot/benchmark/metric/page).
+    associated with `benchmark`. Takes an optional `sheriff` param in postdata,
+    which can be set to a name of the seriff rotation or `all` to search for
+    metrics in all rotations. If not specified, the `Chromium Perf Sheriff`
+    rotation is used. Returns an array of test_paths
+    (master/bot/benchmark/metric/page).
   * `/api/timeseries/test_path`: Return the timeseries data for the given
     `test_path` as JSON. Can specify `num_days` param in postdata, defaults to
     30.

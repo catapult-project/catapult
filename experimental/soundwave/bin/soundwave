@@ -64,7 +64,9 @@ def Main():
             'substrings.'))
   subparser.add_argument(
       '-s', '--sheriff', default='Chromium Perf Sheriff',
-      help='Only get data for timeseries for this sheriff rotation')
+      help='Only get data for timeseries for this sheriff rotation. You can '
+           'use a special value "all" to disable filtering by sheriff '
+           'rotation.')
 
   args = parser.parse_args()
   if args.action == 'alerts':
