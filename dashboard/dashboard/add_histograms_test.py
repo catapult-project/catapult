@@ -94,11 +94,11 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     SetGooglerOAuth(mock_oauth)
 
   def _CreateHistogram(
-      self, master=None, bot=None, benchmark=None, commit_position=None,
+      self, name='hist', master=None, bot=None, benchmark=None,
       device=None, owner=None, stories=None, story_tags=None,
-      benchmark_description=None,
+      benchmark_description=None, commit_position=None,
       samples=None, max_samples=None, is_ref=False, is_summary=None):
-    hists = [histogram_module.Histogram('hist', 'count')]
+    hists = [histogram_module.Histogram(name, 'count')]
     if max_samples:
       hists[0].max_num_sample_values = max_samples
     if samples:
@@ -185,6 +185,28 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     # the rows by iterating over a dict.
     mock_graph_revisions.assert_called_once()
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_BenchmarkTotalDuration_Filtered(self):
+    hs = self._CreateHistogram(
+        name='benchmark_total_duration', master='master', bot='bot',
+        benchmark='v8.browsing', commit_position=123, samples=[1], is_ref=True)
+    data = json.dumps(hs.AsDicts())
+
+    self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    tests = graph_data.TestMetadata.query().fetch()
+    for t in tests:
+      parts = t.key.id().split('/')
+      if len(parts) <= 3:
+        continue
+      self.assertEqual('benchmark_total_duration', parts[3])
 
   def testPost_PurgesBinData(self):
     hs = self._CreateHistogram(
@@ -459,7 +481,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def testPost_SetsCorrectTestPathForSummary(self):
     histograms = self._CreateHistogram(
-        'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
+        master='master', bot='bot', benchmark='benchmark',
+        commit_position=12345, device='device_foo', stories=['story'],
         story_tags=['group:media', 'case:browse'], is_summary=['name'],
         samples=[42])
 
@@ -488,7 +511,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def testPost_SetsCorrectTestPathForTIRLabelSummary(self):
     histograms = self._CreateHistogram(
-        'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
+        master='master', bot='bot', benchmark='benchmark',
+        commit_position=12345, device='device_foo', stories=['story'],
         story_tags=['group:media', 'case:browse'],
         is_summary=['name', 'storyTags'], samples=[42])
 
@@ -524,7 +548,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def testPost_SetsCorrectTestPathForNonSummary(self):
     histograms = self._CreateHistogram(
-        'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
+        master='master', bot='bot', benchmark='benchmark',
+        commit_position=12345, device='device_foo', stories=['story'],
         is_summary=None, samples=[42])
 
     self.testapp.post(
@@ -538,7 +563,8 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
 
   def testPost_SetsCorrectTestPathForSummaryAbsent(self):
     histograms = self._CreateHistogram(
-        'master', 'bot', 'benchmark', 12345, 'device_foo', stories=['story'],
+        master='master', bot='bot', benchmark='benchmark',
+        commit_position=12345, device='device_foo', stories=['story'],
         samples=[42])
 
     self.testapp.post(

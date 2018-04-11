@@ -272,6 +272,8 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
 
 
 def _ShouldFilter(test_name, benchmark_name, stat_name):
+  if test_name == 'benchmark_total_duration':
+    return True
   if benchmark_name.startswith('memory') and not benchmark_name.startswith(
       'memory.long_running'):
     if 'memory:' in test_name and stat_name in STATS_BLACKLIST:
@@ -288,8 +290,6 @@ def _ShouldFilter(test_name, benchmark_name, stat_name):
   if benchmark_name.startswith('v8.browsing'):
     value_name = '%s_%s' % (test_name, stat_name)
     return not _ShouldAddV8BrowsingValue(value_name)
-  if test_name == 'benchmark_total_duration':
-    return True
   return False
 
 
