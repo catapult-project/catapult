@@ -9,62 +9,78 @@ import mock
 from dashboard.pinpoint.models.quest import run_test
 
 
+_BASE_ARGUMENTS = {
+    'swarming_server': 'server',
+    'dimensions': {'key': 'value'},
+}
+
+
 class StartTest(unittest.TestCase):
 
   def testStart(self):
-    quest = run_test.RunTest({'key': 'value'}, ['arg'])
+    quest = run_test.RunTest('server', {'key': 'value'}, ['arg'])
     execution = quest.Start('change', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
   # TODO: Remove after there are no more jobs running RunTest quests
   # (instead of RunTelemetryTest quests).
   def testResultsLabel(self):
-    quest = run_test.RunTest({'key': 'value'}, ['--results-label', ''])
+    quest = run_test.RunTest('server', {'key': 'value'},
+                             ['--results-label', ''])
     execution = quest.Start('change', 'isolate hash')
     self.assertEqual(execution._extra_args, ['--results-label', 'change'])
 
 
 class FromDictTest(unittest.TestCase):
 
-  def testMissingDimensions(self):
-    with self.assertRaises(TypeError):
-      run_test.RunTest.FromDict({})
-
-  def testInvalidExtraTestArgs(self):
-
-    with self.assertRaises(TypeError):
-      run_test.RunTest.FromDict({
-          'dimensions': '{"key": "value"}',
-          'extra_test_args': '"this is a json-encoded string"',
-      })
-
   def testMinimumArguments(self):
-    quest = run_test.RunTest.FromDict({'dimensions': '{"key": "value"}'})
-    expected = run_test.RunTest({'key': 'value'}, run_test._DEFAULT_EXTRA_ARGS)
+    quest = run_test.RunTest.FromDict(_BASE_ARGUMENTS)
+    expected = run_test.RunTest('server', {'key': 'value'},
+                                run_test._DEFAULT_EXTRA_ARGS)
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
-    quest = run_test.RunTest.FromDict({
-        'dimensions': '{"key": "value"}',
-        'extra_test_args': '["--custom-arg", "custom value"]',
-    })
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['extra_test_args'] = '["--custom-arg", "custom value"]'
+    quest = run_test.RunTest.FromDict(arguments)
+
     extra_args = ['--custom-arg', 'custom value'] + run_test._DEFAULT_EXTRA_ARGS
-    expected = run_test.RunTest({'key': 'value'}, extra_args)
+    expected = run_test.RunTest('server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
 
-  def testDictDimensions(self):
-    quest = run_test.RunTest.FromDict({'dimensions': {'key': 'value'}})
-    expected = run_test.RunTest({'key': 'value'}, run_test._DEFAULT_EXTRA_ARGS)
+  def testMissingSwarmingServer(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    del arguments['swarming_server']
+    with self.assertRaises(TypeError):
+      run_test.RunTest.FromDict(arguments)
+
+  def testMissingDimensions(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    del arguments['dimensions']
+    with self.assertRaises(TypeError):
+      run_test.RunTest.FromDict(arguments)
+
+  def testStringDimensions(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['dimensions'] = '{"key": "value"}'
+    quest = run_test.RunTest.FromDict(arguments)
+    expected = run_test.RunTest('server', {'key': 'value'},
+                                run_test._DEFAULT_EXTRA_ARGS)
     self.assertEqual(quest, expected)
+
+  def testInvalidExtraTestArgs(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['extra_test_args'] = '"this is a json-encoded string"'
+    with self.assertRaises(TypeError):
+      run_test.RunTest.FromDict(arguments)
 
   def testStringExtraTestArgs(self):
-    quest = run_test.RunTest.FromDict({
-        'dimensions': '{"key": "value"}',
-        'extra_test_args': '--custom-arg "custom value"',
-    })
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['extra_test_args'] = '--custom-arg "custom value"'
+    quest = run_test.RunTest.FromDict(arguments)
 
     extra_args = ['--custom-arg', 'custom value'] + run_test._DEFAULT_EXTRA_ARGS
-    expected = run_test.RunTest({'key': 'value'}, extra_args)
+    expected = run_test.RunTest('server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
 
 
@@ -117,7 +133,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start('change_1', 'input isolate hash')
 
     swarming_task_result.assert_not_called()
@@ -189,7 +205,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start(None, 'input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -208,7 +224,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start(None, 'isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -230,7 +246,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start('change_1', 'input isolate hash')
     execution.Poll()
     with self.assertRaises(run_test.SwarmingExpiredError):
@@ -245,7 +261,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'CANCELED'}
 
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start('change_1', 'input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -269,7 +285,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                                  swarming_tasks_new):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
-    quest = run_test.RunTest([{'key': 'value'}], ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution_1 = quest.Start('change_1', 'input isolate hash')
     execution_2 = quest.Start('change_2', 'input isolate hash')
 

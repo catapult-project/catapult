@@ -28,6 +28,16 @@ _BASE_REQUEST = {
 }
 
 
+# TODO: Make this agnostic to the parameters the Quests take.
+_CONFIGURATION_ARGUMENTS = {
+    'browser': 'release',
+    'builder': 'Mac Builder',
+    'dimensions': '{"key": "value"}',
+    'repository': 'src',
+    'swarming_server': 'https://chromium-swarm.appspot.com',
+}
+
+
 class _NewTest(testing_common.TestCase):
 
   def setUp(self):
@@ -41,12 +51,7 @@ class _NewTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
     namespaced_stored_object.Set('bot_configurations', {
-        'chromium-rel-mac11-pro': {
-            'browser': 'release',
-            'builder': 'Mac Builder',
-            'dimensions': {'key': 'value'},
-            'repository': 'src',
-        },
+        'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS
     })
     namespaced_stored_object.Set('repositories', {
         'src': {'repository_url': 'http://src'},
@@ -84,14 +89,8 @@ class NewTest(_NewTest):
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
       return_value={'commit': 'abc'}))
   def testPost_NoConfiguration(self):
-    # TODO: Make this test agnostic to the parameters the Quests take.
     request = dict(_BASE_REQUEST)
-    request.update({
-        'builder': 'Mac Builder',
-        'dimensions': '{"key": "value"}',
-        'browser': 'android-webview',
-        'repository': 'src',
-    })
+    request.update(_CONFIGURATION_ARGUMENTS)
     del request['configuration']
     response = self.testapp.post('/api/new', request, status=200)
     result = json.loads(response.body)

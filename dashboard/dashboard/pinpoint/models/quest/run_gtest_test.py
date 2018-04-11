@@ -8,21 +8,27 @@ from dashboard.pinpoint.models.quest import run_gtest
 from dashboard.pinpoint.models.quest import run_test
 
 
-_MIN_ARGUMENTS = ['--gtest_repeat=1'] + run_test._DEFAULT_EXTRA_ARGS
-_ALL_ARGUMENTS = ['--gtest_filter=test_name'] + _MIN_ARGUMENTS
+_BASE_ARGUMENTS = {
+    'swarming_server': 'server',
+    'dimensions': {'key': 'value'},
+}
+
+
+_BASE_EXTRA_ARGS = ['--gtest_repeat=1'] + run_test._DEFAULT_EXTRA_ARGS
 
 
 class FromDictTest(unittest.TestCase):
 
   def testMinimumArguments(self):
-    quest = run_gtest.RunGTest.FromDict({'dimensions': {'key': 'value'}})
-    expected = run_gtest.RunGTest({'key': 'value'}, _MIN_ARGUMENTS)
+    quest = run_gtest.RunGTest.FromDict(_BASE_ARGUMENTS)
+    expected = run_gtest.RunGTest('server', {'key': 'value'}, _BASE_EXTRA_ARGS)
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
-    quest = run_gtest.RunGTest.FromDict({
-        'dimensions': {'key': 'value'},
-        'test': 'test_name',
-    })
-    expected = run_gtest.RunGTest({'key': 'value'}, _ALL_ARGUMENTS)
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['test'] = 'test_name'
+    quest = run_gtest.RunGTest.FromDict(arguments)
+
+    extra_args = ['--gtest_filter=test_name'] + _BASE_EXTRA_ARGS
+    expected = run_gtest.RunGTest('server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)

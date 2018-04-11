@@ -8,34 +8,24 @@ from dashboard.pinpoint.models.quest import run_telemetry_test
 from dashboard.pinpoint.models.quest import run_test
 
 
+_BASE_ARGUMENTS = {
+    'swarming_server': 'server',
+    'dimensions': {'key': 'value'},
+    'benchmark': 'speedometer',
+    'browser': 'release',
+}
 
-_MIN_ARGUMENTS = [
+
+_BASE_EXTRA_ARGS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
-] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
-
-
-_ALL_ARGUMENTS = [
-    'speedometer', '--story-filter', 'http://www.fifa.com/',
-    '--pageset-repeat', '1', '--browser', 'release',
-] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
-
-
-_STARTUP_BENCHMARK_ARGUMENTS = [
-    'start_with_url.warm.startup_pages',
-    '--pageset-repeat', '2', '--browser', 'release',
-] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
-
-
-_WEBVIEW_ARGUMENTS = [
-    'speedometer', '--pageset-repeat', '1', '--browser', 'android-webview',
-    '--webview-embedder-apk', '../../out/Release/apks/SystemWebViewShell.apk',
 ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
 
 
 class StartTest(unittest.TestCase):
 
   def testStart(self):
-    quest = run_telemetry_test.RunTelemetryTest({'key': 'value'}, ['arg'])
+    quest = run_telemetry_test.RunTelemetryTest(
+        'server', {'key': 'value'}, ['arg'])
     execution = quest.Start('change', 'isolate hash')
     self.assertEqual(execution._extra_args,
                      ['arg', '--results-label', 'change'])
@@ -43,57 +33,60 @@ class StartTest(unittest.TestCase):
 
 class FromDictTest(unittest.TestCase):
 
-  def testMissingBenchmark(self):
-    with self.assertRaises(TypeError):
-      run_telemetry_test.RunTelemetryTest.FromDict({
-          'dimensions': {'key': 'value'},
-          'browser': 'release',
-      })
-
-  def testMissingBrowser(self):
-    with self.assertRaises(TypeError):
-      run_telemetry_test.RunTelemetryTest.FromDict({
-          'dimensions': {'key': 'value'},
-          'benchmark': 'speedometer',
-      })
-
   def testMinimumArguments(self):
-    quest = run_telemetry_test.RunTelemetryTest.FromDict({
-        'dimensions': {'key': 'value'},
-        'benchmark': 'speedometer',
-        'browser': 'release',
-    })
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(_BASE_ARGUMENTS)
     expected = run_telemetry_test.RunTelemetryTest(
-        {'key': 'value'}, _MIN_ARGUMENTS)
+        'server', {'key': 'value'}, _BASE_EXTRA_ARGS)
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
-    quest = run_telemetry_test.RunTelemetryTest.FromDict({
-        'dimensions': {'key': 'value'},
-        'benchmark': 'speedometer',
-        'browser': 'release',
-        'story': 'http://www.fifa.com/',
-    })
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['story'] = 'http://www.fifa.com/'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    extra_args = [
+        'speedometer', '--story-filter', 'http://www.fifa.com/',
+        '--pageset-repeat', '1', '--browser', 'release',
+    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        {'key': 'value'}, _ALL_ARGUMENTS)
+        'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
 
+  def testMissingBenchmark(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    del arguments['benchmark']
+    with self.assertRaises(TypeError):
+      run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+  def testMissingBrowser(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    del arguments['browser']
+    with self.assertRaises(TypeError):
+      run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
   def testStartupBenchmarkRepeatCount(self):
-    quest = run_telemetry_test.RunTelemetryTest.FromDict({
-        'dimensions': {'key': 'value'},
-        'benchmark': 'start_with_url.warm.startup_pages',
-        'browser': 'release',
-    })
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['benchmark'] = 'start_with_url.warm.startup_pages'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    extra_args = [
+        'start_with_url.warm.startup_pages',
+        '--pageset-repeat', '2', '--browser', 'release',
+    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        {'key': 'value'}, _STARTUP_BENCHMARK_ARGUMENTS)
+        'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
 
   def testWebviewFlag(self):
-    quest = run_telemetry_test.RunTelemetryTest.FromDict({
-        'dimensions': {'key': 'value'},
-        'benchmark': 'speedometer',
-        'browser': 'android-webview',
-    })
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-webview'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    extra_args = [
+        'speedometer', '--pageset-repeat', '1',
+        '--browser', 'android-webview', '--webview-embedder-apk',
+        '../../out/Release/apks/SystemWebViewShell.apk',
+    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        {'key': 'value'}, _WEBVIEW_ARGUMENTS)
+        'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)

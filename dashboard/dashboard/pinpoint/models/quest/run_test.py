@@ -73,7 +73,8 @@ class SwarmingTestError(RunTestError):
 
 class RunTest(quest.Quest):
 
-  def __init__(self, dimensions, extra_args):
+  def __init__(self, swarming_server, dimensions, extra_args):
+    self._swarming_server = swarming_server
     self._dimensions = dimensions
     self._extra_args = extra_args
 
@@ -83,6 +84,7 @@ class RunTest(quest.Quest):
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
+            self._swarming_server == other._swarming_server and
             self._dimensions == other._dimensions and
             self._extra_args == other._extra_args and
             self._canonical_executions == other._canonical_executions and
@@ -109,13 +111,16 @@ class RunTest(quest.Quest):
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
 
+    if not hasattr(self, '_swarming_server'):
+      # TODO: Remove after data migration. crbug.com/822008
+      self._swarming_server = 'https://chromium-swarm.appspot.com'
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(
-          self._dimensions, extra_args, isolate_hash)
+          self._swarming_server, self._dimensions, extra_args, isolate_hash)
       self._canonical_executions.append(execution)
     else:
       execution = _RunTestExecution(
-          self._dimensions, extra_args, isolate_hash,
+          self._swarming_server, self._dimensions, extra_args, isolate_hash,
           previous_execution=self._canonical_executions[index])
 
     return execution
@@ -126,6 +131,10 @@ class RunTest(quest.Quest):
 
   @classmethod
   def _FromDict(cls, arguments, swarming_extra_args):
+    swarming_server = arguments.get('swarming_server')
+    if not swarming_server:
+      raise TypeError('Missing a "swarming_server" argument.')
+
     dimensions = arguments.get('dimensions')
     if not dimensions:
       raise TypeError('Missing a "dimensions" argument.')
@@ -144,14 +153,16 @@ class RunTest(quest.Quest):
         raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
       swarming_extra_args += extra_test_args
 
-    return cls(dimensions, swarming_extra_args + _DEFAULT_EXTRA_ARGS)
+    return cls(swarming_server, dimensions,
+               swarming_extra_args + _DEFAULT_EXTRA_ARGS)
 
 
 class _RunTestExecution(execution_module.Execution):
 
-  def __init__(self, dimensions, extra_args, isolate_hash,
-               previous_execution=None):
+  def __init__(self, swarming_server, dimensions, extra_args,
+               isolate_hash, previous_execution=None):
     super(_RunTestExecution, self).__init__()
+    self._swarming_server = swarming_server
     self._dimensions = dimensions
     self._extra_args = extra_args
     self._isolate_hash = isolate_hash
@@ -175,9 +186,11 @@ class _RunTestExecution(execution_module.Execution):
       self._StartTask()
       return
 
-    # TODO: Pass the Swarming server through the parameters. crbug.com/822008
+    if not hasattr(self, '_swarming_server'):
+      # TODO: Remove after data migration. crbug.com/822008
+      self._swarming_server = 'https://chromium-swarm.appspot.com'
     result = swarming.Swarming(
-        'https://chromium-swarm.appspot.com').Task(self._task_id).Result()
+        self._swarming_server).Task(self._task_id).Result()
 
     if 'bot_id' in result:
       # Set bot_id to pass the info back to the Quest.
@@ -235,8 +248,9 @@ class _RunTestExecution(execution_module.Execution):
             'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
         },
     }
-    # TODO: Pass the Swarming server through the parameters. crbug.com/822008
-    response = swarming.Swarming(
-        'https://chromium-swarm.appspot.com').Tasks().New(body)
+    if not hasattr(self, '_swarming_server'):
+      # TODO: Remove after data migration. crbug.com/822008
+      self._swarming_server = 'https://chromium-swarm.appspot.com'
+    response = swarming.Swarming(self._swarming_server).Tasks().New(body)
 
     self._task_id = response['task_id']
