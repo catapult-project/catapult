@@ -209,6 +209,8 @@ class JobState(object):
     if any(not attempt.completed for attempt in attempts_a + attempts_b):
       return _PENDING
 
+    attempt_count = len(attempts_a) + len(attempts_b)
+
     executions_by_quest_a = _ExecutionsPerQuest(attempts_a)
     executions_by_quest_b = _ExecutionsPerQuest(attempts_b)
 
@@ -221,7 +223,7 @@ class JobState(object):
       values_a = tuple(bool(execution.exception) for execution in executions_a)
       values_b = tuple(bool(execution.exception) for execution in executions_b)
       if values_a and values_b:
-        comparison = _CompareValues(values_a, values_b)
+        comparison = _CompareValues(values_a, values_b, attempt_count)
         if comparison == _DIFFERENT:
           return _DIFFERENT
         elif comparison == _UNKNOWN:
@@ -233,7 +235,7 @@ class JobState(object):
       values_b = tuple(_Mean(execution.result_values)
                        for execution in executions_b if execution.result_values)
       if values_a and values_b:
-        comparison = _CompareValues(values_a, values_b)
+        comparison = _CompareValues(values_a, values_b, attempt_count)
         if comparison == _DIFFERENT:
           return _DIFFERENT
         elif comparison == _UNKNOWN:
@@ -253,12 +255,13 @@ def _ExecutionsPerQuest(attempts):
   return executions
 
 
-def _CompareValues(values_a, values_b):
+def _CompareValues(values_a, values_b, attempt_count):
   """Decide whether two samples are the same, different, or unknown.
 
   Arguments:
     values_a: A list of sortable values. They don't need to be numeric.
     values_b: A list of sortable values. They don't need to be numeric.
+    attempt_count: The total number of attempts made.
 
   Returns:
     _DIFFERENT: The samples likely come from different distributions.
@@ -287,8 +290,7 @@ def _CompareValues(values_a, values_b):
     # hypothesis.
     return _DIFFERENT
 
-  index = min(len(values_a), len(values_b)) / 10
-  index = min(index, len(_QUESTIONABLE_SIGNIFICANCE_LEVELS) - 1)
+  index = min(attempt_count / 20, len(_QUESTIONABLE_SIGNIFICANCE_LEVELS) - 1)
   questionable_significance_level = _QUESTIONABLE_SIGNIFICANCE_LEVELS[index]
   if p_value < questionable_significance_level:
     # The p-value is not less than the significance level, but it's small enough
