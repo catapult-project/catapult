@@ -466,8 +466,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertAlmostEqual(6.0, row.d_sum)
 
     self.assertEqual(2, len(r_fields))
-    self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_git)
-    self.assertEqual('123', row.r_chromium_commit_pos)
+    self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_rev)
+    self.assertEqual('123', row.r_commit_pos)
 
     self.assertEqual(2, len(a_fields))
     self.assertEqual('http://google.com/', row.a_tracing_uri)

@@ -33,10 +33,10 @@ from tracing.value.diagnostics import reserved_infos
 
 DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.LOG_URLS.name: 'a_stdio_uri',
-    reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: 'r_chromium_commit_pos',
-    reserved_infos.V8_COMMIT_POSITIONS.name: 'r_v8_rev',
-    reserved_infos.CHROMIUM_REVISIONS.name: 'r_chromium_git',
-    reserved_infos.V8_REVISIONS.name: 'r_v8_git',
+    reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: 'r_commit_pos',
+    reserved_infos.V8_COMMIT_POSITIONS.name: 'r_v8_commit_pos',
+    reserved_infos.CHROMIUM_REVISIONS.name: 'r_chromium',
+    reserved_infos.V8_REVISIONS.name: 'r_v8_rev',
     # TODO(eakuefner): Add r_catapult_git to Dashboard revision_info map (see
     # https://github.com/catapult-project/catapult/issues/3545).
     reserved_infos.CATAPULT_REVISIONS.name: 'r_catapult_git',
