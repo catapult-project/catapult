@@ -208,9 +208,10 @@ class _RunTestExecution(execution_module.Execution):
     if result['failure']:
       raise SwarmingTestError(self._task_id, result['exit_code'])
 
-    isolate_hash = result['outputs_ref']['isolated']
-
-    result_arguments = {'isolate_hash': isolate_hash}
+    result_arguments = {
+        'isolate_server': result['outputs_ref']['isolatedserver'],
+        'isolate_hash': result['outputs_ref']['isolated'],
+    }
     self._Complete(result_arguments=result_arguments)
 
 

@@ -20,7 +20,8 @@ class ReadValueError(Exception):
 
 class ReadHistogramsJsonValue(quest.Quest):
 
-  def __init__(self, hist_name, tir_label=None, story=None, statistic=None):
+  def __init__(self, hist_name=None, tir_label=None,
+               story=None, statistic=None):
     self._hist_name = hist_name
     self._tir_label = tir_label
     self._story = story
@@ -36,11 +37,18 @@ class ReadHistogramsJsonValue(quest.Quest):
   def __str__(self):
     return 'Values'
 
-  def Start(self, change, isolate_hash):
+  def Start(self, change, isolate_server=None, isolate_hash=None):
     del change
-    return _ReadHistogramsJsonValueExecution(self._hist_name, self._tir_label,
-                                             self._story, self._statistic,
-                                             isolate_hash)
+
+    # TODO(dtu): Remove after data migration.
+    # isolate_server and isolate_hash are required arguments.
+    assert isolate_hash
+    if not isolate_server:
+      isolate_server = 'https://isolateserver.appspot.com'
+
+    return _ReadHistogramsJsonValueExecution(
+        self._hist_name, self._tir_label, self._story,
+        self._statistic, isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -53,12 +61,14 @@ class ReadHistogramsJsonValue(quest.Quest):
 
 class _ReadHistogramsJsonValueExecution(execution.Execution):
 
-  def __init__(self, hist_name, tir_label, story, statistic, isolate_hash):
+  def __init__(self, hist_name, tir_label, story,
+               statistic, isolate_server, isolate_hash):
     super(_ReadHistogramsJsonValueExecution, self).__init__()
     self._hist_name = hist_name
     self._tir_label = tir_label
     self._story = story
     self._statistic = statistic
+    self._isolate_server = isolate_server
     self._isolate_hash = isolate_hash
 
     self._trace_urls = []
@@ -66,13 +76,22 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
   def _AsDict(self):
     if not self._trace_urls:
       return {}
-    return {'traces': self._trace_urls}
+    # TODO(dtu): Remove after data migration.
+    if not hasattr(self, '_isolate_server'):
+      self._isolate_server = 'https://isolateserver.appspot.com'
+    return {
+        'isolate_server': self._isolate_server,
+        'traces': self._trace_urls,
+    }
 
   def _Poll(self):
+    # TODO(dtu): Remove after data migration.
+    if not hasattr(self, '_isolate_server'):
+      self._isolate_server = 'https://isolateserver.appspot.com'
     # TODO(simonhatch): Switch this to use the new perf-output flag instead
     # of the chartjson one. They're functionally equivalent, just new name.
     histogram_dicts = _RetrieveOutputJson(
-        self._isolate_hash, 'chartjson-output.json')
+        self._isolate_server, self._isolate_hash, 'chartjson-output.json')
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
     histograms.ResolveRelatedHistograms()
@@ -153,22 +172,6 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     raise ReadValueError('Unknown statistic type: %s' % self._statistic)
 
 
-def _ResultValuesFromHistogram(buckets):
-  total_count = sum(bucket['count'] for bucket in buckets)
-
-  result_values = []
-  for bucket in buckets:
-    # TODO: Assumes the bucket is evenly distributed.
-    bucket_mean = (bucket['low'] + bucket.get('high', bucket['low'])) / 2
-    if total_count > 10000:
-      bucket_count = 10000 * bucket['count'] / total_count
-    else:
-      bucket_count = bucket['count']
-    result_values += [bucket_mean] * bucket_count
-
-  return tuple(result_values)
-
-
 class ReadGraphJsonValue(quest.Quest):
 
   def __init__(self, chart, trace):
@@ -183,9 +186,17 @@ class ReadGraphJsonValue(quest.Quest):
   def __str__(self):
     return 'Values'
 
-  def Start(self, change, isolate_hash):
+  def Start(self, change, isolate_server=None, isolate_hash=None):
     del change
-    return _ReadGraphJsonValueExecution(self._chart, self._trace, isolate_hash)
+
+    # TODO(dtu): Remove after data migration.
+    # isolate_server and isolate_hash are required arguments.
+    assert isolate_hash
+    if not isolate_server:
+      isolate_server = 'https://isolateserver.appspot.com'
+
+    return _ReadGraphJsonValueExecution(
+        self._chart, self._trace, isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -202,17 +213,25 @@ class ReadGraphJsonValue(quest.Quest):
 
 class _ReadGraphJsonValueExecution(execution.Execution):
 
-  def __init__(self, chart, trace, isolate_hash):
+  def __init__(self, chart, trace, isolate_server, isolate_hash):
     super(_ReadGraphJsonValueExecution, self).__init__()
     self._chart = chart
     self._trace = trace
+    self._isolate_server = isolate_server
     self._isolate_hash = isolate_hash
 
   def _AsDict(self):
-    return {}
+    # TODO(dtu): Remove after data migration.
+    if not hasattr(self, '_isolate_server'):
+      self._isolate_server = 'https://isolateserver.appspot.com'
+    return {'isolate_server': self._isolate_server}
 
   def _Poll(self):
-    graphjson = _RetrieveOutputJson(self._isolate_hash, 'chartjson-output.json')
+    # TODO(dtu): Remove after data migration.
+    if not hasattr(self, '_isolate_server'):
+      self._isolate_server = 'https://isolateserver.appspot.com'
+    graphjson = _RetrieveOutputJson(
+        self._isolate_server, self._isolate_hash, 'chartjson-output.json')
 
     if self._chart not in graphjson:
       raise ReadValueError('The chart "%s" is not in the results.' %
@@ -225,15 +244,14 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     self._Complete(result_values=(result_value,))
 
 
-def _RetrieveOutputJson(isolate_hash, filename):
-  # TODO: Plumb isolate_server through the parameters. crbug.com/822008
-  server = 'https://isolateserver.appspot.com'
-  output_files = json.loads(isolate.Retrieve(server, isolate_hash))['files']
+def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
+  output_files = json.loads(isolate.Retrieve(
+      isolate_server, isolate_hash))['files']
 
   if filename not in output_files:
     raise ReadValueError("The test didn't produce %s." % filename)
   output_json_isolate_hash = output_files[filename]['h']
-  return json.loads(isolate.Retrieve(server, output_json_isolate_hash))
+  return json.loads(isolate.Retrieve(isolate_server, output_json_isolate_hash))
 
 
 def _GetStoryFromHistogram(hist):

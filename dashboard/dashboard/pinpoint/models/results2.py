@@ -105,8 +105,9 @@ def _FetchHistogramsDataFromJobData(job):
   # hashes and then yielding each histogram. This prevents memory blowouts
   # since we only have 1 gig to work with, but at the cost of increased
   # task time.
-  for isolate_hash in _GetAllIsolateHashesForJob(job):
-    hs = read_value._RetrieveOutputJson(isolate_hash, 'chartjson-output.json')
+  for isolate_server, isolate_hash in _GetAllIsolateHashesForJob(job):
+    hs = read_value._RetrieveOutputJson(
+        isolate_server, isolate_hash, 'chartjson-output.json')
     for h in hs:
       yield h
     del hs
@@ -164,6 +165,8 @@ def _GetIsolateHashesForChange(job_data, change_index, quest_index):
     if 'isolate_hash' not in result_arguments:
       continue
 
-    isolate_hashes.append(result_arguments['isolate_hash'])
+    isolate_server = result_arguments.get(
+        'isolate_server', 'https://isolateserver.appspot.com')
+    isolate_hashes.append((isolate_server, result_arguments['isolate_hash']))
 
   return isolate_hashes
