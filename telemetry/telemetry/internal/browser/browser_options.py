@@ -226,6 +226,8 @@ class BrowserFinderOptions(optparse.Values):
           print '  ', device_name
           for browser_type in browser_types[device_name]:
             print '    ', browser_type
+          if len(browser_types[device_name]) == 0:
+            print '     No browsers found for this device'
         sys.exit(0)
 
       # Parse browser options.
