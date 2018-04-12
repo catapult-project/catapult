@@ -185,8 +185,15 @@ class Job(ndb.Model):
 
     # Bring it all together.
     comment = '\n\n'.join((header, body, footer))
-    self._PostBugComment(comment, status='Assigned',
-                         cc_list=sorted(cc_list), owner=owner)
+    current_bug_status = self._GetBugStatus()
+    if (not current_bug_status or
+        current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']):
+      # Set the bug status and owner if this bug is opened and unowned.
+      self._PostBugComment(comment, status='Assigned',
+                           cc_list=sorted(cc_list), owner=owner)
+    else:
+      # Only update the comment and cc list if this bug is assigned or closed.
+      self._PostBugComment(comment, cc_list=sorted(cc_list))
 
   def Fail(self):
     self.exception = traceback.format_exc()
@@ -284,6 +291,15 @@ class Job(ndb.Model):
     issue_tracker = issue_tracker_service.IssueTrackerService(
         utils.ServiceAccountHttp())
     issue_tracker.AddBugComment(self.bug_id, *args, **kwargs)
+
+  def _GetBugStatus(self):
+    if not self.bug_id:
+      return None
+
+    issue_tracker = issue_tracker_service.IssueTrackerService(
+        utils.ServiceAccountHttp())
+    issue_data = issue_tracker.GetIssue(self.bug_id)
+    return issue_data.get('status')
 
 
 def _FormatCommitForBug(commit_info):

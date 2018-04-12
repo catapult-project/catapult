@@ -76,11 +76,12 @@ class BugCommentTest(testing_common.TestCase):
     super(BugCommentTest, self).setUp()
 
     self.add_bug_comment = mock.MagicMock()
+    self.get_issue = mock.MagicMock()
     patcher = mock.patch('dashboard.services.issue_tracker_service.'
                          'IssueTrackerService')
     issue_tracker_service = patcher.start()
     issue_tracker_service.return_value = mock.MagicMock(
-        AddBugComment=self.add_bug_comment)
+        AddBugComment=self.add_bug_comment, GetIssue=self.get_issue)
     self.addCleanup(patcher.stop)
 
     namespaced_stored_object.Set('repositories', {
@@ -136,6 +137,8 @@ class BugCommentTest(testing_common.TestCase):
         'url': 'https://example.com/repository/+/git_hash',
     }
 
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
     j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
@@ -158,6 +161,8 @@ class BugCommentTest(testing_common.TestCase):
         'url': 'https://codereview.com/c/672011/2f0d5c7',
     }
 
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
     j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
     j.Run()
@@ -165,6 +170,52 @@ class BugCommentTest(testing_common.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_PATCH,
         status='Assigned', owner='author@chromium.org',
+        cc_list=['author@chromium.org'])
+
+  @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedDoesNotReassign(self, differences, patch_as_dict):
+    commits = (change.Commit('chromium', 'git_hash'),)
+    patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
+    c = change.Change(commits, patch)
+    differences.return_value = [(1, c)]
+    patch_as_dict.return_value = {
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
+    }
+
+    self.get_issue.return_value = {'status': 'Assigned'}
+
+    j = job.Job.New({}, [], True, bug_id=123456)
+    j.put()
+    j.Run()
+
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_WITH_PATCH,
+        cc_list=['author@chromium.org'])
+
+  @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedDoesNotReopen(self, differences, patch_as_dict):
+    commits = (change.Commit('chromium', 'git_hash'),)
+    patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
+    c = change.Change(commits, patch)
+    differences.return_value = [(1, c)]
+    patch_as_dict.return_value = {
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
+    }
+
+    self.get_issue.return_value = {'status': 'Fixed'}
+
+    j = job.Job.New({}, [], True, bug_id=123456)
+    j.put()
+    j.Run()
+
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_WITH_PATCH,
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -191,6 +242,8 @@ class BugCommentTest(testing_common.TestCase):
             'url': 'https://example.com/repository/+/git_hash_2',
         },
     )
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
 
     j = job.Job.New({}, [], True, bug_id=123456)
     j.put()
