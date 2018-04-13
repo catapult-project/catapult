@@ -136,5 +136,45 @@ tr.b.unittest.testSuite(function() {
         EventFinderUtils.findNextEventStartingAfterTimestamp(
             sortedEvents, 201));
   });
+
+  test('findToplevelSchedulerTasks', () => {
+    const model = tr.c.TestUtils.newModel(model => {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'ThreadControllerImpl::DoWork',
+        start: 10,
+        duration: 1,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 20,
+        duration: 2,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'MessageLoop::RunTask',
+        start: 30,
+        duration: 3,
+      }));
+    });
+
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const rendererHelper = chromeHelper.rendererHelpers[1];
+    const tasks = EventFinderUtils.findToplevelSchedulerTasks(
+        rendererHelper.mainThread);
+
+    assert.strictEqual(tasks.length, 2);
+    assert.strictEqual(tasks[0].title, 'ThreadControllerImpl::DoWork');
+    assert.strictEqual(tasks[0].start, 10);
+    assert.strictEqual(tasks[0].duration, 1);
+    assert.strictEqual(tasks[1].title,
+        'TaskQueueManager::ProcessTaskFromWorkQueue');
+    assert.strictEqual(tasks[1].duration, 2);
+  });
 });
 </script>

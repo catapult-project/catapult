@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/chrome/estimated_input_latency.html">
+<link rel="import" href="/tracing/extras/chrome/event_finder_utils.html">
 <link rel="import" href="/tracing/extras/v8/runtime_stats_entry.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
@@ -255,7 +256,8 @@ tr.exportTo('tr.metrics.sh', function() {
      */
     function taskExtractor(predicate, excludePredicate) {
       return function(rendererHelper) {
-        const slices = rendererHelper.mainThread.sliceGroup.topLevelSlices;
+        const slices = tr.e.chrome.EventFinderUtils.findToplevelSchedulerTasks(
+            rendererHelper.mainThread);
         const result = [];
         for (const slice of slices) {
           const times = getEventTimes(slice);

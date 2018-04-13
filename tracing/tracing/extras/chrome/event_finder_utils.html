@@ -22,6 +22,16 @@ tr.exportTo('tr.e.chrome', function() {
     // Special URL used to start a navigation to an unreachable error page.
     'chrome-error://chromewebdata/'
   ];
+  // Titles for top level tasks in the scheduler. Any input event queued during
+  // a top level task cannot be handled until the end of that task.
+  const TOP_LEVEL_TASK_TITLES = [
+    // Old name of scheduler top level tasks. Preserved for backwards
+    // compatibility with old traces.
+    'TaskQueueManager::ProcessTaskFromWorkQueue',
+    // This is the name of top level scheduler tasks as of
+    // https://crrev.com/c/883346.
+    'ThreadControllerImpl::DoWork',
+  ];
 
   /**
    * Utility class providing methods to efficiently find events.
@@ -151,6 +161,20 @@ tr.exportTo('tr.e.chrome', function() {
         return undefined;
       }
       return sortedEvents[firstIndexOnOrAfterTimestamp];
+    }
+
+    /**
+     * Returns a list of top level scheduler tasks.
+     * It is used by TTI and EQT metrics.
+     * @param {!tr.model.Thread} mainThread - the main thead of the renderer.
+     * @returns {!Array<tr.model.Slice>}
+     */
+    static findToplevelSchedulerTasks(mainThread) {
+      const titles = new Set(TOP_LEVEL_TASK_TITLES);
+      const tasks = [];
+      tasks.push(...mainThread.findTopmostSlices(
+          slice => titles.has(slice.title)));
+      return tasks;
     }
   }
 
