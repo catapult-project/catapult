@@ -36,28 +36,28 @@ tr.b.unittest.testSuite(function() {
     const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = '';
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(122, 98, 135)');
+    checkSquareColor(colorLegend, 'rgb(255, 161, 161)');
   });
 
   test('nonEmptyLabel', function() {
     const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Frequency';
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(83, 150, 97)');
+    checkSquareColor(colorLegend, 'rgb(255, 133, 236)');
   });
 
   test('longLabel', function() {
     const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Total memory usage';
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(96, 128, 137)');
+    checkSquareColor(colorLegend, 'rgb(150, 193, 255)');
   });
 
   test('directlySetColorId', function() {
     const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.setLabelAndColorId('hello_world', 7 /* colorId */);
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(111, 145, 88)');
+    checkSquareColor(colorLegend, 'rgb(152, 220, 149)');
   });
 
   test('directlyProvidedLabelElement', function() {
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
           className: 'hello-span'}),
         7 /* colorId */);
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(111, 145, 88)');
+    checkSquareColor(colorLegend, 'rgb(152, 220, 149)');
   });
 
   test('cessObjectSelected', function() {
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.EVENT_SELECTED;
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(143, 72, 161)');
+    checkSquareColor(colorLegend, 'rgb(228, 184, 134)');
   });
 
   test('cessSomeAssociatedObjectsSelected', function() {
@@ -86,7 +86,7 @@ tr.b.unittest.testSuite(function() {
         CompoundEventSelectionState.SOME_ASSOCIATED_EVENTS_SELECTED;
 
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(159, 74, 86)');
+    checkSquareColor(colorLegend, 'rgb(255, 155, 172)');
   });
 
   test('cessAllAssociatedObjectsSelected', function() {
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
         CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED;
 
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(112, 91, 142)');
+    checkSquareColor(colorLegend, 'rgb(150, 193, 255)');
   });
 
   test('cessObjectAndSomeAssociatedObjectsSelected', function() {
@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
         CompoundEventSelectionState.EVENT_AND_SOME_ASSOCIATED_SELECTED;
 
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(83, 150, 97)');
+    checkSquareColor(colorLegend, 'rgb(204, 158, 255)');
   });
 
   test('cessObjectAndAllAssociatedObjectsSelected', function() {
@@ -116,7 +116,7 @@ tr.b.unittest.testSuite(function() {
         CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED;
 
     this.addHTMLOutput(colorLegend);
-    checkSquareColor(colorLegend, 'rgb(87, 109, 147)');
+    checkSquareColor(colorLegend, 'rgb(255, 146, 193)');
   });
 });
 </script>

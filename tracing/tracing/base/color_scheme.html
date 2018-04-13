@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/color.html">
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
 <link rel="import" href="/tracing/base/utils.html">
 <script>
 'use strict';
@@ -15,37 +16,15 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.b', function() {
   // Basic constants...
-  const generalPurposeColors = [
-    new tr.b.Color(122, 98, 135),
-    new tr.b.Color(150, 83, 105),
-    new tr.b.Color(44, 56, 189),
-    new tr.b.Color(99, 86, 147),
-    new tr.b.Color(104, 129, 107),
-    new tr.b.Color(130, 178, 55),
-    new tr.b.Color(87, 109, 147),
-    new tr.b.Color(111, 145, 88),
-    new tr.b.Color(81, 152, 131),
-    new tr.b.Color(142, 91, 111),
-    new tr.b.Color(81, 163, 70),
-    new tr.b.Color(148, 94, 86),
-    new tr.b.Color(144, 89, 118),
-    new tr.b.Color(83, 150, 97),
-    new tr.b.Color(105, 94, 139),
-    new tr.b.Color(89, 144, 122),
-    new tr.b.Color(105, 119, 128),
-    new tr.b.Color(96, 128, 137),
-    new tr.b.Color(145, 88, 145),
-    new tr.b.Color(88, 145, 144),
-    new tr.b.Color(90, 100, 143),
-    new tr.b.Color(121, 97, 136),
-    new tr.b.Color(111, 160, 73),
-    new tr.b.Color(112, 91, 142),
-    new tr.b.Color(86, 147, 86),
-    new tr.b.Color(63, 100, 170),
-    new tr.b.Color(81, 152, 107),
-    new tr.b.Color(60, 164, 173),
-    new tr.b.Color(143, 72, 161),
-    new tr.b.Color(159, 74, 86)];
+  const numGeneralPurposeColorIds = 23;
+  const generalPurposeColors = new Array(numGeneralPurposeColorIds);
+  const sinebowAlpha = 1.0;
+  const sinebowBrightness = 1.5;
+  const sinebowColorGenerator =
+    new tr.b.SinebowColorGenerator(sinebowAlpha, sinebowBrightness);
+  for (let i = 0; i < numGeneralPurposeColorIds; i++) {
+    generalPurposeColors[i] = sinebowColorGenerator.nextColor();
+  }
 
   const reservedColorsByName = {
     thread_state_uninterruptible: new tr.b.Color(182, 125, 143),
@@ -93,7 +72,6 @@ tr.exportTo('tr.b', function() {
   };
 
   // Some constants we'll need for later lookups.
-  const numGeneralPurposeColorIds = generalPurposeColors.length;
   const numReservedColorIds = Object.keys(reservedColorsByName).length;
   const numColorsPerVariant = numGeneralPurposeColorIds + numReservedColorIds;
 
