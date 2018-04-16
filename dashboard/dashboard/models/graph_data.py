@@ -166,12 +166,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # Description of what the test measures.
   description = ndb.TextProperty(indexed=True)
 
-  # Source code location of the test. Optional.
-  code = ndb.StringProperty(indexed=False, repeated=True)
-
-  # Command to run the test. Optional.
-  command_line = ndb.StringProperty(indexed=False)
-
   # Story names are escaped (slashes, colons). Store unescaped version
   # for story filter flag.
   unescaped_story_name = ndb.StringProperty(indexed=False)
