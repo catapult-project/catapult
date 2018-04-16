@@ -4,6 +4,7 @@
 
 """The datastore models for histograms and diagnostics."""
 
+import collections
 import json
 import sys
 
@@ -11,6 +12,7 @@ from google.appengine.ext import ndb
 
 from dashboard.models import graph_data
 from dashboard.models import internal_only_model
+from tracing.value.diagnostics import diagnostic as diagnostic_module
 
 
 class JsonModel(internal_only_model.InternalOnlyModel):
@@ -33,6 +35,10 @@ class SparseDiagnostic(JsonModel):
   name = ndb.StringProperty(indexed=False)
   start_revision = ndb.IntegerProperty(indexed=True)
   end_revision = ndb.IntegerProperty(indexed=True)
+
+  def IsDifferent(self, rhs):
+    return (diagnostic_module.Diagnostic.FromDict(self.data) !=
+            diagnostic_module.Diagnostic.FromDict(rhs.data))
 
   @staticmethod
   @ndb.synctasklet
@@ -68,3 +74,44 @@ class SparseDiagnostic(JsonModel):
         diagnostic_data = json.loads(diagnostic.data)
         diagnostic_map[diagnostic.name] = diagnostic_data.get('values')
     raise ndb.Return(diagnostic_map)
+
+  @staticmethod
+  @ndb.tasklet
+  def FixDiagnostics(test_key):
+    diagnostics_for_test = yield SparseDiagnostic.query(
+        SparseDiagnostic.test == test_key).fetch_async()
+    diagnostics_by_name = collections.defaultdict(list)
+
+    for d in diagnostics_for_test:
+      diagnostics_by_name[d.name].append(d)
+
+    futures = []
+
+    for diagnostics in diagnostics_by_name.itervalues():
+      sorted_diagnostics = sorted(diagnostics, key=lambda d: d.start_revision)
+      unique_diagnostics = []
+
+      # Remove any possible duplicates first.
+      prev = None
+      for d in sorted_diagnostics:
+        if not prev:
+          unique_diagnostics.append(d)
+          prev = d
+          continue
+        if not prev.IsDifferent(d):
+          futures.append(d.key.delete_async())
+          continue
+        unique_diagnostics.append(d)
+        prev = d
+
+      # Now fixup all the start/end revisions.
+      for i in xrange(len(unique_diagnostics)):
+        if i == len(unique_diagnostics) - 1:
+          unique_diagnostics[i].end_revision = sys.maxint
+        else:
+          unique_diagnostics[i].end_revision = (
+              unique_diagnostics[i+1].start_revision - 1)
+
+      futures.extend(ndb.put_multi_async(unique_diagnostics))
+
+    yield futures

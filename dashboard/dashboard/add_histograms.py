@@ -270,7 +270,7 @@ def DeduplicateAndPutAsync(new_entities, test, rev):
         new_entity.name, diagnostic_entities)
     if old_entity is not None:
       # Case 1: One in datastore, different from new one.
-      if _IsDifferent(old_entity.data, new_entity.data):
+      if old_entity.IsDifferent(new_entity):
         old_entity.end_revision = rev - 1
         entity_futures.append(old_entity.put_async())
         new_entity.start_revision = rev
@@ -291,11 +291,6 @@ def _GetDiagnosticEntityMatchingName(name, diagnostic_entities):
     if entity.name == name:
       return entity
   return None
-
-
-def _IsDifferent(diagnostic_a, diagnostic_b):
-  return (diagnostic.Diagnostic.FromDict(diagnostic_a) !=
-          diagnostic.Diagnostic.FromDict(diagnostic_b))
 
 
 def FindSuiteLevelSparseDiagnostics(

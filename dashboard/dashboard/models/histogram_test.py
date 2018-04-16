@@ -18,6 +18,180 @@ class SparseDiagnosticTest(testing_common.TestCase):
     super(SparseDiagnosticTest, self).setUp()
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
+  def _AddMockData(self, test_key):
+    data_samples = {
+        'owners': [
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['1']
+            },
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['2']
+            },
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['3']
+            },
+        ],
+        'bugs': [
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['a']
+            },
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['b']
+            },
+            {
+                'type': 'GenericSet',
+                'guid': '1',
+                'values': ['c']
+            },
+        ]
+    }
+    for k, diagnostic_samples in data_samples.iteritems():
+      for i in xrange(len(diagnostic_samples)):
+        start_revision = i * 10
+        end_revision = (i + 1) * 10 - 1
+        if i == len(diagnostic_samples) - 1:
+          end_revision = sys.maxint
+
+        e = histogram.SparseDiagnostic(
+            data=diagnostic_samples[i], test=test_key,
+            start_revision=start_revision, end_revision=end_revision,
+            name=k, internal_only=False)
+        e.put()
+
+  def testFixupDiagnostics_Middle_FixesRange(self):
+    test_key = utils.TestKey('Chromium/win7/foo')
+
+    self._AddMockData(test_key)
+
+    data = {
+        'type': 'GenericSet',
+        'guid': '1',
+        'values': ['10']
+    }
+
+    e = histogram.SparseDiagnostic(
+        data=data, test=test_key,
+        start_revision=5, end_revision=sys.maxint,
+        name='owners', internal_only=False)
+    e.put()
+
+    histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
+
+    expected = {
+        'owners': [(0, 4), (5, 9), (10, 19), (20, sys.maxint)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+    }
+    diags = histogram.SparseDiagnostic.query().fetch()
+    for d in diags:
+      self.assertIn((d.start_revision, d.end_revision), expected[d.name])
+      expected[d.name].remove((d.start_revision, d.end_revision))
+    self.assertEqual(0, len(expected['owners']))
+    self.assertEqual(0, len(expected['bugs']))
+
+  def testFixupDiagnostics_End_FixesRange(self):
+    test_key = utils.TestKey('Chromium/win7/foo')
+
+    self._AddMockData(test_key)
+
+    data = {
+        'type': 'GenericSet',
+        'guid': '1',
+        'values': ['10']
+    }
+
+    e = histogram.SparseDiagnostic(
+        data=data, test=test_key,
+        start_revision=100, end_revision=sys.maxint,
+        name='owners', internal_only=False)
+    e.put()
+
+    histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
+
+    expected = {
+        'owners': [(0, 9), (10, 19), (20, 99), (100, sys.maxint)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+    }
+    diags = histogram.SparseDiagnostic.query().fetch()
+    for d in diags:
+      self.assertIn((d.start_revision, d.end_revision), expected[d.name])
+      expected[d.name].remove((d.start_revision, d.end_revision))
+    self.assertEqual(0, len(expected['owners']))
+    self.assertEqual(0, len(expected['bugs']))
+
+  def testFixupDiagnostics_DifferentTestPath_NoChange(self):
+    test_key1 = utils.TestKey('Chromium/win7/1')
+    test_key2 = utils.TestKey('Chromium/win7/2')
+
+    self._AddMockData(test_key1)
+    self._AddMockData(test_key2)
+
+    data = {
+        'type': 'GenericSet',
+        'guid': '1',
+        'values': ['10']
+    }
+
+    e = histogram.SparseDiagnostic(
+        data=data, test=test_key1,
+        start_revision=5, end_revision=sys.maxint,
+        name='owners', internal_only=False)
+    e.put()
+
+    histogram.SparseDiagnostic.FixDiagnostics(test_key2).get_result()
+
+    expected = {
+        'owners': [(0, 9), (10, 19), (20, sys.maxint)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+    }
+    diags = histogram.SparseDiagnostic.query(
+        histogram.SparseDiagnostic.test == test_key2).fetch()
+    for d in diags:
+      self.assertIn((d.start_revision, d.end_revision), expected[d.name])
+      expected[d.name].remove((d.start_revision, d.end_revision))
+    self.assertEqual(0, len(expected['owners']))
+    self.assertEqual(0, len(expected['bugs']))
+
+  def testFixupDiagnostics_NotUnique_NoChange(self):
+    test_key = utils.TestKey('Chromium/win7/foo')
+
+    self._AddMockData(test_key)
+
+    data = {
+        'type': 'GenericSet',
+        'guid': '1',
+        'values': ['1']
+    }
+
+    e = histogram.SparseDiagnostic(
+        data=data, test=test_key,
+        start_revision=5, end_revision=sys.maxint,
+        name='owners', internal_only=False)
+    e.put()
+
+    histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
+
+    expected = {
+        'owners': [(0, 9), (10, 19), (20, sys.maxint)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+    }
+    diags = histogram.SparseDiagnostic.query(
+        histogram.SparseDiagnostic.test == test_key).fetch()
+    for d in diags:
+      self.assertIn((d.start_revision, d.end_revision), expected[d.name])
+      expected[d.name].remove((d.start_revision, d.end_revision))
+    self.assertEqual(0, len(expected['owners']))
+    self.assertEqual(0, len(expected['bugs']))
+
   def testGetMostRecentValuesByNames_ReturnAllData(self):
     data_samples = [
         {
