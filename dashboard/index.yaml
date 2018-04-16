@@ -229,7 +229,7 @@ indexes:
   - name: end_revision
     direction: desc
   - name: internal_only
-  
+
 # Used in update_test_suites to query keys of test suites (parent_test == None)
 # with deprecated and description projection. Two separate lists of
 # test suites are kept, one for external and one for internal.
