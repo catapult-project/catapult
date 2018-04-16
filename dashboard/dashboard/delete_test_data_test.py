@@ -11,6 +11,7 @@ from dashboard import delete_test_data
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
+from dashboard.models import histogram
 from dashboard.models import sheriff
 
 # Masters, bots and test names to add to the mock datastore.
@@ -59,6 +60,9 @@ class DeleteTestDataTest(testing_common.TestCase):
     for test_path in _TESTS_WITH_ROWS:
       testing_common.AddRows(test_path, range(15000, 15100, 2))
 
+      histogram.SparseDiagnostic(test=utils.TestKey(test_path)).put()
+      histogram.Histogram(test=utils.TestKey(test_path)).put()
+
   def _AssertExists(self, test_paths):
     for test_path in test_paths:
       test_key = utils.TestKey(test_path)
@@ -67,6 +71,12 @@ class DeleteTestDataTest(testing_common.TestCase):
             graph_data.Row.parent_test == utils.OldStyleTestKey(test_key)
             ).count()
         self.assertEqual(50, num_rows)
+        num_histograms = histogram.Histogram.query(
+            histogram.Histogram.test == test_key).count()
+        self.assertEqual(1, num_histograms)
+        num_diagnostics = histogram.SparseDiagnostic.query(
+            histogram.SparseDiagnostic.test == test_key).count()
+        self.assertEqual(1, num_diagnostics)
       self.assertIsNotNone(test_key.get())
 
   def _AssertNotExists(self, test_paths):
@@ -75,6 +85,12 @@ class DeleteTestDataTest(testing_common.TestCase):
       num_rows = graph_data.Row.query(
           graph_data.Row.parent_test == utils.OldStyleTestKey(test_key)).count()
       self.assertEqual(0, num_rows)
+      num_histograms = histogram.Histogram.query(
+          histogram.Histogram.test == test_key).count()
+      self.assertEqual(0, num_histograms)
+      num_diagnostics = histogram.SparseDiagnostic.query(
+          histogram.SparseDiagnostic.test == test_key).count()
+      self.assertEqual(0, num_diagnostics)
       self.assertIsNone(test_key.get())
 
   def testPost_DeleteTraceLevelTest(self):
@@ -165,7 +181,7 @@ class DeleteTestDataTest(testing_common.TestCase):
     test = utils.TestKey(test_path).get()
     sheriff_key = sheriff.Sheriff(
         id='Perf Sheriff Mac', email='sullivan@google.com',
-        patterns=['*/*/*/*/*']).put()
+        patterns=['*/*/*/*/*'], internal_only=False).put()
     test.sheriff = sheriff_key
     test.put()
 
@@ -197,7 +213,7 @@ class DeleteTestDataTest(testing_common.TestCase):
     test = utils.TestKey(test_path).get()
     sheriff_key = sheriff.Sheriff(
         id='Perf Sheriff Mac', email='sullivan@google.com',
-        patterns=['*/*/*/*/*']).put()
+        patterns=['*/*/*/*/*'], internal_only=False).put()
     test.sheriff = sheriff_key
     test.put()
 

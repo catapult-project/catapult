@@ -30,6 +30,7 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import histogram
 
 _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 50
 
@@ -86,7 +87,7 @@ _TASK_INTERVAL = 1
 
 _MIGRATE_TEST_LOOKUP_PATTERNS = 'migrate-lookup-patterns'
 _MIGRATE_TEST_CREATE = 'migrate-test-create'
-_MIGRATE_TEST_COPY_DATA = 'mgirate-test-copy-data'
+_MIGRATE_TEST_COPY_DATA = 'migrate-test-copy-data'
 
 
 class BadInputPatternError(Exception):
@@ -290,7 +291,6 @@ def _MigrateTestCreateTest(old_test_key, new_test_key):
   Returns:
     True if finished or False if there is more work.
   """
-
   new_test_entity = yield _GetOrCreate(
       graph_data.TestMetadata, old_test_key.get(), new_test_key.id(),
       None, _TEST_EXCLUDE)
@@ -332,11 +332,15 @@ def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
     f.get_result()
 
 
+@ndb.synctasklet
 def _MigrateTestCopyData(old_test_key, new_test_key):
-  futures, more = _MigrateTestRows(old_test_key, new_test_key)
-  if more:
-    ndb.Future.wait_all(futures)
 
+  more = yield (
+      _MigrateTestRows(old_test_key, new_test_key),
+      _MigrateAnomalies(old_test_key, new_test_key),
+      _MigrateHistogramData(old_test_key, new_test_key))
+
+  if any(more):
     # Rows at a specific test path are contained in a single entity group, thus
     # we space out writes to avoid data contention.
     _QueueTask({
@@ -346,21 +350,11 @@ def _MigrateTestCopyData(old_test_key, new_test_key):
     }, countdown=_TASK_INTERVAL).get_result()
     return
 
-  futures = _MigrateAnomalies(old_test_key, new_test_key)
-  if futures:
-    ndb.Future.wait_all(futures)
-    _QueueTask({
-        'old_test_key': old_test_key.urlsafe(),
-        'new_test_key': new_test_key.urlsafe(),
-        'status': _MIGRATE_TEST_COPY_DATA
-    }).get_result()
-    return
-
   _SendNotificationEmail(old_test_key, new_test_key)
   old_test_key.delete()
 
 
-@ndb.synctasklet
+@ndb.tasklet
 def _MigrateTestRows(old_parent_key, new_parent_key):
   """Copies Row entities from one parent to another, deleting old ones.
 
@@ -401,9 +395,12 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
   futures.append(
       graph_revisions.DeleteCacheAsync(utils.TestPath(new_parent_key)))
 
-  raise ndb.Return((futures, bool(rows_to_put)))
+  yield futures
+
+  raise ndb.Return(bool(rows_to_put))
 
 
+@ndb.tasklet
 def _MigrateAnomalies(old_parent_key, new_parent_key):
   """Copies the Anomaly entities from one test to another.
 
@@ -414,13 +411,41 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
   Returns:
     A list of Future objects for Anomaly entities to update.
   """
-  anomalies_to_update = anomaly.Anomaly.GetAlertsForTest(
+  anomalies_to_update = yield anomaly.Anomaly.GetAlertsForTestAsync(
       old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   if not anomalies_to_update:
-    return []
+    raise ndb.Return([])
+
   for anomaly_entity in anomalies_to_update:
     anomaly_entity.test = new_parent_key
-  return ndb.put_multi_async(anomalies_to_update)
+
+  yield ndb.put_multi_async(anomalies_to_update)
+
+  raise ndb.Return(bool(anomalies_to_update))
+
+
+@ndb.tasklet
+def _MigrateHistogramClassData(cls, old_parent_key, new_parent_key):
+  query = cls.query(cls.test == old_parent_key)
+  entities = yield query.fetch_async(
+      limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL,
+      use_cache=False, use_memcache=False)
+  for e in entities:
+    e.test = new_parent_key
+  yield ndb.put_multi_async(entities)
+  raise ndb.Return(bool(entities))
+
+
+@ndb.tasklet
+def _MigrateHistogramData(old_parent_key, new_parent_key):
+  result = yield (
+      _MigrateHistogramClassData(
+          histogram.SparseDiagnostic, old_parent_key, new_parent_key),
+      _MigrateHistogramClassData(
+          histogram.Histogram, old_parent_key, new_parent_key),
+  )
+
+  raise ndb.Return(any(result))
 
 
 def _SendNotificationEmail(old_test_key, new_test_key):

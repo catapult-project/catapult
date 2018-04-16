@@ -171,10 +171,18 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     return utils.TestMetadataKey(self.test)
 
   @classmethod
+  @ndb.synctasklet
   def GetAlertsForTest(cls, test_key, limit=None):
-    return cls.query(cls.test.IN([
+    result = yield cls.GetAlertsForTestAsync(test_key, limit=limit)
+    raise ndb.Return(result)
+
+  @classmethod
+  @ndb.tasklet
+  def GetAlertsForTestAsync(cls, test_key, limit=None):
+    result = yield cls.query(cls.test.IN([
         utils.TestMetadataKey(test_key),
-        utils.OldStyleTestKey(test_key)])).fetch(limit=limit)
+        utils.OldStyleTestKey(test_key)])).fetch_async(limit=limit)
+    raise ndb.Return(result)
 
 
 def GetBotNamesFromAlerts(alerts):

@@ -12,6 +12,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import histogram
 from dashboard.models import sheriff
 
 # Masters, bots and test names to add to the mock datastore.
@@ -43,6 +44,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     # Make sure puts get split up into multiple calls.
     migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
+    self.SetCurrentUser('internal@foo.bar')
+    testing_common.SetIsInternalUser('internal@foo.bar', True)
 
   def _AddMockData(self):
     """Adds sample TestMetadata, Row, and Anomaly entities."""
@@ -59,6 +62,11 @@ class MigrateTestNamesTest(testing_common.TestCase):
         anomaly.Anomaly(
             start_revision=(rev - 2), end_revision=rev,
             median_before_anomaly=100, median_after_anomaly=50,
+            test=test_key).put()
+        histogram.SparseDiagnostic(
+            test=test_key,
+            start_revision=rev - 50, end_revision=50).put()
+        histogram.Histogram(
             test=test_key).put()
 
   def _CheckRows(self, test_path, multiplier=2):
@@ -93,6 +101,15 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.assertEqual(2, len(anomalies))
     self.assertEqual(r1, anomalies[0].end_revision)
     self.assertEqual(r2, anomalies[1].end_revision)
+
+  def _CheckHistogramData(self, test_path):
+    diagnostics = histogram.SparseDiagnostic.query(
+        histogram.SparseDiagnostic.test == utils.TestKey(test_path)).fetch()
+    self.assertEqual(2, len(diagnostics))
+
+    histograms = histogram.SparseDiagnostic.query(
+        histogram.Histogram.test == utils.TestKey(test_path)).fetch()
+    self.assertEqual(2, len(histograms))
 
   def _CheckTests(self, expected_tests):
     """Checks whether the current TestMetadata entities match the expected list.
@@ -171,6 +188,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
 
     self._CheckRows('ChromiumPerf/mac/SunSpider/OverallScore/t')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider/OverallScore/t')
+    self._CheckHistogramData('ChromiumPerf/mac/SunSpider/OverallScore/t')
     expected_tests = [
         'SunSpider',
         'SunSpider/3d-cube',
@@ -197,6 +215,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
 
     self._CheckRows('ChromiumPerf/mac/SunSpider1.0/Total/t')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider1.0/Total/t')
+    self._CheckHistogramData('ChromiumPerf/mac/SunSpider1.0/Total/t')
     expected_tests = [
         'SunSpider1.0',
         'SunSpider1.0/3d-cube',
@@ -224,6 +243,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
     # The Row and Anomaly entities have been moved.
     self._CheckRows('ChromiumPerf/mac/SunSpider/Total')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider/Total')
+    self._CheckHistogramData('ChromiumPerf/mac/SunSpider/Total')
 
     # There is no SunSpider/Total/time any more.
     expected_tests = [

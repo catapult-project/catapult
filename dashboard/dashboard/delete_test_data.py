@@ -23,6 +23,7 @@ from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import graph_data
+from dashboard.models import histogram
 
 _ROWS_TO_DELETE_AT_ONCE = 500
 _MAX_DELETIONS_PER_TASK = 30
@@ -144,27 +145,49 @@ def _DeleteTest(test_key_urlsafe, notify):
 def _DeleteTestData(test_key, notify):
   futures = []
   num_tests_processed = 0
-  finished = True
+  more = False
   descendants = list_tests.GetTestDescendants(test_key)
   for descendant in descendants:
     rows = graph_data.GetLatestRowsForTest(
         descendant, _ROWS_TO_DELETE_AT_ONCE, keys_only=True)
     if rows:
       futures.extend(ndb.delete_multi_async(rows))
-      finished = False
+      more = True
       num_tests_processed += 1
       if num_tests_processed > _MAX_DELETIONS_PER_TASK:
         break
 
+    if not more:
+      more = _DeleteTestHistogramData(descendant)
+
   # Only delete TestMetadata entities after all Row entities have been deleted.
-  if finished:
+  if not more:
     descendants = ndb.get_multi(descendants)
     for descendant in descendants:
       _SendNotificationEmail(descendant, notify)
       futures.append(descendant.key.delete_async())
 
   ndb.Future.wait_all(futures)
-  return finished
+  return not more
+
+
+@ndb.synctasklet
+def _DeleteTestHistogramData(test_key):
+  @ndb.tasklet
+  def _DeleteHistogramClassData(cls):
+    query = cls.query(cls.test == test_key)
+    keys = yield query.fetch_async(
+        limit=_MAX_DELETIONS_PER_TASK,
+        use_cache=False, use_memcache=False, keys_only=True)
+    yield ndb.delete_multi_async(keys)
+    raise ndb.Return(bool(keys))
+
+  result = yield (
+      _DeleteHistogramClassData(histogram.SparseDiagnostic),
+      _DeleteHistogramClassData(histogram.Histogram),
+  )
+
+  raise ndb.Return(any(result))
 
 
 def _SendNotificationEmail(test, notify):
