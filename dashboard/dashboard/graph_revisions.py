@@ -84,9 +84,16 @@ def SetCacheAsync(test_path, rows):
   yield futures
 
 
+@ndb.synctasklet
 def DeleteCache(test_path):
   """Removes any saved data for the given path."""
-  namespaced_stored_object.Delete(_CACHE_KEY % test_path)
+  yield DeleteCacheAsync(test_path)
+
+
+@ndb.tasklet
+def DeleteCacheAsync(test_path):
+  """Removes any saved data for the given path."""
+  yield namespaced_stored_object.DeleteAsync(_CACHE_KEY % test_path)
 
 
 def _UpdateCache(test_key):

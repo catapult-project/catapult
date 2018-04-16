@@ -58,7 +58,8 @@ queue:
      task_retry_limit: 1
 
  - name: migrate-test-names-queue
-   rate: 5/s
+   rate: 100/s
+   max_concurrent_requests: 100
    retry_parameters:
      task_retry_limit: 1
 
