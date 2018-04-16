@@ -68,12 +68,12 @@ _PLATFORM_MAP = { 'mac_x86_64': UpdateInfo(omaha='mac',
                                            zip_name='chrome-mac.zip'),
                   'win_x86': UpdateInfo(omaha='win',
                                         gs_folder='desktop-*',
-                                        gs_build='win',
-                                        zip_name='chrome-win.zip'),
+                                        gs_build='win-clang',
+                                        zip_name='chrome-win-clang.zip'),
                   'win_AMD64': UpdateInfo(omaha='win',
                                           gs_folder='desktop-*',
-                                          gs_build='win64',
-                                          zip_name='chrome-win64.zip'),
+                                          gs_build='win64-clang',
+                                          zip_name='chrome-win64-clang.zip'),
                   'linux_x86_64': UpdateInfo(omaha='linux',
                                              gs_folder='desktop-*',
                                              gs_build='linux64',
@@ -139,8 +139,10 @@ def _QueuePlatformUpdate(platform, version, config, channel):
   remote_path = '%s/%s/%s/%s' % (
       platform_info.gs_folder, version, platform_info.gs_build, filename)
   if not cloud_storage.Exists(CHROME_GS_BUCKET, remote_path):
+    cloud_storage_path = 'gs://%s/%s' % (CHROME_GS_BUCKET, remote_path)
     raise BuildNotFoundError(
-        'Failed to find %s build for version %s at path %s.' % (platform, version, remote_path))
+        'Failed to find %s build for version %s at path %s.' % (
+            platform, version, cloud_storage_path))
   reference_builds_folder = os.path.join(
       os.path.dirname(os.path.abspath(__file__)), 'chrome_telemetry_build',
       'reference_builds', channel)
