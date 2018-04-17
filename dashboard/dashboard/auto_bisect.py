@@ -9,38 +9,13 @@ import logging
 from dashboard import can_bisect
 from dashboard import pinpoint_request
 from dashboard import start_try_job
+from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import try_job
 from dashboard.services import pinpoint_service
-
-_PINPOINT_BOTS = [
-    'chromium-rel-mac-retina',
-    'chromium-rel-mac11',
-    'chromium-rel-mac11-air',
-    'chromium-rel-mac11-pro',
-    'chromium-rel-mac12',
-    'chromium-rel-mac12-mini-8gb',
-    'linux-release',
-    'chromium-rel-win7-dual',
-    'chromium-rel-win8-dual',
-    'chromium-rel-win7-x64-dual',
-    'chromium-rel-win10',
-    'chromium-rel-win7-gpu-ati',
-    'chromium-rel-win7-gpu-intel',
-    'chromium-rel-win7-gpu-nvidia',
-    'win-high-dpi',
-    'win-zenbook',
-    'android-nexus5X',
-    'android-nexus5',
-    'android-nexus6',
-    'android-nexus7v2',
-    'android-one',
-    'android-webview-nexus5X',
-    'android-webview-nexus6',
-]
 
 
 class NotBisectableError(Exception):
@@ -78,7 +53,9 @@ def _StartBisectForBug(bug_id):
   if not test or not can_bisect.IsValidTestForBisect(test.test_path):
     raise NotBisectableError('Could not select a test.')
 
-  if test.bot_name in _PINPOINT_BOTS:
+  bot_configurations = namespaced_stored_object.Get('bot_configurations')
+
+  if test.bot_name in bot_configurations.keys():
     return _StartPinpointBisect(bug_id, test_anomaly, test)
 
   return _StartRecipeBisect(bug_id, test_anomaly, test)

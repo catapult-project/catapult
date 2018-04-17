@@ -20,7 +20,9 @@ class StartNewBisectForBugTest(testing_common.TestCase):
   def setUp(self):
     super(StartNewBisectForBugTest, self).setUp()
     self.SetCurrentUser('internal@chromium.org')
-    auto_bisect._PINPOINT_BOTS = ['linux-pinpoint']
+    namespaced_stored_object.Set('bot_configurations', {
+        'linux-pinpoint': {},
+    })
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testStartNewBisectForBug_StartsBisect(self, mock_perform_bisect):
