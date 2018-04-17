@@ -17,6 +17,7 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
+from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -56,6 +57,7 @@ class TestCase(unittest.TestCase):
     self.testbed.init_urlfetch_stub()
     self.mock_get_request = None
     self._PatchIsInternalUser()
+    datastore_hooks.InstallHooks()
 
   def tearDown(self):
     self.testbed.deactivate()

@@ -60,7 +60,7 @@ class Sheriff(internal_only_model.InternalOnlyModel):
   url = ndb.StringProperty(validator=_UrlValidator, indexed=False)
   email = ndb.StringProperty(validator=_EmailValidator, indexed=False)
 
-  internal_only = ndb.BooleanProperty(indexed=True)
+  internal_only = ndb.BooleanProperty(indexed=True, default=False)
   summarize = ndb.BooleanProperty(indexed=True, default=False)
 
   # A list of patterns. Each pattern is a string which can match parts of the
