@@ -533,8 +533,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
 
     caches = layered_cache.CachedPickledString.query().fetch()
-    # Only 1 cache for bisect stats.
-    self.assertEqual(1, len(caches))
+    self.assertEqual(0, len(caches))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',

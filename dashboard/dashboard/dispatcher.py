@@ -13,8 +13,6 @@ from dashboard import add_point_queue
 from dashboard import alerts
 from dashboard import associate_alerts
 from dashboard import auto_triage
-from dashboard import bad_bisect
-from dashboard import bisect_stats
 from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import change_internal_only
@@ -76,8 +74,6 @@ _URL_MAPPING = [
     (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
     ('/auto_triage', auto_triage.AutoTriageHandler),
-    ('/bad_bisect', bad_bisect.BadBisectHandler),
-    ('/bisect_stats', bisect_stats.BisectStatsHandler),
     ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),

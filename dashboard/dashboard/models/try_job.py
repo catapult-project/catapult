@@ -16,7 +16,6 @@ import logging
 
 from google.appengine.ext import ndb
 
-from dashboard import bisect_stats
 from dashboard.models import bug_data
 from dashboard.models import internal_only_model
 from dashboard.services import buildbucket_service
@@ -77,7 +76,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
     self.put()
     if self.bug_id:
       bug_data.SetBisectStatus(self.bug_id, 'failed')
-    bisect_stats.UpdateBisectStats(self.bot, 'failed')
 
   def SetStaled(self):
     self.status = 'staled'
@@ -85,10 +83,8 @@ class TryJob(internal_only_model.InternalOnlyModel):
     logging.info('Updated status to staled')
     # TODO(sullivan, dtu): what is the purpose of 'staled' status? Doesn't it
     # just prevent updating jobs older than 24 hours???
-    # TODO(chrisphan): Add 'staled' state to bug_data and bisect_stats.
     if self.bug_id:
       bug_data.SetBisectStatus(self.bug_id, 'failed')
-    bisect_stats.UpdateBisectStats(self.bot, 'failed')
 
   def SetCompleted(self):
     logging.info('Updated status to completed')
@@ -96,7 +92,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
     self.put()
     if self.bug_id:
       bug_data.SetBisectStatus(self.bug_id, 'completed')
-    bisect_stats.UpdateBisectStats(self.bot, 'completed')
 
   def GetCulpritCL(self):
     if not self.results_data:
