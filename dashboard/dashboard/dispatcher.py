@@ -28,7 +28,6 @@ from dashboard import edit_sheriffs
 from dashboard import edit_site_config
 from dashboard import email_summary
 from dashboard import file_bug
-from dashboard import get_logs
 from dashboard import get_diagnostics
 from dashboard import get_histogram
 from dashboard import graph_csv
@@ -92,7 +91,6 @@ _URL_MAPPING = [
     ('/file_bug', file_bug.FileBugHandler),
     ('/get_diagnostics', get_diagnostics.GetDiagnosticsHandler),
     ('/get_histogram', get_histogram.GetHistogramHandler),
-    ('/get_logs', get_logs.GetLogsHandler),
     ('/graph_csv', graph_csv.GraphCsvHandler),
     ('/graph_json', graph_json.GraphJsonHandler),
     ('/graph_revisions', graph_revisions.GraphRevisionsHandler),

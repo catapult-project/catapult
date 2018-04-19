@@ -18,7 +18,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/bug-info.html">
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/elements/login-warning.html">
-<link rel="import" href="/dashboard/elements/quick-log.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -104,15 +103,6 @@ found in the LICENSE file.
           </paper-button>
         </div>
         <bug-info id="bug-info" xsrf-token="{{xsrfToken}}"></bug-info>
-        <template is="dom-if" if="{{bugId}}">
-          <quick-log id="bisect-result-log"
-                     xsrf-token="{{xsrfToken}}"
-                     log-namespace="bisect_result"
-                     log-name="{{bugId}}"
-                     log-label="Bisect results"
-                     load-on-ready="true"
-                     expand-on-ready="true"></quick-log>
-        </template>
         <alerts-table id="alerts-table"
                       xsrf-token="{{xsrfToken}}"
                       alert-list="{{alertList}}"

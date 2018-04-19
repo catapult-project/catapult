@@ -8,7 +8,6 @@ import logging
 
 from google.appengine.ext import ndb
 
-from dashboard import quick_logger
 from dashboard.common import utils
 
 # Max number of AlertGroup entities to fetch.
@@ -210,7 +209,6 @@ def GroupAlertsAsync(alerts, test_suite, kind):
     else:
       if matching_group.bug_id:
         alert_entity.bug_id = matching_group.bug_id
-        _AddLogForBugAssociate(alert_entity)
       logging.debug('Auto triage: Associated anomaly on %s with %s.',
                     utils.TestPath(alert_entity.GetTestMetadataKey()),
                     matching_group.key.urlsafe())
@@ -273,21 +271,3 @@ def _IsOverlapping(alert_entity, start, end):
   """Whether |alert_entity| overlaps with |start| and |end| revision range."""
   return (alert_entity.start_revision <= end and
           alert_entity.end_revision >= start)
-
-
-def _AddLogForBugAssociate(anomaly_entity):
-  """Adds a log for associating alert with a bug."""
-  bug_id = anomaly_entity.bug_id
-  sheriff = anomaly_entity.GetTestMetadataKey().get().sheriff
-  if not sheriff:
-    return
-  sheriff = sheriff.string_id()
-  bug_url = ('https://chromeperf.appspot.com/group_report?bug_id=' +
-             str(bug_id))
-  test_path = utils.TestPath(anomaly_entity.GetTestMetadataKey())
-  html_str = ('Associated alert on %s with bug <a href="%s">%s</a>.' %
-              (test_path, bug_url, bug_id))
-  formatter = quick_logger.Formatter()
-  logger = quick_logger.QuickLogger('auto_triage', sheriff, formatter)
-  logger.Log(html_str)
-  logger.Save()

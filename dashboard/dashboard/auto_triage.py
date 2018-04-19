@@ -15,7 +15,6 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import find_anomalies
-from dashboard import quick_logger
 from dashboard.common import math_utils
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -81,8 +80,7 @@ class TriageAnomalies(object):
     """Processes anomalies."""
     # Check for recovered anomalies that are untriaged.
     anomalies = cls._FetchUntriagedAnomalies()
-    recovered_anomalies = _FindAndUpdateRecoveredAnomalies(anomalies)
-    map(_AddLogForRecoveredAnomaly, recovered_anomalies)
+    _FindAndUpdateRecoveredAnomalies(anomalies)
 
   @classmethod
   def _FetchUntriagedAnomalies(cls):
@@ -136,10 +134,7 @@ class TriageBugs(object):
       return
 
     non_recovered_anomalies = [a for a in anomalies if not a.recovered]
-    recovered_anomalies = _FindAndUpdateRecoveredAnomalies(
-        non_recovered_anomalies)
-
-    map(_AddLogForRecoveredAnomaly, recovered_anomalies)
+    _FindAndUpdateRecoveredAnomalies(non_recovered_anomalies)
 
     if all(a.recovered for a in anomalies):
       cls._CommentOnRecoveredBug(bug_id)
@@ -180,7 +175,6 @@ def _FindAndUpdateRecoveredAnomalies(anomalies):
       anomaly_entity.recovered = True
       recovered_anomalies.append(anomaly_entity)
   ndb.put_multi(recovered_anomalies)
-  return recovered_anomalies
 
 
 def _IsAnomalyRecovered(anomaly_entity):
@@ -229,24 +223,6 @@ def _IsApproximatelyEqual(delta1, delta2):
   smaller = min(delta1, delta2)
   larger = max(delta1, delta2)
   return math_utils.RelativeChange(smaller, larger) <= _MAX_DELTA_DIFFERENCE
-
-
-def _AddLogForRecoveredAnomaly(anomaly_entity):
-  """Adds a quick log entry for an anomaly that has recovered."""
-  logging.info('_AddLogForRecoveredAnomaly %s', anomaly_entity.key.id())
-  formatter = quick_logger.Formatter()
-  sheriff_key = anomaly_entity.GetTestMetadataKey().get().sheriff
-  if not sheriff_key:
-    return
-  sheriff_name = sheriff_key.string_id()
-  logger = quick_logger.QuickLogger('auto_triage', sheriff_name, formatter)
-  message = ('Alert on %s has recovered. See <a href="%s">graph</a>.%s' %
-             (utils.TestPath(anomaly_entity.GetTestMetadataKey()),
-              ('https://chromeperf.appspot.com/group_report?keys=' +
-               anomaly_entity.key.urlsafe()),
-              _BugLink(anomaly_entity)))
-  logger.Log(message)
-  logger.Save()
 
 
 def _BugLink(anomaly_entity):
