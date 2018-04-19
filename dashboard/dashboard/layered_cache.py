@@ -77,25 +77,6 @@ def _NamespaceKey(key, namespace=None):
   return '%s__%s' % (namespace, key)
 
 
-def Prewarm(keys):
-  """Prewarms the NDB in-context cache by doing async_get for the keys.
-
-  For requests like /add_point which can get/set dozens of keys, contention
-  occasionally causes the gets to take several seconds. But they will be
-  cached in context by NDB if they are requested at the start of the request.
-
-  Args:
-    keys: List of string keys.
-  """
-  to_get = []
-  for key in keys:
-    to_get.append(ndb.Key('CachedPickledString',
-                          _NamespaceKey(key, datastore_hooks.EXTERNAL)))
-    to_get.append(ndb.Key('CachedPickledString',
-                          _NamespaceKey(key, datastore_hooks.INTERNAL)))
-  ndb.get_multi_async(to_get)
-
-
 def Get(key):
   """Gets the value from the datastore."""
   if key is None:
