@@ -68,6 +68,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertRaises(Exception, tracing_controller.StopTracing)
 
   @decorators.Isolated
+  @decorators.Disabled('win')  # crbug.com/829976
   def testFlushTracing(self):
     subtrace_count = 5
 
