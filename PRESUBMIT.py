@@ -46,7 +46,7 @@ _EXCLUDED_PATHS = (
 
 _GITHUB_BUG_ID_RE = re.compile(r'#[1-9]\d*')
 _MONORAIL_BUG_ID_RE = re.compile(r'[1-9]\d*')
-_MONORAIL_PROJECT_NAMES = frozenset({'chromium', 'v8', 'angleproject'})
+_MONORAIL_PROJECT_NAMES = frozenset({'chromium', 'v8', 'angleproject', 'skia'})
 
 def CheckChangeLogBug(input_api, output_api):
   if not input_api.change.issue:
