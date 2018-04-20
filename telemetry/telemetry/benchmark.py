@@ -298,7 +298,8 @@ class Benchmark(command_line.Command):
       Otherwise, a TimelineBasedMeasurement instance.
     """
     is_page_test = issubclass(self.test, legacy_page_test.LegacyPageTest)
-    is_tbm = self.test == timeline_based_measurement.TimelineBasedMeasurement
+    is_tbm = issubclass(
+        self.test, timeline_based_measurement.TimelineBasedMeasurement)
     if not is_page_test and not is_tbm:
       raise TypeError('"%s" is not a PageTest or a TimelineBasedMeasurement.' %
                       self.test.__name__)
@@ -310,7 +311,7 @@ class Benchmark(command_line.Command):
 
     opts = self._GetTimelineBasedMeasurementOptions(options)
     self.SetupTraceRerunOptions(options, opts)
-    return timeline_based_measurement.TimelineBasedMeasurement(opts)
+    return self.test(opts)
 
   def CreateStorySet(self, options):
     """Creates the instance of StorySet used to run the benchmark.

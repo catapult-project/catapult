@@ -217,8 +217,9 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             continue
 
         try:
-          state.platform.WaitForBatteryTemperature(35)
-          _WaitForThermalThrottlingIfNeeded(state.platform)
+          if state.platform:
+            state.platform.WaitForBatteryTemperature(35)
+            _WaitForThermalThrottlingIfNeeded(state.platform)
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
 
           num_values = len(results.all_page_specific_values)
@@ -242,7 +243,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         finally:
           has_existing_exception = sys.exc_info() != (None, None, None)
           try:
-            if state:
+            if state and state.platform:
               _CheckThermalThrottling(state.platform)
             results.DidRunPage(story)
             story_run.SetDuration(time.time() - start_timestamp)
@@ -482,7 +483,7 @@ def _CheckThermalThrottling(platform):
 
 def _MakeDeviceInfoDiagnostics(state):
   if not state or not state.platform:
-    return
+    return {}
 
   device_info_data = {
       reserved_infos.ARCHITECTURES.name: state.platform.GetArchName(),
