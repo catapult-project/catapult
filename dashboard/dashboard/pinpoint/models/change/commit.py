@@ -58,6 +58,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     for deps_os in deps_data.get('deps_os', {}).itervalues():
       deps_dict.update(deps_os)
 
+    # Pull out vars dict to format brace variables.
+    vars_dict = deps_data.get('vars', {})
+
     # Convert deps strings to repository and git hash.
     commits = []
     for dep_value in deps_dict.itervalues():
@@ -68,8 +71,10 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
           # We don't support DEPS that are CIPD packages.
           continue
         dep_string = dep_value['url']
+        if 'revision' in dep_value:
+          dep_string += '@' + dep_value['revision']
 
-      dep_string_parts = dep_string.split('@')
+      dep_string_parts = dep_string.format(**vars_dict).split('@')
       if len(dep_string_parts) < 2:
         continue  # Dep is not pinned to any particular revision.
       if len(dep_string_parts) > 2:
