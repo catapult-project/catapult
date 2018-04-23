@@ -389,6 +389,10 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
 
   futures = ndb.put_multi_async(
       rows_to_put, use_cache=False, use_memcache=False)
+
+  if rows_to_put:
+    futures.append(rows_to_put[0].UpdateParentAsync())
+
   futures.extend(ndb.delete_multi_async(rows_to_delete))
   futures.append(
       graph_revisions.DeleteCacheAsync(utils.TestPath(old_parent_key)))

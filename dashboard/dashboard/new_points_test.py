@@ -49,6 +49,7 @@ class NewPointsTest(testing_common.TestCase):
       mytest_row.put()
       mytest_row.timestamp = start_date + datetime.timedelta(hours=i)
       mytest_row.put()
+      mytest_row.UpdateParentAsync().get_result()
 
       other_row = graph_data.Row(
           parent=other_container, id=(10000 + i), value=i)
@@ -56,6 +57,7 @@ class NewPointsTest(testing_common.TestCase):
       other_row.put()
       other_row.timestamp = start_date + datetime.timedelta(hours=i, minutes=30)
       other_row.put()
+      other_row.UpdateParentAsync().get_result()
 
   def _AddInternalSampleData(self):
     """Adds some internal-only test data."""
@@ -117,7 +119,9 @@ class NewPointsTest(testing_common.TestCase):
     for i in range(20):
       test = graph_data.TestMetadata(id='XMaster/x-bot/xtest-%d' % i).put()
       test_container_key = utils.GetTestContainerKey(test)
-      graph_data.Row(parent=test_container_key, id=1, value=1).put()
+      r = graph_data.Row(parent=test_container_key, id=1, value=1)
+      r.put()
+      r.UpdateParentAsync().get_result()
 
     response = self.testapp.get(
         '/new_points', {'pattern': '*/*/*', 'max_tests': '12'})

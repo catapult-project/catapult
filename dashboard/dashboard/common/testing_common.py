@@ -214,7 +214,8 @@ def _AddRowsFromDict(container_key, row_dict):
   for int_id in sorted(row_dict):
     rows.append(
         graph_data.Row(id=int_id, parent=container_key, **row_dict[int_id]))
-  ndb.put_multi(rows)
+  ndb.Future.wait_all(
+      [r.put_async() for r in rows] + [rows[0].UpdateParentAsync()])
   return rows
 
 
@@ -223,7 +224,8 @@ def _AddRowsFromIterable(container_key, row_ids):
   rows = []
   for int_id in sorted(row_ids):
     rows.append(graph_data.Row(id=int_id, parent=container_key, value=int_id))
-  ndb.put_multi(rows)
+  ndb.Future.wait_all(
+      [r.put_async() for r in rows] + [rows[0].UpdateParentAsync()])
   return rows
 
 

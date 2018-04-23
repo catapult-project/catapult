@@ -413,17 +413,11 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
   # The standard deviation at this point. Optional.
   error = ndb.FloatProperty(indexed=False)
 
-  def _pre_put_hook(self):
-    """Sets the has_rows property of the parent test before putting this Row.
+  @ndb.tasklet
+  def UpdateParentAsync(self, **ctx_options):
+    parent_test = yield utils.TestMetadataKey(
+        self.key.parent().id()).get_async(**ctx_options)
 
-    This isn't atomic because the parent_test put() and Row put() don't happen
-    in the same transaction. But in practice it shouldn't be an issue because
-    the parent test will get more points as the test runs.
-    """
-    parent_test = utils.TestMetadataKey(self.key.parent().id()).get()
-
-    # If the TestMetadata pointed to by parent_test is not valid, that indicates
-    # that a TestMetadata entity was not properly created in add_point.
     if not parent_test:
       parent_key = self.key.parent()
       logging.warning(
@@ -432,7 +426,7 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
 
     if not parent_test.has_rows:
       parent_test.has_rows = True
-      parent_test.put()
+      yield parent_test.put_async(**ctx_options)
 
 
 def GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):

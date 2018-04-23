@@ -52,14 +52,12 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     all_put_futures = []
     added_rows = []
-    monitored_test_keys = []
+    parent_tests = []
     for row_dict in data:
       try:
         new_row, parent_test, put_futures = _AddRow(row_dict, bot_whitelist)
         added_rows.append(new_row)
-        is_monitored = parent_test.sheriff and parent_test.has_rows
-        if is_monitored:
-          monitored_test_keys.append(parent_test.key)
+        parent_tests.append(parent_test)
         all_put_futures.extend(put_futures)
 
       except add_point.BadRequestError as e:
@@ -71,6 +69,8 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
+    monitored_test_keys = [
+        t.key for t in parent_tests if t.sheriff and t.has_rows]
     tests_keys = [k for k in monitored_test_keys if not IsRefBuild(k)]
 
     # Updating of the cached graph revisions should happen after put because
@@ -155,6 +155,7 @@ def _AddRow(row_dict, bot_whitelist):
   # Create the entity and add it asynchronously.
   new_row = graph_data.Row(id=row_id, parent=test_container_key, **columns)
   entity_put_futures.append(new_row.put_async())
+  entity_put_futures.append(new_row.UpdateParentAsync())
 
   return new_row, parent_test, entity_put_futures
 

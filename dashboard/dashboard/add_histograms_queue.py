@@ -342,12 +342,12 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
 
   stat_names_to_test_keys = {k: v.key for k, v in
                              legacy_parent_tests.iteritems()}
-  rows = AddRows(data_dict, test_key, stat_names_to_test_keys, revision,
-                 internal_only)
+  rows = CreateRowEntities(
+      data_dict, test_key, stat_names_to_test_keys, revision, internal_only)
   if not rows:
     raise ndb.Return()
 
-  yield ndb.put_multi_async(rows)
+  yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   tests_keys = []
   is_monitored = parent_test.sheriff and parent_test.has_rows
@@ -430,8 +430,9 @@ def GetUnitArgs(unit):
   return unit_args
 
 
-def AddRows(histogram_dict, test_metadata_key, stat_names_to_test_keys,
-            revision, internal_only):
+def CreateRowEntities(
+    histogram_dict, test_metadata_key, stat_names_to_test_keys,
+    revision, internal_only):
   h = histogram_module.Histogram.FromDict(histogram_dict)
   # TODO(eakuefner): Move this check into _PopulateNumericalFields once we
   # know that it's okay to put rows that don't have a value/error (see

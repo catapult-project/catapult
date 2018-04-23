@@ -87,6 +87,9 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.assertEqual(15098, rows[49].revision)
     self.assertEqual(15098 * multiplier, rows[49].value)
 
+    t = utils.TestKey(test_path).get()
+    self.assertTrue(t.has_rows)
+
   def _CheckAnomalies(self, test_path, r1=15000, r2=15050):
     """Checks whether the anomalies match the ones added in _AddMockData.
 
