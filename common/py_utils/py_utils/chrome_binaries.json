@@ -56,6 +56,11 @@
           "download_path": "bin/reference_build/android_l_armeabi-v7a/ChromeStable.apk",
           "version_in_cs": "65.0.3325.109"
         },
+        "android_n_armeabi-v7a": {
+          "cloud_storage_hash": "904a4fea91fee492625a2fc6caf52b97f0c59c7e",
+          "download_path": "bin/reference_build/android_n_armeabi-v7a/Monochrome.apk",
+          "version_in_cs": "66.0.3359.106"
+        },
         "linux_x86_64": {
           "cloud_storage_hash": "5267ec569d78164943d6af819a98f0703d12ebfe",
           "download_path": "bin/reference_build/chrome-linux64.zip",
