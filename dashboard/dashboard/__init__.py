@@ -35,7 +35,6 @@ DASHBOARD_FILES = [
     'cron.yaml',
     'dashboard',
     'index.yaml',
-    'mapreduce.yaml',
     'pinpoint.yaml',
     'queue.yaml',
 ]
