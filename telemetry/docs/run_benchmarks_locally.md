@@ -7,10 +7,12 @@
 
 ## Set Up
 
-If you don't have a Chromium checkout, download the
-[latest Telemetry archive](https://storage.googleapis.com/chromium-telemetry/snapshots/telemetry.zip).
-Unzip the archive. If you're running on Mac OS X, you're all set! For
-Windows, Linux, Android, or Chrome OS, read on.
+If you just want Telemetry, cloning
+[catapult](https://github.com/catapult-project/catapult) repository should be
+enough. If you also want the Chrome benchmarks built with Telemetry, get the
+[latest Chromium checkout](https://www.chromium.org/developers/how-tos/get-the-code).
+If you're running on Mac OS X, you're all set! For Windows, Linux, Android, or
+Chrome OS, read on.
 
 #### Windows
 
