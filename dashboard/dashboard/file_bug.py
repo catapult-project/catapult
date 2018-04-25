@@ -19,7 +19,6 @@ from dashboard import short_uri
 from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
-from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
@@ -147,7 +146,10 @@ class FileBugHandler(request_handler.RequestHandler):
     bug_id = new_bug_response['bug_id']
     bug_data.Bug(id=bug_id).put()
 
-    alert_group.ModifyAlertsAndAssociatedGroups(alerts, bug_id=bug_id)
+    for a in alerts:
+      a.bug_id = bug_id
+
+    ndb.put_multi(alerts)
 
     comment_body = _AdditionalDetails(bug_id, alerts)
     # Add the bug comment with the service account, so that there are no

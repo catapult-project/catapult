@@ -173,7 +173,6 @@ def _AlertDict(alert_entity):
       test_path, rev=alert_entity.end_revision, add_protocol_and_host=False)
   return {
       'key': alert_entity.key.urlsafe(),
-      'group': alert_entity.group.urlsafe() if alert_entity.group else None,
       'start_revision': alert_entity.start_revision,
       'end_revision': alert_entity.end_revision,
       'date': str(alert_entity.timestamp.date()),

@@ -16,7 +16,6 @@ from google.appengine.ext import ndb
 from dashboard import email_sheriff
 from dashboard import find_change_points
 from dashboard.common import utils
-from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
@@ -93,8 +92,6 @@ def _ProcessTest(test_key):
   # Update the last_alerted_revision property of the test.
   test.last_alerted_revision = anomalies[-1].end_revision
   yield test.put_async()
-  yield alert_group.GroupAlertsAsync(
-      anomalies, utils.TestSuiteName(test.key), 'Anomaly')
 
   yield ndb.put_multi_async(anomalies)
 

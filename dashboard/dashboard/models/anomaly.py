@@ -58,12 +58,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   start_revision = ndb.IntegerProperty(indexed=True)
   end_revision = ndb.IntegerProperty(indexed=True)
 
-  # The group this alert belongs to.
-  # TODO(qyearsley): If the old AnomalyGroup entities can be removed and
-  # all recent groups have the kind AlertGroup, then the optional argument
-  # kind=alert_group.AlertGroup can be added.
-  group = ndb.KeyProperty(indexed=True)
-
   # The revisions to use for display, if different than point id.
   display_start = ndb.IntegerProperty(indexed=False)
   display_end = ndb.IntegerProperty(indexed=False)

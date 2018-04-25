@@ -12,7 +12,6 @@ from google.appengine.ext import ndb
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.common import xsrf
-from dashboard.models import alert_group
 
 
 class EditAnomaliesHandler(request_handler.RequestHandler):
@@ -78,7 +77,10 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
       except ValueError:
         return {'error': 'Invalid bug ID %s' % str(bug_id)}
 
-    alert_group.ModifyAlertsAndAssociatedGroups(alert_entities, bug_id=bug_id)
+    for a in alert_entities:
+      a.bug_id = bug_id
+
+    ndb.put_multi(alert_entities)
 
     return {'bug_id': bug_id}
 
@@ -90,7 +92,10 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
     except ValueError:
       return {'error': 'Invalid revisions %s, %s' % (start, end)}
 
-    alert_group.ModifyAlertsAndAssociatedGroups(
-        anomaly_entities, start_revision=start, end_revision=end)
+    for a in anomaly_entities:
+      a.start_revision = start
+      a.end_revision = end
+
+    ndb.put_multi(anomaly_entities)
 
     return {'success': 'Alerts nudged.'}
