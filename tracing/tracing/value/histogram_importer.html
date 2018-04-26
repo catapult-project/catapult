@@ -86,7 +86,7 @@ tr.exportTo('tr.v', function() {
         stopIndex = Math.min(
             this.jsonDivIndex_ + 100, this.jsonEls_.length);
         for (; this.jsonDivIndex_ < stopIndex; ++this.jsonDivIndex_) {
-          const dict = JSON.parse(this.jsonEls_[this.jsonDivIndex_].innerHTML);
+          const dict = JSON.parse(this.jsonEls_[this.jsonDivIndex_].innerText);
           this.histograms_.importDicts([dict]);
         }
       } while (new Date() - start < 50);

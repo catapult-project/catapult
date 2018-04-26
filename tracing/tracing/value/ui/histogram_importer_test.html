@@ -26,7 +26,10 @@ tr.b.unittest.testSuite(function() {
       sum: false,
     });
     const htmlString = '<script>throw new Error("oops");<' + '/script>';
-    hist.diagnostics.set('html', new tr.v.d.GenericSet([htmlString]));
+    hist.diagnostics.set('html', new tr.v.d.GenericSet([
+      // RenderHistogramsViewer escapes html characters.
+      htmlString.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+    ]));
     const jsonEl = document.createElement('div');
     jsonEl.innerHTML = JSON.stringify(hist.asDict());
     jsonEl.style.display = 'none';

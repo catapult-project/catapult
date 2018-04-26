@@ -90,3 +90,8 @@ class ResultsRendererTest(unittest.TestCase):
             self.output_stream.read())))
     self.assertNotIn(value0_json, self.GetOutputFileContent())
     self.assertIn(value1_json, self.GetOutputFileContent())
+
+  def testHtmlEscape(self):
+    render_histograms_viewer.RenderHistogramsViewer(
+        [{'name': '<a><b>'}], self.output_stream, False)
+    self.assertIn('&lt;a&gt;&lt;b&gt;', self.GetOutputFileContent())

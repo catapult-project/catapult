@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import cgi
 import json
 import logging
 import re
@@ -70,7 +71,7 @@ def RenderHistogramsViewer(histogram_dicts, output_stream, reset_results=False,
   json_tag_newline = '\n%s' % _JSON_TAG
   for histogram in histogram_dicts:
     hist_json = json.dumps(histogram, separators=(',', ':'))
-    output_stream.write(json_tag_newline % hist_json)
+    output_stream.write(json_tag_newline % cgi.escape(hist_json))
   output_stream.write('\n</div>\n')
 
   # If the output file already existed and was longer than the new contents,
