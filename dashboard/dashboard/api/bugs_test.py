@@ -172,7 +172,7 @@ class BugsTest(testing_common.TestCase):
     mock_oauth.get_current_user.return_value = None
     mock_oauth.get_client_id.return_value = (
         api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    self.testapp.post('/api/bugs/12345', status=403)
+    self.testapp.post('/api/bugs/12345', status=401)
 
   @mock.patch.object(api_auth, 'oauth')
   def testPost_BadOauthClientId(self, mock_oauth):

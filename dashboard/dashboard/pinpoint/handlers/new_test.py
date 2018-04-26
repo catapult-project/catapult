@@ -58,22 +58,29 @@ class _NewTest(testing_common.TestCase):
     })
 
 
+@mock.patch.object(gitiles_service, 'CommitInfo',
+                   mock.MagicMock(return_value={'commit': 'abc'}))
 class NewAuthTest(_NewTest):
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser',
-                     mock.MagicMock(side_effect=api_auth.OAuthError()))
-  @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(
-      return_value={'commit': 'abc'}))
-  def testPost_FailsOauth(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=400)
+  @mock.patch.object(api_auth, 'Authorize',
+                     mock.MagicMock(side_effect=api_auth.NotLoggedInError()))
+  def testPost_NotLoggedIn(self):
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=401)
     result = json.loads(response.body)
-    self.assertEqual({'error': 'User authentication error'}, result)
+    self.assertEqual(result, {'error': 'User not authenticated'})
+
+  @mock.patch.object(api_auth, 'Authorize',
+                     mock.MagicMock(side_effect=api_auth.OAuthError()))
+  def testPost_FailsOauth(self):
+    response = self.testapp.post('/api/new', _BASE_REQUEST, status=403)
+    result = json.loads(response.body)
+    self.assertEqual(result, {'error': 'User authentication error'})
 
 
 @mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
             mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-@mock.patch.object(api_auth, '_AuthorizeOauthUser', mock.MagicMock())
+@mock.patch.object(api_auth, 'Authorize', mock.MagicMock())
 class NewTest(_NewTest):
 
   @mock.patch.object(gitiles_service, 'CommitInfo', mock.MagicMock(

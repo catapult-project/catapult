@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 
 import json
-import webapp2
 
 from dashboard.api import api_auth
+from dashboard.api import api_request_handler
 from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
@@ -19,17 +19,15 @@ _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 
 
-class New(webapp2.RequestHandler):
+class New(api_request_handler.ApiRequestHandler):
   """Handler that cooks up a fresh Pinpoint job."""
 
-  def post(self):
+  def AuthorizedPost(self):
     try:
-      self._CreateJob()
-    except (api_auth.ApiAuthException, KeyError, TypeError, ValueError) as e:
-      self.response.set_status(400)
-      self.response.out.write(json.dumps({'error': e.message}))
+      return self._CreateJob()
+    except (KeyError, TypeError, ValueError) as e:
+      raise api_request_handler.BadRequestError(e.message)
 
-  @api_auth.Authorize
   def _CreateJob(self):
     """Start a new Pinpoint job."""
     # "configuration" is a special argument that maps to a list of preset
@@ -73,10 +71,10 @@ class New(webapp2.RequestHandler):
     job.Start()
     job.put()
 
-    self.response.out.write(json.dumps({
+    return {
         'jobId': job.job_id,
         'jobUrl': job.url,
-    }))
+    }
 
 
 def _ParseBool(value):

@@ -28,7 +28,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         [(r'/api/test', TestApiRequestHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testPost_Authorized_AuthorizedPostCalled(self, mock_authorize):
     response = self.testapp.post('/api/test')
     self.assertEqual(
@@ -38,7 +38,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       api_auth,
-      '_AuthorizeOauthUser',
+      'Authorize',
       mock.MagicMock(side_effect=api_auth.OAuthError))
   @mock.patch.object(
       TestApiRequestHandler, 'AuthorizedPost')
@@ -49,17 +49,18 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         json.loads(response.body))
     self.assertFalse(mock_post.called)
 
+  @mock.patch.object(api_auth, 'Authorize')
   @mock.patch.object(
-      api_auth, '_AuthorizeOauthUser',
+      TestApiRequestHandler, 'AuthorizedPost',
       mock.MagicMock(side_effect=api_request_handler.BadRequestError('foo')))
-  def testPost_BadRequest_400(self):
+  def testPost_BadRequest_400(self, _):
     response = self.testapp.post('/api/test', status=400)
     self.assertEqual(
         {'error': 'foo'},
         json.loads(response.body))
 
   @mock.patch.object(
-      api_auth, '_AuthorizeOauthUser',
+      api_auth, 'Authorize',
       mock.MagicMock(side_effect=api_auth.OAuthError))
   def testPost_OAuthError_403(self):
     response = self.testapp.post('/api/test', status=403)
@@ -68,15 +69,15 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         json.loads(response.body))
 
   @mock.patch.object(
-      api_auth, '_AuthorizeOauthUser',
+      api_auth, 'Authorize',
       mock.MagicMock(side_effect=api_auth.NotLoggedInError))
-  def testPost_NotLoggedInError_403(self):
-    response = self.testapp.post('/api/test', status=403)
+  def testPost_NotLoggedInError_401(self):
+    response = self.testapp.post('/api/test', status=401)
     self.assertEqual(
         {'error': 'User not authenticated'},
         json.loads(response.body))
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testOptions_NoOrigin_HeadersNotSet(self, _):
     response = self.testapp.options('/api/test')
     self.assertListEqual(
@@ -85,7 +86,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
          ('Cache-Control', 'no-cache')],
         response.headerlist)
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testOptions_InvalidOrigin_HeadersNotSet(self, _):
     api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
     response = self.testapp.options(
@@ -96,7 +97,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
          ('Cache-Control', 'no-cache')],
         response.headerlist)
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testPost_ValidProdOrigin_HeadersSet(self, _):
     api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
     response = self.testapp.post(
@@ -112,7 +113,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
          ('Content-Length', '14')],
         response.headerlist)
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testPost_ValidDevOrigin_HeadersSet(self, _):
     api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
     response = self.testapp.post(
@@ -130,7 +131,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
          ('Content-Length', '14')],
         response.headerlist)
 
-  @mock.patch.object(api_auth, '_AuthorizeOauthUser')
+  @mock.patch.object(api_auth, 'Authorize')
   def testPost_InvalidOrigin_HeadersNotSet(self, _):
     response = self.testapp.post('/api/test')
     self.assertListEqual(

@@ -1,12 +1,14 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
 import logging
 import re
 
+import webapp2
+
 from dashboard.api import api_auth
-from dashboard.common import request_handler
 
 _ALLOWED_ORIGINS = [
     'chromiumdash.appspot.com',
@@ -18,7 +20,7 @@ class BadRequestError(Exception):
   pass
 
 
-class ApiRequestHandler(request_handler.RequestHandler):
+class ApiRequestHandler(webapp2.RequestHandler):
   """API handler for api requests.
 
   Convenience methods handling authentication errors and surfacing them.
@@ -32,24 +34,25 @@ class ApiRequestHandler(request_handler.RequestHandler):
     """
     self._SetCorsHeadersIfAppropriate()
     try:
-      results = self._TryAuthorizePost(*args)
+      api_auth.Authorize()
+    except api_auth.NotLoggedInError as e:
+      self.WriteErrorMessage(e.message, 401)
+      return
+    except api_auth.OAuthError as e:
+      self.WriteErrorMessage(e.message, 403)
+      return
+
+    try:
+      results = self.AuthorizedPost(*args)
       self.response.out.write(json.dumps(results))
     except BadRequestError as e:
       self.WriteErrorMessage(e.message, 400)
-    except api_auth.NotLoggedInError:
-      self.WriteErrorMessage('User not authenticated', 403)
-    except api_auth.OAuthError:
-      self.WriteErrorMessage('User authentication error', 403)
 
   def options(self, *_):  # pylint: disable=invalid-name
     self._SetCorsHeadersIfAppropriate()
 
-  @api_auth.Authorize
-  def _TryAuthorizePost(self, *args):
-    return self.AuthorizedPost(*args)
-
   def AuthorizedPost(self, *_):
-    raise BadRequestError('Override this')
+    raise NotImplementedError()
 
   def _SetCorsHeadersIfAppropriate(self):
     set_cors_headers = False
