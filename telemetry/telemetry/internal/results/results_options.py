@@ -159,6 +159,8 @@ def CreateResults(benchmark_metadata, options,
     if output_format == 'none' or output_format == "gtest":
       continue
 
+    if isinstance(artifacts, artifact_results.NoopArtifactResults):
+      artifacts = artifact_results.ArtifactResults(options.output_dir)
     output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
@@ -167,7 +169,6 @@ def CreateResults(benchmark_metadata, options,
     elif output_format == 'json-test-results':
       # Only create artifact results if we're going to actually output them
       # through an output format.
-      artifacts = artifact_results.ArtifactResults(options.output_dir)
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
           output_stream, artifacts))
     elif output_format == 'chartjson':
