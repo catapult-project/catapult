@@ -1483,7 +1483,7 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
                                 package='test.package',
                                 activity='.Main')
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=version_codes.O):
+                         return_value=version_codes.OREO):
       with self.assertCall(
           self.call.adb.Shell('am start-service '
                               '-a android.intent.action.START '

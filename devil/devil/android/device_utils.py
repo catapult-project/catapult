@@ -1260,7 +1260,7 @@ class DeviceUtils(object):
     # For whatever reason, startservice was changed to start-service on O and
     # above.
     cmd = ['am', 'startservice']
-    if self.build_version_sdk >= version_codes.O:
+    if self.build_version_sdk >= version_codes.OREO:
       cmd[1] = 'start-service'
     if user_id:
       cmd.extend(['--user', str(user_id)])
@@ -2356,7 +2356,7 @@ class DeviceUtils(object):
     try:
       ps_cmd = 'ps'
       # ps behavior was changed in Android O and above, http://crbug.com/686716
-      if self.build_version_sdk >= version_codes.O:
+      if self.build_version_sdk >= version_codes.OREO:
         ps_cmd = 'ps -e'
       if pattern:
         return self._RunPipedShellCommand(
