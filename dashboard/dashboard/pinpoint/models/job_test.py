@@ -94,32 +94,28 @@ class BugCommentTest(testing_common.TestCase):
     self.testbed.deactivate()
 
   def testNoBug(self):
-    j = job.Job.New({}, [], False)
-    j.put()
+    j = job.Job.New((), (), auto_explore=False)
     j.Start()
     j.Run()
 
     self.assertFalse(self.add_bug_comment.called)
 
   def testStarted(self):
-    j = job.Job.New({}, [], False, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=False, bug_id=123456)
     j.Start()
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_STARTED, send_email=False)
 
   def testCompletedNoComparison(self):
-    j = job.Job.New({}, [], False, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=False, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_COMPARISON)
 
   def testCompletedNoDifference(self):
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -141,8 +137,7 @@ class BugCommentTest(testing_common.TestCase):
 
     self.get_issue.return_value = {'status': 'Untriaged'}
 
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -165,8 +160,7 @@ class BugCommentTest(testing_common.TestCase):
 
     self.get_issue.return_value = {'status': 'Untriaged'}
 
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -189,8 +183,7 @@ class BugCommentTest(testing_common.TestCase):
 
     self.get_issue.return_value = {'status': 'Assigned'}
 
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -212,8 +205,7 @@ class BugCommentTest(testing_common.TestCase):
 
     self.get_issue.return_value = {'status': 'Fixed'}
 
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -247,8 +239,7 @@ class BugCommentTest(testing_common.TestCase):
 
     self.get_issue.return_value = {'status': 'Untriaged'}
 
-    j = job.Job.New({}, [], True, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=True, bug_id=123456)
     j.Run()
 
     self.add_bug_comment.assert_called_once_with(
@@ -260,8 +251,7 @@ class BugCommentTest(testing_common.TestCase):
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
   def testFailed(self):
-    j = job.Job.New({}, [], False, bug_id=123456)
-    j.put()
+    j = job.Job.New((), (), auto_explore=False, bug_id=123456)
     with self.assertRaises(AssertionError):
       j.Run()
 

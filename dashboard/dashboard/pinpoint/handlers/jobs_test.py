@@ -36,8 +36,7 @@ class JobsTest(unittest.TestCase):
 
   @mock.patch.object(jobs.api_auth, 'Email', mock.MagicMock(return_value=None))
   def testGet_NoUser(self):
-    job = job_module.Job.New({}, (), True)
-    job.put()
+    job = job_module.Job.New((), ())
 
     data = json.loads(self.testapp.get('/jobs?o=STATE').body)
 
@@ -48,12 +47,9 @@ class JobsTest(unittest.TestCase):
   @mock.patch.object(jobs.api_auth, 'Email',
                      mock.MagicMock(return_value='lovely.user@example.com'))
   def testGet_WithUser(self):
-    job = job_module.Job.New({}, (), True)
-    job.put()
-    job = job_module.Job.New({}, (), True, user='lovely.user@example.com')
-    job.put()
-    job = job_module.Job.New({}, (), True, user='lovely.user@example.com')
-    job.put()
+    job_module.Job.New((), ())
+    job_module.Job.New((), (), user='lovely.user@example.com')
+    job = job_module.Job.New((), (), user='lovely.user@example.com')
 
     data = json.loads(self.testapp.get('/jobs?o=STATE').body)
 

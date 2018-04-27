@@ -35,11 +35,7 @@ class StatsTest(unittest.TestCase):
 
   def testPost_ValidRequest(self):
     # Create job.
-    job = job_module.Job.New(
-        arguments={},
-        quests=(),
-        auto_explore=True)
-    job.put()
+    job = job_module.Job.New((), ())
 
     data = json.loads(self.testapp.get('/stats').body)
 

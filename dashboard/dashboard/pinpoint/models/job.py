@@ -88,17 +88,39 @@ class Job(ndb.Model):
   tags = ndb.JsonProperty()
 
   @classmethod
-  def New(cls, arguments, quests, auto_explore, comparison_mode=None,
-          user=None, bug_id=None, tags=None):
-    # Create job.
-    return cls(
-        arguments=arguments,
-        auto_explore=auto_explore,
-        comparison_mode=comparison_mode,
-        user=user,
-        bug_id=bug_id,
-        tags=tags,
-        state=job_state.JobState(quests))
+  def New(cls, quests, changes, arguments=None, auto_explore=False,
+          bug_id=None, comparison_mode=None, tags=None, user=None):
+    """Creates a new Job, adds Changes to it, and puts it in the Datstore.
+
+    Args:
+      quests: An iterable of Quests for the Job to run.
+      changes: An iterable of the initial Changes to run on.
+      arguments: A dict with the original arguments used to start the Job.
+      auto_explore: If True, the Job should automatically add additional
+          Attempts and Changes based on comparison of results values.
+      bug_id: A monorail issue id number to post Job updates to.
+      comparison_mode: A member of the ComparisonMode enum, which the Job uses
+          to figure out whether to perform a functional or performance bisect.
+          If None, the Job will not automatically add any Attempts or Changes.
+      tags: A dict of key-value pairs used to filter the Jobs listings.
+      user: The email of the Job creator.
+
+    Returns:
+      A Job object.
+    """
+    job = cls(state=job_state.JobState(quests),
+              arguments=arguments or {},
+              auto_explore=auto_explore,
+              bug_id=bug_id,
+              comparison_mode=comparison_mode,
+              tags=tags,
+              user=user)
+
+    for c in changes:
+      job.AddChange(c)
+
+    job.put()
+    return job
 
   @property
   def job_id(self):
@@ -122,7 +144,14 @@ class Job(ndb.Model):
     self.state.AddChange(change)
 
   def Start(self):
+    """Starts the Job and updates it in the Datastore.
+
+    This method is designed to return fast, so that Job creation is responsive
+    to the user. It schedules the Job on the task queue without running
+    anything. It also posts a bug comment, and updates the Datastore.
+    """
     self._Schedule()
+    self.put()
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
@@ -221,6 +250,14 @@ class Job(ndb.Model):
     self.task = task.name
 
   def Run(self):
+    """Runs this Job.
+
+    Loops through all Attempts and checks the status of each one, kicking off
+    tasks as needed. Does not block to wait for all tasks to finish. Also
+    compares adjacent Changes' results and adds any additional Attempts or
+    Changes as needed. If there are any incomplete tasks, schedules another
+    Run() call on the task queue.
+    """
     self.exception = None  # In case the Job succeeds on retry.
     self.task = None  # In case an exception is thrown.
 

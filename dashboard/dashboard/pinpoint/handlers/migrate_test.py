@@ -29,7 +29,7 @@ class MigrateTest(testing_common.TestCase):
     patcher.start()
 
     for _ in xrange(20):
-      job.Job.New({}, [], False).put()
+      job.Job.New((), ())
 
   def testNoMigration(self):
     response = self.testapp.get('/migrate', status=200)
