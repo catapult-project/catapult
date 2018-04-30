@@ -52,7 +52,6 @@ from dashboard import set_warning_message
 from dashboard import short_uri
 from dashboard import speed_releasing
 from dashboard import start_try_job
-from dashboard import test_buildbucket
 from dashboard import update_bug_with_results
 from dashboard import update_test_suites
 from dashboard.api import alerts as api_alerts
@@ -119,7 +118,6 @@ _URL_MAPPING = [
      speed_releasing.SpeedReleasingHandler),
     ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
     ('/start_try_job', start_try_job.StartBisectHandler),
-    ('/test_buildbucket', test_buildbucket.TestBuildbucketHandler),
     ('/update_bug_with_results',
      update_bug_with_results.UpdateBugWithResultsHandler),
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
