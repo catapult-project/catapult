@@ -6,7 +6,6 @@
 
 import json
 
-from dashboard import layered_cache
 from dashboard.common import request_handler
 from dashboard.common import namespaced_stored_object
 
@@ -35,6 +34,4 @@ class ChartHandler(request_handler.RequestHandler):
   def _GetChartValues(self):
     return {
         'revision_info': namespaced_stored_object.Get(_REVISION_INFO_KEY) or {},
-        'warning_message': layered_cache.Get('warning_message'),
-        'warning_bug': layered_cache.Get('warning_bug'),
     }

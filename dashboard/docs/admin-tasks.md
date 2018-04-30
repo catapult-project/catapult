@@ -54,11 +54,9 @@ If it's necessary at some point to have scheduled downtime, announce
 it ahead of time. At least 2 days before the downtime (ideally more),
 announce in these ways:
 
- 1. Use [/set\_warning\_message](https://chromeperf.appspot.com/set_warning_message) to
-    put a warning message on the dashboard itself.
- 2. Send an email to any Chromium perf sheriffs who will be affected,
+ 1. Send an email to any Chromium perf sheriffs who will be affected,
     or all perf sheriffs (`perf-sheriffs@chromium.org`).
- 3. Send an email to `chrome-perf-dashboard-announce@google.com`.
+ 2. Send an email to `chrome-perf-dashboard-announce@google.com`.
 
 If possible, it's probably best to schedule it for Saturday, when usage
 is likely to be relatively low.

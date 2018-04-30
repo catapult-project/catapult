@@ -48,7 +48,6 @@ from dashboard import pinpoint_request
 from dashboard import post_bisect_results
 from dashboard import put_entities_task
 from dashboard import report
-from dashboard import set_warning_message
 from dashboard import short_uri
 from dashboard import speed_releasing
 from dashboard import start_try_job
@@ -112,7 +111,6 @@ _URL_MAPPING = [
     ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),
-    ('/set_warning_message', set_warning_message.SetWarningMessageHandler),
     ('/short_uri', short_uri.ShortUriHandler),
     (r'/speed_releasing/(.*)',
      speed_releasing.SpeedReleasingHandler),

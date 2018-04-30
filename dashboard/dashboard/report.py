@@ -34,8 +34,6 @@ class ReportHandler(chart_handler.ChartHandler):
         'is_internal_user': values['is_internal_user'],
         'login_url': values['login_url'],
         'revision_info': values['revision_info'],
-        'warning_bug': values['warning_bug'],
-        'warning_message': values['warning_message'],
         'xsrf_token': values['xsrf_token'],
         'test_suites': update_test_suites.FetchCachedTestSuites(),
     }))

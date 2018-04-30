@@ -49,13 +49,6 @@ found in the LICENSE file.
     <section id="charts-container"></section>
 
     <div id="toasts" hidden>
-      <div id="warningtoast">
-        {{warningMessage}}
-        <template is="dom-if" if="{{!!warningBug}}">
-          <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
-            bug #{{warningBug}}.</a>
-        </template>
-      </div>
     </div>
 
   </template>
@@ -94,14 +87,6 @@ found in the LICENSE file.
           type: Object,
           value: () => { return {}; }
         },
-        warningBug: {
-          type: Number,
-          value: 0
-        },
-        warningMessage: {
-          type: String,
-          value: ''
-        },
         xsrfToken: {
           type: String,
           value: ''
@@ -118,14 +103,6 @@ found in the LICENSE file.
               this.isInternalUser = response.is_internal_user;
               this.loginUrl = response.login_url;
               this.revisionInfo = response.revision_info;
-              this.warningBug = response.warning_bug;
-              this.warningMessage = response.warning_message;
-              if (this.warningMessage) {
-                this.fire('display-toast', {
-                  'content': this.$.warningtoast,
-                  'error': true
-                });
-              }
               this.xsrfToken = response.xsrf_token;
               this.testSuites = response.test_suites;
               for (let i = 0; i < this.charts.length; i++) {

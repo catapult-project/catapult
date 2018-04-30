@@ -116,14 +116,7 @@ found in the LICENSE file.
     </div>
 
     <div id="toasts" hidden>
-      <div id="warningtoast">
-        <span>{{warningMessage}}</span>
-        <template is="dom-if" if="{{warningBug}}">
-          <a href$="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
-            bug #<span>{{warningBug}}</span>.</a>
-        </template>
-      </div>
-
+    </div>
   </template>
   <script>
     'use strict';
@@ -181,16 +174,6 @@ found in the LICENSE file.
         },
 
         xsrfToken: {
-          type: String,
-          value: ''
-        },
-
-        warningBug: {
-          type: Number,
-          value: 0
-        },
-
-        warningMessage: {
           type: String,
           value: ''
         },
@@ -432,19 +415,11 @@ found in the LICENSE file.
               this.isInternalUser = response.is_internal_user;
               this.testSuites = response.test_suites;
               this.xsrfToken = response.xsrf_token;
-              this.warningBug = response.warning_bug;
-              this.warningMessage = response.warning_message;
               this.alertList = response.alert_list;
               if (this.alertList.length == 0) {
                 this.missing = response.display_username;
               }
               this.selectedKeys = response.selected_keys;
-              if (this.warningMessage) {
-                this.fire('display-toast', {
-                  'content': this.$.warningtoast,
-                  'error': true
-                });
-              }
               this.bugId = uri.getParameter('bug_id');
               if (this.bugId) {
                 this.$['bug-info'].initialize(
