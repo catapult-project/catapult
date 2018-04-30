@@ -13,7 +13,7 @@ import urllib2
 
 from matplotlib import cm  # pylint: disable=import-error
 from matplotlib import pyplot  # pylint: disable=import-error
-import numpy
+import numpy  # pylint: disable=import-error
 
 
 _PLOT_WIDTH_INCHES = 8

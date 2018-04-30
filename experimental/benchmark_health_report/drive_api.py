@@ -10,7 +10,7 @@
 import httplib2
 import time
 
-from apiclient import discovery
+from apiclient import discovery  # pylint: disable=import-error
 from oauth2client import service_account  # pylint: disable=no-name-in-module
 
 # Update this to the location you downloaded the keyfile to.

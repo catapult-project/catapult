@@ -3,32 +3,29 @@
 # found in the LICENSE file.
 
 import csv
+import sqlite3
 
-from soundwave import models
 from soundwave import dashboard_api
-from soundwave import database
+from soundwave import tables
 
 
 def FetchAlertsData(args):
   dashboard_communicator = dashboard_api.PerfDashboardCommunicator(args)
-  alerts = dashboard_communicator.GetAlertData(
-      args.benchmark, args.days)['anomalies']
-  print '%s alerts found!' % len(alerts)
+  conn = sqlite3.connect(args.database_file)
+  try:
+    alerts = tables.alerts.DataFrameFromJson(
+        dashboard_communicator.GetAlertData(args.benchmark, args.days))
+    print '%s alerts found!' % len(alerts)
+    # TODO: Make this update rather than replace the existing table.
+    # Note that if_exists='append' does not work since there is no way to
+    # specify in pandas' |to_sql| a primary key or, more generally, uniqueness
+    # constraints on columns. So this would lead to duplicate entries for
+    # alerts with the same |key|.
+    alerts.to_sql('alerts', conn, if_exists='replace')
+  finally:
+    conn.close()
 
-  bug_ids = set()
-  with database.Database(args.database_file) as db:
-    for alert in alerts:
-      alert = models.Alert.FromJson(alert)
-      db.Put(alert)
-      if alert.bug_id is not None:
-        bug_ids.add(alert.bug_id)
-
-    # TODO(#4281): Do not fetch data for bugs already in the db.
-    print 'Collecting data for %d bugs.' % len(bug_ids)
-    for bug_id in bug_ids:
-      data = dashboard_communicator.GetBugData(bug_id)
-      bug = models.Bug.FromJson(data['bug'])
-      db.Put(bug)
+  # TODO: Add back code to collect bug data.
 
 
 def FetchTimeseriesData(args):

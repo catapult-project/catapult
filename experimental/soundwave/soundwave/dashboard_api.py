@@ -12,7 +12,7 @@ import oauth2client.tools
 import os
 import urllib
 
-from py_utils import retry_util
+from py_utils import retry_util  # pylint: disable=import-error
 
 
 class RequestError(OSError):
