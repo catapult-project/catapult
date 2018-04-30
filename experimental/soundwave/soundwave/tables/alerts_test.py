@@ -27,11 +27,27 @@ class TestAlerts(unittest.TestCase):
                 'improvement': False,
                 'bug_id': 55555,
                 'bisect_status': 'started',
+            },
+            {
+                'key': 'xyz567',
+                'timestamp': '2009-02-13T23:31:30.000',
+                'testsuite': 'loading.mobile',
+                'test': 'timeToFirstInteractive/Wikipedia',
+                'master': 'ChromiumPerf',
+                'bot': 'android-nexus5',
+                'start_revision': 12345,
+                'end_revision': 12543,
+                'median_before_anomaly': 2037.18,
+                'median_after_anomaly': 2135.540,
+                'units': 'ms',
+                'improvement': False,
+                'bug_id': None,
+                'bisect_status': 'started',
             }
         ]
     }
     alerts = tables.alerts.DataFrameFromJson(data)
-    self.assertEqual(len(alerts), 1)
+    self.assertEqual(len(alerts), 2)
 
     alert = alerts.loc['abc123']  # Get alert by key.
     self.assertEqual(alert['timestamp'], datetime.datetime(
@@ -42,6 +58,12 @@ class TestAlerts(unittest.TestCase):
     self.assertEqual(alert['measurement'], 'timeToFirstInteractive')
     self.assertEqual(alert['bug_id'], 55555)
     self.assertEqual(alert['status'], 'triaged')
+
+    # We expect bug_id's to be integers.
+    self.assertEqual(alerts['bug_id'].dtype, int)
+
+    # Missing bug_id's become 0.
+    self.assertEqual(alerts.loc['xyz567']['bug_id'], 0)
 
 
 if __name__ == '__main__':

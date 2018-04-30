@@ -18,7 +18,7 @@ COLUMNS = (
     'median_after_anomaly',  # float: median of values recorded after anomaly
     'units',  # string: unit in which values are masured ('ms')
     'improvement',  # boolean: whether anomaly is an improvement or regression
-    'bug_id',  # int: crbug number associated with this alert
+    'bug_id',  # int: crbug number associated with this alert, 0 if missing
     'status',  # string: one of 'ignored', 'invalid', 'triaged', 'untriaged'
     'bisect_status',  # string: one of 'started', 'falied', 'completed'
 )
@@ -47,7 +47,10 @@ def RowFromJson(data):
   if data['status'] == 'triaged':
     assert data['bug_id'] > 0
   else:
-    data['bug_id'] = None
+    # pandas cannot hold both int and None values in the same series, if so the
+    # type is coerced into float; to prevent this we use 0 to denote untriaged
+    # alerts with no bug_id assigned.
+    data['bug_id'] = 0
 
   return tuple(data[k] for k in COLUMNS)
 
