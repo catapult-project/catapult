@@ -584,7 +584,7 @@ class AndroidPlatformBackend(
         if f not in ignore_list]
     if not files:
       return
-    self._device.RemovePath(files, recursive=True, as_root=True)
+    self._device.RemovePath(files, force=True, recursive=True, as_root=True)
 
   def GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored
