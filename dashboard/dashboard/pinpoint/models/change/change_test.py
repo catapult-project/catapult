@@ -60,6 +60,26 @@ class ChangeTest(_ChangeTest):
     self.assertEqual(c.commits, (base_commit, dep))
     self.assertEqual(c.patch, p)
 
+  def testUpdate(self):
+    old_commit = commit.Commit('chromium', 'aaaaaaaa')
+    dep_a = commit.Commit('catapult', 'e0a2efbb')
+    change_a = change.Change((old_commit, dep_a))
+
+    new_commit = commit.Commit('chromium', 'bbbbbbbb')
+    dep_b = commit.Commit('another_repo', 'e0a2efbb')
+    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
+    change_b = change.Change((dep_b, new_commit), p)
+
+    expected = change.Change((new_commit, dep_a, dep_b), p)
+    self.assertEqual(change_a.Update(change_b), expected)
+
+  def testUpdateWithMultiplePatches(self):
+    base_commit = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36b56c')
+    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
+    c = change.Change((base_commit,), p)
+    with self.assertRaises(NotImplementedError):
+      c.Update(c)
+
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   def testAsDict(self, commit_as_dict, patch_as_dict):

@@ -58,6 +58,36 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
   def deps(self):
     return tuple(self.commits[1:])
 
+  def Update(self, other):
+    """Updates this Change with another Change and returns it as a new Change.
+
+    Similar to OrderedDict.update(), for each Commit in the other Change:
+    * If the Commit's repository already exists in this Change,
+      override the git hash with the other Commit's git hash.
+    * Otherwise, add the Commit to this Change.
+    Also apply the other Change's patches to this Change.
+
+    Since Changes are immutable, this method returns a new Change instead of
+    modifying the existing Change.
+
+    Args:
+      other: The overriding Change.
+
+    Returns:
+      A new Change object.
+    """
+    commits = collections.OrderedDict(self.commits)
+    commits.update(other.commits)
+    commits = tuple(commit_module.Commit(repository, git_hash)
+                    for repository, git_hash in commits.iteritems())
+
+    if self.patch and other.patch:
+      raise NotImplementedError(
+          "Pinpoint builders don't yet support multiple patches.")
+    patch = self.patch or other.patch
+
+    return Change(commits, patch)
+
   def AsDict(self):
     result = {
         'commits': [commit.AsDict() for commit in self.commits],

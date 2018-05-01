@@ -47,16 +47,19 @@ class JobState(object):
   anyway. Everything queryable should be on the Job object.
   """
 
-  def __init__(self, quests):
+  def __init__(self, quests, pin=None):
     """Create a JobState.
 
     Args:
       quests: A sequence of quests to run on each Change.
+      pin: A Change (Commits + Patch) to apply to every Change in this Job.
     """
     # _quests is mutable. Any modification should mutate the existing list
     # in-place rather than assign a new list, because every Attempt references
     # this object and will be updated automatically if it's mutated.
     self._quests = list(quests)
+
+    self._pin = pin
 
     # _changes can be in arbitrary order. Client should not assume that the
     # list of Changes is sorted in any particular order.
@@ -66,10 +69,16 @@ class JobState(object):
     self._attempts = {}
 
   def AddAttempts(self, change):
-    assert change in self._attempts
+    if not hasattr(self, '_pin'):
+      # TODO: Remove after data migration.
+      self._pin = None
+
+    if self._pin:
+      change = change.Update(self._pin)
+
     for _ in xrange(_REPEAT_COUNT_INCREASE):
-      self._attempts[change].append(
-          attempt_module.Attempt(self._quests, change))
+      attempt = attempt_module.Attempt(self._quests, change)
+      self._attempts[change].append(attempt)
 
   def AddChange(self, change, index=None):
     if index:

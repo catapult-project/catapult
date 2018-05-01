@@ -89,7 +89,7 @@ class Job(ndb.Model):
 
   @classmethod
   def New(cls, quests, changes, arguments=None, auto_explore=False,
-          bug_id=None, comparison_mode=None, tags=None, user=None):
+          bug_id=None, comparison_mode=None, pin=None, tags=None, user=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -102,13 +102,14 @@ class Job(ndb.Model):
       comparison_mode: A member of the ComparisonMode enum, which the Job uses
           to figure out whether to perform a functional or performance bisect.
           If None, the Job will not automatically add any Attempts or Changes.
+      pin: A Change (Commits + Patch) to apply to every Change in this Job.
       tags: A dict of key-value pairs used to filter the Jobs listings.
       user: The email of the Job creator.
 
     Returns:
       A Job object.
     """
-    job = cls(state=job_state.JobState(quests),
+    job = cls(state=job_state.JobState(quests, pin=pin),
               arguments=arguments or {},
               auto_explore=auto_explore,
               bug_id=bug_id,
