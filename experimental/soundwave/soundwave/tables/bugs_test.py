@@ -34,7 +34,7 @@ class TestBugs(unittest.TestCase):
     bugs = tables.bugs.DataFrameFromApi(api, [12345])
     self.assertEqual(len(bugs), 1)
 
-    bug = bugs.loc[12345]
+    bug = bugs.loc[12345]  # Get bug by id.
     self.assertEqual(bug['published'], datetime.datetime(
         year=2018, month=4, day=9, hour=17, minute=1, second=9))
     self.assertEqual(bug['status'], 'Fixed')

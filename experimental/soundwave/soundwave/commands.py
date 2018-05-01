@@ -6,6 +6,7 @@ import csv
 import sqlite3
 
 from soundwave import dashboard_api
+from soundwave import pandas_sqlite
 from soundwave import tables
 
 
@@ -16,19 +17,13 @@ def FetchAlertsData(args):
     alerts = tables.alerts.DataFrameFromJson(
         api.GetAlertData(args.benchmark, args.days))
     print '%d alerts found!' % len(alerts)
-    # TODO: Make this update rather than replace the existing table.
-    # Note that if_exists='append' does not work since there is no way to
-    # specify in pandas' |to_sql| a primary key or, more generally, uniqueness
-    # constraints on columns. So this would lead to duplicate entries for
-    # alerts with the same |key|.
-    alerts.to_sql('alerts', conn, if_exists='replace')
+    pandas_sqlite.InsertOrReplaceRecords(alerts, 'alerts', conn)
 
     bug_ids = set(alerts['bug_id'].unique())
     bug_ids.discard(0)  # A bug_id of 0 means untriaged.
     print '%d bugs found!' % len(bug_ids)
     bugs = tables.bugs.DataFrameFromApi(api, bug_ids)
-    # TODO: Ditto. Make this update rather than replace the existing table.
-    bugs.to_sql('bugs', conn, if_exists='replace')
+    pandas_sqlite.InsertOrReplaceRecords(bugs, 'bugs', conn)
   finally:
     conn.close()
 
