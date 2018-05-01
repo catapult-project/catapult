@@ -3,3 +3,4 @@
 # found in the LICENSE file.
 
 from soundwave.tables import alerts
+from soundwave.tables import bugs
