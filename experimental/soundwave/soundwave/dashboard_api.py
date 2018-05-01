@@ -159,9 +159,10 @@ class PerfDashboardCommunicator(object):
     r = 'timeseries/%s?%s' % (urllib.quote(test_path), options)
     return self._MakeApiRequest(r)
 
-  def GetBugData(self, bug_id):
-    """Returns data on the given bug."""
-    return self._MakeApiRequest('bugs/%d' % bug_id)
+  def GetBugData(self, bug_ids):
+    """Yields data on the given sequence of bug ids."""
+    for bug_id in bug_ids:
+      yield self._MakeApiRequest('bugs/%d' % bug_id)
 
   def GetAlertData(self, benchmark, days=30):
     """Returns alerts for the given benchmark."""

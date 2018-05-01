@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import datetime
-import mock
 import unittest
 
 from soundwave import tables
@@ -29,9 +28,7 @@ class TestBugs(unittest.TestCase):
         }
     ]
 
-    api = mock.Mock()
-    api.GetBugData.side_effect = data
-    bugs = tables.bugs.DataFrameFromApi(api, [12345])
+    bugs = tables.bugs.DataFrameFromJson(data)
     self.assertEqual(len(bugs), 1)
 
     bug = bugs.loc[12345]  # Get bug by id.

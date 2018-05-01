@@ -29,17 +29,14 @@ def _CommaSeparate(values):
     return None
 
 
-def RowFromJson(data):
-  data = data['bug'].copy()  # Do not modify the original dict.
+def DataFrameFromJson(data):
+  rows = []
+  for row in data:
+    row = row['bug'].copy()
+    for key in ('cc', 'components', 'labels'):
+      row[key] = _CommaSeparate(row[key])
+    rows.append(tuple(row[k] for k in COLUMNS))
 
-  for key in ('cc', 'components', 'labels'):
-    data[key] = _CommaSeparate(data[key])
-
-  return tuple(data[k] for k in COLUMNS)
-
-
-def DataFrameFromApi(api, bug_ids):
-  rows = [RowFromJson(api.GetBugData(bug_id)) for bug_id in bug_ids]
   df = pandas.DataFrame.from_records(rows, index=INDEX, columns=COLUMNS)
   for key in ('published', 'updated'):
     df[key] = pandas.to_datetime(df[key])

@@ -21,7 +21,7 @@ def FetchAlertsData(args):
     bug_ids = set(alerts['bug_id'].unique())
     bug_ids.discard(0)  # A bug_id of 0 means untriaged.
     print '%d bugs found!' % len(bug_ids)
-    bugs = tables.bugs.DataFrameFromApi(api, bug_ids)
+    bugs = tables.bugs.DataFrameFromJson(api.GetBugData(bug_ids))
     pandas_sqlite.InsertOrReplaceRecords(bugs, 'bugs', conn)
   finally:
     conn.close()
