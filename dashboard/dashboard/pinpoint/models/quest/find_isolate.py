@@ -89,10 +89,16 @@ class _FindIsolateExecution(execution.Execution):
       True iff the isolate was found, meaning the execution is completed.
     """
     try:
-      isolate_hash = isolate.Get(self._builder_name, self._change, self._target)
+      isolate_server, isolate_hash = isolate.Get(
+          self._builder_name, self._change, self._target)
     except KeyError:
       return False
-    self._Complete(result_arguments={'isolate_hash': isolate_hash})
+
+    result_arguments = {
+        'isolate_server': isolate_server,
+        'isolate_hash': isolate_hash,
+    }
+    self._Complete(result_arguments=result_arguments)
     return True
 
   def _CheckBuildStatus(self):

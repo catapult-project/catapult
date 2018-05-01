@@ -24,7 +24,7 @@ def Get(builder_name, change, target):
     target: The compile target the isolate is for.
 
   Returns:
-    The isolate hash as a string.
+    A tuple containing the isolate server and isolate hash as strings.
   """
   entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
   if not entity:
@@ -32,15 +32,16 @@ def Get(builder_name, change, target):
     if not entity:
       raise KeyError('No isolate with builder %s, change %s, and target %s.' %
                      (builder_name, change, target))
-  return entity.isolate_hash
+  return entity.isolate_server, entity.isolate_hash
 
 
-def Put(isolate_infos):
+def Put(isolate_server, isolate_infos):
   """Add isolate hashes to the Datastore.
 
   This function takes multiple entries to do a batched Datstore put.
 
   Args:
+    isolate_server: The hostname of the server where the isolates are stored.
     isolate_infos: An iterable of tuples. Each tuple is of the form
         (builder_name, change, target, isolate_hash).
   """
@@ -48,6 +49,7 @@ def Put(isolate_infos):
   for isolate_info in isolate_infos:
     builder_name, change, target, isolate_hash = isolate_info
     entity = Isolate(
+        isolate_server=isolate_server,
         isolate_hash=isolate_hash,
         id=_Key(builder_name, change, target))
     entities.append(entity)
@@ -55,6 +57,7 @@ def Put(isolate_infos):
 
 
 class Isolate(ndb.Model):
+  isolate_server = ndb.StringProperty(indexed=False, required=True)
   isolate_hash = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(auto_now_add=True)
 

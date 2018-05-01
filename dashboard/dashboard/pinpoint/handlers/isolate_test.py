@@ -47,11 +47,13 @@ class FunctionalityTest(_IsolateTest):
     builder_name = 'Mac Builder'
     change = '{"commits": [{"repository": "src", "git_hash": "git hash"}]}'
     target = 'telemetry_perf_tests'
+    isolate_server = 'https://isolate.server'
     isolate_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
 
     params = {
         'builder_name': builder_name,
         'change': change,
+        'isolate_server': isolate_server,
         'isolate_map': json.dumps({target: isolate_hash}),
     }
     self.testapp.post('/isolate', params, status=200)
@@ -62,7 +64,11 @@ class FunctionalityTest(_IsolateTest):
         'target': target,
     }
     response = self.testapp.get('/isolate', params, status=200)
-    self.assertEqual(response.normal_body, isolate_hash)
+    expected_body = json.dumps({
+        'isolate_server': isolate_server,
+        'isolate_hash': isolate_hash
+    })
+    self.assertEqual(response.normal_body, expected_body)
 
   def testGetUnknownIsolate(self):
     params = {

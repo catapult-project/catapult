@@ -19,7 +19,7 @@ class StartTest(unittest.TestCase):
 
   def testStart(self):
     quest = run_test.RunTest('server', {'key': 'value'}, ['arg'])
-    execution = quest.Start('change', 'isolate hash')
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
   # TODO: Remove after there are no more jobs running RunTest quests
@@ -27,7 +27,7 @@ class StartTest(unittest.TestCase):
   def testResultsLabel(self):
     quest = run_test.RunTest('server', {'key': 'value'},
                              ['--results-label', ''])
-    execution = quest.Start('change', 'isolate hash')
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['--results-label', 'change'])
 
 
@@ -93,7 +93,10 @@ class _RunTestExecutionTest(unittest.TestCase):
         'priority': '100',
         'expiration_secs': '86400',
         'properties': {
-            'inputs_ref': {'isolated': 'input isolate hash'},
+            'inputs_ref': {
+                'isolatedserver': 'isolate server',
+                'isolated': 'input isolate hash',
+            },
             'extra_args': ['arg'],
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
@@ -112,7 +115,10 @@ class _RunTestExecutionTest(unittest.TestCase):
         'priority': '100',
         'expiration_secs': '86400',
         'properties': {
-            'inputs_ref': {'isolated': 'input isolate hash'},
+            'inputs_ref': {
+                'isolatedserver': 'isolate server',
+                'isolated': 'input isolate hash',
+            },
             'extra_args': ['arg'],
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
@@ -134,7 +140,7 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     # Call RunTest.Start() to create an Execution.
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution = quest.Start('change_1', 'input isolate hash')
+    execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
 
     swarming_task_result.assert_not_called()
     swarming_tasks_new.assert_not_called()
@@ -191,13 +197,13 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     # Start a second Execution on another Change. It should use the bot_id
     # from the first execution.
-    execution = quest.Start('change_2', 'input isolate hash')
+    execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
     execution.Poll()
 
     self.assertNewTaskHasBotId(swarming_tasks_new)
 
     # Start an Execution on the same Change. It should use a new bot_id.
-    execution = quest.Start('change_2', 'input isolate hash')
+    execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
     execution.Poll()
 
     self.assertNewTaskHasDimensions(swarming_tasks_new)
@@ -212,7 +218,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution = quest.Start(None, 'input isolate hash')
+    execution = quest.Start(None, 'isolate server', 'input isolate hash')
     execution.Poll()
     execution.Poll()
 
@@ -231,7 +237,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution = quest.Start(None, 'isolate_hash')
+    execution = quest.Start(None, 'isolate server', 'isolate_hash')
     execution.Poll()
     execution.Poll()
 
@@ -253,7 +259,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution = quest.Start('change_1', 'input isolate hash')
+    execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
     execution.Poll()
     with self.assertRaises(run_test.SwarmingExpiredError):
       execution.Poll()
@@ -268,7 +274,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_task_result.return_value = {'state': 'CANCELED'}
 
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution = quest.Start('change_1', 'input isolate hash')
+    execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
     execution.Poll()
     execution.Poll()
 
@@ -282,7 +288,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
         },
         'state': 'COMPLETED',
     }
-    execution = quest.Start('change_2', 'input isolate hash')
+    execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
     execution.Poll()
 
     self.assertTrue(execution.completed)
@@ -295,8 +301,10 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
     quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
-    execution_1 = quest.Start('change_1', 'input isolate hash')
-    execution_2 = quest.Start('change_2', 'input isolate hash')
+    execution_1 = quest.Start('change_1', 'input isolate server',
+                              'input isolate hash')
+    execution_2 = quest.Start('change_2', 'input isolate server',
+                              'input isolate hash')
 
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'PENDING'}

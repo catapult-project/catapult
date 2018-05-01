@@ -94,10 +94,10 @@ class RunTest(quest.Quest):
   def __str__(self):
     return 'Test'
 
-  def Start(self, change, isolate_hash):
-    return self._Start(change, isolate_hash, self._extra_args)
+  def Start(self, change, isolate_server, isolate_hash):
+    return self._Start(change, isolate_server, isolate_hash, self._extra_args)
 
-  def _Start(self, change, isolate_hash, extra_args):
+  def _Start(self, change, isolate_server, isolate_hash, extra_args):
     # TODO: Remove after there are no more jobs running RunTest quests
     # (instead of RunTelemetryTest quests).
     try:
@@ -115,13 +115,13 @@ class RunTest(quest.Quest):
       # TODO: Remove after data migration. crbug.com/822008
       self._swarming_server = 'https://chromium-swarm.appspot.com'
     if len(self._canonical_executions) <= index:
-      execution = _RunTestExecution(
-          self._swarming_server, self._dimensions, extra_args, isolate_hash)
+      execution = _RunTestExecution(self._swarming_server, self._dimensions,
+                                    extra_args, isolate_server, isolate_hash)
       self._canonical_executions.append(execution)
     else:
       execution = _RunTestExecution(
-          self._swarming_server, self._dimensions, extra_args, isolate_hash,
-          previous_execution=self._canonical_executions[index])
+          self._swarming_server, self._dimensions, extra_args, isolate_server,
+          isolate_hash, previous_execution=self._canonical_executions[index])
 
     return execution
 
@@ -160,11 +160,12 @@ class RunTest(quest.Quest):
 class _RunTestExecution(execution_module.Execution):
 
   def __init__(self, swarming_server, dimensions, extra_args,
-               isolate_hash, previous_execution=None):
+               isolate_server, isolate_hash, previous_execution=None):
     super(_RunTestExecution, self).__init__()
     self._swarming_server = swarming_server
     self._dimensions = dimensions
     self._extra_args = extra_args
+    self._isolate_server = isolate_server
     self._isolate_hash = isolate_hash
     self._previous_execution = previous_execution
 
@@ -236,13 +237,19 @@ class _RunTestExecution(execution_module.Execution):
     else:
       dimensions += self._dimensions
 
+    if not hasattr(self, '_isolate_server'):
+      # TODO: Remove after data migration. crbug.com/822008
+      self._isolate_server = 'https://isolateserver.appspot.com'
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '86400',  # 1 day.
         'properties': {
-            'inputs_ref': {'isolated': self._isolate_hash},
+            'inputs_ref': {
+                'isolatedserver': self._isolate_server,
+                'isolated': self._isolate_hash,
+            },
             'extra_args': self._extra_args,
             'dimensions': dimensions,
             'execution_timeout_secs': '7200',  # 2 hours.

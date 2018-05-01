@@ -51,13 +51,16 @@ class Isolate(webapp2.RequestHandler):
 
     # Get.
     try:
-      isolate_hash = isolate.Get(builder_name, change, target)
+      isolate_server, isolate_hash = isolate.Get(builder_name, change, target)
     except KeyError as e:
       self.response.set_status(404)
       self.response.write(e)
       return
 
-    self.response.write(isolate_hash)
+    self.response.write(json.dumps({
+        'isolate_server': isolate_server,
+        'isolate_hash': isolate_hash,
+    }))
 
   def post(self):
     """Add new isolate information.
@@ -65,6 +68,7 @@ class Isolate(webapp2.RequestHandler):
     Args:
       builder_name: The name of the builder that produced the isolate.
       change: The Change the isolate is for, as a JSON string.
+      isolate_server: The hostname of the server where the isolates are stored.
       isolate_map: A JSON dict mapping the target names to the isolate hashes.
     """
     # Check permissions.
@@ -77,11 +81,13 @@ class Isolate(webapp2.RequestHandler):
     parameters = (
         ('builder_name', str),
         ('change', lambda x: change_module.Change.FromDict(json.loads(x))),
+        ('isolate_server', str),
         ('isolate_map', json.loads),
     )
     try:
       # pylint: disable=unbalanced-tuple-unpacking
-      builder_name, change, isolate_map = self._ValidateParameters(parameters)
+      builder_name, change, isolate_server, isolate_map = (
+          self._ValidateParameters(parameters))
     except (KeyError, TypeError, ValueError) as e:
       self.response.set_status(400)
       self.response.write(e)
@@ -90,7 +96,7 @@ class Isolate(webapp2.RequestHandler):
     # Put information into the datastore.
     isolate_infos = {(builder_name, change, target, isolate_hash)
                      for target, isolate_hash in isolate_map.iteritems()}
-    isolate.Put(isolate_infos)
+    isolate.Put(isolate_server, isolate_infos)
 
   def _ValidateParameters(self, parameters):
     """Ensure the right parameters are present and valid.

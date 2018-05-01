@@ -46,9 +46,9 @@ class _FindIsolateExecutionTest(unittest.TestCase):
     ndb.get_context().clear_cache()
 
     change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
-    isolate.Put((
-        ('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),
-    ))
+    isolate.Put(
+        'https://isolate.server',
+        (('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),))
 
     namespaced_stored_object.Set('repositories', {
         'src': {
@@ -84,18 +84,21 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     execution = quest.Start(change)
     execution.Poll()
 
+    expected_result_arguments = {
+        'isolate_server': 'https://isolate.server',
+        'isolate_hash': '7c7e90be',
+    }
+    expected_as_dict = {
+        'completed': True,
+        'exception': None,
+        'details': {'build': None, 'builder': 'Mac Builder'},
+        'result_arguments': expected_result_arguments,
+        'result_values': (),
+    }
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_values, ())
-    self.assertEqual(execution.result_arguments, {'isolate_hash': '7c7e90be'})
-    self.assertEqual(
-        {
-            'completed': True,
-            'exception': None,
-            'details': {'build': None, 'builder': 'Mac Builder'},
-            'result_arguments': {'isolate_hash': u'7c7e90be'},
-            'result_values': (),
-        },
-        execution.AsDict())
+    self.assertEqual(execution.result_arguments, expected_result_arguments)
+    self.assertEqual(execution.AsDict(), expected_as_dict)
 
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
@@ -137,8 +140,9 @@ class BuildTest(_FindIsolateExecutionTest):
     get_job_status.assert_called_once_with('build_id')
 
     # Look up isolate hash.
-    isolate.Put((('Mac Builder', change,
-                  'telemetry_perf_tests', 'isolate git hash'),))
+    isolate.Put(
+        'https://isolate.server',
+        (('Mac Builder', change, 'telemetry_perf_tests', 'isolate git hash'),))
     execution.Poll()
 
     self.assertExecutionSuccess(execution)
@@ -171,8 +175,9 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertEqual(get_job_status.call_count, 2)
 
     # Look up isolate hash.
-    isolate.Put((('Mac Builder', change,
-                  'telemetry_perf_tests', 'isolate git hash'),))
+    isolate.Put(
+        'https://isolate.server',
+        (('Mac Builder', change, 'telemetry_perf_tests', 'isolate git hash'),))
     execution_1.Poll()
     execution_2.Poll()
 

@@ -26,7 +26,7 @@ class StartTest(unittest.TestCase):
   def testStart(self):
     quest = run_telemetry_test.RunTelemetryTest(
         'server', {'key': 'value'}, ['arg'])
-    execution = quest.Start('change', 'isolate hash')
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args,
                      ['arg', '--results-label', 'change'])
 
