@@ -15,7 +15,14 @@ import tracing_project
 tracing_project.UpdateSysPathIfNeeded()
 from py_utils import camel_case
 from tracing.value.diagnostics import add_reserved_diagnostics
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
+
+
+LOG_URLS_CAMELCASE = camel_case.ToUnderscore(reserved_infos.LOG_URLS.name)
+LOG_URLS_K = LOG_URLS_CAMELCASE + '_k'
+LOG_URLS_V = LOG_URLS_CAMELCASE + '_v'
+
 
 def main():
   parser = argparse.ArgumentParser(
@@ -41,10 +48,18 @@ def main():
       arg_names_to_infos[name] = info
       parser.add_argument('--%s' % name)
 
+  # TODO(#3770): Clean this up.
+  parser.add_argument('--%s' % LOG_URLS_K)
+  parser.add_argument('--%s' % LOG_URLS_V)
+
   args = parser.parse_args()
 
   names_to_values = {}
   for name, value in vars(args).iteritems():
+    if name == LOG_URLS_K and value is not None:
+      v_value = vars(args)[LOG_URLS_V]
+      names_to_values[reserved_infos.LOG_URLS.name] = [value, v_value]
+      continue
     if name in arg_names_to_infos and value is not None:
       diagnostic_name = arg_names_to_infos[name].name
       ctor = arg_names_to_infos[name].entry_type

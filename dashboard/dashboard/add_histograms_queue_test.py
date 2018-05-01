@@ -28,7 +28,7 @@ TEST_HISTOGRAM = {
     'binBoundaries': [1, [1, 1000, 20]],
     'diagnostics': {
         reserved_infos.LOG_URLS.name: {
-            'values': ['http://log.url/'],
+            'values': [['Buildbot stdio', 'http://log.url/']],
             'type': 'GenericSet',
         },
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name: {
@@ -468,7 +468,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_rev)
     self.assertEqual('123', row.r_commit_pos)
 
-    self.assertEqual('http://log.url/', row.a_stdio_uri)
+    self.assertEqual('[Buildbot stdio](http://log.url/)', row.a_stdio_uri)
 
   def testCreateRowEntities_WithCustomSummaryOptions(self):
     test_path = 'Chromium/win7/suite/metric'
