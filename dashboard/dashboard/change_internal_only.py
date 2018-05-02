@@ -12,7 +12,6 @@ from google.appengine.ext import ndb
 
 from dashboard import add_point_queue
 from dashboard.common import request_handler
-from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 from dashboard.models import anomaly
@@ -95,7 +94,7 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
     elif bot_names and len(bot_names) == 1:
       self._UpdateBot(bot_names[0], internal_only, cursor=cursor)
     elif test_key_urlsafe:
-      self._UpdateTest(test_key_urlsafe, internal_only, cursor=cursor)
+      self._UpdateTest(test_key_urlsafe, internal_only)
 
   def _UpdateBotWhitelist(self, bot_master_names, internal_only):
     """Updates the global bot_whitelist object, otherwise subsequent add_point
@@ -169,44 +168,21 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
           },
           queue_name=_QUEUE_NAME)
 
-  def _UpdateTest(self, test_key_urlsafe, internal_only, cursor=None):
+  def _UpdateTest(self, test_key_urlsafe, internal_only):
     """Updates the given TestMetadata and associated Row entities."""
     test_key = ndb.Key(urlsafe=test_key_urlsafe)
-    if not cursor:
-      # First time updating for this TestMetadata.
-      test_entity = test_key.get()
-      if test_entity.internal_only != internal_only:
-        test_entity.internal_only = internal_only
-        test_entity.put()
 
-      # Update all of the Anomaly entities for this test.
-      # Assuming that this should be fast enough to do in one request
-      # for any one test.
-      anomalies = anomaly.Anomaly.GetAlertsForTest(test_key)
-      for anomaly_entity in anomalies:
-        if anomaly_entity.internal_only != internal_only:
-          anomaly_entity.internal_only = internal_only
-      ndb.put_multi(anomalies)
-    else:
-      cursor = datastore_query.Cursor(urlsafe=cursor)
+    # First time updating for this TestMetadata.
+    test_entity = test_key.get()
+    if test_entity.internal_only != internal_only:
+      test_entity.internal_only = internal_only
+      test_entity.put()
 
-    # Fetch a certain number of Row entities starting from cursor.
-    rows_query = graph_data.Row.query(
-        graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-    rows, next_cursor, more = rows_query.fetch_page(
-        _MAX_ROWS_TO_PUT, start_cursor=cursor)
-
-    for row in rows:
-      if row.internal_only != internal_only:
-        row.internal_only = internal_only
-    ndb.put_multi(rows)
-
-    if more:
-      taskqueue.add(
-          url='/change_internal_only',
-          params={
-              'test': test_key_urlsafe,
-              'cursor': next_cursor.urlsafe(),
-              'internal_only': 'true' if internal_only else 'false',
-          },
-          queue_name=_QUEUE_NAME)
+    # Update all of the Anomaly entities for this test.
+    # Assuming that this should be fast enough to do in one request
+    # for any one test.
+    anomalies = anomaly.Anomaly.GetAlertsForTest(test_key)
+    for anomaly_entity in anomalies:
+      if anomaly_entity.internal_only != internal_only:
+        anomaly_entity.internal_only = internal_only
+    ndb.put_multi(anomalies)

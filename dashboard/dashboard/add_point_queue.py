@@ -135,7 +135,6 @@ def _AddRow(row_dict, bot_whitelist):
   test_container_key = utils.GetTestContainerKey(parent_test.key)
 
   columns = add_point.GetAndValidateRowProperties(row_dict)
-  columns['internal_only'] = parent_test.internal_only
 
   row_id = add_point.GetAndValidateRowId(row_dict)
 

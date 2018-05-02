@@ -266,8 +266,7 @@ def _ProcessRowAndHistogram(params, bot_whitelist):
         unescaped_story_name=unescaped_story_name, **extra_args)
 
   return [
-      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
-                       internal_only),
+      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests),
       _AddHistogramFromData(params, revision, test_key, internal_only)]
 
 
@@ -335,15 +334,14 @@ def _ShouldAddV8BrowsingValue(value_name):
 
 
 @ndb.tasklet
-def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
-                     internal_only):
+def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   data_dict = params['data']
   test_key = parent_test.key
 
   stat_names_to_test_keys = {k: v.key for k, v in
                              legacy_parent_tests.iteritems()}
   rows = CreateRowEntities(
-      data_dict, test_key, stat_names_to_test_keys, revision, internal_only)
+      data_dict, test_key, stat_names_to_test_keys, revision)
   if not rows:
     raise ndb.Return()
 
@@ -431,8 +429,7 @@ def GetUnitArgs(unit):
 
 
 def CreateRowEntities(
-    histogram_dict, test_metadata_key, stat_names_to_test_keys,
-    revision, internal_only):
+    histogram_dict, test_metadata_key, stat_names_to_test_keys, revision):
   h = histogram_module.Histogram.FromDict(histogram_dict)
   # TODO(eakuefner): Move this check into _PopulateNumericalFields once we
   # know that it's okay to put rows that don't have a value/error (see
@@ -446,15 +443,14 @@ def CreateRowEntities(
   properties = add_point.GetAndValidateRowProperties(row_dict)
   test_container_key = utils.GetTestContainerKey(test_metadata_key)
   rows.append(graph_data.Row(id=revision, parent=test_container_key,
-                             internal_only=internal_only, **properties))
+                             **properties))
 
   for stat_name, suffixed_key in stat_names_to_test_keys.iteritems():
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
     properties = add_point.GetAndValidateRowProperties(row_dict)
     test_container_key = utils.GetTestContainerKey(suffixed_key)
     rows.append(graph_data.Row(
-        id=revision, parent=suffixed_key, internal_only=internal_only,
-        **properties))
+        id=revision, parent=suffixed_key, **properties))
 
   return rows
 

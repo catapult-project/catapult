@@ -150,20 +150,6 @@ class DatastoreHooksTest(testing_common.TestCase):
     else:
       self.assertEqual(2, len(tests))
 
-    rows = graph_data.Row.query().fetch()
-    if include_internal:
-      self.assertEqual(20, len(rows))
-    else:
-      self.assertEqual(10, len(rows))
-
-    rows = graph_data.Row.query(ndb.OR(
-        graph_data.Row.revision < 20, graph_data.Row.revision > 70)).filter(
-            graph_data.Row.value == 20).fetch()
-    if include_internal:
-      self.assertEqual(2, len(rows))
-    else:
-      self.assertEqual(1, len(rows))
-
     sheriffs = sheriff.Sheriff.query().fetch()
     if include_internal:
       self.assertEqual(2, len(sheriffs))
@@ -198,11 +184,12 @@ class DatastoreHooksTest(testing_common.TestCase):
     datastore_hooks.SetSinglePrivilegedRequest()
     # Not using _CheckQueryResults because this only affects a single query.
     # First query has internal results.
-    rows = graph_data.Row.query().filter(graph_data.Row.value == 20).fetch()
-    self.assertEqual(2, len(rows))
+    bots = graph_data.Bot.query().fetch()
+    self.assertEqual(2, len(bots))
+
     # Second query does not.
-    rows = graph_data.Row.query().filter(graph_data.Row.value == 20).fetch()
-    self.assertEqual(1, len(rows))
+    bots = graph_data.Bot.query().fetch()
+    self.assertEqual(1, len(bots))
 
   def _CheckGet(self, include_internal):
     m = ndb.Key('Master', 'ChromiumPerf').get()

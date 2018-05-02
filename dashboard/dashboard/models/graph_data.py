@@ -358,7 +358,7 @@ class LastAddedRevision(ndb.Model):
   revision = ndb.IntegerProperty(indexed=False)
 
 
-class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
+class Row(ndb.Expando):
   """A Row represents one data point.
 
   A Row has a revision and a value, which are the X and Y values, respectively.
@@ -429,11 +429,9 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
       yield parent_test.put_async(**ctx_options)
 
 
-def GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
+def GetRowsForTestInRange(test_key, start_rev, end_rev):
   """Gets all the Row entities for a test between a given start and end."""
   test_key = utils.OldStyleTestKey(test_key)
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
   query = Row.query(
       Row.parent_test == test_key,
       Row.revision >= start_rev,
@@ -441,30 +439,26 @@ def GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
   return query.fetch(batch_size=100)
 
 
-def GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
+def GetRowsForTestAroundRev(test_key, rev, num_points):
   """Gets up to |num_points| Row entities for a test centered on a revision."""
   test_key = utils.OldStyleTestKey(test_key)
   num_rows_before = int(num_points / 2) + 1
   num_rows_after = int(num_points / 2)
 
   return GetRowsForTestBeforeAfterRev(
-      test_key, rev, num_rows_before, num_rows_after, privileged)
+      test_key, rev, num_rows_before, num_rows_after)
 
 
 def GetRowsForTestBeforeAfterRev(
-    test_key, rev, num_rows_before, num_rows_after, privileged=False):
+    test_key, rev, num_rows_before, num_rows_after):
   """Gets up to |num_points| Row entities for a test centered on a revision."""
   test_key = utils.OldStyleTestKey(test_key)
 
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
   query_up_to_rev = Row.query(Row.parent_test == test_key, Row.revision <= rev)
   query_up_to_rev = query_up_to_rev.order(-Row.revision)
   rows_up_to_rev = list(reversed(
       query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)))
 
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
   query_after_rev = Row.query(Row.parent_test == test_key, Row.revision > rev)
   query_after_rev = query_after_rev.order(Row.revision)
   rows_after_rev = query_after_rev.fetch(limit=num_rows_after, batch_size=100)

@@ -68,7 +68,7 @@ _TEST_DEPRECATED_PROPERTIES = [
 _TEST_EXCLUDE = _TEST_COMPUTED_PROPERTIES + _TEST_DEPRECATED_PROPERTIES
 
 # Properties of Row that shouldn't be copied.
-_ROW_EXCLUDE = ['parent_test', 'revision', 'id']
+_ROW_EXCLUDE = ['parent_test', 'revision', 'id', 'internal_only']
 
 _SHERIFF_ALERT_EMAIL_BODY = """
 The test %(old_test_path)s has been migrated to %(new_test_path)s.

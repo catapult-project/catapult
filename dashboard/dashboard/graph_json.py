@@ -214,16 +214,13 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
          not parent_test.internal_only)
 
   if start_rev and end_rev:
-    rows = graph_data.GetRowsForTestInRange(
-        parent_test.key, start_rev, end_rev, True)
+    rows = graph_data.GetRowsForTestInRange(parent_test.key, start_rev, end_rev)
   elif rev:
     assert num_points
-    rows = graph_data.GetRowsForTestAroundRev(
-        parent_test.key, rev, num_points, True)
+    rows = graph_data.GetRowsForTestAroundRev(parent_test.key, rev, num_points)
   else:
     assert num_points
-    rows = graph_data.GetLatestRowsForTest(
-        parent_test.key, num_points, privileged=True)
+    rows = graph_data.GetLatestRowsForTest(parent_test.key, num_points)
 
   parent_test_key = parent_test.key.urlsafe()
   for row in rows:

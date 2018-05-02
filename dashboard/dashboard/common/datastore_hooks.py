@@ -22,7 +22,6 @@ from dashboard.common import utils
 _INTERNAL_ONLY_KINDS = [
     'Bot',
     'TestMetadata',
-    'Row',
     'Sheriff',
     'Anomaly',
     'TryJob',

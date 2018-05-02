@@ -92,16 +92,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
       else:
         self.assertFalse(test.internal_only)
 
-    # Verify that Row entities were changed.
-    rows = graph_data.Row.query().fetch()
-    for row in rows:
-      test_path = utils.TestPath(row.key.parent())
-      if (test_path.startswith('ChromiumPerf/win7') or
-          test_path.startswith('ChromiumGPU/mac')):
-        self.assertTrue(row.internal_only)
-      else:
-        self.assertFalse(row.internal_only)
-
     # Verify that Anomaly entities were changed.
     anomalies = anomaly.Anomaly.query().fetch()
     for a in anomalies:
@@ -150,9 +140,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     tests = graph_data.TestMetadata.query().fetch()
     for test in tests:
       self.assertFalse(test.internal_only)
-    rows = graph_data.Row.query().fetch()
-    for row in rows:
-      self.assertFalse(row.internal_only)
 
 
 if __name__ == '__main__':

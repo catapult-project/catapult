@@ -414,7 +414,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'sum': utils.TestKey('Chromium/win7/suite/metric_sum')
     }
     rows_to_put = add_histograms_queue.CreateRowEntities(
-        TEST_HISTOGRAM, test_key, stat_names_to_test_keys, 123, False)
+        TEST_HISTOGRAM, test_key, stat_names_to_test_keys, 123)
     ndb.put_multi(rows_to_put)
 
     rows = graph_data.Row.query().fetch()
@@ -457,7 +457,6 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     self.assertAlmostEqual(2.0, row.value)
     self.assertAlmostEqual(1.0, row.error)
-    self.assertFalse(row.internal_only)
 
     self.assertEqual(4, len(d_fields))
     self.assertEqual(3, row.d_count)
@@ -493,7 +492,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'count': utils.TestKey('Chromium/win7/suite/metric_count')
     }
     rows = add_histograms_queue.CreateRowEntities(
-        hist.AsDict(), test_key, stat_names_to_test_keys, 123, False)
+        hist.AsDict(), test_key, stat_names_to_test_keys, 123)
 
     self.assertEqual(4, len(rows))
 
@@ -523,7 +522,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'avg': utils.TestKey('Chromium/win7/suite/metric_avg')
     }
     rows = add_histograms_queue.CreateRowEntities(
-        hist.AsDict(), test_key, stat_names_to_test_keys, 123, False)
+        hist.AsDict(), test_key, stat_names_to_test_keys, 123)
 
     self.assertEqual(2, len(rows))
 
@@ -532,25 +531,15 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     self.assertAlmostEqual(1.0, row.error)
 
-  def testCreateRowEntities_SetsInternalOnly(self):
-    test_path = 'Chromium/win7/suite/metric'
-    test_key = utils.TestKey(test_path)
-    rows_to_put = add_histograms_queue.CreateRowEntities(
-        TEST_HISTOGRAM, test_key, {}, 123, True)
-    ndb.put_multi(rows_to_put)
-    rows = graph_data.Row.query().fetch()
-    for row in rows:
-      self.assertTrue(row.internal_only)
-
   def testCreateRowEntities_SuffixesRefProperly(self):
     test_path0 = 'Chromium/win7/suite/metric_ref'
     test_path1 = 'Chromium/win7/suite/metric/ref'
     test_key0 = utils.TestKey(test_path0)
     test_key1 = utils.TestKey(test_path1)
     rows_to_put = add_histograms_queue.CreateRowEntities(
-        TEST_HISTOGRAM, test_key0, {}, 123, False)
+        TEST_HISTOGRAM, test_key0, {}, 123)
     rows_to_put += add_histograms_queue.CreateRowEntities(
-        TEST_HISTOGRAM, test_key1, {}, 123, False)
+        TEST_HISTOGRAM, test_key1, {}, 123)
     ndb.put_multi(rows_to_put)
     rows = graph_data.Row.query().fetch()
     for row in rows:
@@ -560,7 +549,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     hist = histogram_module.Histogram('foo', 'count').AsDict()
     test_path = 'Chromium/win7/suite/metric'
     test_key = utils.TestKey(test_path)
-    row = add_histograms_queue.CreateRowEntities(hist, test_key, {}, 123, True)
+    row = add_histograms_queue.CreateRowEntities(hist, test_key, {}, 123)
 
     rows = graph_data.Row.query().fetch()
     self.assertEqual(0, len(rows))
@@ -575,4 +564,4 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     with self.assertRaises(add_histograms_queue.BadRequestError):
       add_histograms_queue.CreateRowEntities(
-          hist, test_key, {}, 123, False).put()
+          hist, test_key, {}, 123).put()

@@ -251,7 +251,7 @@ def _FetchLatestRows(test, num_points):
   assert utils.IsInternalUser() or not test.internal_only
   datastore_hooks.SetSinglePrivilegedRequest()
   return list(reversed(
-      graph_data.GetLatestRowsForTest(test.key, num_points, privileged=True)))
+      graph_data.GetLatestRowsForTest(test.key, num_points)))
 
 
 def _FetchRowsAroundRev(test, revision, num_before, num_after):
@@ -270,7 +270,7 @@ def _FetchRowsAroundRev(test, revision, num_before, num_after):
   """
   assert utils.IsInternalUser() or not test.internal_only
   return graph_data.GetRowsForTestBeforeAfterRev(
-      test.key, revision, num_before, num_after, privileged=True)
+      test.key, revision, num_before, num_after)
 
 
 def _FetchStoredAnomalies(test, revisions):
