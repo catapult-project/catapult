@@ -848,6 +848,7 @@ class Trace(NodeWrapper):
     self._is_mac = False
     self._is_linux = False
     self._is_cros = False
+    self._is_android = False
 
     # Misc per-process information needed only during parsing.
     class ProcessExt(object):
@@ -870,6 +871,8 @@ class Trace(NodeWrapper):
       self._is_mac = re.search('mac', metadata['os-name'], re.IGNORECASE)
       self._is_linux = re.search('linux', metadata['os-name'], re.IGNORECASE)
       self._is_cros = re.search('cros', metadata['os-name'], re.IGNORECASE)
+      self._is_android = re.search(
+          'android', metadata['os-name'], re.IGNORECASE)
 
       self._is_64bit = (
           re.search('x86_64', metadata['os-arch'], re.IGNORECASE) and
@@ -988,14 +991,21 @@ class Trace(NodeWrapper):
   def is_win(self):
     return self._is_win
 
-
   @property
   def is_linux(self):
     return self._is_linux
 
   @property
+  def is_android(self):
+    return self._is_android
+
+  @property
   def is_64bit(self):
     return self._is_64bit
+
+  @property
+  def library_name(self):
+    return self._trace_node['metadata'].get('chrome-library-name')
 
   def ApplyModifications(self):
     """Propagates modifications back to the trace JSON."""
@@ -1325,31 +1335,22 @@ def SymbolizeFiles(symfiles, symbolizer):
     symbolizer.SymbolizeSymfile(symfile)
 
 
-# Matches Android library paths, supports both K (/data/app-lib/<>/lib.so)
-# as well as L+ (/data/app/<>/lib/<>/lib.so). Library name is available
-# via 'name' group.
-ANDROID_PATH_MATCHER = re.compile(
-    r'^/data/(?:'
-    r'app/[^/]+/lib/[^/]+/|'
-    r'app-lib/[^/]+/|'
-    r'data/[^/]+/incremental-install-files/lib/'
-    r')(?P<name>.*\.so)')
-
 # Subpath of output path where unstripped libraries are stored.
 ANDROID_UNSTRIPPED_SUBPATH = 'lib.unstripped'
 
 
-def HaveFilesFromAndroid(symfiles):
-  return any(ANDROID_PATH_MATCHER.match(f.path) for f in symfiles)
-
-
-def RemapAndroidFiles(symfiles, output_path):
+def RemapAndroidFiles(symfiles, output_path, chrome_soname):
   for symfile in symfiles:
-    match = ANDROID_PATH_MATCHER.match(symfile.path)
-    if match:
-      name = match.group('name')
+    filename = os.path.basename(symfile.path)
+    if os.path.splitext(filename)[1] == '.so':
       symfile.symbolizable_path = os.path.join(
-          output_path, ANDROID_UNSTRIPPED_SUBPATH, name)
+          output_path, ANDROID_UNSTRIPPED_SUBPATH, filename)
+    elif os.path.splitext(filename)[1] == '.apk' and chrome_soname:
+      # If there is any pc in .apk memory map, then just assume it is from
+      # chroms.so since we memory map libraries from apk directly. This does
+      # not work for component builds.
+      symfile.symbolizable_path = os.path.join(
+          output_path, ANDROID_UNSTRIPPED_SUBPATH, chrome_soname)
     else:
       # Clobber file path to trigger "not a file" problem in SymbolizeFiles().
       # Without this, files won't be symbolized with "file not found" problem,
@@ -1404,13 +1405,12 @@ def SymbolizeTrace(options, trace, symbolizer):
     RemapBreakpadModules(symfiles, symbolizer,
                          options.only_symbolize_chrome_symbols)
   else:
-    # Android trace files don't have any indication they are from Android.
-    # So we're checking for Android-specific paths.
-    if HaveFilesFromAndroid(symfiles):
+    if trace.is_android:
       if not options.output_directory:
         sys.exit('The trace file appears to be from Android. Please '
                  'specify output directory to properly symbolize it.')
-      RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
+      RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory),
+                        trace.library_name)
 
     if not trace.is_chromium:
       if symbolizer.is_mac:
