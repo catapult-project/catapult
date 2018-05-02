@@ -1287,7 +1287,10 @@ tr.b.unittest.testSuite(function() {
     const pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 9});
     pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
-          {privateDirtyResident: 8})
+          {privateDirtyResident: 8}),
+      new VMRegion(0xFBCD, 64, 5, '/data/chrome-WXYZ/base.apk',
+          { privateCleanResident: 8, sharedCleanResident: 4,
+            proportionalResident: 10})
     ]);
     pmdBrowser1.heapDumps = (function() {
       const mallocDump = new tr.model.HeapDump(pmdBrowser1, 'malloc');
@@ -1298,7 +1301,10 @@ tr.b.unittest.testSuite(function() {
     const pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 10});
     pmdRendererA1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xEF01, 256, 0, '[anon:libc_malloc]',
-          {privateDirtyResident: 17})
+          {privateDirtyResident: 17}),
+      new VMRegion(0xFBCD, 64, 5, '/data/chrome-WXYZ/base.apk',
+          { privateCleanResident: 3, sharedCleanResident: 4,
+            proportionalResident: 5})
     ]);
     const pmdRendererB1 = addProcessMemoryDump(gmd1, pRendererB, {ts: 11});
     pmdRendererB1.vmRegions = VMRegionClassificationNode.fromRegions([
@@ -1411,6 +1417,27 @@ tr.b.unittest.testSuite(function() {
       description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by all processes in an unknown browser'
     },
+    'memory:unknown_browser:all_processes:reported_by_os:native_library_private_clean_resident':
+    {
+      value: [8, 3, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size ' +
+              'reported by the OS for all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:native_library_proportional_resident':
+    {
+      value: [10, 5, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size ' +
+              'reported by the OS for all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:native_library_shared_clean_resident':
+    {
+      value: [4, 4, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size ' +
+              'reported by the OS for all processes in an unknown browser'
+    },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:gfx:proportional_resident_size':
     {
       value: [0, 1000, 0],
@@ -1441,7 +1468,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:all_processes:reported_by_os:proportional_resident_size':
     {
-      value: [67 + 20 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 0],
+      value: [67 + 20 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 15],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for all processes in an unknown browser'
@@ -1455,7 +1482,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [67 + 20, 700 + 3 + 150, 0],
+      value: [67 + 20, 700 + 3 + 150, 15],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in an unknown browser'
@@ -1502,6 +1529,27 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in an unknown browser'
     },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:native_library_private_clean_resident':
+    {
+      value: [8, 3, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size of ' +
+              'system memory (RAM) used by all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:native_library_proportional_resident':
+    {
+      value: [10, 5, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size of ' +
+              'system memory (RAM) used by all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:native_library_shared_clean_resident':
+    {
+      value: [4, 4, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size of ' +
+              'system memory (RAM) used by all processes in an unknown browser'
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
     {
       value: [16, 0, 0],
@@ -1521,6 +1569,27 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of browser processes in an unknown browser'
     },
+    'memory:unknown_browser:browser_process:reported_by_os:native_library_private_clean_resident':
+    {
+      value: [8, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size ' +
+              'reported by the OS for the browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:native_library_proportional_resident':
+    {
+      value: [10, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size ' +
+           'reported by the OS for the browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:native_library_shared_clean_resident':
+    {
+      value: [4, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size ' +
+              'reported by the OS for the browser process in an unknown browser'
+    },
     'memory:unknown_browser:browser_process:reported_by_os:private_dirty_size':
     {
       value: [8, 80, 0],
@@ -1530,7 +1599,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:browser_process:reported_by_os:proportional_resident_size':
     {
-      value: [0, 3, 0],
+      value: [10, 3, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in an unknown browser'
@@ -1544,7 +1613,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [0, 3, 0],
+      value: [10, 3, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in an unknown browser'
@@ -1590,6 +1659,30 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:native_library_private_clean_resident':
+    {
+      value: [8, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size of ' +
+           'system memory (RAM) used by the browser process in an ' +
+           'unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:native_library_proportional_resident':
+    {
+      value: [10, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size of ' +
+           'system memory (RAM) used by the browser process in an ' +
+           'unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:native_library_shared_clean_resident':
+    {
+      value: [4, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size of ' +
+           'system memory (RAM) used by the browser process in an ' +
+           'unknown browser'
     },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
     {
@@ -1727,6 +1820,27 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of renderer processes in an unknown browser'
     },
+    'memory:unknown_browser:renderer_processes:reported_by_os:native_library_private_clean_resident':
+    {
+      value: [3, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size ' +
+           'reported by the OS for renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:native_library_proportional_resident':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size ' +
+           'reported by the OS for renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:native_library_shared_clean_resident':
+    {
+      value: [4, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size ' +
+           'reported by the OS for renderer processes in an unknown browser'
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:private_dirty_size':
     {
       value: [17 + 34 + 16, 0, 0],
@@ -1736,7 +1850,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:proportional_resident_size':
     {
-      value: [67 + 20, 700, 0],
+      value: [67 + 20, 700, 5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for renderer processes in an unknown browser'
@@ -1750,7 +1864,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [67 + 20, 700, 0],
+      value: [67 + 20, 700, 5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by renderer processes in an unknown browser'
@@ -1796,6 +1910,30 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
               'in renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:native_library_private_clean_resident':
+    {
+      value: [3, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library private clean resident size of ' +
+           'system memory (RAM) used by renderer processes in an ' +
+           'unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:native_library_proportional_resident':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library proportional resident size of ' +
+           'system memory (RAM) used by renderer processes in an ' +
+           'unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:native_library_shared_clean_resident':
+    {
+      value: [4, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total native library shared clean resident size of ' +
+           'system memory (RAM) used by renderer processes in an ' +
+           'unknown browser'
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:stack:private_dirty_size':
     {

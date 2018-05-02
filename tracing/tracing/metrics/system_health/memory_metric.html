@@ -547,6 +547,33 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
+  const NATIVE_LIBRARY_PRIVATE_CLEAN_RESIDENT = {
+    name: 'native_library_private_clean_resident',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'native library private clean resident size');
+    }
+  };
+
+  const NATIVE_LIBRARY_SHARED_CLEAN_RESIDENT = {
+    name: 'native_library_shared_clean_resident',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'native library shared clean resident size');
+    }
+  };
+
+  const NATIVE_LIBRARY_PROPORTIONAL_RESIDENT = {
+    name: 'native_library_proportional_resident',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'native library proportional resident size');
+    }
+  };
+
   /**
    * Build a description prefix for a memory:<browser-name>:<process-name>:
    * reported_by_os:... value.
@@ -661,6 +688,40 @@ tr.exportTo('tr.metrics.sh', function() {
               value: node === undefined ?
                   0 : (node.byteStats.privateDirtyResident || 0)
             });
+
+            // Only add native library stats when they are nonzero.
+            if (node) {
+              if (node.byteStats.nativeLibraryPrivateCleanResident) {
+                addProcessScalar({
+                  source: 'reported_by_os',
+                  component: componentPath,
+                  property: NATIVE_LIBRARY_PRIVATE_CLEAN_RESIDENT,
+                  value: node === undefined ?
+                      0 : (node.byteStats.nativeLibraryPrivateCleanResident ||
+                           0)
+                });
+              }
+              if (node.byteStats.nativeLibrarySharedCleanResident) {
+                addProcessScalar({
+                  source: 'reported_by_os',
+                  component: componentPath,
+                  property: NATIVE_LIBRARY_SHARED_CLEAN_RESIDENT,
+                  value: node === undefined ?
+                      0 : (node.byteStats.nativeLibrarySharedCleanResident ||
+                           0)
+                });
+              }
+              if (node.byteStats.nativeLibraryProportionalResident) {
+                addProcessScalar({
+                  source: 'reported_by_os',
+                  component: componentPath,
+                  property: NATIVE_LIBRARY_PROPORTIONAL_RESIDENT,
+                  value: node === undefined ?
+                      0 : (node.byteStats.nativeLibraryProportionalResident ||
+                           0)
+                });
+              }
+            }
           }
 
           // Add memory:<browser-name>:<process-name>:reported_by_os:

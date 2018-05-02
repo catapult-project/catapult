@@ -380,6 +380,32 @@ tr.exportTo('tr.model', function() {
         thisByteStats[byteStatName] =
             (thisByteStats[byteStatName] || 0) + regionByteStatValue;
       }
+
+      // Aggregate native library stats.
+      const textProtectionFlags = (VMRegion.PROTECTION_FLAG_READ |
+                                   VMRegion.PROTECTION_FLAG_EXECUTE);
+      if ((region.protectionFlags === textProtectionFlags) &&
+          region.mappedFile.includes('/base.apk')) {
+        if (regionSizeInBytes !== undefined) {
+          this.nativeLibrarySizeInBytes =
+            (this.nativeLibrarySizeInBytes || 0) + regionSizeInBytes;
+        }
+        if (region.byteStats.privateCleanResident !== undefined) {
+          thisByteStats.nativeLibraryPrivateCleanResident =
+              (thisByteStats.nativeLibraryPrivateCleanResident || 0) +
+              region.byteStats.privateCleanResident;
+        }
+        if (region.byteStats.sharedCleanResident !== undefined) {
+          thisByteStats.nativeLibrarySharedCleanResident =
+              (thisByteStats.nativeLibrarySharedCleanResident || 0) +
+              region.byteStats.sharedCleanResident;
+        }
+        if (region.byteStats.proportionalResident !== undefined) {
+          thisByteStats.nativeLibraryProportionalResident =
+              (thisByteStats.nativeLibraryProportionalResident || 0) +
+              region.byteStats.proportionalResident;
+        }
+      }
     }
   };
 

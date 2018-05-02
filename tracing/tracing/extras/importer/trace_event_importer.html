@@ -2835,7 +2835,9 @@ tr.exportTo('tr.e.importer', function() {
         return;
       }
 
-      // See //base/trace_event/process_memory_maps.cc in Chromium.
+      // In Chromium under //services/resource_coordinator/public see
+      // mojom/memory_instrumentation/memory_instrumentation.mojom and
+      // cpp/memory_instrumentation/tracing_observer.cc
       const vmRegions = new Array(rawVmRegions.length);
       for (let i = 0; i < rawVmRegions.length; i++) {
         const rawVmRegion = rawVmRegions[i];
