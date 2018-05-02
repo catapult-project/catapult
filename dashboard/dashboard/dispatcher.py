@@ -42,7 +42,6 @@ from dashboard import main
 from dashboard import memory_report
 from dashboard import migrate_test_names
 from dashboard import navbar
-from dashboard import new_points
 from dashboard import oauth2_decorator
 from dashboard import pinpoint_request
 from dashboard import post_bisect_results
@@ -101,7 +100,6 @@ _URL_MAPPING = [
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/deprecate_tests', deprecate_tests.DeprecateTestsHandler),
     ('/navbar', navbar.NavbarHandler),
-    ('/new_points', new_points.NewPointsHandler),
     ('/pinpoint/new/bisect',
      pinpoint_request.PinpointNewBisectRequestHandler),
     ('/pinpoint/new/perf_try',

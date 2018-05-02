@@ -182,11 +182,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /new_points
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
 - url: /pinpoint/.*
   script: dashboard.dispatcher.APP
   login: required
