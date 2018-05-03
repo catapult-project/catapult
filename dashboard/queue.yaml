@@ -43,7 +43,7 @@ queue:
      min_backoff_seconds: 2
 
  - name: job-queue
-   rate: 1/s
+   rate: 10/s
    retry_parameters:
      task_retry_limit: 0
 

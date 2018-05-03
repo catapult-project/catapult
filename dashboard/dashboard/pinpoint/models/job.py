@@ -23,7 +23,7 @@ from dashboard.services import issue_tracker_service
 
 # We want this to be fast to minimize overhead while waiting for tasks to
 # finish, but don't want to consume too many resources.
-_TASK_INTERVAL = 10
+_TASK_INTERVAL = 60
 
 
 _CRYING_CAT_FACE = u'\U0001f63f'
