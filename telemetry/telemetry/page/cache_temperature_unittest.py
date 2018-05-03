@@ -7,16 +7,29 @@ import contextlib
 from telemetry import decorators
 from telemetry import page as page_module
 from telemetry import story
+from telemetry.internal.testing.test_page_sets import example_domain
 from telemetry.page import cache_temperature
 from telemetry.testing import browser_test_case
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
 
 
+_TEST_URL = example_domain.HTTP_EXAMPLE
+
+
 class CacheTemperatureTests(browser_test_case.BrowserTestCase):
   def __init__(self, *args, **kwargs):
     super(CacheTemperatureTests, self).__init__(*args, **kwargs)
     self._full_trace = None
+
+  def setUp(self):
+    super(CacheTemperatureTests, self).setUp()
+    self._browser.platform.network_controller.StartReplay(
+        example_domain.EXAMPLE_PAGE_ARCHIVE_PATH)
+
+  def tearDown(self):
+    super(CacheTemperatureTests, self).tearDown()
+    self._browser.platform.network_controller.StopReplay()
 
   @contextlib.contextmanager
   def CaptureTrace(self):
@@ -44,8 +57,8 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.ANY, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.ANY, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.CollectTraceMarkers()
@@ -61,8 +74,8 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.COLD, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.CollectTraceMarkers()
@@ -75,14 +88,14 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.COLD, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
       previous_page = page
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.WARM, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.WARM, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser, previous_page)
 
@@ -99,8 +112,8 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.WARM, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.WARM, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.CollectTraceMarkers()
@@ -113,21 +126,21 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.COLD, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
       previous_page = page
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.WARM, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.WARM, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser, previous_page)
 
       previous_page = page
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.HOT, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser, previous_page)
 
@@ -142,14 +155,14 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.COLD, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.COLD, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
       previous_page = page
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.HOT, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser, previous_page)
 
@@ -167,8 +180,8 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.HOT, name='http://google.com')
+          _TEST_URL, page_set=story_set,
+          cache_temperature=cache_temperature.HOT, name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.CollectTraceMarkers()
@@ -183,9 +196,9 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
+          _TEST_URL, page_set=story_set,
           cache_temperature=cache_temperature.WARM_BROWSER,
-          name='http://google.com')
+          name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser)
 
@@ -203,9 +216,9 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     with self.CaptureTrace():
       story_set = story.StorySet()
       page = page_module.Page(
-          'http://google.com', page_set=story_set,
+          _TEST_URL, page_set=story_set,
           cache_temperature=cache_temperature.HOT_BROWSER,
-          name='http://google.com')
+          name=_TEST_URL)
       cache_temperature.EnsurePageCacheTemperature(
           page, self._browser)
 
