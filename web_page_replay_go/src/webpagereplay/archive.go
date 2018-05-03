@@ -77,6 +77,8 @@ type Archive struct {
 	// Maps host string to the negotiated protocol. eg. "http/1.1" or "h2"
 	// If absent, will default to "http/1.1".
 	NegotiatedProtocol map[string]string
+	// The time seed that was used to initialize deterministic.js.
+	DeterministicTimeSeedMs int64
 }
 
 func newArchive() Archive {

@@ -161,12 +161,16 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("error opening cert or key files: %v", err)
 	}
+
+	return nil
+}
+
+func (common *CommonConfig) ProcessInjectedScripts(timeSeedMs int64) error {
 	if common.injectScripts != "" {
 		for _, scriptFile := range strings.Split(common.injectScripts, ",") {
 			log.Printf("Loading script from %v\n", scriptFile)
-			// Replace {{WPR_TIME_SEED_TIMESTAMP}} with current timestamp.
-			current_time_ms := time.Now().Unix() * 1000
-			replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(current_time_ms, 10)}
+			// Replace {{WPR_TIME_SEED_TIMESTAMP}} with the time seed.
+			replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(timeSeedMs, 10)}
 			si, err := webpagereplay.NewScriptInjectorFromFile(scriptFile, replacements)
 			if err != nil {
 				return fmt.Errorf("error opening script %s: %v", scriptFile, err)
@@ -340,6 +344,13 @@ func (r *RecordCommand) Run(c *cli.Context) {
 		os.Exit(0)
 	}()
 
+	timeSeedMs := time.Now().Unix() * 1000
+	if err := r.common.ProcessInjectedScripts(timeSeedMs); err != nil {
+		log.Printf("Error processing injected scripts: %v", err)
+		os.Exit(1)
+	}
+	archive.DeterministicTimeSeedMs = timeSeedMs
+
 	httpHandler := webpagereplay.NewRecordingProxy(archive, "http", r.common.transformers)
 	httpsHandler := webpagereplay.NewRecordingProxy(archive, "https", r.common.transformers)
 	tlsconfig, err := webpagereplay.RecordTLSConfig(r.common.root_cert, archive)
@@ -359,6 +370,19 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 		os.Exit(1)
 	}
 	log.Printf("Opened archive %s", archiveFileName)
+
+	timeSeedMs := archive.DeterministicTimeSeedMs
+	if timeSeedMs == 0 {
+		// The time seed hasn't been set in the archive. Time seeds used to not be
+		// stored in the archive, so this is expected to happen when loading old
+		// archives. Just revert to the previous behavior: use the current time as
+		// the seed.
+		timeSeedMs = time.Now().Unix() * 1000
+	}
+	if err := r.common.ProcessInjectedScripts(timeSeedMs); err != nil {
+		log.Printf("Error processing injected scripts: %v", err)
+		os.Exit(1)
+	}
 
 	if r.rulesFile != "" {
 		t, err := webpagereplay.NewRuleBasedTransformer(r.rulesFile)
