@@ -12,6 +12,7 @@ from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
+from telemetry.internal.browser import browser_simpleperf_controller
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
@@ -85,10 +86,20 @@ class SharedPageState(story_module.SharedState):
       wpr_mode = wpr_modes.WPR_REPLAY
     self._extra_wpr_args = browser_options.extra_wpr_args
 
+    self._simpleperf_controller = (
+        browser_simpleperf_controller.BrowserSimpleperfController(
+            process_name=getattr(finder_options, 'simpleperf_target', ''),
+            periods=getattr(finder_options, 'simpleperf_periods', []),
+            frequency=getattr(finder_options, 'simpleperf_frequency', 1000)))
+
     self.platform.SetFullPerformanceModeEnabled(
         finder_options.full_performance_mode)
     self.platform.network_controller.Open(wpr_mode)
     self.platform.Initialize()
+
+  @property
+  def simpleperf_controller(self):
+    return self._simpleperf_controller
 
   @property
   def possible_browser(self):
@@ -158,6 +169,8 @@ class SharedPageState(story_module.SharedState):
               '%s raised while closing tab connections; tab will be closed.',
               type(exc).__name__)
           self._current_tab.Close()
+      self._simpleperf_controller.GetResults(
+          self._current_page.name, self._current_page.file_safe_name, results)
     finally:
       self._current_page = None
       self._current_tab = None
@@ -196,6 +209,7 @@ class SharedPageState(story_module.SharedState):
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
     self._browser = self._possible_browser.Create()
+    self._simpleperf_controller.DidStartBrowser(self.browser)
     self._test.DidStartBrowser(self.browser)
 
     if self._first_browser:

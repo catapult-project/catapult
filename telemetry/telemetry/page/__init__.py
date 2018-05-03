@@ -88,11 +88,13 @@ class Page(story.Story):
     for _ in xrange(0, 5):
       current_tab.CollectGarbage()
     shared_state.page_test.WillNavigateToPage(self, current_tab)
-    shared_state.page_test.RunNavigateSteps(self, current_tab)
+    with shared_state.simpleperf_controller.SamplePeriod('navigation'):
+      shared_state.page_test.RunNavigateSteps(self, current_tab)
     shared_state.page_test.DidNavigateToPage(self, current_tab)
     action_runner = action_runner_module.ActionRunner(
         current_tab, skip_waits=self.skip_waits)
-    self.RunPageInteractions(action_runner)
+    with shared_state.simpleperf_controller.SamplePeriod('interactions'):
+      self.RunPageInteractions(action_runner)
 
   def RunNavigateSteps(self, action_runner):
     url = self.file_path_url_with_scheme if self.is_file else self.url

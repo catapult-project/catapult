@@ -24,6 +24,14 @@ from types import ModuleType
 # Classes and functions which are intended to be part of the public
 # fakes API.
 
+class FakePlatformBackend(object):
+  def __init__(self, os_name):
+    self._os_name = os_name
+
+  def GetOSName(self):
+    return self._os_name
+
+
 class FakePlatform(object):
   def __init__(self):
     self._network_controller = None
@@ -34,6 +42,7 @@ class FakePlatform(object):
     self._is_svelte = False
     self._is_aosp = True
     self._get_os_version_detail_string = 'OsVersionString'
+    self._platform_backend = FakePlatformBackend('FakeOS')
 
   @property
   def is_host_platform(self):
@@ -371,6 +380,10 @@ class FakeBrowser(FakeApp):
   @property
   def tabs(self):
     return self._tabs
+
+  @property
+  def _platform_backend(self):
+    return self._platform._platform_backend
 
   def DumpStateUponFailure(self):
     pass

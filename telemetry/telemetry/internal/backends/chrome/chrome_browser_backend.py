@@ -239,6 +239,23 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return 'browser'
     return types[0]
 
+  @staticmethod
+  def GetThreadType(thread_name):
+    if not thread_name:
+      return 'unknown'
+    if (thread_name.startswith('Chrome_ChildIO') or
+        thread_name.startswith('Chrome_IO')):
+      return 'io'
+    if thread_name.startswith('Compositor'):
+      return 'compositor'
+    if thread_name.startswith('CrGpuMain'):
+      return 'gpu'
+    if (thread_name.startswith('ChildProcessMai') or
+        thread_name.startswith('CrRendererMain')):
+      return 'main'
+    if thread_name.startswith('RenderThread'):
+      return 'render'
+
   def Close(self):
     if self._devtools_client:
       self._devtools_client.Close()

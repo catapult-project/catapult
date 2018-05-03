@@ -525,8 +525,9 @@ class PageTestResults(object):
     assert self._current_page_run, 'Not currently running test.'
     self.AddValue(skip.SkipValue(self.current_page, reason))
 
-  def CreateArtifact(self, story, name):
-    return self._artifact_results.CreateArtifact(story, name)
+  def CreateArtifact(self, story, name, prefix='', suffix=''):
+    return self._artifact_results.CreateArtifact(
+        story, name, prefix=prefix, suffix=suffix)
 
   def AddArtifact(self, story, name, path):
     self._artifact_results.AddArtifact(story, name, path)

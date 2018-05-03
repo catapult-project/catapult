@@ -144,30 +144,28 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         signum=device_signal.SIGUSR1)
 
   @property
-  def pid(self):
+  def processes(self):
     try:
-      # Although there might be multiple processes sharing the same name as
-      # the browser app, the browser process is the only one being a direct
-      # descendant of an Android zygote. (See crbug.com/785446)
       zygotes = self.device.ListProcesses('zygote')
       zygote_pids = set(p.pid for p in zygotes)
       assert zygote_pids, 'No Android zygote found'
-
       processes = self.device.ListProcesses(self._backend_settings.package)
-      pids = []
-      for process in processes:
-        if (process.name == self._backend_settings.package and
-            process.ppid in zygote_pids):
-          pids.append(process.pid)
-      assert len(pids) <= 1, 'Found too many browsers: %r' % pids
+      return [p for p in processes if p.ppid in zygote_pids]
     except Exception as exc:
       # Re-raise as an AppCrashException to get further diagnostic information.
       # In particular we also get the values of all local variables above.
       raise exceptions.AppCrashException(
-          self.browser, 'Error getting browser PID: %s' % exc)
-    if not pids:
+          self.browser, 'Error getting browser PIDs: %s' % exc)
+
+  @property
+  def pid(self):
+    package = self._backend_settings.package
+    browser_processes = [p for p in self.processes if p.name == package]
+    assert len(browser_processes) <= 1, (
+        'Found too many browsers: %r' % browser_processes)
+    if not browser_processes:
       raise exceptions.BrowserGoneException(self.browser)
-    return pids[0]
+    return browser_processes[0].pid
 
   @property
   def package(self):

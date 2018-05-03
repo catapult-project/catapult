@@ -188,7 +188,7 @@ class TestPage(unittest.TestCase):
 class TestPageRun(unittest.TestCase):
 
   def testFiveGarbageCollectionCallsByDefault(self):
-    mock_shared_state = mock.Mock()
+    mock_shared_state = mock.MagicMock()
     p = page.Page('file://foo.html', name='foo.html')
     p.Run(mock_shared_state)
     expected = [
@@ -199,7 +199,15 @@ class TestPageRun(unittest.TestCase):
         mock.call.current_tab.CollectGarbage(),
         mock.call.page_test.WillNavigateToPage(
             p, mock_shared_state.current_tab),
+        mock.call.simpleperf_controller.SamplePeriod('navigation'),
+        mock.call.simpleperf_controller.SamplePeriod().__enter__(),
         mock.call.page_test.RunNavigateSteps(p, mock_shared_state.current_tab),
-        mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab)
+        mock.call.simpleperf_controller.SamplePeriod().__exit__(
+            None, None, None),
+        mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab),
+        mock.call.simpleperf_controller.SamplePeriod('interactions'),
+        mock.call.simpleperf_controller.SamplePeriod().__enter__(),
+        mock.call.simpleperf_controller.SamplePeriod().__exit__(
+            None, None, None)
     ]
     self.assertEquals(mock_shared_state.mock_calls, expected)
