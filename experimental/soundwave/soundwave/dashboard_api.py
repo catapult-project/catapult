@@ -167,35 +167,3 @@ class PerfDashboardCommunicator(object):
     """Returns alerts for the given benchmark."""
     options = urllib.urlencode({'benchmark': benchmark})
     return self._MakeApiRequest('alerts/history/%d?%s' % (days, options))
-
-  def GetAllTimeseriesForBenchmark(self, benchmark, days=30, filters=None,
-                                   sheriff=None):
-    """ Generator function returning timeseries entries for a benchmark.
-
-    args:
-      benchmark: benchmark you want data for.
-      days: number of days to return data for.
-      filter: A list of strings. The metric must contain all of the strings.
-      sheriff: Search for timeseries for the specific sheriff rotation only. If
-          not specified, 'Chrome Perf Sheriff' is used by default on the server.
-
-    yields:
-      Timeseries data point.
-    """
-    header = ['bot', 'benchmark', 'metric', 'story']
-    test_paths = self.ListTestPaths(benchmark, sheriff=sheriff)
-    for tp in test_paths:
-      if not filters or all(f in tp for f in filters):
-        ts = self.GetTimeseries(tp, days=days)
-        if header:
-          # First entry in the timeseries is a header. We only need this once.
-          full_header = header + ts['timeseries'][0]
-          header = None
-          yield full_header
-        for point in ts['timeseries'][1:]:
-          # Splits the test path into [bot, benchmark, metric, story] and
-          # appends the data from a timeseries entry. Current data returned:
-          # 'revision', 'value', 'timestamp', 'r_commit_pos', 'r_webrtc_rev',
-          # 'r_chromium', 'r_webkit_rev', 'r_v8_rev'
-          test_data = tp.split('/', 4)[1:] + [data for data in point]
-          yield test_data

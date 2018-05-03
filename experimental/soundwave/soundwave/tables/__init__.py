@@ -4,3 +4,4 @@
 
 from soundwave.tables import alerts
 from soundwave.tables import bugs
+from soundwave.tables import timeseries

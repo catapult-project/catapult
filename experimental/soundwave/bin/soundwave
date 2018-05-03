@@ -46,18 +46,15 @@ def Main():
   parser.add_argument(
       '-d', '--days', default=30, type=int,
       help='Number of days to collect data for (default: %(default)s)')
+  parser.add_argument(
+      '--database-file', default=DEFAULT_DATABASE_PATH,
+      help='File path for database where to store data.')
   subparsers = parser.add_subparsers(dest='action')
   subparsers.required = True
   # Subparser args for fetching alerts data.
   subparser = subparsers.add_parser('alerts')
-  subparser.add_argument(
-      '--database-file', default=DEFAULT_DATABASE_PATH,
-      help='File path for database where to store data.')
   # Subparser args for fetching timeseries data.
   subparser = subparsers.add_parser('timeseries')
-  subparser.add_argument(
-      '--output-path', default='timeseries_data.csv',
-      help='File path where to save output. (default: %(default)s)')
   subparser.add_argument(
       '-f', '--filters', action='append',
       help=('Only get data for timeseries whose path contains all the given '

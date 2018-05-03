@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import csv
 import sqlite3
 
 from soundwave import dashboard_api
@@ -29,9 +28,19 @@ def FetchAlertsData(args):
 
 
 def FetchTimeseriesData(args):
+  def _MatchesAllFilters(test_path):
+    return all(f in test_path for f in args.filters)
+
   api = dashboard_api.PerfDashboardCommunicator(args)
-  with open(args.output_path, 'wb') as fp:
-    csv_writer = csv.writer(fp)
-    for row in api.GetAllTimeseriesForBenchmark(
-        args.benchmark, args.days, args.filters, args.sheriff):
-      csv_writer.writerow(row)
+  conn = sqlite3.connect(args.database_file)
+  try:
+    test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
+    if args.filters:
+      test_paths = filter(_MatchesAllFilters, test_paths)
+    print '%d test paths found!' % len(test_paths)
+    for test_path in test_paths:
+      data = api.GetTimeseries(test_path, days=args.days)
+      timeseries = tables.timeseries.DataFrameFromJson(data)
+      pandas_sqlite.InsertOrReplaceRecords(timeseries, 'timeseries', conn)
+  finally:
+    conn.close()
