@@ -47,6 +47,9 @@ def Main():
       '-d', '--days', default=30, type=int,
       help='Number of days to collect data for (default: %(default)s)')
   parser.add_argument(
+      '--continue', action='store_true', dest='use_cache',
+      help='Skip refreshing some data for elements already in local db.')
+  parser.add_argument(
       '--database-file', default=DEFAULT_DATABASE_PATH,
       help='File path for database where to store data.')
   subparsers = parser.add_subparsers(dest='action')
