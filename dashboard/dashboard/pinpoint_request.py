@@ -110,6 +110,24 @@ def ResolveToGitHash(commit_position):
   return commit_position
 
 
+def _GetIsolateTarget(bot_name, suite, only_telemetry=False):
+  target = 'telemetry_perf_tests'
+
+  # TODO(simonhatch): Remove this once the waterfall has fully migrated to
+  # the new isolate target.
+  if bot_name == 'linux-perf':
+    target = 'performance_test_suite'
+
+  if suite in _ISOLATE_TARGETS:
+    if only_telemetry:
+      raise InvalidParamsError('Only telemetry is supported at the moment.')
+    else:
+      target = suite
+  elif 'webview' in bot_name:
+    target = 'telemetry_perf_webview_tests'
+  return target
+
+
 def ParseTIRLabelChartNameAndTraceName(test_path_parts):
   """Returns tir_label, chart_name, trace_name from a test path."""
   test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
@@ -163,11 +181,7 @@ def PinpointParamsFromPerfTryParams(params):
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = 'telemetry_perf_tests'
-  if suite in _ISOLATE_TARGETS:
-    raise InvalidParamsError('Only telemetry is supported at the moment.')
-  elif 'webview' in bot_name:
-    target = 'telemetry_perf_webview_tests'
+  target = _GetIsolateTarget(bot_name, suite, only_telemetry=True)
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']
@@ -235,11 +249,7 @@ def PinpointParamsFromBisectParams(params):
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = 'telemetry_perf_tests'
-  if suite in _ISOLATE_TARGETS:
-    target = suite
-  elif 'webview' in bot_name:
-    target = 'telemetry_perf_webview_tests'
+  target = _GetIsolateTarget(bot_name, suite)
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']

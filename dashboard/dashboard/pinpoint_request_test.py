@@ -100,6 +100,29 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_PerformanceTestSuite(self):
+    params = {
+        'test_path': 'ChromiumPerf/linux-perf/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'extra_test_args': json.dumps(
+            ['--extra-trace-args', 'abc,123,foo']),
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('linux-perf', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('performance_test_suite', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('false', results['auto_explore'])
+    self.assertEqual(
+        ['--extra-trace-args', 'abc,123,foo'],
+        json.loads(results['extra_test_args']))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_Telemetry(self):
     params = {
         'test_path': 'ChromiumPerf/mac/system_health/foo',
@@ -303,6 +326,31 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         params['test_path'],
         json.loads(results['tags'])['test_path'])
     self.assertEqual('123', json.loads(results['tags'])['alert'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_PerformanceTestSuite(self):
+    params = {
+        'test_path': 'ChromiumPerf/linux-perf/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'bug_id': 1,
+        'story_filter': 'foo',
+        'bisect_mode': 'performance',
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('linux-perf', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('performance_test_suite', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('true', results['auto_explore'])
+    self.assertEqual('performance', results['comparison_mode'])
+    self.assertEqual(1, results['bug_id'])
+    self.assertEqual('foo', results['story'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
