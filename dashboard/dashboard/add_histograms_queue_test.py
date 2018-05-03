@@ -468,8 +468,6 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual('4cd34ad3320db114ad3a2bd2acc02aba004d0cb4', row.r_v8_rev)
     self.assertEqual('123', row.r_commit_pos)
 
-    self.assertEqual(2, len(a_fields))
-    self.assertEqual('http://google.com/', row.a_tracing_uri)
     self.assertEqual('http://log.url/', row.a_stdio_uri)
 
   def testCreateRowEntities_WithCustomSummaryOptions(self):
@@ -565,3 +563,42 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     with self.assertRaises(add_histograms_queue.BadRequestError):
       add_histograms_queue.CreateRowEntities(
           hist, test_key, {}, 123).put()
+
+  def testCreateRowEntities_AddsTraceUri(self):
+    test_path = 'Chromium/win7/suite/metric/story'
+    test_key = utils.TestKey(test_path)
+    hist = copy.deepcopy(TEST_HISTOGRAM)
+
+    row = add_histograms_queue.CreateRowEntities(
+        hist, test_key, {}, 123)[0]
+    row_dict = row.to_dict()
+
+    self.assertIn('a_tracing_uri', row_dict)
+    self.assertEqual(row_dict['a_tracing_uri'], 'http://google.com/')
+
+  def testCreateRowEntities_DoesNotAddTraceUriForSummary(self):
+    test_path = 'Chromium/win7/suite/metric'
+    test_key = utils.TestKey(test_path)
+    hist = copy.deepcopy(TEST_HISTOGRAM)
+    hist['diagnostics'][reserved_infos.SUMMARY_KEYS.name] = {
+        'type': 'GenericSet', 'values': ['stories']}
+
+    row = add_histograms_queue.CreateRowEntities(
+        hist, test_key, {}, 123)[0]
+    row_dict = row.to_dict()
+
+    self.assertNotIn('a_tracing_uri', row_dict)
+
+  def testCreateRowEntities_DoesNotAddTraceUriIfDiagnosticIsEmpty(self):
+    test_path = 'Chromium/win7/suite/metric/story'
+    test_key = utils.TestKey(test_path)
+    hist = copy.deepcopy(TEST_HISTOGRAM)
+    hist['diagnostics'][reserved_infos.STORIES.name] = {
+        'type': 'GenericSet', 'values': ['story']}
+    hist['diagnostics'][reserved_infos.TRACE_URLS.name]['values'] = []
+
+    row = add_histograms_queue.CreateRowEntities(
+        hist, test_key, {}, 123)[0]
+    row_dict = row.to_dict()
+
+    self.assertNotIn('a_tracing_uri', row_dict)
