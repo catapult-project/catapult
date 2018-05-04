@@ -166,7 +166,8 @@ class CrOSInterfaceTest(unittest.TestCase):
     cri = cros_interface.CrOSInterface(
         "testhostname", 22, options_for_unittests.GetCopy().cros_ssh_identity)
     cri.TryLogin()
-    mock_run_cmd.assert_called_once_with(['echo', '$USER'], quiet=True)
+    mock_run_cmd.assert_called_once_with(
+        ['echo', '$USER'], quiet=True, connect_timeout=60)
 
   @decorators.Enabled('chromeos')
   @mock.patch.object(cros_interface.CrOSInterface, 'RunCmdOnDevice')
