@@ -20,8 +20,9 @@ class ReadValueError(Exception):
 
 class ReadHistogramsJsonValue(quest.Quest):
 
-  def __init__(self, hist_name=None, tir_label=None,
-               story=None, statistic=None):
+  def __init__(self, results_filename, hist_name=None,
+               tir_label=None, story=None, statistic=None):
+    self._results_filename = results_filename
     self._hist_name = hist_name
     self._tir_label = tir_label
     self._story = story
@@ -29,6 +30,7 @@ class ReadHistogramsJsonValue(quest.Quest):
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
+            self._results_filename == other._results_filename and
             self._hist_name == other._hist_name and
             self._tir_label == other._tir_label and
             self._story == other._story and
@@ -47,23 +49,34 @@ class ReadHistogramsJsonValue(quest.Quest):
       isolate_server = 'https://isolateserver.appspot.com'
 
     return _ReadHistogramsJsonValueExecution(
-        self._hist_name, self._tir_label, self._story,
-        self._statistic, isolate_server, isolate_hash)
+        self._results_filename, self._hist_name, self._tir_label,
+        self._story, self._statistic, isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
+    benchmark = arguments.get('benchmark')
+    if not benchmark:
+      raise TypeError('Missing "benchmark" argument.')
+    if arguments.get('target') == 'performance_test_suite':
+      results_filename = benchmark + '/perf_results.json'
+    else:
+      # TODO: Remove this hack when all builders build performance_test_suite.
+      results_filename = 'chartjson-output.json'
+
     chart = arguments.get('chart')
     tir_label = arguments.get('tir_label')
     trace = arguments.get('trace')
     statistic = arguments.get('statistic')
-    return cls(chart, tir_label, trace, statistic)
+
+    return cls(results_filename, chart, tir_label, trace, statistic)
 
 
 class _ReadHistogramsJsonValueExecution(execution.Execution):
 
-  def __init__(self, hist_name, tir_label, story,
-               statistic, isolate_server, isolate_hash):
+  def __init__(self, results_filename, hist_name, tir_label,
+               story, statistic, isolate_server, isolate_hash):
     super(_ReadHistogramsJsonValueExecution, self).__init__()
+    self._results_filename = results_filename
     self._hist_name = hist_name
     self._tir_label = tir_label
     self._story = story
@@ -88,10 +101,10 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     # TODO(dtu): Remove after data migration.
     if not hasattr(self, '_isolate_server'):
       self._isolate_server = 'https://isolateserver.appspot.com'
-    # TODO(simonhatch): Switch this to use the new perf-output flag instead
-    # of the chartjson one. They're functionally equivalent, just new name.
+    if not hasattr(self, '_results_filename'):
+      self._results_filename = 'chartjson-output.json'
     histogram_dicts = _RetrieveOutputJson(
-        self._isolate_server, self._isolate_hash, 'chartjson-output.json')
+        self._isolate_server, self._isolate_hash, self._results_filename)
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
     histograms.ResolveRelatedHistograms()
