@@ -57,7 +57,8 @@ def Put(isolate_server, isolate_infos):
 
 
 class Isolate(ndb.Model):
-  isolate_server = ndb.StringProperty(indexed=False, required=True)
+  # TODO: Make isolate_server `required=True` in November 2018.
+  isolate_server = ndb.StringProperty(indexed=False)
   isolate_hash = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(auto_now_add=True)
 
