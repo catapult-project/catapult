@@ -53,6 +53,10 @@ class BrowserFinderOptions(optparse.Values):
     # TODO(crbug.com/798703): remove this
     self.no_performance_mode = False
 
+    self.simpleperf_target = ''
+    self.simpleperf_periods = []
+    self.simpleperf_frequency = 1000
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
