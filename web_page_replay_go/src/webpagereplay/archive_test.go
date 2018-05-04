@@ -47,28 +47,35 @@ func TestFindClosest(t *testing.T) {
 	a := newArchive()
 	const host = "example.com"
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
+	// Store three requests. u1 and u2 match equally well. u1 is chosen because
+	// u1<u2.
 	const u1 = "https://example.com/index.html?a=f&c=e"
-	req1 := createArchivedRequest(t, u1, nil)
-	a.Requests[host][u1] = []*ArchivedRequest{req1}
+	a.Requests[host][u1] = []*ArchivedRequest{createArchivedRequest(t, u1, nil)}
 
-	const u2 = "https://example.com/index.html?a=b&c=d"
-	req2 := createArchivedRequest(t, u2, nil)
-	a.Requests[host][u2] = []*ArchivedRequest{req2}
+	const u2 = "https://example.com/index.html?a=g&c=e"
+	a.Requests[host][u2] = []*ArchivedRequest{createArchivedRequest(t, u2, nil)}
+
+	const u3 = "https://example.com/index.html?a=b&c=d"
+	a.Requests[host][u3] = []*ArchivedRequest{createArchivedRequest(t, u3, nil)}
 
 	const newUrl = "https://example.com/index.html?c=e"
 	newReq := httptest.NewRequest("GET", newUrl, nil)
 
-	foundReq, foundResp, err := a.FindRequest(newReq, "https")
-	if err != nil {
-		t.Fatalf("failed to find %s: %v", newUrl, err)
-	}
-	if got, want := foundResp.StatusCode, 200; got != want {
-		t.Fatalf("status codes do not match. Got: %d. Want: %d", got, want)
-	}
+	// Check that u1 is returned. FindRequest was previously non-deterministic,
+	// due to random map iteration, so run the test several times.
+	for i := 0; i < 10; i++ {
+		foundReq, foundResp, err := a.FindRequest(newReq, "https")
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", newUrl, err)
+		}
+		if got, want := foundResp.StatusCode, 200; got != want {
+			t.Fatalf("status codes do not match. Got: %d. Want: %d", got, want)
+		}
 
-	query := foundReq.URL.Query()
-	if query.Get("a") != "f" || query.Get("c") != "e" {
-		t.Fatalf("wrong request is matched\nexpected: %s\nactual: %s", u1, foundReq.URL)
+		query := foundReq.URL.Query()
+		if query.Get("a") != "f" || query.Get("c") != "e" {
+			t.Fatalf("wrong request is matched\nexpected: %s\nactual: %s", u1, foundReq.URL)
+		}
 	}
 }
 

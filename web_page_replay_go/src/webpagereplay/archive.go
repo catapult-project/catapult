@@ -218,7 +218,9 @@ func (a *Archive) FindRequest(req *http.Request, scheme string) (*http.Request, 
 			}
 		}
 		ratio := 2 * float64(m) / float64(t)
-		if ratio > bestRatio {
+		if ratio > bestRatio ||
+			// Map iteration order is non-deterministic, so we must break ties.
+			(ratio == bestRatio && ustr < bestURL) {
 			bestURL = ustr
 			bestRatio = ratio
 		}
