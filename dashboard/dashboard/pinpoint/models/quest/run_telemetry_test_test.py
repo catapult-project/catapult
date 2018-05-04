@@ -58,6 +58,15 @@ class FromDictTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
+  def testBenchmarkWithPerformanceTestSuite(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['target'] = 'performance_test_suite'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    expected = run_telemetry_test.RunTelemetryTest(
+        'server', {'key': 'value'}, ['--benchmarks'] + _BASE_EXTRA_ARGS)
+    self.assertEqual(quest, expected)
+
   def testMissingBrowser(self):
     arguments = dict(_BASE_ARGUMENTS)
     del arguments['browser']

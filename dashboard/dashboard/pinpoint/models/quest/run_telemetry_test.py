@@ -30,7 +30,11 @@ class RunTelemetryTest(run_test.RunTest):
     benchmark = arguments.get('benchmark')
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')
-    swarming_extra_args.append(benchmark)
+    if arguments.get('target') == 'performance_test_suite':
+      swarming_extra_args += ('--benchmarks', benchmark)
+    else:
+      # TODO: Remove this hack when all builders build performance_test_suite.
+      swarming_extra_args.append(benchmark)
 
     story = arguments.get('story')
     if story:
