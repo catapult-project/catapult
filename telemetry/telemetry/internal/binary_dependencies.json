@@ -293,6 +293,28 @@
         }
       }
     },
+    "simpleperf": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "d181b501ced66cd59e571c2215200961e2113c59",
+          "download_path": "bin/android/arm64-v8a/simpleperf"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "dce5e87832c1e94a4048a0e273a03e812dedc360",
+          "download_path": "bin/android/armeabi-v7a/simpleperf"
+        },
+        "android_x64": {
+          "cloud_storage_hash": "884a063bf42ad3a911d33cd2779e54a21927588f",
+          "download_path": "bin/android/x64/simpleperf"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "fda8f607c63acba1de761842b879f79b0ab96e25",
+          "download_path": "bin/android/x86/simpleperf"
+        }
+      }
+    },
     "tcpdump": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
