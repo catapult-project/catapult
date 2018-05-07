@@ -93,7 +93,6 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
         'exception': None,
         'details': {'build': None, 'builder': 'Mac Builder'},
         'result_arguments': expected_result_arguments,
-        'result_values': (),
     }
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_values, ())

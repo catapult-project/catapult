@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import collections
-import itertools
 import logging
 
 from dashboard.pinpoint.models import attempt as attempt_module
@@ -162,36 +161,42 @@ class JobState(object):
         yield index, change_b
 
   def AsDict(self):
-    comparisons = []
+    state = []
+    quest_index = len(self._quests) - 1
+    for change in self._changes:
+      result_values = []
+
+      for attempt in self._attempts[change]:
+        if quest_index < len(attempt.executions):
+          result_values += attempt.executions[quest_index].result_values
+
+      # TODO: Use comparison_mode to distinguish performance and functional.
+      if not result_values:
+        pass_fails = []
+        for attempt in self._attempts[change]:
+          if attempt.completed:
+            pass_fails.append(int(attempt.failed))
+        if pass_fails:
+          result_values.append(_Mean(pass_fails))
+
+      state.append({
+          'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
+          'change': change.AsDict(),
+          'comparisons': {},
+          'result_values': result_values,
+      })
+
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
-      comparisons.append(self._Compare(change_a, change_b))
+      comparison = self._Compare(change_a, change_b)
 
-    # result_values is a 3D array. result_values[change][quest] is a list of
-    # all the result values for that Change and Quest.
-    result_values = []
-    for change in self._changes:
-      executions = _ExecutionsPerQuest(self._attempts[change])
-      change_result_values = []
-      for quest in self._quests:
-        quest_result_values = list(itertools.chain.from_iterable(
-            execution.result_values for execution in executions[quest]
-            if execution.completed))
-        change_result_values.append(quest_result_values)
-      result_values.append(change_result_values)
-
-    attempts = []
-    for c in self._changes:
-      attempts.append([attempt.AsDict() for attempt in self._attempts[c]])
+      state[index - 1]['comparisons']['next'] = comparison
+      state[index]['comparisons']['prev'] = comparison
 
     return {
         'quests': map(str, self._quests),
-        'changes': [change.AsDict() for change in self._changes],
-        # TODO: Use JobState.Differences().
-        'comparisons': comparisons,
-        'result_values': result_values,
-        'attempts': attempts,
+        'state': state,
     }
 
   def _Compare(self, change_a, change_b):

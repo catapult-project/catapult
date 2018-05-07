@@ -228,7 +228,6 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
-            'result_values': (0,),
             'completed': True,
             'exception': None,
             'result_arguments': {},
@@ -265,7 +264,6 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
-            'result_values': (0,),
             'completed': True,
             'exception': None,
             'result_arguments': {},

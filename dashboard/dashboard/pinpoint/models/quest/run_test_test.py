@@ -192,7 +192,6 @@ class RunTestFullTest(_RunTestExecutionTest):
             'isolate_server': 'output isolate server',
             'isolate_hash': 'output isolate hash',
         },
-        'result_values': (),
     })
 
     # Start a second Execution on another Change. It should use the bot_id

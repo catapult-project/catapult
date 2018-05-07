@@ -23,13 +23,15 @@ found in the LICENSE file.
       }
     </style>
 
-    <change-info change="[[change(job, changeIndex)]]"></change-info>
+    <change-info change="[[change(job.state, changeIndex)]]"></change-info>
 
     <div class="columns">
       <template is="dom-repeat" items="[[job.quests]]">
         <div class="column">
           <h2>[[item]]</h2>
-          <execution-details attempts="[[attempts(job, changeIndex)]]" attempt-index="{{attemptIndex}}" quest-index="[[index]]"></execution-details>
+          <execution-details attempts="[[attempts(job.state, changeIndex)]]"
+                             attempt-index="{{attemptIndex}}"
+                             quest-index="[[index]]"></execution-details>
         </div>
       </template>
     </div>
@@ -55,12 +57,12 @@ found in the LICENSE file.
         },
       },
 
-      change(job, changeIndex) {
-        return job.changes[changeIndex];
+      change(jobState, changeIndex) {
+        return jobState[changeIndex].change;
       },
 
-      attempts(job, changeIndex) {
-        return job.attempts[changeIndex];
+      attempts(jobState, changeIndex) {
+        return jobState[changeIndex].attempts;
       },
     });
   </script>

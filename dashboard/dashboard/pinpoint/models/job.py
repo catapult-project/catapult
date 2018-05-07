@@ -301,12 +301,20 @@ class Job(ndb.Model):
         raise
 
   def AsDict(self, options=None):
+    if self.comparison_mode == ComparisonMode.FUNCTIONAL:
+      comparison_mode = 'functional'
+    elif self.comparison_mode == ComparisonMode.PERFORMANCE:
+      comparison_mode = 'performance'
+    else:
+      comparison_mode = None
+
     d = {
         'job_id': self.job_id,
 
         'arguments': self.arguments,
         'auto_explore': self.auto_explore,
         'bug_id': self.bug_id,
+        'comparison_mode': comparison_mode,
         'user': self.user,
 
         'created': self.created.isoformat(),

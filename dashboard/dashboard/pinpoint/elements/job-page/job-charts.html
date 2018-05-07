@@ -53,68 +53,22 @@ found in the LICENSE file.
       },
 
       jobData(job) {
-        const [valuesByChange, isNumeric] = computeValuesByChange(job);
-        const bounds = computeBounds(valuesByChange, isNumeric);
-
-        const state = [];
-        for (let i = 0; i < job.changes.length; ++i) {
-          const changeData = this.job.changes[i];
-          const lastCommit = changeData.commits[changeData.commits.length - 1];
-          let change = lastCommit.commit_position ||
-            lastCommit.git_hash.substring(0, 7);
-          if (changeData.patch) {
-            change += ' + ' + changeData.patch.author.split('@')[0];
-          }
-          state.push({
-            change,
-            comparisons: {
-              before: this.job.comparisons[i - 1],
-              after: this.job.comparisons[i]
-            },
-            values: valuesByChange[i],
-          });
-        }
-
-        return {bounds, state};
+        return {
+          bounds: computeBounds(job),
+          state: job.state
+        };
       }
     });
 
-    function computeValuesByChange(job) {
-      let valuesByChange = job.result_values.map(
-          valuesByQuest => valuesByQuest[valuesByQuest.length - 1]);
-
-      // TODO: Don't guess.
-      const isNumeric = valuesByChange.some(row => row.length);
-
-      // No numeric data. Show "success rate" instead.
-      if (!isNumeric) {
-        valuesByChange = [];
-        // TODO: Create a MergeAttempts helper function.
-        for (const attempts of job.attempts) {
-          const exceptions = [];
-          for (const attempt of attempts) {
-            const lastExecution =
-              attempt.executions[attempt.executions.length - 1];
-            if (lastExecution) {
-              exceptions.push(lastExecution.exception);
-            }
-          }
-          const sum = exceptions.filter(exception => !exception).length;
-          valuesByChange.push([sum / exceptions.length]);
-        }
-      }
-
-      return [valuesByChange, isNumeric];
-    }
-
-    function computeBounds(valuesByChange, isNumeric) {
+    function computeBounds(job) {
       let lowerBound = 0;
       let upperBound = 1;
 
-      if (isNumeric) {
+      if (job.comparison_mode == 'performance') {
         // Numeric data. Set the bounds based on the data.
         // The bounds are the interdecile range of all points, and at the
         // same time ensuring that every median point shows up on the graph.
+        const valuesByChange = job.state.map(s => s.result_values);
         const allValues = [].concat(...valuesByChange);
         const changeMedians =
           valuesByChange.filter(v => v.length).map(v => percentile(v, 0.5));

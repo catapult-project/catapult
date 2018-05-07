@@ -76,7 +76,6 @@ class Execution(object):
         'exception': self._exception,
         'details': self._AsDict(),
         'result_arguments': self._result_arguments,
-        'result_values': self._result_values,
     }
     return d
 

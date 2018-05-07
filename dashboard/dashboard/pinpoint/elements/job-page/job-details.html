@@ -80,9 +80,9 @@ found in the LICENSE file.
 
       getDifferences(job) {
         const differences = [];
-        for (let i = 0; i < job.comparisons.length; ++i) {
-          if (job.comparisons[i] === 'different') {
-            differences.push(job.changes[i + 1]);
+        for (let i = 1; i < job.state.length; ++i) {
+          if (job.state[i].comparisons.prev === 'different') {
+            differences.push(job.state[i].change);
           }
         }
         return differences;

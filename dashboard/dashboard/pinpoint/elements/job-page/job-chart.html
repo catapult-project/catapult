@@ -34,7 +34,6 @@ found in the LICENSE file.
 
         changeIndex: {
           type: Number,
-          value: null,
           notify: true
         },
       },
@@ -68,7 +67,7 @@ found in the LICENSE file.
       setChangeIndex() {
         // TODO: Choose the largest difference, not just any difference.
         for (let i = 0; i < this.jobData.state.length; ++i) {
-          if (this.jobData.state[i].comparisons.before === 'different') {
+          if (this.jobData.state[i].comparisons.prev === 'different') {
             this.set('changeIndex', i);
             return;
           }
@@ -84,17 +83,17 @@ found in the LICENSE file.
         let seriesData = [];
         for (let i = 0; i < this.jobData.state.length; ++i) {
           const changeData = this.jobData.state[i];
-          if (!changeData.values.length) {
+          if (!changeData.result_values.length) {
             continue;
           }
 
-          const mid = percentile(changeData.values, 0.5);
-          const lowError = mid - Math.min(...changeData.values);
-          const highError = Math.max(...changeData.values) - mid;
+          const mid = percentile(changeData.result_values, 0.5);
+          const lowError = mid - Math.min(...changeData.result_values);
+          const highError = Math.max(...changeData.result_values) - mid;
           seriesData.push([i, mid, lowError, highError]);
 
-          if (changeData.comparisons.after !== 'same' &&
-              changeData.comparisons.after !== 'unknown') {
+          if (changeData.comparisons.next !== 'same' &&
+              changeData.comparisons.next !== 'unknown') {
             if (seriesData.length) {
               plotData.push(annotateSeries(seriesData));
               seriesData = [];
@@ -114,7 +113,8 @@ found in the LICENSE file.
           xaxis: {
             min: -0.5,
             max: this.jobData.state.length - 0.5,
-            ticks: this.jobData.state.map((d, i) => [i, d.change]),
+            ticks:
+              this.jobData.state.map((d, i) => [i, changeString(d.change)]),
             tickLength: 0
           },
           yaxis: {
@@ -129,14 +129,14 @@ found in the LICENSE file.
         // Draw overlays.
         for (let i = 0; i < this.jobData.state.length; ++i) {
           const changeData = this.jobData.state[i];
-          const y = changeData.values.length ?
-            percentile(changeData.values, 0.5) :
+          const y = changeData.result_values.length ?
+            percentile(changeData.result_values, 0.5) :
             (this.jobData.bounds[0] + this.jobData.bounds[1]) / 2;
           const offset = chart.pointOffset({x: i, y});
 
-          if (changeData.values.length) {
+          if (changeData.result_values.length) {
             // Draw pulsing dots for important points.
-            if (changeData.comparisons.before === 'different') {
+            if (changeData.comparisons.prev === 'different') {
               const dot = document.createElement('job-chart-dot');
               dot.setPosition(offset.left, offset.top);
               this.$.plot.appendChild(dot);
@@ -146,8 +146,8 @@ found in the LICENSE file.
             const status = document.createElement('job-chart-icon');
             status.setPosition(offset.left, offset.top);
             // TODO: Plumb through real "pending" information from the Job.
-            if (changeData.comparisons.before === 'pending' ||
-                changeData.comparisons.after === 'pending') {
+            if (changeData.comparisons.prev === 'pending' ||
+                changeData.comparisons.next === 'pending') {
               status.setType('pending');
             } else {
               status.setType('failed');
@@ -179,6 +179,16 @@ found in the LICENSE file.
           }
         }
       };
+    }
+
+    function changeString(change) {
+      const lastCommit = change.commits[change.commits.length - 1];
+      let changeString = lastCommit.commit_position ||
+        lastCommit.git_hash.substring(0, 7);
+      if (change.patch) {
+        changeString += ' + ' + change.patch.author.split('@')[0];
+      }
+      return changeString;
     }
 
     function percentile(values, p) {
