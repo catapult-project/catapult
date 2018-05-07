@@ -21,6 +21,9 @@ _ISOLATE_TARGETS = [
     'load_library_perf_tests', 'media_perftests', 'net_perftests',
     'performance_browser_tests', 'telemetry_perf_tests',
     'telemetry_perf_webview_tests', 'tracing_perftests']
+_BOTS_USING_PERFORMANCE_TEST_SUITES = [
+    'linux-perf', 'mac-10_12_laptop_low_end-perf'
+]
 
 
 class InvalidParamsError(Exception):
@@ -115,7 +118,7 @@ def _GetIsolateTarget(bot_name, suite, only_telemetry=False):
 
   # TODO(simonhatch): Remove this once the waterfall has fully migrated to
   # the new isolate target.
-  if bot_name == 'linux-perf':
+  if bot_name in _BOTS_USING_PERFORMANCE_TEST_SUITES:
     target = 'performance_test_suite'
 
   if suite in _ISOLATE_TARGETS:
