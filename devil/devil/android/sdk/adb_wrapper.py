@@ -41,8 +41,10 @@ _ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 _DEVICE_NOT_FOUND_RE = re.compile(r"error: device '(?P<serial>.+)' not found")
 _READY_STATE = 'device'
-_VERITY_DISABLE_RE = re.compile(r'Verity (already )?disabled')
-_VERITY_ENABLE_RE = re.compile(r'Verity (already )?enabled')
+_VERITY_DISABLE_RE = re.compile(r'(V|v)erity (is )?(already )?disabled'
+                                r'|Successfully disabled verity')
+_VERITY_ENABLE_RE = re.compile(r'(V|v)erity (is )?(already )?enabled'
+                               r'|Successfully enabled verity')
 _WAITING_FOR_DEVICE_RE = re.compile(r'- waiting for device -')
 
 
