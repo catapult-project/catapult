@@ -68,6 +68,12 @@ class SharedPageState(story_module.SharedState):
     self._possible_browser = self._GetPossibleBrowser(
         self._test, finder_options)
 
+    if not self._possible_browser:
+      raise browser_finder_exceptions.BrowserFinderException(
+          'Cannot find browser of type %s. To list out all '
+          'available browsers, rerun your command with '
+          '--browser=list' %  finder_options.browser_options.browser_type)
+
     self._first_browser = True
     self._previous_page = None
     self._current_page = None
