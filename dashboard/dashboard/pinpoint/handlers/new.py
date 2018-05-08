@@ -141,7 +141,8 @@ def _GenerateQuests(arguments):
     request arguments that were used, and quests is a list of Quests.
   """
   target = arguments.get('target')
-  if target in ('telemetry_perf_tests', 'telemetry_perf_webview_tests'):
+  if target in ('performance_test_suite', 'telemetry_perf_tests',
+                'telemetry_perf_webview_tests'):
     quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
                      quest_module.ReadHistogramsJsonValue)
   else:
