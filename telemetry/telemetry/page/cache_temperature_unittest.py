@@ -25,7 +25,7 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
   def setUp(self):
     super(CacheTemperatureTests, self).setUp()
     self._browser.platform.network_controller.StartReplay(
-        example_domain.EXAMPLE_PAGE_ARCHIVE_PATH)
+        example_domain.FetchExampleDomainArchive())
 
   def tearDown(self):
     super(CacheTemperatureTests, self).tearDown()
@@ -53,7 +53,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
         if event['cat'] == 'blink.console')
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureAny(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -70,7 +69,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')
   def testEnsureCold(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -85,7 +83,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureWarmAfterColdRun(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -109,7 +106,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')
   def testEnsureWarmFromScratch(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -124,7 +120,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureHotAfterColdAndWarmRun(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -154,7 +149,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
     self.assertNotIn('telemetry.internal.warm_cache.hot.end', markers)
 
   @decorators.Disabled('reference')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureHotAfterColdRun(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -179,7 +173,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')
   def testEnsureHotFromScratch(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -196,7 +189,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureWarmBrowser(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
@@ -217,7 +209,6 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/840033
   def testEnsureHotBrowser(self):
     with self.CaptureTrace():
       story_set = story.StorySet()
