@@ -8,6 +8,7 @@ import mock
 import sys
 import webapp2
 import webtest
+import zlib
 
 from google.appengine.api import users
 
@@ -129,6 +130,40 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
             '*/*/*/hist', '*/*/*/hist_avg']).put()
 
     self.testapp.post('/add_histograms', {'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+    self.assertEqual(4, len(diagnostics))
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+
+    tests = graph_data.TestMetadata.query().fetch()
+
+    self.assertEqual('Benchmark description.', tests[0].description)
+
+    # Verify that an anomaly processing was called.
+    mock_process_test.assert_called_once_with([tests[1].key, tests[2].key])
+
+    rows = graph_data.Row.query().fetch()
+    # We want to verify that the method was called with all rows that have
+    # been added, but the ordering will be different because we produce
+    # the rows by iterating over a dict.
+    mock_graph_revisions.assert_called_once()
+    self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_ZlibSucceeds(self, mock_process_test, mock_graph_revisions):
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=123,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+    data = zlib.compress(json.dumps(hs.AsDicts()))
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=[
+            '*/*/*/hist', '*/*/*/hist_avg']).put()
+
+    self.testapp.post('/add_histograms', data)
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
