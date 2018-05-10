@@ -10,44 +10,75 @@ from soundwave import pandas_sqlite
 
 
 class TestPandasSQLite(unittest.TestCase):
+  def testCreateTableIfNotExists_newTable(self):
+    column_types = (('bug_id', int), ('summary', str), ('status', str))
+    index = 'bug_id'
+    con = sqlite3.connect(':memory:')
+    try:
+      self.assertFalse(pandas.io.sql.has_table('bugs', con))
+      pandas_sqlite.CreateTableIfNotExists(con, 'bugs', column_types, index)
+      self.assertTrue(pandas.io.sql.has_table('bugs', con))
+    finally:
+      con.close()
+
+  def testCreateTableIfNotExists_alreadyExists(self):
+    column_types = (('bug_id', int), ('summary', str), ('status', str))
+    index = 'bug_id'
+    con = sqlite3.connect(':memory:')
+    try:
+      self.assertFalse(pandas.io.sql.has_table('bugs', con))
+      pandas_sqlite.CreateTableIfNotExists(con, 'bugs', column_types, index)
+      self.assertTrue(pandas.io.sql.has_table('bugs', con))
+      # It's fine to call a second time.
+      pandas_sqlite.CreateTableIfNotExists(con, 'bugs', column_types, index)
+      self.assertTrue(pandas.io.sql.has_table('bugs', con))
+    finally:
+      con.close()
+
   def testInsertOrReplaceRecords_newTable(self):
+    # TODO(#4442): Rewrite to fail when InsertOrReplaceRecords no longer
+    # implicitly creates the table when it doesn't exist already.
     columns = ('bug_id', 'summary', 'status')
     df1 = pandas.DataFrame.from_records(
         [(123, 'Some bug', 'Started'), (456, 'Another bug', 'Assigned')],
         columns=columns, index=columns[0])
-    conn = sqlite3.connect(':memory:')
+    con = sqlite3.connect(':memory:')
     try:
       # Write new table to database, read back and check they are equal.
-      pandas_sqlite.InsertOrReplaceRecords(df1, 'bugs', conn)
-      df = pandas.read_sql('SELECT * FROM bugs', conn, index_col=columns[0])
+      pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', df1)
+      df = pandas.read_sql('SELECT * FROM bugs', con, index_col=columns[0])
       self.assertTrue(df.equals(df1))
     finally:
-      conn.close()
+      con.close()
 
-  def testInsertOrReplaceRecords_existingTable(self):
-    columns = ('bug_id', 'summary', 'status')
+  def testInsertOrReplaceRecords_existingRecords(self):
+    column_types = (('bug_id', int), ('summary', str), ('status', str))
+    columns = tuple(c for c, _ in column_types)
+    index = columns[0]
     df1 = pandas.DataFrame.from_records(
         [(123, 'Some bug', 'Started'), (456, 'Another bug', 'Assigned')],
-        columns=columns, index=columns[0])
+        columns=columns, index=index)
     df2 = pandas.DataFrame.from_records(
         [(123, 'Some bug', 'Fixed'), (789, 'A new bug', 'Untriaged')],
-        columns=columns, index=columns[0])
-    conn = sqlite3.connect(':memory:')
+        columns=columns, index=index)
+    con = sqlite3.connect(':memory:')
     try:
+      pandas_sqlite.CreateTableIfNotExists(con, 'bugs', column_types, index)
+
       # Write first data frame to database.
-      pandas_sqlite.InsertOrReplaceRecords(df1, 'bugs', conn)
-      df = pandas.read_sql('SELECT * FROM bugs', conn, index_col=columns[0])
+      pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', df1)
+      df = pandas.read_sql('SELECT * FROM bugs', con, index_col=index)
       self.assertEqual(len(df), 2)
       self.assertEqual(df.loc[123]['status'], 'Started')
 
       # Write second data frame to database.
-      pandas_sqlite.InsertOrReplaceRecords(df2, 'bugs', conn)
-      df = pandas.read_sql('SELECT * FROM bugs', conn, index_col=columns[0])
+      pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', df2)
+      df = pandas.read_sql('SELECT * FROM bugs', con, index_col=index)
       self.assertEqual(len(df), 3)  # Only one extra record added.
       self.assertEqual(df.loc[123]['status'], 'Fixed')  # Bug is now fixed.
       self.assertItemsEqual(df.index, (123, 456, 789))
     finally:
-      conn.close()
+      con.close()
 
 
 if __name__ == '__main__':

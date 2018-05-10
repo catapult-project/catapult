@@ -17,7 +17,7 @@ def FetchAlertsData(args):
     alerts = tables.alerts.DataFrameFromJson(
         api.GetAlertData(args.benchmark, args.days))
     print '%d alerts found!' % len(alerts)
-    pandas_sqlite.InsertOrReplaceRecords(alerts, 'alerts', con)
+    pandas_sqlite.InsertOrReplaceRecords(con, 'alerts', alerts)
 
     bug_ids = set(alerts['bug_id'].unique())
     bug_ids.discard(0)  # A bug_id of 0 means untriaged.
@@ -29,7 +29,7 @@ def FetchAlertsData(args):
         print '(skipping %d bugs already in the database)' % len(known_bugs)
         bug_ids.difference_update(known_bugs)
     bugs = tables.bugs.DataFrameFromJson(api.GetBugData(bug_ids))
-    pandas_sqlite.InsertOrReplaceRecords(bugs, 'bugs', con)
+    pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', bugs)
   finally:
     con.close()
 
@@ -56,13 +56,14 @@ def FetchTimeseriesData(args):
   api = dashboard_api.PerfDashboardCommunicator(args)
   con = sqlite3.connect(args.database_file)
   try:
+    tables.CreateIfNeeded(con)
     test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
     if args.filters:
       test_paths = filter(_MatchesAllFilters, test_paths)
     num_found = len(test_paths)
     print '%d test paths found!' % num_found
 
-    if args.use_cache and tables.timeseries.HasTable(con):
+    if args.use_cache:
       test_paths = list(_IterStaleTestPaths(con, test_paths))
       num_skipped = num_found - len(test_paths)
       if num_skipped:
@@ -71,6 +72,6 @@ def FetchTimeseriesData(args):
     for test_path in test_paths:
       data = api.GetTimeseries(test_path, days=args.days)
       timeseries = tables.timeseries.DataFrameFromJson(data)
-      pandas_sqlite.InsertOrReplaceRecords(timeseries, 'timeseries', con)
+      pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries)
   finally:
     con.close()

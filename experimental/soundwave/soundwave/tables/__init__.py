@@ -2,6 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from soundwave import pandas_sqlite
 from soundwave.tables import alerts
 from soundwave.tables import bugs
 from soundwave.tables import timeseries
+
+
+def CreateIfNeeded(con):
+  """Creates soundwave tables in the database, if they don't already exist."""
+  # TODO(#4442): Also create alerts and bug tables.
+  for m in (timeseries,):
+    pandas_sqlite.CreateTableIfNotExists(
+        con, m.TABLE_NAME, m.COLUMN_TYPES, m.INDEX)

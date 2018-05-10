@@ -5,7 +5,30 @@
 """
 Helper methods for dealing with a SQLite database with pandas.
 """
-import pandas.io.sql  # pylint: disable=import-error
+import pandas  # pylint: disable=import-error
+
+
+def _EmptyFrame(column_types):
+  df = pandas.DataFrame()
+  for column, dtype in column_types:
+    df[column] = pandas.Series(dtype=dtype)
+  return df
+
+
+def CreateTableIfNotExists(con, name, column_types, keys):
+  """Create a new empty table, if it doesn't already exist.
+
+  Args:
+    con: A sqlite connection object.
+    name: Name of SQL table to create.
+    column_types: A sequence of (column, dtype) pairs for the table schema.
+    keys: A sequence of column names to set as PRIMARY KEY of the table.
+  """
+  frame = _EmptyFrame(column_types)
+  db = pandas.io.sql.SQLiteDatabase(con)
+  table = pandas.io.sql.SQLiteTable(
+      name, db, frame=frame, index=False, keys=keys, if_exists='append')
+  table.create()
 
 
 def _InsertOrReplaceStatement(name, keys):
@@ -14,7 +37,7 @@ def _InsertOrReplaceStatement(name, keys):
   return 'INSERT OR REPLACE INTO %s(%s) VALUES (%s)' % (name, columns, values)
 
 
-def InsertOrReplaceRecords(frame, name, conn):
+def InsertOrReplaceRecords(con, name, frame):
   """Insert or replace records from a DataFrame into a SQLite database.
 
   Assumes that index columns of the frame have names, and those are used as to
@@ -23,11 +46,11 @@ def InsertOrReplaceRecords(frame, name, conn):
   records.
 
   Args:
-    frame: DataFrame with records to write.
+    con: A sqlite connection object.
     name: Name of SQL table.
-    conn: A sqlite connection object.
+    frame: DataFrame with records to write.
   """
-  db = pandas.io.sql.SQLiteDatabase(conn)
+  db = pandas.io.sql.SQLiteDatabase(con)
   if db.has_table(name):
     table = pandas.io.sql.SQLiteTable(
         name, db, frame=frame, index=True, if_exists='append')
@@ -36,6 +59,7 @@ def InsertOrReplaceRecords(frame, name, conn):
     with db.run_transaction() as c:
       c.executemany(insert_statement, zip(*data))
   else:
+    # TODO(#4442): Remove when all clients call CreateTableIfNotExists instead.
     table = pandas.io.sql.SQLiteTable(
         name, db, frame=frame, index=True, keys=frame.index.names,
         if_exists='fail')
