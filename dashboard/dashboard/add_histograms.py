@@ -67,12 +67,14 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
     try:
       data_str = zlib.decompress(self.request.body)
+      logging.info('Recieved compressed data.')
     except zlib.error:
       data_str = self.request.get('data')
+      logging.info('Recieved uncompressed data.')
     if not data_str:
       raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-    logging.info('Received data: %s', data_str)
+    logging.info('Received data: %s', data_str[:100])
 
     histogram_dicts = json.loads(data_str)
     ProcessHistogramSet(histogram_dicts)
@@ -131,6 +133,8 @@ def ProcessHistogramSet(histogram_dicts):
   _ValidateMasterBotBenchmarkName(master, bot, benchmark)
 
   suite_key = utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
+
+  logging.info('Suite: %s', suite_key.id())
 
   bot_whitelist = bot_whitelist_future.get_result()
   internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
