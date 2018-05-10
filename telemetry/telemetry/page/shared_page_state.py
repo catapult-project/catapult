@@ -7,14 +7,11 @@ import os
 import sys
 
 from telemetry.core import platform as platform_module
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.browser import browser_simpleperf_controller
-from telemetry.internal.platform.profiler import profiler_finder
-from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
 from telemetry.page import traffic_setting
 from telemetry import story as story_module
@@ -29,10 +26,6 @@ def _PrepareFinderOptions(finder_options, test, device_type):
   browser_options.browser_user_agent_type = device_type
 
   test.CustomizeBrowserOptions(finder_options.browser_options)
-  if finder_options.profiler:
-    profiler_class = profiler_finder.FindProfiler(finder_options.profiler)
-    profiler_class.CustomizeBrowserOptions(browser_options.browser_type,
-                                           finder_options)
 
 
 class SharedPageState(story_module.SharedState):
@@ -46,12 +39,6 @@ class SharedPageState(story_module.SharedState):
   def __init__(self, test, finder_options, story_set):
     super(SharedPageState, self).__init__(test, finder_options, story_set)
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
-      if finder_options.profiler:
-        assert not 'trace' in finder_options.profiler, (
-            'This is a Timeline Based Measurement benchmark. You cannot run it '
-            'with trace profiler enabled. If you need trace data, tracing is '
-            'always enabled in Timeline Based Measurement benchmarks and you '
-            'can get the trace data with the default --output-format=html.')
       # This is to avoid the cyclic-import caused by timeline_based_page_test.
       from telemetry.web_perf import timeline_based_page_test
       self._test = timeline_based_page_test.TimelineBasedPageTest(test)
@@ -155,8 +142,6 @@ class SharedPageState(story_module.SharedState):
       logging.warning('Taking screenshots upon failures disabled.')
 
   def DidRunStory(self, results):
-    if self._finder_options.profiler:
-      self._StopProfiling(results)
     self._AllowInteractionForStage('after-run-story')
     try:
       self._previous_page = None
@@ -284,9 +269,6 @@ class SharedPageState(story_module.SharedState):
           upload_bandwidth_kbps=s.upload_bandwidth_kbps)
 
     self._AllowInteractionForStage('before-run-story')
-    # Start profiling if needed.
-    if self._finder_options.profiler:
-      self._StartProfiling(self._current_page)
 
   def CanRunStory(self, page):
     return self.CanRunOnBrowser(browser_info_module.BrowserInfo(self.browser),
@@ -344,22 +326,6 @@ class SharedPageState(story_module.SharedState):
       self._browser = None
     if self._possible_browser:
       self._possible_browser.CleanUpEnvironment()
-
-  def _StartProfiling(self, page):
-    output_file = os.path.join(self._finder_options.output_dir,
-                               page.file_safe_name)
-    if self._finder_options.pageset_repeat != 1:
-      output_file = util.GetSequentialFileName(output_file)
-    self.browser.profiling_controller.Start(
-        self._finder_options.profiler, output_file)
-
-  def _StopProfiling(self, results):
-    if self.browser:
-      profiler_files = self.browser.profiling_controller.Stop()
-      for f in profiler_files:
-        if os.path.isfile(f):
-          results.AddProfilingFile(self._current_page,
-                                   file_handle.FromFilePath(f))
 
 
 class SharedMobilePageState(SharedPageState):

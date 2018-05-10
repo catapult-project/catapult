@@ -10,7 +10,6 @@ from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
-from telemetry.internal.platform import profiling_controller_backend
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -28,10 +27,6 @@ class BrowserBackend(app_backend.AppBackend):
     self.browser_options = browser_options
     self._supports_extensions = supports_extensions
     self._tab_list_backend_class = tab_list_backend
-
-    self._profiling_controller_backend = (
-        profiling_controller_backend.ProfilingControllerBackend(
-            platform_backend, self))
 
   def SetBrowser(self, browser):
     super(BrowserBackend, self).SetApp(app=browser)
@@ -64,10 +59,6 @@ class BrowserBackend(app_backend.AppBackend):
   @property
   def browser(self):
     return self.app
-
-  @property
-  def profiling_controller_backend(self):
-    return self._profiling_controller_backend
 
   @property
   def browser_type(self):

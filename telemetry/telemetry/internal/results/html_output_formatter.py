@@ -34,5 +34,5 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
         url = cloud_storage.Insert(self._upload_bucket, remote_path, file_path)
         print 'View HTML results online at %s' % url
       except cloud_storage.PermissionError as e:
-        logging.error('Cannot upload profiling files to cloud storage due to '
+        logging.error('Cannot upload files to cloud storage due to '
                       ' permission error: %s' % e.message)

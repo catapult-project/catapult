@@ -19,7 +19,6 @@ from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import profile_types
 from telemetry.internal.platform import device_finder
 from telemetry.internal.platform import remote_platform_options
-from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import global_hooks
 from telemetry.util import wpr_modes
@@ -40,7 +39,6 @@ class BrowserFinderOptions(optparse.Values):
 
     self.cros_remote = None
 
-    self.profiler = None
     self.verbosity = 0
 
     self.browser_options = BrowserOptions()
@@ -114,13 +112,6 @@ class BrowserFinderOptions(optparse.Values):
 
     # Debugging options
     group = optparse.OptionGroup(parser, 'When things go wrong')
-    profiler_choices = profiler_finder.GetAllAvailableProfilers()
-    group.add_option(
-        '--profiler', default=None, type='choice',
-        choices=profiler_choices,
-        help='Record profiling data using this tool. Supported values: %s. '
-             '(Notice: this flag cannot be used for Timeline Based Measurement '
-             'benchmarks.)' % ', '.join(profiler_choices))
     group.add_option(
         '-v', '--verbose', action='count', dest='verbosity',
         help='Increase verbosity level (repeat as needed)')

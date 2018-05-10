@@ -124,8 +124,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       if isinstance(test, story_test.StoryTest):
         test.Measure(state.platform, results)
     except (legacy_page_test.Failure, exceptions.TimeoutException,
-            exceptions.LoginException, exceptions.ProfilingException,
-            py_utils.TimeoutException) as exc:
+            exceptions.LoginException, py_utils.TimeoutException) as exc:
       ProcessError(exc)
     except exceptions.Error as exc:
       ProcessError(exc)
@@ -382,7 +381,6 @@ def RunBenchmark(benchmark, finder_options):
     try:
       if finder_options.upload_results:
         results.UploadTraceFilesToCloud()
-        results.UploadProfilingFilesToCloud()
         results.UploadArtifactsToCloud()
     finally:
       duration = time.time() - start

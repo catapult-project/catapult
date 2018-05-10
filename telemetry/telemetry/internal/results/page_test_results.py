@@ -242,8 +242,6 @@ class PageTestResults(object):
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
     self._serialized_trace_file_ids_to_paths = {}
-    self._pages_to_profiling_files = collections.defaultdict(list)
-    self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
     self._histograms = histogram_set.HistogramSet()
 
@@ -297,16 +295,8 @@ class PageTestResults(object):
     return result
 
   @property
-  def pages_to_profiling_files(self):
-    return self._pages_to_profiling_files
-
-  @property
   def serialized_trace_file_ids_to_paths(self):
     return self._serialized_trace_file_ids_to_paths
-
-  @property
-  def pages_to_profiling_files_cloud_url(self):
-    return self._pages_to_profiling_files_cloud_url
 
   @property
   def all_page_specific_values(self):
@@ -533,9 +523,6 @@ class PageTestResults(object):
   def AddArtifact(self, story, name, path):
     self._artifact_results.AddArtifact(story, name, path)
 
-  def AddProfilingFile(self, page, fh):
-    self._pages_to_profiling_files[page].append(fh)
-
   def AddSummaryValue(self, value):
     assert value.page is None
     self._ValidateValue(value)
@@ -623,24 +610,3 @@ class PageTestResults(object):
               'Uploading %s of page %s to %s (%d out of %d)\n' %
               (artifact_type, test_name, cloud_url, i + 1,
                total_num_artifacts))
-
-
-  def UploadProfilingFilesToCloud(self):
-    bucket = self.telemetry_info.upload_bucket
-    for page, file_handle_list in self._pages_to_profiling_files.iteritems():
-      for fh in file_handle_list:
-        remote_path = ('profiler-file-id_%s-%s%-d%s' % (
-            fh.id,
-            datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
-            random.randint(1, 100000),
-            fh.extension))
-        try:
-          cloud_url = cloud_storage.Insert(
-              bucket, remote_path, fh.GetAbsPath())
-          sys.stderr.write(
-              'View generated profiler files online at %s for page %s\n' %
-              (cloud_url, page.name))
-          self._pages_to_profiling_files_cloud_url[page].append(cloud_url)
-        except cloud_storage.PermissionError as e:
-          logging.error('Cannot upload profiling files to cloud storage due to '
-                        ' permission error: %s', e.message)

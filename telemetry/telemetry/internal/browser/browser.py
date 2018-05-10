@@ -8,7 +8,6 @@ import sys
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import exceptions
-from telemetry.core import profiling_controller
 from telemetry import decorators
 from telemetry.internal import app
 from telemetry.internal.backends import browser_backend
@@ -48,8 +47,6 @@ class Browser(app.App):
         startup_url = self._browser_backend.GetBrowserStartupUrl()
         self._browser_backend.Start(startup_args, startup_url=startup_url)
       self._LogBrowserInfo()
-      self._profiling_controller = profiling_controller.ProfilingController(
-          self._browser_backend.profiling_controller_backend)
     except Exception:
       exc_info = sys.exc_info()
       logging.error(
@@ -61,10 +58,6 @@ class Browser(app.App):
         exception_formatter.PrintFormattedException(
             msg='Exception raised while closing platform backend')
       raise exc_info[0], exc_info[1], exc_info[2]
-
-  @property
-  def profiling_controller(self):
-    return self._profiling_controller
 
   @property
   def browser_type(self):
@@ -213,7 +206,6 @@ class Browser(app.App):
       if self._browser_backend.IsBrowserRunning():
         logging.info('Closing browser (pid=%s) ...', self._browser_backend.pid)
 
-      self._browser_backend.profiling_controller_backend.WillCloseBrowser()
       if self._browser_backend.supports_uploading_logs:
         try:
           self._browser_backend.UploadLogsToCloudStorage()
