@@ -14,6 +14,7 @@ def FetchAlertsData(args):
   api = dashboard_api.PerfDashboardCommunicator(args)
   con = sqlite3.connect(args.database_file)
   try:
+    tables.CreateIfNeeded(con)
     alerts = tables.alerts.DataFrameFromJson(
         api.GetAlertData(args.benchmark, args.days))
     print '%d alerts found!' % len(alerts)

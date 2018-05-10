@@ -10,7 +10,7 @@ from soundwave.tables import timeseries
 
 def CreateIfNeeded(con):
   """Creates soundwave tables in the database, if they don't already exist."""
-  # TODO(#4442): Also create alerts and bug tables.
-  for m in (timeseries,):
+  # TODO(#4442): Also create bugs table.
+  for m in (alerts, timeseries):
     pandas_sqlite.CreateTableIfNotExists(
         con, m.TABLE_NAME, m.COLUMN_TYPES, m.INDEX)

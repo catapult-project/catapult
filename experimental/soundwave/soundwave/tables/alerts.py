@@ -5,23 +5,25 @@
 import pandas  # pylint: disable=import-error
 
 
-COLUMNS = (
-    'key',  # string: unique datastore key ('agxzfmNocm9tZXBlcmZyFAsS')
-    'timestamp',  # np.datetime64: time and date when the alert was created
-    'test_suite',  # string: benchmark name ('loading.mobile')
-    'measurement',  # string: metric name ('timeToFirstContentfulPaint')
-    'bot',  # string: master/builder name ('ChromiumPerf.android-nexus5')
-    'test_case',  # string: story name ('Wikipedia')
-    'start_revision',  # string: git hash or commit position before anomaly
-    'end_revision',  # string: git hash or commit position after anomaly
-    'median_before_anomaly',  # float: median of values recorded before anomaly
-    'median_after_anomaly',  # float: median of values recorded after anomaly
-    'units',  # string: unit in which values are masured ('ms')
-    'improvement',  # boolean: whether anomaly is an improvement or regression
-    'bug_id',  # int: crbug number associated with this alert, 0 if missing
-    'status',  # string: one of 'ignored', 'invalid', 'triaged', 'untriaged'
-    'bisect_status',  # string: one of 'started', 'falied', 'completed'
+TABLE_NAME = 'alerts'
+COLUMN_TYPES = (
+    ('key', str),  # unique datastore key ('agxzfmNocm9tZXBlcmZyFAsS')
+    ('timestamp', 'datetime64[ns]'),  # when the alert was created
+    ('test_suite', str),  # benchmark name ('loading.mobile')
+    ('measurement', str),  # metric name ('timeToFirstContentfulPaint')
+    ('bot', str),  # master/builder name ('ChromiumPerf.android-nexus5')
+    ('test_case', str),  # story name ('Wikipedia')
+    ('start_revision', str),  # git hash or commit position before anomaly
+    ('end_revision', str),  # git hash or commit position after anomaly
+    ('median_before_anomaly', float),  # median of values before anomaly
+    ('median_after_anomaly', float),  # median of values after anomaly
+    ('units', str),  # unit in which values are masured ('ms')
+    ('improvement', bool),  # whether anomaly is an improvement or regression
+    ('bug_id', int),  # crbug number associated with this alert, 0 if missing
+    ('status', str),  # one of 'ignored', 'invalid', 'triaged', 'untriaged'
+    ('bisect_status', str),  # one of 'started', 'falied', 'completed'
 )
+COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
 INDEX = COLUMNS[0]
 
 
@@ -33,7 +35,7 @@ _CODE_TO_STATUS = {
 }
 
 
-def RowFromJson(data):
+def _RowFromJson(data):
   """Turn json data from an alert into a tuple with values for that record."""
   data = data.copy()  # Do not modify the original dict.
 
@@ -57,6 +59,7 @@ def RowFromJson(data):
 
 def DataFrameFromJson(data):
   df = pandas.DataFrame.from_records(
-      (RowFromJson(d) for d in data['anomalies']), index=INDEX, columns=COLUMNS)
+      (_RowFromJson(d) for d in data['anomalies']),
+      index=INDEX, columns=COLUMNS)
   df['timestamp'] = pandas.to_datetime(df['timestamp'])
   return df
