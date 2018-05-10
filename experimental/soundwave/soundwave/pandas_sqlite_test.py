@@ -35,19 +35,17 @@ class TestPandasSQLite(unittest.TestCase):
     finally:
       con.close()
 
-  def testInsertOrReplaceRecords_newTable(self):
-    # TODO(#4442): Rewrite to fail when InsertOrReplaceRecords no longer
-    # implicitly creates the table when it doesn't exist already.
-    columns = ('bug_id', 'summary', 'status')
+  def testInsertOrReplaceRecords_tableNotExistsRaises(self):
+    column_types = (('bug_id', int), ('summary', str), ('status', str))
+    columns = tuple(c for c, _ in column_types)
+    index = columns[0]
     df1 = pandas.DataFrame.from_records(
         [(123, 'Some bug', 'Started'), (456, 'Another bug', 'Assigned')],
-        columns=columns, index=columns[0])
+        columns=columns, index=index)
     con = sqlite3.connect(':memory:')
     try:
-      # Write new table to database, read back and check they are equal.
-      pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', df1)
-      df = pandas.read_sql('SELECT * FROM bugs', con, index_col=columns[0])
-      self.assertTrue(df.equals(df1))
+      with self.assertRaises(AssertionError):
+        pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', df1)
     finally:
       con.close()
 

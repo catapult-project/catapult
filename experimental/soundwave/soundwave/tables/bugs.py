@@ -5,21 +5,23 @@
 import pandas  # pylint: disable=import-error
 
 
-COLUMNS = (
-    'id',  # int: crbug number identifying this issue
-    'summary',  # string: issue title ('1%-5% regression in loading.mobile ...')
-    'published',  # np.datetime64: when the issue got created
-    'updated',  # np.datetime64: when the issue got last updated
-    'state',  # string: usually either 'open' or 'closed'
-    'status',  # string: current state of the bug ('Assigned', 'Fixed', etc.)
-    'author',  # string: email of user who created the issue
-    'owner',  # string: email of user who currently owns the issue
-    'cc',  # string: comma-separated list of users cc'ed into the issue
-    'components',  # string: comma-separated list of components ('Blink>Loader')
-    'labels',  # string: comma-separated list of labels ('Type-Bug-Regression')
+TABLE_NAME = 'bugs'
+COLUMN_TYPES = (
+    ('id', int),  # crbug number identifying this issue
+    ('summary', str),  # issue title ('1%-5% regression in loading.mobile ...')
+    ('published', 'datetime64[ns]'),  # when the issue got created
+    ('updated', 'datetime64[ns]'),  # when the issue got last updated
+    ('state', str),  # usually either 'open' or 'closed'
+    ('status', str),  # current state of the bug ('Assigned', 'Fixed', etc.)
+    ('author', str),  # email of user who created the issue
+    ('owner', str),  # email of user who currently owns the issue
+    ('cc', str),  # comma-separated list of users cc'ed into the issue
+    ('components', str),  # comma-separated list of components ('Blink>Loader')
+    ('labels', str),  # comma-separated list of labels ('Type-Bug-Regression')
 )
+COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
+DATE_COLUMNS = tuple(c for c, t in COLUMN_TYPES if t == 'datetime64[ns]')
 INDEX = COLUMNS[0]
-DATE_COLUMNS = ('published', 'updated')
 
 
 def _CommaSeparate(values):
@@ -44,10 +46,6 @@ def DataFrameFromJson(data):
   return df
 
 
-def HasTable(con):
-  return pandas.io.sql.has_table('bugs', con)
-
-
 def Get(con, bug_id):
   """Find the record for a bug_id in the given database connection.
 
@@ -55,6 +53,6 @@ def Get(con, bug_id):
     A pandas.Series with the record if found, or None otherwise.
   """
   df = pandas.read_sql(
-      'SELECT * FROM bugs WHERE id=?', con, params=(bug_id,),
+      'SELECT * FROM %s WHERE id=?' % TABLE_NAME, con, params=(bug_id,),
       index_col=INDEX, parse_dates=DATE_COLUMNS)
   return df.loc[bug_id] if len(df) else None

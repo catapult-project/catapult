@@ -40,10 +40,8 @@ def _InsertOrReplaceStatement(name, keys):
 def InsertOrReplaceRecords(con, name, frame):
   """Insert or replace records from a DataFrame into a SQLite database.
 
-  Assumes that index columns of the frame have names, and those are used as to
-  set the PRIMARY KEY of the table when creating anew. If the table already
-  exists, any new records with a matching PRIMARY KEY will replace existing
-  records.
+  Assumes that the table already exists. Any new records with a matching
+  PRIMARY KEY, usually the frame.index, will replace existing records.
 
   Args:
     con: A sqlite connection object.
@@ -51,17 +49,10 @@ def InsertOrReplaceRecords(con, name, frame):
     frame: DataFrame with records to write.
   """
   db = pandas.io.sql.SQLiteDatabase(con)
-  if db.has_table(name):
-    table = pandas.io.sql.SQLiteTable(
-        name, db, frame=frame, index=True, if_exists='append')
-    keys, data = table.insert_data()
-    insert_statement = _InsertOrReplaceStatement(name, keys)
-    with db.run_transaction() as c:
-      c.executemany(insert_statement, zip(*data))
-  else:
-    # TODO(#4442): Remove when all clients call CreateTableIfNotExists instead.
-    table = pandas.io.sql.SQLiteTable(
-        name, db, frame=frame, index=True, keys=frame.index.names,
-        if_exists='fail')
-    table.create()
-    table.insert()
+  table = pandas.io.sql.SQLiteTable(
+      name, db, frame=frame, index=True, if_exists='append')
+  assert table.exists()
+  keys, data = table.insert_data()
+  insert_statement = _InsertOrReplaceStatement(name, keys)
+  with db.run_transaction() as c:
+    c.executemany(insert_statement, zip(*data))

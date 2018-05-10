@@ -23,7 +23,7 @@ def FetchAlertsData(args):
     bug_ids = set(alerts['bug_id'].unique())
     bug_ids.discard(0)  # A bug_id of 0 means untriaged.
     print '%d bugs found!' % len(bug_ids)
-    if args.use_cache and tables.bugs.HasTable(con):
+    if args.use_cache:
       known_bugs = set(
           b for b in bug_ids if tables.bugs.Get(con, b) is not None)
       if known_bugs:
