@@ -22,7 +22,7 @@ _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(os.path.join(_CATAPULT_DIR, 'telemetry'))
 try:
-  # pylint: disable=F0401
+  # pylint: disable=F0401,no-name-in-module
   from telemetry.internal.platform.profiler import android_profiling_helper
   from telemetry.internal.util import binary_manager
 except ImportError:
