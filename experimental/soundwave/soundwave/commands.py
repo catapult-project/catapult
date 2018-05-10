@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import pandas  # pylint: disable=import-error
 import sqlite3
 
 from soundwave import dashboard_api
@@ -33,6 +34,21 @@ def FetchAlertsData(args):
     con.close()
 
 
+def _IterStaleTestPaths(con, test_paths):
+  """Iterate over test_paths yielding only those with stale or absent data.
+
+  A test_path is considered to be stale if the most recent data point we have
+  for it in the db is more than a day older.
+  """
+  a_day_ago = pandas.Timestamp.utcnow() - pandas.Timedelta(days=1)
+  a_day_ago = a_day_ago.tz_convert(tz=None)
+
+  for test_path in test_paths:
+    latest = tables.timeseries.GetMostRecentPoint(con, test_path)
+    if latest is None or latest['timestamp'] < a_day_ago:
+      yield test_path
+
+
 def FetchTimeseriesData(args):
   def _MatchesAllFilters(test_path):
     return all(f in test_path for f in args.filters)
@@ -43,7 +59,15 @@ def FetchTimeseriesData(args):
     test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
     if args.filters:
       test_paths = filter(_MatchesAllFilters, test_paths)
-    print '%d test paths found!' % len(test_paths)
+    num_found = len(test_paths)
+    print '%d test paths found!' % num_found
+
+    if args.use_cache and tables.timeseries.HasTable(con):
+      test_paths = list(_IterStaleTestPaths(con, test_paths))
+      num_skipped = num_found - len(test_paths)
+      if num_skipped:
+        print '(skipping %d test paths already in the database)' % num_skipped
+
     for test_path in test_paths:
       data = api.GetTimeseries(test_path, days=args.days)
       timeseries = tables.timeseries.DataFrameFromJson(data)

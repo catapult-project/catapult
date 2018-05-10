@@ -22,6 +22,12 @@ INDEX = COLUMNS[:5]
 TEST_PATH_PARTS = (
     'master', 'builder', 'test_suite', 'measurement', 'test_case')
 
+# This query finds the most recent point_id for a given test_path (i.e. fixed
+# test_suite, measurement, bot, and test_case values).
+_GET_MOST_RECENT_QUERY = (
+    'SELECT * FROM timeseries WHERE %s ORDER BY timestamp DESC LIMIT 1'
+    % ' AND '.join('%s=?' % c for c in INDEX[:-1]))
+
 
 def _ParseConfigFromTestPath(test_path):
   values = test_path.split('/', len(TEST_PATH_PARTS))
@@ -50,3 +56,20 @@ def DataFrameFromJson(data):
   df = pandas.DataFrame.from_records(rows, index=INDEX, columns=COLUMNS)
   df['timestamp'] = pandas.to_datetime(df['timestamp'])
   return df
+
+
+def HasTable(con):
+  return pandas.io.sql.has_table('timeseries', con)
+
+
+def GetMostRecentPoint(con, test_path):
+  """Find the record for the most recent data point on the given test_path.
+
+  Returns:
+    A pandas.Series with the record if found, or None otherwise.
+  """
+  config = _ParseConfigFromTestPath(test_path)
+  params = tuple(config[c] for c in INDEX[:-1])
+  df = pandas.read_sql(
+      _GET_MOST_RECENT_QUERY, con, params=params, parse_dates=['timestamp'])
+  return df.iloc[0] if not df.empty else None
