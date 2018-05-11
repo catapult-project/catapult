@@ -382,9 +382,18 @@ def _AssignBugToCLAuthor(bug_id, alert, service):
 
   commit_info = gitiles_service.CommitInfo(repository_url, rev)
   author = commit_info['author']['email']
-  service.AddBugComment(
-      bug_id,
-      'Assigning to %s because this is the only CL in range:\n%s' % (
-          author, commit_info['message']),
-      status='Assigned',
-      owner=author)
+  sheriff = utils.GetSheriffForAutorollCommit(commit_info)
+  if sheriff:
+    service.AddBugComment(
+        bug_id,
+        ('Assigning to sheriff %s because this autoroll is '
+         'the only CL in range:\n%s') % (sheriff, commit_info['message']),
+        status='Assigned',
+        owner=sheriff)
+  else:
+    service.AddBugComment(
+        bug_id,
+        'Assigning to %s because this is the only CL in range:\n%s' % (
+            author, commit_info['message']),
+        status='Assigned',
+        owner=author)

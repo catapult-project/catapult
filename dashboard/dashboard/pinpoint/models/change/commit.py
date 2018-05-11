@@ -102,6 +102,14 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     commit_position = _ParseCommitPosition(commit_info['message'])
     if commit_position:
       details['commit_position'] = commit_position
+    author = details['author']
+    if (author == 'v8-autoroll@chromium.org' or
+        author.endswith('skia-buildbots.google.com.iam.gserviceaccount.com')):
+      message = commit_info['message']
+      if message:
+        m = re.search(r'TBR=([^,^\s]*)', message)
+        if m:
+          details['tbr'] = m.group(1)
     return details
 
   @classmethod

@@ -182,6 +182,7 @@ class Job(ndb.Model):
 
     # Include list of Changes.
     owner = None
+    sheriff = None
     cc_list = set()
     commit_details = []
     for _, change in differences:
@@ -192,6 +193,7 @@ class Job(ndb.Model):
 
       # TODO: Assign the largest difference, not the last one.
       owner = commit_info['author']
+      sheriff = utils.GetSheriffForAutorollCommit(commit_info)
       cc_list.add(commit_info['author'])
       commit_details.append(_FormatCommitForBug(commit_info))
 
@@ -207,6 +209,10 @@ class Job(ndb.Model):
 
     # Body.
     body = '\n\n'.join(commit_details)
+    if sheriff:
+      owner = sheriff
+      body += '\n\nAssigning to sheriff %s because "%s" is a roll.' % (
+          sheriff, commit_info['subject'])
 
     # Footer.
     footer = ('Understanding performance regressions:\n'

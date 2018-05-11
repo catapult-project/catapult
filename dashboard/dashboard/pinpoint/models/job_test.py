@@ -39,6 +39,19 @@ Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
 
+_COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
+    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+https://testbed.example.com/job/1
+
+<b>Subject.</b> by roll@account.com
+https://example.com/repository/+/git_hash
+
+Assigning to sheriff sheriff@bar.com because "Subject." is a roll.
+
+Understanding performance regressions:
+  http://g.co/ChromePerformanceRegressions""")
+
+
 _COMMENT_COMPLETED_WITH_PATCH = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
 https://testbed.example.com/job/1
@@ -243,6 +256,32 @@ class BugCommentTest(testing_common.TestCase):
         123456, _COMMENT_COMPLETED_TWO_DIFFERENCES,
         status='Assigned', owner='author2@chromium.org',
         cc_list=['author1@chromium.org', 'author2@chromium.org'])
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedWithAutoroll(self, differences, commit_as_dict):
+    c = change.Change((change.Commit('chromium', 'git_hash'),))
+    differences.return_value = [(1, c)]
+    commit_as_dict.return_value = {
+        'repository': 'chromium',
+        'git_hash': 'git_hash',
+        'author': 'roll@account.com',
+        'subject': 'Subject.',
+        'reviewers': ['reviewer@chromium.org'],
+        'url': 'https://example.com/repository/+/git_hash',
+        'tbr': 'sheriff@bar.com',
+    }
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
+    j = job.Job.New({}, [], auto_explore=True, bug_id=123456)
+    j.put()
+    j.Run()
+
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
+        status='Assigned', owner='sheriff@bar.com',
+        cc_list=['roll@account.com'])
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))

@@ -294,6 +294,42 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
       mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
+              mock.MagicMock(return_value={
+                  'author': {'email': 'v8-autoroll@chromium.org'},
+                  'message': 'This is a roll\n\nTBR=sheriff@bar.com'}))
+  def testGet_WithFinish_CreatesBugSingleRevAutorollOwner(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories',
+        {"chromium": {
+            "repository_url": "https://chromium.googlesource.com/chromium/src"
+        }})
+    self.service.bug_id = 277761
+    response = self._PostSampleBug(is_single_rev=True)
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self.service.add_comment_args[1]
+    self.assertIn(
+        'Assigning to sheriff sheriff@bar.com because this autoroll',
+        comment)
+    self.assertIn('This is a roll', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
   def testGet_WithFinish_SingleRevOwner_Clank_Skips(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker

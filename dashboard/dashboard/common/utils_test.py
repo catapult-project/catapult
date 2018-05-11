@@ -370,6 +370,42 @@ class UtilsTest(testing_common.TestCase):
     self.assertFalse(utils.IsGroupMember('foo@bar.com', 'group'))
     self.assertEqual(1, mock_logging_error.call_count)
 
+  def testGetSheriffForAutorollCommit_InvalidCommit_ReturnsNone(self):
+    self.assertIsNone(utils.GetSheriffForAutorollCommit(None))
+    self.assertIsNone(utils.GetSheriffForAutorollCommit({}))
+    self.assertIsNone(utils.GetSheriffForAutorollCommit({'author': {}}))
+
+  def testGetSheriffForAutorollCommit_NotAutoroll_ReturnsNone(self):
+    self.assertIsNone(utils.GetSheriffForAutorollCommit({
+        'author': {'email': 'user@foo.org'},
+        'message': 'TBR=donotreturnme@foo.org',
+    }))
+    self.assertIsNone(utils.GetSheriffForAutorollCommit({
+        'author': {'email': 'not-a-roll@foo.org'},
+        'message': 'TBR=donotreturnme@foo.org',
+    }))
+
+  def testGetSheriffForAutorollCommit_AutoRoll_ReturnsSheriff(self):
+    self.assertEqual(
+        'sheriff@foo.org',
+        utils.GetSheriffForAutorollCommit({
+            'author': {
+                'email': 'rl@skia-buildbots.google.com.iam.gserviceaccount.com',
+            },
+            'message': 'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n',
+        }))
+    self.assertEqual(
+        'sheriff@v8.com',
+        utils.GetSheriffForAutorollCommit({
+            'author': {
+                'email': 'v8-autoroll@chromium.org',
+            },
+            'message': 'TBR=sheriff@v8.com',
+        }))
+    self.assertEqual(
+        'tbr@sheriff.com',
+        utils.GetSheriffForAutorollCommit({'tbr': 'tbr@sheriff.com'}))
+
 
 def _MakeMockFetch(base64_encoded=True, status=200):
   """Returns a mock fetch object that returns a canned response."""
@@ -379,7 +415,6 @@ def _MakeMockFetch(base64_encoded=True, status=200):
       response_text = base64.b64encode(response_text)
     return testing_common.FakeResponseObject(status, response_text)
   return _MockFetch
-
 
 if __name__ == '__main__':
   unittest.main()
