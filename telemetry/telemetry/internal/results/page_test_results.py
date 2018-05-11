@@ -426,7 +426,7 @@ class PageTestResults(object):
     hist.diagnostics[reserved_infos.BENCHMARKS.name] = generic_set.GenericSet(
         [self.telemetry_info.benchmark_name])
     hist.diagnostics[reserved_infos.BENCHMARK_START.name] = histogram.DateRange(
-        self.telemetry_info.benchmark_start_epoch)
+        self.telemetry_info.benchmark_start_epoch * 1000)
     if self.telemetry_info.benchmark_descriptions:
       hist.diagnostics[
           reserved_infos.BENCHMARK_DESCRIPTIONS.name] = generic_set.GenericSet([
