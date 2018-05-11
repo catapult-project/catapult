@@ -28,9 +28,16 @@ DEFAULT_DATABASE_PATH = os.path.join(
     SOUNDWAVE_ROOT_PATH, 'soundwave.db')
 
 
-def Main():
-  logging.basicConfig(level=logging.INFO)
+def VerboseLevel(count):
+  if count == 0:
+    return logging.WARNING
+  elif count == 1:
+    return logging.INFO
+  else:
+    return logging.DEBUG
 
+
+def Main():
   # Args for API access.
   parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
   parser.add_argument(
@@ -50,8 +57,14 @@ def Main():
       '--continue', action='store_true', dest='use_cache',
       help='Skip refreshing some data for elements already in local db.')
   parser.add_argument(
+      '--processes', type=int, default=40,
+      help='Number of concurrent processes to use for fetching data.')
+  parser.add_argument(
       '--database-file', default=DEFAULT_DATABASE_PATH,
       help='File path for database where to store data.')
+  parser.add_argument(
+      '-v', '--verbose', action='count', default=0,
+      help='Increase verbosity level')
   subparsers = parser.add_subparsers(dest='action')
   subparsers.required = True
   # Subparser args for fetching alerts data.
@@ -69,6 +82,8 @@ def Main():
            'rotation.')
 
   args = parser.parse_args()
+
+  logging.basicConfig(level=VerboseLevel(args.verbose))
   if args.action == 'alerts':
     commands.FetchAlertsData(args)
   elif args.action == 'timeseries':

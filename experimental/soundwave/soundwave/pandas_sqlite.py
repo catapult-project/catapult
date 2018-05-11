@@ -15,7 +15,7 @@ def _EmptyFrame(column_types):
   return df
 
 
-def CreateTableIfNotExists(con, name, column_types, keys):
+def CreateTableIfNotExists(con, name, column_types, keys=None):
   """Create a new empty table, if it doesn't already exist.
 
   Args:
