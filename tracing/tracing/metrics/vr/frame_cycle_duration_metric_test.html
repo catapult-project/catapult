@@ -26,15 +26,19 @@ tr.b.unittest.testSuite(function() {
         title: duration.title,
         start: currentTime,
         end: currentTime + duration.wall,
-        cpuStart: currentTime,
-        cpuEnd: currentTime + duration.cpu,
       };
+      if (duration.cpu !== undefined) {
+        option.cpuStart = currentTime;
+        option.cpuEnd = currentTime + duration.cpu;
+      }
       const slice = tr.c.TestUtils.newSliceEx(option);
       slice.subSlices = createSubSlices(
           duration.sub, currentTime + 0.1, sliceGroup);
       sliceGroup.pushSlice(slice);
       slices.push(slice);
-      currentTime += Math.max(duration.wall, duration.cpu) + 1;
+      const maxDuration = duration.cpu === undefined ?
+          duration.wall : Math.max(duration.wall, duration.cpu);
+      currentTime += maxDuration + 1;
     }
     return slices;
   }
@@ -136,6 +140,8 @@ tr.b.unittest.testSuite(function() {
             wall: 3.5,
             cpu: 0.5
           },
+          {title: 'VrShellGl::PostSubmitDrawOnGpu', wall: 3},
+          {title: 'VrShellGl::PostSubmitDrawOnGpu', wall: 4},
         ]
       },
       {title: 'VrShellGl::DrawFrame', wall: 20, cpu: 10},
@@ -168,6 +174,12 @@ tr.b.unittest.testSuite(function() {
         2.25, TOLERANCE);
     assert.closeTo(histograms.getHistogramNamed('acquire_frame_cpu').average,
         1.75, TOLERANCE);
+
+    assert.isUndefined(
+        histograms.getHistogramNamed('post_submit_draw_on_gpu_cpu'));
+    assert.closeTo(
+        histograms.getHistogramNamed('post_submit_draw_on_gpu_wall').average,
+        3.5, TOLERANCE);
 
     assert.closeTo(
         histograms.getHistogramNamed('update_controller_wall').average,
