@@ -48,6 +48,8 @@ def AddCommandLineArgs(parser):
   group = optparse.OptionGroup(parser, 'Page set repeat options')
   group.add_option('--pageset-repeat', default=1, type='int',
                    help='Number of times to repeat the entire pageset.')
+  group.add_option('--smoke-test-mode', default=False,
+                   help='run this test in smoke test mode so do not repeat.')
   group.add_option('--max-failures', default=None, type='int',
                    help='Maximum number of test failures before aborting '
                    'the run. Defaults to the number specified by the '
@@ -193,7 +195,10 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   state = None
   device_info_diags = {}
   try:
-    for storyset_repeat_counter in xrange(finder_options.pageset_repeat):
+    pageset_repeat = finder_options.pageset_repeat
+    if finder_options.smoke_test_mode:
+      pageset_repeat = 1
+    for storyset_repeat_counter in xrange(pageset_repeat):
       for story in stories:
         start_timestamp = time.time()
         if not state:

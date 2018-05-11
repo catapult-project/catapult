@@ -612,6 +612,29 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn(green_value, values)
     self.assertIn(merged_value, values)
 
+  def testSmokeTestMode(self):
+    story_set = story_module.StorySet()
+
+    blank_story = DummyLocalStory(TestSharedPageState, name='blank')
+    green_story = DummyLocalStory(TestSharedPageState, name='green')
+    story_set.AddStory(blank_story)
+    story_set.AddStory(green_story)
+
+    self.options.pageset_repeat = 2
+    self.options.smoke_test_mode = True
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
+    story_runner.Run(
+        _Measurement(), story_set, self.options, results,
+        metadata=EmptyMetadataForTest())
+    summary = summary_module.Summary(results)
+    values = summary.interleaved_computed_per_page_values_and_summaries
+
+
+    self.assertEquals(2, GetNumberOfSuccessfulPageRuns(results))
+    self.assertFalse(results.had_failures)
+    self.assertEquals(3, len(values))
+
   def testRunStoryDisabledStory(self):
     story_set = story_module.StorySet()
     story_one = DummyLocalStory(TestSharedPageState, name='one')
@@ -1313,6 +1336,7 @@ class StoryRunnerTest(unittest.TestCase):
     options.max_failures = 100
     options.pause = None
     options.pageset_repeat = 1
+    options.smoke_test_mode = False
     options.output_formats = ['chartjson']
     options.run_disabled_tests = False
     return options
