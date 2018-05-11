@@ -16,8 +16,6 @@ _GITILES_COMMIT_INFO = {
     'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
     'message': 'Subject.\n\n'
                'Commit message.\n'
-               'Reviewed-by: Reviewer Name <reviewer1@chromium.org>\n'
-               'Reviewed-by: Reviewer Name <reviewer2@chromium.org>\n'
                'Cr-Commit-Position: refs/heads/master@{#437745}',
 }
 
@@ -106,7 +104,6 @@ deps_os = {
         'url': _CHROMIUM_URL + '/+/aaa7336',
         'subject': 'Subject.',
         'author': 'author@chromium.org',
-        'reviewers': ['reviewer1@chromium.org', 'reviewer2@chromium.org'],
         'time': 'Fri Jan 01 00:01:00 2016',
         'commit_position': 437745,
     }

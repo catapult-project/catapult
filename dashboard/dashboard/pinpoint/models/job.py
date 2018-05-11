@@ -193,8 +193,6 @@ class Job(ndb.Model):
       # TODO: Assign the largest difference, not the last one.
       owner = commit_info['author']
       cc_list.add(commit_info['author'])
-      if 'reviewers' in commit_info:
-        cc_list |= frozenset(commit_info['reviewers'])
       commit_details.append(_FormatCommitForBug(commit_info))
 
     # Header.

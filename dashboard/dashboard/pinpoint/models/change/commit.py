@@ -97,7 +97,6 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         'url': self.repository_url + '/+/' + commit_info['commit'],
         'subject': commit_info['message'].split('\n', 1)[0],
         'author': commit_info['author']['email'],
-        'reviewers': _ParseReviewers(commit_info['message']),
         'time': commit_info['committer']['time'],
     }
     commit_position = _ParseCommitPosition(commit_info['message'])
@@ -190,20 +189,6 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     commits.pop(0)  # Remove commit_b from the range.
 
     return cls(commit_a.repository, commits[len(commits) / 2]['commit'])
-
-
-def _ParseReviewers(commit_message):
-  """Parses a commit message for the emails of all reviewers.
-
-  If the commit is a revert, this includes
-  all the reviewers from the original commit.
-
-  Args:
-    commit_message:: The commit message as a string.
-
-  Returns:
-    A list of reviewers."""
-  return re.findall('Reviewed-by: .+ <(.+?)>', commit_message)
 
 
 def _ParseCommitPosition(commit_message):

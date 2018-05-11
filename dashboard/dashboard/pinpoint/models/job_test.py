@@ -131,7 +131,6 @@ class BugCommentTest(testing_common.TestCase):
         'git_hash': 'git_hash',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'reviewers': ['reviewer@chromium.org'],
         'url': 'https://example.com/repository/+/git_hash',
     }
 
@@ -143,7 +142,7 @@ class BugCommentTest(testing_common.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
-        cc_list=['author@chromium.org', 'reviewer@chromium.org'])
+        cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'Differences')
@@ -224,7 +223,6 @@ class BugCommentTest(testing_common.TestCase):
             'git_hash': 'git_hash_1',
             'author': 'author1@chromium.org',
             'subject': 'Subject.',
-            'reviewers': ['reviewer1@chromium.org'],
             'url': 'https://example.com/repository/+/git_hash_1',
         },
         {
@@ -232,7 +230,6 @@ class BugCommentTest(testing_common.TestCase):
             'git_hash': 'git_hash_2',
             'author': 'author2@chromium.org',
             'subject': 'Subject.',
-            'reviewers': ['reviewer1@chromium.org', 'reviewer2@chromium.org'],
             'url': 'https://example.com/repository/+/git_hash_2',
         },
     )
@@ -245,8 +242,7 @@ class BugCommentTest(testing_common.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_TWO_DIFFERENCES,
         status='Assigned', owner='author2@chromium.org',
-        cc_list=['author1@chromium.org', 'author2@chromium.org',
-                 'reviewer1@chromium.org', 'reviewer2@chromium.org'])
+        cc_list=['author1@chromium.org', 'author2@chromium.org'])
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
