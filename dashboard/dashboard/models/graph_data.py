@@ -369,7 +369,6 @@ class Row(ndb.Expando):
 
   # Don't index by default (only explicitly indexed properties are indexed).
   _default_indexed = False
-  internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
   # The parent_test is the key of the TestMetadata entity that this Row belongs
   # to.
