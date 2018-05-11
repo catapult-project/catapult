@@ -20,39 +20,73 @@ _ATTEMPT_DATA = {
 
 
 _JOB_NO_DIFFERENCES = {
-    "changes": [{}, {}, {}, {}],
-    "quests": ["Test"],
-    "comparisons": ["same", "same", "same"],
-    "attempts": [
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
+    "state": [
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'next': 'same'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'next': 'same', 'prev': 'same'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'next': 'same', 'prev': 'same'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'prev': 'same'},
+        },
     ],
+    "quests": ["Test"],
 }
 
 
 _JOB_WITH_DIFFERENCES = {
-    "changes": [{}, {}, {}, {}],
-    "quests": ["Test"],
-    "comparisons": ["same", "different", "different"],
-    "attempts": [
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
-        [_ATTEMPT_DATA],
+    "state": [
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'next': 'same'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'prev': 'same', 'next': 'different'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'prev': 'different', 'next': 'different'},
+        },
+        {
+            "attempts": [_ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'prev': 'different'},
+        },
     ],
+    "quests": ["Test"],
 }
 
 
 _JOB_MISSING_EXECUTIONS = {
-    "changes": [{}, {}],
-    "quests": ["Test"],
-    "comparisons": ["same"],
-    "attempts": [
-        [_ATTEMPT_DATA, {"executions": []}],
-        [{"executions": []}, _ATTEMPT_DATA],
+    "state": [
+        {
+            "attempts": [_ATTEMPT_DATA, {"executions": []}],
+            "change": {},
+            "comparisons": {'next': 'same'},
+        },
+        {
+            "attempts": [{"executions": []}, _ATTEMPT_DATA],
+            "change": {},
+            "comparisons": {'prev': 'same'},
+        },
     ],
+    "quests": ["Test"],
 }
 
 
