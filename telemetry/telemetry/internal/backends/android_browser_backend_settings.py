@@ -123,6 +123,17 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
 
 
 class WebViewBackendSettings(WebViewBasedBackendSettings):
+  def __new__(cls, **kwargs):
+    # Provide some defaults for backends that work via system_webview_shell,
+    # a testing app with source code available at:
+    # https://cs.chromium.org/chromium/src/android_webview/tools/system_webview_shell
+    kwargs.setdefault('package', 'org.chromium.webview_shell')
+    kwargs.setdefault('activity',
+                      'org.chromium.webview_shell.TelemetryActivity')
+    kwargs.setdefault('embedder_apk_name', 'SystemWebViewShell.apk')
+    kwargs.setdefault('command_line_name', 'webview-command-line')
+    return super(WebViewBackendSettings, cls).__new__(cls, **kwargs)
+
   def GetApkName(self, device):
     assert self.apk_name is None
     # The APK to install depends on the OS version of the deivce.
@@ -147,6 +158,16 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
       return None
 
 
+class WebViewGoogleBackendSettings(WebViewBackendSettings):
+  def GetApkName(self, device):
+    assert self.apk_name is None
+    # The APK to install depends on the OS version of the deivce.
+    if device.build_version_sdk >= version_codes.NOUGAT:
+      return 'Monochrome.apk'
+    else:
+      return 'SystemWebViewGoogle.apk'
+
+
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     browser_type='android-content-shell',
     package='org.chromium.content_shell_apk',
@@ -159,11 +180,10 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     supports_spki_list=True)
 
 ANDROID_WEBVIEW = WebViewBackendSettings(
-    browser_type='android-webview',
-    package='org.chromium.webview_shell',
-    activity='org.chromium.webview_shell.TelemetryActivity',
-    command_line_name='webview-command-line',
-    embedder_apk_name='SystemWebViewShell.apk')
+    browser_type='android-webview')
+
+ANDROID_WEBVIEW_GOOGLE = WebViewGoogleBackendSettings(
+    browser_type='android-webview-google')
 
 ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
@@ -201,6 +221,7 @@ ANDROID_SYSTEM_CHROME = GenericChromeBackendSettings(
 ANDROID_BACKEND_SETTINGS = (
     ANDROID_CONTENT_SHELL,
     ANDROID_WEBVIEW,
+    ANDROID_WEBVIEW_GOOGLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_CHROMIUM,
     ANDROID_CHROME,
