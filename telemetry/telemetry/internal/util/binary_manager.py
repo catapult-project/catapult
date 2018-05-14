@@ -7,6 +7,7 @@ import os
 
 import py_utils
 from py_utils import binary_manager
+from py_utils import cloud_storage
 from py_utils import dependency_util
 import dependency_manager
 from dependency_manager import base_config
@@ -29,6 +30,28 @@ CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'py_utils',
 BATTOR_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'battor',
                                     'battor', 'battor_binary_dependencies.json')
 
+SUPPORTED_DEP_PLATFORMS = (
+    'linux_aarch64', 'linux_x86_64', 'linux_armv7l', 'linux_mips'
+    'mac_x86_64',
+    'win_x86', 'win_AMD64',
+    'android_arm64-v8a', 'android_armeabi-v7a', 'android_arm', 'android_x64',
+    'android_x86'
+)
+
+PLATFORMS_TO_DOWNLOAD_FOLDER_MAP = {
+    'linux_aarch64': 'bin/linux/aarch64',
+    'linux_x86_64': 'bin/linux/x86_64',
+    'linux_armv7l': 'bin/linux/armv7l',
+    'linux_mips': 'bin/linux/mips',
+    'mac_x86_64': 'bin/mac/x86_64',
+    'win_x86': 'bin/win/x86',
+    'win_AMD64': 'bin/win/AMD64',
+    'android_arm64-v8a': 'bin/android/arm64-v8a',
+    'android_armeabi-v7a': 'bin/android/armeabi-v7a',
+    'android_arm': 'bin/android/arm',
+    'android_x64': 'bin/android/x64',
+    'android_x86': 'bin/android/x86',
+}
 
 NoPathFoundError = dependency_manager.NoPathFoundError
 CloudStorageError = dependency_manager.CloudStorageError
@@ -37,6 +60,9 @@ CloudStorageError = dependency_manager.CloudStorageError
 _binary_manager = None
 _installed_helpers = set()
 
+
+TELEMETRY_BINARY_BASE_CS_FOLDER = 'binary_dependencies'
+TELEMETRY_BINARY_CS_BUCKET = cloud_storage.PUBLIC_BUCKET
 
 def NeedsInit():
   return not _binary_manager

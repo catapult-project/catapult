@@ -190,6 +190,26 @@ class BaseConfig(object):
   def config_path(self):
     return self._config_path
 
+  def AddNewDependency(
+      self, dependency, cloud_storage_base_folder, cloud_storage_bucket):
+    self._ValidateIsConfigWritable()
+    if dependency in self:
+      raise ValueError('Config already contains dependency %s' % dependency)
+    self._config_data[dependency] = {
+        'cloud_storage_base_folder': cloud_storage_base_folder,
+        'cloud_storage_bucket': cloud_storage_bucket,
+        'file_info': {},
+    }
+
+  def SetDownloadPath(self, dependency, platform, download_path):
+    self._ValidateIsConfigWritable()
+    if not dependency in self:
+      raise ValueError('Config does not contain dependency %s' % dependency)
+    platform_dicts = self._config_data[dependency]['file_info']
+    if platform not in platform_dicts:
+      platform_dicts[platform] = {}
+    platform_dicts[platform]['download_path'] = download_path
+
   def AddCloudStorageDependencyUpdateJob(
       self, dependency, platform, dependency_path, version=None,
       execute_job=True):
@@ -292,6 +312,14 @@ class BaseConfig(object):
     """Return the Version information for the given dependency."""
     return self._GetPlatformData(
         dependency, platform, data_type='version_in_cs')
+
+  def __contains__(self, dependency):
+    """ Returns whether this config contains |dependency|
+
+    Args:
+      dependency: the string name of dependency
+    """
+    return dependency in self._config_data
 
   def _IsDirty(self):
     with open(self._config_path, 'r') as fstream:

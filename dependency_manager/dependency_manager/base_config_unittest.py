@@ -1119,6 +1119,48 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
     self.fs.CreateFile(self.file_path,
                        contents='\n'.join(self.expected_file_lines))
 
+  def testContaining(self):
+    config = dependency_manager.BaseConfig(self.file_path)
+    self.assertTrue('dep1' in config)
+    self.assertTrue('dep2' in config)
+    self.assertFalse('dep3' in config)
+
+  def testAddNewDependencyNotWriteable(self):
+    config = dependency_manager.BaseConfig(self.file_path)
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.AddNewDependency('dep4', 'foo', 'bar')
+
+  def testAddNewDependencyWriteableButDependencyAlreadyExists(self):
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
+    with self.assertRaises(ValueError):
+      config.AddNewDependency('dep2', 'foo', 'bar')
+
+  def testAddNewDependencySuccessfully(self):
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
+    config.AddNewDependency('dep3', 'foo', 'bar')
+    self.assertTrue('dep3' in config)
+
+  def testSetDownloadPathNotWritable(self):
+    config = dependency_manager.BaseConfig(self.file_path)
+    with self.assertRaises(dependency_manager.ReadWriteError):
+      config.SetDownloadPath('dep2', 'plat1', '../../relative/dep1/path1')
+
+  def testSetDownloadPathOnExistingPlatformSuccesfully(self):
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
+    download_path = '../../relative/dep1/foo.bar'
+    config.SetDownloadPath('dep2', 'plat1', download_path)
+    self.assertEqual(
+        download_path,
+        config._GetPlatformData('dep2', 'plat1', 'download_path'))
+
+  def testSetDownloadPathOnNewPlatformSuccesfully(self):
+    config = dependency_manager.BaseConfig(self.file_path, writable=True)
+    download_path = '../../relative/dep1/foo.bar'
+    config.SetDownloadPath('dep2', 'newplat', download_path)
+    self.assertEqual(
+        download_path,
+        config._GetPlatformData('dep2', 'newplat', 'download_path'))
+
 
   def testSetPlatformDataFailureNotWritable(self):
     config = dependency_manager.BaseConfig(self.file_path)
@@ -1409,7 +1451,6 @@ class BaseConfigTest(unittest.TestCase):
       self.assertEqual(self.config_type, config.GetConfigType())
       self.assertEqual(self.GetConfigDataFromDict(self.empty_dict),
                        config._config_data)
-
 
   @mock.patch('dependency_manager.dependency_info.DependencyInfo')
   @mock.patch('os.path')
