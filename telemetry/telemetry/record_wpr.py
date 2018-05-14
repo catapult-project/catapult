@@ -242,8 +242,7 @@ class WprRecorder(object):
         self._record_page_test,
         self._story_set,
         self._options,
-        results,
-        metadata=self._CreateBenchmarkMetadata())
+        results)
 
   def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:

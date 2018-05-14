@@ -146,8 +146,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       test = Test()
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
       self.assertEquals(len(story_set), len(GetSuccessfulPageRuns(results)))
       # Browser is started once per story run, except in ChromeOS where a single
       # instance is reused for all stories.
@@ -188,8 +187,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
 
       self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
@@ -220,8 +218,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
 
   @decorators.Disabled('chromeos')  # crbug.com/652385
   def testTrafficSettings(self):
@@ -262,8 +259,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
       failure_messages = []
       for r in results.all_page_runs:
         if r.failure_str:
@@ -313,8 +309,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
 
   def testRunPageWithStartupUrl(self):
     num_times_browser_closed = [0]
@@ -353,8 +348,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       test = Measurement()
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
       self.assertEquals('about:blank', options.browser_options.startup_url)
       # _StopBrowser should be called 2 times:
       # 1. browser restarts after page 1 run
@@ -391,8 +385,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(
-          test, story_set, options, results, metadata=EmptyMetadataForTest())
+      story_runner.Run(test, story_set, options, results)
       assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
@@ -433,8 +426,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(
-        test, story_set, options, results, metadata=EmptyMetadataForTest())
+    story_runner.Run(test, story_set, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.skipped_values))
@@ -457,8 +449,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results,
-                     max_failures=max_failures,
-                     metadata=EmptyMetadataForTest())
+                     max_failures=max_failures)
     return results
 
   def testSingleTabMeansCrashWillCauseFailure(self):
@@ -497,8 +488,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
 
-    story_runner.Run(
-        test, story_set, options, results, metadata=EmptyMetadataForTest())
+    story_runner.Run(test, story_set, options, results)
 
     self.longMessage = True
     self.assertIn('Example Domain', body[0],
@@ -541,8 +531,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       story_runner.Run(DummyTest(), story_set, options, results,
-                       max_failures=2,
-                       metadata=EmptyMetadataForTest())
+                       max_failures=2)
       self.assertTrue(results.had_failures)
       if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
         artifacts = results._artifact_results.GetTestArtifacts(
@@ -582,8 +571,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
     story_runner.Run(DummyTest(), story_set, self.options, results,
-                     max_failures=2,
-                     metadata=EmptyMetadataForTest())
+                     max_failures=2)
     self.assertTrue(results.had_failures)
 
   def testScreenShotTakenForFailedPageOnSupportedPlatform(self):
@@ -618,8 +606,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
       # directory is still in use.
       with results:
         story_runner.Run(DummyTest(), story_set, self.options, results,
-                         max_failures=2,
-                         metadata=EmptyMetadataForTest())
+                         max_failures=2)
         self.assertTrue(results.had_failures)
         artifacts = results._artifact_results.GetTestArtifacts(
             failing_page.name)

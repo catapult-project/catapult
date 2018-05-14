@@ -67,8 +67,7 @@ class PageTestTestCase(unittest.TestCase):
     options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(
-        measurement, ps, options, results, metadata=EmptyMetadataForTest())
+    story_runner.Run(measurement, ps, options, results)
     return results
 
   def TestTracingCleanedUp(self, measurement_class, options=None):

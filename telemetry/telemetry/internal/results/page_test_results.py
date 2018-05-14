@@ -205,7 +205,7 @@ class PageTestResults(object):
                progress_reporter=None, trace_tag='', output_dir=None,
                should_add_value=lambda v, is_first: True,
                benchmark_enabled=True, upload_bucket=None,
-               artifact_results=None):
+               artifact_results=None, benchmark_metadata=None):
     """
     Args:
       output_formatters: A list of output formatters. The output
@@ -223,6 +223,8 @@ class PageTestResults(object):
           to the test results and False otherwise.
       artifact_results: An artifact results object. This is used to contain
           any artifacts from tests. Stored so that clients can call AddArtifact.
+      benchmark_metadata: A benchmark.BenchmarkMetadata object. This is used in
+          the chart JSON output formatter.
     """
     # TODO(chrishenry): Figure out if trace_tag is still necessary.
 
@@ -252,6 +254,7 @@ class PageTestResults(object):
     self._benchmark_enabled = benchmark_enabled
 
     self._artifact_results = artifact_results
+    self._benchmark_metadata = benchmark_metadata
 
   @property
   def telemetry_info(self):
@@ -260,12 +263,12 @@ class PageTestResults(object):
   def AsHistogramDicts(self):
     return self._histograms.AsDicts()
 
-  def PopulateHistogramSet(self, benchmark_metadata):
+  def PopulateHistogramSet(self):
     if len(self._histograms):
       return
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
-        benchmark_metadata, self)
+        self._benchmark_metadata, self)
     info = self.telemetry_info
     chart_json['label'] = info.label
     chart_json['benchmarkStartMs'] = info.benchmark_start_epoch * 1000.0

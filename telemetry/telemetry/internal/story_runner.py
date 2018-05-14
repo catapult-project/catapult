@@ -160,7 +160,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
 
 
 def Run(test, story_set, finder_options, results, max_failures=None,
-        expectations=None, metadata=None, max_num_values=sys.maxint):
+        expectations=None, max_num_values=sys.maxint):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -262,7 +262,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           logging.error('Too many failures. Aborting.')
           return
   finally:
-    results.PopulateHistogramSet(metadata)
+    results.PopulateHistogramSet()
 
     for name, diag in device_info_diags.iteritems():
       results.AddSharedDiagnostic(name, diag)
@@ -359,8 +359,7 @@ def RunBenchmark(benchmark, finder_options):
       benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
-          expectations=expectations, metadata=benchmark.GetMetadata(),
-          max_num_values=benchmark.MAX_NUM_VALUES)
+          expectations=expectations, max_num_values=benchmark.MAX_NUM_VALUES)
       return_code = 1 if results.had_failures else 0
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.

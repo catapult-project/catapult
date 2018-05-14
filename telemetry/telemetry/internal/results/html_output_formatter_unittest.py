@@ -43,7 +43,8 @@ class HtmlOutputFormatterTest(unittest.TestCase):
   def testBasic(self):
     formatter = html_output_formatter.HtmlOutputFormatter(
         self._output, self._benchmark_metadata, False)
-    results = page_test_results.PageTestResults()
+    results = page_test_results.PageTestResults(
+        benchmark_metadata=self._benchmark_metadata)
     results.telemetry_info.benchmark_start_epoch = 1501773200
 
     results.WillRunPage(self._story_set[0])
@@ -51,7 +52,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
-    results.PopulateHistogramSet(self._benchmark_metadata)
+    results.PopulateHistogramSet()
 
     formatter.Format(results)
     html = self._output.getvalue()

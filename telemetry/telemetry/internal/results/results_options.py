@@ -203,7 +203,8 @@ def CreateResults(benchmark_metadata, options,
       should_add_value=should_add_value,
       benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
-      artifact_results=artifacts)
+      artifact_results=artifacts,
+      benchmark_metadata=benchmark_metadata)
 
   results.telemetry_info.benchmark_name = benchmark_metadata.name
   results.telemetry_info.benchmark_descriptions = benchmark_metadata.description
