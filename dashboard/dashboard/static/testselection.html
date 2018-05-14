@@ -23,14 +23,6 @@ const testselection = (function() {
   };
 
   /**
-   * @param {string} testPath Test path.
-   * @return {string} Test without master/bot.
-   */
-  const testFromTestPath_ = function(testPath) {
-    return testPath.split('/').slice(2).join('/');
-  };
-
-  /**
    * @param {string} test Test path, not including master/bot.
    * @return {boolean} True if the test name only has two parts.
    */
@@ -55,134 +47,8 @@ const testselection = (function() {
     return false;
   };
 
-  /**
-   * A TestSelection object represents both a set of tests, as well as
-   * information about which tests are "important", "ref", and "core",
-   * as well as (optionally) the revision range to plot.
-   * @constructor
-   */
-  const TestSelection = function(testSuites) {
-    this.testSuites = testSuites;
-
-    /**
-     * A mapping of test paths to lists of selected series.
-     * @type {Object.<string,Array>}
-     * @private
-     */
-    this.testPathDict_ = {};
-  };
-
-  /**
-   * Adds a test path to the selection.
-   * If the exact same test has already been added, do nothing.
-   * @param {string} testPath Test path.
-   * @param {Array.<string>} selectedTraces selected trace name.
-   */
-  TestSelection.prototype.addTestPath = function(
-      testPath, selectedTraces) {
-    if (!(testPath in this.testPathDict_)) {
-      this.testPathDict_[testPath] = [];
-    }
-    if (selectedTraces) {
-      for (let i = 0; i < selectedTraces.length; i++) {
-        if (this.testPathDict_[testPath].indexOf(selectedTraces[i]) == -1) {
-          this.testPathDict_[testPath].push(selectedTraces[i]);
-        }
-      }
-    }
-  };
-
-  /**
-   * Checks whether the selection could be graphed.
-   * A selection must have at least one test and one bot to be graphed.
-   */
-  TestSelection.prototype.isValid = function() {
-    return Boolean(this.getTests().length);
-  };
-
-  /**
-   * @return {Array.<string>} Test paths of all tests that have been added to
-   *     this selection; first the core tests, then the non-core tests.
-   *     tests, then others and their corresponding ref tests.
-   */
-  TestSelection.prototype.getTests = function() {
-    const core = this.getCoreTests_();
-    const nonCore = this.complementaryTests_(core);
-    const coreSorted = Object.keys(core).sort();
-    const othersSorted = Object.keys(nonCore).sort();
-    return coreSorted.concat(othersSorted);
-  };
-
-  /**
-   * Returns a list of two-item Arrays, each of which contains a test path and
-   *     Array of selected series under that test path.
-   */
-  TestSelection.prototype.getTestPathAndSelectedSeries = function() {
-    const testPathAndSelected = [];
-    for (const testPath in this.testPathDict_) {
-      testPathAndSelected.push([testPath, this.testPathDict_[testPath]]);
-    }
-    return testPathAndSelected;
-  };
-
-  /**
-   * @param {Object.<string,boolean>} testSet A set of test paths.
-   * @return {Object.<string,boolean>} An Object mapping all tests that aren't
-   *     in the given set of tests to true.
-   */
-  TestSelection.prototype.complementaryTests_ = function(testSet) {
-    const complement = {};
-    for (const testPath in this.testPathDict_) {
-      const test = testFromTestPath_(testPath);
-      if (!testSet[test]) {
-        complement[test] = true;
-      }
-    }
-    return complement;
-  };
-
-  /**
-   * Gets a dict of core test paths.
-   * @return {Object.<string,boolean>} Dict of core test to important boolean.
-   */
-  TestSelection.prototype.getCoreTests_ = function() {
-    const core = {};
-    for (const testPath in this.testPathDict_) {
-      const test = testFromTestPath_(testPath);
-      if (isImportant(test, this.testSuites)) {
-        core[test] = true;
-        const ref = this.getCorrespondingRef_(testPath);
-        if (ref) {
-          core[ref] = true;
-        }
-      }
-    }
-    return core;
-  };
-
-  /**
-   * Gets the name of the ref test in the selection if there is one.
-   * @param {string} testPath A test path string.
-   * @return {string} The ref trace, or the empty string if there is none.
-   */
-  TestSelection.prototype.getCorrespondingRef_ = function(
-      testPath) {
-    const testParts = testPath.split('/');
-    const lastPart = testParts[testParts.length - 1];
-    const traces = this.testPathDict_[testPath];
-    const test = testFromTestPath_(testPath);
-    if (lastPart + '_ref' in traces) {
-      return test + '_ref';
-    }
-    if ('ref' in traces) {
-      return test + '/ref';
-    }
-    return '';
-  };
-
   return {
-    isImportant,
-    TestSelection
+    isImportant
   };
 })();
 
