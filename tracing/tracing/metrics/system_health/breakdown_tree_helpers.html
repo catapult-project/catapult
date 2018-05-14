@@ -168,32 +168,13 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function addIdleAndBlockByNetworkBreakdown_(breakdownTree, mainThreadEvents,
       networkEvents, rangeOfInterest) {
-    let idleRanges = [rangeOfInterest];
     const mainThreadEventRanges = tr.b.math.convertEventsToRanges(
         mainThreadEvents);
     const networkEventRanges = tr.b.math.convertEventsToRanges(
         networkEvents);
     const eventRanges = mainThreadEventRanges.concat(networkEventRanges);
-    eventRanges.sort((a, b) => a.min - b.min);
-    for (const eventRange of eventRanges) {
-      if (!eventRange || eventRange.isEmpty ||
-          eventRange.duration < 0) {
-        throw new Error('Range is invalid');
-      }
-      // Every eventRange does not intersect with any idleRanges prior to the
-      // last freeRange, because:
-      //
-      // freeRange[last-1].max <= eventRange[i-1].min <= eventRange[i].min
-      //             (due to subtraction)      (due to sorting)
-      //
-      // where 'i' is the current index of eventRange.
-      const newLastIdleRanges =
-          tr.b.math.Range.findDifference(
-              idleRanges[idleRanges.length - 1], eventRange);
-      idleRanges.pop();
-      idleRanges = idleRanges.concat(newLastIdleRanges);
-      if (idleRanges.length === 0) break;
-    }
+    const idleRanges =
+        tr.b.math.findEmptyRangesBetweenRanges(eventRanges, rangeOfInterest);
     const totalFreeDuration = tr.b.math.Statistics.sum(idleRanges,
         range => range.duration);
     breakdownTree.idle = {total: totalFreeDuration, events: {}};
