@@ -40,7 +40,11 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     # https://github.com/catapult-project/catapult/issues/3545).
     reserved_infos.CATAPULT_REVISIONS.name: 'r_catapult_git',
     reserved_infos.ANGLE_REVISIONS.name: 'r_angle_git',
-    reserved_infos.WEBRTC_REVISIONS.name: 'r_webrtc_git'
+    reserved_infos.WEBRTC_REVISIONS.name: 'r_webrtc_git',
+    reserved_infos.FUCHSIA_GARNET_REVISIONS.name: 'r_fuchsia_garnet_git',
+    reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name: 'r_fuchsia_peridot_git',
+    reserved_infos.FUCHSIA_TOPAZ_REVISIONS.name: 'r_fuchsia_topaz_git',
+    reserved_infos.FUCHSIA_ZIRCON_REVISIONS.name: 'r_fuchsia_zircon_git'
 }
 
 
