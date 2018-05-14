@@ -145,10 +145,6 @@ found in the LICENSE file.
           type: String,
           value: 'no new data',
         },
-        UNMONITORED_TAG: {
-          type: String,
-          value: 'unmonitored',
-        },
         hasChart: { notify: true },
         testSuites: {
           notify: true,
@@ -227,12 +223,6 @@ found in the LICENSE file.
       getSuiteItems() {
         const getSuiteItemsMark = tr.b.Timing.mark('test-picker', 'getSuiteItems');
         const suiteMenuItems = [];
-        const isUnmonitored = suite => {
-          // A suite is considered unmonitored if there are no monitored
-          // subtests.
-          const suiteInfo = this.testSuites[suite];
-          return !suiteInfo.mon || suiteInfo.mon.length == 0;
-        };
 
         for (const suite in this.testSuites) {
           const suiteItem = {
@@ -243,10 +233,6 @@ found in the LICENSE file.
           if (this.testSuites[suite].dep) {
             suiteItem.deprecated = true;
             tags.push(this.DEPRECATED_TAG);
-          }
-          if (isUnmonitored(suite)) {
-            suiteItem.unmonitored = true;
-            tags.push(this.UNMONITORED_TAG);
           }
           suiteItem.tag = tags.join(' ');
 
@@ -683,12 +669,6 @@ found in the LICENSE file.
           return -1;
         }
         if (!suiteB.deprecated && suiteA.deprecated) {
-          return 1;
-        }
-        if (!suiteA.unmonitored && suiteB.unmonitored) {
-          return -1;
-        }
-        if (!suiteB.unmonitored && suiteA.unmonitored) {
           return 1;
         }
         const nameALower = suiteA.name.toLowerCase();
