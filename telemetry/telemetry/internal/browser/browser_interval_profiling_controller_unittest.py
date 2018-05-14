@@ -7,7 +7,7 @@ import unittest
 
 from devil.android.sdk import version_codes
 
-from telemetry.internal.browser import browser_simpleperf_controller
+from telemetry.internal.browser import browser_interval_profiling_controller
 
 
 class FakeDevice(object):
@@ -35,9 +35,10 @@ class FakeBrowser(object):
     self._platform_backend = platform_backend
 
 
-class BrowserSimpleperfControllerTest(unittest.TestCase):
+class BrowserIntervalProfilingControllerTest(unittest.TestCase):
   def _RunTest(self, browser, periods, expected_call_count):
-    controller = browser_simpleperf_controller.BrowserSimpleperfController(
+    profiling_mod = browser_interval_profiling_controller
+    controller = profiling_mod.BrowserIntervalProfilingController(
         '', periods, 1)
     controller.DidStartBrowser(browser)
     with mock.patch.object(

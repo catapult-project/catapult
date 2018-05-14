@@ -11,7 +11,7 @@ from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
-from telemetry.internal.browser import browser_simpleperf_controller
+from telemetry.internal.browser import browser_interval_profiling_controller
 from telemetry.page import cache_temperature
 from telemetry.page import traffic_setting
 from telemetry import story as story_module
@@ -79,8 +79,9 @@ class SharedPageState(story_module.SharedState):
       wpr_mode = wpr_modes.WPR_REPLAY
     self._extra_wpr_args = browser_options.extra_wpr_args
 
-    self._simpleperf_controller = (
-        browser_simpleperf_controller.BrowserSimpleperfController(
+    profiling_mod = browser_interval_profiling_controller
+    self._interval_profiling_controller = (
+        profiling_mod.BrowserIntervalProfilingController(
             process_name=finder_options.interval_profiling_target,
             periods=finder_options.interval_profiling_periods,
             frequency=finder_options.interval_profiling_frequency))
@@ -91,8 +92,8 @@ class SharedPageState(story_module.SharedState):
     self.platform.Initialize()
 
   @property
-  def simpleperf_controller(self):
-    return self._simpleperf_controller
+  def interval_profiling_controller(self):
+    return self._interval_profiling_controller
 
   @property
   def possible_browser(self):
@@ -160,7 +161,7 @@ class SharedPageState(story_module.SharedState):
               '%s raised while closing tab connections; tab will be closed.',
               type(exc).__name__)
           self._current_tab.Close()
-      self._simpleperf_controller.GetResults(
+      self._interval_profiling_controller.GetResults(
           self._current_page.name, self._current_page.file_safe_name, results)
     finally:
       self._current_page = None
@@ -200,7 +201,7 @@ class SharedPageState(story_module.SharedState):
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
     self._browser = self._possible_browser.Create()
-    self._simpleperf_controller.DidStartBrowser(self.browser)
+    self._interval_profiling_controller.DidStartBrowser(self.browser)
     self._test.DidStartBrowser(self.browser)
 
     if self._first_browser:

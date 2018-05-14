@@ -10,7 +10,7 @@ from telemetry.util import statistics
 
 from devil.android.sdk import version_codes
 
-class BrowserSimpleperfController(object):
+class BrowserIntervalProfilingController(object):
   DEVICE_PROFILERS_DIR = '/data/local/tmp/profilers'
   DEVICE_OUT_FILE_PATTERN = '/data/local/tmp/%s-perf.data'
 

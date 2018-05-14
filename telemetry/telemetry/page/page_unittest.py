@@ -199,15 +199,15 @@ class TestPageRun(unittest.TestCase):
         mock.call.current_tab.CollectGarbage(),
         mock.call.page_test.WillNavigateToPage(
             p, mock_shared_state.current_tab),
-        mock.call.simpleperf_controller.SamplePeriod('navigation'),
-        mock.call.simpleperf_controller.SamplePeriod().__enter__(),
+        mock.call.interval_profiling_controller.SamplePeriod('navigation'),
+        mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
         mock.call.page_test.RunNavigateSteps(p, mock_shared_state.current_tab),
-        mock.call.simpleperf_controller.SamplePeriod().__exit__(
+        mock.call.interval_profiling_controller.SamplePeriod().__exit__(
             None, None, None),
         mock.call.page_test.DidNavigateToPage(p, mock_shared_state.current_tab),
-        mock.call.simpleperf_controller.SamplePeriod('interactions'),
-        mock.call.simpleperf_controller.SamplePeriod().__enter__(),
-        mock.call.simpleperf_controller.SamplePeriod().__exit__(
+        mock.call.interval_profiling_controller.SamplePeriod('interactions'),
+        mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
+        mock.call.interval_profiling_controller.SamplePeriod().__exit__(
             None, None, None)
     ]
     self.assertEquals(mock_shared_state.mock_calls, expected)
