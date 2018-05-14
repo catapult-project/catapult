@@ -51,9 +51,9 @@ class BrowserFinderOptions(optparse.Values):
     # TODO(crbug.com/798703): remove this
     self.no_performance_mode = False
 
-    self.simpleperf_target = ''
-    self.simpleperf_periods = []
-    self.simpleperf_frequency = 1000
+    self.interval_profiling_target = ''
+    self.interval_profiling_periods = []
+    self.interval_profiling_frequency = 1000
 
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
@@ -162,25 +162,26 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # CPU profiling on Android.
-    group = optparse.OptionGroup(parser, 'CPU profiling on Android')
+    group = optparse.OptionGroup(parser, (
+        'CPU profiling over intervals of interest, Android only'))
     group.add_option(
-        '--simpleperf-target', dest='simpleperf_target',
+        '--interval-profiling-target', dest='interval_profiling_target',
         default='renderer:main', metavar='PROCESS_NAME[:THREAD_NAME]',
-        help='Run the simpleperf profiler on this process/thread '
-        '(default=%default).')
+        help='Run the CPU profiler on this process/thread (default=%default).')
     group.add_option(
-        '--simpleperf-period', dest='simpleperf_periods', type='choice',
-        choices=('navigation', 'interactions'), action='append',
+        '--interval-profiling-period', dest='interval_profiling_periods',
+        type='choice', choices=('navigation', 'interactions'), action='append',
         default=[], metavar='PERIOD',
-        help='Run the simpleperf profiler during this test period. '
+        help='Run the CPU profiler during this test period. '
         'May be specified multiple times; available choices '
         'are ["navigation", "interactions"]. Profile data will be written to'
         'artifacts/*.perf.data files in the output directory. See '
-        'https://developer.android.com/ndk/guides/simpleperf for more info.')
+        'https://developer.android.com/ndk/guides/simpleperf for more info on '
+        'Android profiling via simpleperf.')
     group.add_option(
-        '--simpleperf-frequency', default=1000, metavar='FREQUENCY',
+        '--interval-profiling-frequency', default=1000, metavar='FREQUENCY',
         type=int,
-        help='Frequency of simpleperf samples, in samples per second '
+        help='Frequency of CPU profiling samples, in samples per second '
         '(default=%default).')
     parser.add_option_group(group)
 

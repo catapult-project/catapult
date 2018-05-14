@@ -81,9 +81,9 @@ class SharedPageState(story_module.SharedState):
 
     self._simpleperf_controller = (
         browser_simpleperf_controller.BrowserSimpleperfController(
-            process_name=finder_options.simpleperf_target,
-            periods=finder_options.simpleperf_periods,
-            frequency=finder_options.simpleperf_frequency))
+            process_name=finder_options.interval_profiling_target,
+            periods=finder_options.interval_profiling_periods,
+            frequency=finder_options.interval_profiling_frequency))
 
     self.platform.SetFullPerformanceModeEnabled(
         finder_options.full_performance_mode)
