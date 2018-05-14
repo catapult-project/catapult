@@ -10,6 +10,17 @@ from soundwave import tables
 from soundwave import worker_pool
 
 
+def _FetchBugsWorker(args):
+  api = dashboard_api.PerfDashboardCommunicator(args)
+  con = sqlite3.connect(args.database_file, timeout=10)
+
+  def Process(bug_id):
+    bugs = tables.bugs.DataFrameFromJson(api.GetBugData(bug_id))
+    pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', bugs)
+
+  worker_pool.Process = Process
+
+
 def FetchAlertsData(args):
   api = dashboard_api.PerfDashboardCommunicator(args)
   con = sqlite3.connect(args.database_file)
@@ -29,10 +40,13 @@ def FetchAlertsData(args):
       if known_bugs:
         print '(skipping %d bugs already in the database)' % len(known_bugs)
         bug_ids.difference_update(known_bugs)
-    bugs = tables.bugs.DataFrameFromJson(api.GetBugData(bug_ids))
-    pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', bugs)
   finally:
     con.close()
+
+  total_seconds = worker_pool.Run(
+      'Fetching data of %d bugs: ' % len(bug_ids),
+      _FetchBugsWorker, args, bug_ids)
+  print '[%.1f bugs per second]' % (len(bug_ids) / total_seconds)
 
 
 def _IterStaleTestPaths(con, test_paths):

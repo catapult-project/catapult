@@ -160,7 +160,9 @@ class PerfDashboardCommunicator(object):
     return self._MakeApiRequest(r)
 
   def GetBugData(self, bug_ids):
-    """Yields data on the given sequence of bug ids."""
+    """Yields data for a given bug id or sequence of bug ids."""
+    if not hasattr(bug_ids, '__iter__'):
+      bug_ids = [bug_ids]
     for bug_id in bug_ids:
       yield self._MakeApiRequest('bugs/%d' % bug_id)
 
