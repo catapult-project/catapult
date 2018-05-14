@@ -152,21 +152,6 @@ tr.b.unittest.testSuite(function() {
     checkDurationHistogram(histograms, 'memory_dump_cpu_overhead', 91);
   });
 
-  test('tracingMetric_traceImportDurationMetric', function() {
-    const model = new tr.Model();
-    // We can't customize the model the normal way using
-    // test_utils.newModel(customizeModelCallback) because that callback is run
-    // before the end of the import phase, so our import duration will be
-    // overwritten.
-    model.stats.traceImportDurationMs = 10;
-
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.tracingMetric(histograms, model);
-
-    assert.strictEqual(
-        histograms.getHistogramNamed('trace_import_duration').average, 10);
-  });
-
   test('tracingMetric_traceImportDurationMetricWithoutTrackDetailedModelStats',
       function() {
         const histograms = new tr.v.HistogramSet();

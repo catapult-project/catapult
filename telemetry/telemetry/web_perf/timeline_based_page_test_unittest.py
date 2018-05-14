@@ -142,7 +142,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     histogram_dicts = results.AsHistogramDicts()
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)
-    self.assertEquals(1, len(hs))
+    self.assertEquals(4, len(hs))
     hist = hs.GetFirstHistogram()
     benchmarks = hist.diagnostics.get(reserved_infos.BENCHMARKS.name)
     self.assertIsInstance(benchmarks, generic_set.GenericSet)

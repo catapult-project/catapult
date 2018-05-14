@@ -57,9 +57,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.metricMapFunction(
         result, m, {'metrics': ['sampleMetric']});
     assert.property(result.pairs, 'histograms');
-    assert.strictEqual(result.pairs.histograms.length, 1);
+    assert.strictEqual(result.pairs.histograms.length, 4);
     assert.property(result.pairs, 'scalars');
-    assert.strictEqual(result.pairs.scalars.length, 6);
+    assert.strictEqual(result.pairs.scalars.length, 19);
     assert.lengthOf(result.failures, 0);
   });
 
@@ -92,9 +92,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.metricMapFunction(
         result, m, {'metrics': ['sampleExceptionMetric']});
     assert.property(result.pairs, 'histograms');
-    assert.strictEqual(result.pairs.histograms.length, 1);
+    assert.strictEqual(result.pairs.histograms.length, 4);
     assert.property(result.pairs, 'scalars');
-    assert.strictEqual(result.pairs.scalars.length, 6);
+    assert.strictEqual(result.pairs.scalars.length, 19);
     assert.lengthOf(result.failures, 1);
   });
 
@@ -194,6 +194,21 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.metricMapFunction(
         result, m, {'metrics': ['sampleMetric']});
     assert.lengthOf(result.failures, 0);
+  });
+
+  test('metricMetrics', function() {
+    const model = new tr.Model();
+    // We can't customize the model the normal way using
+    // test_utils.newModel(customizeModelCallback) because that callback is run
+    // before the end of the import phase, so our import duration will be
+    // overwritten.
+    model.stats.traceImportDurationMs = 10;
+
+    const histograms = tr.metrics.runMetrics(
+        model, {'metrics': ['sampleMetric']});
+
+    assert.strictEqual(
+        histograms.getHistogramNamed('trace_import_duration').average, 10);
   });
 });
 </script>

@@ -33,11 +33,25 @@ tr.exportTo('tr.metrics', function() {
       throw new Error('Metric names should be specified.');
     }
 
+    const allMetricsStart = new Date();
+    const durationBreakdown = new tr.v.d.Breakdown();
+
     const categories = getTraceCategories(model);
 
     const histograms = new tr.v.HistogramSet();
 
+    histograms.createHistogram('trace_import_duration',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        model.stats.traceImportDurationMs, {
+          binBoundaries: tr.v.HistogramBinBoundaries.createExponential(
+              1e-3, 1e5, 30),
+          description:
+            'Duration that trace viewer required to import the trace',
+          summaryOptions: tr.v.Histogram.AVERAGE_ONLY_SUMMARY_OPTIONS,
+        });
+
     for (const metricName of metricNames) {
+      const metricStart = new Date();
       const metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
       if (metric === undefined) {
         throw new Error(`"${metricName}" is not a registered metric.`);
@@ -51,9 +65,35 @@ tr.exportTo('tr.metrics', function() {
             undefined, 'metricMapFunction', model.canonicalUrl, err.typeName,
             err.message, err.stack));
       }
+      const metricMs = new Date() - metricStart;
+      histograms.createHistogram(
+          metricName + '_duration',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+          [metricMs]);
+      durationBreakdown.set(metricName, metricMs);
     }
 
     validateDiagnosticNames(histograms);
+
+    const allMetricsMs = new Date() - allMetricsStart +
+      model.stats.traceImportDurationMs;
+    durationBreakdown.set('traceImport', model.stats.traceImportDurationMs);
+    durationBreakdown.set('other', allMetricsMs - tr.b.math.Statistics.sum(
+        durationBreakdown, ([metricName, metricMs]) => metricMs));
+    const breakdownNames = tr.v.d.RelatedNameMap.fromEntries(new Map(
+        metricNames.map(metricName => [metricName, metricName + '_duration'])));
+    breakdownNames.set('traceImport', 'trace_import_duration');
+    histograms.createHistogram(
+        'metrics_duration',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [
+          {
+            value: allMetricsMs,
+            diagnostics: {breakdown: durationBreakdown},
+          },
+        ], {
+          diagnostics: {breakdown: breakdownNames},
+        });
 
     return histograms;
   }

@@ -117,15 +117,6 @@ tr.exportTo('tr.metrics', function() {
   // second').
   // https://github.com/catapult-project/catapult/issues/3233
   function tracingMetric(histograms, model) {
-    histograms.createHistogram('trace_import_duration',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        model.stats.traceImportDurationMs, {
-          binBoundaries: TIME_BOUNDARIES,
-          description:
-            'Duration that trace viewer required to import the trace',
-          summaryOptions: SUMMARY_OPTIONS,
-        });
-
     if (!model.stats.hasEventSizesinBytes) return;
 
     const eventStats = model.stats.allTraceEventStatsInTimeIntervals;
