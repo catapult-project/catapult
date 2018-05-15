@@ -1,4 +1,4 @@
-# Copyright 2015 The Chromium Authors. All rights reserved.
+# Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -10,7 +10,7 @@ import webtest
 
 from google.appengine.ext import ndb
 
-from dashboard import auto_triage
+from dashboard import mark_recovered_alerts
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -22,12 +22,13 @@ from dashboard.services import issue_tracker_service
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
-class AutoTriageTest(testing_common.TestCase):
+class MarkRecoveredAlertsTest(testing_common.TestCase):
 
   def setUp(self):
-    super(AutoTriageTest, self).setUp()
+    super(MarkRecoveredAlertsTest, self).setUp()
     app = webapp2.WSGIApplication(
-        [('/auto_triage', auto_triage.AutoTriageHandler)])
+        [('/mark_recovered_alerts',
+          mark_recovered_alerts.MarkRecoveredAlertsHandler)])
     self.testapp = webtest.TestApp(app)
 
   def _AddTestData(self, series, sheriff_key,
@@ -81,7 +82,9 @@ class AutoTriageTest(testing_common.TestCase):
     test_key = self._AddTestData(values, sheriff_key)
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
 
   def testPost_NotRecovered_NotMarkedAsRecovered(self):
@@ -94,7 +97,9 @@ class AutoTriageTest(testing_common.TestCase):
     test_key = self._AddTestData(values, sheriff_key)
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_ChangeTooLarge_NotMarkedAsRecovered(self):
@@ -107,7 +112,9 @@ class AutoTriageTest(testing_common.TestCase):
     test_key = self._AddTestData(values, sheriff_key)
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_ChangeWrongDirection_NotMarkedAsRecovered(self):
@@ -120,7 +127,9 @@ class AutoTriageTest(testing_common.TestCase):
     test_key = self._AddTestData(values, sheriff_key)
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_AlertInvalid_NotMarkedAsRecovered(self):
@@ -134,12 +143,19 @@ class AutoTriageTest(testing_common.TestCase):
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55,
         bug_id=-1)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
-  def testPost_AllAnomaliesRecovered_AddsComment(self, add_bug_comment_mock):
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService,
+      'List',
+      return_value={'items': [{'id': 1234}]})
+  def testPost_AllAnomaliesRecovered_AddsComment(
+      self, _, add_bug_comment_mock):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
@@ -150,20 +166,24 @@ class AutoTriageTest(testing_common.TestCase):
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=11, median_before=50, median_after=55,
         bug_id=1234)
-    self.testapp.post('/auto_triage')
-    self.ExecuteTaskQueueTasks('/auto_triage', auto_triage._TASK_QUEUE_NAME)
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
     add_bug_comment_mock.assert_called_once_with(mock.ANY, mock.ANY)
 
-  @mock.patch.object(auto_triage.TriageBugs, '_CommentOnRecoveredBug')
-  def testPost_BugHasNoAlerts_NoCommentPosted(self, close_recovered_bug_mock):
-    bug_id = 1234
-    bug_data.Bug(id=bug_id).put()
-    self.testapp.post('/auto_triage')
-    self.ExecuteTaskQueueTasks('/auto_triage', auto_triage._TASK_QUEUE_NAME)
-    bug = ndb.Key('Bug', bug_id).get()
-    self.assertEqual(bug_data.BUG_STATUS_CLOSED, bug.status)
-    self.assertFalse(close_recovered_bug_mock.called)
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService,
+      'List',
+      return_value={'items': [{'id': 1234}]})
+  def testPost_BugHasNoAlerts_NoCommentPosted(
+      self, _, add_bug_comment_mock):
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
+    self.assertFalse(add_bug_comment_mock.called)
 
   def testPost_RealWorldExample_NoClearRecovery(self):
     # This test is based on a real-world case on a relatively noisy graph where
@@ -190,7 +210,9 @@ class AutoTriageTest(testing_common.TestCase):
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=362262,
         median_before=1579.2, median_after=1680.7)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_RealisticExample_Recovered(self):
@@ -214,7 +236,9 @@ class AutoTriageTest(testing_common.TestCase):
     anomaly_key = self._AddAnomalyForTest(
         sheriff_key, test_key, revision=362399,
         median_before=78275468.8, median_after=79630313.6)
-    self.testapp.post('/auto_triage')
+    self.testapp.post('/mark_recovered_alerts')
+    self.ExecuteTaskQueueTasks(
+        '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
 
 

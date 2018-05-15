@@ -12,7 +12,6 @@ from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import alerts
 from dashboard import associate_alerts
-from dashboard import auto_triage
 from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import change_internal_only
@@ -39,6 +38,7 @@ from dashboard import list_monitored_tests
 from dashboard import list_tests
 from dashboard import load_from_prod
 from dashboard import main
+from dashboard import mark_recovered_alerts
 from dashboard import memory_report
 from dashboard import migrate_test_names
 from dashboard import navbar
@@ -69,7 +69,6 @@ _URL_MAPPING = [
     (r'/api/list_timeseries/(.*)', list_timeseries.ListTimeseriesHandler),
     (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
-    ('/auto_triage', auto_triage.AutoTriageHandler),
     ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
@@ -96,6 +95,8 @@ _URL_MAPPING = [
     ('/list_tests', list_tests.ListTestsHandler),
     ('/load_from_prod', load_from_prod.LoadFromProdHandler),
     ('/', main.MainHandler),
+    ('/mark_recovered_alerts',
+     mark_recovered_alerts.MarkRecoveredAlertsHandler),
     ('/memory_report', memory_report.MemoryReportHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/deprecate_tests', deprecate_tests.DeprecateTestsHandler),

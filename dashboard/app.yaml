@@ -107,7 +107,7 @@ handlers:
   login: admin
   secure: always
 
-- url: /auto_triage
+- url: /mark_recovered_alerts
   script: dashboard.dispatcher.APP
   login: admin
   secure: always

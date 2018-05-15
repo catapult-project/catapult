@@ -3,8 +3,8 @@
 
 cron:
 
-- description: Mark alerts as recovered, and associate alerts with groups.
-  url: /auto_triage
+- description: Mark alerts as recovered.
+  url: /mark_recovered_alerts
   schedule: every 6 hours
 
 - description: Send e-mails with daily anomaly summaries.
