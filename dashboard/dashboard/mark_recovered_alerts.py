@@ -133,7 +133,8 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
             'https://chromeperf.appspot.com/group_report?bug_id=%s' % bug_id)
         issue_tracker = issue_tracker_service.IssueTrackerService(
             utils.ServiceAccountHttp())
-        issue_tracker.AddBugComment(bug_id, comment)
+        issue_tracker.AddBugComment(
+            bug_id, comment, labels='Performance-Regression-Recovered')
 
 
   def _IsAlertRecovered(self, alert_entity):
