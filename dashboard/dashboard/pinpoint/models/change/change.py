@@ -23,8 +23,8 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
       commits: An iterable of Commits representing this Change's dependencies.
       patch: An optional Patch to apply to the Change.
     """
-    if not commits:
-      raise TypeError('At least one commit required.')
+    if not (commits or patch):
+      raise TypeError('At least one commit or patch required.')
     return super(Change, cls).__new__(cls, tuple(commits), patch)
 
   def __str__(self):

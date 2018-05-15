@@ -308,6 +308,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
         'alerts': json.dumps(['123'])
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -336,6 +337,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'bug_id': 1,
         'story_filter': 'foo',
+        'pin': '',
         'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -361,6 +363,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'bug_id': 1,
         'story_filter': 'foo',
+        'pin': '',
         'bisect_mode': 'performance',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -387,6 +390,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -411,6 +415,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -428,6 +433,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     graph_data.TestMetadata(
         id=params['test_path'], unescaped_story_name='http://bar.html').put()
@@ -447,6 +453,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -465,6 +472,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'foo',
         'story_filter': '',
+        'pin': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     with self.assertRaises(pinpoint_request.InvalidParamsError):
@@ -480,6 +488,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': 1,
         'bisect_mode': 'functional',
         'story_filter': '',
+        'pin': '',
     }
     graph_data.TestMetadata(id=params['test_path'],).put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -502,6 +511,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': '',
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -520,6 +530,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bug_id': '',
         'bisect_mode': 'performance',
         'story_filter': '',
+        'pin': '',
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -539,9 +550,26 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
           'end_commit': 'efgh5678',
           'bisect_mode': 'performance',
           'story_filter': '',
+          'pin': '',
           'bug_id': -1,
       }
       results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
       self.assertEqual(s, results['statistic'])
       self.assertEqual('foo', results['chart'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_WithPin(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'bug_id': '',
+        'bisect_mode': 'performance',
+        'story_filter': '',
+        'pin': 'https://path/to/patch',
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('https://path/to/patch', results['pin'])

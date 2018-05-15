@@ -52,10 +52,11 @@ found in the LICENSE file.
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
         <paper-input id="test-path" label="Test Path" value="{{test_path::input}}" disabled></paper-input>
-        <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
-        <paper-input id="start_commit" label="start_commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
-        <paper-input id="end_commit" label="end_commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
-        <paper-input id="story-filter" label="Story Filter" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
+        <paper-input id="bug-id" label="Bug ID (optional)" value="{{bug_id::input}}"></paper-input>
+        <paper-input id="start_commit" label="Start Commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="end_commit" label="End Commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
+        <paper-input id="story-filter" label="Story Filter (optional)" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
+        <paper-input id="pin" label="Patch to Apply to the Entire Job (optional)" value="{{pin::input}}"></paper-input>
         <paper-radio-group id="bisect_mode" selected="performance">
           <paper-radio-button id="performance" name="performance">Performance</paper-radio-button>
           <paper-radio-button id="functional" name="functional">Functional</paper-radio-button>
@@ -102,6 +103,10 @@ found in the LICENSE file.
           type: String,
           value: '',
         },
+        pin: {
+          type: String,
+          value: '',
+        },
         loading: {
           type: Boolean,
           value: false,
@@ -134,6 +139,7 @@ found in the LICENSE file.
           end_commit: this.end_commit,
           bug_id: this.bug_id,
           story_filter: this.story_filter,
+          pin: this.pin,
           bisect_mode: this.$.bisect_mode.selected,
           alerts: JSON.stringify(alerts),
         };
@@ -168,6 +174,7 @@ found in the LICENSE file.
         this.create_disabled = false;
         this.loading = true;
         this.story_filter = '';
+        this.pin = '';
         this.error = '';
         this.open();
 

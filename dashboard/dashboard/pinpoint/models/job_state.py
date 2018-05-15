@@ -73,10 +73,12 @@ class JobState(object):
       self._pin = None
 
     if self._pin:
-      change = change.Update(self._pin)
+      change_with_pin = change.Update(self._pin)
+    else:
+      change_with_pin = change
 
     for _ in xrange(_REPEAT_COUNT_INCREASE):
-      attempt = attempt_module.Attempt(self._quests, change)
+      attempt = attempt_module.Attempt(self._quests, change_with_pin)
       self._attempts[change].append(attempt)
 
   def AddChange(self, change, index=None):

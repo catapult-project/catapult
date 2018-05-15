@@ -235,6 +235,7 @@ def PinpointParamsFromBisectParams(params):
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
   story_filter = params['story_filter']
+  pin = params.get('pin')
 
   # If functional bisects are speciied, Pinpoint expects these parameters to be
   # empty.
@@ -279,6 +280,7 @@ def PinpointParamsFromBisectParams(params):
       'statistic': statistic_name,
       'tir_label': tir_label,
       'story': story_filter,
+      'pin': pin,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],

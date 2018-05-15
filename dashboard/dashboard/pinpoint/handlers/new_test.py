@@ -156,17 +156,16 @@ class NewTest(_NewTest):
   @mock.patch('dashboard.pinpoint.models.change.patch.FromDict')
   def testWithPatch(self, mock_patch):
     mock_patch.return_value = None
-    params = {
-        'patch': 'https://lalala/c/foo/bar/+/123'
-    }
-    params.update(_BASE_REQUEST)
-    response = self.testapp.post('/api/new', params, status=200)
+    request = dict(_BASE_REQUEST)
+    request['patch'] = 'https://lalala/c/foo/bar/+/123'
+
+    response = self.testapp.post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
-    mock_patch.assert_called_with(params['patch'])
+    mock_patch.assert_called_with(request['patch'])
 
   def testMissingTarget(self):
     request = dict(_BASE_REQUEST)
@@ -198,6 +197,20 @@ class NewTest(_NewTest):
         'https://testbed.example.com/job/%s' % result['jobId'])
     job = job_module.JobFromId(result['jobId'])
     self.assertIsNone(job.bug_id)
+
+  @mock.patch('dashboard.pinpoint.models.change.patch.FromDict')
+  def testPin(self, mock_patch):
+    mock_patch.return_value = 'patch'
+    request = dict(_BASE_REQUEST)
+    request['pin'] = 'https://lalala/c/foo/bar/+/123'
+
+    response = self.testapp.post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    self.assertEqual(
+        result['jobUrl'],
+        'https://testbed.example.com/job/%s' % result['jobId'])
+    mock_patch.assert_called_with(request['pin'])
 
   def testValidTags(self):
     request = dict(_BASE_REQUEST)

@@ -46,6 +46,7 @@ def _CreateJob(request):
   auto_explore = _ParseBool(arguments.get('auto_explore'))
   bug_id = _ValidateBugId(arguments.get('bug_id'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
+  pin = _ValidatePin(arguments.get('pin'))
   tags = _ValidateTags(arguments.get('tags'))
   user = _ValidateUser(arguments.get('user'))
 
@@ -57,6 +58,7 @@ def _CreateJob(request):
       auto_explore=auto_explore,
       bug_id=bug_id,
       comparison_mode=comparison_mode,
+      pin=pin,
       tags=tags,
       user=user)
 
@@ -94,6 +96,7 @@ def _ValidateBugId(bug_id):
 def _ValidateChanges(arguments):
   changes = arguments.get('changes')
   if changes:
+    # FromDict() performs input validation.
     return [change.Change.FromDict(c) for c in json.loads(changes)]
 
   change_1 = {
@@ -113,6 +116,7 @@ def _ValidateChanges(arguments):
   if arguments.get('patch'):
     change_2['patch'] = arguments.get('patch')
 
+  # FromDict() performs input validation.
   return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
 
 
@@ -151,12 +155,19 @@ def _GenerateQuests(arguments):
 
   quests = []
   for quest_class in quest_classes:
+    # FromDict() performs input validation.
     quest = quest_class.FromDict(arguments)
     if not quest:
       break
     quests.append(quest)
 
   return quests
+
+
+def _ValidatePin(pin):
+  if not pin:
+    return None
+  return change.Change.FromDict({'commits': [], 'patch': pin})
 
 
 def _ValidateTags(tags):
