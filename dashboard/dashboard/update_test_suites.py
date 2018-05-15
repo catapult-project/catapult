@@ -9,7 +9,6 @@ import logging
 
 from google.appengine.api import datastore_errors
 
-from dashboard import list_tests
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import stored_object
@@ -81,15 +80,14 @@ def _CreateTestSuiteDict():
       {
           'my_test_suite': {
               'mas': {'ChromiumPerf': {'mac': False, 'linux': False}},
-              'mon': ['average_commit_time/www.yahoo.com'],
               'dep': True,
               'des': 'A description.'
           },
           ...
       }
 
-    Where 'mas', 'mon', 'dep', and 'des' are abbreviations for 'masters',
-    'monitored', 'deprecated', and 'description', respectively.
+    Where 'mas', 'dep', and 'des' are abbreviations for 'masters',
+    'deprecated', and 'description', respectively.
   """
   suites = _FetchSuites()
   result = collections.defaultdict(lambda: {'suites': []})
@@ -113,10 +111,6 @@ def _CreateTestSuiteDict():
 
     if all(s.deprecated for s in current_suites):
       v['dep'] = True
-
-    monitored = _FetchMonitoredForSuite(k)
-    if monitored:
-      v['mon'] = monitored
 
     for s in current_suites:
       master_name = s.master_name
@@ -149,21 +143,6 @@ def _FetchSuites():
   except datastore_errors.Timeout:
     logging.error('Timeout after fetching %d test suites.', len(suites))
   return suites
-
-
-def _FetchMonitoredForSuite(suite):
-  """Fetches the set of all monitored tests for a suite across all masters/bots.
-  """
-  suite_pattern = '*/*/%s' % suite
-  suites = list_tests.GetTestsMatchingPattern(
-      suite_pattern, list_entities=True, use_cache=False)
-
-  monitored = []
-  for s in suites:
-    monitored.extend(s.monitored)
-  monitored = sorted(list(set(_GetTestSubPath(p) for p in monitored)))
-
-  return monitored
 
 
 def _GetTestSubPath(key):

@@ -294,19 +294,6 @@ indexes:
   - name: deprecated
   - name: description
 
-# Used in update_test_suites to query keys of test suites (parent_test == None)
-# with monitored projection. Two separate lists of test suites are kept, one for
-# external and one for internal.
-- kind: TestMetadata
-  properties:
-  - name: parent_test
-  - name: monitored
-- kind: TestMetadata
-  properties:
-  - name: internal_only
-  - name: parent_test
-  - name: monitored
-
 # Used in list_tests.py to query Test by test path pattern.
 - kind: TestMetadata
   properties:

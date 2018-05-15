@@ -245,16 +245,10 @@ class ListTestSuitesTest(testing_common.TestCase):
   def testFetchSuites_BasicMonitored(self):
     self._AddSampleData()
 
-    test = utils.TestKey('Chromium/win7/dromaeo').get()
-    test.monitored = [utils.TestKey(
-        'Chromium/win7/dromaeo/dom')]
-    test.put()
-
     self.assertEqual(
         {
             'dromaeo': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
-                'mon': ['dom']
             },
             'scrolling': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
@@ -277,23 +271,6 @@ class ListTestSuitesTest(testing_common.TestCase):
         }
     )
 
-    test = utils.TestKey('Chromium/win7/dromaeo').get()
-    test.monitored = [utils.TestKey(
-        'Chromium/win7/dromaeo/dom')]
-    test.put()
-
-    test = utils.TestKey('Chromium/mac/dromaeo').get()
-    test.monitored = [
-        utils.TestKey('Chromium/win7/dromaeo/dom'),
-        utils.TestKey('Chromium/win7/dromaeo/jslib')]
-    test.put()
-
-    test = utils.TestKey('ChromiumFYI/linux/dromaeo').get()
-    test.monitored = [
-        utils.TestKey('ChromiumFYI/linux/dromaeo/dom'),
-        utils.TestKey('ChromiumFYI/linux/dromaeo/foo')]
-    test.put()
-
     self.assertEqual(
         {
             'dromaeo': {
@@ -301,7 +278,6 @@ class ListTestSuitesTest(testing_common.TestCase):
                     'Chromium': {'mac': False, 'win7': False},
                     'ChromiumFYI': {'linux': False}
                 },
-                'mon': ['dom', 'foo', 'jslib']
             },
             'scrolling': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},

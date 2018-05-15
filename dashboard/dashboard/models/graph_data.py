@@ -158,10 +158,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # a long time; these tests should usually not be listed.
   deprecated = ndb.BooleanProperty(default=False, indexed=True)
 
-  # For top-level test entities, this is a list of sub-tests that are checked
-  # for alerts (i.e. they have a sheriff). For other tests, this is empty.
-  monitored = ndb.KeyProperty(repeated=True, indexed=True)
-
   # Description of what the test measures.
   description = ndb.TextProperty(indexed=True)
 
@@ -266,8 +262,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     """This method is called before a TestMetadata is put into the datastore.
 
     Here, we check the key to make sure it is valid and check the sheriffs and
-    anomaly configs to make sure they are current. We also update the monitored
-    list of the test suite.
+    anomaly configs to make sure they are current.
     """
     # Check to make sure the key is valid.
     # TestMetadata should not be an ancestor, so key.pairs() should have length
@@ -285,18 +280,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
           self.sheriff = sheriff_entity.key
       if self.sheriff:
         break
-
-    # If this test is monitored, add it to the monitored list of its test suite.
-    # A test is be monitored iff it has a sheriff, and monitored tests are
-    # tracked in the monitored list of a test suite TestMetadata entity.
-    test_suite = ndb.Key('TestMetadata', '/'.join(path_parts[:3])).get()
-    if self.sheriff:
-      if test_suite and self.key not in test_suite.monitored:
-        test_suite.monitored.append(self.key)
-        test_suite.put()
-    elif test_suite and self.key in test_suite.monitored:
-      test_suite.monitored.remove(self.key)
-      test_suite.put()
 
     # Set the anomaly threshold config to the first one that has a test pattern
     # that matches this test, if there is one. Anomaly configs with a pattern

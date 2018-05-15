@@ -254,9 +254,6 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(tests[0].has_rows)
     self.assertEqual('ChromiumPerf/win7/dromaeo', tests[0].test_path)
     self.assertTrue(tests[0].internal_only)
-    self.assertEqual(1, len(tests[0].monitored))
-    self.assertEqual(
-        'ChromiumPerf/win7/dromaeo/dom', tests[0].monitored[0].string_id())
     self.assertIsNone(tests[0].units)
 
     self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[1].key.id())
@@ -631,13 +628,6 @@ class AddPointTest(testing_common.TestCase):
     no_sheriff_test = ndb.Key(
         'TestMetadata', 'ChromiumWebkit/win7/dromaeo/jslib').get()
     self.assertIsNone(no_sheriff_test.sheriff)
-
-    test_suite = ndb.Key(
-        'TestMetadata', 'ChromiumPerf/win7/scrolling_benchmark').get()
-    self.assertEqual(1, len(test_suite.monitored))
-    self.assertEqual(
-        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
-        test_suite.monitored[0].string_id())
 
   def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
     """Tests that AnomalyConfig keys are added to TestMetadata upon creation.
