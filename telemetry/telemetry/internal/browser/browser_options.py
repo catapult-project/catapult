@@ -349,6 +349,12 @@ class BrowserOptions(object):
     # profiling results.
     self.take_screenshot_for_failed_page = False
 
+    # A list of tuples where the first element is path to an existing file,
+    # and the second argument is a path (relative to the user-data-dir) to copy
+    # the file to. Uses recursive directory creation if directories do not
+    # already exist.
+    self.profile_files_to_copy = []
+
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
     # circular reference with _finder_options.

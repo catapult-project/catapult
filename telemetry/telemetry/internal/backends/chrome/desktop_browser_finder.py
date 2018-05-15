@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Finds desktop browsers that can be controlled by telemetry."""
 
+import errno
 import logging
 import os
 import shutil
@@ -85,6 +86,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._profile_directory = tempfile.mkdtemp()
     if source_profile:
       logging.info('Seeding profile directory from: %s', source_profile)
+      # copytree requires the directory to not exist, so just delete the empty
+      # directory and re-create it.
+      os.rmdir(self._profile_directory)
       shutil.copytree(source_profile, self._profile_directory)
 
       # When using an existing profile directory, we need to make sure to
@@ -94,6 +98,19 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
           desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
       if os.path.isfile(devtools_file_path):
         os.remove(devtools_file_path)
+
+    # Copy data into the profile if it hasn't already been added via
+    # |source_profile|.
+    for source, dest in self._browser_options.profile_files_to_copy:
+      full_dest_path = os.path.join(self._profile_directory, dest)
+      if os.path.exists(full_dest_path):
+        continue
+      try:
+        os.makedirs(os.path.dirname(full_dest_path))
+      except OSError, e:
+        if e.errno != errno.EEXIST:
+          raise
+      shutil.copy(source, full_dest_path)
 
   def _TearDownEnvironment(self):
     if self._profile_directory and os.path.exists(self._profile_directory):
