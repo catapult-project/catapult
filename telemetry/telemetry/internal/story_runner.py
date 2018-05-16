@@ -48,7 +48,7 @@ def AddCommandLineArgs(parser):
   group = optparse.OptionGroup(parser, 'Page set repeat options')
   group.add_option('--pageset-repeat', default=1, type='int',
                    help='Number of times to repeat the entire pageset.')
-  group.add_option('--smoke-test-mode', default=False,
+  group.add_option('--smoke-test-mode', action='store_true',
                    help='run this test in smoke test mode so do not repeat.')
   group.add_option('--max-failures', default=None, type='int',
                    help='Maximum number of test failures before aborting '
