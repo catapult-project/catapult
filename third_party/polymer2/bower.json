@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
-    "app-route": "PolymerElements/app-route"
+    "app-route": "PolymerElements/app-route",
+    "paper-input": "^2.0.0"
   }
 }
