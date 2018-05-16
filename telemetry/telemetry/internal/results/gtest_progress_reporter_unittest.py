@@ -106,7 +106,7 @@ class GTestProgressReporterTest(
                 '[  FAILED  ] bench/http://www.foo.com/ (0 ms)\n'
                 '[  PASSED  ] 0 tests.\n'
                 '[  FAILED  ] 1 test, listed below:\n'
-                '[  FAILED  ]  http://www.foo.com/\n\n'
+                '[  FAILED  ]  bench/http://www.foo.com/\n\n'
                 '1 FAILED TEST\n\n' % exception_trace)
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
@@ -128,7 +128,7 @@ class GTestProgressReporterTest(
                 "[  FAILED  ] bench/http://www.fus.com/@{'1': '2'} (0 ms)\n"
                 "[  PASSED  ] 0 tests.\n"
                 "[  FAILED  ] 1 test, listed below:\n"
-                "[  FAILED  ]  http://www.fus.com/@{'1': '2'}\n\n"
+                "[  FAILED  ]  bench/http://www.fus.com/@{'1': '2'}\n\n"
                 "1 FAILED TEST\n\n" % exception_trace)
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
@@ -203,9 +203,9 @@ class GTestProgressReporterTest(
                 "[  FAILED  ] bench/http://www.ro.com/@{'1': '2'} (5 ms)\n"
                 "[  PASSED  ] 3 tests.\n"
                 "[  FAILED  ] 3 tests, listed below:\n"
-                "[  FAILED  ]  http://www.bar.com/\n"
-                "[  FAILED  ]  http://www.baz.com/\n"
-                "[  FAILED  ]  http://www.ro.com/@{'1': '2'}\n\n"
+                "[  FAILED  ]  bench/http://www.bar.com/\n"
+                "[  FAILED  ]  bench/http://www.baz.com/\n"
+                "[  FAILED  ]  bench/http://www.ro.com/@{'1': '2'}\n\n"
                 "3 FAILED TESTS\n\n"
                 % (exception_trace, exception_trace, exception_trace))
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
@@ -255,6 +255,6 @@ class GTestProgressReporterTest(
                 '[  PASSED  ] 1 test.\n'
                 '\n'
                 'Skipped pages:\n'
-                'http://www.foo.com/\n'
-                '\n')
+                'bench/http://www.foo.com/\n'
+               )
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))

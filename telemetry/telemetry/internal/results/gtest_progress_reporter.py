@@ -87,7 +87,8 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
           (len(failed_runs), unit))
       for failed_run in failed_runs:
-        print >> self._output_stream, '[  FAILED  ]  %s%s' % (
+        print >> self._output_stream, '[  FAILED  ]  %s/%s%s' % (
+            page_test_results.telemetry_info.benchmark_name,
             failed_run.story.name,
             self._GenerateGroupingKeyString(failed_run.story))
       print >> self._output_stream
@@ -98,7 +99,9 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
     if self._output_skipped_tests_summary:
       if len(page_test_results.skipped_values) > 0:
-        print >> self._output_stream, 'Skipped pages:\n%s\n' % ('\n'.join(
-            v.page.name for v in page_test_results.skipped_values))
+        print >> self._output_stream, 'Skipped pages:'
+        for v in page_test_results.skipped_values:
+          print >> self._output_stream, '%s/%s' % (
+              page_test_results.telemetry_info.benchmark_name, v.page.name)
 
     self._output_stream.flush()
