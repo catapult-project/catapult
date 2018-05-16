@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import collections
 import os
 
@@ -71,6 +72,8 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
 
   def FindLocalApk(self, device, chrome_root):
     apk_name = self.GetApkName(device)
+    logging.info('Picked apk name %s for browser_type %s',
+                 apk_name, self.browser_type)
     if apk_name is None:
       return None
     else:
