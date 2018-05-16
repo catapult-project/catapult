@@ -21,6 +21,7 @@ Example usage:
     args.processes = 10  # Set number of processes to be used by the pool.
     worker_pool.Run('This might take a while: ', MyWorker, args, items)
 """
+import logging
 import multiprocessing
 import pandas  # pylint: disable=import-error
 import sys
@@ -70,3 +71,6 @@ def _Worker(item):
     Process(item)
   except KeyboardInterrupt:
     pass
+  except:
+    logging.exception('Worker failed with exception')
+    raise
