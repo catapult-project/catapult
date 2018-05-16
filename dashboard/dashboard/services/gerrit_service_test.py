@@ -15,6 +15,9 @@ class _SwarmingTest(unittest.TestCase):
     patcher = mock.patch('dashboard.services.request.RequestJson')
     self._request_json = patcher.start()
     self.addCleanup(patcher.stop)
+    patcher2 = mock.patch('dashboard.services.request.Request')
+    self._request = patcher2.start()
+    self.addCleanup(patcher2.stop)
 
     self._request_json.return_value = {'content': {}}
 
@@ -35,3 +38,16 @@ class _SwarmingTest(unittest.TestCase):
     response = gerrit_service.GetChange(server, 672011, fields=('FIELD_NAME',))
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce(server + '/changes/672011', o=('FIELD_NAME',))
+
+  def testPostChangeComment(self):
+    server = 'https://chromium-review.googlesource.com'
+    gerrit_service.PostChangeComment(server, 12334, 'hello!')
+    self._request.assert_called_once_with(
+        'https://chromium-review.googlesource.com/a/changes/12334'
+        '/revisions/current/review',
+        body='hello!',
+        scope=['https://www.googleapis.com/auth/gerritcodereview',
+               'https://www.googleapis.com/auth/userinfo.email'],
+        use_cache=False,
+        method='POST',
+        use_auth=True)

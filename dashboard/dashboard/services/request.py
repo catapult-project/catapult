@@ -35,7 +35,7 @@ def RequestJson(*args, **kwargs):
 
 
 def Request(url, method='GET', body=None,
-            use_cache=False, use_auth=True, **parameters):
+            use_cache=False, use_auth=True, scope=None, **parameters):
   """Fetch a URL while authenticated as the service account.
 
   Args:
@@ -76,13 +76,13 @@ def Request(url, method='GET', body=None,
       return content
 
   try:
-    content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
   except NotFoundError:
     raise
   except (httplib.HTTPException, socket.error,
           urlfetch_errors.InternalTransientError):
     # Retry once.
-    content = _RequestAndProcessHttpErrors(url, use_auth, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
 
   if use_cache:
     try:
@@ -94,10 +94,10 @@ def Request(url, method='GET', body=None,
   return content
 
 
-def _RequestAndProcessHttpErrors(url, use_auth, **kwargs):
+def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   if use_auth:
-    http = utils.ServiceAccountHttp(timeout=30)
+    http = utils.ServiceAccountHttp(timeout=30, scope=scope)
   else:
     http = httplib2.Http(timeout=30)
 

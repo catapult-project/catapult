@@ -408,10 +408,14 @@ def ServiceAccountHttp(*args, **kwargs):
     raise KeyError('Service account credentials not found.')
 
   client.logger.setLevel(logging.WARNING)
+  scope = EMAIL_SCOPE
+  if kwargs.get('scope'):
+    scope = kwargs['scope']
+    del kwargs['scope']
   credentials = client.SignedJwtAssertionCredentials(
       service_account_name=account_details['client_email'],
       private_key=account_details['private_key'],
-      scope=EMAIL_SCOPE)
+      scope=scope)
 
   http = httplib2.Http(*args, **kwargs)
   credentials.authorize(http)
