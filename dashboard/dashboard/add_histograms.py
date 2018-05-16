@@ -119,7 +119,6 @@ def ProcessHistogramSet(histogram_dicts):
   # https://github.com/catapult-project/catapult/issues/4242
   _PurgeHistogramBinData(histograms)
 
-  revision = ComputeRevision(histograms)
   master = _GetDiagnosticValue(
       reserved_infos.MASTERS.name, histograms.GetFirstHistogram())
   bot = _GetDiagnosticValue(
@@ -135,6 +134,8 @@ def ProcessHistogramSet(histogram_dicts):
   suite_key = utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
 
   logging.info('Suite: %s', suite_key.id())
+
+  revision = ComputeRevision(histograms)
 
   bot_whitelist = bot_whitelist_future.get_result()
   internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
