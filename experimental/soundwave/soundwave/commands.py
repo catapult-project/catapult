@@ -99,6 +99,6 @@ def FetchTimeseriesData(args):
     con.close()
 
   total_seconds = worker_pool.Run(
-      'Fetching data of %d timeseries: ' % num_found,
+      'Fetching data of %d timeseries: ' % len(test_paths),
       _FetchTimeseriesWorker, args, test_paths)
   print '[%.1f test paths per second]' % (len(test_paths) / total_seconds)
