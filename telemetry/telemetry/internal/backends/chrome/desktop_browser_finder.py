@@ -41,6 +41,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._is_content_shell = is_content_shell
     self._browser_directory = browser_directory
     self._profile_directory = None
+    self._extra_browser_args = set()
     self.is_local_build = is_local_build
 
   def __repr__(self):
@@ -60,6 +61,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     if os.path.exists(self._local_executable):
       return os.path.getmtime(self._local_executable)
     return -1
+
+  @property
+  def extra_browser_args(self):
+    return list(self._extra_browser_args)
+
+  def AddExtraBrowserArg(self, arg):
+    self._extra_browser_args.add(arg)
 
   def _InitPlatformIfNeeded(self):
     if self._platform:
@@ -196,6 +204,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
                          .GetChromeTraceConfigFile())
     if trace_config_file:
       startup_args.append('--trace-config-file=%s' % trace_config_file)
+
+    startup_args.extend(
+        [a for a in self.extra_browser_args if a not in startup_args])
 
     return startup_args
 

@@ -4,6 +4,9 @@
 
 import contextlib
 import os
+import shutil
+import tempfile
+import textwrap
 
 from telemetry.internal.util import binary_manager
 from telemetry.util import statistics
@@ -27,7 +30,10 @@ class BrowserIntervalProfilingController(object):
   @staticmethod
   def _CreatePlatformController(possible_browser):
     os_name = possible_browser._platform_backend.GetOSName()
-    if os_name == 'android' and (
+    if os_name == 'linux':
+      possible_browser.AddExtraBrowserArg('--no-sandbox')
+      return _LinuxController(possible_browser)
+    elif os_name == 'android' and (
         possible_browser._platform_backend.device.build_version_sdk >=
         version_codes.NOUGAT):
       return _AndroidController(possible_browser)
@@ -59,6 +65,37 @@ class _PlatformController(object):
 
   def GetResults(self, page_name, file_safe_name, results):
     raise NotImplementedError()
+
+
+class _LinuxController(_PlatformController):
+  def __init__(self, _):
+    super(_LinuxController, self).__init__()
+    self._temp_results = []
+
+  @contextlib.contextmanager
+  def SamplePeriod(self, period, action_runner, **_):
+    (fd, out_file) = tempfile.mkstemp()
+    os.close(fd)
+    action_runner.ExecuteJavaScript(textwrap.dedent("""
+        if (typeof chrome.gpuBenchmarking.startProfiling !== "undefined") {
+          chrome.gpuBenchmarking.startProfiling("%s");
+        }""" % out_file))
+    yield
+    action_runner.ExecuteJavaScript(textwrap.dedent("""
+        if (typeof chrome.gpuBenchmarking.stopProfiling !== "undefined") {
+          chrome.gpuBenchmarking.stopProfiling();
+        }"""))
+    self._temp_results.append((period, out_file))
+
+  def GetResults(self, page_name, file_safe_name, results):
+    for period, temp_file in self._temp_results:
+      prefix = '%s-%s-' % (file_safe_name, period)
+      with results.CreateArtifact(
+          page_name, 'pprof', prefix=prefix, suffix='.profile.pb') as dest_fh:
+        with open(temp_file, 'rb') as src_fh:
+          shutil.copyfileobj(src_fh, dest_fh.file)
+        os.remove(temp_file)
+    self._temp_results = []
 
 
 class _AndroidController(_PlatformController):

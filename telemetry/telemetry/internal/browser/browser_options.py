@@ -163,7 +163,8 @@ class BrowserFinderOptions(optparse.Values):
 
     # CPU profiling on Android.
     group = optparse.OptionGroup(parser, (
-        'CPU profiling over intervals of interest, Android only'))
+        'CPU profiling over intervals of interest, '
+        'Android and Linux only'))
     group.add_option(
         '--interval-profiling-target', dest='interval_profiling_target',
         default='renderer:main', metavar='PROCESS_NAME[:THREAD_NAME]',
@@ -175,7 +176,8 @@ class BrowserFinderOptions(optparse.Values):
         help='Run the CPU profiler during this test period. '
         'May be specified multiple times; available choices '
         'are ["navigation", "interactions"]. Profile data will be written to'
-        'artifacts/*.perf.data files in the output directory. See '
+        'artifacts/*.perf.data (Android) or artifacts/*.profile.pb (Linux) '
+        'files in the output directory. See '
         'https://developer.android.com/ndk/guides/simpleperf for more info on '
         'Android profiling via simpleperf.')
     group.add_option(
