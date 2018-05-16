@@ -178,7 +178,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
                 'r_chromium': 'fc34e5346446854637311ad7793a95d56e314042'
             }
         })
-    anomaly.Anomaly(
+    a = anomaly.Anomaly(
         bug_id=333, test=test_key,
         start_revision=12000, end_revision=12500,
         median_before_anomaly=100, median_after_anomaly=200).put()
@@ -187,6 +187,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         {'issue_id': 123, 'issue_url': 'http://pinpoint/123'}, result)
     mock_guess.assert_called_once_with(
         'ChromiumPerf/linux-pinpoint/sunspider/score')
+    self.assertEqual('123', a.get().pinpoint_bisects[0])
 
   @mock.patch.object(
       auto_bisect.pinpoint_request, 'PinpointParamsFromBisectParams',
