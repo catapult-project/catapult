@@ -87,14 +87,15 @@ class Page(story.Story):
     # stable if needed.
     for _ in xrange(0, 5):
       current_tab.CollectGarbage()
-    shared_state.page_test.WillNavigateToPage(self, current_tab)
-    with shared_state.interval_profiling_controller.SamplePeriod('navigation'):
-      shared_state.page_test.RunNavigateSteps(self, current_tab)
-    shared_state.page_test.DidNavigateToPage(self, current_tab)
     action_runner = action_runner_module.ActionRunner(
         current_tab, skip_waits=self.skip_waits)
+    shared_state.page_test.WillNavigateToPage(self, current_tab)
     with shared_state.interval_profiling_controller.SamplePeriod(
-        'interactions'):
+        'navigation', action_runner):
+      shared_state.page_test.RunNavigateSteps(self, current_tab)
+    shared_state.page_test.DidNavigateToPage(self, current_tab)
+    with shared_state.interval_profiling_controller.SamplePeriod(
+        'interactions', action_runner):
       self.RunPageInteractions(action_runner)
 
   def RunNavigateSteps(self, action_runner):

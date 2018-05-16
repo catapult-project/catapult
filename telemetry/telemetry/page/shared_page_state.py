@@ -76,6 +76,7 @@ class SharedPageState(story_module.SharedState):
     profiling_mod = browser_interval_profiling_controller
     self._interval_profiling_controller = (
         profiling_mod.BrowserIntervalProfilingController(
+            possible_browser=self._possible_browser,
             process_name=finder_options.interval_profiling_target,
             periods=finder_options.interval_profiling_periods,
             frequency=finder_options.interval_profiling_frequency))
@@ -195,7 +196,6 @@ class SharedPageState(story_module.SharedState):
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
     self._browser = self._possible_browser.Create()
-    self._interval_profiling_controller.DidStartBrowser(self.browser)
     self._test.DidStartBrowser(self.browser)
 
     if self._first_browser:
