@@ -2,6 +2,7 @@
   "name": "catapult",
   "private": true,
   "dependencies": {
+    "google-signin": "GoogleWebComponents/google-signin",
     "polymer": "Polymer/polymer#^2.0.0",
     "polymer-redux": "^1.0.0",
     "app-route": "PolymerElements/app-route",
