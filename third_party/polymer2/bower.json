@@ -4,6 +4,7 @@
   "dependencies": {
     "google-signin": "GoogleWebComponents/google-signin",
     "iron-icons": "^2.0.0",
+    "iron-collapse": "^2.0.0",
     "polymer": "Polymer/polymer#^2.0.0",
     "polymer-redux": "^1.0.0",
     "app-route": "PolymerElements/app-route",
