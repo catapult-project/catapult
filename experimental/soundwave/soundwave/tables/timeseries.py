@@ -31,6 +31,14 @@ _GET_MOST_RECENT_QUERY = (
     % (TABLE_NAME, ' AND '.join('%s=?' % c for c in INDEX[:-1])))
 
 
+def _ParseIntValue(value, on_error=-1):
+  # Try to parse as int and, in case of error, return a pre-defined value.
+  try:
+    return int(value)
+  except StandardError:
+    return on_error
+
+
 def _ParseConfigFromTestPath(test_path):
   values = test_path.split('/', len(TEST_PATH_PARTS))
   config = dict(zip(TEST_PATH_PARTS, values))
@@ -50,7 +58,7 @@ def DataFrameFromJson(data):
     row = config.copy()
     row.update(zip(header, values))
     row['point_id'] = row['revision']
-    row['commit_pos'] = int(row['r_commit_pos'])
+    row['commit_pos'] = _ParseIntValue(row['r_commit_pos'])
     row['chromium_rev'] = row['r_chromium']
     row['clank_rev'] = row.get('r_clank', None)
     rows.append(tuple(row[k] for k in COLUMNS))
