@@ -245,7 +245,7 @@ class _TestConditionByAndroidModel(_TestCondition):
 class _TestConditionAndroidWebview(_TestCondition):
   def ShouldDisable(self, platform, finder_options):
     return (platform.GetOSName() == 'android' and
-            finder_options.browser_type == 'android-webview')
+            finder_options.browser_type.startswith('android-webview'))
 
   def __str__(self):
     return 'Android Webview'
@@ -253,7 +253,7 @@ class _TestConditionAndroidWebview(_TestCondition):
 class _TestConditionAndroidNotWebview(_TestCondition):
   def ShouldDisable(self, platform, finder_options):
     return (platform.GetOSName() == 'android' and not
-            finder_options.browser_type == 'android-webview')
+            finder_options.browser_type.startswith('android-webview'))
 
   def __str__(self):
     return 'Android but not webview'

@@ -282,8 +282,16 @@ class TestConditionTest(unittest.TestCase):
         expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
                                                    self._finder_options))
 
+  def testAndroidWebviewReturnsTrueOnAndroidWebviewGoogle(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview-google'
+    self.assertTrue(
+        expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
+                                                   self._finder_options))
+
   def testAndroidWebviewReturnsFalseOnAndroidNotWebview(self):
     self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-chrome'
     self.assertFalse(
         expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
                                                    self._finder_options))
