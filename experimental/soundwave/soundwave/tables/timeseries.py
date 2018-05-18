@@ -40,7 +40,7 @@ def _ParseIntValue(value, on_error=-1):
 
 
 def _ParseConfigFromTestPath(test_path):
-  values = test_path.split('/', len(TEST_PATH_PARTS))
+  values = test_path.split('/', len(TEST_PATH_PARTS) - 1)
   config = dict(zip(TEST_PATH_PARTS, values))
   config['bot'] = '%s/%s' % (config.pop('master'), config.pop('builder'))
   return config

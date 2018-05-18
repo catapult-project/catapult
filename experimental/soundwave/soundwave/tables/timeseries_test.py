@@ -13,7 +13,7 @@ class TestTimeSeries(unittest.TestCase):
     data = {
         'test_path': (
             'ChromiumPerf/android-nexus5/loading.mobile'
-            '/timeToFirstInteractive/Google'),
+            '/timeToFirstInteractive/PageSet/Google'),
         'timeseries': [
             ['revision', 'value', 'timestamp', 'r_commit_pos', 'r_chromium'],
             [547397, 2300.3, '2018-04-01T14:16:32.000', '547397', 'adb123'],
@@ -32,7 +32,7 @@ class TestTimeSeries(unittest.TestCase):
     self.assertEqual(point['test_suite'], 'loading.mobile')
     self.assertEqual(point['measurement'], 'timeToFirstInteractive')
     self.assertEqual(point['bot'], 'ChromiumPerf/android-nexus5')
-    self.assertEqual(point['test_case'], 'Google')
+    self.assertEqual(point['test_case'], 'PageSet/Google')
     self.assertEqual(point['point_id'], 547397)
     self.assertEqual(point['value'], 2300.3)
     self.assertEqual(point['timestamp'], datetime.datetime(
