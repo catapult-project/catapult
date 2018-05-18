@@ -11,6 +11,7 @@ import mock
 from google.appengine.api import urlfetch_errors
 from google.appengine.ext import testbed
 
+from dashboard.common import utils
 from dashboard.services import request
 
 
@@ -35,7 +36,8 @@ class SuccessTest(_RequestTest):
   def testRequest(self):
     self._request.return_value = ({'status': '200'}, 'response')
     response = request.Request('https://example.com')
-    self._service_account_http.assert_called_once_with(scope=None, timeout=30)
+    self._service_account_http.assert_called_once_with(
+        scope=utils.EMAIL_SCOPE, timeout=30)
     self._request.assert_called_once_with('https://example.com', method='GET')
     self.assertEqual(response, 'response')
 

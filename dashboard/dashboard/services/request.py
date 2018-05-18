@@ -35,7 +35,8 @@ def RequestJson(*args, **kwargs):
 
 
 def Request(url, method='GET', body=None,
-            use_cache=False, use_auth=True, scope=None, **parameters):
+            use_cache=False, use_auth=True, scope=utils.EMAIL_SCOPE,
+            **parameters):
   """Fetch a URL while authenticated as the service account.
 
   Args:

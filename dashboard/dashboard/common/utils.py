@@ -407,6 +407,8 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   if not account_details:
     raise KeyError('Service account credentials not found.')
 
+  assert scope, "ServiceAccountHttp scope must not be None."
+
   client.logger.setLevel(logging.WARNING)
   credentials = client.SignedJwtAssertionCredentials(
       service_account_name=account_details['client_email'],
