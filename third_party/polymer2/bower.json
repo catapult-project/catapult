@@ -8,6 +8,8 @@
     "polymer": "Polymer/polymer#^2.0.0",
     "polymer-redux": "^1.0.0",
     "app-route": "PolymerElements/app-route",
+    "paper-dialog": "^2.0.0",
+    "web-animations-js": "^2.0.0",
     "paper-icon-button": "^2.0.0",
     "paper-checkbox": "^2.0.0",
     "paper-radio-group": "^2.0.0",
