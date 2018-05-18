@@ -102,8 +102,10 @@ class SharedPageState(story_module.SharedState):
     possible_browser = browser_finder.FindBrowser(finder_options)
     if not possible_browser:
       raise browser_finder_exceptions.BrowserFinderException(
-          'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' %
-          '\n'.join(browser_finder.GetAllAvailableBrowserTypes(finder_options)))
+          'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' % (
+              finder_options.browser_options.browser_type,
+              '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
+                  finder_options))))
     return possible_browser
 
   def _GetPossibleBrowser(self, test, finder_options):
