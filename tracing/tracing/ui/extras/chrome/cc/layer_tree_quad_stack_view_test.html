@@ -45,5 +45,38 @@ tr.b.unittest.testSuite(function() {
     // We know we have 5 coverage rects in lthi cats.
     assert.strictEqual(numCoverageRects, 5);
   });
+
+  test('inputEvent', function() {
+    const m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
+    const p = m.processes[1];
+
+    const instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    const lthi = instance.snapshots[0];
+    lthi.activeTree.tracedInputLatencies =
+        [{args: {data: {coordinates: [{x: 10, y: 20}, {x: 30, y: 40}]}}}];
+
+    const view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
+    view.layerTreeImpl = lthi.activeTree;
+    view.showInputEvents = false;
+
+    const aQuads = view.generateLayerQuads();
+    view.showInputEvents = true;
+    const bQuads = view.generateLayerQuads();
+    const numInputEventRects = bQuads.length - aQuads.length;
+
+    assert.strictEqual(numInputEventRects, 2);
+
+    // We should not start loading the image until the view is added into the
+    // DOM tree.
+    const image = Polymer.dom(view).querySelector('#input-event');
+    assert.strictEqual(getComputedStyle(image).backgroundImage, '');
+    assert.strictEqual(image.src, '');
+
+    document.body.appendChild(view);
+    view.updateContents_();
+    assert.notEqual(getComputedStyle(image).backgroundImage, '');
+    assert.notEqual(image.src, '');
+    view.remove();
+  });
 });
 </script>

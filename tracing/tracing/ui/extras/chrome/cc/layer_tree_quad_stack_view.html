@@ -350,6 +350,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     loadDataForImageElement_(image, callback) {
       const imageContent = window.getComputedStyle(image).backgroundImage;
+      if (!imageContent) {
+        // The style has not been applied because the view has not been added
+        // into the DOM tree yet. Try again in another cycle.
+        this.scheduleUpdateContents_();
+        return;
+      }
       image.src = tr.ui.b.extractUrlString(imageContent);
       image.onload = function() {
         const canvas = document.createElement('canvas');
