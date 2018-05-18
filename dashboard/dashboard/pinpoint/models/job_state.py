@@ -36,6 +36,11 @@ _SAME = 'same'
 _UNKNOWN = 'unknown'
 
 
+FUNCTIONAL = 'functional'
+PERFORMANCE = 'performance'
+COMPARISON_MODES = (FUNCTIONAL, PERFORMANCE)
+
+
 class JobState(object):
   """The internal state of a Job.
 
@@ -43,13 +48,15 @@ class JobState(object):
   use regular Python objects, with constructors, dicts, and object references.
 
   We lose the ability to index and query the fields, but it's all internal
-  anyway. Everything queryable should be on the Job object.
-  """
+  anyway. Everything queryable should be on the Job object."""
 
-  def __init__(self, quests, pin=None):
+  def __init__(self, quests, comparison_mode=None, pin=None):
     """Create a JobState.
 
     Args:
+      comparison_mode: Either 'functional' or 'performance', which the Job uses
+          to figure out whether to perform a functional or performance bisect.
+          If None, the Job will not automatically add any Attempts or Changes.
       quests: A sequence of quests to run on each Change.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
     """
@@ -57,6 +64,8 @@ class JobState(object):
     # in-place rather than assign a new list, because every Attempt references
     # this object and will be updated automatically if it's mutated.
     self._quests = list(quests)
+
+    self._comparison_mode = comparison_mode
 
     self._pin = pin
 
@@ -66,6 +75,10 @@ class JobState(object):
 
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
+
+  @property
+  def comparison_mode(self):
+    return self._comparison_mode
 
   def AddAttempts(self, change):
     if not hasattr(self, '_pin'):
@@ -197,6 +210,7 @@ class JobState(object):
       state[index]['comparisons']['prev'] = comparison
 
     return {
+        'comparison_mode': self._comparison_mode,
         'quests': map(str, self._quests),
         'state': state,
     }

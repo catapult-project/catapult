@@ -11,9 +11,7 @@ import uuid
 from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
-from google.appengine.ext.ndb import msgprop
 from google.appengine.runtime import apiproxy_errors
-from protorpc import messages
 
 from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
@@ -34,6 +32,9 @@ OPTION_STATE = 'STATE'
 OPTION_TAGS = 'TAGS'
 
 
+COMPARISON_MODES = job_state.COMPARISON_MODES
+
+
 def JobFromId(job_id):
   """Get a Job object from its ID. Its ID is just its key as a hex string.
 
@@ -42,11 +43,6 @@ def JobFromId(job_id):
   """
   job_key = ndb.Key('Job', int(job_id, 16))
   return job_key.get()
-
-
-class ComparisonMode(messages.Enum):
-  FUNCTIONAL = 1
-  PERFORMANCE = 2
 
 
 class Job(ndb.Model):
@@ -72,10 +68,6 @@ class Job(ndb.Model):
   # If False, only run the Changes explicitly added by the user.
   auto_explore = ndb.BooleanProperty(required=True)
 
-  # The metric to use when determining whether to add additional Attempts or
-  # Changes to the Job. If None, the Job will use a fixed number of Attempts.
-  comparison_mode = msgprop.EnumProperty(ComparisonMode)
-
   # TODO: The bug id is only used for posting bug comments when a job starts and
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
@@ -99,7 +91,7 @@ class Job(ndb.Model):
       auto_explore: If True, the Job should automatically add additional
           Attempts and Changes based on comparison of results values.
       bug_id: A monorail issue id number to post Job updates to.
-      comparison_mode: A member of the ComparisonMode enum, which the Job uses
+      comparison_mode: Either 'functional' or 'performance', which the Job uses
           to figure out whether to perform a functional or performance bisect.
           If None, the Job will not automatically add any Attempts or Changes.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
@@ -109,13 +101,9 @@ class Job(ndb.Model):
     Returns:
       A Job object.
     """
-    job = cls(state=job_state.JobState(quests, pin=pin),
-              arguments=arguments or {},
-              auto_explore=auto_explore,
-              bug_id=bug_id,
-              comparison_mode=comparison_mode,
-              tags=tags,
-              user=user)
+    state = job_state.JobState(quests, comparison_mode=comparison_mode, pin=pin)
+    job = cls(state=state, arguments=arguments or {},
+              auto_explore=auto_explore, bug_id=bug_id, tags=tags, user=user)
 
     for c in changes:
       job.AddChange(c)
@@ -305,20 +293,12 @@ class Job(ndb.Model):
         raise
 
   def AsDict(self, options=None):
-    if self.comparison_mode == ComparisonMode.FUNCTIONAL:
-      comparison_mode = 'functional'
-    elif self.comparison_mode == ComparisonMode.PERFORMANCE:
-      comparison_mode = 'performance'
-    else:
-      comparison_mode = None
-
     d = {
         'job_id': self.job_id,
 
         'arguments': self.arguments,
         'auto_explore': self.auto_explore,
         'bug_id': self.bug_id,
-        'comparison_mode': comparison_mode,
         'user': self.user,
 
         'created': self.created.isoformat(),

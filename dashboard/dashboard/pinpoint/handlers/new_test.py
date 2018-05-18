@@ -120,7 +120,7 @@ class NewTest(_NewTest):
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
-    self.assertEqual(job.comparison_mode, job_module.ComparisonMode.FUNCTIONAL)
+    self.assertEqual(job.state.comparison_mode, 'functional')
 
   def testComparisonModePerformance(self):
     request = dict(_BASE_REQUEST)
@@ -129,7 +129,7 @@ class NewTest(_NewTest):
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
-    self.assertEqual(job.comparison_mode, job_module.ComparisonMode.PERFORMANCE)
+    self.assertEqual(job.state.comparison_mode, 'performance')
 
   def testComparisonModeUnknown(self):
     request = dict(_BASE_REQUEST)
