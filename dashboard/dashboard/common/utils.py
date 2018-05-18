@@ -401,23 +401,19 @@ def _IsGroupMemberCacheKey(identity, group):
   return 'is_group_member_%s_%s' % (identity, group)
 
 
-def ServiceAccountHttp(*args, **kwargs):
+def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   """Returns the Credentials of the service account if available."""
   account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
   if not account_details:
     raise KeyError('Service account credentials not found.')
 
   client.logger.setLevel(logging.WARNING)
-  scope = EMAIL_SCOPE
-  if kwargs.get('scope'):
-    scope = kwargs['scope']
-    del kwargs['scope']
   credentials = client.SignedJwtAssertionCredentials(
       service_account_name=account_details['client_email'],
       private_key=account_details['private_key'],
       scope=scope)
 
-  http = httplib2.Http(*args, **kwargs)
+  http = httplib2.Http(timeout=timeout)
   credentials.authorize(http)
   return http
 
