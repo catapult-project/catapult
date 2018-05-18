@@ -140,12 +140,10 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
   def GetApkName(self, device):
     assert self.apk_name is None
     # The APK to install depends on the OS version of the deivce.
-    if 'aosp' in device.build_description:
-      return 'SystemWebView.apk'
-    elif device.build_version_sdk >= version_codes.NOUGAT:
-      return 'Monochrome.apk'
+    if device.build_version_sdk >= version_codes.NOUGAT:
+      return 'MonochromePublic.apk'
     else:
-      return 'SystemWebViewGoogle.apk'
+      return 'SystemWebView.apk'
 
   def FindEmbedderApk(self, apk_path, chrome_root):
     if apk_path is not None:
