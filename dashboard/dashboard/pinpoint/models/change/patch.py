@@ -93,7 +93,7 @@ class GerritPatch(collections.namedtuple(
         if path_part == '+':
           break
       else:
-        raise ValueError('Unknown URL format.')
+        raise ValueError('Unknown patch URL format: ' + data)
 
       change = path_parts.next()
       try:
