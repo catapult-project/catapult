@@ -231,8 +231,8 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMs,
         '123.457 ms');
-    checkScalarSpan(this, 0, Unit.byName.normalizedPercentage, '0.000%');
-    checkScalarSpan(this, 1, Unit.byName.normalizedPercentage, '100.000%');
+    checkScalarSpan(this, 0, Unit.byName.normalizedPercentage, '0.0%');
+    checkScalarSpan(this, 1, Unit.byName.normalizedPercentage, '100.0%');
     checkScalarSpan(this, -2560, Unit.byName.sizeInBytes, '-2.5 KiB');
   });
 
@@ -250,15 +250,15 @@ tr.b.unittest.testSuite(function() {
         '0.070 W');
     checkScalarSpan(this, 0, Unit.byName.timeStampInMs_biggerIsBetter,
         '0.000 ms');
-    checkScalarSpan(this, -0.00003,
-        Unit.byName.normalizedPercentage_biggerIsBetter, '-0.003%');
+    checkScalarSpan(this, -0.003,
+        Unit.byName.normalizedPercentage_biggerIsBetter, '-0.3%');
   });
 
   test('instantiate_delta', function() {
     checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMsDelta,
         '+123.457 ms');
     checkScalarSpan(this, 0, Unit.byName.normalizedPercentageDelta,
-        '\u00B10.000%');
+        '\u00B10.0%');
     checkScalarSpan(this, -2560, Unit.byName.sizeInBytesDelta,
         '-2.5 KiB');
   });
@@ -279,8 +279,8 @@ tr.b.unittest.testSuite(function() {
         '+0.070 W', {expectedColor: 'rgb(0, 128, 0)'});
     checkScalarSpan(this, 0, Unit.byName.timeStampInMsDelta_biggerIsBetter,
         '\u00B10.000 ms');
-    checkScalarSpan(this, -0.00003,
-        Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.003%',
+    checkScalarSpan(this, -0.003,
+        Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.3%',
         {expectedColor: 'rgb(255, 0, 0)'});
   });
 
