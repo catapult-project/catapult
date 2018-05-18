@@ -74,7 +74,7 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
     if not data_str:
       raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-    logging.info('Received data: %s', data_str[:100])
+    logging.info('Received data: %s', data_str[:200])
 
     histogram_dicts = json.loads(data_str)
     ProcessHistogramSet(histogram_dicts)
@@ -368,7 +368,7 @@ def _GetDiagnosticValue(name, hist, optional=False):
 
   _CheckRequest(
       name in hist.diagnostics,
-      'Histograms must have "%s" diagnostic' % name)
+      'Histogram [%s] missing "%s" diagnostic' % (hist.name, name))
   value = hist.diagnostics[name]
   _CheckRequest(
       len(value) == 1,
