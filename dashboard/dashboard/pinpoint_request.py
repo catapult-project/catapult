@@ -272,15 +272,10 @@ def PinpointParamsFromBisectParams(params):
     if alert_keys:
       alert_key = alert_keys[0]
 
-  return {
+  pinpoint_params = {
       'configuration': bot_name,
       'benchmark': suite,
-      'trace': trace_name,
       'chart': chart_name,
-      'statistic': statistic_name,
-      'tir_label': tir_label,
-      'story': story_filter,
-      'pin': pin,
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
@@ -294,3 +289,16 @@ def PinpointParamsFromBisectParams(params):
           'alert': alert_key
       }),
   }
+
+  if pin:
+    pinpoint_params['pin'] = pin
+  if statistic_name:
+    pinpoint_params['statistic'] = statistic_name
+  if story_filter:
+    pinpoint_params['story'] = story_filter
+  if tir_label:
+    pinpoint_params['tir_label'] = tir_label
+  if trace_name:
+    pinpoint_params['trace'] = trace_name
+
+  return pinpoint_params

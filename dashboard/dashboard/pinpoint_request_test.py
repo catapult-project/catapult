@@ -419,9 +419,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
-    self.assertEqual('', results['tir_label'])
     self.assertEqual('foo', results['chart'])
-    self.assertEqual('', results['trace'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
@@ -439,7 +437,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         id=params['test_path'], unescaped_story_name='http://bar.html').put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
-    self.assertEqual('', results['tir_label'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('http://bar.html', results['trace'])
 
@@ -494,9 +491,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('functional', results['comparison_mode'])
-    self.assertEqual('', results['tir_label'])
-    self.assertEqual('', results['chart'])
-    self.assertEqual('', results['trace'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
