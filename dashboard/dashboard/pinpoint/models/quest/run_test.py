@@ -228,14 +228,22 @@ class _RunTestExecution(execution_module.Execution):
       else:
         return
 
-    dimensions = [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}]
+    pool_dimension = None
+    for dimension in self._dimensions:
+      if dimension['key'] == 'pool':
+        pool_dimension = dimension
+
     if self._previous_execution:
-      dimensions.append({
-          'key': 'id',
-          'value': self._previous_execution.bot_id
-      })
+      dimensions = [
+          # TODO: Remove fallback after data migration. crbug.com/822008
+          pool_dimension or {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
+          {'key': 'id', 'value': self._previous_execution.bot_id}
+      ]
     else:
-      dimensions += self._dimensions
+      dimensions = self._dimensions
+      if not pool_dimension:
+        # TODO: Remove after data migration. crbug.com/822008
+        dimensions.insert(0, {'key': 'pool', 'value': 'Chrome-perf-pinpoint'})
 
     if not hasattr(self, '_isolate_server'):
       # TODO: Remove after data migration. crbug.com/822008

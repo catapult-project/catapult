@@ -11,21 +11,21 @@ from dashboard.pinpoint.models.quest import run_test
 
 _BASE_ARGUMENTS = {
     'swarming_server': 'server',
-    'dimensions': {'key': 'value'},
+    'dimensions': [{'key': 'value'}],
 }
 
 
 class StartTest(unittest.TestCase):
 
   def testStart(self):
-    quest = run_test.RunTest('server', {'key': 'value'}, ['arg'])
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
   # TODO: Remove after there are no more jobs running RunTest quests
   # (instead of RunTelemetryTest quests).
   def testResultsLabel(self):
-    quest = run_test.RunTest('server', {'key': 'value'},
+    quest = run_test.RunTest('server', [{'key': 'value'}],
                              ['--results-label', ''])
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['--results-label', 'change'])
@@ -35,7 +35,7 @@ class FromDictTest(unittest.TestCase):
 
   def testMinimumArguments(self):
     quest = run_test.RunTest.FromDict(_BASE_ARGUMENTS)
-    expected = run_test.RunTest('server', {'key': 'value'},
+    expected = run_test.RunTest('server', [{'key': 'value'}],
                                 run_test._DEFAULT_EXTRA_ARGS)
     self.assertEqual(quest, expected)
 
@@ -45,7 +45,7 @@ class FromDictTest(unittest.TestCase):
     quest = run_test.RunTest.FromDict(arguments)
 
     extra_args = ['--custom-arg', 'custom value'] + run_test._DEFAULT_EXTRA_ARGS
-    expected = run_test.RunTest('server', {'key': 'value'}, extra_args)
+    expected = run_test.RunTest('server', [{'key': 'value'}], extra_args)
     self.assertEqual(quest, expected)
 
   def testMissingSwarmingServer(self):
@@ -62,9 +62,9 @@ class FromDictTest(unittest.TestCase):
 
   def testStringDimensions(self):
     arguments = dict(_BASE_ARGUMENTS)
-    arguments['dimensions'] = '{"key": "value"}'
+    arguments['dimensions'] = '[{"key": "value"}]'
     quest = run_test.RunTest.FromDict(arguments)
-    expected = run_test.RunTest('server', {'key': 'value'},
+    expected = run_test.RunTest('server', [{'key': 'value'}],
                                 run_test._DEFAULT_EXTRA_ARGS)
     self.assertEqual(quest, expected)
 
@@ -80,7 +80,7 @@ class FromDictTest(unittest.TestCase):
     quest = run_test.RunTest.FromDict(arguments)
 
     extra_args = ['--custom-arg', 'custom value'] + run_test._DEFAULT_EXTRA_ARGS
-    expected = run_test.RunTest('server', {'key': 'value'}, extra_args)
+    expected = run_test.RunTest('server', [{'key': 'value'}], extra_args)
     self.assertEqual(quest, expected)
 
 
