@@ -122,7 +122,7 @@ tr.exportTo('tr.v', function() {
     get labels() {
       const displayLabels = Array.from(this.labelsToStartTimes_.keys());
       displayLabels.sort((x, y) =>
-          this.labelsToStartTimes_.get(x) - this.labelsToStartTimes_.get(y));
+        this.labelsToStartTimes_.get(x) - this.labelsToStartTimes_.get(y));
       return displayLabels;
     }
 

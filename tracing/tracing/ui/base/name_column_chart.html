@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.b', function() {
       // Lay them out so that the text doesn't overlap.
       // They may overhang into |this.margin.right|.
       const nameTexts = xAxis.selectAll('text')
-        .data(this.data_);
+          .data(this.data_);
       nameTexts
           .enter()
           .append('text')
@@ -76,7 +76,7 @@ tr.exportTo('tr.ui.b', function() {
           .attr('y1', () => this.graphHeight)
           .attr('y2', (d, index) => this.graphHeight + Math.max(
               MIN_GUIDELINE_HEIGHT_PX,
-            (this.textHeightPx_ * (this.data_.length - index - 1))));
+              (this.textHeightPx_ * (this.data_.length - index - 1))));
     }
   };
 

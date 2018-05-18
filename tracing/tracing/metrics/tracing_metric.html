@@ -174,9 +174,9 @@ tr.exportTo('tr.metrics', function() {
 
     const stats = model.stats.allTraceEventStats;
     const categoryNamesToTotalEventSizes = (
-        stats.reduce((map, stat) => (
-            map.set(stat.category,
-                   ((map.get(stat.category) || 0) +
+      stats.reduce((map, stat) => (
+        map.set(stat.category,
+            ((map.get(stat.category) || 0) +
                     stat.totalEventSizeinBytes))), new Map()));
 
     // Determine the category with the highest total event size.

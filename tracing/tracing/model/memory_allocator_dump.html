@@ -129,10 +129,10 @@ tr.exportTo('tr.model', function() {
         if (numericName === MemoryAllocatorDump.SIZE_NUMERIC_NAME ||
             numericName === MemoryAllocatorDump.EFFECTIVE_SIZE_NUMERIC_NAME ||
             this.numerics[numericName] !== undefined) {
-            // Don't aggregate size and effective size numerics. These are
-            // calculated in GlobalMemoryDump.prototype.calculateSizes() and
-            // GlobalMemoryDump.prototype.calculateEffectiveSizes respectively.
-            // Also don't aggregate numerics that the parent already has.
+          // Don't aggregate size and effective size numerics. These are
+          // calculated in GlobalMemoryDump.prototype.calculateSizes() and
+          // GlobalMemoryDump.prototype.calculateEffectiveSizes respectively.
+          // Also don't aggregate numerics that the parent already has.
           return;
         }
 

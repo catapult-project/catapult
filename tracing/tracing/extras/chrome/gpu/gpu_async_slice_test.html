@@ -20,15 +20,15 @@ tr.b.unittest.testSuite(function() {
   test('construct', function() {
     assert.strictEqual(AsyncSlice.subTypes.getConstructor(
         'disabled-by-default-gpu.device', 'gpu1'),
-        GpuAsyncSlice);
+    GpuAsyncSlice);
     assert.strictEqual(AsyncSlice.subTypes.getConstructor(
         'disabled-by-default-gpu.service', 'gpu2'),
-        GpuAsyncSlice);
+    GpuAsyncSlice);
   });
 
   test('subgroup', function() {
     const sDevice = new GpuAsyncSlice('disabled-by-default-gpu.device', 'gpu1',
-                                     7, 0, {'channel': 'test_channel1'});
+        7, 0, {'channel': 'test_channel1'});
 
     const sService = new GpuAsyncSlice(
         'disabled-by-default-gpu.service', 'gpu2', 7, 0,

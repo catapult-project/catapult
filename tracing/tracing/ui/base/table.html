@@ -503,7 +503,7 @@ tr.exportTo('tr.ui.b', function() {
           continue;
         }
         headerCell.sideContent = this.sortDescending_ ?
-            DESCENDING_ARROW : ASCENDING_ARROW;
+          DESCENDING_ARROW : ASCENDING_ARROW;
         headerCell.sideContentDisabled = !this.userCanModifySortOrder_;
       }
     },
@@ -536,7 +536,7 @@ tr.exportTo('tr.ui.b', function() {
           const isColumnCurrentlySorted = i === this.sortColumnIndex_;
           if (isColumnCurrentlySorted) {
             headerCell.sideContent = this.sortDescending_ ?
-                DESCENDING_ARROW : ASCENDING_ARROW;
+              DESCENDING_ARROW : ASCENDING_ARROW;
             if (!this.userCanModifySortOrder_) {
               headerCell.sideContentDisabled = true;
             }
@@ -837,7 +837,7 @@ tr.exportTo('tr.ui.b', function() {
       if (rowInfo.userRow[this.subRowsPropertyName_] === undefined) return;
 
       for (let i = 0;
-           i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
+        i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
         const subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
         const subRowInfo = rowInfoMap.get(subRow);
         if (!subRowInfo) continue;
@@ -1550,8 +1550,8 @@ tr.exportTo('tr.ui.b', function() {
 
     selectPreviousOrFirstRowIfPossible_() {
       const prev = this.selectedTableRowInfo_ ?
-          this.selectedTableRowInfo_.htmlNode.previousElementSibling :
-          this.$.body.firstChild;
+        this.selectedTableRowInfo_.htmlNode.previousElementSibling :
+        this.$.body.firstChild;
       if (!prev) return;
 
       if (this.selectionMode_ === SelectionMode.CELL &&
@@ -1567,8 +1567,8 @@ tr.exportTo('tr.ui.b', function() {
     selectNextOrFirstRowIfPossible_() {
       this.getFirstSelectableColumnIndex_;
       const next = this.selectedTableRowInfo_ ?
-          this.selectedTableRowInfo_.htmlNode.nextElementSibling :
-          this.$.body.firstChild;
+        this.selectedTableRowInfo_.htmlNode.nextElementSibling :
+        this.$.body.firstChild;
       if (!next) return;
 
       if (this.selectionMode_ === SelectionMode.CELL &&
@@ -1617,7 +1617,7 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
       for (let i = this.selectedColumnIndex_ + 1; i < this.tableColumns_.length;
-           i++) {
+        i++) {
         if (this.doesColumnIndexSupportSelection(i)) {
           this.selectedColumnIndex = i;
           return;

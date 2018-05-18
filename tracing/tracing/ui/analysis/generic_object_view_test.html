@@ -132,7 +132,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_arrayWithComplexObjectValue', function() {
     const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{col0: 'object', col1: 0},
-                   {col2: 'Object', col3: 1}];
+      {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
     assert.strictEqual(undefined, tr.ui.b.findDeepElementMatching(
         view.$.content, 'table'));

@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
   function createTileRectsSelectorBaseOptions() {
     return [{label: 'None', value: 'none'},
-            {label: 'Coverage Rects', value: 'coverage'}];
+      {label: 'Coverage Rects', value: 'coverage'}];
   }
 
 
@@ -866,8 +866,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     getValueForHeatmap_(tile, heatmapType) {
       if (heatmapType === TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY) {
         return tile.scheduledPriority === 0 ?
-            undefined :
-            tile.scheduledPriority;
+          undefined :
+          tile.scheduledPriority;
       } else if (heatmapType === TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         if (tile.isSolidColor) return 0.5;
         return tile.isUsingGpuMemory ? 0 : 1;

@@ -133,7 +133,7 @@ tr.b.unittest.testSuite(function() {
         new tr.model.ThreadSlice('', 'a', 0, 2, {}, 3));
 
     const i10 = new tr.model.ObjectInstance(
-    {}, '0x1000', 'cat', 'name', 10);
+        {}, '0x1000', 'cat', 'name', 10);
     const s10 = i10.addSnapshot(10, {foo: 1});
 
     const eventSet = new tr.model.EventSet([
@@ -162,9 +162,9 @@ tr.b.unittest.testSuite(function() {
     const eventsByTitle = eventSet.getEventsOrganizedByTitle();
     assert.strictEqual(2, Object.keys(eventsByTitle).length);
     assert.sameMembers(eventsByTitle.a.toArray(),
-                 [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
+        [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
     assert.sameMembers(eventsByTitle.b.toArray(),
-                 [t1.sliceGroup.slices[2]]);
+        [t1.sliceGroup.slices[2]]);
   });
 
   test('groupEventsByCallback', function() {
@@ -306,8 +306,8 @@ tr.b.unittest.testSuite(function() {
 
   test('toArray', function() {
     const samples = [
-       {guid: 1},
-       {guid: 2}
+      {guid: 1},
+      {guid: 2}
     ];
     const eventSet = new tr.model.EventSet(samples);
 

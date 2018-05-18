@@ -114,7 +114,7 @@ tr.exportTo('tr.e.cc', function() {
 
     get otherTree() {
       const other = this.whichTree === constants.ACTIVE_TREE ?
-          constants.PENDING_TREE : constants.ACTIVE_TREE;
+        constants.PENDING_TREE : constants.ACTIVE_TREE;
       return this.layerTreeHostImpl.getTree(other);
     },
 

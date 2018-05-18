@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
+        {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 0, countBIBD, zero, {
       significance: tr.b.math.Statistics.Significance.DONT_CARE,
@@ -97,7 +97,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
+        {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
       significance: tr.b.math.Statistics.Significance.DONT_CARE,
@@ -357,9 +357,9 @@ tr.b.unittest.testSuite(function() {
     span = tr.v.ui.createScalarSpan(
         new Scalar(Unit.byName.sizeInBytesDelta_smallerIsBetter,
             256 * 1024 * 1024), { context: {
-              unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
-              minimumFractionDigits: 2
-            } });
+          unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
+          minimumFractionDigits: 2
+        } });
     assert.strictEqual(
         Polymer.dom(span.$.content).textContent, '+262,144.00 KiB');
     assert.strictEqual(span.ownerDocument, document);

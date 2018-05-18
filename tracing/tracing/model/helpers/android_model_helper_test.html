@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
     const sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
     sfThread.name = '/system/bin/surfaceflinger';
 
-      // ensure slicegroup has data
+    // ensure slicegroup has data
     sfThread.sliceGroup.pushSlice(newSliceEx({
       title: 'doComposition',
       start: 8,

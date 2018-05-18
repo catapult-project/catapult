@@ -21,9 +21,9 @@ tr.exportTo('tr.e.chrome', function() {
   function SliceTitleFixer() {
   }
 
- // AsyncSlice uses virtual functions to accomplish something similar to what
- // we're doing here. If this function ever becomes too complex we may consider
- // using a similar pattern.
+  // AsyncSlice uses virtual functions to accomplish something similar to what
+  // we're doing here. If this function ever becomes too complex we may consider
+  // using a similar pattern.
   SliceTitleFixer.fromEvent = function(event) {
     if (event.args && event.args.src_func) {
       return event.title + ' <- ' + event.args.src_func;

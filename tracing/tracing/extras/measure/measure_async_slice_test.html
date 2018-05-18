@@ -18,12 +18,12 @@ tr.b.unittest.testSuite(function() {
 
   test('basic', function() {
     const s = new MeasureAsyncSlice(
-      'blink.user_timing', 'createImports', 7, 0, {});
+        'blink.user_timing', 'createImports', 7, 0, {});
     s.duration = 100;
 
     assert.strictEqual(AsyncSlice.subTypes.getConstructor(
         'blink.user_timing', 'createImports'),
-        MeasureAsyncSlice);
+    MeasureAsyncSlice);
     assert.strictEqual(s.viewSubGroupTitle, 'Ungrouped Measure');
   });
 

@@ -100,7 +100,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       switch (innerEvent[1]) {
         case 'start':
           this.gestureOpenSlice('SyncInterpret', ts,
-                                {interpreter: innerEvent[2]});
+              {interpreter: innerEvent[2]});
           break;
         case 'end':
           this.gestureCloseSlice('SyncInterpret', ts);
@@ -124,7 +124,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       switch (innerEvent[1]) {
         case 'start':
           this.gestureOpenSlice('HandleTimer', ts,
-                                {interpreter: innerEvent[2]});
+              {interpreter: innerEvent[2]});
           break;
         case 'end':
           this.gestureCloseSlice('HandleTimer', ts);

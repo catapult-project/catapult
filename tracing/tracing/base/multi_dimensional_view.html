@@ -580,7 +580,7 @@ tr.exportTo('tr.b', function() {
         for (let i = 0; i < d; i++) {
           for (const previousDimensionChildNode of node.children[i].values()) {
             for (const previousDimensionGrandChildTitle of
-                 previousDimensionChildNode.children[d].keys()) {
+              previousDimensionChildNode.children[d].keys()) {
               currentDimensionChildTitles.add(previousDimensionGrandChildTitle);
             }
           }
@@ -597,7 +597,7 @@ tr.exportTo('tr.b', function() {
           // ..., d - 1.
           for (let i = 0; i < d; i++) {
             for (const previousDimensionChildNode of
-                node.children[i].values()) {
+              node.children[i].values()) {
               const previousDimensionGrandChildNode =
                   previousDimensionChildNode.children[d].get(
                       currentDimensionChildTitle);
@@ -954,7 +954,7 @@ tr.exportTo('tr.b', function() {
           this.addDimensionToTopDownHeavyViewNode_.bind(this));
 
       for (const treeViewGrandChildNode of
-           treeViewChildNode.children[currentDimension].values()) {
+        treeViewChildNode.children[currentDimension].values()) {
         recursionDepthTracker.push(treeViewGrandChildNode);
 
         // Recursively add the tree-view grandchild node to the heavy-view

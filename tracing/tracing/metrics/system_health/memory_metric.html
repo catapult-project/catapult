@@ -669,7 +669,7 @@ tr.exportTo('tr.metrics.sh', function() {
           // Add memory:<browser-name>:<process-name>:reported_by_os:
           // system_memory:... values.
           for (const [componentName, componentSpec] of
-              Object.entries(SYSTEM_VALUE_COMPONENTS)) {
+            Object.entries(SYSTEM_VALUE_COMPONENTS)) {
             const node = getDescendantVmRegionClassificationNode(
                 processDump.vmRegions, componentSpec.classificationPath);
             const componentPath = ['system_memory'];
@@ -679,14 +679,14 @@ tr.exportTo('tr.metrics.sh', function() {
               component: componentPath,
               property: PROPORTIONAL_RESIDENT_SIZE,
               value: node === undefined ?
-                  0 : (node.byteStats.proportionalResident || 0)
+                0 : (node.byteStats.proportionalResident || 0)
             });
             addProcessScalar({
               source: 'reported_by_os',
               component: componentPath,
               property: PRIVATE_DIRTY_SIZE,
               value: node === undefined ?
-                  0 : (node.byteStats.privateDirtyResident || 0)
+                0 : (node.byteStats.privateDirtyResident || 0)
             });
 
             // Only add native library stats when they are nonzero.
@@ -697,7 +697,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   component: componentPath,
                   property: NATIVE_LIBRARY_PRIVATE_CLEAN_RESIDENT,
                   value: node === undefined ?
-                      0 : (node.byteStats.nativeLibraryPrivateCleanResident ||
+                    0 : (node.byteStats.nativeLibraryPrivateCleanResident ||
                            0)
                 });
               }
@@ -707,7 +707,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   component: componentPath,
                   property: NATIVE_LIBRARY_SHARED_CLEAN_RESIDENT,
                   value: node === undefined ?
-                      0 : (node.byteStats.nativeLibrarySharedCleanResident ||
+                    0 : (node.byteStats.nativeLibrarySharedCleanResident ||
                            0)
                 });
               }
@@ -717,7 +717,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   component: componentPath,
                   property: NATIVE_LIBRARY_PROPORTIONAL_RESIDENT,
                   value: node === undefined ?
-                      0 : (node.byteStats.nativeLibraryProportionalResident ||
+                    0 : (node.byteStats.nativeLibraryProportionalResident ||
                            0)
                 });
               }
@@ -823,7 +823,7 @@ tr.exportTo('tr.metrics.sh', function() {
       reportMemoryDumpCountAsValue(browserName, undefined /* total */,
           totalDumpCount, values);
       for (const [levelOfDetailName, levelOfDetailDumpCount] of
-          Object.entries(levelOfDetailNameToDumpCount)) {
+        Object.entries(levelOfDetailNameToDumpCount)) {
         reportMemoryDumpCountAsValue(browserName, levelOfDetailName,
             levelOfDetailDumpCount, values);
       }

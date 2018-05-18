@@ -33,14 +33,14 @@ tr.b.unittest.testSuite(function() {
       thread.name = 'CrBrowserMain';
 
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, INITIATOR_TYPE.CSS,
-        100, // start time.
-        300 // duration.
+          model, INITIATOR_TYPE.CSS,
+          100, // start time.
+          300 // duration.
       ));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, INITIATOR_TYPE.VIDEO, 300, 100));
+          model, INITIATOR_TYPE.VIDEO, 300, 100));
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-        model, INITIATOR_TYPE.SCROLL, 400, 200));
+          model, INITIATOR_TYPE.SCROLL, 400, 200));
     });
 
     const segments = model.userModel.segments;
@@ -96,14 +96,14 @@ tr.b.unittest.testSuite(function() {
       thread.name = 'CrBrowserMain';
 
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, INITIATOR_TYPE.CSS,
-        100, // start time.
-        300 // duration.
+          model, INITIATOR_TYPE.CSS,
+          100, // start time.
+          300 // duration.
       ));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, INITIATOR_TYPE.VIDEO, 300, 100));
+          model, INITIATOR_TYPE.VIDEO, 300, 100));
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-        model, INITIATOR_TYPE.SCROLL, 400, 200));
+          model, INITIATOR_TYPE.SCROLL, 400, 200));
     });
 
     const segments = model.userModel.segments;
@@ -192,12 +192,14 @@ tr.b.unittest.testSuite(function() {
       'slicesDoNotStraddleExpecationBoundaries', () => {
     const simpleModelSpec = getSimpleModelSpec_();
     simpleModelSpec.processes[0].threads[0].slices.push(
-      {range: [150, 200], cpu: 30},
-      {range: [205, 255], cpu: 20}
+        {range: [150, 200], cpu: 30},
+        {range: [205, 255], cpu: 20}
     );
-    simpleModelSpec.expectations.push(
-      {stage: 'Animation', initiatorType: INITIATOR_TYPE.CSS, range: [100, 300]}
-    );
+    simpleModelSpec.expectations.push({
+      stage: 'Animation',
+      initiatorType: INITIATOR_TYPE.CSS,
+      range: [100, 300],
+    });
 
     const path = [
       [CHROME_PROCESS_NAMES.BROWSER],
@@ -279,8 +281,8 @@ tr.b.unittest.testSuite(function() {
       'singleThread-overlappingExpectationsOfSameInitiators', () => {
     const simpleModelSpec = getSimpleModelSpec_();
     simpleModelSpec.processes[0].threads[0].slices.push(
-      {range: [150, 200], cpu: 30},
-      {range: [205, 255], cpu: 20}
+        {range: [150, 200], cpu: 30},
+        {range: [205, 255], cpu: 20}
     );
     simpleModelSpec.expectations.push(
         {stage: 'Animation', initiatorType: INITIATOR_TYPE.CSS,

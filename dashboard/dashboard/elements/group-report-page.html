@@ -203,7 +203,7 @@ found in the LICENSE file.
         };
         for (const testpath of event.detail.testpaths) {
           chart.addSeriesGroup2(new d.SeriesGroup(
-            testpath.testpath, [testpath.testpath], []), true);
+              testpath.testpath, [testpath.testpath], []), true);
         }
         this.setChartData(chart);
       },

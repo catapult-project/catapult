@@ -249,15 +249,15 @@ found in the LICENSE file.
         const view = new google.picker.View(google.picker.ViewId.DOCS);
         view.setMimeTypes('application/json,application/octet-stream');
         const picker = new google.picker.PickerBuilder()
-                       .enableFeature(google.picker.Feature.NAV_HIDDEN)
-                       .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-                       .setAppId(tr.ui.e.drive.constants.APP_ID)
-                       .setOAuthToken(oauthToken_)
-                       .addView(view)
-                       .addView(new google.picker.DocsUploadView())
-                       .setDeveloperKey(tr.ui.e.drive.constants.DEVELOPER_KEY)
-                       .setCallback(pickerCallback)
-                       .build();
+            .enableFeature(google.picker.Feature.NAV_HIDDEN)
+            .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+            .setAppId(tr.ui.e.drive.constants.APP_ID)
+            .setOAuthToken(oauthToken_)
+            .addView(view)
+            .addView(new google.picker.DocsUploadView())
+            .setDeveloperKey(tr.ui.e.drive.constants.DEVELOPER_KEY)
+            .setCallback(pickerCallback)
+            .build();
         picker.setVisible(true);
       }
     }

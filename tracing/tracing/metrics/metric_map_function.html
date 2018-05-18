@@ -124,7 +124,7 @@ tr.exportTo('tr.metrics', function() {
       if (!metadata.value || !metadata.value.telemetry) continue;
 
       const traceUrls = metadata.value.telemetry[
-        tr.v.d.RESERVED_NAMES.TRACE_URLS];
+          tr.v.d.RESERVED_NAMES.TRACE_URLS];
       if (traceUrls && model.canonicalUrl !== traceUrls[0]) {
         throw new Error(`canonicalUrl "${model.canonicalUrl}" != ` +
             `traceUrl "${traceUrls[0]}"`);

@@ -13,7 +13,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('failureAsDictTest', function() {
     const failure = new tr.mre.Failure(undefined, 'foo.html:Foo',
-                                     'file://foo.html', 'err', 'desc', 'stack');
+        'file://foo.html', 'err', 'desc', 'stack');
 
     assert.deepEqual(failure.asDict(), {
       function_handle_string: 'foo.html:Foo',

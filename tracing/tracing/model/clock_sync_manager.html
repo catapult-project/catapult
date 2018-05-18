@@ -200,7 +200,7 @@ tr.exportTo('tr.model', function() {
         // efficient, but the actual performance difference is negligible given
         // how few clock domains we have in a trace.
         queue.sort((domain1, domain2) =>
-            domain1.transformer.error - domain2.transformer.error);
+          domain1.transformer.error - domain2.transformer.error);
 
         const current = queue.shift();
 
@@ -364,7 +364,7 @@ tr.exportTo('tr.model', function() {
 
       const markersBySyncIdEntries = [...this.markersBySyncId_.entries()].sort(
           ([syncId1, markers1], [syncId2, markers2]) =>
-              syncId1.localeCompare(syncId2));
+            syncId1.localeCompare(syncId2));
 
       for (const [syncId, markers] of markersBySyncIdEntries) {
         const sortedMarkers = markers.sort(

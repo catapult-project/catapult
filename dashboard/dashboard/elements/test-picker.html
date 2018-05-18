@@ -476,7 +476,7 @@ found in the LICENSE file.
         const updateAddButtonStateMark = tr.b.Timing.mark(
             'test-picker', 'updateAddButtonState');
         this.enableAddSeries = (
-            (await this.getCurrentSelection()) instanceof Array);
+          (await this.getCurrentSelection()) instanceof Array);
         updateAddButtonStateMark.end();
       },
 

@@ -93,8 +93,8 @@ Polymer({
 
     const myEvent = new CustomEvent('navigateToUIState', { detail:
         new tr.ui.b.UIState(new tr.model.Location(uiState.location.xWorld,
-                                              uiState.location.yComponents),
-                                              uiState.scaleX)
+            uiState.location.yComponents),
+        uiState.scaleX)
     });
     document.dispatchEvent(myEvent);
 
@@ -102,7 +102,7 @@ Polymer({
       this.model.removeAnnotation(this.annotationFromComment_);
     }
     const loc = new tr.model.Location(uiState.location.xWorld,
-                                uiState.location.yComponents);
+        uiState.location.yComponents);
 
     const text = sender.comment.author.displayName + ': ' +
         sender.comment.content;

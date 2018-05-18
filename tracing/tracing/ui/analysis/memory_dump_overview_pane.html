@@ -264,8 +264,8 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       const infoQuantifier = olderValueCount < numerics.length ?
-          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : /* some values are older */
-          ''; /* all values are older */
+        ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : /* some values are older */
+        ''; /* all values are older */
 
       // Emit an info if there was at least one older value (i.e. at least one
       // defined process memory dump did not have own VM regions).
@@ -387,7 +387,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // a heap dump associated with this allocator.
       if (heapDumpCount > 0) {
         const infoQuantifier = heapDumpCount < numerics.length ?
-            ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
+          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
         infos.push({
           message: 'Heap dump provided' + infoQuantifier + '.',
           icon: TRIGRAM_FOR_HEAVEN
@@ -398,7 +398,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // of the process memory dumps.
       if (missingSizeCount > 0) {
         const infoQuantifier = missingSizeCount < numerics.length ?
-            ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
+          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
         infos.push(tr.ui.analysis.createWarningInfo(
             'Size was not provided' + infoQuantifier + '.'));
       }
@@ -597,7 +597,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Process (list index) -> Component (dict key) -> Cell.
       const rows = [];
       for (const [pid, timeToDump] of
-          Object.entries(pidToTimeToProcessMemoryDump)) {
+        Object.entries(pidToTimeToProcessMemoryDump)) {
         // Get the process associated with the dumps. We can use any defined
         // process memory dump in timeToDump since they all have the same
         // pid.
@@ -612,11 +612,11 @@ tr.exportTo('tr.ui.analysis', function() {
               if (totals !== undefined) {
                 // Common totals.
                 for (const [totalName, cellName] of
-                    Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
+                  Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
                   const total = totals[totalName];
                   if (total === undefined) continue;
                   sizes[cellName] = new Scalar(
-                  sizeInBytes_smallerIsBetter, total);
+                      sizeInBytes_smallerIsBetter, total);
                 }
 
                 // Platform-specific totals (e.g. private resident on Mac).
@@ -640,7 +640,7 @@ tr.exportTo('tr.ui.analysis', function() {
                           UsedMemoryColumn.PLATFORM_SPECIFIC_TOTALS_MAP[name];
                     }
                     sizes[newName] = new Scalar(
-                    sizeInBytes_smallerIsBetter, size);
+                        sizeInBytes_smallerIsBetter, size);
                   }
                 }
               }
@@ -649,11 +649,11 @@ tr.exportTo('tr.ui.analysis', function() {
               const vmRegions = dump.mostRecentVmRegions;
               if (vmRegions !== undefined) {
                 for (const [byteStatName, cellName] of
-                    Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
+                  Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
                   const byteStat = vmRegions.byteStats[byteStatName];
                   if (byteStat === undefined) continue;
                   sizes[cellName] = new Scalar(
-                  sizeInBytes_smallerIsBetter, byteStat);
+                      sizeInBytes_smallerIsBetter, byteStat);
                 }
               }
 
@@ -669,7 +669,7 @@ tr.exportTo('tr.ui.analysis', function() {
               const sizes = {};
               memoryAllocatorDumps.forEach(function(allocatorDump) {
                 let rootDisplayedSizeNumeric = allocatorDump.numerics[
-                DISPLAYED_SIZE_NUMERIC_NAME];
+                    DISPLAYED_SIZE_NUMERIC_NAME];
                 if (rootDisplayedSizeNumeric === undefined) {
                   rootDisplayedSizeNumeric =
                   new Scalar(sizeInBytes_smallerIsBetter, 0);

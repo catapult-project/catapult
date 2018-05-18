@@ -835,7 +835,7 @@ tr.b.unittest.testSuite(function() {
                 'children': [
                   {
                     'name': 'child',
-                // Missing "'weak': true".
+                    // Missing "'weak': true".
                   }
                 ]
               }
@@ -1339,7 +1339,7 @@ tr.b.unittest.testSuite(function() {
         ]);
         const gmd = containerDumps[0];
 
-    // Post-order.
+        // Post-order.
         let visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
             buildArgPusher(visitedAllocatorDumps));
@@ -1350,7 +1350,7 @@ tr.b.unittest.testSuite(function() {
           gmd.getMemoryAllocatorDumpByFullName('root')
         ]);
 
-    // Pre-order.
+        // Pre-order.
         visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
             buildArgPusher(visitedAllocatorDumps));
@@ -1365,7 +1365,7 @@ tr.b.unittest.testSuite(function() {
   test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithOwners',
       function() {
         const containerDumps = buildDumpTrees([
-      [],  // GMD.
+          [],  // GMD.
           [  // PMD.
             {
               'name': 'root',
@@ -1394,7 +1394,7 @@ tr.b.unittest.testSuite(function() {
         const gmd = containerDumps[0];
         const pmd = containerDumps[1];
 
-    // Post-order.
+        // Post-order.
         let visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
             buildArgPusher(visitedAllocatorDumps));
@@ -1406,7 +1406,7 @@ tr.b.unittest.testSuite(function() {
           pmd.getMemoryAllocatorDumpByFullName('root')
         ]);
 
-    // Pre-order.
+        // Pre-order.
         visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
             buildArgPusher(visitedAllocatorDumps));

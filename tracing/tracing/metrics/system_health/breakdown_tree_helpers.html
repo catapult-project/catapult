@@ -103,7 +103,7 @@ tr.exportTo('tr.metrics.sh', function() {
     if (mainThread === null) return;
     const breakdownTree = {};
     for (const title of
-        tr.e.chrome.ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
+      tr.e.chrome.ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
       breakdownTree[title] = {total: 0, events: {}};
     }
     // We do not look at async slices here.

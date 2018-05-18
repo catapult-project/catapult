@@ -67,8 +67,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
-           {label: 'Pending tree', value: constants.PENDING_TREE},
-           {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
+            {label: 'Pending tree', value: constants.PENDING_TREE},
+            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
       const showPureTransformLayers = tr.ui.b.createCheckBox(

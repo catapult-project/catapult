@@ -81,11 +81,11 @@ tr.exportTo('tr.b.unittest', function() {
         }
 
         this.addTest(new TestCase(newName,
-                                  testWrapper, options || {}));
+            testWrapper, options || {}));
       }
 
       this.addTest(new TestCase(testName,
-                                testFn, options || {}));
+          testFn, options || {}));
     }.bind(this);
 
     global.timedPerfTest = function(name, testFn, options) {

@@ -113,7 +113,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Store all configuration flags as private properties.
       for (const [key, defaultValue] of
-          Object.entries(DEFAULT_RENDERING_CONFIG)) {
+        Object.entries(DEFAULT_RENDERING_CONFIG)) {
         let value = config[key];
         if (value === undefined) {
           value = defaultValue;
@@ -339,7 +339,7 @@ tr.exportTo('tr.ui.tracks', function() {
         const currentSelectionState = currentPoint.selectionState;
         if (currentSelectionState !== lastSelectionState) {
           const opacity = currentSelectionState === SelectionState.SELECTED ?
-              1 : squareOpacity;
+            1 : squareOpacity;
           currentStateSeriesColor = EventPresenter.getCounterSeriesColor(
               this.colorId_, currentSelectionState, opacity);
         }

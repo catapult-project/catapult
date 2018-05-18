@@ -336,7 +336,7 @@ tr.exportTo('tr.ui.analysis', function() {
         const sizeInBytes = region.sizeInBytes;
         if (sizeInBytes !== undefined) {
           fields['Virtual size'] = new Scalar(
-                sizeInBytes_smallerIsBetter, sizeInBytes);
+              sizeInBytes_smallerIsBetter, sizeInBytes);
         }
         const protectionFlags = region.protectionFlagsToString;
         if (protectionFlags !== undefined) {
@@ -344,7 +344,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
 
         for (const [byteStatName, columnName] of
-            Object.entries(BYTE_STAT_COLUMN_MAP)) {
+          Object.entries(BYTE_STAT_COLUMN_MAP)) {
           const byteStat = region.byteStats[byteStatName];
           if (byteStat === undefined) continue;
           fields[columnName] = new Scalar(

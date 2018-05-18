@@ -197,7 +197,7 @@ found in the LICENSE file.
       is: 'nav-bar',
       ready() {
         simple_xhr.send('/navbar',
-                        {'path': location.pathname + location.search},
+            {'path': location.pathname + location.search},
             function(response) {
               this.loginUrl = response.login_url;
               this.displayUsername = response.display_username;

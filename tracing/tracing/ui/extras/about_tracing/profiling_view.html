@@ -278,7 +278,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     onSaveClicked_() {
       // Create a blob URL from the binary array.
       const blob = new Blob([this.activeTrace_.data],
-                          {type: 'application/octet-binary'});
+          {type: 'application/octet-binary'});
       const blobUrl = window.webkitURL.createObjectURL(blob);
 
       // Create a link and click on it. BEST API EVAR!

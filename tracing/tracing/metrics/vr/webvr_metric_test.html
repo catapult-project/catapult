@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
         function(model) {
           model.userModel.expectations.push(
               new tr.model.um.AnimationExpectation(model,
-              tr.model.um.INITIATOR_TYPE.VR, 0, 5));
+                  tr.model.um.INITIATOR_TYPE.VR, 0, 5));
           const process = model.getOrCreateProcess(1);
           const fpsCounter = process.getOrCreateCounter('gpu', 'WebVR FPS');
           const fpsSeries = new tr.model.CounterSeries('value', 0);

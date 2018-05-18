@@ -61,18 +61,18 @@ tr.b.unittest.testSuite(function() {
         const nodeD = tr.c.TestUtils.newProfileNode(model, 'd', nodeA);
 
         model.samples.push(new Sample(10, 'instructions_retired', nodeC, thread,
-                                      undefined, 10));
+            undefined, 10));
         model.samples.push(new Sample(20, 'instructions_retired', nodeB, thread,
-                                      undefined, 10));
+            undefined, 10));
         model.samples.push(new Sample(30, 'instructions_retired', nodeB, thread,
-                                      undefined, 10));
+            undefined, 10));
         model.samples.push(new Sample(40, 'instructions_retired', nodeD, thread,
-                                      undefined, 10));
+            undefined, 10));
 
         model.samples.push(new Sample(25, 'page_fault', nodeB, thread,
-                                      undefined, 10));
+            undefined, 10));
         model.samples.push(new Sample(35, 'page_fault', nodeD, thread,
-                                      undefined, 10));
+            undefined, 10));
       }
     });
 

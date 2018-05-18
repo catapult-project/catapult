@@ -13,7 +13,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b', function() {
   class FixedColorScheme {
-
     /**
      * @param {!Map} namesToColors
      * @constructor
@@ -50,9 +49,9 @@ tr.exportTo('tr.b', function() {
   }
 
   const MemoryColumnColorScheme = new FixedColorScheme(new Map([
-      ['used_memory_column', new tr.b.Color(0, 0, 255)],
-      ['older_used_memory_column', new tr.b.Color(153, 204, 255)],
-      ['tracing_memory_column', new tr.b.Color(153, 153, 153)]
+    ['used_memory_column', new tr.b.Color(0, 0, 255)],
+    ['older_used_memory_column', new tr.b.Color(153, 204, 255)],
+    ['tracing_memory_column', new tr.b.Color(153, 153, 153)]
   ]));
 
   function FixedColorSchemeRegistry() {}

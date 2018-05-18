@@ -192,7 +192,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           if (category === undefined) category = 'android';
 
           const thread = this.model_.getOrCreateProcess(ppid)
-            .getOrCreateThread(pid);
+              .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
 
           this.ppids_[pid] = ppid;
@@ -213,7 +213,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           if (category === undefined) category = 'android';
 
           const thread = this.model_.getOrCreateProcess(ppid)
-            .getOrCreateThread(pid);
+              .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
 
           this.ppids_[pid] = ppid;

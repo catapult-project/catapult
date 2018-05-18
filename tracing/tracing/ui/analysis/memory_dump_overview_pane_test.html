@@ -163,8 +163,8 @@ tr.b.unittest.testSuite(function() {
       dumpCreatedCallback, expectedInfos, expectedColorReservedName) {
     const fields = fieldAndDumpMask.map(function(mask, index) {
       return mask & FIELD ?
-          new Scalar(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
-          undefined;
+        new Scalar(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
+        undefined;
     });
 
     let contexts;
@@ -226,8 +226,8 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
-                [15728640], [7340032], [0], [1048576], [1], [5242880],
-                [1572864]],
+              [15728640], [7340032], [0], [1048576], [1], [5242880],
+              [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
@@ -242,8 +242,8 @@ tr.b.unittest.testSuite(function() {
           {
             title: 'Total',
             sizes: [[47710208], [57671680], [27787264], [5767168], [32],
-                [8912896], [15728640], [7340032], [0], [8388608], [1],
-                [5242880], [3670016]],
+              [8912896], [15728640], [7340032], [0], [8388608], [1],
+              [5242880], [3670016]],
             contexts: undefined
           }
         ],
@@ -259,29 +259,29 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 1'),
             sizes: [[31457280, 29884416, undefined], undefined,
-                [10485760, 9437184, undefined], [8388608, 5767168, undefined],
+              [10485760, 9437184, undefined], [8388608, 5767168, undefined],
               undefined, undefined, undefined, undefined, undefined,
-                [undefined, 7340032, undefined], undefined, undefined,
-                [undefined, 2097152, undefined]],
+              [undefined, 7340032, undefined], undefined, undefined,
+              [undefined, 2097152, undefined]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[19398656, 17825792, 15728640],
-                [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
-                [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
-                [15728640, 15728640, 15728640], [undefined, 7340032, 6291456],
-                [undefined, 0, 1048576], [2097152, 1048576, 786432],
-                [undefined, 1, undefined], [5242880, 5242880, 5767168],
-                [1048576, 1572864, 2097152]],
+              [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
+              [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
+              [15728640, 15728640, 15728640], [undefined, 7340032, 6291456],
+              [undefined, 0, 1048576], [2097152, 1048576, 786432],
+              [undefined, 1, undefined], [5242880, 5242880, 5767168],
+              [1048576, 1572864, 2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
             title: colorLegendMatcher('Process 3'),
             sizes: [undefined, undefined, undefined, undefined, undefined,
               undefined, undefined, undefined, undefined, undefined,
-                [2147483648, undefined, 1073741824],
-                [1073741824, undefined, 2147483648], undefined],
+              [2147483648, undefined, 1073741824],
+              [1073741824, undefined, 2147483648], undefined],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
           },
           {
@@ -296,13 +296,13 @@ tr.b.unittest.testSuite(function() {
           {
             title: 'Total',
             sizes: [[50855936, 47710208, 15728640],
-                [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
-                [8388608, 5767168, -2621440], [32, 32, 64],
-                [10485760, 8912896, 7340032], [15728640, 15728640, 15728640],
-                [undefined, 7340032, 6291456], [undefined, 0, 1048576],
-                [2097152, 8388608, 786432], [2147483648, 1, 1073741824],
-                [1078984704, 5242880, 2153250816],
-                [1048576, 3670016, 2097152]],
+              [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
+              [8388608, 5767168, -2621440], [32, 32, 64],
+              [10485760, 8912896, 7340032], [15728640, 15728640, 15728640],
+              [undefined, 7340032, 6291456], [undefined, 0, 1048576],
+              [2097152, 8388608, 786432], [2147483648, 1, 1073741824],
+              [1078984704, 5242880, 2153250816],
+              [1048576, 3670016, 2097152]],
             contexts: undefined
           }
         ],
@@ -318,8 +318,8 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
-                [15728640], [7340032], [0], [1048576], [1], [5242880],
-                [1572864]],
+              [15728640], [7340032], [0], [1048576], [1], [5242880],
+              [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
@@ -336,12 +336,12 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[19398656, 17825792, 15728640],
-                [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
-                [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
-                [15728640, 15728640, 15728640], [undefined, 7340032, 6291456],
-                [undefined, 0, 1048576], [2097152, 1048576, 786432],
-                [undefined, 1, undefined], [5242880, 5242880, 5767168],
-                [1048576, 1572864, 2097152]],
+              [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
+              [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
+              [15728640, 15728640, 15728640], [undefined, 7340032, 6291456],
+              [undefined, 0, 1048576], [2097152, 1048576, 786432],
+              [undefined, 1, undefined], [5242880, 5242880, 5767168],
+              [1048576, 1572864, 2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
@@ -633,8 +633,8 @@ tr.b.unittest.testSuite(function() {
           },
           expectedInfos,
           expectedIsOlderColor ?
-              UsedMemoryColumn.OLDER_COLOR /* light blue */ :
-              UsedMemoryColumn.COLOR /* blue color */);
+            UsedMemoryColumn.OLDER_COLOR /* light blue */ :
+            UsedMemoryColumn.COLOR /* blue color */);
     }
 
     const EXPECTED_ALL_OLDER_VALUES = {

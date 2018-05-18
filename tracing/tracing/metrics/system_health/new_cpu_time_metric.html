@@ -59,7 +59,7 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function newCpuTimeMetric(histograms, model, opt_options) {
     const rangeOfInterest = opt_options && opt_options.rangeOfInterest ?
-       opt_options.rangeOfInterest : model.bounds;
+      opt_options.rangeOfInterest : model.bounds;
 
     const rootNode = tr.e.chrome.CpuTime.constructMultiDimensionalView(
         model, rangeOfInterest);

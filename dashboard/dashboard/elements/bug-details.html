@@ -114,7 +114,7 @@ found in the LICENSE file.
     'use strict';
     tr.exportTo('d', function() {
       const BUG_DETAILS = new d.AsyncMap(async bugId =>
-          await simple_xhr.asPromise('/bug_details', {bug_id: bugId}));
+        await simple_xhr.asPromise('/bug_details', {bug_id: bugId}));
       return {
         BUG_DETAILS,
       };

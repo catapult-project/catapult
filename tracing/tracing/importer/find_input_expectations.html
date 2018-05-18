@@ -146,7 +146,7 @@ tr.exportTo('tr.importer', function() {
   function getSortedFrameEventsByProcess(modelHelper) {
     const frameEventsByPid = {};
     for (const [pid, rendererHelper] of
-        Object.entries(modelHelper.rendererHelpers)) {
+      Object.entries(modelHelper.rendererHelpers)) {
       frameEventsByPid[pid] = rendererHelper.getFrameEventsInRange(
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
     }
@@ -224,7 +224,7 @@ tr.exportTo('tr.importer', function() {
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
           const pe = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
+              ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
           pe.pushEvent(event);
           protoExpectations.push(pe);
         });
@@ -248,7 +248,7 @@ tr.exportTo('tr.importer', function() {
     let prevEvent_ = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
-      // Switch prevEvent in one place so that we can early-return later.
+          // Switch prevEvent in one place so that we can early-return later.
           const prevEvent = prevEvent_;
           prevEvent_ = event;
 
@@ -258,14 +258,14 @@ tr.exportTo('tr.importer', function() {
               currentPE.pushEvent(event);
             } else {
               currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
-              INITIATOR_TYPE.MOUSE_WHEEL);
+                  INITIATOR_TYPE.MOUSE_WHEEL);
               currentPE.pushEvent(event);
               protoExpectations.push(currentPE);
             }
             return;
           }
           currentPE = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE_WHEEL);
+              ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE_WHEEL);
           currentPE.pushEvent(event);
           protoExpectations.push(currentPE);
         });
@@ -300,36 +300,37 @@ tr.exportTo('tr.importer', function() {
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
               } else {
-            // Responses typically don't start until the mouse up event.
-            // Add this MouseDown to the Response that starts at the MouseUp.
+                // Responses typically don't start until the mouse up event.
+                // Add this MouseDown to the Response that starts at the
+                // MouseUp.
                 mouseDownEvent = event;
               }
               break;
 
-          // There may be more than 100ms between the start of the mouse down
-          // and the start of the mouse up. Chrome and the web don't start to
-          // respond until the mouse up. Responses start deducting comfort
-          // at 100ms duration. If more than that 100ms duration is burned
-          // through while waiting for the user to release the
-          // mouse button, then ResponseExpectation will unfairly start
-          // deducting comfort before Chrome even has a mouse up to respond to.
-          // It is technically possible for a site to afford one response on
-          // mouse down and another on mouse up, but that is an edge case. The
-          // vast majority of mouse downs are not responses.
+              // There may be more than 100ms between the start of the mouse
+              // down and the start of the mouse up. Chrome and the web don't
+              // start to respond until the mouse up. Responses start deducting
+              // comfort at 100ms duration. If more than that 100ms duration is
+              // burned through while waiting for the user to release the mouse
+              // button, then ResponseExpectation will unfairly start deducting
+              // comfort before Chrome even has a mouse up to respond to.  It is
+              // technically possible for a site to afford one response on mouse
+              // down and another on mouse up, but that is an edge case. The
+              // vast majority of mouse downs are not responses.
 
             case INPUT_TYPE.MOUSE_MOVE:
               if (!causedFrame(event)) {
-            // Ignore MouseMoves that do not affect the screen. They are not
-            // part of an interaction record by definition.
+                // Ignore MouseMoves that do not affect the screen. They are not
+                // part of an interaction record by definition.
                 const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
               } else if (!currentPE ||
                       !currentPE.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
-            // The first MouseMove after a MouseDown or after a while is a
-            // Response.
+                // The first MouseMove after a MouseDown or after a while is a
+                // Response.
                 currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
+                    ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
                 currentPE.pushEvent(event);
                 if (mouseDownEvent) {
                   currentPE.associatedEvents.push(mouseDownEvent);
@@ -337,12 +338,12 @@ tr.exportTo('tr.importer', function() {
                 }
                 protoExpectations.push(currentPE);
               } else {
-            // Merge this event into an Animation.
+                // Merge this event into an Animation.
                 if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
                   currentPE.pushEvent(event);
                 } else {
                   currentPE = new ProtoExpectation(
-                  ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.MOUSE);
+                      ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.MOUSE);
                   currentPE.pushEvent(event);
                   protoExpectations.push(currentPE);
                 }
@@ -353,7 +354,7 @@ tr.exportTo('tr.importer', function() {
               if (!mouseDownEvent) {
                 const pe = new ProtoExpectation(
                     causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
-                    ProtoExpectation.IGNORED_TYPE,
+                      ProtoExpectation.IGNORED_TYPE,
                     INITIATOR_TYPE.MOUSE);
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
@@ -364,7 +365,7 @@ tr.exportTo('tr.importer', function() {
                 currentPE.pushEvent(event);
               } else {
                 currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
+                    ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
                 if (mouseDownEvent) {
                   currentPE.associatedEvents.push(mouseDownEvent);
                 }
@@ -734,7 +735,7 @@ tr.exportTo('tr.importer', function() {
               protoExpectations.push(currentPE);
             }
           } else {
-             // ScrollUpdate without ScrollBegin.
+            // ScrollUpdate without ScrollBegin.
             currentPE = new ProtoExpectation(
                 ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.SCROLL);
             currentPE.pushEvent(event);
@@ -773,8 +774,8 @@ tr.exportTo('tr.importer', function() {
     for (const pid in modelHelper.rendererHelpers) {
       for (const tid in modelHelper.rendererHelpers[pid].process.threads) {
         for (const asyncSlice of
-            modelHelper.rendererHelpers[pid].process.threads[tid]
-                .asyncSliceGroup.slices) {
+          modelHelper.rendererHelpers[pid].process.threads[tid]
+              .asyncSliceGroup.slices) {
           if (asyncSlice.title === PLAYBACK_EVENT_TITLE) {
             events.push(asyncSlice);
           }
@@ -820,7 +821,7 @@ tr.exportTo('tr.importer', function() {
     let vrEventStart = Number.MAX_SAFE_INTEGER;
     for (const proc of processes) {
       for (const [counterName, counterSeries] of
-          Object.entries(proc.counters)) {
+        Object.entries(proc.counters)) {
         if (VR_COUNTER_NAMES.includes(counterName)) {
           for (const series of counterSeries.series) {
             for (const sample of series.samples) {
@@ -1017,7 +1018,7 @@ tr.exportTo('tr.importer', function() {
       // far before the animationEvent.
       while (animationEvent &&
           (animationEvent.start < (
-           event.start - ANIMATION_MERGE_THRESHOLD_MS))) {
+            event.start - ANIMATION_MERGE_THRESHOLD_MS))) {
         animationEvent = animationIterator.next().value;
       }
 

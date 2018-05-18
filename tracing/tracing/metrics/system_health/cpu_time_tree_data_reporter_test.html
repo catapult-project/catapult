@@ -19,11 +19,11 @@ tr.b.unittest.testSuite(function() {
 
   test('reportToHistogramSet_reportsLeafNodes', () => {
     const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
-      3 /* dimensions (process, thread and rail stage / initiator) */,
-      2 /* valueCount (cpuPercentage and cpuTime) */);
+        3 /* dimensions (process, thread and rail stage / initiator) */,
+        2 /* valueCount (cpuPercentage and cpuTime) */);
     mdvBuilder.addPath(
-      [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
-      [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+        [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
+        [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
     const rootNode = mdvBuilder.buildTopDownTreeView();
 
     const histograms = new tr.v.HistogramSet();
@@ -79,11 +79,11 @@ tr.b.unittest.testSuite(function() {
 
   test('reportToHistogramSet_reportsAllThreads', () => {
     const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
-      3 /* dimensions (process, thread and rail stage / initiator) */,
-      2 /* valueCount (cpuPercentage and cpuTime) */);
+        3 /* dimensions (process, thread and rail stage / initiator) */,
+        2 /* valueCount (cpuPercentage and cpuTime) */);
     mdvBuilder.addPath(
-      [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
-      [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+        [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
+        [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
     const rootNode = mdvBuilder.buildTopDownTreeView();
 
     const histograms = new tr.v.HistogramSet();
@@ -110,11 +110,11 @@ tr.b.unittest.testSuite(function() {
   test('reportToHistogramSet_doesNotAggregateStagesWithoutAllStagesNode',
       () => {
         const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
-          3 /* dimensions (process, thread and rail stage / initiator) */,
-          2 /* valueCount (cpuPercentage and cpuTime) */);
+            3 /* dimensions (process, thread and rail stage / initiator) */,
+            2 /* valueCount (cpuPercentage and cpuTime) */);
         mdvBuilder.addPath(
-          [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
-          [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+            [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
+            [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
         const rootNode = mdvBuilder.buildTopDownTreeView();
 
         const histograms = new tr.v.HistogramSet();
@@ -133,23 +133,23 @@ tr.b.unittest.testSuite(function() {
 
   test('reportToHistogramSet_' +
        'doesNotAggregateInitiatorsWithoutAllInitiatorsNode',
-      () => {
-        const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
-          3 /* dimensions (process, thread and rail stage / initiator) */,
-          2 /* valueCount (cpuPercentage and cpuTime) */);
-        mdvBuilder.addPath(
-          [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
-          [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
-        const rootNode = mdvBuilder.buildTopDownTreeView();
+  () => {
+    const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
+        3 /* dimensions (process, thread and rail stage / initiator) */,
+        2 /* valueCount (cpuPercentage and cpuTime) */);
+    mdvBuilder.addPath(
+        [['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS']],
+        [42, 43], tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+    const rootNode = mdvBuilder.buildTopDownTreeView();
 
-        const histograms = new tr.v.HistogramSet();
-        reportToHistogramSet(rootNode, histograms);
+    const histograms = new tr.v.HistogramSet();
+    reportToHistogramSet(rootNode, histograms);
 
-        assert.isUndefined(histograms.getHistogramNamed(
-            'cpuPercentage:' +
+    assert.isUndefined(histograms.getHistogramNamed(
+        'cpuPercentage:' +
             'browser_process:CrBrowserMain:Animation:all_initiators'));
-        assert.isUndefined(histograms.getHistogramNamed(
-            'cpuTime:browser_process:CrBrowserMain:Animation:all_initiators'));
-      });
+    assert.isUndefined(histograms.getHistogramNamed(
+        'cpuTime:browser_process:CrBrowserMain:Animation:all_initiators'));
+  });
 });
 </script>

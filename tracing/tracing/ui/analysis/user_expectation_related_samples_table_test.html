@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
       const s6 = new tr.model.Sample(6, 'a_6', node, m.t2);
       m.samples.push(s1, s2, s3, s4, s5, s6);
       m.ve = new tr.c.TestUtils.newSliceEx(
-        {title: 'V8.Execute', start: 0, end: 4, type: tr.model.ThreadSlice});
+          {title: 'V8.Execute', start: 0, end: 4, type: tr.model.ThreadSlice});
       m.t2.sliceGroup.pushSlice(m.ve);
       m.up = new tr.c.TestUtils.newInteractionRecord(m, 0, 4);
       m.up.associatedEvents.push(m.ve);
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
       return e.title;
     });
     assert.sameMembers(samplesTitles,
-                       ['a_1', 'a_2', 'a_3', 'a_4']);
+        ['a_1', 'a_2', 'a_3', 'a_4']);
   });
 });
 </script>

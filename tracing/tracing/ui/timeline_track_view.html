@@ -634,13 +634,13 @@ Polymer({
       this.timelineView_.setFindCtlText(
           state.toUserFriendlyString(this.viewport_));
     }.bind(this),
-        undefined, // Mouse up handler.
-        function onKeyUpDuringDrag() {
-          if (this.dragBeginEvent_) {
-            this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-                this.dragBoxXEnd_, this.dragBoxYEnd_);
-          }
-        }.bind(this));
+    undefined, // Mouse up handler.
+    function onKeyUpDuringDrag() {
+      if (this.dragBeginEvent_) {
+        this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+            this.dragBoxXEnd_, this.dragBoxYEnd_);
+      }
+    }.bind(this));
   },
 
   queueSmoothPan_(viewDeltaX, deltaY) {

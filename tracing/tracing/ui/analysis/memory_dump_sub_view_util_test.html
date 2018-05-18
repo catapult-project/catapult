@@ -163,8 +163,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(element.tagName, 'TR-V-UI-SCALAR-SPAN');
       assert.strictEqual(element.value, expectedValue);
       assert.strictEqual(element.unit, opt_expectedIsDelta ?
-          tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter :
-          tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter :
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
       assert.deepEqual(element.context, opt_expectedContext);
     };
   }
@@ -880,7 +880,7 @@ tr.b.unittest.testSuite(function() {
     // Undefined field values.
     assert.isAbove(c.cmp({x: buildScalarCell(sizeInBytes_smallerIsBetter,
         [-9999999999])},
-        {x: undefined}), 0);
+    {x: undefined}), 0);
     assert.isBelow(c.cmp({x: new MemoryCell(undefined)},
         {x: buildScalarCell(sizeInBytes_smallerIsBetter, [748, 749])}), 0);
     assert.strictEqual(
@@ -896,8 +896,10 @@ tr.b.unittest.testSuite(function() {
 
     // Multiple field values.
     assert.strictEqual(c.cmp(
-      {x: buildScalarCell(sizeInBytes_smallerIsBetter, [999, undefined, 1001])},
-      {x: buildScalarCell(sizeInBytes_smallerIsBetter, [undefined, 5, 2])}), 0);
+        {x: buildScalarCell(
+            sizeInBytes_smallerIsBetter, [999, undefined, 1001])},
+        {x: buildScalarCell(
+            sizeInBytes_smallerIsBetter, [undefined, 5, 2])}), 0);
   });
 
   test('checkNumericMemoryColumn_compareSingleFields', function() {
@@ -978,9 +980,9 @@ tr.b.unittest.testSuite(function() {
     function checkDiffValue(first, last, expectedDiffValue) {
       const actualDiffValue = c.getDiffFieldValue_(
           first === undefined ? undefined :
-              new Scalar(sizeInBytes_smallerIsBetter, first),
+            new Scalar(sizeInBytes_smallerIsBetter, first),
           last === undefined ? undefined :
-              new Scalar(sizeInBytes_smallerIsBetter, last));
+            new Scalar(sizeInBytes_smallerIsBetter, last));
       assert.closeTo(actualDiffValue, expectedDiffValue, 1e-8);
     }
 

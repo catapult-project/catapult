@@ -340,8 +340,8 @@ tr.exportTo('tr.ui.b', function() {
           .style('margin', 0)
           .append('tr-ui-b-chart-legend-key')
           .property('color', series =>
-                    ((this.currentHighlightedLegendKey === series.key) ?
-                     series.highlightedColor : series.color))
+            ((this.currentHighlightedLegendKey === series.key) ?
+              series.highlightedColor : series.color))
           .property('width', this.margin.right)
           .property('target', series => series.target)
           .property('title', series => series.title)

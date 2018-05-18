@@ -44,10 +44,10 @@ tr.exportTo('tr.model', function() {
     get protectionFlagsToString() {
       if (this.protectionFlags === undefined) return undefined;
       return (
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
+        (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_WRITE ? 'w' : '-') +
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_EXECUTE ?
-              'x' : '-') +
+            'x' : '-') +
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_MAYSHARE ? 's' : 'p')
       );
     }

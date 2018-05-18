@@ -127,7 +127,7 @@ tr.exportTo('tr.e.audits', function() {
           'width': parseInt(match[3]),
           'height': parseInt(match[4]) };
         ret.push(new Alert(AndroidAuditor.viewAlphaAlertInfo_,
-                           slice.start, [slice], args));
+            slice.start, [slice], args));
       } else if (saveLayerRegEx.test(slice.title)) {
         events.push(slice);
       }
@@ -151,7 +151,7 @@ tr.exportTo('tr.e.audits', function() {
 
       events.push(frame);
       ret.push(new Alert(AndroidAuditor.saveLayerAlertInfo_,
-                         earliestStart, events, args));
+          earliestStart, events, args));
     }
 
     return ret;
@@ -238,7 +238,7 @@ tr.exportTo('tr.e.audits', function() {
     args['ListView items ' + (hasInflation ? 'inflated' : 'rebound')] =
         events.length / 2;
     const eventInfo = hasInflation ? AndroidAuditor.ListViewInflateAlertInfo_ :
-        AndroidAuditor.ListViewBindAlertInfo_;
+      AndroidAuditor.ListViewBindAlertInfo_;
     events.push(frame);
     return new Alert(eventInfo, start, events, args);
   };
@@ -372,7 +372,7 @@ tr.exportTo('tr.e.audits', function() {
     }
 
     return new Alert(AndroidAuditor.schedulingAlertInfo_, frame.start, [frame],
-                     args);
+        args);
   };
 
   AndroidAuditor.prototype = {

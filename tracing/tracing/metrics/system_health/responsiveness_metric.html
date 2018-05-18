@@ -73,7 +73,7 @@ tr.exportTo('tr.metrics.sh', function() {
         'animation frameTimeDiscrepancy',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 50).
-          addExponentialBins(1e4, 10));
+            addExponentialBins(1e4, 10));
     const latencyNumeric = new tr.v.Histogram('animation latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 300, 60));

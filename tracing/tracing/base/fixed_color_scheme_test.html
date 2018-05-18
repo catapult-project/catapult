@@ -17,9 +17,9 @@ tr.b.unittest.testSuite(function() {
 
   test('canSpecifyColors', function() {
     const scheme = new tr.b.FixedColorScheme(new Map([
-        ['red', new tr.b.Color(255, 0, 0)],
-        ['green', new tr.b.Color(0, 255, 0)],
-        ['blue', new tr.b.Color(0, 0, 255)],
+      ['red', new tr.b.Color(255, 0, 0)],
+      ['green', new tr.b.Color(0, 255, 0)],
+      ['blue', new tr.b.Color(0, 0, 255)],
     ]));
     assert.strictEqual(scheme.getColor('red').toString(),
         (new tr.b.Color(255, 0, 0)).toString());

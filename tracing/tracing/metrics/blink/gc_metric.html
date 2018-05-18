@@ -47,7 +47,7 @@ tr.exportTo('tr.metrics.blink', function() {
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.
   const CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 20, 200)
-    .addExponentialBins(200, 100);
+      .addExponentialBins(200, 100);
 
   function createNumericForTopEventTime(name) {
     const n = new tr.v.Histogram(name,

@@ -29,7 +29,7 @@ tr.exportTo('tr.metrics.blink', function() {
 
     // Get the dumps.
     const chromeDumps = tr.metrics.sh
-      .splitGlobalDumpsByBrowserName(model, undefined).get('chrome');
+        .splitGlobalDumpsByBrowserName(model, undefined).get('chrome');
 
     const sumCounter = new Map();
     // Add up counters for all the renderer processes.
@@ -72,7 +72,7 @@ tr.exportTo('tr.metrics.blink', function() {
     const processesMemoryDumps = dump.processMemoryDumps;
     if (processesMemoryDumps[pid] === undefined) return counter;
     const blinkObjectsDump = processesMemoryDumps[pid].memoryAllocatorDumps
-      .find(dump => dump.fullName === 'blink_objects');
+        .find(dump => dump.fullName === 'blink_objects');
     for (const v of blinkObjectsDump.children) {
       counter.set(v.name, v.numerics.object_count.value);
     }

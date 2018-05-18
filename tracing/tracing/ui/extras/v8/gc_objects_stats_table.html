@@ -193,8 +193,8 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     diff(other) {
       const entry = new Entry(this.title_, other.count_ - this.count,
-                             other.overall_ - this.overall,
-                             other.overAllocated_ - this.overAllocated, [], []);
+          other.overall_ - this.overall,
+          other.overAllocated_ - this.overAllocated, [], []);
       entry.overallPercent = computePercentage(entry.overall, this.overall);
       entry.overAllocatedPercent = computePercentage(entry.overAllocated,
           this.overAllocated);
@@ -260,8 +260,8 @@ tr.exportTo('tr.ui.e.v8', function() {
       unknownOverAllocated =
         unknownOverAllocated < 0 ? 0 : unknownOverAllocated;
       this.entries_.set(title, new Entry(title, unknownCount, unknownOverall,
-                                         unknownOverAllocated, unknownHistogram,
-                                         unknownOverAllocatedHistogram));
+          unknownOverAllocated, unknownHistogram,
+          unknownOverAllocatedHistogram));
     }
 
     calculatePercentage() {
@@ -604,8 +604,8 @@ tr.exportTo('tr.ui.e.v8', function() {
         if (keyToName !== undefined) title = keyToName(title);
         // Represent memery in KB unit.
         groupEntry.add(new Entry(title, e.count, e.overall / 1024,
-                                 e.over_allocated / 1024, e.histogram,
-                                 e.over_allocated_histogram));
+            e.over_allocated / 1024, e.histogram,
+            e.over_allocated_histogram));
       }
     },
 
@@ -613,8 +613,8 @@ tr.exportTo('tr.ui.e.v8', function() {
       for (const title of Object.getOwnPropertyNames(objects)) {
         const obj = objects[title];
         const groupedEntry = new GroupedEntry(title, 0, 0, 0,
-                                            new Array(bucketSize),
-                                            new Array(bucketSize));
+            new Array(bucketSize),
+            new Array(bucketSize));
         groupedEntry.setFromObject(obj);
         objectEntry.add(groupedEntry);
       }
@@ -624,8 +624,8 @@ tr.exportTo('tr.ui.e.v8', function() {
       for (const groupName of Object.getOwnPropertyNames(
           INSTANCE_TYPE_GROUPS)) {
         const groupEntry = new GroupedEntry(groupName, 0, 0, 0,
-                                          new Array(bucketSize),
-                                          new Array(bucketSize));
+            new Array(bucketSize),
+            new Array(bucketSize));
         if (INSTANCE_TYPE_GROUPS[groupName].realEntry !== undefined) {
           groupEntry.savedRealEntry =
               objects[INSTANCE_TYPE_GROUPS[groupName].realEntry];
@@ -689,8 +689,8 @@ tr.exportTo('tr.ui.e.v8', function() {
 
         const isolateEntry =
             new GroupedEntry(
-              'Isolate_' + isolate + ' at ' + slice.start.toFixed(3) + ' ms',
-              0, 0, 0, [], []);
+                'Isolate_' + isolate + ' at ' + slice.start.toFixed(3) + ' ms',
+                0, 0, 0, [], []);
         const liveEntry = new GroupedEntry('live objects', 0, 0, 0, [], []);
         const deadEntry = new GroupedEntry('dead objects', 0, 0, 0, [], []);
 

@@ -368,17 +368,17 @@ tr.exportTo('tr.ui.tracks', function() {
         ctx.shadowColor = 'red';
         ctx.shadowOffsety = 2;
         ctx.strokeStyle = tr.b.ColorScheme.colorsAsStrings[
-          tr.b.ColorScheme.getVariantColorId(
-              flowEvent.colorId,
-              tr.b.ColorScheme.properties.brightenedOffsets[0])];
+            tr.b.ColorScheme.getVariantColorId(
+                flowEvent.colorId,
+                tr.b.ColorScheme.properties.brightenedOffsets[0])];
       } else if (flowEvent.selectionState === SelectionState.HIGHLIGHTED) {
         ctx.shadowBlur = 1;
         ctx.shadowColor = 'red';
         ctx.shadowOffsety = 2;
         ctx.strokeStyle = tr.b.ColorScheme.colorsAsStrings[
-          tr.b.ColorScheme.getVariantColorId(
-              flowEvent.colorId,
-              tr.b.ColorScheme.properties.brightenedOffsets[0])];
+            tr.b.ColorScheme.getVariantColorId(
+                flowEvent.colorId,
+                tr.b.ColorScheme.properties.brightenedOffsets[0])];
       } else if (flowEvent.selectionState === SelectionState.DIMMED) {
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
@@ -396,9 +396,9 @@ tr.exportTo('tr.ui.tracks', function() {
           ctx.shadowColor = 'rgba(255, 0, 0, 0.4)';
           ctx.shadowOffsety = 2;
           ctx.strokeStyle = tr.b.ColorScheme.colorsAsStrings[
-            tr.b.ColorScheme.getVariantColorId(
-                flowEvent.colorId,
-                tr.b.ColorScheme.properties.brightenedOffsets[0])];
+              tr.b.ColorScheme.getVariantColorId(
+                  flowEvent.colorId,
+                  tr.b.ColorScheme.properties.brightenedOffsets[0])];
         } else {
           ctx.shadowBlur = 0;
           ctx.shadowOffsetX = 0;

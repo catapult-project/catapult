@@ -129,7 +129,7 @@ tr.exportTo('tr.e.cc', function() {
       for (const subSlice of this.enumerateAllDescendents()) {
         // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
         const subSliceIsAInputLatencyAsyncSlice = (
-            subSlice instanceof InputLatencyAsyncSlice);
+          subSlice instanceof InputLatencyAsyncSlice);
         if (!subSliceIsAInputLatencyAsyncSlice) continue;
 
         // If |subSlice| does not have a typeName, then ignore it.
@@ -139,7 +139,7 @@ tr.exportTo('tr.e.cc', function() {
         // typeName, then explode!
         if (this.typeName_ && subSlice.typeName_) {
           const subSliceHasDifferentTypeName = (
-              this.typeName_ !== subSlice.typeName_);
+            this.typeName_ !== subSlice.typeName_);
           if (subSliceHasDifferentTypeName) {
             throw new Error(
                 'InputLatencyAsyncSlice.determineLegacyTypeName_() ' +

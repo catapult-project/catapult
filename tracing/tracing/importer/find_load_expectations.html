@@ -186,15 +186,15 @@ tr.exportTo('tr.importer', function() {
           domContentLoadedEndEvent, searchWindowEnd);
 
     const duration = (interactiveTime === undefined) ?
-     searchWindowEnd - navigationStart.start :
-     interactiveTime - navigationStart.start;
+      searchWindowEnd - navigationStart.start :
+      interactiveTime - navigationStart.start;
 
     return new tr.model.um.LoadExpectation(
-              rendererHelper.modelHelper.model,
-              tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, navigationStart.start,
-              duration, rendererHelper.process, navigationStart, fmpEvent,
-              domContentLoadedEndEvent, firstCpuIdleTime, interactiveTime, url,
-              frameId);
+        rendererHelper.modelHelper.model,
+        tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, navigationStart.start,
+        duration, rendererHelper.process, navigationStart, fmpEvent,
+        domContentLoadedEndEvent, firstCpuIdleTime, interactiveTime, url,
+        frameId);
   }
 
   /**
@@ -236,8 +236,8 @@ tr.exportTo('tr.importer', function() {
         searchWindowEnd, url) {
       let fmpMarkerEvent =
             tr.e.chrome.EventFinderUtils.
-              findLastEventStartingOnOrBeforeTimestamp(fmpCandidateEvents,
-                searchWindowEnd);
+                findLastEventStartingOnOrBeforeTimestamp(fmpCandidateEvents,
+                    searchWindowEnd);
       if (fmpMarkerEvent !== undefined &&
         navigationStart.start > fmpMarkerEvent.start) {
         // Don't use fmpCandidate if it is not corresponding this navigation.

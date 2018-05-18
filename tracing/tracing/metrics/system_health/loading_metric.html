@@ -66,15 +66,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   const LOADING_METRIC_BOUNDARIES = tr.v.HistogramBinBoundaries
-    .createLinear(0, 1e3, 20)  // 50ms step to 1s
-    .addLinearBins(3e3, 20) // 100ms step to 3s
-    .addExponentialBins(20e3, 20);
+      .createLinear(0, 1e3, 20)  // 50ms step to 1s
+      .addLinearBins(3e3, 20) // 100ms step to 3s
+      .addExponentialBins(20e3, 20);
 
   const TIME_TO_INTERACTIVE_BOUNDARIES = tr.v.HistogramBinBoundaries
-    // 90-th percentiile of TTI is around 40 seconds, across warm and cold
-    // loads. Data obtained through Cluster Telemetry analysis.
-    .createExponential(1, 40e3, 35)
-    .addExponentialBins(80e3, 15);
+  // 90-th percentiile of TTI is around 40 seconds, across warm and cold
+  // loads. Data obtained through Cluster Telemetry analysis.
+      .createExponential(1, 40e3, 35)
+      .addExponentialBins(80e3, 15);
 
   const SUMMARY_OPTIONS = {
     avg: true,
@@ -291,7 +291,7 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       }
       const rendererHelper = chromeHelper.rendererHelpers[
-        expectation.renderProcess.pid];
+          expectation.renderProcess.pid];
       if (expectation.fmpEvent !== undefined) {
         addFirstMeaningfulPaintSample(firstMeaningfulPaintSamples,
             rendererHelper, expectation.navigationStart, expectation.fmpEvent,

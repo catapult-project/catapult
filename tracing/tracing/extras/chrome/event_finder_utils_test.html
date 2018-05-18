@@ -97,11 +97,11 @@ tr.b.unittest.testSuite(function() {
 
   test('findLastEventStartingOnOrBeforeTimestamp', () => {
     const sortedEvents = [50, 100, 150, 200].map(ts =>
-        tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: ts,
-          duration: 40.0}));
+      tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: ts,
+        duration: 40.0}));
 
     assert.strictEqual(
         EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
@@ -118,11 +118,11 @@ tr.b.unittest.testSuite(function() {
 
   test('findNextEventStartingAfterTimestamp', () => {
     const sortedEvents = [50, 50, 50, 200].map(ts =>
-        tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: ts,
-          duration: 40.0}));
+      tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: ts,
+        duration: 40.0}));
 
     assert.strictEqual(
         EventFinderUtils.findNextEventStartingAfterTimestamp(

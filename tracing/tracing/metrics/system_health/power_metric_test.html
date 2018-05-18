@@ -406,13 +406,13 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-            model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 200));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-            model, 200, 300));
+          model, 200, 300));
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-            model, tr.model.um.INITIATOR_TYPE.SCROLL, 500, 400));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 500, 400));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-            model, 900, 100));
+          model, 900, 100));
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(histograms, model);

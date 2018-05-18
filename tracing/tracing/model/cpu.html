@@ -234,7 +234,7 @@ tr.exportTo('tr.model', function() {
         // of the next value in the series, or if that doesn't
         // exist, assume this frequency is held until the end.
         const freqEnd = (index < freqSample.series_.length - 1) ?
-            freqSample.series_.samples_[index + 1].timestamp : range.max;
+          freqSample.series_.samples_[index + 1].timestamp : range.max;
 
         const freqRange = tr.b.math.Range.fromExplicitRange(
             freqSample.timestamp, freqEnd);

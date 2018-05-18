@@ -51,10 +51,10 @@ tr.exportTo('tr.ui.tracks', function() {
     buildMemoryLetterDots_(memoryEvents) {
       return memoryEvents.map(
           memoryEvent => new tr.ui.tracks.LetterDot(
-            memoryEvent,
-            'K',
-            ColorScheme.getColorIdForReservedName('background_memory_dump'),
-            memoryEvent.start
+              memoryEvent,
+              'K',
+              ColorScheme.getColorIdForReservedName('background_memory_dump'),
+              memoryEvent.start
           )
       );
     },

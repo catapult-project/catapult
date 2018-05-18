@@ -196,7 +196,7 @@ tr.exportTo('tr.ui.b', function() {
       // If so, skip adjusting the defaults.
       if (model) {
         const newDefaultState = (
-            dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
+          dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
         // Since all the states are the same, we can get the current default
         // state by looking at the first element.
@@ -261,7 +261,7 @@ tr.exportTo('tr.ui.b', function() {
 
       const dimmedEvents = this.dimmedEvents_;
       const defaultState = (
-          dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
+        dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
       for (const e of this.brightenedEvents_) {
         e.selectionState = defaultState;

@@ -47,7 +47,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     clockMark(name, subName, value, ts) {
       const ctr = this.model_.kernel
-              .getOrCreateCounter(null, name + ' ' + subName);
+          .getOrCreateCounter(null, name + ' ' + subName);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',

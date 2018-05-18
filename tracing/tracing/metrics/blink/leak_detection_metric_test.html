@@ -161,9 +161,9 @@ tr.b.unittest.testSuite(function() {
       const renderer1 = createProcessWithName(model, 'Renderer');
       const renderer2 = createProcessWithName(model, 'Renderer');
       const pair1 = [{'renderer': renderer1, 'values': allZeroArray},
-                     {'renderer': renderer2, 'values': allZeroArray}];
+        {'renderer': renderer2, 'values': allZeroArray}];
       const pair2 = [{'renderer': renderer1, 'values': multipleLeaksArray},
-                     {'renderer': renderer2, 'values': multipleLeaksArray}];
+        {'renderer': renderer2, 'values': multipleLeaksArray}];
       createTimestamp(model, browser, pair1, 20);
       createTimestamp(model, browser, pair2, 40);
     });

@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.tracks', function() {
         if (x > viewRWorld) break;
 
         const right = instance.deletionTs === Number.MAX_VALUE ?
-            viewRWorld : instance.deletionTs;
+          viewRWorld : instance.deletionTs;
         const xView = dt.xWorldToView(x);
         const widthView = dt.xWorldVectorToView(right - x);
         ctx.fillStyle = EventPresenter.getObjectInstanceColor(instance);

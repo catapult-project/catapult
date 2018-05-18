@@ -330,7 +330,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(hist.numNans, 4);
     assert.deepEqual(hist.nanDiagnosticMaps.map(dm =>
-          tr.b.getOnlyElement(dm.get('foo'))), ['b', 'c']);
+      tr.b.getOnlyElement(dm.get('foo'))), ['b', 'c']);
 
     const hist2 = tr.v.Histogram.fromDict(hist.asDict());
     assert.instanceOf(hist2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
@@ -359,7 +359,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(hist0.numNans, 2);
     assert.deepEqual(hist0.nanDiagnosticMaps.map(dmd =>
-          tr.b.getOnlyElement(dmd.get('foo'))), ['e0', 'e1']);
+      tr.b.getOnlyElement(dmd.get('foo'))), ['e0', 'e1']);
 
     assert.strictEqual(hist0.allBins[0].count, 2);
     assert.deepEqual(

@@ -428,8 +428,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Check color.
     const actualColor = typeof column.color === 'function' ?
-        column.color(fields, contexts) :
-        column.color;
+      column.color(fields, contexts) :
+      column.color;
     checkColor(actualColor, expectedColorReservedName);
   }
 

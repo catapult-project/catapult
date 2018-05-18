@@ -174,8 +174,8 @@ tr.exportTo('tr.ui.tracks', function() {
       const maxMajorMark = Math.max(transform.viewYToWorldY(viewTop),
           Math.abs(transform.viewYToWorldY(viewBottom)));
       for (let curWorldY = 0;
-          curWorldY <= maxMajorMark;
-          curWorldY += majorMarkHeight) {
+        curWorldY <= maxMajorMark;
+        curWorldY += majorMarkHeight) {
         const roundedUnitValue = Math.floor(curWorldY * 1000000) / 1000000;
         const curViewYPositive = transform.worldYToViewY(curWorldY);
         if (curViewYPositive >= viewTop) {

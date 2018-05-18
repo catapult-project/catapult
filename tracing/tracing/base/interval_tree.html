@@ -47,7 +47,7 @@ tr.exportTo('tr.b', function() {
       const endPosition = this.endPositionCb_(datum);
 
       const node = new IntervalTreeNode(datum,
-                                      startPosition, endPosition);
+          startPosition, endPosition);
       this.size_++;
 
       this.root_ = this.insertNode_(this.root_, node);

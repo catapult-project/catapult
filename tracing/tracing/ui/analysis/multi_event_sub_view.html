@@ -82,7 +82,7 @@ tr.exportTo('tr.ui.analysis', function() {
       const fieldName = item.key;
       if (slice[fieldName] === undefined) continue;
       diagnostics[fieldName] = new tr.v.d.Scalar(new tr.b.Scalar(
-        tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
+          tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
     }
     diagnostics.args = new tr.v.d.GenericSet([slice.args]);
     diagnostics.event = new tr.v.d.RelatedEventSet(slice);
@@ -161,11 +161,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
       if (leftBoundary === rightBoundary) rightBoundary += 1;
       const histogram = new tr.v.Histogram(
-        '',
-        tr.b.Unit.byName.timeDurationInMs,
-        tr.v.HistogramBinBoundaries.createLinear(
-            leftBoundary, rightBoundary,
-            Math.ceil(Math.sqrt(this.currentSelection_.length))));
+          '',
+          tr.b.Unit.byName.timeDurationInMs,
+          tr.v.HistogramBinBoundaries.createLinear(
+              leftBoundary, rightBoundary,
+              Math.ceil(Math.sqrt(this.currentSelection_.length))));
       histogram.customizeSummaryOptions({sum: false});
       for (const slice of this.currentSelection_) {
         histogram.addSample(slice[selectedKey],

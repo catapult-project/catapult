@@ -83,7 +83,7 @@ tr.exportTo('tr.e.v8', function() {
     }
     const parentNode = profileTree.getNode(node.parent);
     const profileNode = new V8CpuProfileNode(nodeId, node.callFrame,
-                                           parentNode);
+        parentNode);
     if (node.deoptReason !== undefined) {
       profileNode.deoptReason = node.deoptReason;
     }

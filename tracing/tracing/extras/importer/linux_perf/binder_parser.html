@@ -205,7 +205,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       const kthread = this.importer_.
           getOrCreateBinderKernelThread(
-          eventBase.threadName, tgid, pid);
+              eventBase.threadName, tgid, pid);
 
       if (kthread.binderLockAquiredTS === undefined) return false;
 
@@ -442,9 +442,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               eventBase.threadName);
           const slice = kthread.thread.sliceGroup.
               pushCompleteSlice('binder',
-              'binder Async recv',
-              ts, .03, 0, 0,
-              args);
+                  'binder Async recv',
+                  ts, .03, 0, 0,
+                  args);
 
           const fakeEvent = [0, 0, 0, 0, 0, 0, 0];
           const fakeTrans = new BinderTransaction(fakeEvent, pid, ts, kthread);
@@ -533,7 +533,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          * going to complete a transaction.
          */
         slice.title = 'binder reply';
-          /* Since this is a recursive transaction we want to create the main
+        /* Since this is a recursive transaction we want to create the main
            * large slice which will contain all these recursive transactions.
            * For that we created the main slice above and this is a recursive
            * transaction that will be placed right below it. Note, that this
@@ -543,18 +543,18 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         const trans1 = new BinderTransaction(event, pid, ts, kthread);
 
         slice = kthread.thread.sliceGroup.
-          pushCompleteSlice('binder',
-            'binder transaction',
-            recvTs,
-              (ts - recvTs), 0,
-            0, args);
+            pushCompleteSlice('binder',
+                'binder transaction',
+                recvTs,
+                (ts - recvTs), 0,
+                0, args);
 
-          /* could be a async trans if so set the length to be a small one */
+        /* could be a async trans if so set the length to be a small one */
         if (!trans.expect_reply) {
           slice.title = 'binder transaction async';
           slice.duration = .03;
         } else {
-            /* stupid hack to stop merging of AIDL slices and
+          /* stupid hack to stop merging of AIDL slices and
              * this slice. This is currently disabled, if AIDL tracing is on we
              * will see merging of this slice and the AIDL slice. Once upstream
              * has a solution for flow events to be placed in the middle of
@@ -562,11 +562,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
              *
              * This is commented out because AIDL tracing doesn't exit yet.
              */
-            // slice.start += .15;
+          // slice.start += .15;
         }
         trans1.slice = slice;
         this.addRecursiveSyncTransNeedingCompletion(pid,
-              [calleeTrans, trans]);
+            [calleeTrans, trans]);
         this.addTransactionWaitingForRecv(trans.transaction_key, trans1);
       }
       return true;

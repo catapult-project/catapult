@@ -331,8 +331,8 @@ tr.exportTo('tr.ui', function() {
 
       this.majorMarkWorldPositions_ = [];
       for (let curX = firstMajorMark;
-           curX < viewRWorld;
-           curX += majorMarkDistanceWorld) {
+        curX < viewRWorld;
+        curX += majorMarkDistanceWorld) {
         this.majorMarkWorldPositions_.push(
             Math.floor(MAJOR_MARK_ROUNDING_FACTOR * curX) /
             MAJOR_MARK_ROUNDING_FACTOR);

@@ -347,21 +347,21 @@ tr.b.unittest.testSuite(function() {
   test('maxExpectedQueueingTimeInSlidingWindow_nonFittingWindowThrows', () => {
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 10, 100,
         [{start: 0, end: 100}]),
-        'The sliding window must fit in the specified time range'
+    'The sliding window must fit in the specified time range'
     );
   });
 
   test('maxExpectedQueueingTimeInSlidingWindow_emptyWindowThrows', () => {
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 10, 0,
         [{start: 0, end: 100}]),
-        'The window size must be positive number'
+    'The window size must be positive number'
     );
   });
 
   test('maxExpectedQueueingTimeInSlidingWindow_overlappingTasksThrow', () => {
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 100, 10,
         [{start: 0, end: 100}, {start: 99, end: 101}]),
-        'Tasks must not overlap'
+    'Tasks must not overlap'
     );
   });
 
@@ -378,7 +378,7 @@ tr.b.unittest.testSuite(function() {
     // Overlap larger than 0.1 should trigger exception.
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 100, 10,
         [{start: 0, end: 100.11}, {start: 100.0, end: 101}]),
-        'Tasks must not overlap'
+    'Tasks must not overlap'
     );
   });
 });

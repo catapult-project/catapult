@@ -236,8 +236,8 @@ tr.exportTo('tr.ui.b', function() {
         tickValues = [];
         const maxPower = sanitizePower(enclosingPowers.max, this.yLogScaleBase);
         for (let power = sanitizePower(enclosingPowers.min, 1);
-             power <= maxPower;
-             power *= this.yLogScaleBase) {
+          power <= maxPower;
+          power *= this.yLogScaleBase) {
           tickValues.push(power);
         }
         tickFormat = v => v.toString();
@@ -366,8 +366,8 @@ tr.exportTo('tr.ui.b', function() {
 
     drawYAxis_(yAxis) {
       let axisModifier = d3.svg.axis()
-        .scale(this.yScale_)
-        .orient('left');
+          .scale(this.yScale_)
+          .orient('left');
 
       let tickFormat;
 
@@ -377,8 +377,8 @@ tr.exportTo('tr.ui.b', function() {
         const enclosingPowers = this.dataRange.enclosingPowers();
         const maxPower = sanitizePower(enclosingPowers.max, this.yLogScaleBase);
         for (let power = sanitizePower(enclosingPowers.min, 1);
-             power <= maxPower;
-             power *= this.yLogScaleBase) {
+          power <= maxPower;
+          power *= this.yLogScaleBase) {
           tickValues.push(power);
         }
 

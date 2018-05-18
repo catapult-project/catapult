@@ -94,7 +94,7 @@ tr.exportTo('tr.e.chrome', function() {
       }
 
       const taskWindowEndTs = navStartTsIndex < navStartTimestamps.length ?
-          navStartTimestamps[navStartTsIndex] : traceEndTimestamp;
+        navStartTimestamps[navStartTsIndex] : traceEndTimestamp;
 
       if (taskWindowEndTs === lastTaskWindowEndTs) {
         // This is the case where we have two different interactive timestamps

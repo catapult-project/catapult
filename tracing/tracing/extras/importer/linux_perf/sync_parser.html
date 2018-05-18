@@ -80,7 +80,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       const tgid = parseInt(eventBase.tgid);
       const thread = this.model_.getOrCreateProcess(tgid)
-        .getOrCreateThread(pid);
+          .getOrCreateThread(pid);
       thread.name = eventBase.threadName;
       const slices = thread.kernelSliceGroup;
       if (!slices.isTimestampValidForBeginOrEnd(ts)) {

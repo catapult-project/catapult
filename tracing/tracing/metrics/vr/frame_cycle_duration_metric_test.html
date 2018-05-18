@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
       sliceGroup.pushSlice(slice);
       slices.push(slice);
       const maxDuration = duration.cpu === undefined ?
-          duration.wall : Math.max(duration.wall, duration.cpu);
+        duration.wall : Math.max(duration.wall, duration.cpu);
       currentTime += maxDuration + 1;
     }
     return slices;

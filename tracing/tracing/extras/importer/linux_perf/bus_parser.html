@@ -63,7 +63,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           tr.b.UnitPrefixScale.BINARY.MEBI);
 
       let ctr = this.model_.kernel
-              .getOrCreateCounter(null, 'bus ' + name + ' read');
+          .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',
             ColorScheme.getColorIdForGeneralPurposeString(
@@ -74,7 +74,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       });
 
       ctr = this.model_.kernel
-              .getOrCreateCounter(null, 'bus ' + name + ' write');
+          .getOrCreateCounter(null, 'bus ' + name + ' write');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',
             ColorScheme.getColorIdForGeneralPurposeString(

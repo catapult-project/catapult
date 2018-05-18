@@ -93,15 +93,15 @@ tr.b.unittest.testSuite(function() {
     const expander1 = new tr.e.importer.ProfilingDictionaryReader();
     const expander2 = expander1.expandData(data);
     assert.deepEqual(expander2.raw.books, [
-        { page_counts: 10 },
-        { page_counts: 20 },
-        { page_counts: 30 },
+      { page_counts: 10 },
+      { page_counts: 20 },
+      { page_counts: 30 },
     ]);
     // Note that the 'inflated' property singularizes key names.
     assert.deepEqual(expander2.inflated.books, [
-        { page_count: 10 },
-        { page_count: 20 },
-        { page_count: 30 },
+      { page_count: 10 },
+      { page_count: 20 },
+      { page_count: 30 },
     ]);
   });
 
@@ -144,10 +144,10 @@ tr.b.unittest.testSuite(function() {
       },
     });
     assert.deepEqual(expander2.inflated.sales, [
-        { time: 100, price: 1 },
-        { time: 100, price: 2 },
-        { time: 100, price: 3 },
-        { time: 100, price: 4 },
+      { time: 100, price: 1 },
+      { time: 100, price: 2 },
+      { time: 100, price: 3 },
+      { time: 100, price: 4 },
     ]);
   });
 
@@ -164,10 +164,10 @@ tr.b.unittest.testSuite(function() {
       },
     });
     assert.deepEqual(expander2.inflated.sales, [
-        { time: 101, timeDelta: 1, price: 1 },
-        { time: 102, timeDelta: 1, price: 2 },
-        { time: 112, timeDelta: 10, price: 3 },
-        { time: 122, timeDelta: 10, price: 4 },
+      { time: 101, timeDelta: 1, price: 1 },
+      { time: 102, timeDelta: 1, price: 2 },
+      { time: 112, timeDelta: 10, price: 3 },
+      { time: 122, timeDelta: 10, price: 4 },
     ]);
   });
 
@@ -217,9 +217,9 @@ tr.b.unittest.testSuite(function() {
     const expander1 = new tr.e.importer.ProfilingDictionaryReader();
     const expander2 = expander1.expandEvent(makeEvent(data));
     assert.deepEqual(expander2.raw.books, [
-        { pages: 10 },
-        { pages: 20 },
-        { pages: 30 },
+      { pages: 10 },
+      { pages: 20 },
+      { pages: 30 },
     ]);
   });
 

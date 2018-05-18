@@ -180,7 +180,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Child title (list index) -> Child HeapDumpTreeNode.
       const dimensionChildNodes = [];
       for (const [childTitle, childStackFrameNodes] of
-          Object.entries(dimensionChildTitleToStackFrameNodes)) {
+        Object.entries(dimensionChildTitleToStackFrameNodes)) {
         dimensionChildNodes.push(new HeapDumpTreeNode(childStackFrameNodes,
             dimension, childTitle, this.heavyView_, this));
       }
@@ -232,7 +232,7 @@ tr.exportTo('tr.ui.analysis', function() {
         // displayed child node that did NOT display allocation count.
         otherNode.values[1].totalState =
             allDisplayedChildrenHaveDisplayedCounts ?
-                this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED;
+              this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED;
       }
 
       return childDict;
@@ -425,15 +425,15 @@ tr.exportTo('tr.ui.analysis', function() {
       for (const entry of heapDump.entries) {
         const leafStackFrame = entry.leafStackFrame;
         const stackTracePath = leafStackFrame === undefined ?
-            [] : leafStackFrame.getUserFriendlyStackTrace().reverse();
+          [] : leafStackFrame.getUserFriendlyStackTrace().reverse();
 
         const objectTypeName = entry.objectTypeName;
         const objectTypeNamePath = objectTypeName === undefined ?
-            [] : [objectTypeName];
+          [] : [objectTypeName];
 
         const valueKind = entry.valuesAreTotals ?
-            MultiDimensionalViewBuilder.ValueKind.TOTAL :
-            MultiDimensionalViewBuilder.ValueKind.SELF;
+          MultiDimensionalViewBuilder.ValueKind.TOTAL :
+          MultiDimensionalViewBuilder.ValueKind.SELF;
 
         builder.addPath([stackTracePath, objectTypeNamePath],
             [entry.size, entry.count],

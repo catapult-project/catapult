@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         params
       });
       const devtoolsMessageStr = JSON.stringify(
-        {id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
+          {id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
       this.devToolsHost_.sendMessageToEmbedder(devtoolsMessageStr);
 
       return new Promise(function(resolve, reject) {
@@ -56,8 +56,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       // Special handling for Tracing.dataCollected because it is high
       // bandwidth.
       const isDataCollectedMessage = isStringPayload ?
-          payload.includes('"method": "Tracing.dataCollected"') :
-          payload.method === 'Tracing.dataCollected';
+        payload.includes('"method": "Tracing.dataCollected"') :
+        payload.method === 'Tracing.dataCollected';
       if (isDataCollectedMessage) {
         const listener = this.notificationListenersByMethodName_[
             'Tracing.dataCollected'];
@@ -87,7 +87,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       if (message.method) {
         const listener = this.notificationListenersByMethodName_[
-          message.method];
+            message.method];
         if (listener === undefined) return;
         listener(message.params);
         return;

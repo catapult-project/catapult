@@ -36,7 +36,7 @@ found in the LICENSE file.
       // created, so wait until the tr-ui-b-resize-sensor is attached to the
       // DOM before creating the ResizeSensor.
       this.sensor_ = new ResizeSensor(this.$.container,
-                                      this.onResize_.bind(this));
+          this.onResize_.bind(this));
       // ResizeSensor appends a div to this.$.container. That div must be a
       // direct sibling of <content>.
       // ResizeSensor's first argument must be a Node, so it cannot be

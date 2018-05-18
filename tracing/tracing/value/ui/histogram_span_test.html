@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
     const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
-        e.id === 'merge_sample_diagnostics');
+      e.id === 'merge_sample_diagnostics');
     assert.isTrue(merge.checked);
 
     await span.viewState.update({mergeSampleDiagnostics: false});
@@ -133,7 +133,7 @@ tr.b.unittest.testSuite(function() {
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
     const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
-        e.id === 'merge_sample_diagnostics');
+      e.id === 'merge_sample_diagnostics');
     assert.isTrue(merge.checked);
 
     merge.click();
@@ -276,10 +276,10 @@ tr.b.unittest.testSuite(function() {
     span.build(tr.v.Histogram.create(
         '', tr.b.Unit.byName.count, [
           {value: 1, diagnostics: new Map([
-              ['sample diagnostic', new tr.v.d.GenericSet(['value1'])],
+            ['sample diagnostic', new tr.v.d.GenericSet(['value1'])],
           ])},
           {value: 10, diagnostics: new Map([
-              ['sample diagnostic', new tr.v.d.GenericSet(['value10'])],
+            ['sample diagnostic', new tr.v.d.GenericSet(['value10'])],
           ])},
         ], {
           diagnostics: new Map([

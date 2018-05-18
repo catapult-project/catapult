@@ -96,19 +96,19 @@ tr.exportTo('tr.e.chrome.cpuTimeTestUtils', function() {
         switch (expSpec.stage) {
           case 'Animation':
             expectations.push(new tr.model.um.AnimationExpectation(
-              model, expSpec.initiatorType,
-              expSpec.range[0], expSpec.range[1] - expSpec.range[0]
+                model, expSpec.initiatorType,
+                expSpec.range[0], expSpec.range[1] - expSpec.range[0]
             ));
             break;
           case 'Idle':
             expectations.push(new tr.model.um.IdleExpectation(
-              model, expSpec.range[0], expSpec.range[1] - expSpec.range[0]
+                model, expSpec.range[0], expSpec.range[1] - expSpec.range[0]
             ));
             break;
           case 'Response':
             expectations.push(new tr.model.um.ResponseExpectation(
-              model, expSpec.initiatorType,
-              expSpec.range[0], expSpec.range[1] - expSpec.range[0]
+                model, expSpec.initiatorType,
+                expSpec.range[0], expSpec.range[1] - expSpec.range[0]
             ));
             break;
           default:

@@ -135,7 +135,7 @@ found in the LICENSE file.
 
       promoteSparkLine_(event) {
         const seriesGroups = event.detail.testpaths.map(t =>
-            new d.SeriesGroup(t.testpath, [t.testpath], []));
+          new d.SeriesGroup(t.testpath, [t.testpath], []));
         this.addChart({seriesGroups});
         this.fireNumChartChangedEvent();
       },
@@ -200,7 +200,7 @@ found in the LICENSE file.
 
         // When all seriesGroups are ready, compile them into a chartState.
         return Promise.all(seriesGroupPromises).then(seriesGroups =>
-            Object.assign(chartState, {seriesGroups}));
+          Object.assign(chartState, {seriesGroups}));
       },
 
       /**
@@ -315,7 +315,7 @@ found in the LICENSE file.
           const mainPath = this.testPicker.getCurrentSelectedPath();
           const unselectedPaths = this.testPicker.getCurrentUnselected();
           const seriesGroup = new d.SeriesGroup(mainPath, selectedPaths,
-                                                unselectedPaths);
+              unselectedPaths);
           this.addChart({seriesGroups: [seriesGroup]}, true);
         }
         this.fireNumChartChangedEvent();

@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     testFindVSyncTimestamps([
       [buildSlice('MessageLoop::RunTask', 10),
         buildSlice('MessageLoop::RunTask', 20)],
-        [buildSlice('MessageLoop::RunTask', 15)]
+      [buildSlice('MessageLoop::RunTask', 15)]
     ], [], []);
   });
 
@@ -73,34 +73,34 @@ tr.b.unittest.testSuite(function() {
 
   test('findMultipleVsyncs', function() {
     testFindVSyncTimestamps([
-        [buildSlice('VSYNC', 1), buildSlice('MessageLoop::RunTask', 2)],
-        [buildSlice('MessageLoop::RunTask', 3)],
-        [buildSlice('MessageLoop::RunTask', 4), buildSlice('VSYNC', 5)],
-        [buildSlice('VSYNC', 6), buildSlice('VSYNC', 7)]
+      [buildSlice('VSYNC', 1), buildSlice('MessageLoop::RunTask', 2)],
+      [buildSlice('MessageLoop::RunTask', 3)],
+      [buildSlice('MessageLoop::RunTask', 4), buildSlice('VSYNC', 5)],
+      [buildSlice('VSYNC', 6), buildSlice('VSYNC', 7)]
     ], [], [1, 5, 6, 7]);
   });
 
   test('filterNearDuplicates', function() {
     testFindVSyncTimestamps([
-        [buildSlice('VSYNC', 1), buildSlice('VSYNC', 1)],
-        [buildSlice('VSYNC', 2), buildSlice('VSYNC', 2.1)],
-        [buildSlice('VSYNC', 3), buildSlice('VSYNC', 4)],
+      [buildSlice('VSYNC', 1), buildSlice('VSYNC', 1)],
+      [buildSlice('VSYNC', 2), buildSlice('VSYNC', 2.1)],
+      [buildSlice('VSYNC', 3), buildSlice('VSYNC', 4)],
     ], [], [1, 2, 3, 4]);
   });
 
   test('findMultipleAndroidVsyncs', function() {
     testFindVSyncTimestamps([
-        [buildSlice('MessageLoop::RunTask', 2)],
-        [buildSlice('MessageLoop::RunTask', 3)],
-        [buildSlice('MessageLoop::RunTask', 4)]
+      [buildSlice('MessageLoop::RunTask', 2)],
+      [buildSlice('MessageLoop::RunTask', 3)],
+      [buildSlice('MessageLoop::RunTask', 4)]
     ],
-        [
-          {
-            category: 'android',
-            name: 'VSYNC-app',
-            series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
-          }
-        ], [1, 5, 6, 7]);
+    [
+      {
+        category: 'android',
+        name: 'VSYNC-app',
+        series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
+      }
+    ], [1, 5, 6, 7]);
   });
 
   test('findUnsorted', function() {

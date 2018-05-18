@@ -224,7 +224,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     maliDDKOpenSlice(pid, tid, ts, func, blockinfo) {
       const thread = this.importer.model_.getOrCreateProcess(pid)
-        .getOrCreateThread(tid);
+          .getOrCreateThread(tid);
       const funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
       thread.sliceGroup.beginSlice('gpu-driver', funcArgs[1], ts,
           { 'args': funcArgs[2],
@@ -233,7 +233,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     maliDDKCloseSlice(pid, tid, ts, args, blockinfo) {
       const thread = this.importer.model_.getOrCreateProcess(pid)
-        .getOrCreateThread(tid);
+          .getOrCreateThread(tid);
       if (!thread.sliceGroup.openSliceCount) {
         // Discard unmatched ends.
         return;

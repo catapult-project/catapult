@@ -320,17 +320,17 @@ tr.exportTo('tr.metrics.webrtc', function() {
   function getSmoothnessStats(driftTimes) {
     const meanDriftTime = tr.b.math.Statistics.mean(driftTimes);
     const normDriftTimes = driftTimes.map(driftTime =>
-        Math.abs(driftTime - meanDriftTime));
+      Math.abs(driftTime - meanDriftTime));
 
     // How many times is a frame later/earlier than T=2*VSYNC_DURATION_US. Time
     // is in microseconds
     const framesSeverelyOutOfSync = normDriftTimes
-      .filter(driftTime => driftTime > 2 * VSYNC_DURATION_US)
-      .length;
+        .filter(driftTime => driftTime > 2 * VSYNC_DURATION_US)
+        .length;
     // How many times is a frame later/earlier than VSYNC_DURATION_US.
     const framesOutOfSync = normDriftTimes
-      .filter(driftTime => driftTime > VSYNC_DURATION_US)
-      .length;
+        .filter(driftTime => driftTime > VSYNC_DURATION_US)
+        .length;
 
     const percentBadlyOutOfSync = framesSeverelyOutOfSync /
       driftTimes.length;

@@ -12,7 +12,7 @@ tr.exportTo('tr.importer', function() {
   class SimpleLineReader {
     constructor(text) {
       this.data_ = text instanceof tr.b.TraceStream ?
-          text : text.split(new RegExp('\r?\n'));
+        text : text.split(new RegExp('\r?\n'));
       this.curLine_ = 0;
       this.readLastLine_ = false;
       this.savedLines_ = undefined;

@@ -136,7 +136,7 @@ tr.b.unittest.testSuite(function() {
         Polymer.dom(dlg).querySelector('input#disabled-by-default-bar').click();
 
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-bar']);
+        ['disabled-by-default-bar']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded, []);
 
     assert.isFalse(
@@ -188,7 +188,7 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(dlg).querySelector('.default-disabled-categories .all-btn')
         .click();
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-one']);
+        ['disabled-by-default-one']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded, []);
     assert.isTrue(
         tr.b.Settings.get('disabled-by-default-one', false, 'categories'));
@@ -221,7 +221,7 @@ tr.b.unittest.testSuite(function() {
     // Make sure the default filter is returned.
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['three', 'two']);
+        ['three', 'two']);
 
     // Make sure the default tracing types are returned.
     assert.strictEqual(dlg.tracingRecordMode, 'record-until-full');
@@ -260,7 +260,7 @@ tr.b.unittest.testSuite(function() {
     let dlg = createDialog();
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['one', 'two']);
+        ['one', 'two']);
     assert.isTrue(dlg.usingPreset_());
     assert.isFalse(
         dlg.querySelector('#category-preset-Manually-select-settings').checked);
@@ -270,7 +270,7 @@ tr.b.unittest.testSuite(function() {
     dlg.onClickEditCategories();
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['one', 'two']);
+        ['one', 'two']);
     assert.isTrue(dlg.usingPreset_());
     assert.isFalse(
         dlg.querySelector('#category-preset-Manually-select-settings').checked);
@@ -280,7 +280,7 @@ tr.b.unittest.testSuite(function() {
     Array.prototype.forEach.call(dlg.querySelectorAll('.categories input'),
         checkbox => checkbox.click());
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-three']);
+        ['disabled-by-default-three']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded, []);
     assert.isFalse(dlg.usingPreset_());
     assert.isTrue(
@@ -291,7 +291,7 @@ tr.b.unittest.testSuite(function() {
     dlg = createDialog();
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['one', 'two']);
+        ['one', 'two']);
     assert.isTrue(dlg.usingPreset_());
     assert.isFalse(
         dlg.querySelector('#category-preset-Manually-select-settings').checked);
@@ -318,7 +318,7 @@ tr.b.unittest.testSuite(function() {
     // Make sure the default filter is returned.
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['three', 'two']);
+        ['three', 'two']);
 
     // Make sure the default tracing types are returned.
     assert.strictEqual(dlg.tracingRecordMode, 'record-as-much-as-possible');
@@ -337,7 +337,7 @@ tr.b.unittest.testSuite(function() {
 
     // Make sure the default filter is returned.
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-cc.debug']);
+        ['disabled-by-default-cc.debug']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded, ['three']);
 
     // Make sure the tracing types set by catalog are returned.
@@ -350,9 +350,9 @@ tr.b.unittest.testSuite(function() {
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-cc.debug']);
+        ['disabled-by-default-cc.debug']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['three', 'two']);
+        ['three', 'two']);
   });
 
   test('recordSelectionDialog_savedPreset', function() {
@@ -373,7 +373,7 @@ tr.b.unittest.testSuite(function() {
     // Make sure the correct filter is returned.
     assert.deepEqual(dlg.includedAndExcludedCategories().included, []);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['three', 'two']);
+        ['three', 'two']);
 
     // Make sure the correct tracing types are returned.
     assert.strictEqual(dlg.tracingRecordMode, 'record-continuously');
@@ -410,17 +410,17 @@ tr.b.unittest.testSuite(function() {
     dlg.updateForm_();
 
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-cc.debug']);
+        ['disabled-by-default-cc.debug']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['cc', 'disabled1']);
+        ['cc', 'disabled1']);
 
     // Switch to the graphics, rendering, and rasterization preset.
     dlg.currentlyChosenPreset = ['blink', 'cc', 'renderer',
       'disabled-by-default-cc.debug'];
     assert.deepEqual(dlg.includedAndExcludedCategories().included,
-                     ['disabled-by-default-cc.debug']);
+        ['disabled-by-default-cc.debug']);
     assert.deepEqual(dlg.includedAndExcludedCategories().excluded,
-                     ['default1', 'disabled1', 'input']);
+        ['default1', 'disabled1', 'input']);
   });
 });
 </script>

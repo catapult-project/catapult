@@ -42,18 +42,18 @@ tr.b.unittest.testSuite(function() {
 
   test('pointInside', function() {
     const q = tr.b.math.Quad.from4Vecs([0, 0],
-                                [1, 0],
-                                [1, 1],
-                                [0, 1]);
+        [1, 0],
+        [1, 1],
+        [0, 1]);
     const res = q.pointInside([0.5, 0.5]);
     assert.isTrue(res);
   });
 
   test('pointNotInQuad', function() {
     const q = tr.b.math.Quad.from4Vecs([0, 0],
-                                [1, 0],
-                                [1, 1],
-                                [0, 1]);
+        [1, 0],
+        [1, 1],
+        [0, 1]);
     const res = q.pointInside([1.5, 0.5]);
     assert.isFalse(res);
   });

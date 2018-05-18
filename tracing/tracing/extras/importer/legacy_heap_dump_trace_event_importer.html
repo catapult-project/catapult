@@ -182,7 +182,7 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         const count = entry.count === undefined ? undefined :
-            parseInt(entry.count, 16);
+          parseInt(entry.count, 16);
         heapDump.addEntry(leafStackFrame, objectTypeName, size, count);
       }
 

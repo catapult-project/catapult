@@ -155,7 +155,7 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       const interactiveWindow =
           tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
-          .findIntersection(rendererHelper.mainThread.bounds);
+              .findIntersection(rendererHelper.mainThread.bounds);
       interactiveHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               interactiveWindow.min, interactiveWindow.max,
@@ -318,7 +318,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function extractTaskRCS(getEventTimes, predicate, rendererHelper) {
     const result = [];
     for (const topSlice of
-        rendererHelper.mainThread.sliceGroup.topLevelSlices) {
+      rendererHelper.mainThread.sliceGroup.topLevelSlices) {
       const times = getEventTimes(topSlice);
       if (times.duration <= 0 || containsForcedGC_(topSlice)) {
         continue;
@@ -443,7 +443,7 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       const interactiveWindow =
           tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
-          .findIntersection(rendererHelper.mainThread.bounds);
+              .findIntersection(rendererHelper.mainThread.bounds);
       interactiveHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               interactiveWindow.min, interactiveWindow.max,

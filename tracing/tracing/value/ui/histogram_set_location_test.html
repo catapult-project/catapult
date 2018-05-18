@@ -212,7 +212,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, hsl.viewState.tableRowStates.size);
 
     await hsl.viewState.update({tableRowStates: new Map([
-        ['f:m_p', new tr.v.ui.HistogramSetTableRowState()],
+      ['f:m_p', new tr.v.ui.HistogramSetTableRowState()],
     ])});
     assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
 
@@ -221,7 +221,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
 
     await hsl.viewState.tableRowStates.get('f:m_p').update({cells: new Map([
-        ['Value', new tr.v.ui.HistogramSetTableCellState()],
+      ['Value', new tr.v.ui.HistogramSetTableCellState()],
     ])});
     assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').cells.get('Value').isOpen);
 
@@ -270,7 +270,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, hsl.viewState.tableRowStates.size);
 
     await hsl.viewState.update({tableRowStates: new Map([
-        ['f:m_p', new tr.v.ui.HistogramSetTableRowState()],
+      ['f:m_p', new tr.v.ui.HistogramSetTableRowState()],
     ])});
     assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
 
@@ -279,7 +279,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
 
     await hsl.viewState.tableRowStates.get('f:m_p').update({cells: new Map([
-        ['Value', new tr.v.ui.HistogramSetTableCellState()],
+      ['Value', new tr.v.ui.HistogramSetTableCellState()],
     ])});
     assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').cells.get('Value').isOpen);
 

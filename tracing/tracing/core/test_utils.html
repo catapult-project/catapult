@@ -274,7 +274,7 @@ tr.exportTo('tr.c', function() {
 
   TestUtils.newProfileNode = function(model, title, parentNode) {
     return new tr.model.ProfileNode(
-      tr.b.GUID.allocateSimple(), title, parentNode);
+        tr.b.GUID.allocateSimple(), title, parentNode);
   };
 
   TestUtils.newProfileNodes = function(model, titles) {
@@ -288,7 +288,7 @@ tr.exportTo('tr.c', function() {
   TestUtils.newSnapshot = function(model, options) {
     return model.getOrCreateProcess(options.pid || 1).objects.addSnapshot(
         new tr.model.ScopedId(options.scope || tr.model.OBJECT_DEFAULT_SCOPE,
-                              options.id || '0x1'),
+            options.id || '0x1'),
         options.category || 'cat',
         options.name || 'A',
         options.ts || 0,
@@ -328,13 +328,13 @@ tr.exportTo('tr.c', function() {
     io.showImportWarnings = false;
     io.customizeModelCallback = opts.customizeModelCallback;
     io.trackDetailedModelStats = opts.trackDetailedModelStats === undefined ?
-        false : opts.trackDetailedModelStats;
+      false : opts.trackDetailedModelStats;
     io.shiftWorldToZero = opts.shiftWorldToZero === undefined ?
-        true : opts.shiftWorldToZero;
+      true : opts.shiftWorldToZero;
     io.pruneEmptyContainers = opts.pruneEmptyContainers === undefined ?
-        true : opts.pruneEmptyContainers;
+      true : opts.pruneEmptyContainers;
     io.auditorConstructors = opts.auditorConstructors === undefined ?
-        [] : opts.auditorConstructors;
+      [] : opts.auditorConstructors;
 
     const m = new tr.Model();
     const i = new tr.importer.Import(m, io);

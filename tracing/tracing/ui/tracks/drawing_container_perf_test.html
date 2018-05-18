@@ -87,13 +87,13 @@ tr.b.unittest.testSuite(function() {
   // Failing on Chrome canary, see
   // https://github.com/catapult-project/catapult/issues/1826
   flakyTest(new GeneralDCPerfTestCase('draw_softwareCanvas_One',
-                                      {iterations: 1}));
+      {iterations: 1}));
   // Failing on Chrome stable on Windows, see
   // https://github.com/catapult-project/catapult/issues/1908
   flakyTest(new GeneralDCPerfTestCase('draw_softwareCanvas_Ten',
-                                 {iterations: 10}));
+      {iterations: 10}));
   test(new GeneralDCPerfTestCase('draw_softwareCanvas_AHundred',
-                                 {iterations: 100}));
+      {iterations: 100}));
 
   function AsyncDCPerfTestCase(testName, opt_options) {
     DCPerfTestCase.call(this, testName, opt_options);
@@ -131,7 +131,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
   test(new AsyncDCPerfTestCase('draw_asyncSliceHeavy_Twenty',
-                                 {iterations: 20}));
+      {iterations: 20}));
 });
 </script>
 

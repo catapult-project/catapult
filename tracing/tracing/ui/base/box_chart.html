@@ -81,7 +81,7 @@ tr.exportTo('tr.ui.b', function() {
             .attr('fill', color)
             .attr('x', this.xScale_(index + 0.2))
             .attr('width',
-            this.xScale_(index + 0.8) - this.xScale_(index + 0.2))
+                this.xScale_(index + 0.8) - this.xScale_(index + 0.2))
             .attr('y', this.yScale_(datum.percentile_75))
             .attr('height', this.yScale_(datum.percentile_25) -
               this.yScale_(datum.percentile_75));

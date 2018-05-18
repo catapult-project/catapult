@@ -754,7 +754,7 @@ tr.b.unittest.testSuite(function() {
 
       // Check getAllThreads.
       assert.deepEqual(m.getAllThreads(),
-                        [m.processes[1].threads[1], m.processes[2].threads[2]]);
+          [m.processes[1].threads[1], m.processes[2].threads[2]]);
     }
 
     const events = [
@@ -3151,7 +3151,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(m.samples[0].title, 'cycles:HG');
       assert.strictEqual(m.samples[0].start, 1);
       assert.deepEqual(
-        ['a_sub', 'a', 'main'],
+          ['a_sub', 'a', 'main'],
           m.samples[0].userFriendlyStack
               .map(x => x.substr(0, x.indexOf('url') - 1)));
       assert.strictEqual(m.samples[0].weight, 1);
@@ -5687,13 +5687,13 @@ tr.b.unittest.testSuite(function() {
 
     const eventData = { traceEvents: [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'}],
-      traceAnnotations: [
-        {typeName: 'xmarker', args: {timestamp: 12}},
-        {typeName: 'rect', args: {
-          start: location1.toDict(), end: location2.toDict()}},
-        {typeName: 'comment_box', args: {text: 'test',
-          location: location1.toDict()}}
-      ]};
+    traceAnnotations: [
+      {typeName: 'xmarker', args: {timestamp: 12}},
+      {typeName: 'rect', args: {
+        start: location1.toDict(), end: location2.toDict()}},
+      {typeName: 'comment_box', args: {text: 'test',
+        location: location1.toDict()}}
+    ]};
     checkParsedAndStreamInput(eventData, checkModel);
   });
 
@@ -6355,11 +6355,11 @@ tr.b.unittest.testSuite(function() {
               'timeDeltas': [1, 1],
               'cpuProfile': {
                 'nodes': [
-                 // eslint-disable-next-line
+                  // eslint-disable-next-line
                  {'callFrame': {'functionName': '(root)', 'scriptId': 0}, 'id': 1},
-                 // eslint-disable-next-line
+                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'a', 'url': 'a.js', 'scriptId': 1, 'lineNumber': 1, 'columnNumber': 2}, 'id': 2, 'parent': 1},
-                 // eslint-disable-next-line
+                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'b', 'url': 'b.js', 'scriptId': 2, 'lineNumber': 1, 'columnNumber': 2}, 'deoptReason': 'a reason', 'id': 3, 'parent': 2}
                 ],
                 'samples': [3, 2]
@@ -6376,9 +6376,9 @@ tr.b.unittest.testSuite(function() {
               'timeDeltas': [3, 3],
               'cpuProfile': {
                 'nodes': [
-                 // eslint-disable-next-line
+                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'c', 'url': 'c.js', 'scriptId': 3, 'lineNumber': 2, 'columnNumber': 3}, 'id': 4, 'parent': 2},
-                 // eslint-disable-next-line
+                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'd', 'url': 'd.js', 'scriptId': 4, 'lineNumber': 2, 'columnNumber': 3}, 'deoptReason': 'another reason', 'id': 5, 'parent': 3}
                 ],
                 'samples': [5, 4]

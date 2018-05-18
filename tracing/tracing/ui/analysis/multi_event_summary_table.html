@@ -88,7 +88,7 @@ Polymer({
           return tr.v.ui.createScalarSpan(row.duration, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
-                tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
+              tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
             ownerDocument,
           });
         },
@@ -106,7 +106,7 @@ Polymer({
           return tr.v.ui.createScalarSpan(row.cpuDuration, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
-                tr.b.math.Range.fromExplicitRange(0, maxValues.cpuDuration),
+              tr.b.math.Range.fromExplicitRange(0, maxValues.cpuDuration),
             ownerDocument,
           });
         },
@@ -124,7 +124,7 @@ Polymer({
           return tr.v.ui.createScalarSpan(row.selfTime, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
-                tr.b.math.Range.fromExplicitRange(0, maxValues.selfTime),
+              tr.b.math.Range.fromExplicitRange(0, maxValues.selfTime),
             ownerDocument,
           });
         },
@@ -142,7 +142,7 @@ Polymer({
           return tr.v.ui.createScalarSpan(row.cpuSelfTime, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
-                tr.b.math.Range.fromExplicitRange(0, maxValues.cpuSelfTime),
+              tr.b.math.Range.fromExplicitRange(0, maxValues.cpuSelfTime),
             ownerDocument,
           });
         },
@@ -161,7 +161,7 @@ Polymer({
           return tr.v.ui.createScalarSpan(totalDuration / row.numEvents, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
-                tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
+              tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
             ownerDocument,
           });
         },
@@ -332,7 +332,7 @@ Polymer({
 
     if (this.showTotals_) {
       const multiEventSummary = new tr.ui.analysis.MultiEventSummary(
-        'Totals', allEvents);
+          'Totals', allEvents);
       footerRows.push(multiEventSummary);
     }
 

@@ -59,12 +59,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     getCtr_(ctrName, valueName) {
       const ctr = this.model_.kernel
-        .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
+          .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
         ctr.addSeries(new tr.model.CounterSeries(valueName,
-        ColorScheme.getColorIdForGeneralPurposeString(
-            ctrName + '.' + valueName)));
+            ColorScheme.getColorIdForGeneralPurposeString(
+                ctrName + '.' + valueName)));
       }
       return ctr;
     },

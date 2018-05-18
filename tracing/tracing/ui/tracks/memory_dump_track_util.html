@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.tracks', function() {
   /** Extract PSS values of processes in a global memory dump. */
   function extractGlobalMemoryDumpUsedSizes(globalMemoryDump, addSize) {
     for (const [pid, pmd] of
-        Object.entries(globalMemoryDump.processMemoryDumps)) {
+      Object.entries(globalMemoryDump.processMemoryDumps)) {
       const mostRecentVmRegions = pmd.mostRecentVmRegions;
       if (mostRecentVmRegions === undefined) continue;
       addSize(pid, mostRecentVmRegions.byteStats.proportionalResident || 0,
@@ -225,7 +225,7 @@ tr.exportTo('tr.ui.tracks', function() {
       const valueRange = new tr.b.math.Range();
       for (const sample of series.samples) {
         chartPoints.push(new tr.ui.tracks.ChartPoint(
-                         sample, sample.timestamp, sample.value, 0));
+            sample, sample.timestamp, sample.value, 0));
         valueRange.addValue(sample.value);
       }
       // Stretch min to max range over the top half of a chart for readability.
@@ -233,7 +233,7 @@ tr.exportTo('tr.ui.tracks', function() {
       const axisY = new tr.ui.tracks.ChartSeriesYAxis(baseLine, valueRange.max);
       const chartSeries =
           [new tr.ui.tracks.ChartSeries(chartPoints, axisY,
-                                        SYSTEM_MEMORY_CHART_RENDERING_CONFIG)];
+              SYSTEM_MEMORY_CHART_RENDERING_CONFIG)];
       tracks.push({
         name: 'System Memory ' + name,
         series: chartSeries

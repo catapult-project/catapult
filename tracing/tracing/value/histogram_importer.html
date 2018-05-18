@@ -99,7 +99,7 @@ tr.exportTo('tr.v', function() {
     }
 
     async displayHistograms_() {
-      this.view_.addEventListener('display-ready', async () => {
+      this.view_.addEventListener('display-ready', async() => {
         this.loadingEl_.style.display = 'none';
         this.view_.style.display = 'block';
         await tr.b.animationFrame();

@@ -52,9 +52,9 @@ tr.b.unittest.testSuite(function() {
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', '');
     assert.deepEqual(fixture.get('suggestedItems'), [
-        {'name': 'Bar'},
-        {'name': 'Foo'},
-        {'name': 'Fooish'},
+      {'name': 'Bar'},
+      {'name': 'Foo'},
+      {'name': 'Fooish'},
     ]);
   }, testOptions);
 
@@ -63,8 +63,8 @@ tr.b.unittest.testSuite(function() {
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'Foo');
     assert.deepEqual(fixture.get('suggestedItems'), [
-        {'name': 'Foo'},
-        {'name': 'Fooish'},
+      {'name': 'Foo'},
+      {'name': 'Fooish'},
     ]);
   }, testOptions);
 
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     fixture.set('query', 'Foo');
     fixture.set('query', 'Foois');
     assert.deepEqual(fixture.get('suggestedItems'), [
-        {'name': 'Fooish'},
+      {'name': 'Fooish'},
     ]);
   }, testOptions);
 
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
     fixture.set('query', 'Foo');
     fixture.shift('items');
     assert.deepEqual(fixture.get('suggestedItems'), [
-        {'name': 'Fooish'},
+      {'name': 'Fooish'},
     ]);
   }, testOptions);
 
@@ -203,9 +203,9 @@ tr.b.unittest.testSuite(function() {
     const box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
     box.items = [
-        {'name': 'Apples'},
-        {'name': 'Bananas'},
-        {'name': 'Carrots'}
+      {'name': 'Apples'},
+      {'name': 'Bananas'},
+      {'name': 'Carrots'}
     ];
     this.addHTMLOutput(box);
   });
@@ -214,25 +214,25 @@ tr.b.unittest.testSuite(function() {
     const box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
     box.items = [
-        {'name': 'Foo'},
-        {'name': 'Fooish'},
-        {'name': 'Food'},
-        {'name': 'Foot'},
-        {'name': 'Arm'},
-        {'name': 'Army'},
-        {'name': 'a'},
-        {'name': 'ab'},
-        {'name': 'abc'},
-        {'name': 'abcd'},
-        {'name': 'abcdef'},
-        {'name': 'abcdefg'},
-        {'name': 'abcdefgh'},
-        {'name': 'abcdefghi'},
-        {'name': 'abcdefghij'},
-        {'name': 'abcdefghijk'},
-        {'name': 'abcdefghijkl'},
-        {'name': 'abcdefghijklm'},
-        {'name': 'abcdefghijklmn'},
+      {'name': 'Foo'},
+      {'name': 'Fooish'},
+      {'name': 'Food'},
+      {'name': 'Foot'},
+      {'name': 'Arm'},
+      {'name': 'Army'},
+      {'name': 'a'},
+      {'name': 'ab'},
+      {'name': 'abc'},
+      {'name': 'abcd'},
+      {'name': 'abcdef'},
+      {'name': 'abcdefg'},
+      {'name': 'abcdefgh'},
+      {'name': 'abcdefghi'},
+      {'name': 'abcdefghij'},
+      {'name': 'abcdefghijk'},
+      {'name': 'abcdefghijkl'},
+      {'name': 'abcdefghijklm'},
+      {'name': 'abcdefghijklmn'},
     ];
     this.addHTMLOutput(box);
   });
@@ -242,13 +242,13 @@ tr.b.unittest.testSuite(function() {
     box.placeholder = 'Placeholder text';
     box.multi = true;
     box.items = [
-        {'name': 'ChromiumPerf', 'head': true},
-        {'name': 'windows', 'group': 'ChromiumPerf', 'tag': 'hello'},
-        {'name': 'mac', 'group': 'ChromiumPerf', 'tag': 'world'},
-        {'name': 'Android', 'head': true},
-        {'name': 'nexus5', 'group': 'Android'},
-        {'name': 'g1', 'group': 'Android'},
-        {'name': 'galaxy s6', 'group': 'Android'},
+      {'name': 'ChromiumPerf', 'head': true},
+      {'name': 'windows', 'group': 'ChromiumPerf', 'tag': 'hello'},
+      {'name': 'mac', 'group': 'ChromiumPerf', 'tag': 'world'},
+      {'name': 'Android', 'head': true},
+      {'name': 'nexus5', 'group': 'Android'},
+      {'name': 'g1', 'group': 'Android'},
+      {'name': 'galaxy s6', 'group': 'Android'},
     ];
     this.addHTMLOutput(box);
   });

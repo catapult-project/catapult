@@ -61,7 +61,7 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic) {
       for (const [name, storyDisplayNames] of
-          otherDiagnostic.tagsToStoryNames) {
+        otherDiagnostic.tagsToStoryNames) {
         if (!this.tagsToStoryNames.has(name)) {
           this.tagsToStoryNames.set(name, new Set());
         }
@@ -92,7 +92,7 @@ tr.exportTo('tr.v.d', function() {
       const info = new TagMap();
 
       for (const [name, values] of
-          Object.entries(d.tagsToStoryNames || {})) {
+        Object.entries(d.tagsToStoryNames || {})) {
         info.tagsToStoryNames.set(name, new Set(values));
       }
 

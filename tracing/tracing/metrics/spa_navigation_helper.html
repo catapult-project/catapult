@@ -158,7 +158,7 @@ tr.exportTo('tr.metrics', function() {
         getInputLatencyEventByBindIdMap_(browserHelper);
     const spaNavEventToNavStartEventMap = new Map();
     for (const [spaNavEvent, navStartCandidate] of
-        spaNavEventToNavStartCandidateMap) {
+      spaNavEventToNavStartCandidateMap) {
       if (navStartCandidate.title === HANDLE_INPUT_EVENT_TITLE) {
         const inputLatencySlice = inputLatencyEventByBindIdMap.get(
             Number(navStartCandidate.parentSlice.bindId));
@@ -221,7 +221,7 @@ tr.exportTo('tr.metrics', function() {
         getSpaNavigationEventToFirstPaintEventMap_(rendererHelper);
     const spaNavigations = [];
     for (const [spaNavEvent, navStartEvent] of
-        spaNavEventToNavStartMap) {
+      spaNavEventToNavStartMap) {
       if (spaNavEventToFirstPaintEventMap.has(spaNavEvent)) {
         const firstPaintEvent =
             spaNavEventToFirstPaintEventMap.get(spaNavEvent);

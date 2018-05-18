@@ -35,8 +35,8 @@ tr.exportTo('tr.mre', function() {
 
   Failure.fromDict = function(failureDict) {
     return new Failure(undefined, failureDict.function_handle_string,
-                       failureDict.trace_canonical_url, failureDict.type,
-                       failureDict.description, failureDict.stack);
+        failureDict.trace_canonical_url, failureDict.type,
+        failureDict.description, failureDict.stack);
   };
 
   return {

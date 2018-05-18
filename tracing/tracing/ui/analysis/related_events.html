@@ -222,7 +222,7 @@ Polymer({
         // There are still events to process, but we ran out of time. Post
         // more work for later.
         const newTask = new tr.b.Task(
-              addEventsUntilTimeout.bind(this), this);
+            addEventsUntilTimeout.bind(this), this);
         task.after(newTask);
         task = newTask;
         return;

@@ -86,7 +86,7 @@ tr.b.unittest.testSuite(function() {
           for (let i = 0; i < series.length; i++) {
             const samples = series[i].samples;
             for (let j = Math.floor(samples.length / 2); j < samples.length;
-                 j++) {
+              j++) {
               samples[j].selectionState =
                   tr.model.SelectionState.SELECTED;
             }

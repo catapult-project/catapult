@@ -104,7 +104,7 @@ tr.exportTo('tr.b', function() {
         // TODO(aiolos): Switch all calls to format to use UnitScales instead
         // of UnitPrefixScales. UnitPrefixeScales use in Unit is deprecated.
         const symbol = formatSpec.baseSymbol ?
-            formatSpec.baseSymbol : this.scaleBaseUnit.baseSymbol;
+          formatSpec.baseSymbol : this.scaleBaseUnit.baseSymbol;
         scale = tr.b.UnitScale.defineUnitScaleFromPrefixScale(
             symbol, symbol, [context.unitPrefix]).AUTO;
       } else {
@@ -161,7 +161,7 @@ tr.exportTo('tr.b', function() {
       const context = opt_context || {};
       const scale = this.getUnitScale_(context);
       let deltaValue = context.deltaValue === undefined ? value :
-          context.deltaValue;
+        context.deltaValue;
       deltaValue = Math.abs(deltaValue) * this.scaleBaseUnit.value;
       let i = 0;
       while (i < scale.length - 1 &&
@@ -223,7 +223,7 @@ tr.exportTo('tr.b', function() {
     });
 
     Unit.currentTimeDisplayMode = largest === undefined ?
-        TimeDisplayModes.ms : largest;
+      TimeDisplayModes.ms : largest;
   };
 
   Unit.byName = {};
@@ -313,7 +313,7 @@ tr.exportTo('tr.b', function() {
       let formatSpec = params.formatSpec;
       if (typeof formatSpec === 'function') formatSpec = formatSpec();
       const baseSymbol = formatSpec.unitScale ?
-          formatSpec.unitScale[0].baseSymbol : (formatSpec.baseSymbol || '');
+        formatSpec.unitScale[0].baseSymbol : (formatSpec.baseSymbol || '');
       scaleBaseUnit = { value: 1, symbol: baseSymbol, baseSymbol };
     }
     const unit = new Unit(unitName, jsonName, scaleBaseUnit,

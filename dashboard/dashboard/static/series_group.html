@@ -95,10 +95,10 @@ tr.exportTo('d', function() {
     if (legacySelection.length === 1 && legacySelection[0] === 'all') {
       selection = 'all';
     } else if (
-        legacySelection.length === 1 && legacySelection[0] === 'important') {
+      legacySelection.length === 1 && legacySelection[0] === 'important') {
       selection = 'core';
     } else if (
-        legacySelection.length === 1 && legacySelection[0] === 'none') {
+      legacySelection.length === 1 && legacySelection[0] === 'none') {
       // TODO(eakuefner): Analyze existing page states to see if this is used.
       selection = [];
     } else {

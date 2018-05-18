@@ -51,7 +51,7 @@ tr.exportTo('tr.importer', function() {
 
     leaveContext(contextType, scopedId) {
       this.leaveContextImpl_(context =>
-          context.type === contextType &&
+        context.type === contextType &&
           context.snapshot.scope === scopedId.scope &&
           context.snapshot.idRef === scopedId.id);
     },
@@ -73,7 +73,7 @@ tr.exportTo('tr.importer', function() {
 
       // Remove all matching contexts from active context set.
       this.leaveContextImpl_(context =>
-          context.snapshot.scope === scopedId.scope &&
+        context.snapshot.scope === scopedId.scope &&
           context.snapshot.idRef === scopedId.id);
     },
 

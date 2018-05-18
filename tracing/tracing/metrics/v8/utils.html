@@ -166,9 +166,9 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       'unknown';
     // Remove redundant prefixes and convert to lower case.
     const name = event.title.replace('V8.GC_MC_', '')
-                          .replace('V8.GC_SCAVENGER_', '')
-                          .replace('V8.GC_', '')
-                          .replace(/_/g, '-').toLowerCase();
+        .replace('V8.GC_SCAVENGER_', '')
+        .replace('V8.GC_', '')
+        .replace(/_/g, '-').toLowerCase();
     return prefix + '-' + name;
   }
 

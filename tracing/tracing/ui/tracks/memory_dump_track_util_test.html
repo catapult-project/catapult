@@ -166,8 +166,8 @@ tr.b.unittest.testSuite(function() {
         assert.lengthOf(so.points, 5);
         assert.lengthOf(sv.points, 5);
 
-    // Oilpan: Only process B dumps allocated objects size (1024).
-    // V8: No process dumps allocated objects size (0).
+        // Oilpan: Only process B dumps allocated objects size (1024).
+        // V8: No process dumps allocated objects size (0).
         assert.strictEqual(so.points[0].x, 0);
         assert.strictEqual(sv.points[0].x, 0);
         assert.strictEqual(so.points[0].y, 1024);
@@ -175,8 +175,8 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[0].yBase, 0);
         assert.strictEqual(sv.points[0].yBase, 0);
 
-    // Oilpan: Process B did not provide a value and process C dumps (128).
-    // V8: Processes B and C dump (512 + 256).
+        // Oilpan: Process B did not provide a value and process C dumps (128).
+        // V8: Processes B and C dump (512 + 256).
         assert.strictEqual(so.points[1].x, 5);
         assert.strictEqual(sv.points[1].x, 5);
         assert.strictEqual(so.points[1].y, 768 + 128);
@@ -184,9 +184,9 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[1].yBase, 768);
         assert.strictEqual(sv.points[1].yBase, 0);
 
-    // Oilpan: Process B assumed not alive and process C dumps (512)
-    // V8: Process A dumps now, process B assumed not alive, process C did not
-    // provide a value (768).
+        // Oilpan: Process B assumed not alive and process C dumps (512)
+        // V8: Process A dumps now, process B assumed not alive, process C did
+        // not provide a value (768).
         assert.strictEqual(so.points[2].x, 15);
         assert.strictEqual(sv.points[2].x, 15);
         assert.strictEqual(so.points[2].y, 768 + 512);
@@ -194,7 +194,8 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[2].yBase, 768);
         assert.strictEqual(sv.points[2].yBase, 0);
 
-    // All processes: Memory dump not present -> assume process not alive (0).
+        // All processes: Memory dump not present -> assume process not alive
+        // (0).
         assert.strictEqual(so.points[3].x, 18);
         assert.strictEqual(sv.points[3].x, 18);
         assert.strictEqual(so.points[3].y, 0);
@@ -202,14 +203,14 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[3].yBase, 0);
         assert.strictEqual(sv.points[3].yBase, 0);
 
-    // Oilpan: Only process B dumps allocated objects size (100).
-    // V8: No process dumps allocated objects size (0).
+        // Oilpan: Only process B dumps allocated objects size (100).
+        // V8: No process dumps allocated objects size (0).
         assert.strictEqual(so.points[4].x, 20);
         assert.strictEqual(sv.points[4].x, 20);
         assert.strictEqual(so.points[4].y, 100);
         assert.strictEqual(sv.points[4].y, 0);
 
-    // Check model mapping.
+        // Check model mapping.
         assert.strictEqual(
             so.points[1].selectionState, SelectionState.HIGHLIGHTED);
         assert.isTrue(sv.points[2].selected);
@@ -231,8 +232,8 @@ tr.b.unittest.testSuite(function() {
         const series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
             dumps);
 
-    // There should be only 2 series (because 'tracing' is not shown in the
-    // charts).
+        // There should be only 2 series (because 'tracing' is not shown in the
+        // charts).
         assert.lengthOf(series, 2);
 
         const so = series[1];
@@ -241,8 +242,8 @@ tr.b.unittest.testSuite(function() {
         assert.lengthOf(so.points, 2);
         assert.lengthOf(sv.points, 2);
 
-    // Oilpan: Process dumps (128).
-    // V8: Process dumps (256).
+        // Oilpan: Process dumps (128).
+        // V8: Process dumps (256).
         assert.strictEqual(so.points[0].x, 5.12);
         assert.strictEqual(sv.points[0].x, 5.12);
         assert.strictEqual(so.points[0].y, 256 + 128);
@@ -250,8 +251,8 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[0].yBase, 256);
         assert.strictEqual(sv.points[0].yBase, 0);
 
-    // Oilpan: Process dumps (512).
-    // V8: Process did not provide a value (0).
+        // Oilpan: Process dumps (512).
+        // V8: Process did not provide a value (0).
         assert.strictEqual(so.points[1].x, 14.5);
         assert.strictEqual(sv.points[1].x, 14.5);
         assert.strictEqual(so.points[1].y, 512);
@@ -259,7 +260,7 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(so.points[1].yBase, 0);
         assert.strictEqual(sv.points[1].yBase, 0);
 
-    // Check model mapping.
+        // Check model mapping.
         assert.strictEqual(
             so.points[1].selectionState, SelectionState.HIGHLIGHTED);
         assert.isTrue(sv.points[0].selected);

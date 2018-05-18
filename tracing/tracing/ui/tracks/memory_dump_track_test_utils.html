@@ -124,7 +124,7 @@ tr.exportTo('tr.ui.tracks', function() {
       const gmd4 = addGlobalMemoryDump(model, {ts: 18, levelOfDetail: LIGHT});
 
       const gmd5 = addGlobalMemoryDump(model,
-                                     {ts: 20, levelOfDetail: BACKGROUND});
+          {ts: 20, levelOfDetail: BACKGROUND});
       addProcessMemoryDumpWithFields(gmd5, pa, 0, maybePssValues([105]));
       addProcessMemoryDumpWithFields(gmd5, pb, 0.2, undefined,
           maybeDumpData({oilpan: {size: 100}}));

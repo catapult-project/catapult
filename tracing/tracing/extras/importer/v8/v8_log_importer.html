@@ -178,7 +178,7 @@ tr.exportTo('tr.e.importer.v8', function() {
 
     processSharedLibrary_(name, start, end) {
       const codeEntry = new CodeEntry(end - start, name,
-                                     CodeEntry.TYPE.SHARED_LIB);
+          CodeEntry.TYPE.SHARED_LIB);
       codeEntry.kind = -3;  // External code kind.
       for (let i = 0; i < kV8BinarySuffixes.length; i++) {
         const suffix = kV8BinarySuffixes[i];
@@ -275,13 +275,13 @@ tr.exportTo('tr.e.importer.v8', function() {
         node = this.profileTree_.getNode(entryId);
         if (node === undefined) {
           node = this.profileTree_.add(new ProfileNodeType(
-            entryId, {
-              functionName: entry.name,
-              url: sourceInfo ? sourceInfo.file : '',
-              lineNumber: sourceInfo ? sourceInfo.line : undefined,
-              columnNumber: sourceInfo ? sourceInfo.column : undefined,
-              scriptId: sourceInfo ? sourceInfo.scriptId : undefined
-            }, lastNode));
+              entryId, {
+                functionName: entry.name,
+                url: sourceInfo ? sourceInfo.file : '',
+                lineNumber: sourceInfo ? sourceInfo.line : undefined,
+                columnNumber: sourceInfo ? sourceInfo.column : undefined,
+                scriptId: sourceInfo ? sourceInfo.scriptId : undefined
+              }, lastNode));
         }
         lastNode = node;
       }
@@ -311,51 +311,51 @@ tr.exportTo('tr.e.importer.v8', function() {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)
           },
-            'shared-library': {
-              parsers: [null, parseInt, parseInt],
-              processor: this.processSharedLibrary_.bind(this)
-            },
-            'timer-event-start': {
-              parsers: [null, parseInt],
-              processor: this.processTimerEventStart_.bind(this)
-            },
-            'timer-event-end': {
-              parsers: [null, parseInt],
-              processor: this.processTimerEventEnd_.bind(this)
-            },
-            'code-creation': {
-              parsers: [null, parseInt, parseInt, parseInt, null, 'var-args'],
-              processor: this.processCodeCreateEvent_.bind(this)
-            },
-            'code-move': {
-              parsers: [parseInt, parseInt],
-              processor: this.processCodeMoveEvent_.bind(this)
-            },
-            'code-delete': {
-              parsers: [parseInt],
-              processor: this.processCodeDeleteEvent_.bind(this)
-            },
-            'cpp': {
-              parsers: [parseInt, parseInt, null],
-              processor: this.processCppSymbol_.bind(this)
-            },
-            'tick': {
-              parsers: [parseInt, parseInt, parseInt, parseInt, parseInt,
-                'var-args'],
-              processor: this.processTickEvent_.bind(this)
-            },
-            'distortion': {
-              parsers: [parseInt],
-              processor: this.processDistortion_.bind(this)
-            },
-            'plot-range': {
-              parsers: [parseInt, parseInt],
-              processor: this.processPlotRange_.bind(this)
-            },
-            'v8-version': {
-              parsers: [parseInt, parseInt, parseInt, parseInt, parseInt],
-              processor: this.processV8Version_.bind(this)
-            }
+          'shared-library': {
+            parsers: [null, parseInt, parseInt],
+            processor: this.processSharedLibrary_.bind(this)
+          },
+          'timer-event-start': {
+            parsers: [null, parseInt],
+            processor: this.processTimerEventStart_.bind(this)
+          },
+          'timer-event-end': {
+            parsers: [null, parseInt],
+            processor: this.processTimerEventEnd_.bind(this)
+          },
+          'code-creation': {
+            parsers: [null, parseInt, parseInt, parseInt, null, 'var-args'],
+            processor: this.processCodeCreateEvent_.bind(this)
+          },
+          'code-move': {
+            parsers: [parseInt, parseInt],
+            processor: this.processCodeMoveEvent_.bind(this)
+          },
+          'code-delete': {
+            parsers: [parseInt],
+            processor: this.processCodeDeleteEvent_.bind(this)
+          },
+          'cpp': {
+            parsers: [parseInt, parseInt, null],
+            processor: this.processCppSymbol_.bind(this)
+          },
+          'tick': {
+            parsers: [parseInt, parseInt, parseInt, parseInt, parseInt,
+              'var-args'],
+            processor: this.processTickEvent_.bind(this)
+          },
+          'distortion': {
+            parsers: [parseInt],
+            processor: this.processDistortion_.bind(this)
+          },
+          'plot-range': {
+            parsers: [parseInt, parseInt],
+            processor: this.processPlotRange_.bind(this)
+          },
+          'v8-version': {
+            parsers: [parseInt, parseInt, parseInt, parseInt, parseInt],
+            processor: this.processV8Version_.bind(this)
+          }
           });
 
       this.v8_timer_thread_ =

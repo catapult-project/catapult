@@ -161,9 +161,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (thread.lastEntryTs !== undefined) {
       const duration = currentTs - thread.lastEntryTs;
       const slice = new tr.model.ThreadSlice(
-            '', thread.lastEntryTitle,
-            ColorScheme.getColorIdForGeneralPurposeString(id),
-            thread.lastEntryTs, thread.lastEntryArgs, duration);
+          '', thread.lastEntryTitle,
+          ColorScheme.getColorIdForGeneralPurposeString(id),
+          thread.lastEntryTs, thread.lastEntryArgs, duration);
       thread.thread.sliceGroup.pushSlice(slice);
     }
   }

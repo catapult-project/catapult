@@ -480,7 +480,7 @@ tr.exportTo('tr.e.importer', function() {
 
     processDurationEvent(event) {
       const thread = this.model_.getOrCreateProcess(event.pid)
-        .getOrCreateThread(event.tid);
+          .getOrCreateThread(event.tid);
       const ts = this.toModelTimeFromUs_(event.ts);
       if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(ts)) {
         this.model_.importWarning({
@@ -678,7 +678,7 @@ tr.exportTo('tr.e.importer', function() {
         }
       } else if (event.name === 'TraceConfig') {
         this.model_.metadata.push(
-              {name: 'TraceConfig', value: event.args.value});
+            {name: 'TraceConfig', value: event.args.value});
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',
@@ -864,9 +864,9 @@ tr.exportTo('tr.e.importer', function() {
                 functionName: entry.name,
                 url: entry.sourceInfo.file,
                 lineNumber: sourceInfo.line !== -1 ? sourceInfo.line :
-                                                     undefined,
+                  undefined,
                 columnNumber: sourceInfo.column !== -1 ? sourceInfo.column :
-                                                         undefined,
+                  undefined,
                 scriptid: entry.sourceInfo.scriptId
               }, parentNode);
               profileTree.add(node);
@@ -890,7 +890,7 @@ tr.exportTo('tr.e.importer', function() {
 
       this.model_.samples.push(
           new tr.model.Sample(this.toModelTimeFromUs_(event.ts),
-                            node.sampleTitle, node, thread));
+              node.sampleTitle, node, thread));
     },
 
     processTraceSampleEvent(event) {
@@ -913,18 +913,18 @@ tr.exportTo('tr.e.importer', function() {
             tr.model.ProfileNode.subTypes.getConstructor(undefined,
                 'legacySample');
         node = this.stackFrameTree_.add(new ProfileNodeType(
-          id, {
-            functionName: event.name
-          }, undefined
+            id, {
+              functionName: event.name
+            }, undefined
         ));
       }
       const thread = this.model_.getOrCreateProcess(event.pid)
           .getOrCreateThread(event.tid);
 
       const sample = new tr.model.Sample(
-        this.toModelTimeFromUs_(event.ts), 'Trace Event Sample',
-        node, thread, undefined, 1,
-        this.deepCopyIfNeeded_(event.args));
+          this.toModelTimeFromUs_(event.ts), 'Trace Event Sample',
+          node, thread, undefined, 1,
+          this.deepCopyIfNeeded_(event.args));
       this.setContextsFromThread_(thread, sample);
       this.model_.samples.push(sample);
     },
@@ -1108,7 +1108,7 @@ tr.exportTo('tr.e.importer', function() {
 
       const eventSizeInBytes =
           this.model_.importOptions.trackDetailedModelStats ?
-              JSON.stringify(event).length : undefined;
+            JSON.stringify(event).length : undefined;
 
       this.model_.stats.willProcessBasicTraceEvent(
           'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
@@ -1340,7 +1340,7 @@ tr.exportTo('tr.e.importer', function() {
         const rawStackFrame = rawStackFrames[id];
         const fullId = idPrefix + id;
         const textForColor = rawStackFrame.category ?
-            rawStackFrame.category : rawStackFrame.name;
+          rawStackFrame.category : rawStackFrame.name;
         const stackFrame = new tr.model.StackFrame(
             undefined /* parentFrame */, fullId, rawStackFrame.name,
             ColorScheme.getColorIdForGeneralPurposeString(textForColor));
@@ -1384,11 +1384,11 @@ tr.exportTo('tr.e.importer', function() {
         for (const id in rawStackFrames) {
           const rawStackFrame = rawStackFrames[id];
           const textForColor = rawStackFrame.category ?
-              rawStackFrame.category : rawStackFrame.name;
+            rawStackFrame.category : rawStackFrame.name;
           const node = this.stackFrameTree_.add(new ProfileNodeType(
-            'g' + id, {
-              functionName: rawStackFrame.name
-            }, undefined));
+              'g' + id, {
+                functionName: rawStackFrame.name
+              }, undefined));
           node.colorId =
             ColorScheme.getColorIdForGeneralPurposeString(textForColor);
           node.parentId = rawStackFrame.parent;
@@ -1577,12 +1577,12 @@ tr.exportTo('tr.e.importer', function() {
         const leafNode = this.stackFrameTree_.getNode('g' + event.sf);
 
         const sample = new tr.model.Sample(
-          this.toModelTimeFromUs_(event.ts),
-          event.name,
-          leafNode,
-          thread,
-          cpu,
-          event.weight
+            this.toModelTimeFromUs_(event.ts),
+            event.name,
+            leafNode,
+            thread,
+            cpu,
+            event.weight
         );
         m.samples.push(sample);
       }
@@ -1862,7 +1862,7 @@ tr.exportTo('tr.e.importer', function() {
 
       // Auto-close unmatched S events by creating a fake F event.
       for (const [name, statesByID] of
-          Object.entries(asyncEventStatesByNameThenID)) {
+        Object.entries(asyncEventStatesByNameThenID)) {
         for (const [id, states] of Object.entries(statesByID)) {
           const startEvent = states[0].event;
           // Don't set 'ts' in the fake 'F' event. createLegacyAsyncSlice_ will
@@ -2007,16 +2007,16 @@ tr.exportTo('tr.e.importer', function() {
           }
 
           const slice = new asyncSliceConstructor(
-            eventStateEntry.event.cat,
-            eventStateEntry.event.name,
-            getEventColor(endState.event),
-            this.toModelTimeFromUs_(startState.event.ts),
-            sliceArgs,
-            this.toModelTimeFromUs_(endState.event.ts - startState.event.ts),
-            isTopLevel,
-            threadStart,
-            threadDuration,
-            startState.event.argsStripped);
+              eventStateEntry.event.cat,
+              eventStateEntry.event.name,
+              getEventColor(endState.event),
+              this.toModelTimeFromUs_(startState.event.ts),
+              sliceArgs,
+              this.toModelTimeFromUs_(endState.event.ts - startState.event.ts),
+              isTopLevel,
+              threadStart,
+              threadDuration,
+              startState.event.argsStripped);
 
           slice.startThread = startState.thread;
           slice.endThread = endState.thread;
@@ -3128,8 +3128,8 @@ tr.exportTo('tr.e.importer', function() {
                 break;
               }
               const unit = attrArgs.units === 'bytes' ?
-                  tr.b.Unit.byName.sizeInBytes_smallerIsBetter :
-                  tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
+                tr.b.Unit.byName.sizeInBytes_smallerIsBetter :
+                tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
               const value = parseInt(attrValue, 16);
               allocatorDump.addNumeric(attrName,
                   new tr.b.Scalar(unit, value));

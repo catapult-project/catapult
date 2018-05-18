@@ -401,8 +401,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         for (let j = 0; j < categoryGroup.length; ++j) {
           const categoryEl = categoryGroup[j].children[0];
           categoryEl.checked = shouldReadFromSettings ?
-              tr.b.Settings.get(categoryEl.value, false, this.settings_key_) :
-              false;
+            tr.b.Settings.get(categoryEl.value, false, this.settings_key_) :
+            false;
         }
       }
     },

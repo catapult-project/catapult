@@ -148,9 +148,9 @@ tr.exportTo('tr.model', function() {
       const sliceType = sliceConstructorSubTypes.getConstructor(
           category, title);
       const slice = new sliceType(category, title, colorId, ts,
-                                opt_args ? opt_args : {}, null,
-                                opt_tts, undefined,
-                                opt_argsStripped);
+          opt_args ? opt_args : {}, null,
+          opt_tts, undefined,
+          opt_argsStripped);
       this.openPartialSlices_.push(slice);
       slice.didNotFinish = true;
       this.pushSlice(slice);
@@ -231,9 +231,9 @@ tr.exportTo('tr.model', function() {
       const sliceType = sliceConstructorSubTypes.getConstructor(
           category, title);
       const slice = new sliceType(category, title, colorId, ts,
-                                opt_args ? opt_args : {},
-                                duration, tts, cpuDuration,
-                                opt_argsStripped, opt_bindId);
+          opt_args ? opt_args : {},
+          duration, tts, cpuDuration,
+          opt_argsStripped, opt_bindId);
       if (duration === undefined) {
         slice.didNotFinish = true;
       }
@@ -617,8 +617,8 @@ tr.exportTo('tr.model', function() {
     }
 
     const result = new SliceGroup(groupA.parentContainer,
-                                groupA.sliceConstructor,
-                                groupA.name_);
+        groupA.sliceConstructor,
+        groupA.name_);
 
     const slicesA = groupA.slices;
     const slicesB = groupB.slices;

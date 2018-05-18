@@ -117,8 +117,8 @@ tr.exportTo('tr.e.chrome', function() {
      */
     static constructMultiDimensionalView(model, rangeOfInterest) {
       const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
-        3 /* dimensions (process, thread and rail stage / initiator) */,
-        2 /* valueCount (cpuUsage and cpuTotal) */);
+          3 /* dimensions (process, thread and rail stage / initiator) */,
+          2 /* valueCount (cpuUsage and cpuTotal) */);
 
       const stageToInitiatorToRanges =
           CpuTime.getStageToInitiatorToSegmentBounds(

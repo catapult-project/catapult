@@ -150,15 +150,15 @@ tr.exportTo('tr.ui.analysis', function() {
 
         case 37:  // Left arrow.
         case 39:  // Right arrow.
-          {
-            const wasFocused = this.$.tabs.selectedSubView.isFocused;
-            keyHandled = keyEvent.keyCode === 37 ?
-                this.$.tabs.selectPreviousTabIfPossible() :
-                this.$.tabs.selectNextTabIfPossible();
-            if (wasFocused && keyHandled) {
-              this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
-            }
+        {
+          const wasFocused = this.$.tabs.selectedSubView.isFocused;
+          keyHandled = keyEvent.keyCode === 37 ?
+            this.$.tabs.selectPreviousTabIfPossible() :
+            this.$.tabs.selectNextTabIfPossible();
+          if (wasFocused && keyHandled) {
+            this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
           }
+        }
       }
 
       if (!keyHandled) return;

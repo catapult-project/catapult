@@ -51,7 +51,7 @@ tr.exportTo('tr.metrics.sh', function() {
         if (!(processNumerics.has(processName))) {
           processNumerics.set(processName, {
             numeric: new tr.v.Histogram('cpu:percent:' + processName,
-             tr.b.Unit.byName.normalizedPercentage_smallerIsBetter),
+                tr.b.Unit.byName.normalizedPercentage_smallerIsBetter),
             paths: new Set()
           });
         }
@@ -78,7 +78,7 @@ tr.exportTo('tr.metrics.sh', function() {
         numeric.addSample(0);
       }
       numeric.diagnostics.set('paths', new
-          tr.v.d.GenericSet([...processData.paths]));
+      tr.v.d.GenericSet([...processData.paths]));
       histograms.addHistogram(numeric);
     }
   }

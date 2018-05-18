@@ -540,7 +540,7 @@ tr.exportTo('tr.model', function() {
         // and calculate their owning coefficients.
         let attributedNotOwningSubSize = 0;
         for (let pos = currentImportanceStartPos; pos < nextImportanceStartPos;
-             pos++) {
+          pos++) {
           const owner = owners[pos];
           const notOwningSubSize = owner.notOwningSubSize;
           if (notOwningSubSize > alreadyAttributedSubSize) {
@@ -706,7 +706,7 @@ tr.exportTo('tr.model', function() {
     propagateNumericsAndDiagnosticsRecursively(globalAllocatorDump) {
       ['numerics', 'diagnostics'].forEach(function(field) {
         for (const [name, value] of
-            Object.entries(globalAllocatorDump[field])) {
+          Object.entries(globalAllocatorDump[field])) {
           globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
             const processAllocatorDump = ownershipLink.source;
             if (processAllocatorDump[field][name] !== undefined) {

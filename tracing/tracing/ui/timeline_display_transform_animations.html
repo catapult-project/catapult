@@ -53,7 +53,7 @@ tr.exportTo('tr.ui', function() {
       const remainingDeltaXOnExisting = existing.goalPanX - target.panX;
       const remainingDeltaYOnExisting = existing.goalPanY - target.panY;
       let remainingTimeOnExisting = timestamp - (
-          existing.startTimeMs + existing.durationMs);
+        existing.startTimeMs + existing.durationMs);
       remainingTimeOnExisting = Math.max(remainingTimeOnExisting, 0);
 
       this.deltaX += remainingDeltaXOnExisting;

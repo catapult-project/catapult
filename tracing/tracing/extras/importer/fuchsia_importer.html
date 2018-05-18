@@ -196,8 +196,8 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
         const slices = [];
         for (let i = 0; i < states.length - 1; i++) {
           slices.push(new tr.model.ThreadTimeSlice(
-            thread, states[i].state, '',
-            states[i].ts, {}, states[i + 1].ts - states[i].ts));
+              thread, states[i].state, '',
+              states[i].ts, {}, states[i + 1].ts - states[i].ts));
         }
 
         thread.timeSlices = slices;

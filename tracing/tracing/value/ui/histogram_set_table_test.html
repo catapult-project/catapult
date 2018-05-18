@@ -56,17 +56,17 @@ tr.b.unittest.testSuite(function() {
 
   function getBaseTable(table) {
     return tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.tagName === 'TR-UI-B-TABLE');
+      e.tagName === 'TR-UI-B-TABLE');
   }
 
   function getNameCells(table) {
     return tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+      e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
   }
 
   function getTableCells(table) {
     return tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL');
+      e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL');
   }
 
   test('viewSearchQuery', async function() {
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
     aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
-      {isOpen: true});
+        {isOpen: true});
     const link = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.tagName === 'TR-UI-A-ANALYSIS-LINK');
     link.click();
@@ -145,14 +145,14 @@ tr.b.unittest.testSuite(function() {
     });
     const table = await buildTable(this, histograms);
     let scalarSpans = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'TR-V-UI-SCALAR-SPAN');
+      e.tagName === 'TR-V-UI-SCALAR-SPAN');
     assert.lengthOf(scalarSpans, 2);
     assert.strictEqual('5', scalarSpans[0].unit.format(scalarSpans[0].value));
     assert.strictEqual('15', scalarSpans[1].unit.format(scalarSpans[1].value));
 
     await table.viewState.update({displayStatisticName: 'std'});
     scalarSpans = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'TR-V-UI-SCALAR-SPAN');
+      e.tagName === 'TR-V-UI-SCALAR-SPAN');
     assert.lengthOf(scalarSpans, 2);
     assert.strictEqual('3', scalarSpans[0].unit.format(scalarSpans[0].value));
     assert.strictEqual('3', scalarSpans[1].unit.format(scalarSpans[1].value));
@@ -402,14 +402,14 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('block', dots.style.display);
 
     tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
+      e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
     assert.isFalse(table.viewState.constrainNameColumn);
     await tr.b.animationFrame();
     assert.isFalse(nameCell.isOverflowing);
     assert.isBelow(350, nameCell.getBoundingClientRect().width);
 
     tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
+      e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
     assert.isTrue(table.viewState.constrainNameColumn);
     await tr.b.animationFrame();
     assert.isTrue(nameCell.isOverflowing);
@@ -536,7 +536,7 @@ tr.b.unittest.testSuite(function() {
 
     let cells = getTableCells(table);
     let chart = tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
-        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+      e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.strictEqual('D', chart.data[0].x);
     assert.strictEqual('C', chart.data[1].x);
     assert.strictEqual('B', chart.data[2].x);
@@ -547,7 +547,7 @@ tr.b.unittest.testSuite(function() {
     });
     cells = getTableCells(table);
     chart = tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
-        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+      e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.strictEqual('A', chart.data[0].x);
     assert.strictEqual('B', chart.data[1].x);
     assert.strictEqual('C', chart.data[2].x);
@@ -586,11 +586,11 @@ tr.b.unittest.testSuite(function() {
 
     const nameCells = getNameCells(table);
     tr.ui.b.findDeepElementMatchingPredicate(nameCells[0], e =>
-        e.id === 'show_overview').click();
+      e.id === 'show_overview').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').isOverviewed);
 
     tr.ui.b.findDeepElementMatchingPredicate(nameCells[0], e =>
-        e.id === 'hide_overview').click();
+      e.id === 'hide_overview').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
   });
 
@@ -631,7 +631,7 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
 
     let charts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+      e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.lengthOf(charts, 3);
     assert.lengthOf(charts[0].data, 2);
     assert.lengthOf(charts[1].data, 2);
@@ -648,7 +648,7 @@ tr.b.unittest.testSuite(function() {
       referenceDisplayLabel: 'A',
     });
     charts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+      e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.lengthOf(charts, 3);
     assert.lengthOf(charts[0].data, 2);
     assert.lengthOf(charts[1].data, 2);
@@ -774,24 +774,24 @@ tr.b.unittest.testSuite(function() {
     const cells = getTableCells(table);
 
     tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
-        e.tagName === 'TR-V-UI-SCALAR-SPAN').click();
+      e.tagName === 'TR-V-UI-SCALAR-SPAN').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
 
     tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
-        e.id === 'close_histogram').click();
+      e.id === 'close_histogram').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
 
     tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.id === 'open_histograms').click();
+      e.id === 'open_histograms').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('B')
         .isOpen);
 
     tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.id === 'close_histograms').click();
+      e.id === 'close_histograms').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('B')
@@ -892,7 +892,7 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.tableRowStates.get('a').update({isExpanded: true});
 
     const nameCell = tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL' &&
+      e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL' &&
         e.row.name === '0'.repeat(100));
     await tr.b.animationFrame();
     assert.isTrue(nameCell.isOverflowing);
@@ -1440,8 +1440,8 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.update({groupings: [
       new tr.v.HistogramGrouping(
-            tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
-            h => h.shortName || h.name)]});
+          tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
+          h => h.shortName || h.name)]});
 
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === 'short name'));
@@ -1506,11 +1506,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(baseTable.tableRows.length, 1);
 
     const cell = tr.ui.b.findDeepElementMatchingPredicate(table, elem =>
-        elem.tagName === 'TR-V-UI-SCALAR-SPAN');
+      elem.tagName === 'TR-V-UI-SCALAR-SPAN');
     cell.click();
 
     const yAxisText = tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-        e.tagName === 'text' && e.textContent === '<0.000 ms');
+      e.tagName === 'text' && e.textContent === '<0.000 ms');
     assert.isBelow(0, yAxisText.getBBox().width);
   });
 
@@ -1644,7 +1644,7 @@ tr.b.unittest.testSuite(function() {
           for (const storyName of storyNames) {
             for (const startMs of starts) {
               for (let storysetCounter = 0; storysetCounter < 2;
-                  ++storysetCounter) {
+                ++storysetCounter) {
                 for (const label of labels) {
                   const samples = range(0, 100).map(i => {
                     return {

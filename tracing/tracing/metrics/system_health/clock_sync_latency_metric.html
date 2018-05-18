@@ -28,7 +28,7 @@ tr.exportTo('tr.metrics.sh', function() {
             domains[i], domains[j]);
         const hist = new tr.v.Histogram('clock_sync_latency_' +
             domains[i].toLowerCase() + '_to_' + domains[j].toLowerCase(),
-            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, LATENCY_BOUNDS);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, LATENCY_BOUNDS);
         hist.customizeSummaryOptions({
           avg: true,
           count: false,

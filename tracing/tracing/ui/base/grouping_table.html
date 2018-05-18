@@ -85,9 +85,9 @@ tr.exportTo('tr.ui.b', function() {
       this.subRows_ = [];
       for (const key in dataByKey) {
         const row = new Row(key,
-                          dataByKey[key],
-                          this.groupingKeyFuncs_.slice(1),
-                          this.rowStatsConstructor_);
+            dataByKey[key],
+            this.groupingKeyFuncs_.slice(1),
+            this.rowStatsConstructor_);
         this.subRows_.push(row);
       }
     },
@@ -218,7 +218,7 @@ tr.exportTo('tr.ui.b', function() {
       const rowStatsConstructor = this.rowStatsConstructor_ || function() {};
 
       const superRow = new Row('', dataToGroup, groupBy,
-                             rowStatsConstructor);
+          rowStatsConstructor);
       this.$.table.tableRows = superRow.subRows || [];
     }
   });

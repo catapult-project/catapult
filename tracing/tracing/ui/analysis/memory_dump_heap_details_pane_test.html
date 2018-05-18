@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
 
     function addHeapEntry(heapDump, stackFrames, objectTypeName, size, count) {
       const leafStackFrame = stackFrames === undefined ? undefined :
-          tr.c.TestUtils.newStackTrace(model, stackFrames);
+        tr.c.TestUtils.newStackTrace(model, stackFrames);
       heapDump.addEntry(leafStackFrame, objectTypeName, size,
           withCount ? count : undefined);
     }
@@ -187,7 +187,7 @@ tr.b.unittest.testSuite(function() {
 
     function addHeapEntry(heapDump, stackFrames, objectTypeName, size, count) {
       const leafStackFrame = stackFrames === undefined ? undefined :
-          tr.c.TestUtils.newStackTrace(model, stackFrames);
+        tr.c.TestUtils.newStackTrace(model, stackFrames);
       heapDump.addEntry(leafStackFrame, objectTypeName, size,
           withCount ? count : undefined, false /* valuesAreTotals */);
     }
@@ -301,7 +301,7 @@ tr.b.unittest.testSuite(function() {
     // TODO: Add proper tests for tr-ui-a-memory-dump-heap-details-path-view
     // and tr-ui-a-memory-dump-heap-details-breakdown-view.
     const expectedColumns = expectedConfig.expectedCountColumns ?
-        EXPECTED_COLUMNS_WITH_COUNT : EXPECTED_COLUMNS_WITHOUT_COUNT;
+      EXPECTED_COLUMNS_WITH_COUNT : EXPECTED_COLUMNS_WITHOUT_COUNT;
     checkColumns(viewEl.$.path_view.$.table.tableColumns, expectedColumns,
         expectedConfig.expectedAggregationMode);
   }

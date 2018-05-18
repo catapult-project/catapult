@@ -80,12 +80,12 @@ tr.exportTo('tr.metrics.v8', function() {
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, {
             value: convertMicroToMilli_(runtimeGroup.time),
             diagnostics: optRelatedNameMaps ?
-                {samples: optRelatedNameMaps.durationBreakdown} : {}
+              {samples: optRelatedNameMaps.durationBreakdown} : {}
           }, {
             binBoundaries: DURATION_CUSTOM_BOUNDARIES,
             summaryOptions: SUMMARY_OPTIONS,
             diagnostics: optRelatedNameMaps ?
-                {samples: optRelatedNameMaps.durationNames} : {}
+              {samples: optRelatedNameMaps.durationNames} : {}
           });
 
       histograms.createHistogram(
@@ -93,12 +93,12 @@ tr.exportTo('tr.metrics.v8', function() {
           tr.b.Unit.byName.count_smallerIsBetter, {
             value: runtimeGroup.count,
             diagnostics: optRelatedNameMaps ?
-                {samples: optRelatedNameMaps.countBreakdown} : {}
+              {samples: optRelatedNameMaps.countBreakdown} : {}
           }, {
             binBoundaries: COUNT_CUSTOM_BOUNDARIES,
             summaryOptions: SUMMARY_OPTIONS,
             diagnostics: optRelatedNameMaps ?
-                {samples: optRelatedNameMaps.countNames} : {}
+              {samples: optRelatedNameMaps.countNames} : {}
           });
     }
 
@@ -156,7 +156,7 @@ tr.exportTo('tr.metrics.v8', function() {
     const domContentLoadedTime = computeDomContentLoadedTime_(model);
     const endTime = Math.max(interactiveTime, domContentLoadedTime);
     const slices = [...model.getDescendantEvents()].filter(event =>
-          event instanceof tr.e.v8.V8ThreadSlice && event.start <= endTime);
+      event instanceof tr.e.v8.V8ThreadSlice && event.start <= endTime);
     computeRuntimeStats(histograms, slices);
   }
 
@@ -332,8 +332,8 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function runtimeStatsTotalMetric(histograms, model) {
     const v8ThreadSlices = [...model.getDescendantEvents()].filter(event =>
-          event instanceof tr.e.v8.V8ThreadSlice).sort((e1, e2) =>
-          e1.start - e2.start);
+      event instanceof tr.e.v8.V8ThreadSlice).sort((e1, e2) =>
+      e1.start - e2.start);
     const v8SlicesBucketOnUEMap = new Map();
     // User expectations can sometime overlap. So, certain v8 slices can be
     // included in more than one expectation. We count such slices in each
@@ -361,7 +361,7 @@ tr.exportTo('tr.metrics.v8', function() {
         v8SlicesBucketOnUEMap.set(expectation.stageTitle, slices);
       } else {
         const totalSlices = v8SlicesBucketOnUEMap.get(expectation.stageTitle)
-                                               .concat(slices);
+            .concat(slices);
         v8SlicesBucketOnUEMap.set(expectation.stageTitle, totalSlices);
       }
     }

@@ -78,8 +78,8 @@ tr.exportTo('tr.ui.b', function() {
 
     drawYAxis_(yAxis) {
       const axisModifier = d3.svg.axis()
-        .scale(this.verticalScale_)
-        .orient('left');
+          .scale(this.verticalScale_)
+          .orient('left');
       yAxis.call(axisModifier);
     },
 

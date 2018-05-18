@@ -76,9 +76,9 @@ tr.exportTo('tr.e.v8', function() {
         new RuntimeStatsGroup('Total'),
         new RuntimeStatsGroup('IC', /.*IC_.*/),
         new RuntimeStatsGroup('Optimize',
-          /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
+            /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
         new RuntimeStatsGroup('Compile-Background',
-          /(.*CompileBackground.*)/),
+            /(.*CompileBackground.*)/),
         new RuntimeStatsGroup('Compile', /(^Compile.*)|(.*_Compile.*)/),
         new RuntimeStatsGroup('Parse-Background', /.*ParseBackground.*/),
         new RuntimeStatsGroup('Parse', /.*Parse.*/),
@@ -182,7 +182,7 @@ tr.exportTo('tr.e.v8', function() {
           if (group.match(entry.name)) {
             // Strip out category prefix
             const newEntry = new RuntimeStatsEntry(
-              'Blink_' + group.match(entry.name)[1], entry.count, entry.time);
+                'Blink_' + group.match(entry.name)[1], entry.count, entry.time);
             group.add(newEntry);
             this.total_group_.addSample(entry.count, entry.time);
             break;

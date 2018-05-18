@@ -27,9 +27,9 @@ tr.exportTo('tr.b', function() {
     function HeadlessEvent(type, opt_bubbles, opt_preventable) {
       this.type = type;
       this.bubbles = (opt_bubbles !== undefined ?
-          !!opt_bubbles : false);
+        !!opt_bubbles : false);
       this.cancelable = (opt_preventable !== undefined ?
-          !!opt_preventable : false);
+        !!opt_preventable : false);
 
       this.defaultPrevented = false;
       this.cancelBubble = false;

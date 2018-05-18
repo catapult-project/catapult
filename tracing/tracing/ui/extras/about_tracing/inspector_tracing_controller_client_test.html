@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
           new tr.ui.e.about_tracing.InspectorConnection(fakeWindow));
     fakeDevToolsHost.setDevToolsAPI(fakeWindow.DevToolsAPI);
 
-    const runHost = (async () => {
+    const runHost = (async() => {
       const startParams = await fakeDevToolsHost.handleMethod('Tracing.start');
       fakeDevToolsHost.respondToMethod(startParams.id, {});
       const endParams = await fakeDevToolsHost.handleMethod('Tracing.end');
@@ -273,12 +273,12 @@ tr.b.unittest.testSuite(function() {
         data,
       });
       const nextIndex = eof ? streamChunks.length : index + 1;
-      return (async () =>
+      return (async() =>
         handleIoRead(nextIndex, await fakeDevToolsHost.handleMethod('IO.read'))
       )();
     };
 
-    const runHost = (async () => {
+    const runHost = (async() => {
       const startParams = await fakeDevToolsHost.handleMethod('Tracing.start');
       fakeDevToolsHost.respondToMethod(startParams.id, {});
       const endParams = await fakeDevToolsHost.handleMethod('Tracing.end');
@@ -287,13 +287,13 @@ tr.b.unittest.testSuite(function() {
         'stream': STREAM_HANDLE,
       });
 
-      const closePromise = (async () => {
+      const closePromise = (async() => {
         const closeParams = await fakeDevToolsHost.handleMethod('IO.close');
         assert.strictEqual(closeParams.params.handle, STREAM_HANDLE);
         streamClosed = true;
       })();
 
-      const readPromise = (async () =>
+      const readPromise = (async() =>
         handleIoRead(0, await fakeDevToolsHost.handleMethod('IO.read'))
       )();
 
@@ -349,12 +349,12 @@ tr.b.unittest.testSuite(function() {
         data,
       });
       const nextIndex = eof ? streamChunks.length : index + 1;
-      return (async () => {
+      return (async() => {
         handleIoRead(nextIndex, await fakeDevToolsHost.handleMethod('IO.read'));
       })();
     };
 
-    const runHost = (async () => {
+    const runHost = (async() => {
       const startParams = await fakeDevToolsHost.handleMethod('Tracing.start');
       fakeDevToolsHost.respondToMethod(startParams.id, {});
       const endParams = await fakeDevToolsHost.handleMethod('Tracing.end');
@@ -363,13 +363,13 @@ tr.b.unittest.testSuite(function() {
         'stream': STREAM_HANDLE,
         'streamCompression': 'gzip'
       });
-      const closePromise = (async () => {
+      const closePromise = (async() => {
         const closeParams = await fakeDevToolsHost.handleMethod('IO.close');
         assert.strictEqual(closeParams.params.handle, STREAM_HANDLE);
         streamClosed = true;
       })();
 
-      const readPromise = (async () => {
+      const readPromise = (async() => {
         handleIoRead(0, await fakeDevToolsHost.handleMethod('IO.read'));
       })();
 

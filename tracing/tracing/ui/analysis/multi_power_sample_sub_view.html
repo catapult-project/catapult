@@ -60,7 +60,7 @@ Polymer({
   updateContents_() {
     const samples = this.selection;
     const vSyncTimestamps = (!samples ? [] :
-        tr.b.getFirstElement(samples).series.device.vSyncTimestamps);
+      tr.b.getFirstElement(samples).series.device.vSyncTimestamps);
 
     this.$.summaryTable.samples = samples;
     this.$.chart.setData(this.selection, vSyncTimestamps);

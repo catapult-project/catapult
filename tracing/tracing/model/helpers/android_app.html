@@ -294,11 +294,11 @@ tr.exportTo('tr.model.helpers', function() {
     }
     const renderThreads = process.findAllThreadsNamed('RenderThread');
     const renderThread = (renderThreads.length === 1 ?
-        renderThreads[0] : undefined);
+      renderThreads[0] : undefined);
 
     if (uiThread || renderThread) {
       return new AndroidApp(process, uiThread, renderThread, surfaceFlinger,
-        uiDrawType);
+          uiDrawType);
     }
   };
 

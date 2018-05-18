@@ -369,9 +369,9 @@ tr.b.unittest.testSuite(function() {
   test('filter_numericField', function() {
     const r = Range.fromExplicitRange(2, 3);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 2}, {start: 3}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -395,9 +395,9 @@ tr.b.unittest.testSuite(function() {
   test('left_boundary_corner_case1', function() {
     const r = Range.fromExplicitRange(1, 2);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 1}, {start: 2}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -405,9 +405,9 @@ tr.b.unittest.testSuite(function() {
   test('left_boundary_corner_case2', function() {
     const r = Range.fromExplicitRange(0, 2);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 1}, {start: 2}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -415,9 +415,9 @@ tr.b.unittest.testSuite(function() {
   test('left_boundary_corner_case3', function() {
     const r = Range.fromExplicitRange(1, 1);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 1}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -425,9 +425,9 @@ tr.b.unittest.testSuite(function() {
   test('left_boundary_corner_case4', function() {
     const r = Range.fromExplicitRange(0, 0);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -435,9 +435,9 @@ tr.b.unittest.testSuite(function() {
   test('right_boundary_corner_case1', function() {
     const r = Range.fromExplicitRange(4, 5);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 4}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -445,9 +445,9 @@ tr.b.unittest.testSuite(function() {
   test('right_boundary_corner_case2', function() {
     const r = Range.fromExplicitRange(4, 4);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([{start: 4}], r.filterArray(
         array, function(value) {return value.start;}));
   });
@@ -455,9 +455,9 @@ tr.b.unittest.testSuite(function() {
   test('right_boundary_corner_case3', function() {
     const r = Range.fromExplicitRange(5, 5);
     const array = [{start: 1},
-                 {start: 2},
-                 {start: 3},
-                 {start: 4}];
+      {start: 2},
+      {start: 3},
+      {start: 4}];
     assert.deepEqual([], r.filterArray(
         array, function(value) {return value.start;}));
   });

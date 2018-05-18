@@ -247,9 +247,9 @@ tr.b.unittest.testSuite(function() {
   test('varianceWithFunctor', function() {
     const ctx = {};
     const ary = [{x: 2},
-               {x: 4},
-               {x: 4},
-               {x: 2}];
+      {x: 4},
+      {x: 4},
+      {x: 2}];
     assert.strictEqual(4.0 / 3, Statistics.variance(ary, function(d) {
       assert.strictEqual(ctx, this);
       return d.x;
@@ -263,9 +263,9 @@ tr.b.unittest.testSuite(function() {
   test('stddevWithFunctor', function() {
     const ctx = {};
     const ary = [{x: 2},
-               {x: 4},
-               {x: 4},
-               {x: 2}];
+      {x: 4},
+      {x: 4},
+      {x: 2}];
     assert.strictEqual(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
       assert.strictEqual(ctx, this);
       return d.x;
@@ -275,15 +275,15 @@ tr.b.unittest.testSuite(function() {
   test('percentile', function() {
     const ctx = {};
     const ary = [{x: 0},
-               {x: 1},
-               {x: 2},
-               {x: 3},
-               {x: 4},
-               {x: 5},
-               {x: 6},
-               {x: 7},
-               {x: 8},
-               {x: 9}];
+      {x: 1},
+      {x: 2},
+      {x: 3},
+      {x: 4},
+      {x: 5},
+      {x: 6},
+      {x: 7},
+      {x: 8},
+      {x: 9}];
     function func(d, i) {
       assert.strictEqual(ctx, this);
       return d.x;
@@ -297,15 +297,15 @@ tr.b.unittest.testSuite(function() {
   test('percentile_positionDependent', function() {
     const ctx = {};
     const ary = [{x: 0},
-               {x: 1},
-               {x: 2},
-               {x: 3},
-               {x: 4},
-               {x: 5},
-               {x: 6},
-               {x: 7},
-               {x: 8},
-               {x: 9}];
+      {x: 1},
+      {x: 2},
+      {x: 3},
+      {x: 4},
+      {x: 5},
+      {x: 6},
+      {x: 7},
+      {x: 8},
+      {x: 9}];
     function func(d, i) {
       assert.strictEqual(ctx, this);
       assert.strictEqual(d.x, i);
@@ -331,7 +331,7 @@ tr.b.unittest.testSuite(function() {
     samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0];
     results = Statistics.normalizeSamples(samples);
     assert.deepEqual(results.normalized_samples,
-      [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]);
+        [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]);
     assert.deepEqual(results.scale, 0.75);
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
@@ -521,7 +521,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mannWhitneyUTestSmokeTest', function() {
-   // x < 0.01
+    // x < 0.01
     let sampleA = [1, 2, 2.1, 2.2, 2, 1];
     let sampleB = [12, 13, 13.1, 13.2, 13, 12];
     let results = Statistics.mwu(sampleA, sampleB);

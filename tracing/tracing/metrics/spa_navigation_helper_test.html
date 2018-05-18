@@ -230,7 +230,7 @@ tr.b.unittest.testSuite(function() {
     const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 3);
     spaNavigations.sort((spa1, spa2) =>
-        spa1.navStartCandidates.inputLatencyAsyncSlice.start -
+      spa1.navStartCandidates.inputLatencyAsyncSlice.start -
             spa2.navStartCandidates.inputLatencyAsyncSlice.start);
     assert.strictEqual(
         spaNavigations[0].navStartCandidates.inputLatencyAsyncSlice.start, 55);

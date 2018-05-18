@@ -34,7 +34,7 @@ tr.exportTo('tr.mre', function() {
 
   function ModuleToLoad(href, filename) {
     if ((href !== undefined) ? (filename !== undefined) :
-        (filename === undefined)) {
+      (filename === undefined)) {
       throw new Error('ModuleToLoad must specify exactly one of href or ' +
                       'filename');
     }

@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
 
       // Check that the numeric values of the added values match expectations.
       for (const [valueName, actualValues] of
-          Object.entries(valueNameToValues)) {
+        Object.entries(valueNameToValues)) {
         assert.lengthOf(actualValues, 1,
             'Multiple \'' + valueName + '\' values');
         const actualHistogram = actualValues[0];

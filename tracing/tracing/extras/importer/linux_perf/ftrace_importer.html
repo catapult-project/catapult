@@ -214,7 +214,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produceResult === undefined) produceResult = true;
 
     const header = incomingEvents instanceof tr.b.TraceStream ?
-        incomingEvents.header : incomingEvents;
+      incomingEvents.header : incomingEvents;
     if (!/^<!DOCTYPE html>/.test(header)) return failure;
     const r = new tr.importer.SimpleLineReader(incomingEvents);
 
@@ -272,7 +272,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produceResult === undefined) produceResult = true;
 
     const header = incomingEvents instanceof tr.b.TraceStream ?
-        incomingEvents.header : incomingEvents;
+      incomingEvents.header : incomingEvents;
     if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(header))) return failure;
 
     const r = new tr.importer.SimpleLineReader(incomingEvents);

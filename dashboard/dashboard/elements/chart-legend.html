@@ -389,7 +389,7 @@ found in the LICENSE file.
 
         this.set(
             'seriesGroupList.' + groupIndex + '.selection', (
-            sender.checked ? 'all' : 'none'));
+              sender.checked ? 'all' : 'none'));
         const tests = this.seriesGroupList[groupIndex].tests;
         for (let i = 0; i < tests.length; i++) {
           if (tests[i].index != undefined) {

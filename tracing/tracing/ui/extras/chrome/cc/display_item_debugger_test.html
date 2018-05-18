@@ -14,8 +14,8 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
-      {id: '31415'},
-      10,
+        {id: '31415'},
+        10,
         {
           'params': {
             'layer_rect': [-15, -15, 46, 833],
@@ -41,15 +41,18 @@ tr.b.unittest.testSuite(function() {
 
   test('selections', function() {
     const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
-      {id: '31415'},
-      10,
+        {id: '31415'},
+        10,
         {
           'params': {
             'layer_rect': [-15, -15, 46, 833],
             'items': [
               'BeginClipDisplayItem',
               'TransformDisplayItem',
-            {'name': 'DrawingDisplayItem', 'skp64': '[skia picture in base64]'},
+              {
+                'name': 'DrawingDisplayItem',
+                'skp64': '[skia picture in base64]',
+              },
               'EndTransformDisplayItem',
               'EndClipDisplayItem'
             ]
@@ -90,8 +93,8 @@ tr.b.unittest.testSuite(function() {
 
   test('export', function() {
     const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
-      {id: '31415'},
-      10,
+        {id: '31415'},
+        10,
         {
           'params': {
             'layer_rect': [-15, -15, 46, 833],

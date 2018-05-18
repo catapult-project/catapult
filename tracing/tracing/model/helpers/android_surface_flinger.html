@@ -53,7 +53,7 @@ tr.exportTo('tr.model.helpers', function() {
     // separation of vsync of app vs sf - assume app has at least window of 5ms
     this.deadlineDelayMs_ =
         this.appVsyncTimestamps_ !== this.sfVsyncTimestamps_ ?
-        5 : TIMESTAMP_FUDGE_MS;
+          5 : TIMESTAMP_FUDGE_MS;
   }
 
   AndroidSurfaceFlinger.createForProcessIfPossible = function(process) {

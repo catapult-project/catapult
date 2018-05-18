@@ -119,7 +119,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    */
   CodeMap.prototype.markPages_ = function(start, end) {
     for (let addr = start; addr <= end;
-         addr += CodeMap.PAGE_SIZE) {
+      addr += CodeMap.PAGE_SIZE) {
       this.pages_[addr >>> CodeMap.PAGE_ALIGNMENT] = 1;
     }
   };

@@ -1216,30 +1216,30 @@ tr.exportTo('tr.v', function() {
 
         switch (slice[0]) {
           case HistogramBinBoundaries.SLICE_TYPE.LINEAR:
-            {
-              const binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
-              for (let i = 1; i < binCount; i++) {
-                const boundary = sliceMinBinBoundary + i * binWidth;
-                this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
-                    prevBoundary, boundary));
-                prevBoundary = boundary;
-              }
-              break;
+          {
+            const binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
+            for (let i = 1; i < binCount; i++) {
+              const boundary = sliceMinBinBoundary + i * binWidth;
+              this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
+                  prevBoundary, boundary));
+              prevBoundary = boundary;
             }
+            break;
+          }
 
           case HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL:
-            {
-              const binExponentWidth =
+          {
+            const binExponentWidth =
                   Math.log(nextMaxBinBoundary / prevBoundary) / binCount;
-              for (let i = 1; i < binCount; i++) {
-                const boundary = sliceMinBinBoundary * Math.exp(
-                    i * binExponentWidth);
-                this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
-                    prevBoundary, boundary));
-                prevBoundary = boundary;
-              }
-              break;
+            for (let i = 1; i < binCount; i++) {
+              const boundary = sliceMinBinBoundary * Math.exp(
+                  i * binExponentWidth);
+              this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
+                  prevBoundary, boundary));
+              prevBoundary = boundary;
             }
+            break;
+          }
 
           default:
             throw new Error('Unrecognized HistogramBinBoundaries slice type');

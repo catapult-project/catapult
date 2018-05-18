@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
     const slice = new NetAsyncSlice(
         '', 'a', 0, 1, {params: {}, source_type: 'HELLO'}, 1, true);
     const childSlice = new NetAsyncSlice('', 'b', 0, 1,
-                                       {params: {url: 'http://test.url'}});
+        {params: {url: 'http://test.url'}});
     slice.subSlices = [childSlice];
     // Make sure isTopLevel is populated in the constructor.
     assert.isTrue(slice.isTopLevel);
@@ -82,9 +82,9 @@ tr.b.unittest.testSuite(function() {
   test('ExposeURLNestedBothChildrenHaveURL', function() {
     const slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
     const childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
-                                   {params: {url: 'http://test.url.net'}});
+        {params: {url: 'http://test.url.net'}});
     const childSlice2 = new NetAsyncSlice('', 'c', 0, 1,
-                                   {params: {url: 'http://test.url.com'}});
+        {params: {url: 'http://test.url.com'}});
     slice.subSlices = [childSlice1, childSlice2];
     // Make sure isTopLevel is populated in the constructor.
     assert.isTrue(slice.isTopLevel);
@@ -98,10 +98,10 @@ tr.b.unittest.testSuite(function() {
 
   test('ExposeURLNestedBothParentAndChildHaveURL', function() {
     const slice = new NetAsyncSlice('', 'a', 0, 1,
-                                  {params: {url: 'parent123.url.com'}}, 1,
-                                  true);
+        {params: {url: 'parent123.url.com'}}, 1,
+        true);
     const childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
-                                        {params: {url: 'http://test.url.net'}});
+        {params: {url: 'http://test.url.net'}});
     const childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
@@ -118,7 +118,7 @@ tr.b.unittest.testSuite(function() {
   test('ExposeURLDoNotComputeUrlTwice', function() {
     const slice = new NetAsyncSlice('', 'a', 0, 1, {params: {}}, 1, true);
     const childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
-                                        {params: {url: 'http://test.url.net'}});
+        {params: {url: 'http://test.url.net'}});
     const childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
@@ -140,10 +140,10 @@ tr.b.unittest.testSuite(function() {
 
   test('ExposeSourceTypeAsTitle', function() {
     const slice = new NetAsyncSlice('', 'a', 0, 1,
-                                  {params: {}, source_type: 'UDP_SOCKET'}, 1,
-                                  true);
+        {params: {}, source_type: 'UDP_SOCKET'}, 1,
+        true);
     const childSlice1 = new NetAsyncSlice('', 'b', 0, 1,
-                                        {params: {}, source_type: 'SOCKET'});
+        {params: {}, source_type: 'SOCKET'});
     const childSlice2 = new NetAsyncSlice('', 'c', 0, 1);
 
     slice.subSlices = [childSlice1, childSlice2];
@@ -159,7 +159,7 @@ tr.b.unittest.testSuite(function() {
 
   test('ByteCountBasic', function() {
     const slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
-                                  {params: {byte_count: 12}}, 0, true);
+        {params: {byte_count: 12}}, 0, true);
     assert.strictEqual(slice.byteCount, 12);
   });
 
@@ -170,9 +170,9 @@ tr.b.unittest.testSuite(function() {
 
   test('ByteCountNested', function() {
     const slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_FILTERED_BYTES_READ',
-                                  0, 1, {params: {byte_count: 12}}, 0, true);
+        0, 1, {params: {byte_count: 12}}, 0, true);
     const childSlice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
-                                       {params: {byte_count: 50}});
+        {params: {byte_count: 50}});
     slice.subSlices = [childSlice];
     assert.strictEqual(slice.byteCount, 62);
     assert.strictEqual(childSlice.byteCount, 50);

@@ -92,7 +92,7 @@ tr.exportTo('tr.model', function() {
         const pmd = new ProcessMemoryDump(gmd, process, timestamp);
         process.memoryDumps.push(pmd);
         if (process.pid in gmd.processMemoryDumps) {
-      // Test sanity check.
+          // Test sanity check.
           throw new Error('Process memory dump for process with pid=' +
           process.pid + ' has already been provided');
         }

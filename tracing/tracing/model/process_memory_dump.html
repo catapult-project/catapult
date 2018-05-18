@@ -121,7 +121,7 @@ tr.exportTo('tr.model', function() {
             // Descend from the root towards tracing_overhead as long as the
             // dumps on the path exist.
             for (; nextPathIndex < TRACING_OVERHEAD_PATH.length;
-                 nextPathIndex++) {
+              nextPathIndex++) {
               const childFullName = currentFullName + '/' +
               TRACING_OVERHEAD_PATH[nextPathIndex];
               const childDump = this.getMemoryAllocatorDumpByFullName(
@@ -135,11 +135,11 @@ tr.exportTo('tr.model', function() {
             // Create the missing descendant dumps on the path from the root
             // towards tracing_overhead.
             for (; nextPathIndex < TRACING_OVERHEAD_PATH.length;
-                 nextPathIndex++) {
+              nextPathIndex++) {
               const childFullName = currentFullName + '/' +
               TRACING_OVERHEAD_PATH[nextPathIndex];
               const childDump = new tr.model.MemoryAllocatorDump(
-              currentDump.containerMemoryDump, childFullName);
+                  currentDump.containerMemoryDump, childFullName);
               childDump.parent = currentDump;
               currentDump.children.push(childDump);
 

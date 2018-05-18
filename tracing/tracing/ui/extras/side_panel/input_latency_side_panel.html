@@ -167,7 +167,7 @@ Polymer({
     }
 
     for (const rendererHelper of
-        Object.values(this.modelHelper_.rendererHelpers)) {
+      Object.values(this.modelHelper_.rendererHelpers)) {
       const rendererProcess = rendererHelper.process;
       const labelStr = 'Renderer: ' + rendererProcess.userFriendlyName;
       labels.push({label: labelStr, value: rendererProcess.userFriendlyName});
@@ -226,7 +226,7 @@ Polymer({
     let chromeProcess;
     if (this.modelHelper_.rendererHelpers[this.selectedProcessId_]) {
       chromeProcess = this.modelHelper_.rendererHelpers[
-        this.selectedProcessId_
+          this.selectedProcessId_
       ];
     } else {
       chromeProcess = this.modelHelper_.browserHelper;
@@ -242,8 +242,8 @@ Polymer({
     );
 
     const latencyEvents = this.modelHelper_.browserHelper.
-      getLatencyEventsInRange(
-        rangeOfInterest);
+        getLatencyEventsInRange(
+            rangeOfInterest);
 
     const latencyData = [];
     latencyEvents.forEach(function(event) {
