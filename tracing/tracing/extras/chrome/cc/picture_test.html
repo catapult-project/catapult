@@ -44,5 +44,38 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(op0.cmd_string, 'Save');
     assert.instanceOf(op0.info, Array);
   });
+
+  function setUpFakeSkiaBenchmarking() {
+    if (tr.e.cc.PictureSnapshot.CanRasterize() &&
+        tr.e.cc.PictureSnapshot.CanGetOps()) {
+      return window.chrome;
+    }
+
+    const oldChrome = window.chrome;
+    window.chrome = {
+      skiaBenchmarking: {
+        rasterize() {},
+        getOps() {},
+      }
+    };
+    return oldChrome;
+  }
+
+  test('rasterizeZeroSize', function() {
+    if (!window) return;
+
+    const oldChrome = setUpFakeSkiaBenchmarking();
+    try {
+      const picture = new tr.e.cc.Picture(
+          '', {x: 0, y: 0, width: 0, height: 50});
+      let result;
+      picture.rasterize({}, function(data) { result = data; });
+      assert.strictEqual(result.picture, picture);
+      assert.isUndefined(result.imageData);
+      assert.isNull(result.error);
+    } finally {
+      window.chrome = oldChrome;
+    }
+  });
 });
 </script>

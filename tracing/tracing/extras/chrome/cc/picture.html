@@ -137,6 +137,11 @@ tr.exportTo('tr.e.cc', function() {
         return;
       }
 
+      if (!this.layerRect_.width || !this.layerRect_.height) {
+        rasterCompleteCallback(new tr.e.cc.PictureAsImageData(this, null));
+        return;
+      }
+
       const raster = window.chrome.skiaBenchmarking.rasterize(
           {
             skp64: this.skp64_,
