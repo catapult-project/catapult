@@ -9,6 +9,7 @@ import unittest
 
 from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.testing import browser_test_context
 
 
@@ -67,6 +68,12 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     """
     cls._browser_options = browser_options
     cls._browser_to_create = browser_finder.FindBrowser(browser_options)
+    if not cls._browser_to_create:
+      raise browser_finder_exceptions.BrowserFinderException(
+          'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' % (
+              browser_options.browser_options.browser_type,
+              '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
+                  browser_options))))
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
       cls.platform.SetFullPerformanceModeEnabled(
