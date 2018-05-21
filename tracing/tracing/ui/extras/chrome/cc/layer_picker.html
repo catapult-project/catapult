@@ -153,17 +153,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       const showPureTransformLayers = this.showPureTransformLayers_;
 
-      function isPureTransformLayer(layer) {
-        if (layer.args.compositingReasons &&
-            layer.args.compositingReasons.length !== 1 &&
-            layer.args.compositingReasons[0] !== 'No reasons given') {
-          return false;
-        }
-
-        if (layer.args.drawsContent) return false;
-
-        return true;
-      }
       const visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
         if (visitedLayers[layer.layerId]) return;
@@ -185,7 +174,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         info.isMaskLayer = isMask;
         info.replicaLayer = isReplica;
 
-        if (showPureTransformLayers || !isPureTransformLayer(layer)) {
+        if (showPureTransformLayers || layer.args.drawsContent) {
           layerInfos.push(info);
         }
       }

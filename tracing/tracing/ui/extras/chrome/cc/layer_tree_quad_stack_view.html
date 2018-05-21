@@ -712,35 +712,27 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (layer.layerTreeImpl.hasSourceFrameBeenDrawnBefore) return;
 
       // Generate the invalidation rect quads.
-      for (let ir = 0; ir < layer.annotatedInvalidation.rects.length; ir++) {
-        const rect = layer.annotatedInvalidation.rects[ir];
+      for (const rect of layer.invalidation.rects) {
         const unitRect = rect.asUVRectInside(layer.bounds);
         const iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
-        if (rect.reason === 'renderer insertion') {
+        if (rect.reason === 'appeared') {
           iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
         }
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
-        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
-            layer, 'Invalidation rect (' + rect.reason + ')', rect, rect);
-        quads.push(iq);
-      }
 
-      // Show unannotated invalidation rect quads if no annotated rects are
-      // available.
-      if (layer.annotatedInvalidation.rects.length === 0) {
-        for (let ir = 0; ir < layer.invalidation.rects.length; ir++) {
-          const rect = layer.invalidation.rects[ir];
-          const unitRect = rect.asUVRectInside(layer.bounds);
-          const iq = layerQuad.projectUnitRect(unitRect);
-          iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
-          iq.borderColor = 'rgba(0, 255, 0, 1)';
-          iq.stackingGroupId = layerQuad.stackingGroupId;
-          iq.selectionToSetIfClicked = new cc.LayerRectSelection(
-              layer, 'Invalidation rect', rect, rect);
-          quads.push(iq);
+        let message = 'Invalidation rect';
+        if (rect.reason) {
+          message += ' (' + rect.reason + ')';
         }
+        if (rect.client) {
+          message += ' for ' + rect.client;
+        }
+
+        iq.selectionToSetIfClicked = new cc.LayerRectSelection(
+            layer, message, rect, rect);
+        quads.push(iq);
       }
     },
 

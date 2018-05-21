@@ -24,16 +24,12 @@ tr.b.unittest.testSuite(function() {
 
     const instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
     const lthi = instance.snapshots[0];
-    const numLayers = lthi.activeTree.renderSurfaceLayerList.length;
-    const layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
     const view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
-    view.selection = new tr.ui.e.chrome.cc.LayerSelection(layer);
     view.howToShowTiles = 'none';
     view.showInvalidations = false;
     view.showContents = false;
-    view.showOtherLAyers = false;
 
     // There should be some quads drawn with all "show" checkboxes off,
     // but that number can change with new features added.
@@ -77,6 +73,41 @@ tr.b.unittest.testSuite(function() {
     assert.notEqual(getComputedStyle(image).backgroundImage, '');
     assert.notEqual(image.src, '');
     view.remove();
+  });
+
+  test('invalidation', function() {
+    const m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
+    const p = m.processes[1];
+
+    const instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    const lthi = instance.snapshots[0];
+
+    const view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
+    view.layerTreeImpl = lthi.activeTree;
+    view.showInvalidations = false;
+
+    const aQuads = view.generateLayerQuads();
+    view.showInvalidations = true;
+    const bQuads = view.generateLayerQuads();
+    const numInvalidationRects = bQuads.length - aQuads.length;
+
+    // We know we have 3 invalidation rects.
+    assert.strictEqual(numInvalidationRects, 3);
+
+    const expectedRectTypes = [
+      'Invalidation rect (appeared) for client1',
+      'Invalidation rect (disappeared) for client2',
+      'Invalidation rect'  // The non-annotated rect.
+    ];
+    const found = [];
+    for (const quad of bQuads) {
+      const i = expectedRectTypes.indexOf(quad.selectionToSetIfClicked &&
+          quad.selectionToSetIfClicked.rectType_);
+      if (i !== -1) {
+        found[i] = true;
+      }
+    }
+    assert.deepEqual(found, [true, true, true]);
   });
 });
 </script>

@@ -168,7 +168,7 @@ global.g_catLTHIEvents = [
             'gpu_memory_usage': 22069248,
             'draws_content': 1,
             'layer_id': 6,
-            'invalidation': [],
+            'invalidation': [10, 20, 30, 40],
             'bounds': {
               'width': 1230,
               'height': 1667
@@ -208,6 +208,20 @@ global.g_catLTHIEvents = [
                 ],
                 'pictures': [
                 ],
+                'debug_info': {
+                  'annotated_invalidation_rects': [
+                    {
+                      'geometry_rect': [11, 22, 33, 44],
+                      'reason': 'appeared',
+                      'client': 'client1'
+                    },
+                    {
+                      'geometry_rect': [22, 33, 44, 55],
+                      'reason': 'disappeared',
+                      'client': 'client2'
+                    },
+                  ]
+                },
                 'id': 'cc::PictureLayerImpl/LAYER_2'
               }
             ],

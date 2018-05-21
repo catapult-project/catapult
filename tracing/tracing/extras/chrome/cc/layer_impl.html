@@ -38,7 +38,6 @@ tr.exportTo('tr.e.cc', function() {
     initialize() {
       // Defaults.
       this.invalidation = new tr.e.cc.Region();
-      this.annotatedInvalidation = new tr.e.cc.Region();
       this.unrecordedRegion = new tr.e.cc.Region();
       this.pictures = [];
 
@@ -138,25 +137,37 @@ tr.exportTo('tr.e.cc', function() {
     initialize() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
-      if (this.args.invalidation) {
-        this.invalidation = tr.e.cc.Region.fromArray(this.args.invalidation);
-        delete this.args.invalidation;
+      // Backward compatibility: the new format puts debug info fields under
+      // 'debugInfo', while the old format puts them directly under args.
+      if (this.args.debugInfo) {
+        for (const i in this.args.debugInfo) {
+          this.args[i] = this.args.debugInfo[i];
+        }
+        delete this.args.debugInfo;
       }
+
       if (this.args.annotatedInvalidationRects) {
-        this.annotatedInvalidation = new tr.e.cc.Region();
-        for (let i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
-          const annotatedRect = this.args.annotatedInvalidationRects[i];
+        this.invalidation = new tr.e.cc.Region();
+        for (const annotatedRect of this.args.annotatedInvalidationRects) {
           const rect = annotatedRect.geometryRect;
           rect.reason = annotatedRect.reason;
-          this.annotatedInvalidation.addRect(rect);
+          rect.client = annotatedRect.client;
+          this.invalidation.addRect(rect);
         }
         delete this.args.annotatedInvalidationRects;
+      } else if (this.args.invalidation) {
+        // Use unannotated invalidation rect if no annotated rects are
+        // available.
+        this.invalidation = tr.e.cc.Region.fromArray(this.args.invalidation);
       }
+      delete this.args.invalidation;
+
       if (this.args.unrecordedRegion) {
         this.unrecordedRegion = tr.e.cc.Region.fromArray(
             this.args.unrecordedRegion);
         delete this.args.unrecordedRegion;
       }
+
       if (this.args.pictures) {
         this.pictures = this.args.pictures;
 
