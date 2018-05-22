@@ -69,7 +69,7 @@ found in the LICENSE file.
         <span id="running" class="badge">Running</span>
       </template>
     </h1>
-    <loading-wrapper url="/api/job?o=STATE" params="[[params(routeData.jobId)]]" response="{{job}}">
+    <loading-wrapper url="/api/job/[[routeData.jobId]]?o=STATE" response="{{job}}">
       <p class="byline">
         For [[job.user]]
         <span class="middle-dot"></span>
@@ -103,10 +103,6 @@ found in the LICENSE file.
         changeIndex: {
           type: Number
         }
-      },
-
-      params(jobId) {
-        return {job_id: jobId};
       },
 
       failed(job) {

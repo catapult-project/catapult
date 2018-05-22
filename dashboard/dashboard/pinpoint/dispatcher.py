@@ -17,7 +17,7 @@ _URL_MAPPING = [
     webapp2.Route(r'/api/isolate', handlers.Isolate),
     webapp2.Route(r'/api/isolate/<builder_name>/<git_hash>/<target>',
                   handlers.Isolate),
-    webapp2.Route(r'/api/job', handlers.Job),
+    webapp2.Route(r'/api/job/<job_id>', handlers.Job),
     webapp2.Route(r'/api/jobs', handlers.Jobs),
     webapp2.Route(r'/api/migrate', handlers.Migrate),
     webapp2.Route(r'/api/new', handlers.New),
