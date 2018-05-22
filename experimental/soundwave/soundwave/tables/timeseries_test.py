@@ -41,6 +41,20 @@ class TestTimeSeries(unittest.TestCase):
     self.assertEqual(point['chromium_rev'], 'adb123')
     self.assertEqual(point['clank_rev'], None)
 
+  def testDataFrameFromJson_withSummaryMetric(self):
+    data = {
+        'test_path':
+            'ChromiumPerf/android-nexus5/loading.mobile/timeToFirstInteractive',
+        'timeseries': [
+            ['revision', 'value', 'timestamp', 'r_commit_pos', 'r_chromium'],
+            [547397, 2300.3, '2018-04-01T14:16:32.000', '547397', 'adb123'],
+            [547398, 2750.9, '2018-04-01T18:24:04.000', '547398', 'cde456'],
+        ]
+    }
+
+    timeseries = tables.timeseries.DataFrameFromJson(data).reset_index()
+    self.assertTrue(timeseries['test_case'].isnull().all())
+
 
 if __name__ == '__main__':
   unittest.main()

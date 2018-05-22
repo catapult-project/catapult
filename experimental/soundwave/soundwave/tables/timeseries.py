@@ -61,7 +61,7 @@ def DataFrameFromJson(data):
     row['commit_pos'] = _ParseIntValue(row['r_commit_pos'])
     row['chromium_rev'] = row['r_chromium']
     row['clank_rev'] = row.get('r_clank', None)
-    rows.append(tuple(row[k] for k in COLUMNS))
+    rows.append(tuple(row.get(k) for k in COLUMNS))
 
   df = pandas.DataFrame.from_records(rows, index=INDEX, columns=COLUMNS)
   df['timestamp'] = pandas.to_datetime(df['timestamp'])
