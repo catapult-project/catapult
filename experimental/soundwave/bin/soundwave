@@ -49,8 +49,6 @@ def Main():
       help='Path to file where to store user credentials')
   # Default args for all actions.
   parser.add_argument(
-      '-b', '--benchmark', required=True, help='Benchmark to pull data for.')
-  parser.add_argument(
       '-d', '--days', default=30, type=int,
       help='Number of days to collect data for (default: %(default)s)')
   parser.add_argument(
@@ -69,8 +67,18 @@ def Main():
   subparsers.required = True
   # Subparser args for fetching alerts data.
   subparser = subparsers.add_parser('alerts')
+  subparser.add_argument(
+      '-b', '--benchmark', required=True,
+      help='Fetch alerts for this benchmark.')
   # Subparser args for fetching timeseries data.
   subparser = subparsers.add_parser('timeseries')
+  group = subparser.add_mutually_exclusive_group(required=True)
+  group.add_argument(
+      '-b', '--benchmark', help='Fetch timeseries for this benchmark.')
+  group.add_argument(
+      '-i', '--input-file',
+      help='Fetch timeseries for test paths listed in this file, one path '
+           'per line.')
   subparser.add_argument(
       '-f', '--filters', action='append',
       help=('Only get data for timeseries whose path contains all the given '

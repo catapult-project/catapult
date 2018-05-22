@@ -76,20 +76,34 @@ def _FetchTimeseriesWorker(args):
   worker_pool.Process = Process
 
 
+def _ReadTestPathsFromFile(filename):
+  with open(filename, 'rU') as f:
+    for line in f:
+      line = line.strip()
+      if line and not line.startswith('#'):
+        yield line
+
+
 def FetchTimeseriesData(args):
   def _MatchesAllFilters(test_path):
     return all(f in test_path for f in args.filters)
 
-  api = dashboard_api.PerfDashboardCommunicator(args)
+  if args.benchmark is not None:
+    api = dashboard_api.PerfDashboardCommunicator(args)
+    test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
+  elif args.input_file is not None:
+    test_paths = list(_ReadTestPathsFromFile(args.input_file))
+  else:
+    raise NotImplementedError('Expected --benchmark or --input-file')
+
+  if args.filters:
+    test_paths = filter(_MatchesAllFilters, test_paths)
+  num_found = len(test_paths)
+  print '%d test paths found!' % num_found
+
   con = sqlite3.connect(args.database_file)
   try:
     tables.CreateIfNeeded(con)
-    test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
-    if args.filters:
-      test_paths = filter(_MatchesAllFilters, test_paths)
-    num_found = len(test_paths)
-    print '%d test paths found!' % num_found
-
     if args.use_cache:
       test_paths = list(_IterStaleTestPaths(con, test_paths))
       num_skipped = num_found - len(test_paths)
