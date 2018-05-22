@@ -27,7 +27,7 @@ def FetchAlertsData(args):
   try:
     tables.CreateIfNeeded(con)
     alerts = tables.alerts.DataFrameFromJson(
-        api.GetAlertData(args.benchmark, args.days))
+        api.GetAlertData(args.benchmark, args.sheriff, args.days))
     print '%d alerts found!' % len(alerts)
     pandas_sqlite.InsertOrReplaceRecords(con, 'alerts', alerts)
 

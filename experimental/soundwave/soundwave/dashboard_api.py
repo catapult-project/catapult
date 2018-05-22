@@ -121,7 +121,7 @@ class PerfDashboardCommunicator(object):
       raise BuildRequestError(resp, content)
     return json.loads(content)
 
-  def ListTestPaths(self, benchmark, sheriff=False):
+  def ListTestPaths(self, benchmark, sheriff):
     """Lists test paths for the given benchmark.
 
     args:
@@ -132,10 +132,8 @@ class PerfDashboardCommunicator(object):
     returns:
       A list of test paths. Ex. ['TestPath1', 'TestPath2']
     """
-    r = 'list_timeseries/%s' % benchmark
-    if sheriff:
-      r += '?sheriff=%s' % urllib.quote(sheriff)
-    return self._MakeApiRequest(r)
+    options = urllib.urlencode({'sheriff': sheriff})
+    return self._MakeApiRequest('list_timeseries/%s?%s' % (benchmark, options))
 
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.
@@ -166,7 +164,7 @@ class PerfDashboardCommunicator(object):
     for bug_id in bug_ids:
       yield self._MakeApiRequest('bugs/%d' % bug_id)
 
-  def GetAlertData(self, benchmark, days=30):
+  def GetAlertData(self, benchmark, sheriff, days=30):
     """Returns alerts for the given benchmark."""
-    options = urllib.urlencode({'benchmark': benchmark})
+    options = urllib.urlencode({'benchmark': benchmark, 'sheriff': sheriff})
     return self._MakeApiRequest('alerts/history/%d?%s' % (days, options))
