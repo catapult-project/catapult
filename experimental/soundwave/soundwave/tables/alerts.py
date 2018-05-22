@@ -65,7 +65,7 @@ def _RowFromJson(data):
 
 def DataFrameFromJson(data):
   df = pandas.DataFrame.from_records(
-      (_RowFromJson(d) for d in data['anomalies']),
+      list(_RowFromJson(d) for d in data['anomalies']),
       index=INDEX, columns=COLUMNS)
   df['timestamp'] = pandas.to_datetime(df['timestamp'])
   return df

@@ -9,7 +9,7 @@ from soundwave import tables
 
 
 class TestBugs(unittest.TestCase):
-  def testDataFrameFromApi(self):
+  def testDataFrameFromJson(self):
     data = [
         {
             'bug': {
@@ -37,6 +37,11 @@ class TestBugs(unittest.TestCase):
     self.assertEqual(bug['status'], 'Fixed')
     self.assertEqual(bug['cc'], 'baz@chromium.org,foo@chromium.org')
     self.assertEqual(bug['components'], None)
+
+  def testDataFrameFromJson_noBugs(self):
+    data = []
+    bugs = tables.bugs.DataFrameFromJson(data)
+    self.assertEqual(len(bugs), 0)
 
 
 if __name__ == '__main__':

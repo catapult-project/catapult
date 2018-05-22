@@ -93,6 +93,10 @@ class TestAlerts(unittest.TestCase):
     self.assertEqual(alert['measurement'], 'timeToFirstInteractive')
     self.assertIsNone(alert['test_case'])
 
+  def testDataFrameFromJson_noAlerts(self):
+    data = {'anomalies': []}
+    alerts = tables.alerts.DataFrameFromJson(data)
+    self.assertEqual(len(alerts), 0)
 
 
 if __name__ == '__main__':
