@@ -50,7 +50,7 @@ class Execution(object):
 
   @property
   def result_values(self):
-    """Data used by auto_explore to determine if two Execution results differ.
+    """Data used to determine if two Execution results differ.
 
     Currently it's just a list of integers or floats. In the future, it will be
     a Catapult Value. For a Build or Test Execution, this is a list containing 0

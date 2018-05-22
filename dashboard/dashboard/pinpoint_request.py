@@ -202,7 +202,6 @@ def PinpointParamsFromPerfTryParams(params):
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'extra_test_args': extra_test_args,
-      'auto_explore': 'false',
       'target': target,
       'user': email,
       'name': job_name
@@ -279,7 +278,6 @@ def PinpointParamsFromBisectParams(params):
       'start_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
-      'auto_explore': 'true',
       'comparison_mode': bisect_mode,
       'target': target,
       'user': email,

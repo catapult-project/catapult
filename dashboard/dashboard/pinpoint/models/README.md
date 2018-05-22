@@ -10,7 +10,7 @@ Each individual Attempt handles its own execution, so all Attempts can run in pa
 
 ## Bisection
 
-When the Job's `auto_explore` flag is set to True, Pinpoint automatically chooses what Changes to run. It compares the results of each pair of adjacent Changes. If any two Changes have different results, it finds the midpoint of those Changes and runs that as well.
+When the Job's `comparison_mode` flag is set, Pinpoint automatically chooses what Changes to run. It compares the results of each pair of adjacent Changes. If any two Changes have different results, it finds the midpoint of those Changes and runs that as well.
 
 ## Data migration
 

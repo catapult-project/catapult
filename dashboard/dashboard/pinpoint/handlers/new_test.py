@@ -21,7 +21,6 @@ _BASE_REQUEST = {
     'target': 'telemetry_perf_tests',
     'configuration': 'chromium-rel-mac11-pro',
     'benchmark': 'speedometer',
-    'auto_explore': '1',
     'bug_id': '12345',
     'start_git_hash': '1',
     'end_git_hash': '3',
@@ -103,15 +102,6 @@ class NewTest(_NewTest):
     self.assertEqual(
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
-
-  def testAutoExploreTrue(self):
-    request = dict(_BASE_REQUEST)
-    request['auto_explore'] = True
-    response = self.testapp.post('/api/new', request, status=200)
-    result = json.loads(response.body)
-    self.assertIn('jobId', result)
-    job = job_module.JobFromId(result['jobId'])
-    self.assertTrue(job.auto_explore)
 
   def testComparisonModeFunctional(self):
     request = dict(_BASE_REQUEST)

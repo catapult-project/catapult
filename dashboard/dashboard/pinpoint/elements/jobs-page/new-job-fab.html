@@ -51,7 +51,6 @@ found in the LICENSE file.
         <iron-ajax auto url="/api/config" last-response="{{config}}"></iron-ajax>
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="auto_explore" value="false">
             <input type="hidden" name="start_git_hash" value="HEAD">
             <input type="hidden" name="end_git_hash" value="HEAD">
             <input type="hidden" name="target" value="telemetry_perf_tests">

@@ -116,7 +116,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('false', results['auto_explore'])
     self.assertEqual(
         ['--extra-trace-args', 'abc,123,foo'],
         json.loads(results['extra_test_args']))
@@ -139,7 +138,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('false', results['auto_explore'])
     self.assertEqual(
         ['--extra-trace-args', 'abc,123,foo'],
         json.loads(results['extra_test_args']))
@@ -161,7 +159,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('false', results['auto_explore'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
@@ -320,7 +317,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('true', results['auto_explore'])
     self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual(
@@ -349,7 +345,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('true', results['auto_explore'])
     self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual('foo', results['story'])
@@ -375,7 +370,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('true', results['auto_explore'])
     self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
     self.assertEqual('foo', results['story'])
@@ -401,7 +395,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
-    self.assertEqual('true', results['auto_explore'])
     self.assertEqual('performance', results['comparison_mode'])
     self.assertEqual(1, results['bug_id'])
 

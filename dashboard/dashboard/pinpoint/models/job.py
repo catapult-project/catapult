@@ -64,10 +64,6 @@ class Job(ndb.Model):
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
 
-  # If True, the service should pick additional Changes to run (bisect).
-  # If False, only run the Changes explicitly added by the user.
-  auto_explore = ndb.BooleanProperty(required=True)
-
   # TODO: The bug id is only used for posting bug comments when a job starts and
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
@@ -80,16 +76,14 @@ class Job(ndb.Model):
   tags = ndb.JsonProperty()
 
   @classmethod
-  def New(cls, quests, changes, arguments=None, auto_explore=False,
-          bug_id=None, comparison_mode=None, pin=None, tags=None, user=None):
+  def New(cls, quests, changes, arguments=None, bug_id=None,
+          comparison_mode=None, pin=None, tags=None, user=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
       quests: An iterable of Quests for the Job to run.
       changes: An iterable of the initial Changes to run on.
       arguments: A dict with the original arguments used to start the Job.
-      auto_explore: If True, the Job should automatically add additional
-          Attempts and Changes based on comparison of results values.
       bug_id: A monorail issue id number to post Job updates to.
       comparison_mode: Either 'functional' or 'performance', which the Job uses
           to figure out whether to perform a functional or performance bisect.
@@ -103,7 +97,7 @@ class Job(ndb.Model):
     """
     state = job_state.JobState(quests, comparison_mode=comparison_mode, pin=pin)
     job = cls(state=state, arguments=arguments or {},
-              auto_explore=auto_explore, bug_id=bug_id, tags=tags, user=user)
+              bug_id=bug_id, tags=tags, user=user)
 
     for c in changes:
       job.AddChange(c)
@@ -154,7 +148,7 @@ class Job(ndb.Model):
 
     # Format bug comment.
 
-    if not self.auto_explore:
+    if not self.state.comparison_mode:
       # There is no comparison metric.
       title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
       self._PostBugComment('\n'.join((title, self.url)))
@@ -255,7 +249,7 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      if self.auto_explore:
+      if self.state.comparison_mode:
         self.state.Explore()
       work_left = self.state.ScheduleWork()
 
@@ -297,8 +291,8 @@ class Job(ndb.Model):
         'job_id': self.job_id,
 
         'arguments': self.arguments,
-        'auto_explore': self.auto_explore,
         'bug_id': self.bug_id,
+        'comparison_mode': self.state.comparison_mode,
         'user': self.user,
 
         'created': self.created.isoformat(),
