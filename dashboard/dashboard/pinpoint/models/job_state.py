@@ -181,18 +181,18 @@ class JobState(object):
     for change in self._changes:
       result_values = []
 
-      for attempt in self._attempts[change]:
-        if quest_index < len(attempt.executions):
-          result_values += attempt.executions[quest_index].result_values
-
-      # TODO: Use comparison_mode to distinguish performance and functional.
-      if not result_values:
+      if self._comparison_mode == 'functional':
         pass_fails = []
         for attempt in self._attempts[change]:
           if attempt.completed:
             pass_fails.append(int(attempt.failed))
         if pass_fails:
           result_values.append(_Mean(pass_fails))
+
+      elif self._comparison_mode == 'performance':
+        for attempt in self._attempts[change]:
+          if quest_index < len(attempt.executions):
+            result_values += attempt.executions[quest_index].result_values
 
       state.append({
           'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
