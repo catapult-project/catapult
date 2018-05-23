@@ -5,13 +5,6 @@ runtime: python27
 api_version: 1
 threadsafe: false
 instance_class: F4_1G
-skip_files:
-- ^(.*/)?#.*#$
-- ^(.*/)?.*~$
-- ^(.*/)?.*\.py[co]$
-- ^(.*/)?.*/RCS/.*$
-- ^(.*/)?\..*$
-- ^py_utils/bin
 
 libraries:
 - name: jinja2
@@ -30,23 +23,6 @@ inbound_services:
 - warmup
 
 handlers:
-
-- url: /mapreduce(/.*)?
-  script: mapreduce.main.APP
-  login: admin
-
-- url: /_ah/pipeline(/.*)?
-  script: pipeline.handlers._APP
-
-- url: /_ah/queue/deferred
-  script: google.appengine.ext.deferred.application
-  login: admin
-
-- url: /_ah/dev_console(/.*)?
-  script: google.appengine.ext.admin.application
-  login: admin
-  secure: always
-
 - url: /favicon.ico
   static_files: dashboard/static/favicon.ico
   upload: dashboard/static/favicon.ico
@@ -87,136 +63,9 @@ handlers:
   upload: gl-matrix-min.js
   secure: always
 
-- url: /add_histograms_queue
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /add_point_queue
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /associate_alerts
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
-- url: /auto_bisect
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /mark_recovered_alerts
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /bot_whitelist
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /change_internal_only
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /delete_expired_entities
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /delete_test_data
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /edit_anomaly_configs
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /edit_bug_labels
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /edit_sheriffs
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /edit_anomalies
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
-- url: /edit_site_config
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /email_summary
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /file_bug
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
-- url: /load_from_prod
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /migrate_test_names
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /mr_deprecate_tests
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /pinpoint/.*
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
-- url: /put_entities_task
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /start_try_job
-  script: dashboard.dispatcher.APP
-  login: required
-  secure: always
-
-- url: /stats_around_revision
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /update_bug_with_results
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /update_test_metadata
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /update_test_suites
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /.*
   script: dashboard.dispatcher.APP
   secure: always
+
+includes:
+- scripts.yaml

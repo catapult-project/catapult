@@ -13,7 +13,7 @@ import sys
 from catapult_build import temp_deployment_dir
 
 
-def Deploy(paths, args):
+def Deploy(paths, args, version=None):
   """Deploys a new version of an App Engine app from a temporary directory.
 
   Args:
@@ -21,6 +21,8 @@ def Deploy(paths, args):
         (or copied) in the deployment directory.
     args: Arguments passed to "gcloud app deploy".
   """
+  if version is None:
+    version = _VersionName()
   with temp_deployment_dir.TempDeploymentDir(
       paths, use_symlinks=False) as temp_dir:
     print 'Deploying from "%s".' % temp_dir
@@ -38,7 +40,7 @@ def Deploy(paths, args):
       sys.exit(1)
 
     subprocess.call([script_path, 'app', 'deploy', '--no-promote', '--quiet',
-                     '--version', _VersionName()] + args,
+                     '--version', version] + args,
                     cwd=temp_dir)
 
 
