@@ -101,9 +101,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(this).classList.remove('hidden');
       this.style.display = '';
 
-      if (this.pictureDataProcessed_) return;
-
-      this.processPictureData_();
+      if (!this.pictureDataProcessed_) {
+        this.processPictureData_();
+      }
       this.requiresRedraw = true;
       this.updateChartContents();
     },

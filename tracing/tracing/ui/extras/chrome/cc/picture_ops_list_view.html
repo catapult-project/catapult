@@ -35,14 +35,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
-      this.style.flexDirection = 'column';
       this.style.borderTop = '1px solid grey';
-      this.style.display = 'flex';
+      this.style.overflow = 'auto';
       this.opsList_ = new tr.ui.b.ListView();
-      this.opsList_.style.flexGrow = 1;
-      this.opsList_.style.flexShrink = 1;
-      this.opsList_.style.flexBasis = 'auto';
-      this.opsList_.style.overflow = 'auto';
       Polymer.dom(this).appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;

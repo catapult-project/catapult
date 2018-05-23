@@ -73,7 +73,13 @@ and limit users to having one option selected at a time.
 
       #subView {
         flex: 1 1 auto;
-        overflow: auto;
+        min-width: 0;
+        display: flex;
+      }
+
+      #subView > * {
+        flex: 1 1 auto;
+        min-width: 0;
       }
     </style>
     <div id='tabs' hidden="[[tabsHidden]]">

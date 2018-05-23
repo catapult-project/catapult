@@ -30,7 +30,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.style.flexGrow = 1;
       this.style.flexShrink = 1;
       this.style.flexBasis = 'auto';
+      this.style.minWidth = 0;
       this.displayItemDebugger_ = new tr.ui.e.chrome.cc.DisplayItemDebugger();
+      this.displayItemDebugger_.style.flexGrow = 1;
+      this.displayItemDebugger_.style.flexShrink = 1;
+      this.displayItemDebugger_.style.flexBasis = 'auto';
+      this.displayItemDebugger_.style.minWidth = 0;
       Polymer.dom(this).appendChild(this.displayItemDebugger_);
     },
 

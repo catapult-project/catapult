@@ -29,10 +29,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(this).classList.add(
           'tr-ui-e-chrome-cc-picture-snapshot-view');
       this.style.display = 'flex';
-      this.style.flexGrow = 0;
+      this.style.flexGrow = 1;
       this.style.flexShrink = 1;
       this.style.flexBasis = 'auto';
+      this.style.minWidth = 0;
       this.pictureDebugger_ = new tr.ui.e.chrome.cc.PictureDebugger();
+      this.pictureDebugger_.style.flexGrow = 1;
+      this.pictureDebugger_.style.flexShrink = 1;
+      this.pictureDebugger_.style.flexBasis = 'auto';
+      this.pictureDebugger_.style.minWidth = 0;
       Polymer.dom(this).appendChild(this.pictureDebugger_);
     },
 

@@ -34,7 +34,9 @@ found in the LICENSE file.
   <div id="header"></div>
   <input id="stacking-distance-slider" type="range" min=1 max=400 step=1>
   </input>
-  <canvas id="canvas"></canvas>
+  <div id="canvas-scroller">
+    <canvas id="canvas"></canvas>
+  </div>
   <img id="chrome-left"/>
   <img id="chrome-mid"/>
   <img id="chrome-right"/>
@@ -351,12 +353,8 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate() {
       this.className = 'quad-stack-view';
-      this.style.display = 'block';
-      this.style.float = 'left';
-      this.style.height = '100%';
-      this.style.overflow = 'hidden';
+      this.style.display = 'flex';
       this.style.position = 'relative';
-      this.style.width = '100%';
 
       const node = tr.ui.b.instantiateTemplate('#quad-stack-view-template',
           THIS_DOC);
@@ -367,7 +365,15 @@ tr.exportTo('tr.ui.b', function() {
       header.style.fontSize = '70%';
       header.style.top = '10px';
       header.style.left = '10px';
-      header.style.width = '800px';
+      header.style.right = '150px';
+
+      const scroller = Polymer.dom(this).querySelector('#canvas-scroller');
+      scroller.style.flexGrow = 1;
+      scroller.style.flexShrink = 1;
+      scroller.style.flexBasis = 'auto';
+      scroller.style.minWidth = 0;
+      scroller.style.minHeight = 0;
+      scroller.style.overflow = 'auto';
 
       this.canvas_ = Polymer.dom(this).querySelector('#canvas');
       this.chromeImages_ = {
@@ -462,8 +468,6 @@ tr.exportTo('tr.ui.b', function() {
       if (rect.equalTo(this.viewportRect_)) return false;
 
       this.viewportRect_ = rect;
-      this.style.width = width + 'px';
-      this.style.height = height + 'px';
       this.canvas_.style.width = width + 'px';
       this.canvas_.style.height = height + 'px';
       this.canvas_.width = this.pixelRatio_ * width;

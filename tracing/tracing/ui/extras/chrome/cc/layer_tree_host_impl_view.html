@@ -34,13 +34,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.style.flexGrow = 1;
       this.style.flexShrink = 1;
       this.style.flexBasis = 'auto';
+      this.style.minWidth = 0;
 
       this.selection_ = undefined;
 
       this.layerPicker_ = new tr.ui.e.chrome.cc.LayerPicker();
-      this.layerPicker_.style.flexGrow = 1;
-      this.layerPicker_.style.flexShrink = 1;
+      this.layerPicker_.style.flexGrow = 0;
+      this.layerPicker_.style.flexShrink = 0;
       this.layerPicker_.style.flexBasis = 'auto';
+      this.layerPicker_.style.minWidth = '200px';
       this.layerPicker_.addEventListener(
           'selection-change',
           this.onLayerPickerSelectionChanged_.bind(this));
@@ -49,12 +51,17 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.layerView_.addEventListener(
           'selection-change',
           this.onLayerViewSelectionChanged_.bind(this));
+      this.layerView_.style.flexGrow = 1;
+      this.layerView_.style.flexShrink = 1;
+      this.layerView_.style.flexBasis = 'auto';
+      this.layerView_.style.minWidth = 0;
+
       this.dragHandle_ = document.createElement('tr-ui-b-drag-handle');
       this.dragHandle_.style.flexGrow = 0;
       this.dragHandle_.style.flexShrink = 0;
       this.dragHandle_.style.flexBasis = 'auto';
       this.dragHandle_.horizontal = false;
-      this.dragHandle_.target = this.layerView_;
+      this.dragHandle_.target = this.layerPicker_;
 
       Polymer.dom(this).appendChild(this.layerPicker_);
       Polymer.dom(this).appendChild(this.dragHandle_);

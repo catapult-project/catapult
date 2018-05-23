@@ -34,17 +34,17 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate() {
       this.style.flexDirection = 'column';
       this.style.display = 'flex';
-      this.style.left = 0;
-      this.style.position = 'relative';
-      this.style.top = 0;
 
       this.layerTreeQuadStackView_ =
           new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
       this.dragBar_ = document.createElement('tr-ui-b-drag-handle');
       this.analysisEl_ =
           document.createElement('tr-ui-e-chrome-cc-layer-view-analysis');
+      this.analysisEl_.style.flexGrow = 0;
+      this.analysisEl_.style.flexShrink = 0;
+      this.analysisEl_.style.flexBasis = 'auto';
       this.analysisEl_.style.height = '150px';
-      this.analysisEl_.style.overflowY = 'auto';
+      this.analysisEl_.style.overflow = 'auto';
       this.analysisEl_.addEventListener('requestSelectionChange',
           this.onRequestSelectionChangeFromAnalysisEl_.bind(this));
 

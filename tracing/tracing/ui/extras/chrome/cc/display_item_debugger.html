@@ -36,7 +36,11 @@ found in the LICENSE file.
     </display-item-info>
   </left-panel>
   <right-panel>
-    <raster-area><canvas></canvas></raster-area>
+    <raster-area>
+      <canvas-scroller>
+        <canvas></canvas>
+      </canvas-scroller>
+    </raster-area>
   </right-panel>
 </template>
 
@@ -67,6 +71,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.style.flexShrink = 1;
       this.style.flexBasis = 'auto';
       this.style.display = 'flex';
+      this.style.minWidth = 0;
 
       this.pictureAsImageData_ = undefined;
       this.zoomScaleValue_ = 1;
@@ -79,11 +84,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.rasterArea_.style.backgroundColor = '#ddd';
       this.rasterArea_.style.minHeight = '200px';
       this.rasterArea_.style.minWidth = '200px';
-      this.rasterArea_.style.overflowY = 'auto';
       this.rasterArea_.style.paddingLeft = '5px';
+      this.rasterArea_.style.display = 'flex';
+      this.rasterArea_.style.flexDirection = 'column';
       this.rasterCanvas_ =
           Polymer.dom(this.rasterArea_).querySelector('canvas');
       this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
+
+      const canvasScroller = Polymer.dom(this).querySelector('canvas-scroller');
+      canvasScroller.style.flexGrow = 1;
+      canvasScroller.style.flexShrink = 1;
+      canvasScroller.style.flexBasis = 'auto';
+      canvasScroller.style.minWidth = 0;
+      canvasScroller.style.minHeight = 0;
+      canvasScroller.style.overflow = 'auto';
 
       this.trackMouse_();
 
@@ -110,16 +124,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'click', this.onExportSkPictureClicked_.bind(this));
 
       const leftPanel = Polymer.dom(this).querySelector('left-panel');
-      leftPanel.style.display = 'flex';
-      leftPanel.style.flexDirection = 'column';
-      leftPanel.style.minWidth = '300px';
-      leftPanel.style.overflowY = 'auto';
+      leftPanel.style.flexGrow = 0;
+      leftPanel.style.flexShrink = 0;
+      leftPanel.style.flexBasis = 'auto';
+      leftPanel.style.minWidth = '200px';
+      leftPanel.style.overflow = 'auto';
 
       leftPanel.children[0].paddingTop = '2px';
-      leftPanel.children[0].flexGrow = 1;
-      leftPanel.children[0].flexShrink = 1;
-      leftPanel.children[0].flexBasis = 'auto';
-
       leftPanel.children[0].children[0].style.borderBottom = '1px solid #555';
 
       const leftPanelTitle = leftPanel.querySelector('.title');
@@ -143,17 +154,21 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       rightPanel.style.flexGrow = 1;
       rightPanel.style.flexShrink = 1;
       rightPanel.style.flexBasis = 'auto';
+      rightPanel.style.minWidth = 0;
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
-      Polymer.dom(this.rasterArea_).insertBefore(
-          this.infoBar_, this.rasterCanvas_);
+      Polymer.dom(this.rasterArea_).insertBefore(this.infoBar_, canvasScroller);
 
       Polymer.dom(this).insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
       this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
-      this.pictureOpsListView_.style.overflowY = 'auto';
+      this.pictureOpsListView_.style.flexGrow = 0;
+      this.pictureOpsListView_.style.flexShrink = 0;
+      this.pictureOpsListView_.style.flexBasis = 'auto';
+      this.pictureOpsListView_.style.overflow = 'auto';
+      this.pictureOpsListView_.style.minWidth = '100px';
       Polymer.dom(rightPanel).insertBefore(
           this.pictureOpsListView_, this.rasterArea_);
 

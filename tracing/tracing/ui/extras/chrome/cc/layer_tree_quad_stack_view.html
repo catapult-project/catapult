@@ -66,11 +66,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate() {
       this.style.flexGrow = 1;
       this.style.flexShrink = 1;
-      this.style.flexBasis = '100%';
+      this.style.flexBasis = 'auto';
       this.style.flexDirection = 'column';
       this.style.minHeight = 0;
       this.style.display = 'flex';
-      this.style.width = '100%';
 
       this.isRenderPassQuads_ = false;
       this.pictureAsImageData_ = {}; // Maps picture.guid to PictureAsImageData.
@@ -93,6 +92,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.quadStackView_ = new tr.ui.b.QuadStackView();
       this.quadStackView_.addEventListener(
           'selectionchange', this.onQuadStackViewSelectionChange_.bind(this));
+      this.quadStackView_.style.flexGrow = 1;
+      this.quadStackView_.style.flexShrink = 1;
+      this.quadStackView_.style.flexBasis = 'auto';
+      this.quadStackView_.style.minWidth = '200px';
+
       this.extraHighlightsByLayerId_ = undefined;
       this.inputEventImageData_ = undefined;
 

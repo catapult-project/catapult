@@ -64,9 +64,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(this).appendChild(node);
 
       this.style.display = 'flex';
-      this.style.flexGrow = 1;
-      this.style.flexShrink = 1;
-      this.style.flexBasis = 'auto';
       this.style.flexDirection = 'row';
 
       const title = this.querySelector('.title');
@@ -81,9 +78,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.sizeInfo_ = Polymer.dom(this).querySelector('.size');
       this.rasterArea_ = Polymer.dom(this).querySelector('raster-area');
       this.rasterArea_.style.backgroundColor = '#ddd';
-      this.rasterArea_.style.minHeight = '200px';
+      this.rasterArea_.style.minHeight = '100px';
       this.rasterArea_.style.minWidth = '200px';
-      this.rasterArea_.style.overflowY = 'auto';
+      this.rasterArea_.style.overflow = 'auto';
       this.rasterArea_.style.paddingLeft = '5px';
       this.rasterCanvas_ = Polymer.dom(this.rasterArea_)
           .querySelector('canvas');
@@ -124,13 +121,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(pictureInfo).appendChild(chartCheckbox);
 
       this.drawOpsView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
+      this.drawOpsView_.flexGrow = 1;
+      this.drawOpsView_.flexShrink = 1;
+      this.drawOpsView_.flexBasis = 'auto';
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
       const leftPanel = Polymer.dom(this).querySelector('left-panel');
       leftPanel.style.flexDirection = 'column';
       leftPanel.style.display = 'flex';
-      leftPanel.style.minWidth = '300px';
+      leftPanel.style.flexGrow = 0;
+      leftPanel.style.flexShrink = 0;
+      leftPanel.style.flexBasis = 'auto';
+      leftPanel.style.minWidth = '200px';
+      leftPanel.style.overflow = 'auto';
       Polymer.dom(leftPanel).appendChild(this.drawOpsChartSummaryView_);
       Polymer.dom(leftPanel).appendChild(this.drawOpsView_);
 
@@ -145,14 +149,18 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       rightPanel.style.flexGrow = 1;
       rightPanel.style.flexShrink = 1;
       rightPanel.style.flexBasis = 'auto';
+      rightPanel.style.minWidth = 0;
       rightPanel.style.flexDirection = 'column';
       rightPanel.style.display = 'flex';
+
       const chartView = Polymer.dom(rightPanel).querySelector(
           'tr-ui-e-chrome-cc-picture-ops-chart-view');
-      chartView.style.minHeight = '150px';
-      chartView.style.minWidth = 0;
-      chartView.style.overflowX = 'auto';
-      chartView.style.overflowY = 'hidden';
+      this.drawOpsChartView_.style.flexGrow = 0;
+      this.drawOpsChartView_.style.flexShrink = 0;
+      this.drawOpsChartView_.style.flexBasis = 'auto';
+      this.drawOpsChartView_.style.minWidth = 0;
+      this.drawOpsChartView_.style.overflowX = 'auto';
+      this.drawOpsChartView_.style.overflowY = 'hidden';
       rightPanel.replaceChild(this.drawOpsChartView_, chartView);
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
