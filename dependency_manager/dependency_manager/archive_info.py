@@ -48,7 +48,7 @@ class ArchiveInfo(object):
       # Remove stale unzip results
       if self._stale_unzip_path_glob:
         for path in glob.glob(self._stale_unzip_path_glob):
-          shutil.rmtree(path)
+          shutil.rmtree(path, ignore_errors=True)
       # TODO(aiolos): Replace UnzipFile with zipfile.extractall once python
       # version 2.7.4 or later can safely be assumed.
       dependency_manager_util.UnzipArchive(
