@@ -20,6 +20,10 @@ NODE_VULCANIZE = os.path.abspath(os.path.join(
   os.path.dirname(__file__), '..', '..',
   'common/node_runner/node_runner/node_modules/vulcanize/bin/vulcanize'))
 
+MINIFY = os.path.abspath(os.path.join(
+  os.path.dirname(__file__), '..', '..',
+  'common/node_runner/node_runner/minify'))
+
 
 def _TimestampScript():
   # V2SPA displays its version as this timestamp in this format to make it easy
@@ -38,6 +42,7 @@ def VulcanizeIndex(temp_dir, dashboard_path):
   ])
   html += _TimestampScript()
   open(filename, 'w').write(html)
+  subprocess.check_output([MINIFY, filename])
   return filename
 
 
