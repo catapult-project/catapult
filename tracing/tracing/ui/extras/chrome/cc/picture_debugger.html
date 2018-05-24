@@ -190,27 +190,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         }
       }));
       Polymer.dom(this).appendChild(hkc);
-
-      // Add a mutation observer so that when the view is resized we can
-      // update the chart summary view.
-      this.mutationObserver_ = new MutationObserver(
-          this.onMutation_.bind(this));
-      this.mutationObserver_.observe(leftPanel, { attributes: true });
-    },
-
-    onMutation_(mutations) {
-      for (let m = 0; m < mutations.length; m++) {
-        // A style change would indicate that the element has resized
-        // so we should re-render the chart.
-        if (mutations[m].attributeName === 'style') {
-          this.drawOpsChartSummaryView_.requiresRedraw = true;
-          this.drawOpsChartSummaryView_.updateChartContents();
-
-          this.drawOpsChartView_.dimensionsHaveChanged = true;
-          this.drawOpsChartView_.updateChartContents();
-          break;
-        }
-      }
     },
 
     onSaveAsSkPictureClicked_() {

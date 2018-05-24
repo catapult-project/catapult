@@ -67,6 +67,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.chart_.addEventListener('click', this.onClick_.bind(this));
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
+      new ResizeObserver(this.onResize_.bind(this)).observe(this);
 
       this.usePercentileScale_ = false;
       this.usePercentileScaleCheckbox_ = tr.ui.b.createCheckBox(
@@ -202,6 +203,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       this.drawChartContents_();
+    },
+
+    onResize_() {
+      this.dimensionsHaveChanged = true;
+      this.updateChartContents();
     },
 
     scrollSelectedItemIntoViewIfNecessary() {

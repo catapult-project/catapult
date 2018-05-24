@@ -67,6 +67,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.currentBarMouseOverTarget_ = null;
 
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
+      new ResizeObserver(this.onResize_.bind(this)).observe(this);
     },
 
     get requiresRedraw() {
@@ -132,6 +133,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget) return;
 
       this.drawChartContents_();
+    },
+
+    onResize_() {
+      this.requiresRedraw = true;
+      this.updateChartContents();
     },
 
     updateChartContents() {
