@@ -38,10 +38,6 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
           value.page.name, value.reason)
 
-  def DidFail(self, failure_str):
-    print >> self._output_stream, failure_str
-    self._output_stream.flush()
-
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
     print >> self._output_stream, '[ RUN      ] %s/%s%s' % (

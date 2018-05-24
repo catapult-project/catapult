@@ -13,6 +13,7 @@ import posixpath
 import re
 import shlex
 import sys
+import traceback
 
 
 class Override(object):
@@ -276,17 +277,37 @@ class LoggingStub(object):
   def __init__(self):
     self.warnings = []
     self.errors = []
+    self.exceptions = []
+    self.fatals = []
+    self.stdout_stream = None
 
   def info(self, msg, *args):
     pass
 
+  def fatal(self, msg, *args):
+    if self.stdout_stream:
+      self.stdout_stream.write(msg % args)
+    self.fatals.append(msg)
+
+  def exception(self, msg, *args):
+    if self.stdout_stream:
+      self.stdout_stream.write(msg % args)
+      traceback.print_exc(file=self.stdout_stream)
+    self.exceptions.append(msg)
+
   def error(self, msg, *args):
+    if self.stdout_stream:
+      self.stdout_stream.write(msg % args)
     self.errors.append(msg % args)
 
   def warning(self, msg, *args):
+    if self.stdout_stream:
+      self.stdout_stream.write(msg % args)
     self.warnings.append(msg % args)
 
   def warn(self, msg, *args):
+    if self.stdout_stream:
+      self.stdout_stream.write(msg % args)
     self.warning(msg, *args)
 
 

@@ -97,7 +97,8 @@ def CaptureLogsAsArtifacts(results, test_name):
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
-  def ProcessError(exc=None):
+  def ProcessError(exc, log_message):
+    logging.exception(log_message)
     state.DumpStateUponFailure(story, results)
 
     # Dump app crash, if present
@@ -127,14 +128,18 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         test.Measure(state.platform, results)
     except (legacy_page_test.Failure, exceptions.TimeoutException,
             exceptions.LoginException, py_utils.TimeoutException) as exc:
-      ProcessError(exc)
+      ProcessError(exc, log_message='Handleable error')
     except exceptions.Error as exc:
-      ProcessError(exc)
+      ProcessError(
+          exc, log_message='Handleable error. Will try to restart shared state')
+      # The caller (|Run| function) will catch this exception, destory and
+      # create a new shared state.
       raise
     except page_action.PageActionNotSupported as exc:
       results.Skip('Unsupported page action: %s' % exc)
-    except Exception:
-      ProcessError()
+    except Exception as exc:
+      ProcessError(exc, log_message=('Unhandleable error. '
+                                     'Benchmark run will be interrupted'))
       raise
     finally:
       has_existing_exception = (sys.exc_info() != (None, None, None))
@@ -230,6 +235,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           # TODO(#4259): Convert this to an exception-based failure
           if num_values > max_num_values:
             msg = 'Too many values: %d > %d' % (num_values, max_num_values)
+            logging.error(msg)
             results.Fail(msg)
 
           device_info_diags = _MakeDeviceInfoDiagnostics(state)

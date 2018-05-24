@@ -11,8 +11,10 @@ import StringIO
 import sys
 import tempfile
 import unittest
+import logging
 
-from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage
+from py_utils import tempfile_ext
 
 from telemetry import benchmark
 from telemetry.core import exceptions
@@ -264,6 +266,27 @@ class _Measurement(legacy_page_test.LegacyPageTest):
         page, 'metric', 'unit', self.i,
         improvement_direction=improvement_direction.UP))
 
+def _GenerateBaseBrowserFinderOptions():
+  options = fakes.CreateBrowserFinderOptions()
+  options.upload_results = None
+  options.suppress_gtest_report = False
+  options.results_label = None
+  options.reset_results = False
+  options.use_live_sites = False
+  options.max_failures = 100
+  options.pause = None
+  options.pageset_repeat = 1
+  options.smoke_test_mode = False
+  options.output_formats = ['chartjson']
+  options.run_disabled_tests = False
+
+  parser = options.CreateParser()
+  story_runner.AddCommandLineArgs(parser)
+  options.MergeDefaultValues(parser.get_default_values())
+  story_runner.ProcessCommandLineArgs(parser, options)
+  return options
+
+
 
 class StoryRunnerTest(unittest.TestCase):
   def setUp(self):
@@ -275,11 +298,12 @@ class StoryRunnerTest(unittest.TestCase):
         EmptyMetadataForTest(), self.options)
     self._story_runner_logging_stub = None
 
-  def SuppressExceptionFormatting(self):
+  def StubOutExceptionFormatting(self):
     """Fake out exception formatter to avoid spamming the unittest stdout."""
     story_runner.exception_formatter = FakeExceptionFormatterModule
     self._story_runner_logging_stub = system_stub.Override(
         story_runner, ['logging'])
+    self._story_runner_logging_stub.logging.stdout_stream = sys.stdout
 
   def RestoreExceptionFormatter(self):
     story_runner.exception_formatter = ex_formatter_module
@@ -428,7 +452,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
   def testAppCrashExceptionCausesFailure(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
       def WillRunStory(self, story):
@@ -442,7 +466,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn('App Foo crashes', self.fake_stdout.getvalue())
 
   def testExceptionRaisedInSharedStateTearDown(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
       def TearDownState(self):
@@ -454,7 +478,7 @@ class StoryRunnerTest(unittest.TestCase):
       story_runner.Run(DummyTest(), story_set, self.options, self.results)
 
   def testUnknownExceptionIsFatal(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class UnknownException(Exception):
@@ -488,7 +512,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn('FooBarzException', self.fake_stdout.getvalue())
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
@@ -515,7 +539,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
 
   def testAppCrashThenRaiseInTearDownFatal(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     unit_test_events = []  # track what was called when
@@ -668,7 +692,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(2, len(values))
 
   def testRunStoryPopulatesHistograms(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
@@ -814,7 +838,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertSetEqual(set(['foo']), tagmap.tags_to_story_names['bar'])
 
   def testRunStoryAddsTagMapEvenInFatalException(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class UnknownException(Exception):
@@ -975,7 +999,7 @@ class StoryRunnerTest(unittest.TestCase):
       def url(self):
         return 'data:,'
 
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
 
     story_set = story_module.StorySet()
     for i in range(num_failing_stories):
@@ -1292,25 +1316,11 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
-  def _GenerateBaseBrowserFinderOptions(self):
-    options = fakes.CreateBrowserFinderOptions()
-    options.upload_results = None
-    options.suppress_gtest_report = False
-    options.results_label = None
-    options.reset_results = False
-    options.use_live_sites = False
-    options.max_failures = 100
-    options.pause = None
-    options.pageset_repeat = 1
-    options.smoke_test_mode = False
-    options.output_formats = ['chartjson']
-    options.run_disabled_tests = False
-    return options
 
   def testRunBenchmarkDisabledBenchmarkViaCanRunonPlatform(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.SUPPORTED_PLATFORMS = []
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     tmp_path = tempfile.mkdtemp()
     try:
       options.output_dir = tmp_path
@@ -1324,7 +1334,7 @@ class StoryRunnerTest(unittest.TestCase):
   def testRunBenchmarkDisabledBenchmark(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     tmp_path = tempfile.mkdtemp()
     try:
       options.output_dir = tmp_path
@@ -1338,7 +1348,7 @@ class StoryRunnerTest(unittest.TestCase):
   def testRunBenchmarkDisabledBenchmarkCanOverriddenByCommandLine(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.disabled = True
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.run_disabled_tests = True
     temp_path = tempfile.mkdtemp()
     try:
@@ -1359,7 +1369,7 @@ class StoryRunnerTest(unittest.TestCase):
         self._story_disabled = False
 
     fake_benchmark = FakeBenchmarkWithOwner()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_formats = ['histograms']
     temp_path = tempfile.mkdtemp()
     try:
@@ -1395,7 +1405,7 @@ class StoryRunnerTest(unittest.TestCase):
         self._story_disabled = False
 
     fake_benchmark = FakeBenchmarkWithOwner()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_formats = ['histograms']
     temp_path = tempfile.mkdtemp()
     try:
@@ -1425,7 +1435,7 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testRunBenchmarkTimeDuration(self):
     fake_benchmark = FakeBenchmark()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_formats.append('histograms')
 
     with mock.patch('telemetry.internal.story_runner.time') as time_patch:
@@ -1480,7 +1490,7 @@ class StoryRunnerTest(unittest.TestCase):
         return story_set
 
     fake_benchmark = FakeBenchmarkWithStories()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_formats = ['json-test-results']
     options.pageset_repeat = 2
 
@@ -1507,7 +1517,7 @@ class StoryRunnerTest(unittest.TestCase):
   def testRunBenchmarkDisabledStoryWithBadName(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.story_disabled = True
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     tmp_path = tempfile.mkdtemp()
     try:
       options.output_dir = tmp_path
@@ -1518,7 +1528,7 @@ class StoryRunnerTest(unittest.TestCase):
       shutil.rmtree(tmp_path)
 
   def testRunBenchmark_TooManyValues(self):
-    self.SuppressExceptionFormatting()
+    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     story_set.AddStory(DummyLocalStory(TestSharedPageState, name='story'))
     story_runner.Run(
@@ -1546,7 +1556,7 @@ class StoryRunnerTest(unittest.TestCase):
         return story_set
 
     sucessful_benchmark = TestBenchmark()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(sucessful_benchmark, options)
@@ -1571,12 +1581,11 @@ class StoryRunnerTest(unittest.TestCase):
         return story_set
 
     story_failure_benchmark = TestBenchmark()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(story_failure_benchmark, options)
     self.assertEquals(1, return_code)
-
 
   def testRunBenchmarkReturnCodeUnCaughtException(self):
     class UnhandledFailureSharedState(TestSharedState):
@@ -1596,9 +1605,113 @@ class StoryRunnerTest(unittest.TestCase):
         return story_set
 
     unhandled_failure_benchmark = TestBenchmark()
-    options = self._GenerateBaseBrowserFinderOptions()
+    options = _GenerateBaseBrowserFinderOptions()
     options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(
         unhandled_failure_benchmark, options)
     self.assertEquals(2, return_code)
+
+
+class LogsArtifactTest(unittest.TestCase):
+
+  def testArtifactLogsContainHandleableException(self):
+
+    class StoryFailureSharedState(TestSharedState):
+      def RunStory(self, results):
+        logging.warning('This will fail gracefully')
+        raise exceptions.AppCrashException()
+
+    class TestBenchmark(benchmark.Benchmark):
+      test = DummyTest
+
+      @classmethod
+      def Name(cls):
+        return 'TestBenchmark'
+
+      def CreateStorySet(self, options):
+        story_set = story_module.StorySet()
+        story_set.AddStory(page_module.Page(
+            'http://foo', name='foo',
+            shared_page_state_class=StoryFailureSharedState))
+        story_set.AddStory(page_module.Page(
+            'http://bar', name='bar',
+            shared_page_state_class=StoryFailureSharedState))
+        return story_set
+
+    story_failure_benchmark = TestBenchmark()
+    options = _GenerateBaseBrowserFinderOptions()
+    options.suppress_gtest_report = True
+    options.output_formats = ['json-test-results']
+    with tempfile_ext.NamedTemporaryDirectory() as out_dir:
+      options.output_dir = out_dir
+      return_code = story_runner.RunBenchmark(story_failure_benchmark, options)
+      self.assertEquals(1, return_code)
+      json_data = {}
+      with open(os.path.join(out_dir, 'test-results.json')) as f:
+        json_data = json.load(f)
+      foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
+      foo_artifact_log_path = os.path.join(
+          out_dir, foo_artifacts['logs'][0])
+      with open(foo_artifact_log_path) as f:
+        foo_log = f.read()
+
+      self.assertIn('Handleable error', foo_log)
+
+      # Ensure that foo_log contains the warning log message.
+      self.assertIn('This will fail gracefully', foo_log)
+
+      # Also the python crash stack.
+      self.assertIn("raise exceptions.AppCrashException()", foo_log)
+
+  def testArtifactLogsContainUnhandleableException(self):
+    class UnhandledFailureSharedState(TestSharedState):
+      def RunStory(self, results):
+        logging.warning('This will fail badly')
+        raise Exception('this is an unexpected exception')
+
+    class TestBenchmark(benchmark.Benchmark):
+      test = DummyTest
+
+      @classmethod
+      def Name(cls):
+        return 'TestBenchmark'
+
+      def CreateStorySet(self, options):
+        story_set = story_module.StorySet()
+        story_set.AddStory(page_module.Page(
+            'http://foo', name='foo',
+            shared_page_state_class=UnhandledFailureSharedState))
+        story_set.AddStory(page_module.Page(
+            'http://bar', name='bar',
+            shared_page_state_class=UnhandledFailureSharedState))
+        return story_set
+
+    unhandled_failure_benchmark = TestBenchmark()
+    options = _GenerateBaseBrowserFinderOptions()
+    options.suppress_gtest_report = True
+    options.output_formats = ['json-test-results']
+    with tempfile_ext.NamedTemporaryDirectory() as out_dir:
+      options.output_dir = out_dir
+      return_code = story_runner.RunBenchmark(
+          unhandled_failure_benchmark, options)
+      self.assertEquals(2, return_code)
+
+      json_data = {}
+      with open(os.path.join(out_dir, 'test-results.json')) as f:
+        json_data = json.load(f)
+      foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
+      foo_artifact_log_path = os.path.join(
+          out_dir, foo_artifacts['logs'][0])
+      with open(foo_artifact_log_path) as f:
+        foo_log = f.read()
+
+      self.assertIn('Unhandleable error', foo_log)
+
+      # Ensure that foo_log contains the warning log message.
+      self.assertIn('This will fail badly', foo_log)
+
+      # Also the python crash stack.
+      self.assertIn('Exception: this is an unexpected exception', foo_log)
+      self.assertIn("raise Exception('this is an unexpected exception')",
+                    foo_log)

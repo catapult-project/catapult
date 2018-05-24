@@ -375,6 +375,10 @@ class PageTestResults(object):
     values = self.all_page_specific_values
     return [v for v in values if isinstance(v, skip.SkipValue)]
 
+  @property
+  def artifact_results(self):
+    return self._artifact_results
+
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
 
@@ -513,7 +517,6 @@ class PageTestResults(object):
     else:
       failure_str = ''.join(traceback.format_exception(*failure))
     self._current_page_run.SetFailed(failure_str)
-    self._progress_reporter.DidFail(failure_str)
 
   def Skip(self, reason):
     assert self._current_page_run, 'Not currently running test.'

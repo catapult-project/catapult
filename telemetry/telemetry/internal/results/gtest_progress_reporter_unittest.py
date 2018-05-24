@@ -4,7 +4,6 @@
 
 import os
 import StringIO
-import traceback
 
 from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
@@ -95,19 +94,16 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.telemetry_info.benchmark_name = 'bench'
     results.WillRunPage(test_story_set.stories[0])
-    exc_info = self.CreateException()
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[0])
 
     results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
-                '%s\n'
                 '[  FAILED  ] bench/http://www.foo.com/ (0 ms)\n'
                 '[  PASSED  ] 0 tests.\n'
                 '[  FAILED  ] 1 test, listed below:\n'
                 '[  FAILED  ]  bench/http://www.foo.com/\n\n'
-                '1 FAILED TEST\n\n' % exception_trace)
+                '1 FAILED TEST\n\n')
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleFailedPageWithGroupingKeys(self):
@@ -117,19 +113,16 @@ class GTestProgressReporterTest(
         progress_reporter=self._reporter)
     results.telemetry_info.benchmark_name = 'bench'
     results.WillRunPage(test_story_set.stories[4])
-    exc_info = self.CreateException()
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[4])
 
     results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
     expected = ("[ RUN      ] bench/http://www.fus.com/@{'1': '2'}\n"
-                "%s\n"
                 "[  FAILED  ] bench/http://www.fus.com/@{'1': '2'} (0 ms)\n"
                 "[  PASSED  ] 0 tests.\n"
                 "[  FAILED  ] 1 test, listed below:\n"
                 "[  FAILED  ]  bench/http://www.fus.com/@{'1': '2'}\n\n"
-                "1 FAILED TEST\n\n" % exception_trace)
+                "1 FAILED TEST\n\n")
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testSingleSkippedPage(self):
@@ -155,7 +148,6 @@ class GTestProgressReporterTest(
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
     results.telemetry_info.benchmark_name = 'bench'
-    exc_info = self.CreateException()
 
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
@@ -163,12 +155,12 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_story_set.stories[1])
     self._fake_timer.SetTime(0.009)
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[1])
 
     results.WillRunPage(test_story_set.stories[2])
     self._fake_timer.SetTime(0.015)
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[2])
 
     results.WillRunPage(test_story_set.stories[3])
@@ -181,33 +173,28 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_story_set.stories[5])
     self._fake_timer.SetTime(0.030)
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[5])
 
     results.PrintSummary()
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
     expected = ("[ RUN      ] bench/http://www.foo.com/\n"
                 "[       OK ] bench/http://www.foo.com/ (7 ms)\n"
                 "[ RUN      ] bench/http://www.bar.com/\n"
-                "%s\n"
                 "[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n"
                 "[ RUN      ] bench/http://www.baz.com/\n"
-                "%s\n"
                 "[  FAILED  ] bench/http://www.baz.com/ (6 ms)\n"
                 "[ RUN      ] bench/http://www.roz.com/\n"
                 "[       OK ] bench/http://www.roz.com/ (5 ms)\n"
                 "[ RUN      ] bench/http://www.fus.com/@{'1': '2'}\n"
                 "[       OK ] bench/http://www.fus.com/@{'1': '2'} (5 ms)\n"
                 "[ RUN      ] bench/http://www.ro.com/@{'1': '2'}\n"
-                "%s\n"
                 "[  FAILED  ] bench/http://www.ro.com/@{'1': '2'} (5 ms)\n"
                 "[  PASSED  ] 3 tests.\n"
                 "[  FAILED  ] 3 tests, listed below:\n"
                 "[  FAILED  ]  bench/http://www.bar.com/\n"
                 "[  FAILED  ]  bench/http://www.baz.com/\n"
                 "[  FAILED  ]  bench/http://www.ro.com/@{'1': '2'}\n\n"
-                "3 FAILED TESTS\n\n"
-                % (exception_trace, exception_trace, exception_trace))
+                "3 FAILED TESTS\n\n")
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testStreamingResults(self):
@@ -215,7 +202,6 @@ class GTestProgressReporterTest(
     results = page_test_results.PageTestResults(
         progress_reporter=self._reporter)
     results.telemetry_info.benchmark_name = 'bench'
-    exc_info = self.CreateException()
 
     results.WillRunPage(test_story_set.stories[0])
     self._fake_timer.SetTime(0.007)
@@ -226,14 +212,12 @@ class GTestProgressReporterTest(
 
     results.WillRunPage(test_story_set.stories[1])
     self._fake_timer.SetTime(0.009)
-    exception_trace = ''.join(traceback.format_exception(*exc_info))
-    results.Fail(exc_info)
+    results.Fail('test fails')
     results.DidRunPage(test_story_set.stories[1])
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] bench/http://www.bar.com/\n'
-                '%s\n'
-                '[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n' % exception_trace)
+                '[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n')
 
   def testOutputSkipInformation(self):
     test_story_set = _MakeStorySet()
