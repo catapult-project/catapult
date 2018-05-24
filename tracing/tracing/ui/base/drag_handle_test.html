@@ -23,6 +23,7 @@ tr.b.unittest.testSuite(function() {
 
     const lowerEl = document.createElement('div');
     lowerEl.style.height = '100px';
+    lowerEl.style.minHeight = '50px';
 
     const dragHandle = document.createElement('tr-ui-b-drag-handle');
     dragHandle.target = lowerEl;
@@ -44,14 +45,35 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(createDragHandle());
   });
 
-  test('applyDelta', function() {
+  test('dragWithoutConstraint', function() {
     const el = createDragHandle();
     this.addHTMLOutput(el);
 
     const dragHandle = el.dragHandle;
-    const oldHeight = el.getLowerElHeight();
-    dragHandle.applyDelta_(10);
-    assert.strictEqual(el.getLowerElHeight(), oldHeight + 10);
+    assert.strictEqual(el.getLowerElHeight(), 100);
+    dragHandle.onMouseDown_({clientX: 0, clientY: 0, preventDefault() {}});
+    dragHandle.onMouseMove_({clientX: 0, clientY: -10, preventDefault() {}});
+    assert.strictEqual(el.getLowerElHeight(), 110);
+    dragHandle.onMouseUp_({preventDefault() {}});
+  });
+
+  test('dragWithConstraint', function() {
+    const el = createDragHandle();
+    this.addHTMLOutput(el);
+
+    const dragHandle = el.dragHandle;
+    assert.strictEqual(el.getLowerElHeight(), 100);
+    dragHandle.onMouseDown_({clientX: 0, clientY: 0, preventDefault() {}});
+    dragHandle.onMouseMove_({clientX: 0, clientY: 60, preventDefault() {}});
+    // The actual size is constrained by minHeight.
+    assert.strictEqual(el.getLowerElHeight(), 50);
+    dragHandle.onMouseUp_({preventDefault() {}});
+
+    // Drag again. Should based on the actual size.
+    dragHandle.onMouseDown_({clientX: 0, clientY: 0, preventDefault() {}});
+    dragHandle.onMouseMove_({clientX: 0, clientY: -10, preventDefault() {}});
+    assert.strictEqual(el.getLowerElHeight(), 60);
+    dragHandle.onMouseUp_({preventDefault() {}});
   });
 
   test('classNameMutation', function() {
@@ -66,11 +88,16 @@ tr.b.unittest.testSuite(function() {
 
     try {
       const dragHandle = el.dragHandle;
+      const mouseDown = {clientX: 0, clientY: 0, preventDefault() {}};
+      const mouseMove = {clientX: 0, clientY: -10, preventDefault() {}};
+      const mouseUp = {preventDefault() {}};
+
       el.lowerEl.className = 'mode-a';
       assert.strictEqual(el.getLowerElHeight(), 100);
-
-      dragHandle.applyDelta_(10);
+      dragHandle.onMouseDown_(mouseDown);
+      dragHandle.onMouseMove_(mouseMove);
       assert.strictEqual(el.getLowerElHeight(), 110);
+      dragHandle.onMouseUp_(mouseUp);
 
       // Change the class, which should restore the layout
       // to the default sizing for mode-b
@@ -78,14 +105,21 @@ tr.b.unittest.testSuite(function() {
       dragHandle.forceMutationObserverFlush_();
       assert.strictEqual(el.getLowerElHeight(), 50);
 
-      dragHandle.applyDelta_(10);
+      dragHandle.onMouseDown_(mouseDown);
+      dragHandle.onMouseMove_(mouseMove);
       assert.strictEqual(el.getLowerElHeight(), 60);
+      dragHandle.onMouseUp_(mouseUp);
 
       // Restore the class-a, which should restore the layout
       // to sizing when we were changed.
       el.lowerEl.className = 'mode-a';
       dragHandle.forceMutationObserverFlush_();
       assert.strictEqual(el.getLowerElHeight(), 110);
+
+      dragHandle.onMouseDown_(mouseDown);
+      dragHandle.onMouseMove_(mouseMove);
+      assert.strictEqual(el.getLowerElHeight(), 120);
+      dragHandle.onMouseUp_(mouseUp);
     } finally {
       Polymer.dom(document.head).removeChild(styleEl);
     }

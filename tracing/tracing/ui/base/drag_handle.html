@@ -61,6 +61,7 @@ Polymer({
     this.observer_ = new WebKitMutationObserver(
         this.didTargetMutate_.bind(this));
     this.targetSizesByModeKey_ = {};
+    this.currentDraggingSize_ = undefined;
   },
 
   get modeKey_() {
@@ -126,33 +127,28 @@ Polymer({
   },
 
   getTargetSize_() {
-    // If style is not set, start off with computed height.
-    const targetStyleKey = this.targetStyleKey_;
-    if (!this.target_.style[targetStyleKey]) {
-      this.target_.style[targetStyleKey] =
-          window.getComputedStyle(this.target_)[targetStyleKey];
-    }
-    const size = parseInt(this.target_.style[targetStyleKey]);
+    // Get the actual size, which may be different from the expected size
+    // because of size constraints (e.g. min-width) etc.
+    const size =
+        parseInt(window.getComputedStyle(this.target_)[this.targetStyleKey_]);
     this.targetSizesByModeKey_[this.modeKey_] = size;
     return size;
   },
 
   setTargetSize_(s) {
     this.target_.style[this.targetStyleKey_] = s + 'px';
-    this.targetSizesByModeKey_[this.modeKey_] = s;
+    this.targetSizesByModeKey_[this.modeKey_] = this.getTargetSize_();
     tr.b.dispatchSimpleEvent(this, 'drag-handle-resize', true, false);
   },
 
   applyDelta_(delta) {
-    // Apply new size to the container.
-    const curSize = this.getTargetSize_();
-    let newSize;
+    // Apply new size to the target.
     if (this.target_ === this.nextElementSibling) {
-      newSize = curSize + delta;
+      this.currentDraggingSize_ += delta;
     } else {
-      newSize = curSize - delta;
+      this.currentDraggingSize_ -= delta;
     }
-    this.setTargetSize_(newSize);
+    this.setTargetSize_(this.currentDraggingSize_);
   },
 
   onMouseMove_(e) {
@@ -170,6 +166,8 @@ Polymer({
   onMouseDown_(e) {
     if (!this.target_) return;
     this.forceMutationObserverFlush_();
+    // Start with the current actual size.
+    this.currentDraggingSize_ = this.getTargetSize_();
     this.lastMousePos_ = this.horizontal_ ? e.clientY : e.clientX;
     document.addEventListener('mousemove', this.onMouseMove_);
     document.addEventListener('mouseup', this.onMouseUp_);
@@ -181,6 +179,7 @@ Polymer({
     document.removeEventListener('mousemove', this.onMouseMove_);
     document.removeEventListener('mouseup', this.onMouseUp_);
     e.preventDefault();
+    this.currentDraggingSize_ = undefined;
   }
 });
 </script>
