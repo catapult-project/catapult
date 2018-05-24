@@ -3060,6 +3060,34 @@ class DeviceUtilsGetIMEITest(DeviceUtilsTest):
         self.device.GetIMEI()
 
 
+class DeviceUtilsChangeOwner(DeviceUtilsTest):
+
+  def testChangeOwner(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['chown', 'user.group', '/path/to/file1', 'file2'],
+            check_return=True))):
+      self.device.ChangeOwner('user.group', ['/path/to/file1', 'file2'])
+
+
+class DeviceUtilsChangeSecurityContext(DeviceUtilsTest):
+
+  def testChangeSecurityContextRecursive(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['chcon', '-R', 'u:object_r:system_data_file:s0', '/path'],
+            as_root=True, check_return=True))):
+      self.device.ChangeSecurityContext('u:object_r:system_data_file:s0',
+                                        '/path', recursive=True)
+
+  def testChangeSecurityContextNonRecursive(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['chcon', 'u:object_r:system_data_file:s0', '/path'],
+            as_root=True, check_return=True))):
+      self.device.ChangeSecurityContext('u:object_r:system_data_file:s0',
+                                        '/path')
+
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
   unittest.main(verbosity=2)

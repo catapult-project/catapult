@@ -300,9 +300,9 @@ class SharedPrefs(object):
         raise device_errors.CommandFailedError(
             'Failed to get security context for %s' % self.package)
       shared_prefs_directory = self.path.split(self.filename)[0]
-      self._device.RunShellCommand(
-          ['chcon', '-R', security_context, shared_prefs_directory],
-          as_root=True, check_return=True)
+      self._device.ChangeSecurityContext(security_context,
+                                         shared_prefs_directory,
+                                         recursive=True)
 
     # Ensure that there isn't both an encrypted and unencrypted version of the
     # file on the device at the same time.

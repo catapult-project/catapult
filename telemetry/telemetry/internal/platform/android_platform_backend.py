@@ -542,21 +542,31 @@ class AndroidPlatformBackend(
         ['dumpsys', 'package', package], check_return=True)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search(r'\d+', id_line).group()
-    files = self._device.ListDirectory(profile_dir, as_root=True)
-    paths = [posixpath.join(profile_dir, f) for f in files if f != 'lib']
+
+    # Generate all of the paths copied to the device, via walking through
+    # |new_profile_dir| and doing path manipulations. This could be replaced
+    # with recursive commands (e.g. chown -R) below, but those are not well
+    # supported by older Android versions.
+    device_paths = []
+    for root, dirs, files in os.walk(new_profile_dir):
+      rel_root = os.path.relpath(root, new_profile_dir)
+      posix_rel_root = rel_root.replace(os.sep, posixpath.sep)
+
+      device_root = posixpath.join(profile_dir, posix_rel_root)
+
+      if rel_root == '.' and 'lib' in files:
+        files.remove('lib')
+      device_paths.extend(posixpath.join(device_root, n) for n in files + dirs)
+
+    owner_group = '%s.%s' % (uid, uid)
+    self._device.ChangeOwner(owner_group, device_paths)
+
+    # Not having the correct SELinux security context can prevent Chrome from
+    # loading files even though the mode/group/owner combination should allow
+    # it.
     security_context = self._device.GetSecurityContextForPackage(package)
-    for path in paths:
-      # TODO(crbug.com/628617): Implement without ignoring shell errors.
-      # Note: need to pass command as a string for the shell to expand the *'s.
-      extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
-      self._device.RunShellCommand(
-          'chown %s.%s %s' % (uid, uid, extended_path),
-          check_return=False, shell=True)
-      # Not having the correct SELinux security context can prevent Chrome from
-      # loading files even though the mode/group/owner combination should allow
-      # it.
-      self._device.RunShellCommand(['chcon', '-R', security_context, path],
-                                   as_root=True, check_return=True)
+    self._device.ChangeSecurityContext(security_context, profile_dir,
+                                       recursive=True)
 
   def _EfficientDeviceDirectoryCopy(self, source, dest):
     if not self._device_copy_script:
