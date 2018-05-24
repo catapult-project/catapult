@@ -218,29 +218,14 @@ found in the LICENSE file.
        * @param {Array} labels A list of labels to apply to the bug.
        * @param {Array} cc A list of email addresses to cc on the bug.
        */
-      openCrBugWindow(summary, comment, labels, cc) {
+      openCrBugWindow(summary, comment, labels, cc, components) {
         let url = 'https://code.google.com/p/chromium/issues/entry?';
         url += [
           'summary=' + encodeURIComponent(summary),
           'comment=' + encodeURIComponent(comment),
           'labels=' + encodeURIComponent(labels.join(',')),
+          'components=' + encodeURIComponent(components.join(',')),
           'cc=' + encodeURIComponent(cc.join(','))
-        ].join('&');
-        window.open(url, '_blank');
-      },
-
-      /**
-       * Opens a window with new GitHub issue, pre-filled with some info.
-       * @param {string} summary The title of the bug.
-       * @param {string} comment The description of the bug.
-       * @param {string} label Label to apply to the bug.
-       */
-      openGitHubIssueWindow(summary, comment, label) {
-        let url = 'https://github.com/catapult-project/catapult/issues/new?';
-        url += [
-          'title=' + encodeURIComponent(summary),
-          'body=' + encodeURIComponent(comment),
-          'labels=' + encodeURIComponent(label)
         ].join('&');
         window.open(url, '_blank');
       },
@@ -263,8 +248,8 @@ found in the LICENSE file.
         description += (os == 'Mac' ? 'Command+Option+J' : 'Ctrl+Shift+J');
         description += ' to open):\n\n';
         description += 'Please describe the problem:\n';
-        this.openGitHubIssueWindow(
-            'Perf Dashboard: ', description, 'Perf Dashboard');
+        this.openCrBugWindow(
+            'Perf Dashboard: ', description, [], [], ['Speed>Dashboard']);
       },
 
       /**
@@ -296,7 +281,8 @@ found in the LICENSE file.
             'These buildbots are for:\n';
         const labels = ['Performance-Dashboard-IPWhitelist',
           'Restrict-View-Google'];
-        this.openCrBugWindow('IP Whitelist Request', description, labels, []);
+        this.openCrBugWindow(
+            'IP Whitelist Request', description, labels, [], ['Speed>Dashboard']);
       },
 
       fileBotWhitelistRequest() {
@@ -305,7 +291,8 @@ found in the LICENSE file.
             '<BOT NAMES HERE>\n\n';
         const labels = ['Performance-Dashboard-BotWhitelist',
           'Restrict-View-Google'];
-        this.openCrBugWindow('Bot Whitelist Request', description, labels, []);
+        this.openCrBugWindow('Bot Whitelist Request', description, labels, [],
+            ['Speed>Dashboard']);
       },
 
       fileMonitoringRequest() {
@@ -321,7 +308,8 @@ found in the LICENSE file.
           'Performance-Dashboard-MonitoringRequest',
           'Restrict-View-Google'
         ];
-        this.openCrBugWindow('Monitoring Request', description, labels, []);
+        this.openCrBugWindow('Monitoring Request', description, labels, [],
+            ['Speed>Dashboard']);
       }
     });
   </script>
