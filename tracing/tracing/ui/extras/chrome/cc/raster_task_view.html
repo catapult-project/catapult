@@ -65,7 +65,7 @@ Polymer({
             const linkEl = document.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(
                 function() {
-                  return new tr.ui.e.chrome.cc.LayerSelection(costs.layer);
+                  return new tr.ui.e.chrome.cc.LayerSelection(row.layer);
                 },
                 'Layer ' + row.layerId);
             return linkEl;
