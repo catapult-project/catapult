@@ -53,10 +53,10 @@ found in the LICENSE file.
           <form action="/api/new" method="POST">
             <input type="hidden" name="start_git_hash" value="HEAD">
             <input type="hidden" name="end_git_hash" value="HEAD">
-            <input type="hidden" name="target" value="telemetry_perf_tests">
+            <input type="hidden" name="target" value="[[telemetryIsolate(configuration)]]">
             <paper-input name="bug_id" label="Bug ID"></paper-input>
             <paper-input name="patch" label="Gerrit URL" required></paper-input>
-            <paper-dropdown-menu name="configuration" label="Bot" horizontal-align="left" required>
+            <paper-dropdown-menu name="configuration" label="Bot" horizontal-align="left" selected-item-label="{{configuration}}" required>
               <!-- TODO: remove "class" after Polymer 2.0 migration -->
               <paper-listbox class="dropdown-content" slot="dropdown-content">
                 <template is="dom-repeat" items="[[config.configurations]]">
@@ -82,6 +82,7 @@ found in the LICENSE file.
       is: 'new-job-fab',
 
       properties: {
+        configuration: String,
         error: Object,
       },
 
@@ -101,6 +102,21 @@ found in the LICENSE file.
         this.set('route.path', '/job/' + event.detail.response.jobId);
         this.$.try_dialog.close();
       },
+
+      telemetryIsolate(configuration) {
+        // TODO(dtu): Figure out the proper place for this lookup.
+        const performanceTestSuiteConfigs = [
+          'linux-perf',
+          'mac-10_12_laptop_low_end-perf'
+        ];
+        if (performanceTestSuiteConfigs.includes(configuration)) {
+          return 'performance_test_suite';
+        }
+        if (configuration.includes('webview')) {
+          return 'telemetry_perf_webview_tests';
+        }
+        return 'telemetry_perf_tests';
+      }
     });
   </script>
 </dom-module>
