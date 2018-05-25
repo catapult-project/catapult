@@ -355,22 +355,27 @@ tr.exportTo('tr.e.cc', function() {
       'and try again.'
     ].join('');
 
-    if (!tr.isExported('global.chrome.skiaBenchmarking')) {
+    if (!PictureSnapshot.HasSkiaBenchmarking()) {
       return usualReason;
     }
-    if (!global.chrome.skiaBenchmarking.rasterize) {
-      return 'Your chrome is old';
+    if (!PictureSnapshot.CanRasterize()) {
+      return 'Your chrome is old: chrome.skipBenchmarking.rasterize not found';
     }
-    if (!global.chrome.skiaBenchmarking.getOps) {
-      return 'Your chrome is old: skiaBenchmarking.getOps not found';
+    if (!PictureSnapshot.CanGetOps()) {
+      return 'Your chrome is old: chrome.skiaBenchmarking.getOps not found';
     }
-    if (!global.chrome.skiaBenchmarking.getOpTimings) {
-      return 'Your chrome is old: skiaBenchmarking.getOpTimings not found';
+    if (!PictureSnapshot.CanGetOpTimings()) {
+      return 'Your chrome is old: ' +
+             'chrome.skiaBenchmarking.getOpTimings not found';
     }
-    if (!global.chrome.skiaBenchmarking.getInfo) {
-      return 'Your chrome is old: skiaBenchmarking.getInfo not found';
+    if (!PictureSnapshot.CanGetInfo()) {
+      return 'Your chrome is old: chrome.skiaBenchmarking.getInfo not found';
     }
-    return 'Rasterizing is on';
+    return undefined;
+  };
+
+  PictureSnapshot.CanDebugPicture = function() {
+    return PictureSnapshot.HowToEnablePictureDebugging() === undefined;
   };
 
   PictureSnapshot.prototype = {

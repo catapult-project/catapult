@@ -93,7 +93,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         Polymer.dom(this.analysisEl_).textContent = '';
 
         const layer = selection.layer;
-        if (layer && layer.args && layer.args.pictures) {
+        if (tr.e.cc.PictureSnapshot.CanDebugPicture() &&
+            layer &&
+            layer.args &&
+            layer.args.pictures &&
+            layer.args.pictures.length) {
           Polymer.dom(this.analysisEl_).appendChild(
               this.createPictureBtn_(layer.args.pictures));
         }
