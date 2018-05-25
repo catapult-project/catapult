@@ -52,7 +52,7 @@ found in the LICENSE file.
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
         <paper-input id="test-path" label="Test Path" value="{{test_path::input}}" disabled></paper-input>
-        <paper-input id="bug-id" label="Bug ID (optional)" value="{{bug_id::input}}"></paper-input>
+        <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
         <paper-input id="start_commit" label="Start Commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_commit" label="End Commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="story-filter" label="Story Filter (optional)" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
