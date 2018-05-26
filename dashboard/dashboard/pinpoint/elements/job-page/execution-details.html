@@ -71,7 +71,7 @@ found in the LICENSE file.
 
       th {
         text-align: right;
-        width: 7em;
+        width: 4em;
       }
 
       td {
@@ -158,44 +158,7 @@ found in the LICENSE file.
         if (!execution) {
           return [];
         }
-
-        const details =
-          Object.assign(execution.details, execution.result_arguments);
-
-        const executionDetails = [];
-        for (const key in details) {
-          const value = details[key];
-          if (!value) {
-            continue;
-          }
-
-          // TODO: Generate the correct URLs in the backend to avoid these
-          // hard-coded keys and base URLs.
-          if (key == 'traces') {
-            for (const trace of value) {
-              executionDetails.push({
-                key: 'trace',
-                value: trace.name,
-                url: trace.url,
-              });
-            }
-            continue;
-          }
-
-          let url = '';
-          if (key == 'bot_id') {
-            url = 'https://chromium-swarm.appspot.com/bot?id=' + value;
-          } else if (key == 'build') {
-            // TODO: Buildbucket doesn't have a UI. Provide some kind of link.
-          } else if (key == 'isolate_hash') {
-            url = 'https://isolateserver.appspot.com/browse?digest=' + value;
-          } else if (key == 'task_id') {
-            url = 'https://chromium-swarm.appspot.com/task?id=' + value;
-          }
-
-          executionDetails.push({key, value, url});
-        }
-        return executionDetails;
+        return execution.details;
       },
     });
   </script>

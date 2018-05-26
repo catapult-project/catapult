@@ -184,14 +184,24 @@ class RunTestFullTest(_RunTestExecutionTest):
     self.assertEqual(execution.AsDict(), {
         'completed': True,
         'exception': None,
-        'details': {
-            'bot_id': 'bot id',
-            'task_id': 'task id',
-        },
-        'result_arguments': {
-            'isolate_server': 'output isolate server',
-            'isolate_hash': 'output isolate hash',
-        },
+        'details': [
+            {
+                'key': 'bot',
+                'value': 'bot id',
+                'url': 'server/bot?id=bot id',
+            },
+            {
+                'key': 'task',
+                'value': 'task id',
+                'url': 'server/task?id=task id',
+            },
+            {
+                'key': 'isolate',
+                'value': 'output isolate hash',
+                'url': 'output isolate server/browse?'
+                       'digest=output isolate hash',
+            },
+        ],
     })
 
     # Start a second Execution on another Change. It should use the bot_id

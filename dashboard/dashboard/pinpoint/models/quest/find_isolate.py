@@ -65,12 +65,28 @@ class _FindIsolateExecution(execution.Execution):
     self._previous_builds = previous_builds
 
     self._build = None
+    self._build_url = None
 
   def _AsDict(self):
-    return {
-        'build': self._build,
-        'builder': self._builder_name,
-    }
+    details = []
+    details.append({
+        'key': 'builder',
+        'value': self._builder_name,
+    })
+    if self._build:
+      details.append({
+          'key': 'build',
+          'value': self._build,
+          'url': self._build_url if hasattr(self, '_build_url') else None,
+      })
+    if self.result_arguments:
+      details.append({
+          'key': 'isolate',
+          'value': self._result_arguments['isolate_hash'],
+          'url': self._result_arguments['isolate_server'] + '/browse?digest=' +
+                 self._result_arguments['isolate_hash'],
+      })
+    return details
 
   def _Poll(self):
     if self._CheckCompleted():
@@ -107,16 +123,17 @@ class _FindIsolateExecution(execution.Execution):
     Raises:
       BuildError: The build failed, was canceled, or didn't produce an isolate.
     """
-    status = buildbucket_service.GetJobStatus(self._build)
+    build = buildbucket_service.GetJobStatus(self._build)['build']
 
-    if status['build']['status'] != 'COMPLETED':
+    self._build_url = build.get('url')
+
+    if build['status'] != 'COMPLETED':
       return
 
-    if status['build']['result'] == 'FAILURE':
-      raise BuildError('Build failed: ' + status['build']['failure_reason'])
-    elif status['build']['result'] == 'CANCELED':
-      raise BuildError('Build was canceled: ' +
-                       status['build']['cancelation_reason'])
+    if build['result'] == 'FAILURE':
+      raise BuildError('Build failed: ' + build['failure_reason'])
+    elif build['result'] == 'CANCELED':
+      raise BuildError('Build was canceled: ' + build['cancelation_reason'])
     else:
       if self._CheckCompleted():
         return

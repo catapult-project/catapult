@@ -91,8 +91,17 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     expected_as_dict = {
         'completed': True,
         'exception': None,
-        'details': {'build': None, 'builder': 'Mac Builder'},
-        'result_arguments': expected_result_arguments,
+        'details': [
+            {
+                'key': 'builder',
+                'value': 'Mac Builder',
+            },
+            {
+                'key': 'isolate',
+                'value': '7c7e90be',
+                'url': 'https://isolate.server/browse?digest=7c7e90be',
+            },
+        ],
     }
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_values, ())
@@ -132,7 +141,10 @@ class BuildTest(_FindIsolateExecutionTest):
     })
 
     # Check build status.
-    get_job_status.return_value = {'build': {'status': 'STARTED'}}
+    get_job_status.return_value = {'build': {
+        'status': 'STARTED',
+        'url': 'build_url',
+    }}
     execution.Poll()
 
     self.assertFalse(execution.completed)
@@ -144,7 +156,34 @@ class BuildTest(_FindIsolateExecutionTest):
         (('Mac Builder', change, 'telemetry_perf_tests', 'isolate git hash'),))
     execution.Poll()
 
+    expected_result_arguments = {
+        'isolate_server': 'https://isolate.server',
+        'isolate_hash': 'isolate git hash',
+    }
+    expected_as_dict = {
+        'completed': True,
+        'exception': None,
+        'details': [
+            {
+                'key': 'builder',
+                'value': 'Mac Builder',
+            },
+            {
+                'key': 'build',
+                'value': 'build_id',
+                'url': 'build_url',
+            },
+            {
+                'key': 'isolate',
+                'value': 'isolate git hash',
+                'url': 'https://isolate.server/browse?digest=isolate git hash',
+            },
+        ],
+    }
     self.assertExecutionSuccess(execution)
+    self.assertEqual(execution.result_values, ())
+    self.assertEqual(execution.result_arguments, expected_result_arguments)
+    self.assertEqual(execution.AsDict(), expected_as_dict)
 
   def testSimultaneousBuilds(self, put, get_job_status):
     # Two builds started at the same time on the same Change should reuse the

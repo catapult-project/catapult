@@ -230,15 +230,23 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         {
             'completed': True,
             'exception': None,
-            'result_arguments': {},
-            'details': {
-                'isolate_server': 'server',
-                'traces': [
-                    {'url': 'trace_url1', 'name': 'trace_url1'},
-                    {'url': 'trace_url2', 'name': 'trace_url2'},
-                    {'url': 'trace_url3', 'name': 'trace_url3'}
-                ]
-            }
+            'details': [
+                {
+                    'key': 'trace',
+                    'value': 'trace_url1',
+                    'url': 'trace_url1',
+                },
+                {
+                    'key': 'trace',
+                    'value': 'trace_url2',
+                    'url': 'trace_url2',
+                },
+                {
+                    'key': 'trace',
+                    'value': 'trace_url3',
+                    'url': 'trace_url3',
+                },
+            ],
         },
         execution.AsDict())
     self.assertRetrievedOutputJson()
@@ -266,14 +274,18 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
         {
             'completed': True,
             'exception': None,
-            'result_arguments': {},
-            'details': {
-                'isolate_server': 'server',
-                'traces': [
-                    {'url': 'trace_url1', 'name': 'trace_url1'},
-                    {'url': 'trace_url2', 'name': 'trace_url2'},
-                ]
-            }
+            'details': [
+                {
+                    'key': 'trace',
+                    'value': 'trace_url1',
+                    'url': 'trace_url1',
+                },
+                {
+                    'key': 'trace',
+                    'value': 'trace_url2',
+                    'url': 'trace_url2',
+                },
+            ],
         },
         execution.AsDict())
     self.assertRetrievedOutputJson()

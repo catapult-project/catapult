@@ -169,18 +169,35 @@ class _RunTestExecution(execution_module.Execution):
     self._isolate_hash = isolate_hash
     self._previous_execution = previous_execution
 
-    self._task_id = None
     self._bot_id = None
+    self._task_id = None
 
   @property
   def bot_id(self):
     return self._bot_id
 
   def _AsDict(self):
-    return {
-        'bot_id': self._bot_id,
-        'task_id': self._task_id,
-    }
+    details = []
+    if self._bot_id:
+      details.append({
+          'key': 'bot',
+          'value': self._bot_id,
+          'url': self._swarming_server + '/bot?id=' + self._bot_id,
+      })
+    if self._task_id:
+      details.append({
+          'key': 'task',
+          'value': self._task_id,
+          'url': self._swarming_server + '/task?id=' + self._task_id,
+      })
+    if self.result_arguments:
+      details.append({
+          'key': 'isolate',
+          'value': self._result_arguments['isolate_hash'],
+          'url': self._result_arguments['isolate_server'] + '/browse?digest=' +
+                 self._result_arguments['isolate_hash'],
+      })
+    return details
 
   def _Poll(self):
     if not self._task_id:

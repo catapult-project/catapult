@@ -87,15 +87,11 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     self._trace_urls = []
 
   def _AsDict(self):
-    if not self._trace_urls:
-      return {}
-    # TODO(dtu): Remove after data migration.
-    if not hasattr(self, '_isolate_server'):
-      self._isolate_server = 'https://isolateserver.appspot.com'
-    return {
-        'isolate_server': self._isolate_server,
-        'traces': self._trace_urls,
-    }
+    return [{
+        'key': 'trace',
+        'value': trace_url['name'],
+        'url': trace_url['url'],
+    } for trace_url in self._trace_urls]
 
   def _Poll(self):
     # TODO(dtu): Remove after data migration.
