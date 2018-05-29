@@ -17,9 +17,9 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.blink', function() {
   // Maps the Blink GC events in timeline to telemetry friendly names.
   const BLINK_GC_EVENTS = {
-    'BlinkGCMarking': 'blink-gc-marking',
-    'ThreadState::completeSweep': 'blink-gc-complete-sweep',
-    'ThreadState::performIdleLazySweep': 'blink-gc-idle-lazy-sweep'
+    'BlinkGC.AtomicPhaseMarking': 'blink-gc-marking',
+    'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
+    'BlinkGC.LazySweepInIdle': 'blink-gc-idle-lazy-sweep'
   };
 
   function isBlinkGarbageCollectionEvent(event) {

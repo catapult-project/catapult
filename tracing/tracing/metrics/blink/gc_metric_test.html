@@ -47,9 +47,9 @@ tr.b.unittest.testSuite(function() {
 
   test('topEvents', function() {
     const events = {
-      'BlinkGCMarking': 'blink-gc-marking',
-      'ThreadState::completeSweep': 'blink-gc-complete-sweep',
-      'ThreadState::performIdleLazySweep': 'blink-gc-idle-lazy-sweep'
+      'BlinkGC.AtomicPhaseMarking': 'blink-gc-marking',
+      'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
+      'BlinkGC.LazySweepInIdle': 'blink-gc-idle-lazy-sweep'
     };
     for (const [timelineName, telemetryName] of Object.entries(events)) {
       const slices = [
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 100, cpuEnd: 200
       },
       {
-        title: 'BlinkGCMarking', args: {}, start: 110, end: 190,
+        title: 'BlinkGC.AtomicPhaseMarking', args: {}, start: 110, end: 190,
         cpuStart: 110, cpuEnd: 190
       }
     ];
@@ -128,7 +128,7 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 100, cpuEnd: 200
       },
       {
-        title: 'BlinkGCMarking', args: {}, start: 110, end: 190,
+        title: 'BlinkGC.AtomicPhaseMarking', args: {}, start: 110, end: 190,
         cpuStart: 110, cpuEnd: 190
       }
     ];
@@ -158,11 +158,11 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
       {
-        title: 'BlinkGCMarking', args: {}, start: 100, end: 200,
+        title: 'BlinkGC.AtomicPhaseMarking', args: {}, start: 100, end: 200,
         cpuStart: 100, cpuEnd: 200
       },
       {
-        title: 'ThreadState::performIdleLazySweep', args: {}, start: 210,
+        title: 'BlinkGC.LazySweepInIdle', args: {}, start: 210,
         end: 290, cpuStart: 210, cpuEnd: 290
       }
     ];
