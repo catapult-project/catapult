@@ -178,6 +178,9 @@ class _RunTestExecution(execution_module.Execution):
 
   def _AsDict(self):
     details = []
+    if not hasattr(self, '_swarming_server'):
+      # TODO: Remove after data migration. crbug.com/822008
+      self._swarming_server = 'https://chromium-swarm.appspot.com'
     if self._bot_id:
       details.append({
           'key': 'bot',
@@ -190,7 +193,11 @@ class _RunTestExecution(execution_module.Execution):
           'value': self._task_id,
           'url': self._swarming_server + '/task?id=' + self._task_id,
       })
-    if self.result_arguments:
+    if self._result_arguments:
+      if 'isolate_server' not in self._result_arguments:
+        # TODO: Remove after data migration. crbug.com/822008
+        self._result_arguments['isolate_server'] = (
+            'https://isolateserver.appspot.com')
       details.append({
           'key': 'isolate',
           'value': self._result_arguments['isolate_hash'],

@@ -79,7 +79,11 @@ class _FindIsolateExecution(execution.Execution):
           'value': self._build,
           'url': self._build_url if hasattr(self, '_build_url') else None,
       })
-    if self.result_arguments:
+    if self._result_arguments:
+      if 'isolate_server' not in self._result_arguments:
+        # TODO: Remove after data migration. crbug.com/822008
+        self._result_arguments['isolate_server'] = (
+            'https://isolateserver.appspot.com')
       details.append({
           'key': 'isolate',
           'value': self._result_arguments['isolate_hash'],
