@@ -147,31 +147,6 @@ tr.b.unittest.testSuite(function() {
         'Frame:ptr:0xdeadbeef.FrameScheduler.Foo');
   });
 
-  // Deprecated (renamed in newer versions of Chrome).
-  // TODO(#4364): Remove after 30 May 2018.
-  test('asyncSliceGroupViewSubGroupsOldName', function() {
-    const model = new tr.Model();
-    const p1 = new Process(model, 1);
-    p1.name = 'Renderer';
-    const t1 = p1.getOrCreateThread(321);
-    t1.name = 'MainThread';
-    const g = new AsyncSliceGroup(t1);
-    g.push(newAsyncSliceEx(
-        { cat: 'renderer.scheduler',
-          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Foo',
-          start: 0.5, duration: 0.1 }));
-    g.push(newAsyncSliceEx(
-        { cat: 'renderer.scheduler',
-          id: ':ptr:0xdeadbeef', title: 'WebFrameScheduler.Bar',
-          start: 0.55, duration: 0.2 }));
-    assert.strictEqual(g.length, 2);
-
-    const vsg = g.viewSubGroups;
-    assert.strictEqual(vsg.length, 1);
-    assert.strictEqual(vsg[0].title, 'WebFrame:ptr:0xdeadbeef');
-    assert.strictEqual(vsg[0].viewSubGroups.length, 2);
-  });
-
   test('asyncSliceGroupStableId', function() {
     const model = new tr.Model();
     const process = model.getOrCreateProcess(123);
