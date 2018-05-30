@@ -167,45 +167,28 @@ class JobState(object):
     assumed to have caused the difference).
 
     Yields:
-      Tuples of (change_index, Change).
+      Tuples of (Change, result_values_before, result_values_after).
     """
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
       if self._Compare(change_a, change_b) == _DIFFERENT:
-        yield index, change_b
+        values_a = self._ResultValues(change_a)
+        values_b = self._ResultValues(change_b)
+        yield change_b, values_a, values_b
 
   def AsDict(self):
     state = []
-    quest_index = len(self._quests) - 1
     for change in self._changes:
-      result_values = []
-
-      if self._comparison_mode == 'functional':
-        pass_fails = []
-        for attempt in self._attempts[change]:
-          if attempt.completed:
-            pass_fails.append(int(attempt.failed))
-        if pass_fails:
-          result_values.append(_Mean(pass_fails))
-
-      elif self._comparison_mode == 'performance':
-        for attempt in self._attempts[change]:
-          if quest_index < len(attempt.executions):
-            result_values += attempt.executions[quest_index].result_values
-
       state.append({
           'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
           'change': change.AsDict(),
           'comparisons': {},
-          'result_values': result_values,
+          'result_values': self._ResultValues(change),
       })
 
     for index in xrange(1, len(self._changes)):
-      change_a = self._changes[index - 1]
-      change_b = self._changes[index]
-      comparison = self._Compare(change_a, change_b)
-
+      comparison = self._Compare(self._changes[index - 1], self._changes[index])
       state[index - 1]['comparisons']['next'] = comparison
       state[index]['comparisons']['prev'] = comparison
 
@@ -275,6 +258,25 @@ class JobState(object):
       return _UNKNOWN
 
     return _SAME
+
+  def _ResultValues(self, change):
+    quest_index = len(self._quests) - 1
+    result_values = []
+
+    if self._comparison_mode == 'functional':
+      pass_fails = []
+      for attempt in self._attempts[change]:
+        if attempt.completed:
+          pass_fails.append(int(attempt.failed))
+      if pass_fails:
+        result_values.append(_Mean(pass_fails))
+
+    elif self._comparison_mode == 'performance':
+      for attempt in self._attempts[change]:
+        if quest_index < len(attempt.executions):
+          result_values += attempt.executions[quest_index].result_values
+
+    return result_values
 
 
 def _ExecutionsPerQuest(attempts):

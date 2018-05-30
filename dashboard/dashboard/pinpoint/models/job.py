@@ -25,6 +25,7 @@ _TASK_INTERVAL = 60
 
 
 _CRYING_CAT_FACE = u'\U0001f63f'
+_RIGHT_ARROW = u'\u2192'
 _ROUND_PUSHPIN = u'\U0001f4cd'
 
 
@@ -166,8 +167,8 @@ class Job(ndb.Model):
     owner = None
     sheriff = None
     cc_list = set()
-    commit_details = []
-    for _, change in differences:
+    difference_details = []
+    for change, values_a, values_b in differences:
       if change.patch:
         commit_info = change.patch.AsDict()
       else:
@@ -177,7 +178,9 @@ class Job(ndb.Model):
       owner = commit_info['author']
       sheriff = utils.GetSheriffForAutorollCommit(commit_info)
       cc_list.add(commit_info['author'])
-      commit_details.append(_FormatCommitForBug(commit_info))
+
+      difference = _FormatDifferenceForBug(commit_info, values_a, values_b)
+      difference_details.append(difference)
 
     # Header.
     if len(differences) == 1:
@@ -190,7 +193,7 @@ class Job(ndb.Model):
     header = '\n'.join((title, self.url))
 
     # Body.
-    body = '\n\n'.join(commit_details)
+    body = '\n\n'.join(difference_details)
     if sheriff:
       owner = sheriff
       body += '\n\nAssigning to sheriff %s because "%s" is a roll.' % (
@@ -327,6 +330,25 @@ class Job(ndb.Model):
     return issue_data.get('status')
 
 
-def _FormatCommitForBug(commit_info):
+def _FormatDifferenceForBug(commit_info, values_a, values_b):
   subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
-  return '\n'.join((subject, commit_info['url']))
+
+  if values_a:
+    mean_a = float(sum(values_a)) / len(values_a)
+    formatted_a = '%.4g' % mean_a
+  else:
+    mean_a = None
+    formatted_a = 'No values'
+
+  if values_b:
+    mean_b = float(sum(values_b)) / len(values_b)
+    formatted_b = '%.4g' % mean_b
+  else:
+    mean_b = None
+    formatted_b = 'No values'
+
+  difference = '%s %s %s' % (formatted_a, _RIGHT_ARROW, formatted_b)
+  if values_a and values_b:
+    difference += ' (%+.4g)' % (mean_b - mean_a)
+
+  return '\n'.join((subject, commit_info['url'], difference))
