@@ -429,6 +429,23 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
+  def testImportHistogramDicts_DelayedImport(self):
+    hs = histogram_set.HistogramSet()
+    hs.AddHistogram(histogram_module.Histogram('foo', 'count'))
+    hs.AddSharedDiagnostic('bar', generic_set.GenericSet(['baz']))
+    histogram_dicts = hs.AsDicts()
+    benchmark_metadata = benchmark.BenchmarkMetadata(
+        'benchmark_name', 'benchmark_description')
+    results = page_test_results.PageTestResults(
+        benchmark_metadata=benchmark_metadata)
+    results.telemetry_info.benchmark_start_epoch = 1501773200
+    results.WillRunPage(self.pages[0])
+    results.ImportHistogramDicts(histogram_dicts, import_immediately=False)
+    results.DidRunPage(self.pages[0])
+    self.assertEqual(len(results.AsHistogramDicts()), 0)
+    results.PopulateHistogramSet()
+    self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
+
   def testAddSharedDiagnostic(self):
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
