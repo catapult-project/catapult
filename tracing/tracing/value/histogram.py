@@ -233,6 +233,8 @@ class RunningStatistics(object):
   def sum(self):
     return self._sum
 
+  # This returns the variance of the samples after Bessel's correction has
+  # been applied.
   @property
   def variance(self):
     if self.count == 0:
@@ -241,6 +243,8 @@ class RunningStatistics(object):
       return 0
     return self._variance / (self.count - 1)
 
+  # This returns the standard deviation of the samples after Bessel's
+  # correction has been applied.
   @property
   def stddev(self):
     if self.count == 0:
