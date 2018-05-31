@@ -94,12 +94,11 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertIsNotNone(crash_minidump_path)
 
   def testGetSystemInfo(self):
-    if not self._browser.supports_system_info:
+    info = self._browser.GetSystemInfo()
+    if not info:
       logging.warning(
           'Browser does not support getting system info, skipping test.')
       return
-
-    info = self._browser.GetSystemInfo()
 
     self.assertTrue(isinstance(info, system_info.SystemInfo))
     self.assertTrue(hasattr(info, 'model_name'))
@@ -111,12 +110,11 @@ class BrowserTest(browser_test_case.BrowserTestCase):
       self.assertTrue(isinstance(g, gpu_device.GPUDevice))
 
   def testGetSystemInfoNotCachedObject(self):
-    if not self._browser.supports_system_info:
+    info_a = self._browser.GetSystemInfo()
+    if not info_a:
       logging.warning(
           'Browser does not support getting system info, skipping test.')
       return
-
-    info_a = self._browser.GetSystemInfo()
     info_b = self._browser.GetSystemInfo()
     self.assertFalse(info_a is info_b)
 
@@ -125,12 +123,12 @@ class BrowserTest(browser_test_case.BrowserTestCase):
       self.skipTest('This test is only run on macOS')
       return
 
-    if not self._browser.supports_system_info:
+    info = self._browser.GetSystemInfo()
+    if not info:
       logging.warning(
           'Browser does not support getting system info, skipping test.')
       return
 
-    info = self._browser.GetSystemInfo()
     model_name_re = r"[a-zA-Z]* [0-9.]*"
     self.assertNotEqual(re.match(model_name_re, info.model_name), None)
 

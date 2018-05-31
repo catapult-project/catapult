@@ -103,8 +103,8 @@ class Browser(app.App):
     os_detail = self._platform_backend.platform.GetOSVersionDetailString()
     if os_detail:
       logging.info('Detailed OS version: %s', os_detail)
-    if self.supports_system_info:
-      system_info = self.GetSystemInfo()
+    system_info = self.GetSystemInfo()
+    if system_info:
       if system_info.model_name:
         logging.info('Model: %s', system_info.model_name)
       if system_info.command_line:
@@ -267,10 +267,6 @@ class Browser(app.App):
        See devil.android.app_ui for the documentation of the API provided."""
     assert self.supports_app_ui_interactions
     return self._browser_backend.GetAppUi()
-
-  @property
-  def supports_system_info(self):
-    return self._browser_backend.supports_system_info
 
   def GetSystemInfo(self):
     """Returns low-level information about the system, if available.

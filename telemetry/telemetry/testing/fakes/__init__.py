@@ -366,10 +366,6 @@ class FakeBrowser(FakeApp):
   def Close(self):
     self._is_crashed = False
 
-  @property
-  def supports_system_info(self):
-    return True
-
   def GetSystemInfo(self):
     return self.returned_system_info
 

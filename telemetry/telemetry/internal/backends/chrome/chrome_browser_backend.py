@@ -264,10 +264,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._forwarder.Close()
       self._forwarder = None
 
-  @property
-  def supports_system_info(self):
-    return self.GetSystemInfo() != None
-
   def GetSystemInfo(self):
     try:
       return self.devtools_client.GetSystemInfo()
