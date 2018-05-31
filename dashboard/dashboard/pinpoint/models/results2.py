@@ -63,7 +63,7 @@ def ScheduleResults2Generation(job):
   try:
     # Don't want several tasks creating results2, so create task with specific
     # name to deduplicate.
-    task_name = 'results2-public-%s' % job.job_id
+    task_name = 'results2-public-%sfkjosefpkflsmafbjendfovxumrmrqe' % job.job_id
     taskqueue.add(
         queue_name='job-queue', url='/api/generate-results2/' + job.job_id,
         name=task_name)
@@ -75,7 +75,7 @@ def ScheduleResults2Generation(job):
 
 
 def GenerateResults2(job):
-  histogram_dicts = _FetchHistogramsDataFromJobData(job)
+  histogram_dicts = _FetchHistograms(job)
   vulcanized_html = _ReadVulcanizedHistogramsViewer()
 
   CachedResults2(job_id=job.job_id).put()
@@ -100,71 +100,47 @@ def _ReadVulcanizedHistogramsViewer():
     return f.read()
 
 
-def _FetchHistogramsDataFromJobData(job):
-  # We fetch 1 setof histograms at a time, iterating over the list of isolate
-  # hashes and then yielding each histogram. This prevents memory blowouts
-  # since we only have 1 gig to work with, but at the cost of increased
-  # task time.
-  for isolate_server, isolate_hash in _GetAllIsolateHashesForJob(job):
-    hs = read_value._RetrieveOutputJson(
-        isolate_server, isolate_hash, 'chartjson-output.json')
-    for h in hs:
-      yield h
-    del hs
+def _FetchHistograms(job):
+  for change in _ChangeList(job):
+    for attempt in job.state._attempts[change]:
+      for execution in attempt.executions:
+        if not isinstance(
+            execution, read_value._ReadHistogramsJsonValueExecution):
+          continue
+
+        # The histogram sets are very big. Since we have limited
+        # memory, delete the histogram sets as we go along.
+        histogram_set = _HistogramSetFromExecution(execution)
+        for histogram in histogram_set:
+          yield histogram
+        del histogram_set
 
 
-def _GetAllIsolateHashesForJob(job):
-  job_data = job.AsDict(options=('STATE',))
-
-  quest_index = None
-  for quest_index in xrange(len(job_data['quests'])):
-    if job_data['quests'][quest_index] == 'Test':
-      break
-  else:
-    raise Results2Error('No Test quest.')
-
-  isolate_hashes = []
-
+def _ChangeList(job):
   # If there are differences, only include Changes with differences.
-  for change_index in xrange(len(job_data['state'])):
-    change_state = job_data['state'][change_index]
-    if not _IsChangeDifferent(change_state):
-      continue
-    isolate_hashes += _GetIsolateHashesForChange(change_state, quest_index)
+  changes = []
 
-  # Otherwise, just include all Changes.
-  if not isolate_hashes:
-    for change_index in xrange(len(job_data['state'])):
-      change_state = job_data['state'][change_index]
-      isolate_hashes += _GetIsolateHashesForChange(change_state, quest_index)
+  for change_a, change_b, _, _ in job.state.Differences():
+    if change_a not in changes:
+      changes.append(change_a)
+    if change_b not in changes:
+      changes.append(change_b)
 
-  return isolate_hashes
+  if changes:
+    return changes
 
-
-def _IsChangeDifferent(change_state):
-  if change_state['comparisons'].get('prev') == 'different':
-    return True
-
-  if change_state['comparisons'].get('next') == 'different':
-    return True
-
-  return False
+  return job.state._changes
 
 
-def _GetIsolateHashesForChange(change_state, quest_index):
-  isolate_hashes = []
-  attempts = change_state['attempts']
-  for attempt_info in attempts:
-    executions = attempt_info['executions']
-    if quest_index >= len(executions):
-      continue
-
-    result_arguments = executions[quest_index]['result_arguments']
-    if 'isolate_hash' not in result_arguments:
-      continue
-
-    isolate_server = result_arguments.get(
-        'isolate_server', 'https://isolateserver.appspot.com')
-    isolate_hashes.append((isolate_server, result_arguments['isolate_hash']))
-
-  return isolate_hashes
+def _HistogramSetFromExecution(execution):
+  if hasattr(execution, '_isolate_server'):
+    isolate_server = execution._isolate_server
+  else:
+    isolate_server = 'https://isolateserver.appspot.com'
+  isolate_hash = execution._isolate_hash
+  if hasattr(execution, '_results_filename'):
+    results_filename = execution._results_filename
+  else:
+    results_filename = 'chartjson-output.json'
+  return read_value._RetrieveOutputJson(
+      isolate_server, isolate_hash, results_filename)

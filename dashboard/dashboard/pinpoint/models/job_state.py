@@ -167,7 +167,8 @@ class JobState(object):
     assumed to have caused the difference).
 
     Yields:
-      Tuples of (Change, result_values_before, result_values_after).
+      Tuples of (Change_before, Change_after,
+                 result_values_before, result_values_after).
     """
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
@@ -175,7 +176,7 @@ class JobState(object):
       if self._Compare(change_a, change_b) == _DIFFERENT:
         values_a = self._ResultValues(change_a)
         values_b = self._ResultValues(change_b)
-        yield change_b, values_a, values_b
+        yield change_a, change_b, values_a, values_b
 
   def AsDict(self):
     state = []

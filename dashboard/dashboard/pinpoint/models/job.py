@@ -168,7 +168,7 @@ class Job(ndb.Model):
     sheriff = None
     cc_list = set()
     difference_details = []
-    for change, values_a, values_b in differences:
+    for _, change, values_a, values_b in differences:
       if change.patch:
         commit_info = change.patch.AsDict()
       else:

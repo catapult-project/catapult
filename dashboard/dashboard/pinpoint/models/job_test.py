@@ -143,7 +143,7 @@ class BugCommentTest(testing_common.TestCase):
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithCommit(self, differences, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(c, [0], [1.23456])]
+    differences.return_value = [(None, c, [0], [1.23456])]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
@@ -168,7 +168,7 @@ class BugCommentTest(testing_common.TestCase):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(c, [0], [1.23456])]
+    differences.return_value = [(None, c, [0], [1.23456])]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -191,7 +191,7 @@ class BugCommentTest(testing_common.TestCase):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(c, [0], [1.23456])]
+    differences.return_value = [(None, c, [0], [1.23456])]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -213,7 +213,7 @@ class BugCommentTest(testing_common.TestCase):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(c, [0], [1.23456])]
+    differences.return_value = [(None, c, [0], [1.23456])]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -234,7 +234,7 @@ class BugCommentTest(testing_common.TestCase):
   def testCompletedMultipleDifferences(self, differences, commit_as_dict):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
-    differences.return_value = [(c1, [0], []), (c2, [], [2])]
+    differences.return_value = [(None, c1, [0], []), (None, c2, [], [2])]
     commit_as_dict.side_effect = (
         {
             'repository': 'chromium',
@@ -266,7 +266,7 @@ class BugCommentTest(testing_common.TestCase):
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithAutoroll(self, differences, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(c, [0], [1.23456])]
+    differences.return_value = [(None, c, [0], [1.23456])]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
