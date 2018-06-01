@@ -80,7 +80,7 @@ class _FindIsolateExecution(execution.Execution):
           'url': self._build_url if hasattr(self, '_build_url') else None,
       })
     if self._result_arguments:
-      if 'isolate_server' not in self._result_arguments:
+      if not self._result_arguments.get('isolate_server'):
         # TODO: Remove after data migration. crbug.com/822008
         self._result_arguments['isolate_server'] = (
             'https://isolateserver.appspot.com')

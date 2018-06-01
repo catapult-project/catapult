@@ -32,6 +32,9 @@ def Get(builder_name, change, target):
     if not entity:
       raise KeyError('No isolate with builder %s, change %s, and target %s.' %
                      (builder_name, change, target))
+  if not entity.isolate_server:
+    # TODO: Remove in November 2018.
+    entity.isolate_server = 'https://isolateserver.appspot.com'
   return entity.isolate_server, entity.isolate_hash
 
 
