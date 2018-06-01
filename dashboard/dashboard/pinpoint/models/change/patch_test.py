@@ -134,3 +134,13 @@ class GerritPatchTest(unittest.TestCase):
     expected = patch.GerritPatch(
         'https://example.com', 'repo~branch~id', 'current revision')
     self.assertEqual(p, expected)
+
+  @mock.patch('dashboard.services.gerrit_service.GetChange')
+  def testFromDictStringWithHash(self, get_change):
+    get_change.return_value = _GERRIT_CHANGE_INFO
+
+    p = patch.GerritPatch.FromDict('https://example.com/#/c/repo/+/658277')
+
+    expected = patch.GerritPatch(
+        'https://example.com', 'repo~branch~id', 'current revision')
+    self.assertEqual(p, expected)

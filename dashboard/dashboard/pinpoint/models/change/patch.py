@@ -88,7 +88,7 @@ class GerritPatch(collections.namedtuple(
       server = urlparse.urlunsplit(
           (url_parts.scheme, url_parts.netloc, '', '', ''))
 
-      path_parts = iter(url_parts.path.split('/'))
+      path_parts = iter(data.split('/'))
       for path_part in path_parts:
         if path_part == '+':
           break
