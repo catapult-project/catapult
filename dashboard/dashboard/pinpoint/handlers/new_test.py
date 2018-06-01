@@ -15,7 +15,7 @@ from dashboard.common import utils
 from dashboard.services import gitiles_service
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
-
+from dashboard.pinpoint.models.change import patch as patch_module
 
 _BASE_REQUEST = {
     'target': 'telemetry_perf_tests',
@@ -145,7 +145,8 @@ class NewTest(_NewTest):
 
   @mock.patch('dashboard.pinpoint.models.change.patch.FromDict')
   def testWithPatch(self, mock_patch):
-    mock_patch.return_value = None
+    mock_patch.return_value = patch_module.GerritPatch(
+        'https://lalala', '123', None)
     request = dict(_BASE_REQUEST)
     request['patch'] = 'https://lalala/c/foo/bar/+/123'
 
@@ -156,6 +157,9 @@ class NewTest(_NewTest):
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
     mock_patch.assert_called_with(request['patch'])
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual('123', job.gerrit_change_id)
+    self.assertEqual('https://lalala', job.gerrit_server)
 
   def testMissingTarget(self):
     request = dict(_BASE_REQUEST)

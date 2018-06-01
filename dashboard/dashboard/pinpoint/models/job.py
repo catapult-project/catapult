@@ -16,6 +16,7 @@ from google.appengine.runtime import apiproxy_errors
 from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
+from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
 
 
@@ -72,13 +73,19 @@ class Job(ndb.Model):
   # Email of the job creator.
   user = ndb.StringProperty()
 
+  # The Gerrit server url and change id of the code review to update upon
+  # completion.
+  gerrit_server = ndb.StringProperty()
+  gerrit_change_id = ndb.StringProperty()
+
   state = ndb.PickleProperty(required=True, compressed=True)
 
   tags = ndb.JsonProperty()
 
   @classmethod
   def New(cls, quests, changes, arguments=None, bug_id=None,
-          comparison_mode=None, pin=None, tags=None, user=None):
+          comparison_mode=None, gerrit_server=None, gerrit_change_id=None,
+          pin=None, tags=None, user=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -89,6 +96,10 @@ class Job(ndb.Model):
       comparison_mode: Either 'functional' or 'performance', which the Job uses
           to figure out whether to perform a functional or performance bisect.
           If None, the Job will not automatically add any Attempts or Changes.
+      gerrit_server: Server of the Gerrit code review to update with job
+          results.
+      gerrit_change_id: Change id of the Gerrit code review to update with job
+          results.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
       tags: A dict of key-value pairs used to filter the Jobs listings.
       user: The email of the Job creator.
@@ -98,7 +109,8 @@ class Job(ndb.Model):
     """
     state = job_state.JobState(quests, comparison_mode=comparison_mode, pin=pin)
     job = cls(state=state, arguments=arguments or {},
-              bug_id=bug_id, tags=tags, user=user)
+              bug_id=bug_id, gerrit_server=gerrit_server,
+              gerrit_change_id=gerrit_change_id, tags=tags, user=user)
 
     for c in changes:
       job.AddChange(c)
@@ -147,8 +159,10 @@ class Job(ndb.Model):
     except taskqueue.Error:
       pass
 
-    # Format bug comment.
+    self._FormatAndPostBugCommentOnComplete()
+    self._UpdateGerritIfNeeded()
 
+  def _FormatAndPostBugCommentOnComplete(self):
     if not self.state.comparison_mode:
       # There is no comparison metric.
       title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
@@ -214,6 +228,13 @@ class Job(ndb.Model):
     else:
       # Only update the comment and cc list if this bug is assigned or closed.
       self._PostBugComment(comment, cc_list=sorted(cc_list))
+
+  def _UpdateGerritIfNeeded(self):
+    if self.gerrit_server and self.gerrit_change_id:
+      gerrit_service.PostChangeComment(
+          self.gerrit_server,
+          self.gerrit_change_id,
+          '%s Job complete.\n\nSee results at: %s' % (_ROUND_PUSHPIN, self.url))
 
   def Fail(self):
     self.exception = traceback.format_exc()

@@ -10,6 +10,7 @@ from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
+from dashboard.pinpoint.models.change import patch
 
 
 _BOT_CONFIGURATIONS = 'bot_configurations'
@@ -43,8 +44,10 @@ def _CreateJob(request):
   # Validate arguments and convert them to canonical internal representation.
   quests = _GenerateQuests(arguments)
   changes = _ValidateChanges(arguments)
+
   bug_id = _ValidateBugId(arguments.get('bug_id'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
+  gerrit_server, gerrit_change_id = _ValidatePatch(arguments.get('patch'))
   pin = _ValidatePin(arguments.get('pin'))
   tags = _ValidateTags(arguments.get('tags'))
   user = _ValidateUser(arguments.get('user'))
@@ -52,7 +55,8 @@ def _CreateJob(request):
   # Create job.
   return job_module.Job.New(
       quests, changes, arguments=original_arguments, bug_id=bug_id,
-      comparison_mode=comparison_mode, pin=pin, tags=tags, user=user)
+      comparison_mode=comparison_mode, gerrit_server=gerrit_server,
+      gerrit_change_id=gerrit_change_id, pin=pin, tags=tags, user=user)
 
 
 def _ArgumentsWithConfiguration(original_arguments):
@@ -106,6 +110,13 @@ def _ValidateChanges(arguments):
 
   # FromDict() performs input validation.
   return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
+
+
+def _ValidatePatch(patch_data):
+  if patch_data:
+    patch_details = patch.FromDict(patch_data)
+    return patch_details.server, patch_details.change
+  return None, None
 
 
 def _ValidateComparisonMode(comparison_mode):

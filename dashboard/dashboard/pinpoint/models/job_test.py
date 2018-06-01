@@ -88,6 +88,11 @@ https://testbed.example.com/job/1
 
 Error string""")
 
+_COMMENT_CODE_REVIEW = (
+    u"""\U0001f4cd Job complete.
+
+See results at: https://testbed.example.com/job/1""")
+
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 class BugCommentTest(testing_common.TestCase):
@@ -296,3 +301,12 @@ class BugCommentTest(testing_common.TestCase):
       j.Run()
 
     self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)
+
+  @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
+  def testCompletedUpdatesGerrit(self, post_change_comment):
+    j = job.Job.New(
+        (), (), gerrit_server='https://review.com', gerrit_change_id='123456')
+    j.Run()
+
+    post_change_comment.assert_called_once_with(
+        'https://review.com', '123456', _COMMENT_CODE_REVIEW)
