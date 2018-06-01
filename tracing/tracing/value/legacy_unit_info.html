@@ -253,6 +253,11 @@ tr.exportTo('tr.v', function() {
     name: 'unitlessNumber',
     defaultImprovementDirection: tr.b.ImprovementDirection.BIGGER_IS_BETTER,
   });
+  LEGACY_UNIT_INFO.set('tasks', {
+    // Used by thread_times but actually indicates tasks/s, so not count.
+    name: 'unitlessNumber',
+    defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
+  });
   LEGACY_UNIT_INFO.set('us', {
     name: 'timeDurationInMs',
     conversionFactor: 1e-3,
