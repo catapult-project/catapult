@@ -134,7 +134,7 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError()
 
   def GetSystemInfo(self):
-    raise NotImplementedError()
+    return None
 
   @property
   def supports_memory_dumping(self):
