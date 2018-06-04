@@ -19,17 +19,42 @@ tr.exportTo('tr.metrics.tabs', function() {
       return;
     }
     const tabSwitchLatencies = [];
-    for (const helper of chromeHelper.browserHelpers) {
-      if (!helper.mainThread) {
-        continue;
-      }
-      const thread = helper.mainThread;
-      for (const slice of thread.asyncSliceGroup.slices) {
-        if (slice.title === 'TabSwitching::Latency') {
-          tabSwitchLatencies.push(slice.duration);
+    const TAB_SWITCHING_SLICE_TITLE = 'TabSwitching::Latency';
+
+    function extractLatencyFromHelpers(helpers) {
+      for (const helper of helpers) {
+        if (!helper.mainThread) {
+          continue;
+        }
+        const thread = helper.mainThread;
+        for (const slice of thread.sliceGroup.slices) {
+          if (slice.title === TAB_SWITCHING_SLICE_TITLE) {
+            tabSwitchLatencies.push(slice.args.latency);
+          }
         }
       }
     }
+
+    // First, get the latency metrics from the sync slices in the browser and
+    // the renderer processes.
+    extractLatencyFromHelpers(chromeHelper.browserHelpers);
+    extractLatencyFromHelpers(Object.values(chromeHelper.rendererHelpers));
+
+    // Fallback to the async slices for legacy measurements.
+    if (tabSwitchLatencies.length === 0) {
+      for (const helper of chromeHelper.browserHelpers) {
+        if (!helper.mainThread) {
+          continue;
+        }
+        const thread = helper.mainThread;
+        for (const slice of thread.asyncSliceGroup.slices) {
+          if (slice.title === TAB_SWITCHING_SLICE_TITLE) {
+            tabSwitchLatencies.push(slice.duration);
+          }
+        }
+      }
+    }
+
     histograms.createHistogram('tab_switching_latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tabSwitchLatencies, { description: 'Tab switching time in ms',

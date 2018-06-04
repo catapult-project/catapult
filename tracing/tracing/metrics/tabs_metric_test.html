@@ -16,23 +16,10 @@ tr.b.unittest.testSuite(function() {
   test('tabsMetric_tabSwitching', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const browserThread = setUpBrowserThread(model);
-      addTabSwitchingData(browserThread, browserThread);
-    });
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.tabs.tabsMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('tab_switching_latency');
-    assert.strictEqual(hist.max, 43.0);
-    assert.strictEqual(hist.min, 24.0);
-    assert.strictEqual(hist.average, 33.0);
-  });
+      addTabSwitchingData(browserThread);
 
-  test('tabsMetric_tabSwitchingWithViz', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      // With viz turned on, the data will be in the gpu process in the display
-      // compositor thread.
-      const browserThread = setUpBrowserThread(model);
-      const compositorThread = setUpDisplayCompositorThread(model);
-      addTabSwitchingData(browserThread, compositorThread);
+      const rendererMainThread = setUpRendererMainThread(model);
+      addTabSwitchingData(rendererMainThread);
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.tabs.tabsMetric(histograms, model);
@@ -40,6 +27,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist.max, 43.0);
     assert.strictEqual(hist.min, 24.0);
     assert.strictEqual(hist.average, 33.0);
+    assert.strictEqual(hist.numValues, 6);
   });
 
   function setUpBrowserThread(model) {
@@ -50,39 +38,36 @@ tr.b.unittest.testSuite(function() {
     return browserThread;
   }
 
-  function setUpDisplayCompositorThread(model) {
-    const GPU_PROCESS_ID = 2345;
-    const gpuProcess = model.getOrCreateProcess(GPU_PROCESS_ID);
-    const compositorThread = gpuProcess.getOrCreateThread(2);
-    compositorThread.name = 'CompositorThread';
-    return compositorThread;
+  function setUpRendererMainThread(model) {
+    const RENDERER_PROCESS_ID = 2345;
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(23);
+    mainThread.name = 'CrRendererMain';
+    return mainThread;
   }
 
-  function addTabSwitchingData(browserThread, compositorThread) {
-    const group = browserThread.asyncSliceGroup;
-    group.push(tr.c.TestUtils.newAsyncSliceEx({
+  function addTabSwitchingData(thread) {
+    const group = thread.sliceGroup;
+    group.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 0,
-      duration: 24,
-      startThread: browserThread,
-      endThread: compositorThread,
+      duration: 0,
+      args: {latency: 24 },
     }));
-    group.push(tr.c.TestUtils.newAsyncSliceEx({
+    group.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 1,
-      duration: 32,
-      startThread: browserThread,
-      endThread: compositorThread,
+      duration: 0,
+      args: {latency: 32 },
     }));
-    group.push(tr.c.TestUtils.newAsyncSliceEx({
+    group.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 2,
-      duration: 43,
-      startThread: browserThread,
-      endThread: compositorThread,
+      duration: 0,
+      args: {latency: 43 },
     }));
   }
 });
