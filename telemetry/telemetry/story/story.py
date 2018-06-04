@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import re
+import logging
 
 from telemetry.story import shared_state as shared_state_module
 
@@ -74,6 +75,9 @@ class Story(object):
     if grouping_keys is None:
       grouping_keys = {}
     else:
+      logging.warning(
+          'grouping_keys is being deprecated (crbug.com/849363). Please '
+          'do not use this field')
       assert isinstance(grouping_keys, dict)
     self._grouping_keys = grouping_keys
 
