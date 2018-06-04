@@ -12,10 +12,18 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.tabs', function() {
   function tabsMetric(histograms, model, opt_options) {
-    const thread = model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper).
-        browserHelper.mainThread;
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!chromeHelper) {
+      // Chrome isn't present.
+      return;
+    }
     const tabSwitchLatencies = [];
-    if (thread) {
+    for (const helper of chromeHelper.browserHelpers) {
+      if (!helper.mainThread) {
+        continue;
+      }
+      const thread = helper.mainThread;
       for (const slice of thread.asyncSliceGroup.slices) {
         if (slice.title === 'TabSwitching::Latency') {
           tabSwitchLatencies.push(slice.duration);
