@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 
 
 _TRACING_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -190,9 +191,14 @@ class TraceData(object):
           trace_files.append(path)
       logging.info('Trace sizes in bytes: %s', trace_size_data)
 
-      cmd = (['python', _TRACE2HTML_PATH] + trace_files +
-             ['--output', file_path] + ['--title', trace_title])
+      start_time = time.time()
+      cmd = (
+          ['python', _TRACE2HTML_PATH] + trace_files +
+          ['--output', file_path] + ['--title', trace_title])
       subprocess.check_output(cmd)
+
+      elapsed_time = time.time() - start_time
+      logging.info('trace2html finished in %.02f seconds.', elapsed_time)
     finally:
       shutil.rmtree(temp_dir)
 

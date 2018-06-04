@@ -8,7 +8,6 @@ from battor import battor_error
 from battor import battor_wrapper
 from devil.android import battery_utils
 from telemetry.internal.platform.tracing_agent import battor_tracing_agent
-from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
 
