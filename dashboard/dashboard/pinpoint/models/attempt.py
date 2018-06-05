@@ -52,7 +52,15 @@ class Attempt(object):
 
   @property
   def failed(self):
-    return bool(self._executions and self._last_execution.failed)
+    """Returns True iff the Attempt is completed and has failed."""
+    return bool(self.exception)
+
+  @property
+  def exception(self):
+    """Returns the stack trace if the Attempt failed, or None otherwise."""
+    if not self._executions:
+      return None
+    return self._last_execution.exception
 
   @property
   def _last_execution(self):

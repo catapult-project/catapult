@@ -11,6 +11,7 @@ modify the Quest.
 import collections
 import copy
 import json
+import re
 import shlex
 
 from dashboard.pinpoint.models.quest import execution as execution_module
@@ -31,44 +32,23 @@ class RunTestError(Exception):
 
 
 class SwarmingExpiredError(StandardError):
+  """Raised when the Swarming task expires before running.
 
-  def __init__(self, task_id):
-    self.task_id = task_id
-    super(SwarmingExpiredError, self).__init__(
-        'The swarming task %s expired. The bots are likely overloaded or dead, '
-        'or may be misconfigured.' % self.task_id)
-
-  def __reduce__(self):
-    # http://stackoverflow.com/a/36342588
-    return SwarmingExpiredError, (self.task_id,)
+  This error is fatal, and stops the entire Job. If this error happens, the
+  results will be incorrect, and we should stop the Job quickly to avoid
+  overloading the bots even further."""
 
 
 class SwarmingTaskError(RunTestError):
+  """Raised when the Swarming task failed and didn't complete.
 
-  def __init__(self, task_id, state):
-    self.task_id = task_id
-    self.state = state
-    super(SwarmingTaskError, self).__init__(
-        'The swarming task %s failed with state "%s".' %
-        (self.task_id, self.state))
-
-  def __reduce__(self):
-    # http://stackoverflow.com/a/36342588
-    return SwarmingTaskError, (self.task_id, self.state)
+  If the test completes but fails, that is a SwarmingTestError, not a
+  SwarmingTaskError. This error could be something like the bot died, the test
+  timed out, or the task was manually canceled."""
 
 
 class SwarmingTestError(RunTestError):
-
-  def __init__(self, task_id, exit_code):
-    self.task_id = task_id
-    self.exit_code = exit_code
-    super(SwarmingTestError, self).__init__(
-        'The swarming task %s failed. The test exited with code %s.' %
-        (self.task_id, self.exit_code))
-
-  def __reduce__(self):
-    # http://stackoverflow.com/a/36342588
-    return SwarmingTestError, (self.task_id, self.exit_code)
+  """Raised when the test fails."""
 
 
 class RunTest(quest.Quest):
@@ -214,8 +194,9 @@ class _RunTestExecution(execution_module.Execution):
     if not hasattr(self, '_swarming_server'):
       # TODO: Remove after data migration. crbug.com/822008
       self._swarming_server = 'https://chromium-swarm.appspot.com'
-    result = swarming.Swarming(
-        self._swarming_server).Task(self._task_id).Result()
+    swarming_task = swarming.Swarming(self._swarming_server).Task(self._task_id)
+
+    result = swarming_task.Result()
 
     if 'bot_id' in result:
       # Set bot_id to pass the info back to the Quest.
@@ -225,13 +206,21 @@ class _RunTestExecution(execution_module.Execution):
       return
 
     if result['state'] == 'EXPIRED':
-      raise SwarmingExpiredError(self._task_id)
+      raise SwarmingExpiredError('The swarming task expired. The bots are '
+                                 'likely overloaded, dead, or misconfigured.')
 
     if result['state'] != 'COMPLETED':
-      raise SwarmingTaskError(self._task_id, result['state'])
+      raise SwarmingTaskError('The swarming task failed with '
+                              'state "%s".' % result['state'])
 
     if result['failure']:
-      raise SwarmingTestError(self._task_id, result['exit_code'])
+      exception_string = _ParseException(swarming_task.Stdout()['output'])
+      if exception_string:
+        raise SwarmingTestError("The test failed. The test's error "
+                                'message was:\n%s' % exception_string)
+      else:
+        raise SwarmingTestError('The test failed. No Python '
+                                'exception was found in the log.')
 
     result_arguments = {
         'isolate_server': result['outputs_ref']['isolatedserver'],
@@ -294,3 +283,42 @@ class _RunTestExecution(execution_module.Execution):
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
 
     self._task_id = response['task_id']
+
+
+def _ParseException(log):
+  """Searches a log for a stack trace and returns the exception string.
+
+  This function supports both default Python-style stacks and Telemetry-style
+  stacks. It returns the first stack trace found in the log - sometimes a bug
+  leads to a cascade of failures, so the first one is usually the root cause.
+
+  Args:
+    log: A string. The stderr log containing the stack trace(s).
+
+  Returns:
+    The exception string, or None if no traceback is found.
+  """
+  log_iterator = iter(log.splitlines())
+
+  # Look for the start of the traceback and stop there.
+  for line in log_iterator:
+    if line == 'Traceback (most recent call last):':
+      break
+  else:
+    return None
+
+  # The traceback alternates between "location of stack frame" and
+  # "code at that location", then ends with the exception string.
+  for line in log_iterator:
+    # Look for the line containing the location of the stack frame.
+    match1 = re.match(r'\s*File "(?P<file>.+)", line (?P<line>[0-9]+), '
+                      'in (?P<function>.+)', line)
+    match2 = re.match(r'\s*(?P<function>.+) at '
+                      '(?P<file>.+):(?P<line>[0-9]+)', line)
+
+    if not (match1 or match2):
+      # No more stack frames. Return the exception string!
+      return line
+
+    # Skip the line containing the code at the stack frame location.
+    log_iterator.next()

@@ -236,7 +236,10 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
-  def testTestError(self, swarming_task_result, swarming_tasks_new):
+  @mock.patch('dashboard.services.swarming.Task.Stdout')
+  def testTestError(self, swarming_task_stdout,
+                    swarming_task_result, swarming_tasks_new):
+    swarming_task_stdout.return_value = {'output': ''}
     swarming_task_result.return_value = {
         'bot_id': 'bot id',
         'exit_code': 1,
@@ -254,6 +257,35 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     self.assertTrue(execution.failed)
     last_exception_line = execution.exception.splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTestError'))
+
+  @mock.patch('dashboard.services.swarming.Task.Stdout')
+  def testTestErrorWithPythonException(
+      self, swarming_task_stdout, swarming_task_result, swarming_tasks_new):
+    swarming_task_stdout.return_value = {
+        'output': """Traceback (most recent call last):
+  File "../../testing/scripts/run_performance_tests.py", line 282, in <module>
+    sys.exit(main())
+  File "../../testing/scripts/run_performance_tests.py", line 226, in main
+    benchmarks = args.benchmark_names.split(',')
+AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
+    }
+    swarming_task_result.return_value = {
+        'bot_id': 'bot id',
+        'exit_code': 1,
+        'failure': True,
+        'state': 'COMPLETED',
+    }
+    swarming_tasks_new.return_value = {'task_id': 'task id'}
+
+    quest = run_test.RunTest('server', [{'key': 'value'}], ['arg'])
+    execution = quest.Start(None, 'isolate server', 'isolate_hash')
+    execution.Poll()
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertTrue(execution.failed)
+    last_exception_line = execution.exception.splitlines()[-1]
+    self.assertTrue(last_exception_line.startswith('AttributeError'))
 
 
 @mock.patch('dashboard.services.swarming.Tasks.New')

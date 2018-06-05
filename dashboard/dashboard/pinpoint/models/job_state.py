@@ -149,15 +149,31 @@ class JobState(object):
           continue
 
         attempt.ScheduleWork()
-        work_left = True
+        if not attempt.completed:
+          work_left = True
 
-    # TODO: Skip this for functional jobs.
-    if not work_left and self._attempts and all(
-        a.failed for attempts in self._attempts.itervalues() for a in attempts):
-      raise Exception('All of the attempts failed. See the individual '
-                      'attempts for details on each error.')
+    if not work_left:
+      self._RaiseErrorIfAllAttemptsFailed()
 
     return work_left
+
+  def _RaiseErrorIfAllAttemptsFailed(self):
+    counter = collections.Counter()
+    for attempts in self._attempts.itervalues():
+      for attempt in attempts:
+        if not attempt.exception:
+          return
+        counter[attempt.exception.splitlines()[-1]] += 1
+
+    most_common_exceptions = counter.most_common(1)
+    if not most_common_exceptions:
+      return
+
+    exception, exception_count = most_common_exceptions[0]
+    attempt_count = sum(counter.itervalues())
+    raise Exception(
+        'All of the runs failed. The most common error (%d/%d runs) '
+        'was:\n%s' % (exception_count, attempt_count, exception))
 
   def Differences(self):
     """Compares every pair of Changes and yields ones with different results.
