@@ -30,6 +30,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist.numValues, 6);
   });
 
+  test('tabsMetric_tabSwitching_legacy', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserThread = setUpBrowserThread(model);
+      addTabSwitchingData(browserThread, true);
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.tabs.tabsMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('tab_switching_latency');
+    assert.strictEqual(hist.max, 37.0);
+    assert.strictEqual(hist.min, 14.0);
+    assert.strictEqual(hist.average, 25.0);
+    assert.strictEqual(hist.numValues, 3);
+  });
+
   function setUpBrowserThread(model) {
     const BROWSER_PROCESS_ID = 1234;
     const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
@@ -46,28 +60,28 @@ tr.b.unittest.testSuite(function() {
     return mainThread;
   }
 
-  function addTabSwitchingData(thread) {
-    const group = thread.sliceGroup;
-    group.pushSlice(tr.c.TestUtils.newSliceEx({
+  function addTabSwitchingData(thread, legacy) {
+    const group = thread.asyncSliceGroup;
+    group.push(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 0,
-      duration: 0,
-      args: {latency: 24 },
+      duration: 24,
+      args: legacy ? {} : {latency: 24 },
     }));
-    group.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+    group.push(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 1,
-      duration: 0,
-      args: {latency: 32 },
+      duration: 14,
+      args: legacy ? {} : {latency: 32 },
     }));
-    group.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+    group.push(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'latency',
       title: 'TabSwitching::Latency',
       start: 2,
-      duration: 0,
-      args: {latency: 43 },
+      duration: 37,
+      args: legacy ? {} : {latency: 43 },
     }));
   }
 });
