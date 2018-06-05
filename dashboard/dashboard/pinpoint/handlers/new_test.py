@@ -10,12 +10,13 @@ import webtest
 
 from dashboard.api import api_auth
 from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.services import gitiles_service
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models.change import patch as patch_module
+from dashboard.pinpoint import test
+
 
 _BASE_REQUEST = {
     'target': 'telemetry_perf_tests',
@@ -32,12 +33,12 @@ _CONFIGURATION_ARGUMENTS = {
     'browser': 'release',
     'builder': 'Mac Builder',
     'dimensions': '{"key": "value"}',
-    'repository': 'src',
+    'repository': 'chromium',
     'swarming_server': 'https://chromium-swarm.appspot.com',
 }
 
 
-class _NewTest(testing_common.TestCase):
+class _NewTest(test.TestCase):
 
   def setUp(self):
     super(_NewTest, self).setUp()
@@ -47,13 +48,8 @@ class _NewTest(testing_common.TestCase):
     ])
     self.testapp = webtest.TestApp(app)
 
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-
     namespaced_stored_object.Set('bot_configurations', {
         'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS
-    })
-    namespaced_stored_object.Set('repositories', {
-        'src': {'repository_url': 'http://src'},
     })
 
 
@@ -133,8 +129,8 @@ class NewTest(_NewTest):
     del base_request['start_git_hash']
     del base_request['end_git_hash']
     base_request['changes'] = json.dumps([
-        {'commits': [{'repository': 'src', 'git_hash': '1'}]},
-        {'commits': [{'repository': 'src', 'git_hash': '3'}]}])
+        {'commits': [{'repository': 'chromium', 'git_hash': '1'}]},
+        {'commits': [{'repository': 'chromium', 'git_hash': '3'}]}])
 
     response = self.testapp.post('/api/new', base_request, status=200)
     result = json.loads(response.body)

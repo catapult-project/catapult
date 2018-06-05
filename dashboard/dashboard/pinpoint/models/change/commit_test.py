@@ -4,12 +4,10 @@
 
 import mock
 
-from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models.change import commit
+from dashboard.pinpoint import test
 
 
-_CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
 _GITILES_COMMIT_INFO = {
     'author': {'email': 'author@chromium.org'},
     'commit': 'aaa7336',
@@ -20,22 +18,7 @@ _GITILES_COMMIT_INFO = {
 }
 
 
-class _CommitTest(testing_common.TestCase):
-
-  def setUp(self):
-    super(_CommitTest, self).setUp()
-
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-
-    namespaced_stored_object.Set('repositories', {
-        'chromium': {'repository_url': _CHROMIUM_URL},
-    })
-    namespaced_stored_object.Set('repository_urls_to_names', {
-        _CHROMIUM_URL: 'chromium',
-    })
-
-
-class CommitTest(_CommitTest):
+class CommitTest(test.TestCase):
 
   def testCommit(self):
     c = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36')
@@ -101,7 +84,7 @@ deps_os = {
     expected = {
         'repository': 'chromium',
         'git_hash': 'aaa7336',
-        'url': _CHROMIUM_URL + '/+/aaa7336',
+        'url': test.CHROMIUM_URL + '/+/aaa7336',
         'subject': 'Subject.',
         'author': 'author@chromium.org',
         'time': 'Fri Jan 01 00:01:00 2016',
@@ -114,7 +97,7 @@ deps_os = {
     self.assertEqual(c, commit.Commit('url', 'git_hash'))
 
   def testFromDepExistingRepo(self):
-    c = commit.Commit.FromDep(commit.Dep(_CHROMIUM_URL, 'git_hash'))
+    c = commit.Commit.FromDep(commit.Dep(test.CHROMIUM_URL, 'git_hash'))
     self.assertEqual(c, commit.Commit('chromium', 'git_hash'))
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
@@ -168,7 +151,7 @@ deps_os = {
       })
 
 
-class MidpointTest(_CommitTest):
+class MidpointTest(test.TestCase):
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testSuccess(self, commit_range):

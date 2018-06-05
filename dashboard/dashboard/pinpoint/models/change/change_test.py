@@ -4,40 +4,15 @@
 
 import mock
 
-from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.change import patch
-
-
-_CATAPULT_URL = ('https://chromium.googlesource.com/'
-                 'external/github.com/catapult-project/catapult')
-_CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
-
-
-class _ChangeTest(testing_common.TestCase):
-
-  def setUp(self):
-    super(_ChangeTest, self).setUp()
-
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-
-    namespaced_stored_object.Set('repositories', {
-        'catapult': {'repository_url': _CATAPULT_URL},
-        'chromium': {'repository_url': _CHROMIUM_URL},
-        'another_repo': {'repository_url': 'https://another/url'},
-    })
-    namespaced_stored_object.Set('repository_urls_to_names', {
-        _CATAPULT_URL: 'catapult',
-        _CHROMIUM_URL: 'chromium',
-    })
-
+from dashboard.pinpoint import test
 
 
 @mock.patch('dashboard.services.gitiles_service.CommitInfo',
             mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
-class ChangeTest(_ChangeTest):
+class ChangeTest(test.TestCase):
 
   def testChange(self):
     base_commit = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36b56c')
@@ -135,7 +110,7 @@ class ChangeTest(_ChangeTest):
     self.assertEqual(c, expected)
 
 
-class MidpointTest(_ChangeTest):
+class MidpointTest(test.TestCase):
 
   def setUp(self):
     super(MidpointTest, self).setUp()
@@ -155,12 +130,13 @@ class MidpointTest(_ChangeTest):
     file_contents = patcher.start()
     def _FileContents(repository_url, git_hash, path):
       del path
-      if repository_url != _CHROMIUM_URL:
+      if repository_url != test.CHROMIUM_URL:
         return 'deps = {}'
       if git_hash <= 4:  # DEPS roll at chromium@5
-        return 'deps = {"chromium/catapult": "%s@0"}' % (_CATAPULT_URL + '.git')
+        return 'deps = {"chromium/catapult": "%s@0"}' % (
+            test.CATAPULT_URL + '.git')
       else:
-        return 'deps = {"chromium/catapult": "%s@9"}' % _CATAPULT_URL
+        return 'deps = {"chromium/catapult": "%s@9"}' % test.CATAPULT_URL
     file_contents.side_effect = _FileContents
 
   def testDifferingPatch(self):

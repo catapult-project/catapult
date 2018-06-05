@@ -6,13 +6,10 @@ import unittest
 
 import mock
 
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
-
-from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import find_isolate
+from dashboard.pinpoint import test
 
 
 class FindIsolateQuestTest(unittest.TestCase):
@@ -36,31 +33,16 @@ class FindIsolateQuestTest(unittest.TestCase):
     self.assertEqual(find_isolate.FindIsolate.FromDict(arguments), expected)
 
 
-class _FindIsolateExecutionTest(unittest.TestCase):
+class _FindIsolateExecutionTest(test.TestCase):
 
   def setUp(self):
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_datastore_v3_stub()
-    self.testbed.init_memcache_stub()
-    ndb.get_context().clear_cache()
+    super(_FindIsolateExecutionTest, self).setUp()
 
-    change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
+    change = change_module.Change(
+        (change_module.Commit('chromium', 'f9f2b720'),))
     isolate.Put(
         'https://isolate.server',
         (('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),))
-
-    namespaced_stored_object.Set('repositories', {
-        'src': {
-            'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        },
-        'v8': {
-            'repository_url': 'https://chromium.googlesource.com/v8/v8'
-        },
-    })
-
-  def tearDown(self):
-    self.testbed.deactivate()
 
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
@@ -79,7 +61,8 @@ class _FindIsolateExecutionTest(unittest.TestCase):
 class IsolateLookupTest(_FindIsolateExecutionTest):
 
   def testIsolateLookupSuccess(self):
-    change = change_module.Change((change_module.Commit('src', 'f9f2b720'),))
+    change = change_module.Change(
+        (change_module.Commit('chromium', 'f9f2b720'),))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution = quest.Start(change)
     execution.Poll()
@@ -116,8 +99,8 @@ class BuildTest(_FindIsolateExecutionTest):
   @mock.patch.object(change_module.GerritPatch, 'BuildParameters')
   def testBuildLifecycle(self, build_parameters, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),
-         change_module.Commit('v8', 'dep git hash')),
+        (change_module.Commit('chromium', 'base git hash'),
+         change_module.Commit('catapult', 'dep git hash')),
         patch=change_module.GerritPatch('https://example.org', 672011, '2f0d'))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution = quest.Start(change)
@@ -133,9 +116,7 @@ class BuildTest(_FindIsolateExecutionTest):
         'properties': {
             'clobber': True,
             'parent_got_revision': 'base git hash',
-            'deps_revision_overrides': {
-                'https://chromium.googlesource.com/v8/v8': 'dep git hash',
-            },
+            'deps_revision_overrides': {test.CATAPULT_URL: 'dep git hash'},
             'patch_storage': 'gerrit',
         }
     })
@@ -189,7 +170,7 @@ class BuildTest(_FindIsolateExecutionTest):
     # Two builds started at the same time on the same Change should reuse the
     # same build request.
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),))
+        (change_module.Commit('chromium', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution_1 = quest.Start(change)
     execution_2 = quest.Start(change)
@@ -224,7 +205,7 @@ class BuildTest(_FindIsolateExecutionTest):
 
   def testBuildFailure(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),))
+        (change_module.Commit('chromium', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution = quest.Start(change)
 
@@ -246,7 +227,7 @@ class BuildTest(_FindIsolateExecutionTest):
 
   def testBuildCanceled(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),))
+        (change_module.Commit('chromium', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution = quest.Start(change)
 
@@ -268,7 +249,7 @@ class BuildTest(_FindIsolateExecutionTest):
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     change = change_module.Change(
-        (change_module.Commit('src', 'base git hash'),))
+        (change_module.Commit('chromium', 'base git hash'),))
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests')
     execution = quest.Start(change)
 

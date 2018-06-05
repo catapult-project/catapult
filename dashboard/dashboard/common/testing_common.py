@@ -47,20 +47,20 @@ class TestCase(unittest.TestCase):
   def setUp(self):
     self.testbed = testbed.Testbed()
     self.testbed.activate()
+    self.addCleanup(self.testbed.deactivate)
+
     self.testbed.init_datastore_v3_stub()
     self.testbed.init_mail_stub()
-    self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
     self.testbed.init_memcache_stub()
-    ndb.get_context().clear_cache()
     self.testbed.init_taskqueue_stub(root_path=_QUEUE_YAML_DIR)
     self.testbed.init_user_stub()
     self.testbed.init_urlfetch_stub()
+    ndb.get_context().clear_cache()
+
+    self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
     self.mock_get_request = None
     self._PatchIsInternalUser()
     datastore_hooks.InstallHooks()
-
-  def tearDown(self):
-    self.testbed.deactivate()
 
   def ExecuteTaskQueueTasks(self, handler_name, task_queue_name):
     """Executes all of the tasks on the queue until there are none left."""

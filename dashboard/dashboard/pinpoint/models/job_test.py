@@ -4,10 +4,9 @@
 
 import mock
 
-from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job
+from dashboard.pinpoint import test
 
 
 _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
@@ -95,7 +94,7 @@ See results at: https://testbed.example.com/job/1""")
 
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
-class BugCommentTest(testing_common.TestCase):
+class BugCommentTest(test.TestCase):
 
   def setUp(self):
     super(BugCommentTest, self).setUp()
@@ -108,13 +107,6 @@ class BugCommentTest(testing_common.TestCase):
     issue_tracker_service.return_value = mock.MagicMock(
         AddBugComment=self.add_bug_comment, GetIssue=self.get_issue)
     self.addCleanup(patcher.stop)
-
-    namespaced_stored_object.Set('repositories', {
-        'chromium': {'repository_url': _CHROMIUM_URL},
-    })
-
-  def tearDown(self):
-    self.testbed.deactivate()
 
   def testNoBug(self):
     j = job.Job.New((), ())

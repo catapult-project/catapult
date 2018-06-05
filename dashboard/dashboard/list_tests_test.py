@@ -60,9 +60,6 @@ class ListTestsTest(testing_common.TestCase):
             },
         })
 
-  def tearDown(self):
-    self.testbed.deactivate()
-
   def testPost_GetTestsForTestPath_Selected_Invalid(self):
     self._AddSampleData()
     # Requesting an invalid test path should not throw 500 error, it should

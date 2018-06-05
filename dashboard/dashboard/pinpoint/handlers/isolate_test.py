@@ -8,12 +8,12 @@ import mock
 import webapp2
 import webtest
 
-from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import isolate
+from dashboard.pinpoint import test
 
 
-class _IsolateTest(testing_common.TestCase):
+class _IsolateTest(test.TestCase):
 
   def setUp(self):
     super(_IsolateTest, self).setUp()
@@ -28,14 +28,6 @@ class _IsolateTest(testing_common.TestCase):
     self.addCleanup(patcher.stop)
     patcher.start()
 
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-
-    namespaced_stored_object.Set('repositories', {
-        'src': {
-            'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        }
-    })
-
 
 @mock.patch('dashboard.services.gitiles_service.CommitInfo',
             mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
@@ -45,7 +37,7 @@ class FunctionalityTest(_IsolateTest):
     testing_common.SetIpWhitelist(['remote_ip'])
 
     builder_name = 'Mac Builder'
-    change = '{"commits": [{"repository": "src", "git_hash": "git hash"}]}'
+    change = '{"commits": [{"repository": "chromium", "git_hash": "git hash"}]}'
     target = 'telemetry_perf_tests'
     isolate_server = 'https://isolate.server'
     isolate_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
@@ -73,7 +65,8 @@ class FunctionalityTest(_IsolateTest):
   def testGetUnknownIsolate(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
+        'change':
+            '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
         'target': 'not a real target',
     }
     self.testapp.get('/isolate', params, status=404)
@@ -88,7 +81,8 @@ class ParameterValidationTest(_IsolateTest):
   def testExtraParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
+        'change':
+            '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
         'target': 'telemetry_perf_tests',
         'extra_parameter': '',
     }
@@ -97,14 +91,16 @@ class ParameterValidationTest(_IsolateTest):
   def testMissingParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
+        'change':
+            '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
     }
     self.testapp.get('/isolate', params, status=400)
 
   def testEmptyParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"commits": [{"repository": "src", "git_hash": "hash"}]}',
+        'change':
+            '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
         'target': '',
     }
     self.testapp.get('/isolate', params, status=400)

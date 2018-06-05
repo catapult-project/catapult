@@ -2,41 +2,26 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.common import namespaced_stored_object
-from dashboard.common import testing_common
 from dashboard.pinpoint.models.change import repository
+from dashboard.pinpoint import test
 
 
-_CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
-
-
-class RepositoryTest(testing_common.TestCase):
-
-  def setUp(self):
-    super(RepositoryTest, self).setUp()
-
-    self.SetCurrentUser('internal@chromium.org', is_admin=True)
-
-    namespaced_stored_object.Set('repositories', {
-        'chromium': {'repository_url': _CHROMIUM_URL},
-    })
-    namespaced_stored_object.Set('repository_urls_to_names', {
-        _CHROMIUM_URL: 'chromium',
-    })
+class RepositoryTest(test.TestCase):
 
   def testRepositoryUrl(self):
-    self.assertEqual(repository.RepositoryUrl('chromium'), _CHROMIUM_URL)
+    self.assertEqual(repository.RepositoryUrl('chromium'), test.CHROMIUM_URL)
 
   def testRepositoryUrlRaisesWithUnknownName(self):
     with self.assertRaises(KeyError):
       repository.RepositoryUrl('not chromium')
 
   def testRepository(self):
-    self.assertEqual(repository.Repository(_CHROMIUM_URL + '.git'), 'chromium')
+    name = repository.Repository(test.CHROMIUM_URL + '.git')
+    self.assertEqual(name, 'chromium')
 
   def testRepositoryRaisesWithUnknownUrl(self):
     with self.assertRaises(KeyError):
-      repository.Repository('https://chromium.googlesource.com/nonexistent/repo')
+      repository.Repository('https://googlesource.com/nonexistent/repo')
 
   def testAddRepository(self):
     name = repository.Repository('https://example/repo',
