@@ -16,21 +16,21 @@ class RepositoryTest(test.TestCase):
       repository.RepositoryUrl('not chromium')
 
   def testRepository(self):
-    name = repository.Repository(test.CHROMIUM_URL + '.git')
+    name = repository.RepositoryName(test.CHROMIUM_URL + '.git')
     self.assertEqual(name, 'chromium')
 
   def testRepositoryRaisesWithUnknownUrl(self):
     with self.assertRaises(KeyError):
-      repository.Repository('https://googlesource.com/nonexistent/repo')
+      repository.RepositoryName('https://googlesource.com/nonexistent/repo')
 
   def testAddRepository(self):
-    name = repository.Repository('https://example/repo',
-                                 add_if_missing=True)
+    name = repository.RepositoryName(
+        'https://example/repo', add_if_missing=True)
     self.assertEqual(name, 'repo')
 
     self.assertEqual(repository.RepositoryUrl('repo'), 'https://example/repo')
-    self.assertEqual(repository.Repository('https://example/repo'), 'repo')
+    self.assertEqual(repository.RepositoryName('https://example/repo'), 'repo')
 
   def testAddRepositoryRaisesWithDuplicateName(self):
     with self.assertRaises(AssertionError):
-      repository.Repository('https://example/chromium', add_if_missing=True)
+      repository.RepositoryName('https://example/chromium', add_if_missing=True)

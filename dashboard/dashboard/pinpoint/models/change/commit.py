@@ -124,8 +124,8 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     Returns:
       A Commit.
     """
-    repository = repository_module.Repository(dep.repository_url,
-                                              add_if_missing=True)
+    repository = repository_module.RepositoryName(
+        dep.repository_url, add_if_missing=True)
     return cls(repository, dep.git_hash)
 
   @classmethod
@@ -143,7 +143,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     # Translate repository if it's a URL.
     if repository.startswith('https://'):
-      repository = repository_module.Repository(repository)
+      repository = repository_module.RepositoryName(repository)
 
     git_hash = data['git_hash']
 

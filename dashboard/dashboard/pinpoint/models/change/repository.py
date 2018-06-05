@@ -2,11 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.common import namespaced_stored_object
-
-
-_REPOSITORIES_KEY = 'repositories'
-_URLS_TO_NAMES_KEY = 'repository_urls_to_names'
+from google.appengine.ext import ndb
 
 
 def RepositoryUrl(name):
@@ -21,12 +17,13 @@ def RepositoryUrl(name):
   Returns:
     A URL string, not including '.git'.
   """
-  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-  # We have the 'repository_url' key in case we want to add more fields later.
-  return repositories[name]['repository_url']
+  repository = ndb.Key(Repository, name).get()
+  if not repository:
+    raise KeyError('Unknown repository name: ' + name)
+  return repository.urls[0]
 
 
-def Repository(url, add_if_missing=False):
+def RepositoryName(url, add_if_missing=False):
   """Returns the short repository name, given its URL.
 
   By default, the short repository name is the last part of the URL.
@@ -58,13 +55,14 @@ def Repository(url, add_if_missing=False):
   if url.endswith('.git'):
     url = url[:-4]
 
-  urls_to_names = namespaced_stored_object.Get(_URLS_TO_NAMES_KEY)
-  try:
-    return urls_to_names[url]
-  except KeyError:
-    if add_if_missing:
-      return _AddRepository(url)
-    raise
+  repositories = Repository.query(Repository.urls == url).fetch()
+  if repositories:
+    return repositories[0].key.id()
+
+  if add_if_missing:
+    return _AddRepository(url)
+
+  raise KeyError('Unknown repository URL: %s' % url)
 
 
 def _AddRepository(url):
@@ -80,17 +78,13 @@ def _AddRepository(url):
   """
   name = url.split('/')[-1]
 
-  # Add to main repositories dict.
-  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-  if name in repositories:
+  if ndb.Key(Repository, name).get():
     raise AssertionError("Attempted to add a repository that's already in the "
                          'Datastore: %s: %s' % (name, url))
-  repositories[name] = {'repository_url': url}
-  namespaced_stored_object.Set(_REPOSITORIES_KEY, repositories)
 
-  # Add to URL -> name mapping dict.
-  urls_to_names = namespaced_stored_object.Get(_URLS_TO_NAMES_KEY)
-  urls_to_names[url] = name
-  namespaced_stored_object.Set(_URLS_TO_NAMES_KEY, urls_to_names)
-
+  Repository(id=name, urls=[url]).put()
   return name
+
+
+class Repository(ndb.Model):
+  urls = ndb.StringProperty(repeated=True)
