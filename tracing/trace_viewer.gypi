@@ -122,6 +122,7 @@
       'tracing/extras/importer/linux_perf/disk_parser.html',
       'tracing/extras/importer/linux_perf/drm_parser.html',
       'tracing/extras/importer/linux_perf/exynos_parser.html',
+      'tracing/extras/importer/linux_perf/fence_parser.html',
       'tracing/extras/importer/linux_perf/ftrace_importer.html',
       'tracing/extras/importer/linux_perf/gesture_parser.html',
       'tracing/extras/importer/linux_perf/i2c_parser.html',
