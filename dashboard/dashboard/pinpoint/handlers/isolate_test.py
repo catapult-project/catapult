@@ -5,11 +5,8 @@
 import json
 
 import mock
-import webapp2
-import webtest
 
 from dashboard.common import testing_common
-from dashboard.pinpoint.handlers import isolate
 from dashboard.pinpoint import test
 
 
@@ -17,12 +14,6 @@ class _IsolateTest(test.TestCase):
 
   def setUp(self):
     super(_IsolateTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        webapp2.Route(r'/isolate', isolate.Isolate),
-    ])
-    self.testapp = webtest.TestApp(app)
-    self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
 
     patcher = mock.patch('dashboard.services.gitiles_service.CommitInfo')
     self.addCleanup(patcher.stop)
@@ -48,14 +39,14 @@ class FunctionalityTest(_IsolateTest):
         'isolate_server': isolate_server,
         'isolate_map': json.dumps({target: isolate_hash}),
     }
-    self.testapp.post('/isolate', params, status=200)
+    self.testapp.post('/api/isolate', params, status=200)
 
     params = {
         'builder_name': builder_name,
         'change': change,
         'target': target,
     }
-    response = self.testapp.get('/isolate', params, status=200)
+    response = self.testapp.get('/api/isolate', params, status=200)
     expected_body = json.dumps({
         'isolate_server': isolate_server,
         'isolate_hash': isolate_hash
@@ -69,11 +60,11 @@ class FunctionalityTest(_IsolateTest):
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
         'target': 'not a real target',
     }
-    self.testapp.get('/isolate', params, status=404)
+    self.testapp.get('/api/isolate', params, status=404)
 
   def testPostPermissionDenied(self):
     testing_common.SetIpWhitelist([])
-    self.testapp.post('/isolate', status=403)
+    self.testapp.post('/api/isolate', status=403)
 
 
 class ParameterValidationTest(_IsolateTest):
@@ -86,7 +77,7 @@ class ParameterValidationTest(_IsolateTest):
         'target': 'telemetry_perf_tests',
         'extra_parameter': '',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testMissingParameter(self):
     params = {
@@ -94,7 +85,7 @@ class ParameterValidationTest(_IsolateTest):
         'change':
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testEmptyParameter(self):
     params = {
@@ -103,7 +94,7 @@ class ParameterValidationTest(_IsolateTest):
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
         'target': '',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testBadJson(self):
     params = {
@@ -111,7 +102,7 @@ class ParameterValidationTest(_IsolateTest):
         'change': '',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testBadChange(self):
     params = {
@@ -119,7 +110,7 @@ class ParameterValidationTest(_IsolateTest):
         'change': '{"commits": [{}]}',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testGetInvalidChangeBecauseOfUnknownRepository(self):
     params = {
@@ -127,7 +118,7 @@ class ParameterValidationTest(_IsolateTest):
         'change': '{"commits": [{"repository": "foo", "git_hash": "hash"}]}',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolate', params, status=400)
+    self.testapp.get('/api/isolate', params, status=400)
 
   def testPostInvalidChangeBecauseOfUnknownRepository(self):
     testing_common.SetIpWhitelist(['remote_ip'])
@@ -137,4 +128,4 @@ class ParameterValidationTest(_IsolateTest):
         'change': '{"commits": [{"repository": "foo", "git_hash": "hash"}]}',
         'isolate_map': '{"telemetry_perf_tests": "a0c28d9"}',
     }
-    self.testapp.post('/isolate', params, status=400)
+    self.testapp.post('/api/isolate', params, status=400)

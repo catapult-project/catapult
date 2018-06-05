@@ -4,22 +4,15 @@
 
 import json
 
-import webapp2
-import webtest
-
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
-from dashboard.pinpoint.handlers import config
+from dashboard.pinpoint import test
 
 
-class ConfigTest(testing_common.TestCase):
+class ConfigTest(test.TestCase):
 
   def setUp(self):
     super(ConfigTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        webapp2.Route(r'/api/config', config.Config),
-    ])
-    self.testapp = webtest.TestApp(app)
 
     self.SetCurrentUser('external@chromium.org')
 

@@ -5,26 +5,15 @@
 import json
 import mock
 
-import webapp2
-import webtest
-
-from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import results2
 from dashboard.pinpoint.models.results2 import Results2Error
+from dashboard.pinpoint import test
 
 
-class _Results2Test(testing_common.TestCase):
+class _Results2Test(test.TestCase):
 
   def setUp(self):
     super(_Results2Test, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        webapp2.Route(r'/results2/<job_id>', results2.Results2),
-        webapp2.Route(
-            r'/generate-results2/<job_id>', results2.Results2Generator),
-    ])
-    self.testapp = webtest.TestApp(app)
-    self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
 
     self._job_from_id = mock.MagicMock()
     patcher = mock.patch.object(results2.job_module, 'JobFromId',
@@ -41,7 +30,7 @@ class Results2GetTest(_Results2Test):
   def testGet_InvalidJob_Error(self):
     self._SetJob(None)
 
-    response = self.testapp.get('/results2/456', status=400)
+    response = self.testapp.get('/api/results2/456', status=400)
     self.assertIn('Error', response.body)
 
   @mock.patch.object(results2.results2, 'GetCachedResults2',
@@ -49,7 +38,7 @@ class Results2GetTest(_Results2Test):
   def testGet_UsesCached(self):
     self._SetJob(_JobStub('456'))
 
-    result = json.loads(self.testapp.get('/results2/456').body)
+    result = json.loads(self.testapp.get('/api/results2/456').body)
     self.assertEqual('complete', result['status'])
     self.assertEqual('foo', result['url'])
 
@@ -60,7 +49,7 @@ class Results2GetTest(_Results2Test):
   def testGet_Schedule_Succeeds(self):
     self._SetJob(_JobStub('456'))
 
-    result = json.loads(self.testapp.get('/results2/456').body)
+    result = json.loads(self.testapp.get('/api/results2/456').body)
     self.assertEqual('pending', result['status'])
 
   @mock.patch.object(results2.results2, 'GetCachedResults2',
@@ -70,7 +59,7 @@ class Results2GetTest(_Results2Test):
   def testGet_Schedule_Fails(self):
     self._SetJob(_JobStub('456'))
 
-    result = json.loads(self.testapp.get('/results2/456').body)
+    result = json.loads(self.testapp.get('/api/results2/456').body)
     self.assertEqual('failed', result['status'])
 
 
@@ -79,14 +68,14 @@ class Results2GeneratorPostTest(_Results2Test):
 
   def testGet_CallsGenerate(self, mock_generate):
     self._SetJob(_JobStub('789'))
-    self.testapp.post('/generate-results2/789')
+    self.testapp.post('/api/generate-results2/789')
     self.assertTrue(mock_generate.called)
 
   def testGet_ReturnsError(self, mock_generate):
     mock_generate.side_effect = Results2Error('foo')
     self._SetJob(_JobStub('101112'))
 
-    response = self.testapp.post('/generate-results2/101112')
+    response = self.testapp.post('/api/generate-results2/101112')
     self.assertIn('foo', response.body)
 
 

@@ -5,8 +5,6 @@
 import json
 
 import mock
-import webapp2
-import webtest
 
 from dashboard.api import api_auth
 from dashboard.common import namespaced_stored_object
@@ -42,11 +40,6 @@ class _NewTest(test.TestCase):
 
   def setUp(self):
     super(_NewTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        webapp2.Route(r'/api/new', new.New),
-    ])
-    self.testapp = webtest.TestApp(app)
 
     namespaced_stored_object.Set('bot_configurations', {
         'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS

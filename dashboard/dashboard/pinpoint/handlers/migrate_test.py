@@ -5,24 +5,17 @@
 import json
 
 import mock
-import webapp2
-import webtest
 
-from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import migrate
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint.models import job_state
+from dashboard.pinpoint import test
 
 
-class MigrateTest(testing_common.TestCase):
+class MigrateTest(test.TestCase):
 
   def setUp(self):
     super(MigrateTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        webapp2.Route(r'/migrate', migrate.Migrate),
-    ])
-    self.testapp = webtest.TestApp(app)
 
     patcher = mock.patch.object(migrate, 'datetime', _DatetimeStub())
     self.addCleanup(patcher.stop)
@@ -32,7 +25,7 @@ class MigrateTest(testing_common.TestCase):
       job.Job.New((), ())
 
   def testNoMigration(self):
-    response = self.testapp.get('/migrate', status=200)
+    response = self.testapp.get('/api/migrate', status=200)
     self.assertEqual(response.normal_body, '{}')
 
   def testStart(self):
@@ -42,10 +35,10 @@ class MigrateTest(testing_common.TestCase):
         'total': 20,
     })
 
-    response = self.testapp.post('/migrate', status=200)
+    response = self.testapp.post('/api/migrate', status=200)
     self.assertEqual(response.normal_body, expected)
 
-    response = self.testapp.get('/migrate', status=200)
+    response = self.testapp.get('/api/migrate', status=200)
     self.assertEqual(response.normal_body, expected)
 
     tasks = self.GetTaskQueueTasks('default')
@@ -63,11 +56,11 @@ class MigrateTest(testing_common.TestCase):
         'total': 20,
     })
 
-    self.testapp.post('/migrate', status=200)
-    response = self.testapp.post('/migrate', status=200)
+    self.testapp.post('/api/migrate', status=200)
+    response = self.testapp.post('/api/migrate', status=200)
     self.assertEqual(response.normal_body, expected)
 
-    response = self.testapp.get('/migrate', status=200)
+    response = self.testapp.get('/api/migrate', status=200)
     self.assertEqual(response.normal_body, expected)
 
     tasks = self.GetTaskQueueTasks('default')
@@ -79,13 +72,13 @@ class MigrateTest(testing_common.TestCase):
     self.assertTrue(task['body'])
 
   def testComplete(self):
-    self.testapp.post('/migrate', status=200)
-    self.testapp.post('/migrate', status=200)
+    self.testapp.post('/api/migrate', status=200)
+    self.testapp.post('/api/migrate', status=200)
     params = {'cursor': 'Ch8SGWoMdGVzdGJlZC10ZXN0cgkLEgNKb2IYCgwYACAA'}
-    response = self.testapp.post('/migrate', params, status=200)
+    response = self.testapp.post('/api/migrate', params, status=200)
     self.assertEqual(response.normal_body, '{}')
 
-    response = self.testapp.get('/migrate', status=200)
+    response = self.testapp.get('/api/migrate', status=200)
     self.assertEqual(response.normal_body, '{}')
 
     tasks = self.GetTaskQueueTasks('default')
@@ -99,10 +92,10 @@ class MigrateTest(testing_common.TestCase):
   def testJobsMigrated(self):
     job_state.JobState.__setstate__ = _JobStateSetState
 
-    self.testapp.post('/migrate', status=200)
-    self.testapp.post('/migrate', status=200)
+    self.testapp.post('/api/migrate', status=200)
+    self.testapp.post('/api/migrate', status=200)
     params = {'cursor': 'Ch8SGWoMdGVzdGJlZC10ZXN0cgkLEgNKb2IYCgwYACAA'}
-    self.testapp.post('/migrate', params, status=200)
+    self.testapp.post('/api/migrate', params, status=200)
 
     del job_state.JobState.__setstate__
 

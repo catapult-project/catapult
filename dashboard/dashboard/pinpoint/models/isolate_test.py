@@ -2,30 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import unittest
-
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
-
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import isolate
+from dashboard.pinpoint import test
 
 
 _CHANGE_1 = change.Change((change.Commit('chromium', 'f9f2b720'),))
 _CHANGE_2 = change.Change((change.Commit('chromium', 'f35be4f1'),))
 
 
-class IsolateTest(unittest.TestCase):
-
-  def setUp(self):
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_datastore_v3_stub()
-    self.testbed.init_memcache_stub()
-    ndb.get_context().clear_cache()
-
-  def tearDown(self):
-    self.testbed.deactivate()
+class IsolateTest(test.TestCase):
 
   def testPutAndGet(self):
     isolate_infos = (
