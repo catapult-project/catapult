@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
+
+<dom-module id="results2-frame">
+  <template>
+    <style>
+      iframe {
+        border: 0;
+        height: 50em;
+        width: 100%;
+      }
+    </style>
+
+    <iron-ajax auto id="ajax" url="/api/results2/[[jobId]]" last-response="{{status}}"></iron-ajax>
+    <template is="dom-if" if="[[getJobIncomplete(status)]]">
+      <p>Waiting for job to complete...</p>
+    </template>
+
+    <template is="dom-if" if="[[getStarted(status)]]">
+      <p>Generating Results2....</p>
+      <paper-spinner></paper-spinner>
+    </template>
+
+    <template is="dom-if" if="[[getFailed(status)]]">
+      <p>Generating the Results2 file failed.</p>
+    </template>
+
+    <template is="dom-if" if="[[getComplete(status)]]">
+      <iframe src="[[status.url]]"></iframe>
+    </template>
+  </template>
+
+  <script>
+    'use strict';
+    Polymer({
+      is: 'results2-frame',
+
+      properties: {
+        jobId: {
+          type: Object,
+        },
+
+        status: {
+          type: Object,
+          observer: '_statusChanged',
+        },
+      },
+
+      getStarted(status) {
+        return this.status.status == 'pending';
+      },
+
+      getFailed(status) {
+        return this.status.status == 'failed';
+      },
+
+      getJobIncomplete(status) {
+        return this.status.status == 'job-incomplete';
+      },
+
+      getComplete(status) {
+        return this.status.status == 'complete';
+      },
+
+      _statusChanged() {
+        if (!this.getComplete(this.status)) {
+          this.async(() => this.$.ajax.generateRequest(), 1000);
+        }
+      },
+    });
+  </script>
+</dom-module>

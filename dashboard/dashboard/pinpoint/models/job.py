@@ -316,7 +316,6 @@ class Job(ndb.Model):
 
         'arguments': self.arguments,
         'bug_id': self.bug_id,
-        'comparison_mode': self.state.comparison_mode,
         'user': self.user,
 
         'created': self.created.isoformat(),
