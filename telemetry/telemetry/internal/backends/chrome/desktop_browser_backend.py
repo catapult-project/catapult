@@ -94,7 +94,7 @@ def GenerateBreakpadSymbols(minidump, arch, os_name, symbols_dir, browser_dir):
         ]
 
     try:
-      subprocess.check_call(cmd, stderr=open(os.devnull, 'w'))
+      subprocess.check_call(cmd)
     except subprocess.CalledProcessError:
       logging.warning('Failed to execute "%s"', ' '.join(cmd))
       return
