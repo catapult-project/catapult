@@ -5,6 +5,8 @@
 """Provides the web interface for displaying an overview of alerts."""
 
 import json
+import logging
+import time
 
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
@@ -121,9 +123,15 @@ def _FetchAnomalies(sheriff_key, include_improvements, include_triaged,
   return_values['anomaly_count'] = query.count(_MAX_ANOMALIES_TO_COUNT)
   # See https://cloud.google.com/appengine/docs/standard/python/ndb/queryclass
   # about fetch_page.
+  start = time.time()
   (return_values['anomaly_keys'], return_values['anomaly_cursor'],
    return_values['show_more_anomalies']) = query.fetch_page(
        _MAX_ANOMALIES_TO_SHOW, start_cursor=start_cursor, keys_only=True)
+  duration = time.time() - start
+  logging.info('query_latency=%f', duration)
+  logging.info('result_count=%d', len(return_values['anomaly_keys']))
+  logging.info('latency_per_result=%f',
+               1000 * duration / len(return_values['anomaly_keys']))
   return return_values
 
 
