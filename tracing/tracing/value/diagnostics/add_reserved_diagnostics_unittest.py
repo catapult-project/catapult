@@ -34,6 +34,29 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
       add_reserved_diagnostics.AddReservedDiagnostics(
           hs.AsDicts(), {'SOME INVALID DIAGNOSTIC': 'bar'})
 
+  def testAddReservedDiagnostics_TagmapsMerged(self):
+    hs1 = histogram_set.HistogramSet([self._CreateHistogram('foo1')])
+    hs1.AddSharedDiagnostic(
+        reserved_infos.TAG_MAP.name,
+        histogram.TagMap({'tagsToStoryNames': {'foo1': ['bar1']}}))
+    hs2 = histogram_set.HistogramSet([self._CreateHistogram('foo1')])
+    hs2.AddSharedDiagnostic(
+        reserved_infos.TAG_MAP.name,
+        histogram.TagMap({'tagsToStoryNames': {'foo1': ['bar2']}}))
+
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(hs1.AsDicts())
+    hs.ImportDicts(hs2.AsDicts())
+
+    new_hs_json = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'bar'})
+
+    new_hs = histogram_set.HistogramSet()
+    new_hs.ImportDicts(json.loads(new_hs_json))
+
+    d = [h.diagnostics[reserved_infos.TAG_MAP.name] for h in new_hs]
+    self.assertEqual(d[0], d[1])
+
   def testAddReservedDiagnostics_DiagnosticsAdded(self):
     hs = histogram_set.HistogramSet([
         self._CreateHistogram('foo1', stories=['foo1']),
