@@ -29,6 +29,13 @@ class RequestError(OSError):
     super(RequestError, self).__init__(
         'Request returned HTTP Error %s: %s' % (response['status'], message))
 
+  def __reduce__(self):
+    # Method needed to make the exception pickleable [1], otherwise it causes
+    # the mutliprocess pool to hang when raised by a worker [2].
+    # [1]: https://stackoverflow.com/a/36342588
+    # [2]: https://github.com/uqfoundation/multiprocess/issues/33
+    return (type(self), (self.response, self.content))
+
 
 class ClientError(RequestError):
   """Exception for 4xx HTTP client errors."""
