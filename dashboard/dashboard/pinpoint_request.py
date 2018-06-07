@@ -22,7 +22,8 @@ _ISOLATE_TARGETS = [
     'telemetry_perf_webview_tests', 'tracing_perftests']
 _BOTS_USING_PERFORMANCE_TEST_SUITES = [
     'linux-perf', 'mac-10_12_laptop_low_end-perf',
-    'mac-10_13_laptop_high_end-perf'
+    'mac-10_13_laptop_high_end-perf',
+    'mojo-linux-perf',
 ]
 
 
