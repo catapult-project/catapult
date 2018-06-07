@@ -3072,21 +3072,14 @@ class DeviceUtilsChangeOwner(DeviceUtilsTest):
 
 class DeviceUtilsChangeSecurityContext(DeviceUtilsTest):
 
-  def testChangeSecurityContextRecursive(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['chcon', '-R', 'u:object_r:system_data_file:s0', '/path'],
-            as_root=True, check_return=True))):
-      self.device.ChangeSecurityContext('u:object_r:system_data_file:s0',
-                                        '/path', recursive=True)
 
-  def testChangeSecurityContextNonRecursive(self):
+  def testChangeSecurityContext(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(
-            ['chcon', 'u:object_r:system_data_file:s0', '/path'],
-            as_root=True, check_return=True))):
+            ['chcon', 'u:object_r:system_data_file:s0', '/path', '/path2'],
+            as_root=device_utils._FORCE_SU, check_return=True))):
       self.device.ChangeSecurityContext('u:object_r:system_data_file:s0',
-                                        '/path')
+                                        ['/path', '/path2'])
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

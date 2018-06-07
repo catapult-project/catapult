@@ -59,6 +59,11 @@ _DEFAULT_RETRIES = 3
 # the timeout_retry decorators.
 DEFAULT = object()
 
+# A sentinel object to require that calls to RunShellCommand force running the
+# command with su even if the device has been rooted. To use, pass into the
+# as_root param.
+_FORCE_SU = object()
+
 _RESTART_ADBD_SCRIPT = """
   trap '' HUP
   trap '' TERM
@@ -1105,7 +1110,7 @@ class DeviceUtils(object):
     if run_as:
       cmd = 'run-as %s sh -c %s' % (cmd_helper.SingleQuote(run_as),
                                     cmd_helper.SingleQuote(cmd))
-    if as_root and self.NeedsSU():
+    if (as_root is _FORCE_SU) or (as_root and self.NeedsSU()):
       # "su -c sh -c" allows using shell features in |cmd|
       cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
 
@@ -2937,19 +2942,30 @@ class DeviceUtils(object):
       owner_group: New owner and group to assign. Note that this should be a
         string in the form user[.group] where the group is option.
       paths: Paths to change ownership of.
+
+      Note that the -R recursive option is not supported by all Android
+      versions.
     """
+    if not paths:
+      return
     self.RunShellCommand(['chown', owner_group] + paths, check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def ChangeSecurityContext(self, security_context, path, recursive=False,
-                            timeout=None, retries=None):
-    """Changes a file's SELinux security context.
+  def ChangeSecurityContext(self, security_context, paths, timeout=None,
+                            retries=None):
+    """Changes the SELinux security context for files.
 
     Args:
       security_context: The new security context as a string
-      path: Path to change the security context of.
-      recursive: Whether to recursively change the security contexts.
+      paths: Paths to change the security context of.
+
+      Note that the -R recursive option is not supported by all Android
+      versions.
     """
-    flags = ['-R'] if recursive else []
-    command = ['chcon'] + flags + [security_context, path]
-    self.RunShellCommand(command, as_root=True, check_return=True)
+    if not paths:
+      return
+    command = ['chcon', security_context] + paths
+
+    # Note, need to force su because chcon can fail with permission errors even
+    # if the device is rooted.
+    self.RunShellCommand(command, as_root=_FORCE_SU, check_return=True)

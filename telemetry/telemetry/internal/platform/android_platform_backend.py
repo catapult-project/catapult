@@ -552,7 +552,8 @@ class AndroidPlatformBackend(
       rel_root = os.path.relpath(root, new_profile_dir)
       posix_rel_root = rel_root.replace(os.sep, posixpath.sep)
 
-      device_root = posixpath.join(profile_dir, posix_rel_root)
+      device_root = posixpath.normpath(posixpath.join(profile_dir,
+                                                      posix_rel_root))
 
       if rel_root == '.' and 'lib' in files:
         files.remove('lib')
@@ -565,8 +566,7 @@ class AndroidPlatformBackend(
     # loading files even though the mode/group/owner combination should allow
     # it.
     security_context = self._device.GetSecurityContextForPackage(package)
-    self._device.ChangeSecurityContext(security_context, profile_dir,
-                                       recursive=True)
+    self._device.ChangeSecurityContext(security_context, device_paths)
 
   def _EfficientDeviceDirectoryCopy(self, source, dest):
     if not self._device_copy_script:
