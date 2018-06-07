@@ -21,23 +21,28 @@ tr.exportTo('tr.metrics.tabs', function() {
     const tabSwitchLatencies = [];
     const TAB_SWITCHING_SLICE_TITLE = 'TabSwitching::Latency';
 
-    function extractLatencyFromHelpers(helpers) {
+    function extractLatencyFromHelpers(helpers, legacy) {
       for (const helper of helpers) {
         if (!helper.mainThread) {
           continue;
         }
         const thread = helper.mainThread;
         for (const slice of thread.asyncSliceGroup.slices) {
-          if (slice.title !== TAB_SWITCHING_SLICE_TITLE) {
-            continue;
+          if (slice.title === TAB_SWITCHING_SLICE_TITLE &&
+              (legacy || slice.args.latency)) {
+            tabSwitchLatencies.push(
+                legacy ? slice.duration : slice.args.latency);
           }
-          tabSwitchLatencies.push(slice.args.latency || slice.duration);
         }
       }
     }
 
     extractLatencyFromHelpers(chromeHelper.browserHelpers);
     extractLatencyFromHelpers(Object.values(chromeHelper.rendererHelpers));
+
+    if (tabSwitchLatencies.length === 0) {
+      extractLatencyFromHelpers(chromeHelper.browserHelpers, true);
+    }
 
     histograms.createHistogram('tab_switching_latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
