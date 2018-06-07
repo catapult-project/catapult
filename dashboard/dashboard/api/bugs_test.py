@@ -117,13 +117,11 @@ class BugsTest(testing_common.TestCase):
     try_job.TryJob(
         bug_id=123456, status='failed', bot='android_bisect',
         results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}',
-        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
+        config='config = {"command": "cmd"}').put()
     try_job.TryJob(
         bug_id=99999, status='failed', bot='win_perf',
         results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}',
-        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
+        config='config = {"command": "cmd"}').put()
     response = self.testapp.post('/api/bugs/123456')
     bug = self.GetJsonValue(response, 'bug')
     self.assertEqual('The bug title', bug.get('summary'))
@@ -143,6 +141,8 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual('started', bug.get('legacy_bisects')[0].get('status'))
     self.assertEqual('cmd', bug.get('legacy_bisects')[0].get('command'))
     self.assertEqual('2017-01-01T00:00:00', bug.get('legacy_bisects')[0].get(
+        'started_timestamp'))
+    self.assertEqual('', bug.get('legacy_bisects')[1].get(
         'started_timestamp'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())

@@ -38,6 +38,12 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     issue = service.GetIssue(bug_id)
     comments = service.GetIssueComments(bug_id)
     bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
+
+    def _FormatDate(d):
+      if not d:
+        return ''
+      return d.isoformat()
+
     return {'bug': {
         'author': issue.get('author', {}).get('name'),
         'owner': issue.get('owner', {}).get('name'),
@@ -51,7 +57,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
             'command': b.GetConfigDict()['command'],
             'culprit': self._GetCulpritInfo(b),
             'metric': (b.results_data or {}).get('metric'),
-            'started_timestamp': b.last_ran_timestamp.isoformat(),
+            'started_timestamp': _FormatDate(b.last_ran_timestamp),
         } for b in bisects],
         'cc': [cc.get('name') for cc in issue.get('cc', [])],
         'comments': [{
