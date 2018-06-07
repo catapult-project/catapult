@@ -54,6 +54,8 @@ def ResultsAsChartDict(benchmark_metadata, results):
     # is expected of output from the buildbots currently.
     # See: crbug.com/413393
     charts[chart_name][trace_name] = value.AsDict()
+    if value.page:
+      charts[chart_name][trace_name]['story_tags'] = list(value.page.tags)
 
   result_dict = {
       'format_version': '0.1',

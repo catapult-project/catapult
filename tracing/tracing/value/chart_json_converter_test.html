@@ -161,6 +161,48 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.RESERVED_NAMES.STORY_TAGS).hasGuid);
   });
 
+  test('convertWithStoryTags', function() {
+    const charts = {
+      charts: {
+        'TIR-A@@value-name': {
+          'story-name': {
+            name: 'value-name',
+            page_id: 7,
+            improvement_direction: 'down',
+            values: [42],
+            units: 'ms',
+            story_tags: ['foo'],
+            type: 'list_of_scalar_values',
+          },
+          'summary': {
+            name: 'value-name',
+            improvement_direction: 'down',
+            values: [42],
+            units: 'ms',
+            story_tags: ['foo'],
+            type: 'list_of_scalar_values',
+          },
+        },
+      },
+    };
+    const histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    const hist = tr.b.getOnlyElement(histograms);
+    assert.strictEqual('value-name', hist.name);
+    assert.strictEqual(tr.b.getOnlyElement(hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.STORY_TAGS)), 'foo');
+    assert.strictEqual('story-name',
+        tr.v.HistogramGrouping.BY_KEY.get(
+            tr.v.d.RESERVED_NAMES.STORIES).callback(hist));
+    assert.strictEqual(42, hist.average);
+    assert.strictEqual(1, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+    assert.isTrue(hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES).hasGuid);
+    assert.isTrue(hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.STORY_TAGS).hasGuid);
+  });
+
   test('convertHistogram', function() {
     const charts = {
       charts: {

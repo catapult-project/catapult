@@ -86,9 +86,16 @@ tr.exportTo('tr.v', function() {
                 new tr.v.d.GenericSet([storyName]));
           }
 
+          const storyTags = [];
           if (value.tir_label) {
+            storyTags.push(`tir_label:${value.tir_label}`);
+          }
+          if (value.story_tags) {
+            storyTags.push(...value.story_tags);
+          }
+          if (storyTags.length) {
             addSharedDiagnostic(hist, tr.v.d.RESERVED_NAMES.STORY_TAGS,
-                new tr.v.d.GenericSet([`tir_label:${value.tir_label}`]));
+                new tr.v.d.GenericSet(storyTags));
           }
 
           if (charts.benchmark_name) {
