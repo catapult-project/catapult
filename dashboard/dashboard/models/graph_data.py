@@ -131,7 +131,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # There is a default anomaly threshold config (in anomaly.py), and it can
   # be overridden for a group of tests by using /edit_sheriffs.
   overridden_anomaly_config = ndb.KeyProperty(
-      kind=anomaly_config.AnomalyConfig, indexed=True)
+      kind=anomaly_config.AnomalyConfig, indexed=False)
 
   # Keep track of what direction is an improvement for this graph so we can
   # filter out alerts on regressions.
