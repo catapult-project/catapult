@@ -15,7 +15,6 @@ from dashboard.common import utils
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
-_PINPOINT_REPOSITORIES = 'repositories'
 _ISOLATE_TARGETS = [
     'angle_perftests', 'cc_perftests', 'gpu_perftests',
     'load_library_perf_tests', 'media_perftests', 'net_perftests',
