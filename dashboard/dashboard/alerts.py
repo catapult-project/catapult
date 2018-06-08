@@ -130,8 +130,9 @@ def _FetchAnomalies(sheriff_key, include_improvements, include_triaged,
   duration = time.time() - start
   logging.info('query_latency=%f', duration)
   logging.info('result_count=%d', len(return_values['anomaly_keys']))
-  logging.info('latency_per_result=%f',
-               1000 * duration / len(return_values['anomaly_keys']))
+  if return_values['anomaly_keys']:
+    logging.info('latency_per_result=%f',
+                 1000 * duration / len(return_values['anomaly_keys']))
   return return_values
 
 
