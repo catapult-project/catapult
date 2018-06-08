@@ -64,6 +64,7 @@ _URL_MAPPING = [
     ('/add_point', add_point.AddPointHandler),
     ('/add_point_queue', add_point_queue.AddPointQueueHandler),
     ('/alerts', alerts.AlertsHandler),
+    (r'/api/alerts', api_alerts.AlertsHandler),
     (r'/api/alerts/(.*)', api_alerts.AlertsHandler),
     (r'/api/bugs/(.*)', bugs.BugsHandler),
     (r'/api/list_timeseries/(.*)', list_timeseries.ListTimeseriesHandler),

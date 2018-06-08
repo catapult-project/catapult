@@ -9,6 +9,30 @@ for examples of how to access the API.
 ## Alerts
 URL patterns for accessing alerts:
 
+ * `/api/alerts?<params>`: Get matching alerts. Supported query parameters:
+    * `key`: Urlsafe alert entity key.
+    * `sheriff`: String. If unspecified, alerts for any sheriff will be
+      returned.
+    * `bug_id`: Set to `''` in order to select untriaged alerts.
+    * `is_improvement`: When omitted, both improvements and regressions are
+      returned. When set to `true`, only improvements are returned. When set to
+      `false`, only regressions are returned.
+    * `recovered`: When omitted, both recovered and unrecovered alerts are
+      returned. When set to `true`, only recovered alerts are returned. When set to
+      `false`, only unrecovered alerts are returned.
+    * `test`: Full slash-separated test path string like
+      `master/bot/test_suite/measurement/test_case`.
+    * `master`, `bot`, `test_suite`: Optional strings.
+    * `limit`: Positive integer. Default 100.
+    * `cursor`: Set to the `next_cursor` returned from a previous request in
+      order to page through results for queries that match more than `limit`
+      alerts.
+    * `min_start_revision`, `max_start_revision`: Integers. If unspecified,
+      alerts at any revisions will be returned.
+    * `min_end_revision`, `max_end_revision`: Integers. If unspecified, alerts
+      at any revisions will be returned.
+    * `min_timestamp`, `max_timestamp`: Datetimes in ISO format.
+
  * `/api/alerts/bug_id/id`: Get all the alerts associated with bug `id`.
  * `/api/alerts/keys/comma_sep_list`: Get the alerts with the given list of
    keys, separated by commas.
