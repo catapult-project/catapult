@@ -87,8 +87,9 @@ def _FetchTimeseriesWorker(args):
 
   def Process(test_path):
     data = api.GetTimeseries(test_path, days=args.days)
-    timeseries = tables.timeseries.DataFrameFromJson(data)
-    pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries)
+    if data:
+      timeseries = tables.timeseries.DataFrameFromJson(data)
+      pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries)
 
   worker_pool.Process = Process
 

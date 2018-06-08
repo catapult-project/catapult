@@ -20,14 +20,9 @@ class RequestError(OSError):
   def __init__(self, response, content):
     self.response = response
     self.content = content
-    try:
-      # Try to find error message within returned content.
-      message = json.loads(content)['error']
-    except StandardError:
-      # Otherwise use the entire content itself.
-      message = content
     super(RequestError, self).__init__(
-        'Request returned HTTP Error %s: %s' % (response['status'], message))
+        'Request returned HTTP Error %s: %s' % (
+            response['status'], self.error_message))
 
   def __reduce__(self):
     # Method needed to make the exception pickleable [1], otherwise it causes
@@ -36,10 +31,27 @@ class RequestError(OSError):
     # [2]: https://github.com/uqfoundation/multiprocess/issues/33
     return (type(self), (self.response, self.content))
 
+  @property
+  def json(self):
+    try:
+      return json.loads(self.content)
+    except StandardError:
+      return None
+
+  @property
+  def error_message(self):
+    try:
+      # Try to find error message within json content.
+      return self.json['error']
+    except StandardError:
+      # Otherwise fall back to entire content itself.
+      return self.content
+
 
 class ClientError(RequestError):
   """Exception for 4xx HTTP client errors."""
   pass
+
 
 class ServerError(RequestError):
   """Exception for 5xx HTTP server errors."""
@@ -131,12 +143,13 @@ class PerfDashboardCommunicator(object):
   def ListTestPaths(self, benchmark, sheriff):
     """Lists test paths for the given benchmark.
 
-    args:
+    Args:
       benchmark: Benchmark to get paths for.
       sheriff:
           Filters test paths to only ones monitored by the given sheriff
           rotation.
-    returns:
+
+    Returns:
       A list of test paths. Ex. ['TestPath1', 'TestPath2']
     """
     options = urllib.urlencode({'sheriff': sheriff})
@@ -145,24 +158,34 @@ class PerfDashboardCommunicator(object):
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.
 
-    args:
+    Args:
       test_path: test path to get timeseries for.
       days: Number of days to get data points for.
-    returns:
+
+    Returns:
       A dict in the format:
-      {'revision_logs':{
-          r_commit_pos: {... data ...},
-          r_chromium_rev: {... data ...},
-          ...},
-       'timeseries': [
-           [revision, value, timestamp, r_commit_pos, r_webkit_rev],
-           ...
-           ],
-       'test_path': test_path}
+
+        {'revision_logs':{
+            r_commit_pos: {... data ...},
+            r_chromium_rev: {... data ...},
+            ...},
+         'timeseries': [
+             [revision, value, timestamp, r_commit_pos, r_webkit_rev],
+             ...
+             ],
+         'test_path': test_path}
+
+      or None if the test_path is not found.
     """
     options = urllib.urlencode({'num_days': days})
     r = 'timeseries/%s?%s' % (urllib.quote(test_path), options)
-    return self._MakeApiRequest(r)
+    try:
+      return self._MakeApiRequest(r)
+    except ClientError as exc:
+      if 'Invalid test_path' in exc.json['error']:
+        return None
+      else:
+        raise
 
   def GetBugData(self, bug_ids):
     """Yields data for a given bug id or sequence of bug ids."""
