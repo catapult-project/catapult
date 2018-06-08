@@ -36,7 +36,8 @@ def Main():
 
   deployment_paths = dashboard.PathsForDeployment() + [viewer_dir_path]
   from catapult_build import appengine_deploy
-  appengine_deploy.Deploy(deployment_paths, sys.argv[1:])
+  appengine_deploy.Deploy(deployment_paths, sys.argv[1:],
+                          os.environ.get('VERSION'))
 
   try:
     shutil.rmtree(temp_dir)
