@@ -64,6 +64,7 @@ class TimeseriesHandler(api_request_handler.ApiRequestHandler):
         'timeseries': timeseries,
         'test_path': test_path,
         'revision_logs': namespaced_stored_object.Get('revision_info'),
+        'improvement_direction': test.improvement_direction,
     }
 
   def _GetValue(self, row, attr):

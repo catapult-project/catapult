@@ -16,6 +16,7 @@ from dashboard.api import timeseries
 from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import anomaly
 
 
 GOOGLER_USER = users.User(email='sullivan@chromium.org',
@@ -36,6 +37,10 @@ class TimeseriesTest(testing_common.TestCase):
     testing_common.AddTests(['ChromiumPerf'], ['linux'], {
         'page_cycler': {'warm': {'cnn': {},}}
     })
+    test_path = 'ChromiumPerf/linux/page_cycler/warm/cnn'
+    test = utils.TestKey(test_path).get()
+    test.improvement_direction = anomaly.UP
+    test.put()
 
     now = datetime.datetime.now()
     last_week = now - datetime.timedelta(days=7)
@@ -71,6 +76,9 @@ class TimeseriesTest(testing_common.TestCase):
     self.assertEquals(100, data[1][0])
     self.assertEquals(900, data[9][0])
     self.assertEquals('1234a', data[1][4])
+
+    improvement_direction = self.GetJsonValue(response, 'improvement_direction')
+    self.assertEquals(improvement_direction, anomaly.UP)
 
   @mock.patch.object(api_auth, 'oauth')
   def testPost_NumDays_ChecksTimestamp(self, mock_oauth):
