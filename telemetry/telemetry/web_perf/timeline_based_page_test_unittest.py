@@ -91,6 +91,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
   # win: crbug.com/520781, chromeos: crbug.com/483212.
   @decorators.Disabled('win', 'chromeos')
+  @decorators.Disabled('mac')  # crbug.com/850012
   @decorators.Isolated  # Needed because of py_trace_event
   def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
     ps = self.CreateEmptyPageSet()
