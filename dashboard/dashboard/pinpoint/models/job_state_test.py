@@ -23,6 +23,7 @@ class ScheduleWorkTest(unittest.TestCase):
   def testNoWorkLeft(self):
     state = job_state.JobState([_QuestStub(_ExecutionPass)])
     state.AddChange('change')
+    self.assertTrue(state.ScheduleWork())
     self.assertFalse(state.ScheduleWork())
 
   def testAllAttemptsFail(self):
@@ -30,6 +31,7 @@ class ScheduleWorkTest(unittest.TestCase):
     state = job_state.JobState([q])
     state.AddChange('change')
     expected_regexp = '7/10.*\nException: Expected error for testing.$'
+    self.assertTrue(state.ScheduleWork())
     with self.assertRaisesRegexp(Exception, expected_regexp):
       self.assertFalse(state.ScheduleWork())
 

@@ -149,8 +149,7 @@ class JobState(object):
           continue
 
         attempt.ScheduleWork()
-        if not attempt.completed:
-          work_left = True
+        work_left = True
 
     if not work_left:
       self._RaiseErrorIfAllAttemptsFailed()
