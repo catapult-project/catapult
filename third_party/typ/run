@@ -14,9 +14,9 @@ class Runner(object):
 
     def __init__(self):
         self._verbose = False
-        self._repo_dir = os.path.abspath(os.path.dirname(__file__))
-        self._path_to_cov = os.path.join(self._repo_dir, 'tools', 'cov.py')
-        self._path_to_runner = os.path.join(self._repo_dir, 'typ', 'runner.py')
+        self._top_dir = os.path.abspath(os.path.dirname(__file__))
+        self._path_to_cov = os.path.join(self._top_dir, 'tools', 'cov.py')
+        self._path_to_runner = os.path.join(self._top_dir, 'typ', 'runner.py')
         self._python = sys.executable
 
     def main(self, argv):
@@ -52,6 +52,7 @@ class Runner(object):
         args.func(args)
 
     def call(self, *args, **kwargs):
+        kwargs.setdefault('cwd', self._top_dir)
         if self._verbose:
             print(' '.join(args[0]))
         ret = subprocess.call(*args, **kwargs)
@@ -63,9 +64,9 @@ class Runner(object):
 
     def run_coverage(self, args):
         if not args.path:
-            args.path = [self._repo_dir]
+            args.path = [self._top_dir]
         if not args.source:
-            args.source = [os.path.join(self._repo_dir, 'typ')]
+            args.source = [os.path.join(self._top_dir, 'typ')]
         argv = cov.argv_from_args(args)
         cov_args = [self._path_to_runner, '-j', '1']
         self.call([self._python, self._path_to_cov] + argv + cov_args)
