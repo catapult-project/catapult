@@ -247,22 +247,6 @@ def _PointInfoDict(row, anomaly_annotation_map):
     point_info['g_anomaly'] = alerts.GetAnomalyDict(anomaly_entity)
   row_dict = row.to_dict()
   for name, val in row_dict.iteritems():
-    # TODO(sullivan): Remove this hack when data containing these broken links
-    # is sufficiently stale, after June 2016.
-    if (_IsMarkdownLink(val) and
-        val.find('(None') != -1 and
-        'a_stdio_uri_prefix' in row_dict):
-      # Many data points have been added with a stdio prefix expanded out to
-      # 'None' when 'a_stdio_uri_prefix' is set correctly. Fix them up.
-      # Add in the master name as well; if the waterfall is 'CamelCase' it
-      # should be 'camel.client.case'.
-      master_camel_case = utils.TestPath(row.parent_test).split('/')[0]
-      master_parts = re.findall('([A-Z][a-z0-9]+)', master_camel_case)
-      if master_parts and len(master_parts) == 2:
-        master_name = '%s.client.%s' % (
-            master_parts[1].lower(), master_parts[0].lower())
-        val = val.replace('(None', '(%s/%s/' % (
-            row_dict['a_stdio_uri_prefix'], master_name))
     if _IsMarkdownLink(val) and 'Buildbot stdio' in val:
       logdog_link, status_page_link = _GetUpdatedBuildbotLinks(val)
       if logdog_link:
