@@ -9,6 +9,7 @@ TABLE_NAME = 'timeseries'
 COLUMN_TYPES = (
     ('test_suite', str),  # benchmark name ('loading.mobile')
     ('measurement', str),  # metric name ('timeToFirstContentfulPaint')
+    ('improvement_direction', str),  # good direction ('up', 'down', 'unknown')
     ('bot', str),  # master/builder name ('ChromiumPerf.android-nexus5')
     ('test_case', str),  # story name ('Wikipedia')
     ('point_id', int),  # monotonically increasing value for time series axis
@@ -20,6 +21,14 @@ COLUMN_TYPES = (
 )
 COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
 INDEX = COLUMNS[:5]
+
+
+# Copied from https://goo.gl/DzGYpW.
+_CODE_TO_IMPROVEMENT_DIRECTION = {
+    0: 'up',
+    1: 'down',
+}
+
 
 TEST_PATH_PARTS = (
     'master', 'builder', 'test_suite', 'measurement', 'test_case')
@@ -48,6 +57,8 @@ def _ParseConfigFromTestPath(test_path):
 
 def DataFrameFromJson(data):
   config = _ParseConfigFromTestPath(data['test_path'])
+  config['improvement_direction'] = _CODE_TO_IMPROVEMENT_DIRECTION.get(
+      data['improvement_direction'], 'unknown')
   timeseries = data['timeseries']
   # The first element in timeseries list contains header with column names.
   header = timeseries[0]
