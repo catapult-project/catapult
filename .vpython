@@ -54,3 +54,12 @@ wheel: <
   name: "infra/python/wheels/coverage/${vpython_platform}"
   version: "version:4.3.4"
 >
+
+# Used by:
+#   telemetry/
+# This version must be compatible with the version range specified by
+# //telemetry/telemetry/internal/util/external_modules.py
+wheel: <
+  name: "infra/python/wheels/psutil/${vpython_platform}"
+  version: "version:5.2.2"
+>

@@ -179,6 +179,14 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
+        'name': 'Typ unittest',
+        'path': 'third_party/typ/run',
+        'additional_args': ['tests'],
+        'disabled': [
+            'android',
+            'win'],  # TODO(crbug.com/851498): enable typ unittests on Win
+    },
+    {
         'name': 'Vinn Tests',
         'path': 'third_party/vinn/bin/run_tests',
         'disabled': ['android'],
@@ -253,7 +261,15 @@ def main(args=None):
         'name': test['name'],
         'env': {}
     }
-    step['cmd'] = ['python', os.path.join(args.api_path_checkout, test['path'])]
+
+    # vpython doesn't integrate well with app engine SDK yet
+    if test.get('uses_app_engine_sdk'):
+      executable = 'python'
+    else:
+      executable = 'vpython.bat' if sys.platform == 'win32' else 'vpython'
+
+    step['cmd'] = [
+        executable, os.path.join(args.api_path_checkout, test['path'])]
     if step['name'] == 'Systrace Tests':
       step['cmd'] += ['--device=' + args.platform]
     if test.get('additional_args'):

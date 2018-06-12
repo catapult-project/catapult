@@ -36,8 +36,13 @@ d = textwrap.dedent
 
 PASS_TEST_PY = """
 import unittest
+import time
+
 class PassingTest(unittest.TestCase):
     def test_pass(self):
+        # Add sleep to make the time assertion in
+        # main_test.TestCli.test_write_full_results_to not flaky.
+        time.sleep(0.1)
         pass
 """
 
@@ -208,15 +213,15 @@ class TestCli(test_case.MainTestCase):
                              Name           Stmts   Miss  Cover
                              ----------------------------------
                              fail_test.py       4      4     0%
-                             pass_test.py       4      0   100%
+                             pass_test.py       6      0   100%
                              ----------------------------------
-                             TOTAL              8      4    50%
+                             TOTAL             10      4    60%
                              """))
         except ImportError:  # pragma: no cover
             # We can never cover this line, since running coverage means
             # that import will succeed.
             self.check(['-c'], files=PASS_TEST_FILES, ret=1,
-                       out='Error: coverage is not installed\n', err='')
+                       out='Error: coverage is not installed.\n', err='')
 
     def test_debugger(self):
         if sys.version_info.major == 3:  # pragma: python3

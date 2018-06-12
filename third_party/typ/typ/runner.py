@@ -331,6 +331,7 @@ class Runner(object):
             try:
                 import coverage
             except ImportError:
+                self.print_('Error: coverage is not installed.')
                 return 1
 
             source = self.args.coverage_source
