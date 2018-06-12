@@ -67,7 +67,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     tab.Close()
     self.assertEquals(1, len(self._browser.tabs))
 
-  @decorators.Disabled('mac') # crbug.com/851463
   @decorators.Enabled('has tabs')
   def testForegroundTab(self):
     # Should be only one tab at this stage, so that must be the foreground tab
