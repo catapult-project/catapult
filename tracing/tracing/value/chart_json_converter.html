@@ -30,13 +30,13 @@ tr.exportTo('tr.v', function() {
           diagnosticCaches.set(name, new Map());
         }
         const cache = diagnosticCaches.get(name);
-        const datum = diagnostic instanceof tr.v.d.GenericSet ?
-          tr.b.getOnlyElement(diagnostic) : diagnostic.minDate;
-        if (!cache.has(datum)) {
-          cache.set(datum, diagnostic);
+        const cacheKey = diagnostic instanceof tr.v.d.GenericSet ?
+          [...diagnostic].sort().join(',') : diagnostic.minDate;
+        if (!cache.has(cacheKey)) {
+          cache.set(cacheKey, diagnostic);
           histograms.addSharedDiagnostic(diagnostic);
         }
-        hist.diagnostics.set(name, cache.get(datum));
+        hist.diagnostics.set(name, cache.get(cacheKey));
       }
 
       for (const [name, pageValues] of Object.entries(charts.charts)) {

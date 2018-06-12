@@ -171,7 +171,7 @@ tr.b.unittest.testSuite(function() {
             improvement_direction: 'down',
             values: [42],
             units: 'ms',
-            story_tags: ['foo'],
+            story_tags: ['foo', 'bar'],
             type: 'list_of_scalar_values',
           },
           'summary': {
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
             improvement_direction: 'down',
             values: [42],
             units: 'ms',
-            story_tags: ['foo'],
+            story_tags: ['foo', 'bar'],
             type: 'list_of_scalar_values',
           },
         },
@@ -189,8 +189,11 @@ tr.b.unittest.testSuite(function() {
     tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
     const hist = tr.b.getOnlyElement(histograms);
     assert.strictEqual('value-name', hist.name);
-    assert.strictEqual(tr.b.getOnlyElement(hist.diagnostics.get(
-        tr.v.d.RESERVED_NAMES.STORY_TAGS)), 'foo');
+    const tags = [...hist.diagnostics.get(
+        tr.v.d.RESERVED_NAMES.STORY_TAGS)];
+    assert.lengthOf(tags, 2);
+    assert.strictEqual(tags[0], 'foo');
+    assert.strictEqual(tags[1], 'bar');
     assert.strictEqual('story-name',
         tr.v.HistogramGrouping.BY_KEY.get(
             tr.v.d.RESERVED_NAMES.STORIES).callback(hist));
