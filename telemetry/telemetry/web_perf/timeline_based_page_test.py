@@ -4,22 +4,19 @@
 
 from telemetry.page import legacy_page_test
 
+
 class TimelineBasedPageTest(legacy_page_test.LegacyPageTest):
   """Page test that collects metrics with TimelineBasedMeasurement.
 
   WillRunStory(), Measure() and DidRunStory() are all done in story_runner
-  explicitly. We still need this wrapper around PageTest because it executes
-  some browser related functions in the parent class, which is needed by
-  Timeline Based Measurement benchmarks. This class will be removed after
-  page_test's hooks are fully removed.
-  """
-  def __init__(self, tbm):
-    super(TimelineBasedPageTest, self).__init__()
-    self._measurement = tbm
+  explicitly. We still need this wrapper around LegacyPageTest because it
+  executes some browser related functions (mainly TabForPage) in the parent
+  class.
 
-  @property
-  def measurement(self):
-    return self._measurement
+  TODO(crbug.com/851948): This class is due to be removed.
+  """
+  def __init__(self):
+    super(TimelineBasedPageTest, self).__init__()
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Collect all possible metrics and added them to results."""

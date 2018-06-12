@@ -141,7 +141,7 @@ class WprRecorder(object):
     if self._benchmark is not None:
       test = self._benchmark.CreatePageTest(self.options)
       if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
-        test = timeline_based_page_test.TimelineBasedPageTest(test)
+        test = timeline_based_page_test.TimelineBasedPageTest()
       # This must be called after the command line args are added.
       self._record_page_test.page_test = test
 

@@ -41,7 +41,7 @@ class SharedPageState(story_module.SharedState):
     if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
       # This is to avoid the cyclic-import caused by timeline_based_page_test.
       from telemetry.web_perf import timeline_based_page_test
-      self._test = timeline_based_page_test.TimelineBasedPageTest(test)
+      self._test = timeline_based_page_test.TimelineBasedPageTest()
     else:
       self._test = test
 
