@@ -24,6 +24,10 @@ class BasicTestPage(page_module.Page):
   def RunPageInteractions(self, action_runner):
     with action_runner.CreateGestureInteraction('ScrollAction'):
       action_runner.ScrollPage()
+    # Undo the above action so that we can run BasicTestPage again if we need
+    # to, without closing the browser. Otherwise, tests may see unexpected
+    # behaviour on Chrome OS; see crbug.com/851523 for an example.
+    action_runner.ScrollPage(direction='up')
 
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
