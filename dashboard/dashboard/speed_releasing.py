@@ -418,15 +418,14 @@ def _FetchAnomalies(table_entity, rev_a, rev_b):
   anomalies_futures = []
   for benchmark in benchmark_list:
     for master in master_list:
-      query = anomaly.Anomaly.query()
-      query = (query.filter(anomaly.Anomaly.end_revision >= rev_a)
-               .filter(anomaly.Anomaly.end_revision <= rev_b)
-               .filter(anomaly.Anomaly.benchmark_name == benchmark)
-               .filter(anomaly.Anomaly.master_name == master))
-      anomalies_futures.append(query.fetch_async())
+      anomalies_futures.append(anomaly.Anomaly.QueryAsync(
+          min_end_revision=rev_a,
+          max_end_revision=rev_b,
+          test_suite_name=benchmark,
+          master_name=master))
 
   ndb.Future.wait_all(anomalies_futures)
-  all_anomalies = [future.get_result() for future in anomalies_futures]
+  all_anomalies = [future.get_result()[0] for future in anomalies_futures]
   # Flatten list of lists.
   all_anomalies = [a for future_list in all_anomalies for a in future_list]
 

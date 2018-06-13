@@ -346,9 +346,8 @@ def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
     dest_bug_id: Merge into bug (base bug) number.
     source_bug_id: The bug to be merged.
   """
-  query = anomaly.Anomaly.query(
-      anomaly.Anomaly.bug_id == int(source_bug_id))
-  anomalies = query.fetch()
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      bug_id=source_bug_id).get_result()
 
   bug_id = int(dest_bug_id)
   for a in anomalies:

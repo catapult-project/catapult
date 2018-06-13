@@ -144,8 +144,8 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     if not utils.MinimumAlertRange(alerts):
       return 'Selected alerts do not have overlapping revision range.'
     else:
-      alerts_with_bug = anomaly.Anomaly.query(
-          anomaly.Anomaly.bug_id == bug_id).fetch()
+      alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
+          bug_id=bug_id, limit=500).get_result()
 
       if not alerts_with_bug:
         return None

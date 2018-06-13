@@ -42,7 +42,8 @@ def StartNewBisectForBug(bug_id):
 
 
 def _StartBisectForBug(bug_id):
-  anomalies = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == bug_id).fetch()
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      bug_id=bug_id, limit=500).get_result()
   if not anomalies:
     raise NotBisectableError('No Anomaly alerts found for this bug.')
 

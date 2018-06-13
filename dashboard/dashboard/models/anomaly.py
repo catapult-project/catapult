@@ -4,7 +4,9 @@
 
 """The database model for an "Anomaly", which represents a step up or down."""
 
+import logging
 import sys
+import time
 
 from google.appengine.ext import ndb
 
@@ -165,22 +167,188 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     return utils.TestMetadataKey(self.test)
 
   @classmethod
-  @ndb.synctasklet
-  def GetAlertsForTest(cls, test_key, limit=None):
-    result = yield cls.GetAlertsForTestAsync(test_key, limit=limit)
-    raise ndb.Return(result)
+  @ndb.tasklet
+  def QueryAsync(
+      cls,
+      bot_name=None,
+      bug_id=None,
+      count_limit=0,
+      deadline_seconds=50,
+      inequality_property=None,
+      is_improvement=None,
+      key=None,
+      keys_only=False,
+      limit=100,
+      master_name=None,
+      max_end_revision=None,
+      max_start_revision=None,
+      max_timestamp=None,
+      min_end_revision=None,
+      min_start_revision=None,
+      min_timestamp=None,
+      recovered=None,
+      sheriff=None,
+      start_cursor=None,
+      test=None,
+      test_suite_name=None):
+    if key:
+      # This tasklet isn't allowed to catch the internal_only AssertionError.
+      alert = yield ndb.Key(urlsafe=key).get_async()
+      raise ndb.Return(([alert], None, 1))
+
+    # post_filters can cause results to be empty, depending on the shape of the
+    # data and which filters are applied in the query and which filters are
+    # applied after the query. Automatically chase cursors until some results
+    # are found, but stay under the request timeout.
+    results = []
+    deadline = time.time() + deadline_seconds
+    while not results and time.time() < deadline:
+      query = cls.query()
+      if sheriff is not None:
+        sheriff_key = ndb.Key('Sheriff', sheriff)
+        sheriff_entity = yield sheriff_key.get_async()
+        if sheriff_entity:
+          query = query.filter(cls.sheriff == sheriff_key)
+      if is_improvement is not None:
+        query = query.filter(cls.is_improvement == is_improvement)
+      if bug_id is not None:
+        if bug_id == '':
+          bug_id = None
+        else:
+          bug_id = int(bug_id)
+        query = query.filter(cls.bug_id == bug_id)
+      if recovered is not None:
+        query = query.filter(cls.recovered == recovered)
+      if test:
+        query = query.filter(cls.test.IN([
+            utils.OldStyleTestKey(test), utils.TestMetadataKey(test)]))
+        query = query.order(cls.key)
+      if master_name:
+        query = query.filter(cls.master_name == master_name)
+      if bot_name:
+        query = query.filter(cls.bot_name == bot_name)
+      if test_suite_name:
+        query = query.filter(cls.benchmark_name == test_suite_name)
+
+      query, post_filters = cls._InequalityFilters(
+          query, inequality_property, min_end_revision, max_end_revision,
+          min_start_revision, max_start_revision, min_timestamp, max_timestamp)
+      if post_filters:
+        keys_only = False
+      query = query.order(-cls.timestamp)
+
+      futures = [query.fetch_page_async(
+          limit, start_cursor=start_cursor, keys_only=keys_only)]
+      if count_limit:
+        futures.append(query.count_async(count_limit))
+      start = time.time()
+      yield futures
+      duration = time.time() - start
+      results, start_cursor, more = futures[0].get_result()
+      if count_limit:
+        count = futures[1].get_result()
+      else:
+        count = len(results)
+      logging.info('query_duration=%f', duration)
+      logging.info('query_results_count=%d', len(results))
+      if results:
+        logging.info('duration_per_result=%f', duration / len(results))
+      if post_filters:
+        results = [alert for alert in results
+                   if all(post_filter(alert) for post_filter in post_filters)]
+      if not more:
+        start_cursor = None
+      if not start_cursor:
+        break
+    raise ndb.Return((results, start_cursor, count))
 
   @classmethod
-  @ndb.tasklet
-  def GetAlertsForTestAsync(cls, test_key, limit=None):
-    result = yield cls.query(cls.test.IN([
-        utils.TestMetadataKey(test_key),
-        utils.OldStyleTestKey(test_key)])).fetch_async(limit=limit)
-    raise ndb.Return(result)
+  def _InequalityFilters(
+      cls, query, inequality_property,
+      min_end_revision, max_end_revision,
+      min_start_revision, max_start_revision,
+      min_timestamp, max_timestamp):
+    # A query cannot have more than one inequality filter.
+    # inequality_property allows users to decide which property to filter in the
+    # query, which can significantly affect performance. If other inequalities
+    # are specified, they will be handled by post_filters.
 
+    # If callers set inequality_property without actually specifying a
+    # corresponding inequality filter, then reset the inequality_property and
+    # compute it automatically as if it were not specified.
+    if inequality_property == 'start_revision':
+      if min_start_revision is None and max_start_revision is None:
+        inequality_property = None
+    elif inequality_property == 'end_revision':
+      if min_end_revision is None and max_end_revision is None:
+        inequality_property = None
+    elif inequality_property == 'timestamp':
+      if min_timestamp is None and max_timestamp is None:
+        inequality_property = None
+    else:
+      inequality_property = None
 
-def GetBotNamesFromAlerts(alerts):
-  """Gets a set with the names of the bots related to some alerts."""
-  # a.test is the key of a TestMetadata entity, and the TestPath is a path like
-  # master_name/bot_name/test_suite_name/metric...
-  return {utils.TestPath(a.test).split('/')[1] for a in alerts}
+    if inequality_property is None:
+      # Compute a default inequality_property.
+      if min_start_revision or max_start_revision:
+        inequality_property = 'start_revision'
+      elif min_end_revision or max_end_revision:
+        inequality_property = 'end_revision'
+      elif min_timestamp or max_timestamp:
+        inequality_property = 'timestamp'
+
+    post_filters = []
+    if not inequality_property:
+      return query, post_filters
+
+    if min_start_revision:
+      min_start_revision = int(min_start_revision)
+      if inequality_property == 'start_revision':
+        logging.info('filter:min_start_revision=%d', min_start_revision)
+        query = query.filter(cls.start_revision >= min_start_revision)
+        query = query.order(-cls.start_revision)
+      else:
+        post_filters.append(lambda a: a.start_revision >= min_start_revision)
+
+    if max_start_revision:
+      max_start_revision = int(max_start_revision)
+      if inequality_property == 'start_revision':
+        logging.info('filter:max_start_revision=%d', max_start_revision)
+        query = query.filter(cls.start_revision <= max_start_revision)
+        query = query.order(-cls.start_revision)
+      else:
+        post_filters.append(lambda a: a.start_revision <= max_start_revision)
+
+    if min_end_revision:
+      min_end_revision = int(min_end_revision)
+      if inequality_property == 'end_revision':
+        logging.info('filter:min_end_revision=%d', min_end_revision)
+        query = query.filter(cls.end_revision >= min_end_revision)
+        query = query.order(-cls.end_revision)
+      else:
+        post_filters.append(lambda a: a.end_revision >= min_end_revision)
+
+    if max_end_revision:
+      max_end_revision = int(max_end_revision)
+      if inequality_property == 'end_revision':
+        logging.info('filter:max_end_revision=%d', max_end_revision)
+        query = query.filter(cls.end_revision <= max_end_revision)
+        query = query.order(-cls.end_revision)
+      else:
+        post_filters.append(lambda a: a.end_revision <= max_end_revision)
+
+    if min_timestamp:
+      if inequality_property == 'timestamp':
+        logging.info('filter:min_timestamp=%d', min_timestamp)
+        query = query.filter(cls.timestamp >= min_timestamp)
+      else:
+        post_filters.append(lambda a: a.timestamp >= min_timestamp)
+
+    if max_timestamp:
+      if inequality_property == 'timestamp':
+        logging.info('filter:max_timestamp=%d', max_timestamp)
+        query = query.filter(cls.timestamp <= max_timestamp)
+      else:
+        post_filters.append(lambda a: a.timestamp <= max_timestamp)
+
+    return query, post_filters

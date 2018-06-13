@@ -167,8 +167,8 @@ class AlertsTest(testing_common.TestCase):
         id='Sheriff2', email='sullivan@google.com').put()
     mean_frame_time = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time')
-    anomalies = anomaly.Anomaly.query(
-        anomaly.Anomaly.test == mean_frame_time).fetch()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        test=mean_frame_time).get_result()
     for anomaly_entity in anomalies:
       anomaly_entity.sheriff = sheriff2_key
       anomaly_entity.put()

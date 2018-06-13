@@ -181,7 +181,7 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
     # Update all of the Anomaly entities for this test.
     # Assuming that this should be fast enough to do in one request
     # for any one test.
-    anomalies = anomaly.Anomaly.GetAlertsForTest(test_key)
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(test=test_key).get_result()
     for anomaly_entity in anomalies:
       if anomaly_entity.internal_only != internal_only:
         anomaly_entity.internal_only = internal_only

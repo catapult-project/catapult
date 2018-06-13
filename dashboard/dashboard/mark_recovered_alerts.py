@@ -76,22 +76,19 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
 
   def _FetchUntriagedAnomalies(self):
     """Fetches recent untriaged anomalies asynchronously from all sheriffs."""
-    anomalies = []
     futures = []
-    sheriff_keys = sheriff.Sheriff.query().fetch(keys_only=True)
-
-    for key in sheriff_keys:
-      query = anomaly.Anomaly.query(
-          anomaly.Anomaly.sheriff == key,
-          anomaly.Anomaly.bug_id == None,
-          anomaly.Anomaly.is_improvement == False,
-          anomaly.Anomaly.recovered == False)
-      query = query.order(-anomaly.Anomaly.timestamp)
-      futures.append(
-          query.fetch_async(limit=_MAX_UNTRIAGED_ANOMALIES, keys_only=True))
+    for key in sheriff.Sheriff.query().fetch(keys_only=True):
+      futures.append(anomaly.Anomaly.QueryAsync(
+          keys_only=True,
+          limit=_MAX_UNTRIAGED_ANOMALIES,
+          recovered=False,
+          is_improvement=False,
+          bug_id='',
+          sheriff=key.id()))
     ndb.Future.wait_all(futures)
+    anomalies = []
     for future in futures:
-      anomalies.extend(future.get_result())
+      anomalies.extend(future.get_result()[0])
     return anomalies
 
   def _FetchOpenBugs(self):
@@ -125,7 +122,8 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     alert_entity.recovered = True
     alert_entity.put()
     if bug_id:
-      unrecovered = self._GetUnrecoveredAlertsForBug(bug_id)
+      unrecovered, _, _ = anomaly.Anomaly.QueryAsync(
+          bug_id=bug_id, recovered=False).get_result()
       if not unrecovered:
         # All alerts recovered! Update bug.
         logging.info('All alerts for bug %s recovered!', bug_id)
@@ -170,7 +168,8 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     return math_utils.RelativeChange(smaller, larger) <= _MAX_DELTA_DIFFERENCE
 
   def CheckRecoveredAlertsForBug(self, bug_id):
-    unrecovered = self._GetUnrecoveredAlertsForBug(bug_id)
+    unrecovered, _, _ = anomaly.Anomaly.QueryAsync(
+        bug_id=bug_id, recovered=False).get_result()
     logging.info('Queueing %d alerts for bug %s', len(unrecovered), bug_id)
     for alert in unrecovered:
       taskqueue.add(
@@ -180,8 +179,3 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
               'alert_key': alert.key.urlsafe(),
               'bug_id': bug_id},
           queue_name=_TASK_QUEUE_NAME)
-
-  def _GetUnrecoveredAlertsForBug(self, bug_id):
-    alerts = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == bug_id).fetch()
-    unrecovered = [a for a in alerts if not a.recovered]
-    return unrecovered

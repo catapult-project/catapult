@@ -16,12 +16,9 @@ from speed.dashboard import utils
 from dashboard.models import anomaly
 
 sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
-query = anomaly.Anomaly.query(anomaly.Anomaly.bug_id == -1)
-query = query.filter(anomaly.Anomaly.sheriff == sheriff)
-query = query.order(-anomaly.Anomaly.timestamp)
-alerts = query.fetch(limit=5000)
+alerts, next_cursor, total_alerts = anomaly.Anomaly.QueryAsync(
+    bug_id=-1, sheriff=sheriff, limit=5000).get_result()
 
-total_alerts = len(alerts)
 print 'Fetched {} "invalid" alerts.'.format(len(alerts))
 
 occurrences = [[], [], []]

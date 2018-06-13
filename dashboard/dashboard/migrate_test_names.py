@@ -415,8 +415,9 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
   Returns:
     A list of Future objects for Anomaly entities to update.
   """
-  anomalies_to_update = yield anomaly.Anomaly.GetAlertsForTestAsync(
-      old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+  anomalies_to_update, _, _ = yield anomaly.Anomaly.QueryAsync(
+      test=old_parent_key,
+      limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   if not anomalies_to_update:
     raise ndb.Return([])
 

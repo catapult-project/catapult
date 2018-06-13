@@ -58,7 +58,12 @@ class GroupReportHandler(chart_handler.ChartHandler):
     try:
       alert_list = None
       if bug_id:
-        alert_list = GetAlertsWithBugId(bug_id)
+        try:
+          alert_list, _, _ = anomaly.Anomaly.QueryAsync(
+              bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
+        except ValueError:
+          raise request_handler.InvalidInputError(
+              'Invalid bug ID "%s".' % bug_id)
       elif keys:
         alert_list = GetAlertsForKeys(keys)
       elif rev:
@@ -84,24 +89,6 @@ class GroupReportHandler(chart_handler.ChartHandler):
       self.response.out.write(json.dumps(values))
     except request_handler.InvalidInputError as error:
       self.response.out.write(json.dumps({'error': str(error)}))
-
-
-def GetAlertsWithBugId(bug_id):
-  """Get alerts for |bug_id|.
-
-  Args:
-    bug_id: A bug ID (as an int or string). Could be also be a pseudo-bug ID,
-        such as -1 or -2 indicating invalid or ignored.
-
-  Returns:
-    list of anomaly.Anomaly
-  """
-  if not _IsInt(bug_id):
-    raise request_handler.InvalidInputError('Invalid bug ID "%s".' % bug_id)
-  bug_id = int(bug_id)
-  anomaly_query = anomaly.Anomaly.query(
-      anomaly.Anomaly.bug_id == bug_id)
-  return anomaly_query.fetch(limit=_QUERY_LIMIT)
 
 
 def GetAlertsAroundRevision(rev):
@@ -162,10 +149,8 @@ def GetAlertsForKeys(keys):
   sheriff_key = requested_anomalies[0].sheriff
   min_range = utils.MinimumAlertRange(requested_anomalies)
   if min_range:
-    query = anomaly.Anomaly.query(
-        anomaly.Anomaly.sheriff == sheriff_key)
-    query = query.order(-anomaly.Anomaly.timestamp)
-    anomalies = query.fetch(limit=_QUERY_LIMIT)
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        sheriff=sheriff_key.id(), limit=_QUERY_LIMIT).get_result()
 
     # Filter out anomalies that have been marked as invalid or ignore.
     # Include all anomalies with an overlapping revision range that have

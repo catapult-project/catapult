@@ -65,14 +65,13 @@ def _GetRecentAnomalies(days, sheriff):
   Returns:
     A list of Anomaly entities sorted from large to small relative change.
   """
-  oldest_time = datetime.datetime.now() - datetime.timedelta(days=days)
-  anomalies_query = anomaly.Anomaly.query(
-      anomaly.Anomaly.timestamp > oldest_time,
-      anomaly.Anomaly.sheriff == sheriff)
-  anomalies = anomalies_query.fetch(limit=_ANOMALY_FETCH_LIMIT)
-  anomalies.sort(key=lambda a: abs(a.percent_changed), reverse=True)
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      min_timestamp=datetime.datetime.now() - datetime.timedelta(days=days),
+      sheriff=sheriff.id(),
+      limit=_ANOMALY_FETCH_LIMIT).get_result()
   # We only want to list alerts that aren't marked invalid or ignored.
   anomalies = [a for a in anomalies if a.bug_id is None or a.bug_id > 0]
+  anomalies.sort(key=lambda a: abs(a.percent_changed), reverse=True)
   return anomalies
 
 

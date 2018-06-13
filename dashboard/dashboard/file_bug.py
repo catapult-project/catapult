@@ -19,7 +19,6 @@ from dashboard import short_uri
 from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import utils
-from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
 from dashboard.services import crrev_service
@@ -192,7 +191,7 @@ def _AdditionalDetails(bug_id, alerts):
   comment = '<b>All graphs for this bug:</b>\n  %s\n\n' % bug_page_url
   comment += ('(For debugging:) Original alerts at time of bug-filing:\n  %s\n'
               % alerts_url)
-  bot_names = anomaly.GetBotNamesFromAlerts(alerts)
+  bot_names = {a.bot_name for a in alerts}
   if bot_names:
     comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
     comment += '\n'.join(sorted(bot_names))

@@ -5,8 +5,6 @@
 """Provides the web interface for displaying an overview of alerts."""
 
 import json
-import logging
-import time
 
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
@@ -41,15 +39,12 @@ class AlertsHandler(request_handler.RequestHandler):
       JSON data for an XHR request to show a table of alerts.
     """
     sheriff_name = self.request.get('sheriff', 'Chromium Perf Sheriff')
-    sheriff_key = ndb.Key('Sheriff', sheriff_name)
-    if not _SheriffIsFound(sheriff_key):
+    if not _SheriffIsFound(sheriff_name):
       self.response.out.write(json.dumps({
           'error': 'Sheriff "%s" not found.' % sheriff_name
       }))
       return
 
-    include_improvements = bool(self.request.get('improvements'))
-    include_triaged = bool(self.request.get('triaged'))
     # Cursors are used to fetch paged queries. If none is supplied, then the
     # first 500 alerts will be returned. If a cursor is given, the next
     # 500 alerts (starting at the given cursor) will be returned.
@@ -57,24 +52,39 @@ class AlertsHandler(request_handler.RequestHandler):
     if anomaly_cursor:
       anomaly_cursor = Cursor(urlsafe=anomaly_cursor)
 
-    anomaly_values = _FetchAnomalies(sheriff_key, include_improvements,
-                                     include_triaged, anomaly_cursor)
-    anomalies = ndb.get_multi(anomaly_values['anomaly_keys'])
+    is_improvement = None
+    if not bool(self.request.get('improvements')):
+      is_improvement = False
+
+    bug_id = None
+    recovered = None
+    if not bool(self.request.get('triaged')):
+      bug_id = ''
+      recovered = False
+
+    anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
+        start_cursor=anomaly_cursor,
+        sheriff=sheriff_name,
+        bug_id=bug_id,
+        is_improvement=is_improvement,
+        recovered=recovered,
+        count_limit=_MAX_ANOMALIES_TO_COUNT,
+        limit=_MAX_ANOMALIES_TO_SHOW).get_result()
 
     values = {
         'anomaly_list': AnomalyDicts(anomalies),
-        'anomaly_count': anomaly_values['anomaly_count'],
+        'anomaly_count': count,
         'sheriff_list': _GetSheriffList(),
-        'anomaly_cursor': (anomaly_values['anomaly_cursor'].urlsafe()
-                           if anomaly_values['anomaly_cursor'] else None),
-        'show_more_anomalies': anomaly_values['show_more_anomalies'],
+        'anomaly_cursor': (next_cursor.urlsafe() if next_cursor else None),
+        'show_more_anomalies': next_cursor != None,
     }
     self.GetDynamicVariables(values)
     self.response.out.write(json.dumps(values))
 
 
-def _SheriffIsFound(sheriff_key):
+def _SheriffIsFound(sheriff_name):
   """Checks whether the sheriff can be found for the current user."""
+  sheriff_key = ndb.Key('Sheriff', sheriff_name)
   try:
     sheriff_entity = sheriff_key.get()
   except AssertionError:
@@ -82,58 +92,6 @@ def _SheriffIsFound(sheriff_key):
     # and indicates an internal-only Sheriff but an external user.
     return False
   return sheriff_entity is not None
-
-
-def _FetchAnomalies(sheriff_key, include_improvements, include_triaged,
-                    start_cursor):
-  """Fetches a page of the list of Anomaly keys that may be shown.
-
-  Args:
-    sheriff_key: The ndb.Key for the Sheriff to fetch alerts for.
-    include_improvements: Whether to include improvement Anomalies.
-    include_triaged: Whether to include Anomalies with a bug ID already set.
-    start_cursor: The cursor at which to begin the paged query. None if
-                  beginning of keys.
-
-  Returns:
-    A dictionary containing:
-    anomalies_count: Length of all keys up to _MAX_ANOMALIES_TO_COUNT.
-    anomaly_keys: A list of Anomaly keys, in reverse-chronological order.
-    anomaly_cursor: The cursor to begin the next paged query at.
-    show_more_anomalies: A bool if there are entities past the cursor.
-  """
-
-  query = anomaly.Anomaly.query(
-      anomaly.Anomaly.sheriff == sheriff_key)
-
-  if not include_improvements:
-    query = query.filter(
-        anomaly.Anomaly.is_improvement == False)
-
-  if not include_triaged:
-    query = query.filter(
-        anomaly.Anomaly.bug_id == None)
-    query = query.filter(
-        anomaly.Anomaly.recovered == False)
-
-  query = query.order(-anomaly.Anomaly.timestamp)
-
-  return_values = {}
-  # Total Anomaly count is maintained by query.count(limit).
-  return_values['anomaly_count'] = query.count(_MAX_ANOMALIES_TO_COUNT)
-  # See https://cloud.google.com/appengine/docs/standard/python/ndb/queryclass
-  # about fetch_page.
-  start = time.time()
-  (return_values['anomaly_keys'], return_values['anomaly_cursor'],
-   return_values['show_more_anomalies']) = query.fetch_page(
-       _MAX_ANOMALIES_TO_SHOW, start_cursor=start_cursor, keys_only=True)
-  duration = time.time() - start
-  logging.info('query_latency=%f', duration)
-  logging.info('result_count=%d', len(return_values['anomaly_keys']))
-  if return_values['anomaly_keys']:
-    logging.info('latency_per_result=%f',
-                 1000 * duration / len(return_values['anomaly_keys']))
-  return return_values
 
 
 def _GetSheriffList():

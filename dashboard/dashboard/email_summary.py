@@ -66,7 +66,11 @@ def _SendSummaryEmail(sheriff_entity, start_time):
     start_time: A starting datetime for anomalies to fetch.
   """
   receivers = email_template.GetSheriffEmails(sheriff_entity)
-  anomalies = _RecentUntriagedAnomalies(sheriff_entity, start_time)
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      sheriff=sheriff_entity.key.id(),
+      bug_id='',
+      is_improvement=False,
+      min_timestamp=start_time).get_result()
   logging.info('_SendSummaryEmail: %s', str(sheriff_entity.key))
   logging.info(' - receivers: %s', str(receivers))
   logging.info(' - anomalies: %d', len(anomalies))
@@ -78,15 +82,6 @@ def _SendSummaryEmail(sheriff_entity, start_time):
   mail.send_mail(
       sender='gasper-alerts@google.com', to=receivers,
       subject=subject, body=text, html=html)
-
-
-def _RecentUntriagedAnomalies(sheriff_entity, start_time):
-  """Returns untriaged anomalies for |sheriff| after |start_time|."""
-  recent_anomalies = anomaly.Anomaly.query(
-      anomaly.Anomaly.sheriff == sheriff_entity.key,
-      anomaly.Anomaly.timestamp > start_time).fetch()
-  return [a for a in recent_anomalies
-          if not a.is_improvement and a.bug_id is None]
 
 
 def _EmailSubject(sheriff_entity, anomalies):

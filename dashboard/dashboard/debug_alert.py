@@ -275,7 +275,8 @@ def _FetchRowsAroundRev(test, revision, num_before, num_after):
 
 def _FetchStoredAnomalies(test, revisions):
   """Makes a list of data about Anomaly entities for a Test."""
-  stored_anomalies = anomaly.Anomaly.GetAlertsForTest(test.key)
+  stored_anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      test=test.key).get_result()
 
   stored_anomaly_dicts = []
   for a in stored_anomalies:

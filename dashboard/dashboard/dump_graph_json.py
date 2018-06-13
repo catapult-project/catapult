@@ -74,7 +74,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     entities += q.fetch(limit=num_points)
 
     # Get the Anomaly and Sheriff entities.
-    alerts = anomaly.Anomaly.GetAlertsForTest(test_key)
+    alerts, _, _ = anomaly.Anomaly.QueryAsync(test=test_key).get_result()
     sheriff_keys = {alert.sheriff for alert in alerts}
     sheriffs = [sheriff.get() for sheriff in sheriff_keys]
     entities += alerts
@@ -105,7 +105,8 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
       self.ReportError('Unknown sheriff specified.')
       return
 
-    anomalies = self._FetchAnomalies(sheriff, num_anomalies)
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        sheriff=sheriff_name, limit=num_anomalies).get_result()
     test_keys = [a.GetTestMetadataKey() for a in anomalies]
 
     # List of datastore entities that will be dumped.
@@ -159,13 +160,6 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     for future in futures:
       rows.extend(future.get_result())
     return rows
-
-  def _FetchAnomalies(self, sheriff, num_anomalies):
-    """Fetches recent anomalies for 'sheriff'."""
-    q = anomaly.Anomaly.query(
-        anomaly.Anomaly.sheriff == sheriff.key)
-    q = q.order(-anomaly.Anomaly.timestamp)
-    return q.fetch(limit=num_anomalies)
 
 
 def EntityToBinaryProtobuf(entity):
