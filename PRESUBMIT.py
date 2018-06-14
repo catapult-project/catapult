@@ -29,6 +29,7 @@ _EXCLUDED_PATHS = (
     r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
     r'^experimental[\\/]heatmap[\\/].*',
     r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',
+    r'^experimental[\\/]perf_sheriffing_emailer[\\/].*.js',
     r'^perf_insights[\\/]test_data[\\/].*',
     r'^perf_insights[\\/]third_party[\\/].*',
     r'^telemetry[\\/]third_party[\\/].*',
