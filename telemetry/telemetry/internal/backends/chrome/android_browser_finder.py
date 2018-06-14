@@ -4,12 +4,16 @@
 
 """Finds android browsers that can be controlled by telemetry."""
 
+import contextlib
 import logging
 import os
+import shutil
 import subprocess
 import sys
 
 from py_utils import dependency_util
+from py_utils import file_util
+from py_utils import tempfile_ext
 from devil import base_error
 from devil.android import apk_helper
 from devil.android import flag_changer
@@ -29,6 +33,40 @@ from telemetry.internal.util import binary_manager
 
 ANDROID_BACKEND_SETTINGS = (
     android_browser_backend_settings.ANDROID_BACKEND_SETTINGS)
+
+
+@contextlib.contextmanager
+def _ProfileWithExtraFiles(profile_dir, profile_files_to_copy):
+  """Yields a temporary directory populated with input files.
+
+  Args:
+    profile_dir: A directory whose contents will be copied to the output
+      directory.
+    profile_files_to_copy: A list of (source, dest) tuples to be copied to
+      the output directory.
+
+  Yields: A path to a temporary directory, named "_default_profile". This
+    directory will be cleaned up when this context exits.
+  """
+  with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+    # TODO(csharrison): "_default_profile" was chosen because this directory
+    # will be pushed to the device's sdcard. We don't want to choose a
+    # random name due to the extra failure mode of filling up the sdcard
+    # in the case of unclean test teardown. We should consider changing
+    # PushProfile to avoid writing to this intermediate location.
+    host_profile = os.path.join(tempdir, "_default_profile")
+    if profile_dir:
+      shutil.copytree(profile_dir, host_profile)
+    else:
+      os.mkdir(host_profile)
+
+    # Add files from |profile_files_to_copy| into the host profile
+    # directory. Don't copy files if they already exist.
+    for source, dest in profile_files_to_copy:
+      host_path = os.path.join(host_profile, dest)
+      if not os.path.exists(host_path):
+        file_util.CopyFileWithIntermediateDirectories(source, host_path)
+    yield host_profile
 
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
@@ -124,15 +162,21 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def _SetupProfile(self):
     if self._browser_options.dont_override_profile:
       return
-    if self._browser_options.profile_dir:
-      # Push profile_dir path on the host to the device.
-      self._platform_backend.PushProfile(
-          self._backend_settings.package,
-          self._browser_options.profile_dir)
-    else:
+
+    # Just remove the existing profile if we don't have any files to copy over.
+    # This is because PushProfile does not support pushing completely empty
+    # directories.
+    profile_files_to_copy = self._browser_options.profile_files_to_copy
+    if not self._browser_options.profile_dir and not profile_files_to_copy:
       self._platform_backend.RemoveProfile(
           self._backend_settings.package,
           self._backend_settings.profile_ignore_list)
+      return
+
+    with _ProfileWithExtraFiles(self._browser_options.profile_dir,
+                                profile_files_to_copy) as profile_dir:
+      self._platform_backend.PushProfile(self._backend_settings.package,
+                                         profile_dir)
 
   def SetUpEnvironment(self, browser_options):
     super(PossibleAndroidBrowser, self).SetUpEnvironment(browser_options)

@@ -4,12 +4,11 @@
 
 import os
 import posixpath
-import shutil
-import tempfile
 import unittest
 
 import mock
 from pyfakefs import fake_filesystem_unittest
+from py_utils import tempfile_ext
 
 from telemetry.core import android_platform
 from telemetry.core import exceptions
@@ -183,7 +182,7 @@ class SelectDefaultBrowserTest(unittest.TestCase):
         android_browser_finder.SelectDefaultBrowser(possible_browsers))
 
 
-class PushProfileBrowserTest(unittest.TestCase):
+class SetUpProfileBrowserTest(unittest.TestCase):
 
   @decorators.Enabled('android')
   def testPushEmptyProfile(self):
@@ -209,11 +208,10 @@ class PushProfileBrowserTest(unittest.TestCase):
       browser_to_create.CleanUpEnvironment()
 
   @decorators.Enabled('android')
-  def testPushDefaultProfile(self):
+  def testPushDefaultProfileDir(self):
     # Add a few files and directories to a temp directory, and ensure they are
     # copied to the device.
-    tempdir = tempfile.mkdtemp()
-    try:
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       foo_path = os.path.join(tempdir, 'foo')
       with open(foo_path, 'w') as f:
         f.write('foo_data')
@@ -245,5 +243,39 @@ class PushProfileBrowserTest(unittest.TestCase):
       finally:
         browser_to_create.CleanUpEnvironment()
 
-    finally:
-      shutil.rmtree(tempdir)
+  @decorators.Enabled('android')
+  def testPushDefaultProfileFiles(self):
+    # Add a few files and directories to a temp directory, and ensure they are
+    # copied to the device.
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      foo_path = os.path.join(tempdir, 'foo')
+      with open(foo_path, 'w') as f:
+        f.write('foo_data')
+
+      bar_path = os.path.join(tempdir, 'path', 'to', 'bar')
+      os.makedirs(os.path.dirname(bar_path))
+      with open(bar_path, 'w') as f:
+        f.write('bar_data')
+
+      finder_options = options_for_unittests.GetCopy()
+      finder_options.browser_options.profile_files_to_copy = [
+          (foo_path, 'foo'),
+          (bar_path, posixpath.join('path', 'to', 'bar'))]
+      browser_to_create = browser_finder.FindBrowser(finder_options)
+
+      # SetUpEnvironment will end up calling PushProfile
+      try:
+        browser_to_create.SetUpEnvironment(finder_options.browser_options)
+
+        profile_dir = browser_to_create.profile_directory
+        device = browser_to_create._platform_backend.device
+
+        absolute_expected_profile_paths = [
+            posixpath.join(profile_dir, path)
+            for _, path
+            in finder_options.browser_options.profile_files_to_copy]
+        device = browser_to_create._platform_backend.device
+        self.assertTrue(device.PathExists(absolute_expected_profile_paths),
+                        absolute_expected_profile_paths)
+      finally:
+        browser_to_create.CleanUpEnvironment()

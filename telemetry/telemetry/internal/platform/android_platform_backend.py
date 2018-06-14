@@ -533,7 +533,8 @@ class AndroidPlatformBackend(
       profile_base = os.path.basename(profile_parent)
 
     saved_profile_location = '/sdcard/profile/%s' % profile_base
-    self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)])
+    self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)],
+                                  delete_device_stale=True)
 
     profile_dir = self.GetProfileDir(package)
     self._EfficientDeviceDirectoryCopy(
