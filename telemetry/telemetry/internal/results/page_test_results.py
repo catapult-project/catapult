@@ -258,6 +258,10 @@ class PageTestResults(object):
 
     self._histogram_dicts_to_add = []
 
+    # Mapping of the stories that have run to the number of times they have run
+    # This is necessary on interrupt if some of the stories did not run.
+    self._story_run_count = {}
+
   @property
   def telemetry_info(self):
     return self._telemetry_info
@@ -422,8 +426,30 @@ class PageTestResults(object):
     assert self._current_page_run, 'Did not call WillRunPage.'
     self._progress_reporter.DidRunPage(self)
     self._all_page_runs.append(self._current_page_run)
-    self._all_stories.add(self._current_page_run.story)
+    story = self._current_page_run.story
+    self._all_stories.add(story)
+    if bool(self._story_run_count.get(story)):
+      self._story_run_count[story] += 1
+    else:
+      self._story_run_count[story] = 1
     self._current_page_run = None
+
+  def InterruptBenchmark(self, stories, repeat_count):
+    self.telemetry_info.InterruptBenchmark()
+    # If we are in the middle of running a page it didn't finish
+    # so reset the current page run
+    self._current_page_run = None
+    for story in stories:
+      print "Story %s" % story
+    for story in stories:
+      num_runs = repeat_count - self._story_run_count.get(story, 0)
+      for i in xrange(num_runs):
+        self._GenerateSkippedStoryRun(story, i)
+
+  def _GenerateSkippedStoryRun(self, story, storyset_repeat_counter):
+    self.WillRunPage(story, storyset_repeat_counter)
+    self.Skip('Telemetry interrupted', is_expected=False)
+    self.DidRunPage(story)
 
   def AddDurationHistogram(self, duration_in_milliseconds):
     hist = histogram.Histogram(
@@ -534,9 +560,9 @@ class PageTestResults(object):
       failure_str = ''.join(traceback.format_exception(*failure))
     self._current_page_run.SetFailed(failure_str)
 
-  def Skip(self, reason):
+  def Skip(self, reason, is_expected=True):
     assert self._current_page_run, 'Not currently running test.'
-    self.AddValue(skip.SkipValue(self.current_page, reason))
+    self.AddValue(skip.SkipValue(self.current_page, reason, is_expected))
 
   def CreateArtifact(self, story, name, prefix='', suffix=''):
     return self._artifact_results.CreateArtifact(

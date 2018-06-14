@@ -139,8 +139,9 @@ class GTestProgressReporterTest(
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '===== SKIPPING TEST http://www.foo.com/:'
                 ' Page skipped for testing reason =====\n'
-                '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
-                '[  PASSED  ] 1 test.\n\n')
+                '[  SKIPPED ] bench/http://www.foo.com/ (7 ms)\n'
+                '[  PASSED  ] 0 tests.\n'
+                '[  SKIPPED ] 1 test.\n\n')
     self.assertEquals(expected, ''.join(self._output_stream.getvalue()))
 
   def testPassAndFailedPages(self):
@@ -235,8 +236,9 @@ class GTestProgressReporterTest(
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '===== SKIPPING TEST http://www.foo.com/:'
                 ' Page skipped for testing reason =====\n'
-                '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
-                '[  PASSED  ] 1 test.\n'
+                '[  SKIPPED ] bench/http://www.foo.com/ (7 ms)\n'
+                '[  PASSED  ] 0 tests.\n'
+                '[  SKIPPED ] 1 test.\n'
                 '\n'
                 'Skipped pages:\n'
                 'bench/http://www.foo.com/\n'

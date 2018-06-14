@@ -38,9 +38,9 @@ def ResultsAsDict(page_test_results, artifacts=None):
   }
   status_counter = collections.Counter()
   for run in page_test_results.all_page_runs:
-    expected = 'PASS'
+    expected = run.expected
     if run.skipped:
-      status = expected = 'SKIP'
+      status = 'SKIP'
     elif run.failed:
       status = 'FAIL'
     else:

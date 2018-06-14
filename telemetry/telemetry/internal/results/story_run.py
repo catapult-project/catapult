@@ -20,8 +20,8 @@ class StoryRun(object):
     self._failed = True
     self._failure_str = failure_str
 
-  def Skip(self, reason):
-    self.AddValue(skip.SkipValue(self.story, reason))
+  def Skip(self, reason, is_expected=True):
+    self.AddValue(skip.SkipValue(self.story, reason, is_expected))
 
   def SetDuration(self, duration_in_seconds):
     self._duration = duration_in_seconds
@@ -47,6 +47,16 @@ class StoryRun(object):
     To be precise: returns true if there is any SkipValue in self.values.
     """
     return any(isinstance(v, skip.SkipValue) for v in self.values)
+
+  @property
+  def expected(self):
+    for v in self.values:
+      if isinstance(v, skip.SkipValue):
+        if v.expected:
+          return 'SKIP'
+        else:
+          return 'PASS'
+    return 'PASS'
 
   @property
   def failed(self):

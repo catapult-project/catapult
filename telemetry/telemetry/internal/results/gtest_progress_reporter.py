@@ -57,6 +57,12 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
+    elif page_test_results.current_page_run.skipped:
+      print >> self._output_stream, '[  SKIPPED ] %s/%s%s (%0.f ms)' % (
+          page_test_results.telemetry_info.benchmark_name,
+          page.name,
+          self._GenerateGroupingKeyString(page_test_results.current_page),
+          self._GetMs())
     else:
       print >> self._output_stream, '[       OK ] %s/%s%s (%0.f ms)' % (
           page_test_results.telemetry_info.benchmark_name,
@@ -69,15 +75,22 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     super(GTestProgressReporter, self).DidFinishAllTests(page_test_results)
     successful_runs = []
     failed_runs = []
+    skipped_runs = []
     for run in page_test_results.all_page_runs:
       if run.failed:
         failed_runs.append(run)
+      elif run.skipped:
+        skipped_runs.append(run)
       else:
         successful_runs.append(run)
 
     unit = 'test' if len(successful_runs) == 1 else 'tests'
     print >> self._output_stream, '[  PASSED  ] %d %s.' % (
         (len(successful_runs), unit))
+    if len(skipped_runs) > 0:
+      unit = 'test' if len(skipped_runs) == 1 else 'tests'
+      print >> self._output_stream, '[  SKIPPED ] %d %s.' % (
+          (len(skipped_runs), unit))
     if len(failed_runs) > 0:
       unit = 'test' if len(failed_runs) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (

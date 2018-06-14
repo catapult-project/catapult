@@ -1700,6 +1700,7 @@ class LogsArtifactTest(unittest.TestCase):
       json_data = {}
       with open(os.path.join(out_dir, 'test-results.json')) as f:
         json_data = json.load(f)
+
       foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
       foo_artifact_log_path = os.path.join(
           out_dir, foo_artifacts['logs'][0])
@@ -1715,3 +1716,10 @@ class LogsArtifactTest(unittest.TestCase):
       self.assertIn('Exception: this is an unexpected exception', foo_log)
       self.assertIn("raise Exception('this is an unexpected exception')",
                     foo_log)
+
+      # Assert that the second story got written as a SKIP as it failed
+      # to run because of the exception.
+      bar_log = json_data['tests']['TestBenchmark']['bar']
+      self.assertEquals(bar_log['expected'], 'PASS')
+      self.assertEquals(bar_log['actual'], 'SKIP')
+

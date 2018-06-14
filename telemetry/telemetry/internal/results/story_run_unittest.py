@@ -51,20 +51,22 @@ class StoryRunTest(unittest.TestCase):
   def testStoryRunSkipped(self):
     run = story_run.StoryRun(self.stories[0])
     run.SetFailed('oops')
-    run.Skip('test')
+    run.Skip('test', is_expected=True)
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
+    self.assertEquals(run.expected, 'SKIP')
     self.assertEquals(run.failure_str, 'oops')
 
     run = story_run.StoryRun(self.stories[0])
     run.AddValue(scalar.ScalarValue(
         self.stories[0], 'a', 's', 1,
         improvement_direction=improvement_direction.UP))
-    run.Skip('test')
+    run.Skip('test', is_expected=False)
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
+    self.assertEquals(run.expected, 'PASS')
     self.assertEquals(run.failure_str, None)
 
   def testStoryRunSucceeded(self):

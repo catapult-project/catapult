@@ -7,7 +7,7 @@ from telemetry import value as value_module
 
 class SkipValue(value_module.Value):
 
-  def __init__(self, page, reason, description=None):
+  def __init__(self, page, reason, is_expected, description=None):
     """A value representing a skipped page.
 
     Args:
@@ -17,6 +17,7 @@ class SkipValue(value_module.Value):
     super(SkipValue, self).__init__(page, 'skip', '', True, description, None,
                                     None)
     self._reason = reason
+    self._is_expected = is_expected
 
   def __repr__(self):
     page_name = self.page.name
@@ -26,6 +27,10 @@ class SkipValue(value_module.Value):
   @property
   def reason(self):
     return self._reason
+
+  @property
+  def expected(self):
+    return self._is_expected
 
   def GetBuildbotDataType(self, output_context):
     return None
@@ -49,6 +54,7 @@ class SkipValue(value_module.Value):
   def AsDict(self):
     d = super(SkipValue, self).AsDict()
     d['reason'] = self._reason
+    d['is_expected'] = self._is_expected
     return d
 
   @staticmethod
@@ -59,6 +65,7 @@ class SkipValue(value_module.Value):
     if 'important' in kwargs:
       del kwargs['important']
     kwargs['reason'] = value_dict['reason']
+    kwargs['is_expected'] = value_dict['is_expected']
     if 'tir_label' in kwargs:
       del kwargs['tir_label']
     if 'grouping_keys' in kwargs:

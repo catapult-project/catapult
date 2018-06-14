@@ -200,7 +200,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   state = None
   device_info_diags = {}
   try:
-    pageset_repeat = finder_options.pageset_repeat
+    pageset_repeat = _GetPageSetRepeat(finder_options)
     if finder_options.smoke_test_mode:
       pageset_repeat = 1
     for storyset_repeat_counter in xrange(pageset_repeat):
@@ -373,7 +373,7 @@ def RunBenchmark(benchmark, finder_options):
     except Exception: # pylint: disable=broad-except
       logging.fatal(
           'Benchmark execution interrupted by a fatal exception.')
-      results.telemetry_info.InterruptBenchmark()
+      results.InterruptBenchmark(stories, _GetPageSetRepeat(finder_options))
       exception_formatter.PrintFormattedException()
       return_code = 2
 
@@ -401,6 +401,10 @@ def RunBenchmark(benchmark, finder_options):
       results.PrintSummary()
   return return_code
 
+def _GetPageSetRepeat(finder_options):
+  if finder_options.smoke_test_mode:
+    return 1
+  return finder_options.pageset_repeat
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                             filtered_stories):
