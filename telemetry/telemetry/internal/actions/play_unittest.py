@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.internal.actions import play
 from telemetry.testing import tab_test_case
 
@@ -66,6 +67,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertRaises(py_utils.TimeoutException, action.RunAction, self._tab)
 
+  @decorators.Disabled('mac')
   def testPlayWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
     action = play.PlayAction(selector='#video_1',
