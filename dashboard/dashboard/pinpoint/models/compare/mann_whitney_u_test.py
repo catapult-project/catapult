@@ -4,7 +4,7 @@
 
 import unittest
 
-from dashboard.pinpoint.models import mann_whitney_u
+from dashboard.pinpoint.models.compare import mann_whitney_u
 
 
 class MannWhitneyUTest(unittest.TestCase):

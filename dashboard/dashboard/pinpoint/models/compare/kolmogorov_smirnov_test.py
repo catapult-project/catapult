@@ -4,7 +4,7 @@
 
 import unittest
 
-from dashboard.pinpoint.models import kolmogorov_smirnov
+from dashboard.pinpoint.models.compare import kolmogorov_smirnov
 
 
 class KolmogorovSmirnovTest(unittest.TestCase):
