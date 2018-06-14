@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import httplib2
 import json
 import logging
@@ -196,5 +197,10 @@ class PerfDashboardCommunicator(object):
 
   def GetAlertData(self, benchmark, sheriff, days=30):
     """Returns alerts for the given benchmark."""
-    options = urllib.urlencode({'benchmark': benchmark, 'sheriff': sheriff})
-    return self._MakeApiRequest('alerts/history/%d?%s' % (days, options))
+    min_timestamp = datetime.datetime.now() - datetime.timedelta(days=days)
+    options = {
+        'benchmark': benchmark,
+        'sheriff': sheriff,
+        'min_timestamp': min_timestamp.isoformat(),
+    }
+    return self._MakeApiRequest('alerts?' + urllib.urlencode(options))
