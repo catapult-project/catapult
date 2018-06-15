@@ -244,10 +244,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         logging.exception('Secondary failure while closing browser backend.')
 
       raise exc_info[0], exc_info[1], exc_info[2]
-    finally:
-      # After the browser has been launched (or not) it's fine to restore the
-      # command line flags on the device.
-      self._RestoreCommandLineFlags()
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)

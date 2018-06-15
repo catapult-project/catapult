@@ -243,6 +243,18 @@ class TestBrowserCreation(unittest.TestCase):
       with self.browser_to_create.BrowserSession(self.finder_options):
         pass  # Do nothing.
 
+  def testCreateBrowserTwice(self):
+    try:
+      self.browser_to_create.SetUpEnvironment(self.browser_options)
+      for _ in xrange(2):
+        browser = self.browser_to_create.Create()
+        tab = browser.tabs.New()
+        tab.Navigate('about:blank')
+        self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+        browser.Close()
+    finally:
+      self.browser_to_create.CleanUpEnvironment()
+
   @decorators.Enabled('linux')
   # TODO(crbug.com/782691): enable this on Win
   # TODO(ashleymarie): Re-enable on mac (BUG=catapult:#3523)
