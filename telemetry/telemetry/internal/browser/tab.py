@@ -77,11 +77,6 @@ class Tab(web_contents.WebContents):
     Not all browsers or browser versions support this method.
     Be sure to check browser.supports_tab_control.
 
-    Please note: this is asynchronous. There is a delay between this call
-    and the page's documentVisibilityState becoming 'visible', and yet more
-    delay until the actual tab is visible to the user. None of these delays
-    are included in this call.
-
     Raises:
       devtools_http.DevToolsClientConnectionError
       devtools_client_backend.TabNotFoundError

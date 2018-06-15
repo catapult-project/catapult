@@ -84,6 +84,12 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
           app=self._browser_backend.browser,
           msg='Received response: %s' % response)
 
+    # Activate tab call is synchronous, so wait to make sure that Chrome
+    # have time to promote this tab to foreground.
+    py_utils.WaitFor(
+        lambda: tab_id == self._browser_backend.browser.foreground_tab.id,
+        timeout=5)
+
   def Get(self, index, ret):
     """Returns self[index] if it exists, or ret if index is out of bounds."""
     if len(self) <= index:
