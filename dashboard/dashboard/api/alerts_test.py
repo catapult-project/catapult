@@ -233,7 +233,7 @@ class AlertsGeneralTest(testing_common.TestCase):
   def testMaxTimestamp(self):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(59))
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61))
-    response = self._Post(max_timestamp='1970-1-1T0:1:0')
+    response = self._Post(max_timestamp='1970-1-1T0:1:0.000001')
     self.assertEqual(1, len(response['anomalies']))
     self.assertEqual('1970-01-01T00:00:59',
                      response['anomalies'][0]['timestamp'])

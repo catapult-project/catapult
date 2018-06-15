@@ -15,7 +15,14 @@ from dashboard.common import request_handler
 from dashboard.models import anomaly
 
 
-ISO_8601_FORMAT = '%Y-%m-%dT%H:%M:%S'
+def ParseISO8601(s):
+  # ISO8601 specifies many possible formats. The dateutil library is much more
+  # flexible about parsing all of the possible formats, but it would be annoying
+  # to third_party it just for this. A few formats should cover enough users.
+  try:
+    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
+  except ValueError:
+    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
 class AlertsHandler(api_request_handler.ApiRequestHandler):
@@ -49,12 +56,10 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
           start_cursor = datastore_query.Cursor(urlsafe=start_cursor)
         min_timestamp = self.request.get('min_timestamp', None)
         if min_timestamp:
-          min_timestamp = datetime.datetime.strptime(
-              min_timestamp, ISO_8601_FORMAT)
+          min_timestamp = ParseISO8601(min_timestamp)
         max_timestamp = self.request.get('max_timestamp', None)
         if max_timestamp:
-          max_timestamp = datetime.datetime.strptime(
-              max_timestamp, ISO_8601_FORMAT)
+          max_timestamp = ParseISO8601(max_timestamp)
 
         try:
           alert_list, next_cursor, _ = anomaly.Anomaly.QueryAsync(
