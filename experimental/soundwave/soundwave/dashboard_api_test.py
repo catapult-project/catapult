@@ -12,17 +12,19 @@ from soundwave import dashboard_api
 class TestRequestErrors(unittest.TestCase):
   def testClientErrorPickleable(self):
     error = dashboard_api.ClientError(
-        {'status': '400'}, 'You made a bad request!')
+        'api', {'status': '400'}, 'You made a bad request!')
     error = pickle.loads(pickle.dumps(error))
     self.assertIsInstance(error, dashboard_api.ClientError)
+    self.assertEqual(error.request, 'api')
     self.assertEqual(error.response, {'status': '400'})
     self.assertEqual(error.content, 'You made a bad request!')
 
   def testServerErrorPickleable(self):
     error = dashboard_api.ServerError(
-        {'status': '500'}, 'Oops, I had a problem!')
+        'api', {'status': '500'}, 'Oops, I had a problem!')
     error = pickle.loads(pickle.dumps(error))
     self.assertIsInstance(error, dashboard_api.ServerError)
+    self.assertEqual(error.request, 'api')
     self.assertEqual(error.response, {'status': '500'})
     self.assertEqual(error.content, 'Oops, I had a problem!')
 
@@ -44,12 +46,12 @@ class TestDashboardCommunicator(unittest.TestCase):
 
   def testGetTimeseries_missingPathReturnsNone(self):
     self.api._MakeApiRequest.side_effect = dashboard_api.ClientError(
-        {'status': '400'}, '{"error": "Invalid test_path foo"}')
+        'api', {'status': '400'}, '{"error": "Invalid test_path foo"}')
     self.assertIsNone(self.api.GetTimeseries('foo'))
 
   def testGetTimeseries_serverErrorRaises(self):
     self.api._MakeApiRequest.side_effect = dashboard_api.ServerError(
-        {'status': '500'}, 'Something went wrong. :-(')
+        'api', {'status': '500'}, 'Something went wrong. :-(')
     with self.assertRaises(dashboard_api.ServerError):
       self.api.GetTimeseries('bar')
 

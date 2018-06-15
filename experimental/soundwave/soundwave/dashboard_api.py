@@ -18,19 +18,24 @@ from py_utils import retry_util  # pylint: disable=import-error
 
 class RequestError(OSError):
   """Exception class for errors while making a request."""
-  def __init__(self, response, content):
+  def __init__(self, request, response, content):
+    self.request = request
     self.response = response
     self.content = content
     super(RequestError, self).__init__(
-        'Request returned HTTP Error %s: %s' % (
-            response['status'], self.error_message))
+        '%s returned HTTP Error %d: %s' % (
+            self.request, self.status, self.error_message))
 
   def __reduce__(self):
     # Method needed to make the exception pickleable [1], otherwise it causes
     # the mutliprocess pool to hang when raised by a worker [2].
     # [1]: https://stackoverflow.com/a/36342588
     # [2]: https://github.com/uqfoundation/multiprocess/issues/33
-    return (type(self), (self.response, self.content))
+    return (type(self), (self.request, self.response, self.content))
+
+  @property
+  def status(self):
+    return int(self.response['status'])
 
   @property
   def json(self):
@@ -59,15 +64,15 @@ class ServerError(RequestError):
   pass
 
 
-def BuildRequestError(response, content):
+def BuildRequestError(request, response, content):
   """Build the correct RequestError depending on the response status."""
   if response['status'].startswith('4'):
-    return ClientError(response, content)
+    error = ClientError
   elif response['status'].startswith('5'):
-    return ServerError(response, content)
-  else:
-    # Fall back to the base class.
-    return RequestError(response, content)
+    error = ServerError
+  else:  # Fall back to the base class.
+    error = RequestError
+  return error(request, response, content)
 
 
 class PerfDashboardCommunicator(object):
@@ -138,7 +143,7 @@ class PerfDashboardCommunicator(object):
         method="POST",
         headers={'Content-length': 0})
     if resp['status'] != '200':
-      raise BuildRequestError(resp, content)
+      raise BuildRequestError(request, resp, content)
     return json.loads(content)
 
   def ListTestPaths(self, benchmark, sheriff):
