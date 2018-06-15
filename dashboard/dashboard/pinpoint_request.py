@@ -10,6 +10,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard import start_try_job
+from dashboard.common import descriptor
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.services import crrev_service
@@ -143,14 +144,10 @@ def ParseTIRLabelChartNameAndTraceName(test_path_parts):
 
 
 def ParseStatisticNameFromChart(chart_name):
-  statistic_types = [
-      'avg', 'min', 'max', 'sum', 'std', 'count'
-  ]
-
   chart_name_parts = chart_name.split('_')
   statistic_name = ''
 
-  if chart_name_parts[-1] in statistic_types:
+  if chart_name_parts[-1] in descriptor.STATISTICS:
     chart_name = '_'.join(chart_name_parts[:-1])
     statistic_name = chart_name_parts[-1]
   return chart_name, statistic_name
