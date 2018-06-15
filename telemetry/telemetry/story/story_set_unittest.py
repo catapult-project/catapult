@@ -118,7 +118,8 @@ class StorySetTest(unittest.TestCase):
         'bar': 7, 'baz': 8})
 
     story_set.AddStory(foo_story0)
-    story_set.AddStory(foo_story1)
+    with self.assertRaises(AssertionError):
+      story_set.AddStory(foo_story1)
 
   def testAddDuplicateDisplayNameWithSameGroupingKeysRaises(self):
     story_set = story.StorySet()

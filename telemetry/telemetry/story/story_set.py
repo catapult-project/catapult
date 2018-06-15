@@ -32,7 +32,7 @@ class StorySet(object):
           storage.
     """
     self._stories = []
-    self._story_names_and_grouping_keys = set()
+    self._story_names = set()
     self._archive_data_file = archive_data_file
     self._wpr_archive_info = None
     archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
@@ -108,12 +108,10 @@ class StorySet(object):
           (story.name, story.shared_state_class, shared_state_class))
 
     self._stories.append(story)
-    self._story_names_and_grouping_keys.add(
-        story.name_and_grouping_key_tuple)
+    self._story_names.add(story.name)
 
   def _IsUnique(self, story):
-    return (story.name_and_grouping_key_tuple not in
-            self._story_names_and_grouping_keys)
+    return story.name not in self._story_names
 
   def RemoveStory(self, story):
     """Removes a Story.
@@ -121,8 +119,7 @@ class StorySet(object):
     Allows the stories to be filtered.
     """
     self._stories.remove(story)
-    self._story_names_and_grouping_keys.remove(
-        story.name_and_grouping_key_tuple)
+    self._story_names.remove(story.name)
 
   @classmethod
   def Name(cls):
