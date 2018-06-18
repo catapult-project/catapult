@@ -13,7 +13,7 @@ API explorer: https://goo.gl/uxPUZo
 from dashboard.services import request
 
 
-_API_PATH = 'api/swarming/v1'
+_API_PATH = '_ah/api/swarming/v1'
 
 
 class Swarming(object):
