@@ -12,21 +12,34 @@ SAME = 'same'
 UNKNOWN = 'unknown'
 
 
-_HIGH_THRESHOLDS = (
-    1.0000, 0.3682, 0.1625, 0.0815, 0.0428, 0.0230,
-    0.0126, 0.0070, 0.0039, 0.0022, 0.0013, 0.0007,
-)
+_HIGH_THRESHOLDS = {
+    # Run thresholds_functional.py to generate these numbers.
+    'functional': (
+        1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 0.3271, 0.3255, 0.1588,
+        0.1586, 0.0827, 0.0445, 0.0446, 0.0244, 0.0135, 0.0136, 0.0076,
+    ),
+    # Run thresholds_performance.py to generate these numbers.
+    'performance': (
+        1.0000, 0.3682, 0.1625, 0.0815, 0.0428, 0.0230,
+        0.0126, 0.0070, 0.0039, 0.0022, 0.0013, 0.0007,
+    ),
+}
 
-_LOW_THRESHOLD = 0.001
+_LOW_THRESHOLD = {
+    'functional': 0.01,
+    'performance': 0.001,
+}
 
 
-def Compare(values_a, values_b, attempt_count):
+def Compare(values_a, values_b, attempt_count, comparison_mode):
   """Decide whether two samples are the same, different, or unknown.
 
   Arguments:
     values_a: A list of sortable values. They don't need to be numeric.
     values_b: A list of sortable values. They don't need to be numeric.
     attempt_count: The total number of attempts made.
+    comparison_mode: 'functional' or 'performance'. We use
+        different significance thresholds for each type.
 
   Returns:
     DIFFERENT: The samples likely come from different distributions.
@@ -50,13 +63,13 @@ def Compare(values_a, values_b, attempt_count):
       kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b),
       mann_whitney_u.MannWhitneyU(values_a, values_b))
 
-  if p_value < _LOW_THRESHOLD:
+  if p_value <= _LOW_THRESHOLD[comparison_mode]:
     # The p-value is less than the significance level. Reject the null
     # hypothesis.
     return DIFFERENT
 
-  index = min(attempt_count / 20, len(_HIGH_THRESHOLDS) - 1)
-  questionable_significance_level = _HIGH_THRESHOLDS[index]
+  index = min(attempt_count / 20, len(_HIGH_THRESHOLDS[comparison_mode]) - 1)
+  questionable_significance_level = _HIGH_THRESHOLDS[comparison_mode][index]
   if p_value <= questionable_significance_level:
     # The p-value is not less than the significance level, but it's small enough
     # to be suspicious. We'd like to investigate more closely.
