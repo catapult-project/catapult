@@ -213,6 +213,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
                      action_runner.WaitForJavaScriptCondition(
                          'window.testing', timeout=10))
 
+  @decorators.Disabled('mac')  # crbug.com/852931
   def testWaitForElement(self):
     action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)
