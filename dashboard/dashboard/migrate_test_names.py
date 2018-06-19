@@ -63,7 +63,8 @@ _TEST_DEPRECATED_PROPERTIES = [
     'masterid',
     'stoppage_alert',
     'code',
-    'command_line'
+    'command_line',
+    'monitored'
 ]
 _TEST_EXCLUDE = _TEST_COMPUTED_PROPERTIES + _TEST_DEPRECATED_PROPERTIES
 
