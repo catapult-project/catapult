@@ -133,7 +133,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
             response['DEPRECATION WARNING'] += '&is_improvement=false'
           if filter_for_benchmark:
             response['DEPRECATION WARNING'] += (
-                '&test_suite_name=' + filter_for_benchmark)
+                '&test_suite=' + filter_for_benchmark)
 
           alert_list, _, _ = anomaly.Anomaly.QueryAsync(
               sheriff=sheriff_key.id(),
