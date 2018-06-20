@@ -123,43 +123,47 @@ class PerfDashboardCommunicator(object):
       self._credentials = oauth2client.tools.run_flow(flow, store, flags)
 
   @retry_util.RetryOnException(ServerError, retries=3)
-  def _MakeApiRequest(self, request, retries=None):
+  def _MakeApiRequest(self, request, params=None, retries=None):
     """Used to communicate with perf dashboard.
 
     Args:
-      request: String that contains POST request to dashboard.
+      request: String with the API endpoint to which the request is made.
+      params: A dictionary with parameters for the request.
+      retries: Number of times to retry in case of server errors.
+
     Returns:
       Contents of the response from the dashboard.
     """
     del retries  # Handled by the decorator.
     assert self.has_credentials
+    url = self.REQUEST_URL + request
+    if params:
+      url = '%s?%s' % (url, urllib.urlencode(params))
+
     http = httplib2.Http()
     if self._credentials.access_token_expired:
       self._credentials.refresh(http)
     http = self._credentials.authorize(http)
-    logging.info('Making API request: %s', request)
+    logging.info('Making API request: %s', url)
     resp, content = http.request(
-        self.REQUEST_URL + request,
-        method="POST",
-        headers={'Content-length': 0})
+        url, method='POST', headers={'Content-length': 0})
     if resp['status'] != '200':
-      raise BuildRequestError(request, resp, content)
+      raise BuildRequestError(url, resp, content)
     return json.loads(content)
 
-  def ListTestPaths(self, benchmark, sheriff):
-    """Lists test paths for the given benchmark.
+  def ListTestPaths(self, test_suite, sheriff):
+    """Lists test paths for the given test_suite.
 
     Args:
-      benchmark: Benchmark to get paths for.
-      sheriff:
-          Filters test paths to only ones monitored by the given sheriff
-          rotation.
+      test_suite: String with test suite (benchmark) to get paths for.
+      sheriff: Include only test paths monitored by the given sheriff rotation,
+          use 'all' to return all test pathds regardless of rotation.
 
     Returns:
       A list of test paths. Ex. ['TestPath1', 'TestPath2']
     """
-    options = urllib.urlencode({'sheriff': sheriff})
-    return self._MakeApiRequest('list_timeseries/%s?%s' % (benchmark, options))
+    return self._MakeApiRequest(
+        'list_timeseries/%s' % test_suite, {'sheriff': sheriff})
 
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.
@@ -183,10 +187,9 @@ class PerfDashboardCommunicator(object):
 
       or None if the test_path is not found.
     """
-    options = urllib.urlencode({'num_days': days})
-    r = 'timeseries/%s?%s' % (urllib.quote(test_path), options)
     try:
-      return self._MakeApiRequest(r)
+      return self._MakeApiRequest(
+          'timeseries/%s' % urllib.quote(test_path), {'num_days': days})
     except ClientError as exc:
       if 'Invalid test_path' in exc.json['error']:
         return None
@@ -201,19 +204,29 @@ class PerfDashboardCommunicator(object):
       yield self._MakeApiRequest('bugs/%d' % bug_id)
 
   def IterAlertData(self, test_suite, sheriff, days=30):
-    """Returns alerts for the given test_suite."""
+    """Returns alerts for the given test_suite.
+
+    Args:
+      test_suite: String with test suite (benchmark) to get paths for.
+      sheriff: Include only test paths monitored by the given sheriff rotation,
+          use 'all' to return all test pathds regardless of rotation.
+      days: Only return alerts which are at most this number of days old.
+
+    Yields:
+      Data for all requested alerts in chunks.
+    """
     min_timestamp = datetime.datetime.now() - datetime.timedelta(days=days)
-    options = {
+    params = {
         'test_suite': test_suite,
         'min_timestamp': min_timestamp.isoformat(),
         'limit': 1000,
     }
     if sheriff != 'all':
-      options['sheriff'] = sheriff
+      params['sheriff'] = sheriff
     while True:
-      response = self._MakeApiRequest('alerts?' + urllib.urlencode(options))
+      response = self._MakeApiRequest('alerts', params)
       yield response
       if 'next_cursor' in response:
-        options['cursor'] = response['next_cursor']
+        params['cursor'] = response['next_cursor']
       else:
         return
