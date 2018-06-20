@@ -41,13 +41,18 @@ def _ApiAndDbSession(args):
 def FetchAlertsData(args):
   with _ApiAndDbSession(args) as (api, con):
     # Get alerts.
-    alerts = tables.alerts.DataFrameFromJson(
-        api.GetAlertData(args.benchmark, args.sheriff, args.days))
-    print '%d alerts found!' % len(alerts)
-    pandas_sqlite.InsertOrReplaceRecords(con, 'alerts', alerts)
+    num_alerts = 0
+    bug_ids = set()
+    # TODO: This loop may be slow when fetching thousands of alerts, needs a
+    # better progress indicator.
+    for data in api.IterAlertData(args.benchmark, args.sheriff, args.days):
+      alerts = tables.alerts.DataFrameFromJson(data)
+      pandas_sqlite.InsertOrReplaceRecords(con, 'alerts', alerts)
+      num_alerts += len(alerts)
+      bug_ids.update(alerts['bug_id'].unique())
+    print '%d alerts found!' % num_alerts
 
     # Get set of bugs associated with those alerts.
-    bug_ids = set(alerts['bug_id'].unique())
     bug_ids.discard(0)  # A bug_id of 0 means untriaged.
     print '%d bugs found!' % len(bug_ids)
 

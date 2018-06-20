@@ -200,14 +200,20 @@ class PerfDashboardCommunicator(object):
     for bug_id in bug_ids:
       yield self._MakeApiRequest('bugs/%d' % bug_id)
 
-  def GetAlertData(self, test_suite, sheriff, days=30):
+  def IterAlertData(self, test_suite, sheriff, days=30):
     """Returns alerts for the given test_suite."""
-    # TODO(#4479): Also needs to follow possible next_cursor on response.
     min_timestamp = datetime.datetime.now() - datetime.timedelta(days=days)
     options = {
         'test_suite': test_suite,
         'min_timestamp': min_timestamp.isoformat(),
+        'limit': 1000,
     }
     if sheriff != 'all':
       options['sheriff'] = sheriff
-    return self._MakeApiRequest('alerts?' + urllib.urlencode(options))
+    while True:
+      response = self._MakeApiRequest('alerts?' + urllib.urlencode(options))
+      yield response
+      if 'next_cursor' in response:
+        options['cursor'] = response['next_cursor']
+      else:
+        return
