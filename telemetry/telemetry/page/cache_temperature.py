@@ -32,6 +32,8 @@ WARM = 'warm'
 # in the same renderer before the run.
 HOT = 'hot'
 
+ALL_CACHE_TEMPERATURES = [ANY, COLD, WARM_BROWSER, HOT_BROWSER, WARM, HOT]
+
 
 class _MarkTelemetryInternal(object):
   def __init__(self, tab, identifier):
