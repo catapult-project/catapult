@@ -184,7 +184,8 @@ def _PositiveIntOrNone(input_str):
 
 def _GetAnomalyAnnotationMap(test):
   """Gets a map of revision numbers to Anomaly entities."""
-  anomalies, _, _ = anomaly.Anomaly.QueryAsync(test=test).get_result()
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      test=test, limit=1000).get_result()
   return dict((a.end_revision, a) for a in anomalies)
 
 
