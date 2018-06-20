@@ -331,6 +331,12 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
       }));
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-network',
+        title: 'ResourceLoad',
+        start: 20,
+        duration: 5.0,
+      }));
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -1108,6 +1114,12 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
       }));
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-network',
+        title: 'ResourceLoad',
+        start: 0,
+        duration: 5.0,
+      }));
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -1192,6 +1204,12 @@ tr.b.unittest.testSuite(function() {
         start: 10,
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
+      }));
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-network',
+        title: 'ResourceLoad',
+        start: 10,
+        duration: 5.0,
       }));
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({

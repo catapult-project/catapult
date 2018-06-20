@@ -440,6 +440,12 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
       }));
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-network',
+        title: 'ResourceLoad',
+        start: 200,
+        duration: 5.0
+      }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'});

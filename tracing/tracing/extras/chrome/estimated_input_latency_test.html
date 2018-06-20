@@ -60,6 +60,16 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
+  function addNetworkRequest(rendererMain, start, duration) {
+    const networkEvents = [];
+    rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
+      cat: 'disabled-by-default-network',
+      title: 'ResourceLoad',
+      start,
+      duration,
+    }));
+  }
+
   function addFMPCandidate(mainThread, fmpTime) {
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading',
@@ -123,10 +133,12 @@ tr.b.unittest.testSuite(function() {
 
       const mainThread = model.rendererMain;
       addNavigationStart(mainThread, 0);
+      addNetworkRequest(mainThread, 0, 50);
       addFMPCandidate(mainThread, 5000);
       addDomContentLoadedEnd(mainThread, 5000);
 
       addNavigationStart(mainThread, 100000);
+      addNetworkRequest(mainThread, 100000, 50);
       addFMPCandidate(mainThread, 110000);
       addDomContentLoadedEnd(mainThread, 110000);
 
@@ -156,9 +168,11 @@ tr.b.unittest.testSuite(function() {
 
         addTestFrame(rendererProcess);
         addNavigationStart(mainThread, i * 1000);
-        addFMPCandidate(mainThread, i * 1000 + 2000);
+        addNetworkRequest(mainThread, i * 1000, 50);
+        addFMPCandidate(mainThread, i * 1000 + 50);
         addDomContentLoadedEnd(mainThread, i * 1000 + 2000);
         addNavigationStart(mainThread, i * 10000);
+        addNetworkRequest(mainThread, i * 10000, 50);
         addFMPCandidate(mainThread, i * 10000 + 2000);
         addDomContentLoadedEnd(mainThread, i * 10000 + 2000);
         addDummyTask(mainThread, 100000);

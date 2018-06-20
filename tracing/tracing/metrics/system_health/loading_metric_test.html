@@ -495,6 +495,7 @@ tr.b.unittest.testSuite(function() {
 
       addNavigationStart_(mainThread, 200,
           {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+      addNetworkRequest_(mainThread, 200, 250);
       // FrameLoader creation time after navigation start.
       rendererProcess.objects.idWasCreated(
           'ptr', 'loading', 'FrameLoader', 250);
@@ -532,6 +533,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 250);
       addFrameLoaderObject_(rendererProcess, 300);
       addFirstMeaningfulPaint_(mainThread, 500);
       addDomContentLoadedEnd_(mainThread, 600);
@@ -567,6 +569,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
       addTopLevelTask_(mainThread, 600, 200);
@@ -593,6 +596,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addFirstMeaningfulPaint_(mainThread, 1000);
       addDomContentLoadedEnd_(mainThread, 3000);
@@ -652,6 +656,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
       addFirstMeaningfulPaint_(mainThread, 1000);
@@ -674,6 +679,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
       addFirstMeaningfulPaint_(mainThread, 1000);
@@ -697,6 +703,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
       addFirstMeaningfulPaint_(mainThread, 1000);
@@ -728,6 +735,7 @@ tr.b.unittest.testSuite(function() {
         const mainThread = rendererProcess.getOrCreateThread(2);
         mainThread.name = 'CrRendererMain';
         addNavigationStart_(mainThread, 200);
+        addNetworkRequest_(mainThread, 200, 50);
         addFrameLoaderObject_(rendererProcess, 300);
         addDomContentLoadedEnd_(mainThread, 600);
         addFirstMeaningfulPaint_(mainThread, 1000);
@@ -758,6 +766,7 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200);
+      addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addFirstMeaningfulPaint_(mainThread, 1000);
       // No long task. TTI is reached at 3000.
@@ -802,6 +811,28 @@ tr.b.unittest.testSuite(function() {
     // 3000 - 200 (navStart) = 2800.
     assert.strictEqual(2800, firstCpuIdleHist.running.mean);
   });
+
+  test('timeToInteractive_notReportedWithoutResourceLoadEvents', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);
+      // Last task in the model. 8001 will be considered end of tracing, so
+      // there is sufficiently large window to detect TTI.
+      addTopLevelTask_(mainThread, 8000, 1);
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const ttiHist = histograms.getHistogramNamed('timeToInteractive');
+    assert.strictEqual(0, ttiHist.numValues);
+  });
+
 
   test('webView', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
