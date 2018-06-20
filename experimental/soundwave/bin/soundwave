@@ -48,12 +48,11 @@ def Main():
       '--user-credentials-json', default=DEFAULT_USER_CREDENTIALS_PATH,
       help='Path to file where to store user credentials')
   # Default args for all actions.
-  # TODO(charliea): Add ability to retrieve alerts through dashboard API
-  # regardless of sheriffing rotation.
   parser.add_argument(
       '-s', '--sheriff', default='Chromium Perf Sheriff',
-      help='Only get data this sheriff rotation. For timeseries, you can use a '
-           'special value "all" to disable filtering by sheriff rotation.')
+      help='Only get data for this sheriff rotation, default: "%(default)s". '
+           'You can use the special value "all" to disable filtering by '
+           'sheriff rotation.')
   parser.add_argument(
       '-d', '--days', default=30, type=int,
       help='Number of days to collect data for (default: %(default)s)')
