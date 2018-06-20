@@ -2742,7 +2742,7 @@ class DeviceUtils(object):
 
   @classmethod
   def HealthyDevices(cls, blacklist=None, device_arg='default', retry=True,
-                     **kwargs):
+                     abis=None, **kwargs):
     """Returns a list of DeviceUtils instances.
 
     Returns a list of DeviceUtils instances that are attached, not blacklisted,
@@ -2766,6 +2766,8 @@ class DeviceUtils(object):
               blacklisted.
       retry: If true, will attempt to restart adb server and query it again if
           no devices are found.
+      abis: A list of ABIs for which the device needs to support at least one of
+          (optional).
       A device serial, or a list of device serials (optional).
 
     Returns:
@@ -2801,14 +2803,23 @@ class DeviceUtils(object):
         return True
       return False
 
+    def supports_abi(abi, serial):
+      if abis and abi not in abis:
+        logger.warning("Device %s doesn't support required ABIs.", serial)
+        return False
+      return True
+
     def _get_devices():
       if device_arg:
         devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
       else:
         devices = []
         for adb in adb_wrapper.AdbWrapper.Devices():
-          if not blacklisted(adb.GetDeviceSerial()):
-            devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+          serial = adb.GetDeviceSerial()
+          if not blacklisted(serial):
+            device = cls(_CreateAdbWrapper(adb), **kwargs)
+            if supports_abi(device.GetABI(), serial):
+              devices.append(device)
 
       if len(devices) == 0 and not allow_no_devices:
         raise device_errors.NoDevicesError()

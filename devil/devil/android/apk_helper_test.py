@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
+import os
 import unittest
 
 from devil import base_error
@@ -125,6 +127,11 @@ def _MockAaptDump(manifest_dump):
       'devil.android.sdk.aapt.Dump',
       mock.Mock(side_effect=None, return_value=manifest_dump.split('\n')))
 
+def _MockListApkPaths(files):
+  return mock.patch(
+      'devil.android.apk_helper.ApkHelper._ListApkPaths',
+      mock.Mock(side_effect=None, return_value=files))
+
 class ApkHelperTest(mock_calls.TestCase):
 
   def testGetInstrumentationName(self):
@@ -219,6 +226,25 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEquals('org.chromium.RandomTestRunner',
                         helper.GetInstrumentationName())
+
+  def testGetArchitectures(self):
+    AbiPair = collections.namedtuple('AbiPair', ['abi32bit', 'abi64bit'])
+    for abi_pair in [AbiPair('lib/armeabi-v7a', 'lib/arm64-v8a'),
+                     AbiPair('lib/x86', 'lib/x64')]:
+      with _MockListApkPaths([abi_pair.abi32bit]):
+        helper = apk_helper.ApkHelper('')
+        self.assertEquals(set([os.path.basename(abi_pair.abi32bit),
+                               os.path.basename(abi_pair.abi64bit)]),
+                          set(helper.GetAbis()))
+      with _MockListApkPaths([abi_pair.abi32bit, abi_pair.abi64bit]):
+        helper = apk_helper.ApkHelper('')
+        self.assertEquals(set([os.path.basename(abi_pair.abi32bit),
+                               os.path.basename(abi_pair.abi64bit)]),
+                          set(helper.GetAbis()))
+      with _MockListApkPaths([abi_pair.abi64bit]):
+        helper = apk_helper.ApkHelper('')
+        self.assertEquals(set([os.path.basename(abi_pair.abi64bit)]),
+                          set(helper.GetAbis()))
 
 
 if __name__ == '__main__':
