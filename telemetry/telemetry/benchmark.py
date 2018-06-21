@@ -271,7 +271,7 @@ class Benchmark(command_line.Command):
       tbm_options.config.enable_atrace_trace = True
 
       categories = tbm_options.config.atrace_config.categories
-      if type(categories) != list:
+      if isinstance(categories, basestring):
         # Categories can either be a list or comma-separated string.
         # https://github.com/catapult-project/catapult/issues/3712
         categories = categories.split(',')

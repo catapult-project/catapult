@@ -43,7 +43,7 @@ class _BitmapTools(object):
     packed_dims = struct.pack('iiiiiii', *dimensions)
     self._popen.stdin.write(packed_dims)
     # If we got a list of ints, we need to convert it into a byte buffer.
-    if type(pixels) is not bytearray:
+    if not isinstance(pixels, bytearray):
       pixels = bytearray(pixels)
     self._popen.stdin.write(pixels)
 
@@ -126,7 +126,7 @@ class Bitmap(object):
       # pylint: disable=unpacking-non-sequence
       _, _, self._width, self._height = self._crop_box
       self._crop_box = None
-    if type(self._pixels) is not bytearray:
+    if not isinstance(self._pixels, bytearray):
       self._pixels = bytearray(self._pixels)
     return self._pixels
 

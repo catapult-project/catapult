@@ -265,11 +265,11 @@ def TrapezoidalRule(data, dx):
 
 def Total(data):
   """Returns the float value of a number or the sum of a list."""
-  if type(data) == float:
+  if isinstance(data, float):
     total = data
-  elif type(data) == int:
+  elif isinstance(data, int):
     total = float(data)
-  elif type(data) == list:
+  elif isinstance(data, list):
     total = float(sum(data))
   else:
     raise TypeError

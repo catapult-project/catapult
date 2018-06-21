@@ -90,6 +90,7 @@ class Value(object):
     return hash(str(self))
 
   def IsMergableWith(self, that):
+    # pylint: disable=unidiomatic-typecheck
     return (self.units == that.units and
             type(self) == type(that) and
             self.important == that.important)

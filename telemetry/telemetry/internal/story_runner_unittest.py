@@ -829,7 +829,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
-      if type(diagnostic) == histogram_module.TagMap:
+      if isinstance(diagnostic, histogram_module.TagMap):
         tagmap = diagnostic
         break
 
@@ -867,7 +867,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
-      if type(diagnostic) == histogram_module.TagMap:
+      if isinstance(diagnostic, histogram_module.TagMap):
         tagmap = diagnostic
         break
 
@@ -1722,4 +1722,3 @@ class LogsArtifactTest(unittest.TestCase):
       bar_log = json_data['tests']['TestBenchmark']['bar']
       self.assertEquals(bar_log['expected'], 'PASS')
       self.assertEquals(bar_log['actual'], 'SKIP')
-
