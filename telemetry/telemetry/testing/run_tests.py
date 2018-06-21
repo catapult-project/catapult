@@ -254,7 +254,7 @@ def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
   if not selected_tests:
     return False
   if selected_tests_are_exact:
-    return any(name in selected_tests)
+    return name in selected_tests
   else:
     return any(test in name for test in selected_tests)
 
