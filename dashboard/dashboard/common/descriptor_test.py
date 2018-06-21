@@ -4,10 +4,24 @@
 
 import unittest
 
+from dashboard.common import stored_object
 from dashboard.common import descriptor
+from dashboard.common import testing_common
 
 
-class DescriptorTest(unittest.TestCase):
+class DescriptorTest(testing_common.TestCase):
+
+  def setUp(self):
+    super(DescriptorTest, self).setUp()
+    stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [
+        'TEST_PARTIAL_TEST_SUITE',
+    ])
+    stored_object.Set(descriptor.COMPOSITE_TEST_SUITES_KEY, [
+        'TEST_PARTIAL_TEST_SUITE:COMPOSITE',
+    ])
+    stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [
+        'TEST_GROUPABLE%',
+    ])
 
   def testFromTestPath_Empty(self):
     desc = descriptor.Descriptor.FromTestPath([])
@@ -95,6 +109,23 @@ class DescriptorTest(unittest.TestCase):
     self.assertEqual('avg', desc.statistic)
     self.assertEqual(descriptor.REFERENCE_BUILD_TYPE, desc.build_type)
 
+  def testFromTestPath_Partial(self):
+    desc = descriptor.Descriptor.FromTestPath([
+        'master', 'bot', 'TEST_PARTIAL_TEST_SUITE'])
+    self.assertEqual('master:bot', desc.bot)
+    self.assertEqual(None, desc.test_suite)
+
+    desc = descriptor.Descriptor.FromTestPath([
+        'master', 'bot', 'TEST_PARTIAL_TEST_SUITE', 'COMPOSITE'])
+    self.assertEqual('master:bot', desc.bot)
+    self.assertEqual('TEST_PARTIAL_TEST_SUITE:COMPOSITE', desc.test_suite)
+
+  def testFromTestPath_Groupable(self):
+    desc = descriptor.Descriptor.FromTestPath([
+        'master', 'bot', 'TEST_GROUPABLE%FOO'])
+    self.assertEqual('master:bot', desc.bot)
+    self.assertEqual('TEST_GROUPABLE:FOO', desc.test_suite)
+
   def testToTestPaths_Empty(self):
     self.assertEqual([], descriptor.Descriptor().ToTestPaths())
 
@@ -146,6 +177,17 @@ class DescriptorTest(unittest.TestCase):
         test_case='case',
         statistic='avg',
         build_type=descriptor.REFERENCE_BUILD_TYPE).ToTestPaths())
+
+  def testToTestPaths_Composite(self):
+    expected = 'master/bot/TEST_PARTIAL_TEST_SUITE/COMPOSITE'
+    self.assertEqual([expected], descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='TEST_PARTIAL_TEST_SUITE:COMPOSITE').ToTestPaths())
+
+  def testToTestPaths_Groupable(self):
+    self.assertEqual(['master/bot/TEST_GROUPABLE%FOO'], descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='TEST_GROUPABLE:FOO').ToTestPaths())
 
 
 if __name__ == '__main__':
