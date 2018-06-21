@@ -250,17 +250,6 @@ class AddHistogramsEndToEndTest(testing_common.TestCase):
     response = self.testapp.post('/add_histograms', {'data': data}, status=400)
     self.assertIn('Illegal slash', response.body)
 
-  def testPost_DuplicateHistogram_Fails(self):
-    hs1 = _CreateHistogram(
-        master='m', bot='b', benchmark='s', commit_position=1, samples=[1])
-    hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', commit_position=1, samples=[1])
-    hs.ImportDicts(hs1.AsDicts())
-    data = json.dumps(hs.AsDicts())
-
-    response = self.testapp.post('/add_histograms', {'data': data}, status=400)
-    self.assertIn('Duplicate histogram detected', response.body)
-
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')

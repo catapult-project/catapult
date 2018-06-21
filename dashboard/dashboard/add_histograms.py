@@ -190,8 +190,7 @@ def _BatchHistogramsIntoTasks(
     test_path = ComputeTestPath(suite_path, hist.guid, histograms)
 
     if test_path in duplicate_check:
-      raise api_request_handler.BadRequestError(
-          'Duplicate histogram detected: %s' % test_path)
+      logging.warning('Duplicate histogram detected: %s', test_path)
     duplicate_check.add(test_path)
 
     # TODO(eakuefner): Batch these better than one per task.
