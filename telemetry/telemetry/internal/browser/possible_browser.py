@@ -105,7 +105,9 @@ class PossibleBrowser(possible_app.PossibleApp):
     assert getattr(browser_options, 'IS_BROWSER_OPTIONS', False)
     self._browser_options = browser_options
 
-  def Create(self):
+  def Create(self, clear_caches=True):
+    # TODO(crbug.com/811244): The clear_caches option should be removed then
+    # this is handled by the shared state.
     raise NotImplementedError()
 
   def CleanUpEnvironment(self):

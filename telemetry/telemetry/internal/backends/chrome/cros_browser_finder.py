@@ -86,7 +86,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     for extension in self._browser_options.extensions_to_load:
       self._platform_backend.cri.RmRF(posixpath.dirname(extension.local_path))
 
-  def Create(self):
+  def Create(self, clear_caches=True):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
@@ -94,7 +94,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self.browser_directory, self.profile_directory,
         self._is_guest)
 
-    self._ClearCachesOnStart()
+    # TODO(crbug.com/811244): Remove when this is handled by shared state.
+    if clear_caches:
+      self._ClearCachesOnStart()
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(

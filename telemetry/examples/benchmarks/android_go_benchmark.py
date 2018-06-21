@@ -52,6 +52,9 @@ class SharedAndroidStoryState(story_module.SharedState):
 
   def LaunchBrowser(self, url):
     self._ActuallyCloseBrowser()  # Close a previous browser if any.
+    # Clear caches before starting browser.
+    self.platform.FlushDnsCache()
+    self._possible_browser.FlushOsPageCaches()
     # TODO: Android Go stories could, e.g., use the customtabs helper app to
     # start Chrome as a custom tab.
     self.platform.StartActivity(
