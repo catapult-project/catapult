@@ -98,8 +98,6 @@ class AndroidPlatformBackend(
                 self._battery),
         ], self._battery))
     self._video_recorder = None
-    self._installed_applications = None
-
     self._system_ui = None
 
     _FixPossibleAdbInstability()
@@ -375,13 +373,9 @@ class AndroidPlatformBackend(
     return bool(self._device.GetApplicationPids(application))
 
   def CanLaunchApplication(self, application):
-    if not self._installed_applications:
-      self._installed_applications = self._device.RunShellCommand(
-          ['pm', 'list', 'packages'], check_return=True)
-    return 'package:' + application in self._installed_applications
+    return bool(self._device.GetApplicationPaths(application))
 
   def InstallApplication(self, application):
-    self._installed_applications = None
     self._device.Install(application)
 
   @decorators.Cache
