@@ -182,7 +182,7 @@ def md_module(module_obj, module_path=None, module_link=None):
     A list of markdown-formatted lines.
   """
   def should_doc(name):
-    return (type(module_obj.__dict__[name]) != types.ModuleType
+    return (not isinstance(module_obj.__dict__[name], types.ModuleType)
             and not name.startswith('_'))
 
   stuff_to_doc = sorted(
@@ -193,9 +193,9 @@ def md_module(module_obj, module_path=None, module_link=None):
   functions_to_doc = []
 
   for s in stuff_to_doc:
-    if type(s) == types.TypeType:
+    if isinstance(s, types.TypeType):
       classes_to_doc.append(s)
-    elif type(s) == types.FunctionType:
+    elif isinstance(s, types.FunctionType):
       functions_to_doc.append(s)
 
   command = ['devil/utils/markdown.py']
@@ -243,7 +243,7 @@ def md_class(class_obj):
     content.extend(md_docstring(class_obj.__doc__))
 
   def should_doc(name, obj):
-    return (type(obj) == types.FunctionType
+    return (isinstance(obj, types.FunctionType)
             and (name.startswith('__') or not name.startswith('_')))
 
   methods_to_doc = sorted(

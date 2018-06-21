@@ -54,7 +54,7 @@ class Fastboot(object):
     Raises:
       TypeError: If cmd is not of type list.
     """
-    if type(cmd) == list:
+    if isinstance(cmd, list):
       cmd = [cls._fastboot_path.read()] + cmd
     else:
       raise TypeError(
@@ -76,7 +76,7 @@ class Fastboot(object):
     Raises:
       TypeError: If cmd is not of type list.
     """
-    if type(cmd) == list:
+    if isinstance(cmd, list):
       cmd = ['-s', self._device_serial] + cmd
     return self._RunFastbootCommand(cmd)
 
