@@ -323,10 +323,14 @@ def _MakeAnomalyEntity(change_point, test, rows):
   median_before = change_point.median_before
   median_after = change_point.median_after
 
+  suite_key = test.key.id().split('/')[:3]
+  suite_key = '/'.join(suite_key)
+  suite_key = utils.TestKey(suite_key)
+
   queried_diagnostics = yield (
       histogram.SparseDiagnostic.GetMostRecentValuesByNamesAsync(
-          test.key, set([reserved_infos.BUG_COMPONENTS.name,
-                         reserved_infos.OWNERS.name])))
+          suite_key, set([reserved_infos.BUG_COMPONENTS.name,
+                          reserved_infos.OWNERS.name])))
 
   bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name)
 

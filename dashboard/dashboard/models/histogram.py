@@ -5,7 +5,6 @@
 """The datastore models for histograms and diagnostics."""
 
 import collections
-import json
 import sys
 
 from google.appengine.ext import ndb
@@ -71,7 +70,7 @@ class SparseDiagnostic(JsonModel):
     for diagnostic in diagnostics:
       if diagnostic.name in diagnostic_names:
         assert diagnostic_map.get(diagnostic.name) is None
-        diagnostic_data = json.loads(diagnostic.data)
+        diagnostic_data = diagnostic.data
         diagnostic_map[diagnostic.name] = diagnostic_data.get('values')
     raise ndb.Return(diagnostic_map)
 

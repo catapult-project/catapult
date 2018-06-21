@@ -207,13 +207,13 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(data_samples[0]), test=test_key, start_revision=1,
+        data=data_samples[0], test=test_key, start_revision=1,
         end_revision=sys.maxint, id=data_samples[0]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(data_samples[1]), test=test_key, start_revision=1,
+        data=data_samples[1], test=test_key, start_revision=1,
         end_revision=sys.maxint, id=data_samples[1]['guid'],
         name=reserved_infos.BUG_COMPONENTS.name)
     entity.put()
@@ -236,7 +236,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(data_sample), test=test_key, start_revision=1,
+        data=data_sample, test=test_key, start_revision=1,
         end_revision=sys.maxint, id=data_sample['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
@@ -285,13 +285,13 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(data_samples[0]), test=test_key, start_revision=1,
+        data=data_samples[0], test=test_key, start_revision=1,
         end_revision=sys.maxint, id=data_samples[0]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
     entity = histogram.SparseDiagnostic(
-        data=json.dumps(data_samples[1]), test=test_key, start_revision=1,
+        data=data_samples[1], test=test_key, start_revision=1,
         end_revision=sys.maxint, id=data_samples[1]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
