@@ -1390,6 +1390,58 @@ tr.exportTo('tr.v', function() {
       HistogramBinBoundaries.createExponential(1e-3, 1e6, 1e2));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.b.Unit.byName.timeInMsAutoFormat.unitName,
+      new HistogramBinBoundaries(0)
+          .addBinBoundary(1).addExponentialBins(1e3, 3)
+          .addBinBoundary(tr.b.convertUnit(
+              2, tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              5, tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              10, tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              30, tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MINUTE.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(2 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MINUTE.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(5 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MINUTE.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(10 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MINUTE.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(30 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MINUTE.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.HOUR.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(2 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.HOUR.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(6 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.HOUR.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(12 * tr.b.convertUnit(
+              tr.b.UnitScale.TIME.HOUR.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.DAY.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.WEEK.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.MONTH.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC))
+          .addBinBoundary(tr.b.convertUnit(
+              tr.b.UnitScale.TIME.YEAR.value,
+              tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC)));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
       tr.b.Unit.byName.timeStampInMs.unitName,
       HistogramBinBoundaries.createLinear(0, 1e10, 1e3));
 
