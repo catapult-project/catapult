@@ -10,6 +10,7 @@ import time
 
 from google.appengine.ext import ndb
 
+from dashboard.common import timing
 from dashboard.common import utils
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
@@ -241,18 +242,18 @@ class Anomaly(internal_only_model.InternalOnlyModel):
           limit, start_cursor=start_cursor, keys_only=keys_only)]
       if count_limit:
         futures.append(query.count_async(count_limit))
-      start = time.time()
-      yield futures
-      duration = time.time() - start
+      query_duration = timing.WallTimeLogger('query_duration')
+      with query_duration:
+        yield futures
       results, start_cursor, more = futures[0].get_result()
       if count_limit:
         count = futures[1].get_result()
       else:
         count = len(results)
-      logging.info('query_duration=%f', duration)
       logging.info('query_results_count=%d', len(results))
       if results:
-        logging.info('duration_per_result=%f', duration / len(results))
+        logging.info('duration_per_result=%f',
+                     query_duration.seconds / len(results))
       if post_filters:
         results = [alert for alert in results
                    if all(post_filter(alert) for post_filter in post_filters)]
