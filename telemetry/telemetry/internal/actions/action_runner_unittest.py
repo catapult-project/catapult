@@ -187,6 +187,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.Wait(0.2)
     self.assertEqual(102, self._tab.EvaluateJavaScript('window.testing'))
 
+  @decorators.Disabled('mac')  # crbug.com/854744
   def testWaitForJavaScriptCondition(self):
     action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)
