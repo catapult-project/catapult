@@ -26,6 +26,8 @@ class TestTimeSeries(unittest.TestCase):
     }
 
     timeseries = tables.timeseries.DataFrameFromJson(data)
+    # Check the integrity of the index: there should be no duplicates.
+    self.assertFalse(timeseries.index.duplicated().any())
     self.assertEqual(len(timeseries), 4)
 
     # Check values on the first point of the series.

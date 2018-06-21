@@ -7,17 +7,19 @@ import pandas  # pylint: disable=import-error
 
 TABLE_NAME = 'timeseries'
 COLUMN_TYPES = (
+    # Index columns.
     ('test_suite', str),  # benchmark name ('loading.mobile')
     ('measurement', str),  # metric name ('timeToFirstContentfulPaint')
-    ('improvement_direction', str),  # good direction ('up', 'down', 'unknown')
     ('bot', str),  # master/builder name ('ChromiumPerf.android-nexus5')
     ('test_case', str),  # story name ('Wikipedia')
     ('point_id', int),  # monotonically increasing value for time series axis
+    # Other columns.
     ('value', float),  # value recorded for test_path at given point_id
     ('timestamp', 'datetime64[ns]'),  # when the value got stored on dashboard
     ('commit_pos', int),  # chromium commit position
     ('chromium_rev', str),  # git hash of chromium revision
-    ('clank_rev', str)  # git hash of clank revision
+    ('clank_rev', str),  # git hash of clank revision
+    ('improvement_direction', str),  # good direction ('up', 'down', 'unknown')
 )
 COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
 INDEX = COLUMNS[:5]
