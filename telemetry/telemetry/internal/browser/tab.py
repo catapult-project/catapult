@@ -84,11 +84,16 @@ class Tab(web_contents.WebContents):
     """
     self._tab_list_backend.ActivateTab(self.id)
 
-  def Close(self):
+  def Close(self, keep_one=True, timeout=300):
     """Closes this tab.
 
     Not all browsers or browser versions support this method.
     Be sure to check browser.supports_tab_control.
+
+    Args:
+      keep_one: Whether to make sure to keep one tab open. On some platforms
+        closing the last tab causes the browser to be closed, to prevent this
+        the default is to open a new tab before closing the last one.
 
     Raises:
       devtools_http.DevToolsClientConnectionError
@@ -96,7 +101,9 @@ class Tab(web_contents.WebContents):
       tab_list_backend.TabUnexpectedResponseException
       exceptions.TimeoutException
     """
-    self._tab_list_backend.CloseTab(self.id)
+    if keep_one and len(self._tab_list_backend) <= 1:
+      self._tab_list_backend.New(timeout)
+    self._tab_list_backend.CloseTab(self.id, timeout)
 
   @property
   def screenshot_supported(self):

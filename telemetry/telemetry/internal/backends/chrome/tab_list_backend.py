@@ -52,10 +52,6 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
       py_utils.TimeoutException
     """
     assert self._browser_backend.supports_tab_control
-    # TODO(dtu): crbug.com/160946, allow closing the last tab on some platforms.
-    # For now, just create a new tab before closing the last tab.
-    if len(self) <= 1:
-      self.New(timeout)
 
     response = self._browser_backend.devtools_client.CloseTab(tab_id, timeout)
 
