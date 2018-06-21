@@ -140,7 +140,7 @@ class AddPointHandler(post_data_handler.PostDataHandler):
     logging.info('Received data: %s', data)
 
     try:
-      if type(data) is dict:
+      if isinstance(data, dict):
         if data.get('chart_data'):
           data = _DashboardJsonToRawRows(data)
           if not data:
@@ -175,7 +175,7 @@ def _ValidateNameString(value, name):
 
 
 def _ValidateDashboardJson(dash_json_dict):
-  assert type(dash_json_dict) is dict
+  assert isinstance(dash_json_dict, dict)
   # A Dashboard JSON dict should at least have all charts coming from the
   # same master, bot and rev. It can contain multiple charts, however.
   _ValidateNameString(dash_json_dict.get('master'), 'master')

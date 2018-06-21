@@ -52,7 +52,7 @@ def UpdateFromJson(units_dict):
 
   # Add new UnitsToDirection entities.
   for unit, value in units_dict.iteritems():
-    if type(value) != dict:
+    if not isinstance(value, dict):
       continue
     if unit not in existing_units:
       bigger_is_better = (value['improvement_direction'] == 'up')

@@ -421,7 +421,7 @@ def _GetFlotJson(revision_map, tests):
         continue
 
       timestamp = point_info.get('timestamp')
-      if timestamp and type(timestamp) is datetime.datetime:
+      if timestamp and isinstance(timestamp, datetime.datetime):
         point_info['timestamp'] = utils.TimestampMilliseconds(timestamp)
 
       # TODO(simonhatch): Need to filter out NaN values.

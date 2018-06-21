@@ -184,7 +184,7 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
   if not matching_patterns:
     return None
 
-  if type(test) is ndb.Key:
+  if isinstance(test, ndb.Key):
     test_path = TestPath(test)
   else:
     test_path = test.test_path
@@ -227,7 +227,7 @@ def TestMatchesPattern(test, pattern):
   """
   if not test:
     return False
-  if type(test) is ndb.Key:
+  if isinstance(test, ndb.Key):
     test_path = TestPath(test)
   else:
     test_path = test.test_path
@@ -278,7 +278,7 @@ def GetTestContainerKey(test):
     ndb.Key('TestContainer', test path)
   """
   test_path = None
-  if type(test) is ndb.Key:
+  if isinstance(test, ndb.Key):
     test_path = TestPath(test)
   else:
     test_path = test.test_path
@@ -470,7 +470,7 @@ def Validate(expected, actual):
     actual: A value.
   """
   def IsValidType(expected, actual):
-    if type(expected) is type and type(actual) is not expected:
+    if isinstance(expected, type) and not isinstance(actual, expected):
       try:
         expected(actual)
       except ValueError:

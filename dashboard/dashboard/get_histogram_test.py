@@ -48,7 +48,7 @@ class GetHistogramsTest(testing_common.TestCase):
         '/get_histogram', {'guid': _TEST_HISTOGRAM_DATA['guid']})
     data = json.loads(response.body)
 
-    self.assertTrue(type(data) is dict)
+    self.assertTrue(isinstance(data, dict))
     self.assertEqual(_TEST_HISTOGRAM_DATA, data)
 
   def testGetHistogram_Internal_Succeeds(self):
@@ -58,7 +58,7 @@ class GetHistogramsTest(testing_common.TestCase):
         '/get_histogram', {'guid': _TEST_HISTOGRAM_DATA['guid']})
     data = json.loads(response.body)
 
-    self.assertTrue(type(data) is dict)
+    self.assertTrue(isinstance(data, dict))
     self.assertEqual(_TEST_HISTOGRAM_DATA, data)
 
   def testGetHistogram_Internal_Fails(self):
