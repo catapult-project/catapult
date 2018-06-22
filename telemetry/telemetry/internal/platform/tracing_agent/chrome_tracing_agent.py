@@ -175,7 +175,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     devtools_clients = (chrome_tracing_devtools_manager
                         .GetActiveDevToolsClients(self._platform_backend))
     if not devtools_clients:
-      raise ChromeClockSyncError('Cannot issue clock sync. No devtools clients')
+      logging.info('No devtools clients for issuing clock sync.')
+      return False
     version = None
     for client in devtools_clients:
       version = client.GetChromeBranchNumber()
@@ -193,6 +194,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     else:  # TODO(rnephew): Remove once chrome stable is past branch 2743.
       self._RecordClockSyncMarkerAsyncEvent(
           sync_id, record_controller_clock_sync_marker_callback)
+    return True
 
   def StopAgentTracing(self):
     if not self._trace_config:

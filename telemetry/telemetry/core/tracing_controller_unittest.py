@@ -191,3 +191,13 @@ class StartupTracingTest(unittest.TestCase):
       browser.tabs[0].Navigate('about:blank')
       browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
       self.CheckValidTrace(self.tracing_controller.StopTracing())
+
+  @decorators.Isolated
+  def testCloseBrowserBeforeTracingIsStopped(self):
+    self.tracing_controller.StartTracing(self.config)
+    with self.possible_browser.BrowserSession(self.browser_options) as browser:
+      browser.tabs[0].Navigate('about:blank')
+      browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      # TODO(crbug.com/854212): This should happen implicitly on browser.Close()
+      self.tracing_controller.FlushTracing()
+    self.CheckValidTrace(self.tracing_controller.StopTracing())
