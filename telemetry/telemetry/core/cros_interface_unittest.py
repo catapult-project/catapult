@@ -61,10 +61,10 @@ class CrOSInterfaceTest(unittest.TestCase):
   @decorators.Enabled('chromeos')
   def testGetFileNonExistent(self):
     with self._GetCRI() as cri:
-      f = tempfile.NamedTemporaryFile()
-      cri.PushContents('testGetFileNonExistent', f.name)
-      cri.RmRF(f.name)
-      self.assertRaises(OSError, lambda: cri.GetFile(f.name))
+      f = '/tmp/testGetFile'  # A path that can be created on the device.
+      cri.PushContents('testGetFileNonExistent', f)
+      cri.RmRF(f)
+      self.assertRaises(OSError, lambda: cri.GetFile(f))
 
   @decorators.Enabled('chromeos')
   def testIsServiceRunning(self):
