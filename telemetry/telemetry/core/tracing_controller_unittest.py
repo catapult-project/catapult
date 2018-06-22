@@ -2,8 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import time
 import unittest
+
+from tracing.metrics import metric_runner
 
 from battor import battor_wrapper
 from telemetry import decorators
@@ -14,8 +17,11 @@ from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data as trace_data_module
 
+from py_utils import tempfile_ext
+
 
 class TracingControllerTest(tab_test_case.TabTestCase):
+  """Tests that start tracing when a browser tab is already active."""
 
   @decorators.Isolated
   def testExceptionRaisedInStopTracing(self):
@@ -148,41 +154,40 @@ class TracingControllerTest(tab_test_case.TabTestCase):
 
 
 class StartupTracingTest(unittest.TestCase):
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('android')
-  @decorators.Isolated
-  def testStartupTracing(self):
+  """Tests that start tracing before the browser is created."""
+
+  def setUp(self):
     finder_options = options_for_unittests.GetCopy()
-    possible_browser = browser_finder.FindBrowser(finder_options)
-    if not possible_browser:
+    self.possible_browser = browser_finder.FindBrowser(finder_options)
+    if not self.possible_browser:
       raise Exception('No browser found, cannot continue test.')
-    platform = possible_browser.platform
+    self.browser_options = finder_options.browser_options
+    self.config = tracing_config.TracingConfig()
+    self.config.enable_chrome_trace = True
 
-    # Start tracing
-    self.assertFalse(platform.tracing_controller.is_tracing_running)
-    config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    platform.tracing_controller.StartTracing(config)
-    self.assertTrue(platform.tracing_controller.is_tracing_running)
+  def tearDown(self):
+    if self.possible_browser and self.tracing_controller.is_tracing_running:
+      self.tracing_controller.StopTracing()
 
-    try:
-      # Start browser
-      with possible_browser.BrowserSession(
-          finder_options.browser_options) as browser:
-        browser.tabs[0].Navigate('about:blank')
-        browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+  @property
+  def tracing_controller(self):
+    return self.possible_browser.platform.tracing_controller
 
-        # Calling start tracing again will return False
-        self.assertFalse(platform.tracing_controller.StartTracing(config))
+  def CheckValidTrace(self, stop_tracing_result):
+    trace_data, errors = stop_tracing_result
+    self.assertEqual(errors, [])
 
-        trace_data, errors = platform.tracing_controller.StopTracing()
-        self.assertEqual(errors, [])
-        # Test that trace data is parseable
-        model_module.TimelineModel(trace_data)
-        self.assertFalse(platform.tracing_controller.is_tracing_running)
-        # Calling stop tracing again will raise exception
-        with self.assertRaises(Exception):
-          platform.tracing_controller.StopTracing()
-    finally:
-      if platform.tracing_controller.is_tracing_running:
-        platform.tracing_controller.StopTracing()
+    with tempfile_ext.NamedTemporaryDirectory() as temp_dir:
+      trace_file = os.path.join(temp_dir, 'trace.html')
+      trace_data.Serialize(trace_file)
+      mre_result = metric_runner.RunMetric(trace_file, ['tracingMetric'])
+
+    self.assertFalse(mre_result.failures)
+
+  @decorators.Isolated
+  def testStopTracingWhileBrowserIsRunning(self):
+    self.tracing_controller.StartTracing(self.config)
+    with self.possible_browser.BrowserSession(self.browser_options) as browser:
+      browser.tabs[0].Navigate('about:blank')
+      browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+      self.CheckValidTrace(self.tracing_controller.StopTracing())
