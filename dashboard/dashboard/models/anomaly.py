@@ -307,7 +307,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       if inequality_property == 'start_revision':
         logging.info('filter:min_start_revision=%d', min_start_revision)
         query = query.filter(cls.start_revision >= min_start_revision)
-        query = query.order(-cls.start_revision)
+        query = query.order(cls.start_revision)
       else:
         post_filters.append(lambda a: a.start_revision >= min_start_revision)
 
@@ -325,7 +325,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       if inequality_property == 'end_revision':
         logging.info('filter:min_end_revision=%d', min_end_revision)
         query = query.filter(cls.end_revision >= min_end_revision)
-        query = query.order(-cls.end_revision)
+        query = query.order(cls.end_revision)
       else:
         post_filters.append(lambda a: a.end_revision >= min_end_revision)
 

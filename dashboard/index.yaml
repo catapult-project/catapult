@@ -71,7 +71,17 @@ indexes:
 - kind: Anomaly
   properties:
   - name: start_revision
+  - name: timestamp
     direction: desc
+- kind: Anomaly
+  properties:
+  - name: start_revision
+    direction: desc
+  - name: timestamp
+    direction: desc
+- kind: Anomaly
+  properties:
+  - name: end_revision
   - name: timestamp
     direction: desc
 - kind: Anomaly
