@@ -307,12 +307,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       results.Fail('Trace size is too big: %s MiB' % trace_size_in_mib)
       return
 
-    logging.warning('Starting to compute metrics on trace')
+    logging.info('Starting to compute metrics on trace')
     start = time.time()
     mre_result = metric_runner.RunMetric(
         trace_value.filename, metrics, extra_import_options,
         report_progress=False, canonical_url=results.telemetry_info.trace_url)
-    logging.warning('Processing resulting traces took %.3f seconds' % (
+    logging.info('Processing resulting traces took %.3f seconds' % (
         time.time() - start))
     page = results.current_page
 
