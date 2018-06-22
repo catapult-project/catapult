@@ -31,9 +31,6 @@ class SharedAndroidStoryState(story_module.SharedState):
     self._possible_browser = browser_finder.FindBrowser(self._finder_options)
     self._current_story = None
 
-    # TODO(crbug.com/854212): Remove the following when the bug is fixed.
-    self._browser_to_close = None
-
     # This is an Android-only shared state.
     assert isinstance(self.platform, android_platform.AndroidPlatform)
     self._finder_options.browser_options.browser_user_agent_type = 'mobile'
@@ -51,7 +48,6 @@ class SharedAndroidStoryState(story_module.SharedState):
     self.platform.network_controller.Close()
 
   def LaunchBrowser(self, url):
-    self._ActuallyCloseBrowser()  # Close a previous browser if any.
     # Clear caches before starting browser.
     self.platform.FlushDnsCache()
     self._possible_browser.FlushOsPageCaches()
@@ -94,10 +90,7 @@ class SharedAndroidStoryState(story_module.SharedState):
 
   def DidRunStory(self, _):
     self._current_story = None
-    try:
-      self._ActuallyCloseBrowser()
-    finally:
-      self._possible_browser.CleanUpEnvironment()
+    self._possible_browser.CleanUpEnvironment()
 
   def DumpStateUponFailure(self, story, results):
     del story
@@ -109,38 +102,24 @@ class SharedAndroidStoryState(story_module.SharedState):
     return True
 
   def CloseBrowser(self, browser):
-    # TODO(crbug.com/854212): This and the following method are workarounds
-    # for bugs that occur when closing the browser while tracing is running.
+    # TODO(crbug.com/854212): This method includes some workarounds for bugs
+    # that occur when closing the browser while tracing is running.
     # When the linked bug is fixed, it should be possible to replace this with
     # just browser.Close().
 
-    # a) We can't actually close the browser now, because it needs to remain
-    # alive after story.Run() and before tracing_controller.StopTracing()
-    # is called by test.Measure() in the story runner. Instead we just keep
-    # a reference to the browser and delay actually closing it to either
-    # state.LaunchBrowser (if we want to restart the browser) or
-    # state.DidRunStory (when the story has finally finished).
-    assert self._browser_to_close is None
-    self._browser_to_close = browser
-
-  def _ActuallyCloseBrowser(self):
-    if self._browser_to_close is None:
-      return
-
     try:
-      # b) Explicitly call flush tracing so that we retain a copy of the
+      # a) Explicitly call flush tracing so that we retain a copy of the
       # trace from this browser before it's closed.
       if self.platform.tracing_controller.is_tracing_running:
         self.platform.tracing_controller.FlushTracing()
 
-      # c) Close all tabs before closing the browser. Prevents a bug that
+      # b) Close all tabs before closing the browser. Prevents a bug that
       # would cause future browser instances to hang when older tabs receive
       # DevTools requests.
-      while len(self._browser_to_close.tabs) > 0:
-        self._browser_to_close.tabs[0].Close(keep_one=False)
-      self._browser_to_close.Close()
+      while len(browser.tabs) > 0:
+        browser.tabs[0].Close(keep_one=False)
     finally:
-      self._browser_to_close = None
+      browser.Close()
 
 
 class AndroidGoFooStory(story_module.Story):
