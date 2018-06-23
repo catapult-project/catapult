@@ -340,14 +340,16 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
     if min_timestamp:
       if inequality_property == 'timestamp':
-        logging.info('filter:min_timestamp=%d', min_timestamp)
+        logging.info('filter:min_timestamp=%d',
+                     time.mktime(min_timestamp.utctimetuple()))
         query = query.filter(cls.timestamp >= min_timestamp)
       else:
         post_filters.append(lambda a: a.timestamp >= min_timestamp)
 
     if max_timestamp:
       if inequality_property == 'timestamp':
-        logging.info('filter:max_timestamp=%d', max_timestamp)
+        logging.info('filter:max_timestamp=%d',
+                     time.mktime(max_timestamp.utctimetuple()))
         query = query.filter(cls.timestamp <= max_timestamp)
       else:
         post_filters.append(lambda a: a.timestamp <= max_timestamp)
