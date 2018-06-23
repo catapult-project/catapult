@@ -498,8 +498,11 @@ def _MakeDeviceInfoDiagnostics(state):
   device_info_data = {
       reserved_infos.ARCHITECTURES.name: state.platform.GetArchName(),
       reserved_infos.DEVICE_IDS.name: state.platform.GetDeviceId(),
-      reserved_infos.MEMORY_AMOUNTS.name:
-          state.platform.GetSystemTotalPhysicalMemory(),
+      # This is not consistent and caused dashboard upload failure
+      # TODO(crbug.com/854676): reenable this later if this is proved to be
+      # useful
+      # reserved_infos.MEMORY_AMOUNTS.name:
+      #    state.platform.GetSystemTotalPhysicalMemory(),
       reserved_infos.OS_NAMES.name: state.platform.GetOSName(),
       reserved_infos.OS_VERSIONS.name: state.platform.GetOSVersionName(),
   }

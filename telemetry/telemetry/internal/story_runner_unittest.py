@@ -733,11 +733,10 @@ class StoryRunnerTest(unittest.TestCase):
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
 
-    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertGreater(len(generic_diagnostics), 2)
     self.assertIn(['win10'], generic_diagnostics_values)
     self.assertIn(['win'], generic_diagnostics_values)
     self.assertIn(['amd64'], generic_diagnostics_values)
-    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
 
   def testRunStoryAddsDeviceInfo_EvenInErrors(self):
     class ErrorRaisingDummyLocalStory(DummyLocalStory):
@@ -772,11 +771,10 @@ class StoryRunnerTest(unittest.TestCase):
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
 
-    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertGreater(len(generic_diagnostics), 2)
     self.assertIn(['win10'], generic_diagnostics_values)
     self.assertIn(['win'], generic_diagnostics_values)
     self.assertIn(['amd64'], generic_diagnostics_values)
-    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
 
   def testRunStoryAddsDeviceInfo_OnePerStorySet(self):
     class Test(legacy_page_test.LegacyPageTest):
@@ -805,18 +803,16 @@ class StoryRunnerTest(unittest.TestCase):
     generic_diagnostics_values = [
         list(diagnostic) for diagnostic in generic_diagnostics]
 
-    self.assertGreater(len(generic_diagnostics), 3)
+    self.assertGreater(len(generic_diagnostics), 2)
     self.assertIn(['win10'], generic_diagnostics_values)
     self.assertIn(['win'], generic_diagnostics_values)
     self.assertIn(['amd64'], generic_diagnostics_values)
-    self.assertIn([8 * (1024 ** 3)], generic_diagnostics_values)
 
     self.assertEqual(1, len(
         [value for value in generic_diagnostics_values if value == ['win']]))
 
     first_histogram_diags = hs.GetFirstHistogram().diagnostics
     self.assertIn(reserved_infos.ARCHITECTURES.name, first_histogram_diags)
-    self.assertIn(reserved_infos.MEMORY_AMOUNTS.name, first_histogram_diags)
     self.assertIn(reserved_infos.OS_NAMES.name, first_histogram_diags)
     self.assertIn(reserved_infos.OS_VERSIONS.name, first_histogram_diags)
 
