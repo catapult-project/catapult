@@ -172,7 +172,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.WaitForJavaScriptCondition(
         'document.location.pathname === "/page_with_link.html"')
 
-  @decorators.Disabled('mac10.10')  # crbug.com/853865
+  @decorators.Disabled('mac')  # crbug.com/855885
   def testWait(self):
     action_runner = action_runner_module.ActionRunner(self._tab)
     self.Navigate('blank.html')
@@ -215,7 +215,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
                      action_runner.WaitForJavaScriptCondition(
                          'window.testing', timeout=10))
 
-  @decorators.Disabled('mac10.10')  # crbug.com/853865
+  @decorators.Disabled('mac')  # crbug.com/855885
   def testWaitForElement(self):
     action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)

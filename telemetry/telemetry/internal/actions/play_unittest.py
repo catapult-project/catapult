@@ -67,7 +67,7 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertRaises(py_utils.TimeoutException, action.RunAction, self._tab)
 
-  @decorators.Disabled('mac10.10')  # crbug.com/853865
+  @decorators.Disabled('mac')  # crbug.com/855885
   def testPlayWaitForEnded(self):
     """Tests that wait_for_ended waits for video to end."""
     action = play.PlayAction(selector='#video_1',
