@@ -1,7 +1,9 @@
 # Copyright (c) 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import json
+import os
 import unittest
 
 from tracing.mre import function_handle
@@ -206,3 +208,26 @@ class MapSingleTraceTests(unittest.TestCase):
     self.assertEquals(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.NoResultsAddedFailure)
+
+  def testExecuteTraceMappingCode(self):
+    test_trace_path = os.path.join(os.path.dirname(__file__), 'test_trace.json')
+    results = map_single_trace.ExecuteTraceMappingCode(
+        test_trace_path,
+        """
+        function processTrace(results, model) {
+          var canonicalUrl = model.canonicalUrl;
+          results.addPair('numProcesses', model.getAllProcesses().length);
+        };
+        """)
+    self.assertEquals(results['numProcesses'], 2)
+
+  def testExecuteTraceMappingCodeWithError(self):
+    test_trace_path = os.path.join(os.path.dirname(__file__), 'test_trace.json')
+    with self.assertRaises(RuntimeError):
+      map_single_trace.ExecuteTraceMappingCode(
+          test_trace_path,
+          """
+          function processTrace(results, model) {
+              throw new Error('Expected error');
+          };
+          """)

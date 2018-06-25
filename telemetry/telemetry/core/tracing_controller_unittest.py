@@ -10,11 +10,13 @@ from tracing.metrics import metric_runner
 
 from battor import battor_wrapper
 from telemetry import decorators
+from telemetry.util import trace_runner
 from telemetry.internal.browser import browser_finder
 from telemetry.testing import options_for_unittests
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
+
 from tracing.trace_data import trace_data as trace_data_module
 
 from py_utils import tempfile_ext
@@ -107,29 +109,35 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertEqual(errors, [])
     self.assertFalse(tracing_controller.is_tracing_running)
 
-    # Test that trace data is parsable
-    model = model_module.TimelineModel(trace_data)
+    # Parse the trace and extract all test markers & trace-flushing markers
+    results = trace_runner.ExecuteMappingCodeOnTraceData(
+        trace_data, """
+function processTrace(results, model) {
+    var markers = [];
+    for (const thread of model.getAllThreads()) {
+        for (const event of thread.asyncSliceGroup.slices) {
+            if (event.title.startsWith('test-marker') ||
+                event.title === 'flush-tracing') {
+                markers.push({'title': event.title, 'start': event.start});
+           }
+       }
+   }
+   results.addPair('markers', markers);
+};
+         """)
 
-    # Check that the markers 'test-marker-0', 'flush-tracing', 'test-marker-1',
-    # ..., 'flush-tracing', 'test-marker-|subtrace_count - 1|' are monotonic.
-    custom_markers = [
-        marker
-        for i in xrange(subtrace_count)
-        for marker in model.FindTimelineMarkers('test-marker-%d' % i)
-    ]
-    flush_markers = model.FindTimelineMarkers(['flush-tracing'] *
-                                              (subtrace_count - 1))
-    markers = [
-        marker for group in zip(custom_markers, flush_markers)
-        for marker in group
-    ] + custom_markers[-1:]
-
-    self.assertEquals(len(custom_markers), subtrace_count)
-    self.assertEquals(len(flush_markers), subtrace_count - 1)
-    self.assertEquals(len(markers), 2 * subtrace_count - 1)
-
-    for i in xrange(1, len(markers)):
-      self.assertLess(markers[i - 1].end, markers[i].start)
+    # Check that the markers 'test-marker-0', 'flush-tracing',
+    # 'test-marker-1', ..., 'flush-tracing',
+    # 'test-marker-|subtrace_count - 1|' are monotonic.
+    markers = results['markers']
+    self.assertEquals(subtrace_count*2 - 1, len(markers))
+    for i in xrange(0, len(markers) - 2):
+      if i % 2 == 0:
+        expected_title = 'test-marker-%d' % (i/2)
+      else:
+        expected_title = 'flush-tracing'
+      self.assertEquals(expected_title, markers[i]['title'])
+      self.assertLess(markers[i]['start'], markers[i + 1]['start'])
 
   @decorators.Disabled('linux')  # crbug.com/673761
   def testBattOrTracing(self):

@@ -13,7 +13,10 @@ import tracing_project
 import vinn
 
 from tracing.mre import failure
+from tracing.mre import file_handle
+from tracing.mre import function_handle
 from tracing.mre import mre_result
+from tracing.mre import job as job_module
 
 _MAP_SINGLE_TRACE_CMDLINE_PATH = os.path.join(
     tracing_project.TracingProject.tracing_src_path, 'mre',
@@ -77,8 +80,8 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
 def MapSingleTrace(trace_handle,
                    job,
                    extra_import_options=None):
-  assert (type(extra_import_options) is types.NoneType or
-          type(extra_import_options) is types.DictType), (
+  assert (isinstance(extra_import_options, types.NoneType) or
+          isinstance(extra_import_options, types.DictType)), (
               'extra_import_options should be a dict or None.')
   project = tracing_project.TracingProject()
 
@@ -140,3 +143,48 @@ def MapSingleTrace(trace_handle,
     raise InternalMapError('Internal error: No results were produced!')
 
   return result
+
+
+def ExecuteTraceMappingCode(trace_file_path, process_trace_func_code,
+                            extra_import_options=None,
+                            trace_canonical_url=None):
+  """Execute |process_trace_func_code| on the input |trace_file_path|.
+
+  process_trace_func_code must contain a function named 'process_trace' with
+  signature as follows:
+
+    function processTrace(results, model) {
+       // call results.addPair(<key>, <value>) to add data to results object.
+    }
+
+  Whereas results is an instance of tr.mre.MreResult, and model is an instance
+  of tr.model.Model which was resulted from parsing the input trace.
+
+  Returns:
+    This function returns the dictionay that represents data collected in
+    |results|.
+
+  Raises:
+    RuntimeError if there is any error with execute trace mapping code.
+  """
+
+  with TemporaryMapScript("""
+     //# sourceURL=processTrace
+      %s;
+      tr.mre.FunctionRegistry.register(processTrace);
+  """ % process_trace_func_code) as map_script:
+    handle = function_handle.FunctionHandle(
+        [function_handle.ModuleToLoad(filename=map_script.filename)],
+        function_name='processTrace')
+    mapping_job = job_module.Job(handle)
+    trace_file_path = os.path.abspath(trace_file_path)
+    if not trace_canonical_url:
+      trace_canonical_url = 'file://%s' % trace_file_path
+    trace_handle = file_handle.URLFileHandle(
+        trace_file_path, trace_canonical_url)
+    results = MapSingleTrace(trace_handle, mapping_job, extra_import_options)
+    if results.failures:
+      raise RuntimeError(
+          'Failures mapping trace:\n%s' %
+          ('\n'.join(str(f) for f in results.failures)))
+    return results.pairs

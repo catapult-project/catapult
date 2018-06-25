@@ -1,0 +1,6 @@
+[
+  {"pid": 1, "tid": 2, "ph": "X", "name": "a", "cat": "c",
+    "ts": 0, "dur": 10, "args": {}},
+  {"pid": 2, "tid": 2, "ph": "X", "name": "b", "cat": "c",
+    "ts": 3, "dur": 5, "args": {}}
+]
