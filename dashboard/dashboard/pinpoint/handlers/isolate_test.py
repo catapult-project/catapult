@@ -4,25 +4,11 @@
 
 import json
 
-import mock
-
 from dashboard.common import testing_common
 from dashboard.pinpoint import test
 
 
-class _IsolateTest(test.TestCase):
-
-  def setUp(self):
-    super(_IsolateTest, self).setUp()
-
-    patcher = mock.patch('dashboard.services.gitiles_service.CommitInfo')
-    self.addCleanup(patcher.stop)
-    patcher.start()
-
-
-@mock.patch('dashboard.services.gitiles_service.CommitInfo',
-            mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
-class FunctionalityTest(_IsolateTest):
+class FunctionalityTest(test.TestCase):
 
   def testPostAndGet(self):
     testing_common.SetIpWhitelist(['remote_ip'])
@@ -67,7 +53,7 @@ class FunctionalityTest(_IsolateTest):
     self.testapp.post('/api/isolate', status=403)
 
 
-class ParameterValidationTest(_IsolateTest):
+class ParameterValidationTest(test.TestCase):
 
   def testExtraParameter(self):
     params = {

@@ -10,8 +10,6 @@ from dashboard.pinpoint.models.change import patch
 from dashboard.pinpoint import test
 
 
-@mock.patch('dashboard.services.gitiles_service.CommitInfo',
-            mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
 class ChangeTest(test.TestCase):
 
   def testChange(self):
@@ -75,8 +73,7 @@ class ChangeTest(test.TestCase):
     }
     self.assertEqual(c.AsDict(), expected)
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testFromDictWithJustOneCommit(self, _):
+  def testFromDictWithJustOneCommit(self):
     c = change.Change.FromDict({
         'commits': [{'repository': 'chromium', 'git_hash': 'aaa7336'}],
     })

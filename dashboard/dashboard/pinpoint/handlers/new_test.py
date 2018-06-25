@@ -9,7 +9,6 @@ import mock
 from dashboard.api import api_auth
 from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
-from dashboard.services import gitiles_service
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models.change import patch as patch_module
@@ -46,8 +45,6 @@ class _NewTest(test.TestCase):
     })
 
 
-@mock.patch.object(gitiles_service, 'CommitInfo',
-                   mock.MagicMock(return_value={'commit': 'abc'}))
 class NewAuthTest(_NewTest):
 
   @mock.patch.object(api_auth, 'Authorize',
@@ -65,8 +62,6 @@ class NewAuthTest(_NewTest):
     self.assertEqual(result, {'error': 'User authentication error'})
 
 
-@mock.patch.object(gitiles_service, 'CommitInfo',
-                   mock.MagicMock(return_value={'commit': 'abc'}))
 @mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
             mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())

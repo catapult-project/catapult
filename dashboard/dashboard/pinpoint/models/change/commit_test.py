@@ -8,16 +8,6 @@ from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint import test
 
 
-_GITILES_COMMIT_INFO = {
-    'author': {'email': 'author@chromium.org'},
-    'commit': 'aaa7336',
-    'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
-    'message': 'Subject.\n\n'
-               'Commit message.\n'
-               'Cr-Commit-Position: refs/heads/master@{#437745}',
-}
-
-
 class CommitTest(test.TestCase):
 
   def testCommit(self):
@@ -76,9 +66,16 @@ deps_os = {
     ))
     self.assertEqual(c.Deps(), expected)
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testAsDict(self, commit_info):
-    commit_info.return_value = _GITILES_COMMIT_INFO
+  def testAsDict(self):
+    self.commit_info.side_effect = None
+    self.commit_info.return_value = {
+        'author': {'email': 'author@chromium.org'},
+        'commit': 'aaa7336',
+        'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
+    }
 
     c = commit.Commit('chromium', 'aaa7336')
     expected = {
@@ -100,8 +97,6 @@ deps_os = {
     c = commit.Commit.FromDep(commit.Dep(test.CHROMIUM_URL, 'git_hash'))
     self.assertEqual(c, commit.Commit('chromium', 'git_hash'))
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
-              mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
   def testFromDict(self):
     c = commit.Commit.FromDict({
         'repository': 'chromium',
@@ -111,8 +106,6 @@ deps_os = {
     expected = commit.Commit('chromium', 'aaa7336')
     self.assertEqual(c, expected)
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
-              mock.MagicMock(side_effect=lambda x, y: {'commit': y}))
   def testFromDictWithRepositoryUrl(self):
     c = commit.Commit.FromDict({
         'repository': 'https://chromium.googlesource.com/chromium/src',
@@ -122,15 +115,13 @@ deps_os = {
     expected = commit.Commit('chromium', 'aaa7336')
     self.assertEqual(c, expected)
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
-              mock.MagicMock(return_value={'commit': 'aaa7336'}))
   def testFromDictResolvesHEAD(self):
     c = commit.Commit.FromDict({
         'repository': 'https://chromium.googlesource.com/chromium/src',
         'git_hash': 'HEAD',
     })
 
-    expected = commit.Commit('chromium', 'aaa7336')
+    expected = commit.Commit('chromium', 'git hash at HEAD')
     self.assertEqual(c, expected)
 
   def testFromDictFailureFromUnknownRepo(self):
@@ -140,9 +131,8 @@ deps_os = {
           'git_hash': 'git hash',
       })
 
-  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testFromDictFailureFromUnknownCommit(self, commit_info):
-    commit_info.side_effect = KeyError()
+  def testFromDictFailureFromUnknownCommit(self):
+    self.commit_info.side_effect = KeyError()
 
     with self.assertRaises(KeyError):
       commit.Commit.FromDict({
