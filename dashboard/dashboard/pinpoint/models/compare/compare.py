@@ -68,12 +68,13 @@ def Compare(values_a, values_b, attempt_count, comparison_mode):
     # hypothesis.
     return DIFFERENT
 
-  index = min(attempt_count / 20, len(_HIGH_THRESHOLDS[comparison_mode]) - 1)
-  questionable_significance_level = _HIGH_THRESHOLDS[comparison_mode][index]
-  if p_value <= questionable_significance_level:
-    # The p-value is not less than the significance level, but it's small enough
-    # to be suspicious. We'd like to investigate more closely.
-    return UNKNOWN
+  index = attempt_count / 20
+  if index < len(_HIGH_THRESHOLDS[comparison_mode]):
+    questionable_significance_level = _HIGH_THRESHOLDS[comparison_mode][index]
+    if p_value <= questionable_significance_level:
+      # The p-value is not less than the significance level, but it's small
+      # enough to be suspicious. We'd like to investigate more closely.
+      return UNKNOWN
 
   # The p-value is quite large. We're not suspicious that the two samples might
   # come from different distributions, and we don't care to investigate more.

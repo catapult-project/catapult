@@ -233,8 +233,8 @@ class JobState(object):
         # thresholds to the size of the regression. Right now we can't, because
         # the functional thresholds are much looser than the performance
         # thresholds, and would cause perf jobs to do many more repats.
-        comparison = compare.Compare(
-            values_a, values_b, attempt_count, self._comparison_mode)
+        comparison = compare.Compare(values_a, values_b, attempt_count,
+                                     self._comparison_mode or FUNCTIONAL)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:

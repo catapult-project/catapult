@@ -17,6 +17,10 @@ class CompareTest(unittest.TestCase):
     comparison = compare.Compare(range(10), [], 10, 'performance')
     self.assertEqual(comparison, compare.UNKNOWN)
 
+  def testHighAttemptCount(self):
+    comparison = compare.Compare([0] * 500, [0] * 500, 1000, 'functional')
+    self.assertEqual(comparison, compare.SAME)
+
 
 class FunctionalTest(unittest.TestCase):
 
