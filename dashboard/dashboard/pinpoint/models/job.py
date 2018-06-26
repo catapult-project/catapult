@@ -253,7 +253,7 @@ class Job(ndb.Model):
       task = taskqueue.add(
           queue_name='job-queue', url='/api/run/' + self.job_id,
           name=task_name, countdown=_TASK_INTERVAL)
-    except apiproxy_errors.DeadlineExceededError:
+    except (apiproxy_errors.DeadlineExceededError, taskqueue.TransientError):
       task = taskqueue.add(
           queue_name='job-queue', url='/api/run/' + self.job_id,
           name=task_name, countdown=_TASK_INTERVAL)
