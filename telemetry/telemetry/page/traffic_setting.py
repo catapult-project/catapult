@@ -13,7 +13,9 @@ _Configs = collections.namedtuple(
                  'round_trip_latency_ms'))
 
 # These presets are copied from devtool's:
-# https://cs.chromium.org/chromium/src/third_party/WebKit/Source/devtools/front_end/components/NetworkConditionsSelector.js?l=43
+# https://chromium.googlesource.com/chromium/src/+/3ff085d04100b20b8e33b6d72f9505d944046c6a/third_party/WebKit/Source/devtools/front_end/components/NetworkConditionsSelector.js#36
+# (note: devtools' presets are expressed as kilobytes/sec.
+
 NONE = 'none'
 GPRS = 'GPRS'
 REGULAR_2G = 'Regular-2G'
@@ -24,14 +26,15 @@ REGULAR_4G = 'Regular-4G'
 DSL = 'DSL'
 WIFI = 'WiFi'
 
+
 NETWORK_CONFIGS = {
     NONE: _Configs(0, 0, 0),
-    GPRS: _Configs(50 * 1024 / 8, 20 * 1024 / 8, 500),
-    REGULAR_2G: _Configs(250 * 1024 / 8, 50 * 1024 / 8, 300),
-    GOOD_2G: _Configs(450 * 1024 / 8, 150 * 1024 / 8, 150),
-    REGULAR_3G: _Configs(750 * 1024 / 8, 250 * 1024 / 8, 100),
-    GOOD_3G: _Configs(1.5 * 1024 * 1024 / 8, 750 * 1024 / 8, 40),
-    REGULAR_4G: _Configs(4 * 1024 * 1024 / 8, 3 * 1024 * 1024 / 8, 20),
-    DSL: _Configs(2 * 1024 * 1024 / 8, 1 * 1024 * 1024 / 8, 5),
-    WIFI: _Configs(30 * 1024 * 1024 / 8, 15 * 1024 * 1024 / 8, 2),
+    GPRS: _Configs(50 * 1024, 20 * 1024, 500),
+    REGULAR_2G: _Configs(250 * 1024, 50 * 1024, 300),
+    GOOD_2G: _Configs(450 * 1024, 150 * 1024, 150),
+    REGULAR_3G: _Configs(750 * 1024, 250 * 1024, 100),
+    GOOD_3G: _Configs(1.5 * 1024 * 1024, 750 * 1024, 40),
+    REGULAR_4G: _Configs(4 * 1024 * 1024, 3 * 1024 * 1024, 20),
+    DSL: _Configs(2 * 1024 * 1024, 1 * 1024 * 1024, 5),
+    WIFI: _Configs(30 * 1024 * 1024, 15 * 1024 * 1024, 2),
 }
