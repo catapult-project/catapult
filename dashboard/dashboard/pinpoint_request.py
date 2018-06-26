@@ -269,6 +269,11 @@ def PinpointParamsFromBisectParams(params):
     if alert_keys:
       alert_key = alert_keys[0]
 
+  alert_magnitude = None
+  if alert_key:
+    alert = ndb.Key(urlsafe=alert_key).get()
+    alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
+
   pinpoint_params = {
       'configuration': bot_name,
       'benchmark': suite,
@@ -277,6 +282,7 @@ def PinpointParamsFromBisectParams(params):
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
       'comparison_mode': bisect_mode,
+      'comparison_magnitude': alert_magnitude,
       'target': target,
       'user': email,
       'name': job_name,

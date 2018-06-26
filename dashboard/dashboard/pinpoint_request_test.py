@@ -297,6 +297,31 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_ComparisonMagnitude_Added(self):
+    test_key = utils.TestKey('ChromiumPerf/mac/cc_perftests/foo')
+    anomaly_entity = anomaly.Anomaly(
+        start_revision=1, end_revision=2, test=test_key,
+        median_before_anomaly=1, median_after_anomaly=10)
+    anomaly_entity.put()
+
+    params = {
+        'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'bug_id': 1,
+        'bisect_mode': 'performance',
+        'story_filter': '',
+        'pin': '',
+        'alerts': json.dumps([anomaly_entity.key.urlsafe()])
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual(9, results['comparison_magnitude'])
+    self.assertEqual(
+        anomaly_entity.key.urlsafe(), json.loads(results['tags'])['alert'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_NonTelemetry(self):
     params = {
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
@@ -306,7 +331,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'bisect_mode': 'performance',
         'story_filter': '',
         'pin': '',
-        'alerts': json.dumps(['123'])
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -322,7 +346,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual(
         params['test_path'],
         json.loads(results['tags'])['test_path'])
-    self.assertEqual('123', json.loads(results['tags'])['alert'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
