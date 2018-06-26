@@ -11,52 +11,63 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+// The |androidStartupMetric| produces metrics that start counting at the
+// earliest moment the Chrome code on Android is executed.
+// A few histograms are produced with the names as described below:
+// 1. messageloop_start_time - time till the message loop of the browser main
+//    starts processing posted tasts (after having loaded the Profile)
+// 2. request_start_time - time till the network request is made in the network
+//    stack
+// 3. first_contentful_paint_time - time to the first contentful paint of the
+//    page loaded at startup
+// The metric also supports multiple browser restarts, in this case multiple
+// samples would be added to the histograms above.
 tr.exportTo('tr.metrics.sh', function() {
   const MESSAGE_LOOP_EVENT_NAME =
       'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
   const NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME =
       'Navigation timeToNetworkStack';
+  const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
   function androidStartupMetric(histograms, model) {
-    // Walk the browser slices, extract the browser start timestamp and the
-    // messageloop start histogram sample.
+    const browserStartTimestamps = [];
+    const requestStartTimestampsAndEvents = [];
+    const firstContentfulPaintTimestampsAndEvents = [];
+
+    // Walk the browser slices, extract timestamps for the browser start,
+    // message loop start and request start.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    const requestStartHistogram = histograms.createHistogram(
+        'request_start_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
-    let browserStart;
     if (!chromeHelper) return;
     for (const helper of chromeHelper.browserHelpers) {
       for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
         if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
           messageLoopStartHistogram.addSample(ev.duration,
               { events: new tr.v.d.RelatedEventSet([ev]) });
-          browserStart = ev.start;
+          browserStartTimestamps.push(ev.start);
         }
-      }
-    }
-
-    // Extract the request start histogram sample from a navigation event. Due
-    // to browser main thread being jammed, the reporting is delayed. A better
-    // metric would be to take the time when the request headers hit the network
-    // (in particular, after turnaround through disk cache). This would require
-    // taking the HTTP_STREAM_JOB event from NetLog with the right URL.
-    // TODO(pasko): Find out how to pass the correct URL here and take events
-    // from the netlog.
-    const requestStartHistogram = histograms.createHistogram(
-        'request_start_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    for (const helper of chromeHelper.browserHelpers) {
-      for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
+        // Extract the request start histogram sample from a navigation event.
+        // Due to browser main thread being jammed, the reporting is delayed. A
+        // better metric would be to take the time when the request headers hit
+        // the network (in particular, after turnaround through disk cache).
+        // This would require taking the HTTP_STREAM_JOB event from NetLog with
+        // the right URL.
+        // TODO(pasko): Find out how to pass the correct URL here and take
+        // events from the netlog.
         if (ev.title === NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME) {
-          requestStartHistogram.addSample(ev.end - browserStart,
-              {events: new tr.v.d.RelatedEventSet([ev])});
+          requestStartTimestampsAndEvents.push(
+              {timestamp: ev.end, event: new tr.v.d.RelatedEventSet([ev]) });
         }
       }
     }
 
-    // Walk the renderer slices and extract the first contentful paint histogram
-    // sample.
+    // Walk the renderer slices and extract the 'first contentful paint'
+    // histogram samples.
     const firstContentfulPaintHistogram = histograms.createHistogram(
         'first_contentful_paint_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
@@ -64,11 +75,25 @@ tr.exportTo('tr.metrics.sh', function() {
     const pids = Object.keys(rendererHelpers);
     for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-        if (ev.title === 'firstContentfulPaint') {
-          firstContentfulPaintHistogram.addSample(ev.end - browserStart,
-              {events: new tr.v.d.RelatedEventSet([ev])});
+        if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
+          firstContentfulPaintTimestampsAndEvents.push(
+              {timestamp: ev.end, event: new tr.v.d.RelatedEventSet([ev]) });
         }
       }
+    }
+
+    // Group the relevant events with the corresponding browser starts and emit
+    // the metrics.
+    for (let i = 0; i < browserStartTimestamps.length; i++) {
+      const browserStart = browserStartTimestamps[i];
+      const requestStartInfo = requestStartTimestampsAndEvents[i];
+      requestStartHistogram.addSample(requestStartInfo.timestamp - browserStart,
+          {events: requestStartInfo.event});
+      const firstContentfulPaintInfo =
+          firstContentfulPaintTimestampsAndEvents[i];
+      firstContentfulPaintHistogram.addSample(
+          firstContentfulPaintInfo.timestamp - browserStart,
+          {events: firstContentfulPaintInfo.event});
     }
   }
 
