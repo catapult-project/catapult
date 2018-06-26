@@ -50,6 +50,13 @@ The traffic shaping configuration can be changed dynamically at runtime by passi
 
 All bandwidth and latency changes also carry an implied flush and clear out any pending data.
 
+# Docker
+A Dockerfile is provided to allow Docker development workflow.
+
+Also, an [official image on Docker Hub](https://hub.docker.com/r/webpagetest/tsproxy/) is available from source via an [Automated Build](https://docs.docker.com/docker-hub/builds/) to enable use of tsproxy in Docker environments. You can run tsproxy without installing anything (other than Docker) by issuing:
+```bash
+docker run --rm -it -p 1080:1080 webpagetest/tsproxy [options...]
+```
 
 # Configuring Chrome to use tsproxy
 Add a --proxy-server command-line option.
