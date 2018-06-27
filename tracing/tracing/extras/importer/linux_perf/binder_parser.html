@@ -24,6 +24,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                                  'dest_proc=(\\d+) dest_thread=(\\d+) ' +
                                  'reply=(\\d+) flags=(0x[0-9a-fA-F]+) ' +
                                  'code=(0x[0-9a-fA-F]+)');
+  // binder_transaction_alloc_buf: transaction=%d data_size=%d offsets_size=%d
+  const binderAllocRE = new RegExp('transaction=(\\d+) data_size=(\\d+) ' +
+                                   'offsets_size=(\\d+)');
 
   const binderTransReceivedRE = /transaction=(\d+)/;
 
@@ -145,6 +148,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importer.registerEventHandler('binder_transaction_received',
         BinderParser.prototype.
             binderTransactionReceived.bind(this));
+    importer.registerEventHandler('binder_transaction_alloc_buf',
+        BinderParser.prototype.
+            binderTransactionAllocBuf.bind(this));
 
     this.model_ = importer.model;
     this.kthreadlookup = {};
@@ -469,6 +475,27 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return false;
     },
 
+    binderTransactionAllocBuf(eventName, cpuNumber, pid, ts,
+        eventBase) {
+      const event = binderAllocRE.exec(eventBase.details);
+      if (event === null) return false;
+      const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
+
+      const transactionkey = parseInt(event[1]);
+      const kthread = this.importer_.
+          getOrCreateBinderKernelThread(eventBase.threadName, tgid, pid);
+
+      const trans = this.peekTransactionWaitingForRecv(transactionkey);
+      if (trans && trans.slice) {
+        trans.slice.args['Data Size'] = parseInt(event[2]);
+        trans.slice.args['Offsets Size'] = parseInt(event[3]);
+        return true;
+      }
+      return false;
+    },
+
+
     // helper functions
     modelRecursiveTransactions(recursiveTrans, ts, pid, kthread,
         trans, args) {
@@ -637,6 +664,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (ret === undefined) return false;
 
       delete this.transWaitingRecv[transactionkey];
+      return ret;
+    },
+
+    peekTransactionWaitingForRecv(transactionkey) {
+      const ret = this.transWaitingRecv[transactionkey];
+      if (ret === undefined) return false;
       return ret;
     },
 

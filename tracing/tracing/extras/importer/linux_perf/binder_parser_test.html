@@ -217,6 +217,30 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(slice.outFlowEvents.length, 0);
     assert.strictEqual(slice.title, 'binder Async recv');
   });
+
+  test('binderAllocBuf', function() {
+    const lines = [
+      'binderLibTest-10619 (10619) [001] ...1 25191.335749: ' +
+        'binder_transaction: transaction=489053 dest_node=489048 ' +
+        'dest_proc=10670 dest_thread=0 reply=0 flags=0x10 code=0xd',
+      'binderLibTest-10619 (10619) [001] ...1 25191.335750: ' +
+        'binder_transaction_alloc_buf: transaction=489053 ' +
+        'data_size=1001 offsets_size=1002',
+      'binderLibTest-10670 (10620) [000] ...1 25191.335751: ' +
+        'binder_transaction_received: transaction=489053',
+    ];
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+      shfitWorldToZero: false
+    });
+    assert.isFalse(m.hasImportWarnings);
+    const threads = m.getAllThreads(0);
+    assert.strictEqual(threads.length, 1);
+    const thread = threads[0];
+    assert.strictEqual(thread.sliceGroup.length, 1);
+    const slice = thread.sliceGroup.slices[0];
+    assert.strictEqual(slice.args['Data Size'], 1001);
+    assert.strictEqual(slice.args['Offsets Size'], 1002);
+  });
 });
 
 </script>
