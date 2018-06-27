@@ -12,13 +12,6 @@ skip_files:
 - ^py_utils/bin
 
 handlers:
-- url: /mapreduce(/.*)?
-  script: mapreduce.main.APP
-  login: admin
-
-- url: /_ah/pipeline(/.*)?
-  script: pipeline.handlers._APP
-
 - url: /_ah/queue/deferred
   script: google.appengine.ext.deferred.application
   login: admin
@@ -114,11 +107,6 @@ handlers:
   secure: always
 
 - url: /migrate_test_names
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /mr_deprecate_tests
   script: dashboard.dispatcher.APP
   login: admin
   secure: always
