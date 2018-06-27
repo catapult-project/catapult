@@ -126,11 +126,6 @@ handlers:
   login: required
   secure: always
 
-- url: /stats_around_revision
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /update_bug_with_results
   script: dashboard.dispatcher.APP
   login: admin
