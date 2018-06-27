@@ -1429,46 +1429,6 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
-  def testRunBenchmarkTimeDuration(self):
-    fake_benchmark = FakeBenchmark()
-    options = _GenerateBaseBrowserFinderOptions()
-    options.output_formats.append('histograms')
-
-    with mock.patch('telemetry.internal.story_runner.time') as time_patch:
-      # Note: we patch the time module loaded by story_runner, not methods
-      # within the time module itself. This prevents calls from any other
-      # clients of time.time() to interfere with the test.
-      time_patch.time.side_effect = [1, 61]
-      tmp_path = tempfile.mkdtemp()
-
-      try:
-        options.output_dir = tmp_path
-        story_runner.RunBenchmark(fake_benchmark, options)
-        with open(os.path.join(tmp_path, 'results-chart.json')) as f:
-          data = json.load(f)
-        with open(os.path.join(tmp_path, 'histograms.json')) as f:
-          histogram_data = json.load(f)
-
-        histograms = histogram_set.HistogramSet()
-        histograms.ImportDicts(histogram_data)
-
-        self.assertEqual(len(data['charts']), 1)
-        charts = data['charts']
-        self.assertIn('benchmark_duration', charts)
-        duration = charts['benchmark_duration']
-        self.assertIn("summary", duration)
-        summary = duration['summary']
-        duration = summary['value']
-        self.assertAlmostEqual(duration, 1)
-
-        hists = histograms.GetHistogramsNamed('benchmark_total_duration')
-        self.assertEqual(len(hists), 1)
-        hist = hists[0]
-        self.assertEqual(hist.num_values, 1)
-        self.assertAlmostEqual(hist.sample_values[0], 60000)
-      finally:
-        shutil.rmtree(tmp_path)
-
   def testRunBenchmarkStoryTimeDuration(self):
     class FakeBenchmarkWithStories(FakeBenchmark):
       def __init__(self):

@@ -24,7 +24,6 @@ from telemetry import page
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
-from telemetry.value import scalar
 from telemetry.web_perf import story_test
 from tracing.value import histogram
 from tracing.value.diagnostics import generic_set
@@ -303,7 +302,6 @@ def RunBenchmark(benchmark, finder_options):
   Returns:
     1 if there is failure or 2 if there is an uncaught exception.
   """
-  start = time.time()
   benchmark.CustomizeBrowserOptions(finder_options.browser_options)
 
   benchmark_metadata = benchmark.GetMetadata()
@@ -393,10 +391,6 @@ def RunBenchmark(benchmark, finder_options):
         results.UploadTraceFilesToCloud()
         results.UploadArtifactsToCloud()
     finally:
-      duration = time.time() - start
-      results.AddSummaryValue(scalar.ScalarValue(
-          None, 'benchmark_duration', 'minutes', duration / 60.0))
-      results.AddDurationHistogram(duration * 1000.0)
       memory_debug.LogHostMemoryUsage()
       results.PrintSummary()
   return return_code

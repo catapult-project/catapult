@@ -28,7 +28,6 @@ from telemetry.value import trace
 from tracing.value import convert_chart_json
 from tracing.value import histogram
 from tracing.value import histogram_set
-from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 class TelemetryInfo(object):
@@ -450,24 +449,6 @@ class PageTestResults(object):
     self.WillRunPage(story, storyset_repeat_counter)
     self.Skip('Telemetry interrupted', is_expected=False)
     self.DidRunPage(story)
-
-  def AddDurationHistogram(self, duration_in_milliseconds):
-    hist = histogram.Histogram(
-        'benchmark_total_duration', 'ms_smallerIsBetter')
-    hist.AddSample(duration_in_milliseconds)
-    # TODO(#4244): Do this generally.
-    if self.telemetry_info.label:
-      hist.diagnostics[reserved_infos.LABELS.name] = generic_set.GenericSet(
-          [self.telemetry_info.label])
-    hist.diagnostics[reserved_infos.BENCHMARKS.name] = generic_set.GenericSet(
-        [self.telemetry_info.benchmark_name])
-    hist.diagnostics[reserved_infos.BENCHMARK_START.name] = histogram.DateRange(
-        self.telemetry_info.benchmark_start_epoch * 1000)
-    if self.telemetry_info.benchmark_descriptions:
-      hist.diagnostics[
-          reserved_infos.BENCHMARK_DESCRIPTIONS.name] = generic_set.GenericSet([
-              self.telemetry_info.benchmark_descriptions])
-    self._histograms.AddHistogram(hist)
 
   def AddHistogram(self, hist):
     if self._ShouldAddHistogram(hist):
