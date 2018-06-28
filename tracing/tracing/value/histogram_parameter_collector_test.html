@@ -13,7 +13,9 @@ tr.b.unittest.testSuite(function() {
   test('empty', function() {
     const collector = new tr.v.HistogramParameterCollector();
     collector.process([]);
-    assert.strictEqual('avg', tr.b.getOnlyElement(collector.statisticNames));
+    assert.lengthOf(collector.statisticNames, 2);
+    assert.strictEqual('avg', collector.statisticNames[0]);
+    assert.strictEqual('pct_090', collector.statisticNames[1]);
     assert.strictEqual('name',
         tr.b.getOnlyElement(collector.possibleGroupings).key);
     assert.lengthOf(collector.labels, 0);
