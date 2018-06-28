@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <sys/timerfd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "logging.h"
 
