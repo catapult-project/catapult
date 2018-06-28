@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CHECK_ARGS(COND, ERR)                                          \
   "FAILED CHECK(%s) @ %s:%d (errno: %s)\n", #COND, __FILE__, __LINE__, \
