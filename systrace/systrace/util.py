@@ -202,9 +202,6 @@ def get_main_options(parser):
                     'comma-separated list of app cmdlines')
   parser.add_option('-t', '--time', dest='trace_time', type='int',
                     help='trace for N seconds', metavar='N')
-  parser.add_option('--target', dest='target', default='android',
-                    type='string', help='choose tracing target (android or '
-                    ' linux)')
   parser.add_option('-b', '--buf-size', dest='trace_buf_size',
                     type='int', help='use a trace buffer size '
                     ' of N KB', metavar='N')
