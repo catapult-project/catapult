@@ -33,9 +33,6 @@ OAUTH_CLIENT_ID_WHITELIST = [
     # This oauth client id used to upload histograms from cronet bots.
     '113172445342431053212'
 ]
-OAUTH_SCOPES = (
-    'https://www.googleapis.com/auth/userinfo.email',
-)
 
 
 class ApiAuthException(Exception):
@@ -59,38 +56,29 @@ class InternalOnlyError(ApiAuthException):
 
 def Authorize():
   try:
-    user = oauth.get_current_user(OAUTH_SCOPES)
-  except oauth.Error:
-    raise NotLoggedInError
-
-  if not user:
-    raise NotLoggedInError
-
-  try:
-    if not user.email().endswith('.gserviceaccount.com'):
-      # For non-service account, need to verify that the OAuth client ID
-      # is in our whitelist.
-      client_id = oauth.get_client_id(OAUTH_SCOPES)
-      if client_id not in OAUTH_CLIENT_ID_WHITELIST:
-        logging.info('OAuth client id %s for user %s not in whitelist',
-                     client_id, user.email())
-        user = None
-        raise OAuthError
-  except oauth.Error:
+    email = utils.GetEmail()
+  except oauth.OAuthRequestError:
     raise OAuthError
 
-  logging.info('OAuth user logged in as: %s', user.email())
-  if utils.IsGroupMember(user.email(), 'chromeperf-access'):
-    datastore_hooks.SetPrivilegedRequest()
+  if not email:
+    raise NotLoggedInError
 
-
-def Email():
-  """Retrieves the email address of the logged-in user.
-
-  Returns:
-    The email address, as a string or None if there is no user logged in.
-  """
   try:
-    return oauth.get_current_user(OAUTH_SCOPES).email()
-  except oauth.InvalidOAuthParametersError:
-    return None
+    if not email.endswith('.gserviceaccount.com'):
+      # For non-service account, need to verify that the OAuth client ID
+      # is in our whitelist.
+      client_id = oauth.get_client_id(utils.OAUTH_SCOPES)
+      if client_id not in OAUTH_CLIENT_ID_WHITELIST:
+        logging.error('OAuth client id %s for user %s not in whitelist',
+                      client_id, email)
+        email = None
+        raise OAuthError
+  except oauth.OAuthRequestError:
+    # Transient errors when checking the token result should result in HTTP 500,
+    # so catch oauth.OAuthRequestError here, not oauth.Error (which would catch
+    # both fatal and transient errors).
+    raise OAuthError
+
+  logging.info('OAuth user logged in as: %s', email)
+  if utils.IsInternalUser():
+    datastore_hooks.SetPrivilegedRequest()

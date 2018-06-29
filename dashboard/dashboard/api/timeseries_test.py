@@ -3,34 +3,21 @@
 # found in the LICENSE file.
 
 import datetime
-import mock
 import unittest
-
-import webapp2
-import webtest
-
-from google.appengine.api import users
 
 from dashboard.api import api_auth
 from dashboard.api import timeseries
-from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
-
-
-GOOGLER_USER = users.User(email='sullivan@chromium.org',
-                          _auth_domain='google.com')
-NON_GOOGLE_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
 
 
 class TimeseriesTest(testing_common.TestCase):
 
   def setUp(self):
     super(TimeseriesTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [(r'/api/timeseries/(.*)', timeseries.TimeseriesHandler)])
-    self.testapp = webtest.TestApp(app)
+    self.SetUpApp([(r'/api/timeseries/(.*)', timeseries.TimeseriesHandler)])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _AddData(self):
     """Adds sample TestMetadata entities and returns their keys."""
@@ -54,20 +41,14 @@ class TimeseriesTest(testing_common.TestCase):
     rows[100]['r_not_every_row'] = 12345
     testing_common.AddRows('ChromiumPerf/linux/page_cycler/warm/cnn', rows)
 
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_TestPath_ReturnsInternalData(self, mock_oauth, mock_utils):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    mock_utils.return_value = True
+  def testPost_TestPath_ReturnsInternalData(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self._AddData()
-    datastore_hooks.InstallHooks()
     test = utils.TestKey('ChromiumPerf/linux/page_cycler/warm/cnn').get()
     test.internal_only = True
     test.put()
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn')
     data = self.GetJsonValue(response, 'timeseries')
     self.assertEquals(10, len(data))
@@ -80,14 +61,11 @@ class TimeseriesTest(testing_common.TestCase):
     improvement_direction = self.GetJsonValue(response, 'improvement_direction')
     self.assertEquals(improvement_direction, anomaly.UP)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NumDays_ChecksTimestamp(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_NumDays_ChecksTimestamp(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self._AddData()
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
         {'num_days': 1})
     data = self.GetJsonValue(response, 'timeseries')
@@ -97,41 +75,29 @@ class TimeseriesTest(testing_common.TestCase):
     self.assertEquals(900, data[4][0])
     self.assertEquals('1234a', data[1][3])
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NumDaysNotNumber_400Response(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-
-    response = self.testapp.post(
+  def testPost_NumDaysNotNumber_400Response(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
         {'num_days': 'foo'}, status=400)
     self.assertIn('Invalid num_days parameter', response.body)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NegativeNumDays_400Response(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-
-    response = self.testapp.post(
+  def testPost_NegativeNumDays_400Response(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
         {'num_days': -1}, status=400)
     self.assertIn('num_days cannot be negative', response.body)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_ExternalUserInternalData_500Error(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_ExternalUserInternalData_500Error(self):
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
     self._AddData()
-    datastore_hooks.InstallHooks()
     test = utils.TestKey('ChromiumPerf/linux/page_cycler/warm/cnn').get()
     test.internal_only = True
     test.put()
 
-    self.testapp.post(
-        '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn', status=500)
+    self.Post('/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
+              status=500)
 
 
 if __name__ == '__main__':

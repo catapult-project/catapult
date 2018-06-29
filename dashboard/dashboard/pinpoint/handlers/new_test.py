@@ -8,11 +8,12 @@ import mock
 
 from dashboard.api import api_auth
 from dashboard.common import namespaced_stored_object
+from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.pinpoint import test
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models.change import patch as patch_module
-from dashboard.pinpoint import test
 
 
 _BASE_REQUEST = {
@@ -50,14 +51,14 @@ class NewAuthTest(_NewTest):
   @mock.patch.object(api_auth, 'Authorize',
                      mock.MagicMock(side_effect=api_auth.NotLoggedInError()))
   def testPost_NotLoggedIn(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=401)
+    response = self.Post('/api/new', _BASE_REQUEST, status=401)
     result = json.loads(response.body)
     self.assertEqual(result, {'error': 'User not authenticated'})
 
   @mock.patch.object(api_auth, 'Authorize',
                      mock.MagicMock(side_effect=api_auth.OAuthError()))
   def testFailsOauth(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=403)
+    response = self.Post('/api/new', _BASE_REQUEST, status=403)
     result = json.loads(response.body)
     self.assertEqual(result, {'error': 'User authentication error'})
 
@@ -69,7 +70,7 @@ class NewAuthTest(_NewTest):
 class NewTest(_NewTest):
 
   def testPost(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    response = self.Post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -80,7 +81,7 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     request.update(_CONFIGURATION_ARGUMENTS)
     del request['configuration']
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -90,7 +91,7 @@ class NewTest(_NewTest):
   def testComparisonModeFunctional(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'functional'
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
@@ -99,7 +100,7 @@ class NewTest(_NewTest):
   def testComparisonModePerformance(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'performance'
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
@@ -108,7 +109,7 @@ class NewTest(_NewTest):
   def testComparisonModeUnknown(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'invalid comparison mode'
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   def testWithChanges(self):
@@ -120,7 +121,7 @@ class NewTest(_NewTest):
         {'commits': [{'repository': 'chromium', 'git_hash': '1'}]},
         {'commits': [{'repository': 'chromium', 'git_hash': '3'}]}])
 
-    response = self.testapp.post('/api/new', base_request, status=200)
+    response = self.Post('/api/new', base_request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -134,7 +135,7 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     request['patch'] = 'https://lalala/c/foo/bar/+/123'
 
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -148,26 +149,26 @@ class NewTest(_NewTest):
   def testMissingTarget(self):
     request = dict(_BASE_REQUEST)
     del request['target']
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   def testInvalidTestConfig(self):
     request = dict(_BASE_REQUEST)
     del request['configuration']
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   def testInvalidBug(self):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = 'not_an_int'
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertEqual({'error': new._ERROR_BUG_ID},
                      json.loads(response.body))
 
   def testEmptyBug(self):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = ''
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -182,7 +183,7 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     request['pin'] = 'https://lalala/c/foo/bar/+/123'
 
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -193,32 +194,32 @@ class NewTest(_NewTest):
   def testValidTags(self):
     request = dict(_BASE_REQUEST)
     request['tags'] = json.dumps({'key': 'value'})
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
 
   def testInvalidTags(self):
     request = dict(_BASE_REQUEST)
     request['tags'] = json.dumps(['abc'])
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   def testInvalidTagType(self):
     request = dict(_BASE_REQUEST)
     request['tags'] = json.dumps({'abc': 123})
-    response = self.testapp.post('/api/new', request, status=400)
+    response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
   def testUserFromParams(self):
     request = dict(_BASE_REQUEST)
     request['user'] = 'foo@example.org'
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     job = job_module.JobFromId(result['jobId'])
     self.assertEqual(job.user, 'foo@example.org')
 
   def testUserFromAuth(self):
-    response = self.testapp.post('/api/new', _BASE_REQUEST, status=200)
+    response = self.Post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     job = job_module.JobFromId(result['jobId'])
-    self.assertEqual(job.user, 'example@example.com')
+    self.assertEqual(job.user, testing_common.EXTERNAL_USER.email())

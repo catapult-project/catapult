@@ -10,8 +10,6 @@ import webapp2
 import webtest
 import zlib
 
-from google.appengine.api import users
-
 from dashboard import add_point_queue
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
@@ -32,12 +30,8 @@ from tracing.value.diagnostics import reserved_infos
 # pylint: disable=too-many-lines
 
 
-GOOGLER_USER = users.User(email='authorized@chromium.org',
-                          _auth_domain='google.com')
-
-
 def SetGooglerOAuth(mock_oauth):
-  mock_oauth.get_current_user.return_value = GOOGLER_USER
+  mock_oauth.get_current_user.return_value = testing_common.INTERNAL_USER
   mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_WHITELIST[0]
 
 

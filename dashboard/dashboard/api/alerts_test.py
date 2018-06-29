@@ -4,18 +4,12 @@
 
 import datetime
 import json
-import mock
 import unittest
 
-import webapp2
-import webtest
-
-from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard.api import alerts
 from dashboard.api import api_auth
-from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -23,47 +17,15 @@ from dashboard.models import bug_data
 from dashboard.models import sheriff
 
 
-GOOGLER_USER = users.User(email='sullivan@chromium.org',
-                          _auth_domain='google.com')
-NON_GOOGLE_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
-
-
 class AlertsGeneralTest(testing_common.TestCase):
 
   def setUp(self):
     super(AlertsGeneralTest, self).setUp()
-    app = webapp2.WSGIApplication([('/api/alerts', alerts.AlertsHandler)])
-    self._testapp = webtest.TestApp(app)
-    self._mock_oauth = None
-    self._mock_internal = None
-    self._MockUser(NON_GOOGLE_USER)
-
-  def _MockUser(self, user):
-    # TODO(benjhayden): Refactor this into testing_common instead of duplicating
-    # in test_suites_test.py
-    if self._mock_oauth:
-      self._mock_oauth.stop()
-      self._mock_oauth = None
-    if self._mock_internal:
-      self._mock_internal.stop()
-      self._mock_internal = None
-    if user is None:
-      return
-    self._mock_oauth = mock.patch('dashboard.api.api_auth.oauth')
-    self._mock_oauth.start()
-    api_auth.oauth.get_current_user.return_value = user
-    api_auth.oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    self._mock_internal = mock.patch(
-        'dashboard.common.utils.GetCachedIsInternalUser')
-    self._mock_internal.start()
-    utils.GetCachedIsInternalUser.return_value = user == GOOGLER_USER
-
-  def tearDown(self):
-    self._MockUser(None)
+    self.SetUpApp([('/api/alerts', alerts.AlertsHandler)])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _Post(self, **params):
-    return json.loads(self._testapp.post('/api/alerts', params).body)
+    return json.loads(self.Post('/api/alerts', params).body)
 
   def _CreateAnomaly(self,
                      internal_only=False,
@@ -110,7 +72,7 @@ class AlertsGeneralTest(testing_common.TestCase):
     self.assertEqual(1, len(response['anomalies']))
 
   def testKeyInternal_Internal(self):
-    self._MockUser(GOOGLER_USER)
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     response = self._Post(key=self._CreateAnomaly(internal_only=True))
     self.assertEqual(1, len(response['anomalies']))
 
@@ -322,9 +284,8 @@ class AlertsTest(testing_common.TestCase):
 
   def setUp(self):
     super(AlertsTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [(r'/api/alerts/(.*)', alerts.AlertsHandler)])
-    self.testapp = webtest.TestApp(app)
+    self.SetUpApp([(r'/api/alerts/(.*)', alerts.AlertsHandler)])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _AddAnomalyEntities(
       self, revision_ranges, test_key, sheriff_key, bug_id=None,
@@ -372,16 +333,8 @@ class AlertsTest(testing_common.TestCase):
     return sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='sullivan@google.com').put()
 
-  def _SetGooglerOAuth(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
@@ -394,7 +347,7 @@ class AlertsTest(testing_common.TestCase):
     self._AddAnomalyEntities(
         non_overlapping_ranges, test_keys[0], sheriff_key)
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/alerts/keys/%s' % ','.join(selected_keys))
     anomalies = self.GetJsonValue(response, 'anomalies')
 
@@ -402,17 +355,15 @@ class AlertsTest(testing_common.TestCase):
     # but not the non-overlapping alert.
     self.assertEqual(5, len(anomalies))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithKeyOfNonExistentAlert_ShowsError(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
+  def testPost_WithKeyOfNonExistentAlert_ShowsError(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     key = ndb.Key('Anomaly', 123)
-    response = self.testapp.post('/api/alerts/keys/%s' % key.urlsafe(),
-                                 status=400)
+    response = self.Post('/api/alerts/keys/%s' % key.urlsafe(),
+                         status=400)
     self.assertIn('No Anomaly found for key %s.' % key.urlsafe(), response.body)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithRevParameter(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
+  def testPost_WithRevParameter(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     # If the rev parameter is given, then all alerts whose revision range
     # includes the given revision should be included.
     sheriff_key = self._AddSheriff()
@@ -420,20 +371,18 @@ class AlertsTest(testing_common.TestCase):
     self._AddAnomalyEntities(
         [(190, 210), (200, 300), (100, 200), (400, 500)],
         test_keys[0], sheriff_key)
-    response = self.testapp.post('/api/alerts/rev/200')
+    response = self.Post('/api/alerts/rev/200')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithInvalidRevParameter_ShowsError(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/alerts/rev/foo', status=400)
+  def testPost_WithInvalidRevParameter_ShowsError(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self.Post('/api/alerts/rev/foo', status=400)
     self.assertEqual(
         {'error': 'Invalid rev "foo".'}, json.loads(response.body))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithBugIdParameter(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
+  def testPost_WithBugIdParameter(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
@@ -442,19 +391,12 @@ class AlertsTest(testing_common.TestCase):
         test_keys[0], sheriff_key, bug_id=123)
     self._AddAnomalyEntities(
         [(150, 250)], test_keys[0], sheriff_key)
-    response = self.testapp.post('/api/alerts/bug_id/123')
+    response = self.Post('/api/alerts/bug_id/123')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))
 
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithBugIdParameterExternalUser_ExternaData(
-      self, mock_oauth, mock_utils):
-    mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    mock_utils.return_value = False
-    datastore_hooks.InstallHooks()
+  def testPost_WithBugIdParameterExternalUser_ExternaData(self):
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
@@ -463,20 +405,18 @@ class AlertsTest(testing_common.TestCase):
         test_keys[0], sheriff_key, bug_id=123, internal_only=True)
     self._AddAnomalyEntities(
         [(150, 250)], test_keys[0], sheriff_key, bug_id=123)
-    response = self.testapp.post('/api/alerts/bug_id/123')
+    response = self.Post('/api/alerts/bug_id/123')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(1, len(anomalies))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithInvalidBugIdParameter_ShowsError(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/alerts/bug_id/foo', status=400)
+  def testPost_WithInvalidBugIdParameter_ShowsError(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self.Post('/api/alerts/bug_id/foo', status=400)
     self.assertEqual(
         {'error': 'Invalid bug ID "foo".'}, json.loads(response.body))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithHistoryParameter_ListsAlerts(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
+  def testPost_WithHistoryParameter_ListsAlerts(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     recent_ranges = [(300, 500), (500, 600), (600, 800)]
@@ -486,14 +426,13 @@ class AlertsTest(testing_common.TestCase):
     self._AddAnomalyEntities(
         old_ranges, test_keys[0], sheriff_key, timestamp=old_time)
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/alerts/history/5')
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithBenchmarkParameter_ListsOnlyMatching(self, mock_oauth):
-    self._SetGooglerOAuth(mock_oauth)
+  def testPost_WithBenchmarkParameter_ListsOnlyMatching(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     sheriff_key = self._AddSheriff()
     test_keys = [
         utils.TestKey('ChromiumPerf/bot/sunspider/Total'),
@@ -502,7 +441,7 @@ class AlertsTest(testing_common.TestCase):
     for key in test_keys:
       self._AddAnomalyEntities(ranges, key, sheriff_key)
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/alerts/history/5', {'benchmark': 'octane'})
     anomalies = self.GetJsonValue(response, 'anomalies')
     self.assertEqual(3, len(anomalies))

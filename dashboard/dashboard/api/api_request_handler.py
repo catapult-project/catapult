@@ -11,6 +11,7 @@ import webapp2
 from dashboard.api import api_auth
 
 _ALLOWED_ORIGINS = [
+    'chromeperf.appspot.com',
     'chromiumdash.appspot.com',
     'chromiumdash-staging.googleplex.com',
 ]
@@ -26,6 +27,9 @@ class ApiRequestHandler(webapp2.RequestHandler):
   Convenience methods handling authentication errors and surfacing them.
   """
 
+  def _AllowAnonymous(self):
+    return False
+
   def post(self, *args):
     """Returns alert data in response to API requests.
 
@@ -36,11 +40,13 @@ class ApiRequestHandler(webapp2.RequestHandler):
     try:
       api_auth.Authorize()
     except api_auth.NotLoggedInError as e:
-      self.WriteErrorMessage(e.message, 401)
-      return
+      if not self._AllowAnonymous():
+        self.WriteErrorMessage(e.message, 401)
+        return
     except api_auth.OAuthError as e:
       self.WriteErrorMessage(e.message, 403)
       return
+    # Allow oauth.Error to manifest as HTTP 500.
 
     try:
       results = self.AuthorizedPost(*args)

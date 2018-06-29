@@ -4,9 +4,9 @@
 
 import json
 
-from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import namespaced_stored_object
+from dashboard.common import utils
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
@@ -182,4 +182,4 @@ def _ValidateTags(tags):
 
 
 def _ValidateUser(user):
-  return user or api_auth.Email()
+  return user or utils.GetEmail()

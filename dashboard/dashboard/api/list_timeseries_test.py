@@ -3,13 +3,7 @@
 # found in the LICENSE file.
 
 import json
-import mock
 import unittest
-
-import webapp2
-import webtest
-
-from google.appengine.api import users
 
 from dashboard.api import api_auth
 from dashboard.api import list_timeseries
@@ -17,18 +11,13 @@ from dashboard.common import testing_common
 from dashboard.models import sheriff
 
 
-GOOGLER_USER = users.User(email='sullivan@chromium.org',
-                          _auth_domain='google.com')
-NON_GOOGLE_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
-
-
 class ListTimeseriesTest(testing_common.TestCase):
 
   def setUp(self):
     super(ListTimeseriesTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [(r'/api/list_timeseries/(.*)', list_timeseries.ListTimeseriesHandler)])
-    self.testapp = webtest.TestApp(app)
+    self.SetUpApp([(r'/api/list_timeseries/(.*)',
+                    list_timeseries.ListTimeseriesHandler)])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _AddData(self):
     """Adds sample TestMetadata entities and returns their keys."""
@@ -74,26 +63,40 @@ class ListTimeseriesTest(testing_common.TestCase):
         testing_common.AddRows(
             'ChromiumPerf/%s/page_cycler/%s' % (bot, page), [100, 200, 300])
 
-
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoSheriff_IgnoresV8Perf(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_External(self):
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
     self._AddData()
 
-    response = self.testapp.post('/api/list_timeseries/v8')
+    response = self.Post('/api/list_timeseries/v8', {'sheriff': 'all'})
+    paths = json.loads(response.body)
+    self.assertEqual(set([
+        'ChromiumPerf/mac/v8/sunspider/Total',
+        'ChromiumPerf/mac/v8/octane/Total',
+        'ChromiumPerf/mac/v8/octane',
+        'ChromiumPerf/mac/v8/memory/Total',
+        'ChromiumPerf/linux/v8/sunspider/Total',
+        'ChromiumPerf/linux/v8/octane/Total',
+        'ChromiumPerf/linux/v8/octane',
+        'ChromiumPerf/linux/v8/memory/Total',
+        'ChromiumPerf/win/v8/sunspider/Total',
+        'ChromiumPerf/win/v8/octane/Total',
+        'ChromiumPerf/win/v8/octane',
+        'ChromiumPerf/win/v8/memory/Total',
+    ]), set(paths))
+
+  def testPost_NoSheriff_IgnoresV8Perf(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self._AddData()
+
+    response = self.Post('/api/list_timeseries/v8')
     paths = json.loads(response.body)
     self.assertEqual([], paths)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoSheriff_ListsChromiumPerf(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_NoSheriff_ListsChromiumPerf(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self._AddData()
 
-    response = self.testapp.post('/api/list_timeseries/page_cycler')
+    response = self.Post('/api/list_timeseries/page_cycler')
     paths = json.loads(response.body)
     self.assertEqual(set([
         'ChromiumPerf/mac/page_cycler/warm/cnn',
@@ -110,14 +113,11 @@ class ListTimeseriesTest(testing_common.TestCase):
         'ChromiumPerf/win/page_cycler/warm/yahoo',
     ]), set(paths))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_V8Sheriff_ListsV8Perf(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_V8Sheriff_ListsV8Perf(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self._AddData()
 
-    response = self.testapp.post(
+    response = self.Post(
         '/api/list_timeseries/v8', {'sheriff': 'V8 Perf Sheriff'})
     paths = json.loads(response.body)
     self.assertEqual(set([
@@ -132,14 +132,11 @@ class ListTimeseriesTest(testing_common.TestCase):
         'ChromiumPerf/win/v8/octane',
     ]), set(paths))
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_AllSheriff_ListsAllV8Perf(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+  def testPost_AllSheriff_ListsAllV8Perf(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self._AddData()
 
-    response = self.testapp.post('/api/list_timeseries/v8', {'sheriff': 'all'})
+    response = self.Post('/api/list_timeseries/v8', {'sheriff': 'all'})
     paths = json.loads(response.body)
     self.assertEqual(set([
         'ChromiumPerf/mac/v8/sunspider/Total',

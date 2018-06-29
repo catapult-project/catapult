@@ -6,21 +6,11 @@ import datetime
 import mock
 import unittest
 
-import webapp2
-import webtest
-
-from google.appengine.api import users
-
 from dashboard.api import api_auth
 from dashboard.api import bugs
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import try_job
-
-
-GOOGLER_USER = users.User(email='sullivan@chromium.org',
-                          _auth_domain='google.com')
-NON_GOOGLE_USER = users.User(email='foo@bar.com', _auth_domain='bar.com')
 
 
 class MockIssueTrackerService(object):
@@ -85,31 +75,21 @@ class BugsTest(testing_common.TestCase):
 
   def setUp(self):
     super(BugsTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [(r'/api/bugs/(.*)', bugs.BugsHandler)])
-    self.testapp = webtest.TestApp(app)
+    self.SetUpApp([(r'/api/bugs/(.*)', bugs.BugsHandler)])
     # Add a fake issue tracker service that we can get call values from.
     self.original_service = bugs.issue_tracker_service.IssueTrackerService
     bugs.issue_tracker_service = mock.MagicMock()
     self.service = MockIssueTrackerService
     bugs.issue_tracker_service.IssueTrackerService = self.service
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def tearDown(self):
     super(BugsTest, self).tearDown()
     bugs.issue_tracker_service.IssueTrackerService = self.original_service
 
-  def _SetGooglerOAuth(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithValidBug_ShowsData(self, mock_oauth, mock_utils):
-    self._SetGooglerOAuth(mock_oauth)
-    mock_utils.return_value = True
-
+  def testPost_WithValidBug_ShowsData(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     try_job.TryJob(
         bug_id=123456, status='started', bot='win_perf',
         results_data={}, config='config = {"command": "cmd"}',
@@ -122,7 +102,7 @@ class BugsTest(testing_common.TestCase):
         bug_id=99999, status='failed', bot='win_perf',
         results_data={'metric': 'foo'},
         config='config = {"command": "cmd"}').put()
-    response = self.testapp.post('/api/bugs/123456?include_comments=true')
+    response = self.Post('/api/bugs/123456?include_comments=true')
     bug = self.GetJsonValue(response, 'bug')
     self.assertEqual('The bug title', bug.get('summary'))
     self.assertEqual(2, len(bug.get('cc')))
@@ -146,11 +126,8 @@ class BugsTest(testing_common.TestCase):
         'started_timestamp'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithValidBugButNoComments(self, mock_oauth, mock_utils):
-    self._SetGooglerOAuth(mock_oauth)
-    mock_utils.return_value = True
+  def testPost_WithValidBugButNoComments(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
 
     try_job.TryJob(
         bug_id=123456, status='started', bot='win_perf',
@@ -164,45 +141,31 @@ class BugsTest(testing_common.TestCase):
         bug_id=99999, status='failed', bot='win_perf',
         results_data={'metric': 'foo'},
         config='config = {"command": "cmd"}').put()
-    response = self.testapp.post('/api/bugs/123456')
+    response = self.Post('/api/bugs/123456')
     bug = self.GetJsonValue(response, 'bug')
     self.assertNotIn('comments', bug)
 
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_WithInvalidBugIdParameter_ShowsError(
-      self, mock_oauth, mock_utils):
-    mock_utils.return_value = True
-    self._SetGooglerOAuth(mock_oauth)
-    response = self.testapp.post('/api/bugs/foo', status=400)
+  def testPost_WithInvalidBugIdParameter_ShowsError(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self.Post('/api/bugs/foo', status=400)
     self.assertIn('Invalid bug ID \\"foo\\".', response.body)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(utils, 'IsGroupMember')
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoAccess_ShowsError(
-      self, mock_oauth, mock_utils):
-    mock_utils.return_value = False
-    mock_oauth.get_current_user.return_value = NON_GOOGLE_USER
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    response = self.testapp.post('/api/bugs/foo', status=400)
+  def testPost_NoAccess_ShowsError(self):
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
+    response = self.Post('/api/bugs/foo', status=400)
     self.assertIn('No access', response.body)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_NoOauthUser(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = None
-    mock_oauth.get_client_id.return_value = (
-        api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    self.testapp.post('/api/bugs/12345', status=401)
+  def testPost_NoOauthUser(self):
+    self.SetCurrentUserOAuth(None)
+    self.Post('/api/bugs/12345', status=401)
 
-  @mock.patch.object(api_auth, 'oauth')
-  def testPost_BadOauthClientId(self, mock_oauth):
-    mock_oauth.get_current_user.return_value = GOOGLER_USER
-    mock_oauth.get_client_id.return_value = 'invalid'
-    self.testapp.post('/api/bugs/12345', status=403)
+  def testPost_BadOauthClientId(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self.SetCurrentClientIdOAuth('invalid')
+    self.Post('/api/bugs/12345', status=403)
 
 
 if __name__ == '__main__':

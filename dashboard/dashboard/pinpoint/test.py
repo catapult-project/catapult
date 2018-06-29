@@ -22,6 +22,7 @@ class TestCase(testing_common.TestCase):
     self._SetUpTestApp()
     self._SetUpStubs()
     self._PopulateData()
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
 
   def _SetUpTestApp(self):
     self.testapp = webtest.TestApp(dispatcher.APP)

@@ -12,7 +12,7 @@ from dashboard.pinpoint import test
 
 class JobsTest(test.TestCase):
 
-  @mock.patch.object(jobs.api_auth, 'Email', mock.MagicMock(return_value=None))
+  @mock.patch.object(jobs.utils, 'GetEmail', mock.MagicMock(return_value=None))
   def testGet_NoUser(self):
     job = job_module.Job.New((), ())
 
@@ -22,7 +22,7 @@ class JobsTest(test.TestCase):
     self.assertEqual(1, len(data['jobs']))
     self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])
 
-  @mock.patch.object(jobs.api_auth, 'Email',
+  @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value='lovely.user@example.com'))
   def testGet_WithUser(self):
     job_module.Job.New((), ())
