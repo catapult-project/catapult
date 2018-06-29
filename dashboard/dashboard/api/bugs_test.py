@@ -122,7 +122,7 @@ class BugsTest(testing_common.TestCase):
         bug_id=99999, status='failed', bot='win_perf',
         results_data={'metric': 'foo'},
         config='config = {"command": "cmd"}').put()
-    response = self.testapp.post('/api/bugs/123456')
+    response = self.testapp.post('/api/bugs/123456?include_comments=true')
     bug = self.GetJsonValue(response, 'bug')
     self.assertEqual('The bug title', bug.get('summary'))
     self.assertEqual(2, len(bug.get('cc')))
@@ -144,6 +144,30 @@ class BugsTest(testing_common.TestCase):
         'started_timestamp'))
     self.assertEqual('', bug.get('legacy_bisects')[1].get(
         'started_timestamp'))
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(utils, 'IsGroupMember')
+  @mock.patch.object(api_auth, 'oauth')
+  def testPost_WithValidBugButNoComments(self, mock_oauth, mock_utils):
+    self._SetGooglerOAuth(mock_oauth)
+    mock_utils.return_value = True
+
+    try_job.TryJob(
+        bug_id=123456, status='started', bot='win_perf',
+        results_data={}, config='config = {"command": "cmd"}',
+        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
+    try_job.TryJob(
+        bug_id=123456, status='failed', bot='android_bisect',
+        results_data={'metric': 'foo'},
+        config='config = {"command": "cmd"}').put()
+    try_job.TryJob(
+        bug_id=99999, status='failed', bot='win_perf',
+        results_data={'metric': 'foo'},
+        config='config = {"command": "cmd"}').put()
+    response = self.testapp.post('/api/bugs/123456')
+    bug = self.GetJsonValue(response, 'bug')
+    self.assertNotIn('comments', bug)
+
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(utils, 'IsGroupMember')

@@ -44,6 +44,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
     try:
       if len(args) == 0:
         is_improvement = self.request.get('is_improvement', None)
+        # TODO(#4530): Use api.utils.ParseBool to parse these values.
         assert is_improvement in [None, 'true', 'false'], is_improvement
         if is_improvement:
           is_improvement = is_improvement == 'true'

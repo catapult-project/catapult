@@ -34,6 +34,9 @@ URL patterns for accessing alerts:
     * `min_timestamp`, `max_timestamp`: Datetimes in ISO format.
 
  * `/api/alerts/bug_id/id`: Get all the alerts associated with bug `id`.
+    * `include_comments`: When omitted or set to `false` only bug metadata
+      will be returned. When set to `true` the text of all bug comments
+      is also included in the response.
  * `/api/alerts/keys/comma_sep_list`: Get the alerts with the given list of
    keys, separated by commas.
  * `/api/alerts/rev/revision`: Get all the alerts with `revision` in the
