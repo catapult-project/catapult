@@ -119,16 +119,6 @@ indexes:
   - name: created
     direction: desc
 
-# Might be unused!
-# This index would enable querying for points for a particular test,
-# filtering or sorting by revision, and possibly doing a projection
-# query including value.
-- kind: Row
-  properties:
-  - name: parent_test
-  - name: revision
-  - name: value
-
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision and value.
 - kind: Row
