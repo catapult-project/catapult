@@ -39,6 +39,7 @@ from google.appengine.runtime import apiproxy_errors
 from google.appengine.ext import ndb
 
 from dashboard.common import datastore_hooks
+from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
 from dashboard.common import stored_object
 
@@ -71,17 +72,11 @@ class CachedPickledString(ndb.Model):
     return query.fetch(keys_only=True)
 
 
-def _NamespaceKey(key, namespace=None):
-  if not namespace:
-    namespace = datastore_hooks.GetNamespace()
-  return '%s__%s' % (namespace, key)
-
-
 def Get(key):
   """Gets the value from the datastore."""
   if key is None:
     return None
-  namespaced_key = _NamespaceKey(key)
+  namespaced_key = namespaced_stored_object.NamespaceKey(key)
   entity = ndb.Key('CachedPickledString', namespaced_key).get(
       read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
@@ -94,7 +89,8 @@ def GetExternal(key):
   """Gets the value from the datastore for the externally namespaced key."""
   if key is None:
     return None
-  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
+  namespaced_key = namespaced_stored_object.NamespaceKey(
+      key, datastore_hooks.EXTERNAL)
   entity = ndb.Key('CachedPickledString', namespaced_key).get(
       read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
@@ -121,7 +117,7 @@ def Set(key, value, days_to_keep=None, namespace=None):
   if days_to_keep:
     expire_time = datetime.datetime.now() + datetime.timedelta(
         days=days_to_keep)
-  namespaced_key = _NamespaceKey(key, namespace)
+  namespaced_key = namespaced_stored_object.NamespaceKey(key, namespace)
 
   try:
     CachedPickledString(id=namespaced_key,
@@ -156,8 +152,10 @@ def Delete(key):
 
 @ndb.tasklet
 def DeleteAsync(key):
-  internal_key = _NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
-  external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
+  internal_key = namespaced_stored_object.NamespaceKey(
+      key, datastore_hooks.INTERNAL)
+  external_key = namespaced_stored_object.NamespaceKey(
+      key, datastore_hooks.EXTERNAL)
   yield (
       ndb.delete_multi_async(
           [ndb.Key('CachedPickledString', internal_key),

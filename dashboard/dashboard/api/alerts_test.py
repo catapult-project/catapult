@@ -39,6 +39,8 @@ class AlertsGeneralTest(testing_common.TestCase):
     self._MockUser(NON_GOOGLE_USER)
 
   def _MockUser(self, user):
+    # TODO(benjhayden): Refactor this into testing_common instead of duplicating
+    # in test_suites_test.py
     if self._mock_oauth:
       self._mock_oauth.stop()
       self._mock_oauth = None

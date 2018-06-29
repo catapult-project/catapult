@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import unittest
-
 import webapp2
 import webtest
 
@@ -11,6 +10,8 @@ from google.appengine.ext import ndb
 
 from dashboard import update_test_suites
 from dashboard.common import datastore_hooks
+from dashboard.common import descriptor
+from dashboard.common import namespaced_stored_object
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -28,10 +29,16 @@ class ListTestSuitesTest(testing_common.TestCase):
     datastore_hooks.InstallHooks()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
+    stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [
+        'TEST_PARTIAL_TEST_SUITE',
+    ])
+    stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [
+        'TEST_GROUPABLE%',
+    ])
 
   def testFetchCachedTestSuites_NotEmpty(self):
     # If the cache is set, then whatever's there is returned.
-    key = update_test_suites._NamespaceKey(
+    key = namespaced_stored_object.NamespaceKey(
         update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
     self.assertEqual(
@@ -67,7 +74,7 @@ class ListTestSuitesTest(testing_common.TestCase):
         })
 
   def testPost_ForcesCacheUpdate(self):
-    key = update_test_suites._NamespaceKey(
+    key = namespaced_stored_object.NamespaceKey(
         update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
     self.assertEqual(
@@ -79,6 +86,10 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {'foo': 'bar'},
         update_test_suites.FetchCachedTestSuites())
+
+    stored_object.Set(namespaced_stored_object.NamespaceKey(
+        update_test_suites.TEST_SUITES_2_CACHE_KEY), ['foo'])
+    self.assertEqual(['foo'], update_test_suites.FetchCachedTestSuites2())
 
     # Making a request to /udate_test_suites forces an update.
     self.testapp.post('/update_test_suites')
@@ -95,6 +106,10 @@ class ListTestSuitesTest(testing_common.TestCase):
             },
         },
         update_test_suites.FetchCachedTestSuites())
+
+    self.assertEqual(
+        ['dromaeo', 'really', 'scrolling'],
+        update_test_suites.FetchCachedTestSuites2())
 
   def testPost_InternalOnly(self):
     self.SetCurrentUser('internal@chromium.org')
@@ -306,6 +321,22 @@ class ListTestSuitesTest(testing_common.TestCase):
   def testGetSubTestPath(self):
     key = utils.TestKey('Chromium/mac/my_suite/foo/bar')
     self.assertEqual('foo/bar', update_test_suites._GetTestSubPath(key))
+
+  def testPartialTestSuites(self):
+    testing_common.AddTests(
+        ['master'],
+        ['bot'],
+        {
+            'TEST_PARTIAL_TEST_SUITE': {
+                'COMPOSITE': {
+                    'measurement': {},
+                },
+            },
+        })
+    self.testapp.post('/update_test_suites')
+    self.assertEqual(
+        ['TEST_PARTIAL_TEST_SUITE:COMPOSITE'],
+        update_test_suites.FetchCachedTestSuites2())
 
 
 if __name__ == '__main__':

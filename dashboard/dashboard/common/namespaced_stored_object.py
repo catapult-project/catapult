@@ -19,7 +19,7 @@ def Get(key):
 
 @ndb.tasklet
 def GetAsync(key):
-  namespaced_key = _NamespaceKey(key)
+  namespaced_key = NamespaceKey(key)
   result = yield stored_object.GetAsync(namespaced_key)
   raise ndb.Return(result)
 
@@ -33,7 +33,7 @@ def GetExternal(key):
 
 @ndb.tasklet
 def GetExternalAsync(key):
-  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
+  namespaced_key = NamespaceKey(key, datastore_hooks.EXTERNAL)
   result = yield stored_object.GetAsync(namespaced_key)
   raise ndb.Return(result)
 
@@ -46,7 +46,7 @@ def Set(key, value):
 
 @ndb.tasklet
 def SetAsync(key, value):
-  namespaced_key = _NamespaceKey(key)
+  namespaced_key = NamespaceKey(key)
   yield stored_object.SetAsync(namespaced_key, value)
 
 
@@ -58,7 +58,7 @@ def SetExternal(key, value):
 
 @ndb.tasklet
 def SetExternalAsync(key, value):
-  namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
+  namespaced_key = NamespaceKey(key, datastore_hooks.EXTERNAL)
   yield stored_object.SetAsync(namespaced_key, value)
 
 
@@ -70,14 +70,14 @@ def Delete(key):
 
 @ndb.tasklet
 def DeleteAsync(key):
-  internal_key = _NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
-  external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
+  internal_key = NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
+  external_key = NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
   yield (
       stored_object.DeleteAsync(internal_key),
       stored_object.DeleteAsync(external_key))
 
 
-def _NamespaceKey(key, namespace=None):
+def NamespaceKey(key, namespace=None):
   """Prepends a namespace string to a key string."""
   if not namespace:
     namespace = datastore_hooks.GetNamespace()

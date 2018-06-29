@@ -60,7 +60,7 @@ class Descriptor(object):
     external users.
     """
     if cls.PARTIAL_TEST_SUITES is None:
-      cls.PARTIAL_TEST_SUITES = stored_object.Get(PARTIAL_TEST_SUITES_KEY)
+      cls.PARTIAL_TEST_SUITES = stored_object.Get(PARTIAL_TEST_SUITES_KEY) or ()
     return cls.PARTIAL_TEST_SUITES
 
   COMPOSITE_TEST_SUITES = None
@@ -75,7 +75,8 @@ class Descriptor(object):
     external users.
     """
     if cls.COMPOSITE_TEST_SUITES is None:
-      cls.COMPOSITE_TEST_SUITES = stored_object.Get(COMPOSITE_TEST_SUITES_KEY)
+      cls.COMPOSITE_TEST_SUITES = stored_object.Get(
+          COMPOSITE_TEST_SUITES_KEY) or ()
     return cls.COMPOSITE_TEST_SUITES
 
   GROUPABLE_TEST_SUITE_PREFIXES = None
@@ -90,7 +91,7 @@ class Descriptor(object):
     """
     if cls.GROUPABLE_TEST_SUITE_PREFIXES is None:
       cls.GROUPABLE_TEST_SUITE_PREFIXES = stored_object.Get(
-          GROUPABLE_TEST_SUITE_PREFIXES_KEY)
+          GROUPABLE_TEST_SUITE_PREFIXES_KEY) or ()
     return cls.GROUPABLE_TEST_SUITE_PREFIXES
 
   @classmethod
