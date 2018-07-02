@@ -51,6 +51,16 @@ tr.b.unittest.testSuite(function() {
       duration: 0.0,
       args: {frame: '0x0'}
     }));
+
+    // Add an extra FCP event in the same renderer process appearing after the
+    // initial FCP even to check that it is ignored by metric computations.
+    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'loading,rail,devtools.timeline',
+      title: 'firstContentfulPaint',
+      start: (offset + 8400.125 + incrementForMetrics + 0.125),
+      duration: 0.0,
+      args: {frame: '0x0'}
+    }));
   }
 
   function makeTestModel(offset, incrementForMetrics) {

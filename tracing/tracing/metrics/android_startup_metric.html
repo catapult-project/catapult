@@ -78,22 +78,36 @@ tr.exportTo('tr.metrics.sh', function() {
         if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
           firstContentfulPaintTimestampsAndEvents.push(
               {timestamp: ev.end, event: new tr.v.d.RelatedEventSet([ev]) });
+          // There are usually several 'First Contentful Paint' events recorded
+          // for each page load. Take only the first one per renderer.
+          break;
         }
       }
     }
 
     // Group the relevant events with the corresponding browser starts and emit
     // the metrics.
-    for (let i = 0; i < browserStartTimestamps.length; i++) {
+    const totalRequestStarts = requestStartTimestampsAndEvents.length;
+    const totalBrowserStarts = browserStartTimestamps.length;
+    if (totalRequestStarts !== totalBrowserStarts) {
+      throw new Error('Number of request starts (' + totalRequestStarts +
+          ') differs from number of browser starts (' + totalBrowserStarts +
+          ')');
+    }
+    const totalFcpTimestamps = firstContentfulPaintTimestampsAndEvents.length;
+    if (totalFcpTimestamps !== totalBrowserStarts) {
+      throw new Error('Number of FCP events (' + totalFcpTimestamps +
+          ') differs from number of browser starts (' + totalBrowserStarts +
+          ')');
+    }
+    for (let i = 0; i < totalBrowserStarts; i++) {
       const browserStart = browserStartTimestamps[i];
       const requestStartInfo = requestStartTimestampsAndEvents[i];
       requestStartHistogram.addSample(requestStartInfo.timestamp - browserStart,
           {events: requestStartInfo.event});
-      const firstContentfulPaintInfo =
-          firstContentfulPaintTimestampsAndEvents[i];
-      firstContentfulPaintHistogram.addSample(
-          firstContentfulPaintInfo.timestamp - browserStart,
-          {events: firstContentfulPaintInfo.event});
+      const fcpInfo = firstContentfulPaintTimestampsAndEvents[i];
+      firstContentfulPaintHistogram.addSample(fcpInfo.timestamp - browserStart,
+          {events: fcpInfo.event});
     }
   }
 
