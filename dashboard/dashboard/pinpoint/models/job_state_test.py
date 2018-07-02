@@ -7,6 +7,7 @@ import unittest
 
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import quest
+from dashboard.pinpoint.models.quest import execution_test
 
 
 class ExploreTest(unittest.TestCase):
@@ -16,7 +17,7 @@ class ExploreTest(unittest.TestCase):
     pass
 
   def testPending(self):
-    state = job_state.JobState([_QuestStub(_ExecutionSpin)],
+    state = job_state.JobState([_QuestStub(execution_test.ExecutionSpin)],
                                comparison_mode=job_state.PERFORMANCE)
     state.AddChange('change 1')
     state.AddChange('change 2')
@@ -30,7 +31,7 @@ class ExploreTest(unittest.TestCase):
     self.assertEqual(attempt_count_1, attempt_count_2)
 
   def testSame(self):
-    state = job_state.JobState([_QuestStub(_ExecutionPass)],
+    state = job_state.JobState([_QuestStub(execution_test.ExecutionPass)],
                                comparison_mode=job_state.FUNCTIONAL)
     state.AddChange('change 1')
     state.AddChange('change 2')
@@ -49,7 +50,7 @@ class ExploreTest(unittest.TestCase):
     self.assertEqual(attempt_count_1, attempt_count_2)
 
   def testUnknown(self):
-    state = job_state.JobState([_QuestStub(_ExecutionPass)],
+    state = job_state.JobState([_QuestStub(execution_test.ExecutionPass)],
                                comparison_mode=job_state.FUNCTIONAL)
     state.AddChange('change 1')
     state.AddChange('change 2')
@@ -80,18 +81,20 @@ class ScheduleWorkTest(unittest.TestCase):
     self.assertFalse(state.ScheduleWork())
 
   def testWorkLeft(self):
-    state = job_state.JobState([_QuestStub(_ExecutionPass, _ExecutionSpin)])
+    q = _QuestStub(execution_test.ExecutionPass, execution_test.ExecutionSpin)
+    state = job_state.JobState([q])
     state.AddChange('change')
     self.assertTrue(state.ScheduleWork())
 
   def testNoWorkLeft(self):
-    state = job_state.JobState([_QuestStub(_ExecutionPass)])
+    state = job_state.JobState([_QuestStub(execution_test.ExecutionPass)])
     state.AddChange('change')
     self.assertTrue(state.ScheduleWork())
     self.assertFalse(state.ScheduleWork())
 
   def testAllAttemptsFail(self):
-    q = _QuestStub(_ExecutionFail, _ExecutionFail, _ExecutionFail2)
+    q = _QuestStub(execution_test.ExecutionFail, execution_test.ExecutionFail,
+                   execution_test.ExecutionFail2)
     state = job_state.JobState([q])
     state.AddChange('change')
     expected_regexp = '7/10.*\nException: Expected error for testing.$'
@@ -115,43 +118,3 @@ class _QuestStub(quest.Quest):
   @classmethod
   def FromDict(cls, arguments):
     return cls
-
-
-class _ExecutionFail(quest.Execution):
-  """This Execution always fails on first Poll()."""
-
-  def _Poll(self):
-    raise Exception('Expected error for testing.')
-
-  def _AsDict(self):
-    return {}
-
-
-class _ExecutionFail2(quest.Execution):
-  """This Execution always fails on first Poll()."""
-
-  def _Poll(self):
-    raise Exception('A different expected error for testing.')
-
-  def _AsDict(self):
-    return {}
-
-
-class _ExecutionPass(quest.Execution):
-  """This Execution always completes on first Poll()."""
-
-  def _Poll(self):
-    self._Complete()
-
-  def _AsDict(self):
-    return {}
-
-
-class _ExecutionSpin(quest.Execution):
-  """This Execution never completes."""
-
-  def _Poll(self):
-    pass
-
-  def _AsDict(self):
-    return {}
