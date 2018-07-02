@@ -15,7 +15,11 @@ from telemetry.story import expectations as expectations_module
 from telemetry.web_perf import timeline_based_measurement
 from tracing.value.diagnostics import generic_set
 
-Owner = decorators.Owner # pylint: disable=invalid-name
+Info = decorators.Info
+
+# TODO(crbug.com/859524): remove this once we update all the benchmarks in
+# tools/perf to use Info decorator.
+Owner = decorators.Info # pylint: disable=invalid-name
 
 
 class InvalidOptionsError(Exception):

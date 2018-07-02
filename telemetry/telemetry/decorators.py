@@ -164,12 +164,12 @@ def Enabled(*args):
   return _Enabled
 
 
-def Owner(emails=None, component=None):
+def Info(emails=None, component=None):
   """Decorator for specifying the owner of a benchmark."""
 
-  def _Owner(func):
-    owner_attr_name = OwnerAttributeName(func)
-    assert inspect.isclass(func), '@Owner(...) can only be used on classes'
+  def _Info(func):
+    owner_attr_name = InfoAttributeName(func)
+    assert inspect.isclass(func), '@Info(...) can only be used on classes'
     if not hasattr(func, owner_attr_name):
       setattr(func, owner_attr_name, {})
     owner_dict = getattr(func, owner_attr_name)
@@ -182,13 +182,13 @@ def Owner(emails=None, component=None):
     setattr(func, owner_attr_name, owner_dict)
     return func
 
-  help_text = '@Owner(...) requires emails and/or a component'
+  help_text = '@Info(...) requires emails and/or a component'
   assert emails or component, help_text
   if emails:
     assert isinstance(emails, list), 'emails must be a list of strs'
     for e in emails:
       assert isinstance(e, str), 'emails must be a list of strs'
-  return _Owner
+  return _Info
 
 
 # TODO(dpranke): Remove if we don't need this.
@@ -271,13 +271,13 @@ def EnabledAttributeName(test):
   return '_%s_%s_enabled_strings' % (test.__module__, name)
 
 
-def OwnerAttributeName(test):
+def InfoAttributeName(test):
   name = _TestName(test)
   return '_%s_%s_owner' % (test.__module__, name)
 
 
 def GetEmails(test):
-  owner_attr_name = OwnerAttributeName(test)
+  owner_attr_name = InfoAttributeName(test)
   owner = getattr(test, owner_attr_name, {})
   if 'emails' in owner:
     return owner['emails']
@@ -285,7 +285,7 @@ def GetEmails(test):
 
 
 def GetComponent(test):
-  owner_attr_name = OwnerAttributeName(test)
+  owner_attr_name = InfoAttributeName(test)
   owner = getattr(test, owner_attr_name, {})
   if 'component' in owner:
     return owner['component']

@@ -225,18 +225,18 @@ class TestEnableDecorators(unittest.TestCase):
     self.assertFalse(decorators.GetEnabledAttributes(Accord().Drive))
 
 
-class TestOwnerDecorators(unittest.TestCase):
+class TestInfoDecorators(unittest.TestCase):
 
-  def testOwnerStringOnClass(self):
+  def testInfoStringOnClass(self):
 
-    @decorators.Owner(emails=['owner@chromium.org'])
+    @decorators.Info(emails=['owner@chromium.org'])
     class Ford(object):
       pass
 
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
 
-    @decorators.Owner(emails=['owner2@chromium.org'])
-    @decorators.Owner(component='component')
+    @decorators.Info(emails=['owner2@chromium.org'])
+    @decorators.Info(component='component')
     class Honda(object):
       pass
 
@@ -245,9 +245,9 @@ class TestOwnerDecorators(unittest.TestCase):
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
 
 
-  def testOwnerStringOnSubClass(self):
+  def testInfoStringOnSubClass(self):
 
-    @decorators.Owner(emails=['owner@chromium.org'], component='comp')
+    @decorators.Info(emails=['owner@chromium.org'], component='comp')
     class Car(object):
       pass
 
@@ -260,11 +260,11 @@ class TestOwnerDecorators(unittest.TestCase):
     self.assertFalse(decorators.GetComponent(Ford))
 
 
-  def testOwnerWithDuplicateAttributeSetting(self):
+  def testInfoWithDuplicateAttributeSetting(self):
 
     with self.assertRaises(AssertionError):
-      @decorators.Owner(emails=['owner2@chromium.org'])
-      @decorators.Owner(emails=['owner@chromium.org'], component='comp')
+      @decorators.Info(emails=['owner2@chromium.org'])
+      @decorators.Info(emails=['owner@chromium.org'], component='comp')
       class Car(object):
         pass
 
