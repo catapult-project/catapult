@@ -9,7 +9,6 @@ import re
 import subprocess
 import tempfile
 
-from battor import battor_wrapper
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -718,13 +717,6 @@ class AndroidPlatformBackend(
     input_methods = self._device.RunShellCommand(['dumpsys', 'input_method'],
                                                  check_return=True)
     return self._IsScreenLocked(input_methods)
-
-  def HasBattOrConnected(self):
-    # Use linux instead of Android because when determining what tests to run on
-    # a bot the individual device could be down, which would make BattOr tests
-    # not run on any device. BattOrs communicate with the host and not android
-    # devices.
-    return battor_wrapper.IsBattOrConnected('linux')
 
   def Log(self, message):
     """Prints line to logcat."""

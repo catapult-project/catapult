@@ -27,9 +27,6 @@ CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'py_utils',
                                     'py_utils', 'chrome_binaries.json')
 
 
-BATTOR_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'battor',
-                                    'battor', 'battor_binary_dependencies.json')
-
 SUPPORTED_DEP_PLATFORMS = (
     'linux_aarch64', 'linux_x86_64', 'linux_armv7l', 'linux_mips'
     'mac_x86_64',
@@ -129,7 +126,6 @@ def FetchBinaryDependencies(
   """
   configs = [
       dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG),
-      dependency_manager.BaseConfig(BATTOR_BINARY_CONFIG)
   ]
   dep_manager = dependency_manager.DependencyManager(configs)
   os_name = _GetOSForPlatform(platform)

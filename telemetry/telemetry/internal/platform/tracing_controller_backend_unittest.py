@@ -6,7 +6,6 @@ import gc
 import platform as _platform
 import unittest
 
-from battor import battor_error
 from telemetry import decorators
 from telemetry.internal.platform import linux_based_platform_backend
 from telemetry.internal.platform import tracing_agent
@@ -92,42 +91,6 @@ class FakeTracingAgentNoStartAndClockSync(FakeTracingAgentBase):
     super(FakeTracingAgentNoStartAndClockSync, self).__init__(
         platform, start=False, clock_sync=True)
 
-class FakeTracingAgentStartRaisesBattOrError(FakeTracingAgentBase):
-  def __init__(self, platform):
-    super(FakeTracingAgentStartRaisesBattOrError, self).__init__(platform)
-
-  def StartAgentTracing(self, config, timeout):
-    raise battor_error.BattOrError('foo')
-
-class FakeTracingAgentRecordClockSyncRaisesBattOrError(FakeTracingAgentBase):
-  def __init__(self, platform):
-    super(FakeTracingAgentRecordClockSyncRaisesBattOrError, self).__init__(
-        platform, clock_sync=True)
-
-  def RecordClockSyncMarker(self, sync_id, callback):
-    raise battor_error.BattOrError('foo')
-
-class FakeTracingAgentStopRaisesBattOrError(FakeTracingAgentBase):
-  def __init__(self, platform):
-    super(FakeTracingAgentStopRaisesBattOrError, self).__init__(platform)
-
-  def StopAgentTracing(self):
-    raise battor_error.BattOrError('foo')
-
-class FakeTracingAgentCollectRaisesBattOrError(FakeTracingAgentBase):
-  def __init__(self, platform):
-    super(FakeTracingAgentCollectRaisesBattOrError, self).__init__(platform)
-
-  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    raise battor_error.BattOrError('foo')
-
-class FakeTracingAgentFlushRaisesBattOrError(FakeTracingAgentBase):
-  def __init__(self, platform):
-    super(FakeTracingAgentFlushRaisesBattOrError, self).__init__(
-        platform, flushing=True)
-
-  def FlushAgentTracing(self, config, timeout, trace_data_builder):
-    raise battor_error.BattOrError('foo')
 
 class TracingControllerBackendTest(unittest.TestCase):
   def _getControllerEventsAslist(self, data):
@@ -419,70 +382,3 @@ class TracingControllerBackendTest(unittest.TestCase):
     with self.controller._DisableGarbageCollection():
       self.assertFalse(gc.isenabled())
     self.assertTrue(gc.isenabled())
-
-  @decorators.Isolated
-  def testStopTracingReturnsStartTracingBattOrError(self):
-    self.controller._supported_agents_classes = [
-        FakeTracingAgentStartRaisesBattOrError,
-    ]
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    _, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [battor_error.BattOrError('foo')])
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertEqual(self.controller._trace_log, None)
-
-  @decorators.Isolated
-  def testStopTracingReturnsRecordClockSyncMarkerBattOrError(self):
-    self.controller._supported_agents_classes = [
-        FakeTracingAgentRecordClockSyncRaisesBattOrError,
-    ]
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    _, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [battor_error.BattOrError('foo')])
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertEqual(self.controller._trace_log, None)
-
-  @decorators.Isolated
-  def testStopTracingReturnsStopTracingBattOrError(self):
-    self.controller._supported_agents_classes = [
-        FakeTracingAgentStopRaisesBattOrError,
-    ]
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    _, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [battor_error.BattOrError('foo')])
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertEqual(self.controller._trace_log, None)
-
-  @decorators.Isolated
-  def testStopTracingReturnsCollectAgentTraceDataBattOrError(self):
-    self.controller._supported_agents_classes = [
-        FakeTracingAgentCollectRaisesBattOrError,
-    ]
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    data, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [battor_error.BattOrError('foo')])
-    self.assertEqual(self._getSyncCount(data), 1)
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertEqual(self.controller._trace_log, None)
-
-  @decorators.Isolated
-  def testStopTracingReturnsFlushBattOrError(self):
-    self.controller._supported_agents_classes = [
-        FakeTracingAgentFlushRaisesBattOrError,
-    ]
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    self.controller.FlushTracing()
-    _, errors = self.controller.StopTracing()
-    self.assertEqual(errors, [battor_error.BattOrError('foo')])
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertEqual(self.controller._trace_log, None)

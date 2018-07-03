@@ -36,7 +36,6 @@ class FakePlatform(object):
   def __init__(self):
     self._network_controller = None
     self._tracing_controller = None
-    self._has_battor = False
     self._os_name = 'FakeOS'
     self._device_type_name = 'abc'
     self._is_svelte = False
@@ -98,13 +97,6 @@ class FakePlatform(object):
 
   def WaitForBatteryTemperature(self, _):
     pass
-
-  def HasBattOrConnected(self):
-    return self._has_battor
-
-  def SetBattOrDetected(self, b):
-    assert isinstance(b, bool)
-    self._has_battor = b
 
   # TODO(rnephew): Investigate moving from setters to @property.
   def SetDeviceTypeName(self, name):

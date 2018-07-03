@@ -272,9 +272,8 @@ class Benchmark(command_line.Command):
       tbm_options = self.CreateTimelineBasedMeasurementOptions()
     if options and options.extra_chrome_categories:
       # If Chrome tracing categories for this benchmark are not already
-      # enabled, there is probably a good reason why (for example, maybe
-      # it is the benchmark that runs a BattOr without Chrome to get an energy
-      # baseline). Don't change whether Chrome tracing is enabled.
+      # enabled, there is probably a good reason why. Don't change whether
+      # Chrome tracing is enabled.
       assert tbm_options.config.enable_chrome_trace, (
           'This benchmark does not support Chrome tracing.')
       tbm_options.config.chrome_trace_config.category_filter.AddFilterString(

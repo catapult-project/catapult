@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from battor import battor_wrapper
 from telemetry.internal.forwarders import do_nothing_forwarder
 from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import tracing_controller_backend
@@ -257,9 +256,6 @@ class PlatformBackend(object):
       Whether the path exists on the target platform.
     """
     raise NotImplementedError()
-
-  def HasBattOrConnected(self):
-    return battor_wrapper.IsBattOrConnected(self.GetOSName())
 
   def WaitForBatteryTemperature(self, temp):
     pass

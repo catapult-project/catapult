@@ -451,9 +451,6 @@ class Platform(object):
     """Returns the currently running local servers."""
     return self._local_server_controller.local_servers
 
-  def HasBattOrConnected(self):
-    return  self._platform_backend.HasBattOrConnected()
-
   def WaitForBatteryTemperature(self, temp):
     """Waits for the battery on the device under test to cool down to temp.
 

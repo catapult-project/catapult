@@ -26,8 +26,6 @@ class TracingConfig(object):
       enable_android_graphics_memtrack: a boolean that specifies whether
           to enable the memtrack_helper daemon to track graphics memory on
           Android (see goo.gl/4Y30p9). Doesn't have any effects on other OSs.
-      enable_battor_trace: a boolean that specifies whether to enable BattOr
-          tracing.
 
   Detailed configurations:
       atrace_config: Stores configuration options specific to Atrace.
@@ -39,7 +37,6 @@ class TracingConfig(object):
     self._enable_atrace_trace = False
     self._enable_platform_display_trace = False
     self._enable_android_graphics_memtrack = False
-    self._enable_battor_trace = False
     self._enable_cpu_trace = False
     self._enable_chrome_trace = False
 
@@ -77,14 +74,6 @@ class TracingConfig(object):
   @enable_android_graphics_memtrack.setter
   def enable_android_graphics_memtrack(self, value):
     self._enable_android_graphics_memtrack = value
-
-  @property
-  def enable_battor_trace(self):
-    return self._enable_battor_trace
-
-  @enable_battor_trace.setter
-  def enable_battor_trace(self, value):
-    self._enable_battor_trace = value
 
   @property
   def enable_chrome_trace(self):
