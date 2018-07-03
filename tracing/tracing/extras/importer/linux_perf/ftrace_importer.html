@@ -384,7 +384,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           openSlice: undefined,
           openSliceTS: undefined
         };
-        this.threadsByLinuxPid[pid] = thread;
+        this.threadsByLinuxPid[tid] = thread;
       }
       return this.kernelThreadStates_[kernelThreadName];
     },
@@ -406,7 +406,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           openSlice: undefined,
           openSliceTS: undefined
         };
-        this.threadsByLinuxPid[pid] = thread;
+        this.threadsByLinuxPid[tid] = thread;
       }
       return this.kernelThreadStates_[key];
     },

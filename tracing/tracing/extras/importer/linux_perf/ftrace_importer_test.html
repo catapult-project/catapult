@@ -663,5 +663,24 @@ tr.b.unittest.testSuite(function() {
       previousEnd = slice.end;
     }
   });
+
+  test('cpuSliceNaming', function() {
+    // Invoke the binder parser first on a thread(1002) in the process that is
+    // not the main thread(1001) and then use sched events to create a cpu
+    // slice.
+    const lines = [
+      'bar-1002 (1001) [000] ...1 1.000000: binder_transaction_received: ' +
+          'transaction=612345 ',
+      'dont_care-2000 (2000) [001] d..3 2.000000: sched_switch: ' +
+          'prev_comm=dont_care prev_pid=2000 prev_prio=100 prev_state=D ' +
+          '==> next_comm=foo next_pid=1001 next_prio=100',
+      'foo-1001 (1001) [001] d..3 3.000000: sched_switch: ' +
+          'prev_comm=foo prev_pid=1001 prev_prio=100 prev_state=S ' +
+          '==> next_comm=doesnt_matter next_pid=3000 next_prio=100'
+    ];
+    const m = newModel(lines.join('\n'));
+    const slice = m.kernel.getOrCreateCpu(1).slices[0];
+    assert.strictEqual(slice.title, 'foo');
+  });
 });
 </script>
