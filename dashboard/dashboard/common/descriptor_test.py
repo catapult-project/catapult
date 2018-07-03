@@ -22,6 +22,7 @@ class DescriptorTest(testing_common.TestCase):
     stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [
         'TEST_GROUPABLE%',
     ])
+    descriptor.Descriptor.ResetMemoizedConfigurationForTesting()
 
   def testFromTestPath_Empty(self):
     desc = descriptor.Descriptor.FromTestPath([])

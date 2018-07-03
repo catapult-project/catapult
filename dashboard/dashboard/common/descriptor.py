@@ -50,6 +50,12 @@ class Descriptor(object):
         self.test_suite, self.measurement, self.bot, self.test_case,
         self.statistic, self.build_type)
 
+  @classmethod
+  def ResetMemoizedConfigurationForTesting(cls):
+    cls.PARTIAL_TEST_SUITES = None
+    cls.COMPOSITE_TEST_SUITES = None
+    cls.GROUPABLE_TEST_SUITE_PREFIXES = None
+
   PARTIAL_TEST_SUITES = None
 
   @classmethod
