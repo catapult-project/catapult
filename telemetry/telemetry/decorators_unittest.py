@@ -229,25 +229,30 @@ class TestInfoDecorators(unittest.TestCase):
 
   def testInfoStringOnClass(self):
 
-    @decorators.Info(emails=['owner@chromium.org'])
+    @decorators.Info(emails=['owner@chromium.org'],
+                     documentation_url='http://foo.com')
     class Ford(object):
       pass
 
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
 
     @decorators.Info(emails=['owner2@chromium.org'])
-    @decorators.Info(component='component')
+    @decorators.Info(component='component',
+                     documentation_url='http://bar.com')
     class Honda(object):
       pass
 
     self.assertEquals(['owner2@chromium.org'], decorators.GetEmails(Honda))
+    self.assertEquals('http://bar.com', decorators.GetDocumentationLink(Honda))
     self.assertEquals('component', decorators.GetComponent(Honda))
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
+    self.assertEquals('http://foo.com', decorators.GetDocumentationLink(Ford))
 
 
   def testInfoStringOnSubClass(self):
 
-    @decorators.Info(emails=['owner@chromium.org'], component='comp')
+    @decorators.Info(emails=['owner@chromium.org'], component='comp',
+                     documentation_url='https://car.com')
     class Car(object):
       pass
 
@@ -256,8 +261,10 @@ class TestInfoDecorators(unittest.TestCase):
 
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Car))
     self.assertEquals('comp', decorators.GetComponent(Car))
+    self.assertEquals('https://car.com', decorators.GetDocumentationLink(Car))
     self.assertFalse(decorators.GetEmails(Ford))
     self.assertFalse(decorators.GetComponent(Ford))
+    self.assertFalse(decorators.GetDocumentationLink(Ford))
 
 
   def testInfoWithDuplicateAttributeSetting(self):

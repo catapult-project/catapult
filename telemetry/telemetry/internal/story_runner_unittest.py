@@ -1429,6 +1429,47 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
+  def testRunBenchmark_AddsDocumentationUrl(self):
+    @benchmark.Owner(emails=['bob@chromium.org'],
+                     documentation_url='https://darth.vader')
+    class FakeBenchmarkWithOwner(FakeBenchmark):
+      def __init__(self):
+        super(FakeBenchmark, self).__init__()
+        self._disabled = False
+        self._story_disabled = False
+
+    fake_benchmark = FakeBenchmarkWithOwner()
+    options = _GenerateBaseBrowserFinderOptions()
+    options.output_formats = ['histograms']
+    temp_path = tempfile.mkdtemp()
+    try:
+      options.output_dir = temp_path
+      story_runner.RunBenchmark(fake_benchmark, options)
+
+      with open(os.path.join(temp_path, 'histograms.json')) as f:
+        data = json.load(f)
+
+      hs = histogram_set.HistogramSet()
+      hs.ImportDicts(data)
+
+      generic_diagnostics = hs.GetSharedDiagnosticsOfType(
+          generic_set.GenericSet)
+
+      self.assertGreater(len(generic_diagnostics), 0)
+
+      generic_diagnostics_values = [
+          list(diagnostic) for diagnostic in generic_diagnostics]
+
+      self.assertIn([['Benchmark documentation link', 'https://darth.vader']],
+                    generic_diagnostics_values)
+      self.assertIn(['bob@chromium.org'],
+                    generic_diagnostics_values)
+
+    finally:
+      shutil.rmtree(temp_path)
+
+
+
   def testRunBenchmarkStoryTimeDuration(self):
     class FakeBenchmarkWithStories(FakeBenchmark):
       def __init__(self):

@@ -208,6 +208,8 @@ Metrics may not use the following names for Histogram-level Diagnostics.
    positions.
  * chromiumRevisions is a GenericSet of strings containing
    [Chromium](https://chromium.googlesource.com/chromium/src/) git hashes.
+ * documentationUrls is a GenericSet of strings containing the urls to the
+   documentation of the benchmarks/metrics.
  * gpus is a GenericSet of objects containing metadata about GPUs.
  * groupingPath is an implementation detail of merging Histograms.
  * labels is a GenericSet of strings containing [user-defined

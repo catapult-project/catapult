@@ -377,6 +377,7 @@ def RunBenchmark(benchmark, finder_options):
 
     benchmark_owners = benchmark.GetOwners()
     benchmark_component = benchmark.GetBugComponents()
+    benchmark_documentation_url = benchmark.GetDocumentationLink()
 
     if benchmark_owners:
       results.AddSharedDiagnostic(
@@ -385,6 +386,10 @@ def RunBenchmark(benchmark, finder_options):
     if benchmark_component:
       results.AddSharedDiagnostic(
           reserved_infos.BUG_COMPONENTS.name, benchmark_component)
+
+    if benchmark_documentation_url:
+      results.AddSharedDiagnostic(
+          reserved_infos.DOCUMENTATION_URLS.name, benchmark_documentation_url)
 
     try:
       if finder_options.upload_results:
