@@ -273,7 +273,7 @@ class _RunTestExecution(execution_module.Execution):
             },
             'extra_args': self._extra_args,
             'dimensions': dimensions,
-            'execution_timeout_secs': '7200',  # 2 hours.
+            'execution_timeout_secs': '14400',  # 4 hours.
             'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
         },
     }
