@@ -126,7 +126,7 @@ class DummyTest(legacy_page_test.LegacyPageTest):
     pass
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    results.AddValue(scalar.ScalarValue(page, 'duration', 'seconds', 1.0))
+    pass
 
 
 class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
@@ -184,9 +184,7 @@ class FakeBenchmark(benchmark.Benchmark):
   test = DummyTest
 
   def page_set(self):
-    ss = story_module.StorySet()
-    ss.AddStory(DummyPage(ss, 'dummy'))
-    return ss
+    return story_module.StorySet()
 
   @property
   def disabled(self):
