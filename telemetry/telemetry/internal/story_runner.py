@@ -386,6 +386,11 @@ def RunBenchmark(benchmark, finder_options):
       results.AddSharedDiagnostic(
           reserved_infos.BUG_COMPONENTS.name, benchmark_component)
 
+    # TODO(crbug.com/859073): remove this hack once perf dashboard can handle
+    # mostly empty histograms properly.
+    if not results.pages_that_succeeded_and_not_skipped:
+      results._benchmark_enabled = False
+
     try:
       if finder_options.upload_results:
         results.UploadTraceFilesToCloud()

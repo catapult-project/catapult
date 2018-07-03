@@ -30,4 +30,4 @@ class HistogramSetJsonOutputFormatter(output_formatter.OutputFormatter):
   def FormatDisabled(self, page_test_results):
     # In the case of a disabled benchmark, we need to output an empty histogram
     # set and valid json
-    json.dump('[]', self._output_stream)
+    json.dump([], self._output_stream)
