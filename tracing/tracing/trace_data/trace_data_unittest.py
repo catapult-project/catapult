@@ -56,12 +56,10 @@ class TraceDataBuilderTest(unittest.TestCase):
     builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                         {'traceEvents': [1, 2, 3]})
     builder.AddTraceFor(trace_data.TAB_ID_PART, ['tab-7'])
-    builder.AddTraceFor(trace_data.BATTOR_TRACE_PART, 'battor data here')
 
     d = builder.AsData()
     self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
     self.assertTrue(d.HasTracesFor(trace_data.TAB_ID_PART))
-    self.assertTrue(d.HasTracesFor(trace_data.BATTOR_TRACE_PART))
 
     self.assertRaises(Exception, builder.AsData)
 

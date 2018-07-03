@@ -19,7 +19,6 @@ def _AddDirToPythonPath(*path_parts):
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, os.path.pardir)
 
-_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_utils')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event', 'py_trace_event')

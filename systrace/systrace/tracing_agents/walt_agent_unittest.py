@@ -15,9 +15,9 @@ from systrace.tracing_agents import walt_agent
 class WaltAgentTest(unittest.TestCase):
   """
   The WALT agent pulls the trace log from the Android phone, and does not
-  communicate with the WALT device directly. This makes the agent more similar
-  to atrace than BattOr. Since the host only connects to the Android phone,
-  more exhaustive testing would require mocking DeviceUtils.
+  communicate with the WALT device directly. This makes the agent similar
+  to atrace. Since the host only connects to the Android phone, more exhaustive
+  testing would require mocking DeviceUtils.
   """
 
   @decorators.HostOnlyTest

@@ -44,13 +44,12 @@ from systrace import util
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import atrace_process_dump
-from systrace.tracing_agents import battor_trace_agent
 from systrace.tracing_agents import ftrace_agent
 from systrace.tracing_agents import walt_agent
 
 
 ALL_MODULES = [atrace_agent, atrace_from_file_agent, atrace_process_dump,
-               battor_trace_agent, ftrace_agent, walt_agent]
+               ftrace_agent, walt_agent]
 
 
 def parse_options(argv):

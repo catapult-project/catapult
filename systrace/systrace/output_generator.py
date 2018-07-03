@@ -25,7 +25,6 @@ _SYSTRACE_TO_TRACE_DATA_NAME_MAPPING = {
     'androidProcessDump': trace_data.ANDROID_PROCESS_DATA_PART,
     'atraceProcessDump': trace_data.ATRACE_PROCESS_DUMP_PART,
     'systemTraceEvents': trace_data.ATRACE_PART,
-    'powerTraceAsString': trace_data.BATTOR_TRACE_PART,
     'systraceController': trace_data.TELEMETRY_PART,
     'traceEvents': trace_data.CHROME_TRACE_PART,
     'waltTrace': trace_data.WALT_TRACE_PART,
