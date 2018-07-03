@@ -19,13 +19,7 @@ from dashboard.services import pinpoint_service
 _ISOLATE_TARGETS = [
     'angle_perftests', 'cc_perftests', 'gpu_perftests',
     'load_library_perf_tests', 'media_perftests', 'net_perftests',
-    'performance_browser_tests', 'telemetry_perf_tests',
-    'telemetry_perf_webview_tests', 'tracing_perftests']
-_BOTS_USING_PERFORMANCE_TEST_SUITES = [
-    'linux-perf', 'mac-10_12_laptop_low_end-perf',
-    'mac-10_13_laptop_high_end-perf',
-    'mojo-linux-perf',
-]
+    'performance_browser_tests', 'tracing_perftests']
 
 
 class InvalidParamsError(Exception):
@@ -116,21 +110,14 @@ def ResolveToGitHash(commit_position):
 
 
 def _GetIsolateTarget(bot_name, suite, only_telemetry=False):
-  target = 'telemetry_perf_tests'
-
-  # TODO(simonhatch): Remove this once the waterfall has fully migrated to
-  # the new isolate target.
-  if bot_name in _BOTS_USING_PERFORMANCE_TEST_SUITES:
-    target = 'performance_test_suite'
-
   if suite in _ISOLATE_TARGETS:
     if only_telemetry:
       raise InvalidParamsError('Only telemetry is supported at the moment.')
-    else:
-      target = suite
-  elif 'webview' in bot_name:
-    target = 'telemetry_perf_webview_tests'
-  return target
+    return suite
+
+  if 'webview' in bot_name:
+    return 'performance_webview_test_suite'
+  return 'performance_test_suite'
 
 
 def ParseTIRLabelChartNameAndTraceName(test_path_parts):
