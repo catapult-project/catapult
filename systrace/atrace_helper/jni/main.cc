@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <inttypes.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
   if (argc == 2 && !strcmp(argv[1], "--echo-ts")) {
     // Used by clock sync marker to correct the difference between
     // Linux monotonic clocks on the device and host.
-    printf("%llu\n", time_utils::GetTimestamp());
+    printf("%" PRIu64 "\n", time_utils::GetTimestamp());
     return 0;
   }
 

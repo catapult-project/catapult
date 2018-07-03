@@ -4,6 +4,7 @@
 
 #include "atrace_process_dump.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include <limits>
@@ -37,7 +38,7 @@ void AtraceProcessDump::SetDumpInterval(int interval_ms) {
 void AtraceProcessDump::RunAndPrintJson(FILE* stream) {
   out_ = stream;
 
-  fprintf(out_, "{\"start_ts\": \"%llu\", \"snapshots\":[\n",
+  fprintf(out_, "{\"start_ts\": \"%" PRIu64 "\", \"snapshots\":[\n",
       time_utils::GetTimestamp());
 
   CHECK(snapshot_timer_);
@@ -132,13 +133,14 @@ bool AtraceProcessDump::ShouldTakeFullDump(const ProcessInfo* process) {
 }
 
 void AtraceProcessDump::SerializeSnapshot() {
-  fprintf(out_, "{\"ts\":\"%llu\",\"memdump\":{\n", snapshot_timestamp_);
+  fprintf(out_, "{\"ts\":\"%" PRIu64 "\",\"memdump\":{\n",
+          snapshot_timestamp_);
   for (auto it = snapshot_.begin(); it != snapshot_.end();) {
     const ProcessSnapshot* process = it->second.get();
     const ProcessMemoryStats* mem = &process->memory;
     fprintf(out_, "\"%d\":{", process->pid);
 
-    fprintf(out_, "\"vm\":%llu,\"rss\":%llu",
+    fprintf(out_, "\"vm\":%" PRIu64 ",\"rss\":%" PRIu64,
             mem->virt_kb(), mem->rss_kb());
 
     fprintf(out_, ",\"oom_sc\":%d,\"oom_sc_adj\":%d"
@@ -149,17 +151,18 @@ void AtraceProcessDump::SerializeSnapshot() {
             process->utime, process->stime);
 
     if (mem->full_stats_available()) {
-      fprintf(out_, ",\"pss\":%llu,\"swp\":%llu"
-                    ",\"pc\":%llu,\"pd\":%llu,\"sc\":%llu,\"sd\":%llu",
+      fprintf(out_, ",\"pss\":%" PRIu64 ",\"swp\":%" PRIu64
+                    ",\"pc\":%" PRIu64 ",\"pd\":%" PRIu64
+                    ",\"sc\":%" PRIu64 ",\"sd\":%" PRIu64,
               mem->pss_kb(), mem->swapped_kb(),
               mem->private_clean_kb(), mem->private_dirty_kb(),
               mem->shared_clean_kb(), mem->shared_dirty_kb());
     }
 
     if (mem->gpu_stats_available()) {
-      fprintf(out_, ",\"gpu_egl\":%llu,\"gpu_egl_pss\":%llu"
-                    ",\"gpu_gl\":%llu,\"gpu_gl_pss\":%llu"
-                    ",\"gpu_etc\":%llu,\"gpu_etc_pss\":%llu",
+      fprintf(out_, ",\"gpu_egl\":%" PRIu64 ",\"gpu_egl_pss\":%" PRIu64
+                    ",\"gpu_gl\":%" PRIu64 ",\"gpu_gl_pss\":%" PRIu64
+                    ",\"gpu_etc\":%" PRIu64 ",\"gpu_etc_pss\":%" PRIu64,
               mem->gpu_graphics_kb(), mem->gpu_graphics_pss_kb(),
               mem->gpu_gl_kb(), mem->gpu_gl_pss_kb(),
               mem->gpu_other_kb(), mem->gpu_other_pss_kb());
@@ -176,11 +179,13 @@ void AtraceProcessDump::SerializeSnapshot() {
       for (size_t k = 0; k < n_mmaps; ++k) {
         const ProcessMemoryStats::MmapInfo* mm = mem->mmap(k);
         fprintf(out_,
-                "{\"vm\":\"%llx-%llx\",\"file\":\"%s\",\"flags\":\"%s\","
-                "\"pss\":%llu,\"rss\":%llu,\"swp\":%llu,"
-                "\"pc\":%llu,\"pd\":%llu,"
-                "\"sc\":%llu,\"sd\":%llu}",
-                mm->start_addr, mm->end_addr, mm->mapped_file, mm->prot_flags,
+                "{\"vm\":\"%" PRIx64 "-%" PRIx64 "\","
+                "\"file\":\"%s\",\"flags\":\"%s\","
+                "\"pss\":%" PRIu64 ",\"rss\":%" PRIu64 ",\"swp\":%" PRIu64 ","
+                "\"pc\":%" PRIu64 ",\"pd\":%" PRIu64 ","
+                "\"sc\":%" PRIu64 ",\"sd\":%" PRIu64 "}",
+                mm->start_addr, mm->end_addr,
+                mm->mapped_file, mm->prot_flags,
                 mm->pss_kb, mm->rss_kb, mm->swapped_kb,
                 mm->private_clean_kb, mm->private_dirty_kb,
                 mm->shared_clean_kb, mm->shared_dirty_kb);
@@ -233,11 +238,12 @@ void AtraceProcessDump::SerializePersistentProcessInfo() {
 void AtraceProcessDump::TakeAndSerializeMemInfo() {
   std::map<std::string, uint64_t> mem_info;
   CHECK(procfs_utils::ReadMemInfoStats(&mem_info));
-  fprintf(out_, "{\"ts\":\"%llu\",\"meminfo\":{\n", time_utils::GetTimestamp());
+  fprintf(out_, "{\"ts\":\"%" PRIu64 "\",\"meminfo\":{\n",
+          time_utils::GetTimestamp());
   for (auto it = mem_info.begin(); it != mem_info.end(); ++it) {
     if (it != mem_info.begin())
       fprintf(out_, ",");
-    fprintf(out_, "\"%s\":%llu", it->first.c_str(), it->second);
+    fprintf(out_, "\"%s\":%" PRIu64, it->first.c_str(), it->second);
   }
   fprintf(out_, "}}");
 }
