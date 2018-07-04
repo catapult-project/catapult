@@ -435,22 +435,34 @@ class DevToolsClientBackend(object):
     assert self.is_tracing_running
     self._tab_ids = []
     try:
-      context_map = self.GetUpdatedInspectableContexts()
-      for context in context_map.contexts:
-        if context['type'] not in ['iframe', 'page', 'webview']:
-          continue
-        context_id = context['id']
-        backend = context_map.GetInspectorBackend(context_id)
+      for backend in self._IterInspectorBackends(['iframe', 'page', 'webview']):
         backend.EvaluateJavaScript(
             """
             console.time({{ backend_id }});
             console.timeEnd({{ backend_id }});
-            console.time.toString().indexOf('[native code]') != -1;
             """,
             backend_id=backend.id)
         self._tab_ids.append(backend.id)
     finally:
       self._tracing_backend.StopTracing()
+
+  def _IterInspectorBackends(self, types):
+    """Iterate over inspector backends from this client.
+
+    Note: The devtools client might list contexts which, howerver, do not yet
+    have a live DevTools instance to connect to (e.g. background tabs which may
+    have been discarded or not yet created). In such case this method will hang
+    and eventually timeout when trying to create an inspector backend to
+    communicate with such contexts.
+    """
+    context_map = self.GetUpdatedInspectableContexts()
+    for context in context_map.contexts:
+      if context['type'] in types:
+        yield context_map.GetInspectorBackend(context['id'])
+
+  def FirstTabBackend(self):
+    """Obtain the inspector backend for the firstly created tab."""
+    return next(self._IterInspectorBackends(['page']), None)
 
   def CollectChromeTracingData(self, trace_data_builder, timeout=60):
     self._CreateTracingBackendIfNeeded()
