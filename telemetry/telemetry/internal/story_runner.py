@@ -369,9 +369,13 @@ def RunBenchmark(benchmark, finder_options):
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
     except Exception: # pylint: disable=broad-except
+
       logging.fatal(
           'Benchmark execution interrupted by a fatal exception.')
-      results.InterruptBenchmark(stories, _GetPageSetRepeat(finder_options))
+
+      filtered_stories = story_module.StoryFilter.FilterStorySet(stories)
+      results.InterruptBenchmark(
+          filtered_stories, _GetPageSetRepeat(finder_options))
       exception_formatter.PrintFormattedException()
       return_code = 2
 
