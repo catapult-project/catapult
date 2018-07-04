@@ -384,8 +384,15 @@ tr.exportTo('tr.model', function() {
       // Aggregate native library stats.
       const textProtectionFlags = (VMRegion.PROTECTION_FLAG_READ |
                                    VMRegion.PROTECTION_FLAG_EXECUTE);
+      // On post-M devices, the native library is mapped from /base.apk. On M
+      // and earlier devices, it's mapped from /libchrome.so. In both cases only
+      // the regions that are readable and executable should be counted.
+      // TODO(mattcary): if both mappings are seen, something has gone wrong and
+      // some sort of error or fatal should be done. This should be tracked
+      // across regions, which means adding state to |this|.
       if ((region.protectionFlags === textProtectionFlags) &&
-          region.mappedFile.includes('/base.apk')) {
+          (region.mappedFile.includes('/base.apk') ||
+           region.mappedFile.includes('/libchrome.so'))) {
         if (regionSizeInBytes !== undefined) {
           this.nativeLibrarySizeInBytes =
             (this.nativeLibrarySizeInBytes || 0) + regionSizeInBytes;
