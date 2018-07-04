@@ -10,12 +10,10 @@ https://code.google.com/p/trace-viewer/
 import logging
 from operator import attrgetter
 
-from telemetry.timeline import async_slice as async_slice_module
 from telemetry.timeline import bounds
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import process as process_module
-from telemetry.timeline import slice as slice_module
 from telemetry.timeline import surface_flinger_importer
 from telemetry.timeline import tab_id_importer
 from telemetry.timeline import trace_event_importer
@@ -44,10 +42,10 @@ class MarkerOverlapError(Exception):
         'Overlapping timeline markers found')
 
 
-def IsSliceOrAsyncSlice(t):
-  if t == async_slice_module.AsyncSlice:
-    return True
-  return t == slice_module.Slice
+# TODO(crbug.com/860297): Switch clients to use the static method instead,
+# and remove this when no longer needed.
+IsSliceOrAsyncSlice = (
+    event_container.TimelineEventContainer.IsSliceOrAsyncSlice)
 
 
 class TimelineModel(event_container.TimelineEventContainer):
@@ -217,25 +215,12 @@ class TimelineModel(event_container.TimelineEventContainer):
     raise an error.
     """
     # Make sure names are in a list and remove all None names
-    if not isinstance(timeline_marker_names, list):
+    if isinstance(timeline_marker_names, basestring):
       timeline_marker_names = [timeline_marker_names]
     names = [x for x in timeline_marker_names if x is not None]
 
     # Gather all events that match the names and sort them.
-    events = []
-    name_set = set()
-    for name in names:
-      name_set.add(name)
-
-    def IsEventNeeded(event):
-      if event.parent_slice != None:
-        return
-      return event.name in name_set
-
-    events = list(self.IterAllEvents(
-        recursive=True,
-        event_type_predicate=IsSliceOrAsyncSlice,
-        event_predicate=IsEventNeeded))
+    events = list(self.IterTimelineMarkers(names))
     events.sort(key=attrgetter('start'))
 
     # Check if the number and order of events matches the provided names,

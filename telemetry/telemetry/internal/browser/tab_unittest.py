@@ -168,8 +168,8 @@ class TabTest(tab_test_case.TabTestCase):
     # 'first-tab-marker'.
     renderer_thread = timeline_model.GetRendererThreadFromTabId(
         first_tab.id)
-    first_tab_markers = [
-        renderer_thread.IterAllSlicesOfName('first-tab-marker')]
+    first_tab_markers = list(
+        renderer_thread.IterTimelineMarkers('first-tab-marker'))
     self.assertEquals(1, len(first_tab_markers))
 
     # Close second tab and assert that the renderer_thread of the second tab
@@ -177,8 +177,8 @@ class TabTest(tab_test_case.TabTestCase):
     second_tab.Close()
     renderer_thread = timeline_model.GetRendererThreadFromTabId(
         second_tab.id)
-    second_tab_markers = [
-        renderer_thread.IterAllSlicesOfName('second-tab-marker')]
+    second_tab_markers = list(
+        renderer_thread.IterTimelineMarkers('second-tab-marker'))
     self.assertEquals(1, len(second_tab_markers))
 
     # Third tab wasn't available when we start tracing, so there is no
