@@ -238,6 +238,14 @@ class WebContents(object):
     """
     return self._inspector_backend.WaitForJavaScriptCondition(*args, **kwargs)
 
+  def AddTimelineMarker(self, marker):
+    """Inject a marker in the timeline recorded during tracing.
+
+    Args:
+      marker: A string used to identify the marker in the trace.
+    """
+    return self._inspector_backend.AddTimelineMarker(marker)
+
   def EnableAllContexts(self):
     """Enable all contexts in a page. Returns all activated context ids.
 

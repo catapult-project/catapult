@@ -436,12 +436,7 @@ class DevToolsClientBackend(object):
     self._tab_ids = []
     try:
       for backend in self._IterInspectorBackends(['iframe', 'page', 'webview']):
-        backend.EvaluateJavaScript(
-            """
-            console.time({{ backend_id }});
-            console.timeEnd({{ backend_id }});
-            """,
-            backend_id=backend.id)
+        backend.AddTimelineMarker(backend.id)
         self._tab_ids.append(backend.id)
     finally:
       self._tracing_backend.StopTracing()

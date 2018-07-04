@@ -158,10 +158,8 @@ class TabTest(tab_test_case.TabTestCase):
     config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
-    first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
-    first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
-    second_tab.ExecuteJavaScript('console.time("second-tab-marker");')
-    second_tab.ExecuteJavaScript('console.timeEnd("second-tab-marker");')
+    first_tab.AddTimelineMarker('first-tab-marker')
+    second_tab.AddTimelineMarker('second-tab-marker')
     trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
     self.assertEqual(errors, [])
     timeline_model = model.TimelineModel(trace_data)

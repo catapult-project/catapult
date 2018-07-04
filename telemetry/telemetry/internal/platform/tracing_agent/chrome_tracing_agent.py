@@ -155,13 +155,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for backend in self._IterFirstTabBackends():
       try:
         timestamp = trace_time.Now()
-        event = 'ClockSyncEvent.%s' % sync_id
-        backend.EvaluateJavaScript(
-            """
-            console.time({{ event }});
-            console.timeEnd({{ event }});
-            """,
-            event=event)
+        backend.AddTimelineMarker('ClockSyncEvent.%s' % sync_id)
         has_clock_synced = True
         break
       except Exception: # pylint: disable=broad-except

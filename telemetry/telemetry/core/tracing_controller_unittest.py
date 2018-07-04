@@ -13,15 +13,6 @@ from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
 
 
-TEST_MARKER_PREFIX = 'test-marker-'
-
-
-def InjectMarker(tab, label):
-  marker = TEST_MARKER_PREFIX + str(label)
-  tab.EvaluateJavaScript('console.time({{ marker }});', marker=marker)
-  tab.EvaluateJavaScript('console.timeEnd({{ marker }});', marker=marker)
-
-
 def ReadMarkerEvents(trace_data):
   # Parse the trace and extract all test markers & trace-flushing markers
   return trace_runner.ExecuteMappingCodeOnTraceData(
@@ -109,14 +100,14 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     # Start tracing and inject a unique marker into the sub-trace.
     tracing_controller.StartTracing(config)
     self.assertTrue(tracing_controller.is_tracing_running)
-    InjectMarker(tab, 0)
+    tab.AddTimelineMarker('test-marker-0')
 
     # Flush tracing |subtrace_count - 1| times and inject a unique marker into
     # the sub-trace each time.
     for i in xrange(1, subtrace_count):
       tracing_controller.FlushTracing()
       self.assertTrue(tracing_controller.is_tracing_running)
-      InjectMarker(tab, i)
+      tab.AddTimelineMarker('test-marker-%d' % i)
 
     # Stop tracing.
     trace_data, errors = tracing_controller.StopTracing()
@@ -157,15 +148,15 @@ class StartupTracingTest(unittest.TestCase):
   def tracing_controller(self):
     return self.possible_browser.platform.tracing_controller
 
-  def StopTracingAndGetTestMarkers(self):
+  def StopTracingAndGetTestMarkers(self, marker_prefix):
     self.assertTrue(self.tracing_controller.is_tracing_running)
     trace_data, errors = self.tracing_controller.StopTracing()
     self.assertFalse(self.tracing_controller.is_tracing_running)
     self.assertEqual(errors, [])
     return [
-        e['title'][len(TEST_MARKER_PREFIX):]
+        e['title']
         for e in ReadMarkerEvents(trace_data)
-        if e['title'].startswith(TEST_MARKER_PREFIX)]
+        if e['title'].startswith(marker_prefix)]
 
   @decorators.Isolated
   def testStopTracingWhileBrowserIsRunning(self):
@@ -173,9 +164,9 @@ class StartupTracingTest(unittest.TestCase):
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
       browser.tabs[0].Navigate('about:blank')
       browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      InjectMarker(browser.tabs[0], 'foo')
-      markers = self.StopTracingAndGetTestMarkers()
-    self.assertEquals(markers, ['foo'])
+      browser.tabs[0].AddTimelineMarker('test-marker-foo')
+      markers = self.StopTracingAndGetTestMarkers('test-marker-')
+    self.assertEquals(markers, ['test-marker-foo'])
 
   @decorators.Isolated
   def testCloseBrowserBeforeTracingIsStopped(self):
@@ -183,8 +174,8 @@ class StartupTracingTest(unittest.TestCase):
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
       browser.tabs[0].Navigate('about:blank')
       browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
-      InjectMarker(browser.tabs[0], 'bar')
+      browser.tabs[0].AddTimelineMarker('test-marker-bar')
       # TODO(crbug.com/854212): This should happen implicitly on browser.Close()
       self.tracing_controller.FlushTracing()
-    markers = self.StopTracingAndGetTestMarkers()
-    self.assertEquals(markers, ['bar'])
+    markers = self.StopTracingAndGetTestMarkers('test-marker-')
+    self.assertEquals(markers, ['test-marker-bar'])

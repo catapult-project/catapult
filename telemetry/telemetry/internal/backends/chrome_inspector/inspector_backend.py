@@ -301,6 +301,14 @@ class InspectorBackend(object):
       raise py_utils.TimeoutException(
           e.message + '\n' + debug_message)
 
+  def AddTimelineMarker(self, marker):
+    return self.ExecuteJavaScript(
+        """
+        console.time({{ marker }});
+        console.timeEnd({{ marker }});
+        """,
+        marker=str(marker))
+
   @_HandleInspectorWebSocketExceptions
   def EnableAllContexts(self):
     """Allows access to iframes.
