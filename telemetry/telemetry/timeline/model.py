@@ -237,6 +237,30 @@ class TimelineModel(event_container.TimelineEventContainer):
 
     return events
 
+  def GetFirstRendererProcess(self, tab_id):
+    """Find the process for the first renderer thread in the model."""
+    return self.GetFirstRendererThread(tab_id).parent
+
+  def GetFirstRendererThread(self, tab_id):
+    """Find the first renderer thread in the model for an expected tab
+
+    This normally corresponds to the foreground tab at the time when the trace
+    was collected.
+
+    Args:
+      tab_id: To make sure clients have gotten the correct renderer for an
+          expected tab, they must also pass its id to verify.
+
+    Raises an error if the thread cannot be found.
+    """
+    markers = self.FindTimelineMarkers('first-renderer-thread')
+    assert len(markers) == 1
+    renderer_thread = markers[0].start_thread
+    assert renderer_thread == markers[0].end_thread
+    verifiers = list(renderer_thread.IterTimelineMarkers(tab_id))
+    assert len(verifiers) == 1, 'Renderer thread does not have expected tab id'
+    return renderer_thread
+
   def GetRendererProcessFromTabId(self, tab_id):
     renderer_thread = self.GetRendererThreadFromTabId(tab_id)
     if renderer_thread:

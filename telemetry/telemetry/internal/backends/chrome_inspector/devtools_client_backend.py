@@ -435,6 +435,11 @@ class DevToolsClientBackend(object):
     assert self.is_tracing_running
     self._tab_ids = []
     try:
+      backend = self.FirstTabBackend()
+      if backend is not None:
+        backend.AddTimelineMarker('first-renderer-thread')
+      # TODO(crbug.com/860297): When GetRendererThreadFromTabId is removed,
+      # it would be enough to add the backend.id marker of the first tab only.
       for backend in self._IterInspectorBackends(['iframe', 'page', 'webview']):
         backend.AddTimelineMarker(backend.id)
         self._tab_ids.append(backend.id)

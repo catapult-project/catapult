@@ -138,8 +138,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
 
     self.RunMeasurement(ScrollingGestureTestMeasurement(), ps)
     timeline_model = models[0]
-    renderer_thread = timeline_model.GetRendererThreadFromTabId(
-        tab_ids[0])
+    renderer_thread = timeline_model.GetFirstRendererThread(tab_ids[0])
     smooth_record = None
     for e in renderer_thread.async_slices:
       if tir_module.IsTimelineInteractionRecord(e.name):

@@ -21,7 +21,7 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
 
   def GetInteractionRecords(self, trace_data):
     timeline_model = model.TimelineModel(trace_data)
-    renderer_thread = timeline_model.GetRendererThreadFromTabId(self._tab.id)
+    renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
     return [
         tir_module.TimelineInteractionRecord.FromAsyncEvent(e)
         for e in renderer_thread.async_slices
