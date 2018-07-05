@@ -27,6 +27,8 @@ STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 PARTIAL_TEST_SUITES_KEY = 'partial_test_suites'
 COMPOSITE_TEST_SUITES_KEY = 'composite_test_suites'
 GROUPABLE_TEST_SUITE_PREFIXES_KEY = 'groupable_test_suite_prefixes'
+POLY_MEASUREMENT_TEST_SUITES_KEY = 'poly_measurement_test_suites'
+NO_MITIGATIONS_CASE = 'no-mitigations'
 
 
 class Descriptor(object):
@@ -100,6 +102,65 @@ class Descriptor(object):
           GROUPABLE_TEST_SUITE_PREFIXES_KEY) or ()
     return cls.GROUPABLE_TEST_SUITE_PREFIXES
 
+  POLY_MEASUREMENT_TEST_SUITES = None
+
+  @classmethod
+  def _PolyMeasurementTestSuites(cls):
+    """
+    Returns a list of test suites whose measurements are composed of multiple
+    test path components.
+    """
+    if cls.POLY_MEASUREMENT_TEST_SUITES is None:
+      cls.POLY_MEASUREMENT_TEST_SUITES = stored_object.Get(
+          POLY_MEASUREMENT_TEST_SUITES_KEY) or ()
+    return cls.POLY_MEASUREMENT_TEST_SUITES
+
+  @classmethod
+  def _MeasurementCase(cls, test_suite, path):
+    if len(path) == 1:
+      return path.pop(0), None
+
+    if test_suite.startswith('resource_sizes'):
+      parts, path[:] = path[:], []
+      return ':'.join(parts), None
+
+    if test_suite == 'sizes':
+      parts, path[:] = path[:], []
+      return ':'.join(parts[:6]), ':'.join(parts[6:])
+
+    if (test_suite.startswith('system_health') or
+        (test_suite in [
+            'tab_switching.typical_25',
+            'v8.browsing_desktop',
+            'v8.browsing_desktop-future',
+            'v8.browsing_mobile',
+            'v8.browsing_mobile-future',
+            ])):
+      measurement = path.pop(0)
+      path.pop(0)
+      if len(path) == 0:
+        return measurement, None
+      return measurement, path.pop(0).replace('_', ':').replace(
+          'long:running:tools', 'long_running_tools')
+
+    if test_suite in [
+        'memory.dual_browser_test', 'memory.top_10_mobile',
+        'v8.runtime_stats.top_25']:
+      measurement = path.pop(0)
+      case = path.pop(0)
+      if len(path) == 0:
+        return measurement, None
+      return measurement, case + ':' + path.pop(0)
+
+    if test_suite in cls._PolyMeasurementTestSuites():
+      parts, path[:] = path[:], []
+      case = None
+      if parts[-1] == NO_MITIGATIONS_CASE:
+        case = parts.pop()
+      return ':'.join(parts), case
+
+    return path.pop(0), path.pop(0)
+
   @classmethod
   def FromTestPath(cls, path):
     """Parse a test path into a Descriptor.
@@ -136,27 +197,27 @@ class Descriptor(object):
       return cls(test_suite=test_suite, bot=bot)
 
     build_type = TEST_BUILD_TYPE
-    measurement = path.pop(0)
+    if path[-1] == 'ref':
+      path.pop()
+      build_type = REFERENCE_BUILD_TYPE
+
+    if len(path) == 0:
+      return cls(test_suite=test_suite, bot=bot, build_type=build_type)
+
+    measurement, test_case = cls._MeasurementCase(test_suite, path)
+
     statistic = None
-    # TODO(crbug.com/853258) some measurements include path[4]
     for suffix in STATISTICS:
       if measurement.endswith('_' + suffix):
         statistic = suffix
         measurement = measurement[:-(1 + len(suffix))]
-    if len(path) == 0:
-      return cls(test_suite=test_suite, bot=bot, measurement=measurement,
-                 build_type=build_type, statistic=statistic)
 
-    test_case = path.pop(0)
-    if test_case.endswith('_ref'):
+    if test_case and test_case.endswith('_ref'):
       test_case = test_case[:-4]
       build_type = REFERENCE_BUILD_TYPE
     if test_case == REFERENCE_BUILD_TYPE:
       build_type = REFERENCE_BUILD_TYPE
       test_case = None
-    # TODO(crbug.com/853258) some test_cases include path[5] and/or path[6]
-    # and/or path[7]
-    # TODO(crbug.com/853258) some test_cases need to be modified
 
     return cls(test_suite=test_suite, bot=bot, measurement=measurement,
                statistic=statistic, test_case=test_case, build_type=build_type)
@@ -188,13 +249,35 @@ class Descriptor(object):
     if not self.measurement:
       return [test_path]
 
-    # TODO(crbug.com/853258) some measurements need to be modified
-    test_path += '/' + self.measurement
+    if self.test_suite in self._PolyMeasurementTestSuites():
+      test_path += '/' + self.measurement.replace(':', '/')
+    else:
+      test_path += '/' + self.measurement
+
     if self.statistic:
       test_path += '_' + self.statistic
+
     if self.test_case:
-      # TODO(crbug.com/853258) some test_cases need to be modified
-      test_path += '/' + self.test_case
+      if (self.test_suite.startswith('system_health') or
+          (self.test_suite in [
+              'tab_switching.typical_25',
+              'v8:browsing_desktop',
+              'v8:browsing_desktop-future',
+              'v8:browsing_mobile',
+              'v8:browsing_mobile-future',
+              ])):
+        test_case = self.test_case.split(':')
+        if test_case[0] == 'long_running_tools':
+          test_path += '/' + test_case[0]
+        else:
+          test_path += '/' + '_'.join(test_case[:2])
+        test_path += '/' + '_'.join(test_case)
+      elif self.test_suite in [
+          'sizes', 'memory.dual_browser_test', 'memory.top_10_mobile',
+          'v8.runtime_stats.top_25']:
+        test_path += '/' + self.test_case.replace(':', '/')
+      else:
+        test_path += '/' + self.test_case
 
     candidates = [test_path]
     if self.build_type == REFERENCE_BUILD_TYPE:
