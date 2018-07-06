@@ -135,7 +135,8 @@ def get_device_sdk_version():
           success = True
 
   if not success:
-    sys.exit(1)
+    print >> sys.stderr, adb_output
+    raise Exception("Failed to get device sdk version")
 
   return version
 
