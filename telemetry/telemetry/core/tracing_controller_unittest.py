@@ -148,7 +148,7 @@ class StartupTracingTest(unittest.TestCase):
   def tracing_controller(self):
     return self.possible_browser.platform.tracing_controller
 
-  def StopTracingAndGetTestMarkers(self, marker_prefix):
+  def StopTracingAndGetTestMarkers(self):
     self.assertTrue(self.tracing_controller.is_tracing_running)
     trace_data, errors = self.tracing_controller.StopTracing()
     self.assertFalse(self.tracing_controller.is_tracing_running)
@@ -156,7 +156,7 @@ class StartupTracingTest(unittest.TestCase):
     return [
         e['title']
         for e in ReadMarkerEvents(trace_data)
-        if e['title'].startswith(marker_prefix)]
+        if e['title'].startswith('test-marker-')]
 
   @decorators.Isolated
   def testStopTracingWhileBrowserIsRunning(self):
@@ -165,7 +165,7 @@ class StartupTracingTest(unittest.TestCase):
       browser.tabs[0].Navigate('about:blank')
       browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
       browser.tabs[0].AddTimelineMarker('test-marker-foo')
-      markers = self.StopTracingAndGetTestMarkers('test-marker-')
+      markers = self.StopTracingAndGetTestMarkers()
     self.assertEquals(markers, ['test-marker-foo'])
 
   @decorators.Isolated
@@ -177,5 +177,24 @@ class StartupTracingTest(unittest.TestCase):
       browser.tabs[0].AddTimelineMarker('test-marker-bar')
       # TODO(crbug.com/854212): This should happen implicitly on browser.Close()
       self.tracing_controller.FlushTracing()
-    markers = self.StopTracingAndGetTestMarkers('test-marker-')
+    markers = self.StopTracingAndGetTestMarkers()
     self.assertEquals(markers, ['test-marker-bar'])
+
+  @decorators.Isolated
+  def testRestartBrowserWhileTracing(self):
+    expected_markers = ['test-marker-%i' % i for i in xrange(4)]
+    self.tracing_controller.StartTracing(self.config)
+    try:
+      self.possible_browser.SetUpEnvironment(self.browser_options)
+      for marker in expected_markers:
+        with self.possible_browser.Create() as browser:
+          browser.tabs[0].Navigate('about:blank')
+          browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
+          browser.tabs[0].AddTimelineMarker(marker)
+          # TODO(crbug.com/854212): This should happen implicitly.
+          self.tracing_controller.FlushTracing()
+    finally:
+      self.possible_browser.CleanUpEnvironment()
+    markers = self.StopTracingAndGetTestMarkers()
+    # Markers may be out of order.
+    self.assertItemsEqual(markers, expected_markers)
