@@ -9,7 +9,6 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import update_test_suites
-from dashboard.common import datastore_hooks
 from dashboard.common import descriptor
 from dashboard.common import namespaced_stored_object
 from dashboard.common import stored_object
@@ -26,7 +25,6 @@ class ListTestSuitesTest(testing_common.TestCase):
         [('/update_test_suites',
           update_test_suites.UpdateTestSuitesHandler)])
     self.testapp = webtest.TestApp(app)
-    datastore_hooks.InstallHooks()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
     stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [
