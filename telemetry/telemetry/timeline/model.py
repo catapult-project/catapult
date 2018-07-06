@@ -42,12 +42,6 @@ class MarkerOverlapError(Exception):
         'Overlapping timeline markers found')
 
 
-# TODO(crbug.com/860297): Switch clients to use the static method instead,
-# and remove this when no longer needed.
-IsSliceOrAsyncSlice = (
-    event_container.TimelineEventContainer.IsSliceOrAsyncSlice)
-
-
 class TimelineModel(event_container.TimelineEventContainer):
   def __init__(self, trace_data=None, shift_world_to_zero=True):
     """ Initializes a TimelineModel.
