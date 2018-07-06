@@ -139,51 +139,6 @@ class TabTest(tab_test_case.TabTestCase):
         break
     self.assertTrue(found_video_start_event)
 
-  @decorators.Enabled('has tabs')
-  @decorators.Disabled('mac', 'linux')  # crbug.com/499207.
-  def testGetRendererThreadFromTabId(self):
-    self.assertEquals(self._tab.url, 'about:blank')
-    # Create 3 tabs. The third tab is closed before we call
-    # tracing_controller.StartTracing.
-    first_tab = self._tab
-    second_tab = self._browser.tabs.New()
-    second_tab.Navigate('about:blank')
-    second_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-    third_tab = self._browser.tabs.New()
-    third_tab.Navigate('about:blank')
-    third_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-    third_tab.Close()
-    config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetLowOverheadFilter()
-    config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.StartTracing(config)
-    first_tab.AddTimelineMarker('first-tab-marker')
-    second_tab.AddTimelineMarker('second-tab-marker')
-    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
-    timeline_model = model.TimelineModel(trace_data)
-
-    # Assert that the renderer_thread of the first tab contains
-    # 'first-tab-marker'.
-    renderer_thread = timeline_model.GetRendererThreadFromTabId(
-        first_tab.id)
-    first_tab_markers = list(
-        renderer_thread.IterTimelineMarkers('first-tab-marker'))
-    self.assertEquals(1, len(first_tab_markers))
-
-    # Close second tab and assert that the renderer_thread of the second tab
-    # contains 'second-tab-marker'.
-    second_tab.Close()
-    renderer_thread = timeline_model.GetRendererThreadFromTabId(
-        second_tab.id)
-    second_tab_markers = list(
-        renderer_thread.IterTimelineMarkers('second-tab-marker'))
-    self.assertEquals(1, len(second_tab_markers))
-
-    # Third tab wasn't available when we start tracing, so there is no
-    # renderer_thread corresponding to it in the the trace.
-    self.assertIs(None, timeline_model.GetRendererThreadFromTabId(third_tab.id))
-
   def testGetFirstRendererThread_singleTab(self):
     self.assertEqual(len(self.tabs), 1)  # We have a single tab/page.
     config = tracing_config.TracingConfig()
@@ -199,13 +154,6 @@ class TabTest(tab_test_case.TabTestCase):
     renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
     markers = list(renderer_thread.IterTimelineMarkers('single-tab-marker'))
     self.assertEqual(len(markers), 1)
-
-    # TODO(crbug.com/860297): To make sure it's a suitable replacement, check
-    # that we find the same renderer as GetRendererThreadFromTabId would.
-    # This can be removed when GetRendererThreadFromTabId is no longer used.
-    same_render_thread = timeline_model.GetRendererThreadFromTabId(
-        self._tab.id)
-    self.assertEqual(renderer_thread.tid, same_render_thread.tid)
 
   @decorators.Enabled('has tabs')
   def testGetFirstRendererThread_multipleTabs(self):
@@ -235,13 +183,6 @@ class TabTest(tab_test_case.TabTestCase):
     # Check that trying to find the background tab rases an error.
     with self.assertRaises(AssertionError):
       timeline_model.GetFirstRendererThread(first_tab.id)
-
-    # TODO(crbug.com/860297): To make sure it's a suitable replacement, check
-    # that we find the same renderer as GetRendererThreadFromTabId would.
-    # This can be removed when GetRendererThreadFromTabId is no longer used.
-    same_render_thread = timeline_model.GetRendererThreadFromTabId(
-        second_tab.id)
-    self.assertEqual(renderer_thread.tid, same_render_thread.tid)
 
   @decorators.Disabled('android') # https://crbug.com/463933
   def testTabIsAlive(self):

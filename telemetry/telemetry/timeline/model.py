@@ -15,7 +15,6 @@ from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import process as process_module
 from telemetry.timeline import surface_flinger_importer
-from telemetry.timeline import tab_id_importer
 from telemetry.timeline import trace_event_importer
 from tracing.trace_data import trace_data as trace_data_module
 
@@ -24,7 +23,6 @@ from tracing.trace_data import trace_data as trace_data_module
 
 _IMPORTERS = [
     inspector_importer.InspectorTimelineImporter,
-    tab_id_importer.TabIdImporter,
     trace_event_importer.TraceEventTimelineImporter,
     surface_flinger_importer.SurfaceFlingerTimelineImporter
 ]
@@ -59,7 +57,6 @@ class TimelineModel(event_container.TimelineEventContainer):
     self._gpu_process = None
     self._surface_flinger_process = None
     self._frozen = False
-    self._tab_ids_to_renderer_threads_map = {}
     self.import_errors = []
     self.metadata = []
     self.flow_events = []
@@ -122,12 +119,6 @@ class TimelineModel(event_container.TimelineEventContainer):
   @surface_flinger_process.setter
   def surface_flinger_process(self, surface_flinger_process):
     self._surface_flinger_process = surface_flinger_process
-
-  def AddMappingFromTabIdToRendererThread(self, tab_id, renderer_thread):
-    if self._frozen:
-      raise Exception('Cannot add mapping from tab id to renderer thread once '
-                      'trace is imported')
-    self._tab_ids_to_renderer_threads_map[tab_id] = renderer_thread
 
   def ImportTraces(self, trace_data, shift_world_to_zero=True):
     """Populates the model with the provided trace data.
@@ -254,15 +245,6 @@ class TimelineModel(event_container.TimelineEventContainer):
     verifiers = list(renderer_thread.IterTimelineMarkers(tab_id))
     assert len(verifiers) == 1, 'Renderer thread does not have expected tab id'
     return renderer_thread
-
-  def GetRendererProcessFromTabId(self, tab_id):
-    renderer_thread = self.GetRendererThreadFromTabId(tab_id)
-    if renderer_thread:
-      return renderer_thread.parent
-    return None
-
-  def GetRendererThreadFromTabId(self, tab_id):
-    return self._tab_ids_to_renderer_threads_map.get(tab_id, None)
 
   def _CreateImporters(self, trace_data):
     def FindImporterClassForPart(part):

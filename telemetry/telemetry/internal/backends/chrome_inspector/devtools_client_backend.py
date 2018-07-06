@@ -21,7 +21,6 @@ from telemetry.internal.backends.chrome_inspector import window_manager_backend
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
-from tracing.trace_data import trace_data as trace_data_module
 
 import py_utils
 
@@ -169,7 +168,6 @@ class DevToolsClientBackend(object):
     self._memory_backend = None
     self._system_info_backend = None
     self._wm_backend = None
-    self._tab_ids = None
 
     self._devtools_http = devtools_http.DevToolsHttp(
         self._devtools_config.local_port)
@@ -433,16 +431,13 @@ class DevToolsClientBackend(object):
 
   def StopChromeTracing(self):
     assert self.is_tracing_running
-    self._tab_ids = []
     try:
       backend = self.FirstTabBackend()
       if backend is not None:
         backend.AddTimelineMarker('first-renderer-thread')
-      # TODO(crbug.com/860297): When GetRendererThreadFromTabId is removed,
-      # it would be enough to add the backend.id marker of the first tab only.
-      for backend in self._IterInspectorBackends(['iframe', 'page', 'webview']):
         backend.AddTimelineMarker(backend.id)
-        self._tab_ids.append(backend.id)
+      else:
+        logging.warning('No page inspector backend found.')
     finally:
       self._tracing_backend.StopTracing()
 
@@ -466,12 +461,7 @@ class DevToolsClientBackend(object):
 
   def CollectChromeTracingData(self, trace_data_builder, timeout=60):
     self._CreateTracingBackendIfNeeded()
-    try:
-      trace_data_builder.AddTraceFor(
-          trace_data_module.TAB_ID_PART, self._tab_ids[:])
-      self._tab_ids = None
-    finally:
-      self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
+    self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   # This call may be made early during browser bringup and may cause the
   # GPU process to launch, which takes a long time in Debug builds and

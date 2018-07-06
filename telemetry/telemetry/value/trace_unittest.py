@@ -117,14 +117,14 @@ class ValueTest(TestBase):
   def testFindTraceParts(self):
     raw_data = {
         'traceEvents': [{'trace': 1}],
-        'tabIds': 'Tab Data',
+        'telemetry': 'Telemetry Data',
     }
     data = trace_data.CreateTraceDataFromRawData(raw_data)
     v = trace.TraceValue(None, data)
     tempdir = tempfile.mkdtemp()
     temp_path = os.path.join(tempdir, 'test.json')
     chrome_seen = False
-    tabs_seen = False
+    telemetry_seen = False
     try:
       with codecs.open(v.filename, mode='r', encoding='utf-8') as f:
         trace_files = html2trace.CopyTraceDataFromHTMLFilePath(f, temp_path)
@@ -134,11 +134,11 @@ class ValueTest(TestBase):
           if d == json.dumps({'traceEvents': raw_data['traceEvents']}):
             self.assertFalse(chrome_seen)
             chrome_seen = True
-          elif d == raw_data['tabIds']:
-            self.assertFalse(tabs_seen)
-            tabs_seen = True
+          elif d == raw_data['telemetry']:
+            self.assertFalse(telemetry_seen)
+            telemetry_seen = True
       self.assertTrue(chrome_seen)
-      self.assertTrue(tabs_seen)
+      self.assertTrue(telemetry_seen)
     finally:
       shutil.rmtree(tempdir)
       os.remove(v.filename)
