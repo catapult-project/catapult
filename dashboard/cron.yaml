@@ -23,6 +23,10 @@ cron:
   url: /update_bug_with_results
   schedule: every 15 minutes
 
+- description: Update dashboard stats.
+  url: /update_dashboard_stats
+  schedule: every 24 hours
+
 - description: Delete expired layered_cache.CachedPickledString entities.
   url: /delete_expired_entities
   schedule: every 24 hours
