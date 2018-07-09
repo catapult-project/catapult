@@ -91,17 +91,6 @@ class BrowserBackend(app_backend.AppBackend):
   def supports_app_ui_interactions(self):
     return False
 
-  def StartTracing(self,
-                   trace_options,
-                   timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
-    raise NotImplementedError()
-
-  def StopTracing(self):
-    raise NotImplementedError()
-
-  def CollectTracingData(self, trace_data_builder):
-    raise NotImplementedError()
-
   def Start(self, startup_args, startup_url=None):
     raise NotImplementedError()
 
