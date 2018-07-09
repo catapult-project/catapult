@@ -6,10 +6,10 @@ import optparse
 import os
 import random
 import string
-import subprocess
 import sys
 
 from devil.android.constants import chrome
+from devil.android import device_utils, device_errors
 
 class OptionParserIgnoreErrors(optparse.OptionParser):
   """Wrapper for OptionParser that ignores errors and produces no output."""
@@ -30,61 +30,6 @@ class OptionParserIgnoreErrors(optparse.OptionParser):
     pass
 
 
-def add_adb_serial(adb_command, device_serial):
-  """Add serial number to ADB shell command.
-
-  ADB shell command is given as list, e.g.
-  ['adb','shell','some_command','some_args'].
-  This replaces it with:
-  ['adb','shell',-s',device_serial,'some_command','some_args']
-
-  Args:
-     adb_command: ADB command list.
-     device_serial: Device serial number.
-
-  Returns:
-     ADB command list with serial number added.
-  """
-  if device_serial is not None:
-    adb_command.insert(1, device_serial)
-    adb_command.insert(1, '-s')
-
-
-def construct_adb_shell_command(shell_args, device_serial):
-  """Construct an ADB shell command with given device serial and arguments.
-
-  Args:
-     shell_args: array of arguments to pass to adb shell.
-     device_serial: if not empty, will add the appropriate command-line
-        parameters so that adb targets the given device.
-  """
-  adb_command = ['adb', 'shell', ' '.join(shell_args)]
-  add_adb_serial(adb_command, device_serial)
-  return adb_command
-
-
-def run_adb_command(adb_command):
-  adb_output = []
-  adb_return_code = 0
-  try:
-    adb_output = subprocess.check_output(adb_command, stderr=subprocess.STDOUT,
-                                         shell=False, universal_newlines=True)
-  except OSError as error:
-    # This usually means that the adb executable was not found in the path.
-    print >> sys.stderr, ('\nThe command "%s" failed with the following error:'
-                          % ' '.join(adb_command))
-    print >> sys.stderr, '    %s' % str(error)
-    print >> sys.stderr, 'Is adb in your path?'
-    adb_return_code = error.errno
-    adb_output = error
-  except subprocess.CalledProcessError as error:
-    # The process exited with an error.
-    adb_return_code = error.returncode
-    adb_output = error.output
-
-  return (adb_output, adb_return_code)
-
-
 def run_adb_shell(shell_args, device_serial):
   """Runs "adb shell" with the given arguments.
 
@@ -96,8 +41,17 @@ def run_adb_shell(shell_args, device_serial):
     A tuple containing the adb output (stdout & stderr) and the return code
     from adb.  Will exit if adb fails to start.
   """
-  adb_command = construct_adb_shell_command(shell_args, device_serial)
-  return run_adb_command(adb_command)
+  adb_output = []
+  adb_return_code = 0
+  device = device_utils.DeviceUtils.HealthyDevices(device_arg=device_serial)[0]
+  try:
+    adb_output = device.RunShellCommand(shell_args, shell=False,
+                                        check_return=True, raw_output=True)
+  except device_errors.AdbShellCommandFailedError as error:
+    adb_return_code = error.status
+    adb_output = error.output
+
+  return (adb_output, adb_return_code)
 
 
 def get_device_sdk_version():
