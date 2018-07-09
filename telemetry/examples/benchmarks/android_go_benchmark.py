@@ -76,7 +76,7 @@ class SharedAndroidStoryState(story_module.SharedState):
       browser.DumpStateUponFailure()
       raise
     finally:
-      self.CloseBrowser(browser)
+      browser.Close()
 
   def WillRunStory(self, story):
     # TODO: Should start replay to use WPR recordings.
@@ -100,26 +100,6 @@ class SharedAndroidStoryState(story_module.SharedState):
 
   def CanRunStory(self, _):
     return True
-
-  def CloseBrowser(self, browser):
-    # TODO(crbug.com/854212): This method includes some workarounds for bugs
-    # that occur when closing the browser while tracing is running.
-    # When the linked bug is fixed, it should be possible to replace this with
-    # just browser.Close().
-
-    try:
-      # a) Explicitly call flush tracing so that we retain a copy of the
-      # trace from this browser before it's closed.
-      if self.platform.tracing_controller.is_tracing_running:
-        self.platform.tracing_controller.FlushTracing()
-
-      # b) Close all tabs before closing the browser. Prevents a bug that
-      # would cause future browser instances to hang when older tabs receive
-      # DevTools requests.
-      while len(browser.tabs) > 0:
-        browser.tabs[0].Close(keep_one=False)
-    finally:
-      browser.Close()
 
 
 class AndroidGoFooStory(story_module.Story):
