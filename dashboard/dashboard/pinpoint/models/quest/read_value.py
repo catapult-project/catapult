@@ -58,7 +58,8 @@ class ReadHistogramsJsonValue(quest.Quest):
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')
     if arguments.get('target') == 'performance_test_suite':
-      results_filename = benchmark + '/perf_results.json'
+      path_separator = '\\' if _IsWindows(arguments) else '/'
+      results_filename = benchmark + path_separator + 'perf_results.json'
     else:
       # TODO: Remove this hack when all builders build performance_test_suite.
       results_filename = 'chartjson-output.json'
@@ -251,6 +252,13 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     result_value = float(graphjson[self._chart]['traces'][self._trace][0])
 
     self._Complete(result_values=(result_value,))
+
+
+def _IsWindows(arguments):
+  for dimension in arguments.get('dimensions', []):
+    if dimension['key'] == 'os' and dimension['value'].startswith('Win'):
+      return True
+  return False
 
 
 def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
