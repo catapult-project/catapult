@@ -192,7 +192,7 @@ tr.b.unittest.testSuite(function() {
     const hist = new tr.v.Histogram('', tr.b.Unit.byName.count);
     function addInvalidDiagnosticType() {
       hist.diagnostics.set(
-          tr.v.d.RESERVED_NAMES.GROUPING_PATH, new tr.v.d.GenericSet());
+          tr.v.d.RESERVED_NAMES.GROUPING_PATH, new tr.v.d.GenericSet(['foo']));
     }
     assert.throw(addInvalidDiagnosticType, Error,
         `Diagnostics named "${tr.v.d.RESERVED_NAMES.GROUPING_PATH}" must be ` +

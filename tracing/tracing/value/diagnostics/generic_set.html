@@ -36,7 +36,19 @@ tr.exportTo('tr.v.d', function() {
      */
     constructor(values) {
       super();
+
+      if (typeof values[Symbol.iterator] !== 'function') {
+        throw new Error('GenericSet must be constructed from an interable.');
+      }
+
       this.values_ = new Set(values);
+      this.has_objects_ = false;
+
+      for (const value of values) {
+        if (typeof value === 'object') {
+          this.has_objects_ = true;
+        }
+      }
     }
 
     get size() {
@@ -72,6 +84,21 @@ tr.exportTo('tr.v.d', function() {
       return true;
     }
 
+    get hashKey() {
+      if (this.has_objects_) return undefined;
+
+      if (this.hash_key_ !== undefined) {
+        return this.hash_key_;
+      }
+
+      let key = '';
+      for (const value of Array.from(this.values_.values()).sort()) {
+        key += value;
+      }
+      this.hash_key_ = key;
+      return key;
+    }
+
     asDictInto_(d) {
       d.values = Array.from(this);
     }
@@ -96,8 +123,11 @@ tr.exportTo('tr.v.d', function() {
       }
 
       for (const value of otherDiagnostic) {
-        if (typeof value === 'object' && jsons.has(stableStringify(value))) {
-          continue;
+        if (typeof value === 'object') {
+          if (jsons.has(stableStringify(value))) {
+            continue;
+          }
+          this.has_objects_ = true;
         }
         this.values_.add(value);
       }

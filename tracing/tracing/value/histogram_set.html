@@ -326,12 +326,26 @@ tr.exportTo('tr.v', function() {
     deduplicateDiagnostics() {
       const namesToCandidates = new Map();  // string: Set<Diagnostic>
       const diagnosticsToHistograms = new Map();  // Diagnostic: [Histogram]
+      const keysToDiagnostics = new Map();  // string: Diagnostic
 
       for (const hist of this) {
         for (const [name, candidate] of hist.diagnostics) {
           // TODO(#3695): Remove this check once equality is smoke-tested.
           if (candidate.equals === undefined) {
             this.sharedDiagnosticsByGuid_.set(candidate.guid, candidate);
+            continue;
+          }
+
+          const hashKey = candidate.hashKey;
+          if (candidate.hashKey !== undefined) {
+            // TODO(857283): Fall back to slow path if same name but diff type
+            if (keysToDiagnostics.has(hashKey)) {
+              hist.diagnostics.set(name, keysToDiagnostics.get(hashKey));
+            } else {
+              keysToDiagnostics.set(hashKey, candidate);
+              this.sharedDiagnosticsByGuid_.set(candidate.guid, candidate);
+            }
+
             continue;
           }
 

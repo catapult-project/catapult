@@ -28,12 +28,12 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    assert.isFalse(t0.canAddDiagnostic(new tr.v.d.GenericSet()));
+    assert.isFalse(t0.canAddDiagnostic(new tr.v.d.GenericSet(['foo'])));
     assert.isTrue(t0.canAddDiagnostic(t1));
 
     const m0 = t0.clone();
     assert.instanceOf(m0, tr.v.d.TagMap);
-    assert.isFalse(m0.canAddDiagnostic(new tr.v.d.GenericSet()));
+    assert.isFalse(m0.canAddDiagnostic(new tr.v.d.GenericSet(['foo'])));
     assert.isTrue(m0.canAddDiagnostic(t1));
 
     m0.addDiagnostic(t1);
