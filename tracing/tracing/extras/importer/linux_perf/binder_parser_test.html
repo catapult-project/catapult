@@ -114,6 +114,11 @@ tr.b.unittest.testSuite(function() {
 
     /* check name of slice */
     assert.strictEqual(mainSlice.title, 'binder reply');
+    assert.strictEqual(mainSlice.args['Destination Process'], 10670);
+    assert.strictEqual(mainSlice.args['Destination Thread'], 10670);
+    assert.strictEqual(mainSlice.args['Reply transaction?'], true);
+    assert.strictEqual(mainSlice.args['Calling PID'], 3454);
+    assert.strictEqual(mainSlice.args['Calling tgid'], 3454);
 
     /* check binderLibTest */
     thread = threads[1];
@@ -130,6 +135,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(internalSlice.inFlowEvents.length, 1);
 
     assert.strictEqual(mainSlice.title, 'binder transaction');
+    assert.strictEqual(mainSlice.args['Destination Process'], 10670);
+    assert.strictEqual(mainSlice.args['Reply transaction?'], false);
+    assert.strictEqual(mainSlice.args['Calling PID'], 10619);
+    assert.strictEqual(mainSlice.args['Calling tgid'], 10619);
 
     /* check Binder_4 */
     thread = threads[2];
@@ -145,6 +154,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(internalSlice.outFlowEvents.length, 1);
 
     assert.strictEqual(mainSlice.title, 'binder reply');
+    assert.strictEqual(mainSlice.args['Destination Process'], 10670);
+    assert.strictEqual(mainSlice.args['Destination Thread'], 10670);
+    assert.strictEqual(mainSlice.args['Reply transaction?'], true);
+    assert.strictEqual(mainSlice.args['Calling PID'], 10645);
+    assert.strictEqual(mainSlice.args['Calling tgid'], 10622);
 
     /* check last binderLibTest with recursive slices */
     thread = threads[3];
@@ -160,6 +174,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(internalSlice.outFlowEvents.length, 1);
 
     assert.strictEqual(mainSlice.title, 'binder reply');
+    assert.strictEqual(mainSlice.args['Destination Process'], 10619);
+    assert.strictEqual(mainSlice.args['Destination Thread'], 10619);
+    assert.strictEqual(mainSlice.args['Reply transaction?'], true);
+    assert.strictEqual(mainSlice.args['Calling PID'], 10670);
+    assert.strictEqual(mainSlice.args['Calling tgid'], 10670);
 
     let recursive = thread.sliceGroup.slices[1];
     let recursiveInternal = thread.sliceGroup.slices[2];
@@ -168,6 +187,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(recursiveInternal.inFlowEvents.length, 1);
 
     assert.strictEqual(recursive.title, 'binder transaction');
+    assert.strictEqual(recursive.args['Destination Process'], 3454);
+    assert.strictEqual(recursive.args['Reply transaction?'], false);
+    assert.strictEqual(recursive.args['Calling PID'], 10670);
+    assert.strictEqual(recursive.args['Calling tgid'], 10670);
 
     /* check second recursive slice and internal */
 
@@ -178,6 +201,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(recursiveInternal.inFlowEvents.length, 1);
 
     assert.strictEqual(recursive.title, 'binder transaction');
+    assert.strictEqual(recursive.args['Destination Process'], 10622);
+    assert.strictEqual(recursive.args['Reply transaction?'], false);
+    assert.strictEqual(recursive.args['Calling PID'], 10670);
+    assert.strictEqual(recursive.args['Calling tgid'], 10670);
   });
 
   test('binderSimpleAsync', function() {

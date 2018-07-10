@@ -502,6 +502,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       const recursiveSlice = recursiveTrans[1].slice;
       const origSlice = recursiveTrans[0].slice;
       recursiveSlice.duration = ts - recursiveSlice.start;
+      recursiveSlice.args = args;
       trans.slice = recursiveSlice;
 
       if (trans.is_reply_transaction) {
@@ -538,7 +539,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       const calleeTrans = priorReceive[1];
       const recvTs = priorReceive[0];
       let slice = kthread.thread.sliceGroup.pushCompleteSlice('binder',
-          '', recvTs, ts - recvTs, 0, 0, args);
+          '', recvTs, ts - recvTs, 0, 0);
 
       const flow = this.generateFlow(calleeSlice, slice, calleeTrans, trans);
       this.model_.flowEvents.push(flow);
@@ -549,6 +550,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          * transaction.
          */
         slice.title = 'binder reply';
+        slice.args = args;
         /* Notify this transaction key that when it recv's it is completing
          * a sync transaction.
          */
