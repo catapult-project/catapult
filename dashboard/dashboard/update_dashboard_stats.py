@@ -87,7 +87,7 @@ def _CreateHistogramSet(
 
 
 def _CreateHistogram(name, story=None):
-  h = histogram_module.Histogram(name, 'tsMs')
+  h = histogram_module.Histogram(name, 'msBestFitFormat')
   if story:
     h.diagnostics[reserved_infos.STORIES.name] = (
         generic_set.GenericSet([story]))
