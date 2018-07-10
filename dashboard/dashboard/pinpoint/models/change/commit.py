@@ -92,8 +92,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     commit_info = gitiles_service.CommitInfo(self.repository_url, self.git_hash)
     details = {
         'repository': self.repository,
-        'git_hash': self.git_hash,
-
+        'git_hash': commit_info['commit'],
         'url': self.repository_url + '/+/' + commit_info['commit'],
         'subject': commit_info['message'].split('\n', 1)[0],
         'author': commit_info['author']['email'],

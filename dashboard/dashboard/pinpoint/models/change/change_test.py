@@ -6,8 +6,16 @@ import mock
 
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models.change import commit
+from dashboard.pinpoint.models.change import commit_test
 from dashboard.pinpoint.models.change import patch
 from dashboard.pinpoint import test
+
+
+def Change(chromium_number, catapult_number=None):
+  commits = [commit_test.Commit(chromium_number)]
+  if catapult_number is not None:
+    commits.append(commit.Commit('catapult', 'commit ' + str(catapult_number)))
+  return change.Change(commits)
 
 
 class ChangeTest(test.TestCase):
