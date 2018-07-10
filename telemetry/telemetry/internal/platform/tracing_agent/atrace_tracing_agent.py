@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from systrace.tracing_agents import atrace_agent
+from telemetry.core import exceptions
 from telemetry.internal.platform import tracing_agent
 from tracing.trace_data import trace_data
 
@@ -51,5 +52,9 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
         lambda t, sid: record_controller_clock_sync_marker_callback(sid, t))
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    raw_data = self._atrace_agent.GetResults(timeout).raw_data
-    trace_data_builder.AddTraceFor(trace_data.ATRACE_PART, raw_data)
+    results = self._atrace_agent.GetResults(timeout)
+    if results is False:
+      raise exceptions.AtraceTracingError(
+          'Timed out retrieving the atrace tracing data from device %s.'
+          % self._device)
+    trace_data_builder.AddTraceFor(trace_data.ATRACE_PART, results.raw_data)

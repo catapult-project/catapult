@@ -178,6 +178,10 @@ class TracingException(Error):
   """Represents an error that ocurred while collecting or flushing traces."""
 
 
+class AtraceTracingError(TracingException):
+  """Represents an error that ocurred while collecting traces with Atrace."""
+
+
 class PathMissingError(Error):
   """Represents an exception thrown when an expected path doesn't exist."""
 
