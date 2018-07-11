@@ -33,6 +33,7 @@ _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
 )
+OAUTH_ENDPOINTS = ['/api/', '/add_histograms']
 
 
 def _GetNowRfc3339():
@@ -52,7 +53,8 @@ def GetEmail():
     OAuthRequestError: The request was not a valid OAuth request.
     OAuthServiceFailureError: An unknown error occurred.
   """
-  if os.environ.get('REQUEST_URI', '').startswith('/api/'):
+  request_uri = os.environ.get('REQUEST_URI', '')
+  if any(request_uri.startswith(e) for e in OAUTH_ENDPOINTS):
     # Prevent a CSRF whereby a malicious site posts an api request without an
     # Authorization header (so oauth.get_current_user() is None), but while the
     # user is signed in, so their cookies would make users.get_current_user()
