@@ -10,7 +10,8 @@ from dashboard.pinpoint.models.quest import run_test
 
 
 _DEFAULT_EXTRA_ARGS = [
-    '-v', '--upload-results', '--output-format', 'histograms']
+    '-v', '--upload-results', '--output-format', 'histograms',
+    '--also-run-disabled-tests']
 
 
 _PERFORMANCE_TESTS = ('performance_test_suite',
