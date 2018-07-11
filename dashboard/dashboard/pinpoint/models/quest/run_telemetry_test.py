@@ -13,6 +13,10 @@ _DEFAULT_EXTRA_ARGS = [
     '-v', '--upload-results', '--output-format', 'histograms']
 
 
+_PERFORMANCE_TESTS = ('performance_test_suite',
+                      'performance_webview_test_suite')
+
+
 class RunTelemetryTest(run_test.RunTest):
 
   def Start(self, change, isolate_server, isolate_hash):
@@ -30,7 +34,7 @@ class RunTelemetryTest(run_test.RunTest):
     benchmark = arguments.get('benchmark')
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')
-    if arguments.get('target') == 'performance_test_suite':
+    if arguments.get('target') in _PERFORMANCE_TESTS:
       swarming_extra_args += ('--benchmarks', benchmark)
     else:
       # TODO: Remove this hack when all builders build performance_test_suite.
