@@ -1232,8 +1232,7 @@ class AddHistogramsTest(testing_common.TestCase):
     histograms.AddSharedDiagnostic(
         reserved_infos.DEVICE_IDS.name,
         generic_set.GenericSet([]))
-    diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(
-        hist.guid, histograms)
+    diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(hist)
 
     self.assertEqual(1, len(diagnostics))
     self.assertIsInstance(
@@ -1272,7 +1271,7 @@ class AddHistogramsTest(testing_common.TestCase):
         generic_set.GenericSet(['http://story']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
-        'master/bot/benchmark', hist.guid, histograms)
+        'master/bot/benchmark', hist)
     self.assertEqual('master/bot/benchmark/hist/http___story', test_path)
 
   def testComputeTestPathWithTIRLabel(self):
@@ -1296,7 +1295,7 @@ class AddHistogramsTest(testing_common.TestCase):
             ['group:media', 'ignored_tag', 'case:browse']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
-        'master/bot/benchmark', hist.guid, histograms)
+        'master/bot/benchmark', hist)
     self.assertEqual(
         'master/bot/benchmark/hist/browse_media/http___story', test_path)
 
@@ -1314,7 +1313,7 @@ class AddHistogramsTest(testing_common.TestCase):
         generic_set.GenericSet(['benchmark']))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
-        'master/bot/benchmark', hist.guid, histograms)
+        'master/bot/benchmark', hist)
     self.assertEqual('master/bot/benchmark/hist', test_path)
 
   def testComputeTestPathWithIsRefWithoutStory(self):
@@ -1334,7 +1333,7 @@ class AddHistogramsTest(testing_common.TestCase):
         generic_set.GenericSet([True]))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
-        'master/bot/benchmark', hist.guid, histograms)
+        'master/bot/benchmark', hist)
     self.assertEqual('master/bot/benchmark/hist/ref', test_path)
 
   def testComputeTestPathWithIsRefAndStory(self):
@@ -1357,7 +1356,7 @@ class AddHistogramsTest(testing_common.TestCase):
         generic_set.GenericSet([True]))
     hist = histograms.GetFirstHistogram()
     test_path = add_histograms.ComputeTestPath(
-        'master/bot/benchmark', hist.guid, histograms)
+        'master/bot/benchmark', hist)
     self.assertEqual('master/bot/benchmark/hist/http___story_ref', test_path)
 
   def testComputeRevision(self):

@@ -203,11 +203,11 @@ def _BatchHistogramsIntoTasks(
   duplicate_check = set()
 
   for hist in histograms:
-    diagnostics = FindHistogramLevelSparseDiagnostics(hist.guid, histograms)
+    diagnostics = FindHistogramLevelSparseDiagnostics(hist)
 
     # TODO(eakuefner): Don't compute full diagnostics, because we need anyway to
     # call GetOrCreate here and in the queue.
-    test_path = ComputeTestPath(suite_path, hist.guid, histograms)
+    test_path = ComputeTestPath(suite_path, hist)
 
     if test_path in duplicate_check:
       raise api_request_handler.BadRequestError(
@@ -341,8 +341,7 @@ def FindSuiteLevelSparseDiagnostics(
   return diagnostics.values()
 
 
-def FindHistogramLevelSparseDiagnostics(guid, histograms):
-  hist = histograms.LookupHistogram(guid)
+def FindHistogramLevelSparseDiagnostics(hist):
   diagnostics = {}
   for name, diag in hist.diagnostics.iteritems():
     if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
@@ -350,8 +349,7 @@ def FindHistogramLevelSparseDiagnostics(guid, histograms):
   return diagnostics
 
 
-def ComputeTestPath(suite_path, guid, histograms):
-  hist = histograms.LookupHistogram(guid)
+def ComputeTestPath(suite_path, hist):
   path = '%s/%s' % (suite_path, hist.name)
 
   # If a Histogram represents a summary across multiple stories, then its
