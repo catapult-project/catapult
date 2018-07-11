@@ -19,6 +19,8 @@ This translation layer should be temporary until the descriptor concept can be
 pushed down into the Model layer.
 """
 
+from google.appengine.ext import ndb
+
 from dashboard.common import stored_object
 
 TEST_BUILD_TYPE = 'test'
@@ -47,6 +49,10 @@ class Descriptor(object):
     self.statistic = statistic
     self.build_type = build_type
 
+  def Clone(self):
+    return Descriptor(self.test_suite, self.measurement, self.bot,
+                      self.test_case, self.statistic, self.build_type)
+
   def __repr__(self):
     return 'Descriptor(%r, %r, %r, %r, %r, %r)' % (
         self.test_suite, self.measurement, self.bot, self.test_case,
@@ -57,10 +63,12 @@ class Descriptor(object):
     cls.PARTIAL_TEST_SUITES = None
     cls.COMPOSITE_TEST_SUITES = None
     cls.GROUPABLE_TEST_SUITE_PREFIXES = None
+    cls.POLY_MEASUREMENT_TEST_SUITES = None
 
   PARTIAL_TEST_SUITES = None
 
   @classmethod
+  @ndb.tasklet
   def _PartialTestSuites(cls):
     """Returns a list of test path component strings that must be joined with
     the subsequent test path component in order to form a composite test suite.
@@ -68,12 +76,15 @@ class Descriptor(object):
     external users.
     """
     if cls.PARTIAL_TEST_SUITES is None:
-      cls.PARTIAL_TEST_SUITES = stored_object.Get(PARTIAL_TEST_SUITES_KEY) or ()
-    return cls.PARTIAL_TEST_SUITES
+      # TODO(benjhayden): Revisit with threadsafe:true.
+      cls.PARTIAL_TEST_SUITES = (
+          yield stored_object.GetAsync(PARTIAL_TEST_SUITES_KEY)) or ()
+    raise ndb.Return(cls.PARTIAL_TEST_SUITES)
 
   COMPOSITE_TEST_SUITES = None
 
   @classmethod
+  @ndb.tasklet
   def _CompositeTestSuites(cls):
     """
     Returns a list of test suites composed of 2 or more test path components.
@@ -83,13 +94,15 @@ class Descriptor(object):
     external users.
     """
     if cls.COMPOSITE_TEST_SUITES is None:
-      cls.COMPOSITE_TEST_SUITES = stored_object.Get(
-          COMPOSITE_TEST_SUITES_KEY) or ()
-    return cls.COMPOSITE_TEST_SUITES
+      # TODO(benjhayden): Revisit with threadsafe:true.
+      cls.COMPOSITE_TEST_SUITES = (
+          yield stored_object.GetAsync(COMPOSITE_TEST_SUITES_KEY)) or ()
+    raise ndb.Return(cls.COMPOSITE_TEST_SUITES)
 
   GROUPABLE_TEST_SUITE_PREFIXES = None
 
   @classmethod
+  @ndb.tasklet
   def _GroupableTestSuitePrefixes(cls):
     """
     Returns a list of prefixes of test suites that are transformed to allow the
@@ -98,35 +111,39 @@ class Descriptor(object):
     external users.
     """
     if cls.GROUPABLE_TEST_SUITE_PREFIXES is None:
-      cls.GROUPABLE_TEST_SUITE_PREFIXES = stored_object.Get(
-          GROUPABLE_TEST_SUITE_PREFIXES_KEY) or ()
-    return cls.GROUPABLE_TEST_SUITE_PREFIXES
+      # TODO(benjhayden): Revisit with threadsafe:true.
+      cls.GROUPABLE_TEST_SUITE_PREFIXES = (
+          yield stored_object.GetAsync(GROUPABLE_TEST_SUITE_PREFIXES_KEY)) or ()
+    raise ndb.Return(cls.GROUPABLE_TEST_SUITE_PREFIXES)
 
   POLY_MEASUREMENT_TEST_SUITES = None
 
   @classmethod
+  @ndb.tasklet
   def _PolyMeasurementTestSuites(cls):
     """
     Returns a list of test suites whose measurements are composed of multiple
     test path components.
     """
     if cls.POLY_MEASUREMENT_TEST_SUITES is None:
-      cls.POLY_MEASUREMENT_TEST_SUITES = stored_object.Get(
-          POLY_MEASUREMENT_TEST_SUITES_KEY) or ()
-    return cls.POLY_MEASUREMENT_TEST_SUITES
+      # TODO(benjhayden): Revisit with threadsafe:true.
+      cls.POLY_MEASUREMENT_TEST_SUITES = (
+          yield stored_object.GetAsync(POLY_MEASUREMENT_TEST_SUITES_KEY)) or ()
+    raise ndb.Return(cls.POLY_MEASUREMENT_TEST_SUITES)
 
   @classmethod
+  @ndb.tasklet
   def _MeasurementCase(cls, test_suite, path):
     if len(path) == 1:
-      return path.pop(0), None
+      raise ndb.Return((path.pop(0), None))
 
     if test_suite.startswith('resource_sizes'):
       parts, path[:] = path[:], []
-      return ':'.join(parts), None
+      raise ndb.Return((':'.join(parts), None))
 
     if test_suite == 'sizes':
       parts, path[:] = path[:], []
-      return ':'.join(parts[:6]), ':'.join(parts[6:])
+      raise ndb.Return((':'.join(parts[:6]), ':'.join(parts[6:])))
 
     if (test_suite.startswith('system_health') or
         (test_suite in [
@@ -139,9 +156,9 @@ class Descriptor(object):
       measurement = path.pop(0)
       path.pop(0)
       if len(path) == 0:
-        return measurement, None
-      return measurement, path.pop(0).replace('_', ':').replace(
-          'long:running:tools', 'long_running_tools')
+        raise ndb.Return((measurement, None))
+      raise ndb.Return((measurement, path.pop(0).replace('_', ':').replace(
+          'long:running:tools', 'long_running_tools')))
 
     if test_suite in [
         'memory.dual_browser_test', 'memory.top_10_mobile',
@@ -149,20 +166,25 @@ class Descriptor(object):
       measurement = path.pop(0)
       case = path.pop(0)
       if len(path) == 0:
-        return measurement, None
-      return measurement, case + ':' + path.pop(0)
+        raise ndb.Return((measurement, None))
+      raise ndb.Return((measurement, case + ':' + path.pop(0)))
 
-    if test_suite in cls._PolyMeasurementTestSuites():
+    if test_suite in (yield cls._PolyMeasurementTestSuites()):
       parts, path[:] = path[:], []
       case = None
       if parts[-1] == NO_MITIGATIONS_CASE:
         case = parts.pop()
-      return ':'.join(parts), case
+      raise ndb.Return((':'.join(parts), case))
 
-    return path.pop(0), path.pop(0)
+    raise ndb.Return((path.pop(0), path.pop(0)))
 
   @classmethod
-  def FromTestPath(cls, path):
+  def FromTestPathSync(cls, test_path):
+    return cls.FromTestPathAsync(test_path).get_result()
+
+  @classmethod
+  @ndb.tasklet
+  def FromTestPathAsync(cls, test_path):
     """Parse a test path into a Descriptor.
 
     Args:
@@ -171,30 +193,31 @@ class Descriptor(object):
     Returns:
       Descriptor
     """
+    path = test_path.split('/')
     if len(path) < 2:
-      return cls()
+      raise ndb.Return(cls())
 
     bot = path.pop(0) + ':' + path.pop(0)
     if len(path) == 0:
-      return cls(bot=bot)
+      raise ndb.Return(cls(bot=bot))
 
     test_suite = path.pop(0)
 
-    if test_suite in cls._PartialTestSuites():
+    if test_suite in (yield cls._PartialTestSuites()):
       if len(path) == 0:
-        return cls(bot=bot)
+        raise ndb.Return(cls(bot=bot))
       test_suite += ':' + path.pop(0)
 
     if test_suite.startswith('resource_sizes '):
       test_suite = 'resource_sizes:' + test_suite[16:-1]
     else:
-      for prefix in cls._GroupableTestSuitePrefixes():
+      for prefix in (yield cls._GroupableTestSuitePrefixes()):
         if test_suite.startswith(prefix):
           test_suite = prefix[:-1] + ':' + test_suite[len(prefix):]
           break
 
     if len(path) == 0:
-      return cls(test_suite=test_suite, bot=bot)
+      raise ndb.Return(cls(test_suite=test_suite, bot=bot))
 
     build_type = TEST_BUILD_TYPE
     if path[-1] == 'ref':
@@ -202,9 +225,10 @@ class Descriptor(object):
       build_type = REFERENCE_BUILD_TYPE
 
     if len(path) == 0:
-      return cls(test_suite=test_suite, bot=bot, build_type=build_type)
+      raise ndb.Return(cls(
+          test_suite=test_suite, bot=bot, build_type=build_type))
 
-    measurement, test_case = cls._MeasurementCase(test_suite, path)
+    measurement, test_case = yield cls._MeasurementCase(test_suite, path)
 
     statistic = None
     for suffix in STATISTICS:
@@ -219,37 +243,45 @@ class Descriptor(object):
       build_type = REFERENCE_BUILD_TYPE
       test_case = None
 
-    return cls(test_suite=test_suite, bot=bot, measurement=measurement,
-               statistic=statistic, test_case=test_case, build_type=build_type)
+    if path:
+      raise ValueError('Unable to parse %r' % test_path)
 
-  def ToTestPaths(self):
+    raise ndb.Return(cls(
+        test_suite=test_suite, bot=bot, measurement=measurement,
+        statistic=statistic, test_case=test_case, build_type=build_type))
+
+  def ToTestPathsSync(self):
+    return self.ToTestPathsAsync().get_result()
+
+  @ndb.tasklet
+  def ToTestPathsAsync(self):
     # There may be multiple possible test paths for a given Descriptor.
 
     if not self.bot:
-      return []
+      raise ndb.Return([])
 
     test_path = self.bot.replace(':', '/')
     if not self.test_suite:
-      return [test_path]
+      raise ndb.Return([test_path])
 
     test_path += '/'
 
     if self.test_suite.startswith('resource_sizes:'):
       test_path += 'resource sizes (%s)' % self.test_suite[15:]
-    elif self.test_suite in self._CompositeTestSuites():
+    elif self.test_suite in (yield self._CompositeTestSuites()):
       test_path += self.test_suite.replace(':', '/')
     else:
       first_part = self.test_suite.split(':')[0]
-      for prefix in self._GroupableTestSuitePrefixes():
+      for prefix in (yield self._GroupableTestSuitePrefixes()):
         if prefix[:-1] == first_part:
           test_path += prefix + self.test_suite[len(first_part) + 1:]
           break
       else:
         test_path += self.test_suite
     if not self.measurement:
-      return [test_path]
+      raise ndb.Return([test_path])
 
-    if self.test_suite in self._PolyMeasurementTestSuites():
+    if self.test_suite in (yield self._PolyMeasurementTestSuites()):
       test_path += '/' + self.measurement.replace(':', '/')
     else:
       test_path += '/' + self.measurement
@@ -284,4 +316,4 @@ class Descriptor(object):
       candidates = [candidate + suffix
                     for candidate in candidates
                     for suffix in ['_ref', '/ref']]
-    return candidates
+    raise ndb.Return(candidates)

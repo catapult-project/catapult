@@ -116,7 +116,7 @@ The bugs API returns the following JSON about the bug:
  * `status`: Status of work on the issue (Assigned, Fixed, etc)
  * `summary`: The issue summary/title text.
 
- ## Timeseries
+## Timeseries
 
  URL patterns for accessing timeseries:
 
@@ -129,3 +129,6 @@ The bugs API returns the following JSON about the bug:
   * `/api/timeseries/test_path`: Return the timeseries data for the given
     `test_path` as JSON. Can specify `num_days` param in postdata, defaults to
     30.
+  * `/api/test_suites`: Return an array of names of test suites.
+  * `/api/describe/test_suite`: Return an object containing `measurements`,
+    `bots`, and `cases`, all of which are sorted arrays of strings.

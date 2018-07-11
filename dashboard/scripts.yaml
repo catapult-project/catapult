@@ -140,3 +140,8 @@ handlers:
   script: dashboard.dispatcher.APP
   login: admin
   secure: always
+
+- url: /update_test_suite_descriptors
+  script: dashboard.dispatcher.APP
+  login: admin
+  secure: always

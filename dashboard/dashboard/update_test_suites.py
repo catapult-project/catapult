@@ -83,7 +83,7 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
   keys = yield query.fetch_async(keys_only=True)
   for key in keys:
     test_path = utils.TestPath(key)
-    desc = descriptor.Descriptor.FromTestPath(test_path.split('/'))
+    desc = yield descriptor.Descriptor.FromTestPathAsync(test_path)
     if desc.test_suite:
       test_suites.add(desc.test_suite)
     elif partial_tests is not None:
