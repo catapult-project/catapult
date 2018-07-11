@@ -321,7 +321,6 @@ class ListTestSuitesTest(testing_common.TestCase):
     key = utils.TestKey('Chromium/mac/my_suite/foo/bar')
     self.assertEqual('foo/bar', update_test_suites._GetTestSubPath(key))
 
-  @unittest.skip('Flaky test: crbug.com/860103')
   def testPartialTestSuites(self):
     testing_common.AddTests(
         ['master'],
