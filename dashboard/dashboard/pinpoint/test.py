@@ -39,6 +39,11 @@ class TestCase(testing_common.TestCase):
     self.commit_range = patcher.start()
     self.commit_range.side_effect = _CommitRangeStub
 
+    patcher = mock.patch('dashboard.services.gitiles_service.FileContents')
+    self.addCleanup(patcher.stop)
+    self.file_contents = patcher.start()
+    self.file_contents.return_value = 'deps = {}'
+
   def _PopulateData(self):
     # Add repository mappings.
     repository.Repository(id='catapult', urls=[CATAPULT_URL]).put()
@@ -63,7 +68,7 @@ def _CommitInfoStub(repository_url, git_hash):
 
 
 def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
-  first_number = int(first_git_hash.split(' ')[1])
-  last_number = int(last_git_hash.split(' ')[1])
+  first_number = int(first_git_hash.split()[1])
+  last_number = int(last_git_hash.split()[1])
   return [_CommitInfoStub(repository_url, 'commit ' + str(x))
           for x in xrange(last_number, first_number, -1)]

@@ -2,14 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
-
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint import test
 
 
-def Commit(number):
-  return commit.Commit('chromium', 'commit ' + str(number))
+def Commit(number, repository='chromium'):
+  return commit.Commit(repository, 'commit ' + str(number))
 
 
 class CommitTest(test.TestCase):
@@ -25,9 +23,8 @@ class CommitTest(test.TestCase):
     self.assertEqual(c.git_hash, 'aaa7336c821888839f759c6c0a36')
     self.assertEqual(c.repository_url, test.CHROMIUM_URL)
 
-  @mock.patch('dashboard.services.gitiles_service.FileContents')
-  def testDeps(self, file_contents):
-    file_contents.return_value = """
+  def testDeps(self):
+    self.file_contents.return_value = """
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
   'webrtc_git': 'https://webrtc.googlesource.com',
@@ -91,7 +88,8 @@ deps_os = {
     self.assertEqual(Commit(0).AsDict(), expected)
 
   def testFromDepNewRepo(self):
-    c = commit.Commit.FromDep(commit.Dep('https://new/repository/url.git', 'git_hash'))
+    dep = commit.Dep('https://new/repository/url.git', 'git_hash')
+    c = commit.Commit.FromDep(dep)
     self.assertEqual(c, commit.Commit('url', 'git_hash'))
 
   def testFromDepExistingRepo(self):
@@ -153,13 +151,12 @@ class MidpointTest(test.TestCase):
     self.assertEqual(midpoint, Commit(1))
 
   def testRaisesWithDifferingRepositories(self):
-    commit_b = commit.Commit('not_chromium', 'babe852')
     with self.assertRaises(commit.NonLinearError):
-      commit.Commit.Midpoint(Commit(1), commit_b)
+      commit.Commit.Midpoint(Commit(1), Commit(2, repository='catapult'))
 
-  @mock.patch('dashboard.services.gitiles_service.CommitRange')
-  def testRaisesWithEmptyRange(self, commit_range):
-    commit_range.return_value = []
+  def testRaisesWithEmptyRange(self):
+    self.commit_range.side_effect = None
+    self.commit_range.return_value = []
 
     with self.assertRaises(commit.NonLinearError):
       commit.Commit.Midpoint(Commit(1), Commit(9))

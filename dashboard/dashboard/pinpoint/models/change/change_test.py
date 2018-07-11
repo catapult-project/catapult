@@ -7,15 +7,23 @@ import mock
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.change import commit_test
-from dashboard.pinpoint.models.change import patch
+from dashboard.pinpoint.models.change import patch as patch_module
 from dashboard.pinpoint import test
 
 
-def Change(chromium_number, catapult_number=None):
-  commits = [commit_test.Commit(chromium_number)]
-  if catapult_number is not None:
-    commits.append(commit.Commit('catapult', 'commit ' + str(catapult_number)))
-  return change.Change(commits)
+_PATCH = patch_module.GerritPatch(
+    'https://codereview.com', 'repo~branch~id', '2f0d5c7')
+
+
+def Change(chromium=None, catapult=None, another_repo=None, patch=None):
+  commits = []
+  if chromium is not None:
+    commits.append(commit_test.Commit(chromium))
+  if catapult is not None:
+    commits.append(commit_test.Commit(catapult, repository='catapult'))
+  if another_repo is not None:
+    commits.append(commit_test.Commit(another_repo, repository='another_repo'))
+  return change.Change(commits, patch=patch)
 
 
 class ChangeTest(test.TestCase):
@@ -23,23 +31,22 @@ class ChangeTest(test.TestCase):
   def testChange(self):
     base_commit = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36b56c')
     dep = commit.Commit('catapult', 'e0a2efbb3d1a81aac3c90041eefec24f066d26ba')
-    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
 
-    # Also test the deps conversion to frozenset.
-    c = change.Change([base_commit, dep], p)
+    # Also test the deps conversion to tuple.
+    c = change.Change([base_commit, dep], _PATCH)
 
-    self.assertEqual(c, change.Change((base_commit, dep), p))
+    self.assertEqual(c, change.Change((base_commit, dep), _PATCH))
     string = 'chromium@aaa7336 catapult@e0a2efb + 2f0d5c7'
     id_string = ('catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba '
                  'chromium@aaa7336c821888839f759c6c0a36b56c + '
-                 'https://codereview.com/672011/2f0d5c7')
+                 'https://codereview.com/repo~branch~id/2f0d5c7')
     self.assertEqual(str(c), string)
     self.assertEqual(c.id_string, id_string)
     self.assertEqual(c.base_commit, base_commit)
     self.assertEqual(c.last_commit, dep)
     self.assertEqual(c.deps, (dep,))
     self.assertEqual(c.commits, (base_commit, dep))
-    self.assertEqual(c.patch, p)
+    self.assertEqual(c.patch, _PATCH)
 
   def testUpdate(self):
     old_commit = commit.Commit('chromium', 'aaaaaaaa')
@@ -48,34 +55,42 @@ class ChangeTest(test.TestCase):
 
     new_commit = commit.Commit('chromium', 'bbbbbbbb')
     dep_b = commit.Commit('another_repo', 'e0a2efbb')
-    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
-    change_b = change.Change((dep_b, new_commit), p)
+    change_b = change.Change((dep_b, new_commit), _PATCH)
 
-    expected = change.Change((new_commit, dep_a, dep_b), p)
+    expected = change.Change((new_commit, dep_a, dep_b), _PATCH)
     self.assertEqual(change_a.Update(change_b), expected)
 
   def testUpdateWithMultiplePatches(self):
-    base_commit = commit.Commit('chromium', 'aaa7336c821888839f759c6c0a36b56c')
-    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
-    c = change.Change((base_commit,), p)
+    c = Change(chromium=123, patch=_PATCH)
     with self.assertRaises(NotImplementedError):
       c.Update(c)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
-  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
-  def testAsDict(self, commit_as_dict, patch_as_dict):
-    commit_as_dict.side_effect = (
-        {'git_hash': 'aaa7336c82'}, {'git_hash': 'e0a2efbb3d'})
+  def testAsDict(self, patch_as_dict):
     patch_as_dict.return_value = {'revision': '2f0d5c7'}
-    commits = (commit.Commit('chromium', 'aaa7336c82'),
-               commit.Commit('catapult', 'e0a2efbb3d'))
-    p = patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
-    c = change.Change(commits, p)
+
+    c = Change(chromium=123, catapult=456, patch=_PATCH)
 
     expected = {
         'commits': [
-            {'git_hash': 'aaa7336c82'},
-            {'git_hash': 'e0a2efbb3d'},
+            {
+                'author': 'author@chromium.org',
+                'commit_position': 123456,
+                'git_hash': 'commit 123',
+                'repository': 'chromium',
+                'subject': 'Subject.',
+                'time': 'Fri Jan 01 00:01:00 2018',
+                'url': u'https://chromium.googlesource.com/chromium/src/+/commit 123',
+            },
+            {
+                'author': 'author@chromium.org',
+                'commit_position': 123456,
+                'git_hash': 'commit 456',
+                'repository': 'catapult',
+                'subject': 'Subject.',
+                'time': 'Fri Jan 01 00:01:00 2018',
+                'url': u'https://chromium.googlesource.com/catapult/+/commit 456',
+            },
         ],
         'patch': {'revision': '2f0d5c7'},
     }
@@ -83,11 +98,9 @@ class ChangeTest(test.TestCase):
 
   def testFromDictWithJustOneCommit(self):
     c = change.Change.FromDict({
-        'commits': [{'repository': 'chromium', 'git_hash': 'aaa7336'}],
+        'commits': [{'repository': 'chromium', 'git_hash': 'commit 123'}],
     })
-
-    expected = change.Change((commit.Commit('chromium', 'aaa7336'),))
-    self.assertEqual(c, expected)
+    self.assertEqual(c, Change(chromium=123))
 
   @mock.patch('dashboard.services.gerrit_service.GetChange')
   def testFromDictWithAllFields(self, get_change):
@@ -98,20 +111,17 @@ class ChangeTest(test.TestCase):
 
     c = change.Change.FromDict({
         'commits': (
-            {'repository': 'chromium', 'git_hash': 'aaa7336'},
-            {'repository': 'catapult', 'git_hash': 'e0a2efb'},
+            {'repository': 'chromium', 'git_hash': 'commit 123'},
+            {'repository': 'catapult', 'git_hash': 'commit 456'},
         ),
         'patch': {
             'server': 'https://codereview.com',
-            'change': 672011,
+            'change': 'repo~branch~id',
             'revision': '2f0d5c7',
         },
     })
 
-    commits = (commit.Commit('chromium', 'aaa7336'),
-               commit.Commit('catapult', 'e0a2efb'))
-    p = patch.GerritPatch('https://codereview.com', 'repo~branch~id', '2f0d5c7')
-    expected = change.Change(commits, p)
+    expected = Change(chromium=123, catapult=456, patch=_PATCH)
     self.assertEqual(c, expected)
 
 
@@ -120,96 +130,53 @@ class MidpointTest(test.TestCase):
   def setUp(self):
     super(MidpointTest, self).setUp()
 
-    patcher = mock.patch('dashboard.services.gitiles_service.CommitRange')
-    self.addCleanup(patcher.stop)
-    commit_range = patcher.start()
-    def _CommitRange(repository_url, first_git_hash, last_git_hash):
-      del repository_url
-      first_git_hash = int(first_git_hash)
-      last_git_hash = int(last_git_hash)
-      return [{'commit': x} for x in xrange(last_git_hash, first_git_hash, -1)]
-    commit_range.side_effect = _CommitRange
-
-    patcher = mock.patch('dashboard.services.gitiles_service.FileContents')
-    self.addCleanup(patcher.stop)
-    file_contents = patcher.start()
     def _FileContents(repository_url, git_hash, path):
       del path
       if repository_url != test.CHROMIUM_URL:
         return 'deps = {}'
-      if git_hash <= 4:  # DEPS roll at chromium@5
-        return 'deps = {"chromium/catapult": "%s@0"}' % (
+      if int(git_hash.split()[1]) <= 4:  # DEPS roll at chromium@5
+        return 'deps = {"chromium/catapult": "%s@commit 0"}' % (
             test.CATAPULT_URL + '.git')
       else:
-        return 'deps = {"chromium/catapult": "%s@9"}' % test.CATAPULT_URL
-    file_contents.side_effect = _FileContents
+        return 'deps = {"chromium/catapult": "%s@commit 9"}' % test.CATAPULT_URL
+    self.file_contents.side_effect = _FileContents
 
   def testDifferingPatch(self):
-    change_a = change.Change((commit.Commit('chromium', '0e57e2b'),))
-    change_b = change.Change(
-        (commit.Commit('chromium', 'babe852'),),
-        patch=patch.GerritPatch('https://codereview.com', 672011, '2f0d5c7'))
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+      change.Change.Midpoint(Change(0), Change(2, patch=_PATCH))
 
   def testDifferingRepository(self):
-    change_a = change.Change((commit.Commit('chromium', '0e57e2b'),))
-    change_b = change.Change((commit.Commit('another_repo', 'babe852'),))
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+      change.Change.Midpoint(Change(0), Change(another_repo=123))
 
   def testDifferingCommitCount(self):
-    change_a = change.Change((commit.Commit('chromium', 0),))
-    change_b = change.Change((commit.Commit('chromium', 9),
-                              commit.Commit('another_repo', 'babe852')))
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+      change.Change.Midpoint(Change(0), Change(9, another_repo=123))
 
   def testSameChange(self):
-    change_a = change.Change((commit.Commit('chromium', 0),))
-    change_b = change.Change((commit.Commit('chromium', 0),))
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+      change.Change.Midpoint(Change(0), Change(0))
 
   def testAdjacentWithNoDepsRoll(self):
-    change_a = change.Change((commit.Commit('chromium', 0),))
-    change_b = change.Change((commit.Commit('chromium', 1),))
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+      change.Change.Midpoint(Change(0), Change(1))
 
   def testAdjacentWithDepsRoll(self):
-    change_a = change.Change((commit.Commit('chromium', 4),))
-    change_b = change.Change((commit.Commit('chromium', 5),))
-    expected = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 4)))
-    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
+    midpoint = change.Change.Midpoint(Change(4), Change(5))
+    self.assertEqual(midpoint, Change(4, catapult=4))
 
   def testNotAdjacent(self):
-    change_a = change.Change((commit.Commit('chromium', 0),))
-    change_b = change.Change((commit.Commit('chromium', 9),))
-    self.assertEqual(change.Change.Midpoint(change_a, change_b),
-                     change.Change((commit.Commit('chromium', 4),)))
+    midpoint = change.Change.Midpoint(Change(0), Change(9))
+    self.assertEqual(midpoint, Change(4))
 
   def testDepsRollLeft(self):
-    change_a = change.Change((commit.Commit('chromium', 4),))
-    change_b = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 4)))
-    expected = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 2)))
-    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
+    midpoint = change.Change.Midpoint(Change(4), Change(4, catapult=4))
+    self.assertEqual(midpoint, Change(4, catapult=2))
 
   def testDepsRollRight(self):
-    change_a = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 4)))
-    change_b = change.Change((commit.Commit('chromium', 5),))
-    expected = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 6)))
-    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
+    midpoint = change.Change.Midpoint(Change(4, catapult=4), Change(5))
+    self.assertEqual(midpoint, Change(4, catapult=6))
 
   def testAdjacentWithDepsRollAndDepAlreadyOverridden(self):
-    change_a = change.Change((commit.Commit('chromium', 4),))
-    change_b = change.Change((commit.Commit('chromium', 5),
-                              commit.Commit('catapult', 4)))
-    expected = change.Change((commit.Commit('chromium', 4),
-                              commit.Commit('catapult', 2)))
-    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
+    midpoint = change.Change.Midpoint(Change(4), Change(5, catapult=4))
+    self.assertEqual(midpoint, Change(4, catapult=2))
