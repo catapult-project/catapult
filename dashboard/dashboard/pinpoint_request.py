@@ -109,11 +109,25 @@ def ResolveToGitHash(commit_position):
   return commit_position
 
 
-def _GetIsolateTarget(bot_name, suite, only_telemetry=False):
+def _GetIsolateTarget(bot_name, suite, start_commit,
+                      end_commit, only_telemetry=False):
   if suite in _ISOLATE_TARGETS:
     if only_telemetry:
       raise InvalidParamsError('Only telemetry is supported at the moment.')
     return suite
+
+  try:
+    # TODO: Remove this code path in 2019.
+    average_commit = (int(start_commit) + int(end_commit)) / 2
+    if 'android' in bot_name and average_commit < 572268:
+      if 'webview' in bot_name:
+        return 'telemetry_perf_webview_tests'
+      return 'telemetry_perf_tests'
+
+    if 'win' in bot_name and average_commit < 571917:
+      return 'telemetry_perf_tests'
+  except ValueError:
+    pass
 
   if 'webview' in bot_name:
     return 'performance_webview_test_suite'
@@ -166,15 +180,16 @@ def PinpointParamsFromPerfTryParams(params):
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
 
-  # Pinpoint also requires you specify which isolate target to run the
-  # test, so we derive that from the suite name. Eventually, this would
-  # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = _GetIsolateTarget(bot_name, suite, only_telemetry=True)
-
   start_commit = params['start_commit']
   end_commit = params['end_commit']
   start_git_hash = ResolveToGitHash(start_commit)
   end_git_hash = ResolveToGitHash(end_commit)
+
+  # Pinpoint also requires you specify which isolate target to run the
+  # test, so we derive that from the suite name. Eventually, this would
+  # ideally be stored in a SparesDiagnostic but for now we can guess.
+  target = _GetIsolateTarget(bot_name, suite, start_commit,
+                             end_commit, only_telemetry=True)
 
   extra_test_args = params['extra_test_args']
 
@@ -234,15 +249,15 @@ def PinpointParamsFromBisectParams(params):
     tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
         test_path_parts)
 
-  # Pinpoint also requires you specify which isolate target to run the
-  # test, so we derive that from the suite name. Eventually, this would
-  # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = _GetIsolateTarget(bot_name, suite)
-
   start_commit = params['start_commit']
   end_commit = params['end_commit']
   start_git_hash = ResolveToGitHash(start_commit)
   end_git_hash = ResolveToGitHash(end_commit)
+
+  # Pinpoint also requires you specify which isolate target to run the
+  # test, so we derive that from the suite name. Eventually, this would
+  # ideally be stored in a SparesDiagnostic but for now we can guess.
+  target = _GetIsolateTarget(bot_name, suite, start_commit, end_commit)
 
   email = users.get_current_user().email()
   job_name = 'Job on [%s/%s/%s] for [%s]' % (bot_name, suite, chart_name, email)
