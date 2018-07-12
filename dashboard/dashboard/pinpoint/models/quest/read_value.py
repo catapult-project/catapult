@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import json
+import ntpath
+import posixpath
 
 from dashboard.common import histogram_helpers
 from dashboard.pinpoint.models.quest import execution
@@ -58,8 +60,10 @@ class ReadHistogramsJsonValue(quest.Quest):
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')
     if arguments.get('target') == 'performance_test_suite':
-      path_separator = '\\' if _IsWindows(arguments) else '/'
-      results_filename = benchmark + path_separator + 'perf_results.json'
+      if _IsWindows(arguments):
+        results_filename = ntpath.join(benchmark, 'perf_results.json')
+      else:
+        results_filename = posixpath.join(benchmark, 'perf_results.json')
     else:
       # TODO: Remove this hack when all builders build performance_test_suite.
       results_filename = 'chartjson-output.json'
