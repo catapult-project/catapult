@@ -7,6 +7,9 @@
 from dashboard.pinpoint.models.quest import run_test
 
 
+_DEFAULT_EXTRA_ARGS = ['--non-telemetry', 'true']
+
+
 class RunGTest(run_test.RunTest):
 
   @classmethod
@@ -19,4 +22,4 @@ class RunGTest(run_test.RunTest):
 
     swarming_extra_args.append('--gtest_repeat=1')
 
-    return cls._FromDict(arguments, swarming_extra_args)
+    return cls._FromDict(arguments, swarming_extra_args + _DEFAULT_EXTRA_ARGS)

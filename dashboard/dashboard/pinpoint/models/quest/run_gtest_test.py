@@ -14,7 +14,9 @@ _BASE_ARGUMENTS = {
 }
 
 
-_BASE_EXTRA_ARGS = ['--gtest_repeat=1'] + run_test._DEFAULT_EXTRA_ARGS
+_BASE_EXTRA_ARGS = [
+    '--gtest_repeat=1'
+] + run_gtest._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
 
 
 class FromDictTest(unittest.TestCase):
