@@ -132,3 +132,31 @@ The bugs API returns the following JSON about the bug:
   * `/api/test_suites`: Return an array of names of test suites.
   * `/api/describe/test_suite`: Return an object containing `measurements`,
     `bots`, and `cases`, all of which are sorted arrays of strings.
+  * `/api/timeseries2?<params>`: Get timeseries data, alerts, Histograms, and
+    SparseDiagnostics. Post body parameters may include the following:
+     * `test_suite`, `measurement`, `bot`: Required strings from
+       `/api/test_suites` and `/api/describe`.
+     * `test_case`: Optional string from `/api/describe`.
+     * `build_type`: Optional enum `test` (default) or `ref`.
+     * `min_revision`, `max_revision`: Optional point id revision numbers.
+     * `min_timestamp`, `max_timestamp`: Optional ISO 8601 strings.
+     * `columns`: Required comma-separated list of strings. May contain
+        * `revision` produces point ID numbers.
+        * `avg`, `std`, `count`, `max`, `min`, `sum` produce float numbers.
+        * `revisions` produces an object whose keys are names like `r_webkit`
+          and `r_chromium`, and whose values are numbers or strings.
+        * `timestamp` records when the data was uploaded, and produces ISO 8601
+          strings like "2018-07-09T09:58:20.210539"
+        * `alert` produces objects as specified in the Alerts section above.
+        * `histogram` produces [Histogram
+          JSON](https://chromium.googlesource.com/catapult/+/master/docs/histogram-set-json-format.md).
+        * `diagnostics` produces an object whose keys are names (which may be
+          [reserved
+          names](https://chromium.googlesource.com/catapult/+/master/tracing/tracing/value/diagnostics/reserved_infos.py)),
+          and whose values are [Diagnostic
+          JSON](https://chromium.googlesource.com/catapult/+/master/docs/histogram-set-json-format.md#diagnostics).
+    Returns a JSON object containing `units`, `improvement_direction` ("down" or
+    "up"), and "data", which is an array. Elements of the data array are arrays
+    of values corresponding to the `columns` parameter. For example, if
+    `columns=revision,avg,timestamp`, then elements of the data array will be
+    3-tuples like `[123456,42.42,"2018-07-09T09:58:20.210539"]`.

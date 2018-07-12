@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
+
 
 def ParseBool(value):
   """Parse a string representation into a True/False value."""
@@ -14,3 +16,15 @@ def ParseBool(value):
     return False
   else:
     raise ValueError(value)
+
+
+def ParseISO8601(s):
+  if s is None:
+    return None
+  # ISO8601 specifies many possible formats. The dateutil library is much more
+  # flexible about parsing all of the possible formats, but it would be annoying
+  # to third_party it just for this. A few formats should cover enough users.
+  try:
+    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
+  except ValueError:
+    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')

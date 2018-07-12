@@ -60,6 +60,7 @@ from dashboard.api import describe
 from dashboard.api import list_timeseries
 from dashboard.api import test_suites
 from dashboard.api import timeseries
+from dashboard.api import timeseries2
 
 
 _URL_MAPPING = [
@@ -75,6 +76,7 @@ _URL_MAPPING = [
     (r'/api/list_timeseries/(.*)', list_timeseries.ListTimeseriesHandler),
     (r'/api/test_suites', test_suites.TestSuitesHandler),
     (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
+    (r'/api/timeseries2', timeseries2.Timeseries2Handler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
     ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',

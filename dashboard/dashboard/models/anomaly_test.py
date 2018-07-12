@@ -140,6 +140,15 @@ class AnomalyTest(testing_common.TestCase):
     self.assertEqual('adept/android/lodging/assessment/story',
                      anomalies[0].test.id())
 
+  def testTestKeys(self):
+    self._CreateAnomaly()
+    test_path = 'adept/android/lodging/assessment/story'
+    self._CreateAnomaly(test=test_path)
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(test_keys=[
+        utils.TestMetadataKey(test_path)]).get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual(test_path, anomalies[0].test.id())
+
   def testBugId(self):
     self._CreateAnomaly()
     self._CreateAnomaly(bug_id=42)
@@ -243,6 +252,19 @@ class AnomalyTest(testing_common.TestCase):
     self.assertEqual(1, len(anomalies))
     self.assertEqual(datetime.datetime.utcfromtimestamp(61),
                      anomalies[0].timestamp)
+
+  def testInequalityWithTestKeys(self):
+    self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(59))
+    self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61))
+    self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61),
+                        test='master/bot/test_suite/measurement/test_case2')
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        test='master/bot/test_suite/measurement/test_case2',
+        min_timestamp=datetime.datetime.utcfromtimestamp(60)).get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual(datetime.datetime.utcfromtimestamp(61),
+                     anomalies[0].timestamp)
+
 
   def testAllInequalityFilters(self):
     matching_start_revision = 15

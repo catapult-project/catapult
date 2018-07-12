@@ -11,18 +11,9 @@ from google.appengine.ext import ndb
 from dashboard import alerts
 from dashboard import group_report
 from dashboard.api import api_request_handler
+from dashboard.api import utils
 from dashboard.common import request_handler
 from dashboard.models import anomaly
-
-
-def ParseISO8601(s):
-  # ISO8601 specifies many possible formats. The dateutil library is much more
-  # flexible about parsing all of the possible formats, but it would be annoying
-  # to third_party it just for this. A few formats should cover enough users.
-  try:
-    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S.%f')
-  except ValueError:
-    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
 class AlertsHandler(api_request_handler.ApiRequestHandler):
@@ -46,24 +37,16 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
     response = {}
     try:
       if len(args) == 0:
-        is_improvement = self.request.get('is_improvement', None)
-        # TODO(#4530): Use api.utils.ParseBool to parse these values.
-        assert is_improvement in [None, 'true', 'false'], is_improvement
-        if is_improvement:
-          is_improvement = is_improvement == 'true'
-        recovered = self.request.get('recovered', None)
-        assert recovered in [None, 'true', 'false'], recovered
-        if recovered:
-          recovered = recovered == 'true'
+        is_improvement = utils.ParseBool(self.request.get(
+            'is_improvement', None))
+        recovered = utils.ParseBool(self.request.get('recovered', None))
         start_cursor = self.request.get('cursor', None)
         if start_cursor:
           start_cursor = datastore_query.Cursor(urlsafe=start_cursor)
-        min_timestamp = self.request.get('min_timestamp', None)
-        if min_timestamp:
-          min_timestamp = ParseISO8601(min_timestamp)
-        max_timestamp = self.request.get('max_timestamp', None)
-        if max_timestamp:
-          max_timestamp = ParseISO8601(max_timestamp)
+        min_timestamp = utils.ParseISO8601(self.request.get(
+            'min_timestamp', None))
+        max_timestamp = utils.ParseISO8601(self.request.get(
+            'max_timestamp', None))
 
         try:
           alert_list, next_cursor, _ = anomaly.Anomaly.QueryAsync(

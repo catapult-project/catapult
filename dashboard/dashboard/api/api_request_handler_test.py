@@ -81,9 +81,9 @@ class ApiRequestHandlerTest(testing_common.TestCase):
   def testOptions_NoOrigin_HeadersNotSet(self, _):
     response = self.testapp.options('/api/test')
     self.assertListEqual(
-        [('Content-Type', 'text/html; charset=utf-8'),
-         ('Content-Length', '0'),
-         ('Cache-Control', 'no-cache')],
+        [('Content-Length', '0'),
+         ('Cache-Control', 'no-cache'),
+         ('Content-Type', 'application/json; charset=utf-8')],
         response.headerlist)
 
   @mock.patch.object(api_auth, 'Authorize')
@@ -92,9 +92,9 @@ class ApiRequestHandlerTest(testing_common.TestCase):
     response = self.testapp.options(
         '/api/test', headers={'origin': 'https://bar.appspot.com'})
     self.assertListEqual(
-        [('Content-Type', 'text/html; charset=utf-8'),
-         ('Content-Length', '0'),
-         ('Cache-Control', 'no-cache')],
+        [('Content-Length', '0'),
+         ('Cache-Control', 'no-cache'),
+         ('Content-Type', 'application/json; charset=utf-8')],
         response.headerlist)
 
   @mock.patch.object(api_auth, 'Authorize')
@@ -103,8 +103,8 @@ class ApiRequestHandlerTest(testing_common.TestCase):
     response = self.testapp.post(
         '/api/test', headers={'origin': 'https://foo.appspot.com'})
     self.assertListEqual(
-        [('Content-Type', 'text/html; charset=utf-8'),
-         ('Cache-Control', 'no-cache'),
+        [('Cache-Control', 'no-cache'),
+         ('Content-Type', 'application/json; charset=utf-8'),
          ('Access-Control-Allow-Origin', 'https://foo.appspot.com'),
          ('Access-Control-Allow-Credentials', 'true'),
          ('Access-Control-Allow-Methods', 'GET,OPTIONS,POST'),
@@ -120,8 +120,8 @@ class ApiRequestHandlerTest(testing_common.TestCase):
         '/api/test',
         headers={'origin': 'https://123jkjasdf-dot-foo.appspot.com'})
     self.assertListEqual(
-        [('Content-Type', 'text/html; charset=utf-8'),
-         ('Cache-Control', 'no-cache'),
+        [('Cache-Control', 'no-cache'),
+         ('Content-Type', 'application/json; charset=utf-8'),
          ('Access-Control-Allow-Origin',
           'https://123jkjasdf-dot-foo.appspot.com'),
          ('Access-Control-Allow-Credentials', 'true'),
@@ -135,8 +135,8 @@ class ApiRequestHandlerTest(testing_common.TestCase):
   def testPost_InvalidOrigin_HeadersNotSet(self, _):
     response = self.testapp.post('/api/test')
     self.assertListEqual(
-        [('Content-Type', 'text/html; charset=utf-8'),
-         ('Cache-Control', 'no-cache'),
+        [('Cache-Control', 'no-cache'),
+         ('Content-Type', 'application/json; charset=utf-8'),
          ('Content-Length', '14')],
         response.headerlist)
 

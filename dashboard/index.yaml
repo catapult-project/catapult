@@ -179,6 +179,18 @@ indexes:
     direction: desc
   - name: internal_only
 
+- kind: SparseDiagnostic
+  properties:
+  - name: test
+  - name: start_revision
+    direction: desc
+
+- kind: SparseDiagnostic
+  properties:
+  - name: internal_only
+  - name: start_revision
+    direction: desc
+
 # Used in update_test_suites to query keys of test suites (parent_test == None)
 # with deprecated and description projection. Two separate lists of
 # test suites are kept, one for external and one for internal.
