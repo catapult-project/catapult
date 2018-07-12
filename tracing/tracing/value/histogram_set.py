@@ -8,6 +8,7 @@ from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
+from tracing.value.diagnostics import generic_set
 
 class HistogramSet(object):
   def __init__(self, histograms=()):
@@ -108,6 +109,20 @@ class HistogramSet(object):
     return dcts
 
   def ReplaceSharedDiagnostic(self, old_guid, new_diagnostic):
+    old_diagnostic = self._shared_diagnostics_by_guid[old_guid]
+
+    # Fast path, if they're both generic_sets, we overwrite the contents of the
+    # old diagnostic.
+    if isinstance(new_diagnostic, generic_set.GenericSet) and (
+        isinstance(old_diagnostic, generic_set.GenericSet)):
+      old_diagnostic.SetValues(list(new_diagnostic))
+      old_diagnostic.ResetGuid(new_diagnostic.guid)
+
+      self._shared_diagnostics_by_guid[new_diagnostic.guid] = old_diagnostic
+      del self._shared_diagnostics_by_guid[old_guid]
+
+      return
+
     if not isinstance(new_diagnostic, diagnostic_ref.DiagnosticRef):
       self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
 

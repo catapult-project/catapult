@@ -19,12 +19,7 @@ class GenericSet(diagnostic.Diagnostic):
   def __init__(self, values):
     super(GenericSet, self).__init__()
 
-    # Use a list because Python sets cannot store dicts or lists because they
-    # are not hashable.
     self._values = list(values)
-
-    # Cache a set to facilitate comparing and merging GenericSets.
-    # Dicts, lists, and booleans are serialized; other types are not.
     self._comparable_set = None
 
   def __iter__(self):
@@ -36,6 +31,15 @@ class GenericSet(diagnostic.Diagnostic):
 
   def __eq__(self, other):
     return self._GetComparableSet() == other._GetComparableSet()
+
+  def SetValues(self, values):
+    # Use a list because Python sets cannot store dicts or lists because they
+    # are not hashable.
+    self._values = list(values)
+
+    # Cache a set to facilitate comparing and merging GenericSets.
+    # Dicts, lists, and booleans are serialized; other types are not.
+    self._comparable_set = None
 
   def _GetComparableSet(self):
     if self._comparable_set is None:
