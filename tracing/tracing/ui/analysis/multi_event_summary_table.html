@@ -69,12 +69,19 @@ Polymer({
       title: 'Name',
       value(row) {
         if (row.title === 'Totals') return 'Totals';
-
+        const container = document.createElement('div');
         const linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
           return new tr.model.EventSet(row.events);
         }, row.title);
-        return linkEl;
+        container.appendChild(linkEl);
+
+        if (tr.isExported('tr-ui-e-chrome-codesearch')) {
+          const link = document.createElement('tr-ui-e-chrome-codesearch');
+          link.searchPhrase = row.title;
+          container.appendChild(link);
+        }
+        return container;
       },
       width: '350px',
       cmp(rowA, rowB) {

@@ -449,6 +449,7 @@
       'tracing/ui/extras/chrome/cc/raster_task_view.html',
       'tracing/ui/extras/chrome/cc/selection.html',
       'tracing/ui/extras/chrome/cc/tile_view.html',
+      'tracing/ui/extras/chrome/codesearch.html',
       'tracing/ui/extras/chrome/gpu/gpu.html',
       'tracing/ui/extras/chrome/gpu/state_view.html',
       'tracing/ui/extras/chrome/layout_tree_sub_view.html',

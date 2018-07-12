@@ -120,7 +120,16 @@ Polymer({
     }
 
     if (event.title) {
-      rows.push({ name: 'Title', value: event.title });
+      let title = event.title;
+      if (tr.isExported('tr-ui-e-chrome-codesearch')) {
+        const container = document.createElement('div');
+        container.appendChild(document.createTextNode(title));
+        const link = document.createElement('tr-ui-e-chrome-codesearch');
+        link.searchPhrase = title;
+        container.appendChild(link);
+        title = container;
+      }
+      rows.push({ name: 'Title', value: title });
     }
 
     if (event.category) {
