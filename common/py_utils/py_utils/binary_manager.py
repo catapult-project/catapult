@@ -13,7 +13,7 @@ class BinaryManager(object):
   """
 
   def __init__(self, config_files):
-    if not config_files or type(config_files) != list:
+    if not config_files or not isinstance(config_files, list):
       raise ValueError(
           'Must supply a list of config files to the BinaryManager')
     configs = [dependency_manager.BaseConfig(config) for config in config_files]

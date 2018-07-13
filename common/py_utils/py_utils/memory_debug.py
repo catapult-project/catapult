@@ -61,7 +61,11 @@ def LogHostMemoryUsage(top_n=10, level=logging.INFO):
   logging.log(level, 'Memory usage of top %i processes groups', top_n)
   pinfos_by_names = {}
   for p in psutil.process_iter():
-    pinfo = _GetProcessInfo(p)
+    try:
+      pinfo = _GetProcessInfo(p)
+    except psutil.NoSuchProcess:
+      logging.exception('process %s no longer exists', p)
+      continue
     pname = pinfo['name']
     if pname not in pinfos_by_names:
       pinfos_by_names[pname] = {'name': pname, 'total_mem_rss': 0, 'pids': []}
