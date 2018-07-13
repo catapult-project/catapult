@@ -109,7 +109,10 @@ class HistogramSet(object):
     return dcts
 
   def ReplaceSharedDiagnostic(self, old_guid, new_diagnostic):
-    old_diagnostic = self._shared_diagnostics_by_guid[old_guid]
+    if not isinstance(new_diagnostic, diagnostic_ref.DiagnosticRef):
+      self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
+
+    old_diagnostic = self._shared_diagnostics_by_guid.get(old_guid)
 
     # Fast path, if they're both generic_sets, we overwrite the contents of the
     # old diagnostic.
@@ -122,9 +125,6 @@ class HistogramSet(object):
       del self._shared_diagnostics_by_guid[old_guid]
 
       return
-
-    if not isinstance(new_diagnostic, diagnostic_ref.DiagnosticRef):
-      self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
 
     for hist in self:
       for name, diag in hist.diagnostics.iteritems():
