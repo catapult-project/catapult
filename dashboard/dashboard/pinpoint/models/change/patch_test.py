@@ -2,11 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import unittest
-
-import mock
-
 from dashboard.pinpoint.models.change import patch
+from dashboard.pinpoint import test
+
+
+
+def Patch(revision='abc123'):
+  return patch.GerritPatch('https://codereview.com', 'repo~branch~id', revision)
 
 
 _GERRIT_CHANGE_INFO = {
@@ -42,50 +44,43 @@ _GERRIT_CHANGE_INFO = {
 }
 
 
-class FromDictTest(unittest.TestCase):
+class FromDictTest(test.TestCase):
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDictGerrit(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
+  def setUp(self):
+    super(FromDictTest, self).setUp()
+    self.get_change.return_value = _GERRIT_CHANGE_INFO
 
-    p = patch.FromDict('https://example.com/c/repo/+/658277')
+  def testFromDictGerrit(self):
+    p = patch.FromDict('https://codereview.com/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))
 
-    expected = patch.GerritPatch(
-        'https://example.com', 'repo~branch~id', 'current revision')
-    self.assertEqual(p, expected)
-
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDictGerritWithRevision(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
-    p = patch.FromDict('https://example.com/c/repo/+/658277/4')
-
-    expected = patch.GerritPatch(
-        'https://example.com', 'repo~branch~id', 'other revision')
-    self.assertEqual(p, expected)
+  def testFromDictGerritWithRevision(self):
+    p = patch.FromDict('https://codereview.com/c/repo/+/658277/4')
+    self.assertEqual(p, Patch('other revision'))
 
   def testFromDictBadUrl(self):
     with self.assertRaises(ValueError):
-      patch.FromDict('https://example.com/not/a/gerrit/url')
+      patch.FromDict('https://codereview.com/not/a/codereview/url')
 
 
-class GerritPatchTest(unittest.TestCase):
+class GerritPatchTest(test.TestCase):
+
+  def setUp(self):
+    super(GerritPatchTest, self).setUp()
+    self.get_change.return_value = _GERRIT_CHANGE_INFO
 
   def testPatch(self):
-    p = patch.GerritPatch('https://example.com', 672011, '2f0d5c7')
+    p = patch.GerritPatch('https://example.com', 'abcdef', '2f0d5c7')
 
-    other_patch = patch.GerritPatch(u'https://example.com', 672011, '2f0d5c7')
+    other_patch = patch.GerritPatch(u'https://example.com', 'abcdef', '2f0d5c7')
     self.assertEqual(p, other_patch)
     self.assertEqual(str(p), '2f0d5c7')
-    self.assertEqual(p.id_string, 'https://example.com/672011/2f0d5c7')
+    self.assertEqual(p.id_string, 'https://example.com/abcdef/2f0d5c7')
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testBuildParameters(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
-    p = patch.GerritPatch('https://example.com', 658277, 'current revision')
+  def testBuildParameters(self):
+    p = Patch('current revision')
     expected = {
-        'patch_gerrit_url': 'https://example.com',
+        'patch_gerrit_url': 'https://codereview.com',
         'patch_issue': 658277,
         'patch_project': 'chromium/src',
         'patch_ref': 'refs/changes/77/658277/5',
@@ -95,52 +90,31 @@ class GerritPatchTest(unittest.TestCase):
     }
     self.assertEqual(p.BuildParameters(), expected)
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testAsDict(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
-    p = patch.GerritPatch('https://example.com', 658277, 'current revision')
+  def testAsDict(self):
+    p = Patch('current revision')
     expected = {
-        'server': 'https://example.com',
-        'change': 658277,
+        'server': 'https://codereview.com',
+        'change': 'repo~branch~id',
         'revision': 'current revision',
-        'url': 'https://example.com/c/chromium/src/+/658277/5',
+        'url': 'https://codereview.com/c/chromium/src/+/658277/5',
         'subject': 'Subject',
         'author': 'author@example.org',
         'time': '2018-02-01 23:46:56.000000000',
     }
     self.assertEqual(p.AsDict(), expected)
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDict(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
+  def testFromDict(self):
     p = patch.GerritPatch.FromDict({
-        'server': 'https://example.com',
+        'server': 'https://codereview.com',
         'change': 658277,
         'revision': 4,
     })
+    self.assertEqual(p, Patch('other revision'))
 
-    expected = patch.GerritPatch(
-        'https://example.com', 'repo~branch~id', 'other revision')
-    self.assertEqual(p, expected)
+  def testFromDictString(self):
+    p = patch.GerritPatch.FromDict('https://codereview.com/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDictString(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
-    p = patch.GerritPatch.FromDict('https://example.com/c/repo/+/658277')
-
-    expected = patch.GerritPatch(
-        'https://example.com', 'repo~branch~id', 'current revision')
-    self.assertEqual(p, expected)
-
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDictStringWithHash(self, get_change):
-    get_change.return_value = _GERRIT_CHANGE_INFO
-
-    p = patch.GerritPatch.FromDict('https://example.com/#/c/repo/+/658277')
-
-    expected = patch.GerritPatch(
-        'https://example.com', 'repo~branch~id', 'current revision')
-    self.assertEqual(p, expected)
+  def testFromDictStringWithHash(self):
+    p = patch.GerritPatch.FromDict('https://codereview.com/#/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))

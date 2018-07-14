@@ -2,20 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
-
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.change import commit_test
-from dashboard.pinpoint.models.change import patch as patch_module
+from dashboard.pinpoint.models.change import patch_test
 from dashboard.pinpoint import test
 
 
-_PATCH = patch_module.GerritPatch(
-    'https://codereview.com', 'repo~branch~id', '2f0d5c7')
-
-
-def Change(chromium=None, catapult=None, another_repo=None, patch=None):
+def Change(chromium=None, catapult=None, another_repo=None, patch=False):
   commits = []
   if chromium is not None:
     commits.append(commit_test.Commit(chromium))
@@ -23,7 +17,7 @@ def Change(chromium=None, catapult=None, another_repo=None, patch=None):
     commits.append(commit_test.Commit(catapult, repository='catapult'))
   if another_repo is not None:
     commits.append(commit_test.Commit(another_repo, repository='another_repo'))
-  return change.Change(commits, patch=patch)
+  return change.Change(commits, patch=patch_test.Patch() if patch else None)
 
 
 class ChangeTest(test.TestCase):
@@ -33,20 +27,20 @@ class ChangeTest(test.TestCase):
     dep = commit.Commit('catapult', 'e0a2efbb3d1a81aac3c90041eefec24f066d26ba')
 
     # Also test the deps conversion to tuple.
-    c = change.Change([base_commit, dep], _PATCH)
+    c = change.Change([base_commit, dep], patch_test.Patch())
 
-    self.assertEqual(c, change.Change((base_commit, dep), _PATCH))
-    string = 'chromium@aaa7336 catapult@e0a2efb + 2f0d5c7'
+    self.assertEqual(c, change.Change((base_commit, dep), patch_test.Patch()))
+    string = 'chromium@aaa7336 catapult@e0a2efb + abc123'
     id_string = ('catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba '
                  'chromium@aaa7336c821888839f759c6c0a36b56c + '
-                 'https://codereview.com/repo~branch~id/2f0d5c7')
+                 'https://codereview.com/repo~branch~id/abc123')
     self.assertEqual(str(c), string)
     self.assertEqual(c.id_string, id_string)
     self.assertEqual(c.base_commit, base_commit)
     self.assertEqual(c.last_commit, dep)
     self.assertEqual(c.deps, (dep,))
     self.assertEqual(c.commits, (base_commit, dep))
-    self.assertEqual(c.patch, _PATCH)
+    self.assertEqual(c.patch, patch_test.Patch())
 
   def testUpdate(self):
     old_commit = commit.Commit('chromium', 'aaaaaaaa')
@@ -55,21 +49,18 @@ class ChangeTest(test.TestCase):
 
     new_commit = commit.Commit('chromium', 'bbbbbbbb')
     dep_b = commit.Commit('another_repo', 'e0a2efbb')
-    change_b = change.Change((dep_b, new_commit), _PATCH)
+    change_b = change.Change((dep_b, new_commit), patch_test.Patch())
 
-    expected = change.Change((new_commit, dep_a, dep_b), _PATCH)
+    expected = change.Change((new_commit, dep_a, dep_b), patch_test.Patch())
     self.assertEqual(change_a.Update(change_b), expected)
 
   def testUpdateWithMultiplePatches(self):
-    c = Change(chromium=123, patch=_PATCH)
+    c = Change(chromium=123, patch=True)
     with self.assertRaises(NotImplementedError):
       c.Update(c)
 
-  @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
-  def testAsDict(self, patch_as_dict):
-    patch_as_dict.return_value = {'revision': '2f0d5c7'}
-
-    c = Change(chromium=123, catapult=456, patch=_PATCH)
+  def testAsDict(self):
+    c = Change(chromium=123, catapult=456, patch=True)
 
     expected = {
         'commits': [
@@ -92,7 +83,15 @@ class ChangeTest(test.TestCase):
                 'url': u'https://chromium.googlesource.com/catapult/+/commit 456',
             },
         ],
-        'patch': {'revision': '2f0d5c7'},
+        'patch': {
+            'author': 'author@codereview.com',
+            'change': 'repo~branch~id',
+            'revision': 'abc123',
+            'server': 'https://codereview.com',
+            'subject': 'Patch subject.',
+            'time': '2018-02-01 23:46:56.000000000',
+            'url': 'https://codereview.com/c/project/name/+/567890/5',
+        },
     }
     self.assertEqual(c.AsDict(), expected)
 
@@ -102,11 +101,10 @@ class ChangeTest(test.TestCase):
     })
     self.assertEqual(c, Change(chromium=123))
 
-  @mock.patch('dashboard.services.gerrit_service.GetChange')
-  def testFromDictWithAllFields(self, get_change):
-    get_change.return_value = {
+  def testFromDictWithAllFields(self):
+    self.get_change.return_value = {
         'id': 'repo~branch~id',
-        'revisions': {'2f0d5c7': {}}
+        'revisions': {'abc123': {}}
     }
 
     c = change.Change.FromDict({
@@ -117,11 +115,11 @@ class ChangeTest(test.TestCase):
         'patch': {
             'server': 'https://codereview.com',
             'change': 'repo~branch~id',
-            'revision': '2f0d5c7',
+            'revision': 'abc123',
         },
     })
 
-    expected = Change(chromium=123, catapult=456, patch=_PATCH)
+    expected = Change(chromium=123, catapult=456, patch=True)
     self.assertEqual(c, expected)
 
 
@@ -143,7 +141,7 @@ class MidpointTest(test.TestCase):
 
   def testDifferingPatch(self):
     with self.assertRaises(commit.NonLinearError):
-      change.Change.Midpoint(Change(0), Change(2, patch=_PATCH))
+      change.Change.Midpoint(Change(0), Change(2, patch=True))
 
   def testDifferingRepository(self):
     with self.assertRaises(commit.NonLinearError):

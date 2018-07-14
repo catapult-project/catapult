@@ -44,6 +44,28 @@ class TestCase(testing_common.TestCase):
     self.file_contents = patcher.start()
     self.file_contents.return_value = 'deps = {}'
 
+    patcher = mock.patch('dashboard.services.gerrit_service.GetChange')
+    self.addCleanup(patcher.stop)
+    self.get_change = patcher.start()
+    self.get_change.return_value = {
+        '_number': 567890,
+        'project': 'project/name',
+        'subject': 'Patch subject.',
+        'revisions': {
+            'abc123': {
+                '_number': 5,
+                'created': '2018-02-01 23:46:56.000000000',
+                'uploader': {'email': 'author@codereview.com'},
+                'fetch': {
+                    'http': {
+                        'url': CHROMIUM_URL,
+                        'ref': 'refs/changes/90/567890/5',
+                    },
+                },
+            },
+        },
+    }
+
   def _PopulateData(self):
     # Add repository mappings.
     repository.Repository(id='catapult', urls=[CATAPULT_URL]).put()
