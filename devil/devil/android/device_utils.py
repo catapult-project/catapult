@@ -1457,7 +1457,7 @@ class DeviceUtils(object):
           missing_dirs.add(posixpath.dirname(d))
 
     if delete_device_stale and all_stale_files:
-      self.RunShellCommand(['rm', '-f'] + all_stale_files, check_return=True)
+      self.RemovePath(all_stale_files, force=True, recursive=True)
 
     if all_changed_files:
       if missing_dirs:
@@ -1557,6 +1557,12 @@ class DeviceUtils(object):
         else:
           to_push.append((host_abs_path, device_abs_path))
       to_delete = device_checksums.keys()
+    # We can't rely solely on the checksum approach since it does not catch
+    # stale directories, which can result in empty directories that cause issues
+    # during copying in efficient_android_directory_copy.sh. So, find any stale
+    # directories here so they can be removed in addition to stale files.
+    if track_stale:
+      to_delete.extend(self._GetStaleDirectories(host_path, device_path))
 
     def cache_commit_func():
       # When host_path is a not a directory, the path.join() call below would
@@ -1571,6 +1577,50 @@ class DeviceUtils(object):
       self._cache['device_path_checksums'][device_path] = cache_entry
 
     return (to_push, up_to_date, to_delete, cache_commit_func)
+
+  def _GetStaleDirectories(self, host_path, device_path):
+    """Gets a list of stale directories on the device.
+
+    Args:
+      host_path: an absolute path of a directory on the host
+      device_path: an absolute path of a directory on the device
+
+    Returns:
+      A list containing absolute paths to directories on the device that are
+      considered stale.
+    """
+    def get_device_dirs_recursive(path, top_level_dir):
+      directories = set()
+      if (not self.PathExists(path)
+          or not stat.S_ISDIR(self.StatPath(path)['st_mode'])):
+        return directories
+      stats = self.StatDirectory(path)
+      for file_or_dir in stats:
+        if stat.S_ISDIR(file_or_dir['st_mode']):
+          full_path = posixpath.join(path, file_or_dir['filename'])
+          # Strip the top level directory off so we can compare the device and
+          # host.
+          directories.add(posixpath.relpath(full_path, top_level_dir))
+          directories.update(
+              get_device_dirs_recursive(full_path, top_level_dir))
+      return directories
+
+    def get_host_dirs(path):
+      directories = set()
+      if not os.path.isdir(path):
+        return directories
+      for root, _, _ in os.walk(path):
+        if root != path:
+          # Strip off the top level directory so we can compare the device and
+          # host.
+          directories.add(
+              os.path.relpath(root, path).replace(os.sep, posixpath.sep))
+      return directories
+
+    host_dirs = get_host_dirs(host_path)
+    device_dirs = get_device_dirs_recursive(device_path, device_path)
+    stale_dirs = device_dirs - host_dirs
+    return [posixpath.join(device_path, d) for d in stale_dirs]
 
   def _ComputeDeviceChecksumsForApks(self, package_name):
     ret = self._cache['package_apk_checksums'].get(package_name)
