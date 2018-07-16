@@ -24,16 +24,6 @@ import sys
 # github.com/luci/recipes-py/blob/master/recipe_modules/generator_script/api.py
 _CATAPULT_TESTS = [
     {
-        'name': 'BattOr Smoke Tests',
-        'path': 'common/battor/battor/battor_wrapper_devicetest.py',
-        'disabled': ['android'],
-    },
-    {
-        'name': 'BattOr Unit Tests',
-        'path': 'common/battor/bin/run_py_tests',
-        'disabled': ['android'],
-    },
-    {
         'name': 'Build Python Tests',
         'path': 'catapult_build/bin/run_py_tests',
         'disabled': ['android'],
