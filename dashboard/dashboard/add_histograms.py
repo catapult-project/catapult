@@ -31,6 +31,7 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
     reserved_infos.BENCHMARK_DESCRIPTIONS.name,
     reserved_infos.BOTS.name,
     reserved_infos.BUG_COMPONENTS.name,
+    reserved_infos.DOCUMENTATION_URLS.name,
     reserved_infos.GPUS.name,
     reserved_infos.MASTERS.name,
     reserved_infos.MEMORY_AMOUNTS.name,
