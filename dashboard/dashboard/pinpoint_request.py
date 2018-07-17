@@ -120,7 +120,7 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
     # TODO: Remove this code path in 2019.
     average_commit = (int(start_commit) + int(end_commit)) / 2
     if 'android' in bot_name and average_commit < 572268:
-      if 'webview' in bot_name:
+      if 'webview' in bot_name.lower():
         return 'telemetry_perf_webview_tests'
       return 'telemetry_perf_tests'
 
