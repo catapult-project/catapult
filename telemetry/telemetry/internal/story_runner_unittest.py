@@ -14,7 +14,6 @@ import unittest
 import logging
 
 from py_utils import cloud_storage
-from py_utils import tempfile_ext
 
 from telemetry import benchmark
 from telemetry.core import exceptions
@@ -266,7 +265,7 @@ class _Measurement(legacy_page_test.LegacyPageTest):
         page, 'metric', 'unit', self.i,
         improvement_direction=improvement_direction.UP))
 
-def _GenerateBaseBrowserFinderOptions():
+def _GenerateBaseBrowserFinderOptions(options_callback=None):
   options = fakes.CreateBrowserFinderOptions()
   options.upload_results = None
   options.suppress_gtest_report = False
@@ -279,6 +278,9 @@ def _GenerateBaseBrowserFinderOptions():
   options.smoke_test_mode = False
   options.output_formats = ['chartjson']
   options.run_disabled_tests = False
+
+  if options_callback:
+    options_callback(options)
 
   parser = options.CreateParser()
   story_runner.AddCommandLineArgs(parser)
@@ -1468,8 +1470,6 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
-
-
   def testRunBenchmarkStoryTimeDuration(self):
     class FakeBenchmarkWithStories(FakeBenchmark):
       def __init__(self):
@@ -1610,7 +1610,17 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(2, return_code)
 
 
-class LogsArtifactTest(unittest.TestCase):
+class BenchmarkJsonResultsTest(unittest.TestCase):
+
+  def setUp(self):
+    self._temp_dir = tempfile.mkdtemp()
+    self._options = _GenerateBaseBrowserFinderOptions()
+    self._options.suppress_gtest_report = True
+    self._options.output_formats = ['json-test-results']
+    self._options.output_dir = self._temp_dir
+
+  def tearDown(self):
+    shutil.rmtree(self._temp_dir)
 
   def testArtifactLogsContainHandleableException(self):
 
@@ -1637,29 +1647,25 @@ class LogsArtifactTest(unittest.TestCase):
         return story_set
 
     story_failure_benchmark = TestBenchmark()
-    options = _GenerateBaseBrowserFinderOptions()
-    options.suppress_gtest_report = True
-    options.output_formats = ['json-test-results']
-    with tempfile_ext.NamedTemporaryDirectory() as out_dir:
-      options.output_dir = out_dir
-      return_code = story_runner.RunBenchmark(story_failure_benchmark, options)
-      self.assertEquals(1, return_code)
-      json_data = {}
-      with open(os.path.join(out_dir, 'test-results.json')) as f:
-        json_data = json.load(f)
-      foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
-      foo_artifact_log_path = os.path.join(
-          out_dir, foo_artifacts['logs'][0])
-      with open(foo_artifact_log_path) as f:
-        foo_log = f.read()
+    return_code = story_runner.RunBenchmark(
+        story_failure_benchmark, self._options)
+    self.assertEquals(1, return_code)
+    json_data = {}
+    with open(os.path.join(self._temp_dir, 'test-results.json')) as f:
+      json_data = json.load(f)
+    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
+    foo_artifact_log_path = os.path.join(
+        self._temp_dir, foo_artifacts['logs'][0])
+    with open(foo_artifact_log_path) as f:
+      foo_log = f.read()
 
-      self.assertIn('Handleable error', foo_log)
+    self.assertIn('Handleable error', foo_log)
 
-      # Ensure that foo_log contains the warning log message.
-      self.assertIn('This will fail gracefully', foo_log)
+    # Ensure that foo_log contains the warning log message.
+    self.assertIn('This will fail gracefully', foo_log)
 
-      # Also the python crash stack.
-      self.assertIn("raise exceptions.AppCrashException()", foo_log)
+    # Also the python crash stack.
+    self.assertIn("raise exceptions.AppCrashException()", foo_log)
 
   def testArtifactLogsContainUnhandleableException(self):
     class UnhandledFailureSharedState(TestSharedState):
@@ -1685,37 +1691,89 @@ class LogsArtifactTest(unittest.TestCase):
         return story_set
 
     unhandled_failure_benchmark = TestBenchmark()
-    options = _GenerateBaseBrowserFinderOptions()
+    return_code = story_runner.RunBenchmark(
+        unhandled_failure_benchmark, self._options)
+    self.assertEquals(2, return_code)
+
+    json_data = {}
+    with open(os.path.join(self._temp_dir, 'test-results.json')) as f:
+      json_data = json.load(f)
+
+    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
+    foo_artifact_log_path = os.path.join(
+        self._temp_dir, foo_artifacts['logs'][0])
+    with open(foo_artifact_log_path) as f:
+      foo_log = f.read()
+
+    self.assertIn('Unhandleable error', foo_log)
+
+    # Ensure that foo_log contains the warning log message.
+    self.assertIn('This will fail badly', foo_log)
+
+    # Also the python crash stack.
+    self.assertIn('Exception: this is an unexpected exception', foo_log)
+    self.assertIn("raise Exception('this is an unexpected exception')",
+                  foo_log)
+
+    # Assert that the second story got written as a SKIP as it failed
+    # to run because of the exception.
+    bar_log = json_data['tests']['TestBenchmark']['bar']
+    self.assertEquals(bar_log['expected'], 'PASS')
+    self.assertEquals(bar_log['actual'], 'SKIP')
+
+  def testUnexpectedSkipsWithFiltering(self):
+    class UnhandledFailureSharedState(TestSharedState):
+      def RunStory(self, results):
+        if results.current_page.name in stories_to_crash:
+          raise Exception('this is an unexpected exception')
+
+    class TestBenchmark(benchmark.Benchmark):
+      test = DummyTest
+
+      @classmethod
+      def Name(cls):
+        return 'TestBenchmark'
+
+      def CreateStorySet(self, options):
+        story_set = story_module.StorySet()
+        for i in range(50):
+          story_set.AddStory(page_module.Page(
+              'http://foo_%s' % i, name='story_%s' % i,
+              shared_page_state_class=UnhandledFailureSharedState))
+        return story_set
+
+    # Set up the test so that it throws unexpected crashes from any story
+    # between story 30 to story 50.
+    # Also set the filtering to only run from story 10 --> story 40
+    stories_to_crash = set('story_%s' % i for i in range(30, 50))
+
+    def options_callback(options):
+      options.experimental_story_shard_begin_index = 10
+      options.experimental_story_shard_end_index = 41
+
+    options = _GenerateBaseBrowserFinderOptions(options_callback)
     options.suppress_gtest_report = True
     options.output_formats = ['json-test-results']
-    with tempfile_ext.NamedTemporaryDirectory() as out_dir:
-      options.output_dir = out_dir
-      return_code = story_runner.RunBenchmark(
-          unhandled_failure_benchmark, options)
-      self.assertEquals(2, return_code)
+    options.output_dir = self._temp_dir
 
-      json_data = {}
-      with open(os.path.join(out_dir, 'test-results.json')) as f:
-        json_data = json.load(f)
+    unhandled_failure_benchmark = TestBenchmark()
+    return_code = story_runner.RunBenchmark(
+        unhandled_failure_benchmark, self._options)
+    self.assertEquals(2, return_code)
 
-      foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
-      foo_artifact_log_path = os.path.join(
-          out_dir, foo_artifacts['logs'][0])
-      with open(foo_artifact_log_path) as f:
-        foo_log = f.read()
+    # The results should contain entries of story 10 --> story 40. Of those
+    # entries, story 31's actual result is 'FAIL' and
+    # stories from 31 to 40 will shows 'SKIP'.
+    json_data = {}
+    with open(os.path.join(self._temp_dir, 'test-results.json')) as f:
+      json_data = json.load(f)
+    stories = json_data['tests']['TestBenchmark']
+    self.assertEquals(len(stories.keys()), 31)
 
-      self.assertIn('Unhandleable error', foo_log)
+    for i in range(10, 30):
+      self.assertEquals(stories['story_%s' % i]['actual'], 'PASS')
 
-      # Ensure that foo_log contains the warning log message.
-      self.assertIn('This will fail badly', foo_log)
+    self.assertEquals(stories['story_30']['actual'], 'FAIL')
 
-      # Also the python crash stack.
-      self.assertIn('Exception: this is an unexpected exception', foo_log)
-      self.assertIn("raise Exception('this is an unexpected exception')",
-                    foo_log)
-
-      # Assert that the second story got written as a SKIP as it failed
-      # to run because of the exception.
-      bar_log = json_data['tests']['TestBenchmark']['bar']
-      self.assertEquals(bar_log['expected'], 'PASS')
-      self.assertEquals(bar_log['actual'], 'SKIP')
+    for i in range(31, 41):
+      self.assertEquals(stories['story_%s' % i]['actual'], 'SKIP')
