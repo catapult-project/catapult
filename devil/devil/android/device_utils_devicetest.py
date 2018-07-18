@@ -210,39 +210,6 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     cmd_helper.RunCmd(['rm', '-rf', host_tmp_dir])
     self.device.RemovePath(_DEVICE_DIR, recursive=True, force=True)
 
-  def testPushWithStaleDirectories(self):
-    # Make a few files and directories to push.
-    host_tmp_dir = tempfile.mkdtemp()
-    host_sub_dir1 = '%s/%s' % (host_tmp_dir, _SUB_DIR1)
-    host_sub_dir2 = "%s/%s/%s" % (host_tmp_dir, _SUB_DIR, _SUB_DIR2)
-    os.makedirs(host_sub_dir1)
-    os.makedirs(host_sub_dir2)
-
-    self._MakeTempFileGivenDir(host_sub_dir1, _OLD_CONTENTS)
-    self._MakeTempFileGivenDir(host_sub_dir2, _OLD_CONTENTS)
-
-    # Push all our created files/directories and verify they're on the device.
-    self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
-    top_level_dirs = self.device.ListDirectory(_DEVICE_DIR)
-    self.assertIn(_SUB_DIR1, top_level_dirs)
-    self.assertIn(_SUB_DIR, top_level_dirs)
-    sub_dir = self.device.ListDirectory('%s/%s' % (_DEVICE_DIR, _SUB_DIR))
-    self.assertIn(_SUB_DIR2, sub_dir)
-
-    # Remove one of the directories on the host and push again.
-    cmd_helper.RunCmd(['rm', '-rf', host_sub_dir2])
-    self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
-
-    # Verify that the directory we removed is no longer on the device, but the
-    # other directories still are.
-    top_level_dirs = self.device.ListDirectory(_DEVICE_DIR)
-    self.assertIn(_SUB_DIR1, top_level_dirs)
-    self.assertIn(_SUB_DIR, top_level_dirs)
-    sub_dir = self.device.ListDirectory('%s/%s' % (_DEVICE_DIR, _SUB_DIR))
-    self.assertEqual([], sub_dir)
-
   def testRestartAdbd(self):
     def get_adbd_pid():
       try:
