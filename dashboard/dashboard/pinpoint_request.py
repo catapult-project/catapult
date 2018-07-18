@@ -129,7 +129,7 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
   except ValueError:
     pass
 
-  if 'webview' in bot_name:
+  if 'webview' in bot_name.lower():
     return 'performance_webview_test_suite'
   return 'performance_test_suite'
 

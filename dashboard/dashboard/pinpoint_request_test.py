@@ -124,14 +124,15 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_WebviewTelemetry(self):
     params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'test_path':
+            'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
         'extra_test_args': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
-    self.assertEqual('android-webview-nexus5x', results['configuration'])
+    self.assertEqual('Android Nexus5X WebView Perf', results['configuration'])
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('performance_webview_test_suite', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
@@ -386,7 +387,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_WebviewTelemetry(self):
     params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'test_path':
+            'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
         'bug_id': 1,
@@ -396,7 +398,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
-    self.assertEqual('android-webview-nexus5x', results['configuration'])
+    self.assertEqual('Android Nexus5X WebView Perf', results['configuration'])
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('performance_webview_test_suite', results['target'])
