@@ -439,8 +439,6 @@ class PageTestResults(object):
     # so reset the current page run
     self._current_page_run = None
     for story in stories:
-      print "Story %s" % story
-    for story in stories:
       num_runs = repeat_count - self._story_run_count.get(story, 0)
       for i in xrange(num_runs):
         self._GenerateSkippedStoryRun(story, i)
