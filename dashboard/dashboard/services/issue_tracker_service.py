@@ -158,6 +158,7 @@ class IssueTrackerService(object):
         'labels': labels or [],
         'components': components or [],
         'status': 'Assigned' if owner else 'Untriaged',
+        'projectId': 'chromium'
     }
     if owner:
       body['owner'] = {'name': owner}

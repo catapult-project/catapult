@@ -121,6 +121,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'labels': [],
             'components': [],
             'status': 'Assigned',
+            'projectId': 'chromium',
             'owner': {'name': 'someone@chromium.org'},
             'cc': [{'name': 'somebody@chromium.org'},
                    {'name': 'nobody@chromium.org'}],
@@ -139,6 +140,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'labels': [],
             'components': [],
             'status': 'Untriaged',
+            'projectId': 'chromium',
             'cc': [{'name': 'somebody@chromium.org'},
                    {'name': 'nobody@chromium.org'}],
         })
