@@ -10,8 +10,6 @@ More about isolates:
 https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.md
 """
 
-import hashlib
-
 from google.appengine.ext import ndb
 
 
@@ -28,13 +26,8 @@ def Get(builder_name, change, target):
   """
   entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
   if not entity:
-    entity = ndb.Key(Isolate, _OldKey(builder_name, change, target)).get()
-    if not entity:
-      raise KeyError('No isolate with builder %s, change %s, and target %s.' %
-                     (builder_name, change, target))
-  if not entity.isolate_server:
-    # TODO: Remove in November 2018.
-    entity.isolate_server = 'https://isolateserver.appspot.com'
+    raise KeyError('No isolate with builder %s, change %s, and target %s.' %
+                   (builder_name, change, target))
   return entity.isolate_server, entity.isolate_hash
 
 
@@ -60,8 +53,7 @@ def Put(isolate_server, isolate_infos):
 
 
 class Isolate(ndb.Model):
-  # TODO: Make isolate_server `required=True` in November 2018.
-  isolate_server = ndb.StringProperty(indexed=False)
+  isolate_server = ndb.StringProperty(indexed=False, required=True)
   isolate_hash = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(auto_now_add=True)
 
@@ -70,12 +62,3 @@ def _Key(builder_name, change, target):
   # The key must be stable across machines, platforms,
   # Python versions, and Python invocations.
   return '\n'.join((builder_name, change.id_string, target))
-
-
-# TODO: In October 2018, remove this and delete all Isolates without
-# a creation date. Isolates expire after about 6 months. crbug.com/828778
-def _OldKey(builder_name, change, target):
-  # The key must be stable across machines, platforms,
-  # Python versions, and Python invocations.
-  string = '\n'.join((builder_name[:-5], change.id_string, target))
-  return hashlib.sha256(string).hexdigest()
