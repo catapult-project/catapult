@@ -26,11 +26,31 @@ from dashboard.common import stored_object
 TEST_BUILD_TYPE = 'test'
 REFERENCE_BUILD_TYPE = 'ref'
 STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
-PARTIAL_TEST_SUITES_KEY = 'partial_test_suites'
-COMPOSITE_TEST_SUITES_KEY = 'composite_test_suites'
-GROUPABLE_TEST_SUITE_PREFIXES_KEY = 'groupable_test_suite_prefixes'
-POLY_MEASUREMENT_TEST_SUITES_KEY = 'poly_measurement_test_suites'
 NO_MITIGATIONS_CASE = 'no-mitigations'
+
+# This stored object contains a list of test path component strings that must be
+# joined with the subsequent test path component in order to form a composite
+# test suite. Some are internal-only, but there's no need to store a separate
+# list for external users since this data is not served, just used to parse test
+# keys.
+PARTIAL_TEST_SUITES_KEY = 'partial_test_suites'
+
+# This stored object contains a list of test suites composed of 2 or more test
+# path components. All composite test suites start with a partial test suite,
+# but not all test suites that start with a partial test suite are composite.
+COMPOSITE_TEST_SUITES_KEY = 'composite_test_suites'
+
+# This stored object contains a list of prefixes of test suites that are
+# transformed to allow the UI to group them.
+GROUPABLE_TEST_SUITE_PREFIXES_KEY = 'groupable_test_suite_prefixes'
+
+# This stored object contains a list of test suites whose measurements are
+# composed of multiple test path components.
+POLY_MEASUREMENT_TEST_SUITES_KEY = 'poly_measurement_test_suites'
+
+# This stored object contains a list of test suites whose measurements and test
+# cases are each composed of two test path components.
+TWO_TWO_TEST_SUITES_KEY = 'two_two_test_suites'
 
 
 class Descriptor(object):
@@ -58,78 +78,18 @@ class Descriptor(object):
         self.test_suite, self.measurement, self.bot, self.test_case,
         self.statistic, self.build_type)
 
+  CONFIGURATION = {}
+
+  @classmethod
+  @ndb.tasklet
+  def _GetConfiguration(cls, key, default=None):
+    if key not in cls.CONFIGURATION:
+      cls.CONFIGURATION[key] = (yield stored_object.GetAsync(key)) or default
+    raise ndb.Return(cls.CONFIGURATION[key])
+
   @classmethod
   def ResetMemoizedConfigurationForTesting(cls):
-    cls.PARTIAL_TEST_SUITES = None
-    cls.COMPOSITE_TEST_SUITES = None
-    cls.GROUPABLE_TEST_SUITE_PREFIXES = None
-    cls.POLY_MEASUREMENT_TEST_SUITES = None
-
-  PARTIAL_TEST_SUITES = None
-
-  @classmethod
-  @ndb.tasklet
-  def _PartialTestSuites(cls):
-    """Returns a list of test path component strings that must be joined with
-    the subsequent test path component in order to form a composite test suite.
-    Some are internal-only, but there's no need to store a separate list for
-    external users.
-    """
-    if cls.PARTIAL_TEST_SUITES is None:
-      # TODO(benjhayden): Revisit with threadsafe:true.
-      cls.PARTIAL_TEST_SUITES = (
-          yield stored_object.GetAsync(PARTIAL_TEST_SUITES_KEY)) or ()
-    raise ndb.Return(cls.PARTIAL_TEST_SUITES)
-
-  COMPOSITE_TEST_SUITES = None
-
-  @classmethod
-  @ndb.tasklet
-  def _CompositeTestSuites(cls):
-    """
-    Returns a list of test suites composed of 2 or more test path components.
-    All composite test suites start with a partial test suite, but not all test
-    suites that start with a partial test suite are composite.
-    Some are internal-only, but there's no need to store a separate list for
-    external users.
-    """
-    if cls.COMPOSITE_TEST_SUITES is None:
-      # TODO(benjhayden): Revisit with threadsafe:true.
-      cls.COMPOSITE_TEST_SUITES = (
-          yield stored_object.GetAsync(COMPOSITE_TEST_SUITES_KEY)) or ()
-    raise ndb.Return(cls.COMPOSITE_TEST_SUITES)
-
-  GROUPABLE_TEST_SUITE_PREFIXES = None
-
-  @classmethod
-  @ndb.tasklet
-  def _GroupableTestSuitePrefixes(cls):
-    """
-    Returns a list of prefixes of test suites that are transformed to allow the
-    UI to group them.
-    Some are internal-only, but there's no need to store a separate list for
-    external users.
-    """
-    if cls.GROUPABLE_TEST_SUITE_PREFIXES is None:
-      # TODO(benjhayden): Revisit with threadsafe:true.
-      cls.GROUPABLE_TEST_SUITE_PREFIXES = (
-          yield stored_object.GetAsync(GROUPABLE_TEST_SUITE_PREFIXES_KEY)) or ()
-    raise ndb.Return(cls.GROUPABLE_TEST_SUITE_PREFIXES)
-
-  POLY_MEASUREMENT_TEST_SUITES = None
-
-  @classmethod
-  @ndb.tasklet
-  def _PolyMeasurementTestSuites(cls):
-    """
-    Returns a list of test suites whose measurements are composed of multiple
-    test path components.
-    """
-    if cls.POLY_MEASUREMENT_TEST_SUITES is None:
-      # TODO(benjhayden): Revisit with threadsafe:true.
-      cls.POLY_MEASUREMENT_TEST_SUITES = (
-          yield stored_object.GetAsync(POLY_MEASUREMENT_TEST_SUITES_KEY)) or ()
-    raise ndb.Return(cls.POLY_MEASUREMENT_TEST_SUITES)
+    cls.CONFIGURATION = {}
 
   @classmethod
   @ndb.tasklet
@@ -160,6 +120,10 @@ class Descriptor(object):
       raise ndb.Return((measurement, path.pop(0).replace('_', ':').replace(
           'long:running:tools', 'long_running_tools')))
 
+    if test_suite in (yield cls._GetConfiguration(TWO_TWO_TEST_SUITES_KEY, [])):
+      parts, path[:] = path[:], []
+      raise ndb.Return(':'.join(parts[:2]), ':'.join(parts[2:]))
+
     if test_suite in [
         'memory.dual_browser_test', 'memory.top_10_mobile',
         'v8.runtime_stats.top_25']:
@@ -169,7 +133,8 @@ class Descriptor(object):
         raise ndb.Return((measurement, None))
       raise ndb.Return((measurement, case + ':' + path.pop(0)))
 
-    if test_suite in (yield cls._PolyMeasurementTestSuites()):
+    if test_suite in (yield cls._GetConfiguration(
+        POLY_MEASUREMENT_TEST_SUITES_KEY, [])):
       parts, path[:] = path[:], []
       case = None
       if parts[-1] == NO_MITIGATIONS_CASE:
@@ -203,7 +168,7 @@ class Descriptor(object):
 
     test_suite = path.pop(0)
 
-    if test_suite in (yield cls._PartialTestSuites()):
+    if test_suite in (yield cls._GetConfiguration(PARTIAL_TEST_SUITES_KEY, [])):
       if len(path) == 0:
         raise ndb.Return(cls(bot=bot))
       test_suite += ':' + path.pop(0)
@@ -211,7 +176,8 @@ class Descriptor(object):
     if test_suite.startswith('resource_sizes '):
       test_suite = 'resource_sizes:' + test_suite[16:-1]
     else:
-      for prefix in (yield cls._GroupableTestSuitePrefixes()):
+      for prefix in (yield cls._GetConfiguration(
+          GROUPABLE_TEST_SUITE_PREFIXES_KEY, [])):
         if test_suite.startswith(prefix):
           test_suite = prefix[:-1] + ':' + test_suite[len(prefix):]
           break
@@ -268,11 +234,13 @@ class Descriptor(object):
 
     if self.test_suite.startswith('resource_sizes:'):
       test_path += 'resource sizes (%s)' % self.test_suite[15:]
-    elif self.test_suite in (yield self._CompositeTestSuites()):
+    elif self.test_suite in (yield self._GetConfiguration(
+        COMPOSITE_TEST_SUITES_KEY, [])):
       test_path += self.test_suite.replace(':', '/')
     else:
       first_part = self.test_suite.split(':')[0]
-      for prefix in (yield self._GroupableTestSuitePrefixes()):
+      for prefix in (yield self._GetConfiguration(
+          GROUPABLE_TEST_SUITE_PREFIXES_KEY, [])):
         if prefix[:-1] == first_part:
           test_path += prefix + self.test_suite[len(first_part) + 1:]
           break
@@ -281,7 +249,8 @@ class Descriptor(object):
     if not self.measurement:
       raise ndb.Return([test_path])
 
-    if self.test_suite in (yield self._PolyMeasurementTestSuites()):
+    if self.test_suite in (yield self._GetConfiguration(
+        POLY_MEASUREMENT_TEST_SUITES_KEY, [])):
       test_path += '/' + self.measurement.replace(':', '/')
     else:
       test_path += '/' + self.measurement
@@ -306,7 +275,8 @@ class Descriptor(object):
         test_path += '/' + '_'.join(test_case)
       elif self.test_suite in [
           'sizes', 'memory.dual_browser_test', 'memory.top_10_mobile',
-          'v8.runtime_stats.top_25']:
+          'v8.runtime_stats.top_25'] + (yield self._GetConfiguration(
+              TWO_TWO_TEST_SUITES_KEY, [])):
         test_path += '/' + self.test_case.replace(':', '/')
       else:
         test_path += '/' + self.test_case

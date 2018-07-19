@@ -18,6 +18,7 @@ class DescriptorTest(testing_common.TestCase):
     ])
     stored_object.Set(descriptor.COMPOSITE_TEST_SUITES_KEY, [
         'TEST_PARTIAL_TEST_SUITE:COMPOSITE',
+        'TEST_PARTIAL_TEST_SUITE:two_two',
     ])
     stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [
         'TEST_GROUPABLE%',
@@ -26,6 +27,10 @@ class DescriptorTest(testing_common.TestCase):
         'resource_sizes:foo',
         'sizes',
         'polymeasurement',
+        'TEST_PARTIAL_TEST_SUITE:two_two',
+    ])
+    stored_object.Set(descriptor.TWO_TWO_TEST_SUITES_KEY, [
+        'TEST_PARTIAL_TEST_SUITE:two_two',
     ])
     descriptor.Descriptor.ResetMemoizedConfigurationForTesting()
 
@@ -182,6 +187,21 @@ class DescriptorTest(testing_common.TestCase):
     self.assertEqual('a:b:c:d:e:f', desc.measurement)
     self.assertEqual('g:h:i', desc.test_case)
 
+  def testFromTestPath_TwoTwo(self):
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/TEST_PARTIAL_TEST_SUITE/two_two/a/b/c/d')
+    self.assertEqual('TEST_PARTIAL_TEST_SUITE:two_two', desc.test_suite)
+    self.assertEqual('a:b', desc.measurement)
+    self.assertEqual('c:d', desc.test_case)
+    self.assertEqual(descriptor.TEST_BUILD_TYPE, desc.build_type)
+
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/TEST_PARTIAL_TEST_SUITE/two_two/a/b/c/d/ref')
+    self.assertEqual('TEST_PARTIAL_TEST_SUITE:two_two', desc.test_suite)
+    self.assertEqual('a:b', desc.measurement)
+    self.assertEqual('c:d', desc.test_case)
+    self.assertEqual(descriptor.REFERENCE_BUILD_TYPE, desc.build_type)
+
   def testToTestPaths_Empty(self):
     self.assertEqual([], descriptor.Descriptor().ToTestPathsSync())
 
@@ -285,6 +305,14 @@ class DescriptorTest(testing_common.TestCase):
         test_suite='sizes',
         measurement='a:b:c:d:e:f',
         test_case='g:h:i').ToTestPathsSync())
+
+  def testToTestPath_TwoTwo(self):
+    expected = 'master/bot/TEST_PARTIAL_TEST_SUITE/two_two/a/b/c/d'
+    self.assertEqual([expected], descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='TEST_PARTIAL_TEST_SUITE:two_two',
+        measurement='a:b',
+        test_case='c:d').ToTestPathsSync())
 
 if __name__ == '__main__':
   unittest.main()
