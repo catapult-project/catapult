@@ -39,7 +39,8 @@ def _CreateHistogram(
     name='hist', master=None, bot=None, benchmark=None,
     device=None, owner=None, stories=None, story_tags=None,
     benchmark_description=None, commit_position=None,
-    samples=None, max_samples=None, is_ref=False, is_summary=None):
+    samples=None, max_samples=None, is_ref=False, is_summary=None,
+    point_id=None):
   hists = [histogram_module.Histogram(name, 'count')]
   if max_samples:
     hists[0].max_num_sample_values = max_samples
@@ -92,6 +93,10 @@ def _CreateHistogram(
     histograms.AddSharedDiagnostic(
         reserved_infos.SUMMARY_KEYS.name,
         generic_set.GenericSet(is_summary))
+  if point_id is not None:
+    histograms.AddSharedDiagnostic(
+        reserved_infos.POINT_ID.name,
+        generic_set.GenericSet([point_id]))
   return histograms
 
 
@@ -1384,6 +1389,16 @@ class AddHistogramsTest(testing_common.TestCase):
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name, chromium_commit)
     with self.assertRaises(api_request_handler.BadRequestError):
       add_histograms.ComputeRevision(histograms)
+
+  def testComputeRevision_UsesPointIdIfPresent(self):
+    hs = _CreateHistogram(name='foo', commit_position=123456, point_id=234567)
+    rev = add_histograms.ComputeRevision(hs)
+    self.assertEqual(rev, 234567)
+
+  def testComputeRevision_PointIdNotInteger_Raises(self):
+    hs = _CreateHistogram(name='foo', commit_position=123456, point_id='abc')
+    with self.assertRaises(api_request_handler.BadRequestError):
+      add_histograms.ComputeRevision(hs)
 
   def testSparseDiagnosticsAreNotInlined(self):
     hist = histogram_module.Histogram('hist', 'count')
