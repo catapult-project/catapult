@@ -71,12 +71,12 @@ class LinuxPlatformBackend(
     return ''  # TODO(kbr): Implement this.
 
   def CanTakeScreenshot(self):
-    return_code = subprocess.call(['which', 'xwd'])
+    return_code = subprocess.call(['which', 'gnome-screenshot'])
     return return_code == 0
 
   def TakeScreenshot(self, file_path):
-    return subprocess.call(
-        ['xwd', '-display', ':0', '-root', '-out', file_path])
+    return_code = subprocess.call(['gnome-screenshot', '-f', file_path])
+    return return_code == 0
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
