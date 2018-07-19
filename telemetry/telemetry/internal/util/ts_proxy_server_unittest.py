@@ -43,6 +43,14 @@ class TsProxyServerTest(unittest.TestCase):
       server.UpdateTrafficSettings(round_trip_latency_ms=100)
       server.UpdateTrafficSettings(download_bandwidth_kbps=5000)
       server.UpdateTrafficSettings(upload_bandwidth_kbps=2000)
+
+      self.assertEquals(server._rtt, 100)
+      self.assertEquals(server._inbkps, 5000)
+      self.assertEquals(server._outkbps, 2000)
+
       server.UpdateTrafficSettings(
           round_trip_latency_ms=200, download_bandwidth_kbps=500,
           upload_bandwidth_kbps=2000)
+      self.assertEquals(server._rtt, 200)
+      self.assertEquals(server._inbkps, 500)
+      self.assertEquals(server._outkbps, 2000)

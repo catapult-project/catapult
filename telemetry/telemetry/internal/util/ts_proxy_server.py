@@ -56,6 +56,9 @@ class TsProxyServer(object):
     self._http_port = http_port
     self._https_port = https_port
     self._non_blocking = False
+    self._rtt = None
+    self._inbkps = None
+    self._outkbps = None
 
   @property
   def port(self):
@@ -147,11 +150,27 @@ class TsProxyServer(object):
                        timeout)
 
   def UpdateTrafficSettings(
-      self, round_trip_latency_ms=0,
-      download_bandwidth_kbps=0, upload_bandwidth_kbps=0, timeout=5):
-    self._IssueCommand('set rtt %s' % round_trip_latency_ms, timeout)
-    self._IssueCommand('set inkbps %s' % download_bandwidth_kbps, timeout)
-    self._IssueCommand('set outkbps %s' % upload_bandwidth_kbps, timeout)
+      self, round_trip_latency_ms=None,
+      download_bandwidth_kbps=None, upload_bandwidth_kbps=None, timeout=5):
+    """Update traffic settings of the proxy server.
+
+    Notes that this method only updates the specified parameter
+    """
+    # Memorize the traffic settings & only execute the command if the traffic
+    # settings are different.
+    if round_trip_latency_ms is not None and self._rtt != round_trip_latency_ms:
+      self._IssueCommand('set rtt %s' % round_trip_latency_ms, timeout)
+      self._rtt = round_trip_latency_ms
+
+    if (download_bandwidth_kbps is not None and
+        self._inbkps != download_bandwidth_kbps):
+      self._IssueCommand('set inkbps %s' % download_bandwidth_kbps, timeout)
+      self._inbkps = download_bandwidth_kbps
+
+    if (upload_bandwidth_kbps is not None and
+        self._outkbps != upload_bandwidth_kbps):
+      self._IssueCommand('set outkbps %s' % upload_bandwidth_kbps, timeout)
+      self._outkbps = upload_bandwidth_kbps
 
   def StopServer(self):
     """Stop TsProxy Server."""
@@ -165,6 +184,9 @@ class TsProxyServer(object):
     self._proc = None
     self._port = None
     self._is_running = False
+    self._rtt = None
+    self._inbkps = None
+    self._outkbps = None
     return err
 
   def __enter__(self):
