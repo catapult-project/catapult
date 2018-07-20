@@ -63,7 +63,7 @@ def ScheduleResults2Generation(job):
   try:
     # Don't want several tasks creating results2, so create task with specific
     # name to deduplicate.
-    task_name = 'results2-public-%sfkjosefpkflsmafbjendfovxumrmrqe' % job.job_id
+    task_name = 'results2-public-%s' % job.job_id
     taskqueue.add(
         queue_name='job-queue', url='/api/generate-results2/' + job.job_id,
         name=task_name)
