@@ -537,6 +537,7 @@ class PageTestResults(object):
       failure_str = 'Failure recorded: %s' % failure
     else:
       failure_str = ''.join(traceback.format_exception(*failure))
+    logging.error(failure_str)
     self._current_page_run.SetFailed(failure_str)
 
   def Skip(self, reason, is_expected=True):

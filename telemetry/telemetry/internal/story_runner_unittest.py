@@ -243,14 +243,6 @@ class TestOnlyException(Exception):
   pass
 
 
-class ExcInfoMatcher(object):
-  def __init__(self, message):
-    self.message = message
-
-  def __eq__(self, other):
-    return isinstance(other[1], Exception) and self.message == other[1].message
-
-
 class _Measurement(legacy_page_test.LegacyPageTest):
   i = 0
   def RunPage(self, page, _, results):
@@ -1107,7 +1099,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1141,7 +1134,8 @@ class StoryRunnerTest(unittest.TestCase):
               root_mock.story, root_mock.results),
           mock.call.results.AddArtifact(
               root_mock.story.name, 'minidump', temp_file_path),
-          mock.call.results.Fail(ExcInfoMatcher('foo')),
+          mock.call.results.Fail(
+              'Exception raised running %s' % root_mock.story.name),
           mock.call.test.DidRunStory(
               root_mock.state.platform, root_mock.results),
           mock.call.state.DidRunStory(root_mock.results),
@@ -1165,7 +1159,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1202,7 +1197,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1247,7 +1243,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.RunStory(root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
@@ -1268,7 +1265,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
@@ -1310,7 +1308,8 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.state.DumpStateUponFailure(
             root_mock.story, root_mock.results),
-        mock.call.results.Fail(ExcInfoMatcher('foo')),
+        mock.call.results.Fail(
+            'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 

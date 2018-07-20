@@ -109,7 +109,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
 
     # Note: calling Fail on the results object also normally causes the
     # progress_reporter to log it in the output.
-    results.Fail(sys.exc_info())
+    results.Fail('Exception raised running %s' % story.name)
 
   with CaptureLogsAsArtifacts(results, story.name):
     try:
