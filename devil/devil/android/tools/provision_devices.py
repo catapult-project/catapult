@@ -509,6 +509,8 @@ def LogDeviceProperties(device):
     logger.info('  %s', prop)
 
 
+# TODO(jbudorick): Relocate this either to device_utils or a separate
+# and more intentionally reusable layer on top of device_utils.
 def CheckExternalStorage(device):
   """Checks that storage is writable and if not makes it writable.
 

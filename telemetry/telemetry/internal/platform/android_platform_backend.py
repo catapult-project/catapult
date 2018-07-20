@@ -37,6 +37,7 @@ from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
 from devil.android.sdk import shared_prefs
 from devil.android.sdk import version_codes
+from devil.android.tools import provision_devices
 from devil.android.tools import video_recorder
 
 try:
@@ -525,7 +526,11 @@ class AndroidPlatformBackend(
     if not profile_base:
       profile_base = os.path.basename(profile_parent)
 
-    saved_profile_location = '/sdcard/profile/%s' % profile_base
+    provision_devices.CheckExternalStorage(self._device)
+
+    saved_profile_location = posixpath.join(
+        self._device.GetExternalStoragePath(),
+        'profile', profile_base)
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)],
                                   delete_device_stale=True)
 
