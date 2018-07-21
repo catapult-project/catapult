@@ -5,6 +5,14 @@
 disable=
   design,
   similarities,
+  wrong-import-order,
+  simplifiable-if-statement,
+  singleton-comparison,
+  unsubscriptable-object,
+  redefined-variable-type,
+  using-constant-test,
+  wrong-import-position,
+  too-many-nested-blocks,
 
   fixme,
   global-statement,
