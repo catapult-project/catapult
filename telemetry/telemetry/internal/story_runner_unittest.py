@@ -1744,8 +1744,8 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
     stories_to_crash = set('story_%s' % i for i in range(30, 50))
 
     def options_callback(options):
-      options.experimental_story_shard_begin_index = 10
-      options.experimental_story_shard_end_index = 41
+      options.story_shard_begin_index = 10
+      options.story_shard_end_index = 41
 
     options = _GenerateBaseBrowserFinderOptions(options_callback)
     options.suppress_gtest_report = True

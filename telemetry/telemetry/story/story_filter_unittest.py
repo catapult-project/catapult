@@ -30,16 +30,16 @@ class FilterTest(unittest.TestCase):
       def __init__(
           self, story_filter=None, story_filter_exclude=None,
           story_tag_filter=None, story_tag_filter_exclude=None,
-          experimental_story_shard_begin_index=None,
-          experimental_story_shard_end_index=None):
+          story_shard_begin_index=None,
+          story_shard_end_index=None):
         self.story_filter = story_filter
         self.story_filter_exclude = story_filter_exclude
         self.story_tag_filter = story_tag_filter
         self.story_tag_filter_exclude = story_tag_filter_exclude
-        self.experimental_story_shard_begin_index = (
-            experimental_story_shard_begin_index)
-        self.experimental_story_shard_end_index = (
-            experimental_story_shard_end_index)
+        self.story_shard_begin_index = (
+            story_shard_begin_index)
+        self.story_shard_end_index = (
+            story_shard_end_index)
     story_filter_module.StoryFilter.ProcessCommandLineArgs(
         parser, Options(**kwargs))
 
@@ -68,7 +68,7 @@ class FilterTest(unittest.TestCase):
         raise MockParserException
     with self.assertRaises(MockParserException):
       self.ProcessCommandLineArgs(
-          parser=MockParser(), experimental_story_shard_end_index=-1)
+          parser=MockParser(), story_shard_end_index=-1)
 
   def testBadStoryShardArgEndAndBegin(self):
     class MockParserException(Exception):
@@ -78,8 +78,8 @@ class FilterTest(unittest.TestCase):
         raise MockParserException
     with self.assertRaises(MockParserException):
       self.ProcessCommandLineArgs(
-          parser=MockParser(), experimental_story_shard_end_index=2,
-          experimental_story_shard_begin_index=3)
+          parser=MockParser(), story_shard_end_index=2,
+          story_shard_begin_index=3)
 
   def testUniqueSubstring(self):
     self.ProcessCommandLineArgs(story_filter='smile_widen')
@@ -122,23 +122,23 @@ class FilterTest(unittest.TestCase):
     self.assertPagesSelected([self.p2])
 
   def testStoryShardBegin(self):
-    self.ProcessCommandLineArgs(experimental_story_shard_begin_index=1)
+    self.ProcessCommandLineArgs(story_shard_begin_index=1)
     self.assertPagesSelected([self.p2, self.p3])
 
   def testStoryShardEnd(self):
-    self.ProcessCommandLineArgs(experimental_story_shard_end_index=2)
+    self.ProcessCommandLineArgs(story_shard_end_index=2)
     self.assertPagesSelected([self.p1, self.p2])
 
   def testStoryShardBoth(self):
     self.ProcessCommandLineArgs(
-        experimental_story_shard_begin_index=1,
-        experimental_story_shard_end_index=2)
+        story_shard_begin_index=1,
+        story_shard_end_index=2)
     self.assertPagesSelected([self.p2])
 
   def testStoryShardBeginWraps(self):
-    self.ProcessCommandLineArgs(experimental_story_shard_begin_index=-1)
+    self.ProcessCommandLineArgs(story_shard_begin_index=-1)
     self.assertPagesSelected(self.pages)
 
   def testStoryShardEndWraps(self):
-    self.ProcessCommandLineArgs(experimental_story_shard_end_index=5)
+    self.ProcessCommandLineArgs(story_shard_end_index=5)
     self.assertPagesSelected(self.pages)

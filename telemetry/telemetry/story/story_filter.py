@@ -57,15 +57,22 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     common_story_shard_help = (
         'Indices start at 0, and have the same rules as python slices,'
         ' e.g.  [4, 5, 6, 7, 8][0:3] -> [4, 5, 6])')
+    # TODO(crbug.com/866095): remove '--experimental-story-shard-begin-index'
+    # and '--experimental-story-shard-end-index' flags.
     group.add_option(
-        '--experimental-story-shard-begin-index', type='int',
-        help='EXPERIMENTAL. Beginning index of set of stories to run. ' +
-        common_story_shard_help)
+        '--story-shard-begin-index', '--experimental-story-shard-begin-index',
+        type='int', dest='story_shard_begin_index',
+        help=('Beginning index of set of stories to run. If this is ommited, '
+              'the starting index will be from the first story in the benchmark'
+              + common_story_shard_help))
     group.add_option(
-        '--experimental-story-shard-end-index', type='int',
-        help='EXPERIMENTAL. End index of set of stories to run. Value will be'
-             ' rounded down to the number of stories. Negative values not'
-             ' allowed. ' + common_story_shard_help)
+        '--story-shard-end-index', '--experimental-story-shard-end-index',
+        type='int', dest='story_shard_end_index',
+        help=('End index of set of stories to run. Value will be'
+              'rounded down to the number of stories. Negative values not'
+              'allowed. If this is ommited, the end index is the final story'
+              'of the benchmark. '+ common_story_shard_help))
+
     parser.add_option_group(group)
 
   @classmethod
@@ -76,18 +83,17 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     cls._include_tags = _StoryTagMatcher(args.story_tag_filter)
     cls._exclude_tags = _StoryTagMatcher(args.story_tag_filter_exclude)
 
-    cls._begin_index = args.experimental_story_shard_begin_index or 0
-    cls._end_index = args.experimental_story_shard_end_index
+    cls._begin_index = args.story_shard_begin_index or 0
+    cls._end_index = args.story_shard_end_index
 
     if cls._end_index is not None:
       if cls._end_index < 0:
         raise parser.error(
-            '--experimental-story-shard-end-index cannot be less than 0')
+            '--story-shard-end-index cannot be less than 0')
       if cls._begin_index is not None and cls._end_index <= cls._begin_index:
         raise parser.error(
-            '--experimental-story-shard-end-index cannot be less than'
+            '--story-shard-end-index cannot be less than'
             ' or equal to --experimental-story-shard-begin-index')
-
 
     if cls._include_regex.has_compile_error:
       raise parser.error('--story-filter: Invalid regex.')
