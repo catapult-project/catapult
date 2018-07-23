@@ -120,6 +120,9 @@ def _EnsureExecutable(gsutil):
     os.chmod(gsutil, st.st_mode | stat.S_IEXEC)
 
 
+def _IsRunningOnSwarming():
+  return os.environ.get('SWARMING_HEADLESS') is not None
+
 def _RunCommand(args):
   # On cros device, as telemetry is running as root, home will be set to /root/,
   # which is not writable. gsutil will attempt to create a download tracker dir
@@ -132,6 +135,8 @@ def _RunCommand(args):
   if py_utils.IsRunningOnCrosDevice():
     gsutil_env = os.environ.copy()
     gsutil_env['HOME'] = _CROS_GSUTIL_HOME_WAR
+  elif _IsRunningOnSwarming():
+    gsutil_env = os.environ.copy()
 
   if os.name == 'nt':
     # If Windows, prepend python. Python scripts aren't directly executable.

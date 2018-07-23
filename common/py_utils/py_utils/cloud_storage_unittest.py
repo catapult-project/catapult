@@ -154,6 +154,19 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
+  @mock.patch('py_utils.cloud_storage.subprocess.Popen')
+  def testSwarmingUsesExistingEnv(self, mock_popen):
+    os.environ['SWARMING_HEADLESS'] = '1'
+
+    mock_gsutil = mock_popen()
+    mock_gsutil.communicate = mock.MagicMock(return_value=('a', 'b'))
+    mock_gsutil.returncode = None
+
+    cloud_storage.Copy('bucket1', 'bucket2', 'remote_path1', 'remote_path2')
+
+    mock_popen.assert_called_with(
+        mock.ANY, stderr=-1, env=os.environ, stdout=-1)
+
   @mock.patch('py_utils.cloud_storage._FileLock')
   def testDisableCloudStorageIo(self, unused_lock_mock):
     os.environ['DISABLE_CLOUD_STORAGE_IO'] = '1'
