@@ -62,7 +62,7 @@ class LinuxPlatformBackend(
         try:
           version = float(value)
         except ValueError:
-          version = 0
+          version = 0.0
       if codename and version:
         break
     return os_version.OSVersion(codename, version)

@@ -74,7 +74,7 @@ class ChromeTraceCategoryFilter(object):
     self.AddFilterString(filter_string)
 
   def AddFilterString(self, filter_string):
-    if filter_string == None:
+    if filter_string is None:
       return
 
     if '*' in filter_string or '?' in filter_string:

@@ -13,6 +13,8 @@ import tempfile
 import unittest
 import logging
 
+import mock
+
 from py_utils import cloud_storage
 
 from telemetry import benchmark
@@ -30,7 +32,6 @@ from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
-import mock
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
@@ -38,6 +39,7 @@ from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
+
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
@@ -1105,11 +1107,6 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.DidRunStory(root_mock.results),
     ])
 
-  def AssertListEquals(self, list_1, list_2):
-    self.assertEquals(len(list_1), len(list_2))
-    for i in range(len(list_1)):
-      self.assertEqual(list_1[i], list_2[i])
-
   def testRunStoryAndProcessErrorIfNeeded_tryAppCrash(self):
     tmp = tempfile.NamedTemporaryFile(delete=False)
     tmp.close()
@@ -1126,7 +1123,7 @@ class StoryRunnerTest(unittest.TestCase):
         story_runner._RunStoryAndProcessErrorIfNeeded(
             root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
-      self.AssertListEquals(root_mock.method_calls, [
+      self.assertListEqual(root_mock.method_calls, [
           mock.call.results.CreateArtifact(root_mock.story.name, 'logs'),
           mock.call.test.WillRunStory(root_mock.state.platform),
           mock.call.state.WillRunStory(root_mock.story),

@@ -51,7 +51,7 @@ class PlatformBackend(object):
     raise NotImplementedError
 
   def SetPlatform(self, platform):
-    assert self._platform == None
+    assert self._platform is None
     self._platform = platform
 
   @property

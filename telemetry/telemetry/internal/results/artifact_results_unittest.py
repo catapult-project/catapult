@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
 import os
 import unittest
+
+import mock
 
 from telemetry.internal.results import artifact_results
 from telemetry.internal.util import file_handle

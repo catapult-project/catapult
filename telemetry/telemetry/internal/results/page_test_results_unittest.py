@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 import StringIO
-import mock
 import os
 import unittest
 
 from py_utils import tempfile_ext
+import mock
 
 from telemetry import benchmark
 from telemetry import story

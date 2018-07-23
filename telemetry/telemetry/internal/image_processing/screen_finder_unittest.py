@@ -33,6 +33,7 @@ else:
       self.ScreenFinder = screen_finder.ScreenFinder
 
     def _GetScreenFinder(self, video_filename):
+      # pylint: disable=redefined-variable-type
       if not video_filename:
         fg = self.FakeFrameGenerator()
       else:
@@ -210,8 +211,8 @@ else:
       cd_list.append(self.ScreenFinder.CornerData(1, None, None, None, None))
       cd_list.append(self.ScreenFinder.CornerData(2, None, None, None, None))
       cd_list.sort()
-      for i in range(len(cd_list)):
-        self.assertEqual(i, cd_list[i].corner_index)
+      for i, cd in enumerate(cd_list):
+        self.assertEqual(i, cd.corner_index)
 
     def testFindCorners(self):
       # TODO: Probably easier to just do end to end tests.

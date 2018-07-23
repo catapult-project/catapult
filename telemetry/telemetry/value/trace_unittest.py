@@ -4,11 +4,12 @@
 
 import codecs
 import json
-import mock
 import os
 import shutil
 import tempfile
 import unittest
+
+import mock
 
 from telemetry import story
 from telemetry import page as page_module

@@ -71,7 +71,7 @@ class SkipValue(value_module.Value):
     if 'grouping_keys' in kwargs:
       del kwargs['grouping_keys']
 
-    return SkipValue(**kwargs)
+    return SkipValue(**kwargs)  # pylint: disable=unexpected-keyword-arg
 
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):

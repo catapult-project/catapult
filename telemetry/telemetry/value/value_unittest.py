@@ -105,9 +105,9 @@ class ValueTest(TestBase):
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
                     tir_label=None, grouping_keys=None)
-    b = ValueForTest(page0, 'x', 'unit', important=True, description=None,
+    c = ValueForTest(page0, 'x', 'unit', important=True, description=None,
                      tir_label=None, grouping_keys=None)
-    self.assertFalse(b.IsMergableWith(a))
+    self.assertFalse(c.IsMergableWith(a))
 
   def testNameMustBeString(self):
     with self.assertRaises(ValueError):

@@ -15,12 +15,9 @@ import logging
 import os
 import sys
 
-if __name__ == '__main__':
-  sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 from telemetry.internal.image_processing import cv_util
-from telemetry.internal.image_processing import frame_generator as \
-    frame_generator_module
+from telemetry.internal.image_processing import (
+    frame_generator as frame_generator_module)
 from telemetry.internal.image_processing import video_file_frame_generator
 from telemetry.internal.util import external_modules
 
@@ -854,4 +851,5 @@ def main():
     sf.GetNext()
 
 if __name__ == '__main__':
+  sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
   main()

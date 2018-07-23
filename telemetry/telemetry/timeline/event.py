@@ -36,7 +36,7 @@ class TimelineEvent(object):
 
     May be None if the trace event didn't have thread time data.
     """
-    if self.thread_start == None or self.thread_duration == None:
+    if self.thread_start is None or self.thread_duration is None:
       return None
     return self.thread_start + self.thread_duration
 

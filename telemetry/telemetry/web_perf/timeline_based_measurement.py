@@ -5,7 +5,6 @@ import collections
 import logging
 import os
 import time
-from collections import defaultdict
 
 from tracing.metrics import metric_runner
 
@@ -69,7 +68,7 @@ class _TBMResultWrapper(ResultsWrapperInterface):
 
 
 def _GetRendererThreadsToInteractionRecordsMap(model):
-  threads_to_records_map = defaultdict(list)
+  threads_to_records_map = collections.defaultdict(list)
   interaction_labels_of_previous_threads = set()
   for curr_thread in model.GetAllThreads():
     for event in curr_thread.async_slices:
@@ -98,7 +97,7 @@ class _TimelineBasedMetrics(object):
     self._all_metrics = metrics
 
   def AddResults(self, results):
-    interactions_by_label = defaultdict(list)
+    interactions_by_label = collections.defaultdict(list)
     for i in self._interaction_records:
       interactions_by_label[i.label].append(i)
 

@@ -296,6 +296,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     async_event_states_by_name_then_id = {}
 
     all_async_events = self._all_async_events
+    # pylint: disable=too-many-nested-blocks
     for async_event_state in all_async_events:
       event = async_event_state['event']
       name = event.get('name', None)

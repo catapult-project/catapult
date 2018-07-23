@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import atexit_with_log
 import json
 import logging
 import os
@@ -12,7 +11,10 @@ import sys
 import tempfile
 import traceback
 
+from py_utils import atexit_with_log
+
 from py_trace_event import trace_time
+
 from telemetry.core import exceptions
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
@@ -67,10 +69,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
   @classmethod
   def IsStartupTracingSupported(cls, platform_backend):
-    if platform_backend.GetOSName() in _STARTUP_TRACING_OS_NAMES:
-      return True
-    else:
-      return False
+    return platform_backend.GetOSName() in _STARTUP_TRACING_OS_NAMES
 
   @classmethod
   def IsSupported(cls, platform_backend):

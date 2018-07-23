@@ -4,7 +4,6 @@
 
 """Start and stop Web Page Replay."""
 
-from py_utils import atexit_with_log
 import logging
 import os
 import re
@@ -18,6 +17,7 @@ from telemetry.core import util
 from telemetry.internal.util import binary_manager
 
 import py_utils
+from py_utils import atexit_with_log
 
 
 _WPR_DIR = os.path.abspath(os.path.join(
@@ -176,7 +176,7 @@ class ReplayServer(object):
     try:
       # HTTPS may require SNI (which urllib does not speak), so only check
       # that HTTP responds.
-      return 200 == self._UrlOpen('web-page-replay-generate-200').getcode()
+      return self._UrlOpen('web-page-replay-generate-200').getcode() == 200
     except IOError:
       return False
 

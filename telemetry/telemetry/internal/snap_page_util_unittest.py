@@ -3,12 +3,13 @@
 # found in the LICENSE file.
 
 import hashlib
-import mock
 import os
 import shutil
 import tempfile
 import unittest
 import StringIO
+
+import mock
 
 from telemetry.internal import snap_page_util
 from telemetry.testing import options_for_unittests

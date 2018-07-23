@@ -42,14 +42,14 @@ def FindBrowser(options):
   """
   if options.__class__.__name__ == '_FakeBrowserFinderOptions':
     return options.fake_possible_browser
-  if options.browser_type == 'exact' and options.browser_executable == None:
+  if options.browser_type == 'exact' and options.browser_executable is None:
     raise browser_finder_exceptions.BrowserFinderException(
         '--browser=exact requires --browser-executable to be set.')
   if options.browser_type != 'exact' and options.browser_executable != None:
     raise browser_finder_exceptions.BrowserFinderException(
         '--browser-executable requires --browser=exact.')
 
-  if options.browser_type == 'cros-chrome' and options.cros_remote == None:
+  if options.browser_type == 'cros-chrome' and options.cros_remote is None:
     raise browser_finder_exceptions.BrowserFinderException(
         'browser_type=cros-chrome requires cros_remote be set.')
   if (options.browser_type != 'cros-chrome' and
@@ -72,7 +72,7 @@ def FindBrowser(options):
         default_browsers.append(new_default_browser)
       browsers.extend(curr_browsers)
 
-  if options.browser_type == None:
+  if options.browser_type is None:
     if default_browsers:
       default_browser = sorted(default_browsers,
                                key=lambda b: b.last_modification_time)[-1]
@@ -174,6 +174,4 @@ def GetAllAvailableBrowserTypes(options):
         or browser.target_os.startswith('win')):
       type_list.add('reference')
       break
-  type_list = list(type_list)
-  type_list.sort()
-  return type_list
+  return sorted(list(type_list))

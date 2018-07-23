@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import atexit_with_log
+import collections
 import inspect
 import logging
 import os
 
-from collections import defaultdict
+from py_utils import atexit_with_log
 
 
 def GetChildPids(processes, pid):
@@ -20,7 +20,7 @@ def GetChildPids(processes, pid):
   Returns:
     A list of child pids.
   """
-  child_dict = defaultdict(list)
+  child_dict = collections.defaultdict(list)
   for curr_pid, curr_ppid, state in processes:
     if 'Z' in state:
       continue  # Ignore zombie processes

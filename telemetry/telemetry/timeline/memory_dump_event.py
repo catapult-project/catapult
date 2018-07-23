@@ -228,8 +228,8 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     values = ['pid=%d' % self.process.pid]
     for key, value in sorted(self.GetMemoryUsage().iteritems()):
       values.append('%s=%d' % (key, value))
-    values = ', '.join(values)
-    return '%s[%s]' % (type(self).__name__, values)
+    values_str = ', '.join(values)
+    return '%s[%s]' % (type(self).__name__, values_str)
 
   def GetMemoryBucket(self, path):
     """Return the MemoryBucket associated with a category path.
@@ -332,8 +332,8 @@ class GlobalMemoryDump(object):
     values = ['id=%s' % self.dump_id]
     for key, value in sorted(self.GetMemoryUsage().iteritems()):
       values.append('%s=%d' % (key, value))
-    values = ', '.join(values)
-    return '%s[%s]' % (type(self).__name__, values)
+    values_str = ', '.join(values)
+    return '%s[%s]' % (type(self).__name__, values_str)
 
   def GetMemoryUsage(self):
     """Get the aggregated memory usage over all processes in this dump."""

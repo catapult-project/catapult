@@ -1,8 +1,9 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import mock
 import unittest
+
+import mock
 
 from telemetry.internal.platform import android_platform_backend
 from telemetry.internal.platform.tracing_agent import display_tracing_agent

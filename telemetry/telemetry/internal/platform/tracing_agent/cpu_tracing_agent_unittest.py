@@ -32,6 +32,7 @@ class CpuTracingAgentTest(unittest.TestCase):
   def setUp(self):
     self._config = tracing_config.TracingConfig()
     self._config.enable_cpu_trace = True
+    # pylint: disable=redefined-variable-type
     if sys.platform.startswith('win'):
       self._desktop_backend = win_platform_backend.WinPlatformBackend()
     elif sys.platform.startswith('darwin'):
@@ -104,8 +105,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     self.assertFalse(self._agent._snapshot_ongoing)
-    builder = builder.AsData()
-    self.assertTrue(builder.HasTracesFor(trace_data.CPU_TRACE_DATA))
+    data = builder.AsData()
+    self.assertTrue(data.HasTracesFor(trace_data.CPU_TRACE_DATA))
 
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
@@ -115,8 +116,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     time.sleep(2)
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
-    builder = builder.AsData()
-    data = builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents']
+    data = builder.AsData().GetTraceFor(
+        trace_data.CPU_TRACE_DATA)['traceEvents']
 
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
@@ -133,8 +134,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     time.sleep(2)
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
-    builder = builder.AsData()
-    data = builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents']
+    data = builder.AsData().GetTraceFor(
+        trace_data.CPU_TRACE_DATA)['traceEvents']
 
     for snapshot in data:
       found_unittest_process = False

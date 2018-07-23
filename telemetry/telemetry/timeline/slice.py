@@ -31,7 +31,7 @@ class Slice(timeline_event.TimelineEvent):
   def IterEventsInThisContainerRecrusively(self, stack=None):
     # This looks awkward, but it lets us create only a single iterator instead
     # of having to create one iterator for every subslice found.
-    if stack == None:
+    if stack is None:
       stack = []
     else:
       assert len(stack) == 0
@@ -59,7 +59,7 @@ class Slice(timeline_event.TimelineEvent):
 
     child_total = 0
     for e in self.sub_slices:
-      if e.thread_duration == None:
+      if e.thread_duration is None:
         return None
       child_total += e.thread_duration
 

@@ -8,7 +8,7 @@ class SystemInfo(object):
   """Provides low-level system information."""
 
   def __init__(self, model_name, gpu_dict, command_line):
-    if (model_name == None) or (gpu_dict == None):
+    if (model_name is None) or (gpu_dict is None):
       raise Exception("Missing model_name or gpu_dict argument")
     self._model_name = model_name
     self._gpu = gpu_info.GPUInfo.FromDict(gpu_dict)

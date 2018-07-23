@@ -286,7 +286,7 @@ class CrOSInterface(object):
   def PushFile(self, filename, remote_filename):
     if self.local:
       args = ['cp', '-r', filename, remote_filename]
-      stdout, stderr = GetAllCmdOutput(args, quiet=True)
+      _, stderr = GetAllCmdOutput(args, quiet=True)
       if stderr != '':
         raise OSError('No such file or directory %s' % stderr)
       return
@@ -296,7 +296,7 @@ class CrOSInterface(object):
         remote_filename,
         extra_scp_args=['-r'])
 
-    stdout, stderr = GetAllCmdOutput(args, quiet=True)
+    _, stderr = GetAllCmdOutput(args, quiet=True)
     stderr = self._RemoveSSHWarnings(stderr)
     if stderr != '':
       raise OSError('No such file or directory %s' % stderr)
@@ -329,7 +329,7 @@ class CrOSInterface(object):
       destfile = os.path.basename(filename)
     args = self._FormSCPFromRemote(filename, os.path.abspath(destfile))
 
-    stdout, stderr = GetAllCmdOutput(args, quiet=True)
+    _, stderr = GetAllCmdOutput(args, quiet=True)
     stderr = self._RemoveSSHWarnings(stderr)
     if stderr != '':
       raise OSError('No such file or directory %s' % stderr)

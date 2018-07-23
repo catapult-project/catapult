@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 import itertools
-import mock
 import unittest
+
+import mock
 
 from telemetry.testing import options_for_unittests
 from telemetry.internal.browser import browser_options as browser_options_module

@@ -2,10 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
 import tempfile
 import unittest
 import os
+
+import mock
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.testing import fakes

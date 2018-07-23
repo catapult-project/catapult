@@ -11,6 +11,7 @@ When numpy is present, image_util_numpy_impl is used for the implementation of
 this interface. The old bitmap implementation (image_util_bitmap_impl) is used
 as a fallback when numpy is not present."""
 
+# pylint: disable=wrong-import-position
 import base64
 
 from telemetry.internal.util import external_modules
@@ -23,6 +24,7 @@ if np is None:
 else:
   from telemetry.internal.image_processing import image_util_numpy_impl
   impl = image_util_numpy_impl
+# pylint: enable=wrong-import-position
 
 
 def Channels(image):

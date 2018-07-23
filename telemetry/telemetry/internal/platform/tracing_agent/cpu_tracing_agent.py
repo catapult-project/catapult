@@ -268,6 +268,7 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     self._snapshot_ongoing = False
     self._snapshots = []
     self._os_name = platform_backend.GetOSName()
+    # pylint: disable=redefined-variable-type
     if  self._os_name == 'win':
       self._collector = WindowsProcessCollector()
     elif self._os_name == 'mac':

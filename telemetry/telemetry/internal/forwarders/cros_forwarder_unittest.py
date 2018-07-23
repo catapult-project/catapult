@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import mock
 import tempfile
 import unittest
+
+import mock
 
 from telemetry.internal.forwarders import cros_forwarder
 from telemetry import decorators

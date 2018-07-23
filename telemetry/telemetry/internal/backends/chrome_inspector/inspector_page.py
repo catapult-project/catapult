@@ -28,7 +28,7 @@ class InspectorPage(object):
   def _OnNotification(self, msg):
     if msg['method'] == 'Page.frameNavigated':
       url = msg['params']['frame']['url']
-      if not self._navigated_frame_ids == None:
+      if not self._navigated_frame_ids is None:
         frame_id = msg['params']['frame']['id']
         if self._navigation_frame_id == frame_id:
           self._navigation_frame_id = ''

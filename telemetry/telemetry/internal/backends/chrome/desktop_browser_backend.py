@@ -274,7 +274,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   def IsBrowserRunning(self):
-    return self._proc and self._proc.poll() == None
+    return self._proc and self._proc.poll() is None
 
   def GetStandardOutput(self):
     if not self._tmp_output_file:

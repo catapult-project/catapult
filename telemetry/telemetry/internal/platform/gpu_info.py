@@ -10,7 +10,7 @@ class GPUInfo(object):
 
   def __init__(self, device_array, aux_attributes,
                feature_status, driver_bug_workarounds):
-    if device_array == None:
+    if device_array is None:
       raise Exception('Missing required "devices" property')
     if len(device_array) == 0:
       raise Exception('Missing at least one GPU in device_array')

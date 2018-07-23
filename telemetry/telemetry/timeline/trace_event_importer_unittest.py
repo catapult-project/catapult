@@ -1028,9 +1028,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     m = timeline_model.TimelineModel(trace_data)
     self.assertEqual(3, len(m.flow_events))
 
-    for i in range(len(expected)):
-      self.assertAlmostEqual(expected[i][0], m.flow_events[i][0].start)
-      self.assertAlmostEqual(expected[i][1], m.flow_events[i][1].start)
+    for i, time in enumerate(expected):
+      self.assertAlmostEqual(time[0], m.flow_events[i][0].start)
+      self.assertAlmostEqual(time[1], m.flow_events[i][1].start)
 
   def testImportErrornousFlowEvent(self):
     events = [

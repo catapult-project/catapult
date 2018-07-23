@@ -259,8 +259,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     return []
 
   has_x11_display = True
-  if (sys.platform.startswith('linux') and
-      os.getenv('DISPLAY') == None):
+  if sys.platform.startswith('linux') and os.getenv('DISPLAY') is None:
     has_x11_display = False
 
   os_name = platform_module.GetHostPlatform().GetOSName()

@@ -140,7 +140,7 @@ class TimelineModel(event_container.TimelineEventContainer):
     self.FinalizeImport(shift_world_to_zero, importers)
 
   def FinalizeImport(self, shift_world_to_zero=False, importers=None):
-    if importers == None:
+    if importers is None:
       importers = []
     self.UpdateBounds()
     if not self.bounds.is_empty:

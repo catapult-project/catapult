@@ -489,6 +489,7 @@ class InspectorBackend(object):
       exceptions.DevtoolsTargetCrashException: On any other error, the most
         likely explanation is that the devtool's target crashed.
     """
+    # pylint: disable=redefined-variable-type
     if isinstance(error, websocket.WebSocketTimeoutException):
       new_error = exceptions.TimeoutException()
       new_error.AddDebuggingMessage(exceptions.AppCrashException(

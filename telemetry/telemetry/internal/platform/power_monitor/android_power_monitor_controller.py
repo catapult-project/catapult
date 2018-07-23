@@ -2,8 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import atexit_with_log
 import logging
+
+from py_utils import atexit_with_log
 
 from telemetry.internal.platform.power_monitor import android_power_monitor_base
 

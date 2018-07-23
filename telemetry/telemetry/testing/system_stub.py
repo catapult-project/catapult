@@ -85,7 +85,7 @@ class AdbDevice(object):
     self.shell_command_handlers = {}
     self.mock_content = []
     self.system_properties = {}
-    if self.system_properties.get('ro.product.cpu.abi') == None:
+    if self.system_properties.get('ro.product.cpu.abi') is None:
       self.system_properties['ro.product.cpu.abi'] = 'armeabi-v7a'
 
   def HasRoot(self):

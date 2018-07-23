@@ -271,11 +271,11 @@ class TracingBackend(object):
       self._trace_data_builder = None
 
   def _NotificationHandler(self, res):
-    if 'Tracing.dataCollected' == res.get('method'):
+    if res.get('method') == 'Tracing.dataCollected':
       value = res.get('params', {}).get('value')
       self._trace_data_builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART,
                                            value)
-    elif 'Tracing.tracingComplete' == res.get('method'):
+    elif res.get('method') == 'Tracing.tracingComplete':
       stream_handle = res.get('params', {}).get('stream')
       if not stream_handle:
         self._has_received_all_tracing_data = True

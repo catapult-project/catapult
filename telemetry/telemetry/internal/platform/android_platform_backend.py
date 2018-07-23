@@ -26,8 +26,6 @@ from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
 
-psutil = external_modules.ImportOptionalModule('psutil')
-
 from devil.android import app_ui
 from devil.android import battery_utils
 from devil.android import device_errors
@@ -51,6 +49,7 @@ try:
 except Exception: # pylint: disable=broad-except
   surface_stats_collector = None
 
+psutil = external_modules.ImportOptionalModule('psutil')
 
 _ARCH_TO_STACK_TOOL_ARCH = {
     'armeabi-v7a': 'arm',

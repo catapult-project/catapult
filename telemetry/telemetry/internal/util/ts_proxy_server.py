@@ -11,16 +11,16 @@ import subprocess
 import sys
 import time
 
-from py_utils import atexit_with_log
-from telemetry.core import util
-from telemetry.internal.util import ps_util
-
-import py_utils
-
 try:
   import fcntl
 except ImportError:
   fcntl = None
+
+from telemetry.core import util
+from telemetry.internal.util import ps_util
+
+import py_utils
+from py_utils import atexit_with_log
 
 
 _TSPROXY_PATH = os.path.join(

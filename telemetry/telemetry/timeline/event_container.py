@@ -131,7 +131,7 @@ class TimelineEventContainer(object):
     return self.IterAllEvents(
         recursive=recursive,
         event_type_predicate=lambda t: t == slice_module.Slice,
-        event_predicate=lambda e: e.name == name and e.parent_slice == None)
+        event_predicate=lambda e: e.name == name and e.parent_slice is None)
 
   def IterAllAsyncSlicesOfName(self, name, recursive=True):
     return self.IterAllEvents(

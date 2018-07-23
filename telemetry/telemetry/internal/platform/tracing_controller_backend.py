@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import ast
-from py_utils import atexit_with_log
 import contextlib
 import gc
 import logging
@@ -14,13 +13,15 @@ import traceback
 import uuid
 
 from py_trace_event import trace_event
-from py_utils import discover
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data as trace_data_module
+
+from py_utils import atexit_with_log
+from py_utils import discover
 
 
 def _IterAllTracingAgentClasses():

@@ -150,7 +150,7 @@ class Thread(event_container.TimelineEventContainer):
     new_slice = slice_module.Slice(self, category, name, timestamp,
                                    thread_timestamp=thread_timestamp,
                                    args=args)
-    if duration == None:
+    if duration is None:
       new_slice.did_not_finish = True
     else:
       new_slice.duration = duration

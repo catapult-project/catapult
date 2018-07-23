@@ -67,7 +67,7 @@ def _CheckRdmsr():
   if ret != 0:
     raise OSError('getcap failed')
 
-  if not 'cap_sys_rawio+ep' in stdout:
+  if 'cap_sys_rawio+ep' not in stdout:
     print 'Error: /usr/sbin/rdmsr needs RAWIO capability.'
     return False
 
@@ -142,5 +142,5 @@ def main(prog_name, argv):
   return 1
 
 
-if '__main__' == __name__:
+if __name__ == '__main__':
   sys.exit(main(os.path.basename(sys.argv[0]), sys.argv[1:]))

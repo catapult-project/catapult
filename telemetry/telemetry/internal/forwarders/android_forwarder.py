@@ -2,12 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import atexit_with_log
 import logging
 import subprocess
 
 from telemetry.core import util
 from telemetry.internal import forwarders
+
+from py_utils import atexit_with_log
 
 from devil.android import device_errors
 try:

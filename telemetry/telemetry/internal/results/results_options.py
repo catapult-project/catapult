@@ -158,7 +158,7 @@ def CreateResults(benchmark_metadata, options,
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest":
       continue
-
+    # pylint: disable=redefined-variable-type
     if isinstance(artifacts, artifact_results.NoopArtifactResults):
       artifacts = artifact_results.ArtifactResults(options.output_dir)
     output_stream = _GetOutputStream(output_format, options.output_dir)

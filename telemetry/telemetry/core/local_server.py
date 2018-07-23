@@ -52,7 +52,7 @@ class LocalServer(object):
     self.port = None
 
   def Start(self, local_server_controller):
-    assert self._subprocess == None
+    assert self._subprocess is None
     self._local_server_controller = local_server_controller
 
     self.host_ip = local_server_controller.host_ip
@@ -93,7 +93,7 @@ class LocalServer(object):
     named_ports_json = None
     named_ports_re = re.compile('LocalServerBackend started: (?P<port>.+)')
     # TODO: This will hang if the subprocess doesn't print the correct output.
-    while self._subprocess.poll() == None:
+    while self._subprocess.poll() is None:
       m = named_ports_re.match(self._subprocess.stdout.readline())
       if m:
         named_ports_json = m.group('port')
@@ -212,6 +212,7 @@ if __name__ == '__main__':
   # This trick is needed because local_server.NamedPort is not the
   # same as sys.modules['__main__'].NamedPort. The module itself is loaded
   # twice, basically.
+  # pylint: disable=wrong-import-position
   from telemetry.core import local_server  # pylint: disable=import-self
   sys.exit(
       local_server._LocalServerBackendMain(  # pylint: disable=protected-access

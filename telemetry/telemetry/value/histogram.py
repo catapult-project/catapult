@@ -37,7 +37,7 @@ class HistogramValue(summarizable.SummarizableValue):
                                          description, tir_label,
                                          improvement_direction, grouping_keys)
     if raw_value_json:
-      assert raw_value == None, \
+      assert raw_value is None, \
              'Don\'t specify both raw_value and raw_value_json'
       raw_value = json.loads(raw_value_json)
     if raw_value:
