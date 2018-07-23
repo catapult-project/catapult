@@ -14,3 +14,5 @@ class PageState(ndb.Model):
   """An entity with a single blob value where id is a hash value."""
 
   value = ndb.BlobProperty(indexed=False)
+
+  value_v2 = ndb.BlobProperty(indexed=False)
