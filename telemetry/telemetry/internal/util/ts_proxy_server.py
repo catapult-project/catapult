@@ -151,7 +151,7 @@ class TsProxyServer(object):
 
   def UpdateTrafficSettings(
       self, round_trip_latency_ms=None,
-      download_bandwidth_kbps=None, upload_bandwidth_kbps=None, timeout=5):
+      download_bandwidth_kbps=None, upload_bandwidth_kbps=None, timeout=20):
     """Update traffic settings of the proxy server.
 
     Notes that this method only updates the specified parameter
