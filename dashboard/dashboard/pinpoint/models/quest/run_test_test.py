@@ -22,14 +22,6 @@ class StartTest(unittest.TestCase):
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
-  # TODO: Remove after there are no more jobs running RunTest quests
-  # (instead of RunTelemetryTest quests).
-  def testResultsLabel(self):
-    quest = run_test.RunTest('server', [{'key': 'value'}],
-                             ['--results-label', ''])
-    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
-    self.assertEqual(execution._extra_args, ['--results-label', 'change'])
-
 
 class FromDictTest(unittest.TestCase):
 

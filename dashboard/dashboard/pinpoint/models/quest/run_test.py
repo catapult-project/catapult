@@ -9,7 +9,6 @@ modify the Quest.
 """
 
 import collections
-import copy
 import json
 import re
 import shlex
@@ -78,16 +77,6 @@ class RunTest(quest.Quest):
     return self._Start(change, isolate_server, isolate_hash, self._extra_args)
 
   def _Start(self, change, isolate_server, isolate_hash, extra_args):
-    # TODO: Remove after there are no more jobs running RunTest quests
-    # (instead of RunTelemetryTest quests).
-    try:
-      results_label_index = extra_args.index('--results-label')
-      extra_args = copy.copy(extra_args)
-      extra_args[results_label_index+1] = str(change)
-    except ValueError:
-      # If it's not there, this is probably a gtest
-      pass
-
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
 
@@ -107,10 +96,6 @@ class RunTest(quest.Quest):
 
   @classmethod
   def FromDict(cls, arguments):
-    return cls._FromDict(arguments, [])
-
-  @classmethod
-  def _FromDict(cls, arguments, swarming_extra_args):
     swarming_server = arguments.get('swarming_server')
     if not swarming_server:
       raise TypeError('Missing a "swarming_server" argument.')
@@ -121,20 +106,26 @@ class RunTest(quest.Quest):
     if isinstance(dimensions, basestring):
       dimensions = json.loads(dimensions)
 
-    extra_test_args = arguments.get('extra_test_args')
-    if extra_test_args:
-      # We accept a json list or a string. If it can't be loaded as json, we
-      # fall back to assuming it's a string argument.
-      try:
-        extra_test_args = json.loads(extra_test_args)
-      except ValueError:
-        extra_test_args = shlex.split(extra_test_args)
-      if not isinstance(extra_test_args, list):
-        raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
-      swarming_extra_args += extra_test_args
+    extra_test_args = cls._ExtraTestArgs(arguments)
 
     return cls(swarming_server, dimensions,
-               swarming_extra_args + _DEFAULT_EXTRA_ARGS)
+               extra_test_args + _DEFAULT_EXTRA_ARGS)
+
+  @classmethod
+  def _ExtraTestArgs(cls, arguments):
+    extra_test_args = arguments.get('extra_test_args')
+    if not extra_test_args:
+      return []
+
+    # We accept a json list or a string. If it can't be loaded as json, we
+    # fall back to assuming it's a string argument.
+    try:
+      extra_test_args = json.loads(extra_test_args)
+    except ValueError:
+      extra_test_args = shlex.split(extra_test_args)
+    if not isinstance(extra_test_args, list):
+      raise TypeError('extra_test_args must be a list: %s' % extra_test_args)
+    return extra_test_args
 
 
 class _RunTestExecution(execution_module.Execution):

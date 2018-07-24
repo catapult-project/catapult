@@ -13,13 +13,15 @@ _DEFAULT_EXTRA_ARGS = ['--non-telemetry', 'true']
 class RunGTest(run_test.RunTest):
 
   @classmethod
-  def FromDict(cls, arguments):
-    swarming_extra_args = []
+  def _ExtraTestArgs(cls, arguments):
+    extra_test_args = []
 
     test = arguments.get('test')
     if test:
-      swarming_extra_args.append('--gtest_filter=' + test)
+      extra_test_args.append('--gtest_filter=' + test)
 
-    swarming_extra_args.append('--gtest_repeat=1')
+    extra_test_args.append('--gtest_repeat=1')
 
-    return cls._FromDict(arguments, swarming_extra_args + _DEFAULT_EXTRA_ARGS)
+    extra_test_args += _DEFAULT_EXTRA_ARGS
+    extra_test_args += super(RunGTest, cls)._ExtraTestArgs(arguments)
+    return extra_test_args
