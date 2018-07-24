@@ -39,6 +39,7 @@ class DottedName(base_symbol.AnnotatedSymbol):
         raise ValueError('%s is a reserved keyword.' % value_part)
 
     # If we have too many children, cut the list down to size.
+    # pylint: disable=attribute-defined-outside-init
     self._children = self._children[:len(value_parts)*2-1]
 
     # Update child nodes.
@@ -82,18 +83,22 @@ class AsName(base_symbol.AnnotatedSymbol):
       raise ValueError('%s is a reserved keyword.' % value)
 
     if value:
+       # pylint: disable=access-member-before-definition
       if len(self.children) < 3:
         # If we currently have no alias, add one.
+         # pylint: disable=access-member-before-definition
         self.children.append(
             snippet.TokenSnippet.Create(token.NAME, 'as', (0, 1)))
+         # pylint: disable=access-member-before-definition
         self.children.append(
             snippet.TokenSnippet.Create(token.NAME, value, (0, 1)))
       else:
         # We already have an alias. Just update the value.
+        # pylint: disable=access-member-before-definition
         self.children[2].value = value
     else:
       # Removing the alias. Strip the "as foo".
-      self.children = [self.children[0]]
+      self.children = [self.children[0]] # pylint: disable=line-too-long, attribute-defined-outside-init
 
 
 class Import(base_symbol.AnnotatedSymbol):

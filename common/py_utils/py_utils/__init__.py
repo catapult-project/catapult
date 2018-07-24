@@ -74,8 +74,8 @@ _AddDirToPythonPath(os.path.join(GetCatapultDir(), 'third_party', 'mox3'))
 _AddDirToPythonPath(
     os.path.join(GetCatapultDir(), 'third_party', 'pyfakefs'))
 
-from devil.utils import timeout_retry
-from devil.utils import reraiser_thread
+from devil.utils import timeout_retry  # pylint: disable=wrong-import-position
+from devil.utils import reraiser_thread  # pylint: disable=wrong-import-position
 
 
 # Decorator that adds timeout functionality to a function.

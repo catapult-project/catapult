@@ -14,19 +14,23 @@ class LockException(Exception):
   pass
 
 
+# pylint: disable=import-error
+# pylint: disable=wrong-import-position
 if os.name == 'nt':
-  import win32con    # pylint: disable=import-error
-  import win32file   # pylint: disable=import-error
-  import pywintypes  # pylint: disable=import-error
+  import win32con
+  import win32file
+  import pywintypes
   LOCK_EX = win32con.LOCKFILE_EXCLUSIVE_LOCK
   LOCK_SH = 0  # the default
   LOCK_NB = win32con.LOCKFILE_FAIL_IMMEDIATELY
   _OVERLAPPED = pywintypes.OVERLAPPED()
 elif os.name == 'posix':
-  import fcntl       # pylint: disable=import-error
+  import fcntl
   LOCK_EX = fcntl.LOCK_EX
   LOCK_SH = fcntl.LOCK_SH
   LOCK_NB = fcntl.LOCK_NB
+# pylint: enable=import-error
+# pylint: enable=wrong-import-position
 
 
 @contextlib.contextmanager

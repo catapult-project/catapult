@@ -58,6 +58,7 @@ class Reference(base_symbol.AnnotatedSymbol):
     value_parts = value.split('.')
 
     # If we have too many children, cut the list down to size.
+    # pylint: disable=attribute-defined-outside-init
     self._children = self._children[:len(value_parts)]
 
     # Update child nodes.
