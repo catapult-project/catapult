@@ -28,6 +28,7 @@ _INTERNAL_ONLY_KINDS = [
     'TableConfig',
     'Histogram',
     'SparseDiagnostic',
+    'ReportTemplate',
 ]
 
 # Permissions namespaces.
