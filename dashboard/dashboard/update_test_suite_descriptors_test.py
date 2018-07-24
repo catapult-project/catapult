@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import webapp2
 import unittest
 
 from dashboard import update_test_suites
@@ -49,10 +50,21 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         })
     test = utils.TestKey('master/bot/internal/measurement/test_case').get()
     test.has_rows = True
+    test.internal_only = True
     test.put()
 
     self.Post('/update_test_suite_descriptors?internal_only=true')
+
+    # deferred.Defer() packages up the function call and arguments, not changes
+    # to global state like SetPrivilegedRequest, so set privileged=False as the
+    # taskqueue does, and test that UpdateDescriptor sets it back to True so
+    # that it gets the internal TestMetadata.
+    class FakeRequest(object):
+      def __init__(self):
+        self.registry = {'privileged': False}
+    webapp2._local.request = FakeRequest()
     self.ExecuteDeferredTasks('default')
+
     expected = {
         'measurements': ['measurement'],
         'bots': ['master:bot'],

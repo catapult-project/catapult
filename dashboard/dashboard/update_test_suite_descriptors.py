@@ -29,16 +29,26 @@ class UpdateTestSuiteDescriptorsHandler(request_handler.RequestHandler):
   def post(self):
     namespace = datastore_hooks.EXTERNAL
     if self.request.get('internal_only') == 'true':
-      datastore_hooks.SetPrivilegedRequest()
       namespace = datastore_hooks.INTERNAL
     UpdateTestSuiteDescriptors(namespace)
 
 
 def UpdateTestSuiteDescriptors(namespace):
-  for suite in update_test_suites.FetchCachedTestSuites2():
-    deferred.defer(UpdateDescriptor, suite, namespace)
+  key = namespaced_stored_object.NamespaceKey(
+      update_test_suites.TEST_SUITES_2_CACHE_KEY, namespace)
+  for test_suite in stored_object.Get(key):
+    ScheduleUpdateDescriptor(test_suite, namespace)
 
-def UpdateDescriptor(test_suite, namespace):
+
+def ScheduleUpdateDescriptor(test_suite, namespace):
+  deferred.defer(_UpdateDescriptor, test_suite, namespace)
+
+
+def _UpdateDescriptor(test_suite, namespace):
+  # This function always runs in the taskqueue as an anonymous user.
+  if namespace == datastore_hooks.INTERNAL:
+    datastore_hooks.SetPrivilegedRequest()
+
   test_path = descriptor.Descriptor(
       test_suite=test_suite, bot='place:holder').ToTestPathsSync()[0].split('/')
 
@@ -55,6 +65,7 @@ def UpdateDescriptor(test_suite, namespace):
         graph_data.TestMetadata.test_part1_name == test_path[3])
   query = query.filter(graph_data.TestMetadata.deprecated == False)
   query = query.filter(graph_data.TestMetadata.has_rows == True)
+
   for key in query.fetch(keys_only=True):
     desc = descriptor.Descriptor.FromTestPathSync(utils.TestPath(key))
     bots.add(desc.bot)
