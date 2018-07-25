@@ -32,6 +32,9 @@ URL patterns for accessing alerts:
     * `min_end_revision`, `max_end_revision`: Integers. If unspecified, alerts
       at any revisions will be returned.
     * `min_timestamp`, `max_timestamp`: Datetimes in ISO format.
+    * `report`: Report template id as returned by `/api/report_names`. Multiple
+      `report`s may be specified. Filters alerts to the timeseries referenced by
+      the reports.
 
  * `/api/alerts/bug_id/id`: Get all the alerts associated with bug `id`.
     * `include_comments`: When omitted or set to `false` only bug metadata
@@ -160,3 +163,14 @@ The bugs API returns the following JSON about the bug:
     of values corresponding to the `columns` parameter. For example, if
     `columns=revision,avg,timestamp`, then elements of the data array will be
     3-tuples like `[123456,42.42,"2018-07-09T09:58:20.210539"]`.
+  * `/api/report/names`: Return an array of objects `{name, id, modified}`.
+  * `/api/report/template`: Creates or modifies report templates.
+    Set `template` to a json object `{rows, statistics}`.
+    Set `name` to a string.
+    Set `owners` to a comma-separated list of email addresses.
+    Optionally set `id` to a template id as returned by `/api/report/names` in
+    order to modify an existing template.
+    Returns the full new list of report templates `{name, id, modified}`.
+  * `/api/report/generate`: Generates reports.
+    Set `id` to a template id as returned by `/api/report/names`.
+    Set `revisions` to a comma-separated list of point id numbers or `latest`.

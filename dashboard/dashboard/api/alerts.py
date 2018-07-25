@@ -14,6 +14,8 @@ from dashboard.api import api_request_handler
 from dashboard.api import utils
 from dashboard.common import request_handler
 from dashboard.models import anomaly
+from dashboard.models import report_template
+
 
 
 class AlertsHandler(api_request_handler.ApiRequestHandler):
@@ -48,6 +50,11 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
         max_timestamp = utils.ParseISO8601(self.request.get(
             'max_timestamp', None))
 
+        test_keys = []
+        for template_id in self.request.get_all('report'):
+          test_keys.extend(report_template.TestKeysForReportTemplate(
+              template_id))
+
         try:
           alert_list, next_cursor, _ = anomaly.Anomaly.QueryAsync(
               bot_name=self.request.get('bot', None),
@@ -66,6 +73,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
               sheriff=self.request.get('sheriff', None),
               start_cursor=start_cursor,
               test=self.request.get('test', None),
+              test_keys=test_keys,
               test_suite_name=self.request.get('test_suite', None)).get_result()
         except AssertionError:
           alert_list, next_cursor = [], None

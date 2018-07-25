@@ -129,3 +129,15 @@ def GetReport(template_id, revisions):
     result['name'] = template.name
     result['internal'] = template.internal_only
     return result
+
+
+def TestKeysForReportTemplate(template_id):
+  template = ndb.Key('ReportTemplate', int(template_id)).get()
+  if not template:
+    return
+
+  for table_row in template.template['rows']:
+    for desc in report_query.TableRowDescriptors(table_row):
+      for test_path in desc.ToTestPathsSync():
+        yield utils.TestMetadataKey(test_path)
+        yield utils.OldStyleTestKey(test_path)

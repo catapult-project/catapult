@@ -14,6 +14,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
+from dashboard.models import report_template
 from dashboard.models import sheriff
 
 
@@ -84,6 +85,18 @@ class AlertsGeneralTest(testing_common.TestCase):
     self._CreateAnomaly()
     self._CreateAnomaly(test='adept/android/lodging/assessment/story')
     response = self._Post(bot='android')
+    self.assertEqual(1, len(response['anomalies']))
+    self.assertEqual('android', response['anomalies'][0]['bot'])
+
+  def testReport(self):
+    self._CreateAnomaly()
+    self._CreateAnomaly(test='adept/android/lodging/assessment/story')
+    report_template.ReportTemplate(name='foo', id=42, template={'rows': [{
+        'testSuites': ['lodging'],
+        'measurement': 'assessment',
+        'bots': ['adept:android'],
+        'testCases': ['story']}]}).put()
+    response = self._Post(report=42)
     self.assertEqual(1, len(response['anomalies']))
     self.assertEqual('android', response['anomalies'][0]['bot'])
 
