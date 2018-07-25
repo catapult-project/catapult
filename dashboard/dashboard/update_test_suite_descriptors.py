@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
+
+from google.appengine.ext import deferred
+
 from dashboard import update_test_suites
 from dashboard.common import datastore_hooks
 from dashboard.common import descriptor
@@ -10,7 +14,6 @@ from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
-from google.appengine.ext import deferred
 
 
 def CacheKey(test_suite):
@@ -45,6 +48,7 @@ def ScheduleUpdateDescriptor(test_suite, namespace):
 
 
 def _UpdateDescriptor(test_suite, namespace):
+  logging.info('%s %s', test_suite, namespace)
   # This function always runs in the taskqueue as an anonymous user.
   if namespace == datastore_hooks.INTERNAL:
     datastore_hooks.SetPrivilegedRequest()
@@ -66,7 +70,9 @@ def _UpdateDescriptor(test_suite, namespace):
   query = query.filter(graph_data.TestMetadata.deprecated == False)
   query = query.filter(graph_data.TestMetadata.has_rows == True)
 
-  for key in query.fetch(keys_only=True):
+  # Use an iterator because some test suites have more keys than can fit in
+  # memory.
+  for key in query.iter(keys_only=True):
     desc = descriptor.Descriptor.FromTestPathSync(utils.TestPath(key))
     bots.add(desc.bot)
     if desc.measurement:
@@ -74,6 +80,8 @@ def _UpdateDescriptor(test_suite, namespace):
     if desc.test_case:
       cases.add(desc.test_case)
 
+  logging.info('%d measurements, %d bots, %d cases',
+               len(measurements), len(bots), len(cases))
   desc = {
       'measurements': list(sorted(measurements)),
       'bots': list(sorted(bots)),
