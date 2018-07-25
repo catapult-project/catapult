@@ -18,14 +18,11 @@ class AndroidProcess(object):
     self._pid = pid
     self._name = name
     # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
-    self._forwarder = None
     self._devtools_client = None
 
   def __del__(self):
     if self._devtools_client:
       self._devtools_client.Close()
-    if self._forwarder:
-      self._forwarder.Close()
 
   @property
   def pid(self):
@@ -41,15 +38,9 @@ class AndroidProcess(object):
 
   def _UpdateDevToolsClient(self):
     if self._devtools_client is None:
-      platform_backend = self._app_backend.platform_backend
-      self._forwarder = platform_backend.forwarder_factory.Create(
-          local_port=0, remote_port=self._remote_devtools_port, reverse=True)
-      devtools_config = devtools_client_backend.DevToolsClientConfig(
-          local_port=self._forwarder.local_port,
-          remote_port=self._forwarder.remote_port,
+      self._devtools_client = devtools_client_backend.GetDevToolsBackEndIfReady(
+          devtools_port=self._remote_devtools_port,
           app_backend=self._app_backend)
-      if devtools_config.IsAgentReady():
-        self._devtools_client = devtools_config.Create()
 
   def GetWebViews(self):
     webviews = []

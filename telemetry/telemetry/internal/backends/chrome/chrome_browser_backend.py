@@ -39,8 +39,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._supports_tab_control = supports_tab_control
 
     self._devtools_client = None
-    # TODO(crbug.com/799415): Move forwarder into DevToolsClientBackend
-    self._forwarder = None
 
     self._extensions_to_load = browser_options.extensions_to_load
     if not supports_extensions and len(self._extensions_to_load) > 0:
@@ -96,30 +94,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     except EnvironmentError:
       return None  # Port information not ready, will retry.
 
-    # Since the method may be called multiple times due to retries, we need to
-    # restart the forwarder if the ports changed.
-    if (self._forwarder is not None and
-        self._forwarder.remote_port != devtools_port):
-      self._forwarder.Close()
-      self._forwarder = None
-
-    if self._forwarder is None:
-      # When running on a local platform this creates a DoNothingForwarder,
-      # and by setting local_port=None we let the forwarder choose a port.
-      self._forwarder = self.platform_backend.forwarder_factory.Create(
-          local_port=None, remote_port=devtools_port, reverse=True)
-
-    devtools_config = devtools_client_backend.DevToolsClientConfig(
-        local_port=self._forwarder.local_port,
-        remote_port=self._forwarder.remote_port,
-        browser_target=browser_target,
-        app_backend=self)
-
-    logging.info('Got devtools config: %s', devtools_config)
-    if not devtools_config.IsAgentReady():
-      return None  # Will retry.
-
-    return devtools_config.Create()
+    return devtools_client_backend.GetDevToolsBackEndIfReady(
+        devtools_port=devtools_port,
+        app_backend=self,
+        browser_target=browser_target)
 
   def BindDevToolsClient(self):
     """Find an existing DevTools agent and bind this browser backend to it."""
@@ -251,9 +229,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self._devtools_client:
       self._devtools_client.Close()
       self._devtools_client = None
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
+
 
   def GetSystemInfo(self):
     try:
