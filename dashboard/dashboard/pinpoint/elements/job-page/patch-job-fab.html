@@ -81,6 +81,13 @@ found in the LICENSE file.
 
         const tuples = [];
         for (const key in args) {
+          // TODO(dtu): Hack for OBBS migration. Remove in 2019.
+          // https://crbug.com/867643
+          if (args[key] == 'telemetry_perf_tests') {
+            args[key] = 'performance_test_suite';
+          } else if (args[key] == 'telemetry_perf_webview_tests') {
+            args[key] = 'performance_webview_test_suite';
+          }
           tuples.push({key, value: args[key]});
         }
         return tuples;
