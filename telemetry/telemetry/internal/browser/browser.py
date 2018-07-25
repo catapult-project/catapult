@@ -331,6 +331,16 @@ class Browser(app.App):
   def supports_power_metrics(self):
     return self._browser_backend.supports_power_metrics
 
+  def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
+    if not self.GetAllUnsymbolizedMinidumpPaths():
+      return
+    for unsymbolized_path in self.GetAllUnsymbolizedMinidumpPaths()[:10]:
+      sym = self.SymbolizeMinidump(unsymbolized_path)
+      if sym[0]:
+        logging.log(log_level, 'Symbolized minidump:\n%s', sym[1])
+      else:
+        logging.log(log_level, 'Minidump symbolization failed:%s\n', sym[1])
+
   def DumpStateUponFailure(self):
     logging.info('*************** BROWSER STANDARD OUTPUT ***************')
     try:
@@ -345,3 +355,12 @@ class Browser(app.App):
     except Exception: # pylint: disable=broad-except
       logging.exception('Failed to get browser log:')
     logging.info('***************** END OF BROWSER LOG ******************')
+
+    logging.info(
+        '********************* SYMBOLIZED MINIDUMP *********************')
+    try:
+      self.LogSymbolizedUnsymbolizedMinidumps(logging.INFO)
+    except Exception: # pylint: disable=broad-except
+      logging.exception('Failed to get symbolized minidump:')
+    logging.info(
+        '***************** END OF SYMBOLIZED MINIDUMP ******************')
