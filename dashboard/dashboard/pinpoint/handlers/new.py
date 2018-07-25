@@ -5,15 +5,12 @@
 import json
 
 from dashboard.api import api_request_handler
-from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
+from dashboard.pinpoint.models import bot_configurations
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models.change import patch
-
-
-_BOT_CONFIGURATIONS = 'bot_configurations'
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -64,8 +61,7 @@ def _ArgumentsWithConfiguration(original_arguments):
   # arguments. Pull any arguments from the specified "configuration", if any.
   configuration = original_arguments.get('configuration')
   if configuration:
-    configurations = namespaced_stored_object.Get(_BOT_CONFIGURATIONS)
-    new_arguments = configurations[configuration]
+    new_arguments = bot_configurations.Get(configuration)
   else:
     new_arguments = {}
 
