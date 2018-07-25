@@ -40,6 +40,12 @@ class TestSuitesTest(testing_common.TestCase):
     self.assertEqual(1, len(response))
     self.assertEqual('external', response[0])
 
+  def testAnonymous(self):
+    self.SetCurrentUserOAuth(None)
+    response = json.loads(self.Post('/api/test_suites').body)
+    self.assertEqual(1, len(response))
+    self.assertEqual('external', response[0])
+
 
 if __name__ == '__main__':
   unittest.main()
