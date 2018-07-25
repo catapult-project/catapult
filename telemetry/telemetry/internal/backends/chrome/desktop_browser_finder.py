@@ -165,6 +165,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         # Attempt to clean up things left over from the failed browser startup.
         try:
           if returned_browser:
+            returned_browser.DumpStateUponFailure()
             returned_browser.Close()
         except Exception: # pylint: disable=broad-except
           pass

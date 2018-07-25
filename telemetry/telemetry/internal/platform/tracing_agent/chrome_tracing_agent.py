@@ -82,6 +82,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if not self.IsStartupTracingSupported(self._platform_backend):
       return False
     self._CreateTraceConfigFile(config)
+    logging.info('Created trace config file in %s', self._trace_config_file)
     return True
 
   def _StartDevToolsTracing(self, config, timeout):
@@ -290,6 +291,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def _RemoveTraceConfigFile(self):
     if not self._trace_config_file:
       return
+    logging.info('Remove trace config file in %s', self._trace_config_file)
     if self._platform_backend.GetOSName() == 'android':
       self._platform_backend.device.RemovePath(
           self._trace_config_file, force=True, rename=True, as_root=True)
