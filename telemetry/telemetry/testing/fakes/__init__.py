@@ -377,6 +377,9 @@ class FakeBrowser(FakeApp):
   def DumpStateUponFailure(self):
     pass
 
+  def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
+    del log_level  # unused
+
 
 class _FakeTracingController(object):
   def __init__(self):
