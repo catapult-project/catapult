@@ -146,6 +146,7 @@ def ResolveMemoryDumpFields(entries, stackframes, types):
     return types[type_id]
 
   for entry in entries:
+    # pylint: disable=redefined-variable-type
     # Stackframe may be -1 (18446744073709551615L) when not stackframe are
     # available.
     if entry.stackframe not in stackframes:

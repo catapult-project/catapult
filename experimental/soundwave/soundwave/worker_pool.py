@@ -68,7 +68,7 @@ def Run(label, worker, args, items, stream=None):
 
 def _Worker(item):
   try:
-    Process(item)
+    Process(item)  # pylint: disable=not-callable
   except KeyboardInterrupt:
     pass
   except:

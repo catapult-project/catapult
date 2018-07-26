@@ -7,8 +7,9 @@
 # Pylint warnings occur if you install a different version than in third_party
 # pylint: disable=no-member
 
-import httplib2
 import time
+
+import httplib2
 
 from apiclient import discovery  # pylint: disable=import-error
 from oauth2client import service_account  # pylint: disable=no-name-in-module

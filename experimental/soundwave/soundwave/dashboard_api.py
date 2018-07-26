@@ -3,15 +3,16 @@
 # found in the LICENSE file.
 
 import datetime
-import httplib2
 import json
 import logging
+import os
+import urllib
+
+import httplib2
 import oauth2client.client
 import oauth2client.file
 from oauth2client import service_account  # pylint: disable=no-name-in-module
 import oauth2client.tools
-import os
-import urllib
 
 from py_utils import retry_util  # pylint: disable=import-error
 

@@ -44,7 +44,7 @@ class MemoryAlert(_MemoryAlert):
     kwargs.setdefault('story', '*/*')
     kwargs.setdefault('config', 'memory_above_64k')
     kwargs.setdefault('rotation', 'chromium')
-    return super(cls, MemoryAlert).__new__(cls, **kwargs)
+    return super(MemoryAlert, cls).__new__(cls, **kwargs)
 
   def __str__(self):
     return '/'.join([self.master, self.builder, self.benchmark, self.metric,
@@ -58,7 +58,11 @@ class MemoryAlert(_MemoryAlert):
 
   def Clone(self, **kwargs):
     """Make a copy of this alert with some fields updated."""
-    return super(MemoryAlert, self)._replace(**kwargs)
+    new_args = self._asdict()
+    new_args.update(kwargs)
+    # This makes sure we return a new object of the correct type; otherwise
+    # pyling gets confused if we try to use namedtuple._replace.
+    return type(self)(**new_args)
 
 
 # Default settings for metrics reported by Chrome and OS probes.

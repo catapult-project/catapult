@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 import datetime
-import httplib2
 import json
 import re
 import urllib
 
+import httplib2
 from oauth2client import service_account  # pylint: disable=no-name-in-module
 
 
