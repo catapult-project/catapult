@@ -14,6 +14,7 @@ disable=
   locally-enabled,
   missing-docstring,
   star-args,
+  wrong-import-position,
 
 
 [REPORTS]

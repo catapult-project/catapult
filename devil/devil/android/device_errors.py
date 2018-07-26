@@ -55,15 +55,15 @@ class _BaseCommandFailedError(CommandFailedError):
     self.status = status
     if not message:
       adb_cmd = ' '.join(cmd_helper.SingleQuote(arg) for arg in self.args)
-      message = ['adb %s: failed ' % adb_cmd]
+      segments = ['adb %s: failed ' % adb_cmd]
       if status:
-        message.append('with exit status %s ' % self.status)
+        segments.append('with exit status %s ' % self.status)
       if output:
-        message.append('and output:\n')
-        message.extend('- %s\n' % line for line in output.splitlines())
+        segments.append('and output:\n')
+        segments.extend('- %s\n' % line for line in output.splitlines())
       else:
-        message.append('and no output.')
-      message = ''.join(message)
+        segments.append('and no output.')
+      message = ''.join(segments)
     super(_BaseCommandFailedError, self).__init__(message, device_serial)
 
   def __eq__(self, other):
@@ -79,8 +79,7 @@ class _BaseCommandFailedError(CommandFailedError):
     """Support pickling."""
     result = [None, None, None, None, None]
     super_result = super(_BaseCommandFailedError, self).__reduce__()
-    for i in range(len(super_result)):
-      result[i] = super_result[i]
+    result[:len(super_result)] = super_result
 
     # Update the args used to reconstruct this exception.
     result[1] = (
@@ -120,19 +119,19 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
 
   def __init__(self, command, output, status, device_serial=None):
     self.command = command
-    message = ['shell command run via adb failed on the device:\n',
+    segments = ['shell command run via adb failed on the device:\n',
                '  command: %s\n' % command]
-    message.append('  exit status: %s\n' % status)
+    segments.append('  exit status: %s\n' % status)
     if output:
-      message.append('  output:\n')
+      segments.append('  output:\n')
       if isinstance(output, basestring):
         output_lines = output.splitlines()
       else:
         output_lines = output
-      message.extend('  - %s\n' % line for line in output_lines)
+      segments.extend('  - %s\n' % line for line in output_lines)
     else:
-      message.append("  output: ''\n")
-    message = ''.join(message)
+      segments.append("  output: ''\n")
+    message = ''.join(segments)
     super(AdbShellCommandFailedError, self).__init__(
       ['shell', command], output, status, device_serial, message)
 
@@ -140,8 +139,7 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
     """Support pickling."""
     result = [None, None, None, None, None]
     super_result = super(AdbShellCommandFailedError, self).__reduce__()
-    for i in range(len(super_result)):
-      result[i] = super_result[i]
+    result[:len(super_result)] = super_result
 
     # Update the args used to reconstruct this exception.
     result[1] = (self.command, self.output, self.status, self.device_serial)

@@ -306,7 +306,7 @@ class Forwarder(object):
     instance = Forwarder._GetInstanceLocked(None)
     serial = str(device)
     serial_with_port = (serial, device_port)
-    if not serial_with_port in instance._device_to_host_port_map:
+    if serial_with_port not in instance._device_to_host_port_map:
       logger.error('Trying to unmap non-forwarded port %d', device_port)
       return
 

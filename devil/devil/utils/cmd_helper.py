@@ -247,6 +247,7 @@ def _IterProcessStdoutFcntl(
     process, iter_timeout=None, timeout=None, buffer_size=4096,
     poll_interval=1):
   """An fcntl-based implementation of _IterProcessStdout."""
+  # pylint: disable=too-many-nested-blocks
   import fcntl
   try:
     # Enable non-blocking reads from the child's stdout.

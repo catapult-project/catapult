@@ -50,12 +50,12 @@ class PerfControl(object):
 
     product_model = self._device.product_model
     # TODO(epenner): Enable on all devices (http://crbug.com/383566)
-    if 'Nexus 4' == product_model:
+    if product_model == 'Nexus 4':
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
         logger.warning('Failed to force CPUs online. Results may be NOISY!')
       self.SetScalingGovernor('performance')
-    elif 'Nexus 5' == product_model:
+    elif product_model == 'Nexus 5':
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
         logger.warning('Failed to force CPUs online. Results may be NOISY!')
@@ -79,7 +79,7 @@ class PerfControl(object):
     if not self._device.HasRoot():
       return
     product_model = self._device.product_model
-    if 'Nexus 5' == product_model:
+    if product_model == 'Nexus 5':
       if self._AllCpusAreOnline():
         self._SetScalingMaxFreq(2265600)
         self._SetMaxGpuClock(450000000)

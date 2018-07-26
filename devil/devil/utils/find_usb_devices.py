@@ -452,9 +452,9 @@ def GetBusDeviceFromTTY(tty_string):
   for line in _GetTtyUSBInfo(tty_string).splitlines():
     bus_match = _BUS_NUM_REGEX.match(line)
     device_match = _DEVICE_NUM_REGEX.match(line)
-    if bus_match and bus_num == None:
+    if bus_match and bus_num is None:
       bus_num = int(bus_match.group(1))
-    if device_match and device_num == None:
+    if device_match and device_num is None:
       device_num = int(device_match.group(1))
   if bus_num is None or device_num is None:
     raise ValueError('Info not found')

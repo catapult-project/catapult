@@ -237,6 +237,7 @@ def _ParseFlags(line):
   current_quote = None
   current_flag = None
 
+  # pylint: disable=unsubscriptable-object
   for c in line:
     # Detect start or end of quote block.
     if (current_quote is None and c in _QUOTES) or c == current_quote:

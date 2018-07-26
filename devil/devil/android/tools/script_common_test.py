@@ -18,6 +18,7 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
+  # pylint: disable=wrong-import-order
   from dependency_manager import exceptions
 
 
@@ -90,4 +91,3 @@ class InitializeEnvironmentTest(unittest.TestCase):
 
 if __name__ == '__main__':
   sys.exit(unittest.main())
-

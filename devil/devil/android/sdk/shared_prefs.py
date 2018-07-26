@@ -10,10 +10,10 @@ See e.g.:
 
 import logging
 import posixpath
+from xml.etree import ElementTree
 
 from devil.android import device_errors
 from devil.android.sdk import version_codes
-from xml.etree import ElementTree
 
 logger = logging.getLogger(__name__)
 
@@ -296,7 +296,7 @@ class SharedPrefs(object):
     if self._device.build_version_sdk >= version_codes.MARSHMALLOW:
       security_context = self._device.GetSecurityContextForPackage(self.package,
           encrypted=self._encrypted)
-      if security_context == None:
+      if security_context is None:
         raise device_errors.CommandFailedError(
             'Failed to get security context for %s' % self.package)
       paths = [posixpath.dirname(self.path), self.path]

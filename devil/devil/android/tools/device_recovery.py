@@ -8,9 +8,10 @@
 import argparse
 import logging
 import os
-import psutil
 import signal
 import sys
+
+import psutil
 
 if __name__ == '__main__':
   sys.path.append(
@@ -38,7 +39,7 @@ def KillAllAdb():
         # as newer (v2 and over) versions of psutil.
         # See: http://grodola.blogspot.com/2014/01/psutil-20-porting.html
         pinfo = p.as_dict(attrs=['pid', 'name', 'cmdline'])
-        if 'adb' == pinfo['name']:
+        if pinfo['name'] == 'adb':
           pinfo['cmdline'] = ' '.join(pinfo['cmdline'])
           yield p, pinfo
       except (psutil.NoSuchProcess, psutil.AccessDenied):
