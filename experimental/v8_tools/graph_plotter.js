@@ -14,7 +14,7 @@ class GraphPlotter {
     this.graph_ = graph;
     /** @private @const {Object} margins Creates room for labels and axis. */
     this.margins_ = {
-      top: 15,
+      top: 50,
       right: 200,
       left: 80,
       bottom: 50,
@@ -48,22 +48,40 @@ class GraphPlotter {
         .attr('height', this.chartHeight_);
     /** @private {Object} */
     this.legend_ = this.createLegend_();
+    // The following properties are intialialised when initChart is called
+    // because they rely upon graph data having sufficient information
+    // for plotting. Hence it does not make sense to initalise them until
+    // plotting is required.
     /** @private {Object} */
+    this.scaleForXAxis_ = undefined;
+    /** @private {Object} */
+    this.scaleForYAxis_ = undefined;
+    /** @private {Object} */
+    this.xAxisGenerator_ = undefined;
+    /** @private {Object} */
+    this.yAxisGenerator_ = undefined;
+    /** @private {Object} Keep a reference to y-axis for updating on zoom */
+    this.yAxisDrawing_ = undefined;
+  }
+
+  /**
+   * Initalises the chart by computing the scales for the axis and
+   * drawing them. It also applies the labels to the graph (axis and
+   * graph titles).
+   */
+  initChart_() {
     this.scaleForXAxis_ = this.createXAxisScale_();
-    /** @private {Object} */
     this.scaleForYAxis_ = this.createYAxisScale_();
-    /** @private {Object} */
     this.xAxisGenerator_ = d3.axisBottom(this.scaleForXAxis_);
-    /** @private {Object} */
     this.yAxisGenerator_ = d3.axisLeft(this.scaleForYAxis_);
     // Draw the x-axis.
     this.chart_.append('g')
         .call(this.xAxisGenerator_)
         .attr('transform', `translate(0, ${this.chartHeight_})`);
-    /** @private {Object} Keep a reference to y-axis for updating on zoom */
     this.yAxisDrawing_ = this.chart_.append('g')
         .call(this.yAxisGenerator_);
     this.labelAxis_();
+    this.labelTitle_();
   }
 
   createXAxisScale_() {
@@ -79,16 +97,17 @@ class GraphPlotter {
   }
 
   createLegend_() {
+    const padding = 5;
     return this.chart_.append('g')
         .attr('class', 'legend')
         .attr('transform',
-            `translate(${this.chartWidth_}, ${this.margins_.top})`);
+            `translate(${this.chartWidth_ + padding}, ${this.margins_.top})`);
   }
 
   labelAxis_() {
     this.chart_.append('text')
         .attr('transform', `translate(${this.chartWidth_ / 2}, 
-            ${this.canvasHeight_ - this.margins_.bottom / 2})`)
+            ${this.chartHeight_ + this.margins_.bottom})`)
         .attr('text-anchor', 'middle')
         .text(this.graph_.xAxis());
 
@@ -100,11 +119,20 @@ class GraphPlotter {
         .text(this.graph_.yAxis());
   }
 
+  labelTitle_() {
+    this.chart_.append('text')
+        .attr('x', this.chartWidth_ / 2)
+        .attr('y', 0 - this.margins_.top / 2)
+        .attr('text-anchor', 'middle')
+        .text(this.graph_.title());
+  }
+
   /**
    * Draws a line plot to the canvas. If there are multiple dataSources it will
    * plot them both and label their colors in the legend.
    */
   linePlot() {
+    this.initChart_();
     const pathGenerator = d3.line()
         .x(datum => this.scaleForXAxis_(datum.x))
         .y(datum => this.scaleForYAxis_(datum.y))

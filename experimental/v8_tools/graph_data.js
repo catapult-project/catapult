@@ -10,9 +10,12 @@ class GraphData {
     this.labels = {
       xAxis: '',
       yAxis: '',
+      title: '',
     };
     /** @private @const {Array<Object>} */
     this.dataSources = [];
+    /** @private @const {Object} */
+    this.plotter_ = new GraphPlotter(this);
   }
 
   /**
@@ -46,8 +49,27 @@ class GraphData {
   }
 
   /**
+   * Sets the label for the title if provided as an argument and returns
+   * this instance for method chaining. If no label is provided then
+   * the current label is returned.
+   * @param {string} label
+   * @return {(string|GraphData)}
+   */
+  title(label) {
+    if (arguments.length > 0) {
+      this.labels.title = label;
+      return this;
+    }
+    return this.labels.title;
+  }
+
+  /**
    * Registers the supplied data as a dataSource, enabling it to be plotted and
-   * processed.
+   * processed. The data source can supply various attributes: the color is
+   * optional and defines the line color to be used (useful for when multiple
+   * data sources are being plotted), the data attribute is the supply of raw
+   * data to be processed and the key attribute is the label which will be
+   * assigned to the data on the legend.
    * @param {{data: Array<Object>, color: string, key: string}} dataSource
    * @return {GraphData}
    */
@@ -99,28 +121,45 @@ class GraphData {
   /**
    * Applies the supplied processingFn to all of the dataSources held
    * in this instance and replaces the old data with the newly processed data.
-   * The processing function supplied to process should accept an array of
-   * objects (consisting of x,y co-ordinates) and return an array of objects
-   * in the same format.
-   * @param {function(Array<Object>): Array<Object>} processingFn
+   * The processing function supplied to process should return data in
+   * a format suitable for plotting (e.g., an array of
+   * objects, consisting of x and y co-ordinates, for a line plot).
+   * @param {function(Array<?>): Array<Object>} processingFn
    * @returns {GraphData}
    */
   process(processingFn) {
+    if (typeof processingFn !== 'function') {
+      const type = typeof processingFn;
+      throw new TypeError(
+          `Expected argument of type function, but got: ${type}`);
+    }
     this.dataSources.forEach(
         source => source.data = processingFn(source.data));
     return this;
   }
 
   /**
-   * Sorts the list of x, y points according to their y value and
-   * replaces the x values with the new sorted position of each point.
-   * @param {Array<Object>} data
+   * Computes the cumulative frequency for all data sources provided
+   * and plots the results to the screen. The provided
+   * data field in the dataSource must be a list of numbers.
+   */
+  plotCumulativeFrequency() {
+    this.process(GraphData.computeCumulativeFrequencies);
+    this.plotter_.linePlot();
+  }
+
+  /**
+   * Computes the cumulative frequency for the list of values provided.
+   * @param {Array<number>} data
    * @returns {Array<Object>}
    */
-  static sortYValues(data) {
-    const sortedData = data.sort(
-        (pointOne, pointTwo) => pointOne.y - pointTwo.y);
-    sortedData.forEach((datum, i) => datum.x = i);
-    return sortedData;
+  static computeCumulativeFrequencies(data) {
+    const sortedData = data.sort((a, b) => a - b);
+    return sortedData.map((value, i) => {
+      return {
+        x: i,
+        y: value,
+      };
+    });
   }
 }

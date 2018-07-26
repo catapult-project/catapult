@@ -4,6 +4,11 @@
         <script src="https://d3js.org/d3.v5.min.js"></script>
     </head>
     <body>
+      <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+      </style>
         <div id='canvas'></div>
     </body>
     <script src="./graph_data.js"></script>
@@ -26,18 +31,14 @@
         const data = await d3.csv(DATA_LOCATION);
         const propResSizeData = data.filter(row => row.name === METRIC_NAME);
         propResSizeData.forEach((row, index) => {
-          without.push({
-            x: index,
-            y: convertBytesToMiB(+row.avg_y),
-          });
-          withs.push({
-            x: index,
-            y: convertBytesToMiB(+row.avg_x),
-          });
+          without.push(convertBytesToMiB(+row.avg_y));
+          withs.push(convertBytesToMiB(+row.avg_x));
         });
         const graph = new GraphData();
         graph.xAxis('Data Points')
             .yAxis('Memory used (MiB)')
+            .title('Memory used with and without site' +
+              'isolation enabled for the TrivialGifAnimation story')
             .addData({
               color: '#ff7f0e',
               data: withs,
@@ -48,9 +49,7 @@
               data: without,
               key: 'withoutSiteIsoEnabled'
             })
-            .process(GraphData.sortYValues);
-        const plotter = new GraphPlotter(graph);
-        plotter.linePlot();
+            .plotCumulativeFrequency();
       };
       loadData();
     </script>
