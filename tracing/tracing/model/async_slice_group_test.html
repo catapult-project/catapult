@@ -131,20 +131,17 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(vsg[3].viewSubGroups.length, 0);
     const wf1vsg = vsg[0].viewSubGroups;
     assert.strictEqual(wf1vsg.length, 1);
-    assert.strictEqual(wf1vsg[0].title, 'FrameScheduler.Baz');
+    assert.strictEqual(wf1vsg[0].title, 'Baz');
     assert.strictEqual(wf1vsg[0].getSettingsKey(),
-        'processes.Renderer.MainThread.' +
-        'Frame:ptr:0x1ee7beef.FrameScheduler.Baz');
+        'processes.Renderer.MainThread.Frame:ptr:0x1ee7beef.Baz');
     const wf2vsg = vsg[1].viewSubGroups;
     assert.strictEqual(wf2vsg.length, 2);
-    assert.strictEqual(wf2vsg[0].title, 'FrameScheduler.Bar');
+    assert.strictEqual(wf2vsg[0].title, 'Bar');
     assert.strictEqual(wf2vsg[0].getSettingsKey(),
-        'processes.Renderer.MainThread.' +
-        'Frame:ptr:0xdeadbeef.FrameScheduler.Bar');
-    assert.strictEqual(wf2vsg[1].title, 'FrameScheduler.Foo');
+        'processes.Renderer.MainThread.Frame:ptr:0xdeadbeef.Bar');
+    assert.strictEqual(wf2vsg[1].title, 'Foo');
     assert.strictEqual(wf2vsg[1].getSettingsKey(),
-        'processes.Renderer.MainThread.' +
-        'Frame:ptr:0xdeadbeef.FrameScheduler.Foo');
+        'processes.Renderer.MainThread.Frame:ptr:0xdeadbeef.Foo');
   });
 
   test('asyncSliceGroupStableId', function() {

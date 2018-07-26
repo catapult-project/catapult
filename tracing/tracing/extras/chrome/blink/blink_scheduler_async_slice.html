@@ -15,7 +15,21 @@ tr.exportTo('tr.e.blink', function() {
       if (this.title.startsWith('FrameScheduler.')) {
         return 'Frame' + this.id;
       }
+      if (this.title.startsWith('Scheduler.')) {
+        return 'Renderer Scheduler';
+      }
       return undefined;
+    }
+
+    get viewSubGroupTitle() {
+      // NOTE: Be careful with hardcoded (for performance) string length.
+      if (this.title.startsWith('FrameScheduler.')) {
+        return this.title.substring(15);
+      }
+      if (this.title.startsWith('Scheduler.')) {
+        return this.title.substring(10);
+      }
+      return this.title;
     }
   }
 
@@ -23,6 +37,7 @@ tr.exportTo('tr.e.blink', function() {
     categoryParts: [
       'renderer.scheduler',
       'disabled-by-default-renderer.scheduler',
+      'disabled-by-default-renderer.scheduler.debug',
     ]
   });
 
