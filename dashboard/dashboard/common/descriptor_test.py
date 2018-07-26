@@ -22,6 +22,7 @@ class DescriptorTest(testing_common.TestCase):
     ])
     stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [
         'TEST_GROUPABLE%',
+        'v8.',
     ])
     stored_object.Set(descriptor.POLY_MEASUREMENT_TEST_SUITES_KEY, [
         'resource_sizes:foo',
@@ -202,6 +203,21 @@ class DescriptorTest(testing_common.TestCase):
     self.assertEqual('c:d', desc.test_case)
     self.assertEqual(descriptor.REFERENCE_BUILD_TYPE, desc.build_type)
 
+  def testFromTestPath_V8Browsing(self):
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/v8.browsing_desktop/a/c_d/c_d_e')
+    self.assertEqual('v8:browsing_desktop', desc.test_suite)
+    self.assertEqual('a', desc.measurement)
+    self.assertEqual('c:d:e', desc.test_case)
+
+  def testToTestPaths_V8Browsing(self):
+    expected = ['master/bot/v8.browsing_desktop/a/c_d/c_d_e']
+    self.assertEqual(expected, descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='v8:browsing_desktop',
+        measurement='a',
+        test_case='c:d:e').ToTestPathsSync())
+
   def testToTestPaths_Empty(self):
     self.assertEqual([], descriptor.Descriptor().ToTestPathsSync())
 
@@ -284,7 +300,7 @@ class DescriptorTest(testing_common.TestCase):
         test_case='long_running_tools:gmail').ToTestPathsSync())
 
   def testToTestPath_ResourceSizes(self):
-    expected = 'master/bot/resource sizes (foo)/a/b/c'
+    expected = 'master/bot/resource_sizes (foo)/a/b/c'
     self.assertEqual([expected], descriptor.Descriptor(
         bot='master:bot',
         test_suite='resource_sizes:foo',

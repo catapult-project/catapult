@@ -114,10 +114,10 @@ class Descriptor(object):
     if (test_suite.startswith('system_health') or
         (test_suite in [
             'tab_switching.typical_25',
-            'v8.browsing_desktop',
-            'v8.browsing_desktop-future',
-            'v8.browsing_mobile',
-            'v8.browsing_mobile-future',
+            'v8:browsing_desktop',
+            'v8:browsing_desktop-future',
+            'v8:browsing_mobile',
+            'v8:browsing_mobile-future',
             ])):
       measurement = path.pop(0)
       path.pop(0)
@@ -132,7 +132,7 @@ class Descriptor(object):
 
     if test_suite in [
         'memory.dual_browser_test', 'memory.top_10_mobile',
-        'v8.runtime_stats.top_25']:
+        'v8:runtime_stats.top_25']:
       measurement = path.pop(0)
       case = path.pop(0)
       if len(path) == 0:
@@ -239,7 +239,7 @@ class Descriptor(object):
     test_path += '/'
 
     if self.test_suite.startswith('resource_sizes:'):
-      test_path += 'resource sizes (%s)' % self.test_suite[15:]
+      test_path += 'resource_sizes (%s)' % self.test_suite[15:]
     elif self.test_suite in (yield self._GetConfiguration(
         COMPOSITE_TEST_SUITES_KEY, [])):
       test_path += self.test_suite.replace(':', '/')
@@ -281,7 +281,7 @@ class Descriptor(object):
         test_path += '/' + '_'.join(test_case)
       elif self.test_suite in [
           'sizes', 'memory.dual_browser_test', 'memory.top_10_mobile',
-          'v8.runtime_stats.top_25'] + (yield self._GetConfiguration(
+          'v8:runtime_stats.top_25'] + (yield self._GetConfiguration(
               TWO_TWO_TEST_SUITES_KEY, [])):
         test_path += '/' + self.test_case.replace(':', '/')
       else:
