@@ -70,6 +70,9 @@ class Job(ndb.Model):
   # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
 
+  # User-provided name of the job.
+  name = ndb.StringProperty()
+
   # Email of the job creator.
   user = ndb.StringProperty()
 
@@ -85,7 +88,7 @@ class Job(ndb.Model):
   @classmethod
   def New(cls, quests, changes, arguments=None, bug_id=None,
           comparison_mode=None, gerrit_server=None, gerrit_change_id=None,
-          pin=None, tags=None, user=None):
+          name=None, pin=None, tags=None, user=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -100,6 +103,7 @@ class Job(ndb.Model):
           results.
       gerrit_change_id: Change id of the Gerrit code review to update with job
           results.
+      name: The user-provided name of the Job.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
       tags: A dict of key-value pairs used to filter the Jobs listings.
       user: The email of the Job creator.
@@ -110,7 +114,8 @@ class Job(ndb.Model):
     state = job_state.JobState(quests, comparison_mode=comparison_mode, pin=pin)
     job = cls(state=state, arguments=arguments or {},
               bug_id=bug_id, gerrit_server=gerrit_server,
-              gerrit_change_id=gerrit_change_id, tags=tags, user=user)
+              gerrit_change_id=gerrit_change_id,
+              name=name, tags=tags, user=user)
 
     for c in changes:
       job.AddChange(c)
@@ -316,6 +321,7 @@ class Job(ndb.Model):
 
         'arguments': self.arguments,
         'bug_id': self.bug_id,
+        'name': self.name,
         'user': self.user,
 
         'created': self.created.isoformat(),

@@ -45,6 +45,7 @@ def _CreateJob(request):
   bug_id = _ValidateBugId(arguments.get('bug_id'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
   gerrit_server, gerrit_change_id = _ValidatePatch(arguments.get('patch'))
+  name = arguments.get('name')
   pin = _ValidatePin(arguments.get('pin'))
   tags = _ValidateTags(arguments.get('tags'))
   user = _ValidateUser(arguments.get('user'))
@@ -53,7 +54,8 @@ def _CreateJob(request):
   return job_module.Job.New(
       quests, changes, arguments=original_arguments, bug_id=bug_id,
       comparison_mode=comparison_mode, gerrit_server=gerrit_server,
-      gerrit_change_id=gerrit_change_id, pin=pin, tags=tags, user=user)
+      gerrit_change_id=gerrit_change_id,
+      name=name, pin=pin, tags=tags, user=user)
 
 
 def _ArgumentsWithConfiguration(original_arguments):
