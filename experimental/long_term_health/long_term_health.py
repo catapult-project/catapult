@@ -17,7 +17,6 @@ import re
 import subprocess
 import sys
 
-
 PROCESSOR_ARCHITECTURE = 'arm'
 DEFAULT_DOWNLOAD_PATH = 'out'
 APP_DIR = os.path.normpath(os.path.dirname(__file__))
@@ -26,6 +25,105 @@ USELESS_CHAR_COUNT = 5
 
 class CloudDownloadFailed(Exception):
   pass
+
+
+def ParseIsoFormatDate(iso_date_str):
+  return datetime.datetime.strptime(iso_date_str, '%Y-%m-%dT%H:%M:%S')
+
+
+def ParseDate(date_str):
+  """Convert a formatted date string to a datetime object.
+
+  Args:
+    date_str(string): a date string in the format `2018-10-01`
+
+  Returns:
+    Datetime: corresponding object representing the date_str
+
+  Raises:
+    argparse.ArgumentTypeError: it will be risen if the date string cannot be
+      converted to Datetime object
+  """
+  try:
+    date_object = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+  except ValueError:
+    msg = (
+        '%s is not a valid date value or it doesn\'t adhere to the required '
+        'format, please double check' % date_str)
+    raise argparse.ArgumentTypeError(msg)
+  return date_object
+
+
+class MilestoneInfo(object):
+  """Simple class to store the full_milestone_info.csv data.
+  """
+
+  def __init__(self, path_to_full_info_table):
+    self._table = list(self._LoadCsvTable(path_to_full_info_table))
+    assert self._table, "full_milestone_info.csv doesn't have any rows"
+
+  def _LoadCsvTable(self, path_to_full_info_table):
+    with open(path_to_full_info_table) as f:
+      for row in csv.DictReader(f):
+        yield {
+            'milestone': int(row['milestone']),
+            'branch': int(row['branch']),
+            'version_number': row['version_number'],
+            'release_date': ParseIsoFormatDate(row['release_date'])
+        }
+
+  @property
+  def latest_milestone(self):
+    return self._table[-1]['milestone']
+
+  def GetLatestVersionBeforeDate(self, date):
+    for row in reversed(self._table):
+      if row['release_date'] < date:
+        return row['milestone']
+    raise LookupError(
+        'Cannot find any version before the given date %s' % date.isoformat())
+
+  def GetEarliestVersionAfterDate(self, date):
+    for row in self._table:
+      if row['release_date'] > date:
+        return row['milestone']
+    raise LookupError(
+        'Cannot find any version after the given date %s' % date.isoformat())
+
+  def GetVersionNumberFromMilestone(self, target_milestone):
+    for row in self._table:
+      if target_milestone == row['milestone']:
+        return row['version_number']
+    raise LookupError('Cannot find version the number for the milestone %s' %
+                      target_milestone)
+
+  def GetLatestVersionURI(self, milestone_num):
+    """Get the latest google cloud storage uri for given milestone.
+
+    Args:
+      milestone_num(int): Number representing the milestone.
+
+    Returns:
+      string: The URI for the latest version of Chrome for a given milestone.
+
+    Raises:
+      CloudDownloadFailed: this would be risen if we cannot find the apk within
+      5 patches
+    """
+    version_num = self.GetVersionNumberFromMilestone(milestone_num)
+    # check whether the latest patch is in the Google Cloud storage as
+    # sometimes it is not, so we need to decrement patch and get the
+    # previous one
+    for i in range(5):
+      # above number has been tested, and it works from milestone 45 to 68
+      download_uri = ('gs://chrome-signed/android-B0urB0N/%s/%s/Chrome'
+                      'Stable.apk') % (DecrementPatchNumber(version_num, i),
+                                       PROCESSOR_ARCHITECTURE)
+      # check exit code to confirm the existence of the package
+      if subprocess.call(['gsutil', 'ls', download_uri]) == 0:
+        return download_uri
+
+    raise CloudDownloadFailed(milestone_num)
 
 
 def IsGsutilInstalled():
@@ -69,7 +167,7 @@ def GetBranchInfo(milestone, branch):
     if version_number:
       release_date = datetime.datetime.strptime(
           log['committer']['time'], '%a %b %d %X %Y').isoformat()
-      return (milestone, branch, version_number.group(0), release_date)
+      return milestone, branch, version_number.group(0), release_date
 
   #  raise exception if non of the log is relevant
   assert False, 'Could not find commit with version increment'
@@ -94,6 +192,7 @@ def DownloadAPKFromURI(uri, output_dir):
     uri(string): Gsutil URI
     output_dir(string): The path that the APKs will be stored
   """
+
   def GetAPKName(gs_uri):
     # example `gs_uri`: gs://chrome-signed/android-B0urB0N/56.0.2924.3/arm/
     # ChromeStable.apk
@@ -105,40 +204,6 @@ def DownloadAPKFromURI(uri, output_dir):
                            os.path.join(output_dir, GetAPKName(uri))])
   except subprocess.CalledProcessError:
     raise CloudDownloadFailed(uri)
-
-
-def GetLatestVersionURI(milestone_num):
-  """Helper function for `GetCloudStorageURIs`.
-
-  Args:
-    milestone_num(int): Number representing the milestone.
-
-  Returns:
-    string: The URI for the latest version of Chrome for a given milestone.
-
-  Raises:
-    CloudDownloadFailed: this would be rise if we cannot find the apk within 5
-    patch
-  """
-  with open(os.path.join(
-      APP_DIR, 'full_milestone_info.csv')) as full_info_table:
-    reader = csv.reader(full_info_table)
-    next(reader)  # skip the header line
-    for milestone, _, version_num, _ in reader:
-      if int(milestone) == milestone_num:
-        # check whether the latest patch is in the Google Cloud storage as
-        # sometimes it is not, so we need to decrement patch and get the
-        # previous one
-        for i in range(5):
-          # above number has been tested, and it works from milestone 45 to 68
-          download_uri = ('gs://chrome-signed/android-B0urB0N/%s/%s/Chrome'
-                          'Stable.apk') % (DecrementPatchNumber(version_num, i),
-                                           PROCESSOR_ARCHITECTURE)
-          # check exit code to confirm the existence of the package
-          if subprocess.call(['gsutil', 'ls', download_uri]) == 0:
-            return download_uri
-
-    raise CloudDownloadFailed(milestone_num)
 
 
 def DecrementPatchNumber(version_num, num):
@@ -155,20 +220,64 @@ def DecrementPatchNumber(version_num, num):
   """
   version_num_list = version_num.split('.')
   version_num_list[-1] = str(int(version_num_list[-1]) - num)
-  assert version_num_list[-1] >= 0, 'patch number cannot be negative'
+  assert int(version_num_list[-1]) >= 0, 'patch number cannot be negative'
   return '.'.join(version_num_list)
 
 
-def main(args):
+def BuildArgumentParser(args):
+  """Set the expected options for the argument parser.
+
+  If the program is ran with no argument, it will download the 10 latest
+  chrome versions
+
+  Args:
+    args(list): list of arguments(string)
+
+  Returns:
+    Namespace: a class storing all the parsed arguments
+  """
   parser = argparse.ArgumentParser(
       description='tool to download different versions of chrome')
-  parser.add_argument('from_milestone', type=int,
-                      help='starting milestone number')
-  parser.add_argument('to_milestone', type=int,
-                      help='ending milestone number')
+  # from_date and from_milestone cannot present at the same time
+  start = parser.add_mutually_exclusive_group()
+  # to_date and to_milestone cannot present at the same time
+  end = parser.add_mutually_exclusive_group()
+  start.add_argument('--from-milestone', type=int,
+                     help='starting milestone number')
+  start.add_argument('--from-date', type=ParseDate,
+                     help='starting version release date'
+                          ', must be in the format `2017-10-02`')
+  end.add_argument('--to-milestone', type=int,
+                   help='ending milestone number')
+  end.add_argument('--to-date', type=ParseDate,
+                   help='ending version release date'
+                        ', must be in the format `2017-10-02`')
   parser.add_argument('--output-path', default=DEFAULT_DOWNLOAD_PATH,
-                      help='the path that the APKs well be stored')
-  args = parser.parse_args(args)
+                      help='the path that the APKs will be stored')
+  return parser.parse_args(args)
+
+
+def ProcessArguments(args, milestone_info):
+  """Set `to_milestone` and `from_milestone` according to provided arguments.
+
+  Args:
+    args(Namespace class): object storing the relevant arguments
+    milestone_info(MilestoneInfo class): the object that stores all the table
+        content
+  """
+  if args.from_date:
+    args.from_milestone = milestone_info.GetEarliestVersionAfterDate(
+        args.from_date)
+  if args.to_date:
+    args.to_milestone = milestone_info.GetLatestVersionBeforeDate(args.to_date)
+  if args.from_milestone is None:
+    args.from_milestone = milestone_info.latest_milestone - 9
+  if args.to_milestone is None:
+    args.to_milestone = milestone_info.latest_milestone
+
+
+def main(args):
+  args = BuildArgumentParser(args)
 
   if not IsGsutilInstalled():
     return 'gsutil is not installed, please install it and try again'
@@ -177,12 +286,17 @@ def main(args):
     print 'Generating full milestone info table, please wait'
     GenerateFullInfoCSV()
 
+  # load the full_milestone_info.csv into memory for later use
+  milestone_info = MilestoneInfo(os.path.join(
+      APP_DIR, 'full_milestone_info.csv'))
+  ProcessArguments(args, milestone_info)
+
   print ('Getting the storage URI, this process might '
          'take some time, please wait patiently')
 
   try:
     for milestone in range(args.from_milestone, args.to_milestone + 1):
-      uri = GetLatestVersionURI(milestone)
+      uri = milestone_info.GetLatestVersionURI(milestone)
       DownloadAPKFromURI(uri, args.output_path)
     return 0
   except KeyboardInterrupt:
