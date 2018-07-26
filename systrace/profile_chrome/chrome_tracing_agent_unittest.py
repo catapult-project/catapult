@@ -17,7 +17,7 @@ class ChromeAgentTest(agents_unittest.BaseAgentTest):
   @decorators.Disabled
   def testGetCategories(self):
     curr_browser = self.GetChromeProcessID()
-    if curr_browser == None:
+    if curr_browser is None:
       self.StartBrowser()
 
     categories = \
@@ -35,7 +35,7 @@ class ChromeAgentTest(agents_unittest.BaseAgentTest):
   @decorators.Disabled
   def testTracing(self):
     curr_browser = self.GetChromeProcessID()
-    if curr_browser == None:
+    if curr_browser is None:
       self.StartBrowser()
 
     categories = '*'

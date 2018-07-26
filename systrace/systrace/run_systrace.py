@@ -14,6 +14,7 @@ the kernel.  It creates an HTML file for visualizing the trace.
 # The flags= parameter of re.sub() is new in Python 2.7. And Systrace does not
 # support Python 3 yet.
 
+# pylint: disable=wrong-import-position
 import sys
 
 version = sys.version_info[:2]
@@ -46,6 +47,7 @@ from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import atrace_process_dump
 from systrace.tracing_agents import ftrace_agent
 from systrace.tracing_agents import walt_agent
+# pylint: enable=wrong-import-position
 
 
 ALL_MODULES = [atrace_agent, atrace_from_file_agent, atrace_process_dump,

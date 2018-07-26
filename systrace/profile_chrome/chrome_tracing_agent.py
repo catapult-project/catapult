@@ -5,8 +5,9 @@
 import json
 import optparse
 import os
-import py_utils
 import re
+
+import py_utils
 
 from devil.android import device_errors
 from devil.android.sdk import intent

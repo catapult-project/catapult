@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import py_utils
 import optparse
 import threading
+
+import py_utils
 
 from devil.android import device_utils
 from systrace import trace_result

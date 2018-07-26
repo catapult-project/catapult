@@ -12,9 +12,10 @@ manages the clock sync process.
 import ast
 import json
 import sys
-import py_utils
 import tempfile
 import uuid
+
+import py_utils
 
 from systrace import trace_result
 from systrace import tracing_agents

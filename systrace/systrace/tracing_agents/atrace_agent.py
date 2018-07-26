@@ -4,11 +4,12 @@
 
 import optparse
 import platform
-import py_utils
 import re
 import sys
 import threading
 import zlib
+
+import py_utils
 
 from devil.android import device_utils
 from devil.android.sdk import version_codes

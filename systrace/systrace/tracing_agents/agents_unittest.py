@@ -19,7 +19,7 @@ class BaseAgentTest(unittest.TestCase):
     self.device = devices[0]
 
     curr_browser = self.GetChromeProcessID()
-    if curr_browser == None:
+    if curr_browser is None:
       self.StartBrowser()
 
   def tearDown(self):

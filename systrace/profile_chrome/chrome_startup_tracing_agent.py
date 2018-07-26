@@ -5,8 +5,9 @@
 import logging
 import optparse
 import os
-import py_utils
 import re
+
+import py_utils
 
 from devil.android import flag_changer
 from devil.android.constants import webapk

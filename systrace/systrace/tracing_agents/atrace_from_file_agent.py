@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 import os
-import py_utils
 import re
+
+import py_utils
 
 from systrace import trace_result
 from systrace import tracing_agents
