@@ -34,7 +34,7 @@ and report metrics about it.  The framework abstracts:
 **If you are a Chromium developer looking to add a new Telemetry benchmark to
 [`src/tools/perf/`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/),
 please make sure to read our
-[Benchmark Policy](https://docs.google.com/document/d/1bBKyYCW3VlUUPDpQE4xvrMFdA6tovQMZoqO9KCcmqqQ/preview)
+[Benchmark Policy](https://docs.google.com/document/d/1ni2MIeVnlH4bTj4yvEDMVNxgL73PqK_O9_NUm3NW3BA/preview)
 first.**
 
 ## Code Concepts
