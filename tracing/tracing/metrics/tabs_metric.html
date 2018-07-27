@@ -48,6 +48,22 @@ tr.exportTo('tr.metrics.tabs', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tabSwitchLatencies, { description: 'Tab switching time in ms',
           summaryOptions: {sum: false}});
+
+    const tabSwitchRequestDelays = [];
+    const TAB_SWITCHING_REQUEST_TITLE = 'TabSwitchVisibilityRequest';
+    for (const helper of chromeHelper.browserHelpers) {
+      if (!helper.mainThread) continue;
+      for (const slice of helper.mainThread.asyncSliceGroup.slices) {
+        if (slice.title === TAB_SWITCHING_REQUEST_TITLE && !slice.error) {
+          tabSwitchRequestDelays.push(slice.duration);
+        }
+      }
+    }
+    histograms.createHistogram('tab_switching_request_delay',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tabSwitchRequestDelays, {
+          description: 'Delay before tab-request is made',
+          summaryOptions: {sum: false}});
   }
 
   tr.metrics.MetricRegistry.register(tabsMetric, {

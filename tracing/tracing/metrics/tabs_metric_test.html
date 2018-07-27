@@ -44,6 +44,21 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist.numValues, 3);
   });
 
+  test('tabsMetric_tabSwitchRequestDelay', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserThread = setUpBrowserThread(model);
+      const group = browserThread.asyncSliceGroup;
+      group.push(tr.c.TestUtils.newAsyncSliceEx({cat: 'latency',
+        title: 'TabSwitchVisibilityRequest', start: 0, duration: 10}));
+      group.push(tr.c.TestUtils.newAsyncSliceEx({cat: 'latency',
+        title: 'TabSwitchVisibilityRequest', start: 15, duration: 6}));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.tabs.tabsMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('tab_switching_request_delay');
+    assert.strictEqual(hist.average, 8);
+  });
+
   function setUpBrowserThread(model) {
     const BROWSER_PROCESS_ID = 1234;
     const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
