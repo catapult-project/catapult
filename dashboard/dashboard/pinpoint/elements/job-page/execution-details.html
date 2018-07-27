@@ -5,64 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/iron-selector/iron-selector.html">
-
 <link rel="import" href="/elements/base-style.html">
 
 <dom-module id="execution-details">
   <template>
     <style include="base-style">
       #exception {
-        font-size: 0.5em;
+        font-size: 0.8em;
         margin: 1em 0;
         white-space: pre-wrap;
-      }
-
-      #status-boxes {
-        display: flex;
-        height: 1em;
-        margin: 0.5em -1px;
-      }
-
-      .status-box {
-        flex: 1;
-        margin: 0 0.5px;
-      }
-
-      .completed {
-        background-color: var(--paper-green-500);
-      }
-
-      .completed:hover,
-      .completed.iron-selected {
-        background-color: var(--paper-green-700);
-      }
-
-      .failed {
-        background-color: var(--paper-red-500);
-      }
-
-      .failed:hover,
-      .failed.iron-selected {
-        background-color: var(--paper-red-700);
-      }
-
-      .pending {
-        border: solid 1px var(--paper-grey-500);
-      }
-
-      .pending:hover,
-      .pending.iron-selected {
-        background-color: var(--paper-grey-200);
-      }
-
-      .running {
-        background-color: var(--paper-grey-500);
-      }
-
-      .running:hover,
-      .running.iron-selected {
-        background-color: var(--paper-grey-700);
       }
 
       table {
@@ -79,16 +30,9 @@ found in the LICENSE file.
       }
     </style>
 
-    <iron-selector id="status-boxes" selected="{{attemptIndex}}">
-      <template is="dom-repeat" items="[[attempts]]">
-        <div id="status-box-[[index]]-[[questIndex]]"
-             class$="status-box [[status(item, questIndex)]]">
-        </div>
-      </template>
-    </iron-selector>
-    <template is="dom-if" if="[[hasExecutionDetails(attempts, attemptIndex, questIndex)]]">
+    <template is="dom-if" if="[[hasExecutionDetails(execution)]]">
       <table>
-        <template is="dom-repeat" items="[[executionDetails(attempts, attemptIndex, questIndex)]]">
+        <template is="dom-repeat" items="[[executionDetails(execution)]]">
           <tr>
             <th>[[item.key]]
             <td>
@@ -102,8 +46,8 @@ found in the LICENSE file.
         </template>
       </table>
     </template>
-    <template is="dom-if" if="[[exception(attempts, attemptIndex, questIndex)]]">
-      <p id="exception">[[exception(attempts, attemptIndex, questIndex)]]</p>
+    <template is="dom-if" if="[[exception(execution)]]">
+      <p id="exception">[[exception(execution)]]</p>
     </template>
   </template>
 
@@ -113,48 +57,23 @@ found in the LICENSE file.
       is: 'execution-details',
 
       properties: {
-        attempts: {
+        execution: {
           type: Object,
         },
-
-        attemptIndex: {
-          type: Number,
-          notify: true
-        },
-
-        questIndex: {
-          type: Number,
-        },
       },
 
-      status(attempt, questIndex) {
-        const execution = attempt.executions[questIndex];
-        if (!execution) {
-          return 'pending';
-        }
-        if (execution.exception) {
-          return 'failed';
-        }
-        if (execution.completed) {
-          return 'completed';
-        }
-        return 'running';
-      },
-
-      exception(attempts, attemptIndex, questIndex) {
-        const execution = attempts[attemptIndex].executions[questIndex];
+      exception(execution) {
         if (!execution) {
           return null;
         }
-        return this.attempts[attemptIndex].executions[questIndex].exception;
+        return execution.exception;
       },
 
-      hasExecutionDetails(attempts, attemptIndex, questIndex) {
-        return this.executionDetails(attempts, attemptIndex, questIndex).length;
+      hasExecutionDetails(execution) {
+        return this.executionDetails(execution).length;
       },
 
-      executionDetails(attempts, attemptIndex, questIndex) {
-        const execution = attempts[attemptIndex].executions[questIndex];
+      executionDetails(execution) {
         if (!execution) {
           return [];
         }

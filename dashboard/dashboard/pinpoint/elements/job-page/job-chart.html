@@ -60,20 +60,7 @@ found in the LICENSE file.
       },
 
       _jobDataChanged() {
-        this.setChangeIndex();
         this.async(this.draw, 1);
-      },
-
-      setChangeIndex() {
-        // TODO: Choose the largest difference, not just any difference.
-        for (let i = 0; i < this.jobData.state.length; ++i) {
-          if (this.jobData.state[i].comparisons.prev === 'different') {
-            this.set('changeIndex', i);
-            return;
-          }
-        }
-        // TODO: If no statistical difference, choose the largest delta.
-        this.set('changeIndex', this.jobData.state.length - 1);
       },
 
       draw() {

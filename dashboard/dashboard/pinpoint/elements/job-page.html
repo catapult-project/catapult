@@ -40,25 +40,38 @@ found in the LICENSE file.
         margin-bottom: 0.1em;
       }
 
-      .columns {
-        display: flex;
-        margin: 0 -0.5em;
+      #layout {
+        display: grid;
+        grid-auto-columns: 1fr;
+        grid-column-gap: 1em;
       }
 
       #details-column {
-        flex: 1;
-        margin: 0 0.5em;
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
       }
 
-      #main-column {
-        flex: 3;
-        margin: 0 0.5em;
+      #results {
+        grid-column: 3 / 9;
+      }
+
+      #change-a {
+        grid-column: 3 / 6;
+      }
+
+      #change-b {
+        grid-column: 6 / 9;
+      }
+
+      #exception {
+        color: var(--paper-grey-500);
+        white-space: pre-wrap;
       }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{routeData}}"></app-route>
 
-    <h1 id="testing">
+    <h1>
       Job [[routeData.jobId]]
       <template is="dom-if" if="[[failed(job)]]">
         <span id="failed" class="badge">Error</span>
@@ -78,17 +91,26 @@ found in the LICENSE file.
         <span class="middle-dot"></span>
         [[start(job)]]
       </p>
-      <div class="columns">
+      <div id="layout">
         <div id="details-column">
           <job-details job="[[job]]"></job-details>
         </div>
-        <div id="main-column">
-          <template is="dom-if" if="[[shouldShowResults2(job)]]">
-            <results2-frame job-id="[[job.job_id]]"></results2-frame>
+        <div id="results">
+          <template is="dom-if" if="[[failed(job)]]">
+            <h2>Job failed</h2>
+            <p id="exception">[[job.exception]]</p>
           </template>
-          <job-charts job="[[job]]" change-index="{{changeIndex}}"></job-charts>
-          <change-details job="[[job]]" change-index="[[changeIndex]]"></change-details>
+          <template is="dom-if" if="[[!failed(job)]]">
+            <template is="dom-if" if="[[job.comparison_mode]]">
+              <job-charts job="[[job]]" change-index="{{changeIndex}}"></job-charts>
+            </template>
+            <template is="dom-if" if="[[!job.comparison_mode]]">
+              <results2-frame job-id="[[job.job_id]]"></results2-frame>
+            </template>
+          </template>
         </div>
+        <change-details id="change-a" job="[[job]]" change-state="[[previousChangeState(job.state, changeIndex)]]"></change-details>
+        <change-details id="change-b" job="[[job]]" change-state="[[changeState(job.state, changeIndex)]]"></change-details>
       </div>
       <job-menu-fab job="[[job]]" auth-headers="[[authHeaders]]"></job-menu-fab>
     </loading-wrapper>
@@ -102,11 +124,28 @@ found in the LICENSE file.
       properties: {
         job: {
           type: Object,
+          observer: '_jobChanged',
         },
 
         changeIndex: {
           type: Number
         }
+      },
+
+      _jobChanged() {
+        this.setChangeIndex();
+      },
+
+      setChangeIndex() {
+        // TODO: Choose the largest difference, not just any difference.
+        for (let i = 0; i < this.job.state.length; ++i) {
+          if (this.job.state[i].comparisons.prev === 'different') {
+            this.set('changeIndex', i);
+            return;
+          }
+        }
+        // TODO: If no statistical difference, choose the largest delta.
+        this.set('changeIndex', this.job.state.length - 1);
       },
 
       failed(job) {
@@ -140,8 +179,12 @@ found in the LICENSE file.
         return hours.toFixed(1) + ' hours';
       },
 
-      shouldShowResults2(job) {
-        return !(job.comparison_mode || this.failed(job));
+      previousChangeState(jobState, changeIndex) {
+        return jobState[changeIndex - 1];
+      },
+
+      changeState(jobState, changeIndex) {
+        return jobState[changeIndex];
       },
     });
   </script>
