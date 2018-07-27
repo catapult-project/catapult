@@ -16,6 +16,15 @@ class GraphData {
     this.dataSources = [];
     /** @private @const {Object} */
     this.plotter_ = new GraphPlotter(this);
+    /** @private @const {Array<string>} colors_
+     * Each new datasource is assigned a color.
+     * At first an attempt will be made to assign an unused color
+     * from this array and failing that old colors are reused.
+     */
+    this.colors_ = [
+      'green',
+      'orange',
+    ];
   }
 
   /**
@@ -65,28 +74,44 @@ class GraphData {
 
   /**
    * Registers the supplied data as a dataSource, enabling it to be plotted and
-   * processed. The data source can supply various attributes: the color is
-   * optional and defines the line color to be used (useful for when multiple
-   * data sources are being plotted), the data attribute is the supply of raw
-   * data to be processed and the key attribute is the label which will be
-   * assigned to the data on the legend.
-   * @param {{data: Array<Object>, color: string, key: string}} dataSource
+   * processed. The data source should be in the form of an object where
+   * the keys are the desired display labels (for the legend) corresponding
+   * to the supplied values, each of which should be an array of numbers.
+   * For example:
+   * {
+   *   labelOne: [numbers...],
+   *   labelTwo: [numbers...],
+   * }
+   * @param {Object} data
    * @return {GraphData}
    */
-  addData(dataSource) {
-    const { data, color, key } = dataSource;
-    if (!(data instanceof Array)) {
-      throw new Error(
-          'The data attribute of the supplied dataSource must be an Array');
+  addData(data) {
+    if (typeof data !== 'object') {
+      throw new Error('Expected an object to be supplied.');
     }
-    this.dataSources.push({
-      data,
-      color: color ? color : 'black',
-      key: key ? key : `Line ${this.dataSources.length}`,
-    });
+    for (const [displayLabel, values] of Object.entries(data)) {
+      if (values.constructor !== Array ||
+        !values.every((val) => typeof val === 'number')) {
+        throw new Error('The supplied values should be an array of numbers.');
+      }
+      this.dataSources.push({
+        data: values,
+        color: this.nextColor_(),
+        key: displayLabel,
+      });
+    }
     return this;
   }
 
+  /**
+   * Returns the next color to be assigned to a data source from
+   * the colors array. This will cycle through old colors once
+   * the unused colors are exhausted.
+   * @return {string}
+   */
+  nextColor_() {
+    return this.colors_[this.dataSources.length % this.colors_.length];
+  }
   /**
    * Returns the maximum value from all dataSources based on the value
    * computed by projection.

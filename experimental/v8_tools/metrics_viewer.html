@@ -40,14 +40,8 @@
             .title('Memory used with and without site' +
               'isolation enabled for the TrivialGifAnimation story')
             .addData({
-              color: '#ff7f0e',
-              data: withs,
-              key: 'withSiteIsoEnabled'
-            })
-            .addData({
-              color: 'green',
-              data: without,
-              key: 'withoutSiteIsoEnabled'
+              withSiteIsoEnabled: withs,
+              withoutSiteIsoEnabled: without,
             })
             .plotCumulativeFrequency();
       };
