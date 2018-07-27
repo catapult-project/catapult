@@ -53,6 +53,7 @@ class Browser(app.App):
           'Failed with %s while starting the browser backend.',
           exc_info[0].__name__)  # Show the exception name only.
       try:
+        self.DumpStateUponFailure()
         self.Close()
       except Exception: # pylint: disable=broad-except
         exception_formatter.PrintFormattedException(
