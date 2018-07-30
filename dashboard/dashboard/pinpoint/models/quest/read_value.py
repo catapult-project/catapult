@@ -43,7 +43,7 @@ class ReadHistogramsJsonValue(quest.Quest):
             self._statistic == other._statistic)
 
   def __str__(self):
-    return 'Values'
+    return 'Get results'
 
   def Start(self, change, isolate_server=None, isolate_hash=None):
     del change
@@ -202,7 +202,7 @@ class ReadGraphJsonValue(quest.Quest):
             self._trace == other._trace)
 
   def __str__(self):
-    return 'Values'
+    return 'Get results'
 
   def Start(self, change, isolate_server=None, isolate_hash=None):
     del change
