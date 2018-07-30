@@ -5,7 +5,7 @@
 import json
 import webapp2
 
-from dashboard.pinpoint.models import bot_configurations
+from dashboard.common import bot_configurations
 
 
 class Config(webapp2.RequestHandler):

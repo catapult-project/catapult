@@ -5,8 +5,8 @@
 import json
 
 from dashboard.api import api_request_handler
+from dashboard.common import bot_configurations
 from dashboard.common import utils
-from dashboard.pinpoint.models import bot_configurations
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module

@@ -256,18 +256,20 @@ class TimeseriesQuery(object):
         yield [self._FetchHistogram(test_key, row.revision) for row in rows]
 
   def _FilterRowQuery(self, query):
-    if self._min_revision:
-      query = query.filter(graph_data.Row.revision >= self._min_revision)
-    elif self._min_timestamp:
-      query = query.filter(graph_data.Row.timestamp >= self._min_timestamp)
-    if self._max_revision:
-      query = query.filter(graph_data.Row.revision <= self._max_revision)
-    elif self._max_timestamp:
-      query = query.filter(graph_data.Row.timestamp <= self._max_timestamp)
     if self._min_revision or self._max_revision:
+      if self._min_revision:
+        query = query.filter(graph_data.Row.revision >= self._min_revision)
+      if self._max_revision:
+        query = query.filter(graph_data.Row.revision <= self._max_revision)
       query = query.order(-graph_data.Row.revision)
-    else:
+    elif self._min_timestamp or self._max_timestamp:
+      if self._min_timestamp:
+        query = query.filter(graph_data.Row.timestamp >= self._min_timestamp)
+      if self._max_timestamp:
+        query = query.filter(graph_data.Row.timestamp <= self._max_timestamp)
       query = query.order(-graph_data.Row.timestamp)
+    else:
+      query = query.order(-graph_data.Row.revision)
     return query
 
   @ndb.tasklet

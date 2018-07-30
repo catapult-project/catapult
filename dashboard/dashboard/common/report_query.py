@@ -166,26 +166,21 @@ class ReportQuery(object):
   @ndb.tasklet
   def _GetRow(self, tri, table_row, desc):
     # First try to find the unsuffixed test.
+    test_paths = yield desc.ToTestPathsAsync()
+    logging.info('_GetRow %r', test_paths)
     unsuffixed_tests = yield [utils.TestMetadataKey(test_path).get_async()
-                              for test_path in (yield desc.ToTestPathsAsync())]
+                              for test_path in test_paths]
     unsuffixed_tests = [t for t in unsuffixed_tests if t]
 
-    if len(unsuffixed_tests) > 1:
-      logging.warn('Found too many unsuffixed tests: %r', [
-          utils.TestPath(t.key) for t in unsuffixed_tests])
-      raise ndb.Return()
+    if not unsuffixed_tests:
+      # Fall back to suffixed tests.
+      yield [self._GetSuffixedCell(tri, table_row, desc, rev)
+             for rev in self._revisions]
 
-    if unsuffixed_tests:
-      test = unsuffixed_tests[0]
+    for test in unsuffixed_tests:
       test_path = utils.TestPath(test.key)
       yield [self._GetUnsuffixedCell(tri, table_row, desc, test, test_path, rev)
              for rev in self._revisions]
-      raise ndb.Return()
-
-    # Fall back to suffixed tests.
-    yield [self._GetSuffixedCell(tri, table_row, desc, rev)
-           for rev in self._revisions]
-    raise ndb.Return()
 
   @ndb.tasklet
   def _GetUnsuffixedCell(self, tri, table_row, desc, test, test_path, rev):
@@ -240,24 +235,26 @@ class ReportQuery(object):
     desc = desc.Clone()
     desc.statistic = stat
     test_paths = yield desc.ToTestPathsAsync()
+    logging.info('_GetStatistic %r', test_paths)
     suffixed_tests = yield [utils.TestMetadataKey(test_path).get_async()
                             for test_path in test_paths]
     suffixed_tests = [t for t in suffixed_tests if t]
     if not suffixed_tests:
       raise ndb.Return(None)
-    if len(suffixed_tests) > 1:
-      logging.warn('Found too many suffixed tests: %r', test_paths)
-      raise ValueError
-    test = suffixed_tests[0]
-    if stat == 'avg':
-      datum['units'] = test.units
-      datum['improvement_direction'] = test.improvement_direction
-    test_path = utils.TestPath(test.key)
-    data_row = yield self._GetDataRow(test_path, rev)
-    if not data_row:
+
+    last_data_row = None
+    for test in suffixed_tests:
+      if stat == 'avg':
+        datum['units'] = test.units
+        datum['improvement_direction'] = test.improvement_direction
+      test_path = utils.TestPath(test.key)
+      data_row = yield self._GetDataRow(test_path, rev)
+      if not last_data_row or data_row.revision > last_data_row.revision:
+        last_data_row = data_row
+    if not last_data_row:
       raise ndb.Return(None)
-    datum['revision'] = data_row.revision
-    raise ndb.Return(data_row.value)
+    datum['revision'] = last_data_row.revision
+    raise ndb.Return(last_data_row.value)
 
   @ndb.tasklet
   def _GetDataRow(self, test_path, rev):

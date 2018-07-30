@@ -53,8 +53,8 @@ def _UpdateDescriptor(test_suite, namespace):
   if namespace == datastore_hooks.INTERNAL:
     datastore_hooks.SetPrivilegedRequest()
 
-  test_path = descriptor.Descriptor(
-      test_suite=test_suite, bot='place:holder').ToTestPathsSync()[0].split('/')
+  desc = descriptor.Descriptor(test_suite=test_suite, bot='place:holder')
+  test_path = list(desc.ToTestPathsSync())[0].split('/')
 
   measurements = set()
   bots = set()

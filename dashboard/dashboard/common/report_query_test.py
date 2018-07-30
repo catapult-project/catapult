@@ -4,7 +4,9 @@
 
 import unittest
 
+from dashboard.common import bot_configurations
 from dashboard.common import descriptor
+from dashboard.common import namespaced_stored_object
 from dashboard.common import report_query
 from dashboard.common import stored_object
 from dashboard.common import testing_common
@@ -20,7 +22,52 @@ class ReportQueryTest(testing_common.TestCase):
     stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [])
     stored_object.Set(descriptor.COMPOSITE_TEST_SUITES_KEY, [])
     stored_object.Set(descriptor.GROUPABLE_TEST_SUITE_PREFIXES_KEY, [])
+    namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY, {
+        'a': {
+            'alias': 'b',
+        },
+        'b': {},
+        'c': {
+            'alias': 'b',
+        },
+    })
     descriptor.Descriptor.ResetMemoizedConfigurationForTesting()
+
+  def testBotAliases(self):
+    test = graph_data.TestMetadata(
+        has_rows=True,
+        id='master/a/suite/measure',
+        improvement_direction=anomaly.DOWN,
+        units='units')
+    test.put()
+    graph_data.Row(id=10, parent=test.key, value=100).put()
+
+    test = graph_data.TestMetadata(
+        has_rows=True,
+        id='master/b/suite/measure',
+        improvement_direction=anomaly.DOWN,
+        units='units')
+    test.put()
+    graph_data.Row(id=20, parent=test.key, value=200).put()
+
+    template = {
+        'rows': [
+            {
+                'testSuites': ['suite'],
+                'bots': ['master:b'],
+                'measurement': 'measure',
+                'testCases': [],
+            },
+        ],
+        'statistics': ['avg'],
+    }
+    report = report_query.ReportQuery(template, [10, 20]).FetchSync()
+    stats = histogram_module.RunningStatistics.FromDict(
+        report['rows'][0]['data'][10]['statistics'])
+    self.assertEqual(100, stats.mean)
+    stats = histogram_module.RunningStatistics.FromDict(
+        report['rows'][0]['data'][20]['statistics'])
+    self.assertEqual(200, stats.mean)
 
   def testEmptyTestCases(self):
     test = graph_data.TestMetadata(
