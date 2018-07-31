@@ -165,12 +165,20 @@ class GraphData {
 
   /**
    * Computes the cumulative frequency for all data sources provided
-   * and plots the results to the screen. The provided
-   * data field in the dataSource must be a list of numbers.
+   * and plots the results to the screen.
    */
   plotCumulativeFrequency() {
     this.process(GraphData.computeCumulativeFrequencies);
-    this.plotter_.linePlot();
+    this.plotter_.plot(new LinePlotter());
+  }
+
+  /**
+   * Orders the data so that it's percentiles can be identified
+   * and plots a box and whisker plot.
+   */
+  plotBoxPlot() {
+    this.process(data => data.sort((a, b) => a - b));
+    this.plotter_.plot(new BoxPlotter());
   }
 
   /**
