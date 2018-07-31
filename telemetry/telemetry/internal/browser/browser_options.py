@@ -365,6 +365,10 @@ class BrowserOptions(object):
     # already exist.
     self.profile_files_to_copy = []
 
+    # When set to True, certain configuration change will be in use to run the
+    # benchmark in compatibility mode, mainly for earlier versions of Chrome
+    self.compatibility_mode = False
+
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
     # circular reference with _finder_options.
