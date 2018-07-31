@@ -54,7 +54,7 @@ def _ProfileWithExtraFiles(profile_dir, profile_files_to_copy):
     # random name due to the extra failure mode of filling up the sdcard
     # in the case of unclean test teardown. We should consider changing
     # PushProfile to avoid writing to this intermediate location.
-    host_profile = os.path.join(tempdir, "_default_profile")
+    host_profile = os.path.join(tempdir, '_default_profile')
     if profile_dir:
       shutil.copytree(profile_dir, host_profile)
     else:
@@ -71,6 +71,7 @@ def _ProfileWithExtraFiles(profile_dir, profile_files_to_copy):
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
+
   def __init__(self, browser_type, finder_options, android_platform,
                backend_settings, local_apk=None):
     super(PossibleAndroidBrowser, self).__init__(
@@ -242,16 +243,19 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
           exc_info[0].__name__)
       try:
         browser_backend.Close()
-      except Exception: # pylint: disable=broad-except
+      except Exception:  # pylint: disable=broad-except
         logging.exception('Secondary failure while closing browser backend.')
 
       raise exc_info[0], exc_info[1], exc_info[2]
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+    # use the flag `--ignore-certificate-errors` if in compatibility mode
+    supports_spki_list = (self._backend_settings.supports_spki_list and
+                          not browser_options.compatibility_mode)
     startup_args.extend(chrome_startup_args.GetReplayArgs(
         self._platform_backend.network_controller_backend,
-        supports_spki_list=self._backend_settings.supports_spki_list))
+        supports_spki_list=supports_spki_list))
     startup_args.append('--enable-remote-debugging')
     startup_args.append('--disable-fre')
     startup_args.append('--disable-external-intent-requests')
