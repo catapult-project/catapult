@@ -206,6 +206,85 @@ tr.exportTo('tr.metrics.rendering', function() {
         { description: 'Percentage of frames that were hitting 60 FPS.' });
   }
 
+  function eventIsValidGraphicsEvent(event, eventMap) {
+    if (!event.bindId || !event.args || !event.args.step) {
+      return false;
+    }
+    const bindId = event.bindId;
+    if (bindId in eventMap && event.args.step in eventMap[bindId]) {
+      // It is possible for a client to submit multiple compositor frames for
+      // one begin-message. So most steps can be present multiple times.
+      // However, a begin-frame is issued only once, and received only once. So
+      // these steps should not be repeated.
+      if (event.args.step === 'IssueBeginFrame' ||
+          event.args.step === 'ReceiveBeginFrame') {
+        throw new Error('Unexpected duplicate step: ' + event.args.step);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function addPipelineHistograms(histograms, model, segments) {
+    let events = [];
+    for (const thread of model.getAllThreads()) {
+      const graphicsEvents = thread.sliceGroup.slices.filter(
+          slice => slice.title === 'Graphics.Pipeline');
+      for (const segment of segments) {
+        const filteredEvents = segment.boundsRange.filterArray(graphicsEvents,
+            evt => evt.start);
+        events = events.concat(filteredEvents);
+      }
+    }
+    const bindEvents = {};
+    for (const event of events) {
+      if (!eventIsValidGraphicsEvent(event, bindEvents)) continue;
+      const bindId = event.bindId;
+      if (!(bindId in bindEvents)) {
+        bindEvents[bindId] = {};
+      }
+      bindEvents[bindId][event.args.step] = event;
+    }
+
+    const issueToReceipt = histograms.createHistogram(
+        'pipeline:begin_frame_transport',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency of begin-frame message from the display ' +
+          'compositor to the client, including the IPC latency and task-' +
+          'queue time in the client.',
+        });
+    const receiptToSubmit = histograms.createHistogram(
+        'pipeline:begin_frame_to_frame_submission',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency between begin-frame reception and ' +
+          'CompositorFrame submission in the renderer.'
+        });
+    const submitToAggregate = histograms.createHistogram(
+        'pipeline:frame_submission_to_display',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency between CompositorFrame submission in the ' +
+          'renderer to display in the display-compositor, including IPC ' +
+          'latency, task-queue time in the display-compositor, and ' +
+          'additional processing (e.g. surface-sync etc.)',
+        });
+    for (const flow of Object.values(bindEvents)) {
+      // Report only for the cases that go through the complete pipeline.
+      if (!flow.IssueBeginFrame || !flow.ReceiveBeginFrame ||
+          !flow.SubmitCompositorFrame || !flow.SurfaceAggregation) {
+        continue;
+      }
+      issueToReceipt.addSample(flow.ReceiveBeginFrame.start -
+                               flow.IssueBeginFrame.start);
+      receiptToSubmit.addSample(flow.SubmitCompositorFrame.start -
+                                flow.ReceiveBeginFrame.start);
+      submitToAggregate.addSample(flow.SurfaceAggregation.start -
+                                  flow.SubmitCompositorFrame.start);
+    }
+  }
+
   function renderingMetric(histograms, model) {
     // Find interesting segments we want to compute metrics in. We use trace
     // events produced by Telemetry. One drawback of this method is that we
@@ -246,6 +325,7 @@ tr.exportTo('tr.metrics.rendering', function() {
 
     addCoresPerSecondHistograms(histograms, model, segments);
     addFrameTimeHistograms(histograms, model, segments);
+    addPipelineHistograms(histograms, model, segments);
   }
 
   tr.metrics.MetricRegistry.register(renderingMetric);

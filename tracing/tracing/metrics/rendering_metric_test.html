@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/rendering_metric.html">
 <link rel="import" href="/tracing/model/user_model/animation_expectation.html">
 <link rel="import" href="/tracing/model/user_model/user_expectation.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -145,6 +146,112 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(1, hist.max, 1e-6);
     assert.closeTo(1, hist.average, 1e-6);
+  });
+
+  function addPipelineForOneFrame(compositor, renderer, id, frame) {
+    const EVENT_NAME = 'Graphics.Pipeline';
+    if (frame.IssueBeginFrame) {
+      compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: EVENT_NAME,
+            start: frame.IssueBeginFrame, duration: 1, bindId: id,
+            args: {step: 'IssueBeginFrame'}}));
+    }
+    if (frame.ReceiveBeginFrame) {
+      renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: EVENT_NAME,
+            start: frame.ReceiveBeginFrame, duration: 1, bindId: id,
+            args: {step: 'ReceiveBeginFrame'}}));
+    }
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'SubmitCompositorFrame'}}));
+    compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.ReceiveCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'ReceiveCompositorFrame'}}));
+    compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.SurfaceAggregation, duration: 1, bindId: id,
+          args: {step: 'SurfaceAggregation'}}));
+  }
+
+  test('renderingMetric_GraphicsPipeline', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const telemetry = model.getOrCreateProcess(111).getOrCreateThread(0);
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 50));
+
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, SubmitCompositorFrame: 3,
+        ReceiveCompositorFrame: 4, SurfaceAggregation: 7
+      });
+      addPipelineForOneFrame(browserMain, rendererCompositor, 2, {
+        IssueBeginFrame: 15, ReceiveBeginFrame: 16, SubmitCompositorFrame: 17,
+        ReceiveCompositorFrame: 18, SurfaceAggregation: 19
+      });
+      addPipelineForOneFrame(browserMain, rendererCompositor, 3, {
+        IssueBeginFrame: 32, ReceiveBeginFrame: 34,
+        SubmitCompositorFrame: 37, ReceiveCompositorFrame: 38,
+        SurfaceAggregation: 41
+      });
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    const beginFrameTransport = histograms.getHistogramNamed(
+        'pipeline:begin_frame_transport');
+    const frameSubmission = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_frame_submission');
+    const surfaceAggregation = histograms.getHistogramNamed(
+        'pipeline:frame_submission_to_display');
+    assert.closeTo(beginFrameTransport.average, 4 / 3, 1e-6);
+    assert.closeTo(frameSubmission.average, 5 / 3, 1e-6);
+    assert.closeTo(surfaceAggregation.average, 10 / 3, 1e-6);
+  });
+
+  test('renderingMetric_GraphicsPipelineDuplicateSteps', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const telemetry = model.getOrCreateProcess(111).getOrCreateThread(0);
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 50));
+
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, SubmitCompositorFrame: 3,
+        ReceiveCompositorFrame: 4, SurfaceAggregation: 7
+      });
+
+      // Add duplicate steps for SubmitCompositorFrame and the subsequent
+      // steps for the same trace-id.
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        SubmitCompositorFrame: 7, ReceiveCompositorFrame: 9,
+        SurfaceAggregation: 11
+      });
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    const beginFrameTransport = histograms.getHistogramNamed(
+        'pipeline:begin_frame_transport');
+    const frameSubmission = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_frame_submission');
+    const surfaceAggregation = histograms.getHistogramNamed(
+        'pipeline:frame_submission_to_display');
+    assert.strictEqual(beginFrameTransport.average, 1);
+    assert.strictEqual(frameSubmission.average, 1);
+    assert.strictEqual(surfaceAggregation.average, 4);
   });
 });
 </script>
