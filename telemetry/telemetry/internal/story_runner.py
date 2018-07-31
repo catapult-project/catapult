@@ -370,10 +370,11 @@ def RunBenchmark(benchmark, finder_options):
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)
-    except Exception: # pylint: disable=broad-except
+    except Exception as e: # pylint: disable=broad-except
 
       logging.fatal(
-          'Benchmark execution interrupted by a fatal exception.')
+          'Benchmark execution interrupted by a fatal exception: %s(%s)' %
+          (type(e), e))
 
       filtered_stories = story_module.StoryFilter.FilterStorySet(stories)
       results.InterruptBenchmark(
