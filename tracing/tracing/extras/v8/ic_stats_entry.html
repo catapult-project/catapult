@@ -41,7 +41,7 @@ tr.exportTo('tr.e.v8', function() {
       this.constructor_ = obj.constructor ? false : true;
       this.map_ = obj.map;
       if (this.map_) {
-        this.propertiesMode_ = obj.dict === 0 ? 'slow' : 'fast';
+        this.propertiesMode_ = obj.dict === 1 ? 'slow' : 'fast';
       } else {
         this.propertiesMode_ = 'unknown';
       }

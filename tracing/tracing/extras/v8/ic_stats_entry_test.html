@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(entry1.state, '(0->.)');
     assert.strictEqual(entry1.filePosition, 'a.js:1 ~f+10');
     assert.strictEqual(entry1.isNative, false);
-    assert.strictEqual(entry1.propertiesMode, 'slow');
+    assert.strictEqual(entry1.propertiesMode, 'fast');
     assert.strictEqual(entry1.numberOfOwnProperties, 3);
 
     const entry2 = new tr.e.v8.ICStatsEntry(obj4);
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(entry2.state, '(0->.)');
     assert.strictEqual(entry2.filePosition, 'a.js:4 ~bar+13');
     assert.strictEqual(entry2.isNative, false);
-    assert.strictEqual(entry2.propertiesMode, 'fast');
+    assert.strictEqual(entry2.propertiesMode, 'slow');
     assert.strictEqual(entry2.numberOfOwnProperties, 7);
 
     const entry3 = new tr.e.v8.ICStatsEntry(obj3);
