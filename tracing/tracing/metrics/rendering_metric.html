@@ -225,6 +225,30 @@ tr.exportTo('tr.metrics.rendering', function() {
     return true;
   }
 
+  function generateBreakdownForCompositorPipelineInClient(flow) {
+    const breakdown = new tr.v.d.Breakdown();
+    breakdown.set('time before GenerateRenderPass',
+        flow.GenerateRenderPass.start - flow.ReceiveBeginFrame.start);
+    breakdown.set('GenerateRenderPass duration',
+        flow.GenerateRenderPass.duration);
+    breakdown.set('GenerateCompositorFrame duration',
+        flow.GenerateCompositorFrame.duration);
+    breakdown.set('SubmitCompositorFrame duration',
+        flow.SubmitCompositorFrame.duration);
+    return breakdown;
+  }
+
+  function generateBreakdownForCompositorPipelineInService(flow) {
+    const breakdown = new tr.v.d.Breakdown();
+    breakdown.set('Processing CompositorFrame on reception',
+        flow.ReceiveCompositorFrame.duration);
+    breakdown.set('Delay before SurfaceAggregation',
+        flow.SurfaceAggregation.start - flow.ReceiveCompositorFrame.end);
+    breakdown.set('SurfaceAggregation duration',
+        flow.SurfaceAggregation.duration);
+    return breakdown;
+  }
+
   function addPipelineHistograms(histograms, model, segments) {
     let events = [];
     for (const thread of model.getAllThreads()) {
@@ -278,10 +302,12 @@ tr.exportTo('tr.metrics.rendering', function() {
       }
       issueToReceipt.addSample(flow.ReceiveBeginFrame.start -
                                flow.IssueBeginFrame.start);
-      receiptToSubmit.addSample(flow.SubmitCompositorFrame.start -
-                                flow.ReceiveBeginFrame.start);
-      submitToAggregate.addSample(flow.SurfaceAggregation.start -
-                                  flow.SubmitCompositorFrame.start);
+      receiptToSubmit.addSample(
+          flow.SubmitCompositorFrame.end - flow.ReceiveBeginFrame.start,
+          {breakdown: generateBreakdownForCompositorPipelineInClient(flow)});
+      submitToAggregate.addSample(
+          flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
+          {breakdown: generateBreakdownForCompositorPipelineInService(flow)});
     }
   }
 

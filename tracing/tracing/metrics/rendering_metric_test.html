@@ -164,6 +164,14 @@ tr.b.unittest.testSuite(function() {
     }
     renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
+          start: frame.GenerateRenderPass, duration: 1, bindId: id,
+          args: {step: 'GenerateRenderPass'}}));
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.GenerateCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'GenerateCompositorFrame'}}));
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
           start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
           args: {step: 'SubmitCompositorFrame'}}));
     compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
@@ -189,17 +197,20 @@ tr.b.unittest.testSuite(function() {
       rendererCompositor.name = 'Compositor';
 
       addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, SubmitCompositorFrame: 3,
-        ReceiveCompositorFrame: 4, SurfaceAggregation: 7
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 10
       });
       addPipelineForOneFrame(browserMain, rendererCompositor, 2, {
-        IssueBeginFrame: 15, ReceiveBeginFrame: 16, SubmitCompositorFrame: 17,
-        ReceiveCompositorFrame: 18, SurfaceAggregation: 19
+        IssueBeginFrame: 15, ReceiveBeginFrame: 16, GenerateRenderPass: 17,
+        GenerateCompositorFrame: 18, SubmitCompositorFrame: 19,
+        ReceiveCompositorFrame: 20, SurfaceAggregation: 21
       });
       addPipelineForOneFrame(browserMain, rendererCompositor, 3, {
-        IssueBeginFrame: 32, ReceiveBeginFrame: 34,
-        SubmitCompositorFrame: 37, ReceiveCompositorFrame: 38,
-        SurfaceAggregation: 41
+        IssueBeginFrame: 32, ReceiveBeginFrame: 34, GenerateRenderPass: 35,
+        GenerateCompositorFrame: 36, SubmitCompositorFrame: 37,
+        SubmitCompositorFrame: 38, ReceiveCompositorFrame: 41,
+        SurfaceAggregation: 44
       });
     });
     const histograms = new tr.v.HistogramSet();
@@ -212,8 +223,8 @@ tr.b.unittest.testSuite(function() {
     const surfaceAggregation = histograms.getHistogramNamed(
         'pipeline:frame_submission_to_display');
     assert.closeTo(beginFrameTransport.average, 4 / 3, 1e-6);
-    assert.closeTo(frameSubmission.average, 5 / 3, 1e-6);
-    assert.closeTo(surfaceAggregation.average, 10 / 3, 1e-6);
+    assert.closeTo(frameSubmission.average, 13 / 3, 1e-6);
+    assert.closeTo(surfaceAggregation.average, 13 / 3, 1e-6);
   });
 
   test('renderingMetric_GraphicsPipelineDuplicateSteps', function() {
@@ -229,15 +240,17 @@ tr.b.unittest.testSuite(function() {
       rendererCompositor.name = 'Compositor';
 
       addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, SubmitCompositorFrame: 3,
-        ReceiveCompositorFrame: 4, SurfaceAggregation: 7
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
       });
 
       // Add duplicate steps for SubmitCompositorFrame and the subsequent
       // steps for the same trace-id.
       addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        SubmitCompositorFrame: 7, ReceiveCompositorFrame: 9,
-        SurfaceAggregation: 11
+        GenerateRenderPass: 10, GenerateCompositorFrame: 11,
+        SubmitCompositorFrame: 12, ReceiveCompositorFrame: 15,
+        SurfaceAggregation: 18
       });
     });
     const histograms = new tr.v.HistogramSet();
@@ -250,7 +263,7 @@ tr.b.unittest.testSuite(function() {
     const surfaceAggregation = histograms.getHistogramNamed(
         'pipeline:frame_submission_to_display');
     assert.strictEqual(beginFrameTransport.average, 1);
-    assert.strictEqual(frameSubmission.average, 1);
+    assert.strictEqual(frameSubmission.average, 4);
     assert.strictEqual(surfaceAggregation.average, 4);
   });
 });
