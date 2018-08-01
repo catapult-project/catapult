@@ -498,14 +498,6 @@ class AndroidPlatformBackend(
       if not self._device.DismissCrashDialogIfNeeded():
         break
 
-  def IsAppRunning(self, process_name):
-    """Determine if the given process is running.
-
-    Args:
-      process_name: The full package name string of the process.
-    """
-    return bool(self._device.GetApplicationPids(process_name))
-
   def PushProfile(self, package, new_profile_dir):
     """Replace application profile with files found on host machine.
 
