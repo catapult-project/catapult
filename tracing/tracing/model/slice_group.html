@@ -134,14 +134,6 @@ tr.exportTo('tr.model', function() {
      */
     beginSlice(category, title, ts, opt_args, opt_tts,
         opt_argsStripped, opt_colorId) {
-      if (this.openPartialSlices_.length) {
-        const prevSlice = this.openPartialSlices_[
-            this.openPartialSlices_.length - 1];
-        if (ts < prevSlice.start) {
-          throw new Error('Slices must be added in increasing timestamp order');
-        }
-      }
-
       const colorId = opt_colorId ||
           ColorScheme.getColorIdForGeneralPurposeString(title);
       const sliceConstructorSubTypes = this.sliceConstructorSubTypes;

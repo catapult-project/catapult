@@ -125,6 +125,85 @@ tr.b.unittest.testSuite(function() {
     checkParsedAndStreamInput(events, checkModel);
   });
 
+  test('nonMonotonicInstantEvents', function() {
+    function checkModel(m) {
+      assert.strictEqual(m.numProcesses, 1);
+      const p = m.processes[52];
+      assert.isDefined(p);
+
+      assert.strictEqual(p.numThreads, 3);
+      const t1 = p.threads[1];
+      assert.isDefined(t1);
+      assert.strictEqual(t1.sliceGroup.length, 3);
+
+      let slice = t1.sliceGroup.slices[1];
+      assert.strictEqual(slice.title, 'b');
+      assert.strictEqual(slice.category, 'foo');
+      assert.strictEqual(slice.start, 2);
+      assert.strictEqual(slice.duration, 0);
+      assert.strictEqual(slice.subSlices.length, 0);
+
+      slice = t1.sliceGroup.slices[2];
+      assert.strictEqual(slice.title, 'a');
+      assert.strictEqual(slice.category, 'foo');
+      assert.strictEqual(slice.start, 3);
+      assert.strictEqual(slice.duration, 5);
+      assert.strictEqual(slice.subSlices.length, 0);
+
+      const t2 = p.threads[2];
+      assert.isDefined(t2);
+      assert.strictEqual(t2.sliceGroup.length, 3);
+
+      slice = t2.sliceGroup.slices[1];
+      assert.strictEqual(slice.title, 'b');
+      assert.strictEqual(slice.start, 2);
+      assert.strictEqual(slice.duration, 0);
+      assert.strictEqual(slice.subSlices.length, 0);
+
+      slice = t2.sliceGroup.slices[2];
+      assert.strictEqual(slice.title, 'a');
+      assert.strictEqual(slice.category, 'foo');
+      assert.strictEqual(slice.start, 3);
+      assert.strictEqual(slice.duration, 5);
+      assert.strictEqual(slice.subSlices.length, 0);
+
+      const t3 = p.threads[3];
+      assert.isDefined(t3);
+      assert.strictEqual(t3.sliceGroup.length, 3);
+
+      slice = t3.sliceGroup.slices[1];
+      assert.strictEqual(slice.title, 'b');
+      assert.strictEqual(slice.start, 2);
+      assert.strictEqual(slice.duration, 0);
+      assert.strictEqual(slice.subSlices.length, 0);
+
+      slice = t3.sliceGroup.slices[2];
+      assert.strictEqual(slice.title, 'a');
+      assert.strictEqual(slice.category, 'foo');
+      assert.strictEqual(slice.start, 3);
+      assert.strictEqual(slice.duration, 5);
+      assert.strictEqual(slice.subSlices.length, 0);
+    }
+
+    const events = [
+      {name: 'x', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 1, ph: 'R'},
+      {name: 'a', args: {}, pid: 52, ts: 3000, cat: 'foo', tid: 1, ph: 'X',
+        dur: 5000},
+      {name: 'b', args: {}, pid: 52, ts: 2000, cat: 'foo', tid: 1, ph: 'R'},
+
+      {name: 'x', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 2, ph: 'R'},
+      {name: 'b', args: {}, pid: 52, ts: 2000, cat: 'foo', tid: 2, ph: 'R'},
+      {name: 'a', args: {}, pid: 52, ts: 3000, cat: 'foo', tid: 2, ph: 'X',
+        dur: 5000},
+
+      {name: 'x', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 3, ph: 'R'},
+      {name: 'a', args: {}, pid: 52, ts: 3000, cat: 'foo', tid: 3, ph: 'B'},
+      {name: 'b', args: {}, pid: 52, ts: 2000, cat: 'foo', tid: 3, ph: 'R'},
+      {name: 'a', args: {}, pid: 52, ts: 8000, cat: 'foo', tid: 3, ph: 'E'}
+    ];
+    checkParsedAndStreamInput(events, checkModel);
+  });
+
   test('basicSingleThreadNonnestedParsingWithCpuDuration', function() {
     function checkModel(m) {
       assert.strictEqual(m.numProcesses, 1);
