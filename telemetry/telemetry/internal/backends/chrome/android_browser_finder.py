@@ -186,8 +186,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
     device.adb.Logcat(clear=True)
 
+    # use legacy commandline path if in compatibility mode
     self._flag_changer = flag_changer.FlagChanger(
-        device, self._backend_settings.command_line_name)
+        device, self._backend_settings.command_line_name,
+        use_legacy_path=browser_options.compatibility_mode)
     self._flag_changer.ReplaceFlags(startup_args)
     # Stop any existing browser found already running on the device. This is
     # done *after* setting the command line flags, in case some other Android

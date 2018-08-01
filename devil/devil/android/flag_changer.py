@@ -52,12 +52,14 @@ class FlagChanger(object):
     once the tests have completed.
   """
 
-  def __init__(self, device, cmdline_file):
+  def __init__(self, device, cmdline_file, use_legacy_path=False):
     """Initializes the FlagChanger and records the original arguments.
 
     Args:
       device: A DeviceUtils instance.
       cmdline_file: Name of the command line file where to store flags.
+      use_legacy_path: Whether to use the legacy commandline path (needed for
+        M54 and earlier)
     """
     self._device = device
     self._should_reset_enforce = False
@@ -66,13 +68,18 @@ class FlagChanger(object):
       raise ValueError(
           'cmdline_file should be a file name only, do not include path'
           ' separators in: %s' % cmdline_file)
-    self._cmdline_path = posixpath.join(_CMDLINE_DIR, cmdline_file)
+    cmdline_path = posixpath.join(_CMDLINE_DIR, cmdline_file)
+    alternate_cmdline_path = posixpath.join(_CMDLINE_DIR_LEGACY, cmdline_file)
 
-    cmdline_path_legacy = posixpath.join(_CMDLINE_DIR_LEGACY, cmdline_file)
-    if self._device.PathExists(cmdline_path_legacy):
+    if use_legacy_path:
+      cmdline_path, alternate_cmdline_path = (
+          alternate_cmdline_path, cmdline_path)
+    self._cmdline_path = cmdline_path
+
+    if self._device.PathExists(alternate_cmdline_path):
       logger.warning(
-            'Removing legacy command line file %r.', cmdline_path_legacy)
-      self._device.RemovePath(cmdline_path_legacy, as_root=True)
+          'Removing alternate command line file %r.', alternate_cmdline_path)
+      self._device.RemovePath(alternate_cmdline_path, as_root=True)
 
     self._state_stack = [None]  # Actual state is set by GetCurrentFlags().
     self.GetCurrentFlags()
@@ -195,7 +202,7 @@ class FlagChanger(object):
     """
     # The initial state must always remain on the stack.
     assert len(self._state_stack) > 1, (
-      "Mismatch between calls to Add/RemoveFlags and Restore")
+        'Mismatch between calls to Add/RemoveFlags and Restore')
     self._state_stack.pop()
     if len(self._state_stack) == 1:
       self._ResetEnforce()

@@ -42,7 +42,7 @@ class FlagChangerTest(unittest.TestCase):
     self.cmdline_path_legacy = posixpath.join(
         flag_changer._CMDLINE_DIR_LEGACY, _CMDLINE_FILE)
 
-  def testFlagChanger_removeLegacyCmdLine(self):
+  def testFlagChanger_removeAlternateCmdLine(self):
     self.device.WriteFile(self.cmdline_path_legacy, 'chrome --old --stuff')
     self.assertTrue(self.device.PathExists(self.cmdline_path_legacy))
 
@@ -51,6 +51,17 @@ class FlagChangerTest(unittest.TestCase):
         changer._cmdline_path,  # pylint: disable=protected-access
         self.cmdline_path)
     self.assertFalse(self.device.PathExists(self.cmdline_path_legacy))
+
+  def testFlagChanger_removeAlternateCmdLineLegacyPath(self):
+    self.device.WriteFile(self.cmdline_path, 'chrome --old --stuff')
+    self.assertTrue(self.device.PathExists(self.cmdline_path))
+
+    changer = flag_changer.FlagChanger(self.device, 'chrome-command-line',
+                                       use_legacy_path=True)
+    self.assertEquals(
+      changer._cmdline_path,  # pylint: disable=protected-access
+      self.cmdline_path_legacy)
+    self.assertFalse(self.device.PathExists(self.cmdline_path))
 
   def testFlagChanger_mustBeFileName(self):
     with self.assertRaises(ValueError):
