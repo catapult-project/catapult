@@ -16,6 +16,9 @@ import os
 import re
 import subprocess
 import sys
+# pylint: disable=import-error
+# pylint: disable=no-name-in-module
+from distutils.version import LooseVersion
 
 PROCESSOR_ARCHITECTURE = 'arm'
 DEFAULT_DOWNLOAD_PATH = 'out'
@@ -191,6 +194,9 @@ def DownloadAPKFromURI(uri, output_dir):
   Args:
     uri(string): Gsutil URI
     output_dir(string): The path that the APKs will be stored
+
+  Returns:
+    string: the path of the downloaded APK
   """
 
   def GetAPKName(gs_uri):
@@ -198,12 +204,14 @@ def DownloadAPKFromURI(uri, output_dir):
     # ChromeStable.apk
     return '_'.join(gs_uri.split('/')[-3:])
 
-  # TODO(wangge): How to fail back if the download is not successful?
+  path_to_apk = os.path.join(output_dir, GetAPKName(uri))
+
   try:
-    subprocess.check_call(['gsutil', 'cp', uri,
-                           os.path.join(output_dir, GetAPKName(uri))])
+    subprocess.check_call(['gsutil', 'cp', uri, path_to_apk])
   except subprocess.CalledProcessError:
     raise CloudDownloadFailed(uri)
+
+  return path_to_apk
 
 
 def DecrementPatchNumber(version_num, num):
@@ -276,6 +284,45 @@ def ProcessArguments(args, milestone_info):
     args.to_milestone = milestone_info.latest_milestone
 
 
+def GetLocalAPK(milestone_num, output_path):
+  """Get the local path of the APK for the given milestone.
+
+  Args:
+    milestone_num(int): the milestone number
+    output_path(string): the directory that the apks will be downloaded in
+
+  Returns:
+    string/None: returns None if there is no local apk, returns path otherwise
+  """
+  def ParseVersion(apk_name):
+    return LooseVersion(apk_name.split('_')[0])
+
+  if not os.path.isdir(output_path):
+    return None
+
+  local_apks = sorted([apk for apk in os.listdir(
+      output_path) if apk.startswith('%d.' % milestone_num)], key=ParseVersion)
+  return None if not local_apks else os.path.join(output_path, local_apks[-1])
+
+
+def GetAPK(milestone_num, output_path, milestone_info):
+  """Get the path to an APK, download if it doesn't exist.
+
+  Args:
+    milestone_num(int): milestone number
+    output_path(string): the directory that the apks will be downloaded in
+    milestone_info(MilestoneInfo):
+
+  Returns:
+    string: the path to the apk for the given milestone
+  """
+  local_apk_path = GetLocalAPK(milestone_num, output_path)
+  if local_apk_path is None:
+    uri = milestone_info.GetLatestVersionURI(milestone_num)
+    return DownloadAPKFromURI(uri, output_path)
+  return local_apk_path
+
+
 def main(args):
   args = BuildArgumentParser(args)
 
@@ -291,13 +338,11 @@ def main(args):
       APP_DIR, 'full_milestone_info.csv'))
   ProcessArguments(args, milestone_info)
 
-  print ('Getting the storage URI, this process might '
-         'take some time, please wait patiently')
-
   try:
     for milestone in range(args.from_milestone, args.to_milestone + 1):
-      uri = milestone_info.GetLatestVersionURI(milestone)
-      DownloadAPKFromURI(uri, args.output_path)
+      path_to_apk = GetAPK(milestone, args.output_path, milestone_info)
+      print path_to_apk
+
     return 0
   except KeyboardInterrupt:
     return 'interrupted, exiting...'
