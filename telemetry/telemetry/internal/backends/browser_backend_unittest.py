@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from telemetry.internal.backends import browser_backend
+from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 import mock
 
@@ -45,3 +46,23 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
             bucket='ABC', remote_path='def', local_path=temp_file_name)
     finally:
       os.remove(temp_file_name)
+
+
+class BrowserBackendIntegrationTest(browser_test_case.BrowserTestCase):
+  def setUp(self):
+    super(BrowserBackendIntegrationTest, self).setUp()
+    self._browser_backend = self._browser._browser_backend
+
+  def testSmokeIsBrowserRunningReturnTrue(self):
+    self.assertTrue(self._browser_backend.IsBrowserRunning())
+
+  def testSmokeIsBrowserRunningReturnFalse(self):
+    self._browser_backend.Close()
+    self.assertFalse(self._browser_backend.IsBrowserRunning())
+
+  def testBrowserPid(self):
+    pid = self._browser_backend.pid
+    self.assertTrue(self._browser_backend.pid)
+    # TODO(crbug.com/869588): pid getter is heavyweight and should not be a
+    # property
+    self.assertEqual(pid, self._browser_backend.pid)
