@@ -35,7 +35,7 @@ def FindBrowser(options):
     A BrowserOptions object.
 
   Returns:
-    A PossibleBrowser object.
+    A PossibleBrowser object. None if browser does not exist in DUT.
 
   Raises:
     BrowserFinderException: Options improperly set, or an error occurred.
@@ -72,11 +72,13 @@ def FindBrowser(options):
         default_browsers.append(new_default_browser)
       browsers.extend(curr_browsers)
 
+  if not browsers:
+    return None
+
   if options.browser_type is None:
     if default_browsers:
-      default_browser = sorted(default_browsers,
-                               key=lambda b: b.last_modification_time)[-1]
-
+      default_browser = max(default_browsers,
+                            key=lambda b: b.last_modification_time)
       logging.warning('--browser omitted. Using most recent local build: %s',
                       default_browser.browser_type)
       default_browser.UpdateExecutableIfNeeded()
@@ -92,35 +94,26 @@ def FindBrowser(options):
         '--browser must be specified. Available browsers:\n%s' %
         '\n'.join(sorted(set([b.browser_type for b in browsers]))))
 
+  chosen_browser = None
   if options.browser_type == 'any':
     types = FindAllBrowserTypes(options)
-    def CompareBrowsersOnTypePriority(x, y):
-      x_idx = types.index(x.browser_type)
-      y_idx = types.index(y.browser_type)
-      return x_idx - y_idx
-    browsers.sort(CompareBrowsersOnTypePriority)
-    if len(browsers) >= 1:
-      browsers[0].UpdateExecutableIfNeeded()
-      return browsers[0]
-    else:
+    chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
+  else:
+    matching_browsers = [
+        b for b in browsers
+        if b.browser_type == options.browser_type and
+        b.SupportsOptions(options.browser_options)]
+    if not matching_browsers:
+      logging.warning('Cannot find any matched browser')
       return None
-
-  matching_browsers = [
-      b for b in browsers
-      if b.browser_type == options.browser_type and
-      b.SupportsOptions(options.browser_options)]
-
-  chosen_browser = None
-  if len(matching_browsers) == 1:
-    chosen_browser = matching_browsers[0]
-  elif len(matching_browsers) > 1:
-    logging.warning('Multiple browsers of the same type found: %s',
-                    repr(matching_browsers))
-    chosen_browser = sorted(matching_browsers,
-                            key=lambda b: b.last_modification_time)[-1]
+    if len(matching_browsers) > 1:
+      logging.warning('Multiple browsers of the same type found: %r',
+                      matching_browsers)
+    chosen_browser = max(matching_browsers,
+                         key=lambda b: b.last_modification_time)
 
   if chosen_browser:
-    logging.info('Chose browser: %s', repr(chosen_browser))
+    logging.info('Chose browser: %r', chosen_browser)
     chosen_browser.UpdateExecutableIfNeeded()
 
   return chosen_browser
