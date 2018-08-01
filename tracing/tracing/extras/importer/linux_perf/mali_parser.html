@@ -216,7 +216,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importer.registerEventHandler('tracing_mark_write:mali_driver',
         MaliParser.prototype.maliDDKEvent.bind(this));
 
+    // Mali job scheduler events from Exynos kernels
+    importer.registerEventHandler('mali_job_systrace_event_start',
+        MaliParser.prototype.maliJobEvent.bind(this));
+    importer.registerEventHandler('mali_job_systrace_event_stop',
+        MaliParser.prototype.maliJobEvent.bind(this));
+
     this.model_ = importer.model_;
+
+    this.deferredJobs_ = {}; // <job type>: [<deferred jobs>]
   }
 
   MaliParser.prototype = {
@@ -293,6 +301,93 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           break;
         case 'cros_trace_print_exit':
           this.maliDDKCloseSlice(pid, tid, ts, [], maliEvent[3]);
+      }
+      return true;
+    },
+
+    /**
+     * Parses Mali Job events and sets up state in the importer.
+     * Events come in pairs like this:
+     *
+     * tracing_mark_write: S|7229|vertex-job|62|0|0|0|0|f46aed08|722962164982...
+     * tracing_mark_write: F|7229|vertex-job|62|0|0|0|0|f46aed08|722962164982...
+     *
+     * The '|' separated fields are (numbers correspond to jobEventRE groups
+     * below):
+     *   1:   'S'tart / 'F'inish
+     *   2:   tgid that submitted the job
+     *   3:   job type
+     *   4:   job id
+     *   5,6: dependency 0: job id, dependency type
+     *   7,8: dependency 1: job id, dependency type
+     *   9:   ctx id
+     *   10:  unique job submission id
+     */
+    maliJobEvent(eventName, cpuNumber, pid, ts, eventBase) {
+      const jobEventRE =
+          // eslint-disable-next-line max-len
+          /^.*tracing_mark_write: (S|F)\|(\d+)\|(\w+)-job\|(\d+)\|(\d+)\|(\d+)\|(\d+)\|(\d+)\|([a-z0-9]+)\|(\d+)$/;
+      const jobEvent = jobEventRE.exec(eventBase.details);
+      if (!jobEvent) {
+        this.model_.importWarning({
+          type: 'parse_error',
+          args: 'unexpected mali_job_systrace_event_* event syntax'
+        });
+        return;
+      }
+      const jobType = jobEvent[3];
+      const jobId = jobEvent[4];
+      const thread = this.importer.model_.getOrCreateProcess(0)
+          .getOrCreateThread('mali:' + jobType);
+      switch (jobEvent[1]) {
+        case 'S': {
+          /* The HW has a two-deep ("head", "next") job FIFO for each job
+           * type. Start events indicate when the job was pushed into the FIFO,
+           * *not* when the hardware actually starts executing the job. It
+           * either starts ~immediately if the FIFO was empty, or when the
+           * previous job finishes otherwise.
+           *
+           * So we can get events in the order S|0, S|1, F|0, F|1, but we want
+           * to turn that into a '0' slice from S|0 to F|0, and another '1'
+           * slice from F|0 to F|1. In other words, when there is already a
+           * slice open, we want to defer creating a slice for this job until we
+           * finish the previous slice, then immediately open the slice for this
+           * event using the same timestamp.
+           */
+          const args = {
+            ctx: jobEvent[9],
+            pid: parseInt(jobEvent[2], 10),
+            dep0: parseInt(jobEvent[5], 10),
+            dep1: parseInt(jobEvent[7], 10)
+          };
+          if (thread.sliceGroup.openSliceCount) {
+            if (!(jobType in this.deferredJobs_)) {
+              this.deferredJobs_[jobType] = [];
+            }
+            this.deferredJobs_[jobType].push({id: jobId, args});
+          } else {
+            thread.sliceGroup.beginSlice(null, jobId, ts, args);
+          }
+        } break;
+        case 'F': {
+          if (!thread.sliceGroup.openSliceCount) {
+            // Discard unmatched ends.
+            return;
+          }
+          if (thread.sliceGroup.mostRecentlyOpenedPartialSlice.title !==
+              jobId) {
+            this.model_.importWarning({
+              type: 'invalid event nesting',
+              message: 'non-sequential jobs in same mali job slot'
+            });
+          }
+          thread.sliceGroup.endSlice(ts);
+          const deferredJobs = this.deferredJobs_[jobType];
+          if (deferredJobs && deferredJobs.length) {
+            const job = deferredJobs.shift();
+            thread.sliceGroup.beginSlice(null, job.id, ts, job.args);
+          }
+        } break;
       }
       return true;
     },

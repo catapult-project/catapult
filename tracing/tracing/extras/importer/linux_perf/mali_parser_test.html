@@ -480,6 +480,80 @@ tr.b.unittest.testSuite(function() {
     }
     // TODO(sleffler) verify counter names? (not sure if it's worth the effort)
   });
+
+  test('maliJobImport', function() {
+    const jobEvents = [
+      // vertex slice 0 open
+      '  surfaceflinger-6962  ( 6962) [000] d.h2 498269.966588: ' +
+          'mali_job_systrace_event_start: tracing_mark_write: ' +
+          'S|6962|vertex-job|85|84|1|0|0|920d408|69628513498269966584032',
+      // vertex slice 0 close
+      '  surfaceflinger-6962  ( 6962) [000] d.h2 498269.966702: ' +
+          'mali_job_systrace_event_stop: tracing_mark_write: ' +
+          'F|6962|vertex-job|85|84|1|0|0|920d408|69628513498269966584032',
+
+      // vertex slice 1 open
+      '  surfaceflinger-6962  ( 6962) [000] d..1 498269.966966: ' +
+          'mali_job_systrace_event_start: tracing_mark_write: ' +
+          'S|7541|vertex-job|225|0|0|0|0|f5e13b48|754122517498269966963802',
+      // vertex slice 1 close
+      '  surfaceflinger-6962  ( 6962) [000] d.h1 498269.967109: ' +
+          'mali_job_systrace_event_stop: tracing_mark_write: ' +
+          'F|7541|vertex-job|225|0|0|0|0|f5e13b48|754122517498269966963802',
+
+      // fragment slice 0 open
+      '   kworker/u17:4-6269  ( 6269) [001] d..1 498269.967667: ' +
+          'mali_job_systrace_event_start: tracing_mark_write: ' +
+          'S|6962|fragment-job|86|85|1|0|0|920d408|69628613498269967664417',
+      // fragment slice 1 open (deferred)
+      ' mali-cmar-backe-7634  ( 7541) [003] d..1 498269.968473: ' +
+          'mali_job_systrace_event_start: tracing_mark_write: ' +
+          'S|7541|fragment-job|223|225|1|0|0|f5e13b48|754122317498269968470186',
+      // fragment slice 0 close (adjusted open of slice 1)
+      ' HwBinder:6936_2-7001  ( 6936) [000] d.h3 498269.970336: ' +
+          'mali_job_systrace_event_stop: tracing_mark_write: ' +
+          'F|6962|fragment-job|86|85|1|0|0|920d408|69628613498269967664417',
+      // fragment slice 1 close
+      ' RenderThread-7619  ( 7541) [000] d.h1 498269.971688: ' +
+          'mali_job_systrace_event_stop: tracing_mark_write: ' +
+          'F|7541|fragment-job|223|225|1|0|0|f5e13b48|754122317498269970293032',
+    ];
+
+    const expectedThreads = [
+      {
+        tid: 'mali:vertex',
+        slices: [
+          {title: '85', start: '498269.966588', end: '498269.966702'},
+          {title: '225', start: '498269.966966', end: '498269.967109'}]},
+      {
+        tid: 'mali:fragment',
+        slices: [
+          {title: '86', start: '498269.967667', end: '498269.970336'},
+          {title: '223', start: '498269.970336', end: '498269.971688'}]},
+    ];
+
+    const trace = newModel(jobEvents.join('\n'));
+    assert.isFalse(trace.hasImportWarnings);
+
+    const threads = trace.getAllThreads();
+    assert.strictEqual(threads.length, expectedThreads.length);
+    for (let tidx = 0; tidx < threads.length; tidx++) {
+      const actualThread = threads[tidx];
+      const expectedThread = expectedThreads[tidx];
+      assert.strictEqual(actualThread.tid, expectedThreads[tidx].tid);
+      assert.strictEqual(actualThread.sliceGroup.length,
+          expectedThreads[tidx].slices.length);
+      for (let sidx = 0; sidx < actualThread.sliceGroup.length; sidx++) {
+        const actualSlice = actualThread.sliceGroup.slices[sidx];
+        const expectedSlice = expectedThread.slices[sidx];
+        assert.strictEqual(actualSlice.title, expectedSlice.title);
+        assert.strictEqual(actualSlice.start,
+            parseFloat(expectedSlice.start) * 1000);
+        assert.strictEqual(actualSlice.end,
+            parseFloat(expectedSlice.end) * 1000);
+      }
+    }
+  });
 });
 </script>
 
