@@ -24,7 +24,7 @@ class BoxPlotter {
 
   createXAxisScale_(graph, chartDimensions) {
     return d3.scaleLinear()
-        .domain([0, graph.max_(x => x) * 1.1])
+        .domain([0, graph.max(x => x) * 1.1])
         .range([0, chartDimensions.width]);
   }
 

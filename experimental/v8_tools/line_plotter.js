@@ -28,13 +28,13 @@ class LinePlotter {
 
   createXAxisScale_(graph, chartDimensions) {
     return d3.scaleLinear()
-        .domain([0, graph.xAxisMax()])
+        .domain([0, graph.max(point => point.x)])
         .range([0, chartDimensions.width]);
   }
 
   createYAxisScale_(graph, chartDimensions) {
     return d3.scaleLinear()
-        .domain([graph.yAxisMax(), 0])
+        .domain([graph.max(point => point.y), 0])
         .range([0, chartDimensions.height]);
   }
 

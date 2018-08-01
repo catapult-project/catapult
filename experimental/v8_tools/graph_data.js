@@ -87,12 +87,13 @@ class GraphData {
    */
   addData(data) {
     if (typeof data !== 'object') {
-      throw new Error('Expected an object to be supplied.');
+      throw new TypeError('Expected an object to be supplied.');
     }
     for (const [displayLabel, values] of Object.entries(data)) {
       if (values.constructor !== Array ||
         !values.every((val) => typeof val === 'number')) {
-        throw new Error('The supplied values should be an array of numbers.');
+        throw new TypeError(
+            'The supplied values should be an array of numbers.');
       }
       this.dataSources.push({
         data: values,
@@ -118,29 +119,11 @@ class GraphData {
    * @param {function(Object): number} projection
    * @return {number}
    */
-  max_(projection) {
+  max(projection) {
     const projectAll = dataSource => dataSource.data.map(projection);
     const maxReducer =
       (acc, curr) => Math.max(acc, Math.max(...projectAll(curr)));
     return this.dataSources.reduce(maxReducer, Number.MIN_VALUE);
-  }
-
-  /**
-   * Finds the maximum value along the points for the x-axis.
-   * This is useful when computing appropriate scales for the x-axis.
-   * @return {number}
-   */
-  xAxisMax() {
-    return this.max_(point => point.x);
-  }
-
-  /**
-   * Finds the maximum value along the points for the y-axis.
-   * This is useful when computing appropriate scales for the y-axis.
-   * @return {number}
-   */
-  yAxisMax() {
-    return this.max_(point => point.y);
   }
 
   /**
