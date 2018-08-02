@@ -1,5 +1,13 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <!-- <link rel="stylesheet" href="filter.css"> -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src='https://unpkg.com/vue-select'></script>
+    <script src="http://underscorejs.org/underscore-min.js"></script>
+</head>
+<body>
+
 <input type='file' id='file-input'/>
 <input type='button' value='stories' id='storyBtn' style='visibility:hidden;'/>
 <input type='button' value='storyTags' id='storyTagsBtn' style='visibility:hidden;'/>
@@ -7,206 +15,24 @@
 <input type='button' value='traceStart' id='traceStartBtn' style='visibility:hidden;'/>
 <input type='button' value='traceUrls' id='traceUrlsBtn' style='visibility:hidden;'/>
 
-<h3>Sample Values:</h3>
-<pre id='sample-values'></pre>
+<input type='text' id='metricname' style='visibility:hidden;'/>
+<input type='text' id='storyname' style='visibility:hidden;'/>
 
-<script>
-    'use strict';
-    //  just to make sure the user doesn't press any button before having
-    //  any relevant information
-    function visibleAll() {
-      document.getElementById('storyBtn').style.visibility = 'visible';
-      document.getElementById('storyTagsBtn').style.visibility = 'visible';
-      document.getElementById('storysetRepeatsBtn').style.visibility = 'visible';
-      document.getElementById('traceStartBtn').style.visibility = 'visible';
-      document.getElementById('traceUrlsBtn').style.visibility = 'visible';
-    }
+<input type='button' value='check' id='submit' style='visibility:hidden;'/>
 
-    //  load the content of the file and further display the data
-    function readSingleFile(e) {
-      const file = e.target.files[0];
-      if (!file) {
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        //  extract data from file and distribute it in some relevant structures
-        const contents = extractData(e.target.result);
-        // results for all guid-related; for now they are not
-        // divided in 3 parts depending on the type
-        // all results with sample-value-related
-        const sampleArr = contents.sampleValueArray;
+<div id="app">
+  <v-select placeholder="Pick a metric" v-if="seen" :options="metrics" v-model="selected_metric"></v-select>
+  <v-select placeholder="Pick a story" v-if="seen" :options="stories" v-model="selected_story"></v-select>
+  <v-select placeholder="Pick a diagnostic" v-if="seen" :options="diagnostics" 
+            v-model="selected_diagnostic"></v-select>
+    <ul>
+      <li v-for="(key, value) in target">
+         {{key}} : {{value}}
+      </li>
+    </ul>
+    <pre id='sample-values'></pre>
+</div>
 
-        //  map guid to value within the same structure
-        const guidValueInfo = contents.guidValueInfo;
-
-        displayContents(sampleArr, guidValueInfo);
-        visibleAll();
-
-        //  every button should be able to filter the information regarding
-        //  one of the possibilities of choosing
-        document.getElementById('storyBtn')
-            .addEventListener('click', function() {
-              displayContents(sampleArr, guidValueInfo, 'stories');
-            }, false);
-
-        document.getElementById('storyTagsBtn')
-            .addEventListener('click', function() {
-              displayContents(sampleArr, guidValueInfo, 'storyTags');
-            }, false);
-
-        document.getElementById('storysetRepeatsBtn')
-            .addEventListener('click', function() {
-              displayContents(sampleArr, guidValueInfo, 'storysetRepeats');
-            }, false);
-
-        document.getElementById('traceStartBtn')
-            .addEventListener('click', function() {
-              displayContents(sampleArr, guidValueInfo, 'traceStart');
-            }, false);
-
-        document.getElementById('traceUrlsBtn')
-            .addEventListener('click', function() {
-              displayContents(sampleArr, guidValueInfo, 'traceUrls');
-            }, false);
-      };
-      reader.readAsText(file);
-    }
-
-    // extract all data and divide it in sampleValues related
-    // and guid related (later I'll may divide this in 3 parts
-    // depending on the type of guid )
-    function extractData(contents) {
-      // populate guidValue with guidValue objects containing
-      // guid and value from the same type of data
-      const guidValueInfoMap = new Map();
-      const result = [];
-      const sampleValue = [];
-      //  workaround for later
-      const dateRangeMap = new Map();
-      const other = [];
-      //  extract every piece of data between <histogram-json> tags;
-      //  all data is written between these tags
-      const reg = /<histogram-json>(.*?)<\/histogram-json>/g;
-      let m = reg.exec(contents);
-      while (m !== null) {
-        result.push(m[1]);
-        m = reg.exec(contents);
-      }
-      for (const element of result) {
-        const e = JSON.parse(element);
-        if (e.hasOwnProperty('sampleValues')) {
-          //  TODO(nastasoiuf@): figure out what runnings represennt
-          sampleValue.push(e);
-        } else {
-          if (e.type === 'GenericSet') {
-            guidValueInfoMap.set(e.guid, e.values);
-          } else if (e.type === 'DateRange') {
-            dateRangeMap.set(e.guid, e.min);
-          } else {
-            other.push(e);
-          }
-        }
-      }
-
-      return {
-        guidValueInfo: guidValueInfoMap,
-        dateRangeArray: dateRangeMap,
-        otherTypes: other,
-        sampleValueArray: sampleValue
-      };
-    }
-
-
-    //  create a single cell with data in the table
-    function createCell(content, row) {
-      const cell = document.createElement('td');
-      const cellText = document.createTextNode(content);
-      cell.appendChild(cellText);
-      row.appendChild(cell);
-    }
-
-    function displayContents(sampleArr, guidValueInfo, fieldFilter) {
-      // get the reference by the Id
-      const body = document.getElementById('sample-values');
-
-      // creates a <table> element and a <tbody> element
-      const tbl = document.createElement('table');
-      const tblBody = document.createElement('tbody');
-
-      if (fieldFilter === undefined) {
-        // creating all cells for titles for heanding
-        const r = document.createElement('tr');
-        createCell('Name', r);
-        createCell('Sample Values', r);
-        createCell('Stories', r);
-        createCell('StoryTags', r);
-        createCell('StorySetRepeats', r);
-        createCell('TraceStart', r);
-        createCell('TraceUrls', r);
-        tblBody.appendChild(r);
-
-        for (const e of sampleArr) {
-          // creates a table row
-          const row = document.createElement('tr');
-          createCell(`${e.name}`, row);
-          createCell(`${e.sampleValues}`, row);
-          createCell(`${e.diagnostics.stories}`, row);
-          createCell(`${e.diagnostics.storyTags}`, row);
-          createCell(`${e.diagnostics.storysetRepeats}`, row);
-          createCell(`${e.diagnostics.traceStart}`, row);
-          createCell(`${e.diagnostics.traceUrls}`, row);
-          tblBody.appendChild(row);
-        }
-        // put the <tbody> in the <table>
-        tbl.appendChild(tblBody);
-        // appends <table> into <body>
-        body.appendChild(tbl);
-        // sets the border attribute of tbl to 1;
-        tbl.setAttribute('border', '1');
-      } else {
-      //  this array contains:
-      // mathchedSampleValueGuid objects which contains values from
-      // SampleArr and the coresponding value from guidValueInfo map
-      // depending on this: guid == field
-        const r = document.createElement('tr');
-        createCell('Name', r);
-        createCell('Sample Value', r);
-        createCell(`${fieldFilter}`, r);
-        createCell(`Matched value for ${fieldFilter}`, r);
-        tblBody.appendChild(r);
-
-        for (const e of sampleArr) {
-        // creates a table row
-          const row = document.createElement('tr');
-          // Create a <td> element and a text node, make the text
-          // node the contents of the <td>, and put the <td> at
-          // the end of the table row
-
-          createCell(`${e.name}`, row);
-          createCell(`${e.sampleValues}`, row);
-          createCell(`${e.diagnostics[fieldFilter]}`, row);
-          createCell(`${guidValueInfo.get(e.diagnostics[fieldFilter])}`, row);
-
-          // add the row to the end of the table body
-          tblBody.appendChild(row);
-        }
-        // put the <tbody> in the <table>
-        tbl.appendChild(tblBody);
-        // appends <table> into <body>
-        body.replaceChild(tbl, body.childNodes[0]);
-        // sets the border attribute of tbl to 1;
-        tbl.setAttribute('border', '1');
-      }
-    }
-
-    document.getElementById('file-input')
-        .addEventListener('change', readSingleFile, false);
-</script>
-
-</head>
-
-<body>
+<script src="filter.js"></script>
 </body>
-
 </html>

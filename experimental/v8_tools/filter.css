@@ -1,0 +1,23 @@
+body {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+}
+
+h1 {
+  font-size: 15px;
+  font-weight: 300;
+  color: #2c3e5099;
+  text-rendering: optimizelegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -moz-text-size-adjust: none;
+}
+
+#app {
+  max-width: 25em;
+  max-height: 100em;
+  height: 1000px;
+  margin: 2em auto;
+  margin-top: -35px;
+  left: +150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
