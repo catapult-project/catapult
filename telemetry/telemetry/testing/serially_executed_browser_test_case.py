@@ -78,7 +78,8 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
       cls.platform = cls._browser_to_create.platform
       cls.platform.SetFullPerformanceModeEnabled(
           browser_options.full_performance_mode)
-      cls.platform.network_controller.Open()
+      cls.platform.network_controller.Open(
+          browser_options.browser_options.wpr_mode)
     else:
       assert cls.platform == cls._browser_to_create.platform, (
           'All browser launches within same test suite must use browsers on '
