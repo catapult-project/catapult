@@ -148,7 +148,8 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.average, 1e-6);
   });
 
-  function addPipelineForOneFrame(compositor, renderer, id, frame) {
+  function addPipelineForOneFrame(compositor, renderer, id, frame,
+      displayTrace) {
     const EVENT_NAME = 'Graphics.Pipeline';
     if (frame.IssueBeginFrame) {
       compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
@@ -181,7 +182,25 @@ tr.b.unittest.testSuite(function() {
     compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
           start: frame.SurfaceAggregation, duration: 1, bindId: id,
-          args: {step: 'SurfaceAggregation'}}));
+          args: {step: 'SurfaceAggregation', display_trace: displayTrace}}));
+  }
+
+  function addDrawSlice(compositor, displayTrace, start, args) {
+    const EVENT_NAME = 'Graphics.Pipeline.DrawAndSwap';
+    let totalDuration = 0;
+    for (const duration of Object.values(args)) {
+      totalDuration += duration;
+    }
+    const slice = tr.c.TestUtils.newAsyncSliceNamed(
+        EVENT_NAME, start, totalDuration);
+    slice.id = ':ptr:' + displayTrace;
+    compositor.sliceGroup.pushSlice(slice);
+    totalDuration = 0;
+    for (const arg in args) {
+      slice.subSlices.push(tr.c.TestUtils.newAsyncSliceNamed(
+          arg, start + totalDuration, args[arg]));
+      totalDuration += args[arg];
+    }
   }
 
   test('renderingMetric_GraphicsPipeline', function() {
@@ -265,6 +284,35 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(beginFrameTransport.average, 1);
     assert.strictEqual(frameSubmission.average, 4);
     assert.strictEqual(surfaceAggregation.average, 4);
+  });
+
+  test('renderingMetric_GraphicsPipelineDrawSteps', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const telemetry = model.getOrCreateProcess(111).getOrCreateThread(0);
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 50));
+
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      const displayTrace = '1';
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
+      }, displayTrace);
+
+      addDrawSlice(browserMain, displayTrace, 10,
+          {Draw: 2, Swap: 1, WaitForAck: 5});
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    const drawHistogram = histograms.getHistogramNamed('pipeline:draw');
+    assert.strictEqual(drawHistogram.average, 8);
   });
 });
 </script>

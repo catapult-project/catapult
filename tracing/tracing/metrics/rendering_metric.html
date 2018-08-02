@@ -249,6 +249,29 @@ tr.exportTo('tr.metrics.rendering', function() {
     return breakdown;
   }
 
+  function generateBreakdownForDraw(drawEvent) {
+    const breakdown = new tr.v.d.Breakdown();
+    for (const slice of drawEvent.subSlices) {
+      breakdown.set(slice.title, slice.duration);
+    }
+    return breakdown;
+  }
+
+  function getDisplayCompositorThread(model) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const gpuHelper = chromeHelper.gpuHelper;
+    if (gpuHelper) {
+      const thread =
+          gpuHelper.process.findAtMostOneThreadNamed('VizCompositorThread');
+      if (thread) {
+        return thread;
+      }
+    }
+    const browserHelper = chromeHelper.browserHelpers[0];
+    return browserHelper.process.findAtMostOneThreadNamed('CrBrowserMain');
+  }
+
   function addPipelineHistograms(histograms, model, segments) {
     let events = [];
     for (const thread of model.getAllThreads()) {
@@ -268,6 +291,25 @@ tr.exportTo('tr.metrics.rendering', function() {
         bindEvents[bindId] = {};
       }
       bindEvents[bindId][event.args.step] = event;
+    }
+
+    const dcThread = getDisplayCompositorThread(model);
+    const drawEvents = {};
+    if (dcThread) {
+      const events =
+          [...dcThread.findTopmostSlicesNamed('Graphics.Pipeline.DrawAndSwap')];
+      for (const segment of segments) {
+        const filteredEvents = segment.boundsRange.filterArray(events,
+            evt => evt.start);
+        for (const event of filteredEvents) {
+          if (!event.id.startsWith(':ptr:')) continue;
+          const id = parseInt(event.id.substring(5), 16);
+          if (id in drawEvents) {
+            throw new Error('Duplicate draw events: ' + id);
+          }
+          drawEvents[id] = event;
+        }
+      }
     }
 
     const issueToReceipt = histograms.createHistogram(
@@ -294,6 +336,11 @@ tr.exportTo('tr.metrics.rendering', function() {
           'latency, task-queue time in the display-compositor, and ' +
           'additional processing (e.g. surface-sync etc.)',
         });
+    const aggregateToDraw = histograms.createHistogram(
+        'pipeline:draw',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {description: 'How long it takes for the gpu-swap step.'});
+
     for (const flow of Object.values(bindEvents)) {
       // Report only for the cases that go through the complete pipeline.
       if (!flow.IssueBeginFrame || !flow.ReceiveBeginFrame ||
@@ -308,6 +355,15 @@ tr.exportTo('tr.metrics.rendering', function() {
       submitToAggregate.addSample(
           flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
           {breakdown: generateBreakdownForCompositorPipelineInService(flow)});
+
+      if (flow.SurfaceAggregation.args &&
+          flow.SurfaceAggregation.args.display_trace) {
+        const displayTrace = flow.SurfaceAggregation.args.display_trace;
+        if (!(displayTrace in drawEvents)) continue;
+        const drawEvent = drawEvents[displayTrace];
+        aggregateToDraw.addSample(drawEvent.duration,
+            {breakdown: generateBreakdownForDraw(drawEvent)});
+      }
     }
   }
 
