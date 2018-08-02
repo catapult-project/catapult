@@ -20,6 +20,7 @@ import sys
 # pylint: disable=no-name-in-module
 from distutils.version import LooseVersion
 
+
 PROCESSOR_ARCHITECTURE = 'arm'
 DEFAULT_DOWNLOAD_PATH = 'out'
 APP_DIR = os.path.normpath(os.path.dirname(__file__))
@@ -57,6 +58,14 @@ def ParseDate(date_str):
   return date_object
 
 
+def ColoredStr(string):
+  class Colors(object):
+    OKGREEN = '\033[92m'
+    ENDC = '\033[0m'
+
+  return Colors.OKGREEN + string + Colors.ENDC
+
+
 class MilestoneInfo(object):
   """Simple class to store the full_milestone_info.csv data.
   """
@@ -83,6 +92,7 @@ class MilestoneInfo(object):
     for row in reversed(self._table):
       if row['release_date'] < date:
         return row['milestone']
+
     raise LookupError(
         'Cannot find any version before the given date %s' % date.isoformat())
 
@@ -323,6 +333,33 @@ def GetAPK(milestone_num, output_path, milestone_info):
   return local_apk_path
 
 
+def RunBenchmark(path_to_apk):
+  """Install the APK and run the benchmark on it.
+
+  Args:
+    path_to_apk(string): the *relative* path to the APK
+  """
+  apk_name = path_to_apk.split('/')[-1]
+  subprocess.call(['adb', 'install', '-r', '-d', path_to_apk])
+  subprocess.call(['../../../../tools/perf/run_benchmark',
+                   '--browser=android-system-chrome',
+                   '--pageset-repeat=1',  # could remove this later
+                   '--results-label=%s' % apk_name,  # could remove this as well
+                   # TODO(wangge):not sure if we should run in compatibility
+                   # mode even for the later version, probably add a check in
+                   # caller to determine if we should run it in compatibility
+                   # mode and add an argument `run_in_compatibility_mode` to
+                   # the `RunBenchmark` function
+                   '--compatibility-mode',
+                   '--story-filter=wikipedia',  # could remove this
+                   # thinking of adding an argument to the tool to set this
+                   '--output-dir=%s' % os.path.join(
+                       APP_DIR, 'results', apk_name,
+                       datetime.datetime.now().isoformat()),
+                   # thinking of adding an argument to the tool to set this too
+                   'system_health.memory_mobile'])
+
+
 def main(args):
   args = BuildArgumentParser(args)
 
@@ -340,8 +377,11 @@ def main(args):
 
   try:
     for milestone in range(args.from_milestone, args.to_milestone + 1):
+      print ColoredStr(
+          'Getting the path of the APK for milestone %d.' % milestone)
       path_to_apk = GetAPK(milestone, args.output_path, milestone_info)
-      print path_to_apk
+      print ColoredStr('Running benchmark for milestone %d:' % milestone)
+      RunBenchmark(path_to_apk)
 
     return 0
   except KeyboardInterrupt:
