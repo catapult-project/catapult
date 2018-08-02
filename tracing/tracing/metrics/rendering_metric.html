@@ -276,12 +276,18 @@ tr.exportTo('tr.metrics.rendering', function() {
     let events = [];
     for (const thread of model.getAllThreads()) {
       const graphicsEvents = thread.sliceGroup.slices.filter(
-          slice => slice.title === 'Graphics.Pipeline');
-      for (const segment of segments) {
-        const filteredEvents = segment.boundsRange.filterArray(graphicsEvents,
-            evt => evt.start);
-        events = events.concat(filteredEvents);
-      }
+          slice => {
+            if (slice.title !== 'Graphics.Pipeline') return false;
+            for (const segment of segments) {
+              if (segment.boundsRange.containsExplicitRangeInclusive(
+                  slice.start, slice.end)) {
+                return true;
+              }
+            }
+            return false;
+          }
+      );
+      events = events.concat(graphicsEvents);
     }
     const bindEvents = {};
     for (const event of events) {

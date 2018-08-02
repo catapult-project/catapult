@@ -251,6 +251,8 @@ tr.b.unittest.testSuite(function() {
       const telemetry = model.getOrCreateProcess(111).getOrCreateThread(0);
       telemetry.asyncSliceGroup.push(
           tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 50));
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 20));
 
       const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
       browserMain.name = 'CrBrowserMain';
