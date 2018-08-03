@@ -169,9 +169,8 @@
         this.options_.speed_;
     const distance =
         Math.min(maxScrollLengthPixels, this.getScrollDistance_()) *
-        chrome.gpuBenchmarking.pageScaleFactor();
-    const speed =
-        this.options_.speed_ * chrome.gpuBenchmarking.pageScaleFactor();
+        __GestureCommon_GetPageScaleFactor();
+    const speed = this.options_.speed_ * __GestureCommon_GetPageScaleFactor();
 
     const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
     const startLeft =

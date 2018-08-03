@@ -44,8 +44,7 @@
   DragAction.prototype.startGesture_ = function() {
     this.beginMeasuringHook();
 
-    const speed =
-        this.options_.speed_ * chrome.gpuBenchmarking.pageScaleFactor();
+    const speed = this.options_.speed_ * __GestureCommon_GetPageScaleFactor();
     const rect = __GestureCommon_GetBoundingVisibleRect(this.options_.element_);
     const startLeft =
         rect.left + (rect.width * this.options_.left_start_ratio_);
