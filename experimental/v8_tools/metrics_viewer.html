@@ -14,6 +14,7 @@
     <script src="./graph_data.js"></script>
     <script src="./line_plotter.js"></script>
     <script src="./box_plotter.js"></script>
+    <script src="./dot_plotter.js"></script>
     <script src="./graph_plotter.js"></script>
     <script>
       'use strict';
@@ -38,14 +39,14 @@
         });
         const graph = new GraphData();
         graph.xAxis('Data Points')
-            .yAxis('Memory used (MiB)')
+            .xAxis('Memory used (MiB)')
             .title('Memory used with and without site' +
               'isolation enabled for the TrivialGifAnimation story')
             .addData({
               withSiteIsoEnabled: withs,
               withoutSiteIsoEnabled: without,
             })
-            .plotCumulativeFrequency();
+            .plotDot();
       };
       loadData();
     </script>

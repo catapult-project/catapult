@@ -1,20 +1,19 @@
 'use strict';
 /**
- * Represents the data to be displayed on a graph and enables processing
- * of the data for display. This class is to be used as input to a
- * graph plotter.
+ * Represents the data to be displayed on a graph and provides
+ * the endpoints allowing for the plotting of this data.
  */
 class GraphData {
   constructor() {
-    /** @private @const {xAxis: string, yAxis:string} */
+    /** @private @const {xAxis: string, yAxis:string, title:string} labels */
     this.labels = {
       xAxis: '',
       yAxis: '',
       title: '',
     };
-    /** @private @const {Array<Object>} */
+    /** @const {Array<Object>} */
     this.dataSources = [];
-    /** @private @const {Object} */
+    /** @private @const {GraphPlotter} */
     this.plotter_ = new GraphPlotter(this);
     /** @private @const {Array<string>} colors_
      * Each new datasource is assigned a color.
@@ -162,6 +161,15 @@ class GraphData {
   plotBoxPlot() {
     this.process(data => data.sort((a, b) => a - b));
     this.plotter_.plot(new BoxPlotter());
+  }
+
+  /**
+   * Plot a dot plot. This will assign stack offsets to each of the data points
+   * where the dots would otherwise overlap (so that instead they are stacked
+   * atop each other).
+   */
+  plotDot() {
+    this.plotter_.plot(new DotPlotter());
   }
 
   /**

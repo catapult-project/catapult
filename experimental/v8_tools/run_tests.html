@@ -4,18 +4,24 @@
     <meta charset="utf-8">
     <title>Tests</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://unpkg.com/chai@4.1.2/chai.js"></script>
-    <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
-    <script src="graph_plotter.js"></script>
-    <script src="graph_data.js"></script>
-    <script src="graph_data_test.js"></script>
+  
     <link href="https://unpkg.com/mocha@4.0.1/mocha.css" rel="stylesheet" />
   </head>
     <body>
       <div id="mocha"></div>
+      <script src="https://unpkg.com/chai@4.1.2/chai.js"></script>
+      <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
       <script>
         'use strict';
         mocha.setup('bdd');
+      </script>
+      <script src="graph_plotter.js"></script>
+      <script src="dot_plotter.js"></script>
+      <script src="graph_data.js"></script>
+      <script src="graph_data_test.js"></script>
+      <script src="dot_plotter_test.js"></script>
+      <script>
+        'use strict';
         mocha.checkLeaks();
         mocha.run();
       </script>
