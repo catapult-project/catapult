@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+# Copyright 2018 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+"""Entry point for the long term health tool.
+"""
+import argparse
+import os
+import sys
+
+
+UTILS_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+
+sys.path.append(UTILS_PATH)
+
+from long_term_health import apk_finder
+from long_term_health import full_milestone_info
+from long_term_health import test_runner
+from long_term_health import utils
+
+
+DEFAULT_DOWNLOAD_PATH = 'out'
+
+
+def BuildArgumentParser(args):
+  """Set the expected options for the argument parser.
+
+  If the program is ran with no argument, it will download the 10 latest
+  chrome versions
+
+  Args:
+    args(list): list of arguments(string)
+
+  Returns:
+    Namespace: a class storing all the parsed arguments
+  """
+  parser = argparse.ArgumentParser(
+      description='tool to download different versions of chrome')
+  # from_date and from_milestone cannot present at the same time
+  start = parser.add_mutually_exclusive_group()
+  # to_date and to_milestone cannot present at the same time
+  end = parser.add_mutually_exclusive_group()
+  start.add_argument('--from-milestone', type=int,
+                     help='starting milestone number')
+  start.add_argument('--from-date', type=utils.ParseDate,
+                     help='starting version release date'
+                          ', must be in the format `2017-10-02`')
+  end.add_argument('--to-milestone', type=int,
+                   help='ending milestone number')
+  end.add_argument('--to-date', type=utils.ParseDate,
+                   help='ending version release date'
+                        ', must be in the format `2017-10-02`')
+  parser.add_argument('--output-path', default=DEFAULT_DOWNLOAD_PATH,
+                      help='the path that the APKs will be stored')
+  return parser.parse_args(args)
+
+
+def ProcessArguments(args, milestone_info):
+  """Set `to_milestone` and `from_milestone` according to provided arguments.
+
+  Args:
+    args(Namespace class): object storing the relevant arguments
+    milestone_info(MilestoneInfo class): the object that stores all the table
+        content
+  """
+  if args.from_date:
+    args.from_milestone = milestone_info.GetEarliestVersionAfterDate(
+        args.from_date)
+  if args.to_date:
+    args.to_milestone = milestone_info.GetLatestVersionBeforeDate(args.to_date)
+  if args.from_milestone is None:
+    args.from_milestone = milestone_info.latest_milestone - 9
+  if args.to_milestone is None:
+    args.to_milestone = milestone_info.latest_milestone
+
+
+def main(args):
+  args = BuildArgumentParser(args)
+
+  if not utils.IsGsutilInstalled():
+    return 'gsutil is not installed, please install it and try again'
+
+  if not os.path.isfile(
+      os.path.join(utils.APP_ROOT, 'full_milestone_info.csv')):
+    print 'Generating full milestone info table, please wait'
+    full_milestone_info.GenerateFullInfoCSV()
+
+  # load the full_milestone_info.csv into memory for later use
+  milestone_info = full_milestone_info.MilestoneInfo(os.path.join(
+      utils.APP_ROOT, 'full_milestone_info.csv'))
+  ProcessArguments(args, milestone_info)
+
+  try:
+    for milestone in range(args.from_milestone, args.to_milestone + 1):
+      print utils.ColoredStr(
+          'Getting the path of the APK for milestone %d.' % milestone)
+      path_to_apk = apk_finder.GetAPK(
+          milestone, args.output_path, milestone_info)
+      print utils.ColoredStr('Running benchmark for milestone %d:' % milestone)
+      test_runner.RunBenchmark(path_to_apk)
+
+    return 0
+  except KeyboardInterrupt:
+    return 'interrupted, exiting...'
+  # TODO(wangge): do we need to catch other type of exception
+
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv[1:]))
