@@ -419,7 +419,8 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
   Logs warnings and returns False if any are missing.
   """
   # Report any problems with the entire story set.
-  if any(not story.is_local for story in filtered_stories):
+  story_names = [s.name for s in filtered_stories if not s.is_local]
+  if story_names:
     if not archive_data_file:
       logging.error('The story set is missing an "archive_data_file" '
                     'property.\nTo run from live sites pass the flag '
@@ -433,7 +434,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                     '.gclient using http://goto/read-src-internal, '
                     'or create a new archive using record_wpr.')
       raise ArchiveError('No archive info file.')
-    wpr_archive_info.DownloadArchivesIfNeeded()
+    wpr_archive_info.DownloadArchivesIfNeeded(story_names=story_names)
 
   # Report any problems with individual story.
   stories_missing_archive_path = []

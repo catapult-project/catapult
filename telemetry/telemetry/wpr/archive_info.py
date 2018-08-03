@@ -53,7 +53,7 @@ class WprArchiveInfo(object):
         return cls(file_path, data, bucket)
     return cls(file_path, {'archives': {}, 'platform_specific': True}, bucket)
 
-  def DownloadArchivesIfNeeded(self, target_platforms=None):
+  def DownloadArchivesIfNeeded(self, target_platforms=None, story_names=None):
     """Downloads archives iff the Archive has a bucket parameter and the user
     has permission to access the bucket.
 
@@ -64,6 +64,10 @@ class WprArchiveInfo(object):
     Warns when a bucket is not specified or when the user doesn't have
     permission to access the archive's bucket but a local copy of the archive
     exists.
+
+    Args:
+      target_platform: only downloads archives for these platforms
+      story_names: only downloads archives for these story names
     """
     logging.info('Downloading WPR archives. This can take a long time.')
     start_time = time.time()
@@ -97,13 +101,17 @@ class WprArchiveInfo(object):
                         "http://www.chromium.org/developers/telemetry/"
                         "upload_to_cloud_storage")
           raise
+
     try:
       story_archives = self._data['archives']
-      for story in story_archives:
+      download_names = set(story_archives.iterkeys())
+      if story_names is not None:
+        download_names.intersection_update(story_names)
+      for story_name in download_names:
         for target_platform in target_platforms:
-          if story_archives[story].get(target_platform):
+          if story_archives[story_name].get(target_platform):
             archive_path = self._WprFileNameToPath(
-                story_archives[story][target_platform])
+                story_archives[story_name][target_platform])
             download_if_needed(archive_path)
     finally:
       logging.info('All WPR archives are downloaded, took %s seconds.',
