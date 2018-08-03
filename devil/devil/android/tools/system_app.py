@@ -138,11 +138,11 @@ def _RelocateApp(device, package_name, relocate_to):
 @contextlib.contextmanager
 def _TemporarilyInstallApp(device, apk):
   """A context manager that installs an app while in scope."""
-  device.adb.Install(apk, reinstall=True)
+  device.Install(apk, reinstall=True)
   try:
     yield
   finally:
-    device.adb.Uninstall(apk_helper.GetPackageName(apk))
+    device.Uninstall(apk_helper.GetPackageName(apk))
 
 
 def _MoveApp(device, relocation_map):
