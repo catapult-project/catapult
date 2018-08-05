@@ -57,17 +57,13 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     common_story_shard_help = (
         'Indices start at 0, and have the same rules as python slices,'
         ' e.g.  [4, 5, 6, 7, 8][0:3] -> [4, 5, 6])')
-    # TODO(crbug.com/866095): remove '--experimental-story-shard-begin-index'
-    # and '--experimental-story-shard-end-index' flags.
     group.add_option(
-        '--story-shard-begin-index', '--experimental-story-shard-begin-index',
-        type='int', dest='story_shard_begin_index',
+        '--story-shard-begin-index', type='int', dest='story_shard_begin_index',
         help=('Beginning index of set of stories to run. If this is ommited, '
               'the starting index will be from the first story in the benchmark'
               + common_story_shard_help))
     group.add_option(
-        '--story-shard-end-index', '--experimental-story-shard-end-index',
-        type='int', dest='story_shard_end_index',
+        '--story-shard-end-index', type='int', dest='story_shard_end_index',
         help=('End index of set of stories to run. Value will be'
               'rounded down to the number of stories. Negative values not'
               'allowed. If this is ommited, the end index is the final story'
