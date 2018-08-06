@@ -22,7 +22,7 @@ def DownloadAPKFromURI(uri, output_dir):
   """
 
   def GetAPKName(gs_uri):
-    # example `gs_uri`: gs://chrome-signed/android-B0urB0N/56.0.2924.3/arm/
+    # example `gs_uri`: gs://chrome-signed/android-*/56.0.2924.3/arm/
     # ChromeStable.apk
     return '_'.join(gs_uri.split('/')[-3:])
 

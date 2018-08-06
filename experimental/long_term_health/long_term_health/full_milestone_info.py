@@ -156,7 +156,7 @@ class MilestoneInfo(object):
     # previous one
     for i in range(5):
       # above number has been tested, and it works from milestone 45 to 68
-      download_uri = ('gs://chrome-signed/android-B0urB0N/%s/%s/Chrome'
+      download_uri = ('gs://chrome-signed/android-*/%s/%s/Chrome'
                       'Stable.apk') % (DecrementPatchNumber(version_num, i),
                                        PROCESSOR_ARCHITECTURE)
       # check exit code to confirm the existence of the package
@@ -164,4 +164,3 @@ class MilestoneInfo(object):
         return download_uri
 
     raise utils.CloudDownloadFailed(milestone_num)
-
