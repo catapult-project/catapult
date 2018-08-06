@@ -316,5 +316,60 @@ tr.b.unittest.testSuite(function() {
     const drawHistogram = histograms.getHistogramNamed('pipeline:draw');
     assert.strictEqual(drawHistogram.average, 8);
   });
+
+  test('renderingMetric_gestureIR', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const telemetry = model.getOrCreateProcess(1).getOrCreateThread(0);
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed(
+              'Interaction.Gesture_LoadAction', 10, 10));
+
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      browserMain.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed(
+              'SyntheticGestureController::running', 0, 5));
+      browserMain.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed(
+              'SyntheticGestureController::running', 10, 5));
+      // Add four swap buffer events, at times 1, 2, 11, 13, 16
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+            start: 1, end: 1 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+            start: 2, end: 2 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+            start: 11, end: 11 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+            start: 13, end: 13 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+            start: 16, end: 16 }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    // The gesture interaction record should be adjusted to [10, 15]. So, the
+    // first two frames and the fifth frame are outside the interaction record
+    // and should be discarded. The remaining frames are 11 and 13 which result
+    // in a single frame time of 2 = 13 - 11.
+    let hist = histograms.getHistogramNamed('frame_times_tbmv2');
+    assert.closeTo(2, hist.min, 1e-6);
+    assert.closeTo(2, hist.max, 2e-6);
+    assert.closeTo(2, hist.average, 1e-6);
+
+    hist = histograms.getHistogramNamed('mean_frame_time_tbmv2');
+    assert.closeTo(2, hist.min, 1e-6);
+    assert.closeTo(2, hist.max, 2e-6);
+    assert.closeTo(2, hist.average, 1e-6);
+
+    hist = histograms.getHistogramNamed('smooth_frames');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(1, hist.max, 2e-6);
+    assert.closeTo(1, hist.average, 1e-6);
+  });
 });
 </script>

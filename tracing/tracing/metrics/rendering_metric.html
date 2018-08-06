@@ -394,19 +394,42 @@ tr.exportTo('tr.metrics.rendering', function() {
     // This code should be merged into UserModelBuilder when another metric
     // wants it, too.
     const segments = [];
+    const gestureEvents = [];
+    const interactionRecords = [];
     const IRExp = /Interaction\.([^/]+)(\/[^/]*)?$/;
     for (const thread of model.getAllThreads()) {
       for (const slice of thread.asyncSliceGroup.slices) {
         if (slice.title === GESTURE_EVENT) {
-          segments.push(new tr.model.um.Segment(
-              slice.start, slice.duration));
-        } else {
-          const parts = IRExp.exec(slice.title);
-          if (parts && !parts[1].startsWith('Gesture_')) {
+          gestureEvents.push(slice);
+        } else if (IRExp.test(slice.title)) {
+          interactionRecords.push(slice);
+        }
+      }
+    }
+    // Convert interaction record slices to segments. If an interaction record
+    // contains a gesture whose time range overlaps with the interaction
+    // record's range, use the gesture's time range.
+    //
+    // The synthetic gesture controller inserts a trace marker to precisely
+    // demarcate when the gesture was running. We check for overlap, not
+    // inclusion, because gesture actions can start/end slightly outside the
+    // telemetry markers on Windows.
+    for (const ir of interactionRecords) {
+      const parts = IRExp.exec(ir.title);
+      let gestureEventFound = false;
+      if (parts[1].startsWith('Gesture_')) {
+        for (const gestureEvent of gestureEvents) {
+          if (ir.boundsRange.intersectsRangeInclusive(
+              gestureEvent.boundsRange)) {
             segments.push(new tr.model.um.Segment(
-                slice.start, slice.duration));
+                gestureEvent.start, gestureEvent.duration));
+            gestureEventFound = true;
+            break;
           }
         }
+      }
+      if (!gestureEventFound) {
+        segments.push(new tr.model.um.Segment(ir.start, ir.duration));
       }
     }
     if (segments.length === 0) return;
