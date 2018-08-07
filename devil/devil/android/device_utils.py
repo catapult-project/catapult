@@ -425,6 +425,20 @@ class DeviceUtils(object):
   def HasRoot(self, timeout=None, retries=None):
     """Checks whether or not adbd has root privileges.
 
+    A device is considered to have root if all commands are implicitly run
+    with elevated privileges, i.e. without having to use "su" to run them.
+
+    Note that some devices do not allow this implicit privilige elevation,
+    but _can_ run commands as root just fine when done explicitly with "su".
+    To check if your device can run commands with elevated privileges at all
+    use:
+
+      device.HasRoot() or device.NeedsSU()
+
+    Luckily, for the most part you don't need to worry about this and using
+    RunShellCommand(cmd, as_root=True) will figure out for you the right
+    command incantation to run with elevated privileges.
+
     Args:
       timeout: timeout in seconds
       retries: number of retries
