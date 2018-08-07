@@ -10,6 +10,7 @@ import subprocess
 
 
 APP_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+CHROMIUM_SRC = os.path.normpath(os.path.join(APP_ROOT, '..', '..', '..', '..'))
 
 
 class CloudDownloadFailed(Exception):

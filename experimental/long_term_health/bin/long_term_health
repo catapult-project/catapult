@@ -19,7 +19,7 @@ from long_term_health import test_runner
 from long_term_health import utils
 
 
-DEFAULT_DOWNLOAD_PATH = 'out'
+DEFAULT_DOWNLOAD_PATH = os.path.join(utils.APP_ROOT, 'out')
 
 
 def BuildArgumentParser(args):
