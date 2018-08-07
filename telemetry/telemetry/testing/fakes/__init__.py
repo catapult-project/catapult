@@ -38,6 +38,7 @@ class FakePlatform(object):
     self._network_controller = None
     self._tracing_controller = None
     self._os_name = 'FakeOS'
+    self._os_version_name = 'FakeVersion'
     self._device_type_name = 'abc'
     self._is_svelte = False
     self._is_aosp = True
@@ -81,11 +82,14 @@ class FakePlatform(object):
   def SetOSName(self, name):
     self._os_name = name
 
+  def GetOSVersionName(self):
+    return self._os_version_name
+
+  def SetOSVersionName(self, os_version_name):
+    self._os_version_name = os_version_name
+
   def GetOSName(self):
     return self._os_name
-
-  def GetOSVersionName(self):
-    raise NotImplementedError
 
   def GetDeviceId(self):
     return None
