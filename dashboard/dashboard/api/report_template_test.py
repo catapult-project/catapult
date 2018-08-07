@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import json
 import unittest
 
@@ -9,6 +10,23 @@ from dashboard.api import api_auth
 from dashboard.api import report_template as api_report_template
 from dashboard.common import testing_common
 from dashboard.models import report_template
+
+@report_template.Static(
+    internal_only=False,
+    template_id='test-external-template',
+    name='Test:ExternalTemplate',
+    modified=datetime.datetime.now())
+def _External(unused_revisions):
+  return 'external'
+
+
+@report_template.Static(
+    internal_only=True,
+    template_id='test-internal-template',
+    name='Test:InternalTemplate',
+    modified=datetime.datetime.now())
+def _Internal(unused_revisions):
+  return 'internal'
 
 
 class ReportTemplateTest(testing_common.TestCase):
@@ -38,8 +56,8 @@ class ReportTemplateTest(testing_common.TestCase):
         name='Test:New',
         template=json.dumps({'rows': []}))
     names = [d['name'] for d in response]
-    self.assertIn('Test:External', names)
-    self.assertIn('Test:Internal', names)
+    self.assertIn('Test:ExternalTemplate', names)
+    self.assertIn('Test:InternalTemplate', names)
     self.assertIn('Test:New', names)
 
     template = report_template.ReportTemplate.query(
