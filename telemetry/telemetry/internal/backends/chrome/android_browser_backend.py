@@ -141,7 +141,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.device.KillAll(
         self._backend_settings.package,
         exact=False,  # Send signal to children too.
-        signum=device_signal.SIGUSR1)
+        signum=device_signal.SIGUSR1,
+        as_root=True)
 
   @property
   def processes(self):
