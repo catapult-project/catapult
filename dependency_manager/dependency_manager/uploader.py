@@ -100,7 +100,7 @@ class CloudStorageUploader(object):
     return cloud_storage_changed
 
   def __eq__(self, other, msg=None):
-    if type(self) != type(other):
+    if not isinstance(self, type(other)):
       return False
     return (self._local_path == other._local_path and
             self._cs_remote_path == other._cs_remote_path and

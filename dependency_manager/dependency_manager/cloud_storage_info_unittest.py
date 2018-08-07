@@ -144,7 +144,7 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
     # All of the needed information is given, but the downloaded path doesn't
     # exists after calling cloud storage.
     self.fs.RemoveObject(self.download_path)
-    cs_get_mock.side_effect = [True]
+    cs_get_mock.side_effect = [True]  # pylint: disable=redefined-variable-type
     self.assertRaises(
         exceptions.FileNotFoundError, self.cs_info.GetRemotePath)
 

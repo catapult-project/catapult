@@ -62,8 +62,7 @@ class ArchiveInfo(object):
   def ShouldUnzipArchive(self):
     if not self._has_minimum_data:
       raise exceptions.ArchiveError(
-          'Missing needed info to unzip archive. Known data: %s',
-          self.data_string)
+          'Missing needed info to unzip archive. Know data: %s' % self)
     return not os.path.exists(self._dependency_path)
 
   @property

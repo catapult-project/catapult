@@ -33,7 +33,7 @@ class DependencyManager(object):
         local files for the same platform will first look in those from
         config1, then those from config2, and finally those from config3.
     """
-    if configs is None or type(configs) != list:
+    if configs is None or not isinstance(configs, list):
       raise ValueError(
           'Must supply a list of config files to DependencyManager')
     # self._lookup_dict is a dictionary with the following format:
