@@ -94,7 +94,7 @@ class _RunTestExecutionTest(unittest.TestCase):
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'value'},
             ],
-            'execution_timeout_secs': '14400',
+            'execution_timeout_secs': '21600',
             'io_timeout_secs': '1200',
         },
     }
@@ -116,7 +116,7 @@ class _RunTestExecutionTest(unittest.TestCase):
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'id', 'value': 'bot id'},
             ],
-            'execution_timeout_secs': '14400',
+            'execution_timeout_secs': '21600',
             'io_timeout_secs': '1200',
         },
     }
