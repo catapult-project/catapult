@@ -76,16 +76,16 @@ class AndroidPlatformBackend(
         self._device.EnableRoot()
       except device_errors.CommandFailedError:
         logging.warning('Unable to root %s', str(self._device))
-    assert self._device.HasRoot(), (
-        'Android device must be rooted to run Telemetry')
+    self._can_elevate_privilege = (
+        self._device.HasRoot() or self._device.NeedsSU())
+    assert self._can_elevate_privilege, (
+        'Android device must have root access to run Telemetry')
     self._battery = battery_utils.BatteryUtils(self._device)
     self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
-    self._can_elevate_privilege = (
-        self._device.HasRoot() or self._device.NeedsSU())
     self._device_copy_script = None
     self._power_monitor = (
         android_power_monitor_controller.AndroidPowerMonitorController([
