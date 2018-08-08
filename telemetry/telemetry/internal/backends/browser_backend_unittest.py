@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 
+from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
@@ -56,6 +57,7 @@ class BrowserBackendIntegrationTest(browser_test_case.BrowserTestCase):
   def testSmokeIsBrowserRunningReturnTrue(self):
     self.assertTrue(self._browser_backend.IsBrowserRunning())
 
+  @decorators.Disabled('chromeos')  # crbug.com/871600.
   def testSmokeIsBrowserRunningReturnFalse(self):
     self._browser_backend.Close()
     self.assertFalse(self._browser_backend.IsBrowserRunning())
