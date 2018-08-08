@@ -64,10 +64,10 @@ def ProcessArguments(args, milestone_info):
         content
   """
   if args.from_date:
-    args.from_milestone = milestone_info.GetEarliestVersionAfterDate(
+    args.from_milestone = milestone_info.GetEarliestMilestoneAfterDate(
         args.from_date)
   if args.to_date:
-    args.to_milestone = milestone_info.GetLatestVersionBeforeDate(args.to_date)
+    args.to_milestone = milestone_info.GetLatestMilestoneBeforeDate(args.to_date)
   if args.from_milestone is None:
     args.from_milestone = milestone_info.latest_milestone - 9
   if args.to_milestone is None:

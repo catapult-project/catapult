@@ -9,12 +9,10 @@ import httplib
 import json
 import os
 import re
-import subprocess
 
 from long_term_health import utils
 
 USELESS_CHAR_COUNT = 5
-PROCESSOR_ARCHITECTURE = 'arm'
 
 
 def GetChromiumLog(revision, count=10):
@@ -44,7 +42,7 @@ def GetBranchInfo(milestone, branch):
     branch(string): the latest branch corresponding with the milestone
 
   Returns:
-    dict: version incrementing log info
+    tuple(string): milestone number, branch, version number, and release date
   """
   # loop through the logs to get the first log that increments the version
   # number
@@ -76,24 +74,6 @@ def GenerateFullInfoCSV():
         writer.writerow(GetBranchInfo(milestone, branch))
 
 
-def DecrementPatchNumber(version_num, num):
-  """Helper function for `GetLatestVersionURI`.
-
-  DecrementPatchNumber('68.0.3440.70', 6) => '68.0.3440.64'
-
-  Args:
-    version_num(string): version number to be decremented
-    num(int): the amount that the patch number need to be reduced
-
-  Returns:
-    string: decremented version number
-  """
-  version_num_list = version_num.split('.')
-  version_num_list[-1] = str(int(version_num_list[-1]) - num)
-  assert int(version_num_list[-1]) >= 0, 'patch number cannot be negative'
-  return '.'.join(version_num_list)
-
-
 class MilestoneInfo(object):
   """Simple class to store the full_milestone_info.csv data.
   """
@@ -116,14 +96,14 @@ class MilestoneInfo(object):
   def latest_milestone(self):
     return self._table[-1]['milestone']
 
-  def GetLatestVersionBeforeDate(self, date):
+  def GetLatestMilestoneBeforeDate(self, date):
     for row in reversed(self._table):
       if row['release_date'] < date:
         return row['milestone']
     raise LookupError(
         'Cannot find any version before the given date %s' % date.isoformat())
 
-  def GetEarliestVersionAfterDate(self, date):
+  def GetEarliestMilestoneAfterDate(self, date):
     for row in self._table:
       if row['release_date'] > date:
         return row['milestone']
@@ -136,31 +116,3 @@ class MilestoneInfo(object):
         return row['version_number']
     raise LookupError('Cannot find version the number for the milestone %s' %
                       target_milestone)
-
-  def GetLatestVersionURI(self, milestone_num):
-    """Get the latest google cloud storage uri for given milestone.
-
-    Args:
-      milestone_num(int): Number representing the milestone.
-
-    Returns:
-      string: The URI for the latest version of Chrome for a given milestone.
-
-    Raises:
-      CloudDownloadFailed: this would be risen if we cannot find the apk within
-      5 patches
-    """
-    version_num = self.GetVersionNumberFromMilestone(milestone_num)
-    # check whether the latest patch is in the Google Cloud storage as
-    # sometimes it is not, so we need to decrement patch and get the
-    # previous one
-    for i in range(5):
-      # above number has been tested, and it works from milestone 45 to 68
-      download_uri = ('gs://chrome-signed/android-*/%s/%s/Chrome'
-                      'Stable.apk') % (DecrementPatchNumber(version_num, i),
-                                       PROCESSOR_ARCHITECTURE)
-      # check exit code to confirm the existence of the package
-      if subprocess.call(['gsutil', 'ls', download_uri]) == 0:
-        return download_uri
-
-    raise utils.CloudDownloadFailed(milestone_num)
