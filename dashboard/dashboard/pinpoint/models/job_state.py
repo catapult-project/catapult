@@ -4,6 +4,7 @@
 
 import collections
 import logging
+import math
 
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
@@ -215,7 +216,7 @@ class JobState(object):
     if any(not attempt.completed for attempt in attempts_a + attempts_b):
       return compare.PENDING
 
-    attempt_count = len(attempts_a) + len(attempts_b)
+    attempt_count = (len(attempts_a) + len(attempts_b)) / 2
 
     executions_by_quest_a = _ExecutionsPerQuest(attempts_a)
     executions_by_quest_b = _ExecutionsPerQuest(attempts_b)
@@ -229,12 +230,12 @@ class JobState(object):
       values_a = tuple(bool(execution.exception) for execution in executions_a)
       values_b = tuple(bool(execution.exception) for execution in executions_b)
       if values_a and values_b:
-        # TODO(dtu): Always use FUNCTIONAL, when we're able to adjust
-        # thresholds to the size of the regression. Right now we can't, because
-        # the functional thresholds are much looser than the performance
-        # thresholds, and would cause perf jobs to do many more repats.
+        if self._comparison_mode == FUNCTIONAL:
+          comparison_magnitude = 0.5
+        else:
+          comparison_magnitude = 1.0
         comparison = compare.Compare(values_a, values_b, attempt_count,
-                                     self._comparison_mode or FUNCTIONAL)
+                                     FUNCTIONAL, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -246,8 +247,15 @@ class JobState(object):
       values_b = tuple(_Mean(execution.result_values)
                        for execution in executions_b if execution.result_values)
       if values_a and values_b:
-        comparison = compare.Compare(
-            values_a, values_b, attempt_count, PERFORMANCE)
+        max_iqr = max(_IQR(values_a), _IQR(values_b))
+        if max_iqr == 0:
+          comparison_magnitude = 1000  # Something very large.
+        else:
+          # TODO(dtu): Adjust the magnitude using the expected regression size.
+          # comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
+          comparison_magnitude = 1.0
+        comparison = compare.Compare(values_a, values_b, attempt_count,
+                                     PERFORMANCE, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -286,5 +294,20 @@ def _ExecutionsPerQuest(attempts):
   return executions
 
 
+def _IQR(values):
+  values = sorted(values)
+  return _Percentile(values, 0.75) - _Percentile(values, 0.25)
+
+
 def _Mean(values):
   return float(sum(values)) / len(values)
+
+
+def _Percentile(values, percentile):
+  """Returns a percentile of a sorted list of values."""
+  index = (len(values) - 1) * percentile
+  floor = math.floor(index)
+  ceil = math.ceil(index)
+  low = values[int(floor)] * (ceil - index)
+  high = values[int(ceil)] * (index - floor)
+  return low + high

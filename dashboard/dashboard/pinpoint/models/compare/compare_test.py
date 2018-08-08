@@ -10,51 +10,39 @@ from dashboard.pinpoint.models.compare import compare
 class CompareTest(unittest.TestCase):
 
   def testNoValuesA(self):
-    comparison = compare.Compare([], [0] * 10, 1000, 'functional')
+    comparison = compare.Compare([], [0] * 10, 10, 'functional', 1)
     self.assertEqual(comparison, compare.UNKNOWN)
 
   def testNoValuesB(self):
-    comparison = compare.Compare(range(10), [], 10, 'performance')
+    comparison = compare.Compare(range(10), [], 10, 'performance', 1)
     self.assertEqual(comparison, compare.UNKNOWN)
-
-  def testHighAttemptCount(self):
-    comparison = compare.Compare([0] * 500, [0] * 500, 1000, 'functional')
-    self.assertEqual(comparison, compare.SAME)
 
 
 class FunctionalTest(unittest.TestCase):
 
   def testDifferent(self):
-    comparison = compare.Compare([0] * 10, [0] * 4 + [1] * 6, 20, 'functional')
+    comparison = compare.Compare([0] * 10, [1] * 10, 10, 'functional', 0.5)
     self.assertEqual(comparison, compare.DIFFERENT)
 
-  def testSame(self):
-    comparison = compare.Compare([0] * 50, [0] * 50, 100, 'functional')
-    self.assertEqual(comparison, compare.SAME)
-
   def testUnknown(self):
-    comparison = compare.Compare([0] * 50, [0] * 49 + [1], 100, 'functional')
+    comparison = compare.Compare([0] * 10, [0] * 9 + [1], 10, 'functional', 0.5)
     self.assertEqual(comparison, compare.UNKNOWN)
 
-  def testAttemptAcount(self):
-    comparison = compare.Compare([0] * 50, [0] * 50, 99, 'functional')
-    self.assertEqual(comparison, compare.UNKNOWN)
+  def testSame(self):
+    comparison = compare.Compare([0] * 10, [0] * 10, 10, 'functional', 0.5)
+    self.assertEqual(comparison, compare.SAME)
 
 
 class PerformanceTest(unittest.TestCase):
 
   def testDifferent(self):
-    comparison = compare.Compare(range(10), range(7, 17), 20, 'performance')
+    comparison = compare.Compare(range(10), range(7, 17), 10, 'performance', 1)
     self.assertEqual(comparison, compare.DIFFERENT)
 
-  def testSame(self):
-    comparison = compare.Compare(range(10), range(10), 20, 'performance')
-    self.assertEqual(comparison, compare.SAME)
-
   def testUnknown(self):
-    comparison = compare.Compare(range(10), range(5, 15), 20, 'performance')
+    comparison = compare.Compare(range(10), range(3, 13), 10, 'performance', 1)
     self.assertEqual(comparison, compare.UNKNOWN)
 
-  def testAttemptAcount(self):
-    comparison = compare.Compare(range(10), range(10), 19, 'performance')
-    self.assertEqual(comparison, compare.UNKNOWN)
+  def testSame(self):
+    comparison = compare.Compare(range(10), range(10), 10, 'performance', 1)
+    self.assertEqual(comparison, compare.SAME)

@@ -4,6 +4,7 @@
 
 from dashboard.pinpoint.models.compare import kolmogorov_smirnov
 from dashboard.pinpoint.models.compare import mann_whitney_u
+from dashboard.pinpoint.models.compare import thresholds
 
 
 DIFFERENT = 'different'
@@ -12,43 +13,27 @@ SAME = 'same'
 UNKNOWN = 'unknown'
 
 
-_HIGH_THRESHOLDS = {
-    # Run thresholds_functional.py to generate these numbers.
-    'functional': (
-        1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 0.3271, 0.3255, 0.1588,
-        0.1586, 0.0827, 0.0445, 0.0446, 0.0244, 0.0135, 0.0136, 0.0076,
-    ),
-    # Run thresholds_performance.py to generate these numbers.
-    'performance': (
-        1.0000, 0.3682, 0.1625, 0.0815, 0.0428, 0.0230,
-        0.0126, 0.0070, 0.0039, 0.0022, 0.0013, 0.0007,
-    ),
-}
-
-_LOW_THRESHOLD = {
-    'functional': 0.01,
-    'performance': 0.001,
-}
-
-
-def Compare(values_a, values_b, attempt_count, comparison_mode):
+def Compare(values_a, values_b, attempt_count, mode, magnitude):
   """Decide whether two samples are the same, different, or unknown.
 
   Arguments:
     values_a: A list of sortable values. They don't need to be numeric.
     values_b: A list of sortable values. They don't need to be numeric.
-    attempt_count: The total number of attempts made.
-    comparison_mode: 'functional' or 'performance'. We use
-        different significance thresholds for each type.
+    attempt_count: The average number of attempts made.
+    mode: 'functional' or 'performance'. We use different significance
+        thresholds for each type.
+    magnitude: An estimate of the size of differences to look for. We need
+        more values to find smaller differences. If mode is 'functional',
+        this is the failure rate, a float between 0 and 1. If mode is
+        'performance', this is a multiple of the interquartile range (IQR).
 
   Returns:
-    DIFFERENT: The samples likely come from different distributions.
-        Reject the null hypothesis.
-    SAME: Not enough evidence to say that the samples come from different
-        distributions. Fail to reject the null hypothesis.
-    UNKNOWN: Not enough evidence to say that the samples come from different
-        distributions, but it looks a little suspicious, and we would like more
-        data before making a final decision.
+    DIFFERENT: The samples are unlikely to come from the same distribution,
+        and are therefore likely different. Reject the null hypothesis.
+    SAME: The samples are unlikely to come from distributions that differ by the
+        given magnitude. Reject the alternative hypothesis.
+    UNKNOWN: Not enough evidence to reject either hypothesis.
+        We should collect more data before making a final decision.
   """
   if not (values_a and values_b):
     # A sample has no values in it.
@@ -63,18 +48,15 @@ def Compare(values_a, values_b, attempt_count, comparison_mode):
       kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b),
       mann_whitney_u.MannWhitneyU(values_a, values_b))
 
-  if p_value <= _LOW_THRESHOLD[comparison_mode]:
+  if p_value <= thresholds.LowThreshold():
     # The p-value is less than the significance level. Reject the null
     # hypothesis.
     return DIFFERENT
 
-  index = attempt_count / 20
-  if index < len(_HIGH_THRESHOLDS[comparison_mode]):
-    questionable_significance_level = _HIGH_THRESHOLDS[comparison_mode][index]
-    if p_value <= questionable_significance_level:
-      # The p-value is not less than the significance level, but it's small
-      # enough to be suspicious. We'd like to investigate more closely.
-      return UNKNOWN
+  if p_value <= thresholds.HighThreshold(mode, magnitude, attempt_count):
+    # The p-value is not less than the significance level, but it's small
+    # enough to be suspicious. We'd like to investigate more closely.
+    return UNKNOWN
 
   # The p-value is quite large. We're not suspicious that the two samples might
   # come from different distributions, and we don't care to investigate more.

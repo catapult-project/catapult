@@ -14,8 +14,8 @@ class ExploreTest(test.TestCase):
 
   def testDifferentWithMidpoint(self):
     quests = [quest_test.QuestByChange({
-        change_test.Change(1): quest_test.QuestPass,
-        change_test.Change(9): quest_test.QuestFail,
+        change_test.Change(1): quest_test.QuestPass(),
+        change_test.Change(9): quest_test.QuestFail(),
     })]
     state = job_state.JobState(quests, comparison_mode=job_state.PERFORMANCE)
     state.AddChange(change_test.Change(1))
@@ -36,8 +36,8 @@ class ExploreTest(test.TestCase):
 
   def testDifferentNoMidpoint(self):
     quests = [quest_test.QuestByChange({
-        change_test.Change(1): quest_test.QuestPass,
-        change_test.Change(2): quest_test.QuestFail,
+        change_test.Change(1): quest_test.QuestPass(),
+        change_test.Change(2): quest_test.QuestFail(),
     })]
     state = job_state.JobState(quests, comparison_mode=job_state.PERFORMANCE)
     state.AddChange(change_test.Change(1))
@@ -86,7 +86,12 @@ class ExploreTest(test.TestCase):
     self.assertEqual(attempt_count_1, attempt_count_2)
 
   def testUnknown(self):
-    quests = [quest_test.QuestPass()]
+    quests = [quest_test.QuestByChange({
+        change_test.Change(1): quest_test.QuestPass(),
+        change_test.Change(9): quest_test.QuestCycle(
+            quest_test.QuestPass(), quest_test.QuestPass(),
+            quest_test.QuestFail()),
+    })]
     state = job_state.JobState(quests, comparison_mode=job_state.FUNCTIONAL)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(9))
@@ -117,7 +122,8 @@ class ScheduleWorkTest(unittest.TestCase):
     self.assertFalse(state.ScheduleWork())
 
   def testWorkLeft(self):
-    quests = [quest_test.QuestCycle(quest_test.QuestPass, quest_test.QuestSpin)]
+    quests = [quest_test.QuestCycle(
+        quest_test.QuestPass(), quest_test.QuestSpin())]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
     self.assertTrue(state.ScheduleWork())
@@ -131,7 +137,8 @@ class ScheduleWorkTest(unittest.TestCase):
 
   def testAllAttemptsFail(self):
     quests = [quest_test.QuestCycle(
-        quest_test.QuestFail, quest_test.QuestFail, quest_test.QuestFail2)]
+        quest_test.QuestFail(), quest_test.QuestFail(),
+        quest_test.QuestFail2())]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
     expected_regexp = '7/10.*\nException: Expected error for testing.$'

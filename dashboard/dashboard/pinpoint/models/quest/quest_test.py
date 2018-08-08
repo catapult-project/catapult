@@ -22,16 +22,16 @@ class _QuestStub(quest.Quest):
 class QuestCycle(_QuestStub):
   """Cycles through the given Quest classes."""
 
-  def __init__(self, *quest_classes):
+  def __init__(self, *quests):
     """Creates a QuestCycle.
 
     Args:
-      quest_classes: An iterable of Quest classes.
+      quests: An iterable of Quest intances.
     """
-    self._execution_classes = itertools.cycle(quest_classes)
+    self._execution_classes = itertools.cycle(quests)
 
   def Start(self, change):
-    return self._execution_classes.next()().Start(change)
+    return self._execution_classes.next().Start(change)
 
 
 class QuestByChange(_QuestStub):
@@ -42,12 +42,12 @@ class QuestByChange(_QuestStub):
 
     Args:
       change_mapping: A dict mapping each Change to
-          the Quest to use for that Change.
+          the Quest instance to use for that Change.
     """
     self._change_mapping = change_mapping
 
   def Start(self, change):
-    return self._change_mapping[change]().Start(change)
+    return self._change_mapping[change].Start(change)
 
 
 class QuestException(_QuestStub):
