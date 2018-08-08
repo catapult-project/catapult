@@ -86,13 +86,9 @@ class ExploreTest(test.TestCase):
     self.assertEqual(attempt_count_1, attempt_count_2)
 
   def testUnknown(self):
-    quests = [quest_test.QuestByChange({
-        change_test.Change(1): quest_test.QuestPass(),
-        change_test.Change(9): quest_test.QuestCycle(
-            quest_test.QuestPass(), quest_test.QuestPass(),
-            quest_test.QuestFail()),
-    })]
-    state = job_state.JobState(quests, comparison_mode=job_state.FUNCTIONAL)
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(quests, comparison_mode=job_state.FUNCTIONAL,
+                               comparison_magnitude=0.2)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(9))
 

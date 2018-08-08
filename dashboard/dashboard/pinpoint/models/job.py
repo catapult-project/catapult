@@ -87,8 +87,8 @@ class Job(ndb.Model):
 
   @classmethod
   def New(cls, quests, changes, arguments=None, bug_id=None,
-          comparison_mode=None, gerrit_server=None, gerrit_change_id=None,
-          name=None, pin=None, tags=None, user=None):
+          comparison_mode=None, comparison_magnitude=None, gerrit_server=None,
+          gerrit_change_id=None, name=None, pin=None, tags=None, user=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -99,6 +99,8 @@ class Job(ndb.Model):
       comparison_mode: Either 'functional' or 'performance', which the Job uses
           to figure out whether to perform a functional or performance bisect.
           If None, the Job will not automatically add any Attempts or Changes.
+      comparison_magnitude: The estimated size of the regression or improvement
+          to look for. Smaller magnitudes require more repeats.
       gerrit_server: Server of the Gerrit code review to update with job
           results.
       gerrit_change_id: Change id of the Gerrit code review to update with job
@@ -111,7 +113,9 @@ class Job(ndb.Model):
     Returns:
       A Job object.
     """
-    state = job_state.JobState(quests, comparison_mode=comparison_mode, pin=pin)
+    state = job_state.JobState(
+        quests, comparison_mode=comparison_mode,
+        comparison_magnitude=comparison_magnitude, pin=pin)
     job = cls(state=state, arguments=arguments or {},
               bug_id=bug_id, gerrit_server=gerrit_server,
               gerrit_change_id=gerrit_change_id,

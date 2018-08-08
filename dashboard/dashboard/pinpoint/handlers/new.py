@@ -44,6 +44,8 @@ def _CreateJob(request):
 
   bug_id = _ValidateBugId(arguments.get('bug_id'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
+  comparison_magnitude = _ValidateComparisonMagnitude(
+      arguments.get('comparison_magnitude'))
   gerrit_server, gerrit_change_id = _ValidatePatch(arguments.get('patch'))
   name = arguments.get('name')
   pin = _ValidatePin(arguments.get('pin'))
@@ -53,7 +55,8 @@ def _CreateJob(request):
   # Create job.
   return job_module.Job.New(
       quests, changes, arguments=original_arguments, bug_id=bug_id,
-      comparison_mode=comparison_mode, gerrit_server=gerrit_server,
+      comparison_mode=comparison_mode,
+      comparison_magnitude=comparison_magnitude, gerrit_server=gerrit_server,
       gerrit_change_id=gerrit_change_id,
       name=name, pin=pin, tags=tags, user=user)
 
@@ -122,6 +125,12 @@ def _ValidateComparisonMode(comparison_mode):
     raise ValueError('`comparison_mode` should be one of %s. Got "%s".' %
                      (job_module.COMPARISON_MODES + (None,), comparison_mode))
   return comparison_mode
+
+
+def _ValidateComparisonMagnitude(comparison_magnitude):
+  if not comparison_magnitude:
+    return 1.0
+  return float(comparison_magnitude)
 
 
 def _GenerateQuests(arguments):

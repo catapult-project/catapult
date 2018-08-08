@@ -112,6 +112,15 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
+  def testComparisonMagnitude(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_magnitude'] = '123.456'
+    response = self.testapp.post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    self.assertIn('jobId', result)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual(job.state._comparison_magnitude, 123.456)
+
   def testWithChanges(self):
     base_request = {}
     base_request.update(_BASE_REQUEST)

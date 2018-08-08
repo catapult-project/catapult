@@ -28,13 +28,16 @@ class JobState(object):
   We lose the ability to index and query the fields, but it's all internal
   anyway. Everything queryable should be on the Job object."""
 
-  def __init__(self, quests, comparison_mode=None, pin=None):
+  def __init__(self, quests, comparison_mode=None,
+               comparison_magnitude=None, pin=None):
     """Create a JobState.
 
     Args:
       comparison_mode: Either 'functional' or 'performance', which the Job uses
           to figure out whether to perform a functional or performance bisect.
           If None, the Job will not automatically add any Attempts or Changes.
+      comparison_magnitude: The estimated size of the regression or improvement
+          to look for. Smaller magnitudes require more repeats.
       quests: A sequence of quests to run on each Change.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
     """
@@ -44,6 +47,7 @@ class JobState(object):
     self._quests = list(quests)
 
     self._comparison_mode = comparison_mode
+    self._comparison_magnitude = comparison_magnitude
 
     self._pin = pin
 
@@ -231,7 +235,11 @@ class JobState(object):
       values_b = tuple(bool(execution.exception) for execution in executions_b)
       if values_a and values_b:
         if self._comparison_mode == FUNCTIONAL:
-          comparison_magnitude = 0.5
+          if (hasattr(self, '_comparison_magnitude') and
+              self._comparison_magnitude):
+            comparison_magnitude = self._comparison_magnitude
+          else:
+            comparison_magnitude = 0.5
         else:
           comparison_magnitude = 1.0
         comparison = compare.Compare(values_a, values_b, attempt_count,
@@ -251,9 +259,11 @@ class JobState(object):
         if max_iqr == 0:
           comparison_magnitude = 1000  # Something very large.
         else:
-          # TODO(dtu): Adjust the magnitude using the expected regression size.
-          # comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
-          comparison_magnitude = 1.0
+          if (hasattr(self, '_comparison_magnitude') and
+              self._comparison_magnitude):
+            comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
+          else:
+            comparison_magnitude = 1.0
         comparison = compare.Compare(values_a, values_b, attempt_count,
                                      PERFORMANCE, comparison_magnitude)
         if comparison == compare.DIFFERENT:
