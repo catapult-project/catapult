@@ -16,7 +16,7 @@ class DependencyInfo(object):
                        for error messages to improve debugging.
 
         Optional:
-          local_paths: A list of paths to search in order for a local file.
+          local_path_info: A LocalPathInfo instance.
           cloud_storage_info: An instance of CloudStorageInfo.
     """
     # TODO(aiolos): update the above doc string for A) the usage of zip files

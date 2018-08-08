@@ -8,9 +8,29 @@ import os
 class LocalPathInfo(object):
 
   def __init__(self, path_priority_groups):
+    """Container for a set of local file paths where a given dependency
+    can be stored.
+
+    Organized as a list of groups, where each group is itself a file path list.
+    See GetLocalPath() to understand how they are used.
+
+    Args:
+      path_priority_groups: Can be either None, or a list of file path
+        strings (corresponding to a list of groups, where each group has
+        a single file path), or a list of a list of file path strings
+        (i.e. a list of groups).
+    """
     self._path_priority_groups = self._ParseLocalPaths(path_priority_groups)
 
   def GetLocalPath(self):
+    """Look for a local file, and return its path.
+
+    Looks for the first group which has at least one existing file path. Then
+    returns the most-recent of these files.
+
+    Returns:
+      Local file path, if found, or None otherwise.
+    """
     for priority_group in self._path_priority_groups:
       priority_group = filter(os.path.exists, priority_group)
       if not priority_group:
@@ -19,10 +39,19 @@ class LocalPathInfo(object):
     return None
 
   def IsPathInLocalPaths(self, path):
+    """Returns true if |path| is in one of this instance's file path lists."""
     return any(
         path in priority_group for priority_group in self._path_priority_groups)
 
   def Update(self, local_path_info):
+    """Update this object from the content of another LocalPathInfo instance.
+
+    Any file path from |local_path_info| that is not already contained in the
+    current instance will be added into new groups to it.
+
+    Args:
+      local_path_info: Another LocalPathInfo instance, or None.
+    """
     if not local_path_info:
       return
     for priority_group in local_path_info._path_priority_groups:
