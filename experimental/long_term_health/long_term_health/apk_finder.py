@@ -46,14 +46,18 @@ def GetLatestAvailableVersionURI(version_num):
     CloudDownloadFailed: this would be risen if we cannot find the apk within
     5 patches
   """
+  # Monochrome is introduced at M53, we will use normal chrome for earlier
+  # milestones
+  chrome_type = 'Monochrome' if int(
+      version_num.split('.')[0]) >= 53 else 'Chrome'
   # check whether the latest patch is in the Google Cloud storage as
   # sometimes it is not, so we need to decrement patch and get the
   # previous one
-  for i in range(5):
+  for i in range(20):
     # above number has been tested, and it works from milestone 45 to 68
-    download_uri = ('gs://chrome-signed/android-*/%s/%s/Chrome'
+    download_uri = ('gs://chrome-signed/android-*/%s/%s/%s'
                     'Stable.apk') % (DecrementPatchNumber(version_num, i),
-                                     PROCESSOR_ARCHITECTURE)
+                                     PROCESSOR_ARCHITECTURE, chrome_type)
     # check exit code to confirm the existence of the package
     if subprocess.call(['gsutil', 'ls', download_uri]) == 0:
       return download_uri
