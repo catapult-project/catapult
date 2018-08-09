@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import functools
+
 from google.appengine.ext import ndb
 
 from dashboard.common import report_query
@@ -27,14 +29,70 @@ def ListStaticTemplates():
 
 
 def Static(internal_only, template_id, name, modified):
-  def Decorator(handler):
-    handler.template = ReportTemplate(
+  """Register a static report template handler function.
+
+  This decorator is a bit fiddly! You may prefer creating ReportTemplate
+  entities if possible using [Create Report Template] in the UI or PutTemplate()
+  either in dev console. They automatically handle id, modified, and
+  internal_only, and they support /api/alerts?report whereas static templates do
+  not. However, static template handler functions are version-controlled and
+  fully programmable.
+
+  Tips:
+  - Use this code to generate `template_id` and `modified` and paste them into
+    your code:
+      import random, datetime
+      print 'template_id=%d' % int(random.random() * (2 ** 31))
+      print 'modified=%r' % datetime.datetime.now()
+  - Put your static templates in common/ and make api/report_names.py and
+    api/report_generate.py import it so that it is run.
+  - The generated report must specify a documentation url at template['url'].
+  - RegisterStaticTemplate() may provide further syntactic sugar.
+  - If you want to dynamically fetch available bots or test cases, see
+    update_test_suite_descriptors.FetchCachedTestSuiteDescriptor().
+    The cached test suite descriptors are regenerated once per day, but you
+    control when you fetch the descriptor: you can either call it when your
+    module is imported, or when your static template handler function is called.
+    Your module is imported whenever app engine spins up a new instance, which
+    happens when we deploy a new version or when a burst of traffic requires a
+    new instance. Your static template handler function is called when a client
+    hits /api/report/generate. Fetching the descriptor is a single database
+    get() which is usually <100ms, so if you're at all concerned about using
+    stale data, then I'd recommend fetching the descriptor and building the
+    template in your handler function when the client hits /api/report/generate.
+
+  Usage:
+  @report_template.Static(
+      internal_only=False,
+      template_id=1797699531,
+      name='Paryl:Awesome:Report',
+      modified=datetime.datetime(2018, 8, 2))
+  def ParylAwesomeReport(revisions):
+    desc = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor('paryl')
+    template = MakeAwesomeTemplate(desc)
+    template['url'] = 'https://example.com/your/documentation.html'
+    return report_query.ReportQuery(template, revisions)
+
+  Names need to be mutable and are for display purposes only. Identifiers need
+  to be immutable and are used for caching. Ids are required to be ints so the
+  API can validate them and so they convey a sense of "danger, don't change
+  this".
+  """
+  assert isinstance(template_id, int)  # JS can't handle python floats or longs!
+  def Decorator(decorated):
+    @functools.wraps(decorated)
+    def Replacement(revisions):
+      report = decorated(revisions)
+      assert isinstance(report.get('url'), basestring), (
+          'Reports are required to link to documentation')
+      return report
+    Replacement.template = ReportTemplate(
         internal_only=internal_only,
         id=template_id,
         name=name,
         modified=modified)
-    STATIC_TEMPLATES.append(handler)
-    return handler
+    STATIC_TEMPLATES.append(Replacement)
+    return Replacement
   return Decorator
 
 

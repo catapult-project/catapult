@@ -16,11 +16,11 @@ from dashboard.models import report_template
 
 @report_template.Static(
     internal_only=False,
-    template_id='static-id',
+    template_id=584630894,
     name='Test:External',
     modified=datetime.datetime.now())
 def _External(unused_revisions):
-  return 'external'
+  return {'url': 'external'}
 
 
 class ReportTemplateTest(testing_common.TestCase):
@@ -69,7 +69,7 @@ class ReportTemplateTest(testing_common.TestCase):
 
     with self.assertRaises(ValueError):
       report_template.PutTemplate(
-          'static-id', 'bad', [testing_common.INTERNAL_USER.email()],
+          584630894, 'bad', [testing_common.INTERNAL_USER.email()],
           {'rows': []})
 
     report_template.PutTemplate(
@@ -144,9 +144,9 @@ class ReportTemplateTest(testing_common.TestCase):
 
   def testGetReport_Static(self):
     self.SetCurrentUser(testing_common.EXTERNAL_USER.email())
-    report = report_template.GetReport('static-id', [10, 20])
+    report = report_template.GetReport(584630894, [10, 20])
     self.assertFalse(report['internal'])
-    self.assertEqual('external', report['report'])
+    self.assertEqual({'url': 'external'}, report['report'])
     self.assertEqual('Test:External', report['name'])
     self.assertFalse(report['editable'])
     self.assertNotIn('owners', report)

@@ -21,8 +21,9 @@ class ReportGenerateHandler(api_request_handler.ApiRequestHandler):
     except ValueError:
       raise api_request_handler.BadRequestError
 
-    template_id = self.request.get('id', None)
-    if template_id is None:
+    try:
+      template_id = int(self.request.get('id'))
+    except ValueError:
       raise api_request_handler.BadRequestError
     try:
       report = report_template.GetReport(template_id, revisions)

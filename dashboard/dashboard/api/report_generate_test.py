@@ -14,20 +14,20 @@ from dashboard.models import report_template
 
 @report_template.Static(
     internal_only=False,
-    template_id='test-external',
+    template_id=421533545,
     name='Test:External',
     modified=datetime.datetime.now())
 def _External(unused_revisions):
-  return 'external'
+  return {'url': 'external'}
 
 
 @report_template.Static(
     internal_only=True,
-    template_id='test-internal',
+    template_id=577335040,
     name='Test:Internal',
     modified=datetime.datetime.now())
 def _Internal(unused_revisions):
-  return 'internal'
+  return {'url': 'internal'}
 
 
 class ReportGenerateTest(testing_common.TestCase):
@@ -46,23 +46,24 @@ class ReportGenerateTest(testing_common.TestCase):
     self.Post('/api/report/generate', dict(), status=400)
     self.Post('/api/report/generate', dict(revisions='a'), status=400)
     self.Post('/api/report/generate', dict(revisions='0'), status=400)
-    self.Post('/api/report/generate', dict(revisions='0', id='x'), status=404)
+    self.Post('/api/report/generate', dict(revisions='0', id='x'), status=400)
+    self.Post('/api/report/generate', dict(revisions='0', id='1'), status=404)
 
   def testInternal_GetReport(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    response = self._Post(revisions='latest', id='test-internal')
-    self.assertEqual('internal', response['report'])
-    self.assertEqual('test-internal', response['id'])
+    response = self._Post(revisions='latest', id=577335040)
+    self.assertEqual({'url': 'internal'}, response['report'])
+    self.assertEqual(577335040, response['id'])
     self.assertEqual('Test:Internal', response['name'])
     self.assertEqual(True, response['internal'])
 
   def testAnonymous_GetReport(self):
     self.SetCurrentUserOAuth(None)
     self.Post('/api/report/generate', dict(
-        revisions='latest', id='test-internal'), status=404)
-    response = self._Post(revisions='latest', id='test-external')
-    self.assertEqual('external', response['report'])
-    self.assertEqual('test-external', response['id'])
+        revisions='latest', id=577335040), status=404)
+    response = self._Post(revisions='latest', id=421533545)
+    self.assertEqual({'url': 'external'}, response['report'])
+    self.assertEqual(421533545, response['id'])
     self.assertEqual('Test:External', response['name'])
     self.assertEqual(False, response['internal'])
 
