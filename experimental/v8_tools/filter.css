@@ -1,23 +1,122 @@
-body {
-  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
-}
-
-h1 {
-  font-size: 15px;
-  font-weight: 300;
-  color: #2c3e5099;
-  text-rendering: optimizelegibility;
-  -moz-osx-font-smoothing: grayscale;
-  -moz-text-size-adjust: none;
-}
-
 #app {
-  max-width: 25em;
-  max-height: 100em;
-  height: 1000px;
+  max-width: 120em;
+  max-height: 10000000em;
+  height: 10000000px;
   margin: 2em auto;
-  margin-top: -35px;
+  margin-top: -10px;
   left: +150px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+#metric {
+  width: 60em;
+  align-content: center;
+  background-color: aliceblue;
+}
+
+#story {
+  width: 60em;
+  align-content: center;
+  background-color: aliceblue;
+}
+
+#diagnostic {
+  width: 60em;
+  align-content: center;
+  background-color: aliceblue;
+}
+
+#story-row {
+  border-left-width: 10px;
+}
+
+#story-story{
+  font-weight: bold;
+}
+
+#story-sample {
+  font-weight: bold;
+}
+
+.opened {
+  background-color: darkgray;
+}
+
+#canvas {
+  max-width: 100em;
+  max-height: 60em;
+  margin: 2em auto;
+  margin-top: +10px;
+  left: +10px;
+}
+
+#inputBox {
+  width: 40em;
+  background-color: aliceblue;
+  border-radius: 2px;
+}
+
+body {
+  font-family: Helvetica Neue, Arial, sans-serif;
+  font-size: 14px;
+  color: #444;
+}
+
+table {
+  border: 2px solid #42b983;
+  border-radius: 3px;
+  background-color: #fff;
+  margin-top: +10px; 
+}
+
+th {
+  background-color: #42b983;
+  color: rgba(255,255,255,0.66);
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#table form input {
+  max-width: 100em;
+}
+
+td {
+  background-color: #f9f9f9;
+}
+
+th, td {
+  min-width: 120px;
+  padding: 10px 20px;
+}
+
+th.active {
+  color: #fff;
+}
+
+th.active .arrow {
+  opacity: 1;
+}
+
+.arrow {
+  display: inline-block;
+  vertical-align: middle;
+  width: 0;
+  height: 0;
+  margin-left: 5px;
+  opacity: 0.66;
+}
+
+.arrow.asc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #fff;
+}
+
+.arrow.dsc {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #fff;
 }

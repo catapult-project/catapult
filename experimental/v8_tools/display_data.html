@@ -1,36 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- <link rel="stylesheet" href="filter.css"> -->
+    <link rel="stylesheet" href="filter.css">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src='https://unpkg.com/vue-select'></script>
     <script src="http://underscorejs.org/underscore-min.js"></script>
+    <script src="./graph_data.js"></script>
+    <script src="./line_plotter.js"></script>
+    <script src="./box_plotter.js"></script>
+    <script src="./graph_plotter.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
+
 <body>
+    <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+      </style>
 
 <input type='file' id='file-input'/>
-<input type='button' value='stories' id='storyBtn' style='visibility:hidden;'/>
-<input type='button' value='storyTags' id='storyTagsBtn' style='visibility:hidden;'/>
-<input type='button' value='storysetRepeats' id='storysetRepeatsBtn' style='visibility:hidden;'/>
-<input type='button' value='traceStart' id='traceStartBtn' style='visibility:hidden;'/>
-<input type='button' value='traceUrls' id='traceUrlsBtn' style='visibility:hidden;'/>
 
-<input type='text' id='metricname' style='visibility:hidden;'/>
-<input type='text' id='storyname' style='visibility:hidden;'/>
 
-<input type='button' value='check' id='submit' style='visibility:hidden;'/>
+<!-- component template for table -->
+<script type="text/x-template" id="table-template">
+  'use strict';
+  <table>
+    <thead>
+      <tr>
+        <th v-for="key in columns"
+          @click="sortBy(key)"
+          :class="{ active: sortKey == key }">
+          {{ key | capitalize }}
+          <span class="arrow" :class="sortOrders[key] > 0 ? 'asc' : 'dsc'">
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- expansion of a specific row -->
+      <template v-for="entry in filteredData">
+          <tr @click='toggle(entry)' :class='{opened: opened.includes(entry.id)}'>
+              <td v-for="key in columns">
+                {{entry[key]}}
+              </td>
+          </tr>
+          <tr v-if='opened.includes(entry.id)' v-for='story in storiesEntries' id='story-row'>
+            <td></td>
+            <td id='story-story'> {{ story.story}}</td>
+            <td id='story-sample'> {{story.sample}}</td>
+          </tr>
+      </template>
+    </tbody>
+  </table>
+</script>
 
-<div id="app">
-  <v-select placeholder="Pick a metric" v-if="seen" :options="metrics" v-model="selected_metric"></v-select>
-  <v-select placeholder="Pick a story" v-if="seen" :options="stories" v-model="selected_story"></v-select>
+<!-- the root component -->
+<div id='app'>
+  <v-select placeholder="Pick a metric" v-if="seen" :options="metrics" v-model="selected_metric" id='metric'></v-select>
+  <v-select placeholder="Pick a story" v-if="seen" :options="stories" v-model="selected_story" id='story'></v-select>
   <v-select placeholder="Pick a diagnostic" v-if="seen" :options="diagnostics" 
-            v-model="selected_diagnostic"></v-select>
-    <ul>
-      <li v-for="(key, value) in target">
-         {{key}} : {{value}}
-      </li>
-    </ul>
-    <pre id='sample-values'></pre>
+            v-model="selected_diagnostic" id='diagnostic'></v-select>
+    <div id='canvas'></div>
+    <form id="search">
+      <input v-if="seen" id='inputBox'placeholder="Search" name="query" v-model="searchQuery">
+    </form>
+    <data-table v-if="seen"
+      :data="gridData"
+      :columns="gridColumns"
+      :filter-key="searchQuery">
+    </data-table>
 </div>
 
 <script src="filter.js"></script>
