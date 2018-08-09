@@ -38,7 +38,7 @@ def ParseDate(date_str):
     date_object = datetime.datetime.strptime(date_str, '%Y-%m-%d')
   except ValueError:
     msg = (
-        '%s is not a valid date value or it doesn\'t adhere to the required '
+        "%s is not a valid date value or it doesn't adhere to the required "
         'format, please double check' % date_str)
     raise argparse.ArgumentTypeError(msg)
   return date_object
