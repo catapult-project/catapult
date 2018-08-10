@@ -574,6 +574,7 @@
       'tracing/value/ui/histogram_set_view.html',
       'tracing/value/ui/histogram_set_view_state.html',
       'tracing/value/ui/histogram_span.html',
+      'tracing/value/ui/metrics_visualization.html',
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/related_event_set_span.html',
       'tracing/value/ui/related_histogram_map_span.html',

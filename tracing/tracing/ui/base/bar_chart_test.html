@@ -150,5 +150,25 @@ tr.b.unittest.testSuite(function() {
       {x: 1, value: 50},
     ];
   });
+
+  test('instantiationWaterfall', function() {
+    const chart = new tr.ui.b.BarChart();
+    chart.graphWidth = 300;
+    chart.graphHeight = 200;
+    chart.isStacked = true;
+    chart.isGrouped = true;
+    chart.isWaterfall = true;
+    this.addHTMLOutput(chart);
+    chart.data = [
+      {x: 0, alpha: 40, group: 'group1' },
+      {x: 1, alpha: 30, group: 'group2' },
+      {x: 2},
+      {x: 3, hide: 40, beta: 55, group: 'group1' },
+      {x: 4, hide: 40, beta: 65, group: 'group2' },
+      {x: 5},
+      {x: 6, hide: 95, omega: 10, group: 'group1' },
+      {x: 7, hide: 95, omega: 20, group: 'group2' }
+    ];
+  });
 });
 </script>

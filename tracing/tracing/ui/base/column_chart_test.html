@@ -254,5 +254,23 @@ tr.b.unittest.testSuite(function() {
       {x: 1, value: 50},
     ];
   });
+
+  test('instantiationGrouped', function() {
+    const chart = new tr.ui.b.ColumnChart();
+    chart.graphWidth = 300;
+    chart.graphHeight = 200;
+    chart.isStacked = true;
+    chart.isGrouped = true;
+    chart.displayXInHover = true;
+    chart.enableToolTip = true;
+    this.addHTMLOutput(chart);
+    chart.data = [
+      {x: 10, alpha: 100, beta: 50, group: 'group1' },
+      {x: 20, alpha: 110, beta: 75, group: 'group2' },
+      {x: 30 },
+      {x: 40, alpha: 100, beta: 125, group: 'group1' },
+      {x: 50, alpha: 50, beta: 125, group: 'group2' }
+    ];
+  });
 });
 </script>

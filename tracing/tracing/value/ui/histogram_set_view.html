@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/histogram_parameter_collector.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_controls.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table.html">
+<link rel="import" href="/tracing/value/ui/metrics_visualization.html">
 
 <dom-module id="tr-v-ui-histogram-set-view">
   <template>
@@ -40,6 +41,9 @@ found in the LICENSE file.
       <tr-v-ui-histogram-set-controls id="controls">
       </tr-v-ui-histogram-set-controls>
 
+      <tr-v-ui-metrics-visualization id="metrics">
+      </tr-v-ui-metrics-visualization>
+
       <tr-v-ui-histogram-set-table id="table"></tr-v-ui-histogram-set-table>
     </div>
   </template>
@@ -53,11 +57,13 @@ tr.exportTo('tr.v.ui', function() {
 
     listeners: {
       export: 'onExport_',
+      loadVisualization: 'onLoadVisualization_'
     },
 
     created() {
       this.brushingStateController_ = new tr.ui.NullBrushingStateController();
       this.viewState_ = new tr.v.ui.HistogramSetViewState();
+      this.metricsVisualizationLoaded_ = false;
     },
 
     ready() {
@@ -129,6 +135,20 @@ tr.exportTo('tr.v.ui', function() {
       this.$.controls.displayLabels = displayLabels;
       collectParametersMark.end();
 
+      // Only show visualizer button if values are from rendering benchmarks
+      const hist = [...histograms][0];
+      const benchmarks = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.BENCHMARKS);
+      let enable = false;
+      if (benchmarks !== undefined && benchmarks.length > 0) {
+        for (const benchmark of benchmarks) {
+          if (benchmark.includes('rendering')) {
+            enable = true;
+            break;
+          }
+        }
+      }
+      this.$.controls.enableVisualization = enable;
+
       // Table.build() displays its own progress.
       await this.$.table.build(
           histograms, sourceHistograms, displayLabels, progress);
@@ -163,6 +183,22 @@ tr.exportTo('tr.v.ui', function() {
       anchor.href = window.URL.createObjectURL(blob);
       anchor.click();
       mark.end();
+    },
+
+    onLoadVisualization_(event) {
+      if (!this.metricsVisualizationLoaded_) { // Initial loading
+        const histograms = event.merged ? this.$.table.leafHistograms :
+          this.histograms;
+        const mainMetricNames = ['pipeline:begin_frame_transport',
+          'pipeline:begin_frame_to_frame_submission',
+          'pipeline:frame_submission_to_display'];
+        this.$.metrics.build(histograms, mainMetricNames);
+        this.metricsVisualizationLoaded_ = true;
+      } else if (this.$.metrics.style.display === 'none') { // Toggle to hide
+        this.$.metrics.style.display = 'block';
+      } else {
+        this.$.metrics.style.display = 'none';
+      }
     },
   });
 

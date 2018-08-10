@@ -175,6 +175,8 @@ tr.exportTo('tr.ui.b', function() {
         left: 0,
       };
       this.hideLegend_ = false;
+      this.showTitleInLegend_ = false;
+      this.titleHeight_ = '16pt';
 
       // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
@@ -197,6 +199,15 @@ tr.exportTo('tr.ui.b', function() {
 
     set hideLegend(h) {
       this.hideLegend_ = h;
+      this.updateContents_();
+    },
+
+    get showTitleInLegend() {
+      return this.showTitleInLegend_;
+    },
+
+    set showTitleInLegend(s) {
+      this.showTitleInLegend_ = s;
       this.updateContents_();
     },
 
@@ -243,6 +254,15 @@ tr.exportTo('tr.ui.b', function() {
 
     set graphHeight(height) {
       this.graphHeight_ = height;
+      this.updateContents_();
+    },
+
+    get titleHeight() {
+      return this.titleHeight_;
+    },
+
+    set titleHeight(height) {
+      this.titleHeight_ = height;
       this.updateContents_();
     },
 
@@ -315,7 +335,7 @@ tr.exportTo('tr.ui.b', function() {
       titleSel.attr('transform', 'translate(' + this.graphWidth * 0.5 + ',-15)')
           .style('display', undefined)
           .style('text-anchor', 'middle')
-          .style('font-size', '16pt')
+          .style('font-size', this.titleHeight)
           .attr('class', 'title')
           .attr('width', this.graphWidth)
           .text(this.chartTitle_);
@@ -326,7 +346,17 @@ tr.exportTo('tr.ui.b', function() {
       chartAreaSel.selectAll('.legend').remove();
       if (this.hideLegend) return;
 
-      const series = [...this.seriesByKey_.values()].reverse();
+      let series;
+      let seriesText;
+      if (this.showTitleInLegend) {
+        series = [...this.seriesByKey_.values()].
+            filter(series => series.title !== '').reverse();
+        seriesText = series => series.title;
+      } else {
+        series = [...this.seriesByKey_.values()].reverse();
+        seriesText = series => series.key;
+      }
+
       const legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);
 
       legendEntriesSel.enter()
@@ -347,7 +377,7 @@ tr.exportTo('tr.ui.b', function() {
           .property('title', series => series.title)
           .property('optional', series => series.optional)
           .property('enabled', series => series.enabled)
-          .text(series => series.key);
+          .text(seriesText);
       legendEntriesSel.exit().remove();
     },
 
