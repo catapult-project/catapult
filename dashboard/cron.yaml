@@ -2,9 +2,6 @@
 # https://developers.google.com/appengine/docs/python/config/cron
 
 cron:
-- description: Send ts_mon metrics
-  url: /internal/cron/ts_mon/send
-  schedule: every 1 minutes
 
 - description: Mark alerts as recovered.
   url: /mark_recovered_alerts

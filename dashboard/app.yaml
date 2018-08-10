@@ -69,4 +69,3 @@ handlers:
 
 includes:
 - scripts.yaml
-- gae_ts_mon/gae_ts_mon  # handles /internal/cron/ts_mon/send

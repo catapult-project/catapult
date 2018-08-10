@@ -26,7 +26,6 @@ THIRD_PARTY_LIBRARIES = [
     'jquery',
     'polymer',
     'six',
-    'gae_ts_mon',
 ]
 
 # Files and directories in catapult/dashboard.
