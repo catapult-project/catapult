@@ -284,7 +284,6 @@ def PinpointParamsFromBisectParams(params):
       'end_git_hash': end_git_hash,
       'bug_id': params['bug_id'],
       'comparison_mode': bisect_mode,
-      'comparison_magnitude': alert_magnitude,
       'target': target,
       'user': email,
       'name': job_name,
@@ -294,6 +293,8 @@ def PinpointParamsFromBisectParams(params):
       }),
   }
 
+  if alert_magnitude:
+    pinpoint_params['comparison_magnitude'] = alert_magnitude
   if pin:
     pinpoint_params['pin'] = pin
   if statistic_name:
