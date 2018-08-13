@@ -1,6 +1,6 @@
 'use strict';
 
-(function() {
+export default (function() {
   function toArray(arr) {
     return Array.prototype.slice.call(arr);
   }
@@ -284,7 +284,7 @@
     };
   });
 
-  var exp = {
+  return {
     open: function(name, version, upgradeCallback) {
       var p = promisifyRequestCall(indexedDB, 'open', [name, version]);
       var request = p.request;
@@ -305,12 +305,4 @@
       return promisifyRequestCall(indexedDB, 'deleteDatabase', [name]);
     }
   };
-
-  if (typeof module !== 'undefined') {
-    module.exports = exp;
-    module.exports.default = module.exports;
-  }
-  else {
-    self.idb = exp;
-  }
 }());
