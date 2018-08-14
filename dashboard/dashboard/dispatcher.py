@@ -4,6 +4,7 @@
 
 """Dispatches requests to request handler classes."""
 
+import gae_ts_mon
 import webapp2
 
 from dashboard import add_histograms
@@ -142,3 +143,4 @@ _URL_MAPPING = [
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)
+gae_ts_mon.initialize(APP)

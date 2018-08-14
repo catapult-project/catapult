@@ -31,6 +31,10 @@ class MockOAuth2Decorator(object):
       return resp
     return check_oauth
 
+  def callback_handler(self):
+    # This is needed for dispatcher_test.py
+    pass
+
 
 oauth2_decorator.DECORATOR = MockOAuth2Decorator(
     client_id='client_id',
