@@ -127,22 +127,35 @@ class GraphData {
 
   /**
    * Applies the supplied processingFn to all of the dataSources held
-   * in this instance and replaces the old data with the newly processed data.
+   * in this instance and returns an array of the processed data along
+   * with it's additional plotting information.
    * The processing function supplied to process should return data in
    * a format suitable for plotting (e.g., an array of
    * objects, consisting of x and y co-ordinates, for a line plot).
    * @param {function(Array<?>): Array<Object>} processingFn
-   * @returns {GraphData}
+   * @returns {Array<Object>}
    */
-  process(processingFn) {
+  process(processingFn, ...args) {
     if (typeof processingFn !== 'function') {
       const type = typeof processingFn;
       throw new TypeError(
           `Expected argument of type function, but got: ${type}`);
     }
-    this.dataSources.forEach(
-        source => source.data = processingFn(source.data));
-    return this;
+    return this.dataSources.map(({ key, color, data}) => {
+      return {
+        key,
+        color,
+        data: processingFn(data, ...args)
+      };
+    });
+  }
+
+  /**
+   * Returns all of the labels associated with each data source.
+   * @returns {Array<string>}
+   */
+  keys() {
+    return this.dataSources.map(({ key }) => key);
   }
 
   /**
@@ -150,7 +163,6 @@ class GraphData {
    * and plots the results to the screen.
    */
   plotCumulativeFrequency() {
-    this.process(GraphData.computeCumulativeFrequencies);
     this.plotter_.plot(new LinePlotter());
   }
 
@@ -159,7 +171,6 @@ class GraphData {
    * and plots a box and whisker plot.
    */
   plotBoxPlot() {
-    this.process(data => data.sort((a, b) => a - b));
     this.plotter_.plot(new BoxPlotter());
   }
 

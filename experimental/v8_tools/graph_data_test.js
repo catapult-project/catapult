@@ -68,8 +68,9 @@ describe('GraphData', function() {
         },
       ];
       const graph = new GraphData().addData(data);
-      graph.process(GraphData.computeCumulativeFrequencies);
-      chai.expect(graph.dataSources[0].data).to.eql(expected);
+      const cumulativeFreqs = graph.process(
+          GraphData.computeCumulativeFrequencies);
+      chai.expect(cumulativeFreqs[0].data).to.eql(expected);
     });
   });
 

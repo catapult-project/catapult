@@ -48,7 +48,8 @@ class BoxPlotter {
     const gapSize = whiteSpace / numberOfGaps;
 
     let boxPostion = 0;
-    graph.dataSources.forEach(({data, color, key}, index) => {
+    const percentiles = graph.process(data => data.sort((a, b) => a - b));
+    percentiles.forEach(({data, color, key}, index) => {
       boxPostion += gapSize;
       const length = data.length;
       const percentile0 = data[0];

@@ -1,9 +1,13 @@
 'use strict';
 const getStackedOffsets = (data) => {
-  const graph = new GraphData().addData(data);
-  graph.plotDot();
-  const stackedLocations = graph.dataSources[0].data;
-  return stackedLocations.map(({x, y}) => y);
+  const dotPlotter = new DotPlotter();
+  // Stubs the x axis scale so that theres a 1:1 mapping between pixel
+  // values and memory values.
+  const scale = {
+    invert: x => x,
+  };
+  const stackedLocations = dotPlotter.computeDotStacking_(data.source, scale);
+  return stackedLocations.map(({x, stackOffset}) => stackOffset);
 };
 describe('DotPlotter', function() {
   describe('dot stacking', function() {

@@ -27,14 +27,16 @@ class LinePlotter {
   }
 
   createXAxisScale_(graph, chartDimensions) {
+    const numDataPoints =
+      Math.max(...graph.dataSources.map(source => source.data.length));
     return d3.scaleLinear()
-        .domain([0, graph.max(point => point.x)])
+        .domain([0, numDataPoints])
         .range([0, chartDimensions.width]);
   }
 
   createYAxisScale_(graph, chartDimensions) {
     return d3.scaleLinear()
-        .domain([graph.max(point => point.y), 0])
+        .domain([graph.max(point => point), 0])
         .range([0, chartDimensions.height]);
   }
 
@@ -56,7 +58,8 @@ class LinePlotter {
         .y(datum => this.scaleForYAxis_(datum.y))
         .curve(d3.curveMonotoneX);
 
-    graph.dataSources.forEach(({ data, color, key }, index) => {
+    const dots = graph.process(GraphData.computeCumulativeFrequencies);
+    dots.forEach(({ data, color, key }, index) => {
       chart.selectAll('.dot')
           .data(data)
           .enter()
@@ -81,79 +84,28 @@ class LinePlotter {
           .attr('y', index + 'em')
           .attr('fill', color);
     });
-    const zoom = d3.zoom();
-    this.setUpZoom_(zoom, chart, chartDimensions);
-    this.setUpZoomReset_(zoom, chart, chartDimensions);
-  }
-
-  transformLinePlot_(yAxisScale, chart) {
-    const pathGenerator = d3.line()
-        .x(d => this.scaleForXAxis_(d.x))
-        .y(d => yAxisScale(d.y))
-        .curve(d3.curveMonotoneX);
-    this.yAxisGenerator_.scale(yAxisScale);
-    this.yAxisDrawing_.call(this.yAxisGenerator_);
-    chart.selectAll('.line-dot')
-        .attr('cx', datum => this.scaleForXAxis_(datum.x))
-        .attr('cy', datum => yAxisScale(datum.y));
-    chart.selectAll('.line-plot')
-        .attr('d', pathGenerator);
-  }
-
-  setUpZoom_(zoom, chart, chartDimensions) {
-    const onZoom = () => {
-      const transform = d3.event.transform;
-      const transformedScaleForYAxis = transform.rescaleY(this.scaleForYAxis_);
-      this.transformLinePlot_(transformedScaleForYAxis, chart);
+    const redraw = (xAxisScale, yAxisScale) => {
+      const pathGenerator = d3.line()
+          .x(d => this.scaleForXAxis_(d.x))
+          .y(d => yAxisScale(d.y))
+          .curve(d3.curveMonotoneX);
+      chart.selectAll('.line-dot')
+          .attr('cx', datum => this.scaleForXAxis_(datum.x))
+          .attr('cy', datum => yAxisScale(datum.y));
+      chart.selectAll('.line-plot')
+          .attr('d', pathGenerator);
     };
-    zoom.on('zoom', onZoom).scaleExtent([1, Infinity]);
-    // The following invisible rectangle is there just to catch
-    // mouse events for zooming. It's not possible to listen on
-    // the chart itself because it is a g element (which does not
-    // capture mouse events).
-    chart.append('rect')
-        .attr('width', chartDimensions.width)
-        .attr('height', chartDimensions.height)
-        .attr('class', 'zoom-listener')
-        .style('opacity', 0)
-        .call(zoom);
-  }
-
-  setUpZoomReset_(zoom, chart, chartDimensions) {
-    // Gives some padding between the x-axis and the reset button.
-    const padding = 10;
-    const resetButton = chart.append('svg')
-        .attr('width', '10em')
-        .attr('height', '2em')
-        .attr('x', `${chartDimensions.width + padding}px`)
-        .attr('y', `${chartDimensions.height}px`)
-        .attr('cursor', 'pointer');
-    // Styling for the button.
-    resetButton.append('rect')
-        .attr('rx', '5px')
-        .attr('ry', '5px')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('fill', '#1b39a8');
-    resetButton.append('text')
-        .text('RESET CHART')
-        .attr('x', '50%')
-        .attr('y', '50%')
-        .attr('fill', 'white')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle');
-    resetButton
-        .on('mouseover', () => {
-          resetButton.attr('opacity', '0.5');
-        })
-        .on('mouseout', () => {
-          resetButton.attr('opacity', '1');
-        })
-        .on('click', () => {
-          resetButton.attr('opacity', '1');
-          chart.select('.zoom-listener')
-              .call(zoom.transform, d3.zoomIdentity);
-          this.transformLinePlot_(this.scaleForYAxis_, chart);
-        });
+    const axes = {
+      y: {
+        generator: this.yAxisGenerator_,
+        drawing: this.yAxisDrawing_,
+        scale: this.scaleForYAxis_,
+      },
+    };
+    const shouldScale = {
+      x: false,
+      y: true,
+    };
+    GraphUtils.createZoom(shouldScale, chart, chartDimensions, redraw, axes);
   }
 }

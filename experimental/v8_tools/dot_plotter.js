@@ -5,6 +5,17 @@
  * @implements {Plotter}
  */
 class DotPlotter {
+  constructor() {
+    this.radius_ = 4;
+    /** @private @const {Object} */
+    this.scaleForXAxis_ = undefined;
+    /** @private @const {Object} */
+    this.scaleForYAxis_ = undefined;
+    /** @private @const {Object} */
+    this.xAxisGenerator_ = undefined;
+    /** @private @const {Object} */
+    this.xAxisDrawing_ = undefined;
+  }
   /**
    * Initalises the chart by computing the scales for the axes and
    * drawing them. It also applies the labels to the graph (axes and
@@ -15,9 +26,10 @@ class DotPlotter {
    */
   initChart_(graph, chart, chartDimensions) {
     this.scaleForXAxis_ = this.createXAxisScale_(graph, chartDimensions);
+    this.scaleForYAxis_ = this.createYAxisScale_(graph, chartDimensions);
     this.xAxisGenerator_ = d3.axisBottom(this.scaleForXAxis_);
     // Draw the x-axis.
-    chart.append('g')
+    this.xAxisDrawing_ = chart.append('g')
         .call(this.xAxisGenerator_)
         .attr('transform', `translate(0, ${chartDimensions.height})`);
   }
@@ -28,9 +40,25 @@ class DotPlotter {
         .range([0, chartDimensions.width]);
   }
 
+  createYAxisScale_(graph, chartDimensions) {
+    const categories = graph.keys();
+    // The gap allows for padding between the first and last categories and
+    // the top and bottom of the chart area.
+    const gaps = graph.dataSources.length + 1;
+    const gapSize = chartDimensions.height / gaps;
+    return d3.scaleOrdinal()
+        .domain(categories)
+        .range([gapSize, chartDimensions.height - gapSize]);
+  }
+
   getDotDiameter_() {
     return this.radius_ * 2;
   }
+
+  dotOffset_(stackOffset, key) {
+    return this.scaleForYAxis_(key) - stackOffset * this.getDotDiameter_();
+  }
+
   /**
    * Collects the data into groups so that dots which would otherwise overlap
    * are stacked on top of each other instead. This is a rough implementation
@@ -38,13 +66,12 @@ class DotPlotter {
    * values in adjacent bins overlap. However, in this case the overlap is
    * bounded to very few elements.
    */
-  computeDotStacking_(data) {
+  computeDotStacking_(data, xAxisScale) {
     const bins = {};
     // Each bin corresponds to the size of the diameter of a dot,
     // so any data points in the same bin will definitely overlap.
-    // This assumes that the x axis starts at 0.
-    const binSize = Math.ceil(
-        this.scaleForXAxis_.invert(this.getDotDiameter_()));
+    const binSize =
+        xAxisScale.invert(this.getDotDiameter_()) - xAxisScale.invert(0);
     data.forEach(datum => {
       // The lower bound of the bin will be some multiple of binSize so find
       // the closest such multiple less than the datum.
@@ -63,10 +90,10 @@ class DotPlotter {
       if (stackOffset === -0) {
         stackOffset = 0;
       }
-      bin.forEach(datum => {
+      bin.forEach(x => {
         newPositions.push({
-          x: datum,
-          y: stackOffset,
+          x,
+          stackOffset,
         });
         stackOffset++;
       });
@@ -87,28 +114,23 @@ class DotPlotter {
    */
   plot(graph, chart, legend, chartDimensions) {
     this.initChart_(graph, chart, chartDimensions);
-    const gaps = graph.dataSources.length + 1;
-    const gapSize = chartDimensions.height / gaps;
-    let linePosition = gapSize;
-    this.radius_ = 4;
-    graph.process(this.computeDotStacking_.bind(this));
-    graph.dataSources.forEach(({ data, color, key }, index) => {
+    const dots = graph.process(
+        this.computeDotStacking_.bind(this), this.scaleForXAxis_);
+    dots.forEach(({ data, color, key }, index) => {
       chart.append('line')
           .attr('x1', 0)
           .attr('x2', chartDimensions.width)
-          .attr('y1', linePosition)
-          .attr('y2', linePosition)
+          .attr('y1', this.scaleForYAxis_(key))
+          .attr('y2', this.scaleForYAxis_(key))
           .attr('stroke-width', 2)
           .attr('stroke-dasharray', 4)
           .attr('stroke', 'gray');
-      const dotOffset = datum =>
-        linePosition - datum.y * this.getDotDiameter_();
       chart.selectAll(`.dot-${key}`)
           .data(data)
           .enter()
           .append('circle')
           .attr('cx', datum => this.scaleForXAxis_(datum.x))
-          .attr('cy', dotOffset)
+          .attr('cy', datum => this.dotOffset_(datum.stackOffset, key))
           .attr('r', this.radius_)
           .attr('fill', color)
           .attr('class', `dot-${key}`)
@@ -117,8 +139,29 @@ class DotPlotter {
           .text(key)
           .attr('y', index + 'em')
           .attr('fill', color);
-      linePosition += gapSize;
     });
+    const axes = {
+      x: {
+        generator: this.xAxisGenerator_,
+        drawing: this.xAxisDrawing_,
+        scale: this.scaleForXAxis_,
+      },
+    };
+    const draw = (xAxisScale) => {
+      const dots = graph.process(
+          this.computeDotStacking_.bind(this), xAxisScale);
+      dots.forEach(({ data, key }) => {
+        const newDots = chart.selectAll(`.dot-${key}`)
+            .data(data);
+        newDots
+            .attr('cx', datum => xAxisScale(datum.x))
+            .attr('cy', datum => this.dotOffset_(datum.stackOffset, key));
+      });
+    };
+    const shouldScale = {
+      x: true,
+      y: false,
+    };
+    GraphUtils.createZoom(shouldScale, chart, chartDimensions, draw, axes);
   }
 }
-
