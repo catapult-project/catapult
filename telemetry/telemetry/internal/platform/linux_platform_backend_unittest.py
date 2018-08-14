@@ -11,6 +11,10 @@ from telemetry.internal.platform import linux_platform_backend
 import mock
 
 
+def _PathMatches(wanted_path):
+  return lambda path: path == wanted_path
+
+
 class LinuxPlatformBackendTest(unittest.TestCase):
   @decorators.Enabled('linux')
   def testGetOSVersionNameSaucy(self):
@@ -18,24 +22,41 @@ class LinuxPlatformBackendTest(unittest.TestCase):
     with open(path) as f:
       unbuntu_saucy_lsb_release_content = f.read()
 
-    with mock.patch.object(
-        linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
-        return_value=unbuntu_saucy_lsb_release_content) as mock_method:
-      backend = linux_platform_backend.LinuxPlatformBackend()
-      self.assertEqual(backend.GetOSVersionName(), 'saucy')
-      mock_method.assert_called_once_with('/etc/lsb-release')
+    with mock.patch.object(os.path, 'exists',
+                           side_effect=_PathMatches('/etc/lsb-release')):
+      with mock.patch.object(
+          linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
+          return_value=unbuntu_saucy_lsb_release_content) as mock_method:
+        backend = linux_platform_backend.LinuxPlatformBackend()
+        self.assertEqual(backend.GetOSVersionName(), 'saucy')
+        mock_method.assert_called_once_with('/etc/lsb-release')
 
   @decorators.Enabled('linux')
   def testGetOSVersionNameArch(self):
-    path = os.path.join(util.GetUnittestDataDir(), 'arch-lsb-release')
+    path = os.path.join(util.GetUnittestDataDir(), 'arch-os-release')
     with open(path) as f:
-      arch_lsb_release_content = f.read()
+      arch_os_release_content = f.read()
 
-    with mock.patch.object(
-        linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
-        return_value=arch_lsb_release_content) as mock_method:
-      backend = linux_platform_backend.LinuxPlatformBackend()
-      # a distribution may not have a codename or a release number. We just
-      # check that GetOSVersionName doesn't raise an exception
-      backend.GetOSVersionName()
-      mock_method.assert_called_once_with('/etc/lsb-release')
+    with mock.patch.object(os.path, 'exists',
+                           side_effect=_PathMatches('/usr/lib/os-release')):
+      with mock.patch.object(
+          linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
+          return_value=arch_os_release_content) as mock_method:
+        backend = linux_platform_backend.LinuxPlatformBackend()
+        self.assertEqual(backend.GetOSVersionName(), 'arch')
+        mock_method.assert_called_once_with('/usr/lib/os-release')
+
+  @decorators.Enabled('linux')
+  def testGetOSVersionNameFedora(self):
+    path = os.path.join(util.GetUnittestDataDir(), 'fedora-os-release')
+    with open(path) as f:
+      fedora_os_release_content = f.read()
+
+    with mock.patch.object(os.path, 'exists',
+                           side_effect=_PathMatches('/etc/os-release')):
+      with mock.patch.object(
+          linux_platform_backend.LinuxPlatformBackend, 'GetFileContents',
+          return_value=fedora_os_release_content) as mock_method:
+        backend = linux_platform_backend.LinuxPlatformBackend()
+        self.assertEqual(backend.GetOSVersionName(), 'fedora')
+        mock_method.assert_called_once_with('/etc/os-release')
