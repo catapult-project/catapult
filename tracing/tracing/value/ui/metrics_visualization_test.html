@@ -31,6 +31,10 @@ tr.b.unittest.testSuite(function() {
     return tr.v.Histogram.create(name, tr.b.Unit.byName.count, samples);
   }
 
+  function getRepeatedHistogram(name, value) {
+    return tr.v.Histogram.create(name, tr.b.Unit.byName.count, value);
+  }
+
   function getHistogramSet(displayLabel, story) {
     const histograms = new tr.v.HistogramSet();
     for (let i = 0; i < 3; ++i) {
@@ -60,6 +64,26 @@ tr.b.unittest.testSuite(function() {
 
     const mainMetricNames = ['main_step_1',
       'main_step_2', 'main_step_3'];
+
+    cp.build(histograms, mainMetricNames);
+  });
+
+  test('instantiateWithRepeat', function() {
+    const cp = document.createElement('tr-v-ui-metrics-visualization');
+    this.addHTMLOutput(cp);
+
+    const histograms = new tr.v.HistogramSet();
+    histograms.addHistogram(getRepeatedHistogram('main_step_1', 2.5));
+    histograms.addHistogram(getRepeatedHistogram('main_step_1', 3.5));
+    histograms.addHistogram(getRepeatedHistogram('main_step_2', 3.5));
+    histograms.addHistogram(getRepeatedHistogram('main_step_2', 4.5));
+
+    histograms.addSharedDiagnosticToAllHistograms(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['Run 1']));
+    histograms.addSharedDiagnosticToAllHistograms(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet(['repeat.com']));
+
+    const mainMetricNames = ['main_step_1', 'main_step_2'];
 
     cp.build(histograms, mainMetricNames);
   });

@@ -191,7 +191,8 @@ tr.exportTo('tr.v.ui', function() {
           this.histograms;
         const mainMetricNames = ['pipeline:begin_frame_transport',
           'pipeline:begin_frame_to_frame_submission',
-          'pipeline:frame_submission_to_display'];
+          'pipeline:frame_submission_to_display',
+          'pipeline:draw'];
         this.$.metrics.build(histograms, mainMetricNames);
         this.metricsVisualizationLoaded_ = true;
       } else if (this.$.metrics.style.display === 'none') { // Toggle to hide

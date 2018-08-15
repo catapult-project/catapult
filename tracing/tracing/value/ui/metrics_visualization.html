@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math/running_statistics.html">
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
 <link rel="import" href="/tracing/ui/base/name_column_chart.html">
 <dom-module id='tr-v-ui-metrics-visualization'>
@@ -99,15 +101,14 @@ const COLORS = [
   ['#FFD740', '#FFC400', '#FFAB00', '#E29800'],
   ['#FF6E40', '#FF3D00', '#DD2C00', '#A32000'],
   ['#40C4FF', '#00B0FF', '#0091EA', '#006DAF'],
-  ['#B2FF59', '#76FF03', '#64DD17', '#4CA812'],
+  ['#89C641', '#54B503', '#4AA510', '#377A0D'],
   ['#B388FF', '#7C4DFF', '#651FFF', '#6200EA'],
   ['#FF80AB', '#FF4081', '#F50057', '#C51162'],
   ['#FFAB40', '#FF9100', '#FF6D00', '#D65C02'],
   ['#8C9EFF', '#536DFE', '#3D5AFE', '#304FFE']];
 
-const DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
-
-const VALUE_KEY = 'average'; // Used to access the average value of a metric
+// Used to access the running statistic of a metric
+const STATISTIC_KEY = 'statistic';
 
 Polymer({
   is: 'tr-v-ui-metrics-visualization',
@@ -115,8 +116,6 @@ Polymer({
   created() {
     this.chart_ = new tr.ui.b.NameColumnChart();
     this.chart_.isStacked = true;
-    this.chart_.graphHeight = 400;
-    this.chart_.graphWidth = 600;
     this.chart_.yAxisLabel = 'ms';
     this.chart_.hideXAxis = true;
     this.chart_.displayXInHover = true;
@@ -182,7 +181,6 @@ Polymer({
         const displayLabel = tr.v.HistogramGrouping.
             DISPLAY_LABEL.callback(histogram);
         const average = histogram.average === undefined ? 0 : histogram.average;
-        const roundedAverage = Number(average.toFixed(2));
         labels.set(displayLabel, Date.parse(benchmarkStart));
 
         let pageMap = new Map();
@@ -199,9 +197,15 @@ Polymer({
           }
         }
 
-        const metricMap = new Map();
+        let metricMap = new Map();
+        let statistic = new tr.b.math.RunningStatistics();
+        if (labelMap.has(metric)) { // Check for repeated page sets
+          metricMap = labelMap.get(metric);
+          statistic = metricMap.get(STATISTIC_KEY);
+        }
+        statistic.add(average);
+        metricMap.set(STATISTIC_KEY, statistic);
         labelMap.set(metric, metricMap);
-        metricMap.set(VALUE_KEY, roundedAverage);
 
         const merged = new tr.v.d.DiagnosticMap();
         for (const bin of histogram.allBins) {
@@ -212,11 +216,16 @@ Polymer({
 
         const subMetrics = [];
         if (merged.get('breakdown') === undefined) {
-          metricMap.set(metric, roundedAverage);
+          metricMap.set(metric, statistic);
           subMetrics.push(metric);
         } else {
-          for (const [subMetric, value] of merged.get('breakdown')) {
-            metricMap.set(subMetric, Number(value.toFixed(2)));
+          for (const [subMetric, total] of merged.get('breakdown')) {
+            let subStatistic = new tr.b.math.RunningStatistics();
+            if (metricMap.has(subMetric)) { // Check for repeated page sets
+              subStatistic = metricMap.get(subMetric);
+            }
+            subStatistic.add(total);
+            metricMap.set(subMetric, subStatistic);
             subMetrics.push(subMetric);
           }
         }
@@ -233,6 +242,7 @@ Polymer({
           this.displayLabels_, mainMetricNames));
 
     this.setChartColors_(mainMetricNames, this.displayLabels_, chart);
+    this.setChartSize_(this.groups_.size, this.displayLabels_.length, chart);
     this.setChartData_(this.groups_, this.sortedPages_, this.displayLabels_,
         mainMetricNames, chart);
   },
@@ -247,14 +257,16 @@ Polymer({
     const aMap = groups.get(a);
     if (aMap.get(displayLabels[0]) !== undefined) {
       for (const metricName of mainMetricNames) {
-        aValue += aMap.get(displayLabels[0]).get(metricName).get(VALUE_KEY);
+        const aMetricMap = aMap.get(displayLabels[0]).get(metricName);
+        aValue += aMetricMap.get(STATISTIC_KEY).mean;
       }
     }
     let bValue = 0;
     const bMap = groups.get(b);
     if (bMap.get(displayLabels[0]) !== undefined) {
       for (const metricName of mainMetricNames) {
-        bValue += bMap.get(displayLabels[0]).get(metricName).get(VALUE_KEY);
+        const bMetricMap = bMap.get(displayLabels[0]).get(metricName);
+        bValue += bMetricMap.get(STATISTIC_KEY).mean;
       }
     }
     if (aValue === bValue) return 0;
@@ -271,7 +283,8 @@ Polymer({
         const labelMap = pageMap.get(label);
         for (const [metric, metricMap] of labelMap) {
           const key = this.getSeriesKey_(metric, label);
-          data[key] = metricMap.get(VALUE_KEY);
+          const mean = metricMap.get(STATISTIC_KEY).mean;
+          data[key] = Math.round(mean * 100) / 100;
           if (label === displayLabels[0]) {
             chart.getDataSeries(key).title = metric;
           } else {
@@ -283,6 +296,13 @@ Polymer({
       chartData.push({});
     }
     chart.data = chartData;
+  },
+
+  setChartSize_(pageCount, displayLabelCount, chart) {
+    chart.graphHeight = tr.b.math.clamp(pageCount * displayLabelCount * 20,
+        300, 600);
+    chart.graphWidth = tr.b.math.clamp(pageCount * displayLabelCount * 25,
+        500, 1000);
   },
 
   // Assign color gradient to series in chart
@@ -303,10 +323,6 @@ Polymer({
 
   getSeriesKey_(metricName, displayLabel) {
     return metricName + '-' + displayLabel;
-  },
-
-  getBoundedNumber_(min, value, max) {
-    return Math.min(Math.max(value, min), max);
   },
 
   initializeChildChart_(title, height, width) {
@@ -361,9 +377,9 @@ Polymer({
     // Create child chart
     const mainStep = this.mainMetricNames_[mainStepIndex];
     const subSteps = this.subMetricNames_.get(mainStep);
-    const width = this.getBoundedNumber_(300, subSteps.length * 150, 700);
-    const height = this.getBoundedNumber_(300,
-        subSteps.length * this.displayLabels_.length * 50, 700);
+    const width = tr.b.math.clamp(subSteps.length * 150, 300, 700);
+    const height = tr.b.math.clamp(subSteps.length *
+        this.displayLabels_.length * 50, 300, 700);
 
     const pageName = rect.datum.group;
     const title = mainStep + ': ' + pageName;
@@ -392,9 +408,10 @@ Polymer({
 
         const metricMap = labelMap.get(mainStep);
         const series = this.getSeriesKey_(subStep, displayLabel);
-        const value = metricMap.get(subStep);
+        const mean = metricMap.get(subStep).mean;
+        const roundedMean = Math.round(mean * 100) / 100;
 
-        data[series] = value === undefined ? 0 : value;
+        data[series] = roundedMean === undefined ? 0 : roundedMean;
         childData.push(data);
 
         // Align bars with first value
@@ -461,9 +478,9 @@ Polymer({
     for (const [mainStep, subSteps] of this.subMetricNames_) {
       totalSteps += subSteps.length;
     }
-    const width = this.getBoundedNumber_(300, totalSteps * 150, 700);
-    const height = this.getBoundedNumber_(300,
-        totalSteps * this.displayLabels_.length * 30, 700);
+    const width = tr.math.clamp(totalSteps * 150, 300, 700);
+    const height = tr.math.clamp(totalSteps * this.displayLabels_.length * 30,
+        300, 700);
 
     const childChart = this.initializeChild_(title, height, width);
 
