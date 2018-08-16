@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="stylesheet"
       href="/tracing/ui/extras/system_stats/system_stats_instance_track.css">
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
@@ -38,7 +39,17 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     'write_time': 0,
     'writes': 0,
     'writes_merged': 0},
-  'swapinfo': {}
+  'swapinfo': {},
+  'perfinfo': {
+    'idle_time': 0,
+    'read_transfer_count': 0,
+    'write_transfer_count': 0,
+    'other_transfer_count': 0,
+    'read_operation_count': 0,
+    'write_operation_count': 0,
+    'other_operation_count': 0,
+    'pagefile_pages_written': 0,
+    'pagefile_pages_write_ios': 0}
   };
 
   /**
@@ -134,6 +145,59 @@ tr.exportTo('tr.ui.e.system_stats', function() {
             stats.bytes_swpout_per_sec = (stats.pswpout -
                                              prevStats.pswpout) *
                                             1000 / timeIntervalSeconds;
+          }
+          if (statName === 'idle_time') {
+            // Total amount of idle_time, in unit of 100 nanoseconds.
+            const units = tr.b.convertUnit(100.,
+                tr.b.UnitScale.TIME.NANO_SEC, tr.b.UnitScale.TIME.SEC);
+            const idleTile = (stats.idle_time - prevStats.idle_time) * units;
+            stats.idle_time_per_sec = idleTile / timeIntervalSeconds;
+          }
+          if (statName === 'read_transfer_count') {
+            const bytesRead = stats.read_transfer_count -
+                                   prevStats.read_transfer_count;
+            stats.bytes_read_per_sec = bytesRead / timeIntervalSeconds;
+          }
+          if (statName === 'write_transfer_count') {
+            const bytesWritten = stats.write_transfer_count -
+                                      prevStats.write_transfer_count;
+            stats.bytes_written_per_sec = bytesWritten / timeIntervalSeconds;
+          }
+          if (statName === 'other_transfer_count') {
+            const bytesTransfer = stats.other_transfer_count -
+                                       prevStats.other_transfer_count;
+            stats.bytes_other_per_sec = bytesTransfer / timeIntervalSeconds;
+          }
+          if (statName === 'read_operation_count') {
+            const readOperation = stats.read_operation_count -
+                                       prevStats.read_operation_count;
+            stats.read_operation_per_sec = readOperation / timeIntervalSeconds;
+          }
+          if (statName === 'write_operation_count') {
+            const writeOperation = stats.write_operation_count -
+                                      prevStats.write_operation_count;
+            stats.write_operation_per_sec =
+                writeOperation / timeIntervalSeconds;
+          }
+          if (statName === 'other_operation_count') {
+            const otherOperation = stats.other_operation_count -
+                                       prevStats.other_operation_count;
+            stats.other_operation_per_sec =
+                otherOperation / timeIntervalSeconds;
+          }
+          if (statName === 'pagefile_pages_written') {
+            const pageFileBytesWritten =
+                (stats.pagefile_pages_written -
+                     prevStats.pagefile_pages_written) * 4096;
+            stats.pagefile_bytes_written_per_sec =
+                pageFileBytesWritten / timeIntervalSeconds;
+          }
+          if (statName === 'pagefile_pages_write_ios') {
+            const pagefileWriteOperation =
+                stats.pagefile_pages_write_ios -
+                    prevStats.pagefile_pages_write_ios;
+            stats.pagefile_write_operation_per_sec =
+                pagefileWriteOperation / timeIntervalSeconds;
           }
         }
       }
@@ -243,8 +307,8 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         if (i !== objectSnapshots.length - 1) {
           right = objectSnapshots[i + 1].ts;
         } else {
-          // If this is the last snaphot of multiple snapshots, use the width of
-          // the previous snapshot for the width.
+          // If this is the last snapshot of multiple snapshots, use the width
+          // of the previous snapshot for the width.
           if (objectSnapshots.length > 1) {
             right = objectSnapshots[i].ts + (objectSnapshots[i].ts -
                 objectSnapshots[i - 1].ts);
