@@ -342,6 +342,7 @@ ANDROID_ONE = _TestConditionByAndroidModel('W6210', 'Android One')
 ANDROID_SVELTE = _TestConditionAndroidSvelte()
 ANDROID_LOW_END = _TestConditionLogicalOrConditions(
     [ANDROID_GO, ANDROID_SVELTE, ANDROID_ONE], 'Android Low End')
+ANDROID_PIXEL2 = _TestConditionByAndroidModel('Pixel 2')
 ANDROID_WEBVIEW = _TestConditionAndroidWebview()
 ANDROID_NOT_WEBVIEW = _TestConditionAndroidNotWebview()
 # MAC_10_11 Includes:
@@ -377,6 +378,7 @@ EXPECTATION_NAME_MAP = {
     'Nexus_6': ANDROID_NEXUS6,
     'Nexus_6P': ANDROID_NEXUS6P,
     'Nexus_7': ANDROID_NEXUS7,
+    'Pixel_2': ANDROID_PIXEL2,
     'Mac_10.11': MAC_10_11,
     'Mac_10.12': MAC_10_12,
     'Nexus6_Webview': ANDROID_NEXUS6_WEBVIEW,
