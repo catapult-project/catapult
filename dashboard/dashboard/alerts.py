@@ -62,6 +62,10 @@ class AlertsHandler(request_handler.RequestHandler):
       bug_id = ''
       recovered = False
 
+    max_anomalies_to_show = _MAX_ANOMALIES_TO_SHOW
+    if self.request.get('max_anomalies_to_show'):
+      max_anomalies_to_show = int(self.request.get('max_anomalies_to_show'))
+
     anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
         start_cursor=anomaly_cursor,
         sheriff=sheriff_name,
@@ -69,7 +73,7 @@ class AlertsHandler(request_handler.RequestHandler):
         is_improvement=is_improvement,
         recovered=recovered,
         count_limit=_MAX_ANOMALIES_TO_COUNT,
-        limit=_MAX_ANOMALIES_TO_SHOW).get_result()
+        limit=max_anomalies_to_show).get_result()
 
     values = {
         'anomaly_list': AnomalyDicts(anomalies),
