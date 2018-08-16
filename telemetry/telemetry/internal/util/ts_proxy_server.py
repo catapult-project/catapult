@@ -21,6 +21,7 @@ from telemetry.core import util
 from telemetry.internal.util import ps_util
 
 import py_utils
+from py_utils import retry_util
 from py_utils import atexit_with_log
 
 
@@ -65,9 +66,11 @@ class TsProxyServer(object):
   def port(self):
     return self._port
 
-  def StartServer(self, timeout=10):
+  @retry_util.RetryOnException(exceptions.Error, retries=3)
+  def StartServer(self, timeout=10, retries=None):
     """Start TsProxy server and verify that it started.
     """
+    del retries  # handled by the decorator
     cmd_line = [sys.executable, _TSPROXY_PATH]
     cmd_line.extend([
         '--port=0'])  # Use port 0 so tsproxy picks a random available port.
@@ -125,7 +128,9 @@ class TsProxyServer(object):
         return None
     return py_utils.WaitFor(ReadlLine, timeout)
 
-  def _IssueCommand(self, command_string, timeout):
+  @retry_util.RetryOnException(exceptions.Error, retries=3)
+  def _IssueCommand(self, command_string, timeout, retries=None):
+    del retries  # handled by the decorator
     logging.info('Issuing command to ts_proxy_server: %s', command_string)
     command_output = []
     self._proc.stdin.write('%s\n' % command_string)
