@@ -1623,7 +1623,7 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
     class StoryFailureSharedState(TestSharedState):
       def RunStory(self, results):
         logging.warning('This will fail gracefully')
-        raise exceptions.AppCrashException()
+        raise exceptions.Error('karma!')
 
     class TestBenchmark(benchmark.Benchmark):
       test = DummyTest
@@ -1661,7 +1661,7 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
     self.assertIn('This will fail gracefully', foo_log)
 
     # Also the python crash stack.
-    self.assertIn("raise exceptions.AppCrashException()", foo_log)
+    self.assertIn("raise exceptions.Error('karma!')", foo_log)
 
   def testArtifactLogsContainUnhandleableException(self):
     class UnhandledFailureSharedState(TestSharedState):

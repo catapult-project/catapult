@@ -16,6 +16,7 @@ try:
 except ImportError:
   fcntl = None
 
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.util import ps_util
 
@@ -97,8 +98,10 @@ class TsProxyServer(object):
       # TODO(nedn): remove this debug log once crbug.com/766877 is resolved
       ps_util.ListAllSubprocesses()
       err = self.StopServer()
-      raise RuntimeError(
-          'Error starting tsproxy: %s' % err)
+      if err:
+        logging.error('Error stopping WPR server:\n%s', err)
+      raise exceptions.Error(
+          'Error starting tsproxy: timed out after %s seconds' % timeout)
 
   def _IsStarted(self):
     assert not self._is_running
@@ -138,7 +141,7 @@ class TsProxyServer(object):
     logging.log(logging.DEBUG if success else logging.ERROR,
                 'TsProxy output:\n%s', '\n'.join(command_output))
     if not success:
-      raise RuntimeError('Failed to execute command: %s', command_string)
+      raise exceptions.Error('Failed to execute command: %s', command_string)
 
   def UpdateOutboundPorts(self, http_port, https_port, timeout=5):
     assert http_port and https_port
