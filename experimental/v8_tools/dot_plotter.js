@@ -58,7 +58,13 @@ class DotPlotter {
   dotOffset_(stackOffset, key) {
     return this.scaleForYAxis_(key) - stackOffset * this.getDotDiameter_();
   }
-
+  /**
+   * Valid css selector chars are alphanumerics, underscores and hypens.
+   * Other characters must be escaped with a '\'.
+   */
+  convertToValidCSSSelectorName_(text) {
+    return text.replace(/[^\w_-]/g, `\\$&`);
+  }
   /**
    * Collects the data into groups so that dots which would otherwise overlap
    * are stacked on top of each other instead. This is a rough implementation
@@ -125,7 +131,7 @@ class DotPlotter {
           .attr('stroke-width', 2)
           .attr('stroke-dasharray', 4)
           .attr('stroke', 'gray');
-      chart.selectAll(`.dot-${key}`)
+      chart.selectAll(`.dot-${this.convertToValidCSSSelectorName_(key)}`)
           .data(data)
           .enter()
           .append('circle')
@@ -133,7 +139,7 @@ class DotPlotter {
           .attr('cy', datum => this.dotOffset_(datum.stackOffset, key))
           .attr('r', this.radius_)
           .attr('fill', color)
-          .attr('class', `dot-${key}`)
+          .attr('class', `dot-${this.convertToValidCSSSelectorName_(key)}`)
           .attr('clip-path', 'url(#plot-clip)');
       legend.append('text')
           .text(key)
@@ -151,7 +157,8 @@ class DotPlotter {
       const dots = graph.process(
           this.computeDotStacking_.bind(this), xAxisScale);
       dots.forEach(({ data, key }) => {
-        const newDots = chart.selectAll(`.dot-${key}`)
+        const newDots = chart
+            .selectAll(`.dot-${this.convertToValidCSSSelectorName_(key)}`)
             .data(data);
         newDots
             .attr('cx', datum => xAxisScale(datum.x))

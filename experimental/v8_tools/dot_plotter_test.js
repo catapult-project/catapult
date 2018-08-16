@@ -33,4 +33,13 @@ describe('DotPlotter', function() {
       chai.expect(stackedOffsets).to.have.members([-1, 0, -1, 0, 0]);
     });
   });
+  describe('plotting', function() {
+    it('should plot data despite invalid selection characters', function() {
+      const data = {
+        'source.with:inv@lid chars"}~$': [1, 2, 3, 4, 5],
+      };
+      const graph = new GraphData().addData(data);
+      chai.expect(() => graph.plotDot()).to.not.throw(Error);
+    });
+  });
 });
