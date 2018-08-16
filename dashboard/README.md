@@ -16,6 +16,6 @@ and monitoring performance test results.
 ## Contact
 
 Bugs can be reported on the
-[github issue tracker](https://github.com/catapult-project/catapult/issues);
+[Chromium issue tracker](https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:&components=Speed%3EDashboard&summary=[chromeperf]+);
 for questions and feedback,
 send an email to chrome-perf-dashboard-team@google.com.
