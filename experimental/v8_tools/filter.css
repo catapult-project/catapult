@@ -8,38 +8,62 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#metric {
+
+
+#select_item {
   width: 60em;
   align-content: center;
-  background-color: aliceblue;
-}
-
-#story {
-  width: 60em;
-  align-content: center;
-  background-color: aliceblue;
-}
-
-#diagnostic {
-  width: 60em;
-  align-content: center;
-  background-color: aliceblue;
-}
-
-#story-row {
-  border-left-width: 10px;
+  background-color: rgb(245, 252, 245);
+  border: 1px solid #bdd3c9;
+  border-radius: 8px;
 }
 
 #story-story{
-  font-weight: bold;
+  border-left-width: 10px;
+  border: 1px solid #a0d1bb;
+  border-radius: 3px;
+  background-color: #f1f5f2;
 }
+
+#file-input {
+  border: 2px solid #bdd3c9;
+  border-radius: 12px;
+  background-color: #f1f5f2;
+  padding: 4px;
+  text-align: center;
+  margin: 1px;
+}
+
 
 #story-sample {
-  font-weight: bold;
+  border-left-width: 10px;
+  border: 1px solid #a0d1bb;
+  border-radius: 3px;
+  background-color: #f1f5f2;
 }
 
-.opened {
+#diagnostic-row {
+  border-radius: 2px;
+  border: 1px solid #87ceae;
+  border-radius: 3px;
+  background-color: #e2eee5; 
+}
+
+#entry {
+  border: 2px solid #42b983;
+  border-radius: 2px;
+}
+
+.openedMetric {
   background-color: darkgray;
+}
+
+.openedStory {
+  background-color: darkseagreen;
+}
+
+.openedDiagnostic {
+  background-color: darkseagreen;
 }
 
 #canvas {
@@ -51,9 +75,10 @@
 }
 
 #inputBox {
-  width: 40em;
-  background-color: aliceblue;
-  border-radius: 2px;
+  width: 30em;
+  background-color: rgba(255, 255, 255, 0.76);
+  border-radius: 8px;
+  padding: 8px;
 }
 
 body {

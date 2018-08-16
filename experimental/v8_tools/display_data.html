@@ -9,6 +9,7 @@
     <script src="./line_plotter.js"></script>
     <script src="./box_plotter.js"></script>
     <script src="./graph_plotter.js"></script>
+    <script src="./dot_plotter.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 
@@ -19,10 +20,7 @@
         }
       </style>
 
-<input type='file' id='file-input'/>
-
-
-<!-- component template for table -->
+<input type='file' id='file-input' class='file_input'/>
 <script type="text/x-template" id="table-template">
   'use strict';
   <table>
@@ -38,32 +36,75 @@
       </tr>
     </thead>
     <tbody>
-      <!-- expansion of a specific row -->
       <template v-for="entry in filteredData">
-          <tr @click='toggle(entry)' :class='{opened: opened.includes(entry.id)}'>
+          <tr @click='toggleMetric(entry)' 
+              :class='{openedMetric: openedMetric.includes(entry.id)}' 
+              id='entry'>
               <td v-for="key in columns">
                 {{entry[key]}}
               </td>
           </tr>
-          <tr v-if='opened.includes(entry.id)' v-for='story in storiesEntries' id='story-row'>
-            <td></td>
-            <td id='story-story'> {{ story.story}}</td>
-            <td id='story-sample'> {{story.sample}}</td>
-          </tr>
+          <template v-if='openedMetric.includes(entry.id)'>
+          <template v-for='story in storiesEntries'>
+              <tr @click='toggleStory(story)' 
+                  :class='{openedStory: openedStory.includes(story.story)}' 
+                  id ='story-row'>
+                  <td></td>
+                  <td id='story-story'> {{ story.story }}</td>
+                  <td id='story-sample'> {{ story.sample }}</td>
+              </tr>
+              <template v-if='openedStory.includes(story.story)'>
+                        <tr>
+                          <td></td>
+                          <v-select placeholder='Pick a diagnostic' 
+                                    v-model="diagnostic" 
+                                    :options='diagnosticsEntries'></v-select>
+                       </tr>
+                       <tr>
+                          <td></td>
+                          <v-select placeholder='Available disgnostics'
+                                    multiple v-model='selected_diagnostics'
+                                    :options='diagnostics_options'
+                                    v-if='seen_diagnostics'></v-select>
+                      </tr>
+                      <tr>
+                        <td></td>
+                        <v-select placeholder='Choose a plot' 
+                                  v-model='chosen_plot' 
+                                  :options='plot_kinds'
+                                  v-if='seen_plot'></v-select>
+                        </tr>
+              </template>
+            </template>
+          </template> 
       </template>
     </tbody>
   </table>
 </script>
-
 <!-- the root component -->
 <div id='app'>
-  <v-select placeholder="Pick a metric" v-if="seen" :options="metrics" v-model="selected_metric" id='metric'></v-select>
-  <v-select placeholder="Pick a story" v-if="seen" :options="stories" v-model="selected_story" id='story'></v-select>
-  <v-select placeholder="Pick a diagnostic" v-if="seen" :options="diagnostics" 
-            v-model="selected_diagnostic" id='diagnostic'></v-select>
+  <v-select placeholder="Pick a metric"
+            v-if="seen" 
+            :options="metrics" 
+            v-model="selected_metric" 
+            id='select_item'></v-select>
+  <v-select placeholder="Pick a story" 
+            v-if="seen_stories" 
+            :options="stories" 
+            v-model="selected_story" 
+            id='select_item'></v-select>
+  <v-select placeholder="Pick a diagnostic" 
+            v-if="seen_diagnostics" 
+            :options="diagnostics" 
+            v-model="selected_diagnostic" 
+            id='select_item'></v-select>
     <div id='canvas'></div>
     <form id="search">
-      <input v-if="seen" id='inputBox'placeholder="Search" name="query" v-model="searchQuery">
+      <input v-if="seen"
+            id='inputBox'
+            placeholder="Search a metric" 
+            name="query" 
+            v-model="searchQuery">
     </form>
     <data-table v-if="seen"
       :data="gridData"
