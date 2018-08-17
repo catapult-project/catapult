@@ -29,23 +29,33 @@ found in the LICENSE file.
  * from the OS. So, the metric may be noisy and not be very meaningful for
  * threads that do not have a message loop.
  *
- * frame_times
- * ===========
+ * frame_times_tbmv2
+ * =================
  * The distribution of durations between consecutive display compositor's swap
  * buffer calls, or DRM page flips on ChromeOS devices, during animations.
  *
- * mean_frame_time
- * ===============
- * The arithmetic mean of frame_times.
+ * mean_frame_time_tbmv2
+ * =====================
+ * The arithmetic mean of frame_times_tbmv2.
  *
- * percentage_smooth
- * =================
+ * smooth_frames
+ * =============
  * The percentage of frame_times that are less than 17ms.
  *
  * TODO(chiniforooshan): This metric weighs all frames equally. So, e.g.
  * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
  * 1s-frames. I think it makes more sense to compute the percentage of
  * non-smooth time during animation.
+ *
+ * queueing_durations_tbmv2
+ * ========================
+ * This quantifies how out of sync the compositor and renderer threads are. It
+ * is the amount of wall time that elapses between a
+ * ScheduledActionSendBeginMainFrame event in the compositor thread and the
+ * corresponding BeginMainFrame event in the main thread.
+ *
+ * All renderer processes, including ones for out-of-process iframes, are used
+ * to compute the metric.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   const UNKNOWN_THREAD_NAME = 'Unknown';
@@ -66,9 +76,12 @@ tr.exportTo('tr.metrics.rendering', function() {
   CATEGORY_THREAD_MAP.set('renderer_main', [/^CrRendererMain$/]);
 
   // Various tracing events.
-  const DRM_EVENT = 'DrmEventFlipComplete';
+  const BEGIN_MAIN_FRAME_EVENT = 'ThreadProxy::BeginMainFrame';
   const DISPLAY_EVENT = 'BenchmarkInstrumentation::DisplayRenderingStats';
+  const DRM_EVENT = 'DrmEventFlipComplete';
   const GESTURE_EVENT = 'SyntheticGestureController::running';
+  const SEND_BEGIN_FRAME_EVENT =
+      'ThreadProxy::ScheduledActionSendBeginMainFrame';
 
   function addValueToMap_(map, key, value) {
     const oldValue = map.get(key) || 0;
@@ -89,7 +102,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     if (isOther) yield 'other';
   }
 
-  function addCoresPerSecondHistograms(histograms, model, segments) {
+  function addCoresPerSecondHistograms_(histograms, model, segments) {
     const totalDuration = tr.b.math.Statistics.sum(
         segments, segment => segment.duration);
 
@@ -138,7 +151,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
   }
 
-  function addFrameTimeHistograms(histograms, model, segments) {
+  function addFrameTimeHistograms_(histograms, model, segments) {
     const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!modelHelper || !modelHelper.browserProcess) return;
@@ -206,7 +219,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         { description: 'Percentage of frames that were hitting 60 FPS.' });
   }
 
-  function eventIsValidGraphicsEvent(event, eventMap) {
+  function eventIsValidGraphicsEvent_(event, eventMap) {
     if (!event.bindId || !event.args || !event.args.step) {
       return false;
     }
@@ -225,7 +238,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     return true;
   }
 
-  function generateBreakdownForCompositorPipelineInClient(flow) {
+  function generateBreakdownForCompositorPipelineInClient_(flow) {
     const breakdown = new tr.v.d.Breakdown();
     breakdown.set('time before GenerateRenderPass',
         flow.GenerateRenderPass.start - flow.ReceiveBeginFrame.start);
@@ -238,7 +251,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     return breakdown;
   }
 
-  function generateBreakdownForCompositorPipelineInService(flow) {
+  function generateBreakdownForCompositorPipelineInService_(flow) {
     const breakdown = new tr.v.d.Breakdown();
     breakdown.set('Processing CompositorFrame on reception',
         flow.ReceiveCompositorFrame.duration);
@@ -249,7 +262,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     return breakdown;
   }
 
-  function generateBreakdownForDraw(drawEvent) {
+  function generateBreakdownForDraw_(drawEvent) {
     const breakdown = new tr.v.d.Breakdown();
     for (const slice of drawEvent.subSlices) {
       breakdown.set(slice.title, slice.duration);
@@ -257,7 +270,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     return breakdown;
   }
 
-  function getDisplayCompositorThread(model) {
+  function getDisplayCompositorThread_(model) {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     const gpuHelper = chromeHelper.gpuHelper;
@@ -272,7 +285,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     return browserHelper.process.findAtMostOneThreadNamed('CrBrowserMain');
   }
 
-  function addPipelineHistograms(histograms, model, segments) {
+  function addPipelineHistograms_(histograms, model, segments) {
     let events = [];
     for (const thread of model.getAllThreads()) {
       const graphicsEvents = thread.sliceGroup.slices.filter(
@@ -291,7 +304,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
     const bindEvents = {};
     for (const event of events) {
-      if (!eventIsValidGraphicsEvent(event, bindEvents)) continue;
+      if (!eventIsValidGraphicsEvent_(event, bindEvents)) continue;
       const bindId = event.bindId;
       if (!(bindId in bindEvents)) {
         bindEvents[bindId] = {};
@@ -299,7 +312,7 @@ tr.exportTo('tr.metrics.rendering', function() {
       bindEvents[bindId][event.args.step] = event;
     }
 
-    const dcThread = getDisplayCompositorThread(model);
+    const dcThread = getDisplayCompositorThread_(model);
     const drawEvents = {};
     if (dcThread) {
       const events =
@@ -357,10 +370,10 @@ tr.exportTo('tr.metrics.rendering', function() {
                                flow.IssueBeginFrame.start);
       receiptToSubmit.addSample(
           flow.SubmitCompositorFrame.end - flow.ReceiveBeginFrame.start,
-          {breakdown: generateBreakdownForCompositorPipelineInClient(flow)});
+          {breakdown: generateBreakdownForCompositorPipelineInClient_(flow)});
       submitToAggregate.addSample(
           flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
-          {breakdown: generateBreakdownForCompositorPipelineInService(flow)});
+          {breakdown: generateBreakdownForCompositorPipelineInService_(flow)});
 
       if (flow.SurfaceAggregation.args &&
           flow.SurfaceAggregation.args.display_trace) {
@@ -368,9 +381,53 @@ tr.exportTo('tr.metrics.rendering', function() {
         if (!(displayTrace in drawEvents)) continue;
         const drawEvent = drawEvents[displayTrace];
         aggregateToDraw.addSample(drawEvent.duration,
-            {breakdown: generateBreakdownForDraw(drawEvent)});
+            {breakdown: generateBreakdownForDraw_(drawEvent)});
       }
     }
+  }
+
+  function getEventTimesByBeginFrameId_(thread, title, ranges) {
+    const out = new Map();
+    for (const slice of thread.slicesIntersectingRanges(ranges)) {
+      if (slice.title !== title) continue;
+      const id = slice.args.begin_frame_id;
+      if (id === undefined) throw new Error('Event is missing begin_frame_id');
+      if (out.has(id)) throw new Error(`There must be exactly one ${title}`);
+      out.set(id, slice.start);
+    }
+    return out;
+  }
+
+  function addQueueingDurationHistograms_(histograms, model, segments) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!chromeHelper) return;
+
+    const queueingDurations = [];
+    const ranges = segments.map(s => s.boundsRange);
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      const mainThread = rendererHelper.mainThread;
+      const compositorThread = rendererHelper.compositorThread;
+      if (mainThread === undefined || compositorThread === undefined) continue;
+
+      const beginMainFrameTimes = getEventTimesByBeginFrameId_(
+          mainThread, BEGIN_MAIN_FRAME_EVENT, ranges);
+      const sendBeginFrameTimes = getEventTimesByBeginFrameId_(
+          compositorThread, SEND_BEGIN_FRAME_EVENT, ranges);
+      for (const [id, time] of sendBeginFrameTimes) {
+        queueingDurations.push(beginMainFrameTimes.get(id) - time);
+      }
+    }
+
+    histograms.createHistogram(
+        'queueing_durations_tbmv2',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, queueingDurations, {
+          binBoundaries:
+            tr.v.HistogramBinBoundaries.createExponential(0.01, 2, 20),
+          description: 'Time between ScheduledActionSendBeginMainFrame in ' +
+                       'the compositor thread and the corresponding ' +
+                       'BeginMainFrame in the main thread.'
+        });
   }
 
   function renderingMetric(histograms, model) {
@@ -434,9 +491,13 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
     if (segments.length === 0) return;
 
-    addCoresPerSecondHistograms(histograms, model, segments);
-    addFrameTimeHistograms(histograms, model, segments);
-    addPipelineHistograms(histograms, model, segments);
+    // TODO(chiniforooshan): If the following list keeps getting larger, we
+    // should break this file into several smaller files each dealing with one
+    // set of related rendering metrics.
+    addCoresPerSecondHistograms_(histograms, model, segments);
+    addFrameTimeHistograms_(histograms, model, segments);
+    addPipelineHistograms_(histograms, model, segments);
+    addQueueingDurationHistograms_(histograms, model, segments);
   }
 
   tr.metrics.MetricRegistry.register(renderingMetric);

@@ -371,5 +371,45 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.max, 2e-6);
     assert.closeTo(1, hist.average, 1e-6);
   });
+
+  test('renderingMetric_queueingDurations', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const telemetry = model.getOrCreateProcess(2).getOrCreateThread(0);
+      telemetry.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Animation', 0, 10));
+
+      // Metric computation assumes that there is always a browser process.
+      model.getOrCreateProcess(0).getOrCreateThread(0).name = 'CrBrowserMain';
+
+      const compositor = model.getOrCreateProcess(1).getOrCreateThread(1);
+      compositor.name = 'Compositor';
+      compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'ThreadProxy::ScheduledActionSendBeginMainFrame',
+            start: 3, end: 3,
+            args: { begin_frame_id: 2 }}));
+      compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'ThreadProxy::ScheduledActionSendBeginMainFrame',
+            start: 4, end: 4,
+            args: { begin_frame_id: 1 }}));
+
+      const main = model.getOrCreateProcess(1).getOrCreateThread(0);
+      main.name = 'CrRendererMain';
+      main.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'ThreadProxy::BeginMainFrame',
+            start: 5, end: 5,
+            args: { begin_frame_id: 1 }}));
+      main.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'ThreadProxy::BeginMainFrame',
+            start: 6, end: 6,
+            args: { begin_frame_id: 2 }}));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    const hist = histograms.getHistogramNamed('queueing_durations_tbmv2');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(3, hist.max, 1e-6);
+    assert.closeTo(2, hist.average, 1e-6);
+  });
 });
 </script>
