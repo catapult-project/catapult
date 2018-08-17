@@ -16,6 +16,7 @@
     <script src="./line_plotter.js"></script>
     <script src="./box_plotter.js"></script>
     <script src="./dot_plotter.js"></script>
+    <script src="./bar_plotter.js"></script>
     <script src="./graph_plotter.js"></script>
     <script>
       'use strict';
@@ -25,29 +26,40 @@
       const DATA_LOCATION = './example/data/TravelGifPage.csv';
       const METRIC_NAME = 'memory:chrome:all_processes:reported_by_os:' +
         'proportional_resident_size';
-      const without = [];
-      const withs = [];
+      // const without = [];
+      // const withs = [];
       const MiB = 1024 * 1024;
+      const withs = {
+        story1: [5, 5, 5],
+        story2: [5, 10, 15],
+        story3: [],
+      };
+
+      const withouts = {
+        story1: [1, 10, 19],
+        story2: [7, 12, 2],
+        story3: [2],
+      };
 
       const convertBytesToMiB = (value) => +((value / MiB).toFixed(5));
 
       const loadData = async() => {
-        const data = await d3.csv(DATA_LOCATION);
-        const propResSizeData = data.filter(row => row.name === METRIC_NAME);
-        propResSizeData.forEach((row, index) => {
-          without.push(convertBytesToMiB(+row.avg_y));
-          withs.push(convertBytesToMiB(+row.avg_x));
-        });
+        // const data = await d3.csv(DATA_LOCATION);
+        // const propResSizeData = data.filter(row => row.name === METRIC_NAME);
+        // propResSizeData.forEach((row, index) => {
+        //   without.push(convertBytesToMiB(+row.avg_y));
+        //   withs.push(convertBytesToMiB(+row.avg_x));
+        // });
         const graph = new GraphData();
-        graph.xAxis('Data Points')
-            .xAxis('Memory used (MiB)')
-            .title('Memory used with and without site' +
-              'isolation enabled for the TrivialGifAnimation story')
+        graph.xAxis('Story')
+            .yAxis('Memory used (MiB)')
+            .title('Average memory used with and without site' +
+              'isolation enabled for each story')
             .addData({
               withSiteIsoEnabled: withs,
-              withoutSiteIsoEnabled: without,
+              withoutSiteIsoEnabled: withouts,
             })
-            .plotDot();
+            .plotBar();
       };
       loadData();
     </script>

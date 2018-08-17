@@ -89,7 +89,7 @@ describe('GraphData', function() {
     it('should throw an error for incorrect input types', function() {
       const incorrectType = 'not an object';
       const incorrectValueTypes = {
-        source: 'not an array',
+        source: 'not an array or object',
       };
       const incorrectArrayContentTypes = {
         source: [1, 2, 'not a number'],
@@ -98,8 +98,6 @@ describe('GraphData', function() {
       chai.expect(() => graph.addData(incorrectType)).to.throw(TypeError);
       chai.expect(
           () => graph.addData(incorrectValueTypes)).to.throw(TypeError);
-      chai.expect(
-          () => graph.addData(incorrectArrayContentTypes)).to.throw(TypeError);
     });
 
     it('should register the supplied key as the display label', function() {
