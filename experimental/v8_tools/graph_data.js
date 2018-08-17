@@ -125,6 +125,25 @@ class GraphData {
   }
 
   /**
+   * Deletes any old data and registers the supplied data as a dataSource,
+   * enabling it to be plotted and processed. The data source should be in
+   * the form of an object where the keys are the desired display labels
+   * (for the legend) corresponding to the supplied values, each of which
+   * should be an array of numbers.
+   * For example:
+   * {
+   *   labelOne: [numbers...],
+   *   labelTwo: [numbers...],
+   * }
+   * @param {Object} data
+   * @return {GraphData}
+   */
+  setData(data) {
+    this.dataSources = [];
+    return this.addData(data);
+  }
+
+  /**
    * Returns the next color to be assigned to a data source from
    * the colors array. This will cycle through old colors once
    * the unused colors are exhausted.

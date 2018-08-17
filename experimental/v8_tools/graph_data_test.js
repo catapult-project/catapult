@@ -109,6 +109,18 @@ describe('GraphData', function() {
     });
   });
 
+  describe('set data', function() {
+    it('should only contain most recent data', function() {
+      const data = {
+        oldData: [],
+      };
+      const graph = new GraphData();
+      graph.setData({oldData: []})
+          .setData({newData: []});
+      chai.expect(graph.keys()).to.eql(['newData']);
+    });
+  });
+
   describe('max', function() {
     it('should return the max value of all the data sources', function() {
       const data = {

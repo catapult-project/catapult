@@ -36,18 +36,28 @@ class GraphPlotter {
       width,
       height,
     };
-    /** @private @const {Object} */
+    /** @private {Object} */
+    this.background_ = undefined;
+    /** @private {Object} */
+    this.chart_ = undefined;
+    /** @private {Object} */
+    this.legend_ = undefined;
+  }
+
+  init_() {
+    if (this.background_) {
+      this.background_.remove();
+    }
     this.background_ = d3.select('#canvas').append('svg:svg')
         .attr('width', this.canvasWidth_)
         .attr('height', this.canvasHeight_);
-    /** @private @const {Object} */
     this.chart_ = this.background_.append('g')
         .attr('transform', `translate(${this.chartDimensions_.margins.left}, 
-                ${this.chartDimensions_.margins.top})`);
+                  ${this.chartDimensions_.margins.top})`);
     /* Appending a clip path rectangle prevents any drawings with the
-    * clip-path: url(#plot-clip) attribute from being displayed outside
-    * of the chart area.
-    */
+     * clip-path: url(#plot-clip) attribute from being displayed outside
+     * of the chart area.
+     */
     this.chart_.append('defs')
         .append('clipPath')
         .attr('id', 'plot-clip')
@@ -107,12 +117,14 @@ class GraphPlotter {
    * class to render the axes, the plot itself and any legend information.
    */
   plot(plotter) {
+    this.init_();
     this.labelTitle_();
     this.labelAxis_();
-    /* Other classes should not be able to change chartDimensions_
-    * as then it will no longer reflect the chart's
-    * true dimensions.
-    */
+    /*
+     * Other classes should not be able to change chartDimensions_
+     * as then it will no longer reflect the chart's
+     * true dimensions.
+     */
     const dimensionsCopy = Object.assign({}, this.chartDimensions_);
     plotter.plot(this.graph_, this.chart_, this.legend_, dimensionsCopy);
   }
