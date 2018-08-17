@@ -14,12 +14,6 @@ const espree = require('espree');
 const fs = require('fs');
 const nopt = require('nopt');
 
-const ESPREE_OPTIONS = {
-  attachComment: false,
-  comments: false,
-  ecmaVersion: 2018,
-};
-
 const args = nopt();
 const filename = args.argv.remain[0];
 
@@ -44,9 +38,10 @@ for (const node of dom5.nodeWalkAll(parsedHtml, () => true)) {
       .replace(/\n+/g, '\n'));
   } else if (dom5.predicates.hasTagName('script')(node) &&
              !dom5.predicates.hasAttr('src')(node)) {
-    dom5.setTextContent(node, escodegen.generate(
-      espree.parse(dom5.getTextContent(node), ESPREE_OPTIONS),
-      {format: {indent: {style: ''}}}));
+    let text = dom5.getTextContent(node);
+    const ast = espree.parse(text, {ecmaVersion: 2018});
+    text = escodegen.generate(ast, {format: {indent: {style: ''}}});
+    dom5.setTextContent(node, text);
   } else if (dom5.predicates.hasTagName('style')(node)) {
     dom5.setTextContent(node, dom5.getTextContent(node)
       .replace(/[\r\n]/g, '')

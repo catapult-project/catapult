@@ -16,7 +16,7 @@
   "private": true,
   "dependencies": {
     "dom5": "^1.0.0",
-    "escodegen": "^1.0.0",
+    "escodegen": "^1.11.0",
     "eslint": "^4.0.0",
     "eslint-config-google": "^0.6.0",
     "eslint-plugin-html": "^4.0.0",
