@@ -4,9 +4,11 @@
 
 """URL endpoint for adding new histograms to the dashboard."""
 
+import cloudstorage
 import json
 import logging
 import sys
+import uuid
 import zlib
 
 from google.appengine.api import taskqueue
@@ -17,6 +19,7 @@ from dashboard import add_point_queue
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
+from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import timing
 from dashboard.common import utils
@@ -56,10 +59,42 @@ SPARSE_DIAGNOSTIC_NAMES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES.union(
 
 TASK_QUEUE_NAME = 'histograms-queue'
 
+_RETRY_PARAMS = cloudstorage.RetryParams(backoff_factor=1.1)
+_TASK_RETRY_LIMIT = 4
+
 
 def _CheckRequest(condition, msg):
   if not condition:
     raise api_request_handler.BadRequestError(msg)
+
+
+class AddHistogramsProcessHandler(request_handler.RequestHandler):
+
+  def post(self):
+    datastore_hooks.SetPrivilegedRequest()
+
+    try:
+      params = json.loads(self.request.body)
+      gcs_file_path = params['gcs_file_path']
+
+      try:
+        gcs_file = cloudstorage.open(
+            gcs_file_path, 'r',
+            content_type='application/octet-stream',
+            retry_params=_RETRY_PARAMS)
+        contents = gcs_file.read()
+        data_str = zlib.decompress(contents)
+        gcs_file.close()
+      finally:
+        cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
+
+      with timing.WallTimeLogger('json.loads'):
+        histogram_dicts = json.loads(data_str)
+
+      ProcessHistogramSet(histogram_dicts)
+    except Exception as e: # pylint: disable=broad-except
+      logging.error(e.message)
+      self.response.out.write(json.dumps({'error': e.message}))
 
 
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
@@ -69,19 +104,34 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
     with timing.WallTimeLogger('decompress'):
       try:
-        data_str = zlib.decompress(self.request.body)
+        data_str = self.request.body
+        zlib.decompress(data_str)
         logging.info('Recieved compressed data.')
       except zlib.error:
         data_str = self.request.get('data')
+        data_str = zlib.compress(data_str)
         logging.info('Recieved uncompressed data.')
+
     if not data_str:
       raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-    logging.info('Received data: %s', data_str[:200])
+    filename = uuid.uuid4()
+    params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
 
-    with timing.WallTimeLogger('json.loads'):
-      histogram_dicts = json.loads(data_str)
-    ProcessHistogramSet(histogram_dicts)
+    gcs_file = cloudstorage.open(
+        params['gcs_file_path'], 'w',
+        content_type='application/octet-stream',
+        retry_params=_RETRY_PARAMS)
+    gcs_file.write(data_str)
+    gcs_file.close()
+
+    retry_options = taskqueue.TaskRetryOptions(
+        task_retry_limit=_TASK_RETRY_LIMIT)
+    queue = taskqueue.Queue('default')
+    queue.add(
+        taskqueue.Task(
+            url='/add_histograms/process', payload=json.dumps(params),
+            retry_options=retry_options))
 
 
 def _LogDebugInfo(histograms):

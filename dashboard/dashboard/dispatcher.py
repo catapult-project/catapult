@@ -69,6 +69,7 @@ from dashboard.api import timeseries2
 
 _URL_MAPPING = [
     ('/add_histograms', add_histograms.AddHistogramsHandler),
+    ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
     ('/add_histograms_queue', add_histograms_queue.AddHistogramsQueueHandler),
     ('/add_point', add_point.AddPointHandler),
     ('/add_point_queue', add_point_queue.AddPointQueueHandler),
