@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/base/unit_scale.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview This file contains implementations of the following metrics.
+ *
+ * frame_times_tbmv2
+ * =================
+ * The distribution of durations between consecutive display compositor's swap
+ * buffer calls, or DRM page flips on ChromeOS devices, during animations.
+ *
+ * mean_frame_time_tbmv2
+ * =====================
+ * The arithmetic mean of frame_times.
+ *
+ * smooth_frames
+ * =============
+ * The percentage of frame_times that are less than 17ms.
+ *
+ * TODO(chiniforooshan): This metric weighs all frames equally. So, e.g.
+ * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
+ * 1s-frames. I think it makes more sense to compute the percentage of
+ * non-smooth time during animation.
+ */
+tr.exportTo('tr.metrics.rendering', function() {
+  // Various tracing events.
+  const DISPLAY_EVENT = 'BenchmarkInstrumentation::DisplayRenderingStats';
+  const DRM_EVENT = 'DrmEventFlipComplete';
+
+  function addFrameTimeHistograms(histograms, model, segments) {
+    const modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!modelHelper || !modelHelper.browserProcess) return;
+    // If DRM events exists, they are the source of truth. Otherwise, look for
+    // display rendering stats. With viz, display rendering stats are emitted
+    // from the GPU process; otherwise, they are emitted from the browser
+    // process.
+    let events = [];
+    if (modelHelper.gpuHelper) {
+      const gpuProcess = modelHelper.gpuHelper.process;
+      events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
+      if (events.length === 0) {
+        events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
+      }
+    }
+    if (events.length === 0) {
+      events = [...modelHelper.browserProcess.findTopmostSlicesNamed(
+          DISPLAY_EVENT)];
+    }
+    if (events.length === 0) return;
+
+    // Presentation Timestamps should be sorted.
+    const timestamps = events.map(
+        event => (
+          event.title !== DRM_EVENT ? event.start : (
+            tr.b.convertUnit(
+                event.args.data['vblank.tv_sec'],
+                tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC) +
+            tr.b.convertUnit(
+                event.args.data['vblank.tv_usec'],
+                tr.b.UnitScale.TIME.MICRO_SEC, tr.b.UnitScale.TIME.MILLI_SEC)))
+    );
+
+    // We use filterArray for the sake of a cleaner code. The time complexity
+    // will be O(m + n log m), where m is |timestamps| and n is |segments|.
+    // Alternatively, we could directly loop through the timestamps and segments
+    // here for a slightly better time complexity of O(m + n).
+    const frameTimes = [];
+    for (const segment of segments) {
+      const filteredTimestamps = segment.boundsRange.filterArray(timestamps);
+      for (let i = 1; i < filteredTimestamps.length; i++) {
+        frameTimes.push(filteredTimestamps[i] - filteredTimestamps[i - 1]);
+      }
+    }
+
+    // TODO(chiniforooshan): Figure out what kind of break down makes sense
+    // here. Perhaps break down by tasks in the Viz/Browser process?
+    histograms.createHistogram(
+        'frame_times_tbmv2',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        frameTimes,
+        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+          description: 'Raw frame times.' });
+    histograms.createHistogram(
+        'mean_frame_time_tbmv2',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.math.Statistics.mean(frameTimes),
+        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+          description: 'Arithmetic mean of frame times.' });
+    histograms.createHistogram(
+        'smooth_frames',
+        tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,
+        tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
+            frameTimes.length,
+        { description: 'Percentage of frames that were hitting 60 FPS.' });
+  }
+
+  return {
+    addFrameTimeHistograms,
+  };
+});
+</script>

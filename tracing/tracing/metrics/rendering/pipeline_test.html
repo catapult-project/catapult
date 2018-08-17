@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/rendering/pipeline.html">
+<link rel="import" href="/tracing/model/user_model/segment.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function addPipelineForOneFrame(compositor, renderer, id, frame,
+      displayTrace) {
+    const EVENT_NAME = 'Graphics.Pipeline';
+    if (frame.IssueBeginFrame) {
+      compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: EVENT_NAME,
+            start: frame.IssueBeginFrame, duration: 1, bindId: id,
+            args: {step: 'IssueBeginFrame'}}));
+    }
+    if (frame.ReceiveBeginFrame) {
+      renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: EVENT_NAME,
+            start: frame.ReceiveBeginFrame, duration: 1, bindId: id,
+            args: {step: 'ReceiveBeginFrame'}}));
+    }
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.GenerateRenderPass, duration: 1, bindId: id,
+          args: {step: 'GenerateRenderPass'}}));
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.GenerateCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'GenerateCompositorFrame'}}));
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'SubmitCompositorFrame'}}));
+    compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.ReceiveCompositorFrame, duration: 1, bindId: id,
+          args: {step: 'ReceiveCompositorFrame'}}));
+    compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.SurfaceAggregation, duration: 1, bindId: id,
+          args: {step: 'SurfaceAggregation', display_trace: displayTrace}}));
+  }
+
+  function addDrawSlice(compositor, displayTrace, start, args) {
+    const EVENT_NAME = 'Graphics.Pipeline.DrawAndSwap';
+    let totalDuration = 0;
+    for (const duration of Object.values(args)) {
+      totalDuration += duration;
+    }
+    const slice = tr.c.TestUtils.newAsyncSliceNamed(
+        EVENT_NAME, start, totalDuration);
+    slice.id = ':ptr:' + displayTrace;
+    compositor.sliceGroup.pushSlice(slice);
+    totalDuration = 0;
+    for (const arg in args) {
+      slice.subSlices.push(tr.c.TestUtils.newAsyncSliceNamed(
+          arg, start + totalDuration, args[arg]));
+      totalDuration += args[arg];
+    }
+  }
+
+  test('graphicsPipeline', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 10
+      });
+      addPipelineForOneFrame(browserMain, rendererCompositor, 2, {
+        IssueBeginFrame: 15, ReceiveBeginFrame: 16, GenerateRenderPass: 17,
+        GenerateCompositorFrame: 18, SubmitCompositorFrame: 19,
+        ReceiveCompositorFrame: 20, SurfaceAggregation: 21
+      });
+      addPipelineForOneFrame(browserMain, rendererCompositor, 3, {
+        IssueBeginFrame: 32, ReceiveBeginFrame: 34, GenerateRenderPass: 35,
+        GenerateCompositorFrame: 36, SubmitCompositorFrame: 37,
+        SubmitCompositorFrame: 38, ReceiveCompositorFrame: 41,
+        SurfaceAggregation: 44
+      });
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addPipelineHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 50)]);
+
+    const beginFrameTransport = histograms.getHistogramNamed(
+        'pipeline:begin_frame_transport');
+    const frameSubmission = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_frame_submission');
+    const surfaceAggregation = histograms.getHistogramNamed(
+        'pipeline:frame_submission_to_display');
+    assert.closeTo(beginFrameTransport.average, 4 / 3, 1e-6);
+    assert.closeTo(frameSubmission.average, 13 / 3, 1e-6);
+    assert.closeTo(surfaceAggregation.average, 13 / 3, 1e-6);
+  });
+
+  test('graphicsPipeline_duplicateSteps', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
+      });
+
+      // Add duplicate steps for SubmitCompositorFrame and the subsequent
+      // steps for the same trace-id.
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        GenerateRenderPass: 10, GenerateCompositorFrame: 11,
+        SubmitCompositorFrame: 12, ReceiveCompositorFrame: 15,
+        SurfaceAggregation: 18
+      });
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addPipelineHistograms(
+        histograms, model,
+        [new tr.model.um.Segment(0, 50), new tr.model.um.Segment(0, 20)]);
+
+    tr.metrics.rendering.renderingMetric(histograms, model);
+
+    const beginFrameTransport = histograms.getHistogramNamed(
+        'pipeline:begin_frame_transport');
+    const frameSubmission = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_frame_submission');
+    const surfaceAggregation = histograms.getHistogramNamed(
+        'pipeline:frame_submission_to_display');
+    assert.strictEqual(beginFrameTransport.average, 1);
+    assert.strictEqual(frameSubmission.average, 4);
+    assert.strictEqual(surfaceAggregation.average, 4);
+  });
+
+  test('graphicsPipeline_drawSteps', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      const displayTrace = '1';
+      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
+        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
+      }, displayTrace);
+
+      addDrawSlice(browserMain, displayTrace, 10,
+          {Draw: 2, Swap: 1, WaitForAck: 5});
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addPipelineHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 50)]);
+
+    const drawHistogram = histograms.getHistogramNamed('pipeline:draw');
+    assert.strictEqual(drawHistogram.average, 8);
+  });
+});
+</script>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/diagnostics/breakdown.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview This file contains implementations of the following metrics.
+ *
+ * TODO(crbug.com/872334): document pipeline:* metrics here.
+ */
+tr.exportTo('tr.metrics.rendering', function() {
+  function eventIsValidGraphicsEvent_(event, eventMap) {
+    if (!event.bindId || !event.args || !event.args.step) {
+      return false;
+    }
+    const bindId = event.bindId;
+    if (bindId in eventMap && event.args.step in eventMap[bindId]) {
+      // It is possible for a client to submit multiple compositor frames for
+      // one begin-message. So most steps can be present multiple times.
+      // However, a begin-frame is issued only once, and received only once. So
+      // these steps should not be repeated.
+      if (event.args.step === 'IssueBeginFrame' ||
+          event.args.step === 'ReceiveBeginFrame') {
+        throw new Error('Unexpected duplicate step: ' + event.args.step);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  function generateBreakdownForCompositorPipelineInClient_(flow) {
+    const breakdown = new tr.v.d.Breakdown();
+    breakdown.set('time before GenerateRenderPass',
+        flow.GenerateRenderPass.start - flow.ReceiveBeginFrame.start);
+    breakdown.set('GenerateRenderPass duration',
+        flow.GenerateRenderPass.duration);
+    breakdown.set('GenerateCompositorFrame duration',
+        flow.GenerateCompositorFrame.duration);
+    breakdown.set('SubmitCompositorFrame duration',
+        flow.SubmitCompositorFrame.duration);
+    return breakdown;
+  }
+
+  function generateBreakdownForCompositorPipelineInService_(flow) {
+    const breakdown = new tr.v.d.Breakdown();
+    breakdown.set('Processing CompositorFrame on reception',
+        flow.ReceiveCompositorFrame.duration);
+    breakdown.set('Delay before SurfaceAggregation',
+        flow.SurfaceAggregation.start - flow.ReceiveCompositorFrame.end);
+    breakdown.set('SurfaceAggregation duration',
+        flow.SurfaceAggregation.duration);
+    return breakdown;
+  }
+
+  function generateBreakdownForDraw_(drawEvent) {
+    const breakdown = new tr.v.d.Breakdown();
+    for (const slice of drawEvent.subSlices) {
+      breakdown.set(slice.title, slice.duration);
+    }
+    return breakdown;
+  }
+
+  function getDisplayCompositorThread_(model) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const gpuHelper = chromeHelper.gpuHelper;
+    if (gpuHelper) {
+      const thread =
+          gpuHelper.process.findAtMostOneThreadNamed('VizCompositorThread');
+      if (thread) {
+        return thread;
+      }
+    }
+    const browserHelper = chromeHelper.browserHelpers[0];
+    return browserHelper.process.findAtMostOneThreadNamed('CrBrowserMain');
+  }
+
+  function addPipelineHistograms(histograms, model, segments) {
+    let events = [];
+    for (const thread of model.getAllThreads()) {
+      const graphicsEvents = thread.sliceGroup.slices.filter(
+          slice => {
+            if (slice.title !== 'Graphics.Pipeline') return false;
+            for (const segment of segments) {
+              if (segment.boundsRange.containsExplicitRangeInclusive(
+                  slice.start, slice.end)) {
+                return true;
+              }
+            }
+            return false;
+          }
+      );
+      events = events.concat(graphicsEvents);
+    }
+    const bindEvents = {};
+    for (const event of events) {
+      if (!eventIsValidGraphicsEvent_(event, bindEvents)) continue;
+      const bindId = event.bindId;
+      if (!(bindId in bindEvents)) {
+        bindEvents[bindId] = {};
+      }
+      bindEvents[bindId][event.args.step] = event;
+    }
+
+    const dcThread = getDisplayCompositorThread_(model);
+    const drawEvents = {};
+    if (dcThread) {
+      const events =
+          [...dcThread.findTopmostSlicesNamed('Graphics.Pipeline.DrawAndSwap')];
+      for (const segment of segments) {
+        const filteredEvents = segment.boundsRange.filterArray(events,
+            evt => evt.start);
+        for (const event of filteredEvents) {
+          if (!event.id.startsWith(':ptr:')) continue;
+          const id = parseInt(event.id.substring(5), 16);
+          if (id in drawEvents) {
+            throw new Error('Duplicate draw events: ' + id);
+          }
+          drawEvents[id] = event;
+        }
+      }
+    }
+
+    const issueToReceipt = histograms.createHistogram(
+        'pipeline:begin_frame_transport',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency of begin-frame message from the display ' +
+          'compositor to the client, including the IPC latency and task-' +
+          'queue time in the client.',
+        });
+    const receiptToSubmit = histograms.createHistogram(
+        'pipeline:begin_frame_to_frame_submission',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency between begin-frame reception and ' +
+          'CompositorFrame submission in the renderer.'
+        });
+    const submitToAggregate = histograms.createHistogram(
+        'pipeline:frame_submission_to_display',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency between CompositorFrame submission in the ' +
+          'renderer to display in the display-compositor, including IPC ' +
+          'latency, task-queue time in the display-compositor, and ' +
+          'additional processing (e.g. surface-sync etc.)',
+        });
+    const aggregateToDraw = histograms.createHistogram(
+        'pipeline:draw',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {description: 'How long it takes for the gpu-swap step.'});
+
+    for (const flow of Object.values(bindEvents)) {
+      // Report only for the cases that go through the complete pipeline.
+      if (!flow.IssueBeginFrame || !flow.ReceiveBeginFrame ||
+          !flow.SubmitCompositorFrame || !flow.SurfaceAggregation) {
+        continue;
+      }
+      issueToReceipt.addSample(flow.ReceiveBeginFrame.start -
+                               flow.IssueBeginFrame.start);
+      receiptToSubmit.addSample(
+          flow.SubmitCompositorFrame.end - flow.ReceiveBeginFrame.start,
+          {breakdown: generateBreakdownForCompositorPipelineInClient_(flow)});
+      submitToAggregate.addSample(
+          flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
+          {breakdown: generateBreakdownForCompositorPipelineInService_(flow)});
+
+      if (flow.SurfaceAggregation.args &&
+          flow.SurfaceAggregation.args.display_trace) {
+        const displayTrace = flow.SurfaceAggregation.args.display_trace;
+        if (!(displayTrace in drawEvents)) continue;
+        const drawEvent = drawEvents[displayTrace];
+        aggregateToDraw.addSample(drawEvent.duration,
+            {breakdown: generateBreakdownForDraw_(drawEvent)});
+      }
+    }
+  }
+
+  return {
+    addPipelineHistograms,
+  };
+});
+</script>
