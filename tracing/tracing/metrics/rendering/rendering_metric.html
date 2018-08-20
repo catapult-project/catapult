@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/rendering/cpu_utilization.html">
 <link rel="import" href="/tracing/metrics/rendering/frame_time.html">
 <link rel="import" href="/tracing/metrics/rendering/pipeline.html">
+<link rel="import" href="/tracing/metrics/rendering/pixels.html">
 <link rel="import" href="/tracing/metrics/rendering/queueing_duration.html">
 <link rel="import" href="/tracing/model/user_model/segment.html">
 
@@ -84,6 +85,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         histograms, model, segments);
     tr.metrics.rendering.addFrameTimeHistograms(histograms, model, segments);
     tr.metrics.rendering.addPipelineHistograms(histograms, model, segments);
+    tr.metrics.rendering.addPixelsHistograms(histograms, model, segments);
     tr.metrics.rendering.addQueueingDurationHistograms(
         histograms, model, segments);
   }
