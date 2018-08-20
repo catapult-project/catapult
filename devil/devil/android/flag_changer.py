@@ -93,7 +93,8 @@ class FlagChanger(object):
       A list of flags.
     """
     if self._device.PathExists(self._cmdline_path):
-      command_line = self._device.ReadFile(self._cmdline_path).strip()
+      command_line = self._device.ReadFile(
+          self._cmdline_path, as_root=True).strip()
     else:
       command_line = ''
     flags = _ParseFlags(command_line)
@@ -216,9 +217,9 @@ class FlagChanger(object):
     """
     command_line = _SerializeFlags(self._state_stack[-1])
     if command_line is not None:
-      self._device.WriteFile(self._cmdline_path, command_line)
+      self._device.WriteFile(self._cmdline_path, command_line, as_root=True)
     else:
-      self._device.RemovePath(self._cmdline_path, force=True)
+      self._device.RemovePath(self._cmdline_path, force=True, as_root=True)
 
     current_flags = self.GetCurrentFlags()
     logger.info('Flags now set on the device: %s', current_flags)
