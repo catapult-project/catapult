@@ -84,9 +84,10 @@ class SparseDiagnostic(JsonModel):
     return (diagnostic_module.Diagnostic.FromDict(self.data) !=
             diagnostic_module.Diagnostic.FromDict(rhs.data))
 
-  @staticmethod
+  # TODO(crbug.com/876082) Remove.
+  @classmethod
   @ndb.synctasklet
-  def GetMostRecentValuesByNames(test_key, diagnostic_names):
+  def GetMostRecentValuesByNames(cls, test_key, diagnostic_names):
     """Gets the data in the latests sparse diagnostics with the given
        set of diagnostic names.
 
@@ -99,25 +100,33 @@ class SparseDiagnostic(JsonModel):
       corresponding diagnostics' values.
       None if no diagnostics are found with the given keys or type.
     """
-    result = yield SparseDiagnostic.GetMostRecentValuesByNamesAsync(
+    result = yield cls.GetMostRecentValuesByNamesAsync(
         test_key, diagnostic_names)
     raise ndb.Return(result)
 
-  @staticmethod
+  # TODO(crbug.com/876082) Remove.
+  @classmethod
   @ndb.tasklet
-  def GetMostRecentValuesByNamesAsync(test_key, diagnostic_names):
-    diagnostics = yield SparseDiagnostic.query(
-        ndb.AND(SparseDiagnostic.end_revision == sys.maxint,
-                SparseDiagnostic.test == test_key)).fetch_async()
+  def GetMostRecentValuesByNamesAsync(cls, test_key, diagnostic_names):
+    data_by_name = yield cls.GetMostRecentDataByNamesAsync(
+        test_key, diagnostic_names)
+    raise ndb.Return({name: data.get('values')
+                      for name, data in data_by_name.iteritems()})
 
-    diagnostic_map = {}
-
+  @classmethod
+  @ndb.tasklet
+  def GetMostRecentDataByNamesAsync(cls, test_key, diagnostic_names):
+    diagnostics = yield cls.query(
+        cls.end_revision == sys.maxint,
+        cls.test == test_key).fetch_async()
+    data_by_name = {}
     for diagnostic in diagnostics:
-      if diagnostic.name in diagnostic_names:
-        assert diagnostic_map.get(diagnostic.name) is None
-        diagnostic_data = diagnostic.data
-        diagnostic_map[diagnostic.name] = diagnostic_data.get('values')
-    raise ndb.Return(diagnostic_map)
+      if diagnostic.name not in diagnostic_names:
+        continue
+      assert diagnostic.name not in data_by_name, diagnostic
+      assert diagnostic.data, diagnostic
+      data_by_name[diagnostic.name] = diagnostic.data
+    raise ndb.Return(data_by_name)
 
   @staticmethod
   @ndb.tasklet
