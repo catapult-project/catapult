@@ -163,6 +163,18 @@ indexes:
   - name: timestamp
     direction: desc
 
+# Used for returning timeseries of histogram commit records.
+- kind: HistogramRevisionRecord
+  properties:
+  - name: test
+  - name: revision
+
+- kind: HistogramRevisionRecord
+  properties:
+  - name: test
+  - name: revision
+    direction: desc
+
 # Used for returning timeseries of diagnostics.
 - kind: SparseDiagnostic
   properties:

@@ -14,6 +14,7 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import sheriff
+from tracing.value.diagnostics import generic_set
 
 # Masters, bots and test names to add to the mock datastore.
 _MOCK_DATA = [
@@ -59,13 +60,16 @@ class MigrateTestNamesTest(testing_common.TestCase):
     for rev in range(15000, 15100, 2):
       graph_data.Row(id=rev, parent=test_container_key, value=(rev * 2)).put()
       if rev % 50 == 0:
+        data = generic_set.GenericSet(['foo_%s' % rev])
+        data = data.AsDict()
         anomaly.Anomaly(
             start_revision=(rev - 2), end_revision=rev,
             median_before_anomaly=100, median_after_anomaly=50,
             test=test_key).put()
         histogram.SparseDiagnostic(
             test=test_key,
-            start_revision=rev - 50, end_revision=50).put()
+            start_revision=rev - 50, end_revision=rev - 1,
+            data=data).put()
         histogram.Histogram(
             test=test_key).put()
 

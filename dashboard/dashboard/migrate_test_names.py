@@ -451,6 +451,9 @@ def _MigrateHistogramData(old_parent_key, new_parent_key):
           histogram.Histogram, old_parent_key, new_parent_key),
   )
 
+  if not any(result):
+    yield histogram.SparseDiagnostic.FixDiagnostics(new_parent_key)
+
   raise ndb.Return(any(result))
 
 

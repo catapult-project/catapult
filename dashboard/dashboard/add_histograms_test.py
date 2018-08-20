@@ -38,12 +38,14 @@ def SetGooglerOAuth(mock_oauth):
 def _CreateHistogram(
     name='hist', master=None, bot=None, benchmark=None,
     device=None, owner=None, stories=None, story_tags=None,
-    benchmark_description=None, commit_position=None,
+    benchmark_description=None, commit_position=None, summary_options=None,
     samples=None, max_samples=None, is_ref=False, is_summary=None,
     point_id=None):
   hists = [histogram_module.Histogram(name, 'count')]
   if max_samples:
     hists[0].max_num_sample_values = max_samples
+  if summary_options:
+    hists[0].CustomizeSummaryOptions(summary_options)
   if samples:
     for s in samples:
       hists[0].AddSample(s)
@@ -599,6 +601,77 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     tests = [t.key.id() for t in graph_data.TestMetadata.query().fetch()]
     self.assertEqual(15, len(tests))
     self.assertIn('master/bot/benchmark/hist/story', tests)
+
+  def _AddAtCommit(self, commit_position, device, owner):
+    opts = {
+        'avg': True,
+        'std': False,
+        'count': False,
+        'max': False,
+        'min': False,
+        'sum': False
+    }
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark',
+        commit_position=commit_position, summary_options=opts,
+        device=device, owner=owner, samples=[1])
+
+    self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
+    self.ExecuteTaskQueueTasks(
+        '/add_histograms_queue', add_histograms.TASK_QUEUE_NAME)
+
+  def _CheckOutOfOrderExpectations(self, expected):
+    diags = histogram.SparseDiagnostic.query().fetch()
+
+    for d in diags:
+      if d.name not in expected:
+        continue
+      self.assertIn(
+          (d.start_revision, d.end_revision, d.data['values']),
+          expected[d.name])
+      expected[d.name].remove(
+          (d.start_revision, d.end_revision, d.data['values']))
+
+    for k in expected.iterkeys():
+      self.assertFalse(expected[k])
+
+  def testPost_OutOfOrder_SuiteLevel(self):
+    self._AddAtCommit(1, 'd1', 'o1')
+    self._AddAtCommit(10, 'd1', 'o1')
+    self._AddAtCommit(20, 'd1', 'o1')
+    self._AddAtCommit(30, 'd1', 'o1')
+    self._AddAtCommit(15, 'd1', 'o2')
+
+    expected = {
+        'deviceIds': [
+            (1, sys.maxint, [u'd1'])
+        ],
+        'owners': [
+            (1, 14, [u'o1']),
+            (15, 19, [u'o2']),
+            (20, sys.maxint, [u'o1'])
+        ]
+    }
+    self._CheckOutOfOrderExpectations(expected)
+
+  def testPost_OutOfOrder_HistogramLevel(self):
+    self._AddAtCommit(1, 'd1', 'o1')
+    self._AddAtCommit(10, 'd1', 'o1')
+    self._AddAtCommit(20, 'd1', 'o1')
+    self._AddAtCommit(30, 'd1', 'o1')
+    self._AddAtCommit(15, 'd2', 'o1')
+
+    expected = {
+        'deviceIds': [
+            (1, 14, [u'd1']),
+            (15, 19, [u'd2']),
+            (20, sys.maxint, [u'd1'])
+        ],
+        'owners': [
+            (1, sys.maxint, [u'o1'])
+        ]
+    }
+    self._CheckOutOfOrderExpectations(expected)
 
 
 class AddHistogramsTest(AddHistogramsBaseTest):
@@ -1450,59 +1523,3 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     histograms = histogram_set.HistogramSet([hist])
     add_histograms._LogDebugInfo(histograms)
     mock_log.assert_called_once_with('No LOG_URLS in data.')
-
-  def testDeduplicateAndPut_Same(self):
-    d = {
-        'values': ['master'],
-        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-        'type': 'GenericSet'
-    }
-    test_key = utils.TestKey('Chromium/win7/foo')
-    entity = histogram.SparseDiagnostic(
-        data=d, name='masters', test=test_key, start_revision=1,
-        end_revision=sys.maxint, id='abc')
-    entity.put()
-    d2 = d.copy()
-    d2['guid'] = 'def'
-    entity2 = histogram.SparseDiagnostic(
-        data=d2, test=test_key,
-        start_revision=2, end_revision=sys.maxint, id='def')
-    add_histograms.DeduplicateAndPut([entity2], test_key, 2)
-    sparse = histogram.SparseDiagnostic.query().fetch()
-    self.assertEqual(2, len(sparse))
-
-  def testDeduplicateAndPut_Different(self):
-    d = {
-        'values': ['master'],
-        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-        'type': 'GenericSet'
-    }
-    test_key = utils.TestKey('Chromium/win7/foo')
-    entity = histogram.SparseDiagnostic(
-        data=d, name='masters', test=test_key, start_revision=1,
-        end_revision=sys.maxint, id='abc')
-    entity.put()
-    d2 = d.copy()
-    d2['guid'] = 'def'
-    d2['displayBotName'] = 'mac'
-    entity2 = histogram.SparseDiagnostic(
-        data=d2, test=test_key,
-        start_revision=1, end_revision=sys.maxint, id='def')
-    add_histograms.DeduplicateAndPut([entity2], test_key, 2)
-    sparse = histogram.SparseDiagnostic.query().fetch()
-    self.assertEqual(2, len(sparse))
-
-  def testDeduplicateAndPut_New(self):
-    d = {
-        'values': ['master'],
-        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-        'type': 'GenericSet'
-    }
-    test_key = utils.TestKey('Chromium/win7/foo')
-    entity = histogram.SparseDiagnostic(
-        data=d, test=test_key, start_revision=1,
-        end_revision=sys.maxint, id='abc')
-    entity.put()
-    add_histograms.DeduplicateAndPut([entity], test_key, 1)
-    sparse = histogram.SparseDiagnostic.query().fetch()
-    self.assertEqual(1, len(sparse))

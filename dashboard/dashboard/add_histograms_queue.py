@@ -12,7 +12,6 @@ from google.appengine.ext import ndb
 
 # TODO(eakuefner): Move these helpers so we don't have to import add_point or
 # add_point_queue directly.
-from dashboard import add_histograms
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import find_anomalies
@@ -274,9 +273,14 @@ def ProcessDiagnostics(diagnostic_data, revision, test_key, internal_only):
         id=guid, name=name, data=diagnostic_datum, test=test_key,
         start_revision=revision, end_revision=sys.maxint,
         internal_only=internal_only))
+
+  suite_key = utils.TestKey('/'.join(test_key.id().split('/')[:3]))
+  last_added = yield histogram.HistogramRevisionRecord.GetLatest(suite_key)
+  assert last_added
+
   new_guids_to_existing_diagnostics = yield (
-      add_histograms.DeduplicateAndPutAsync(
-          diagnostic_entities, test_key, revision))
+      histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+          diagnostic_entities, test_key, revision, last_added.revision))
 
   raise ndb.Return(new_guids_to_existing_diagnostics)
 

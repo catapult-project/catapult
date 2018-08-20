@@ -8,6 +8,7 @@ import sys
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
+from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
@@ -301,3 +302,421 @@ class SparseDiagnosticTest(testing_common.TestCase):
         histogram.SparseDiagnostic.GetMostRecentValuesByNames,
         test_key,
         set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
+
+  def _CreateGenericDiagnostic(
+      self, name, values, test_key, start_revision, end_revision=sys.maxint):
+    d = generic_set.GenericSet([values])
+    e = histogram.SparseDiagnostic(
+        id=d.guid, data=d.AsDict(), name=name, test=test_key,
+        start_revision=start_revision, end_revision=end_revision)
+    return e
+
+  def _AddGenericDiagnostic(
+      self, name, values, test_key, start_revision, end_revision=sys.maxint):
+    e = self._CreateGenericDiagnostic(
+        name, values, test_key, start_revision, end_revision)
+    e.put()
+    suite_key = utils.TestKey('/'.join(test_key.id().split('/')[:3]))
+    histogram.HistogramRevisionRecord.GetOrCreate(
+        suite_key, start_revision).put()
+    histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
+
+  def _CheckExpectations(self, diagnostic, guid_mapping, expected):
+    q = histogram.SparseDiagnostic.query()
+    q = q.order(histogram.SparseDiagnostic.end_revision)
+    sparse = q.fetch()
+
+    # Check that the mapping is correct, in that if there is one it should point
+    # to a diagnostic with a valid range and same data.
+    sparse_by_guid = dict((s.key.id(), s) for s in sparse)
+
+    if guid_mapping:
+      mapped_diagnostic = guid_mapping[diagnostic.key.id()]
+      existing_diagnostic = sparse_by_guid[mapped_diagnostic['guid']]
+
+      self.assertFalse(existing_diagnostic.IsDifferent(diagnostic))
+
+      # We check that the start position is within the range, but not the end
+      # since the end is set to sys.maxint and gets capped during insertion.
+      self.assertTrue(
+          existing_diagnostic.start_revision <= diagnostic.start_revision)
+      self.assertTrue(
+          existing_diagnostic.end_revision >= diagnostic.start_revision)
+
+    for d in sparse:
+      self.assertIn(
+          (d.start_revision, d.end_revision, d.data['values']),
+          expected)
+      expected.remove(
+          (d.start_revision, d.end_revision, d.data['values']))
+
+    self.assertFalse(expected)
+
+  def testFindOrInsertDiagnostics_Latest_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, e.start_revision).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_Latest_Different(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, e.start_revision).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, sys.maxint, [u'm2']),
+        ])
+
+  def testFindOrInsertDiagnostics_Latest_New(self):
+    test_key = utils.TestKey('M/B/S')
+
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, e.start_revision).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (10, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 5)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Before_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 5)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 1)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Before_Diff(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 5)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 1)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 4, [u'm2']),
+            (5, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurSame_NextDiff(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 4, [u'm1']),
+            (5, 9, [u'm2']),
+            (10, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextNone(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 12)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 11, [u'm1']),
+            (12, sys.maxint, [u'm2']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextNone_Rev(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 8)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 7, [u'm1']),
+            (8, 9, [u'm2']),
+            (10, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_HasRevs(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 8)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 4, [u'm1']),
+            (5, 7, [u'm2']),
+            (8, 9, [u'm1']),
+            (10, sys.maxint, [u'm2']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextDiff(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 4, [u'm1']),
+            (5, 9, [u'm2']),
+            (10, sys.maxint, [u'm3']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextSame(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm3', test_key, 5)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 4, [u'm1']),
+            (5, sys.maxint, [u'm3']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NoNext_NoRevs(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 10).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, sys.maxint, [u'm2']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NoNext_Revs(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, 14, [u'm2']),
+            (15, sys.maxint, [u'm3']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Revs(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 13)
+    self._AddGenericDiagnostic('foo', 'm4', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, 12, [u'm2']),
+            (13, 14, [u'm3']),
+            (15, sys.maxint, [u'm4']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Revs_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, sys.maxint, [u'm2']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_NoRevs_Diff(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm4', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, 14, [u'm4']),
+            (15, sys.maxint, [u'm3']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_NoRevs_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm3', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 9, [u'm1']),
+            (10, sys.maxint, [u'm3']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Prev_Same(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, sys.maxint, [u'm1']),
+        ])
+
+  def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NextDiff_PrevSame(self):
+    test_key = utils.TestKey('M/B/S')
+
+    self._AddGenericDiagnostic('foo', 'm1', test_key, 1)
+    self._AddGenericDiagnostic('foo', 'm2', test_key, 10)
+    self._AddGenericDiagnostic('foo', 'm3', test_key, 15)
+    e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
+
+    guid_mapping = (
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e], test_key, e.start_revision, 15).get_result())
+
+    self._CheckExpectations(
+        e, guid_mapping,
+        [
+            (1, 14, [u'm1']),
+            (15, sys.maxint, [u'm3']),
+        ])
