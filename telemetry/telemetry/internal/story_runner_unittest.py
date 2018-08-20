@@ -32,6 +32,7 @@ from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
+from telemetry.util import wpr_modes
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
@@ -327,6 +328,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertFalse(self.results.had_failures)
     self.assertEquals(number_stories,
                       GetNumberOfSuccessfulPageRuns(self.results))
+    self.assertEquals(story_set.stories[0].wpr_mode, wpr_modes.WPR_REPLAY)
 
   def testRunStoryWithMissingArchiveFile(self):
     story_set = story_module.StorySet(archive_data_file='data/hi.json')

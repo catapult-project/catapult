@@ -4,6 +4,7 @@
 
 from py_trace_event import trace_event
 
+from telemetry.util import wpr_modes
 
 class SharedState(object):
   """A class that manages the test state across multiple stories.
@@ -13,7 +14,8 @@ class SharedState(object):
 
   __metaclass__ = trace_event.TracedMetaClass
 
-  def __init__(self, test, options, story_set):
+  #pylint: disable=unused-argument
+  def __init__(self, test, finder_options, story_set):
     """ This method is styled on unittest.TestCase.setUpClass.
     Override to do any action before running stories that
     share this same state.
@@ -23,7 +25,15 @@ class SharedState(object):
         options.
       story_set: a story.StorySet instance.
     """
-    pass
+    # TODO(crbug/404771): Move network controller options out of
+    # browser_options and into finder_options.
+    browser_options = finder_options.browser_options
+    if finder_options.use_live_sites:
+      self._wpr_mode = wpr_modes.WPR_OFF
+    elif browser_options.wpr_mode == wpr_modes.WPR_RECORD:
+      self._wpr_mode = wpr_modes.WPR_RECORD
+    else:
+      self._wpr_mode = wpr_modes.WPR_REPLAY
 
   @property
   def platform(self):
@@ -31,6 +41,10 @@ class SharedState(object):
     state will be run on.
     """
     raise NotImplementedError()
+
+  @property
+  def wpr_mode(self):
+    return self._wpr_mode
 
   def WillRunStory(self, story):
     """ Override to do any action before running each one of all stories

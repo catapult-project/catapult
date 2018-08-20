@@ -122,6 +122,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
             'Skipped because story is not supported '
             '(SharedState.CanRunStory() returns False).')
         return
+      story.wpr_mode = state.wpr_mode
       state.RunStory(results)
       if isinstance(test, story_test.StoryTest):
         test.Measure(state.platform, results)
