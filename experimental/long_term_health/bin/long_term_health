@@ -5,9 +5,9 @@
 """Entry point for the long term health tool.
 """
 import argparse
+from datetime import datetime
 import os
 import sys
-
 
 UTILS_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -52,6 +52,9 @@ def BuildArgumentParser(args):
                         ', must be in the format `2017-10-02`')
   parser.add_argument('--output-path', default=DEFAULT_DOWNLOAD_PATH,
                       help='the path that the APKs will be stored')
+  parser.add_argument('--run-label',
+                      help='the label of this run, it will use a sensible '
+                           'default if no value is provided')
   return parser.parse_args(args)
 
 
@@ -67,7 +70,8 @@ def ProcessArguments(args, milestone_info):
     args.from_milestone = milestone_info.GetEarliestMilestoneAfterDate(
         args.from_date)
   if args.to_date:
-    args.to_milestone = milestone_info.GetLatestMilestoneBeforeDate(args.to_date)
+    args.to_milestone = milestone_info.GetLatestMilestoneBeforeDate(
+        args.to_date)
   if args.from_milestone is None:
     args.from_milestone = milestone_info.latest_milestone - 9
   if args.to_milestone is None:
@@ -90,6 +94,10 @@ def main(args):
       utils.APP_ROOT, 'full_milestone_info.csv'))
   ProcessArguments(args, milestone_info)
 
+  if not args.run_label:
+    args.run_label = 'M%d-M%d-%s' % (
+      args.from_milestone, args.to_milestone, datetime.now().isoformat())
+
   try:
     for milestone in range(args.from_milestone, args.to_milestone + 1):
       print utils.ColoredStr(
@@ -97,7 +105,7 @@ def main(args):
       path_to_apk = apk_finder.GetAPK(
           milestone, args.output_path, milestone_info)
       print utils.ColoredStr('Running benchmark for milestone %d:' % milestone)
-      test_runner.RunBenchmark(path_to_apk)
+      test_runner.RunBenchmark(path_to_apk, args.run_label)
 
     return 0
   except KeyboardInterrupt:
