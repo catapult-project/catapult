@@ -306,9 +306,9 @@ class DevToolsClientBackend(object):
     resp = self.GetVersion()
     if 'Protocol-Version' in resp:
       if 'Browser' in resp:
-        branch_number_match = re.search(r'Chrome/\d+\.\d+\.(\d+)\.\d+',
+        branch_number_match = re.search(r'.+/\d+\.\d+\.(\d+)\.\d+',
                                         resp['Browser'])
-      else:
+      if not branch_number_match and 'User-Agent' in resp:
         branch_number_match = re.search(
             r'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
             resp['User-Agent'])
