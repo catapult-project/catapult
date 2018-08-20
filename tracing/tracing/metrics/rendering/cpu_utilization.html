@@ -15,8 +15,8 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * cores_per_second_{thread group}_thread
- * ======================================
+ * thread_{thread group}_cpu_time_per_second_tbmv2
+ * ===============================================
  * This set of metrics show how much a thread group was busy during a specific
  * segment marked by a test.  More precisely, it shows the amount of CPU cores
  * per seconds the thread group consumes during the segment. Note: the CPU usage
@@ -100,7 +100,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     // Build histograms.
     for (const [category, coresPerSec] of categoryValues) {
       histograms.createHistogram(
-          `cores_per_second_${category}_thread`,
+          `thread_${category}_cpu_time_per_second_tbmv2`,
           tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
           {
             value: coresPerSec,
