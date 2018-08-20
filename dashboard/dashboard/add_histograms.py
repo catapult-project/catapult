@@ -79,9 +79,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
       try:
         gcs_file = cloudstorage.open(
-            gcs_file_path, 'r',
-            content_type='application/octet-stream',
-            retry_params=_RETRY_PARAMS)
+            gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
         contents = gcs_file.read()
         data_str = zlib.decompress(contents)
         gcs_file.close()
