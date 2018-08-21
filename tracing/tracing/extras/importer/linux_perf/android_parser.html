@@ -33,6 +33,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     this.model_ = importer.model_;
     this.ppids_ = {};
+    this.openFlows_ = {};
   }
 
   function parseArgs(argsString) {
@@ -67,6 +68,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         this.openAsyncSlices = { };
       }
       this.openAsyncSlices[key] = slice;
+      return slice;
     },
 
     closeAsyncSlice(thread, category, name, cookie, ts, args) {
@@ -98,6 +100,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       slice.duration = ts - slice.start;
       slice.startThread.asyncSliceGroup.push(slice);
       delete this.openAsyncSlices[key];
+      return slice;
+    },
+
+    openFlow(slice, thread, category, name, cookie, ts, args) {
+      const key = category + ':' + name + ':' + cookie;
+
+      let flow = new tr.model.FlowEvent(category, cookie, name, 1, ts, args);
+      flow.startSlice = slice;
+
+      this.openFlows_[key] = flow;
+    },
+
+    closeFlow(slice, thread, category, name, cookie, ts) {
+      const key = category + ':' + name + ':' + cookie;
+
+      const flow = this.openFlows_[key];
+      if(!flow) {
+        // No open flows with this key
+        return;
+      }
+
+      flow.duration = ts - flow.start;
+      flow.endSlice = slice;
+      this.model_.flowEvents.push(flow);
     },
 
     traceMarkWriteAndroidEvent(eventName, cpuNumber, pid, ts,
@@ -218,6 +244,53 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
           this.ppids_[pid] = ppid;
           this.closeAsyncSlice(thread, category, name, cookie, ts, args);
+
+          break;
+        }
+
+        case 's': {
+          // Flow event start
+          // Note: An flow may end on a different thread from the one
+          // that started it so this thread may not have been seen yet.
+          const ppid = parseInt(eventData[1]);
+
+          const name = eventData[2];
+          const cookie = eventData[3];
+          const args = parseArgs(eventData[4]);
+          let category = eventData[5];
+          if (category === undefined) category = 'android';
+
+          const thread = this.model_.getOrCreateProcess(ppid)
+              .getOrCreateThread(pid);
+          thread.name = eventBase.threadName;
+
+          this.ppids_[pid] = ppid;
+          let slice = this.closeAsyncSlice(thread, category, name, cookie, ts, args);
+          if(slice) {
+            this.openFlow(slice, thread, category, name, cookie, ts, args);
+          }
+
+          break;
+        }
+
+        case 'f': {
+          // Flow event end
+          const ppid = parseInt(eventData[1]);
+          const name = eventData[2];
+          const cookie = eventData[3];
+          const args = parseArgs(eventData[4]);
+          let category = eventData[5];
+          if (category === undefined) category = 'android';
+
+          const thread = this.model_.getOrCreateProcess(ppid)
+              .getOrCreateThread(pid);
+          thread.name = eventBase.threadName;
+
+          this.ppids_[pid] = ppid;
+          let slice = this.openAsyncSlice(thread, category, name, cookie, ts, args);
+          if(slice) {
+            this.closeFlow(slice, thread, category, name, cookie, ts);
+          }
 
           break;
         }
