@@ -36,10 +36,13 @@ describe('DotPlotter', function() {
   describe('plotting', function() {
     it('should plot data despite invalid selection characters', function() {
       const data = {
-        'source.with:inv@lid chars"}~$': [1, 2, 3, 4, 5],
+        'source.with:inv@lid _chars"}~$': [1, 2, 3, 4, 5],
       };
       const graph = new GraphData().addData(data);
       chai.expect(() => graph.plotDot()).to.not.throw(Error);
+      chai.expect(
+          document.querySelectorAll('.dot-0').length)
+          .to.equal(5);
     });
   });
 });

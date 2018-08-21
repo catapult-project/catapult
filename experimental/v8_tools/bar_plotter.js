@@ -101,17 +101,18 @@ class BarPlotter {
       stories.map(
           ([story, rawData]) => [story, this.computeAverage_(rawData)]);
     const dataInAverages = graph.process(computeAllAverages);
+    const getClassNameSuffix = GraphUtils.getClassNameSuffixFactory();
     dataInAverages.forEach(({ data, color, key }, index) => {
       const barStart = category =>
         this.outerBandScale_(category) + this.innerBandScale_(key);
       const barWidth = this.innerBandScale_.bandwidth();
       const barHeight = value =>
         chartDimensions.height - this.scaleForYAxis_(value);
-      chart.selectAll(`.bar-${key}`)
+      chart.selectAll(`.bar-${getClassNameSuffix(key)}`)
           .data(data)
           .enter()
           .append('rect')
-          .attr('class', `.bar-${key}`)
+          .attr('class', `.bar-${getClassNameSuffix(key)}`)
           .attr('x', d => barStart(d[this.x_]))
           .attr('y', d => this.scaleForYAxis_(d[this.y_]))
           .attr('width', barWidth)

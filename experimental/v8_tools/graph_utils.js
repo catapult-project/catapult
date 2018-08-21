@@ -115,4 +115,22 @@ class GraphUtils {
     setUpZoomReset(zoom
     );
   }
+
+  /**
+   * Utility function for converting text which may contain invalid
+   * characters for CSS classes/selectors into something safe to
+   * use in class names and retrieve using selectors.
+   * @return {function(string): string} Retrieves a unique class name
+   * mapped to the supplied key.
+   */
+  static getClassNameSuffixFactory() {
+    let nextUniqueClassName = 0;
+    const keyToClassName = {};
+    return (key) => {
+      if (keyToClassName[key] === undefined) {
+        keyToClassName[key] = nextUniqueClassName++;
+      }
+      return keyToClassName[key].toString();
+    };
+  }
 }
