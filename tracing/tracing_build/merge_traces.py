@@ -140,6 +140,7 @@ class IdMap(object):
     are assigned to the resulting "canonical" entries and their sub-entries are
     merged recursively.
     """
+    # pylint: disable=unsubscriptable-object
     if self._depth == len(self.LEVELS):
       return
 
@@ -179,6 +180,7 @@ class IdMap(object):
     return self._sources.isdisjoint(other._sources)
 
   def _GetMatch(self, other):
+    # pylint: disable=unsubscriptable-object
     match_cls = self.LEVELS[self._depth - 1].match
     return match_cls(*(self._items[f] & other._items[f]
                        for f in match_cls._fields))
@@ -272,6 +274,7 @@ class IdMap(object):
       canonical_entry._canonical_id = assigned_id
 
   def __repr__(self):
+    # pylint: disable=unsubscriptable-object
     cls_name = type(self).__name__
     if self._depth == 0:
       return '%s root' % cls_name

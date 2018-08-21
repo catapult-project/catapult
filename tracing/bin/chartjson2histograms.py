@@ -10,10 +10,10 @@ import os
 TRACING_PATH = os.path.abspath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 sys.path.append(TRACING_PATH)
-import tracing_project
+import tracing_project  # pylint: disable=wrong-import-position
 tracing_project.UpdateSysPathIfNeeded()
 
-from tracing.value import convert_chart_json
+from tracing.value import convert_chart_json  # pylint: disable=wrong-import-position
 
 
 def main():

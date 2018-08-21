@@ -274,7 +274,7 @@ class TraceDataBuilder(object):
     self._raw_data = {}
 
   def AsData(self):
-    if self._raw_data == None:
+    if self._raw_data is None:
       raise Exception('Can only AsData once')
     data = TraceData()
     data._SetFromBuilder(self._raw_data)
@@ -292,7 +292,7 @@ class TraceDataBuilder(object):
               isinstance(trace, dict) or
               isinstance(trace, list))
 
-    if self._raw_data == None:
+    if self._raw_data is None:
       raise Exception('Already called AsData() on this builder.')
 
     self._raw_data.setdefault(part.raw_field_name, [])

@@ -30,8 +30,7 @@ _PY_UTILS_PATH = os.path.abspath(os.path.join(
     'common',
     'py_utils'))
 sys.path.append(_PY_UTILS_PATH)
-# pylint: disable=import-error
-import py_utils.cloud_storage as cloud_storage
+import py_utils.cloud_storage as cloud_storage  # pylint: disable=wrong-import-position
 
 
 def _DownloadFromCloudStorage(path):

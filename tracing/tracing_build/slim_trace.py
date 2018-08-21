@@ -102,7 +102,7 @@ def SlimTrace(trace_file_handle, slimmed_trace_path):
       traces = extractor.ExtractTracesFromFile(trace_file_handle)
       break
 
-  if traces == None:
+  if traces is None:
     raise Exception('Cannot extrac trace from %s' % trace_file_handle.name)
 
   slimmed_traces = map(SlimSingleTrace, traces)
