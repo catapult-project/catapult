@@ -478,8 +478,8 @@ Polymer({
     for (const [mainStep, subSteps] of this.subMetricNames_) {
       totalSteps += subSteps.length;
     }
-    const width = tr.math.clamp(totalSteps * 150, 300, 700);
-    const height = tr.math.clamp(totalSteps * this.displayLabels_.length * 30,
+    const width = tr.b.math.clamp(totalSteps * 150, 300, 700);
+    const height = tr.b.math.clamp(totalSteps * this.displayLabels_.length * 30,
         300, 700);
 
     const childChart = this.initializeChild_(title, height, width);
