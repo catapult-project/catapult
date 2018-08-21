@@ -793,7 +793,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         // Check if the event matches events traced by the Android framework
         const tag = eventBase.details.substring(0, 2);
         if (tag === 'B|' || tag === 'E' || tag === 'E|' || tag === 'X|' ||
-            tag === 'C|' || tag === 'S|' || tag === 'F|') {
+            tag === 'C|' || tag === 'S|' || tag === 'F|' || tag === 's|' ||
+            tag === 'f|' ) {
           eventBase.subEventName = 'android';
         } else {
           return false;
