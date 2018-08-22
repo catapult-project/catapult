@@ -72,7 +72,10 @@ def Main():
   deployment_paths.append(VulcanizeIndex(temp_dir, dashboard_path))
 
   from catapult_build import appengine_deploy
-  appengine_deploy.Deploy(deployment_paths, ['v2spa.yaml'], 'v2spa')
+  version = None
+  if len(sys.argv) > 1:
+    version = sys.argv[1]
+  appengine_deploy.Deploy(deployment_paths, ['v2spa.yaml'], version)
 
   try:
     shutil.rmtree(temp_dir)
