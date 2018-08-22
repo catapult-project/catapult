@@ -21,9 +21,13 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
+from dashboard.models import histogram
 from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
+
+from tracing.value.diagnostics import reserved_infos
+
 
 # A list of bug labels to suggest for all performance regression bugs.
 _DEFAULT_LABELS = [
@@ -182,6 +186,19 @@ class FileBugHandler(request_handler.RequestHandler):
     self.RenderHtml('bug_result.html', template_params)
 
 
+def _GetDocsForTest(test):
+  test_suite = utils.TestKey('/'.join(test.id().split('/')[:3]))
+
+  docs = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+      test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
+
+  if not docs:
+    return None
+
+  docs = docs[reserved_infos.DOCUMENTATION_URLS.name]
+  return docs[0]
+
+
 def _AdditionalDetails(bug_id, alerts):
   """Returns a message with additional information to add to a bug."""
   base_url = '%s/group_report' % _GetServerURL()
@@ -197,6 +214,24 @@ def _AdditionalDetails(bug_id, alerts):
     comment += '\n'.join(sorted(bot_names))
   else:
     comment += '\nCould not extract bot names from the list of alerts.'
+
+  docs_by_suite = {}
+  for a in alerts:
+    test = a.GetTestMetadataKey()
+
+    suite = test.id().split('/')[2]
+    if suite in docs_by_suite:
+      continue
+
+    docs = _GetDocsForTest(test)
+    if not docs:
+      continue
+
+    docs_by_suite[suite] = docs
+
+  for k, v in docs_by_suite.iteritems():
+    comment += '\n\n%s - %s:\n  %s' % (k, v[0], v[1])
+
   return comment
 
 

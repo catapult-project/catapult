@@ -4,6 +4,7 @@
 
 import datetime
 import json
+import sys
 import unittest
 
 import mock
@@ -22,8 +23,12 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
+from dashboard.models import histogram
 from dashboard.models import sheriff
 from dashboard.services import crrev_service
+
+from tracing.value.diagnostics import generic_set
+from tracing.value.diagnostics import reserved_infos
 
 
 class MockIssueTrackerService(object):
@@ -253,6 +258,48 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
     self.assertIn(
         '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  def testGet_WithFinish_CreatesBug_WithDocs(self):
+    diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
+    diag = histogram.SparseDiagnostic(
+        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxint,
+        name=reserved_infos.DOCUMENTATION_URLS.name,
+        test=utils.TestKey('ChromiumPerf/linux/scrolling'))
+    diag.put()
+
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    self.service.bug_id = 277761
+    response = self._PostSampleBug()
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # The anomaly entities should be updated.
+    for anomaly_entity in anomaly.Anomaly.query().fetch():
+      if anomaly_entity.end_revision in [112005, 112010]:
+        self.assertEqual(277761, anomaly_entity.bug_id)
+      else:
+        self.assertIsNone(anomaly_entity.bug_id)
+
+    # Two HTTP requests are made when filing a bug; only test 2nd request.
+    comment = self.service.add_comment_args[1]
+    self.assertIn(
+        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
+    self.assertIn(
+        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
+    self.assertIn('scrolling - Benchmark doc link:', comment)
+    self.assertIn('http://docs', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
