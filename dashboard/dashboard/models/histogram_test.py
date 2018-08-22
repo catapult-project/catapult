@@ -193,7 +193,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self.assertEqual(0, len(expected['owners']))
     self.assertEqual(0, len(expected['bugs']))
 
-  def testGetMostRecentValuesByNames_ReturnAllData(self):
+  def testGetMostRecentDataByNames_ReturnAllData(self):
     data_samples = [
         {
             'type': 'GenericSet',
@@ -219,16 +219,16 @@ class SparseDiagnosticTest(testing_common.TestCase):
         name=reserved_infos.BUG_COMPONENTS.name)
     entity.put()
 
-    lookup_result = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+    lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key, set([reserved_infos.OWNERS.name,
                        reserved_infos.BUG_COMPONENTS.name]))
 
-    self.assertEqual(lookup_result.get(reserved_infos.OWNERS.name),
-                     ['alice@chromium.org'])
-    self.assertEqual(lookup_result.get(reserved_infos.BUG_COMPONENTS.name),
-                     ['abc'])
+    self.assertEqual(lookup_result.get(
+        reserved_infos.OWNERS.name).get('values'), ['alice@chromium.org'])
+    self.assertEqual(lookup_result.get(
+        reserved_infos.BUG_COMPONENTS.name).get('values'), ['abc'])
 
-  def testGetMostRecentValuesByNames_ReturnsNoneIfNoneFound(self):
+  def testGetMostRecentDataByNames_ReturnsNoneIfNoneFound(self):
     data_sample = {
         'type': 'GenericSet',
         'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
@@ -242,16 +242,16 @@ class SparseDiagnosticTest(testing_common.TestCase):
         name=reserved_infos.OWNERS.name)
     entity.put()
 
-    lookup_result = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+    lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key, set([reserved_infos.OWNERS.name,
                        reserved_infos.BUG_COMPONENTS.name]))
 
 
-    self.assertEqual(lookup_result.get(reserved_infos.OWNERS.name),
-                     ['alice@chromium.org'])
+    self.assertEqual(lookup_result.get(
+        reserved_infos.OWNERS.name).get('values'), ['alice@chromium.org'])
     self.assertIsNone(lookup_result.get(reserved_infos.BUG_COMPONENTS.name))
 
-  def testGetMostRecentValuesByNames_ReturnsNoneIfNoName(self):
+  def testGetMostRecentDataByNames_ReturnsNoneIfNoName(self):
     data_sample = {
         'guid': 'abc',
         'osName': 'linux',
@@ -264,14 +264,14 @@ class SparseDiagnosticTest(testing_common.TestCase):
         end_revision=sys.maxint, id=data_sample['guid'])
     entity.put()
 
-    lookup_result = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+    lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key, set([reserved_infos.OWNERS.name,
                        reserved_infos.BUG_COMPONENTS.name]))
 
     self.assertIsNone(lookup_result.get(reserved_infos.OWNERS.name))
     self.assertIsNone(lookup_result.get(reserved_infos.BUG_COMPONENTS.name))
 
-  def testGetMostRecentValuesByNames_RaisesErrorIfDuplicateName(self):
+  def testGetMostRecentDataByNames_RaisesErrorIfDuplicateName(self):
     data_samples = [
         {
             'type': 'GenericSet',
@@ -299,7 +299,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     self.assertRaises(
         AssertionError,
-        histogram.SparseDiagnostic.GetMostRecentValuesByNames,
+        histogram.SparseDiagnostic.GetMostRecentDataByNamesSync,
         test_key,
         set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
 

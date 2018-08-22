@@ -328,14 +328,16 @@ def _MakeAnomalyEntity(change_point, test, rows):
   suite_key = utils.TestKey(suite_key)
 
   queried_diagnostics = yield (
-      histogram.SparseDiagnostic.GetMostRecentValuesByNamesAsync(
+      histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
           suite_key, set([reserved_infos.BUG_COMPONENTS.name,
                           reserved_infos.OWNERS.name])))
 
-  bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name)
+  bug_components = queried_diagnostics.get(
+      reserved_infos.BUG_COMPONENTS.name, {}).get('values')
 
   ownership_information = {
-      'emails': queried_diagnostics.get(reserved_infos.OWNERS.name),
+      'emails': queried_diagnostics.get(
+          reserved_infos.OWNERS.name, {}).get('values'),
       'component': (bug_components[0] if bug_components else None)}
 
   new_anomaly = anomaly.Anomaly(
