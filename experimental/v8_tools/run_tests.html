@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>Tests</title>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-  
+    <script src="../../tracing/third_party/mannwhitneyu/mannwhitneyu.js"></script>  
+
     <link href="https://unpkg.com/mocha@4.0.1/mocha.css" rel="stylesheet" />
   </head>
     <body>
@@ -22,6 +23,8 @@
       <script src="graph_data.js"></script>
       <script src="graph_data_test.js"></script>
       <script src="dot_plotter_test.js"></script>
+      <script src="metric_significance.js"></script>
+      <script src="metric_significance_test.js"></script>
       <script>
         'use strict';
         mocha.checkLeaks();
