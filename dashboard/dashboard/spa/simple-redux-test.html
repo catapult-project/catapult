@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/simple-redux.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  test('renameReducer', function() {
+    function cer() {}
+    const renamer = Redux.renameReducer('redu');
+    renamer(cer);
+    assert.strictEqual('reducer', cer.name);
+  });
+
+  test('registerReducer', function() {
+    function testRegisterReducer(state, action) {
+      return {...state, test: action.testValue};
+    }
+    Redux.registerReducer(testRegisterReducer);
+    const store = Redux.createSimpleStore();
+    store.dispatch({type: testRegisterReducer.name, testValue: 42});
+    assert.strictEqual(42, store.getState().test);
+  });
+
+  test('registerReducers', function() {
+    const reducers = {
+      a(localState, {a}, rootState) {
+        return {...localState, a};
+      },
+      b(localState, {b}, rootState) {
+        localState.b = b;
+      },
+    };
+    Redux.registerReducers(reducers, [
+      Redux.renameReducer('namespace.'),
+      Redux.freezingReducer,
+      Redux.statePathReducer,
+    ]);
+    const store = Redux.createSimpleStore();
+    store.dispatch({type: 'UPDATE', statePath: '', delta: {b: {}}});
+
+    store.dispatch({type: reducers.a.name, statePath: 'b', a: ''});
+    assert.strictEqual('', store.getState().b.a);
+
+    assert.throws(() => store.dispatch({
+      type: reducers.b.name,
+      statePath: '',
+      b: '',
+    }));
+  });
+
+  test('statePathReducer', function() {
+    const reducer = Redux.statePathReducer((localState, action, rootState) => {
+      return {...localState, test: action.testValue};
+    });
+    assert.deepEqual({a: [{b: {pre: 1, test: 'c'}}]}, reducer(
+        {a: [{b: {pre: 1}}]}, {statePath: 'a.0.b', testValue: 'c'}));
+  });
+
+  test('freezingReducer', function() {
+    const reducer = Redux.freezingReducer((state, action) => {
+      state.modification = 'error';
+    });
+    assert.throws(() => reducer({}, {}));
+  });
+
+  test('timeReducer', function() {
+    function testRegisterReducer(state, action) {
+      return {...state, test: action.testValue};
+    }
+    Redux.registerReducer(Redux.timeReducer()(testRegisterReducer));
+    const store = Redux.createSimpleStore();
+    store.dispatch({type: testRegisterReducer.name, testValue: 42});
+    assert.isBelow(0, window.performance.getEntriesByName(
+        'reducer testRegisterReducer').length);
+  });
+
+  test('thunk', function() {
+    const store = Redux.createSimpleStore();
+    const actionCreator = (testValue) => (dispatch, getState) => {
+      dispatch({type: 'UPDATE', delta: {testValue}});
+    };
+    store.dispatch(actionCreator(42));
+    assert.strictEqual(42, store.getState().testValue);
+  });
+
+  test('nothunk', function() {
+    const store = Redux.createSimpleStore({useThunk: false});
+    const actionCreator = (testValue) => (dispatch, getState) => {
+      dispatch({type: 'UPDATE', delta: {testValue}});
+    };
+    assert.throws(() => store.dispatch(actionCreator(42)));
+  });
+
+  test('CHAIN', function() {
+    const store = Redux.createSimpleStore();
+    store.dispatch({type: 'CHAIN', actions: [
+      {type: 'UPDATE', statePath: 'a', delta: {testValue: 0}},
+      {type: 'UPDATE', statePath: 'b', delta: {testValue: 1}},
+    ]});
+    assert.strictEqual(0, store.getState().a.testValue);
+    assert.strictEqual(1, store.getState().b.testValue);
+  });
+
+  test('UPDATE', function() {
+    const store = Redux.createSimpleStore();
+    store.dispatch({type: 'UPDATE', statePath: 'a', delta: {testValue: 42}});
+    assert.strictEqual(42, store.getState().a.testValue);
+  });
+
+  test('TOGGLE', function() {
+    const store = Redux.createSimpleStore({defaultState: {testValue: false}});
+    store.dispatch({type: 'TOGGLE', statePath: 'testValue'});
+    assert.isTrue(store.getState().testValue);
+  });
+});
+</script>

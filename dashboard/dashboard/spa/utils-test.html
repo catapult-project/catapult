@@ -11,6 +11,43 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.b.unittest.testSuite(function() {
+  test('setImmutable', function() {
+    assert.deepEqual({a: [{b: 'c'}]}, cp.setImmutable(
+        {a: []}, 'a.0.b', 'c'));
+    assert.deepEqual({a: {b: 1, c: 2}}, cp.setImmutable(
+        {a: {b: 1}}, 'a', o => {
+          return {...o, c: 2};
+        }));
+  });
+
+  test('deepFreeze', function() {
+    const frozen = {
+      str: 'a',
+      array: ['b'],
+      obj: {a: 'c'},
+      instance: new class {
+        constructor() {
+          this.property = 'd';
+        }
+      },
+    };
+    cp.deepFreeze(frozen);
+    assert.throws(() => {
+      frozen.str = 'x';
+    }, 'Cannot assign to read only property');
+    assert.throws(() => {
+      frozen.array[0] = 'x';
+    }, 'Cannot assign to read only property');
+    assert.throws(() => {
+      frozen.array[1] = 'x';
+    }, 'Cannot add property');
+    assert.throws(() => {
+      frozen.obj.a = 'x';
+    }, 'Cannot assign to read only property');
+    frozen.instance.property = 'x';
+    assert.strictEqual('x', frozen.instance.property);
+  });
+
   test('isElementChildOf', function() {
     assert.isTrue(cp.isElementChildOf(
         document.body, document.body.parentElement));

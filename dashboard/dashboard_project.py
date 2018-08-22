@@ -52,6 +52,7 @@ class DashboardProject(object):
   dashboard_src_path = os.path.join(dashboard_root_path, 'dashboard')
   dashboard_test_data_path = os.path.join(dashboard_root_path, 'test_data')
   dashboard_polymer_path = os.path.join(catapult_third_party_path, 'polymer')
+  redux_path = os.path.join(catapult_third_party_path, 'redux')
 
   tracing_root_path = os.path.join(catapult_path, 'tracing')
 
@@ -66,6 +67,7 @@ class DashboardProject(object):
       self._source_paths = []
       self._source_paths.append(self.dashboard_root_path)
       self._source_paths.append(self.dashboard_polymer_path)
+      self._source_paths.append(self.redux_path)
       self._source_paths.append(self.catapult_third_party_path)
 
       import tracing_project as tracing_project_module
