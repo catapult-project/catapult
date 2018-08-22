@@ -32,7 +32,7 @@ class ChromeVersion(namedtuple('Version', 'milestone minor build patch')):
 
     """
     assert len(args) == 1 or len(args) == 4, 'Wrong argument numbers.'
-    if len(args):
+    if len(args) == 1:
       args = [int(v) for v in args[0].split('.')]
     return super(ChromeVersion, cls).__new__(cls, *args)
 
