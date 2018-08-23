@@ -13,6 +13,7 @@ may need to be called in tests.
 import types
 
 from telemetry.core import exceptions
+from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options as browser_options_module
 from telemetry.internal.platform import system_info
@@ -587,12 +588,14 @@ class FakeInspectorWebsocket(object):
     current_time = self._mock_timer.time()
     if not self._notifications:
       self._mock_timer.SetTime(current_time + timeout + 1)
-      raise websocket.WebSocketTimeoutException()
+      raise inspector_websocket.WebSocketException(
+          websocket.WebSocketTimeoutException())
 
     response, time, kind = self._notifications[0]
     if time - current_time > timeout:
       self._mock_timer.SetTime(current_time + timeout + 1)
-      raise websocket.WebSocketTimeoutException()
+      raise inspector_websocket.WebSocketException(
+          websocket.WebSocketTimeoutException())
 
     self._notifications.pop(0)
     self._mock_timer.SetTime(time + 1)

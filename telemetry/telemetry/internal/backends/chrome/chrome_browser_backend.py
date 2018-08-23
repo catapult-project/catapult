@@ -14,7 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
-from telemetry.internal.backends.chrome_inspector import websocket
+from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.browser import web_contents
 from telemetry.testing import options_for_unittests
 
@@ -234,7 +234,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def GetSystemInfo(self):
     try:
       return self.devtools_client.GetSystemInfo()
-    except (websocket.WebSocketException, socket.error) as e:
+    except (inspector_websocket.WebSocketException, socket.error) as e:
       if not self.IsBrowserRunning():
         raise exceptions.BrowserGoneException(self.browser, e)
       raise exceptions.BrowserConnectionGoneException(self.browser, e)

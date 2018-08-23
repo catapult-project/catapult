@@ -90,8 +90,11 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     inspector.RegisterDomain('Test', OnTestEvent)
     fake_socket.AddResponse('{"method": "Test.foo"}', 11)
     with self.assertRaises(
-        websocket.WebSocketTimeoutException):
+        inspector_websocket.WebSocketException) as err:
       inspector.DispatchNotifications(timeout=10)
+    self.assertEqual(
+        err.exception.websocket_error_type,
+        websocket.WebSocketTimeoutException)
     self.assertEqual(0, len(results))
 
   @decorators.Disabled('chromeos')  # crbug.com/483212

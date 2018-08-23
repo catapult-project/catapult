@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import unittest
 
 import mock
 
@@ -89,6 +90,7 @@ class MigrateTest(test.TestCase):
     self.assertEqual(task['method'], 'POST')
     self.assertTrue(task['body'])
 
+  @unittest.skip('crbug.com/877074')
   def testJobsMigrated(self):
     job_state.JobState.__setstate__ = _JobStateSetState
 

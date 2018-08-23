@@ -16,6 +16,20 @@ class WebSocketDisconnected(exceptions.Error):
   pass
 
 
+class WebSocketException(exceptions.Error):
+  """Wrapper around websocket.WebSocketException to make the error handleable.
+  """
+  def __init__(self, websocket_error):
+    msg = 'WebsocketException of type %s. Error message: %s' % (
+        type(websocket_error), websocket_error.message)
+    super(WebSocketException, self).__init__(msg)
+    self._websocket_error_type = type(websocket_error)
+
+  @property
+  def websocket_error_type(self):
+    return self._websocket_error_type
+
+
 class InspectorWebsocket(object):
 
   # See http://www.jsonrpc.org/specification#error_object.
@@ -57,7 +71,7 @@ class InspectorWebsocket(object):
     """Connects the websocket.
 
     Raises:
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
     """
     assert not self._socket
@@ -75,7 +89,7 @@ class InspectorWebsocket(object):
     """Disconnects the inspector websocket.
 
     Raises:
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
     """
     if self._socket:
@@ -86,7 +100,7 @@ class InspectorWebsocket(object):
     """Sends a request without waiting for a response.
 
     Raises:
-      websocket.WebSocketException: Error from websocket library.
+      inspector_websocket.WebSocketException: Error from websocket library.
       socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
@@ -106,7 +120,7 @@ class InspectorWebsocket(object):
     """Sends a request and waits for a response.
 
     Raises:
-      websocket.WebSocketException: Error from websocket library.
+      inspector_websocket.WebSocketException: Error from websocket library.
       socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
@@ -133,7 +147,7 @@ class InspectorWebsocket(object):
     """Waits for responses from the websocket, dispatching them as necessary.
 
     Raises:
-      websocket.WebSocketException: Error from websocket library.
+      inspector_websocket.WebSocketException: Error from websocket library.
       socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
@@ -161,6 +175,8 @@ class InspectorWebsocket(object):
           time.sleep(0.1)
         else:
           raise
+      except websocket.WebSocketException as err:
+        raise WebSocketException(err)
       else:
         break
 

@@ -19,7 +19,6 @@ from telemetry.internal.backends.chrome_inspector import inspector_runtime
 from telemetry.internal.backends.chrome_inspector import inspector_serviceworker
 from telemetry.internal.backends.chrome_inspector import inspector_storage
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
-from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.util import js_template
 
 import py_utils
@@ -36,7 +35,7 @@ def _HandleInspectorWebSocketExceptions(func):
   def Inner(inspector_backend, *args, **kwargs):
     try:
       return func(inspector_backend, *args, **kwargs)
-    except (socket.error, websocket.WebSocketException,
+    except (socket.error, inspector_websocket.WebSocketException,
             inspector_websocket.WebSocketDisconnected) as e:
       inspector_backend._ConvertExceptionFromInspectorWebsocket(e)
 
@@ -76,7 +75,7 @@ class InspectorBackend(object):
       self._serviceworker = inspector_serviceworker.InspectorServiceWorker(
           self._websocket, timeout=timeout)
       self._storage = inspector_storage.InspectorStorage(self._websocket)
-    except (websocket.WebSocketException, exceptions.TimeoutException,
+    except (inspector_websocket.WebSocketException, exceptions.TimeoutException,
             py_utils.TimeoutException) as e:
       self._ConvertExceptionFromInspectorWebsocket(e)
 
@@ -483,14 +482,15 @@ class InspectorBackend(object):
     information. The exact exception raised depends on |error|.
 
     Args:
-      error: An instance of socket.error or websocket.WebSocketException.
+      error: An instance of socket.error or
+        inspector_websocket.WebSocketException.
     Raises:
       exceptions.TimeoutException: A timeout occurred.
       exceptions.DevtoolsTargetCrashException: On any other error, the most
         likely explanation is that the devtool's target crashed.
     """
     # pylint: disable=redefined-variable-type
-    if isinstance(error, websocket.WebSocketTimeoutException):
+    if isinstance(error, inspector_websocket.WebSocketException):
       new_error = exceptions.TimeoutException()
       new_error.AddDebuggingMessage(exceptions.AppCrashException(
           self.app, 'The app is probably crashed:\n'))
@@ -526,7 +526,7 @@ class InspectorBackend(object):
   def _EvaluateJavaScript(self, expression, context_id, timeout):
     try:
       return self._runtime.Evaluate(expression, context_id, timeout)
-    except websocket.WebSocketTimeoutException as e:
+    except inspector_websocket.WebSocketException as e:
       # Assume the renderer's main thread is hung. Try to use DevTools
       # to crash the target renderer process (on its IO thread) so we
       # get a minidump we can symbolize.

@@ -32,7 +32,7 @@ class InspectorMemory(object):
       and "jsEventListeners".
     Raises:
       InspectorMemoryException
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
       exceptions.WebSocketDisconnected
     """

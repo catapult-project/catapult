@@ -203,11 +203,17 @@ class TracingBackend(object):
       timeout = 1200  # 20 minutes.
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
-    except websocket.WebSocketTimeoutException:
-      raise TracingTimeoutException(
-          'Exception raised while sending a Tracing.requestMemoryDump '
-          'request:\n' + traceback.format_exc())
-    except (socket.error, websocket.WebSocketException,
+    except inspector_websocket.WebsocketException as err:
+      if issubclass(
+          err.websocket_error_type, websocket.WebSocketTimeoutException):
+        raise TracingTimeoutException(
+            'Exception raised while sending a Tracing.requestMemoryDump '
+            'request:\n' + traceback.format_exc())
+      else:
+        raise TracingUnrecoverableException(
+            'Exception raised while sending a Tracing.requestMemoryDump '
+            'request:\n' + traceback.format_exc())
+    except (socket.error,
             inspector_websocket.WebSocketDisconnected):
       raise TracingUnrecoverableException(
           'Exception raised while sending a Tracing.requestMemoryDump '
@@ -251,9 +257,13 @@ class TracingBackend(object):
         try:
           self._inspector_websocket.DispatchNotifications(timeout)
           start_time = time.time()
-        except websocket.WebSocketTimeoutException:
-          pass
-        except (socket.error, websocket.WebSocketException):
+        except inspector_websocket.WebSocketException as err:
+          if not issubclass(
+              err.websocket_error_type, websocket.WebSocketTimeoutException):
+            raise TracingUnrecoverableException(
+                'Exception raised while collecting tracing data:\n' +
+                traceback.format_exc())
+        except socket.error:
           raise TracingUnrecoverableException(
               'Exception raised while collecting tracing data:\n' +
               traceback.format_exc())

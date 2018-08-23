@@ -28,7 +28,7 @@ class InspectorRuntime(object):
     Raises:
       exceptions.EvaluateException
       exceptions.WebSocketDisconnected
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
     """
     request = {
@@ -61,7 +61,7 @@ class InspectorRuntime(object):
 
     Raises:
       exceptions.WebSocketDisconnected
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
     """
     if not self._contexts_enabled:
@@ -88,7 +88,7 @@ class InspectorRuntime(object):
 
     Raises:
       exceptions.WebSocketDisconnected
-      websocket.WebSocketException
+      inspector_websocket.WebSocketException
       socket.error
     """
     res = self._inspector_websocket.SyncRequest(command, timeout)

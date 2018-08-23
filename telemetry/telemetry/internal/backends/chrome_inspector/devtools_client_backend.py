@@ -16,7 +16,6 @@ from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.internal.backends.chrome_inspector import system_info_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
-from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.backends.chrome_inspector import window_manager_backend
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
@@ -147,7 +146,7 @@ class DevToolsClientConfig(object):
     ws = inspector_websocket.InspectorWebsocket()
     try:
       ws.Connect(self.browser_target_url, timeout=10)
-    except (websocket.WebSocketException, socket.error) as exc:
+    except (inspector_websocket.WebSocketException, socket.error) as exc:
       logging.info(
           'Websocket at %s not yet ready: %s', self, exc)
       return False
