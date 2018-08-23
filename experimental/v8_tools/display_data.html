@@ -11,6 +11,7 @@
     <script src="./graph_plotter.js"></script>
     <script src="./dot_plotter.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src='graph_utils.js'></script>
 </head>
 
 <body>
@@ -20,7 +21,67 @@
         }
       </style>
 
-<input type='file' id='file-input' class='file_input'/>
+<div class='menuLeft' id='menu'>
+  <input type='file' id='file-input' class='file_input'/>
+
+<div id='filterItem'>
+  <sup>Memory metrics</sup>
+<v-select placeholder='browser'
+    :options = 'browserOptions'
+    v-model='browser'
+    id='filterBox'
+    ></v-select>
+<v-select placeholder='subprocess'
+    :options = 'subprocessOptions'
+    v-model='subprocess'
+    id='filterBox'
+    ></v-select>
+<v-select placeholder='size'
+    :options='sizeOptions'
+    v-model='size'
+    id='filterBox'
+    ></v-select>
+<v-select placeholder='component'
+    :options='componentsOptions'
+    v-model='component'
+    id='filterBox'
+    ></v-select>
+<v-select placeholder='subcomponent'
+    id='subcomponentBox'
+    v-model='subcomponent'
+    :options='firstSubcompOptions'
+    ></v-select>
+<v-select placeholder='subcomponent'
+    id='subcomponentBox_'
+    v-model='subsubcomponent'
+    :options='secondSubcompOptions'
+    ></v-select>
+<button v-on:click='apply'
+        id='apply_button'>
+        Apply</button>
+</div>
+</div>
+
+<script type="text/x-template" id="tree-menu">
+  'use strict';
+  <div class="tree-menu">
+    <div class="label-wrapper" @click="toggleChildren">
+      <div :style="indent" :class="labelClasses">
+        <i v-if="nodes" class="fa" :class="iconClasses"></i>
+        {{ label }}
+      </div>
+    </div>
+    <tree-menu 
+      v-if="showChildren"
+      v-for="node in nodes" 
+      :nodes="node.nodes" 
+      :label="node.label"
+      :depth="depth + 1">
+    </tree-menu>
+  </div>
+</script>
+
+
 <script type="text/x-template" id="table-template">
   'use strict';
   <table>
@@ -82,9 +143,10 @@
   </table>
 </script>
 <!-- the root component -->
-<div id='app'>
+<div class='appRight' id='app'>
+
   <v-select placeholder="Pick a metric"
-            v-if="seen" 
+            v-if="data_loaded" 
             :options="metrics" 
             v-model="selected_metric" 
             id='select_item'></v-select>
@@ -100,13 +162,13 @@
             id='select_item'></v-select>
     <div id='canvas'></div>
     <form id="search">
-      <input v-if="seen"
+      <input v-if="data_loaded"
             id='inputBox'
             placeholder="Search a metric" 
             name="query" 
             v-model="searchQuery">
     </form>
-    <data-table v-if="seen"
+    <data-table v-if="data_loaded"
       :data="gridData"
       :columns="gridColumns"
       :filter-key="searchQuery">
@@ -114,5 +176,8 @@
 </div>
 
 <script src="filter.js"></script>
+<script src='table_component.js'></script>
+<script src='metrics_parser.js'></script>
+<script src='app.js'></script>
 </body>
 </html>
