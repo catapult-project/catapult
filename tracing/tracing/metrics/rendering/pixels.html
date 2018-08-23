@@ -57,7 +57,15 @@ tr.exportTo('tr.metrics.rendering', function() {
         }
         const visibleContentArea = data[VISIBLE_CONTENT_DATA];
         if (visibleContentArea === 0) {
-          throw new Error(`${VISIBLE_CONTENT_DATA} is zero`);
+          // TODO(crbug.com/877056): This is reported as an error in the legacy
+          // code, which indicates there should be no rendering stats event with
+          // zero visible content area. But, the TBMv2 implementation encounters
+          // such events. Maybe they are coming from OOPIFs which are ignored in
+          // the legacy code? Investigate why they exist and what should be
+          // done.
+          //
+          // throw new Error(`${VISIBLE_CONTENT_DATA} is zero`);
+          continue;
         }
         if (APPROXIMATED_VISIBLE_CONTENT_DATA in data) {
           approximatedPixelPercentages.push(
