@@ -258,13 +258,13 @@ class Job(ndb.Model):
 
     test_suite = utils.TestKey('/'.join(test_path.split('/')[:3]))
 
-    docs = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+    docs = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
 
     if not docs:
       return ''
 
-    docs = docs[reserved_infos.DOCUMENTATION_URLS.name]
+    docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
 
     footer = '\n\n%s:\n  %s' % (docs[0][0], docs[0][1])
 

@@ -189,13 +189,13 @@ class FileBugHandler(request_handler.RequestHandler):
 def _GetDocsForTest(test):
   test_suite = utils.TestKey('/'.join(test.id().split('/')[:3]))
 
-  docs = histogram.SparseDiagnostic.GetMostRecentValuesByNames(
+  docs = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
       test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
 
   if not docs:
     return None
 
-  docs = docs[reserved_infos.DOCUMENTATION_URLS.name]
+  docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
   return docs[0]
 
 
