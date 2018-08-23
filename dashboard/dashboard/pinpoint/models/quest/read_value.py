@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
 import json
 import ntpath
 import posixpath
@@ -114,8 +115,52 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     histograms.ImportDicts(histogram_dicts)
     histograms.ResolveRelatedHistograms()
 
-    matching_histograms = histograms.GetHistogramsNamed(self._hist_name)
+    histograms_by_path = self._CreateHistogramSetByTestPathDict(histograms)
+    self._trace_urls = self._FindTraceUrls(histograms)
 
+    test_path_to_match = self._hist_name
+    if self._tir_label:
+      test_path_to_match += '/' + self._tir_label
+
+    if self._story:
+      test_path_to_match += '/' + self._story
+
+    # Have to pull out either the raw sample values, or the statistic
+    result_values = []
+    if test_path_to_match in histograms_by_path:
+      matching_histograms = histograms_by_path.get(test_path_to_match, [])
+
+      for h in matching_histograms:
+        result_values.extend(self._GetValuesOrStatistic(h))
+    elif self._hist_name:
+      # Histograms don't exist, which means this is summary
+      summary_value = []
+      for test_path, histograms_for_test_path in histograms_by_path.iteritems():
+        if test_path.startswith(test_path_to_match):
+          for h in histograms_for_test_path:
+            summary_value.extend(self._GetValuesOrStatistic(h))
+      if summary_value:
+        result_values.append(sum(summary_value))
+
+    if not result_values and self._hist_name:
+      conditions = {'histogram': self._hist_name}
+      if self._tir_label:
+        conditions['tir_label'] = self._tir_label
+      if self._story:
+        conditions['story'] = self._story
+      raise ReadValueError('Could not find values matching: %s' % conditions)
+
+    self._Complete(result_values=tuple(result_values))
+
+  def _CreateHistogramSetByTestPathDict(self, histograms):
+    histograms_by_path = collections.defaultdict(list)
+
+    for h in histograms:
+      histograms_by_path[histogram_helpers.ComputeTestPath(h)].append(h)
+
+    return histograms_by_path
+
+  def _FindTraceUrls(self, histograms):
     # Get and cache any trace URLs.
     unique_trace_urls = set()
     for hist in histograms:
@@ -130,41 +175,8 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
         unique_trace_urls.update(trace_urls)
 
     sorted_urls = sorted(unique_trace_urls)
-    self._trace_urls = [
-        {'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
 
-    # Filter the histograms by tir_label and story. Getting either the
-    # tir_label or the story from a histogram involves pulling out and
-    # examining various diagnostics associated with the histogram.
-    tir_label = self._tir_label or ''
-
-    matching_histograms = [
-        h for h in matching_histograms
-        if tir_label == histogram_helpers.GetTIRLabelFromHistogram(h)]
-
-
-    # If no story is supplied, we're looking for a summary metric so just match
-    # on name and tir_label. This is equivalent to the chartjson condition that
-    # if no story is specified, look for "summary".
-    if self._story:
-      matching_histograms = [
-          h for h in matching_histograms
-          if self._story == _GetStoryFromHistogram(h)]
-
-    # Have to pull out either the raw sample values, or the statistic
-    result_values = []
-    for h in matching_histograms:
-      result_values.extend(self._GetValuesOrStatistic(h))
-
-    if not result_values and self._hist_name:
-      conditions = {'histogram': self._hist_name}
-      if tir_label:
-        conditions['tir_label'] = tir_label
-      if self._story:
-        conditions['story'] = self._story
-      raise ReadValueError('Could not find values matching: %s' % conditions)
-
-    self._Complete(result_values=tuple(result_values))
+    return [{'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
 
   def _GetValuesOrStatistic(self, hist):
     if not self._statistic:

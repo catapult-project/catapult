@@ -16,6 +16,7 @@ from google.appengine.ext import ndb
 
 from dashboard import post_data_handler
 from dashboard.common import datastore_hooks
+from dashboard.common import histogram_helpers
 from dashboard.common import math_utils
 from dashboard.models import graph_data
 
@@ -388,7 +389,7 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
     tracing_uri = tracing_links[trace_name]['cloud_url'].replace('\\/', '/')
 
   story_name = trace_name
-  trace_name = EscapeName(trace_name)
+  trace_name = histogram_helpers.EscapeName(trace_name)
   if trace_name == 'summary':
     subtest_name = chart_name
   else:
@@ -476,18 +477,6 @@ def _ExtractValueAndError(trace):
 
 def _IsNumber(v):
   return isinstance(v, float) or isinstance(v, int) or isinstance(v, long)
-
-
-def EscapeName(name):
-  """Escapes a trace name so it can be stored in a row.
-
-  Args:
-    name: A string representing a name.
-
-  Returns:
-    An escaped version of the name.
-  """
-  return re.sub(r'[\:|=/#&,]', '_', name)
 
 
 def _GeomMeanAndStdDevFromHistogram(histogram):
