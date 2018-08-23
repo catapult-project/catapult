@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/cp-radio.html">
+
+<dom-module id="cp-radio-group">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      ::slotted(cp-radio) {
+        margin: 4px 0;
+      }
+    </style>
+    <slot></slot>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/cp-radio-group.js"></script>
