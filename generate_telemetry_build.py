@@ -43,6 +43,18 @@ EXCLUDED_PATHS = [
     "path": "BUILD.gn",
   },
   {
+    "path": "common/node_runner/node_runner/bin",
+  },
+  {
+    "path": "common/node_runner/node_runner/node_modules",
+  },
+  {
+    "path": "docs",
+  },
+  {
+    "path": "experimental",
+  },
+  {
     # needed for --chromium option; can remove once this CL lands.
     "path": "generate_telemetry_build.py",
   },
