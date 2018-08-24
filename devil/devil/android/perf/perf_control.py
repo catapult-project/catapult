@@ -179,8 +179,9 @@ class PerfControl(object):
 
   def _AllCpusAreOnline(self):
     results = self._ForEachCpu('cat "$CPU/online"')
-    # TODO(epenner): Investigate why file may be missing
-    # (http://crbug.com/397118)
+    # The file 'cpu0/online' is missing on some devices (example: Nexus 9). This
+    # is likely because on these devices it is impossible to bring the cpu0
+    # offline. Assuming the same for all devices until proven otherwise.
     return all(output.rstrip() == '1' and status == 0
                for (cpu, output, status) in results
                if cpu != 'cpu0')
