@@ -188,7 +188,17 @@ function readSingleFile(e) {
     const sampleArr = contents.sampleValueArray;
     const guidValueInfo = contents.guidValueInfo;
     const metricAverage = new Map();
+    const significanceTester = new MetricSignificance();
     for (const e of sampleArr) {
+      const { name, sampleValues, diagnostics } = e;
+      const { labels } = diagnostics;
+      // This version of the tool focuses on analysing memory
+      // metrics, which contain a slightly different structure
+      // to the non-memory metrics.
+      if (name.startsWith('memory')) {
+        const label = guidValueInfo.get(labels)[0];
+        significanceTester.add(name, label, sampleValues);
+      }
       if (metricAverage.has(e.name)) {
         const aux = metricAverage.get(e.name);
         aux.push(average(e.sampleValues));
@@ -197,7 +207,7 @@ function readSingleFile(e) {
         metricAverage.set(e.name, [average(e.sampleValues)]);
       }
     }
-
+    menu.testResults = significanceTester.mostSignificant();
     //  The content for the default table: with name
     //  of the mtric, the average value of the sample values
     //  plus an id. The latest is used to expand the row.
