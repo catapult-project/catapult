@@ -10,10 +10,8 @@ from google.appengine.api import taskqueue
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import ndb
 
-from dashboard import add_point_queue
 from dashboard.common import request_handler
 from dashboard.common import datastore_hooks
-from dashboard.common import stored_object
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 
@@ -96,25 +94,8 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
     elif test_key_urlsafe:
       self._UpdateTest(test_key_urlsafe, internal_only)
 
-  def _UpdateBotWhitelist(self, bot_master_names, internal_only):
-    """Updates the global bot_whitelist object, otherwise subsequent add_point
-    calls will overwrite our work."""
-    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-    bot_names = [b.split('/')[1] for b in bot_master_names]
-
-    if internal_only:
-      bot_whitelist = [b for b in bot_whitelist if b not in bot_names]
-    else:
-      bot_whitelist.extend(bot_names)
-      bot_whitelist = list(set(bot_whitelist))
-    bot_whitelist.sort()
-
-    stored_object.Set(add_point_queue.BOT_WHITELIST_KEY, bot_whitelist)
-
   def _UpdateMultipleBots(self, bot_names, internal_only):
     """Kicks off update tasks for individual bots and their tests."""
-
-    self._UpdateBotWhitelist(bot_names, internal_only)
 
     for bot_name in bot_names:
       taskqueue.add(

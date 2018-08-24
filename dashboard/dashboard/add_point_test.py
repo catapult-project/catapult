@@ -18,7 +18,6 @@ from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import layered_cache
 from dashboard import units_to_direction
-from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -505,11 +504,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(hasattr(row, 'r_two'))
 
   def testPost_UnWhitelistedBots_MarkedInternalOnly(self):
-    stored_object.Set(
-        add_point_queue.BOT_WHITELIST_KEY, ['linux-release', 'win7'])
     parent = graph_data.Master(id='ChromiumPerf').put()
-    parent = graph_data.Bot(
-        id='suddenly_secret', parent=parent, internal_only=False).put()
+    parent = graph_data.Bot(id='win7', parent=parent, internal_only=False).put()
     graph_data.TestMetadata(
         id='ChromiumPerf/suddenly_secret/dromaeo', internal_only=False).put()
 

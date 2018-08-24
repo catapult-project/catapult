@@ -7,9 +7,7 @@ import unittest
 import webapp2
 import webtest
 
-from dashboard import add_point_queue
 from dashboard import change_internal_only
-from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -61,8 +59,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
   def testPost_SetInternalOnlyToTrue(self):
     self._AddSampleData()
 
-    stored_object.Set(add_point_queue.BOT_WHITELIST_KEY, ['win7'])
-
     self.testapp.post('/change_internal_only', [
         ('internal_only', 'true'),
         ('bots', 'ChromiumPerf/win7'),
@@ -70,9 +66,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     ])
     self.ExecuteTaskQueueTasks(
         '/change_internal_only', change_internal_only._QUEUE_NAME)
-
-    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-    self.assertEqual(bot_whitelist, [])
 
     # Verify that Bot entities were changed.
     bots = graph_data.Bot.query().fetch()
@@ -106,8 +99,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     # First change to internal only.
     self._AddSampleData()
 
-    stored_object.Set(add_point_queue.BOT_WHITELIST_KEY, ['win7'])
-
     self.testapp.post('/change_internal_only', [
         ('internal_only', 'true'),
         ('bots', 'ChromiumPerf/win7'),
@@ -115,9 +106,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     ])
     self.ExecuteTaskQueueTasks(
         '/change_internal_only', change_internal_only._QUEUE_NAME)
-
-    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-    self.assertEqual(bot_whitelist, [])
 
     # Then change back.
     self._AddSampleData()
@@ -128,10 +116,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     ])
     self.ExecuteTaskQueueTasks(
         '/change_internal_only', change_internal_only._QUEUE_NAME)
-
-    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
-    self.assertTrue('win7' in bot_whitelist)
-    self.assertTrue('mac' in bot_whitelist)
 
     # No entities should be marked as internal only.
     bots = graph_data.Bot.query().fetch()

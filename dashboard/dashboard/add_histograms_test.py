@@ -10,12 +10,12 @@ import webapp2
 import webtest
 import zlib
 
-from dashboard import add_point_queue
+from google.appengine.ext import ndb
+
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
 from dashboard.api import api_auth
 from dashboard.api import api_request_handler
-from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -484,9 +484,8 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
       add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
       mock.MagicMock())
   def testPost_DiagnosticsInternalOnly_False(self):
-    stored_object.Set(
-        add_point_queue.BOT_WHITELIST_KEY, ['bot'])
-
+    graph_data.Bot(key=ndb.Key('Master', 'master', 'Bot', 'bot'),
+                   internal_only=False).put()
     self._TestDiagnosticsInternalOnly()
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
@@ -500,9 +499,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
       add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
       mock.MagicMock())
   def testPost_DiagnosticsInternalOnly_True(self):
-    stored_object.Set(
-        add_point_queue.BOT_WHITELIST_KEY, ['not_in_list'])
-
     self._TestDiagnosticsInternalOnly()
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()

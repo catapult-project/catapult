@@ -96,6 +96,23 @@ class Bot(internal_only_model.InternalOnlyModel):
   """
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
+  @classmethod
+  @ndb.synctasklet
+  def GetInternalOnlySync(cls, master, bot):
+    try:
+      internal_only = yield cls.GetInternalOnlyAsync(master, bot)
+      raise ndb.Return(internal_only)
+    except AssertionError:
+      raise ndb.Return(True)
+
+  @staticmethod
+  @ndb.tasklet
+  def GetInternalOnlyAsync(master, bot):
+    bot_entity = yield ndb.Key('Master', master, 'Bot', bot).get_async()
+    if bot_entity is None:
+      raise ndb.Return(True)
+    raise ndb.Return(bot_entity.internal_only)
+
 
 class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   """A TestMetadata entity is a node in a hierarchy of tests.
