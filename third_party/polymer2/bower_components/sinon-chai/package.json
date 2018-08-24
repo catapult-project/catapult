@@ -1,0 +1,42 @@
+{
+  "name": "sinon-chai",
+  "description": "Extends Chai with assertions for the Sinon.JS mocking framework.",
+  "keywords": [
+    "chai",
+    "chai-plugin",
+    "browser",
+    "vendor",
+    "mocks-and-spies",
+    "sinon",
+    "testing",
+    "spies",
+    "stubs",
+    "mocks"
+  ],
+  "version": "2.14.0",
+  "author": "Domenic Denicola <d@domenic.me> (https://domenic.me/)",
+  "license": "(BSD-2-Clause OR WTFPL)",
+  "repository": "domenic/sinon-chai",
+  "main": "./lib/sinon-chai.js",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "mocha",
+    "test-travis": "npm install chai@$CHAI_VERSION && npm install sinon@$SINON_VERSION && npm install && npm test",
+    "lint": "eslint .",
+    "cover": "istanbul cover node_modules/mocha/bin/_mocha && opener ./coverage/lcov-report/lib/sinon-chai.js.html"
+  },
+  "peerDependencies": {
+    "chai": ">=1.9.2 <5",
+    "sinon": "^1.4.0 || ^2.1.0 || ^3.0.0 || ^4.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.0",
+    "eslint": "^3.19.0",
+    "istanbul": "~0.4.5",
+    "mocha": "^3.4.2",
+    "opener": "^1.4.3",
+    "sinon": "^4.0.0"
+  }
+}

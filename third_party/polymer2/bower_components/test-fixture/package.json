@@ -1,0 +1,24 @@
+{
+  "name": "test-fixture",
+  "version": "3.0.0-rc.1",
+  "description": "A simple element to fixture DOM for tests",
+  "main": "test-fixture.html",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polymerelements/test-fixture.git"
+  },
+  "keywords": [
+    "web-components",
+    "polymer",
+    "testing"
+  ],
+  "author": "The Polymer Authors",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/polymerelements/test-fixture/issues"
+  },
+  "homepage": "https://github.com/polymerelements/test-fixture#readme",
+  "devDependencies": {
+    "web-component-tester": "^6.0.0-prerelease.5"
+  }
+}

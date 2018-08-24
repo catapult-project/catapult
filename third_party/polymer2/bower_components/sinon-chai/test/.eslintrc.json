@@ -1,0 +1,10 @@
+{
+  "extends": "../.eslintrc.json",
+  "env": {
+    "mocha": true,
+    "node": true
+  },
+  "rules": {
+    "no-unused-expressions": "off"
+  }
+}

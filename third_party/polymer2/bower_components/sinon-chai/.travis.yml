@@ -1,0 +1,30 @@
+language: node_js
+node_js:
+  - "0.10"
+  - stable
+env:
+  # Can't figure out how to DRY this up: http://stackoverflow.com/q/22397300/3191
+  - CHAI_VERSION=^1.9.2 SINON_VERSION=^1.4.0
+  - CHAI_VERSION=^2.0.0 SINON_VERSION=^1.4.0
+  - CHAI_VERSION=^3.0.0 SINON_VERSION=^1.4.0
+  - CHAI_VERSION=^4.0.0 SINON_VERSION=^1.4.0
+  - CHAI_VERSION=^1.9.2 SINON_VERSION=^2.1.0
+  - CHAI_VERSION=^2.0.0 SINON_VERSION=^2.1.0
+  - CHAI_VERSION=^3.0.0 SINON_VERSION=^2.1.0
+  - CHAI_VERSION=^4.0.0 SINON_VERSION=^2.1.0
+  - CHAI_VERSION=^1.9.2 SINON_VERSION=^3.0.0
+  - CHAI_VERSION=^2.0.0 SINON_VERSION=^3.0.0
+  - CHAI_VERSION=^3.0.0 SINON_VERSION=^3.0.0
+  - CHAI_VERSION=^4.0.0 SINON_VERSION=^3.0.0
+  - CHAI_VERSION=^1.9.2 SINON_VERSION=^4.0.0
+  - CHAI_VERSION=^2.0.0 SINON_VERSION=^4.0.0
+  - CHAI_VERSION=^3.0.0 SINON_VERSION=^4.0.0
+  - CHAI_VERSION=^4.0.0 SINON_VERSION=^4.0.0
+script:
+  - test $TRAVIS_NODE_VERSION == "0.10" || npm run lint
+  - npm run test-travis
+before_install:
+  - if [ `npm -v` = "5.3.0" ]; then
+      npm install -g npm@^5.4.2;
+      npm -v;
+    fi
