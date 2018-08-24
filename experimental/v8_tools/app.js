@@ -13,7 +13,7 @@ const app = new Vue({
     searchQuery: '',
     gridColumns: ['id', 'metric', 'averageSampleValues'],
     gridData: [],
-    parsedMetrics: null
+    parsedMetrics: null,
   },
 
   methods: {

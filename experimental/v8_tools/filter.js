@@ -22,7 +22,9 @@ const menu = new Vue({
     subsubcomponent: null,
 
     componentMap: null,
-    sizeMap: null
+    sizeMap: null,
+
+    testResults: [],
   },
 
   computed: {

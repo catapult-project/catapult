@@ -2,21 +2,22 @@
   max-width: 120em;
   max-height: 10000000em;
   height: 10000000px;
-  margin: 2em auto;
   margin-top: +10px;
-  left: +150px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.app-layout {
+  display: flex;
+  flex-direction: row;
+}
+
 .menuLeft {
-  float: left;
-  width: 20%;
   margin-top: +10px;
 }
 
 .appRight {
-  width: 80%;
+  margin-left: 2em;
 }
 
 #radioBoxes {
