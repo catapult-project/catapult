@@ -80,8 +80,9 @@ tr.exportTo('tr.metrics.rendering', function() {
         return thread;
       }
     }
-    const browserHelper = chromeHelper.browserHelpers[0];
-    return browserHelper.process.findAtMostOneThreadNamed('CrBrowserMain');
+    if (!chromeHelper.browserProcess) return null;
+    return chromeHelper.browserProcess.findAtMostOneThreadNamed(
+        'CrBrowserMain');
   }
 
   function addPipelineHistograms(histograms, model, segments) {
