@@ -14,13 +14,10 @@ from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
 from dashboard.common import utils
-from dashboard.models import histogram
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
-
-from tracing.value.diagnostics import reserved_infos
 
 
 # We want this to be fast to minimize overhead while waiting for tasks to
@@ -229,9 +226,6 @@ class Job(ndb.Model):
     footer = ('Understanding performance regressions:\n'
               '  http://g.co/ChromePerformanceRegressions')
 
-    if differences:
-      footer += self._FormatDocumentationUrls()
-
     # Bring it all together.
     comment = '\n\n'.join((header, body, footer))
     current_bug_status = self._GetBugStatus()
@@ -243,32 +237,6 @@ class Job(ndb.Model):
     else:
       # Only update the comment and cc list if this bug is assigned or closed.
       self._PostBugComment(comment, cc_list=sorted(cc_list))
-
-  def _FormatDocumentationUrls(self):
-    if not self.tags:
-      return ''
-
-    # TODO(simonhatch): Tags isn't the best way to get at this, but wait until
-    # we move this back into the dashboard so we have a better way of getting
-    # at the test path.
-    # crbug.com/876899
-    test_path = self.tags.get('test_path')
-    if not test_path:
-      return ''
-
-    test_suite = utils.TestKey('/'.join(test_path.split('/')[:3]))
-
-    docs = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
-        test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
-
-    if not docs:
-      return ''
-
-    docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
-
-    footer = '\n\n%s:\n  %s' % (docs[0][0], docs[0][1])
-
-    return footer
 
   def _UpdateGerritIfNeeded(self):
     if self.gerrit_server and self.gerrit_change_id:

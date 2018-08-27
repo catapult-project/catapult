@@ -3,13 +3,7 @@
 # found in the LICENSE file.
 
 import mock
-import sys
 
-from tracing.value.diagnostics import generic_set
-from tracing.value.diagnostics import reserved_infos
-
-from dashboard.common import utils
-from dashboard.models import histogram
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint import test
@@ -44,19 +38,6 @@ https://example.com/repository/+/git_hash
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
-_COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS = (
-    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
-https://testbed.example.com/job/1
-
-<b>Subject.</b> by author@chromium.org
-https://example.com/repository/+/git_hash
-0 \u2192 1.235 (+1.235)
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-Benchmark doc link:
-  http://docs""")
 
 _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
@@ -175,39 +156,6 @@ class BugCommentTest(test.TestCase):
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
-        status='Assigned', owner='author@chromium.org',
-        cc_list=['author@chromium.org'])
-
-  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
-  @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithCommitAndDocs(self, differences, commit_as_dict):
-    c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(None, c, [0], [1.23456])]
-    commit_as_dict.return_value = {
-        'repository': 'chromium',
-        'git_hash': 'git_hash',
-        'author': 'author@chromium.org',
-        'subject': 'Subject.',
-        'url': 'https://example.com/repository/+/git_hash',
-    }
-
-    self.get_issue.return_value = {'status': 'Untriaged'}
-
-    j = job.Job.New(
-        (), (), bug_id=123456, comparison_mode='performance',
-        tags={'test_path': 'master/bot/benchmark'})
-
-    diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
-    diag = histogram.SparseDiagnostic(
-        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxint,
-        name=reserved_infos.DOCUMENTATION_URLS.name,
-        test=utils.TestKey('master/bot/benchmark'))
-    diag.put()
-
-    j.Run()
-
-    self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
         status='Assigned', owner='author@chromium.org',
         cc_list=['author@chromium.org'])
 
