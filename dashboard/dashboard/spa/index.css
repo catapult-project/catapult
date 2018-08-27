@@ -1,0 +1,42 @@
+/* Copyright 2018 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+:root {
+  --layer-menu: 100;
+  --layer-hidden: -100;
+  --icon-size: 24px;
+
+  /* https://material.io/guidelines/motion/material-motion.html#material-motion-how-does-material-move */
+  --transition-long: 0.8s;
+  --transition-short: 0.4s;
+
+  --primary-color-dark: hsl(231, 48%, 48%);
+  --primary-color-medium: hsl(231, 45%, 84%);
+  --primary-color-light: hsl(231, 44%, 94%);
+  --neutral-color-dark: hsl(0, 0%, 60%);
+  --neutral-color-light: hsl(0, 0%, 93%);
+  --error-color: hsl(4, 90%, 60%);
+  --improvement-color: hsl(122, 40%, 50%);
+  --background-color: white;
+  --foreground-color: black;
+
+  /* paper-material-styles */
+  --elevation-1: {
+    box-shadow: 0 2px 2px 0 hsla(0, 0, 0, 0.14),
+                0 1px 5px 0 hsla(0, 0, 0, 0.12),
+                0 3px 1px -2px hsla(0, 0, 0, 0.2);
+  };
+  --elevation-2: {
+    box-shadow: 0 4px 5px 0 hsla(0, 0, 0, 0.14),
+                0 1px 10px 0 hsla(0, 0, 0, 0.12),
+                0 2px 4px -1px hsla(0, 0, 0, 0.4);
+  };
+}
+
+body {
+  margin: 0;
+  font-family: helvetica,arial,sans-serif;
+  font-size: 13px;
+}

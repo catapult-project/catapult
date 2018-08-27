@@ -37,8 +37,8 @@ def _TimestampScript():
 def VulcanizeIndex(temp_dir, dashboard_path):
   filename = os.path.join(temp_dir, 'index.vulcanized.html')
   html = subprocess.check_output([
-    NODE_VULCANIZE, '--strip-comments', '--inline-scripts', '-p', dashboard_path,
-    'dashboard/spa/index.html',
+    NODE_VULCANIZE, '--strip-comments', '--inline-scripts', '--inline-css',
+    '-p', dashboard_path, 'dashboard/spa/index.html',
   ])
   html += _TimestampScript()
   open(filename, 'w').write(html)
