@@ -1275,6 +1275,187 @@ tr.b.unittest.testSuite(function() {
     },
   });
 
+
+  memoryMetricTest('newV8Values', function(model) {
+    const pRendererA = createProcessWithName(model, 'Renderer');
+    const gmd1 = addGlobalMemoryDump(model, {ts: 20});
+    const pmdRendererA = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
+    pmdRendererA.memoryAllocatorDumps = (function() {
+      const v8Dump = newAllocatorDump(pmdRendererA, 'v8',
+          {numerics: {size: 0}});
+      const isolateDumpA = addChildDump(v8Dump, 'main');
+      const heapDumpA = addChildDump(isolateDumpA, 'heap');
+      addChildDump(heapDumpA, 'code_space', {numerics: {
+        allocated_objects_size: 10,
+        size: 20
+      }});
+      const workersDump = addChildDump(v8Dump, 'workers');
+      const heapDumpB = addChildDump(workersDump, 'heap');
+      const codeSpaceDumpB = addChildDump(heapDumpB, 'code_space');
+      addChildDump(codeSpaceDumpB, 'isolate_0x1234', {numerics: {
+        allocated_objects_size: 1,
+        size: 2
+      }});
+      addChildDump(codeSpaceDumpB, 'isolate_0x5678', {numerics: {
+        allocated_objects_size: 3,
+        size: 4
+      }});
+      return [v8Dump];
+    })();
+  }, undefined /* opt_options */, {
+    'memory:unknown_browser:all_processes:dump_count:detailed': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of detailed memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:light': {
+      value: [1],
+      unit: count_smallerIsBetter,
+      description: 'total number of light memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:background': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of background memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'an unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count': {
+      value: [1],
+      unit: count_smallerIsBetter,
+      description: 'total number of all memory dumps added by an unknown ' +
+          'browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:process_count': {
+      value: [1],
+      unit: count_smallerIsBetter,
+      description: 'total number of all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:effective_size': {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total effective size reported by Chrome for all ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects reported by Chrome ' +
+          'for all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:heap:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap in all ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:heap:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap in all processes in an ' +
+          'unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:code_space ' +
+          'in all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:heap:code_space:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:code_space in all ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8 in all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_chrome:v8:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in all processes ' +
+          'in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:process_count': {
+      value: [1],
+      unit: count_smallerIsBetter,
+      description: 'total number of renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total effective size reported by Chrome for renderer ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects reported by Chrome ' +
+          'for renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:heap:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap in renderer ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:heap:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap in renderer processes in ' +
+          'an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:code_space ' +
+          'in renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:code_space in renderer ' +
+          'processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:effective_size':
+    {
+      value: [26],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8 in renderer processes in an ' +
+          'unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:allocated_objects_size':
+    {
+      value: [14],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in renderer ' +
+          'processes in an unknown browser'
+    }
+  });
+
+
   memoryMetricTest('detailedValues_unknownBrowser', function(model) {
     const pBrowser = createProcessWithName(model, 'Browser');
     const pRendererA = createProcessWithName(model, 'Renderer');
@@ -2290,7 +2471,7 @@ tr.b.unittest.testSuite(function() {
         code_and_metadata_size: 33554432,
         size: 67108864
       }});
-      const isolateDump = addChildDump(v8Dump, 'isolate');
+      const isolateDump = addChildDump(v8Dump, 'isolateA');
       addChildDump(isolateDump, 'malloc', {numerics: {
         size: 1,
         peak_size: 2

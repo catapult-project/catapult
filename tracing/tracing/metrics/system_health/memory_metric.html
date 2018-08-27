@@ -293,7 +293,11 @@ tr.exportTo('tr.metrics.sh', function() {
             addProcessScalar);
       }
       // v8:heap:...
-      const heapDump = isolateDump.getDescendantDumpByFullName('heap_spaces');
+      let heapDump = isolateDump.getDescendantDumpByFullName('heap');
+      if (heapDump === undefined) {
+        // Old V8 memory dumps call this 'heap_spaces'.
+        heapDump = isolateDump.getDescendantDumpByFullName('heap_spaces');
+      }
       if (heapDump !== undefined) {
         addV8ComponentValues(heapDump, ['v8', 'heap'], addProcessScalar);
         heapDump.children.forEach(function(spaceDump) {
