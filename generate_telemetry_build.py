@@ -178,7 +178,8 @@ def ProcessDir(root_path, path, build_file, path_prefix):
   for entry in entry_list:
     full_path = os.path.join(path, entry)
     rel_path = os.path.relpath(full_path, root_path)
-    if entry.startswith('.') or entry.endswith('~') or entry.endswith('.pyc'):
+    if (entry.startswith('.') or entry.endswith('~') or
+        entry.endswith('.pyc') or entry.endswith('#')):
       logging.debug('ignored ' + rel_path)
       continue
     if os.path.isfile(full_path):
@@ -269,6 +270,7 @@ def GenerateBuildFile(root_path, output_path, chromium):
     build_file.close()
 
 def CheckForChanges():
+  # Return 0 if no changes are detected; return 1 otherwise.
   root_path = os.path.dirname(os.path.realpath(__file__))
   temp_path = os.path.join(root_path, "TEMP.gn")
   GenerateBuildFile(root_path, temp_path, chromium=False)
@@ -276,7 +278,7 @@ def CheckForChanges():
   ref_path = os.path.join(root_path, "BUILD.gn")
   if not os.path.exists(ref_path):
     logging.error("Can't localte BUILD.gn!")
-    return False
+    return 1
 
   temp_file = open(temp_path, 'r')
   temp_content = temp_file.readlines()
@@ -294,9 +296,9 @@ def CheckForChanges():
   if len(diff_data) > 0:
     logging.error('Diff found. Please rerun generate_telemetry_build.py.')
     logging.debug('\n' + ''.join(diff_data))
-    return False
+    return 1
   logging.debug('No diff found. Everything is good.')
-  return True
+  return 0
 
 
 def main(argv):
@@ -314,8 +316,8 @@ def main(argv):
     logging.basicConfig(level=logging.DEBUG)
 
   if options.check:
-    CheckForChanges()
-  elif options.chromium:
+    return CheckForChanges()
+  if options.chromium:
     root_path = os.path.dirname(os.path.realpath(__file__))
     output_path = os.path.join(
         root_path, "../../tools/perf/chrome_telemetry_build/BUILD.gn")
@@ -324,6 +326,7 @@ def main(argv):
     root_path = os.path.dirname(os.path.realpath(__file__))
     output_path = os.path.join(root_path, "BUILD.gn")
     GenerateBuildFile(root_path, output_path, chromium=False)
+  return 0
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv[1:]))
