@@ -59,6 +59,9 @@ EXCLUDED_PATHS = [
     "path": "generate_telemetry_build.py",
   },
   {
+    "path": "telemetry/telemetry/data",
+  },
+  {
     "path": "telemetry/telemetry/bin",
   },
   {
@@ -171,6 +174,7 @@ def ProcessDir(root_path, path, build_file, path_prefix):
   # Return a list of dirs that needs to processed further.
   logging.debug('GenerateList for ' + path)
   entry_list = os.listdir(path)
+  entry_list.sort()
   file_list = []
   dir_list = []
   conditional_list = []
@@ -209,8 +213,6 @@ def ProcessDir(root_path, path, build_file, path_prefix):
         });
     else:
       assert False
-  file_list.sort()
-  dir_list.sort()
   WriteLists([file_list, dir_list], [conditional_list],
              build_file, path_prefix)
   return expand_list
