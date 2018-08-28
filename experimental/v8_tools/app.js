@@ -29,11 +29,14 @@ const app = new Vue({
 
     //  Draw a dot plot depending on the target value.
     //  This is mainly for results from the table.
-    plotDotPlot(target, story) {
+    plotDotPlot(target, story, traces) {
+      const openTrace = (label, index) => {
+        window.open(traces[label][index]);
+      };
       this.graph
           .xAxis('Memory used (MiB)')
           .title(story)
-          .setData(target)
+          .setData(target, openTrace)
           .plotDot();
     },
 
@@ -50,7 +53,8 @@ const app = new Vue({
     //  Being given a metric, a story, a diagnostic and a set of
     //  subdiagnostics (for example, 3 labels from the total available
     //  ones), the method return the sample values for each subdiagnostic.
-    getSubdiagnostics(metric, story, diagnostic, diagnostics) {
+    getSubdiagnostics(
+        getTargetValueFromSample, metric, story, diagnostic, diagnostics) {
       const result = this.sampleArr
           .filter(value => value.name === metric &&
           this.guidValue
@@ -70,28 +74,34 @@ const app = new Vue({
         } else {
           currentDiagnostic = diagnosticItem[0];
         }
+        const targetValue = getTargetValueFromSample(val);
         if (content.has(currentDiagnostic)) {
           const aux = content.get(currentDiagnostic);
-          content.set(currentDiagnostic, aux.concat(val.sampleValues));
+          content.set(currentDiagnostic, aux.concat(targetValue));
         } else {
-          content.set(currentDiagnostic, val.sampleValues);
+          content.set(currentDiagnostic, targetValue);
         }
       }
       const obj = {};
       for (const [key, value] of content.entries()) {
         if (diagnostics === undefined ||
           diagnostics.includes(key.toString())) {
-          value.map(value => +((value / MiB).toFixed(5)));
           obj[key] = value;
         }
       }
       return obj;
     },
 
+    getSampleValues(sample) {
+      const toMiB = (x) => (x / MiB).toFixed(5);
+      const values = sample.sampleValues;
+      return values.map(value => toMiB(value));
+    },
     //  Draw a plot by default with all the sub-diagnostics
     //  in the same plot;
     plotSingleMetricWithAllSubdiagnostics(metric, story, diagnostic) {
-      const obj = this.getSubdiagnostics(metric, story, diagnostic);
+      const obj = this.getSubdiagnostics(
+          this.getSampleValues, metric, story, diagnostic);
       this.plotCumulativeFrequencyPlot(obj, story);
     },
     //  Draw a plot depending on the target value which is made
@@ -99,10 +109,16 @@ const app = new Vue({
     //  and the chosen type of plot. All are chosen from the table.
     plotSingleMetric(metric, story, diagnostic,
         diagnostics, chosenPlot) {
-      const target = this.targetForMultipleDiagnostics(metric, story,
-          diagnostic, diagnostics);
+      const target = this.targetForMultipleDiagnostics(
+          this.getSampleValues, metric, story, diagnostic, diagnostics);
       if (chosenPlot === 'Dot plot') {
-        this.plotDotPlot(target, story);
+        const getTraceLinks = (sample) => {
+          const traceId = sample.diagnostics.traceUrls;
+          return this.guidValue.get(traceId);
+        };
+        const traces = this.targetForMultipleDiagnostics(
+            getTraceLinks, metric, story, diagnostic, diagnostics);
+        this.plotDotPlot(target, story, traces);
       } else {
         this.plotCumulativeFrequencyPlot(target, story);
       }
@@ -112,12 +128,14 @@ const app = new Vue({
     //  sub-diagnostics are chosen from the table, not from the drop-down menu.
     //  It should be the same for both components but for now they should
     //  be divided.
-    targetForMultipleDiagnostics(metric, story, diagnostic, diagnostics) {
+    targetForMultipleDiagnostics(
+        getTargetValueFromSample, metric, story, diagnostic, diagnostics) {
       if (metric === null || story === null ||
         diagnostic === null || diagnostics === null) {
         return undefined;
       }
-      return this.getSubdiagnostics(metric, story, diagnostic, diagnostics);
+      return this.getSubdiagnostics(
+          getTargetValueFromSample, metric, story, diagnostic, diagnostics);
     }
   },
 
