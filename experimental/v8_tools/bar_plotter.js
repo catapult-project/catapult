@@ -117,7 +117,9 @@ class BarPlotter {
           .attr('y', d => this.scaleForYAxis_(d[this.y_]))
           .attr('width', barWidth)
           .attr('height', d => barHeight(d[this.y_]))
-          .attr('fill', color);
+          .attr('fill', color)
+          .on('click', d =>
+            graph.interactiveCallbackForBarPlot(d[this.x_], key));
       legend.append('text')
           .text(key)
           .attr('y', index + 'em')

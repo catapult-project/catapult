@@ -34,15 +34,62 @@ describe('DotPlotter', function() {
     });
   });
   describe('plotting', function() {
+    const graph = new GraphData();
     it('should plot data despite invalid selection characters', function() {
       const data = {
         'source.with:inv@lid _chars"}~$': [1, 2, 3, 4, 5],
       };
-      const graph = new GraphData().addData(data);
+      graph.setData(data);
       chai.expect(() => graph.plotDot()).to.not.throw(Error);
       chai.expect(
           document.querySelectorAll('.dot-0').length)
           .to.equal(5);
     });
+    it('should trigger the supplied callback when a dot is clicked',
+        function() {
+          const data = {
+            'label': [1],
+          };
+          const callback = chai.spy((metric, story, key, index) => {});
+          graph.setData(data, callback).plotDot();
+          d3.selectAll('circle').dispatch('click');
+          chai.expect(callback)
+              .to.have.been.called.with
+              .exactly('label', 0);
+        });
+    it('should trigger the supplied callback with the correct arguments',
+        function() {
+          const data = {
+            'labelOne': [5, 8, 10],
+            'labelTwo': [4, 1],
+          };
+          const callback = chai.spy();
+          graph.setData(data, callback).plotDot();
+
+          d3.select('.chai-test-dot-0-5').dispatch('click');
+          chai.expect(callback)
+              .on.nth(1).to.have.been.called.with
+              .exactly('labelOne', 0);
+
+          d3.select('.chai-test-dot-0-8').dispatch('click');
+          chai.expect(callback)
+              .on.nth(2).to.have.been.called.with
+              .exactly('labelOne', 1);
+
+          d3.select('.chai-test-dot-0-10').dispatch('click');
+          chai.expect(callback)
+              .on.nth(3).to.have.been.called.with
+              .exactly('labelOne', 2);
+
+          d3.select('.chai-test-dot-1-4').dispatch('click');
+          chai.expect(callback)
+              .on.nth(4).to.have.been.called.with
+              .exactly('labelTwo', 0);
+
+          d3.select('.chai-test-dot-1-1').dispatch('click');
+          chai.expect(callback)
+              .on.nth(5).to.have.been.called.with
+              .exactly('labelTwo', 1);
+        });
   });
 });
