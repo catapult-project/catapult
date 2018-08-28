@@ -1,4 +1,4 @@
-# Copyright 2015 The Chromium Authors. All rights reserved.
+# Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -7,13 +7,10 @@ import datetime
 import mock
 import unittest
 
-import webapp2
-import webtest
-
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
-from dashboard import layered_cache
+from dashboard.common import layered_cache
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 
@@ -22,10 +19,6 @@ class LayeredCacheTest(testing_common.TestCase):
 
   def setUp(self):
     super(LayeredCacheTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/delete_expired_entities',
-        layered_cache.DeleteExpiredEntitiesHandler)])
-    self.testapp = webtest.TestApp(app)
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
@@ -118,25 +111,6 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertEqual('dog', layered_cache.Get('expired_str4'))
     self.assertEqual('egg', layered_cache.Get('expired_str5'))
     layered_cache.DeleteAllExpiredEntities()
-    self.assertIsNone(layered_cache.Get('expired_str1'))
-    self.assertIsNone(layered_cache.Get('expired_str2'))
-    self.assertEqual('cat', layered_cache.Get('expired_str3'))
-    self.assertEqual('dog', layered_cache.Get('expired_str4'))
-    self.assertEqual('egg', layered_cache.Get('expired_str5'))
-
-  def testGet_DeleteExpiredEntities(self):
-    self.SetCurrentUser('internal@chromium.org')
-    layered_cache.Set('expired_str1', 'apple', days_to_keep=-10)
-    layered_cache.Set('expired_str2', 'bat', days_to_keep=-1)
-    layered_cache.Set('expired_str3', 'cat', days_to_keep=10)
-    layered_cache.Set('expired_str4', 'dog', days_to_keep=0)
-    layered_cache.Set('expired_str5', 'egg')
-    self.assertEqual('apple', layered_cache.Get('expired_str1'))
-    self.assertEqual('bat', layered_cache.Get('expired_str2'))
-    self.assertEqual('cat', layered_cache.Get('expired_str3'))
-    self.assertEqual('dog', layered_cache.Get('expired_str4'))
-    self.assertEqual('egg', layered_cache.Get('expired_str5'))
-    self.testapp.get('/delete_expired_entities')
     self.assertIsNone(layered_cache.Get('expired_str1'))
     self.assertIsNone(layered_cache.Get('expired_str2'))
     self.assertEqual('cat', layered_cache.Get('expired_str3'))

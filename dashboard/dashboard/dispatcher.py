@@ -34,7 +34,7 @@ from dashboard import graph_csv
 from dashboard import graph_json
 from dashboard import graph_revisions
 from dashboard import group_report
-from dashboard import layered_cache
+from dashboard import layered_cache_delete_expired
 from dashboard import list_monitored_tests
 from dashboard import list_tests
 from dashboard import load_from_prod
@@ -92,7 +92,8 @@ _URL_MAPPING = [
     ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
     ('/create_health_report', create_health_report.CreateHealthReportHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
-    ('/delete_expired_entities', layered_cache.DeleteExpiredEntitiesHandler),
+    ('/delete_expired_entities',
+     layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),
     ('/delete_test_data', delete_test_data.DeleteTestDataHandler),
     ('/dump_graph_json', dump_graph_json.DumpGraphJsonHandler),
     ('/edit_anomalies', edit_anomalies.EditAnomaliesHandler),

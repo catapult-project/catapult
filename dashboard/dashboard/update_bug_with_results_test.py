@@ -12,8 +12,8 @@ import mock
 import webapp2
 import webtest
 
-from dashboard import layered_cache
 from dashboard import update_bug_with_results
+from dashboard.common import layered_cache
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils

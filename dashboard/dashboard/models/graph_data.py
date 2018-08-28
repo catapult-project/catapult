@@ -60,7 +60,7 @@ import logging
 
 from google.appengine.ext import ndb
 
-from dashboard import layered_cache
+from dashboard.common import layered_cache
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config

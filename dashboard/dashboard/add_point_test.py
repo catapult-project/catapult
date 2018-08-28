@@ -16,8 +16,8 @@ from google.appengine.ext import ndb
 
 from dashboard import add_point
 from dashboard import add_point_queue
-from dashboard import layered_cache
 from dashboard import units_to_direction
+from dashboard.common import layered_cache
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
