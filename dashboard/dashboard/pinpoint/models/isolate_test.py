@@ -24,3 +24,20 @@ class IsolateTest(test.TestCase):
   def testUnknownIsolate(self):
     with self.assertRaises(KeyError):
       isolate.Get('Wrong Builder', change_test.Change(1), 'target_name')
+
+  def testBuilderNameMap(self):
+    # TODO(dtu): Remove 6 months after LUCI migration is complete.
+    isolate_infos = (
+        ('android_arm64-builder-perf', change_test.Change(1),
+         'target_name', 'abcd1234'),
+    )
+    isolate.Put('https://isolate.server', isolate_infos)
+
+    isolate_server, isolate_hash = isolate.Get(
+        'Android arm64 Compile Perf', change_test.Change(1), 'target_name')
+    self.assertEqual(isolate_server, 'https://isolate.server')
+    self.assertEqual(isolate_hash, 'abcd1234')
+
+    with self.assertRaises(KeyError):
+      isolate.Get('Android arm64 Compile Perf',
+                  change_test.Change(2), 'target_name')

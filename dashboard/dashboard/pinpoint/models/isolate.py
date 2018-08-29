@@ -13,6 +13,13 @@ https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.
 from google.appengine.ext import ndb
 
 
+# A list of builders that recently changed names.
+# TODO(dtu): Remove 6 months after LUCI migration is complete.
+_BUILDER_NAME_MAP = {
+    'Android arm64 Compile Perf': 'android_arm64-builder-perf',
+}
+
+
 def Get(builder_name, change, target):
   """Retrieve an isolate hash from the Datastore.
 
@@ -26,8 +33,17 @@ def Get(builder_name, change, target):
   """
   entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
   if not entity:
-    raise KeyError('No isolate with builder %s, change %s, and target %s.' %
-                   (builder_name, change, target))
+    if builder_name in _BUILDER_NAME_MAP:
+      # The builder has changed names. Try again with the new name.
+      # TODO(dtu): Remove 6 months after LUCI migration is complete.
+      builder_name = _BUILDER_NAME_MAP[builder_name]
+      entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
+      if not entity:
+        raise KeyError('No isolate with builder %s, change %s, and target %s.' %
+                       (builder_name, change, target))
+    else:
+      raise KeyError('No isolate with builder %s, change %s, and target %s.' %
+                     (builder_name, change, target))
   return entity.isolate_server, entity.isolate_hash
 
 
