@@ -38,7 +38,7 @@ class WeakConstantTest(unittest.TestCase):
     self.assertEquals(
         'initializer called',
         test_constant.read())
-    initializer.assert_called_once()
+    initializer.assert_called_once_with()
 
   def testInitialized(self):
     """Ensure that reading doesn't reinitialize the value."""
@@ -49,7 +49,7 @@ class WeakConstantTest(unittest.TestCase):
     self.assertEquals(
         'initializer not called',
         test_constant.read())
-    initializer.assert_not_called()
+    self.assertFalse(initializer.mock_calls)  # assert not called
 
   def testFirstCallHangs(self):
     """Ensure that reading works even if the first initializer call hangs."""
