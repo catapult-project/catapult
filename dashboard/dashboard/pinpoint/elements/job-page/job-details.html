@@ -13,11 +13,8 @@ found in the LICENSE file.
     <style include="base-style">
       ul {
         list-style-type: none;
+        margin: 0;
         padding: 0;
-      }
-
-      li {
-        margin: 0.5em 0;
       }
 
       th {
@@ -27,6 +24,10 @@ found in the LICENSE file.
 
       td {
         word-break: break-all;
+      }
+
+      .section {
+        margin: 24px 0;
       }
     </style>
 
@@ -44,25 +45,29 @@ found in the LICENSE file.
     </ul>
 
     <template is="dom-if" if="[[job.comparison_mode]]">
-      <template is="dom-if" if="[[hasDifferences(job)]]">
-        <h2>Differences found after commits</h2>
-        <template is="dom-repeat" items="[[getDifferences(job)]]">
-          <change-info change=[[item]]></change-info>
+      <div class="section">
+        <template is="dom-if" if="[[hasDifferences(job)]]">
+          <h2>Differences found after commits</h2>
+          <template is="dom-repeat" items="[[getDifferences(job)]]">
+            <change-info change=[[item]]></change-info>
+          </template>
         </template>
-      </template>
-      <template is="dom-if" if="[[!hasDifferences(job)]]">
-        <h2>No differences found</h2>
-      </template>
+        <template is="dom-if" if="[[!hasDifferences(job)]]">
+          <h2>No differences found</h2>
+        </template>
+      </div>
     </template>
 
-    <h2>Job arguments</h2>
-    <table>
-      <template is="dom-repeat" items="[[getArguments(job)]]">
-        <tr>
-          <th>[[item.key]]
-          <td>[[item.value]]
-      </template>
-    </table>
+    <div class="section">
+      <h2>Job arguments</h2>
+      <table>
+        <template is="dom-repeat" items="[[getArguments(job)]]">
+          <tr>
+            <th>[[item.key]]
+            <td>[[item.value]]
+        </template>
+      </table>
+    </div>
   </template>
 
   <script>

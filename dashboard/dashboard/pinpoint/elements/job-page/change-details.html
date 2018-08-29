@@ -14,6 +14,10 @@ found in the LICENSE file.
 <dom-module id="change-details">
   <template>
     <style include="base-style">
+      .commit-title {
+        margin-top: 8px;
+      }
+
       .emphasis {
         font-weight: bold;
       }
@@ -85,7 +89,7 @@ found in the LICENSE file.
     </style>
 
     <template is="dom-if" if="[[changeState]]">
-      <h2>Commit [[changeString(changeState.change)]]</h2>
+      <h2 class="commit-title">Commit [[changeString(changeState.change)]]</h2>
 
       <change-info change="[[changeState.change]]"></change-info>
 

@@ -57,16 +57,6 @@ handlers:
   secure: always
   application_readable: true
 
-- url: /flot/(.*\.js)$
-  static_files: flot/\1
-  upload: flot/.*\.js$
-  secure: always
-
-- url: /jquery/(.*\.js)$
-  static_files: jquery/\1
-  upload: jquery/.*\.js$
-  secure: always
-
 - url: /.*
   static_files: dashboard/pinpoint/index/index.html
   upload: dashboard/pinpoint/index/index.html
