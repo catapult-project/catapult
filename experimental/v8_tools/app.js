@@ -14,9 +14,21 @@ const app = new Vue({
     gridColumns: ['id', 'metric', 'averageSampleValues'],
     gridData: [],
     parsedMetrics: null,
+    globalDiagnostic: null,
+    columnsForChosenDiagnostic: null,
+    resetDropDownMenu: false,
+    oldGridData: []
   },
 
   methods: {
+    plotBarChart(data) {
+      this.graph.xAxis('Story')
+          .yAxis('Memory used (MiB)')
+          .title(this.globalDiagnostic
+              .charAt(0).toUpperCase() + this.globalDiagnostic.slice(1))
+          .setData(data)
+          .plotBar();
+    },
     //  Draw a cumulative frequency plot depending on the target value.
     //  This is for displaying results for the selected parameters
     // from the drop-down menu.
@@ -104,6 +116,7 @@ const app = new Vue({
           this.getSampleValues, metric, story, diagnostic);
       this.plotCumulativeFrequencyPlot(obj, story);
     },
+
     //  Draw a plot depending on the target value which is made
     //  of a metric, a story, a diagnostic and a couple of sub-diagnostics
     //  and the chosen type of plot. All are chosen from the table.
@@ -140,6 +153,9 @@ const app = new Vue({
   },
 
   computed: {
+    gridDataLoaded() {
+      return this.gridData.length > 0;
+    },
     data_loaded() {
       return this.sampleArr.length > 0;
     },
@@ -155,14 +171,14 @@ const app = new Vue({
     //  Compute the metrics for the drop-down menu;
     //  The user will chose one of them.
     metrics() {
-      if (this.parsedMetrics !== null) {
-        return this.parsedMetrics;
+      if (this.parsedMetrics === null ||
+        this.resetDropDownMenu === true) {
+        const metricsNames = [];
+        this.sampleArr.map(el => metricsNames.push(el.name));
+        return _.uniq(metricsNames);
       }
-      const metricsNames = [];
-      this.sampleArr.map(el => metricsNames.push(el.name));
-      return _.uniq(metricsNames);
+      return this.parsedMetrics;
     },
-
     //  Compute the stories depending on the chosen metric.
     //  The user should chose one of them.
     stories() {
@@ -208,7 +224,17 @@ const app = new Vue({
           .getSubdiagnostics(this.selected_metric,
               this.selected_story,
               this.selected_diagnostic);
-    }
+    },
+
+    //  Extract all diagnostic names from all elements.
+    allDiagnostics() {
+      if (this.sampleArr === undefined) {
+        return undefined;
+      }
+      const allDiagnostics = this.sampleArr
+          .map(val => Object.keys(val.diagnostics));
+      return _.union.apply(this, allDiagnostics);
+    },
   },
 
   watch: {
@@ -219,13 +245,87 @@ const app = new Vue({
       this.plotCumulativeFrequency();
     },
 
-    // Whenever the user changes the mind about the top level metric
-    //  all dependencies are changed. (stories and diagnostics are
-    //  dependent of the chosen metric)
     metrics() {
       this.selected_metric = null;
       this.selected_story = null;
       this.selected_diagnostic = null;
+    },
+    //  Compute the data for the columns after the user has chosen a
+    //  particular global diagnostic that has to be split in
+    //  multiple subdiagnostics.
+    globalDiagnostic() {
+      if (this.globalDiagnostic === null) {
+        return undefined;
+      }
+      this.gridColumns = ['id', 'metric', 'averageSampleValues'];
+      const newDiagnostics = new Set();
+      const metricTodiagnoticValuesMap = new Map();
+      for (const elem of this.sampleArr) {
+        let currentDiagnostic = this.guidValue.
+            get(elem.diagnostics[this.globalDiagnostic]);
+        if (currentDiagnostic === undefined) {
+          continue;
+        }
+        if (currentDiagnostic !== 'number') {
+          currentDiagnostic = currentDiagnostic[0];
+        }
+        newDiagnostics.add(currentDiagnostic);
+
+        if (!metricTodiagnoticValuesMap.has(elem.name)) {
+          const map = new Map();
+          map.set(currentDiagnostic, [average(elem.sampleValues)]);
+          metricTodiagnoticValuesMap.set(elem.name, map);
+        } else {
+          const map = metricTodiagnoticValuesMap.get(elem.name);
+          if (map.has(currentDiagnostic)) {
+            const array = map.get(currentDiagnostic);
+            array.push(average(elem.sampleValues));
+            map.set(currentDiagnostic, array);
+            metricTodiagnoticValuesMap.set(elem.name, map);
+          } else {
+            map.set(currentDiagnostic, [average(elem.sampleValues)]);
+            metricTodiagnoticValuesMap.set(elem.name, map);
+          }
+        }
+      }
+      this.columnsForChosenDiagnostic = Array.from(newDiagnostics);
+      for (const elem of this.gridData) {
+        if (metricTodiagnoticValuesMap.get(elem.metric) === undefined) {
+          continue;
+        }
+        for (const diagnostic of Array.from(newDiagnostics)) {
+          elem[diagnostic] = average(metricTodiagnoticValuesMap
+              .get(elem.metric).get(diagnostic));
+        }
+      }
+    },
+
+    //  Whenever we have new inputs from the menu (parsed inputs that
+    //  where obtained by choosing from the tree) these should be
+    //  added in the table (adding the average sample value)
+    parsedMetrics() {
+      const metricAverage = new Map();
+      for (const e of this.sampleArr) {
+        if (this.parsedMetrics.includes(e.name)) {
+          if (metricAverage.has(e.name)) {
+            const aux = metricAverage.get(e.name);
+            aux.push(average(e.sampleValues));
+            metricAverage.set(e.name, aux);
+          } else {
+            metricAverage.set(e.name, [average(e.sampleValues)]);
+          }
+        }
+      }
+      const tableElems = [];
+      let id = 1;
+      for (const [key, value] of metricAverage.entries()) {
+        tableElems.push({
+          id: id++,
+          metric: key,
+          averageSampleValues: average(value)
+        });
+      }
+      this.gridData = tableElems;
     }
   }
 });

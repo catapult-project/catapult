@@ -7,7 +7,8 @@ Vue.component('data-table', {
   props: {
     data: Array,
     columns: Array,
-    filterKey: String
+    filterKey: String,
+    additional: Array
   },
   data() {
     const sort = {};
@@ -26,7 +27,11 @@ Vue.component('data-table', {
       diagnostic: null,
       selected_diagnostics: [],
       plot_kinds: ['Cumulative frequency plot', 'Dot plot'],
-      chosen_plot: ''
+      chosen_plot: '',
+      markedTableMetrics: [],
+      markedTableStories: [],
+      markedTableDiagnostics: [],
+      checkedDiagnostic: null
     };
   },
   computed: {
@@ -113,9 +118,13 @@ Vue.component('data-table', {
       return undefined;
     }
   },
+
   //  Capitalize the objects field names.
   filters: {
     capitalize(str) {
+      if (typeof str === 'number') {
+        return str.toString();
+      }
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
   },
@@ -135,22 +144,55 @@ Vue.component('data-table', {
       this.selected_diagnostics = [];
     },
 
-    //  This method will be called when the user clicks a specific
-    //  'row in table' = 'metric' and we have to provide the stories for that.
-    //  Also all the previous choices must be removed.
-    toggleMetric(entry) {
-      const index = this.openedMetric.indexOf(entry.id);
-      if (index > -1) {
-        this.openedMetric.splice(index, 1);
-      } else {
-        this.openedMetric.push(entry.id);
+    //  Compute all the sample values depending on a single
+    //  metric for each stories and for multiple sub-diagnostics.
+    getSampleByStoryBySubdiagnostics(entry, sampleArr, guidValue, globalDiag) {
+      const diagValues = new Map();
+      for (const e of sampleArr) {
+        if (e.name !== entry.metric) {
+          continue;
+        }
+        let nameOfStory = guidValue.get(e.diagnostics.stories);
+        if (nameOfStory === undefined) {
+          continue;
+        }
+        if (typeof nameOfStory !== 'number') {
+          nameOfStory = nameOfStory[0];
+        }
+        let diagnostic = guidValue.
+            get(e.diagnostics[globalDiag]);
+        if (diagnostic === undefined) {
+          continue;
+        }
+        if (diagnostic !== 'number') {
+          diagnostic = diagnostic[0];
+        }
+        if (!diagValues.has(nameOfStory)) {
+          const map = new Map();
+          map.set(diagnostic, [average(e.sampleValues)]);
+          diagValues.set(nameOfStory, map);
+        } else {
+          const map = diagValues.get(nameOfStory);
+          if (!map.has(diagnostic)) {
+            map.set(diagnostic, [average(e.sampleValues)]);
+            diagValues.set(nameOfStory, map);
+          } else {
+            const array = map.get(diagnostic);
+            array.push(average(e.sampleValues));
+            map.set(diagnostic, array);
+            diagValues.set(nameOfStory, map);
+          }
+        }
       }
-      const sampleArr = this.$parent.sampleArr;
-      const guidValue = this.$parent.guidValue;
-      const storiesEntries = [];
+      return diagValues;
+    },
 
+    getSamplesByStory(entry, sampleArr, guidValue) {
       const storiesAverage = new Map();
       for (const e of sampleArr) {
+        if (e.name !== entry.metric) {
+          continue;
+        }
         let nameOfStory = guidValue.get(e.diagnostics.stories);
         if (nameOfStory === undefined) {
           continue;
@@ -167,12 +209,43 @@ Vue.component('data-table', {
           storiesAverage.set(nameOfStory, current);
         }
       }
-      for (const [key, value] of storiesAverage) {
-        storiesEntries.push(
-            new StoryRow(key, average(value))
-        );
-      }
+      return storiesAverage;
+    },
 
+    //  This method will be called when the user clicks a specific
+    //  'row in table' = 'metric' and we have to provide the stories for that.
+    //  Also all the previous choices must be removed.
+    toggleMetric(entry) {
+      const index = this.openedMetric.indexOf(entry.id);
+      if (index > -1) {
+        this.openedMetric.splice(index, 1);
+      } else {
+        this.openedMetric.push(entry.id);
+      }
+      const sampleArr = this.$parent.sampleArr;
+      const guidValue = this.$parent.guidValue;
+      const globalDiag = this.$parent.globalDiagnostic;
+      const addCol = this.$parent.columnsForChosenDiagnostic;
+      const storiesEntries = [];
+
+      const storiesAverage = this
+          .getSamplesByStory(entry, sampleArr, guidValue);
+      for (const [key, value] of storiesAverage.entries()) {
+        storiesEntries.push({
+          story: key,
+          sample: average(value)
+        });
+      }
+      if (addCol !== null) {
+        const diagValues = this
+            .getSampleByStoryBySubdiagnostics(entry,
+                sampleArr, guidValue, globalDiag);
+        for (const e of storiesEntries) {
+          for (const diag of addCol) {
+            e[diag] = average(diagValues.get(e.story).get(diag));
+          }
+        }
+      }
       this.storiesEntries = storiesEntries;
       this.metric = entry;
       this.diagnostic = null;
@@ -213,6 +286,63 @@ Vue.component('data-table', {
             this.selected_diagnostics,
             this.chosen_plot);
       }
+    },
+
+    //  When the user pick a new metric for further analysis
+    //  this one has to be stored. If this is already stored
+    //  this means that the action is the reverse one: unpick.
+    pickTableMetric(entry) {
+      if (this.markedTableMetrics.includes(entry.metric)) {
+        this.markedTableMetrics.splice(
+            this.markedTableMetrics.indexOf(entry.metric), 1);
+      } else {
+        this.markedTableMetrics.push(entry.metric);
+      }
+    },
+
+    //  Whenever the user pick a new metric for further analysis
+    //  this one has to be stored. If it is already stored,
+    //  this means that the user actually unpicked it.
+    pickTableStory(entry) {
+      if (this.markedTableStories.includes(entry.story)) {
+        this.markedTableStories.splice(
+            this.markedTableStories.indexOf(entry.story), 1);
+      } else {
+        this.markedTableStories.push(entry.story);
+      }
+    },
+
+    //  The same for pickTableMetric and pickTableStory.
+    pickHeadTable(title) {
+      if (this.markedTableDiagnostics.includes(title)) {
+        this.markedTableDiagnostics.splice(
+            this.markedTableDiagnostics.indexOf(title), 1);
+      } else {
+        this.markedTableDiagnostics.push(title);
+      }
+    },
+
+    //  Draw a bar chart when multiple stories are selected
+    //  from a single metric and multiple sub-diagnostics are
+    //  selected froma a single main diagnostic.
+    plotMultipleStoriesMultipleDiag() {
+      if (this.markedTableDiagnostics.length !== 0) {
+        const sampleArr = this.$parent.sampleArr;
+        const guidValue = this.$parent.guidValue;
+        const globalDiag = this.$parent.globalDiagnostic;
+        const map = this
+            .getSampleByStoryBySubdiagnostics(this.metric,
+                sampleArr, guidValue, globalDiag);
+        const data = {};
+        for (const e of this.markedTableDiagnostics) {
+          const obj = {};
+          for (const story of this.markedTableStories) {
+            obj[story] = map.get(story).get(e);
+          }
+          data[e] = obj;
+        }
+        app.plotBarChart(data);
+      }
     }
   },
 
@@ -238,6 +368,29 @@ Vue.component('data-table', {
       this.empty();
       app.plotSingleMetricWithAllSubdiagnostics(this.metric.metric,
           this.story.story, this.diagnostic);
+    },
+
+    //  Whenever a new subdiagnostic from table columns is chosen
+    //  it is added the to bar chart. Depending on the main diagnostic
+    //  and its subdiagnostics, all the sample values for a particular
+    //  metric, multiple stories, a single main diagnostic and multiple
+    //  subdiagnostics are computed. The plot is drawn using this data.
+    markedTableDiagnostics() {
+      this.plotMultipleStoriesMultipleDiag();
+    },
+
+    //  Whenever a new story from table is chosen it has to be added
+    //  in the final bar chart.
+    markedTableStories() {
+      this.plotMultipleStoriesMultipleDiag();
+    },
+
+    //  Whenever the main selected metric from the table is changed
+    //  all marked diagnostics have to be removed because they are
+    //  not available.
+    metric() {
+      this.markedTableDiagnostics = [];
+      this.checkedDiagnostic = false;
     }
   }
 });

@@ -24,7 +24,7 @@ const menu = new Vue({
     componentMap: null,
     sizeMap: null,
 
-    testResults: [],
+    testResults: []
   },
 
   computed: {
@@ -145,25 +145,6 @@ const menu = new Vue({
   }
 });
 
-//  A row from the default table.
-class TableRow {
-  constructor(id, metric, averageSampleValues) {
-    this.id = id;
-    this.metric = metric;
-    this.averageSampleValues = averageSampleValues;
-  }
-}
-
-//  A row after expanding a specific metric. This includes
-//  all the stories from that metric plus the sample values
-//  in the initial form, not the average.
-class StoryRow {
-  constructor(story, sample) {
-    this.story = story;
-    this.sample = sample;
-  }
-}
-
 function average(arr) {
   return _.reduce(arr, function(memo, num) {
     return memo + num;
@@ -215,9 +196,11 @@ function readSingleFile(e) {
     const tableElems = [];
     let id = 1;
     for (const [key, value] of metricAverage.entries()) {
-      tableElems.push(
-          new TableRow(id++, key, average(value))
-      );
+      tableElems.push({
+        id: id++,
+        metric: key,
+        averageSampleValues: average(value)
+      });
     }
     app.gridData = tableElems;
     app.sampleArr = sampleArr;
@@ -263,7 +246,29 @@ function extractData(contents) {
   for (const element of result) {
     const e = JSON.parse(element);
     if (e.hasOwnProperty('sampleValues')) {
-      sampleValue.push(e);
+      const elem = {
+        name: e.name,
+        sampleValues: e.sampleValues,
+        unit: e.unit,
+        guid: e.guid,
+        diagnostics: {}
+      };
+      if (e.diagnostics.hasOwnProperty('traceUrls')) {
+        elem.diagnostics.traceUrls = e.diagnostics.traceUrls;
+      }
+      if (e.diagnostics.hasOwnProperty('benchmarkStart')) {
+        elem.diagnostics.benchmarkStart = e.diagnostics.benchmarkStart;
+      }
+      if (e.diagnostics.hasOwnProperty('labels')) {
+        elem.diagnostics.labels = e.diagnostics.labels;
+      }
+      if (e.diagnostics.hasOwnProperty('stories')) {
+        elem.diagnostics.stories = e.diagnostics.stories;
+      }
+      if (e.diagnostics.hasOwnProperty('storysetRepeats')) {
+        elem.diagnostics.storysetRepeats = e.diagnostics.storysetRepeats;
+      }
+      sampleValue.push(elem);
     } else {
       if (e.type === 'GenericSet') {
         guidValueInfoMap.set(e.guid, e.values);
