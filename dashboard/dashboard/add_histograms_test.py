@@ -190,7 +190,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     # We want to verify that the method was called with all rows that have
     # been added, but the ordering will be different because we produce
     # the rows by iterating over a dict.
-    mock_graph_revisions.assert_called_once()
+    mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
   @mock.patch.object(
@@ -224,7 +224,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     # We want to verify that the method was called with all rows that have
     # been added, but the ordering will be different because we produce
     # the rows by iterating over a dict.
-    mock_graph_revisions.assert_called_once()
+    mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
   @mock.patch.object(
