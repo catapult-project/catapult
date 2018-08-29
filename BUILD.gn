@@ -158,14 +158,6 @@ group("telemetry_chrome_test_support") {
   ]
 
   data += [
-    "common/node_runner/node_runner/__init__.py",
-    "common/node_runner/node_runner/minify",
-    "common/node_runner/node_runner/node_binaries.json",
-    "common/node_runner/node_runner/node_util.py",
-    "common/node_runner/node_runner/package.json",
-  ]
-
-  data += [
     "telemetry/telemetry/internal/__init__.py",
     "telemetry/telemetry/internal/binary_dependencies.json",
     "telemetry/telemetry/internal/snap_page_util.py",

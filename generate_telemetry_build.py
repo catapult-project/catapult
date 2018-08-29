@@ -43,10 +43,7 @@ EXCLUDED_PATHS = [
     "path": "BUILD.gn",
   },
   {
-    "path": "common/node_runner/node_runner/bin",
-  },
-  {
-    "path": "common/node_runner/node_runner/node_modules",
+    "path": "common/node_runner",
   },
   {
     "path": "docs",
