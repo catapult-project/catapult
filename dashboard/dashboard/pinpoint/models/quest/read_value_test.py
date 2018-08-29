@@ -141,6 +141,29 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0, 1, 2))
     self.assertRetrievedOutputJson()
 
+  def testReadHistogramsJsonValueStoryNeedsEscape(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORY_TAGS.name,
+        generic_set.GenericSet(['group:tir_label']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.STORIES.name,
+        generic_set.GenericSet(['http://story']))
+    self.SetOutputFileContents(histograms.AsDicts())
+
+    quest = read_value.ReadHistogramsJsonValue(
+        'chartjson-output.json', hist.name, 'tir_label', 'http://story')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+
+    self.assertReadValueSuccess(execution)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertRetrievedOutputJson()
+
   def testReadHistogramsJsonValueStatistic(self):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(0)

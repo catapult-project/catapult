@@ -118,12 +118,8 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     histograms_by_path = self._CreateHistogramSetByTestPathDict(histograms)
     self._trace_urls = self._FindTraceUrls(histograms)
 
-    test_path_to_match = self._hist_name
-    if self._tir_label:
-      test_path_to_match += '/' + self._tir_label
-
-    if self._story:
-      test_path_to_match += '/' + self._story
+    test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
+        self._hist_name, tir_label=self._tir_label, story_name=self._story)
 
     # Have to pull out either the raw sample values, or the statistic
     result_values = []
