@@ -201,12 +201,14 @@ found in the LICENSE file.
     function computeScales(job) {
       // Compute y bounds and y scale.
       const valuesByChange = job.state.map(s => s.result_values);
-      const allValues = [].concat(...valuesByChange);
       let domain;
       if (job.comparison_mode == 'functional') {
         domain = [0, 1];
       } else {
-        domain = d3.extent(allValues);
+        // Some jobs have extreme outliers. Use the 1st and 99th percentiles.
+        const allValues = [].concat(...valuesByChange);
+        allValues.sort((a, b) => a - b);
+        domain = [d3.quantile(allValues, 0.01), d3.quantile(allValues, 0.99)];
       }
       const y = d3.scaleLinear()
           .domain(domain).nice(5)
