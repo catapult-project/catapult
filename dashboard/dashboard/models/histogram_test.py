@@ -271,7 +271,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self.assertIsNone(lookup_result.get(reserved_infos.OWNERS.name))
     self.assertIsNone(lookup_result.get(reserved_infos.BUG_COMPONENTS.name))
 
-  def testGetMostRecentDataByNames_RaisesErrorIfDuplicateName(self):
+  def testGetMostRecentDataByNames_ToleratesDuplicateName(self):
     data_samples = [
         {
             'type': 'GenericSet',
@@ -292,16 +292,16 @@ class SparseDiagnosticTest(testing_common.TestCase):
     entity.put()
 
     entity = histogram.SparseDiagnostic(
-        data=data_samples[1], test=test_key, start_revision=1,
+        data=data_samples[1], test=test_key, start_revision=2,
         end_revision=sys.maxint, id=data_samples[1]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
-    self.assertRaises(
-        AssertionError,
-        histogram.SparseDiagnostic.GetMostRecentDataByNamesSync,
-        test_key,
-        set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
+    # TODO(crbug.com/877809): assertRaises
+    lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
+        test_key, set([reserved_infos.OWNERS.name]))
+    self.assertEqual(lookup_result.get(
+        reserved_infos.OWNERS.name).get('values'), data_samples[1]['values'])
 
   def _CreateGenericDiagnostic(
       self, name, values, test_key, start_revision, end_revision=sys.maxint):
