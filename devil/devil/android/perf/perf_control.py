@@ -9,6 +9,66 @@ import re
 from devil.android import device_errors
 
 logger = logging.getLogger(__name__)
+_atexit_messages = set()
+
+
+# Defines how to switch between the default performance configuration
+# ('default_mode') and the mode for use when benchmarking ('high_perf_mode').
+# For devices not in the list the defaults are to set up the scaling governor to
+# 'performance' and reset it back to 'ondemand' when benchmarking is finished.
+#
+# The 'default_mode_governor' is mandatory to define, while
+# 'high_perf_mode_governor' is not taken into account. The latter is because the
+# governor 'performance' is currently used for all benchmarking on all devices.
+#
+# TODO(crbug.com/383566): Add definitions for all devices used in the perf
+# waterfall.
+_PERFORMANCE_MODE_DEFINITIONS = {
+  'GT-I9300': {
+    'default_mode_governor': 'pegasusq',
+  },
+  'Galaxy Nexus': {
+    'default_mode_governor': 'interactive',
+  },
+  'Nexus 7': {
+    'default_mode_governor': 'interactive',
+  },
+  'Nexus 10': {
+    'default_mode_governor': 'interactive',
+  },
+  'Nexus 4': {
+    'high_perf_mode': {
+      'bring_cpu_cores_online': True,
+    },
+    'default_mode_governor': 'ondemand',
+  },
+  'Nexus 5': {
+    # The list of possible GPU frequency values can be found in:
+    #     /sys/class/kgsl/kgsl-3d0/gpu_available_frequencies.
+    # For CPU cores the possible frequency values are at:
+    #     /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+    'high_perf_mode': {
+      'bring_cpu_cores_online': True,
+      'cpu_max_freq': 1190400,
+      'gpu_max_freq': 200000000,
+    },
+    'default_mode': {
+      'cpu_max_freq': 2265600,
+      'gpu_max_freq': 450000000,
+    },
+    'default_mode_governor': 'ondemand',
+  },
+}
+
+
+def _NoisyWarning(message):
+  message += ' Results may be NOISY!!'
+  logger.warning(message)
+  # Add an additional warning at exit, such that it's clear that any results
+  # may be different/noisy (due to the lack of intended performance mode).
+  if message not in _atexit_messages:
+    _atexit_messages.add(message)
+    atexit.register(logger.warning, message)
 
 
 class PerfControl(object):
@@ -21,10 +81,10 @@ class PerfControl(object):
 
   def __init__(self, device):
     self._device = device
-    self._cpu_files = [
-        filename
-        for filename in self._device.ListDirectory(self._CPU_PATH, as_root=True)
-        if self._CPU_FILE_PATTERN.match(filename)]
+    self._cpu_files = []
+    for file_name in self._device.ListDirectory(self._CPU_PATH, as_root=True):
+      if self._CPU_FILE_PATTERN.match(file_name):
+        self._cpu_files.append(file_name)
     assert self._cpu_files, 'Failed to detect CPUs.'
     self._cpu_file_list = ' '.join(self._cpu_files)
     logger.info('CPUs found: %s', self._cpu_file_list)
@@ -36,34 +96,62 @@ class PerfControl(object):
         (cpu, raw_governors.strip().split() if not exit_code else None)
         for cpu, raw_governors, exit_code in raw]
 
+  def _SetMaxFrequenciesFromMode(self, mode):
+    """Set maximum frequencies for GPU and CPU cores.
+
+    Args:
+      mode: A dictionary mapping optional keys 'cpu_max_freq' and 'gpu_max_freq'
+            to integer values of frequency supported by the device.
+    """
+    cpu_max_freq = mode.get('cpu_max_freq')
+    if cpu_max_freq:
+      self._SetScalingMaxFreq(cpu_max_freq)
+    gpu_max_freq = mode.get('gpu_max_freq')
+    if gpu_max_freq:
+      self._SetMaxGpuClock(gpu_max_freq)
+
   def SetHighPerfMode(self):
     """Sets the highest stable performance mode for the device."""
     try:
       self._device.EnableRoot()
     except device_errors.CommandFailedError:
-      message = 'Need root for performance mode. Results may be NOISY!!'
-      logger.warning(message)
-      # Add an additional warning at exit, such that it's clear that any results
-      # may be different/noisy (due to the lack of intended performance mode).
-      atexit.register(logger.warning, message)
+      _NoisyWarning('Need root for performance mode.')
       return
+    mode_definitions = _PERFORMANCE_MODE_DEFINITIONS.get(
+        self._device.product_model)
+    if not mode_definitions:
+      self.SetScalingGovernor('performance')
+      return
+    high_perf_mode = mode_definitions.get('high_perf_mode')
+    if not high_perf_mode:
+      self.SetScalingGovernor('performance')
+      return
+    if high_perf_mode.get('bring_cpu_cores_online', False):
+      self._ForceAllCpusOnline(True)
+      if not self._AllCpusAreOnline():
+        _NoisyWarning('Failed to force CPUs online.')
+    # Scaling governor must be set _after_ bringing all CPU cores online,
+    # otherwise it would not affect the cores that are currently offline.
+    self.SetScalingGovernor('performance')
+    self._SetMaxFrequenciesFromMode(high_perf_mode)
 
-    product_model = self._device.product_model
-    # TODO(epenner): Enable on all devices (http://crbug.com/383566)
-    if product_model == 'Nexus 4':
-      self._ForceAllCpusOnline(True)
-      if not self._AllCpusAreOnline():
-        logger.warning('Failed to force CPUs online. Results may be NOISY!')
-      self.SetScalingGovernor('performance')
-    elif product_model == 'Nexus 5':
-      self._ForceAllCpusOnline(True)
-      if not self._AllCpusAreOnline():
-        logger.warning('Failed to force CPUs online. Results may be NOISY!')
-      self.SetScalingGovernor('performance')
-      self._SetScalingMaxFreq(1190400)
-      self._SetMaxGpuClock(200000000)
+  def SetDefaultPerfMode(self):
+    """Sets the performance mode for the device to its default mode."""
+    if not self._device.HasRoot():
+      return
+    mode_definitions = _PERFORMANCE_MODE_DEFINITIONS.get(
+        self._device.product_model)
+    if not mode_definitions:
+      self.SetScalingGovernor('ondemand')
     else:
-      self.SetScalingGovernor('performance')
+      default_mode_governor = mode_definitions.get('default_mode_governor')
+      assert default_mode_governor, ('Default mode governor must be provided '
+          'for all perf mode definitions.')
+      self.SetScalingGovernor(default_mode_governor)
+      default_mode = mode_definitions.get('default_mode')
+      if default_mode:
+        self._SetMaxFrequenciesFromMode(default_mode)
+    self._ForceAllCpusOnline(False)
 
   def SetPerfProfilingMode(self):
     """Enables all cores for reliable perf profiling."""
@@ -74,27 +162,6 @@ class PerfControl(object):
         raise RuntimeError('Need root to force CPUs online.')
       raise RuntimeError('Failed to force CPUs online.')
 
-  def SetDefaultPerfMode(self):
-    """Sets the performance mode for the device to its default mode."""
-    if not self._device.HasRoot():
-      return
-    product_model = self._device.product_model
-    if product_model == 'Nexus 5':
-      if self._AllCpusAreOnline():
-        self._SetScalingMaxFreq(2265600)
-        self._SetMaxGpuClock(450000000)
-
-    governor_mode = {
-        'GT-I9300': 'pegasusq',
-        'Galaxy Nexus': 'interactive',
-        'Nexus 4': 'ondemand',
-        'Nexus 5': 'ondemand',
-        'Nexus 7': 'interactive',
-        'Nexus 10': 'interactive'
-    }.get(product_model, 'ondemand')
-    self.SetScalingGovernor(governor_mode)
-    self._ForceAllCpusOnline(False)
-
   def GetCpuInfo(self):
     online = (output.rstrip() == '1' and status == 0
               for (_, output, status) in self._ForEachCpu('cat "$CPU/online"'))
@@ -104,6 +171,17 @@ class PerfControl(object):
     return zip(self._cpu_files, online, governor)
 
   def _ForEachCpu(self, cmd):
+    """Runs a command on the device for each of the CPUs on it.
+
+    Args:
+      cmd: A string with a shell command, may may use shell expansion: "$CPU" to
+           refer to the current CPU in the string form (e.g. "cpu0", "cpu1",
+           and so on).
+    Returns:
+      A list of tuples in the form (cpu_string, command_output, exit_code), one
+      tuple per each command invocation. As usual, all lines of the output
+      command are joined into one line with spaces.
+    """
     script = '; '.join([
         'for CPU in %s' % self._cpu_file_list,
         'do %s' % cmd,
