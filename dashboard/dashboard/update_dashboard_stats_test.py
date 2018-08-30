@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import datetime
+import httplib
 import mock
 import unittest
 import webapp2
@@ -11,6 +12,7 @@ import webtest
 from dashboard import update_dashboard_stats
 from dashboard.common import utils
 from dashboard.models import anomaly
+from dashboard.services import gerrit_service
 from dashboard.pinpoint.models.change import change as change_module
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models import job as job_module
@@ -81,6 +83,25 @@ class UpdateDashboardStatsTest(test.TestCase):
   @mock.patch.object(
       update_dashboard_stats.deferred, 'defer')
   def testPost_Success(self, mock_defer):
+    created = datetime.datetime.now() - datetime.timedelta(days=1)
+    self._CreateJob(
+        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345)
+    anomaly_entity = anomaly.Anomaly(
+        test=utils.TestKey('M/B/S'), bug_id=12345, timestamp=created)
+    anomaly_entity.put()
+
+    self.testapp.get('/update_dashboard_stats')
+    self.assertTrue(mock_defer.called)
+
+  @mock.patch.object(
+      gerrit_service, 'GetChange',
+      mock.MagicMock(side_effect=httplib.HTTPException))
+  @mock.patch.object(
+      change_module.Change, 'Midpoint',
+      mock.MagicMock(side_effect=commit.NonLinearError))
+  @mock.patch.object(
+      update_dashboard_stats.deferred, 'defer')
+  def testPost_Success_IgnoresHttpException(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(days=1)
     self._CreateJob(
         'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345)
