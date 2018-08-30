@@ -4,9 +4,6 @@
 
 import unittest
 
-import webapp2
-import webtest
-
 from dashboard import change_internal_only
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -18,10 +15,6 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
 
   def setUp(self):
     super(ChangeInternalOnlyTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/change_internal_only',
-        change_internal_only.ChangeInternalOnlyHandler)])
-    self.testapp = webtest.TestApp(app)
     # Use a lower _MAX_ROWS_TO_PUT to make sure task queue is exercised.
     change_internal_only._MAX_ROWS_TO_PUT = 5
     change_internal_only._MAX_TESTS_TO_PUT = 1
@@ -51,21 +44,12 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
           median_before_anomaly=100,
           median_after_anomaly=200).put()
 
-  def testGet_ShowsForm(self):
-    self._AddSampleData()
-    response = self.testapp.get('/change_internal_only')
-    self.assertEqual(1, len(response.html('form')))
-
   def testPost_SetInternalOnlyToTrue(self):
     self._AddSampleData()
 
-    self.testapp.post('/change_internal_only', [
-        ('internal_only', 'true'),
-        ('bots', 'ChromiumPerf/win7'),
-        ('bots', 'ChromiumGPU/mac'),
-    ])
-    self.ExecuteTaskQueueTasks(
-        '/change_internal_only', change_internal_only._QUEUE_NAME)
+    change_internal_only.ChangeInternalOnly(
+        bot_names=['ChromiumGPU/mac', 'ChromiumPerf/win7'])
+    self.ExecuteDeferredTasks(change_internal_only._QUEUE_NAME)
 
     # Verify that Bot entities were changed.
     bots = graph_data.Bot.query().fetch()
@@ -99,23 +83,15 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     # First change to internal only.
     self._AddSampleData()
 
-    self.testapp.post('/change_internal_only', [
-        ('internal_only', 'true'),
-        ('bots', 'ChromiumPerf/win7'),
-        ('bots', 'ChromiumGPU/mac'),
-    ])
-    self.ExecuteTaskQueueTasks(
-        '/change_internal_only', change_internal_only._QUEUE_NAME)
+    change_internal_only.ChangeInternalOnly(
+        bot_names=['ChromiumGPU/win7', 'ChromiumGPU/mac'])
+    self.ExecuteDeferredTasks(change_internal_only._QUEUE_NAME)
 
     # Then change back.
     self._AddSampleData()
-    self.testapp.post('/change_internal_only', [
-        ('internal_only', 'false'),
-        ('bots', 'ChromiumPerf/win7'),
-        ('bots', 'ChromiumGPU/mac'),
-    ])
-    self.ExecuteTaskQueueTasks(
-        '/change_internal_only', change_internal_only._QUEUE_NAME)
+    change_internal_only.ChangeInternalOnly(
+        False, ['ChromiumPerf/win7', 'ChromiumGPU/mac'])
+    self.ExecuteDeferredTasks(change_internal_only._QUEUE_NAME)
 
     # No entities should be marked as internal only.
     bots = graph_data.Bot.query().fetch()

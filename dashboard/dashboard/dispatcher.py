@@ -15,7 +15,6 @@ from dashboard import alerts
 from dashboard import associate_alerts
 from dashboard import bug_details
 from dashboard import buildbucket_job_status
-from dashboard import change_internal_only
 from dashboard import create_health_report
 from dashboard import debug_alert
 from dashboard import delete_test_data
@@ -89,7 +88,6 @@ _URL_MAPPING = [
     ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
-    ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
     ('/create_health_report', create_health_report.CreateHealthReportHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities',
