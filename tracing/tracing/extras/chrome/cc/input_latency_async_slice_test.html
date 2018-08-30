@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
       args: {
         data: {
           INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time': 0},
-          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+          INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT: {time: 10}
         }
       }
     });
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
       args: {
         data: {
           INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time': 0},
-          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+          INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT: {time: 10}
         }
       }
     });
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
         data: {
           INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT: {'time': 0},
           INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time': 0},
-          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+          INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT: {time: 10}
         }
       }
     });
@@ -677,6 +677,26 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(m.as1.associatedEvents.equals(new EventSet(
         [m.f1, m.f2, m.f3, m.f4, m.f5,
           m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7, m.s9])));
+  });
+
+  test('legacyEndComponent', function() {
+    const sInfo = newAsyncSliceEx({
+      title: 'InputLatency::GestureScrollUpdate',
+      cat: 'benchmark',
+      start: 2,
+      end: 10,
+      id: '0x100',
+      isTopLevel: true,
+      args: {
+        data: {
+          INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT: {'time': 0},
+          INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT: {time: 10}
+        }
+      }
+    });
+
+    assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
+    assert.strictEqual(sInfo.inputLatency, 10);
   });
 });
 </script>

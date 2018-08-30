@@ -19,7 +19,9 @@ tr.exportTo('tr.e.cc', function() {
   const UI_COMP_NAME = 'INPUT_EVENT_LATENCY_UI_COMPONENT';
   const ORIGINAL_COMP_NAME = 'INPUT_EVENT_LATENCY_ORIGINAL_COMPONENT';
   const BEGIN_COMP_NAME = 'INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT';
-  const END_COMP_NAME = 'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
+  const END_COMP_NAME = 'INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT';
+  const LEGACY_END_COMP_NAME =
+      'INPUT_EVENT_LATENCY_TERMINATED_FRAME_SWAP_COMPONENT';
 
   const MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
   const COMPOSITOR_THREAD_NAME = 'Compositor';
@@ -570,10 +572,11 @@ tr.exportTo('tr.e.cc', function() {
       if (!('data' in this.args)) return undefined;
 
       const data = this.args.data;
-      if (!(END_COMP_NAME in data)) return undefined;
+      const endTimeComp = data[END_COMP_NAME] || data[LEGACY_END_COMP_NAME];
+      if (endTimeComp === undefined) return undefined;
 
       let latency = 0;
-      const endTime = data[END_COMP_NAME].time;
+      const endTime = endTimeComp.time;
       if (ORIGINAL_COMP_NAME in data) {
         latency = endTime - data[ORIGINAL_COMP_NAME].time;
       } else if (UI_COMP_NAME in data) {
