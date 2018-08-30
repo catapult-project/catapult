@@ -18,8 +18,7 @@ class LinePlotter {
     this.scaleForYAxis_ = this.createYAxisScale_(graph, chartDimensions);
     this.xAxisGenerator_ = d3.axisBottom(this.scaleForXAxis_);
     this.yAxisGenerator_ = d3.axisLeft(this.scaleForYAxis_);
-    // Draw the x-axis.
-    chart.append('g')
+    this.xAxisDrawing_ = chart.append('g')
         .call(this.xAxisGenerator_)
         .attr('transform', `translate(0, ${chartDimensions.height})`);
     this.yAxisDrawing_ = chart.append('g')
@@ -27,17 +26,17 @@ class LinePlotter {
   }
 
   createXAxisScale_(graph, chartDimensions) {
-    const numDataPoints =
-      Math.max(...graph.dataSources.map(source => source.data.length));
     return d3.scaleLinear()
-        .domain([0, numDataPoints])
+        .domain([0, graph.max(point => point)])
         .range([0, chartDimensions.width]);
   }
 
   createYAxisScale_(graph, chartDimensions) {
+    const numDataPoints =
+      Math.max(...graph.dataSources.map(source => source.data.length));
     return d3.scaleLinear()
-        .domain([graph.max(point => point), 0])
-        .range([0, chartDimensions.height]);
+        .domain([0, numDataPoints])
+        .range([chartDimensions.height, 0]);
   }
 
   /**
@@ -57,9 +56,8 @@ class LinePlotter {
         .x(datum => this.scaleForXAxis_(datum.x))
         .y(datum => this.scaleForYAxis_(datum.y))
         .curve(d3.curveMonotoneX);
-
-    const dots = graph.process(GraphData.computeCumulativeFrequencies);
-    dots.forEach(({ data, color, key }, index) => {
+    const data = graph.process(GraphData.computeCumulativeFrequencies);
+    data.forEach(({ data, color, key }, index) => {
       chart.selectAll('.dot')
           .data(data)
           .enter()
@@ -84,27 +82,27 @@ class LinePlotter {
           .attr('y', index + 'em')
           .attr('fill', color);
     });
-    const redraw = (xAxisScale, yAxisScale) => {
+    const redraw = xAxisScale => {
       const pathGenerator = d3.line()
-          .x(d => this.scaleForXAxis_(d.x))
-          .y(d => yAxisScale(d.y))
+          .x(d => xAxisScale(d.x))
+          .y(d => this.scaleForYAxis_(d.y))
           .curve(d3.curveMonotoneX);
       chart.selectAll('.line-dot')
-          .attr('cx', datum => this.scaleForXAxis_(datum.x))
-          .attr('cy', datum => yAxisScale(datum.y));
+          .attr('cx', datum => xAxisScale(datum.x))
+          .attr('cy', datum => this.scaleForYAxis_(datum.y));
       chart.selectAll('.line-plot')
           .attr('d', pathGenerator);
     };
     const axes = {
-      y: {
-        generator: this.yAxisGenerator_,
-        drawing: this.yAxisDrawing_,
-        scale: this.scaleForYAxis_,
+      x: {
+        generator: this.xAxisGenerator_,
+        drawing: this.xAxisDrawing_,
+        scale: this.scaleForXAxis_,
       },
     };
     const shouldScale = {
-      x: false,
-      y: true,
+      y: false,
+      x: true,
     };
     GraphUtils.createZoom(shouldScale, chart, chartDimensions, redraw, axes);
   }

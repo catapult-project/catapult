@@ -20,10 +20,7 @@ class GraphData {
      * At first an attempt will be made to assign an unused color
      * from this array and failing that old colors are reused.
      */
-    this.colors_ = [
-      'green',
-      'orange',
-    ];
+    this.colors_ = d3.schemeCategory10;
     /** @private {function(*):} */
     this.interactiveCallback_ = undefined;
   }
@@ -277,8 +274,8 @@ class GraphData {
     const sortedData = data.sort((a, b) => a - b);
     return sortedData.map((value, i) => {
       return {
-        x: i,
-        y: value,
+        y: i,
+        x: value,
       };
     });
   }

@@ -46,6 +46,7 @@ const app = new Vue({
         window.open(traces[label][index]);
       };
       this.graph
+          .yAxis('')
           .xAxis('Memory used (MiB)')
           .title(story)
           .setData(target, openTrace)
@@ -55,8 +56,8 @@ const app = new Vue({
     //  Draw a cumulative frequency plot depending on the target value.
     //  This is mainly for the results from the table.
     plotCumulativeFrequencyPlot(target, story) {
-      this.graph.xAxis('Cumulative frequency')
-          .yAxis('Memory used (MiB)')
+      this.graph.yAxis('Cumulative frequency')
+          .xAxis('Memory used (MiB)')
           .title(story)
           .setData(target)
           .plotCumulativeFrequency();
