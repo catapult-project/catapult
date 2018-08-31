@@ -7,6 +7,10 @@
 class DotPlotter {
   constructor() {
     this.radius_ = 4;
+    /** @private {number} Stop dots from different labels from
+     * overlapping by using a max height on the stack size.
+     */
+    this.maxDotStacking_ = undefined;
     /** @private @const {Object} */
     this.scaleForXAxis_ = undefined;
     /** @private @const {Object} */
@@ -27,6 +31,10 @@ class DotPlotter {
   initChart_(graph, chart, chartDimensions) {
     this.scaleForXAxis_ = this.createXAxisScale_(graph, chartDimensions);
     this.scaleForYAxis_ = this.createYAxisScale_(graph, chartDimensions);
+    const height = this.scaleForYAxis_.bandwidth();
+    const maximumNumberOfDots = height / this.getDotDiameter_();
+    // Divide by two as the stacks are drawn about the vertical center.
+    this.maxDotStacking_ = maximumNumberOfDots / 2;
     this.xAxisGenerator_ = d3.axisBottom(this.scaleForXAxis_);
     // Draw the x-axis.
     this.xAxisDrawing_ = chart.append('g')
@@ -44,11 +52,10 @@ class DotPlotter {
     const categories = graph.keys();
     // The gap allows for padding between the first and last categories and
     // the top and bottom of the chart area.
-    const gaps = graph.dataSources.length + 1;
-    const gapSize = chartDimensions.height / gaps;
-    return d3.scaleOrdinal()
+    return d3.scaleBand()
         .domain(categories)
-        .range([gapSize, chartDimensions.height - gapSize]);
+        .range([0, chartDimensions.height])
+        .padding(0.5);
   }
 
   getDotDiameter_() {
@@ -70,12 +77,12 @@ class DotPlotter {
     const bins = {};
     // Each bin corresponds to the size of the diameter of a dot,
     // so any data points in the same bin will definitely overlap.
-    const binSize =
-        xAxisScale.invert(this.getDotDiameter_()) - xAxisScale.invert(0);
+    const binSize = this.getDotDiameter_();
     data.forEach((datum, id) => {
       // The lower bound of the bin will be some multiple of binSize so find
       // the closest such multiple less than the datum.
-      const lowerBound = Math.round(datum) - (Math.round(datum) % binSize);
+      const pixelLocationX = Math.round(xAxisScale(datum));
+      const lowerBound = pixelLocationX - (pixelLocationX % binSize);
       const binMid = lowerBound + binSize / 2;
       if (!bins[binMid]) {
         bins[binMid] = [];
@@ -96,7 +103,7 @@ class DotPlotter {
       bin.forEach(({ datum, id }) => {
         newPositions.push({
           x: datum,
-          stackOffset,
+          stackOffset: stackOffset % this.maxDotStacking_,
           id,
         });
         stackOffset++;

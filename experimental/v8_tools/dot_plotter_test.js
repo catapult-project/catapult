@@ -1,11 +1,11 @@
 'use strict';
-const getStackedOffsets = (data) => {
+const getStackedOffsets = (data, s) => {
   const dotPlotter = new DotPlotter();
+  // Needed in the dot stacking method.
+  dotPlotter.maxDotStacking_ = Number.POSITIVE_INFINITY;
   // Stubs the x axis scale so that theres a 1:1 mapping between pixel
   // values and memory values.
-  const scale = {
-    invert: x => x,
-  };
+  const scale = s || (x => x);
   const stackedLocations = dotPlotter.computeDotStacking_(data.source, scale);
   return stackedLocations.map(({x, stackOffset}) => stackOffset);
 };
@@ -30,7 +30,36 @@ describe('DotPlotter', function() {
         source: [992, 994, 555, 556, 15],
       };
       const stackedOffsets = getStackedOffsets(data);
-      chai.expect(stackedOffsets).to.have.members([-1, 0, -1, 0, 0]);
+      chai.expect(stackedOffsets).to.have.members([0, -1, 0, -1, 0]);
+    });
+    it('should do nothing for empty inputs', function() {
+      const data = {
+        source: [],
+      };
+      const stackedOffsets = getStackedOffsets(data);
+      chai.expect(stackedOffsets).to.have.members([]);
+    });
+    it('should not stack an individual input', function() {
+      const data = {
+        source: [1],
+      };
+      const stackedOffsets = getStackedOffsets(data);
+      chai.expect(stackedOffsets).to.have.members([0]);
+    });
+    it('should correctly stack decimal values', function() {
+      const data = {
+        source: [0.01, 0.02, 10.1, 10.5],
+      };
+      const stackedOffsets = getStackedOffsets(data);
+      chai.expect(stackedOffsets).to.have.members([-1, 0, -1, 0]);
+    });
+    it('should correctly stack input domain between 0 and 1', function() {
+      const data = {
+        source: [0.01, 0.02, 0.09, 0.099],
+      };
+      const scale = d3.scaleLinear().domain([0, 1]).range([0, 100]);
+      const stackedOffsets = getStackedOffsets(data, scale);
+      chai.expect(stackedOffsets).to.have.members([-1, 0, -1, 0]);
     });
   });
   describe('plotting', function() {

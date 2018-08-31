@@ -171,12 +171,12 @@ function readSingleFile(e) {
     const metricAverage = new Map();
     const significanceTester = new MetricSignificance();
     for (const e of sampleArr) {
-      const { name, sampleValues, diagnostics } = e;
-      const { labels } = diagnostics;
       // This version of the tool focuses on analysing memory
       // metrics, which contain a slightly different structure
       // to the non-memory metrics.
       if (name.startsWith('memory')) {
+        const { name, sampleValues, diagnostics } = e;
+        const { labels } = diagnostics;
         const label = guidValueInfo.get(labels)[0];
         significanceTester.add(name, label, sampleValues);
       }
