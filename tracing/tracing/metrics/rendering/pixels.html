@@ -47,9 +47,9 @@ tr.exportTo('tr.metrics.rendering', function() {
     const checkerboardedPixelPercentages = [];
     const ranges = segments.map(s => s.boundsRange);
     for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      const compositorThread = rendererHelper.compositorThread;
-      if (compositorThread === undefined) continue;
-      for (const slice of compositorThread.slicesIntersectingRanges(ranges)) {
+      if (rendererHelper.compositorThread === undefined) continue;
+      const slices = rendererHelper.compositorThread.sliceGroup;
+      for (const slice of slices.getDescendantEventsInSortedRanges(ranges)) {
         if (slice.title !== IMPL_THREAD_RENDERING_STATS_EVENT) continue;
         const data = slice.args.data;
         if (!(VISIBLE_CONTENT_DATA in data)) {

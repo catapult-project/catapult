@@ -198,6 +198,7 @@
       'tracing/metrics/metric_registry.html',
       'tracing/metrics/rendering/cpu_utilization.html',
       'tracing/metrics/rendering/frame_time.html',
+      'tracing/metrics/rendering/latency.html',
       'tracing/metrics/rendering/pipeline.html',
       'tracing/metrics/rendering/pixels.html',
       'tracing/metrics/rendering/queueing_duration.html',

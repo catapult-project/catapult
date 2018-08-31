@@ -33,7 +33,8 @@ tr.exportTo('tr.metrics.rendering', function() {
 
   function getEventTimesByBeginFrameId_(thread, title, ranges) {
     const out = new Map();
-    for (const slice of thread.slicesIntersectingRanges(ranges)) {
+    const slices = thread.sliceGroup;
+    for (const slice of slices.getDescendantEventsInSortedRanges(ranges)) {
       if (slice.title !== title) continue;
       const id = slice.args.begin_frame_id;
       if (id === undefined) throw new Error('Event is missing begin_frame_id');

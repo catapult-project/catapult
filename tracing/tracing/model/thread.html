@@ -89,24 +89,6 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    * slicesIntersectingRanges(rangesOfInterest) {
-      // this.sliceGroup.slices is already sorted by start times. We just need
-      // to sort rangesOfInterest.
-      const sortedRanges = rangesOfInterest.slice(0).sort(function(x, y) {
-        return x.min - y.min;
-      });
-      let rangeIndex = 0;
-      let range = sortedRanges[rangeIndex];
-      for (const slice of this.sliceGroup.slices) {
-        while (slice.start > range.max) {
-          rangeIndex++;
-          if (rangeIndex >= sortedRanges.length) return;
-          range = sortedRanges[rangeIndex];
-        }
-        if (slice.end >= range.min) yield slice;
-      }
-    },
-
     iterateAllPersistableObjects(cb) {
       cb(this);
       if (this.sliceGroup.length) {

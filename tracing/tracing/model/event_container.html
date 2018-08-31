@@ -95,12 +95,36 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
-    * Returns an iterable containing this and all descendant event containers.
-    */
+     * Returns an iterable containing this and all descendant event containers.
+     */
     * getDescendantEventContainers() {
       yield this;
       for (const container of this.childEventContainers()) {
         yield* container.getDescendantEventContainers();
+      }
+    },
+
+    /**
+     * Returns an iterable of all events in this and descendant event containers
+     * in a given set of ranges.
+     *
+     * This base class provides a default implementation with no assumptions
+     * about the order of events. A container can override this implementation
+     * with a more efficient one, for example if its events are sorted.
+     */
+    * getDescendantEventsInSortedRanges(ranges, opt_containerPredicate) {
+      if (opt_containerPredicate === undefined ||
+          opt_containerPredicate(this)) {
+        for (const event of this.childEvents()) {
+          const i = tr.b.findFirstTrueIndexInSortedArray(
+              ranges, range => event.start <= range.max);
+          if (i < ranges.length && event.end >= ranges[i].min) yield event;
+        }
+      }
+
+      for (const container of this.childEventContainers()) {
+        yield* container.getDescendantEventsInSortedRanges(
+            ranges, opt_containerPredicate);
       }
     },
 

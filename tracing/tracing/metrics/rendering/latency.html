@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
+<link rel="import" href="/tracing/model/async_slice_group.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview This file contains implementations of the following metrics.
+ *
+ * input_event_latency_tbmv2
+ * =========================
+ * The distribution of durations between the time when an input event is
+ * generated to the time when the GPU service swaps buffers due to the input
+ * event. The time when an input is generated is the first of the following
+ * three timestamps that we can get:
+ *
+ * 1. Original kernel timestamp of the input event.
+ * 2. Timestamp when the UI event is created.
+ * 3. Timestamp when the input event is sent from RenderWidgetHost to the
+ *    renderer.
+ *
+ * main_thread_scroll_latency_tbmv2
+ * ================================
+ * The distribution of durations between the time when the main thread scroll
+ * listener update is begun to the time when the GPU service swaps buffers due
+ * to the scroll event.
+ */
+tr.exportTo('tr.metrics.rendering', function() {
+  // Interesting latency info component names.
+  const BEGIN_SCROLL_UPDATE_COMP_NAME =
+      'LATENCY_BEGIN_SCROLL_LISTENER_UPDATE_MAIN_COMPONENT';
+  const END_COMP_NAME = 'INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT';
+
+  function* iterAsyncEvents_(processHelpers, ranges, processEventFn) {
+    for (const processHelper of processHelpers) {
+      const process = processHelper.process;
+      for (const event of process.getDescendantEventsInSortedRanges(
+          ranges, container => container instanceof tr.model.AsyncSliceGroup)) {
+        yield* processEventFn(event);
+      }
+    }
+  }
+
+  function* processInputLatencyEvent(event) {
+    if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice)) return;
+    yield tr.b.Unit.timestampFromUs(event.inputLatency);
+  }
+
+  function* processLatencyEvent(event) {
+    if (event.title !== 'Latency::ScrollUpdate' ||
+        !('data' in event.args) || !(END_COMP_NAME in event.args.data)) {
+      return;
+    }
+    const data = event.args.data;
+    const endTime = data[END_COMP_NAME].time;
+    if (BEGIN_SCROLL_UPDATE_COMP_NAME in data) {
+      yield tr.b.Unit.timestampFromUs(
+          endTime - data[BEGIN_SCROLL_UPDATE_COMP_NAME].time);
+    } else {
+      throw new Error('LatencyInfo has no begin component');
+    }
+  }
+
+  function addLatencyHistograms(histograms, model, segments) {
+    const modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!modelHelper) return;
+
+    const ranges = segments.map(s => s.boundsRange);
+    const inputEventLatencies = [...iterAsyncEvents_(
+        modelHelper.browserHelpers, ranges, processInputLatencyEvent)];
+    histograms.createHistogram(
+        'input_event_latency_tbmv2',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        inputEventLatencies,
+        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+          description: 'Input event latencies.' });
+
+    const mainThreadScrollLatencies = [...iterAsyncEvents_(
+        Object.values(modelHelper.rendererHelpers), ranges,
+        processLatencyEvent)];
+    histograms.createHistogram(
+        'main_thread_scroll_latency_tbmv2',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        mainThreadScrollLatencies,
+        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 50),
+          description: 'Main thread scroll latencies.' });
+  }
+
+  return {
+    addLatencyHistograms,
+  };
+});
+</script>

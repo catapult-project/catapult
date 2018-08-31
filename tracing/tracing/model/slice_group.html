@@ -301,6 +301,26 @@ tr.exportTo('tr.model', function() {
     * childEventContainers() {
     },
 
+    /**
+     * Provides a more efficient implementation than the default implementation
+     * in event_container.html, since child events are sorted.
+     */
+    * getDescendantEventsInSortedRanges(ranges, opt_containerPredicate) {
+      if (opt_containerPredicate === undefined ||
+          opt_containerPredicate(this)) {
+        let rangeIndex = 0;
+        let range = ranges[rangeIndex];
+        for (const event of this.childEvents()) {
+          while (event.start > range.max) {
+            rangeIndex++;
+            if (rangeIndex >= ranges.length) return;
+            range = ranges[rangeIndex];
+          }
+          if (event.end >= range.min) yield event;
+        }
+      }
+    },
+
     getSlicesOfName(title) {
       const slices = [];
       for (let i = 0; i < this.slices.length; i++) {

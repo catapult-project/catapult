@@ -204,54 +204,6 @@ tr.b.unittest.testSuite(function() {
       assert.throws(() => thread3.type);
     });
   });
-
-  test('slicesIntersectingRanges', function() {
-    const model = tr.c.TestUtils.newModel(function(model) {
-      // Create the following slices:
-      // 0  1  2  3  4  5  6  7  8  9  10
-      // <------------- 0 ------------->
-      //          <- 2 ->  <---- 3 ---->
-      //                      <- 1 ->
-      const thread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      thread.sliceGroup.pushSlice(
-          tr.c.TestUtils.newSliceEx({title: 's0', start: 0, end: 10}));
-      thread.sliceGroup.pushSlice(
-          tr.c.TestUtils.newSliceEx({title: 's1', start: 7, end: 9}));
-      thread.sliceGroup.pushSlice(
-          tr.c.TestUtils.newSliceEx({title: 's2', start: 3, end: 5}));
-      thread.sliceGroup.pushSlice(
-          tr.c.TestUtils.newSliceEx({title: 's3', start: 6, end: 10}));
-    });
-    const thread = model.getOrCreateProcess(1).getOrCreateThread(1);
-
-    // [0, 5] intersects s0 and s2.
-    const r1 = new tr.b.math.Range.fromExplicitRange(0, 5);
-    let slices = [...thread.slicesIntersectingRanges([r1])];
-    assert.strictEqual(slices.length, 2);
-    assert.strictEqual(slices[0].title, 's0');
-    assert.strictEqual(slices[1].title, 's2');
-
-    // [10, 11] intersects s0 and s3.
-    const r2 = new tr.b.math.Range.fromExplicitRange(10, 11);
-    slices = [...thread.slicesIntersectingRanges([r2])];
-    assert.strictEqual(slices.length, 2);
-    assert.strictEqual(slices[0].title, 's0');
-    assert.strictEqual(slices[1].title, 's3');
-
-    // [0, 5], [10, 11] intersects s0, s2, and s3.
-    slices = [...thread.slicesIntersectingRanges([r1, r2])];
-    assert.strictEqual(slices.length, 3);
-    assert.strictEqual(slices[0].title, 's0');
-    assert.strictEqual(slices[1].title, 's2');
-    assert.strictEqual(slices[2].title, 's3');
-
-    // Ranges can be nested, too.
-    const r3 = new tr.b.math.Range.fromExplicitRange(1, 2);
-    slices = [...thread.slicesIntersectingRanges([r3, r1])];
-    assert.strictEqual(slices.length, 2);
-    assert.strictEqual(slices[0].title, 's0');
-    assert.strictEqual(slices[1].title, 's2');
-  });
 });
 </script>
 
