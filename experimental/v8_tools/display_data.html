@@ -111,15 +111,31 @@
 <!-- Template for stats_test_summary_component.js -->
 <script type="text/x-template" id="stat-test-summary-template">
   'use strict';
-  <div>
-    <p>Statistically significant metrics:</p>
-    <ol>
-      <li v-for='result in testResults'>
-        <p> {{ result.metric }}   <br> 
-            p: {{result.evidence.p}} 
-        </p>
-      </li>
-    </ol>
+  <div id='statistical-sig'>
+    <div v-if="testResults.length">
+        <p>Statistically significant metrics:</p>
+        <ol>
+          <li v-for='result in testResults'>
+            <p> {{ result.metric }}   <br> 
+                p: {{result.evidence.p}} 
+            </p>
+            <div v-if='result.stories.length'>
+              <p>Stories</p>
+              <ol>
+                <li v-for='story in result.stories'>
+                    <p> {{ story.story }}   <br> 
+                      p: {{story.evidence.p}} 
+                  </p>
+                </li>
+              </ol>
+            </div>
+            <p v-else>
+                Insufficient evidence for statistically significant changes in stories under this metric.
+            </p>
+          </li>
+        </ol>
+    </div>
+    <p v-else>No statistically significant changes found.</p>
   </div>
 </script>
 

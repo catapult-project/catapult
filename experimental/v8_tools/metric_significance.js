@@ -20,15 +20,44 @@ class MetricSignificance {
    * @param {string} label
    * @param {Array<number>} value
    */
-  add(metric, label, value) {
+  add(metric, label, story, value) {
     if (!this.data_[metric]) {
       this.data_[metric] = {};
     }
     if (!this.data_[metric][label]) {
-      this.data_[metric][label] = [];
+      this.data_[metric][label] = {};
     }
-    const values = this.data_[metric][label];
-    this.data_[metric][label] = values.concat(value);
+    if (!this.data_[metric][label][story]) {
+      this.data_[metric][label][story] = [];
+    }
+    const values = this.data_[metric][label][story];
+    this.data_[metric][label][story] = values.concat(value);
+  }
+
+  mostSignificantStories_(metricData) {
+    const significantChanges = [];
+    const [firstLabel, secondLabel] = Object.keys(metricData);
+    const storyNames = Object.keys(metricData[firstLabel]);
+    for (const story of storyNames) {
+      const firstRun = metricData[firstLabel][story];
+      const secondRun = metricData[secondLabel][story];
+      const evidence = mannwhitneyu.test(firstRun, secondRun);
+      if (evidence.p < this.criticalPValue_) {
+        significantChanges.push({
+          story,
+          evidence,
+        });
+      }
+    }
+    return significantChanges;
+  }
+
+  getAllData_(metricData, label) {
+    const stories = Object.values(metricData[label]);
+    // The data for a given metric and label is stored under each story for
+    // that metric, so collect all of the data for each story.
+    return stories.reduce(
+        (collectedSoFar, storyData) => collectedSoFar.concat(storyData), []);
   }
   /**
    * Returns the metrics which have been identified as having statistically
@@ -39,18 +68,22 @@ class MetricSignificance {
    */
   mostSignificant() {
     const significantChanges = [];
-    Object.entries(this.data_).forEach(([metric, runs]) => {
-      const runsData = Object.values(runs);
-      const numLabels = runsData.length;
+    Object.entries(this.data_).forEach(([metric, metricData]) => {
+      const labels = Object.keys(metricData);
+      const numLabels = labels.length;
       if (numLabels !== 2) {
         throw new Error(
             `Expected metric to have only two labels, received ${numLabels}`);
       }
-      const evidence = mannwhitneyu.test(...runsData);
+      const xs = this.getAllData_(metricData, labels[0]);
+      const ys = this.getAllData_(metricData, labels[1]);
+      const evidence = mannwhitneyu.test(xs, ys);
+      const stories = this.mostSignificantStories_(metricData);
       if (evidence.p < this.criticalPValue_) {
         significantChanges.push({
           metric,
           evidence,
+          stories,
         });
       }
     });
