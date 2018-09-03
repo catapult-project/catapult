@@ -27,31 +27,79 @@ def _ShellCommandHandler(cmd, shell=False, check_return=False,
 
 
 class PerfControlTest(unittest.TestCase):
+  @staticmethod
+  def _MockOutLowLevelPerfControlMethods(perf_control_object):
+    # pylint: disable=protected-access
+    perf_control_object.SetScalingGovernor = mock.Mock()
+    perf_control_object._ForceAllCpusOnline = mock.Mock()
+    perf_control_object._SetScalingMaxFreqForCpus = mock.Mock()
+    perf_control_object._SetMaxGpuClock = mock.Mock()
 
   # pylint: disable=no-self-use
   def testNexus5HighPerfMode(self):
     # Mock out the device state for PerfControl.
+    cpu_list = ['cpu%d' % cpu for cpu in xrange(4)]
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
     mock_device.product_model = 'Nexus 5'
     mock_device.adb = mock.Mock(spec=adb_wrapper.AdbWrapper)
-    mock_device.ListDirectory.return_value = [
-        'cpu%d' % cpu for cpu in xrange(4)] + ['cpufreq']
+    mock_device.ListDirectory.return_value = cpu_list + ['cpufreq']
     mock_device.FileExists.return_value = True
     mock_device.RunShellCommand = mock.Mock(side_effect=_ShellCommandHandler)
     pc = perf_control.PerfControl(mock_device)
+    self._MockOutLowLevelPerfControlMethods(pc)
 
-    # Set up mocks on PerfControl members when it is harder via mocking
-    # RunShellCommand().
+    # Verify.
     # pylint: disable=protected-access
-    pc.SetScalingGovernor = mock.Mock()
-    pc._ForceAllCpusOnline = mock.Mock()
-    pc._SetScalingMaxFreq = mock.Mock()
-    pc._SetMaxGpuClock = mock.Mock()
-
-    # Check the actions performed by SetHighPerfMode().
+    # pylint: disable=no-member
     pc.SetHighPerfMode()
     mock_device.EnableRoot.assert_called_once_with()
     pc._ForceAllCpusOnline.assert_called_once_with(True)
     pc.SetScalingGovernor.assert_called_once_with('performance')
-    pc._SetScalingMaxFreq.assert_called_once_with(1190400)
+    pc._SetScalingMaxFreqForCpus.assert_called_once_with(
+        1190400, ' '.join(cpu_list))
     pc._SetMaxGpuClock.assert_called_once_with(200000000)
+
+  def testNexus5XHighPerfMode(self):
+    # Mock out the device state for PerfControl.
+    cpu_list = ['cpu%d' % cpu for cpu in xrange(6)]
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.product_model = 'Nexus 5X'
+    mock_device.adb = mock.Mock(spec=adb_wrapper.AdbWrapper)
+    mock_device.ListDirectory.return_value = cpu_list + ['cpufreq']
+    mock_device.FileExists.return_value = True
+    mock_device.RunShellCommand = mock.Mock(side_effect=_ShellCommandHandler)
+    pc = perf_control.PerfControl(mock_device)
+    self._MockOutLowLevelPerfControlMethods(pc)
+
+    # Verify.
+    # pylint: disable=protected-access
+    # pylint: disable=no-member
+    pc.SetHighPerfMode()
+    mock_device.EnableRoot.assert_called_once_with()
+    pc._ForceAllCpusOnline.assert_called_once_with(True)
+    pc.SetScalingGovernor.assert_called_once_with('performance')
+    pc._SetScalingMaxFreqForCpus.assert_called_once_with(
+        1248000, ' '.join(cpu_list))
+    pc._SetMaxGpuClock.assert_called_once_with(300000000)
+
+  def testNexus5XDefaultPerfMode(self):
+    # Mock out the device state for PerfControl.
+    cpu_list = ['cpu%d' % cpu for cpu in xrange(6)]
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.product_model = 'Nexus 5X'
+    mock_device.adb = mock.Mock(spec=adb_wrapper.AdbWrapper)
+    mock_device.ListDirectory.return_value = cpu_list + ['cpufreq']
+    mock_device.FileExists.return_value = True
+    mock_device.RunShellCommand = mock.Mock(side_effect=_ShellCommandHandler)
+    pc = perf_control.PerfControl(mock_device)
+    self._MockOutLowLevelPerfControlMethods(pc)
+
+    # Verify.
+    # pylint: disable=protected-access
+    # pylint: disable=no-member
+    pc.SetDefaultPerfMode()
+    pc.SetScalingGovernor.assert_called_once_with('ondemand')
+    pc._SetScalingMaxFreqForCpus.assert_any_call(1440000, 'cpu0 cpu1 cpu2 cpu3')
+    pc._SetScalingMaxFreqForCpus.assert_any_call(1824000, 'cpu4 cpu5')
+    pc._SetMaxGpuClock.assert_called_once_with(600000000)
+    pc._ForceAllCpusOnline.assert_called_once_with(False)

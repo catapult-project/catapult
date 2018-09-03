@@ -58,6 +58,20 @@ _PERFORMANCE_MODE_DEFINITIONS = {
     },
     'default_mode_governor': 'ondemand',
   },
+  'Nexus 5X': {
+    'high_perf_mode': {
+      'bring_cpu_cores_online': True,
+      'cpu_max_freq': 1248000,
+      'gpu_max_freq': 300000000,
+    },
+    'default_mode': {
+      'governor': 'ondemand',
+      # The SoC is ARM big.LITTLE. The cores 4..5 are big, the 0..3 are LITTLE.
+      'cpu_max_freq': {'0..3': 1440000, '4..5': 1824000},
+      'gpu_max_freq': 600000000,
+    },
+    'default_mode_governor': 'ondemand',
+  },
 }
 
 
@@ -105,7 +119,20 @@ class PerfControl(object):
     """
     cpu_max_freq = mode.get('cpu_max_freq')
     if cpu_max_freq:
-      self._SetScalingMaxFreq(cpu_max_freq)
+      if not isinstance(cpu_max_freq, dict):
+        self._SetScalingMaxFreqForCpus(cpu_max_freq, self._cpu_file_list)
+      else:
+        for key, max_frequency in cpu_max_freq.iteritems():
+          # Convert 'X' to 'cpuX' and 'X..Y' to 'cpuX cpu<X+1> .. cpuY'.
+          if '..' in key:
+            range_min, range_max = key.split('..')
+            range_min, range_max = int(range_min), int(range_max)
+          else:
+            range_min = range_max = int(key)
+          cpu_files = ['cpu%d' % number
+                       for number in xrange(range_min, range_max + 1)]
+          # Set the |max_frequency| on requested subset of the cores.
+          self._SetScalingMaxFreqForCpus(max_frequency, ' '.join(cpu_files))
     gpu_max_freq = mode.get('gpu_max_freq')
     if gpu_max_freq:
       self._SetMaxGpuClock(gpu_max_freq)
@@ -170,20 +197,24 @@ class PerfControl(object):
                 in self._ForEachCpu('cat "$CPU/cpufreq/scaling_governor"'))
     return zip(self._cpu_files, online, governor)
 
-  def _ForEachCpu(self, cmd):
-    """Runs a command on the device for each of the CPUs on it.
+  def _ForEachCpu(self, cmd, cpu_list=None):
+    """Runs a command on the device for each of the CPUs.
 
     Args:
       cmd: A string with a shell command, may may use shell expansion: "$CPU" to
            refer to the current CPU in the string form (e.g. "cpu0", "cpu1",
            and so on).
+      cpu_list: A space-separated string of CPU core names, like in the example
+           above
     Returns:
       A list of tuples in the form (cpu_string, command_output, exit_code), one
       tuple per each command invocation. As usual, all lines of the output
       command are joined into one line with spaces.
     """
+    if cpu_list is None:
+      cpu_list = self._cpu_file_list
     script = '; '.join([
-        'for CPU in %s' % self._cpu_file_list,
+        'for CPU in %s' % cpu_list,
         'do %s' % cmd,
         'echo -n "%~%$?%~%"',
         'done'
@@ -193,19 +224,19 @@ class PerfControl(object):
     output = '\n'.join(output).split('%~%')
     return zip(self._cpu_files, output[0::2], (int(c) for c in output[1::2]))
 
-  def _WriteEachCpuFile(self, path, value):
-    self._ConditionallyWriteEachCpuFile(path, value, condition='true')
-
-  def _ConditionallyWriteEachCpuFile(self, path, value, condition):
+  def _ConditionallyWriteCpuFiles(self, path, value, cpu_files, condition):
     template = (
         '{condition} && test -e "$CPU/{path}" && echo {value} > "$CPU/{path}"')
     results = self._ForEachCpu(
-        template.format(path=path, value=value, condition=condition))
+        template.format(path=path, value=value, condition=condition), cpu_files)
     cpus = ' '.join(cpu for (cpu, _, status) in results if status == 0)
     if cpus:
       logger.info('Successfully set %s to %r on: %s', path, value, cpus)
     else:
       logger.warning('Failed to set %s to %r on any cpus', path, value)
+
+  def _WriteCpuFiles(self, path, value, cpu_files):
+    self._ConditionallyWriteCpuFiles(path, value, cpu_files, condition='true')
 
   def _ReadEachCpuFile(self, path):
     return self._ForEachCpu(
@@ -223,8 +254,8 @@ class PerfControl(object):
     condition = 'test -e "{path}" && grep -q {value} {path}'.format(
         path=('${CPU}/%s' % self._AVAILABLE_GOVERNORS_REL_PATH),
         value=value)
-    self._ConditionallyWriteEachCpuFile(
-        'cpufreq/scaling_governor', value, condition)
+    self._ConditionallyWriteCpuFiles(
+        'cpufreq/scaling_governor', value, self._cpu_file_list, condition)
 
   def GetScalingGovernor(self):
     """Gets the currently set governor for each CPU.
@@ -247,8 +278,8 @@ class PerfControl(object):
     """
     return self._available_governors
 
-  def _SetScalingMaxFreq(self, value):
-    self._WriteEachCpuFile('cpufreq/scaling_max_freq', '%d' % value)
+  def _SetScalingMaxFreqForCpus(self, value, cpu_files):
+    self._WriteCpuFiles('cpufreq/scaling_max_freq', '%d' % value, cpu_files)
 
   def _SetMaxGpuClock(self, value):
     self._device.WriteFile('/sys/class/kgsl/kgsl-3d0/max_gpuclk',
