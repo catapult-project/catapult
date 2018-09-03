@@ -17,6 +17,7 @@
     <script src="./box_plotter.js"></script>
     <script src="./dot_plotter.js"></script>
     <script src="./bar_plotter.js"></script>
+    <script src="./stacked_bar_plotter.js"></script>
     <script src="./graph_plotter.js"></script>
     <script>
       'use strict';
@@ -29,16 +30,29 @@
       // const without = [];
       // const withs = [];
       const MiB = 1024 * 1024;
-      const withs = {
-        story1: [5, 5, 5],
-        story2: [5, 10, 15],
-        story3: [],
+      const data = {
+        storyOne: {
+          'a': [1, 1, 1],
+          'b': [2, 2, 2],
+          'c': [3, 3, 3],
+        },
+        storyTwo: {
+          'a': [4, 1, 1],
+          'b': [2, 2, 2],
+          'c': [3, 3, 3],
+        },
       };
-
-      const withouts = {
-        story1: [1, 10, 19],
-        story2: [7, 12, 2],
-        story3: [2],
+      const dataTwo = {
+        storyOne: {
+          'a': [1, 4, 1],
+          'b': [2, 2, 5],
+          'c': [20, 3, 3],
+        },
+        storyTwo: {
+          'a': [4, 1, 1],
+          'b': [2, 5, 2],
+          'c': [1, 3, 3],
+        },
       };
 
       const convertBytesToMiB = (value) => +((value / MiB).toFixed(5));
@@ -56,14 +70,10 @@
             .title('Average memory used with and without site' +
               'isolation enabled for each story')
             .setData({
-              withSiteIsoEnabled: withs,
-              withoutSiteIsoEnabled: withouts,
-            }, (metric, story, label, id) => {
-              window.alert(
-                  label === 'withSiteIsoEnabled' ?
-                    withs[story] : withouts[story]);
+              singleStack: data,
+              secondStack: dataTwo,
             })
-            .plotBar();
+            .plotStackedBar();
       };
       loadData();
     </script>

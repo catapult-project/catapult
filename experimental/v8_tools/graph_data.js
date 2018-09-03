@@ -265,6 +265,10 @@ class GraphData {
     this.plotter_.plot(new BarPlotter());
   }
 
+  plotStackedBar() {
+    this.plotter_.plot(new StackedBarPlotter());
+  }
+
   /**
    * Computes the cumulative frequency for the list of values provided.
    * @param {Array<number>} data

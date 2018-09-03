@@ -23,7 +23,7 @@ class GraphPlotter {
       top: 50,
       right: 200,
       left: 80,
-      bottom: 50,
+      bottom: 100,
     };
     const width = this.canvasWidth_ - margins.left - margins.right;
     const height = this.canvasHeight_ - margins.top - margins.bottom;
