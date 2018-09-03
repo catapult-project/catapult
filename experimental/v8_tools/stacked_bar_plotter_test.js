@@ -13,7 +13,7 @@ describe('StackedBarPlotter', function() {
         ['stack3', {start: 3, height: 3}],
       ];
       const plotter = new StackedBarPlotter();
-      const computedStackedAvgs = plotter.computeStackedAvgs_(bar);
+      const computedStackedAvgs = plotter.stackLocations_(bar);
       chai.expect(computedStackedAvgs).to.eql(stackedAvgs);
     });
   });

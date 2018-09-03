@@ -120,10 +120,20 @@ class BarPlotter {
           .attr('fill', color)
           .on('click', d =>
             graph.interactiveCallbackForBarPlot(d[this.x_], key));
+      const boxSize = 10;
+      const offset = `${index}em`;
+      legend.append('rect')
+          .attr('fill', color)
+          .attr('height', boxSize)
+          .attr('width', boxSize)
+          .attr('y', offset)
+          .attr('x', 0);
       legend.append('text')
           .text(key)
-          .attr('y', index + 'em')
-          .attr('fill', color);
+          .attr('x', boxSize)
+          .attr('y', offset)
+          .attr('dy', boxSize)
+          .attr('text-anchor', 'start');
     });
   }
 }

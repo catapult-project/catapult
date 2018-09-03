@@ -36,6 +36,7 @@ class StackedBarPlotter {
         .attr('transform', `translate(0, ${chartDimensions.height})`);
     this.yAxisDrawing_ = chart.append('g')
         .call(this.yAxisGenerator_);
+    this.keys_ = graph.keys();
     // Each story is assigned a band by the createXAxisScale function
     // which maintains the positions in which each category of the chart
     // will be rendered. This further divides these bands into
@@ -62,7 +63,7 @@ class StackedBarPlotter {
 
   createYAxisScale_(chartDimensions, sources) {
     const getStackHeights =
-        metrics => metrics.map(metric => metric[this.data_].height);
+        stackNames => stackNames.map(stack => stack[this.data_].height);
     const getBarHeight =
         story => this.sum_(getStackHeights(story[this.data_]));
     const maxHeight =
@@ -74,10 +75,9 @@ class StackedBarPlotter {
         .range([0, chartDimensions.height]);
   }
 
-  createInnerBandScale_(graph) {
-    const keys = graph.keys();
+  createInnerBandScale_() {
     return d3.scaleBand()
-        .domain(keys)
+        .domain(this.keys_)
         .range([0, this.outerBandScale_.bandwidth()]);
   }
 
@@ -106,8 +106,8 @@ class StackedBarPlotter {
    * key represents the values associated with that label.
    * For example:
    * {
-   *  metricOne: [numbers...]
-   *  metricTwo: [numbers...]
+   *  stackOne: [numbers...]
+   *  stackTwo: [numbers...]
    * }
    * will compute the positions for a bar that has two stacks,
    * the height of each being the average of numbers...
@@ -126,12 +126,14 @@ class StackedBarPlotter {
     }
     return stackedAverages;
   }
+
+  getNumericLabelForKey_(key) {
+    return this.keys_.indexOf(key) + 1;
+  }
   /**
-   * Draws a stacked bar chart to the canvas.
-   * This expects the data in graph to be formatted as a table,
-   * with the first column being categories and the second being
-   * the corresponding stacks. Each of the stacks are objects
-   * mapping the stack label to the stack values.
+   * Draws a stacked bar chart to the canvas. This expects the data
+   * in graph to be formatted as a table, with the first column being categories
+   * and the second being the corresponding values.
    * @param {GraphData} graph The data to be plotted.
    * @param {Object} chart d3 selection for the chart element to be drawn on.
    * @param {Object} legend d3 selection for the legend element for
@@ -161,8 +163,8 @@ class StackedBarPlotter {
     }
   }
 
-  drawLegendLabels_(legend, metrics) {
-    metrics.forEach((metric, i) => {
+  drawLegendLabels_(legend, stackNames) {
+    stackNames.forEach((stack, i) => {
       const boxSize = 10;
       const offset = `${i * 1}em`;
       legend.append('rect')
@@ -172,11 +174,21 @@ class StackedBarPlotter {
           .attr('y', offset)
           .attr('x', 0);
       legend.append('text')
-          .text(metric)
+          .text(stack)
           .attr('x', boxSize)
           .attr('y', offset)
           .attr('dy', boxSize)
           .attr('text-anchor', 'start');
+    });
+    this.keys_.forEach((key, i) => {
+      const belowStackNames = `${stackNames.length + 1}em`;
+      const offset = `${i}em`;
+      legend.append('text')
+          .text(`${this.getNumericLabelForKey_(key)}: ${key}`)
+          .attr('y', belowStackNames)
+          .attr('dy', offset)
+          .append('title')
+          .text(key);
     });
   }
 
@@ -185,6 +197,7 @@ class StackedBarPlotter {
     const stacks = bars[this.data_];
     const colors = d3.schemeCategory10;
     const x = this.outerBandScale_(barName) + this.innerBandScale_(key);
+    let totalHeight = 0;
     stacks.forEach((stack, i) => {
       const positions = stack[this.data_];
       const height =
@@ -195,6 +208,15 @@ class StackedBarPlotter {
           .attr('width', this.innerBandScale_.bandwidth())
           .attr('height', height)
           .attr('fill', colors[i]);
+      totalHeight += positions.height;
     });
+    const barMid = x + this.innerBandScale_.bandwidth() / 2;
+    selection.append('text')
+        .text(this.getNumericLabelForKey_(key))
+        .attr('fill', 'black')
+        .attr('y', this.scaleForYAxis_(totalHeight))
+        .attr('x', barMid)
+        .append('title')
+        .text(key);
   }
 }

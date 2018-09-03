@@ -77,10 +77,21 @@ class LinePlotter {
           .attr('data-legend', key)
           .attr('class', 'line-plot')
           .attr('clip-path', 'url(#plot-clip)');
+      const lineLength = 10;
+      const offset = `${index}em`;
+      legend.append('line')
+          .attr('stroke', color)
+          .attr('stroke-width', 5)
+          .attr('y1', offset)
+          .attr('x1', 0)
+          .attr('x2', lineLength)
+          .attr('y2', offset);
       legend.append('text')
           .text(key)
-          .attr('y', index + 'em')
-          .attr('fill', color);
+          .attr('x', lineLength)
+          .attr('y', 5)
+          .attr('dy', offset)
+          .attr('text-anchor', 'start');
     });
     const redraw = xAxisScale => {
       const pathGenerator = d3.line()

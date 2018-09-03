@@ -17,11 +17,11 @@ class GraphPlotter {
     /** @private {number} */
     this.canvasHeight_ = 720;
     /** @private {number} */
-    this.canvasWidth_ = 1280;
+    this.canvasWidth_ = 1880;
     /* Provides spacing around the chart for labels and the axes. */
     const margins = {
       top: 50,
-      right: 200,
+      right: 800,
       left: 80,
       bottom: 100,
     };
@@ -69,12 +69,9 @@ class GraphPlotter {
   }
 
   createLegend_() {
-    const padding = 5;
     return this.chart_.append('g')
         .attr('class', 'legend')
-        .attr('transform',
-            `translate(${this.chartDimensions_.width + padding},
-                ${this.chartDimensions_.margins.top})`);
+        .attr('transform', `translate(${this.chartDimensions_.width}, 0)`);
   }
 
   labelTitle_() {
@@ -86,8 +83,8 @@ class GraphPlotter {
   }
 
   labelAxis_() {
-    const chartBottom =
-      this.chartDimensions_.height + this.chartDimensions_.margins.bottom;
+    const padding = 50;
+    const chartBottom = this.chartDimensions_.height + 50;
     this.chart_.append('text')
         .attr('transform', `translate(${this.chartDimensions_.width / 2}, 
             ${chartBottom})`)
