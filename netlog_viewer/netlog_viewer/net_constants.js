@@ -36,11 +36,11 @@ function setNetLogConstantsForTest() {
     PHASE_NONE: 2
   };
 
-  // See net/log/net_log_event_type_list.h in Chromium.
+  // See net/log/net_log_source_type_list.h in Chromium.
   EventSourceType = {
     NONE: 0,
     URL_REQUEST: 1,
-    CONNECT_JOB: 2,
+    TRANSPORT_CONNECT_JOB: 2,
     SOCKET: 3,
     HOST_RESOLVER_IMPL_JOB: 4,
     HTTP_STREAM_JOB: 5,
@@ -88,7 +88,8 @@ function setNetLogConstantsForTest() {
     QUIC_SESSION_CONNECTION_CLOSE_FRAME_RECEIVED: 34,
     QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT: 35,
     HTTP_STREAM_PARSER_READ_HEADERS: 36,
-    CERT_VERIFIER_JOB: 37
+    CERT_VERIFIER_JOB: 37,
+    CERT_CT_COMPLIANCE_CHECKED: 38
   };
 
   EventTypeNames = makeInverseMap(EventType);
@@ -97,7 +98,7 @@ function setNetLogConstantsForTest() {
   // See net/base/load_flags.h in Chromium.
   LoadFlag = {
     NORMAL: 0,
-    MAIN_FRAME: 1 << 12,
+    MAIN_FRAME_DEPRECATED: 1 << 12,
     MAYBE_USER_GESTURE: 1 << 15,
     VERIFY_EV_CERT: 1 << 8
   };

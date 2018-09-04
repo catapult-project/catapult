@@ -14,6 +14,7 @@ Suggested merge steps:
 
 1.
 ```
+cd CHROME_DIR/chrome/browser/resources/net_internals
 git diff --relative --src-prefix="a/netlog_viewer/netlog_viewer/"\
 --dst-prefix="b/netlog_viewer/netlog_viewer/"\
 R1 R2 . > diff.txt
@@ -28,6 +29,31 @@ git apply --reject --whitespace=fix diff.txt
 
 3.
 Manually merge any rejected chunks in `*.rej` files.
+
+4.
+```
+cd CHROME_DIR/chrome/test/data/webui/net_internals
+git diff --relative R1 R2 . > test-diff.txt
+```
+
+5.
+edit test-diff.txt and convert the filenames to match, for example: log_view_painter.js
+-> log_view_painter_test.html, and remove diff chunks for tests that don't exist
+in the catapult repo.
+
+6.
+```
+cd CATAPULT_DIR/netlog_viewer/netlog_viewer
+git apply --reject --whitespace=fix test-diff.txt
+```
+
+7.
+Manually merge any rejected chunks in `*.rej` files.
+
+8.
+Run netlog_viewer/bin/run_dev_server_tests and fix any failures that weren't
+already present before starting the merge.
+
 
 Motivation
 ------------
