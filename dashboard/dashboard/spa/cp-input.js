@@ -4,10 +4,10 @@
 */
 'use strict';
 (() => {
-  class CpTextarea extends Polymer.Element {
-    static get is() { return 'cp-textarea'; }
+  class CpInput extends Polymer.Element {
+    static get is() { return 'cp-input'; }
 
-    async connectedCallback() {
+    connectedCallback() {
       super.connectedCallback();
       if (this.autofocus) {
         this.focus();
@@ -23,8 +23,19 @@
       return this.$.input;
     }
 
+    async onFocus_(event) {
+      this.focused = true;
+    }
+
+    async onBlur_(event) {
+      this.focused = false;
+    }
+
     async focus() {
       this.nativeInput.focus();
+      // Sometimes there can be so much rendering happening around
+      // connectedCallback and other state updates that the first focus()
+      // doesn't take. Try, try again.
       while (cp.getActiveElement() !== this.nativeInput) {
         await cp.timeout(50);
         this.nativeInput.focus();
@@ -39,22 +50,18 @@
       }
     }
 
-    async onFocus_(event) {
-      this.focused = true;
-    }
-
-    async onBlur_(event) {
-      this.focused = false;
-    }
-
     async onKeyup_(event) {
       this.value = event.target.value;
     }
   }
 
-  CpTextarea.properties = {
+  CpInput.properties = {
     autofocus: {type: Boolean},
     focused: {
+      type: Boolean,
+      reflectToAttribute: true,
+    },
+    disabled: {
       type: Boolean,
       reflectToAttribute: true,
     },
@@ -62,5 +69,5 @@
     value: {type: String},
   };
 
-  customElements.define(CpTextarea.is, CpTextarea);
+  customElements.define(CpInput.is, CpInput);
 })();

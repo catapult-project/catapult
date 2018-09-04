@@ -5,27 +5,33 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<dom-module id="cp-textarea">
+<dom-module id="cp-input">
   <template>
     <style>
       :host {
+        align-items: center;
         border-radius: 4px;
         border: 1px solid var(--neutral-color-dark, grey);
         cursor: text;
         display: flex;
+        justify-content: space-between;
         outline: none;
         padding: 4px;
         position: relative;
       }
       #label {
         background-color: var(--background-color, white);
-        color: var(--primary-color-dark, blue);
+        color: var(--neutral-color-dark, grey);
         font-size: smaller;
         padding: 4px;
         position: absolute;
         transform: translate(0px, -1.5em);
         transition: color var(--transition-short, 0.2s);
         white-space: nowrap;
+      }
+      :host([disabled]) {
+        border: 1px solid var(--neutral-color-light, lightgrey);
+        cursor: unset;
       }
       :host([focused]) {
         border: 2px solid var(--primary-color-dark, blue);
@@ -34,24 +40,31 @@ found in the LICENSE file.
       :host([focused]) #label {
         color: var(--primary-color-dark, blue);
       }
-      textarea {
+      :host([error]) {
+        border-color: var(--error-color, red);
+      }
+      input {
+        background-color: inherit;
         border: 0;
+        box-sizing: border-box;
         flex-grow: 1;
-        font-family: inherit;
         font-size: inherit;
         outline: none;
-        padding: 4px;
+        padding: 8px 4px 4px 4px;
+        width: 100%;
       }
     </style>
 
     <div id="label">[[label]]</div>
-    <textarea
+    <input
         id="input"
+        size="0"
+        disabled="[[disabled]]"
         value="[[value]]"
         on-blur="onBlur_"
         on-focus="onFocus_"
-        on-keyup="onKeyup_">
-    </textarea>
+        on-keyup="onKeyup_"></input>
+    <slot></slot>
   </template>
 </dom-module>
-<script src="/dashboard/spa/cp-textarea.js"></script>
+<script src="/dashboard/spa/cp-input.js"></script>
