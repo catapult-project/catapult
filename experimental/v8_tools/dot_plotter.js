@@ -166,10 +166,16 @@ class DotPlotter {
           })
           .append('title')
           .text('click to view trace');
-      legend.append('text')
+      const label = chart.append('text')
           .text(key)
-          .attr('y', index + 'em')
-          .attr('fill', color);
+          .attr('x', '-1em')
+          .attr('y', this.scaleForYAxis_(key))
+          .attr('text-anchor', 'end')
+          .attr('fill', 'black');
+      // Add a title to the label to make sure the text is still accessible
+      // even if it is clipped.
+      label.append('title')
+          .text(key);
     });
   }
 

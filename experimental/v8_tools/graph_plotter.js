@@ -21,8 +21,8 @@ class GraphPlotter {
     /* Provides spacing around the chart for labels and the axes. */
     const margins = {
       top: 50,
-      right: 800,
-      left: 80,
+      right: 700,
+      left: 180,
       bottom: 100,
     };
     const width = this.canvasWidth_ - margins.left - margins.right;
@@ -79,16 +79,18 @@ class GraphPlotter {
         .attr('x', this.chartDimensions_.width / 2)
         .attr('y', 0 - this.chartDimensions_.margins.top / 2)
         .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
         .text(this.graph_.title());
   }
 
   labelAxis_() {
     const padding = 50;
-    const chartBottom = this.chartDimensions_.height + 50;
+    const chartBottom = this.chartDimensions_.height + padding;
     this.chart_.append('text')
         .attr('transform', `translate(${this.chartDimensions_.width / 2}, 
             ${chartBottom})`)
         .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
         .text(this.graph_.xAxis());
 
     this.chart_.append('text')
@@ -96,6 +98,7 @@ class GraphPlotter {
         .attr('y', 0 - (this.chartDimensions_.margins.left / 2))
         .attr('x', 0 - (this.chartDimensions_.height / 2))
         .attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold')
         .text(this.graph_.yAxis());
   }
 
