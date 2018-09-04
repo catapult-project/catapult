@@ -39,6 +39,7 @@ from devil.android import settings
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
+from devil.android.sdk import shared_prefs
 from devil.android.sdk import version_codes
 from devil.android.tools import script_common
 from devil.constants import exit_codes
@@ -51,6 +52,9 @@ _SYSTEM_APP_DIRECTORIES = ['/system/app/', '/system/priv-app/']
 _SYSTEM_WEBVIEW_NAMES = ['webview', 'WebViewGoogle']
 _CHROME_PACKAGE_REGEX = re.compile('.*chrom.*')
 _TOMBSTONE_REGEX = re.compile('tombstone.*')
+_STANDALONE_VR_DEVICES = [
+  'vega', # Lenovo Mirage Solo
+]
 
 
 class _DEFAULT_TIMEOUTS(object):
@@ -134,6 +138,7 @@ def ProvisionDevices(
 
   steps.append(ProvisionStep(SetDate))
   steps.append(ProvisionStep(CheckExternalStorage))
+  steps.append(ProvisionStep(StandaloneVrDeviceSetup))
 
   parallel_devices.pMap(ProvisionDevice, steps, blacklist, reboot_timeout)
 
@@ -529,6 +534,30 @@ def CheckExternalStorage(device):
     with device_temp_file.DeviceTempFile(
         device.adb, suffix='.sh', dir=device.GetExternalStoragePath()) as f:
       device.WriteFile(f.name, 'test')
+
+
+def StandaloneVrDeviceSetup(device):
+  """Performs any additional setup necessary for standalone Android VR devices.
+
+  Arguments:
+    device: The device to check.
+  """
+  if device.product_name not in _STANDALONE_VR_DEVICES:
+    return
+
+  # Modify VrCore's settings so that any first time setup, etc. is skipped.
+  shared_pref = shared_prefs.SharedPrefs(device, 'com.google.vr.vrcore',
+      'VrCoreSettings.xml', use_encrypted_path=True)
+  shared_pref.Load()
+  # Skip first time setup.
+  shared_pref.SetBoolean('DaydreamSetupComplete', True)
+  # Disable the automatic prompt that shows anytime the device detects that a
+  # controller isn't connected.
+  shared_pref.SetBoolean('gConfigFlags:controller_recovery_enabled', False)
+  # Use an automated controller instead of a real one so we get past the
+  # controller pairing screen that's shown on startup.
+  shared_pref.SetBoolean('UseAutomatedController', True)
+  shared_pref.Commit()
 
 
 def main(raw_args):
