@@ -161,6 +161,13 @@ class StackedBarPlotter {
         this.drawLegendLabels_(legend, stackNames);
       }
     }
+    const tickRotation = -30;
+    d3.selectAll('.xaxis .tick text')
+        .attr('text-anchor', 'end')
+        .attr('font-size', 12)
+        .attr('transform', `rotate(${tickRotation})`)
+        .append('title')
+        .text(text => text);
   }
 
   drawLegendLabels_(legend, stackNames) {
