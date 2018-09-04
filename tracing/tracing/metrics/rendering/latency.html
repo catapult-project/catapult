@@ -34,6 +34,12 @@ found in the LICENSE file.
  * The distribution of durations between the time when the main thread scroll
  * listener update is begun to the time when the GPU service swaps buffers due
  * to the scroll event.
+ *
+ * first_gesture_scroll_update_latency_tbmv2
+ * =========================================
+ * This shows the latency, as defined in input_event_latency_tbmv2, of the first
+ * gesture scroll update input event. The first event can often get delayed by
+ * work related to page loading.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Interesting latency info component names.
@@ -53,7 +59,9 @@ tr.exportTo('tr.metrics.rendering', function() {
 
   function* processInputLatencyEvent(event) {
     if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice)) return;
-    yield tr.b.Unit.timestampFromUs(event.inputLatency);
+    const latency = event.inputLatency;
+    if (latency === undefined) return;
+    yield tr.b.Unit.timestampFromUs(latency);
   }
 
   function* processLatencyEvent(event) {
@@ -69,6 +77,17 @@ tr.exportTo('tr.metrics.rendering', function() {
     } else {
       throw new Error('LatencyInfo has no begin component');
     }
+  }
+
+  function* processGestureScrollUpdateLatencyEvent(event) {
+    if (event.title !== 'InputLatency::GestureScrollUpdate') return;
+    if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice)) {
+      throw new Error('Gesture scroll update latency event is not an ' +
+                      'instance of tr.e.cc.InputLatencyAsyncSlice');
+    }
+    const latency = event.inputLatency;
+    if (latency === undefined) return;
+    yield [event.start, tr.b.Unit.timestampFromUs(latency)];
   }
 
   function addLatencyHistograms(histograms, model, segments) {
@@ -95,6 +114,18 @@ tr.exportTo('tr.metrics.rendering', function() {
         mainThreadScrollLatencies,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 50),
           description: 'Main thread scroll latencies.' });
+
+    const gestureScrollUpdateLatencies = [...iterAsyncEvents_(
+        modelHelper.browserHelpers, ranges,
+        processGestureScrollUpdateLatencyEvent)].sort();
+    if (gestureScrollUpdateLatencies.length) {
+      histograms.createHistogram(
+          'first_gesture_scroll_update_latency_tbmv2',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+          gestureScrollUpdateLatencies[0][1],
+          { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+            description: 'Latency of the first gesture scroll update.' });
+    }
   }
 
   return {
