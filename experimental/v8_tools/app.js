@@ -26,7 +26,7 @@ const app = new Vue({
           .yAxis('Memory used (MiB)')
           .title(this.globalDiagnostic
               .charAt(0).toUpperCase() + this.globalDiagnostic.slice(1))
-          .setData(data)
+          .setData(data, story => app.$emit('bar_clicked', story))
           .plotBar();
     },
     //  Draw a cumulative frequency plot depending on the target value.

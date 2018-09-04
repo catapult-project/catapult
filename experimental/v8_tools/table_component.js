@@ -10,6 +10,20 @@ Vue.component('data-table', {
     filterKey: String,
     additional: Array
   },
+  mounted() {
+    // TODO(anthonyalridge): Should also update table state.
+    // TODO(anthonyalridge): Create route back to bar plots.
+    const jumpToStory = (story) => {
+      this.chosen_plot = this.plot_kinds[0];
+      app.plotSingleMetric(
+          this.metric.metric,
+          story,
+          app.globalDiagnostic,
+          this.markedTableDiagnostics,
+          this.chosen_plot);
+    };
+    app.$on('bar_clicked', jumpToStory);
+  },
   data() {
     const sort = {};
     this.columns.forEach(function(key) {

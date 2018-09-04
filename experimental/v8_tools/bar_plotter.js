@@ -120,7 +120,13 @@ class BarPlotter {
           .attr('height', d => barHeight(d[this.y_]))
           .attr('fill', color)
           .on('click', d =>
-            graph.interactiveCallbackForBarPlot(d[this.x_], key));
+            graph.interactiveCallbackForBarPlot(d[this.x_], key))
+          .on('mouseover', function() {
+            d3.select(this).attr('opacity', 0.5);
+          })
+          .on('mouseout', function() {
+            d3.select(this).attr('opacity', 1);
+          });
       const boxSize = 10;
       const offset = `${index}em`;
       legend.append('rect')
