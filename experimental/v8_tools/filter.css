@@ -20,6 +20,13 @@
   margin-left: 2em;
 }
 
+.regression {
+  color: red;
+}
+
+.improvement {
+  color: green;
+}
 #radioBoxes {
   margin-top: +10px;
   margin-left: +10px;

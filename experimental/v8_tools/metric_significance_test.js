@@ -63,5 +63,13 @@ describe('MetricSignificance', function() {
       const regressedStories = results[0].stories.map(({ story }) => story);
       chai.expect(regressedStories).to.eql(['story']);
     });
+    it('should identify the type of change', function() {
+      const ms = new MetricSignificance();
+      ms.add('metric1', 'label1', 'story', dataOne);
+      ms.add('metric1', 'label2', 'story', dataTwo);
+      const results = ms.mostSignificant();
+      const change = results[0].evidence.type;
+      chai.expect(change).to.eql('regression');
+    });
   });
 });

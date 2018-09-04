@@ -111,19 +111,20 @@
 <!-- Template for stats_test_summary_component.js -->
 <script type="text/x-template" id="stat-test-summary-template">
   'use strict';
-  <div id='statistical-sig'>
+  <div id="statistical-sig">
     <div v-if="testResults.length">
+        <p> Reference Column: {{referenceColumn}}</p>
         <p>Statistically significant metrics:</p>
         <ol>
-          <li v-for='result in testResults'>
-            <p> {{ result.metric }}   <br> 
+          <li v-for="result in testResults">
+            <p v-bind:class="result.evidence.type"> {{ result.metric }}   <br> 
                 p: {{result.evidence.p}} 
             </p>
-            <div v-if='result.stories.length'>
+            <div v-if="result.stories.length">
               <p>Stories</p>
               <ol>
-                <li v-for='story in result.stories'>
-                    <p> {{ story.story }}   <br> 
+                <li v-for="story in result.stories">
+                    <p v-bind:class="story.evidence.type"> {{ story.story }}   <br> 
                       p: {{story.evidence.p}} 
                   </p>
                 </li>
@@ -180,7 +181,8 @@
               Apply</button>
     </div>
     <stat-test-summary
-        v-bind:test-results="testResults"></stat-test-summary>
+        v-bind:test-results="testResults"
+        v-bind:reference-column="referenceColumn"></stat-test-summary>
   </div>
   <!-- the root component -->
 <div class='appRight' id='app'>

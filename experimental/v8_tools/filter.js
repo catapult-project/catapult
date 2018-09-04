@@ -24,7 +24,8 @@ const menu = new Vue({
     componentMap: null,
     sizeMap: null,
 
-    testResults: []
+    testResults: [],
+    referenceColumn: '',
   },
 
   computed: {
@@ -189,6 +190,7 @@ function readSingleFile(e) {
         metricAverage.set(e.name, [average(e.sampleValues)]);
       }
     }
+    menu.referenceColumn = significanceTester.referenceColumn;
     menu.testResults = significanceTester.mostSignificant();
     //  The content for the default table: with name
     //  of the metric, the average value of the sample values
