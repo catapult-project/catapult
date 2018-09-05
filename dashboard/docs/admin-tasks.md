@@ -188,6 +188,4 @@ unit test with the JSON to `add_point_test.py` and debug it from there.
 The bot whitelist is a list of bot names which are publicly visible. If a
 bot is not on the list, users must be logged into google.com accounts to
 see the data for that bot. You can add or remove a bot from the whitelist
-at [/bot\_whitelist](https://chromeperf.appspot.com/bot_whitelist),
-and make a bot’s existing data publicly visible (or internal\_only)
-at [/change\_internal\_only](https://chromeperf.appspot.com/change_internal_only).
+using the dev console by importing `dashboard.change_internal_only`.

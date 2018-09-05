@@ -46,16 +46,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /bot_whitelist
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /change_internal_only
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /delete_expired_entities
   script: dashboard.dispatcher.APP
   login: admin
