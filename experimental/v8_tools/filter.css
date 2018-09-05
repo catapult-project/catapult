@@ -284,19 +284,18 @@ th.active .arrow {
 .checkbox-story {
   width: 1.3em;
   height: 1.3em;
-  background-color: white;
   border-radius: 50%;
   vertical-align: middle;
-  border: 1px solid #92d195;
   -webkit-appearance: none;
   outline: none;
   cursor: pointer;
+  background-color: #ffffff;
+  border: 2px solid #66bb6a;
 }
 
 .checkbox-story:checked {
-  background-color: #66bb6a;
-  border: 3px solid #ffffff;
-  opacity: 1;
+  background-color: #92d195;
+  opacity: 4;
 }
 
 .checkbox-head {

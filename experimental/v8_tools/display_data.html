@@ -40,10 +40,9 @@
           </th>
         </template>
         <template v-for='add in additional'>
-            <th><input type='checkbox' v-model='checkedDiagnostic' @click='pickHeadTable(add)' class='checkbox-head'/>&nbsp;
+            <th><input type='checkbox' @click='pickHeadTable(add)' class='checkbox-head'/>&nbsp;
             {{ add | capitalize }}
           </th>
-
         </template>
       </tr>
     </thead>
@@ -51,15 +50,10 @@
       <template v-for="entry in filteredData">
           <tr 
             id='entry'>
-            <td><input type='checkbox' @click='pickTableMetric(entry)' class='checkbox-metric'/>&nbsp;
-              {{entry['id']}}
-            </td>
-            <td  @click='toggleMetric(entry)' 
+            <td  @click.self='toggleMetric(entry)' 
               :class='{openedMetric: openedMetric.includes(entry.id)}'>
+              <input type='checkbox' @click='pickTableMetric(entry)' class='checkbox-metric'/>&nbsp;
               {{entry['metric']}}
-            </td>
-            <td>
-              {{entry['averageSampleValues']}}
             </td>
             <template v-for='add in additional'>
               <td>
@@ -71,30 +65,28 @@
           <template v-for='story in storiesEntries'>
               <tr
                 id ='story-row'>
-                <td><input type='checkbox'@click='pickTableStory(story)' class='checkbox-story'/>&nbsp;</td>
-                <td id='story-story' @click='toggleStory(story)' 
-                  :class='{openedStory: openedStory.includes(story.story)}' > {{ story.story }}</td>
-                <td id='story-sample'> {{ story.sample }}</td>
+                <td id='story-story' @click.self='toggleStory(story)' 
+                  :class='{openedStory: openedStory.includes(story.story)}'>
+                  <input type='checkbox'@click='pickTableStory(story)' class='checkbox-story'/>&nbsp;
+                   {{ story.story }}
+                </td>
                 <template v-for='el of additional'>
                   <td id='story-sample'> {{story[el]}}</td>
                 </template>
               </tr>
               <template v-if='openedStory.includes(story.story)'>
                         <tr>
-                          <td></td>
                           <v-select placeholder='Pick a diagnostic' 
                                     v-model="diagnostic" 
                                     :options='diagnosticsEntries'></v-select>
                        </tr>
                        <tr>
-                          <td></td>
                           <v-select placeholder='Available disgnostics'
                                     multiple v-model='selected_diagnostics'
                                     :options='diagnostics_options'
                                     v-if='seen_diagnostics'></v-select>
                       </tr>
                       <tr>
-                        <td></td>
                         <v-select placeholder='Choose a plot' 
                                   v-model='chosen_plot' 
                                   :options='plot_kinds'
@@ -220,9 +212,7 @@
                 id='reset_table'
                 >
                 Reset table</button>
-        <v-select placeholder='Pick a global diagnostic'
-            :options = 'allDiagnostics'
-            v-model='globalDiagnostic'
+        <v-select placeholder='Pick type of plot'
             id='globalDiagnostic'
             v-if='gridDataLoaded'></v-select>
       </form>

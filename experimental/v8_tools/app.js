@@ -11,10 +11,9 @@ const app = new Vue({
     selected_diagnostic: null,
     graph: new GraphData(),
     searchQuery: '',
-    gridColumns: ['id', 'metric', 'averageSampleValues'],
+    gridColumns: ['metric'],
     gridData: [],
     parsedMetrics: null,
-    globalDiagnostic: null,
     columnsForChosenDiagnostic: null,
     resetDropDownMenu: false,
     oldGridData: []
@@ -24,9 +23,8 @@ const app = new Vue({
     plotBarChart(data) {
       this.graph.xAxis('Story')
           .yAxis('Memory used (MiB)')
-          .title(this.globalDiagnostic
-              .charAt(0).toUpperCase() + this.globalDiagnostic.slice(1))
-          .setData(data, story => app.$emit('bar_clicked', story))
+          .title('Labels')
+          .setData(data)
           .plotBar();
     },
     //  Draw a cumulative frequency plot depending on the target value.
@@ -222,7 +220,8 @@ const app = new Vue({
         return undefined;
       }
       return this
-          .getSubdiagnostics(this.selected_metric,
+          .getSubdiagnostics(this.getSampleValues,
+              this.selected_metric,
               this.selected_story,
               this.selected_diagnostic);
     },
@@ -251,82 +250,17 @@ const app = new Vue({
       this.selected_story = null;
       this.selected_diagnostic = null;
     },
-    //  Compute the data for the columns after the user has chosen a
-    //  particular global diagnostic that has to be split in
-    //  multiple subdiagnostics.
-    globalDiagnostic() {
-      if (this.globalDiagnostic === null) {
-        return undefined;
-      }
-      this.gridColumns = ['id', 'metric', 'averageSampleValues'];
-      const newDiagnostics = new Set();
-      const metricTodiagnoticValuesMap = new Map();
-      for (const elem of this.sampleArr) {
-        let currentDiagnostic = this.guidValue.
-            get(elem.diagnostics[this.globalDiagnostic]);
-        if (currentDiagnostic === undefined) {
-          continue;
-        }
-        if (currentDiagnostic !== 'number') {
-          currentDiagnostic = currentDiagnostic[0];
-        }
-        newDiagnostics.add(currentDiagnostic);
-
-        if (!metricTodiagnoticValuesMap.has(elem.name)) {
-          const map = new Map();
-          map.set(currentDiagnostic, [average(elem.sampleValues)]);
-          metricTodiagnoticValuesMap.set(elem.name, map);
-        } else {
-          const map = metricTodiagnoticValuesMap.get(elem.name);
-          if (map.has(currentDiagnostic)) {
-            const array = map.get(currentDiagnostic);
-            array.push(average(elem.sampleValues));
-            map.set(currentDiagnostic, array);
-            metricTodiagnoticValuesMap.set(elem.name, map);
-          } else {
-            map.set(currentDiagnostic, [average(elem.sampleValues)]);
-            metricTodiagnoticValuesMap.set(elem.name, map);
-          }
-        }
-      }
-      this.columnsForChosenDiagnostic = Array.from(newDiagnostics);
-      for (const elem of this.gridData) {
-        if (metricTodiagnoticValuesMap.get(elem.metric) === undefined) {
-          continue;
-        }
-        for (const diagnostic of Array.from(newDiagnostics)) {
-          elem[diagnostic] = average(metricTodiagnoticValuesMap
-              .get(elem.metric).get(diagnostic));
-        }
-      }
-    },
-
     //  Whenever we have new inputs from the menu (parsed inputs that
     //  where obtained by choosing from the tree) these should be
     //  added in the table (adding the average sample value)
     parsedMetrics() {
-      const metricAverage = new Map();
-      for (const e of this.sampleArr) {
-        if (this.parsedMetrics.includes(e.name)) {
-          if (metricAverage.has(e.name)) {
-            const aux = metricAverage.get(e.name);
-            aux.push(average(e.sampleValues));
-            metricAverage.set(e.name, aux);
-          } else {
-            metricAverage.set(e.name, [average(e.sampleValues)]);
-          }
+      const newGridData = [];
+      for (const metric of this.gridData) {
+        if (this.parsedMetrics.includes(metric.metric)) {
+          newGridData.push(metric);
         }
       }
-      const tableElems = [];
-      let id = 1;
-      for (const [key, value] of metricAverage.entries()) {
-        tableElems.push({
-          id: id++,
-          metric: key,
-          averageSampleValues: average(value)
-        });
-      }
-      this.gridData = tableElems;
+      this.gridData = newGridData;
     }
   }
 });

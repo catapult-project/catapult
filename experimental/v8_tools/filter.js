@@ -150,7 +150,6 @@ const menu = new Vue({
       if (_.uniq(metrics).length === 0) {
         alert('No metrics found');
       } else {
-        alert('You can pick a metric from drop-down');
         app.parsedMetrics = _.uniq(metrics);
       }
     }
@@ -161,6 +160,49 @@ function average(arr) {
   return _.reduce(arr, function(memo, num) {
     return memo + num;
   }, 0) / arr.length;
+}
+
+//  This function returns an object containing:
+//  all the names of labels plus a map like this:
+//  map: [metric_name] -> [map: [lable] -> sampleValue],
+//  where the lable is each name of all sub-labels
+//  and sampleValue is the average for a specific
+//  metric across stories with a specific label.
+function getMetricStoriesLabelsToValuesMap(sampleArr, guidValueInfo) {
+  const newDiagnostics = new Set();
+  const metricToDiagnosticValuesMap = new Map();
+  for (const elem of sampleArr) {
+    let currentDiagnostic = guidValueInfo.
+        get(elem.diagnostics.labels);
+    if (currentDiagnostic === undefined) {
+      continue;
+    }
+    if (currentDiagnostic !== 'number') {
+      currentDiagnostic = currentDiagnostic[0];
+    }
+    newDiagnostics.add(currentDiagnostic);
+
+    if (!metricToDiagnosticValuesMap.has(elem.name)) {
+      const map = new Map();
+      map.set(currentDiagnostic, [average(elem.sampleValues)]);
+      metricToDiagnosticValuesMap.set(elem.name, map);
+    } else {
+      const map = metricToDiagnosticValuesMap.get(elem.name);
+      if (map.has(currentDiagnostic)) {
+        const array = map.get(currentDiagnostic);
+        array.push(average(elem.sampleValues));
+        map.set(currentDiagnostic, array);
+        metricToDiagnosticValuesMap.set(elem.name, map);
+      } else {
+        map.set(currentDiagnostic, [average(elem.sampleValues)]);
+        metricToDiagnosticValuesMap.set(elem.name, map);
+      }
+    }
+  }
+  return {
+    labelNames: Array.from(newDiagnostics),
+    mapLabelToValues: metricToDiagnosticValuesMap
+  };
 }
 
 
@@ -194,35 +236,47 @@ function readSingleFile(e) {
         const story = guidValueInfo.get(stories)[0];
         menu.significanceTester.add(name, label, story, sampleValues);
       }
-      if (metricAverage.has(e.name)) {
-        const aux = metricAverage.get(e.name);
-        aux.push(average(e.sampleValues));
-        metricAverage.set(e.name, aux);
-      } else {
-        metricAverage.set(e.name, [average(e.sampleValues)]);
-      }
     }
-    menu.allLabels = Array.from(allLabels);
+    let metricNames = [];
+    sampleArr.map(e => metricNames.push(e.name));
+    metricNames = _.uniq(metricNames);
+
+
     //  The content for the default table: with name
     //  of the metric, the average value of the sample values
     //  plus an id. The latest is used to expand the row.
     //  It may disappear later.
     const tableElems = [];
     let id = 1;
-    for (const [key, value] of metricAverage.entries()) {
+    for (const name of metricNames) {
       tableElems.push({
         id: id++,
-        metric: key,
-        averageSampleValues: average(value)
+        metric: name
       });
     }
+
+    const labelsResult = getMetricStoriesLabelsToValuesMap(
+        sampleArr, guidValueInfo);
+    const columnsForChosenDiagnostic = labelsResult.labelNames;
+    const metricToDiagnosticValuesMap = labelsResult.mapLabelToValues;
+    for (const elem of tableElems) {
+      if (metricToDiagnosticValuesMap.get(elem.metric) === undefined) {
+        continue;
+      }
+      for (const diagnostic of columnsForChosenDiagnostic) {
+        if (!metricToDiagnosticValuesMap.get(elem.metric).has(diagnostic)) {
+          continue;
+        }
+        elem[diagnostic] = average(metricToDiagnosticValuesMap
+            .get(elem.metric).get(diagnostic));
+      }
+    }
+
+
     app.gridData = tableElems;
     app.sampleArr = sampleArr;
     app.guidValue = guidValueInfo;
-
-    let metricNames = [];
-    sampleArr.map(e => metricNames.push(e.name));
-    metricNames = _.uniq(metricNames);
+    app.columnsForChosenDiagnostic = columnsForChosenDiagnostic;
 
     const result = parseAllMetrics(metricNames);
     menu.sampelArr = sampleArr;
@@ -270,11 +324,10 @@ function extractData(contents) {
       if (e.diagnostics.hasOwnProperty('traceUrls')) {
         elem.diagnostics.traceUrls = e.diagnostics.traceUrls;
       }
-      if (e.diagnostics.hasOwnProperty('benchmarkStart')) {
-        elem.diagnostics.benchmarkStart = e.diagnostics.benchmarkStart;
-      }
       if (e.diagnostics.hasOwnProperty('labels')) {
         elem.diagnostics.labels = e.diagnostics.labels;
+      } else {
+        elem.diagnostics.labels = e.diagnostics.benchmarkStart;
       }
       if (e.diagnostics.hasOwnProperty('stories')) {
         elem.diagnostics.stories = e.diagnostics.stories;
