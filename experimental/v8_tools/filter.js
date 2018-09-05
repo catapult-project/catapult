@@ -297,6 +297,7 @@ function readSingleFile(e) {
         menu.significanceTester.add(name, label, story, sampleValues);
       }
     }
+    menu.allLabels = Array.from(allLabels);
     let metricNames = [];
     sampleArr.map(e => metricNames.push(e.name));
     metricNames = _.uniq(metricNames);
