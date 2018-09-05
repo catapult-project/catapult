@@ -180,6 +180,9 @@
               id='apply_button'>
               Apply</button>
     </div>
+    <v-select placeholder="Please select a reference column"
+        :options="allLabels"
+        v-model="referenceColumn"></v-select>
     <stat-test-summary
         v-bind:test-results="testResults"
         v-bind:reference-column="referenceColumn"></stat-test-summary>

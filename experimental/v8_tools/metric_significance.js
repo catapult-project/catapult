@@ -44,13 +44,15 @@ class MetricSignificance {
     return this.referenceColumn_;
   }
 
-  mostSignificantStories_(metricData) {
+  set referenceColumn(referenceColumn) {
+    this.referenceColumn_ = referenceColumn;
+  }
+  mostSignificantStories_(metricData, otherCol) {
     const significantChanges = [];
-    const [firstLabel, secondLabel] = Object.keys(metricData);
-    const storyNames = Object.keys(metricData[firstLabel]);
+    const storyNames = Object.keys(metricData[this.referenceColumn_]);
     for (const story of storyNames) {
-      const firstRun = metricData[firstLabel][story];
-      const secondRun = metricData[secondLabel][story];
+      const firstRun = metricData[this.referenceColumn_][story];
+      const secondRun = metricData[otherCol][story];
       const evidence = this.test_(firstRun, secondRun);
       if (evidence.p < this.criticalPValue_) {
         significantChanges.push({
@@ -96,10 +98,15 @@ class MetricSignificance {
         throw new Error(
             `Expected metric to have only two labels, received ${numLabels}`);
       }
-      const xs = this.getAllData_(metricData, labels[0]);
-      const ys = this.getAllData_(metricData, labels[1]);
+      if (!labels.includes(this.referenceColumn_)) {
+        throw new Error('Reference column not in labels');
+      }
+      const otherCol =
+          labels[0] === this.referenceColumn_ ? labels[1] : labels[0];
+      const xs = this.getAllData_(metricData, this.referenceColumn_);
+      const ys = this.getAllData_(metricData, otherCol);
       const evidence = this.test_(xs, ys);
-      const stories = this.mostSignificantStories_(metricData);
+      const stories = this.mostSignificantStories_(metricData, otherCol);
       if (evidence.p < this.criticalPValue_) {
         significantChanges.push({
           metric,

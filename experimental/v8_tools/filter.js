@@ -24,8 +24,10 @@ const menu = new Vue({
     componentMap: null,
     sizeMap: null,
 
+    allLabels: [],
     testResults: [],
     referenceColumn: '',
+    significanceTester: new MetricSignificance(),
   },
 
   computed: {
@@ -108,6 +110,15 @@ const menu = new Vue({
       this.subsubcomponent = null;
     },
 
+    referenceColumn() {
+      if (this.referenceColumn === null) {
+        this.testResults = [];
+        return;
+      }
+      this.significanceTester.referenceColumn = this.referenceColumn;
+      this.testResults = this.significanceTester.mostSignificant();
+    }
+
   },
   methods: {
     //  Build the available metrics upon the chosen items.
@@ -170,7 +181,7 @@ function readSingleFile(e) {
     const sampleArr = contents.sampleValueArray;
     const guidValueInfo = contents.guidValueInfo;
     const metricAverage = new Map();
-    const significanceTester = new MetricSignificance();
+    const allLabels = new Set();
     for (const e of sampleArr) {
       // This version of the tool focuses on analysing memory
       // metrics, which contain a slightly different structure
@@ -179,8 +190,9 @@ function readSingleFile(e) {
         const { name, sampleValues, diagnostics } = e;
         const { labels, stories } = diagnostics;
         const label = guidValueInfo.get(labels)[0];
+        allLabels.add(label);
         const story = guidValueInfo.get(stories)[0];
-        significanceTester.add(name, label, story, sampleValues);
+        menu.significanceTester.add(name, label, story, sampleValues);
       }
       if (metricAverage.has(e.name)) {
         const aux = metricAverage.get(e.name);
@@ -190,8 +202,7 @@ function readSingleFile(e) {
         metricAverage.set(e.name, [average(e.sampleValues)]);
       }
     }
-    menu.referenceColumn = significanceTester.referenceColumn;
-    menu.testResults = significanceTester.mostSignificant();
+    menu.allLabels = Array.from(allLabels);
     //  The content for the default table: with name
     //  of the metric, the average value of the sample values
     //  plus an id. The latest is used to expand the row.
