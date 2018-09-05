@@ -7,7 +7,7 @@
  * @type {!Object}
  * @const
  */
-var global = this;
+var cr_global = this;
 
 /** @typedef {{eventName: string, uid: number}} */
 var WebUIListener;
@@ -24,14 +24,14 @@ var cr = cr || function() {
    * @param {string} name Name of the object that this file defines.
    * @param {*=} opt_object The object to expose at the end of the path.
    * @param {Object=} opt_objectToExportTo The object to add the path to;
-   *     default is {@code global}.
+   *     default is {@code cr_global}.
    * @return {!Object} The last object exported (i.e. exportPath('cr.ui')
    *     returns a reference to the ui property of window.cr).
    * @private
    */
   function exportPath(name, opt_object, opt_objectToExportTo) {
     var parts = name.split('.');
-    var cur = opt_objectToExportTo || global;
+    var cur = opt_objectToExportTo || cr_global;
 
     for (var part; parts.length && (part = parts.shift());) {
       if (!parts.length && opt_object !== undefined) {
