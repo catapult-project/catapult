@@ -34,10 +34,8 @@ CreateAndLoadLogTask.prototype = {
    * Starts creating the log dump.
    */
   start: function() {
-    this.initialPrivacyStripping_ =
-        SourceTracker.getInstance().getPrivacyStripping();
-    log_util.createLogDumpAsync(this.userComments_,
-                                this.onLogDumpCreated.bind(this), true);
+    log_util.createLogDumpAsync(
+        this.userComments_, this.onLogDumpCreated.bind(this), true);
   },
 
   /**
@@ -46,18 +44,16 @@ CreateAndLoadLogTask.prototype = {
    * @param {string} logDumpText Log dump, as a string.
    */
   onLogDumpCreated: function(logDumpText) {
-    expectEquals(this.initialPrivacyStripping_,
-                 SourceTracker.getInstance().getPrivacyStripping());
     expectEquals('Log loaded.', log_util.loadLogFile(logDumpText, 'log.txt'));
-    expectFalse(SourceTracker.getInstance().getPrivacyStripping());
 
     NetInternalsTest.expectStatusViewNodeVisible(LoadedStatusView.MAIN_BOX_ID);
 
     // Make sure the DIV on the import tab containing the comments is visible
     // before checking the displayed text.
     expectTrue(NetInternalsTest.nodeIsVisible($(ImportView.LOADED_DIV_ID)));
-    expectEquals(this.userComments_,
-                 $(ImportView.LOADED_INFO_USER_COMMENTS_ID).innerText);
+    expectEquals(
+        this.userComments_,
+        $(ImportView.LOADED_INFO_USER_COMMENTS_ID).innerText);
 
     this.onTaskDone();
   }
@@ -93,18 +89,18 @@ WaitForConstantsTask.prototype = {
 };
 
 /**
-  * A Task that creates a log dump in the browser process, waits to receive it
-  * via IPC, and and then loads it as a string.
-  * @param {integer} truncate The number of bytes to truncate from the end of
-  *     the string, if any, to simulate a truncated log due to crash, or
-  *     quitting without properly shutting down the log writer.
-  * @extends {NetInternalsTest.Task}
-  */
+ * A Task that creates a log dump in the browser process, waits to receive it
+ * via IPC, and and then loads it as a string.
+ * @param {integer} truncate The number of bytes to truncate from the end of
+ *     the string, if any, to simulate a truncated log due to crash, or
+ *     quitting without properly shutting down the log writer.
+ * @extends {NetInternalsTest.Task}
+ */
 function GetNetLogFileContentsAndLoadLogTask(truncate) {
   NetInternalsTest.Task.call(this);
   this.setCompleteAsync(true);
   this.truncate_ = truncate;
-};
+}
 
 GetNetLogFileContentsAndLoadLogTask.prototype = {
   __proto__: NetInternalsTest.Task.prototype,
@@ -123,7 +119,6 @@ GetNetLogFileContentsAndLoadLogTask.prototype = {
    */
   onLogReceived_: function(logDumpText) {
     assertEquals('string', typeof logDumpText);
-    expectTrue(SourceTracker.getInstance().getPrivacyStripping());
 
     var expectedResult = 'Log loaded.';
 
@@ -134,7 +129,6 @@ GetNetLogFileContentsAndLoadLogTask.prototype = {
 
     logDumpText = logDumpText.substring(0, logDumpText.length - this.truncate_);
     expectEquals(expectedResult, log_util.loadLogFile(logDumpText, 'log.txt'));
-    expectFalse(SourceTracker.getInstance().getPrivacyStripping());
 
     NetInternalsTest.expectStatusViewNodeVisible(LoadedStatusView.MAIN_BOX_ID);
 
@@ -163,6 +157,7 @@ function checkViewsAfterLogLoaded() {
     sockets: true,
     http2: true,
     quic: true,
+    reporting: true,
     'alt-svc': true,
     httpCache: true,
     modules: true,
@@ -190,6 +185,7 @@ function checkViewsAfterNetLogFileLoaded() {
     sockets: false,
     http2: false,
     quic: false,
+    reporting: false,
     'alt-svc': false,
     httpCache: false,
     modules: false,
@@ -199,11 +195,6 @@ function checkViewsAfterNetLogFileLoaded() {
     chromeos: false
   };
   NetInternalsTest.checkTabLinkVisibility(tabVisibilityState, false);
-}
-
-function checkPrivacyStripping(expectedValue) {
-  expectEquals(expectedValue,
-               SourceTracker.getInstance().getPrivacyStripping());
 }
 
 /**
@@ -222,7 +213,6 @@ function checkActiveView(id) {
  */
 TEST_F('NetInternalsTest', 'netInternalsLogUtilExportImport', function() {
   expectFalse(g_browser.isDisabled());
-  expectTrue(SourceTracker.getInstance().getPrivacyStripping());
   NetInternalsTest.expectStatusViewNodeVisible(CaptureStatusView.MAIN_BOX_ID);
 
   var taskQueue = new NetInternalsTest.TaskQueue(true);
@@ -235,9 +225,7 @@ TEST_F('NetInternalsTest', 'netInternalsLogUtilExportImport', function() {
  * Attempts to load a NetLog created by the browser. The log contents are
  * passed to Javascript via an IPC rather than drag and drop.
  */
-TEST_F('NetInternalsTest',
-    'netInternalsLogUtilImportNetLogFile',
-    function() {
+TEST_F('NetInternalsTest', 'netInternalsLogUtilImportNetLogFile', function() {
   var taskQueue = new NetInternalsTest.TaskQueue(true);
   taskQueue.addTask(new GetNetLogFileContentsAndLoadLogTask(0));
   taskQueue.addFunctionTask(checkViewsAfterNetLogFileLoaded);
@@ -248,13 +236,14 @@ TEST_F('NetInternalsTest',
  * Same as above, but it truncates the log to simulate the case of a crash when
  * creating a log.
  */
-TEST_F('NetInternalsTest', 'netInternalsLogUtilImportNetLogFileTruncated',
+TEST_F(
+    'NetInternalsTest', 'netInternalsLogUtilImportNetLogFileTruncated',
     function() {
-  var taskQueue = new NetInternalsTest.TaskQueue(true);
-  taskQueue.addTask(new GetNetLogFileContentsAndLoadLogTask(20));
-  taskQueue.addFunctionTask(checkViewsAfterNetLogFileLoaded);
-  taskQueue.run(true);
-});
+      var taskQueue = new NetInternalsTest.TaskQueue(true);
+      taskQueue.addTask(new GetNetLogFileContentsAndLoadLogTask(20));
+      taskQueue.addFunctionTask(checkViewsAfterNetLogFileLoaded);
+      taskQueue.run(true);
+    });
 
 /**
  * Checks pressing the stop capturing button.
@@ -265,11 +254,9 @@ TEST_F('NetInternalsTest', 'netInternalsLogUtilStopCapturing', function() {
   // the constants.
   taskQueue.addTask(new WaitForConstantsTask());
 
-  taskQueue.addFunctionTask(
-      NetInternalsTest.expectStatusViewNodeVisible.bind(
-          null, HaltedStatusView.MAIN_BOX_ID));
+  taskQueue.addFunctionTask(NetInternalsTest.expectStatusViewNodeVisible.bind(
+      null, HaltedStatusView.MAIN_BOX_ID));
   taskQueue.addFunctionTask(checkViewsAfterLogLoaded);
-  taskQueue.addFunctionTask(checkPrivacyStripping.bind(null, true));
   taskQueue.addFunctionTask(checkActiveView.bind(null, EventsView.TAB_ID));
   taskQueue.run();
 

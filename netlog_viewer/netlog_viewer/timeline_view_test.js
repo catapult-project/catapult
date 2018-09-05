@@ -67,12 +67,10 @@ LoadLogWithNewEventsTask.prototype = {
     logDump.events = [];
 
     var source = new NetInternalsTest.Source(1, EventSourceType.SOCKET);
-    logDump.events.push(
-        NetInternalsTest.createBeginEvent(source, EventType.SOCKET_ALIVE,
-                                          this.startTime_, null));
-    logDump.events.push(
-        NetInternalsTest.createMatchingEndEvent(logDump.events[0],
-                                                this.endTime_, null));
+    logDump.events.push(NetInternalsTest.createBeginEvent(
+        source, EventType.SOCKET_ALIVE, this.startTime_, null));
+    logDump.events.push(NetInternalsTest.createMatchingEndEvent(
+        logDump.events[0], this.endTime_, null));
     logDumpText = JSON.stringify(logDump);
 
     assertEquals('Log loaded.', log_util.loadLogFile(logDumpText));
@@ -300,10 +298,8 @@ TEST_F('NetInternalsTest', 'netInternalsTimelineViewScrollbar', function() {
   var taskQueue = new NetInternalsTest.TaskQueue(true);
   // Load a log and then switch to the timeline view.  The end time is
   // calculated so that the range is exactly |expectedGraphRange|.
-  taskQueue.addTask(
-      new LoadLogWithNewEventsTask(
-          55,
-          55 + graphView().scale_ * (canvas().width + expectedGraphRange)));
+  taskQueue.addTask(new LoadLogWithNewEventsTask(
+      55, 55 + graphView().scale_ * (canvas().width + expectedGraphRange)));
   taskQueue.addFunctionTask(
       NetInternalsTest.switchToView.bind(null, 'timeline'));
   taskQueue.addFunctionTask(checkGraphRange);

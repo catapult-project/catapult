@@ -78,15 +78,11 @@ var SourceEntry = (function() {
 
       switch (e.source.type) {
         case EventSourceType.URL_REQUEST:
-        // TODO(ricea): Remove SOCKET_STREAM after M41 is released.
-        case EventSourceType.SOCKET_STREAM:
         case EventSourceType.HTTP_STREAM_JOB:
         case EventSourceType.HTTP_STREAM_JOB_CONTROLLER:
         case EventSourceType.BIDIRECTIONAL_STREAM:
           this.description_ = e.params.url;
           break;
-        // TODO(davidben): Remove CONNECT_JOB after M57 is released.
-        case EventSourceType.CONNECT_JOB:
         case EventSourceType.TRANSPORT_CONNECT_JOB:
         case EventSourceType.SSL_CONNECT_JOB:
         case EventSourceType.SOCKS_CONNECT_JOB:
@@ -159,16 +155,6 @@ var SourceEntry = (function() {
               break;
           }
           break;
-        case EventSourceType.FILESTREAM:
-          this.description_ = e.params.file_name;
-          break;
-        case EventSourceType.IPV6_PROBE_JOB:
-          if (e.type == EventType.IPV6_PROBE_RUNNING &&
-              e.phase == EventPhase.PHASE_END) {
-            this.description_ = e.params.ipv6_supported ? 'IPv6 Supported' :
-                                                          'IPv6 Not Supported';
-          }
-          break;
       }
 
       if (this.description_ == undefined)
@@ -215,27 +201,8 @@ var SourceEntry = (function() {
           return e;
       }
       if (this.entries_.length >= 2) {
-        // Needed for compatability with log dumps prior to M26.
-        // TODO(mmenke):  Remove this.
-        if (this.entries_[0].type == EventType.SOCKET_POOL_CONNECT_JOB &&
-            this.entries_[0].params == undefined) {
-          return this.entries_[1];
-        }
         if (this.entries_[1].type == EventType.UDP_CONNECT)
           return this.entries_[1];
-        if (this.entries_[0].type == EventType.REQUEST_ALIVE &&
-            this.entries_[0].params == undefined) {
-          var startIndex = 1;
-          // Skip over delegate events for URL_REQUESTs.
-          for (; startIndex + 1 < this.entries_.length; ++startIndex) {
-            var type = this.entries_[startIndex].type;
-            if (type != EventType.URL_REQUEST_DELEGATE &&
-                type != EventType.DELEGATE_INFO) {
-              break;
-            }
-          }
-          return this.entries_[startIndex];
-        }
         if (this.entries_[1].type == EventType.IPV6_PROBE_RUNNING)
           return this.entries_[1];
       }
@@ -345,7 +312,7 @@ var SourceEntry = (function() {
      */
     createTablePrinter: function() {
       return createLogEntryTablePrinter(
-          this.entries_, SourceTracker.getInstance().getPrivacyStripping(),
+          this.entries_,
           SourceTracker.getInstance().getUseRelativeTimes() ?
               timeutil.getBaseTime() :
               0,

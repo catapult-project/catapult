@@ -144,13 +144,6 @@ var EventsView = (function() {
     },
 
     /**
-     * Updates text in the details view when privacy stripping is toggled.
-     */
-    onPrivacyStrippingChanged: function() {
-      this.invalidateDetailsView_();
-    },
-
-    /**
      * Updates text in the details view when time display mode is toggled.
      */
     onUseRelativeTimesChanged: function() {

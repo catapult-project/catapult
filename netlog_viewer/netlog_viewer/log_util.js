@@ -9,8 +9,7 @@ log_util = (function() {
    * Creates a new log dump.  |events| is a list of all events, |polledData| is
    * an object containing the results of each poll, |tabData| is an object
    * containing data for individual tabs, |date| is the time the dump was
-   * created, as a formatted string, and |privacyStripping| is whether or not
-   * private information should be removed from the generated dump.
+   * created, as a formatted string.
    *
    * Returns the new log dump as an object.  Resulting object may have a null
    * |numericDate|.
@@ -32,11 +31,7 @@ log_util = (function() {
    * tabs not present on the OS the log is from.
    */
   function createLogDump(
-      userComments, constants, events, polledData, tabData, numericDate,
-      privacyStripping) {
-    if (privacyStripping)
-      events = events.map(stripPrivacyInfo);
-
+      userComments, constants, events, polledData, tabData, numericDate) {
     var logDump = {
       'userComments': userComments,
       'constants': constants,
@@ -57,12 +52,11 @@ log_util = (function() {
    * Creates a full log dump using |polledData| and the return value of each
    * tab's saveState function and passes it to |callback|.
    */
-  function onUpdateAllCompleted(
-      userComments, callback, privacyStripping, polledData) {
+  function onUpdateAllCompleted(userComments, callback, polledData) {
     var logDump = createLogDump(
         userComments, Constants,
         EventsTracker.getInstance().getAllCapturedEvents(), polledData,
-        getTabData_(), timeutil.getCurrentTime(), privacyStripping);
+        getTabData_(), timeutil.getCurrentTime());
     callback(JSON.stringify(logDump));
   }
 
@@ -71,9 +65,9 @@ log_util = (function() {
    * loaded.  Once a log dump has been created, |callback| is passed the dumped
    * text as a string.
    */
-  function createLogDumpAsync(userComments, callback, privacyStripping) {
-    g_browser.updateAllInfo(onUpdateAllCompleted.bind(
-        null, userComments, callback, privacyStripping));
+  function createLogDumpAsync(userComments, callback) {
+    g_browser.updateAllInfo(
+        onUpdateAllCompleted.bind(null, userComments, callback));
   }
 
   /**

@@ -45,6 +45,22 @@ function setNodeDisplay(node, isVisible) {
 }
 
 /**
+ * Toggles the visibility of a DOM node.
+ * @param {!HtmlNode} node The node to show or hide.
+ */
+function toggleNodeDisplay(node) {
+  setNodeDisplay(node, !getNodeDisplay(node));
+}
+
+/**
+ * Returns the visibility of a DOM node.
+ * @param {!HtmlNode} node The node to query.
+ */
+function getNodeDisplay(node) {
+  return node.style.display != 'none';
+}
+
+/**
  * Adds a node to |parentNode|, of type |tagName|.
  * @param {!HtmlNode} parentNode The node that will be the parent of the new
  *     element.

@@ -130,7 +130,6 @@ var MainView = (function() {
         // If there's a file name, a log file was loaded, so display the
         // file's name in the status bar.
         this.topBarView_.switchToSubView('loaded').setFileName(opt_fileName);
-        SourceTracker.getInstance().setPrivacyStripping(false);
       }
     },
 
@@ -178,6 +177,7 @@ var MainView = (function() {
       addTab(AltSvcView);
       addTab(SpdyView);
       addTab(QuicView);
+      addTab(ReportingView);
       addTab(HttpCacheView);
       addTab(ModulesView);
       addTab(BandwidthView);

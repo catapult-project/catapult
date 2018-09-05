@@ -81,20 +81,16 @@ var NetInternalsTest = (function() {
       // Enable when failure is resolved.
       // AX_TEXT_01: http://crbug.com/559203
       this.accessibilityAuditConfig.ignoreSelectors(
-          'controlsWithoutLabel',
-          controlsWithoutLabelSelectors);
+          'controlsWithoutLabel', controlsWithoutLabelSelectors);
 
       // Enable when warning is resolved.
       // AX_HTML_01: http://crbug.com/559204
-      this.accessibilityAuditConfig.ignoreSelectors(
-          'humanLangMissing',
-          'html');
+      this.accessibilityAuditConfig.ignoreSelectors('humanLangMissing', 'html');
 
       // Wrap g_browser.receive around a test function so that assert and expect
       // functions can be called from observers.
-      g_browser.receive =
-          this.continueTest(WhenTestDone.EXPECT,
-                            BrowserBridge.prototype.receive.bind(g_browser));
+      g_browser.receive = this.continueTest(
+          WhenTestDone.EXPECT, BrowserBridge.prototype.receive.bind(g_browser));
 
       g_browser.setPollInterval(TESTING_POLL_INTERVAL_MS);
 
@@ -204,9 +200,9 @@ var NetInternalsTest = (function() {
    * @param {number} expectedRows Expected number of rows in the table.
    */
   NetInternalsTest.checkTbodyRows = function(ancestorId, expectedRows) {
-    chai.assert.strictEqual(expectedRows,
-                 NetInternalsTest.getTbodyNumRows(ancestorId),
-                 'Incorrect number of rows in ' + ancestorId);
+    chai.assert.strictEqual(
+        expectedRows, NetInternalsTest.getTbodyNumRows(ancestorId),
+        'Incorrect number of rows in ' + ancestorId);
   };
 
   /**
@@ -302,6 +298,7 @@ var NetInternalsTest = (function() {
       http2: SpdyView.TAB_ID,
       'alt-svc': AltSvcView.TAB_ID,
       quic: QuicView.TAB_ID,
+      reporting: ReportingView.TAB_ID,
       httpCache: HttpCacheView.TAB_ID,
       modules: ModulesView.TAB_ID,
       prerender: PrerenderView.TAB_ID,
@@ -309,11 +306,12 @@ var NetInternalsTest = (function() {
       chromeos: CrosView.TAB_ID
     };
 
-    chai.assert.strictEqual(typeof hashToTabIdMap[hash], 'string',
-                 'Invalid tab anchor: ' + hash);
+    chai.assert.strictEqual(
+        typeof hashToTabIdMap[hash], 'string', 'Invalid tab anchor: ' + hash);
     var tabId = hashToTabIdMap[hash];
-    chai.assert.strictEqual('object', typeof NetInternalsTest.getTab(tabId),
-                 'Invalid tab: ' + tabId);
+    chai.assert.strictEqual(
+        'object', typeof NetInternalsTest.getTab(tabId),
+        'Invalid tab: ' + tabId);
     return tabId;
   };
 
@@ -325,14 +323,16 @@ var NetInternalsTest = (function() {
     var tabId = NetInternalsTest.getTabId(hash);
 
     // Make sure the tab link is visible, as we only simulate normal usage.
-    chai.assert.isTrue(NetInternalsTest.tabLinkIsVisible(tabId),
-               tabId + ' does not have a visible tab link.');
+    chai.assert.isTrue(
+        NetInternalsTest.tabLinkIsVisible(tabId),
+        tabId + ' does not have a visible tab link.');
     var tabLinkNode = NetInternalsTest.getTab(tabId).tabLink;
 
     // Simulate a left click on the link.
     var mouseEvent = document.createEvent('MouseEvents');
-    mouseEvent.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false,
-                              false, false, false, 0, null);
+    mouseEvent.initMouseEvent(
+        'click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false,
+        0, null);
     tabLinkNode.dispatchEvent(mouseEvent);
 
     // Make sure the hash changed.
@@ -346,9 +346,9 @@ var NetInternalsTest = (function() {
     var tabSwitcher = MainView.getInstance().tabSwitcher();
     var tabIdToView = tabSwitcher.getAllTabViews();
     for (var curTabId in tabIdToView) {
-      chai.assert.strictEqual(curTabId == tabId,
-                   tabSwitcher.getTabView(curTabId).isVisible(),
-                   curTabId + ': Unexpected visibility state.');
+      chai.assert.strictEqual(
+          curTabId == tabId, tabSwitcher.getTabView(curTabId).isVisible(),
+          curTabId + ': Unexpected visibility state.');
     }
   };
 
@@ -360,21 +360,22 @@ var NetInternalsTest = (function() {
    * @param {bool+}: tourTabs True if tabs expected to be visible should should
    *     each be navigated to as well.
    */
-  NetInternalsTest.checkTabLinkVisibility = function(tabVisibilityState,
-                                                     tourTabs) {
+  NetInternalsTest.checkTabLinkVisibility = function(
+      tabVisibilityState, tourTabs) {
     // The currently active tab should have a link that is visible.
-    chai.assert.isTrue(NetInternalsTest.tabLinkIsVisible(
-                   NetInternalsTest.getActiveTabId()));
+    chai.assert.isTrue(
+        NetInternalsTest.tabLinkIsVisible(NetInternalsTest.getActiveTabId()));
 
     // Check visibility state of all tabs.
     var tabCount = 0;
     for (var hash in tabVisibilityState) {
       var tabId = NetInternalsTest.getTabId(hash);
-      chai.assert.strictEqual('object', typeof NetInternalsTest.getTab(tabId),
-                   'Invalid tab: ' + tabId);
-      chai.assert.strictEqual(tabVisibilityState[hash],
-                   NetInternalsTest.tabLinkIsVisible(tabId),
-                   tabId + ' visibility state is unexpected.');
+      chai.assert.strictEqual(
+          'object', typeof NetInternalsTest.getTab(tabId),
+          'Invalid tab: ' + tabId);
+      chai.assert.strictEqual(
+          tabVisibilityState[hash], NetInternalsTest.tabLinkIsVisible(tabId),
+          tabId + ' visibility state is unexpected.');
       tabCount++;
     }
 
@@ -514,15 +515,13 @@ var NetInternalsTest = (function() {
 
       // Function to run the next task in the queue.
       var runNextTask = this.taskQueue_.runNextTask_.bind(
-                            this.taskQueue_,
-                            Array.prototype.slice.call(arguments));
+          this.taskQueue_, Array.prototype.slice.call(arguments));
 
       // If we need to start the next task asynchronously, we need to wrap
       // it with the test framework code.
       if (this.completeAsync_) {
-        window.setTimeout(activeTest_.continueTest(WhenTestDone.EXPECT,
-                                                   runNextTask),
-                          0);
+        window.setTimeout(
+            activeTest_.continueTest(WhenTestDone.EXPECT, runNextTask), 0);
         return;
       }
 
@@ -614,8 +613,8 @@ var NetInternalsTest = (function() {
     start: function() {
       // Reuse the BrowserBridge's callback mechanism, since it's already
       // wrapped in our test harness.
-      chai.assert.strictEqual('undefined',
-                   typeof g_browser.onIncognitoBrowserCreatedForTest);
+      chai.assert.strictEqual(
+          'undefined', typeof g_browser.onIncognitoBrowserCreatedForTest);
       g_browser.onIncognitoBrowserCreatedForTest =
           this.onIncognitoBrowserCreatedForTest.bind(this);
 
@@ -638,10 +637,9 @@ var NetInternalsTest = (function() {
    * @return {Task} Task that closes incognito browser window.
    */
   NetInternalsTest.getCloseIncognitoBrowserTask = function() {
-    return new NetInternalsTest.CallFunctionTask(
-        function() {
-          chrome.send('closeIncognitoBrowser');
-        });
+    return new NetInternalsTest.CallFunctionTask(function() {
+      chrome.send('closeIncognitoBrowser');
+    });
   };
 
   /**
@@ -695,8 +693,8 @@ var NetInternalsTest = (function() {
    * @see Event
    */
   NetInternalsTest.createBeginEvent = function(source, type, time, params) {
-    return new NetInternalsTest.Event(source, type, time,
-                                      EventPhase.PHASE_BEGIN, params);
+    return new NetInternalsTest.Event(
+        source, type, time, EventPhase.PHASE_BEGIN, params);
   };
 
   /**
@@ -705,8 +703,8 @@ var NetInternalsTest = (function() {
    * @see Event
    */
   NetInternalsTest.createEndEvent = function(source, type, time, params) {
-    return new NetInternalsTest.Event(source, type, time,
-                                      EventPhase.PHASE_END, params);
+    return new NetInternalsTest.Event(
+        source, type, time, EventPhase.PHASE_END, params);
   };
 
   /**
@@ -719,7 +717,7 @@ var NetInternalsTest = (function() {
    */
   NetInternalsTest.createMatchingEndEvent = function(beginEvent, time, params) {
     return NetInternalsTest.createEndEvent(
-               beginEvent.source, beginEvent.type, time, params);
+        beginEvent.source, beginEvent.type, time, params);
   };
 
   /**
@@ -728,8 +726,7 @@ var NetInternalsTest = (function() {
    */
   NetInternalsTest.expectStatusViewNodeVisible = function(nodeId) {
     var allIds = [
-      CaptureStatusView.MAIN_BOX_ID,
-      LoadedStatusView.MAIN_BOX_ID,
+      CaptureStatusView.MAIN_BOX_ID, LoadedStatusView.MAIN_BOX_ID,
       HaltedStatusView.MAIN_BOX_ID
     ];
 

@@ -54,6 +54,8 @@ var BrowserBridge = (function() {
         'altSvcMappings', 'onAltSvcMappingsChanged');
     this.addNetInfoPollableDataHelper('quicInfo', 'onQuicInfoChanged');
     this.addNetInfoPollableDataHelper(
+        'reportingInfo', 'onReportingInfoChanged');
+    this.addNetInfoPollableDataHelper(
         'httpCacheInfo', 'onHttpCacheInfoChanged');
 
     // Add other PollableDataHelpers.
@@ -170,11 +172,8 @@ var BrowserBridge = (function() {
       this.send('hstsQuery', [domain]);
     },
 
-    sendHSTSAdd: function(
-        domain, sts_include_subdomains, pkp_include_subdomains, pins) {
-      this.send(
-          'hstsAdd',
-          [domain, sts_include_subdomains, pkp_include_subdomains, pins]);
+    sendHSTSAdd: function(domain, sts_include_subdomains) {
+      this.send('hstsAdd', [domain, sts_include_subdomains]);
     },
 
     sendDomainSecurityPolicyDelete: function(domain) {
@@ -187,6 +186,10 @@ var BrowserBridge = (function() {
 
     sendExpectCTAdd: function(domain, report_uri, enforce) {
       this.send('expectCTAdd', [domain, report_uri, enforce]);
+    },
+
+    sendExpectCTTestReport: function(report_uri) {
+      this.send('expectCTTestReport', [report_uri]);
     },
 
     sendGetSessionNetworkStats: function() {
@@ -336,6 +339,11 @@ var BrowserBridge = (function() {
         this.expectCTObservers_[i].onExpectCTQueryResult(info);
     },
 
+    receivedExpectCTTestReportResult: function(result) {
+      for (var i = 0; i < this.expectCTObservers_.length; i++)
+        this.expectCTObservers_[i].onExpectCTTestReportResult(result);
+    },
+
     receivedONCFileParse: function(error) {
       for (var i = 0; i < this.crosONCFileParseObservers_.length; i++)
         this.crosONCFileParseObservers_[i].onONCFileParse(error);
@@ -474,6 +482,17 @@ var BrowserBridge = (function() {
      */
     addQuicInfoObserver: function(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.quicInfo.addObserver(
+          observer, ignoreWhenUnchanged);
+    },
+
+    /**
+     * Adds a listener of the Reporting info. |observer| will be called back
+     * when data is received, through:
+     *
+     *   observer.onReportingInfoChanged(reportingInfo)
+     */
+    addReportingInfoObserver: function(observer, ignoreWhenUnchanged) {
+      this.pollableDataHelpers_.reportingInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
 

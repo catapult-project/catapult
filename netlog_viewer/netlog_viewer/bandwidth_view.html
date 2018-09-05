@@ -11,7 +11,19 @@
           <span id="data-reduction-proxy-bypass-state-details"></span></li>
       </ul>
       <a href="#proxy">View current proxy configuration</a>
-    
+
+      <h4>Bandwidth Savings</h4>
+      <table class="styled-table" id="bandwidth-stats-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Session</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id=bandwidth-savings-tbody>
+        </tbody>
+      </table>
       <h4>Recent events</h4>
       <div id=data-reduction-proxy-view-events-content>
         <table class="styled-table">
@@ -28,18 +40,6 @@
           </tbody>
         </table>
       </div>
-      <h4>Bandwidth Savings</h4>
-      <table class="styled-table" id="bandwidth-stats-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Session</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody id=bandwidth-savings-tbody>
-        </tbody>
-      </table>
     </div>
   </template>
   <script>

@@ -18,11 +18,6 @@ var SourceTracker = (function() {
     // Observers that only want to receive lists of updated SourceEntries.
     this.sourceEntryObservers_ = [];
 
-    // True when cookies and authentication information should be removed from
-    // displayed events.  When true, such information should be hidden from
-    // all pages.
-    this.privacyStripping_ = true;
-
     // True when times should be displayed as milliseconds since the first
     // event, as opposed to milliseconds since January 1, 1970.
     this.useRelativeTimes_ = true;
@@ -135,26 +130,6 @@ var SourceTracker = (function() {
     },
 
     /**
-     * Sets the value of |privacyStripping_| and informs log observers
-     * of the change.
-     */
-    setPrivacyStripping: function(privacyStripping) {
-      this.privacyStripping_ = privacyStripping;
-      for (var i = 0; i < this.sourceEntryObservers_.length; ++i) {
-        if (this.sourceEntryObservers_[i].onPrivacyStrippingChanged)
-          this.sourceEntryObservers_[i].onPrivacyStrippingChanged();
-      }
-    },
-
-    /**
-     * Returns whether or not cookies and authentication information should be
-     * displayed for events that contain them.
-     */
-    getPrivacyStripping: function() {
-      return this.privacyStripping_;
-    },
-
-    /**
      * Sets the value of |useRelativeTimes_| and informs log observers
      * of the change.
      */
@@ -176,12 +151,10 @@ var SourceTracker = (function() {
 
     /**
      * Adds a listener of SourceEntries. |observer| will be called back when
-     * SourceEntries are added or modified, source entries are deleted, or
-     * privacy stripping changes:
+     * SourceEntries are added or modified or source entries are deleted.
      *
      *   observer.onSourceEntriesUpdated(sourceEntries)
      *   observer.onAllSourceEntriesDeleted()
-     *   observer.onPrivacyStrippingChanged()
      */
     addSourceEntryObserver: function(observer) {
       this.sourceEntryObservers_.push(observer);

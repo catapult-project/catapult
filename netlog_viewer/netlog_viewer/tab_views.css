@@ -87,3 +87,22 @@ table.borderless-table,
   padding-left: 4px;
   padding-right: 4px;
 }
+
+td.reporting-centered {
+  text-align: center;
+}
+td.reporting-right-justified {
+  text-align: right;
+}
+td .reporting-content-summary {
+}
+td .reporting-content-expand-button {
+  color: rgb(0, 0, 255);
+  cursor: pointer;
+  float: right;
+  font-size: 80%;
+  margin-left: 1em;
+  text-decoration: underline;
+}
+td .reporting-content-detail {
+}

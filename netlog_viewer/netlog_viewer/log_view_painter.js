@@ -6,7 +6,6 @@
 
 var createLogEntryTablePrinter;
 var proxySettingsToString;
-var stripPrivacyInfo;
 
 // Start of anonymous namespace.
 (function() {
@@ -22,8 +21,7 @@ function canCollapseBeginWithEnd(beginEntry) {
  * Creates a TablePrinter for use by the above two functions.  baseTime is
  * the time relative to which other times are displayed.
  */
-createLogEntryTablePrinter = function(
-    logEntries, privacyStripping, baseTime, logCreationTime) {
+createLogEntryTablePrinter = function(logEntries, baseTime, logCreationTime) {
   var entries = LogGroupEntry.createArrayFrom(logEntries);
   var tablePrinter = new TablePrinter();
   var parameterOutputter = new ParameterOutputter(tablePrinter);
@@ -66,7 +64,7 @@ createLogEntryTablePrinter = function(
     if (typeof entry.orig.params == 'object') {
       // Those 5 skipped cells are: two for "t=", and three for "st=".
       tablePrinter.setNewRowCellIndent(5 + entry.getDepth());
-      writeParameters(entry.orig, privacyStripping, parameterOutputter);
+      writeParameters(entry.orig, parameterOutputter);
 
       tablePrinter.setNewRowCellIndent(0);
     }
@@ -240,15 +238,10 @@ var ParameterOutputter = (function() {
  * Certain event types have custom pretty printers. Everything else will
  * default to a JSON-like format.
  */
-function writeParameters(entry, privacyStripping, out) {
-  if (privacyStripping) {
-    // If privacy stripping is enabled, remove data as needed.
-    entry = stripPrivacyInfo(entry);
-  } else {
-    // If headers are in an object, convert them to an array for better
-    // display.
-    entry = reformatHeaders(entry);
-  }
+function writeParameters(entry, out) {
+  // If headers are in an object, convert them to an array for better
+  // display.
+  entry = reformatHeaders(entry);
 
   // Use any parameter writer available for this event type.
   var paramsWriter = getParameterWriterForEventType(entry.type);
@@ -440,131 +433,6 @@ function reformatHeaders(entry) {
 
   return entry;
 }
-
-/**
- * Removes a cookie or unencrypted login information from a single HTTP header
- * line, if present, and returns the modified line.  Otherwise, just returns
- * the original line.
- *
- * Note: this logic should be kept in sync with
- * net::ElideHeaderValueForNetLog in net/http/http_log_util.cc.
- */
-function stripCookieOrLoginInfo(line) {
-  var patterns = [
-    // Cookie patterns
-    /^set-cookie: /i, /^set-cookie2: /i, /^cookie: /i,
-
-    // Unencrypted authentication patterns
-    /^authorization: \S*\s*/i, /^proxy-authorization: \S*\s*/i
-  ];
-
-  // Prefix will hold the first part of the string that contains no private
-  // information.  If null, no part of the string contains private
-  // information.
-  var prefix = null;
-  for (var i = 0; i < patterns.length; i++) {
-    var match = patterns[i].exec(line);
-    if (match != null) {
-      prefix = match[0];
-      break;
-    }
-  }
-
-  // Look for authentication information from data received from the server in
-  // multi-round Negotiate authentication.
-  if (prefix === null) {
-    var challengePatterns =
-        [/^www-authenticate: (\S*)\s*/i, /^proxy-authenticate: (\S*)\s*/i];
-    for (var i = 0; i < challengePatterns.length; i++) {
-      var match = challengePatterns[i].exec(line);
-      if (!match)
-        continue;
-
-      // If there's no data after the scheme name, do nothing.
-      if (match[0].length == line.length)
-        break;
-
-      // Ignore lines with commas, as they may contain lists of schemes, and
-      // the information we want to hide is Base64 encoded, so has no commas.
-      if (line.indexOf(',') >= 0)
-        break;
-
-      // Ignore Basic and Digest authentication challenges, as they contain
-      // public information.
-      if (/^basic$/i.test(match[1]) || /^digest$/i.test(match[1]))
-        break;
-
-      prefix = match[0];
-      break;
-    }
-  }
-
-  if (prefix) {
-    var suffix = line.slice(prefix.length);
-    // If private information has already been removed, keep the line as-is.
-    // This is often the case when viewing a loaded log.
-    if (suffix.search(/^\[[0-9]+ bytes were stripped\]$/) == -1) {
-      return prefix + '[' + suffix.length + ' bytes were stripped]';
-    }
-  }
-
-  return line;
-}
-
-/**
- * Remove debug data from HTTP/2 GOAWAY frame due to privacy considerations,
- * see
- * https://httpwg.github.io/specs/rfc7540.html#GOAWAY.
- *
- * Note: this logic should be kept in sync with
- * net::ElideGoAwayDebugDataForNetLog in net/http/http_log_util.cc.
- */
-function stripGoAwayDebugData(value) {
-  return '[' + value.length + ' bytes were stripped]';
-}
-
-/**
- * If |entry| has headers, returns a copy of |entry| with all cookie and
- * unencrypted login text removed.  Otherwise, returns original |entry|
- * object.
- * This is needed so that JSON log dumps can be made without affecting the
- * source data.  Converts headers stored in objects to arrays.
- */
-stripPrivacyInfo = function(entry) {
-  if (!entry.params) {
-    return entry;
-  }
-
-  if (entry.type == EventType.HTTP2_SESSION_GOAWAY &&
-      entry.params.debug_data != undefined) {
-    // Duplicate the top level object, and |entry.params|.  All other fields
-    // are
-    // just pointers to the original values, as they won't be modified, other
-    // than |entry.params.debug_data|.
-    entry = shallowCloneObject(entry);
-    entry.params = shallowCloneObject(entry.params);
-    entry.params.debug_data = stripGoAwayDebugData(entry.params.debug_data);
-    return entry;
-  }
-
-  if (entry.params.headers === undefined ||
-      !(entry.params.headers instanceof Object)) {
-    return entry;
-  }
-
-  // Make sure entry's headers are in an array.
-  entry = reformatHeaders(entry);
-
-  // Duplicate the top level object, and |entry.params|.  All other fields are
-  // just pointers to the original values, as they won't be modified, other
-  // than
-  // |entry.params.headers|.
-  entry = shallowCloneObject(entry);
-  entry.params = shallowCloneObject(entry.params);
-
-  entry.params.headers = entry.params.headers.map(stripCookieOrLoginInfo);
-  return entry;
-};
 
 /**
  * Outputs the request header parameters of |entry| to |out|.
