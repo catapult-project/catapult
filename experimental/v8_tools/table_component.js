@@ -15,10 +15,14 @@ Vue.component('data-table', {
     // TODO(anthonyalridge): Create route back to bar plots.
     const jumpToStory = (story) => {
       this.chosen_plot = this.plot_kinds[0];
+      // TODO(anthonyalridge): This should be a field on one of the vue
+      // components (or may not in fact be needed at all)
+      // once the row based diagnostic selection is removed.
+      const activeDiagnostic = 'labels';
       app.plotSingleMetric(
           this.metric.metric,
           story,
-          app.globalDiagnostic,
+          activeDiagnostic,
           this.markedTableDiagnostics,
           this.chosen_plot);
     };
