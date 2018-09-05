@@ -109,16 +109,24 @@
         <p>Statistically significant metrics:</p>
         <ol>
           <li v-for="result in testResults">
-            <p v-bind:class="result.evidence.type"> {{ result.metric }}   <br> 
-                p: {{result.evidence.p}} 
+            <p class="link"
+                v-bind:class="result.evidence.type"
+                v-on:click="splitMemoryMetric(result.metric)">
+                {{ result.metric }}
+            </p> 
+            <p>
+              p: {{result.evidence.p}}
             </p>
             <div v-if="result.stories.length">
               <p>Stories</p>
               <ol>
                 <li v-for="story in result.stories">
-                    <p v-bind:class="story.evidence.type"> {{ story.story }}   <br> 
+                    <p v-bind:class="story.evidence.type">
+                      {{ story.story }} 
+                    </p>
+                    <p>
                       p: {{story.evidence.p}} 
-                  </p>
+                    </p>
                 </li>
               </ol>
             </div>
@@ -168,7 +176,7 @@
           v-model='subsubcomponent'
           :options='secondSubcompOptions'
           ></v-select>
-      <button v-on:click='apply'
+      <button v-on:click="apply"
               id='apply_button'>
               Apply</button>
     </div>

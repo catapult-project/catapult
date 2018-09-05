@@ -152,7 +152,67 @@ const menu = new Vue({
       } else {
         app.parsedMetrics = _.uniq(metrics);
       }
-    }
+    },
+
+    /**
+     * Splits a memory metric into it's heirarchical data and
+     * assigns this heirarchy information into the relavent fields
+     * of the menu. It also updates the table to display only the
+     * given metric.
+     * @param {string} metricName The name of the metric to be split.
+     */
+    async splitMemoryMetric(metricName) {
+      if (!metricName.startsWith('memory')) {
+        throw new Error('Expected a memory metric');
+      }
+      const parts = metricName.split(':');
+      const heirarchyInformation = {
+        browser: 1,
+        process: 2,
+        probe: 3,
+        componentStart: 4,
+        // Metrics have a variable number of subcomponents
+        // (.e.g, a metric which is an aggregate over subcomponents will
+        // have one less subcomponent field than it's sub-metrics).
+        // Therefore, the end of the subcomponents field and
+        // location of the size field must be calculated dynamically.
+        componentsEnd: parts.length - 2,
+        size: parts.length - 1,
+      };
+      // Assigning to these fields updates the corresponding select
+      // menu in the UI.
+      this.browser = parts[heirarchyInformation.browser];
+      this.subprocess = parts[heirarchyInformation.process];
+      this.probe = parts[heirarchyInformation.probe];
+      this.size = parts[heirarchyInformation.size];
+      // The size watcher sets 'this.component' to null so we must wait for the
+      // DOM to be updated. Then the size watcher is called before assigning
+      // to 'this.component' and so it is not overwritten with null.
+      await this.$nextTick();
+      this.component = parts[heirarchyInformation.componentStart];
+      const start = heirarchyInformation.componentStart;
+      const end = heirarchyInformation.componentsEnd;
+      for (let i = start + 1; i <= end; i++) {
+        const subcomponent = i - heirarchyInformation.componentStart;
+        switch (subcomponent) {
+          case 1: {
+            // See above comment (component watcher sets subcomponent to null).
+            await this.$nextTick();
+            this.subcomponent = parts[i];
+            break;
+          }
+          case 2: {
+            // See above comment
+            // (subcomponent watcher sets subsubcomponent to null).
+            await this.$nextTick();
+            this.subsubcomponent = parts[i];
+            break;
+          }
+          default: throw new Error('Unexpected number of subcomponents.');
+        }
+      }
+      app.parsedMetrics = [metricName];
+    },
   }
 });
 

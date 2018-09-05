@@ -27,6 +27,15 @@
 .improvement {
   color: green;
 }
+
+.link {
+  text-decoration: underline;
+}
+
+.link:hover {
+  cursor: pointer;
+}
+
 #radioBoxes {
   margin-top: +10px;
   margin-left: +10px;
