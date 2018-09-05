@@ -13,6 +13,7 @@ UTILS_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 
 sys.path.append(UTILS_PATH)
 
+from long_term_health import aggregate_results
 from long_term_health import apk_finder
 from long_term_health import full_milestone_info
 from long_term_health import test_runner
@@ -96,7 +97,7 @@ def main(args):
 
   if not args.run_label:
     args.run_label = 'M%d-M%d-%s' % (
-      args.from_milestone, args.to_milestone, datetime.now().isoformat())
+        args.from_milestone, args.to_milestone, datetime.now().isoformat())
 
   try:
     for milestone in range(args.from_milestone, args.to_milestone + 1):
@@ -106,6 +107,8 @@ def main(args):
           milestone, args.output_path, milestone_info)
       print utils.ColoredStr('Running benchmark for milestone %d:' % milestone)
       test_runner.RunBenchmark(path_to_apk, args.run_label)
+
+    aggregate_results.AggregateResults(args.run_label)
 
     return 0
   except KeyboardInterrupt:
