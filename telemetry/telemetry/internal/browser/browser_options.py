@@ -73,7 +73,7 @@ class BrowserFinderOptions(optparse.Values):
         default=None,
         help='Browser type to run, '
         'in order of priority. Supported values: list,%s' %
-        ','.join(browser_finder.FindAllBrowserTypes(self)))
+        ', '.join(browser_finder.FindAllBrowserTypes(self)))
     group.add_option(
         '--browser-executable',
         dest='browser_executable',
@@ -99,17 +99,20 @@ class BrowserFinderOptions(optparse.Values):
         default=socket.getservbyname('ssh'),
         dest='cros_remote_ssh_port',
         help='The SSH port of the remote ChromeOS device (requires --remote).')
+    compact_mode_options_list = [
+        compact_mode_options.NO_FIELD_TRIALS,
+        compact_mode_options.IGNORE_CERTIFICATE_ERROR,
+        compact_mode_options.LEGACY_COMMAND_LINE_PATH,
+        compact_mode_options.GPU_BENCHMARKING_FALLBACKS]
     parser.add_option(
         '--compatibility-mode',
         action='append',
         dest='compatibility_mode',
-        choices=[compact_mode_options.NO_FIELD_TRIALS,
-                 compact_mode_options.IGNORE_CERTIFICATE_ERROR,
-                 compact_mode_options.LEGACY_COMMAND_LINE_PATH,
-                 compact_mode_options.GPU_BENCHMARKING_FALLBACKS],
+        choices=compact_mode_options_list,
         default=[],
         help='Select the compatibility change that you want to enforce when '
-             'running benchmarks')
+             'running benchmarks. The options are: %s' % ', '.join(
+                 compact_mode_options_list))
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')
@@ -208,7 +211,7 @@ class BrowserFinderOptions(optparse.Values):
         if k in self.__dict__ and self.__dict__[k] != None:
           continue
         self.__dict__[k] = v
-      ret = real_parse(args, self) # pylint: disable=E1121
+      ret = real_parse(args, self)  # pylint: disable=E1121
 
       if self.verbosity >= 2:
         global_hooks.InstallSpyOnPopenArgs()
