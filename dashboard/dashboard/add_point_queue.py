@@ -287,6 +287,7 @@ def _GetOrCreateTest(name, parent_test_path, properties):
     elif 'units' not in properties or properties['units'] is None:
       properties['improvement_direction'] = anomaly.UNKNOWN
     new_entity = graph_data.TestMetadata(id=test_path, **properties)
+    new_entity.UpdateSheriff()
     new_entity.put()
     # TODO(sullivan): Consider putting back Test entity in a scoped down
     # form so we can check if it exists here.
@@ -319,6 +320,7 @@ def _GetOrCreateTest(name, parent_test_path, properties):
       properties_changed = True
 
   if properties_changed:
+    existing.UpdateSheriff()
     existing.put()
   return existing
 

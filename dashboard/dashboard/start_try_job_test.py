@@ -10,8 +10,6 @@ import mock
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-
 from dashboard import can_bisect
 from dashboard import start_try_job
 from dashboard.common import testing_common
@@ -377,7 +375,7 @@ class StartBisectTest(testing_common.TestCase):
       if name in ('times', 'page_cycler.morejs', 'blink_perf'):
         continue
       test.has_rows = True
-    ndb.put_multi(tests)
+      test.put()
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/win7/page_cycler.morejs/'

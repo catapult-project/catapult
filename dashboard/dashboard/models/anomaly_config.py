@@ -72,6 +72,7 @@ def GetAnomalyConfigDictAsync(test):
                     test.overridden_anomaly_config, test.test_path)
     # The the overridden_anomaly_config property should be reset
     # in the pre-put hook of the TestMetadata entity.
+    test.UpdateSheriff()
     test.put()
     raise ndb.Return({})
   raise ndb.Return(CleanConfigDict(anomaly_config.config))

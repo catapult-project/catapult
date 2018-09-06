@@ -229,7 +229,9 @@ def AddTests(masters, bots, tests_dict):
       graph_data.Bot(id=bot_name, parent=master_key).put()
       for test_name in tests_dict:
         test_path = '%s/%s/%s' % (master_name, bot_name, test_name)
-        graph_data.TestMetadata(id=test_path).put()
+        t = graph_data.TestMetadata(id=test_path)
+        t.UpdateSheriff()
+        t.put()
         _AddSubtest(test_path, tests_dict[test_name])
 
 
@@ -242,7 +244,9 @@ def _AddSubtest(parent_test_path, subtests_dict):
   """
   for test_name in subtests_dict:
     test_path = '%s/%s' % (parent_test_path, test_name)
-    graph_data.TestMetadata(id=test_path).put()
+    t = graph_data.TestMetadata(id=test_path)
+    t.UpdateSheriff()
+    t.put()
     _AddSubtest(test_path, subtests_dict[test_name])
 
 

@@ -116,8 +116,10 @@ class ListTestSuitesTest(testing_common.TestCase):
     master_key = ndb.Key('Master', 'Chromium')
     graph_data.Bot(
         id='internal_mac', parent=master_key, internal_only=True).put()
-    graph_data.TestMetadata(
-        id='Chromium/internal_mac/internal_test', internal_only=True).put()
+    t = graph_data.TestMetadata(
+        id='Chromium/internal_mac/internal_test', internal_only=True)
+    t.UpdateSheriff()
+    t.put()
 
     self.testapp.post('/update_test_suites?internal_only=true')
 
@@ -162,6 +164,7 @@ class ListTestSuitesTest(testing_common.TestCase):
     for test_path in ['Chromium/win7/scrolling', 'Chromium/mac/scrolling']:
       test = utils.TestKey(test_path).get()
       test.description = 'Description string.'
+      test.UpdateSheriff()
       test.put()
 
     self.assertEqual(
@@ -215,6 +218,7 @@ class ListTestSuitesTest(testing_common.TestCase):
     for bot in ['win7']:
       test = utils.TestKey('Chromium/%s/really' % bot).get()
       test.deprecated = True
+      test.UpdateSheriff()
       test.put()
 
     self.assertEqual(
@@ -239,6 +243,7 @@ class ListTestSuitesTest(testing_common.TestCase):
     for bot in ['win7', 'mac']:
       test = utils.TestKey('Chromium/%s/really' % bot).get()
       test.deprecated = True
+      test.UpdateSheriff()
       test.put()
 
     self.assertEqual(

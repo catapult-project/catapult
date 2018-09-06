@@ -50,6 +50,7 @@ class Timeseries2Test(testing_common.TestCase):
         improvement_direction=anomaly.DOWN,
         internal_only=internal_only,
         units='units')
+    test.UpdateSheriff()
     test.put()
 
     for i in xrange(1, 21, 2):
@@ -170,6 +171,7 @@ class Timeseries2Test(testing_common.TestCase):
         has_rows=True,
         id='master/bot/suite/measure_count/case',
         units='count')
+    old_count_test.UpdateSheriff()
     old_count_test.put()
 
     old_avg_test = graph_data.TestMetadata(
@@ -177,12 +179,14 @@ class Timeseries2Test(testing_common.TestCase):
         id='master/bot/suite/measure_avg/case',
         improvement_direction=anomaly.DOWN,
         units='units')
+    old_avg_test.UpdateSheriff()
     old_avg_test.put()
 
     old_std_test = graph_data.TestMetadata(
         has_rows=True,
         id='master/bot/suite/measure_std/case',
         units='units')
+    old_std_test.UpdateSheriff()
     old_std_test.put()
 
     for i in xrange(1, 21, 2):
@@ -195,6 +199,7 @@ class Timeseries2Test(testing_common.TestCase):
         id='master/bot/suite/measure/case',
         improvement_direction=anomaly.DOWN,
         units='units')
+    new_test.UpdateSheriff()
     new_test.put()
     for i in xrange(21, 41, 2):
       graph_data.Row(

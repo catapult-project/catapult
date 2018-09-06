@@ -39,6 +39,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/a/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=100).put()
 
@@ -47,6 +48,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/b/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=20, parent=test.key, value=200).put()
 
@@ -75,6 +77,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=100).put()
 
@@ -103,6 +106,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
     graph_data.Row(error=3, id=20, parent=test.key, value=30).put()
@@ -142,6 +146,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
     graph_data.Row(error=4, id=20, parent=test.key, value=40).put()
@@ -170,6 +175,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=10).put()
 
@@ -178,6 +184,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=20).put()
 
@@ -214,6 +221,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/a/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=10, parent=test.key, value=10).put()
 
@@ -222,6 +230,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/b/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
@@ -248,6 +257,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/a/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=10, parent=test.key, value=10).put()
 
@@ -256,6 +266,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/b/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
@@ -282,6 +293,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=10, parent=test.key, value=10).put()
 
@@ -290,6 +302,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
@@ -316,6 +329,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=10, parent=test.key, value=10).put()
     graph_data.Row(error=1, id=20, parent=test.key, value=10).put()
@@ -325,6 +339,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=20, parent=test.key, value=20).put()
 
@@ -356,6 +371,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=9, parent=test.key, value=10).put()
     graph_data.Row(error=1, id=19, parent=test.key, value=10).put()
@@ -365,6 +381,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=9, parent=test.key, value=20).put()
     graph_data.Row(error=2, id=19, parent=test.key, value=20).put()
@@ -398,6 +415,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=1, id=10, parent=test.key, value=10).put()
     graph_data.Row(error=1, id=20, parent=test.key, value=10).put()
@@ -407,6 +425,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
@@ -438,6 +457,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(error=10, id=10, parent=test.key, value=100).put()
 
@@ -468,6 +488,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(
         error=10,
@@ -506,6 +527,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_avg',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=10).put()
 
@@ -514,6 +536,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_std',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=20).put()
 
@@ -522,6 +545,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_count',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=30).put()
 
@@ -530,6 +554,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_min',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=4).put()
 
@@ -538,6 +563,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_max',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=500).put()
 
@@ -570,6 +596,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_avg',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=10).put()
 
@@ -578,6 +605,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
 
     template = {
@@ -603,6 +631,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_avg/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=10).put()
 
@@ -611,6 +640,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_std/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=20).put()
 
@@ -619,6 +649,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_std/b',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=20).put()
 
@@ -627,6 +658,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_count/a',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=30).put()
 
@@ -635,6 +667,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_count/b',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=30).put()
 
@@ -643,6 +676,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_min/a',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=4).put()
 
@@ -651,6 +685,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_min/b',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=4).put()
 
@@ -659,6 +694,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_max/a',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=500).put()
 
@@ -667,6 +703,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure_max/b',
         improvement_direction=anomaly.DOWN,
         units='count')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=500).put()
 
@@ -702,6 +739,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/a',
         improvement_direction=anomaly.DOWN,
         units='units')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=100).put()
 
@@ -710,6 +748,7 @@ class ReportQueryTest(testing_common.TestCase):
         id='master/bot/suite/measure/b',
         improvement_direction=anomaly.DOWN,
         units='wrong')
+    test.UpdateSheriff()
     test.put()
     graph_data.Row(id=10, parent=test.key, value=100).put()
 

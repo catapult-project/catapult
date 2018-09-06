@@ -30,9 +30,15 @@ class GraphRevisionsTest(testing_common.TestCase):
     master_key = graph_data.Master(id='ChromiumPerf').put()
     for bot_name in ['win7', 'mac']:
       graph_data.Bot(id=bot_name, parent=master_key).put()
-      graph_data.TestMetadata(id='ChromiumPerf/%s/dromaeo' % bot_name).put()
+      t = graph_data.TestMetadata(id='ChromiumPerf/%s/dromaeo' % bot_name)
+      t.UpdateSheriff()
+      t.put()
+
       subtest_key = graph_data.TestMetadata(
-          id='ChromiumPerf/%s/dromaeo/dom' % bot_name, has_rows=True).put()
+          id='ChromiumPerf/%s/dromaeo/dom' % bot_name, has_rows=True)
+      subtest_key.UpdateSheriff()
+      subtest_key.put()
+
       test_container_key = utils.GetTestContainerKey(subtest_key)
       for rev in range(15000, 16000, 5):
         row = graph_data.Row(parent=test_container_key,

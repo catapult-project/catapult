@@ -83,16 +83,34 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
     self.SetCurrentUser('sullivan@chromium.org', is_admin=True)
     master = graph_data.Master(id='TheMaster').put()
     graph_data.Bot(id='TheBot', parent=master).put()
-    suite1 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite1').put()
-    suite2 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite2').put()
+    suite1 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite1')
+    suite1.UpdateSheriff()
+    suite1 = suite1.put()
+
+    suite2 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite2')
+    suite2.UpdateSheriff()
+    suite2 = suite2.put()
+
     test_aaa = graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite1/aaa', has_rows=True).put()
+        id='TheMaster/TheBot/Suite1/aaa', has_rows=True)
+    test_aaa.UpdateSheriff()
+    test_aaa = test_aaa.put()
+
     test_bbb = graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite1/bbb', has_rows=True).put()
+        id='TheMaster/TheBot/Suite1/bbb', has_rows=True)
+    test_bbb.UpdateSheriff()
+    test_bbb = test_bbb.put()
+
     test_ccc = graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite1/ccc', has_rows=True).put()
+        id='TheMaster/TheBot/Suite1/ccc', has_rows=True)
+    test_ccc.UpdateSheriff()
+    test_ccc = test_ccc.put()
+
     test_ddd = graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite2/ddd', has_rows=True).put()
+        id='TheMaster/TheBot/Suite2/ddd', has_rows=True)
+    test_ddd.UpdateSheriff()
+    test_ddd = test_ddd.put()
+
     anomaly_config.AnomalyConfig(id='1-Suite1-specific', config={'a': 10}).put()
     anomaly_config.AnomalyConfig(id='2-Suite1-general', config={'b': 20}).put()
 
@@ -153,10 +171,15 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
     graph_data.Bot(id='TheBot', parent=master).put()
     test_one = graph_data.TestMetadata(
         id='TheMaster/TheBot/one', overridden_anomaly_config=anomaly_config_key,
-        has_rows=True).put()
+        has_rows=True)
+    test_one.UpdateSheriff()
+    test_one = test_one.put()
+
     test_two = graph_data.TestMetadata(
         id='TheMaster/TheBot/two', overridden_anomaly_config=anomaly_config_key,
-        has_rows=True).put()
+        has_rows=True)
+    test_two.UpdateSheriff()
+    test_two = test_two.put()
 
     # Verify the state of the data before making the request.
     self.assertEqual(['*/*/one', '*/*/two'], anomaly_config_key.get().patterns)

@@ -30,9 +30,15 @@ class GraphCsvTest(testing_common.TestCase):
     for name in ['win7', 'mac']:
       bot = graph_data.Bot(id=name, parent=master).put()
       bots.append(bot)
-      graph_data.TestMetadata(id='ChromiumPerf/%s/dromaeo' % name).put()
+      t = graph_data.TestMetadata(id='ChromiumPerf/%s/dromaeo' % name)
+      t.UpdateSheriff()
+      t.put()
+
       dom_test = graph_data.TestMetadata(
-          id='ChromiumPerf/%s/dromaeo/dom' % name, has_rows=True).put()
+          id='ChromiumPerf/%s/dromaeo/dom' % name, has_rows=True)
+      dom_test.UpdateSheriff()
+      dom_test.put()
+
       test_container_key = utils.GetTestContainerKey(dom_test)
       for i in range(15000, 16000, 5):
         graph_data.Row(parent=test_container_key, id=i, value=float(i * 2.5),
@@ -44,12 +50,18 @@ class GraphCsvTest(testing_common.TestCase):
     for name in ['win7', 'mac']:
       bot = graph_data.Bot(id=name, parent=master, internal_only=True).put()
       bots.append(bot)
-      graph_data.TestMetadata(
-          id='ChromiumPerf/%s/dromaeo' % name, internal_only=True).put()
+      t = graph_data.TestMetadata(
+          id='ChromiumPerf/%s/dromaeo' % name, internal_only=True)
+      t.UpdateSheriff()
+      t.put()
+
       dom_test = graph_data.TestMetadata(
           id='ChromiumPerf/%s/dromaeo/dom' % name,
           has_rows=True,
-          internal_only=True).put()
+          internal_only=True)
+      dom_test.UpdateSheriff()
+      dom_test.put()
+
       test_container_key = utils.GetTestContainerKey(dom_test)
       for i in range(1, 50):
         graph_data.Row(

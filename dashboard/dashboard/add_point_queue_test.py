@@ -19,9 +19,18 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
   def testGetOrCreateAncestors_GetsExistingEntities(self):
     master_key = graph_data.Master(id='ChromiumPerf', parent=None).put()
     graph_data.Bot(id='win7', parent=master_key).put()
-    graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo',).put()
-    graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/dom').put()
-    graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/dom/modify').put()
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo',)
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/dom')
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/dom/modify')
+    t.UpdateSheriff()
+    t.put()
+
     actual_parent = add_point_queue.GetOrCreateAncestors(
         'ChromiumPerf', 'win7', 'dromaeo/dom/modify')
     self.assertEqual(

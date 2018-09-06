@@ -15,7 +15,9 @@ class GraphDataTest(testing_common.TestCase):
     graph_data.Bot(parent=master, id='b').put()
     long_string = 500 * 'x'
     too_long = long_string + 'y'
-    key = graph_data.TestMetadata(id='M/b/a', description=too_long).put()
+    t = graph_data.TestMetadata(id='M/b/a', description=too_long)
+    t.UpdateSheriff()
+    key = t.put()
     self.assertEqual(long_string, key.get().description)
 
 

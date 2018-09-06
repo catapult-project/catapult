@@ -20,8 +20,10 @@ class ShortUriTest(testing_common.TestCase):
     self.SetUpApp([('/short_uri', short_uri.ShortUriHandler)])
 
   def testUpgradeOld(self):
-    graph_data.TestMetadata(
-        has_rows=True, id='master/bot/suite/measurement/case').put()
+    t = graph_data.TestMetadata(
+        has_rows=True, id='master/bot/suite/measurement/case')
+    t.UpdateSheriff()
+    t.put()
     page_state.PageState(id='test_sid', value=json.dumps({
         'charts': [
             [
@@ -41,8 +43,10 @@ class ShortUriTest(testing_common.TestCase):
                      ndb.Key('PageState', 'test_sid').get().value_v2)
 
   def testUpgradeNew(self):
-    graph_data.TestMetadata(
-        has_rows=True, id='master/bot/suite/measurement/case').put()
+    t = graph_data.TestMetadata(
+        has_rows=True, id='master/bot/suite/measurement/case')
+    t.UpdateSheriff()
+    t.put()
     page_state.PageState(id='test_sid', value=json.dumps({
         'charts': [
             {

@@ -26,5 +26,19 @@ class PutEntitiesTaskHandler(request_handler.RequestHandler):
     datastore_hooks.SetPrivilegedRequest()
     urlsafe_keys = self.request.get('keys').split(',')
     keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys]
-    entities = ndb.get_multi(keys)
+    results = ndb.get_multi(keys)
+
+    tests = []
+    entities = []
+
+    for e in results:
+      if e.key.kind() == 'TestMetadata':
+        tests.append(e)
+      else:
+        entities.append(e)
+
+    for t in tests:
+      t.UpdateSheriff()
+      t.put()
+
     ndb.put_multi(entities)

@@ -134,6 +134,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test = utils.TestKey(test_path).get()
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[test_path]).put()
+    test.UpdateSheriff()
     test.put()
 
     find_anomalies.ProcessTests([test.key])
@@ -211,6 +212,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.DOWN
+    test.UpdateSheriff()
     test.put()
     find_anomalies.ProcessTests([test.key])
     anomalies = anomaly.Anomaly.query().fetch()
@@ -239,6 +241,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.UP
+    test.UpdateSheriff()
     test.put()
     find_anomalies.ProcessTests([test.key])
     mock_email_sheriff.assert_called_once_with(
@@ -259,6 +262,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.internal_only = True
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
+    test.UpdateSheriff()
     test.put()
 
     find_anomalies.ProcessTests([test.key])
@@ -295,6 +299,7 @@ class ProcessAlertsTest(testing_common.TestCase):
                      parent=test_container_key_non_ref).put()
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
+    ref.UpdateSheriff()
     ref.put()
     find_anomalies.ProcessTests([ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -319,7 +324,9 @@ class ProcessAlertsTest(testing_common.TestCase):
                      parent=test_container_key_non_ref).put()
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
+    ref.UpdateSheriff()
     ref.put()
+    non_ref.UpdateSheriff()
     non_ref.put()
     find_anomalies.ProcessTests([non_ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -346,7 +353,9 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
+    ref.UpdateSheriff()
     ref.put()
+    non_ref.UpdateSheriff()
     non_ref.put()
     find_anomalies.ProcessTests([non_ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -364,6 +373,7 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
+    ref.UpdateSheriff()
     ref.put()
     find_anomalies.ProcessTests([ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -385,6 +395,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
 
     test.last_alerted_revision = 1234567890
+    test.UpdateSheriff()
     test.put()
     find_anomalies.ProcessTests([test.key])
     self.assertIsNone(test.key.get().last_alerted_revision)

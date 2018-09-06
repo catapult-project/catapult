@@ -30,16 +30,33 @@ class EditConfigHandlerTest(testing_common.TestCase):
     """Adds some sample data used in the tests below."""
     master = graph_data.Master(id='TheMaster').put()
     graph_data.Bot(id='TheBot', parent=master).put()
-    graph_data.TestMetadata(id='TheMaster/TheBot/Suite1').put()
-    graph_data.TestMetadata(id='TheMaster/TheBot/Suite2').put()
-    graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite1/aaa', has_rows=True).put()
-    graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite1/bbb', has_rows=True).put()
-    graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite2/ccc', has_rows=True).put()
-    graph_data.TestMetadata(
-        id='TheMaster/TheBot/Suite2/ddd', has_rows=True).put()
+    t = graph_data.TestMetadata(id='TheMaster/TheBot/Suite1')
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(id='TheMaster/TheBot/Suite2')
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/aaa', has_rows=True)
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/bbb', has_rows=True)
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite2/ccc', has_rows=True)
+    t.UpdateSheriff()
+    t.put()
+
+    t = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite2/ddd', has_rows=True)
+    t.UpdateSheriff()
+    t.put()
 
   def testSplitPatternLines_OnePattern(self):
     # The SplitPatternLines function returns a list of patterns.

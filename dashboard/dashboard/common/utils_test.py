@@ -122,11 +122,16 @@ class UtilsTest(testing_common.TestCase):
     master = graph_data.Master(id='M').put()
     graph_data.Bot(parent=master, id='b').put()
     keys = [
-        graph_data.TestMetadata(id='M/b/a', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/b', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/c', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/d', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/a', internal_only=False),
+        graph_data.TestMetadata(id='M/b/b', internal_only=False),
+        graph_data.TestMetadata(id='M/b/c', internal_only=False),
+        graph_data.TestMetadata(id='M/b/d', internal_only=False),
     ]
+    for t in keys:
+      t.UpdateSheriff()
+
+    keys = [k.put() for k in keys]
+
     return keys
 
   def _PutEntitiesHalfInternal(self):
@@ -134,15 +139,21 @@ class UtilsTest(testing_common.TestCase):
     master = graph_data.Master(id='M').put()
     graph_data.Bot(parent=master, id='b').put()
     keys = [
-        graph_data.TestMetadata(id='M/b/ax', internal_only=True).put(),
-        graph_data.TestMetadata(id='M/b/a', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/b', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/bx', internal_only=True).put(),
-        graph_data.TestMetadata(id='M/b/c', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/cx', internal_only=True).put(),
-        graph_data.TestMetadata(id='M/b/d', internal_only=False).put(),
-        graph_data.TestMetadata(id='M/b/dx', internal_only=True).put(),
+        graph_data.TestMetadata(id='M/b/ax', internal_only=True),
+        graph_data.TestMetadata(id='M/b/a', internal_only=False),
+        graph_data.TestMetadata(id='M/b/b', internal_only=False),
+        graph_data.TestMetadata(id='M/b/bx', internal_only=True),
+        graph_data.TestMetadata(id='M/b/c', internal_only=False),
+        graph_data.TestMetadata(id='M/b/cx', internal_only=True),
+        graph_data.TestMetadata(id='M/b/d', internal_only=False),
+        graph_data.TestMetadata(id='M/b/dx', internal_only=True),
     ]
+
+    for t in keys:
+      t.UpdateSheriff()
+
+    keys = [k.put() for k in keys]
+
     return keys
 
   def testGetMulti_ExternalUser_ReturnsSomeEntities(self):

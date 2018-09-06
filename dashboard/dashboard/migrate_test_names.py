@@ -296,6 +296,8 @@ def _MigrateTestCreateTest(old_test_key, new_test_key):
       graph_data.TestMetadata, old_test_key.get(), new_test_key.id(),
       None, _TEST_EXCLUDE)
 
+  yield new_test_entity.UpdateSheriffAsync()
+
   yield (
       new_test_entity.put_async(),
       _MigrateTestScheduleChildTests(old_test_key, new_test_key))

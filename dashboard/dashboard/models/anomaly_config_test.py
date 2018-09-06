@@ -31,6 +31,7 @@ class AnomalyConfigTest(testing_common.TestCase):
     }
     my_patterns = [test.test_path]
     anomaly_config.AnomalyConfig(config=my_config, patterns=my_patterns).put()
+    test.UpdateSheriff()
     test.put()
 
     # The sample test now has an overridden config which is used.

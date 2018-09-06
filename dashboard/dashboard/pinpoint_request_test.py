@@ -474,8 +474,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'story_filter': '',
         'pin': '',
     }
-    graph_data.TestMetadata(
-        id=params['test_path'], unescaped_story_name='http://bar.html').put()
+    t = graph_data.TestMetadata(
+        id=params['test_path'], unescaped_story_name='http://bar.html')
+    t.UpdateSheriff()
+    t.put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('foo', results['chart'])
@@ -493,7 +495,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'story_filter': '',
         'pin': '',
     }
-    graph_data.TestMetadata(id=params['test_path'],).put()
+    t = graph_data.TestMetadata(id=params['test_path'],)
+    t.UpdateSheriff()
+    t.put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('label', results['tir_label'])
@@ -512,7 +516,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'story_filter': '',
         'pin': '',
     }
-    graph_data.TestMetadata(id=params['test_path'],).put()
+    t = graph_data.TestMetadata(id=params['test_path'],)
+    t.UpdateSheriff()
+    t.put()
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromBisectParams(params)
 
@@ -528,7 +534,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         'story_filter': '',
         'pin': '',
     }
-    graph_data.TestMetadata(id=params['test_path'],).put()
+    t = graph_data.TestMetadata(id=params['test_path'],)
+    t.UpdateSheriff()
+    t.put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('functional', results['comparison_mode'])
