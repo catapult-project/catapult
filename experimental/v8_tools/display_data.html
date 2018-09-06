@@ -16,6 +16,7 @@
     <script src="./stat_test_summary.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="./bar_plotter.js"></script>
+    <script src="./stacked_bar_plotter.js"></script>
 </head>
 
 <body>
@@ -117,7 +118,7 @@
             <p>
               p: {{result.evidence.p}}
             </p>
-            <div v-if="result.stories.length">
+            <div v-if='result.stories.length'>
               <p>Stories</p>
               <ol>
                 <li v-for="story in result.stories">

@@ -252,7 +252,8 @@ Vue.component('data-table', {
                 sampleArr, guidValue, 'labels');
         for (const e of storiesEntries) {
           for (const diag of addCol) {
-            e[diag] = average(diagValues.get(e.story).get(diag));
+            e[diag] = fromBytesToMiB(average(diagValues
+                .get(e.story).get(diag)));
           }
         }
       }
