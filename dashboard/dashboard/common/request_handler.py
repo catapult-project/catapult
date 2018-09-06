@@ -95,7 +95,7 @@ class RequestHandler(webapp2.RequestHandler):
       error_message: The message to log and send to the client.
       status: The HTTP response code to use.
     """
-    logging.error(error_message)
+    logging.error('Reporting error: %r', error_message)
     self.response.set_status(status)
     self.response.out.write('%s\nrequest_id:%s\n' %
                             (error_message, utils.GetRequestId()))
@@ -107,7 +107,7 @@ class RequestHandler(webapp2.RequestHandler):
       warning_message: The warning message to log (as an error).
       status: The http response code to use.
     """
-    logging.warning(warning_message)
+    logging.warning('Reporting warning: %r', warning_message)
     self.response.set_status(status)
     self.response.out.write('%s\nrequest_id:%s\n' %
                             (warning_message, utils.GetRequestId()))

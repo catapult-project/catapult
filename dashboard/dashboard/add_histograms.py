@@ -88,7 +88,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
       ProcessHistogramSet(histogram_dicts)
     except Exception as e: # pylint: disable=broad-except
-      logging.error(e.message)
+      logging.error('Error processing histograms: %r', e.message)
       self.response.out.write(json.dumps({'error': e.message}))
 
 

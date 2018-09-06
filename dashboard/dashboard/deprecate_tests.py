@@ -234,7 +234,6 @@ def _AddDeleteTestDataTask(entity):
 
 def _MarkTestDeprecated(test_key):
   """Marks a TestMetadata as deprecated and clears any related cached data."""
-  logging.info("_MarkTestDeprecated: %s", str(test_key.id()))
   test = test_key.get()
   test.deprecated = True
   test.put()

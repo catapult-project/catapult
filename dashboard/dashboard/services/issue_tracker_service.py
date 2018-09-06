@@ -261,7 +261,7 @@ class IssueTrackerService(object):
       response = request.execute()
       return response
     except errors.HttpError as e:
-      logging.error(e)
+      logging.error('HttpError: %r', e)
       if ignore_error:
         return None
       raise e

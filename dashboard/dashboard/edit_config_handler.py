@@ -5,7 +5,6 @@
 """A common base class for pages that are used to edit configs."""
 
 import json
-import logging
 
 from google.appengine.api import app_identity
 from google.appengine.api import mail
@@ -248,7 +247,6 @@ def _QueueChangeTestPatternsTasks(old_patterns, new_patterns):
 
 def _GetTestPathsAndAddTask(patterns):
   test_paths = _AllTestPathsMatchingPatterns(patterns)
-  logging.info(test_paths)
 
   _AddTestsToPutToTaskQueue(test_paths)
 

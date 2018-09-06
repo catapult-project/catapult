@@ -159,11 +159,11 @@ class Timeseries2Test(testing_common.TestCase):
         test_case='case', build_type='test',
         min_timestamp=datetime.datetime.utcfromtimestamp(5).isoformat(),
         max_timestamp=datetime.datetime.utcfromtimestamp(15).isoformat(),
-        columns='revision,revisions,avg,std,alert,diagnostics,histogram')
+        columns='timestamp,revision,revisions,avg,alert,diagnostics')
     self.assertEqual(6, len(response['data']))
     for i, datum in enumerate(response['data']):
-      self.assertEqual(7, len(datum))
-      self.assertEqual(5 + (2 * i), datum[0])
+      self.assertEqual(6, len(datum))
+      self.assertEqual(5 + (2 * i), datum[1])
 
   def testMixOldStyleRowsWithNewStyleRows(self):
     old_count_test = graph_data.TestMetadata(

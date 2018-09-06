@@ -101,7 +101,7 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps({
           'error': error.message,
       }))
-      logging.error(error.message)
+      logging.error('BadRequestError: %r', error.message)
       return
 
 

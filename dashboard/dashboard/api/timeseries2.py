@@ -124,12 +124,12 @@ class TimeseriesQuery(object):
   def _ResolveTimestamp(self, timestamp):
     query = graph_data.Row.query(
         graph_data.Row.parent_test.IN(self._test_keys),
-        graph_data.Row.timestamp < timestamp)
+        graph_data.Row.timestamp <= timestamp)
     query = query.order(-graph_data.Row.timestamp)
     row_keys = query.fetch(1, keys_only=True)
     if not row_keys:
       return None
-    return row_keys[0].integer_id() + 1
+    return row_keys[0].integer_id()
 
   def _CreateTestKeys(self):
     desc = self._descriptor.Clone()
@@ -234,6 +234,15 @@ class TimeseriesQuery(object):
 
     with timing.CpuTimeLogger('rows'):
       for row in rows:
+        # Sometimes the dev environment just ignores some filters.
+        if self._min_revision and row.revision < self._min_revision:
+          continue
+        if self._min_timestamp and row.timestamp < self._min_timestamp:
+          continue
+        if self._max_revision and row.revision > self._max_revision:
+          continue
+        if self._max_timestamp and row.timestamp > self._max_timestamp:
+          continue
         datum = self._Datum(row.revision)
         if test_desc.statistic is None:
           datum['avg'] = self.Round(row.value)

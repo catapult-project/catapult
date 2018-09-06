@@ -253,7 +253,6 @@ Old test path patterns
 [
   "*/*/*/*"
 ]"""
-    print messages[0].body
     self.assertIn(expected_email, str(messages[0].body))
 
 

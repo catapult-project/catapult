@@ -17,6 +17,7 @@ found in the LICENSE file.
   </pre>
 {% else %}
   <pre>
+  {% if build %}
   Status of the bisect job {{job_id}}: {{build.status}}, {{build.result}}
 
   Master: {{build.bucket}}
@@ -28,6 +29,7 @@ found in the LICENSE file.
   Job created on (UTC): {{build.created_utc}}
   Job completed on(UTC): {{build.completed_utc}}
   Buildbot link: <a href="{{build.url}}">{{build.url}}</a>
+  {% endif %}
   </pre>
 
   <p><a href="/cancel_buildbot_job/{{job_id}}">Click here to cancel this job.

@@ -66,7 +66,6 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
 
     # Get the Row entities.
     q = graph_data.Row.query()
-    print test_key
     q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
     if end_rev:
       q = q.filter(graph_data.Row.revision <= int(end_rev))

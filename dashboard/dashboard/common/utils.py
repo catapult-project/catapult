@@ -560,7 +560,7 @@ def FetchURL(request_url, skip_status_code=False):
   except urlfetch_errors.DownloadError as err:
     # DownloadError is raised to indicate a non-specific failure when there
     # was not a 4xx or 5xx status code.
-    logging.error(err)
+    logging.error('DownloadError: %r', err)
     return None
   if skip_status_code:
     return response

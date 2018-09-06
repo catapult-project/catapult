@@ -88,6 +88,6 @@ class ApiRequestHandler(webapp2.RequestHandler):
     self.response.headers.add_header('Access-Control-Max-Age', '3600')
 
   def WriteErrorMessage(self, message, status):
-    logging.error(message)
+    logging.error('Error: %r', message)
     self.response.set_status(status)
     self.response.out.write(json.dumps({'error': message}))

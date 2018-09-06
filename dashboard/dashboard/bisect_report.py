@@ -365,6 +365,7 @@ def _GenerateReport(results_data):
 
   result += _BISECT_TO_RUN % results_data
   result += _BISECT_ADDRESSING_DOC_INFO
+  results_data.setdefault('issue_url', '')
   result += _BISECT_DEBUG_INFO % results_data
   result += '\n'
   result += _BISECT_FOOTER
