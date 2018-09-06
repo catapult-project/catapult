@@ -11,16 +11,17 @@ import webapp2
 from webapp2 import Route
 
 
-def _RelPathToUnixPath(p):
-  return p.replace(os.sep, '/')
-
-
 class TestListHandler(webapp2.RequestHandler):
 
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     project = dashboard_project.DashboardProject()
-    test_relpaths = ['/' + _RelPathToUnixPath(x)
-                     for x in project.FindAllTestModuleRelPaths()]
+    test_relpaths = []
+    for test in project.FindAllTestModuleRelPaths():
+      test = '/' + test.replace(os.sep, '/')
+      if '/spa/' in test:
+        # Tests in spa/ are run by run_wct_tests, so don't run them here.
+        continue
+      test_relpaths.append(test)
 
     tests = {'test_relpaths': test_relpaths}
     tests_as_json = json.dumps(tests)
