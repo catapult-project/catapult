@@ -64,7 +64,7 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
               + common_story_shard_help))
     group.add_option(
         '--story-shard-end-index', type='int', dest='story_shard_end_index',
-        help=('End index of set of stories to run. Value will be'
+        help=('End index of set of stories to run. Value will be '
               'rounded down to the number of stories. Negative values not'
               'allowed. If this is ommited, the end index is the final story'
               'of the benchmark. '+ common_story_shard_help))
