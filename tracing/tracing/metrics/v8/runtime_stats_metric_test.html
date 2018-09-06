@@ -237,8 +237,8 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.strictEqual(histograms.length, 52);
-    assert.strictEqual(histograms.sourceHistograms.length, 50);
+    assert.strictEqual(histograms.length, 54);
+    assert.strictEqual(histograms.sourceHistograms.length, 52);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.088);
@@ -351,8 +351,8 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.strictEqual(histograms.length, 36);
-    assert.strictEqual(histograms.sourceHistograms.length, 36);
+    assert.strictEqual(histograms.length, 38);
+    assert.strictEqual(histograms.sourceHistograms.length, 38);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.088);
@@ -576,7 +576,7 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 260);
+    assert.strictEqual(histograms.length, 270);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
@@ -702,7 +702,7 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 52);
+    assert.strictEqual(histograms.length, 54);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);

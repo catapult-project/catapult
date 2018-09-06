@@ -72,7 +72,8 @@ tr.b.unittest.testSuite(function() {
           OptimizeCode: [6, 66],
           FunctionCallback: [7, 77],
           AllocateInTargetSpace: [8, 88],
-          API_Object_Get: [9, 99]
+          API_Object_Get: [9, 99],
+          RecompileConcurrent: [10, 100],
         }
       }
     }));
@@ -94,35 +95,37 @@ tr.b.unittest.testSuite(function() {
           AllocateInTargetSpace: [9, 99],
           API_Object_Get: [1, 11],
           ParseBackgroundFunctionLiteral: [2, 22],
-          CompileBackgroundIgnition: [3, 33]
+          CompileBackgroundIgnition: [3, 33],
+          RecompileConcurrent: [5, 50],
         }
       }
     }));
 
     const groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     groupCollection.addSlices(slices);
-    assert.strictEqual(groupCollection.totalTime, 1045);
+    assert.strictEqual(groupCollection.totalTime, 1195);
 
     const groups = groupCollection.runtimeGroups;
-    assert.deepEqual(groups.length, 18);
-    checkRuntimeGroup_(groups[0], 'Total', 95, 1045);
+    assert.deepEqual(groups.length, 19);
+    checkRuntimeGroup_(groups[0], 'Total', 110, 1195);
     checkRuntimeGroup_(groups[1], 'IC', 9, 99);
-    checkRuntimeGroup_(groups[2], 'Optimize', 13, 143);
-    checkRuntimeGroup_(groups[3], 'Compile-Background', 3, 33);
-    checkRuntimeGroup_(groups[4], 'Compile', 7, 77);
-    checkRuntimeGroup_(groups[5], 'Parse-Background', 2, 22);
-    checkRuntimeGroup_(groups[6], 'Parse', 11, 121);
-    checkRuntimeGroup_(groups[7], 'Blink C++', 15, 165);
-    checkRuntimeGroup_(groups[8], 'API', 10, 110);
-    checkRuntimeGroup_(groups[9], 'GC-Background-Marking', 0, 0);
-    checkRuntimeGroup_(groups[10], 'GC-Background-Sweeping', 0, 0);
-    checkRuntimeGroup_(groups[11], 'GC-Background-Scavenger', 0, 0);
-    checkRuntimeGroup_(groups[12], 'GC-Background-MinorMC', 0, 0);
-    checkRuntimeGroup_(groups[13], 'GC-Background-MajorMC', 0, 0);
-    checkRuntimeGroup_(groups[14], 'GC-Background-Other', 0, 0);
-    checkRuntimeGroup_(groups[15], 'GC', 17, 187);
-    checkRuntimeGroup_(groups[16], 'JavaScript', 3, 33);
-    checkRuntimeGroup_(groups[17], 'V8 C++', 5, 55);
+    checkRuntimeGroup_(groups[2], 'Optimize-Background', 15, 150);
+    checkRuntimeGroup_(groups[3], 'Optimize', 13, 143);
+    checkRuntimeGroup_(groups[4], 'Compile-Background', 3, 33);
+    checkRuntimeGroup_(groups[5], 'Compile', 7, 77);
+    checkRuntimeGroup_(groups[6], 'Parse-Background', 2, 22);
+    checkRuntimeGroup_(groups[7], 'Parse', 11, 121);
+    checkRuntimeGroup_(groups[8], 'Blink C++', 15, 165);
+    checkRuntimeGroup_(groups[9], 'API', 10, 110);
+    checkRuntimeGroup_(groups[10], 'GC-Background-Marking', 0, 0);
+    checkRuntimeGroup_(groups[11], 'GC-Background-Sweeping', 0, 0);
+    checkRuntimeGroup_(groups[12], 'GC-Background-Scavenger', 0, 0);
+    checkRuntimeGroup_(groups[13], 'GC-Background-MinorMC', 0, 0);
+    checkRuntimeGroup_(groups[14], 'GC-Background-MajorMC', 0, 0);
+    checkRuntimeGroup_(groups[15], 'GC-Background-Other', 0, 0);
+    checkRuntimeGroup_(groups[16], 'GC', 17, 187);
+    checkRuntimeGroup_(groups[17], 'JavaScript', 3, 33);
+    checkRuntimeGroup_(groups[18], 'V8 C++', 5, 55);
   });
 
   test('BlinkRuntimeStatsGroupCollection', function() {
@@ -143,7 +146,8 @@ tr.b.unittest.testSuite(function() {
           OptimizeCode: [6, 66],
           FunctionCallback: [7, 77],
           AllocateInTargetSpace: [8, 88],
-          API_Object_Get: [9, 99]
+          API_Object_Get: [9, 99],
+          RecompileConcurrent: [10, 100],
         }
       }
     }));
@@ -165,7 +169,8 @@ tr.b.unittest.testSuite(function() {
           AllocateInTargetSpace: [9, 99],
           API_Object_Get: [1, 11],
           ParseBackgroundFunctionLiteral: [2, 22],
-          CompileBackgroundIgnition: [3, 33]
+          CompileBackgroundIgnition: [3, 33],
+          RecompileConcurrent: [5, 50],
         }
       }
     }));
@@ -206,28 +211,29 @@ tr.b.unittest.testSuite(function() {
 
     const groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     groupCollection.addSlices(slices);
-    assert.strictEqual(groupCollection.totalTime, 1045);
+    assert.strictEqual(groupCollection.totalTime, 1195);
 
     const groups = groupCollection.runtimeGroups;
-    assert.deepEqual(groups.length, 18);
-    checkRuntimeGroup_(groups[0], 'Total', 95, 1045);
+    assert.deepEqual(groups.length, 19);
+    checkRuntimeGroup_(groups[0], 'Total', 110, 1195);
     checkRuntimeGroup_(groups[1], 'IC', 9, 99);
-    checkRuntimeGroup_(groups[2], 'Optimize', 13, 143);
-    checkRuntimeGroup_(groups[3], 'Compile-Background', 3, 33);
-    checkRuntimeGroup_(groups[4], 'Compile', 7, 77);
-    checkRuntimeGroup_(groups[5], 'Parse-Background', 2, 22);
-    checkRuntimeGroup_(groups[6], 'Parse', 11, 121);
-    checkRuntimeGroup_(groups[7], 'Blink C++', 15, 165);
-    checkRuntimeGroup_(groups[8], 'API', 10, 110);
-    checkRuntimeGroup_(groups[9], 'GC-Background-Marking', 0, 0);
-    checkRuntimeGroup_(groups[10], 'GC-Background-Sweeping', 0, 0);
-    checkRuntimeGroup_(groups[11], 'GC-Background-Scavenger', 0, 0);
-    checkRuntimeGroup_(groups[12], 'GC-Background-MinorMC', 0, 0);
-    checkRuntimeGroup_(groups[13], 'GC-Background-MajorMC', 0, 0);
-    checkRuntimeGroup_(groups[14], 'GC-Background-Other', 0, 0);
-    checkRuntimeGroup_(groups[15], 'GC', 17, 187);
-    checkRuntimeGroup_(groups[16], 'JavaScript', 3, 33);
-    checkRuntimeGroup_(groups[17], 'V8 C++', 5, 55);
+    checkRuntimeGroup_(groups[2], 'Optimize-Background', 15, 150);
+    checkRuntimeGroup_(groups[3], 'Optimize', 13, 143);
+    checkRuntimeGroup_(groups[4], 'Compile-Background', 3, 33);
+    checkRuntimeGroup_(groups[5], 'Compile', 7, 77);
+    checkRuntimeGroup_(groups[6], 'Parse-Background', 2, 22);
+    checkRuntimeGroup_(groups[7], 'Parse', 11, 121);
+    checkRuntimeGroup_(groups[8], 'Blink C++', 15, 165);
+    checkRuntimeGroup_(groups[9], 'API', 10, 110);
+    checkRuntimeGroup_(groups[10], 'GC-Background-Marking', 0, 0);
+    checkRuntimeGroup_(groups[11], 'GC-Background-Sweeping', 0, 0);
+    checkRuntimeGroup_(groups[12], 'GC-Background-Scavenger', 0, 0);
+    checkRuntimeGroup_(groups[13], 'GC-Background-MinorMC', 0, 0);
+    checkRuntimeGroup_(groups[14], 'GC-Background-MajorMC', 0, 0);
+    checkRuntimeGroup_(groups[15], 'GC-Background-Other', 0, 0);
+    checkRuntimeGroup_(groups[16], 'GC', 17, 187);
+    checkRuntimeGroup_(groups[17], 'JavaScript', 3, 33);
+    checkRuntimeGroup_(groups[18], 'V8 C++', 5, 55);
 
     const blinkGroupCollection = groupCollection.blinkRCSGroupCollection;
     const blinkGroups = blinkGroupCollection.runtimeGroups;
@@ -289,27 +295,28 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(groupCollection.totalTime, 28000 + 2800 + 10);
 
     const groups = groupCollection.runtimeGroups;
-    assert.deepEqual(groups.length, 18);
+    assert.deepEqual(groups.length, 19);
     checkRuntimeGroup_(groups[0], 'Total', 2800 + 280 + 1, 28000 + 2800 + 10);
     checkRuntimeGroup_(groups[1], 'IC', 0, 0);
-    checkRuntimeGroup_(groups[2], 'Optimize', 0, 0);
-    checkRuntimeGroup_(groups[3], 'Compile-Background', 0, 0);
-    checkRuntimeGroup_(groups[4], 'Compile', 0, 0);
-    checkRuntimeGroup_(groups[5], 'Parse-Background', 0, 0);
-    checkRuntimeGroup_(groups[6], 'Parse', 0, 0);
-    checkRuntimeGroup_(groups[7], 'Blink C++', 0, 0);
-    checkRuntimeGroup_(groups[8], 'API', 0, 0);
-    checkRuntimeGroup_(groups[9], 'GC-Background-Marking', 440, 4400);
-    checkRuntimeGroup_(groups[10], 'GC-Background-Sweeping', 550, 5500);
-    checkRuntimeGroup_(groups[11], 'GC-Background-Scavenger', 110, 1100);
-    checkRuntimeGroup_(groups[12], 'GC-Background-MinorMC',
+    checkRuntimeGroup_(groups[2], 'Optimize-Background', 0, 0);
+    checkRuntimeGroup_(groups[3], 'Optimize', 0, 0);
+    checkRuntimeGroup_(groups[4], 'Compile-Background', 0, 0);
+    checkRuntimeGroup_(groups[5], 'Compile', 0, 0);
+    checkRuntimeGroup_(groups[6], 'Parse-Background', 0, 0);
+    checkRuntimeGroup_(groups[7], 'Parse', 0, 0);
+    checkRuntimeGroup_(groups[8], 'Blink C++', 0, 0);
+    checkRuntimeGroup_(groups[9], 'API', 0, 0);
+    checkRuntimeGroup_(groups[10], 'GC-Background-Marking', 440, 4400);
+    checkRuntimeGroup_(groups[11], 'GC-Background-Sweeping', 550, 5500);
+    checkRuntimeGroup_(groups[12], 'GC-Background-Scavenger', 110, 1100);
+    checkRuntimeGroup_(groups[13], 'GC-Background-MinorMC',
         300 + 200 + 30 + 20, 3000 + 2000 + 300 + 200);
-    checkRuntimeGroup_(groups[13], 'GC-Background-MajorMC',
+    checkRuntimeGroup_(groups[14], 'GC-Background-MajorMC',
         700 + 600 + 70 + 60, 7000 + 6000 + 700 + 600);
-    checkRuntimeGroup_(groups[14], 'GC-Background-Other', 1, 10);
-    checkRuntimeGroup_(groups[15], 'GC', 0, 0);
-    checkRuntimeGroup_(groups[16], 'JavaScript', 0, 0);
-    checkRuntimeGroup_(groups[17], 'V8 C++', 0, 0);
+    checkRuntimeGroup_(groups[15], 'GC-Background-Other', 1, 10);
+    checkRuntimeGroup_(groups[16], 'GC', 0, 0);
+    checkRuntimeGroup_(groups[17], 'JavaScript', 0, 0);
+    checkRuntimeGroup_(groups[18], 'V8 C++', 0, 0);
   });
 });
 </script>

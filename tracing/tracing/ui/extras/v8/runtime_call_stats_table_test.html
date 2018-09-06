@@ -25,6 +25,7 @@ tr.b.unittest.testSuite(function() {
   const handleApiCall = [9, 901];
   const compileBackground = [1, 101];
   const parseBackground = [2, 202];
+  const optimizeCodeBackground = [3, 303];
 
   function createModel() {
     const m = tr.c.TestUtils.newModel(function(m) {
@@ -45,12 +46,14 @@ tr.b.unittest.testSuite(function() {
                   CompileFullCode: compileFullCode,
                   LoadIC_Miss: loadIcMiss,
                   ParseLazy: parseLazy,
+                  RecompileConcurrent: optimizeCode,
                   OptimizeCode: optimizeCode,
                   FunctionCallback: functionCallback,
                   AllocateInTargetSpace: allocateInTargetSpace,
                   API_Object_Get: apiObjectGet,
                   CompileBackgroundIgnition: compileBackground,
-                  ParseBackgroundFunctionLiteral: parseBackground
+                  ParseBackgroundFunctionLiteral: parseBackground,
+                  RecompileConcurrent: optimizeCodeBackground
                 }}}));
       m.s2 = m.t2.sliceGroup.pushSlice(
           newSliceEx(
@@ -96,10 +99,11 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     const rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 18);
+    assert.lengthOf(rows, 19);
     assert.deepEqual(rows.map(r => r.time), [
-      5286,
+      5589,
       loadIcMiss[1],
+      optimizeCodeBackground[1],
       optimizeCode[1],
       compileBackground[1],
       compileFullCode[1],
@@ -128,10 +132,11 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     const rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 18);
+    assert.lengthOf(rows, 19);
     assert.deepEqual(rows.map(r => r.time), [
-      10269,
+      10572,
       loadIcMiss[1] * 2,
+      optimizeCodeBackground[1],
       optimizeCode[1] * 2,
       compileBackground[1],
       compileFullCode[1] * 2,
@@ -152,6 +157,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(rows.map(r => r.entries_.size), [
       0,
+      1,
       1,
       1,
       1,
@@ -181,10 +187,11 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     const rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 18);
+    assert.lengthOf(rows, 19);
     assert.deepEqual(rows.map(r => r.time), [
       333,
       333,
+      0,
       0,
       0,
       0,
@@ -206,6 +213,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(rows.map(r => r.entries_.size), [
       0,
       2,
+      0,
       0,
       0,
       0,
