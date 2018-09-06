@@ -184,13 +184,7 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
   if not ref_change_points:
     raise ndb.Return(change_points[:])
 
-  # We need to still alert on benchmark_duration, even if the ref moves since
-  # that can signal some blow-up in cycle time. If we decide to expand this
-  # to a greater set of metrics, we should move this to something more
-  # generic like stored_object.
   test_path = utils.TestPath(test_key)
-  if test_path.split('/')[-1] == 'benchmark_duration':
-    raise ndb.Return(change_points[:])
 
   change_points_filtered = []
   for c in change_points:
