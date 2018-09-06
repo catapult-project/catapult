@@ -24,8 +24,16 @@ _LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
 TEST_SUITES_2_CACHE_KEY = 'test_suites_2'
 
 
+@ndb.synctasklet
 def FetchCachedTestSuites2():
-  return namespaced_stored_object.Get(TEST_SUITES_2_CACHE_KEY)
+  result = yield FetchCachedTestSuites2Async()
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def FetchCachedTestSuites2Async():
+  results = yield namespaced_stored_object.GetAsync(TEST_SUITES_2_CACHE_KEY)
+  raise ndb.Return(results)
 
 
 def FetchCachedTestSuites():

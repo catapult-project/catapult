@@ -12,6 +12,7 @@ from google.appengine.ext import ndb
 from dashboard import add_histograms
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import job_state
@@ -140,14 +141,58 @@ def _FetchStatsForJob(job, commit_time):
       time_from_job_to_culprit))
 
 
+@ndb.synctasklet
 def _FetchDashboardStats():
+  process_alerts_future = _ProcessAlerts()
+
   completed_jobs = _FetchCompletedPinpointJobs(
       datetime.datetime.now() - datetime.timedelta(days=14))
 
-  _ProcessPinpointJobs(completed_jobs)
+  yield [
+      _ProcessPinpointJobs(completed_jobs),
+      process_alerts_future]
 
 
-@ndb.synctasklet
+@ndb.tasklet
+def _ProcessAlerts():
+  sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
+  ts_start = datetime.datetime.now() - datetime.timedelta(days=1)
+
+  q = anomaly.Anomaly.query()
+  q = q.filter(anomaly.Anomaly.timestamp > ts_start)
+  q = q.filter(anomaly.Anomaly.sheriff == sheriff)
+  q = q.order(-anomaly.Anomaly.timestamp)
+
+  alerts = yield q.fetch_async()
+  print alerts
+  if not alerts:
+    raise ndb.Return()
+
+  alerts_total = _CreateHistogram('chromium.perf.alerts')
+  alerts_total.AddSample(len(alerts))
+
+  count_by_suite = {}
+
+  for a in alerts:
+    test_suite_name = utils.TestSuiteName(a.test)
+    if test_suite_name not in count_by_suite:
+      count_by_suite[test_suite_name] = 0
+    count_by_suite[test_suite_name] += 1
+
+  hists_by_suite = {}
+  for s, c in count_by_suite.iteritems():
+    hists_by_suite[s] = _CreateHistogram('chromium.perf.alerts', story=s)
+    hists_by_suite[s].AddSample(c)
+
+  hs = _CreateHistogramSet(
+      'ChromiumPerfFyi', 'tests1', 'chromeperf.stats', int(time.time()),
+      [alerts_total] + hists_by_suite.values())
+
+  deferred.defer(
+      add_histograms.ProcessHistogramSet, hs.AsDicts())
+
+
+@ndb.tasklet
 def _ProcessPinpointJobs(jobs_and_commits):
   job_results = yield [_FetchStatsForJob(j, c) for j, c in jobs_and_commits]
   job_results = [j for j in job_results if j]
