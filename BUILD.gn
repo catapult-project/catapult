@@ -39,7 +39,6 @@ group("telemetry_chrome_test_support") {
 
   data += [
     "common/OWNERS",
-    "common/battor/",
     "common/bin/",
     "common/eslint/",
     "common/lab/",
