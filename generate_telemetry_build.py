@@ -23,6 +23,7 @@ import logging
 import os
 import optparse
 import sys
+import subprocess
 
 LICENSE = """# Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
@@ -107,6 +108,16 @@ EXCLUDED_PATHS = [
   },
 ]
 
+
+def GetUntrackedPaths():
+  """Return directories/files in catapult/ that are not tracked by git."""
+  output = subprocess.check_output([
+    'git', 'ls-files', '--others', '--exclude-standard', '--directory',
+    '--full-name'])
+  paths = output.split('\n')
+  return [os.path.abspath(p) for p in paths if p]
+
+
 def GetFileCondition(rel_path):
   # Return 'true' if the file should be included; return 'false' if it should
   # be excluded; return a condition string if it should only be included if
@@ -120,6 +131,7 @@ def GetFileCondition(rel_path):
       else:
         return 'false'
   return 'true'
+
 
 def GetDirCondition(rel_path):
   # Return 'true' if the dir should be included; return 'false' if it should
@@ -138,6 +150,7 @@ def GetDirCondition(rel_path):
     elif exclusion['path'].startswith(processed_rel_path + '/'):
       return 'expand'
   return 'true'
+
 
 def WriteLists(lists, conditional_lists, build_file, path_prefix):
   first_entry = True
@@ -177,19 +190,21 @@ def ProcessDir(root_path, path, build_file, path_prefix):
   dir_list = []
   conditional_list = []
   expand_list = []
+  untracked_paths = GetUntrackedPaths()
   for entry in entry_list:
     full_path = os.path.join(path, entry)
     rel_path = os.path.relpath(full_path, root_path)
-    if (entry.startswith('.') or entry.endswith('~') or
+    if (any(full_path.startswith(p) for p in untracked_paths) or
+        entry.startswith('.') or entry.endswith('~') or
         entry.endswith('.pyc') or entry.endswith('#')):
-      logging.debug('ignored ' + rel_path)
+      logging.debug('ignored %s', rel_path)
       continue
     if os.path.isfile(full_path):
       condition = GetFileCondition(rel_path)
       if condition == 'true':
         file_list.append(rel_path)
       elif condition == 'false':
-        logging.debug('excluded ' + rel_path)
+        logging.debug('excluded %s', rel_path)
         continue
       else:
         conditional_list.append({
@@ -201,7 +216,7 @@ def ProcessDir(root_path, path, build_file, path_prefix):
       if condition == 'true':
         dir_list.append(rel_path + '/')
       elif condition == 'false':
-        logging.debug('excluded ' + rel_path)
+        logging.debug('excluded %s', rel_path)
       elif condition == 'expand':
         expand_list.append(full_path)
       else:
