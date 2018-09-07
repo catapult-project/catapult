@@ -222,7 +222,7 @@ function authCallback(request) {
     }
     for (var bugId in allBugs) {
       if (allBugs[bugId].alerts.length == 0) {
-        url = 'https://chromeperf.appspot.com/api/alerts/bug_id/' + bugId;
+        url = 'https://chromeperf.appspot.com/api/alerts?limit=500&bug_id=' + bugId;
         allBugs[bugId].alerts = getApiData(url).anomalies;
       }
     }
