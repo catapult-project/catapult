@@ -164,7 +164,6 @@ def _ProcessAlerts():
   q = q.order(-anomaly.Anomaly.timestamp)
 
   alerts = yield q.fetch_async()
-  print alerts
   if not alerts:
     raise ndb.Return()
 
@@ -185,7 +184,7 @@ def _ProcessAlerts():
     hists_by_suite[s].AddSample(c)
 
   hs = _CreateHistogramSet(
-      'ChromiumPerfFyi', 'tests1', 'chromeperf.stats', int(time.time()),
+      'ChromiumPerfFyi', 'test1', 'chromeperf.stats', int(time.time()),
       [alerts_total] + hists_by_suite.values())
 
   deferred.defer(
