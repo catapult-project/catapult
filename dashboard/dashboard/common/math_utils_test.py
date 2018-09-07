@@ -77,6 +77,15 @@ class MathUtilsTest(unittest.TestCase):
   def testRelativeChange_FromZero_ReturnsInf(self):
     self.assertEqual(float('inf'), math_utils.RelativeChange(0, 1))
 
+  def testIqr(self):
+    self.assertEqual(4, math_utils.Iqr(xrange(8, 0, -1)))
+
+  def testPercentile_RoundIndex(self):
+    self.assertEqual(2, math_utils.Percentile(range(5), 0.5))
+
+  def testPercentile_Interpolation(self):
+    self.assertEqual(5.1, math_utils.Percentile(range(8), 0.7))
+
 
 if __name__ == '__main__':
   unittest.main()

@@ -9,9 +9,7 @@ import math
 
 def Mean(values):
   """Returns the arithmetic mean, or NaN if the input is empty."""
-  if not values:
-    return float('nan')
-  return sum(values) / float(len(values))
+  return Divide(sum(values), len(values))
 
 
 def Median(values):
@@ -59,3 +57,29 @@ def RelativeChange(before, after):
     first value is zero. This is guaranteed to be non-negative.
   """
   return abs((after - before) / float(before)) if before else float('inf')
+
+
+def Iqr(values):
+  """Returns the interquartile range of an iterable of values.
+
+  The quartiles used correspond to "Method 3" in:
+    https://en.wikipedia.org/wiki/Quartile
+  """
+  return Percentile(values, 0.75) - Percentile(values, 0.25)
+
+
+def Percentile(values, percentile):
+  """Returns a percentile of an iterable of values. C = 1/2
+
+  The closest ranks are interpolated as in "C = 1/2" in:
+    https://en.wikipedia.org/wiki/Percentile
+  """
+  values = sorted(values)
+  index = len(values) * percentile - 0.5
+  floor = math.floor(index)
+  ceil = math.ceil(index)
+  if floor == ceil:
+    return values[int(index)]
+  low = values[int(floor)] * (ceil - index)
+  high = values[int(ceil)] * (index - floor)
+  return low + high
