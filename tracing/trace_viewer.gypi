@@ -192,6 +192,7 @@
       'tracing/metrics/android_systrace_metric.html',
       'tracing/metrics/blink/gc_metric.html',
       'tracing/metrics/blink/leak_detection_metric.html',
+      'tracing/metrics/console_error_metric.html',
       'tracing/metrics/cpu_process_metric.html',
       'tracing/metrics/media_metric.html',
       'tracing/metrics/metric_map_function.html',
