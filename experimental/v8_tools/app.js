@@ -16,10 +16,18 @@ const app = new Vue({
     parsedMetrics: null,
     columnsForChosenDiagnostic: null,
     resetDropDownMenu: false,
-    defaultGridData: []
+    defaultGridData: [],
+    typesOfPlot: [],
+    chosenTypeOfPlot: null
   },
 
   methods: {
+    //  Reset the table content by returning to the
+    //  previous default way with all the components
+    //  available.
+    resetTableData() {
+      this.gridData = this.defaultGridData;
+    },
 
     //  Get all stories for a specific metric.
     getStoriesByMetric(entry) {
@@ -67,21 +75,10 @@ const app = new Vue({
     //  This method creates an object for multiple metrics,
     //  multiple stories and some diagnostics:
     //  {labelName: {storyName: { metricName: sampleValuesArray}}}
-    //  The object is the data for stack bar plot.
-    computeDataForStackPlot() {
-      const metricsSelectedOnGrid = [];
-      for (const metric of this.sampleArr) {
-        for (const e of this.gridData) {
-          if (metric.name === e.metric) {
-            metricsSelectedOnGrid.push(metric);
-          }
-        }
-      }
-      const storiesName = this.getStoriesByMetric(this
-          .gridData[0].metric);
-      const labelsName = this.columnsForChosenDiagnostic;
+    computeDataForStackPlot(metricsDependingOnGrid,
+        storiesName, labelsName) {
       const obj = {};
-      for (const elem of metricsSelectedOnGrid) {
+      for (const elem of metricsDependingOnGrid) {
         const currentDiagnostic = this.getDiagnostic(elem);
         if (currentDiagnostic === undefined) {
           continue;
@@ -91,36 +88,26 @@ const app = new Vue({
           continue;
         }
 
-        if (!storiesName.includes(nameOfStory)) {
-          continue;
-        }
-        if (!obj.hasOwnProperty(currentDiagnostic)) {
-          const metricToSampleValue = {};
-          metricToSampleValue[elem.name] = [average(elem.sampleValues)];
-          const storyToMetricValues = {};
-          storyToMetricValues[nameOfStory] = metricToSampleValue;
-          obj[currentDiagnostic] = storyToMetricValues;
-        } else {
-          const storyToMetricValues = obj[currentDiagnostic];
-          if (!storyToMetricValues.hasOwnProperty(nameOfStory)) {
-            const metricToSampleValue = {};
-            metricToSampleValue[elem.name] = [average(elem.sampleValues)];
-            storyToMetricValues[nameOfStory] = metricToSampleValue;
-            obj[currentDiagnostic] = storyToMetricValues;
-          } else {
-            const metricToSampleValue = storyToMetricValues[nameOfStory];
-            if (!metricToSampleValue.hasOwnProperty(elem.name)) {
-              metricToSampleValue[elem.name] = [average(elem.sampleValues)];
-              storyToMetricValues[nameOfStory] = metricToSampleValue;
-              obj[currentDiagnostic] = storyToMetricValues;
-            } else {
-              let array = metricToSampleValue[elem.name];
-              array = array.concat(average(elem.sampleValues));
-              metricToSampleValue[elem.name] = array;
-              storyToMetricValues[nameOfStory] = metricToSampleValue;
-              obj[currentDiagnostic] = storyToMetricValues;
-            }
+        if (storiesName.includes(nameOfStory) &&
+          labelsName.includes(currentDiagnostic)) {
+          let storyToMetricValues = {};
+          if (obj.hasOwnProperty(currentDiagnostic)) {
+            storyToMetricValues = obj[currentDiagnostic];
           }
+
+          let metricToSampleValues = {};
+          if (storyToMetricValues.hasOwnProperty(nameOfStory)) {
+            metricToSampleValues = storyToMetricValues[nameOfStory];
+          }
+
+          let array = [];
+          if (metricToSampleValues.hasOwnProperty(elem.name)) {
+            array = metricToSampleValues[elem.name];
+          }
+          array = array.concat(average(elem.sampleValues));
+          metricToSampleValues[elem.name] = array;
+          storyToMetricValues[nameOfStory] = metricToSampleValues;
+          obj[currentDiagnostic] = storyToMetricValues;
         }
       }
       return obj;
@@ -371,7 +358,7 @@ const app = new Vue({
     //  added in the table (adding the average sample value).
     //  Also it creates by default a stack plot for all the metrics
     //  obtained from the tree-menu, all the stories from the top-level
-    //  metric and all labels.
+    //  metric and all available labels.
     parsedMetrics() {
       const newGridData = [];
       for (const metric of this.parsedMetrics) {
@@ -382,8 +369,38 @@ const app = new Vue({
         }
       }
       this.gridData = newGridData;
-      const obj = this.computeDataForStackPlot();
+
+      //  We select from sampleValues all the metrics thath
+      //  corespond to the result from tree menu (gridData)
+      const metricsDependingOnGrid = [];
+      const gridMetricsName = [];
+
+      for (const metric of this.gridData) {
+        gridMetricsName.push(metric.metric);
+      }
+
+      for (const metric of this.sampleArr) {
+        if (gridMetricsName.includes(metric.name)) {
+          metricsDependingOnGrid.push(metric);
+        }
+      }
+
+      //  The top level metric is taken as source in
+      //  computing stories.
+      const storiesName = this.getStoriesByMetric(this
+          .gridData[0].metric);
+      const labelsName = this.columnsForChosenDiagnostic;
+      const obj = this.computeDataForStackPlot(metricsDependingOnGrid,
+          storiesName, labelsName);
       this.plotStackBar(obj, newGridData[0].metric);
+      //  From now on the user will be aible to switch between
+      //  this 2 types of plot (taking into consideration that
+      //  the scope of the tree-menu is to analyse using the
+      //  the stacked plot and bar plot, we avoid for the moment
+      //  other types of plot that should be actually used without
+      //  using the tree menu)
+      this.typesOfPlot = ['Bar chart plot', 'Stacked bar plot'];
+      this.chosenTypeOfPlot = 'Stacked bar plot';
     }
   }
 });

@@ -99,7 +99,6 @@
   cursor: pointer;
 }
 
-
 #filterItem {
   max-width: 25em;
   background-color: rgb(255, 255, 255);
@@ -193,7 +192,7 @@
   margin-bottom: 10px;
 }
 
-#globalDiagnostic {
+#globalTypeOfPlot {
   float: right;
   width: 20em;
   background-color: rgb(245, 250, 245);
@@ -203,7 +202,6 @@
 }
 
 #reset_table {
-  float: right;
   margin-left: 15px;
   padding: 5px;
   background-color: rgb(245, 250, 245);

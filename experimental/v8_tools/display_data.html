@@ -144,7 +144,6 @@
 <div class="app-layout">
   <div class='menuLeft' id='menu'>
     <input type='file' id='file-input' class='file_input'/>
-
     <div id='filterItem'>
       <sup>Memory metrics</sup>
       <v-select placeholder='browser'
@@ -188,50 +187,54 @@
         v-bind:test-results="testResults"
         v-bind:reference-column="referenceColumn"></stat-test-summary>
   </div>
+
   <!-- the root component -->
-<div class='appRight' id='app'>
-    <v-select placeholder="Pick a metric"
-              v-if="data_loaded" 
-              :options="metrics" 
-              v-model="selected_metric" 
-              id='select_item'></v-select>
-    <v-select placeholder="Pick a story" 
-              v-if="seen_stories" 
-              :options="stories" 
-              v-model="selected_story" 
-              id='select_item'></v-select>
-    <v-select placeholder="Pick a diagnostic" 
-              v-if="seen_diagnostics" 
-              :options="diagnostics" 
-              v-model="selected_diagnostic" 
-              id='select_item'></v-select>
-    <button
-            v-if='data_loaded'
-            id='reset_button'
-            v-on:click='resetDropDownMenu=true'>
-            Reset menu</button>
-      <div id='canvas'></div>
-      <form id="search">
-        <input v-if="gridDataLoaded"
-              id='inputBox'
-              placeholder="Search a metric" 
-              name="query" 
-              v-model="searchQuery">
-        <button v-if='gridDataLoaded'
-                id='reset_table'
-                >
-                Reset table</button>
-        <v-select placeholder='Pick type of plot'
-            id='globalDiagnostic'
-            v-if='gridDataLoaded'></v-select>
-      </form>
-      <data-table v-if="gridDataLoaded"
-        :data="gridData"
-        :columns="gridColumns"
-        :filter-key="searchQuery"
-        :additional='columnsForChosenDiagnostic'>
-      </data-table>
-  </div>
+  <div class='appRight' id='app'>
+      <v-select placeholder="Pick a metric"
+                v-if="data_loaded"
+                :options="metrics"
+                v-model="selected_metric"
+                id='select_item'></v-select>
+      <v-select placeholder="Pick a story"
+                v-if="seen_stories"
+                :options="stories" 
+                v-model="selected_story" 
+                id='select_item'></v-select>
+      <v-select placeholder="Pick a diagnostic" 
+                v-if="seen_diagnostics" 
+                :options="diagnostics" 
+                v-model="selected_diagnostic" 
+                id='select_item'></v-select>
+      <button v-if='data_loaded'
+              id='reset_button'
+              v-on:click='resetDropDownMenu=true'>
+              Reset menu</button>
+        <div id='canvas'></div>
+        <form id="search">
+          <input v-if="gridDataLoaded"
+                id='inputBox'
+                placeholder="Search a metric" 
+                name="query" 
+                v-model="searchQuery">
+          <v-select placeholder='Pick type of plot'
+              id='globalTypeOfPlot'
+              :options='typesOfPlot'
+              v-model='chosenTypeOfPlot'
+              v-if='gridDataLoaded'></v-select>
+        </form>
+        <button v-if='data_loaded'
+          id='reset_table'
+          v-on:click='resetTableData()'>
+          Reset table
+        </button>
+        <data-table v-if="gridDataLoaded"
+          :data="gridData"
+          :columns="gridColumns"
+          :filter-key="searchQuery"
+          :additional='columnsForChosenDiagnostic'
+          ref='tableComponent'>
+        </data-table>
+    </div
 
 </div>
 <script src="filter.js"></script>

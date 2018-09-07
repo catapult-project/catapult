@@ -297,7 +297,7 @@ function readSingleFile(e) {
   //  results for all guid-related( for now they are not
   //  divided in 3 parts depending on the type ) and
   //  all results with sample-value-related and
-  //  map guid to value within the same structure
+  //  map guid to value within the same structure.
   const reader = new FileReader();
   reader.onload = function(e) {
     const contents = extractData(e.target.result);
