@@ -404,6 +404,9 @@ function extractData(contents) {
         guid: e.guid,
         diagnostics: {}
       };
+      if (e.diagnostics === undefined || e.diagnostics === null) {
+        continue;
+      }
       if (e.diagnostics.hasOwnProperty('traceUrls')) {
         elem.diagnostics.traceUrls = e.diagnostics.traceUrls;
       }
