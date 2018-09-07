@@ -44,6 +44,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   # Each Alert is related to one Test.
   test = ndb.KeyProperty(indexed=True)
+  statistic = ndb.StringProperty(indexed=True)
 
   # We'd like to be able to query Alerts by Master, Bot, and Benchmark names.
   master_name = ndb.ComputedProperty(

@@ -145,8 +145,15 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     config = anomaly_config.GetAnomalyConfigDict(test)
     max_num_rows = config.get(
         'max_window_size', find_anomalies.DEFAULT_NUM_POINTS)
-    rows = [r for r in find_anomalies.GetRowsToAnalyze(test, max_num_rows)
-            if r.revision > alert_entity.end_revision]
+    rows = find_anomalies.GetRowsToAnalyze(test, max_num_rows)
+    statistic = getattr(alert_entity, 'statistic')
+    if not statistic:
+      statistic = 'avg'
+    rows = rows.get(statistic, [])
+    rows = [
+        (rev, row, val)
+        for (rev, row, val) in rows if row.revision > alert_entity.end_revision]
+
     change_points = find_anomalies.FindChangePointsForTest(rows, config)
     delta_anomaly = (alert_entity.median_after_anomaly -
                      alert_entity.median_before_anomaly)
