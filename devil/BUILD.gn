@@ -3,14 +3,8 @@
 # found in the LICENSE file.
 
 import("//build/symlink.gni")
-# TODO(jbudorick): remove this import & always import the native catapult
-# version once chromium stops referencing this file.
-import("//build/secondary/third_party/catapult/devil/devil_arm.gni")
 import("//testing/android/empty_apk/empty_apk.gni")
-
-if (!defined(build_devil_arm_deps)) {
-  import("//third_party/catapult/devil/devil_arm.gni")
-}
+import("//third_party/catapult/devil/devil_arm.gni")
 
 empty_apk("empty_system_webview_apk") {
   package_name = "com.android.webview"
