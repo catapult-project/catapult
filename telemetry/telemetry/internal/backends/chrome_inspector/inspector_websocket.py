@@ -101,7 +101,6 @@ class InspectorWebsocket(object):
 
     Raises:
       inspector_websocket.WebSocketException: Error from websocket library.
-      socket.error: Error from websocket library.
       exceptions.WebSocketDisconnected: The socket was disconnected.
     """
     self._SendRequest(req)
@@ -109,12 +108,15 @@ class InspectorWebsocket(object):
   def _SendRequest(self, req):
     if not self._socket:
       raise WebSocketDisconnected()
-    req['id'] = self._next_request_id
-    self._next_request_id += 1
-    data = json.dumps(req)
-    self._socket.send(data)
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
-      logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
+    try:
+      req['id'] = self._next_request_id
+      self._next_request_id += 1
+      data = json.dumps(req)
+      self._socket.send(data)
+      if logging.getLogger().isEnabledFor(logging.DEBUG):
+        logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
+    except websocket.WebSocketException as err:
+      raise WebSocketException(err)
 
   def SyncRequest(self, req, timeout):
     """Sends a request and waits for a response.
