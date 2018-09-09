@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/tracing/base/unit.html">
+
+<dom-module id="scalar-span">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        white-space: nowrap;
+      }
+      span[change="improvement"] {
+        color: var(--improvement-color);
+      }
+      span[change="regression"] {
+        color: var(--error-color);
+      }
+    </style>
+
+    <span id="span"
+        change$="[[change_(unit, value)]]"
+        title$="[[change_(unit, value)]]">
+      [[format_(unit, value, maximumFractionDigits, unitPrefix)]]
+    </span>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/scalar-span.js"></script>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<custom-style>
+<link rel="stylesheet" href="/dashboard/spa/index.css">
+</custom-style>
+<link rel="import" href="/dashboard/spa/scalar-span.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<test-fixture id="format">
+  <template>
+    <scalar-span></scalar-span>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('scalar-span', function() {
+  test('format', async function() {
+    const scalarSpan = fixture('format');
+    scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
+    scalarSpan.value = 1.111111;
+    await cp.afterRender();
+    assert.strictEqual('+1.111 ms', scalarSpan.$.span.textContent.trim());
+    assert.strictEqual('regression', scalarSpan.$.span.getAttribute('change'));
+
+    scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_biggerIsBetter;
+    await cp.afterRender();
+    assert.strictEqual('improvement', scalarSpan.$.span.getAttribute('change'));
+  });
+
+  test('getChange', function() {
+    assert.strictEqual('', cp.ScalarSpan.getChange(undefined, 1));
+    assert.strictEqual('', cp.ScalarSpan.getChange(tr.b.Unit.byName.count, 1));
+    assert.strictEqual('', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta, 1));
+    assert.strictEqual('regression', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_biggerIsBetter, -1));
+    assert.strictEqual('regression', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_smallerIsBetter, 1));
+    assert.strictEqual('improvement', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_biggerIsBetter, 1));
+    assert.strictEqual('improvement', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_smallerIsBetter, -1));
+    assert.strictEqual('', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_biggerIsBetter, 0));
+    assert.strictEqual('', cp.ScalarSpan.getChange(
+        tr.b.Unit.byName.countDelta_smallerIsBetter, 0));
+  });
+});
+</script>
