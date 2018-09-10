@@ -4,8 +4,53 @@
 
 import json
 
+from dashboard.api import api_auth
 from dashboard.common import testing_common
 from dashboard.pinpoint import test
+
+
+class AuthTest(test.TestCase):
+
+  def _ValidParams(self):
+    builder_name = 'Mac Builder'
+    change = '{"commits": [{"repository": "chromium", "git_hash": "git hash"}]}'
+    target = 'telemetry_perf_tests'
+    isolate_server = 'https://isolate.server'
+    isolate_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
+
+    params = {
+        'builder_name': builder_name,
+        'change': change,
+        'isolate_server': isolate_server,
+        'isolate_map': json.dumps({target: isolate_hash}),
+    }
+    return params
+
+  def testPost_Anonymous_Whitelisted_Succeeds(self):
+    testing_common.SetIpWhitelist(['remote_ip'])
+    self.SetCurrentUserOAuth(None)
+
+    self.Post('/api/isolate', self._ValidParams(), status=200)
+
+  def testPost_Anonymous_NotWhitelisted_Fails(self):
+    testing_common.SetIpWhitelist(['invalid'])
+    self.SetCurrentUserOAuth(None)
+
+    self.Post('/api/isolate', self._ValidParams(), status=403)
+
+  def testPost_Internal_Oauth_Succeeds(self):
+    testing_common.SetIpWhitelist(['invalid'])
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+
+    self.Post('/api/isolate', self._ValidParams(), status=200)
+
+  def testPost_External_Oauth_Fails(self):
+    testing_common.SetIpWhitelist(['invalid'])
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+
+    self.Post('/api/isolate', self._ValidParams(), status=403)
 
 
 class FunctionalityTest(test.TestCase):
