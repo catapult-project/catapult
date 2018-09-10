@@ -60,7 +60,8 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     decodeFields(header, decoder) {
       if (header.version > 3) {
-        throw new Error('Incompatible Thread event version.');
+        throw new Error('Incompatible Thread event version ' +
+                        header.version + '.');
       }
 
       // Common fields to all Thread events.
@@ -143,7 +144,8 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     decodeCSwitchFields(header, decoder) {
       if (header.version !== 2) {
-        throw new Error('Incompatible Thread event version.');
+        throw new Error('Incompatible Thread event version ' +
+                        header.version + '.');
       }
 
       // Decode CSwitch payload.
