@@ -240,10 +240,11 @@ class StackedBarPlotter {
       totalHeight += positions.height;
     });
     const barMid = x + this.innerBandScale_.bandwidth() / 2;
+    const padding = 5;
     selection.append('text')
         .text(this.getNumericLabelForKey_(key))
         .attr('fill', 'black')
-        .attr('y', this.scaleForYAxis_(totalHeight))
+        .attr('y', this.scaleForYAxis_(totalHeight) - padding)
         .attr('x', barMid)
         .append('title')
         .text(key);
