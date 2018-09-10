@@ -59,7 +59,7 @@ def _TimeoutRetryWrapper(
       raise device_errors.CommandTimeoutError(str(e)), None, (
           sys.exc_info()[2])
     except cmd_helper.TimeoutError as e:
-      raise device_errors.CommandTimeoutError(str(e)), None, (
+      raise device_errors.CommandTimeoutError(str(e), output=e.output), None, (
           sys.exc_info()[2])
   return timeout_retry_wrapper
 

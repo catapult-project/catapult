@@ -148,7 +148,9 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
 
 class CommandTimeoutError(base_error.BaseError):
   """Exception for command timeouts."""
-  pass
+  def __init__(self, message, is_infra_error=False, output=None):
+    super(CommandTimeoutError, self).__init__(message, is_infra_error)
+    self.output = output
 
 
 class DeviceUnreachableError(base_error.BaseError):
