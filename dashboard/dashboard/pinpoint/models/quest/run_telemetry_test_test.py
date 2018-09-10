@@ -4,8 +4,8 @@
 
 import unittest
 
+from dashboard.pinpoint.models.quest import run_performance_test
 from dashboard.pinpoint.models.quest import run_telemetry_test
-from dashboard.pinpoint.models.quest import run_test
 
 
 _BASE_ARGUMENTS = {
@@ -16,9 +16,13 @@ _BASE_ARGUMENTS = {
 }
 
 
+_COMBINED_DEFAULT_EXTRA_ARGS = (run_telemetry_test._DEFAULT_EXTRA_ARGS
+                                + run_performance_test._DEFAULT_EXTRA_ARGS)
+
+
 _BASE_EXTRA_ARGS = [
     'speedometer', '--pageset-repeat', '1', '--browser', 'release',
-] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
+] + _COMBINED_DEFAULT_EXTRA_ARGS
 
 
 class StartTest(unittest.TestCase):
@@ -47,7 +51,7 @@ class FromDictTest(unittest.TestCase):
     extra_args = [
         'speedometer', '--story-filter', 'http://www.fifa.com/',
         '--pageset-repeat', '1', '--browser', 'release',
-    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
+    ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
         'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
@@ -81,7 +85,7 @@ class FromDictTest(unittest.TestCase):
     extra_args = [
         'start_with_url.warm.startup_pages',
         '--pageset-repeat', '2', '--browser', 'release',
-    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
+    ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
         'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)
@@ -95,7 +99,7 @@ class FromDictTest(unittest.TestCase):
         'speedometer', '--pageset-repeat', '1',
         '--browser', 'android-webview', '--webview-embedder-apk',
         '../../out/Release/apks/SystemWebViewShell.apk',
-    ] + run_telemetry_test._DEFAULT_EXTRA_ARGS + run_test._DEFAULT_EXTRA_ARGS
+    ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
         'server', {'key': 'value'}, extra_args)
     self.assertEqual(quest, expected)

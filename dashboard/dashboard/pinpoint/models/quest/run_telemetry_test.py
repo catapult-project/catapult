@@ -6,7 +6,7 @@
 
 import copy
 
-from dashboard.pinpoint.models.quest import run_test
+from dashboard.pinpoint.models.quest import run_performance_test
 
 
 _DEFAULT_EXTRA_ARGS = [
@@ -17,7 +17,7 @@ _PERFORMANCE_TESTS = ('performance_test_suite',
                       'performance_webview_test_suite')
 
 
-class RunTelemetryTest(run_test.RunTest):
+class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
   def Start(self, change, isolate_server, isolate_hash):
     # For results2 to differentiate between runs, we need to add the

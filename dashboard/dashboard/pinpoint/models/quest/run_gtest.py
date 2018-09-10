@@ -4,13 +4,13 @@
 
 """Quest for running a GTest in Swarming."""
 
-from dashboard.pinpoint.models.quest import run_test
+from dashboard.pinpoint.models.quest import run_performance_test
 
 
 _DEFAULT_EXTRA_ARGS = ['--non-telemetry', 'true']
 
 
-class RunGTest(run_test.RunTest):
+class RunGTest(run_performance_test.RunPerformanceTest):
 
   @classmethod
   def _ExtraTestArgs(cls, arguments):
