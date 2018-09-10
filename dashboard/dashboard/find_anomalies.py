@@ -113,9 +113,8 @@ def _ProcesssTestStat(config, sheriff, test, stat, rows, ref_rows):
 
   # Update the last_alerted_revision property of the test.
   test.last_alerted_revision = anomalies[-1].end_revision
-  yield test.put_async()
 
-  yield ndb.put_multi_async(anomalies)
+  yield (test.put_async(), ndb.put_multi_async(anomalies))
 
   # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
   # code will run serially.
