@@ -9,6 +9,7 @@ import re
 import webapp2
 
 from dashboard.api import api_auth
+from dashboard.common import utils
 
 _ALLOWED_ORIGINS = [
     'chromeperf.appspot.com',
@@ -19,6 +20,11 @@ _ALLOWED_ORIGINS = [
 
 class BadRequestError(Exception):
   pass
+
+
+class ForbiddenError(Exception):
+  def __init__(self):
+    super(ForbiddenError, self).__init__('Access denied')
 
 
 class NotFoundError(Exception):
@@ -54,18 +60,26 @@ class ApiRequestHandler(webapp2.RequestHandler):
     # Allow oauth.Error to manifest as HTTP 500.
 
     try:
-      results = self.AuthorizedPost(*args)
+      if utils.IsInternalUser():
+        results = self.PrivilegedPost(*args)
+      else:
+        results = self.UnprivilegedPost(*args)
       self.response.out.write(json.dumps(results))
     except NotFoundError as e:
       self.WriteErrorMessage(e.message, 404)
+    except ForbiddenError as e:
+      self.WriteErrorMessage(e.message, 403)
     except BadRequestError as e:
       self.WriteErrorMessage(e.message, 400)
 
   def options(self, *_):  # pylint: disable=invalid-name
     self._SetCorsHeadersIfAppropriate()
 
-  def AuthorizedPost(self, *_):
+  def PrivilegedPost(self, *_):
     raise NotImplementedError()
+
+  def UnprivilegedPost(self, *_):
+    raise ForbiddenError()
 
   def _SetCorsHeadersIfAppropriate(self):
     self.response.headers['Content-Type'] = 'application/json; charset=utf-8'

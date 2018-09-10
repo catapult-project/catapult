@@ -13,7 +13,10 @@ class ReportGenerateHandler(api_request_handler.ApiRequestHandler):
   def _AllowAnonymous(self):
     return True
 
-  def AuthorizedPost(self):
+  def PrivilegedPost(self, *args):
+    return self.UnprivilegedPost(*args)
+
+  def UnprivilegedPost(self, *_):
     revisions = self.request.get('revisions', None)
     if revisions is None:
       raise api_request_handler.BadRequestError

@@ -7,7 +7,9 @@ import json
 import mock
 
 from dashboard.api import api_auth
+from dashboard.common import datastore_hooks
 from dashboard.common import namespaced_stored_object
+from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.pinpoint import test
@@ -41,7 +43,12 @@ class _NewTest(test.TestCase):
   def setUp(self):
     super(_NewTest, self).setUp()
 
-    namespaced_stored_object.Set('bot_configurations', {
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+
+    key = namespaced_stored_object.NamespaceKey(
+        'bot_configurations', datastore_hooks.INTERNAL)
+    stored_object.Set(key, {
         'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS
     })
 
@@ -51,6 +58,8 @@ class NewAuthTest(_NewTest):
   @mock.patch.object(api_auth, 'Authorize',
                      mock.MagicMock(side_effect=api_auth.NotLoggedInError()))
   def testPost_NotLoggedIn(self):
+    self.SetCurrentUserOAuth(None)
+
     response = self.Post('/api/new', _BASE_REQUEST, status=401)
     result = json.loads(response.body)
     self.assertEqual(result, {'error': 'User not authenticated'})
@@ -58,6 +67,8 @@ class NewAuthTest(_NewTest):
   @mock.patch.object(api_auth, 'Authorize',
                      mock.MagicMock(side_effect=api_auth.OAuthError()))
   def testFailsOauth(self):
+    self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
+
     response = self.Post('/api/new', _BASE_REQUEST, status=403)
     result = json.loads(response.body)
     self.assertEqual(result, {'error': 'User authentication error'})
@@ -115,7 +126,7 @@ class NewTest(_NewTest):
   def testComparisonMagnitude(self):
     request = dict(_BASE_REQUEST)
     request['comparison_magnitude'] = '123.456'
-    response = self.testapp.post('/api/new', request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     job = job_module.JobFromId(result['jobId'])
@@ -231,4 +242,4 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     job = job_module.JobFromId(result['jobId'])
-    self.assertEqual(job.user, testing_common.EXTERNAL_USER.email())
+    self.assertEqual(job.user, testing_common.INTERNAL_USER.email())

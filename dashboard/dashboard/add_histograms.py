@@ -94,9 +94,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
-  def AuthorizedPost(self):
-    datastore_hooks.SetPrivilegedRequest()
-
+  def PrivilegedPost(self):
     with timing.WallTimeLogger('decompress'):
       try:
         data_str = self.request.body

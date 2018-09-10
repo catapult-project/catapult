@@ -12,5 +12,8 @@ class TestSuitesHandler(api_request_handler.ApiRequestHandler):
   def _AllowAnonymous(self):
     return True
 
-  def AuthorizedPost(self):
+  def PrivilegedPost(self, *args):
+    return self.UnprivilegedPost(*args)
+
+  def UnprivilegedPost(self, *_):
     return update_test_suites.FetchCachedTestSuites2()

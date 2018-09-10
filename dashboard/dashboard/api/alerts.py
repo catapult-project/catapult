@@ -24,7 +24,10 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
   def _AllowAnonymous(self):
     return True
 
-  def AuthorizedPost(self, *args):
+  def PrivilegedPost(self, *args):
+    return self.UnprivilegedPost(*args)
+
+  def UnprivilegedPost(self, *args):
     """Returns alert data in response to API requests.
 
     Possible list types:

@@ -30,7 +30,10 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
   def _AllowAnonymous(self):
     return True
 
-  def AuthorizedPost(self):
+  def PrivilegedPost(self, *args):
+    return self.UnprivilegedPost(*args)
+
+  def UnprivilegedPost(self, *_):
     desc = descriptor.Descriptor(
         test_suite=self.request.get('test_suite'),
         measurement=self.request.get('measurement'),

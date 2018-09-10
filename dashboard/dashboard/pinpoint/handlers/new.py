@@ -20,7 +20,7 @@ _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 class New(api_request_handler.ApiRequestHandler):
   """Handler that cooks up a fresh Pinpoint job."""
 
-  def AuthorizedPost(self):
+  def PrivilegedPost(self):
     try:
       job = _CreateJob(self.request)
       job.Start()

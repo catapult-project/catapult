@@ -36,6 +36,7 @@ class ReportTemplateTest(testing_common.TestCase):
     self.SetUpApp([
         ('/api/report/template', api_report_template.ReportTemplateHandler),
     ])
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _Post(self, **params):

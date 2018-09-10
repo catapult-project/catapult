@@ -16,7 +16,10 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
   Convenience methods for getting bug data; only available to internal users.
   """
 
-  def AuthorizedPost(self, *args):
+  def PrivilegedPost(self, *args):
+    return self.UnprivilegedPost(*args)
+
+  def UnprivilegedPost(self, *args):
     """Returns alert data in response to API requests.
 
     Argument:
