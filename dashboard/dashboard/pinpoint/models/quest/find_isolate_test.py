@@ -39,9 +39,10 @@ class _FindIsolateExecutionTest(test.TestCase):
     super(_FindIsolateExecutionTest, self).setUp()
 
     change = change_test.Change(123)
-    isolate.Put(
-        'https://isolate.server',
-        (('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),))
+    isolate.Put((
+        ('Mac Builder', change, 'telemetry_perf_tests',
+         'https://isolate.server', '7c7e90be'),
+    ))
 
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
@@ -130,9 +131,10 @@ class BuildTest(_FindIsolateExecutionTest):
     get_job_status.assert_called_once_with('build_id')
 
     # Look up isolate hash.
-    isolate.Put(
-        'https://isolate.server',
-        (('Mac Builder', change, 'telemetry_perf_tests', 'isolate git hash'),))
+    isolate.Put((
+        ('Mac Builder', change, 'telemetry_perf_tests',
+         'https://isolate.server', 'isolate git hash'),
+    ))
     execution.Poll()
 
     expected_result_arguments = {
@@ -191,9 +193,10 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertEqual(get_job_status.call_count, 2)
 
     # Look up isolate hash.
-    isolate.Put(
-        'https://isolate.server',
-        (('Mac Builder', change, 'telemetry_perf_tests', 'isolate git hash'),))
+    isolate.Put((
+        ('Mac Builder', change, 'telemetry_perf_tests',
+         'https://isolate.server', 'isolate git hash'),
+    ))
     execution_1.Poll()
     execution_2.Poll()
 

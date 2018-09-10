@@ -47,19 +47,18 @@ def Get(builder_name, change, target):
   return entity.isolate_server, entity.isolate_hash
 
 
-def Put(isolate_server, isolate_infos):
+def Put(isolate_infos):
   """Add isolate hashes to the Datastore.
 
   This function takes multiple entries to do a batched Datstore put.
 
   Args:
-    isolate_server: The hostname of the server where the isolates are stored.
     isolate_infos: An iterable of tuples. Each tuple is of the form
-        (builder_name, change, target, isolate_hash).
+        (builder_name, change, target, isolate_server, isolate_hash).
   """
   entities = []
   for isolate_info in isolate_infos:
-    builder_name, change, target, isolate_hash = isolate_info
+    builder_name, change, target, isolate_server, isolate_hash = isolate_info
     entity = Isolate(
         isolate_server=isolate_server,
         isolate_hash=isolate_hash,

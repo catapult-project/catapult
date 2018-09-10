@@ -91,13 +91,17 @@ class Isolate(api_request_handler.ApiRequestHandler):
           self._ValidateParameters(parameters))
     except (KeyError, TypeError, ValueError) as e:
       self.response.set_status(400)
-      self.response.write(e)
+      self.response.write(json.dumps({'error': e.message}))
       return
 
     # Put information into the datastore.
-    isolate_infos = {(builder_name, change, target, isolate_hash)
-                     for target, isolate_hash in isolate_map.iteritems()}
-    isolate.Put(isolate_server, isolate_infos)
+    isolate_infos = [
+        (builder_name, change, target, isolate_server, isolate_hash)
+        for target, isolate_hash in isolate_map.iteritems()]
+    isolate.Put(isolate_infos)
+
+    # Respond to the API user.
+    self.response.write(json.dumps(isolate_infos))
 
   def _ValidateParameters(self, parameters):
     """Ensure the right parameters are present and valid.

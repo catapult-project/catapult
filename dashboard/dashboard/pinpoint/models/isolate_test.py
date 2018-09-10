@@ -11,10 +11,12 @@ class IsolateTest(test.TestCase):
 
   def testPutAndGet(self):
     isolate_infos = (
-        ('Mac Builder Perf', change_test.Change(1), 'target_name', '7c7e90be'),
-        ('Mac Builder Perf', change_test.Change(2), 'target_name', '38e2f262'),
+        ('Mac Builder Perf', change_test.Change(1), 'target_name',
+         'https://isolate.server', '7c7e90be'),
+        ('Mac Builder Perf', change_test.Change(2), 'target_name',
+         'https://isolate.server', '38e2f262'),
     )
-    isolate.Put('https://isolate.server', isolate_infos)
+    isolate.Put(isolate_infos)
 
     isolate_server, isolate_hash = isolate.Get(
         'Mac Builder Perf', change_test.Change(1), 'target_name')
@@ -29,9 +31,9 @@ class IsolateTest(test.TestCase):
     # TODO(dtu): Remove 6 months after LUCI migration is complete.
     isolate_infos = (
         ('android_arm64-builder-perf', change_test.Change(1),
-         'target_name', 'abcd1234'),
+         'target_name', 'https://isolate.server', 'abcd1234'),
     )
-    isolate.Put('https://isolate.server', isolate_infos)
+    isolate.Put(isolate_infos)
 
     isolate_server, isolate_hash = isolate.Get(
         'Android arm64 Compile Perf', change_test.Change(1), 'target_name')
