@@ -1,9 +1,5 @@
 #app {
-  max-width: 120em;
-  max-height: 10000000em;
-  height: 10000000px;
   margin-top: +10px;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
