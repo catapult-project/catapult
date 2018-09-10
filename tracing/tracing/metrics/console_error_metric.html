@@ -48,7 +48,6 @@ tr.exportTo('tr.metrics.console', function() {
         slice.title === 'V8ConsoleMessage::Exception' ||
         slice.title === 'V8ConsoleMessage::Error' ||
         slice.title === 'V8ConsoleMessage::Assert')) {
-        const source = slice.args.source.toLowerCase();
         counts.all++;
         counts.js++;
       }
