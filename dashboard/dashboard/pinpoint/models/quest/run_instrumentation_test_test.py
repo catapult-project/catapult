@@ -23,3 +23,14 @@ class FromDictTest(unittest.TestCase):
     expected = run_instrumentation_test.RunInstrumentationTest(
         'server', {'key': 'value'}, _BASE_EXTRA_ARGS)
     self.assertEqual(quest, expected)
+
+  def testAllArguments(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    filter_string = 'InstrumentationClass#SomeTestCase'
+    arguments['test-filter'] = filter_string
+    quest = run_instrumentation_test.RunInstrumentationTest.FromDict(arguments)
+
+    extra_args = ['--test-filter', filter_string] + _BASE_EXTRA_ARGS
+    expected = run_instrumentation_test.RunInstrumentationTest(
+        'server', {'key': 'value'}, extra_args)
+    self.assertEqual(quest, expected)

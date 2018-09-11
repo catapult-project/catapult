@@ -4,8 +4,6 @@
 
 """Quest for running a browser test in Swarming."""
 
-import copy
-
 from dashboard.pinpoint.models.quest import run_test
 
 
@@ -16,8 +14,14 @@ class RunBrowserTest(run_test.RunTest):
 
   @classmethod
   def _ExtraTestArgs(cls, arguments):
-    # TODO(bsheedy): Parse from arguments parameter once we know what will be
-    # supported.
-    extra_test_args = copy.copy(_DEFAULT_EXTRA_ARGS)
+    extra_test_args = []
+
+    # The browser test launcher only properly parses arguments in the
+    # --key=value format.
+    test_filter = arguments.get('test-filter')
+    if test_filter:
+      extra_test_args.append('--gtest_filter=%s' % test_filter)
+
+    extra_test_args += _DEFAULT_EXTRA_ARGS
     extra_test_args += super(RunBrowserTest, cls)._ExtraTestArgs(arguments)
     return extra_test_args

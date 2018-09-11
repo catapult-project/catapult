@@ -22,3 +22,14 @@ class FromDictTest(unittest.TestCase):
     expected = run_browser_test.RunBrowserTest(
         'server', {'key': 'value'}, _BASE_EXTRA_ARGS)
     self.assertEqual(quest, expected)
+
+  def testAllArguments(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    filter_string = 'BrowserTestClass*:SomeOtherBrowserTestClass*'
+    arguments['test-filter'] = filter_string
+    quest = run_browser_test.RunBrowserTest.FromDict(arguments)
+
+    extra_args = ['--gtest_filter=%s' % filter_string] + _BASE_EXTRA_ARGS
+    expected = run_browser_test.RunBrowserTest(
+        'server', {'key': 'value'}, extra_args)
+    self.assertEqual(quest, expected)
