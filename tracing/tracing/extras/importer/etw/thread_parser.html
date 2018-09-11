@@ -143,8 +143,15 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeCSwitchFields(header, decoder) {
-      if (header.version !== 2) {
-        throw new Error('Incompatible Thread event version ' +
+      // The only difference in version 3 is that oldThreadWaitMode is renamed
+      // to ThreadFlags. There is no difference between version 3 and version 4.
+      // Therefore we can safely handle all of these versions with the same code
+      // since we don't interpret oldThreadWaitMode at all.
+      // To see the layout of the CSwitch_V4 class you can run wbemtest
+      // elevated, "Connect...", change root\cimv2 to root\WMI, "Connect",
+      // "Open Class...", "CSwitch_V4", "Show MOF".
+      if (header.version < 2 || header.version > 4) {
+        throw new Error('Incompatible cswitch event version ' +
                         header.version + '.');
       }
 
@@ -156,6 +163,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       const previousCState = decoder.decodeUInt8();
       const spareByte = decoder.decodeInt8();
       const oldThreadWaitReason = decoder.decodeInt8();
+      // oldThreadWaitMode is called ThreadFlags in V3 and V4.
       const oldThreadWaitMode = decoder.decodeInt8();
       const oldThreadState = decoder.decodeInt8();
       const oldThreadWaitIdealProcessor = decoder.decodeInt8();
