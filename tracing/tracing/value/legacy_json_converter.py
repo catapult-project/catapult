@@ -24,6 +24,7 @@ def ConvertLegacyDicts(dicts):
   master = first_dict['master']
   bot = first_dict['bot']
   suite = first_dict['test'].split('/')[0]
+  point_id = first_dict['revision']
 
   hs = histogram_set.HistogramSet()
 
@@ -53,16 +54,7 @@ def ConvertLegacyDicts(dicts):
       [bot]))
   hs.AddSharedDiagnostic(reserved_infos.BENCHMARKS.name, generic_set.GenericSet(
       [suite]))
-  _AddRevision(first_dict, hs)
+  hs.AddSharedDiagnostic(reserved_infos.POINT_ID.name, generic_set.GenericSet(
+      [point_id]))
 
   return hs
-
-
-def _AddRevision(d, hs):
-  r_commit_pos = d.get('supplemental_columns', {}).get('r_commit_pos')
-  rev = d['revision']
-  if r_commit_pos is not None and r_commit_pos == rev:
-    name = reserved_infos.CHROMIUM_COMMIT_POSITIONS.name
-  else:
-    name = reserved_infos.POINT_ID.name
-  hs.AddSharedDiagnostic(name, generic_set.GenericSet([rev]))
