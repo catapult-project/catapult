@@ -129,7 +129,7 @@ class DotPlotter {
         this.computeDotStacking_.bind(this), this.scaleForXAxis_);
     const getClassNameSuffix = GraphUtils.getClassNameSuffixFactory();
     this.setUpZoom_(graph, chart, chartDimensions, getClassNameSuffix);
-    dots.forEach(({ data, color, key }, index) => {
+    dots.forEach(({ data, color, key }) => {
       const className = `dot-${getClassNameSuffix(key)}`;
       const testTargetPrefix = `chai-test-${className}-`;
       chart.append('line')
@@ -150,22 +150,11 @@ class DotPlotter {
           .attr('fill', color)
           .attr('class', datum => `${className} ${testTargetPrefix}${datum.x}`)
           .attr('clip-path', 'url(#plot-clip)')
-          .on('click', datum => {
-            graph.interactiveCallbackForDotPlot(key, datum.id);
-          })
-          .on('mouseover', (datum, datumIndex) => {
-            const zoomOnHoverScaleFactor = 2;
-            d3.selectAll(`.${className}`)
-                .filter((d, i) => i === datumIndex)
-                .attr('r', this.radius_ * zoomOnHoverScaleFactor);
-          })
-          .on('mouseout', (datum, datumIndex) => {
-            d3.selectAll(`.${className}`)
-                .filter((d, i) => i === datumIndex)
-                .attr('r', this.radius_);
-          })
-          .append('title')
-          .text('click to view trace');
+          .call(GraphUtils.useTraceCallback,
+              graph,
+              key,
+              this.radius_,
+              className);
       const label = chart.append('text')
           .text(key)
           .attr('x', '-1em')

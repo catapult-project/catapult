@@ -59,12 +59,15 @@ describe('GraphData', function() {
         {
           y: 0,
           x: 1,
+          id: 1,
         }, {
           y: 1,
           x: 2,
+          id: 0,
         }, {
           y: 2,
           x: 3,
+          id: 2,
         },
       ];
       const graph = new GraphData().addData(data);
@@ -90,9 +93,6 @@ describe('GraphData', function() {
       const incorrectType = 'not an object';
       const incorrectValueTypes = {
         source: 'not an array or object',
-      };
-      const incorrectArrayContentTypes = {
-        source: [1, 2, 'not a number'],
       };
       const graph = new GraphData();
       chai.expect(() => graph.addData(incorrectType)).to.throw(TypeError);

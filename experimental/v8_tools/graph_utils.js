@@ -133,4 +133,25 @@ class GraphUtils {
       return keyToClassName[key].toString();
     };
   }
+
+  static useTraceCallback(selection, graph, key, radius, className) {
+    selection
+        .on('click', datum => {
+          graph.interactiveCallbackForSelectedDatum(key, datum.id);
+        })
+        .on('mouseover', (datum, datumIndex) => {
+          const zoomOnHoverScaleFactor = 2;
+          d3.selectAll(`.${className}`)
+              .filter((d, i) => i === datumIndex)
+              .attr('r', radius * zoomOnHoverScaleFactor);
+        })
+        .on('mouseout', (datum, datumIndex) => {
+          d3.selectAll(`.${className}`)
+              .filter((d, i) => i === datumIndex)
+              .attr('r', radius);
+        })
+        .append('title')
+        .text('click to view trace');
+    return selection;
+  }
 }

@@ -79,7 +79,7 @@ class GraphData {
    * @param {string} key
    * @param {number} index
    */
-  interactiveCallbackForDotPlot(key, index) {
+  interactiveCallbackForSelectedDatum(key, index) {
     this.callInteractiveCallback_(key, index);
   }
 
@@ -275,11 +275,18 @@ class GraphData {
    * @returns {Array<Object>}
    */
   static computeCumulativeFrequencies(data) {
-    const sortedData = data.sort((a, b) => a - b);
-    return sortedData.map((value, i) => {
+    const labeledData = data.map((value, id) => {
+      return {
+        value,
+        id,
+      };
+    });
+    const sortedData = labeledData.sort((a, b) => a.value - b.value);
+    return sortedData.map(({value, id}, i) => {
       return {
         y: i,
         x: value,
+        id
       };
     });
   }

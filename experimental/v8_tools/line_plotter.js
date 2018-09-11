@@ -52,22 +52,31 @@ class LinePlotter {
    */
   plot(graph, chart, legend, chartDimensions) {
     this.initChart_(graph, chart, chartDimensions);
+    const dotRadius = 4;
     const pathGenerator = d3.line()
         .x(datum => this.scaleForXAxis_(datum.x))
         .y(datum => this.scaleForYAxis_(datum.y))
         .curve(d3.curveMonotoneX);
+    const getClassNameSuffix = GraphUtils.getClassNameSuffixFactory();
+    this.setUpZoom_(graph, chart, chartDimensions, getClassNameSuffix);
     const data = graph.process(GraphData.computeCumulativeFrequencies);
     data.forEach(({ data, color, key }, index) => {
+      const classNameForDots = `dot-${getClassNameSuffix(key)}`;
       chart.selectAll('.dot')
           .data(data)
           .enter()
           .append('circle')
           .attr('cx', datum => this.scaleForXAxis_(datum.x))
           .attr('cy', datum => this.scaleForYAxis_(datum.y))
-          .attr('r', 3)
+          .attr('r', dotRadius)
           .attr('fill', color)
-          .attr('class', 'line-dot')
-          .attr('clip-path', 'url(#plot-clip)');
+          .attr('class', `${classNameForDots}`)
+          .attr('clip-path', 'url(#plot-clip)')
+          .call(GraphUtils.useTraceCallback,
+              graph,
+              key,
+              dotRadius,
+              classNameForDots);
       chart.append('path')
           .datum(data)
           .attr('d', pathGenerator)
@@ -93,14 +102,19 @@ class LinePlotter {
           .attr('dy', offset)
           .attr('text-anchor', 'start');
     });
+  }
+
+  setUpZoom_(graph, chart, chartDimensions, getClassNameSuffix) {
     const redraw = xAxisScale => {
       const pathGenerator = d3.line()
           .x(d => xAxisScale(d.x))
           .y(d => this.scaleForYAxis_(d.y))
           .curve(d3.curveMonotoneX);
-      chart.selectAll('.line-dot')
-          .attr('cx', datum => xAxisScale(datum.x))
-          .attr('cy', datum => this.scaleForYAxis_(datum.y));
+      for (const key of graph.keys()) {
+        chart.selectAll(`.dot-${getClassNameSuffix(key)}`)
+            .attr('cx', datum => xAxisScale(datum.x))
+            .attr('cy', datum => this.scaleForYAxis_(datum.y));
+      }
       chart.selectAll('.line-plot')
           .attr('d', pathGenerator);
     };
