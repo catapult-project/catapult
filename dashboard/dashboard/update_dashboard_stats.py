@@ -199,6 +199,10 @@ def _ProcessPinpointJobs(jobs_and_commits):
     raise ndb.Return(None)
 
   commit_to_culprit = _CreateHistogram('pinpoint')
+  commit_to_culprit.CustomizeSummaryOptions({
+      'percentile': [0.5, 0.9]
+  })
+
   commit_to_alert = _CreateHistogram('pinpoint', story='commitToAlert')
   alert_to_job = _CreateHistogram('pinpoint', story='alertToJob')
   job_to_culprit = _CreateHistogram('pinpoint', story='jobToCulprit')
