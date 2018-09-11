@@ -42,8 +42,14 @@ class StackedBarPlotter {
     this.scaleForYAxis_ = this.createYAxisScale_(chartDimensions, data);
     this.xAxisGenerator_ = d3.axisBottom(this.outerBandScale_);
     this.yAxisGenerator_ = d3.axisLeft(this.scaleForYAxis_);
+    // Note that the group for the xaxis which is transformed must be
+    // wrapped in another group. This is to have a g element which
+    // preserves the co-ordinate system of the chart, allowing a
+    // clip path to be used based on the co-ordinate system of the chart
+    // rather than the transformed system of the axis.
     chart.append('g')
         .attr('class', 'xaxis')
+        .append('g')
         .call(this.xAxisGenerator_)
         .attr('transform', `translate(0, ${chartDimensions.height})`);
     this.yAxisDrawing_ = chart.append('g')
@@ -185,7 +191,9 @@ class StackedBarPlotter {
       }
     }
     const tickRotation = -30;
-    d3.selectAll('.xaxis .tick text')
+    d3.select('.xaxis')
+        .attr('clip-path', 'url(#regionForXAxisTickText)');
+    d3.selectAll('.xaxis text')
         .attr('text-anchor', 'end')
         .attr('font-size', 12)
         .attr('transform', `rotate(${tickRotation})`)

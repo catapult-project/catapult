@@ -84,15 +84,25 @@ class GraphPlotter {
   }
 
   labelAxis_() {
-    const padding = 50;
-    const chartBottom = this.chartDimensions_.height + padding;
-    this.chart_.append('text')
+    const chartBottom =
+        this.chartDimensions_.height + this.chartDimensions_.margins.bottom;
+    const xAxisText = this.chart_.append('text')
         .attr('transform', `translate(${this.chartDimensions_.width / 2}, 
             ${chartBottom})`)
         .attr('text-anchor', 'middle')
         .attr('font-weight', 'bold')
+        .attr('alignment-baseline', 'after-edge')
         .text(this.graph_.xAxis());
-
+    const textHeight = xAxisText.node().getBBox().height;
+    // Use this clip path on an element using the chart's co-ordinate system to
+    // prevent drawings from overlapping the x axis label.
+    this.chart_.select('defs')
+        .append('clipPath')
+        .attr('id', 'regionForXAxisTickText')
+        .append('rect')
+        .attr('y', this.chartDimensions_.height)
+        .attr('width', this.chartDimensions_.width)
+        .attr('height', this.chartDimensions_.margins.bottom - textHeight);
     this.chart_.append('text')
         .attr('transform', 'rotate(-90)')
         .attr('y', 0 - (this.chartDimensions_.margins.left / 2))

@@ -28,9 +28,11 @@ class BarPlotter {
     this.scaleForYAxis_ = this.createYAxisScale_(graph, chartDimensions);
     this.xAxisGenerator_ = d3.axisBottom(this.outerBandScale_);
     this.yAxisGenerator_ = d3.axisLeft(this.scaleForYAxis_);
+    // Wrap in untransformed g tag to preserve co ordinate system of chart.
     chart.append('g')
-        .call(this.xAxisGenerator_)
         .attr('class', 'xaxis')
+        .append('g')
+        .call(this.xAxisGenerator_)
         .attr('transform', `translate(0, ${chartDimensions.height})`);
     this.yAxisDrawing_ = chart.append('g')
         .call(this.yAxisGenerator_);
@@ -173,7 +175,9 @@ class BarPlotter {
           .attr('text-anchor', 'start');
     });
     const tickRotation = -30;
-    d3.selectAll('.xaxis .tick text')
+    d3.select('.xaxis')
+        .attr('clip-path', 'url(#regionForXAxisTickText)')
+        .selectAll('text')
         .attr('text-anchor', 'end')
         .attr('font-size', 12)
         .attr('transform', `rotate(${tickRotation})`)
