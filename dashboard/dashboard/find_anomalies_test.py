@@ -138,6 +138,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
 
     find_anomalies.ProcessTests([test.key])
+    self.ExecuteDeferredTasks('default')
 
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
@@ -244,6 +245,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.UpdateSheriff()
     test.put()
     find_anomalies.ProcessTests([test.key])
+    self.ExecuteDeferredTasks('default')
     mock_email_sheriff.assert_called_once_with(
         ModelMatcher('sheriff'),
         ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
@@ -266,6 +268,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
 
     find_anomalies.ProcessTests([test.key])
+    self.ExecuteDeferredTasks('default')
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
                   ModelMatcher(
