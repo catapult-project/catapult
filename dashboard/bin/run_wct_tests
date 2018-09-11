@@ -19,6 +19,7 @@ if __name__ == '__main__':
   from catapult_build import run_wct
   sys.exit(run_wct.RunWct(os.path.join(CATAPULT_PATH, 'dashboard'), [
       os.path.join(CATAPULT_PATH, 'third_party', 'polymer2'),
+      os.path.join(CATAPULT_PATH, 'third_party', 'redux'),
       os.path.join(CATAPULT_PATH, 'tracing', 'third_party'),
       os.path.join(
         CATAPULT_PATH, 'tracing', 'third_party', 'gl-matrix', 'dist'),

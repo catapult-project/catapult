@@ -5,12 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/simple-redux.html">
-<link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
-tr.b.unittest.testSuite(function() {
+suite('simple-redux', function() {
   test('renameReducer', function() {
     function cer() {}
     const renamer = Redux.renameReducer('redu');
@@ -43,7 +44,7 @@ tr.b.unittest.testSuite(function() {
       Redux.statePathReducer,
     ]);
     const store = Redux.createSimpleStore();
-    store.dispatch({type: 'UPDATE', statePath: '', delta: {b: {}}});
+    store.dispatch(Redux.UPDATE('', {b: {}}));
 
     store.dispatch({type: reducers.a.name, statePath: 'b', a: ''});
     assert.strictEqual('', store.getState().b.a);
@@ -84,7 +85,7 @@ tr.b.unittest.testSuite(function() {
   test('thunk', function() {
     const store = Redux.createSimpleStore();
     const actionCreator = (testValue) => (dispatch, getState) => {
-      dispatch({type: 'UPDATE', delta: {testValue}});
+      dispatch(Redux.UPDATE('', {testValue}));
     };
     store.dispatch(actionCreator(42));
     assert.strictEqual(42, store.getState().testValue);
@@ -93,30 +94,30 @@ tr.b.unittest.testSuite(function() {
   test('nothunk', function() {
     const store = Redux.createSimpleStore({useThunk: false});
     const actionCreator = (testValue) => (dispatch, getState) => {
-      dispatch({type: 'UPDATE', delta: {testValue}});
+      dispatch(Redux.UPDATE('', {testValue}));
     };
     assert.throws(() => store.dispatch(actionCreator(42)));
   });
 
   test('CHAIN', function() {
     const store = Redux.createSimpleStore();
-    store.dispatch({type: 'CHAIN', actions: [
-      {type: 'UPDATE', statePath: 'a', delta: {testValue: 0}},
-      {type: 'UPDATE', statePath: 'b', delta: {testValue: 1}},
-    ]});
+    store.dispatch(Redux.CHAIN(
+        Redux.UPDATE('a', {testValue: 0}),
+        Redux.UPDATE('b', {testValue: 1}),
+    ));
     assert.strictEqual(0, store.getState().a.testValue);
     assert.strictEqual(1, store.getState().b.testValue);
   });
 
   test('UPDATE', function() {
     const store = Redux.createSimpleStore();
-    store.dispatch({type: 'UPDATE', statePath: 'a', delta: {testValue: 42}});
+    store.dispatch(Redux.UPDATE('a', {testValue: 42}));
     assert.strictEqual(42, store.getState().a.testValue);
   });
 
   test('TOGGLE', function() {
     const store = Redux.createSimpleStore({defaultState: {testValue: false}});
-    store.dispatch({type: 'TOGGLE', statePath: 'testValue'});
+    store.dispatch(Redux.TOGGLE('testValue'));
     assert.isTrue(store.getState().testValue);
   });
 });

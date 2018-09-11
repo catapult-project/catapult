@@ -154,30 +154,54 @@
    * in between and without requiring case functions to always call other case
    * functions.
    *
-   * Usage: dispatch({type: 'CHAIN', actions: [
-   * {type: 'foo', statePath: 'x.0'}, {type: 'bar', statePath: 'y.1'}]})
+   * Usage: dispatch(Redux.CHAIN(
+   * {type: 'foo', statePath: 'x.0'}, {type: 'bar', statePath: 'y.1'}));
    */
   Redux.registerReducer(function CHAIN(rootState, {actions}) {
     return actions.reduce(rootReducer, rootState);
   });
 
+  Redux.CHAIN = (...actions) => {return {type: 'CHAIN', actions};};
+
   /*
    * Update an object in the state tree denoted by `action.statePath`.
    *
    * Usage:
-   * dispatch({type: 'UPDATE', statePath: 'x.0.y', delta: {title}});
+   * dispatch(Redux.UPDATE('x.0.y', {title}));
    */
   Redux.registerReducer(Redux.statePathReducer(function UPDATE(state, {delta}) {
     return {...state, ...delta};
   }));
 
+  Redux.UPDATE = (statePath, delta) => {
+    return {type: 'UPDATE', statePath, delta};
+  };
+
+  /*
+   * Ensure an object exists in the state tree. If it already exists, it is not
+   * modified. If it does not yet exist, it is initialized to `defaultState`.
+   *
+   * Usage:
+   * dispatch(Redux.ENSURE('x.0.y', []));
+   */
+  Redux.registerReducer(Redux.statePathReducer(
+      function ENSURE(state, {defaultState = {}}) {
+        return state || defaultState;
+      }));
+
+  Redux.ENSURE = (statePath, defaultState) => {
+    return {type: 'ENSURE', statePath, defaultState};
+  };
+
   /*
    * Toggle booleans in the state tree denoted by `action.statePath`.
    *
    * Usage:
-   * dispatch({type: 'TOGGLE', statePath: `${this.statePath}.isEnabled`});
+   * dispatch(Redux.TOGGLE(`${this.statePath}.isEnabled`));
    */
   Redux.registerReducer(Redux.statePathReducer(function TOGGLE(state) {
     return !state;
   }));
+
+  Redux.TOGGLE = statePath => {return {type: 'TOGGLE', statePath};};
 })();
