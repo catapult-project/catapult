@@ -57,3 +57,60 @@ class LegacyJsonConverterUnittest(unittest.TestCase):
 
     stories = h.diagnostics[reserved_infos.STORIES.name]
     self.assertEqual(stories.GetOnlyElement(), 'Case')
+
+  def testConvertWithRCommitPos(self):
+    dicts = [{
+        'master': 'Master',
+        'bot': 'Bot',
+        'test': 'Suite/Metric/Case',
+        'revision': 1234,
+        'value': 42.0,
+        'supplemental_columns': {
+            'r_commit_pos': 1234
+        }
+    }]
+
+    histograms = legacy_json_converter.ConvertLegacyDicts(dicts)
+    h = histograms.GetFirstHistogram()
+
+    commit_pos = h.diagnostics[reserved_infos.CHROMIUM_COMMIT_POSITIONS.name]
+    self.assertEqual(commit_pos.GetOnlyElement(), 1234)
+    self.assertNotIn(reserved_infos.POINT_ID.name, h.diagnostics)
+
+  def testConvertWithDifferentRCommitPos(self):
+    dicts = [{
+        'master': 'Master',
+        'bot': 'Bot',
+        'test': 'Suite/Metric/Case',
+        'revision': 1234,
+        'value': 42.0,
+        'supplemental_columns': {
+            'r_commit_pos': 2435
+        }
+    }]
+
+    histograms = legacy_json_converter.ConvertLegacyDicts(dicts)
+    h = histograms.GetFirstHistogram()
+
+    point_id = h.diagnostics[reserved_infos.POINT_ID.name].GetOnlyElement()
+    self.assertEqual(point_id, 1234)
+    self.assertNotIn(reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+                     h.diagnostics)
+
+  def testConvertUsesPointIdIfSupplementalColumnsButNoRCommitPos(self):
+    dicts = [{
+        'master': 'Master',
+        'bot': 'Bot',
+        'test': 'Suite/Metric/Case',
+        'revision': 1234,
+        'value': 42.0,
+        'supplemental_columns': {
+            'r_v8_rev': 1234
+        }
+    }]
+
+    histograms = legacy_json_converter.ConvertLegacyDicts(dicts)
+    h = histograms.GetFirstHistogram()
+
+    point_id = h.diagnostics[reserved_infos.POINT_ID.name].GetOnlyElement()
+    self.assertEqual(point_id, 1234)
