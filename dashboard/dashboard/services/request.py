@@ -98,9 +98,9 @@ def Request(url, method='GET', body=None,
 def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   if use_auth:
-    http = utils.ServiceAccountHttp(timeout=30, scope=scope)
+    http = utils.ServiceAccountHttp(timeout=60, scope=scope)
   else:
-    http = httplib2.Http(timeout=30)
+    http = httplib2.Http(timeout=60)
 
   response, content = http.request(url, **kwargs)
 
