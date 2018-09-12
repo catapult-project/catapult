@@ -88,8 +88,8 @@ def _CreateHistogramSet(
   return histograms
 
 
-def _CreateHistogram(name, story=None):
-  h = histogram_module.Histogram(name, 'msBestFitFormat')
+def _CreateHistogram(name, unit, story=None):
+  h = histogram_module.Histogram(name, unit)
   if story:
     h.diagnostics[reserved_infos.STORIES.name] = (
         generic_set.GenericSet([story]))
@@ -167,7 +167,7 @@ def _ProcessAlerts():
   if not alerts:
     raise ndb.Return()
 
-  alerts_total = _CreateHistogram('chromium.perf.alerts')
+  alerts_total = _CreateHistogram('chromium.perf.alerts', 'count')
   alerts_total.AddSample(len(alerts))
 
   count_by_suite = {}
@@ -180,7 +180,8 @@ def _ProcessAlerts():
 
   hists_by_suite = {}
   for s, c in count_by_suite.iteritems():
-    hists_by_suite[s] = _CreateHistogram('chromium.perf.alerts', story=s)
+    hists_by_suite[s] = _CreateHistogram(
+        'chromium.perf.alerts', 'count', story=s)
     hists_by_suite[s].AddSample(c)
 
   hs = _CreateHistogramSet(
@@ -198,14 +199,17 @@ def _ProcessPinpointJobs(jobs_and_commits):
   if not job_results:
     raise ndb.Return(None)
 
-  commit_to_culprit = _CreateHistogram('pinpoint')
+  commit_to_culprit = _CreateHistogram('pinpoint', 'msBestFitFormat')
   commit_to_culprit.CustomizeSummaryOptions({
       'percentile': [0.5, 0.9]
   })
 
-  commit_to_alert = _CreateHistogram('pinpoint', story='commitToAlert')
-  alert_to_job = _CreateHistogram('pinpoint', story='alertToJob')
-  job_to_culprit = _CreateHistogram('pinpoint', story='jobToCulprit')
+  commit_to_alert = _CreateHistogram(
+      'pinpoint', 'msBestFitFormat', story='commitToAlert')
+  alert_to_job = _CreateHistogram(
+      'pinpoint', 'msBestFitFormat', story='alertToJob')
+  job_to_culprit = _CreateHistogram(
+      'pinpoint', 'msBestFitFormat', story='jobToCulprit')
 
   for result in job_results:
     time_from_land_to_culprit = result[0]
