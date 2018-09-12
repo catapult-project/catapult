@@ -146,24 +146,34 @@ def _GenerateQuests(arguments):
     A tuple of (arguments, quests), where arguments is a dict containing the
     request arguments that were used, and quests is a list of Quests.
   """
-  target = arguments.get('target')
-  if target in ('performance_test_suite', 'performance_webview_test_suite',
-                'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
-    quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
-                     quest_module.ReadHistogramsJsonValue)
+  quests = arguments.get('quests')
+  if quests:
+    if isinstance(quests, basestring):
+      quests = quests.split(',')
+    quest_classes = []
+    for quest in quests:
+      if not hasattr(quest_module, quest):
+        raise ValueError('Unknown quest: "%s"' % quest)
+      quest_classes.append(getattr(quest_module, quest))
   else:
-    quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
-                     quest_module.ReadGraphJsonValue)
+    target = arguments.get('target')
+    if target in ('performance_test_suite', 'performance_webview_test_suite',
+                  'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
+      quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
+                       quest_module.ReadHistogramsJsonValue)
+    else:
+      quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
+                       quest_module.ReadGraphJsonValue)
 
-  quests = []
+  quest_instances = []
   for quest_class in quest_classes:
     # FromDict() performs input validation.
     quest = quest_class.FromDict(arguments)
     if not quest:
       break
-    quests.append(quest)
+    quest_instances.append(quest)
 
-  return quests
+  return quest_instances
 
 
 def _ValidatePin(pin):

@@ -14,8 +14,9 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.pinpoint import test
 from dashboard.pinpoint.handlers import new
+from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import job as job_module
-from dashboard.pinpoint.models.change import patch as patch_module
+from dashboard.pinpoint.models import quest as quest_module
 
 
 _BASE_REQUEST = {
@@ -132,16 +133,41 @@ class NewTest(_NewTest):
     job = job_module.JobFromId(result['jobId'])
     self.assertEqual(job.state._comparison_magnitude, 123.456)
 
+  def testQuests(self):
+    request = dict(_BASE_REQUEST)
+    request['quests'] = ['FindIsolate', 'RunTelemetryTest']
+    response = self.Post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual(len(job.state._quests), 2)
+    self.assertIsInstance(job.state._quests[0], quest_module.FindIsolate)
+    self.assertIsInstance(job.state._quests[1], quest_module.RunTelemetryTest)
+
+  def testQuestsString(self):
+    request = dict(_BASE_REQUEST)
+    request['quests'] = 'FindIsolate,RunTelemetryTest'
+    response = self.Post('/api/new', request, status=200)
+    result = json.loads(response.body)
+    job = job_module.JobFromId(result['jobId'])
+    self.assertEqual(len(job.state._quests), 2)
+    self.assertIsInstance(job.state._quests[0], quest_module.FindIsolate)
+    self.assertIsInstance(job.state._quests[1], quest_module.RunTelemetryTest)
+
+  def testUnknownQuest(self):
+    request = dict(_BASE_REQUEST)
+    request['quests'] = 'FindIsolate,UnknownQuest'
+    response = self.Post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
+
   def testWithChanges(self):
-    base_request = {}
-    base_request.update(_BASE_REQUEST)
-    del base_request['start_git_hash']
-    del base_request['end_git_hash']
-    base_request['changes'] = json.dumps([
+    request = dict(_BASE_REQUEST)
+    del request['start_git_hash']
+    del request['end_git_hash']
+    request['changes'] = json.dumps([
         {'commits': [{'repository': 'chromium', 'git_hash': '1'}]},
         {'commits': [{'repository': 'chromium', 'git_hash': '3'}]}])
 
-    response = self.Post('/api/new', base_request, status=200)
+    response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(
@@ -150,7 +176,7 @@ class NewTest(_NewTest):
 
   @mock.patch('dashboard.pinpoint.models.change.patch.FromDict')
   def testWithPatch(self, mock_patch):
-    mock_patch.return_value = patch_module.GerritPatch(
+    mock_patch.return_value = change_module.GerritPatch(
         'https://lalala', '123', None)
     request = dict(_BASE_REQUEST)
     request['patch'] = 'https://lalala/c/foo/bar/+/123'
