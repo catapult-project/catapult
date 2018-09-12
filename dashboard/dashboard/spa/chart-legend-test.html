@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/chart-legend.html">
+
+<test-fixture id="test">
+  <template>
+    <chart-legend></chart-legend>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('chart-legend', function() {
+  test('recursive', async function() {
+    const chartLegend = fixture('test');
+    chartLegend.items = [
+      {label: 'A', color: 'red'},
+      {label: 'B', children: [
+        {label: 'C', color: 'green'},
+        {label: 'D', children: [
+          {label: 'E', color: 'blue'},
+        ]},
+      ]},
+    ];
+    await cp.afterRender();
+
+    const aLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /A/);
+    const cLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /C/);
+    const eLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /E/);
+    assert.strictEqual('red', aLeaf.style.color);
+    assert.strictEqual('green', cLeaf.style.color);
+    assert.strictEqual('blue', eLeaf.style.color);
+
+    const aRect = aLeaf.getBoundingClientRect();
+    const cRect = cLeaf.getBoundingClientRect();
+    const eRect = eLeaf.getBoundingClientRect();
+    assert.isBelow(aRect.left, cRect.left);
+    assert.isBelow(cRect.left, eRect.left);
+  });
+
+  test('leafClick', async function() {
+    const chartLegend = fixture('test');
+    chartLegend.items = [
+      {label: 'A', color: 'red'},
+    ];
+    let leafClickEvent;
+    chartLegend.addEventListener('leaf-click', event => {
+      leafClickEvent = event;
+    });
+    await cp.afterRender();
+    const leaf = chartLegend.shadowRoot.querySelector('.leaf');
+    leaf.click();
+    assert.strictEqual(chartLegend.items[0], leafClickEvent.detail);
+  });
+});
+</script>
