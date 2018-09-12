@@ -6,6 +6,7 @@ import logging
 import time
 import unittest
 
+from telemetry import decorators
 from telemetry.core import platform as platform_module
 from telemetry.internal.app import android_app
 from telemetry.internal.backends import android_app_backend
@@ -27,6 +28,7 @@ class AndroidAppTest(unittest.TestCase):
         platform_backend, start_intent)
     return android_app.AndroidApp(app_backend, platform_backend)
 
+  @decorators.Disabled('chromeos')
   def testWebView(self):
     if self._device is None:
       logging.warning('No device found, skipping test.')
