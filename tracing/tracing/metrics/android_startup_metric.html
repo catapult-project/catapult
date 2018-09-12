@@ -25,21 +25,15 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.sh', function() {
   const MESSAGE_LOOP_EVENT_NAME =
       'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
-  const NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME =
-      'Navigation timeToNetworkStack';
   const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
   function androidStartupMetric(histograms, model) {
     const browserStartTimestamps = [];
-    const requestStartTimestampsAndEvents = [];
     const firstContentfulPaintTimestampsAndEvents = [];
 
     // Walk the browser slices, extract timestamps for the browser start,
     // message loop start and request start.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    const requestStartHistogram = histograms.createHistogram(
-        'request_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
@@ -50,18 +44,6 @@ tr.exportTo('tr.metrics.sh', function() {
           messageLoopStartHistogram.addSample(ev.duration,
               { events: new tr.v.d.RelatedEventSet([ev]) });
           browserStartTimestamps.push(ev.start);
-        }
-        // Extract the request start histogram sample from a navigation event.
-        // Due to browser main thread being jammed, the reporting is delayed. A
-        // better metric would be to take the time when the request headers hit
-        // the network (in particular, after turnaround through disk cache).
-        // This would require taking the HTTP_STREAM_JOB event from NetLog with
-        // the right URL.
-        // TODO(pasko): Find out how to pass the correct URL here and take
-        // events from the netlog.
-        if (ev.title === NAVIGATION_TIME_TO_NETWORK_STACK_EVENT_NAME) {
-          requestStartTimestampsAndEvents.push(
-              {timestamp: ev.end, event: new tr.v.d.RelatedEventSet([ev]) });
         }
       }
     }
@@ -87,13 +69,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     // Group the relevant events with the corresponding browser starts and emit
     // the metrics.
-    const totalRequestStarts = requestStartTimestampsAndEvents.length;
     const totalBrowserStarts = browserStartTimestamps.length;
-    if (totalRequestStarts !== totalBrowserStarts) {
-      throw new Error('Number of request starts (' + totalRequestStarts +
-          ') differs from number of browser starts (' + totalBrowserStarts +
-          ')');
-    }
     const totalFcpTimestamps = firstContentfulPaintTimestampsAndEvents.length;
     if (totalFcpTimestamps !== totalBrowserStarts) {
       throw new Error('Number of FCP events (' + totalFcpTimestamps +
@@ -102,9 +78,6 @@ tr.exportTo('tr.metrics.sh', function() {
     }
     for (let i = 0; i < totalBrowserStarts; i++) {
       const browserStart = browserStartTimestamps[i];
-      const requestStartInfo = requestStartTimestampsAndEvents[i];
-      requestStartHistogram.addSample(requestStartInfo.timestamp - browserStart,
-          {events: requestStartInfo.event});
       const fcpInfo = firstContentfulPaintTimestampsAndEvents[i];
       firstContentfulPaintHistogram.addSample(fcpInfo.timestamp - browserStart,
           {events: fcpInfo.event});

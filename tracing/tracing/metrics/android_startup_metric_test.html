@@ -32,12 +32,6 @@ tr.b.unittest.testSuite(function() {
       start: (offset + 6800.125),
       duration: (incrementForMetrics + 1700.0625)
     }));
-    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-      cat: 'navigation',
-      title: 'Navigation timeToNetworkStack',
-      start: (offset + 7502.50 + incrementForMetrics),
-      duration: 12.25
-    }));
 
     const rendererProcess = model.getOrCreateProcess(
         tr.b.GUID.allocateSimple());
@@ -77,10 +71,6 @@ tr.b.unittest.testSuite(function() {
         'messageloop_start_time');
     assert.strictEqual(1, messageLoopStartHistogram.numValues);
     assert.strictEqual(1700.0625, messageLoopStartHistogram.average);
-    const requestStartHistogram = histograms.getHistogramNamed(
-        'request_start_time');
-    assert.strictEqual(1, requestStartHistogram.numValues);
-    assert.strictEqual(714.625, requestStartHistogram.average);
     const firstContentfulPaintHistogram = histograms.getHistogramNamed(
         'first_contentful_paint_time');
     assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
@@ -119,11 +109,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(2, messageLoopStartHistogram.numValues);
     assert.strictEqual(1700.0625, messageLoopStartHistogram.min);
     assert.strictEqual(1700.0625 + delta, messageLoopStartHistogram.max);
-    const requestStartHistogram = histograms.getHistogramNamed(
-        'request_start_time');
-    assert.strictEqual(2, requestStartHistogram.numValues);
-    assert.strictEqual(714.625, requestStartHistogram.min);
-    assert.strictEqual(714.625 + delta, requestStartHistogram.max);
     const firstContentfulPaintHistogram = histograms.getHistogramNamed(
         'first_contentful_paint_time');
     assert.strictEqual(2, firstContentfulPaintHistogram.numValues);
