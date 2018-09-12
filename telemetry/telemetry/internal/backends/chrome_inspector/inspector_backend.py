@@ -297,8 +297,13 @@ class InspectorBackend(object):
         debug_message = (
             'Exception thrown when trying to capture console output: %s' %
             repr(e))
-      raise py_utils.TimeoutException(
-          e.message + '\n' + debug_message)
+      # Rethrow with the original stack trace for better debugging.
+      raise py_utils.TimeoutException, \
+          py_utils.TimeoutException(
+              'Timeout after %ss while waiting for JavaScript:' % timeout +
+              condition + '\n' +  e.message + '\n' + debug_message), \
+          sys.exc_info()[2]
+
 
   def AddTimelineMarker(self, marker):
     return self.ExecuteJavaScript(
