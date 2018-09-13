@@ -19,6 +19,7 @@ CHROMIUM_ROOT = os.path.normpath(os.path.join(CATAPULT_ROOT, '..', '..'))
 MB = os.path.join(CHROMIUM_ROOT, 'tools', 'mb', 'mb.py')
 SWARMING_CLIENT = os.path.join(CHROMIUM_ROOT, 'tools', 'swarming_client')
 ISOLATE = os.path.join(SWARMING_CLIENT, 'isolate.py')
+SWARMING = os.path.join(SWARMING_CLIENT, 'swarming.py')
 PATH_TO_APKS = os.path.join(CHROMIUM_ROOT, 'tools', 'perf', 'swarming_apk')
 
 
@@ -39,6 +40,60 @@ def GenerateIsolate(out_dir_path, target_name):
 def UploadIsolate(isolated_path):
   return subprocess.check_output(
       [ISOLATE, 'archive', '-I', ISOLATE_URL, '-s', isolated_path])
+
+
+def TriggerSwarmingJob(isolate_hash, isolated_apk_path):
+  """Function to trigger the swarming job.
+
+  Args:
+    isolate_hash(string): the isolate hash given by the isolate server
+    isolated_apk_path(string): the *relative* path to the APK in the isolate
+
+  Returns:
+    string: swarming job task hash
+  """
+  # set the swarming task attribute
+  swarming_trigger_options = [
+      SWARMING, 'trigger',
+      # select which swarming server to use
+      '--swarming', SWARMING_URL,
+      # select which isolate server to use
+      '--isolate-server', ISOLATE_URL,
+      '--priority', '25',
+      # set the task name
+      '--task-name', 'long_term_health_task',
+      # the isolate hash that is to be used
+      '--isolated', isolate_hash,
+  ]
+  # select the bot criteria
+  bot_dimension_options = [
+      '--dimension', 'pool', 'chrome.tests.pinpoint',
+      '--dimension', 'os', 'Android',
+      '--dimension', 'device_os_flavor', 'aosp',
+  ]
+  # options provided to the `run_benchmark` script
+  run_benchmark_options = [
+      'system_health.memory_mobile',
+      '--pageset-repeat', '1',
+      '--compatibility-mode=no-field-trials',
+      '--compatibility-mode=ignore-certificate-errors',
+      '--compatibility-mode=legacy-command-line-path',
+      '--compatibility-mode=gpu-benchmarking-fallbacks',
+      '--browser', 'exact', '--device', 'android',
+      '--browser-executable', isolated_apk_path,
+      '--upload-results', '--output-format', 'histograms',
+      '--results-label', 'Test Run 1',
+  ]
+  output_options = [
+      '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
+      '--isolated-script-test-perf-output',
+      '${ISOLATED_OUTDIR}/perftest-output.json'
+  ]
+  task_output = subprocess.check_output(
+      swarming_trigger_options +
+      bot_dimension_options + ['--', '--benchmarks'] +
+      run_benchmark_options + output_options)
+  return task_output.split('/')[-1].strip()  # return task hash
 
 
 def RunBenchmark(path_to_apk, run_label):
