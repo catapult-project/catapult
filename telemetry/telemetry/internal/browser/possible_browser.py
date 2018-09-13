@@ -68,8 +68,7 @@ class PossibleBrowser(possible_app.PossibleApp):
         p for p in self._GetPathsForOsPageCacheFlushing() if p is not None]
     if (self.platform.CanFlushIndividualFilesFromSystemCache() and
         paths_to_flush):
-      for path in paths_to_flush:
-        self.platform.FlushSystemCacheForDirectory(path)
+      self.platform.FlushSystemCacheForDirectories(paths_to_flush)
     elif self.platform.SupportFlushEntireSystemCache():
       self.platform.FlushEntireSystemCache()
     else:

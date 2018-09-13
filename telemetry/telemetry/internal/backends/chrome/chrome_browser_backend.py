@@ -293,8 +293,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       paths_to_flush = self.GetDirectoryPathsToFlushOsPageCacheFor()
       if (platform.CanFlushIndividualFilesFromSystemCache() and
           paths_to_flush):
-        for path in paths_to_flush:
-          platform.FlushSystemCacheForDirectory(path)
+        platform.FlushSystemCacheForDirectories(paths_to_flush)
       elif platform.SupportFlushEntireSystemCache():
         platform.FlushEntireSystemCache()
       else:
