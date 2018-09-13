@@ -381,6 +381,26 @@ tr.exportTo('tr.model', function() {
             (thisByteStats[byteStatName] || 0) + regionByteStatValue;
       }
 
+      // Aggregate java base.* stats.
+      if (region.mappedFile.includes('/base.odex') ||
+          region.mappedFile.includes('/base.vdex')) {
+        if (region.byteStats.proportionalResident !== undefined) {
+          thisByteStats.javaBasePss =
+            (thisByteStats.javaBasePss || 0) +
+            region.byteStats.proportionalResident;
+        }
+        if (region.byteStats.privateCleanResident !== undefined) {
+          thisByteStats.javaBaseCleanResident =
+            (thisByteStats.javaBaseCleanResident || 0) +
+            region.byteStats.privateCleanResident;
+        }
+        if (region.byteStats.sharedCleanResident !== undefined) {
+          thisByteStats.javaBaseCleanResident =
+            (thisByteStats.javaBaseCleanResident || 0) +
+            region.byteStats.sharedCleanResident;
+        }
+      }
+
       // Aggregate native library stats.
       const textProtectionFlags = (VMRegion.PROTECTION_FLAG_READ |
                                    VMRegion.PROTECTION_FLAG_EXECUTE);

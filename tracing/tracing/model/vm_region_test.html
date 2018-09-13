@@ -1052,6 +1052,78 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
+  test('vmRegionClassificationNode_javaBaseMemory', function() {
+    const regions = [
+      VMRegion.fromDict({
+        sizeInBytes: 20,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+        mappedFile: '[stack:1234]',
+        byteStats: {
+          privateDirtyResident: 100,
+          proportionalResident: 124
+        }
+      }),
+      VMRegion.fromDict({
+        sizeInBytes: 500000,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+        mappedFile: '/data/app/com.google.chrome/oat/arm/base.vdex',
+        byteStats: {
+          privateCleanResident: 100000,
+          proportionalResident: 124000
+        }
+      }),
+      VMRegion.fromDict({
+        sizeInBytes: 1000,
+        protectionFlags: (VMRegion.PROTECTION_FLAG_READ |
+                          VMRegion.PROTECTION_FLAG_EXECUTE),
+        mappedFile: '/data/app/com.google.chrome/some/other.odex',
+        byteStats: {
+          privateCleanResident: 100,
+          proportionalResident: 124
+        }
+      }),
+      VMRegion.fromDict({
+        sizeInBytes: 300,
+        protectionFlags: (VMRegion.PROTECTION_FLAG_READ),
+        mappedFile: '/data/app/com.google.chrome/oat/arm/base.odex',
+        byteStats: {
+          proportionalResident: 58,
+        }
+      }),
+      VMRegion.fromDict({
+        sizeInBytes: 400,
+        protectionFlags: (VMRegion.PROTECTION_FLAG_READ |
+                          VMRegion.PROTECTION_FLAG_EXECUTE),
+        mappedFile: '/data/app/com.google.chrome/base.vdex',
+        byteStats: {
+          privateCleanResident: 76,
+          privateDirtyResident: 17,
+        }
+      }),
+      VMRegion.fromDict({
+        sizeInBytes: 50,
+        protectionFlags: (VMRegion.PROTECTION_FLAG_READ |
+                          VMRegion.PROTECTION_FLAG_EXECUTE),
+        mappedFile: '/data/app/com.google.chrome/another/path/base.odex',
+        byteStats: {
+          privateCleanResident: 8,
+          proportionalResident: 24,
+          sharedCleanResident: 10,
+        }
+      })];
+    const node = VMRegionClassificationNode.fromRegions(regions);
+    assert.strictEqual(node.sizeInBytes, 20 + 500000 + 1000 + 300 + 400 + 50);
+
+    assert.deepEqual(node.byteStats, {
+      proportionalResident: 124 + 124000 + 124 + 58 + 24,
+      privateDirtyResident: 100 + 17,
+      privateCleanResident: 100000 + 100 + 76 + 8,
+      sharedCleanResident: 10,
+      javaBasePss: 124000 + 58 + 24,
+      javaBaseCleanResident: 100000 + 76 + 8 + 10,
+    });
+  });
+
   test('classificationRules', function() {
     checkClassificationRules('/dev/ashmem/dalvik-main space (deleted)',
         ['Android', 'Java runtime', 'Spaces', 'Normal']);

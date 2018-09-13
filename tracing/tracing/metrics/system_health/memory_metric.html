@@ -551,6 +551,24 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
+  const JAVA_BASE_CLEAN_RESIDENT = {
+    name: 'java_base_clean_resident',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'java base odex and vdex total clean resident size');
+    }
+  };
+
+  const JAVA_BASE_PSS = {
+    name: 'java_base_pss',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildOsValueDescriptionPrefix(componentPath, processName,
+          'java base odex and vdex proportional resident size');
+    }
+  };
+
   const NATIVE_LIBRARY_PRIVATE_CLEAN_RESIDENT = {
     name: 'native_library_private_clean_resident',
     unit: sizeInBytes_smallerIsBetter,
@@ -693,6 +711,26 @@ tr.exportTo('tr.metrics.sh', function() {
                 0 : (node.byteStats.privateDirtyResident || 0)
             });
 
+            // Only add java base stats when they are nonzero.
+            if (node) {
+              if (node.byteStats.javaBasePss) {
+                addProcessScalar({
+                  source: 'reported_by_os',
+                  component: componentPath,
+                  property: JAVA_BASE_PSS,
+                  value: node.byteStats.javaBasePss
+                });
+              }
+              if (node.byteStats.javaBaseCleanResident) {
+                addProcessScalar({
+                  source: 'reported_by_os',
+                  component: componentPath,
+                  property: JAVA_BASE_CLEAN_RESIDENT,
+                  value: node.byteStats.javaBaseCleanResident
+                });
+              }
+            }
+
             // Only add native library stats when they are nonzero.
             if (node) {
               if (node.byteStats.nativeLibraryPrivateCleanResident) {
@@ -700,9 +738,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   source: 'reported_by_os',
                   component: componentPath,
                   property: NATIVE_LIBRARY_PRIVATE_CLEAN_RESIDENT,
-                  value: node === undefined ?
-                    0 : (node.byteStats.nativeLibraryPrivateCleanResident ||
-                           0)
+                  value: node.byteStats.nativeLibraryPrivateCleanResident
                 });
               }
               if (node.byteStats.nativeLibrarySharedCleanResident) {
@@ -710,9 +746,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   source: 'reported_by_os',
                   component: componentPath,
                   property: NATIVE_LIBRARY_SHARED_CLEAN_RESIDENT,
-                  value: node === undefined ?
-                    0 : (node.byteStats.nativeLibrarySharedCleanResident ||
-                           0)
+                  value: node.byteStats.nativeLibrarySharedCleanResident
                 });
               }
               if (node.byteStats.nativeLibraryProportionalResident) {
@@ -720,9 +754,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   source: 'reported_by_os',
                   component: componentPath,
                   property: NATIVE_LIBRARY_PROPORTIONAL_RESIDENT,
-                  value: node === undefined ?
-                    0 : (node.byteStats.nativeLibraryProportionalResident ||
-                           0)
+                  value: node.byteStats.nativeLibraryProportionalResident
                 });
               }
             }

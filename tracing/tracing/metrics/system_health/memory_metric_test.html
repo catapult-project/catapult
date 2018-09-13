@@ -1471,7 +1471,10 @@ tr.b.unittest.testSuite(function() {
           {privateDirtyResident: 8}),
       new VMRegion(0xFBCD, 64, 5, '/data/chrome-WXYZ/base.apk',
           { privateCleanResident: 8, sharedCleanResident: 4,
-            proportionalResident: 10})
+            proportionalResident: 10}),
+      new VMRegion(0xFCCD, 64, 5, '/data/chrome-WXYZ/out/arm/base.odex',
+          { privateCleanResident: 0, sharedCleanResident: 6,
+            proportionalResident: 5})
     ]);
     pmdBrowser1.heapDumps = (function() {
       const mallocDump = new tr.model.HeapDump(pmdBrowser1, 'malloc');
@@ -1598,6 +1601,20 @@ tr.b.unittest.testSuite(function() {
       description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by all processes in an unknown browser'
     },
+    'memory:unknown_browser:all_processes:reported_by_os:java_base_clean_resident':
+    {
+      value: [6, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex total clean resident size ' +
+              'reported by the OS for all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:java_base_pss':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex proportional resident size ' +
+              'reported by the OS for all processes in an unknown browser'
+    },
     'memory:unknown_browser:all_processes:reported_by_os:native_library_private_clean_resident':
     {
       value: [8, 3, 0],
@@ -1649,7 +1666,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:all_processes:reported_by_os:proportional_resident_size':
     {
-      value: [67 + 20 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 15],
+      value: [67 + 20 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 15 + 5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for all processes in an unknown browser'
@@ -1663,7 +1680,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [67 + 20, 700 + 3 + 150, 15],
+      value: [67 + 20, 700 + 3 + 150, 15 + 5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in an unknown browser'
@@ -1681,6 +1698,22 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:java_base_clean_resident':
+    {
+      value: [6, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex total clean resident size ' +
+              'of system memory (RAM) used by all processes in an unknown ' +
+              'browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:java_base_pss':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex proportional resident size ' +
+              'of system memory (RAM) used by all processes in an unknown ' +
+              'browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
     {
@@ -1750,6 +1783,20 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of browser processes in an unknown browser'
     },
+    'memory:unknown_browser:browser_process:reported_by_os:java_base_clean_resident':
+    {
+      value: [6, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex total clean resident size ' +
+              'reported by the OS for the browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:java_base_pss':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex proportional resident size ' +
+              'reported by the OS for the browser process in an unknown browser'
+    },
     'memory:unknown_browser:browser_process:reported_by_os:native_library_private_clean_resident':
     {
       value: [8, 0, 0],
@@ -1780,7 +1827,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:browser_process:reported_by_os:proportional_resident_size':
     {
-      value: [10, 3, 0],
+      value: [15, 3, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in an unknown browser'
@@ -1794,7 +1841,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [10, 3, 0],
+      value: [13, 5, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in an unknown browser'
@@ -1812,6 +1859,22 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:java_base_clean_resident':
+    {
+      value: [6, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex total clean resident size ' +
+              'of system memory (RAM) used by the browser process in an ' +
+              'unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:java_base_pss':
+    {
+      value: [5, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total java base odex and vdex proportional resident size ' +
+              'of system memory (RAM) used by the browser process in an ' +
+              'unknown browser'
     },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
     {
