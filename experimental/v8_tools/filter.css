@@ -40,6 +40,15 @@
   padding: 3px;
 }
 
+text {
+  font-size: 14px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
 #select_run {
   width: 30em;
   align-content: center;

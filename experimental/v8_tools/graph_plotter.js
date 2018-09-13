@@ -76,10 +76,10 @@ class GraphPlotter {
 
   labelTitle_() {
     this.chart_.append('text')
+        .attr('class', 'title')
         .attr('x', this.chartDimensions_.width / 2)
         .attr('y', 0 - this.chartDimensions_.margins.top / 2)
         .attr('text-anchor', 'middle')
-        .attr('font-weight', 'bold')
         .text(this.graph_.title());
   }
 
@@ -87,6 +87,7 @@ class GraphPlotter {
     const chartBottom =
         this.chartDimensions_.height + this.chartDimensions_.margins.bottom;
     const xAxisText = this.chart_.append('text')
+        .attr('class', 'title')
         .attr('transform', `translate(${this.chartDimensions_.width / 2}, 
             ${chartBottom})`)
         .attr('text-anchor', 'middle')
@@ -104,11 +105,11 @@ class GraphPlotter {
         .attr('width', this.chartDimensions_.width)
         .attr('height', this.chartDimensions_.margins.bottom - textHeight);
     this.chart_.append('text')
+        .attr('class', 'title')
         .attr('transform', 'rotate(-90)')
         .attr('y', 0 - (this.chartDimensions_.margins.left / 2))
         .attr('x', 0 - (this.chartDimensions_.height / 2))
         .attr('text-anchor', 'middle')
-        .attr('font-weight', 'bold')
         .text(this.graph_.yAxis());
   }
 
