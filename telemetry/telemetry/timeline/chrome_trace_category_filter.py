@@ -77,29 +77,35 @@ class ChromeTraceCategoryFilter(object):
     if filter_string is None:
       return
 
-    if '*' in filter_string or '?' in filter_string:
-      self.contains_wildcards = True
-
     filter_set = set([cf.strip() for cf in filter_string.split(',')])
     for category in filter_set:
-      if category == '':
-        continue
+      self.AddFilter(category)
 
-      if _delay_re.match(category):
-        self._synthetic_delays.add(category)
-        continue
+  def AddFilter(self, category):
+    if category == '':
+      return
 
-      if category[0] == '-':
-        assert not category[1:] in self._included_categories
-        self._excluded_categories.add(category[1:])
-        continue
+    if ',' in category:
+      raise ValueError("Invalid category filter name: '%s'" % category)
 
-      if category.startswith('disabled-by-default-'):
-        self._disabled_by_default_categories.add(category)
-        continue
+    if '*' in category or '?' in category:
+      self.contains_wildcards = True
 
-      assert not category in self._excluded_categories
-      self._included_categories.add(category)
+    if _delay_re.match(category):
+      self._synthetic_delays.add(category)
+      return
+
+    if category[0] == '-':
+      assert not category[1:] in self._included_categories
+      self._excluded_categories.add(category[1:])
+      return
+
+    if category.startswith('disabled-by-default-'):
+      self._disabled_by_default_categories.add(category)
+      return
+
+    assert not category in self._excluded_categories
+    self._included_categories.add(category)
 
   @property
   def included_categories(self):

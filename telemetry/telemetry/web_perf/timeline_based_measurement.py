@@ -160,9 +160,11 @@ class Options(object):
 
 
   def ExtendTraceCategoryFilter(self, filters):
-    category_filter = self._config.chrome_trace_config.category_filter
-    for new_category_filter in filters:
-      category_filter.AddIncludedCategory(new_category_filter)
+    for category_filter in filters:
+      self.AddTraceCategoryFilter(category_filter)
+
+  def AddTraceCategoryFilter(self, category_filter):
+    self._config.chrome_trace_config.category_filter.AddFilter(category_filter)
 
   @property
   def category_filter(self):
@@ -171,6 +173,10 @@ class Options(object):
   @property
   def config(self):
     return self._config
+
+  def ExtendTimelineBasedMetric(self, metrics):
+    for metric in metrics:
+      self.AddTimelineBasedMetric(metric)
 
   def AddTimelineBasedMetric(self, metric):
     assert isinstance(metric, basestring)

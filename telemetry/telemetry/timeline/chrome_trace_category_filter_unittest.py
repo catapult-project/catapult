@@ -30,6 +30,14 @@ class ChromeTraceCategoryFilterTest(unittest.TestCase):
         ' x ,\n-y\t,disabled-by-default-z ,DELAY(7;foo)')
     self.CheckBasicCategoryFilters(cf)
 
+  def testAddFilter(self):
+    cf = chrome_trace_category_filter.ChromeTraceCategoryFilter()
+    cf.AddFilter('x')
+    cf.AddFilter('-y')
+    cf.AddFilter('disabled-by-default-z')
+    cf.AddFilter('DELAY(7;foo)')
+    self.CheckBasicCategoryFilters(cf)
+
   def testNoneAndEmptyCategory(self):
     a = chrome_trace_category_filter.ChromeTraceCategoryFilter()
     self.assertEquals(a.stable_filter_string, '')
