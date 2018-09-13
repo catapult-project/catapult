@@ -4,10 +4,41 @@
 """Helper function to run the benchmark.
 """
 import os
+import shutil
 import subprocess
 
 from long_term_health import utils
 from long_term_health.apk_finder import ChromeVersion
+
+
+SWARMING_URL = 'https://chrome-swarming.appspot.com'
+ISOLATE_URL = 'https://chrome-isolated.appspot.com'
+
+CATAPULT_ROOT = os.path.normpath(os.path.join(utils.APP_ROOT, '..', '..'))
+CHROMIUM_ROOT = os.path.normpath(os.path.join(CATAPULT_ROOT, '..', '..'))
+MB = os.path.join(CHROMIUM_ROOT, 'tools', 'mb', 'mb.py')
+SWARMING_CLIENT = os.path.join(CHROMIUM_ROOT, 'tools', 'swarming_client')
+ISOLATE = os.path.join(SWARMING_CLIENT, 'isolate.py')
+PATH_TO_APKS = os.path.join(CHROMIUM_ROOT, 'tools', 'perf', 'swarming_apk')
+
+
+def IncludeAPKInIsolate(apk_path):
+  apk_name = os.path.basename(apk_path)
+  if not os.path.isdir(PATH_TO_APKS):
+    os.mkdir(PATH_TO_APKS)
+  shutil.copyfile(apk_path, os.path.join(PATH_TO_APKS, apk_name))
+  # relative path to be used when starting swarming job
+  return os.path.join('..', '..', 'tools', 'perf', 'swarming_apk', apk_name)
+
+
+def GenerateIsolate(out_dir_path, target_name):
+  # TODO(wangge): need to make it work even if there is no `out/Debug`
+  subprocess.call([MB, 'isolate', out_dir_path, target_name])
+
+
+def UploadIsolate(isolated_path):
+  return subprocess.check_output(
+      [ISOLATE, 'archive', '-I', ISOLATE_URL, '-s', isolated_path])
 
 
 def RunBenchmark(path_to_apk, run_label):
