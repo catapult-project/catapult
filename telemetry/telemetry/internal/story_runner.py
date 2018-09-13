@@ -180,7 +180,13 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
   if (not finder_options.use_live_sites and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
-    serving_dirs = story_set.serving_dirs
+    # Get the serving dirs of the filtered stories.
+    # TODO(crbug.com/883798): removing story_set._serving_dirs
+    serving_dirs = story_set._serving_dirs.copy()
+    for story in stories:
+      if story.serving_dir:
+        serving_dirs.add(story.serving_dir)
+
     if story_set.bucket:
       for directory in serving_dirs:
         cloud_storage.GetFilesInDirectoryIfChanged(directory,
