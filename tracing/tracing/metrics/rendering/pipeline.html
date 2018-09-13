@@ -121,7 +121,10 @@ tr.exportTo('tr.metrics.rendering', function() {
         const filteredEvents = segment.boundsRange.filterArray(events,
             evt => evt.start);
         for (const event of filteredEvents) {
-          if (!event.id.startsWith(':ptr:')) continue;
+          if ((event.args && event.args.status === 'canceled') ||
+              !event.id.startsWith(':ptr:')) {
+            continue;
+          }
           const id = parseInt(event.id.substring(5), 16);
           if (id in drawEvents) {
             throw new Error('Duplicate draw events: ' + id);
