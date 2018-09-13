@@ -102,6 +102,9 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
         logging.info('Recieved compressed data.')
       except zlib.error:
         data_str = self.request.get('data')
+        if not data_str:
+          raise api_request_handler.BadRequestError(
+              'Missing or uncompressed data.')
         data_str = zlib.compress(data_str)
         logging.info('Recieved uncompressed data.')
 

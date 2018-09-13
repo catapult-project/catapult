@@ -128,7 +128,7 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     self.mock_error = patcher.start()
     self.addCleanup(patcher.stop)
 
-  def PostAddHistogram(self, data):
+  def PostAddHistogram(self, data, status=200):
     mock_obj = mock.MagicMock()
 
     def _PassToRead(data_out):
@@ -137,7 +137,7 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     mock_obj.write.side_effect = _PassToRead
     self.mock_cloudstorage.open.return_value = mock_obj
 
-    self.testapp.post('/add_histograms', data)
+    self.testapp.post('/add_histograms', data, status=status)
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
 
   def PostAddHistogramProcess(self, data):
@@ -226,6 +226,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     # the rows by iterating over a dict.
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  def testPost_NotZlib_Fails(self):
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=123,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+    data = json.dumps(hs.AsDicts())
+
+    self.PostAddHistogram(data, status=400)
 
   @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
