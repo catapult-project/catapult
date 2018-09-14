@@ -139,8 +139,7 @@ tr.exportTo('tr.importer', function() {
   }
 
   function causedFrame(event) {
-    return event.associatedEvents.some(
-        x => x.title === tr.model.helpers.IMPL_RENDERING_STATS);
+    return event.associatedEvents.some(isImplFrameEvent);
   }
 
   function getSortedFrameEventsByProcess(modelHelper) {
@@ -1227,9 +1226,19 @@ tr.exportTo('tr.importer', function() {
 
         // Move the animation start to the response end.
         ape.start = rpe.end;
+        // Remove any frames that were part of the animation but are now before
+        // the animation.
+        if (ape.associatedEvents !== undefined) {
+          ape.associatedEvents = ape.associatedEvents.filter(
+              e => (!isImplFrameEvent(e) || e.start >= ape.start));
+        }
       });
     });
     return protoExpectations;
+  }
+
+  function isImplFrameEvent(event) {
+    return event.title === tr.model.helpers.IMPL_RENDERING_STATS;
   }
 
   /**
@@ -1336,7 +1345,7 @@ tr.exportTo('tr.importer', function() {
         }
 
         if ((handledEvents.indexOf(event) >= 0) &&
-            (event.title !== tr.model.helpers.IMPL_RENDERING_STATS)) {
+            (!isImplFrameEvent(event))) {
           warn({
             type: 'UserModelBuilder',
             message: `double-handled event: ${event.typeName} @ ${event.start}`,

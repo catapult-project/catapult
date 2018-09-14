@@ -445,15 +445,15 @@ tr.b.unittest.testSuite(function() {
       {title: 'Scroll Response', start: 919, end: 1054,
         eventCount: 6, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1054, end: 1068,
-        eventCount: 11},
+        eventCount: 9},
       {title: 'Fling Animation', start: 1054, end: 1432,
-        eventCount: 4},
+        eventCount: 3},
       {title: 'Scroll Response', start: 1432, end: 2605,
         eventCount: 5, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1549, end: 2310,
         eventCount: 3},
       {title: 'Fling Animation', start: 2605, end: 3000,
-        eventCount: 4}
+        eventCount: 2}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 919, expectations: [verifier.expectedUEs[0]]},
@@ -552,7 +552,7 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'MouseWheel Response', start: 0, end: 20, eventCount: 1},
       {title: 'MouseWheel Animation', start: 20, end: 75,
-        eventCount: 5},
+        eventCount: 4},
       {title: 'Idle', start: 75, end: 100, eventCount: 0},
       {title: 'MouseWheel Response', start: 100, end: 150,
         eventCount: 1},
@@ -1380,7 +1380,7 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 0, end: 100, eventCount: 1},
       {title: 'Pinch Response', start: 100, end: 160, eventCount: 2,
         isAnimationBegin: true},
-      {title: 'Pinch Animation', start: 160, end: 220, eventCount: 7},
+      {title: 'Pinch Animation', start: 160, end: 220, eventCount: 6},
       {title: 'Idle', start: 220, end: 421, eventCount: 0},
       {title: 'Pinch Animation', start: 421, end: 500, eventCount: 3}
     ];
@@ -1611,6 +1611,37 @@ tr.b.unittest.testSuite(function() {
     ];
     verifier.expectedSegments = [
       {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+    ];
+    verifier.verify();
+  });
+
+  test('responseFramesNotInScrollAnimation', function() {
+    // fixResponseAnimationStarts in find_input_expectations moves the start of
+    // the Scroll Animation and needs to remove frame events that now lie
+    // out of the Scroll Animation's interval
+    const verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+          {start: 0, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 5, end: 6});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 20, end: 40});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+          {start: 20, end: 210});
+      // don't associate the follwing event to the Scroll Animation
+      ChromeTestUtils.addFrameEvent(model, {start: 25, end: 26});
+      ChromeTestUtils.addFrameEvent(model, {start: 190, end: 191});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
+          {start: 200, end: 250});
+    };
+    verifier.expectedUEs = [
+      {title: 'Scroll Response', start: 0, end: 40,
+        eventCount: 2, isAnimationBegin: true},
+      {title: 'Scroll Animation', start: 40, end: 250, eventCount: 3},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 40, expectations: [verifier.expectedUEs[0]]},
+      {start: 40, end: 250, expectations: [verifier.expectedUEs[1]]}
     ];
     verifier.verify();
   });
