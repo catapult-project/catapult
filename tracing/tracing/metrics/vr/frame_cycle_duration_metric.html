@@ -27,26 +27,46 @@ tr.exportTo('tr.metrics.vr', function() {
 
   function frameCycleDurationMetric(histograms, model, opt_options) {
     const histogramsByEventTitle = new Map();
-    histogramsByEventTitle.set('VrShellGl::DrawFrame',
+    histogramsByEventTitle.set('Vr.DrawFrame',
         createHistograms(histograms, 'draw_frame',
             {description: 'Duration to render one frame'}, true));
-    histogramsByEventTitle.set('VrShellGl::AcquireFrame',
+    histogramsByEventTitle.set('Vr.AcquireGvrFrame',
         createHistograms(histograms, 'acquire_frame',
             {description: 'Duration acquire a frame from GVR'}, true));
     histogramsByEventTitle.set(
-        'VrShellGl::UpdateController',
+        'Vr.ProcessControllerInput',
         createHistograms(
             histograms, 'update_controller',
             {description: 'Duration to query input from the controller'},
             true));
-    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitNow',
+    histogramsByEventTitle.set(
+        'Vr.ProcessControllerInputForWebXr',
+        createHistograms(
+            histograms, 'update_controller_webxr',
+            {description: 'Duration to query input from the controller ' +
+                'for WebXR'},
+            true));
+    histogramsByEventTitle.set('Vr.SubmitFrameNow',
         createHistograms(histograms, 'submit_frame',
             {description: 'Duration to submit a frame to GVR'}, true));
-    histogramsByEventTitle.set('VrShellGl::PostSubmitDrawOnGpu',
+    histogramsByEventTitle.set('Vr.PostSubmitDrawOnGpu',
         createHistograms(histograms, 'post_submit_draw_on_gpu',
             {description: 'Duration to draw a frame on GPU post submit to ' +
                 'GVR. Note this duration may include time spent on ' +
                 'reprojection'}, false));
+
+    // TODO(crbug/884259): Remove the following aliases after some time.
+    histogramsByEventTitle.set('VrShellGl::DrawFrame',
+        histogramsByEventTitle.get('Vr.DrawFrame'));
+    histogramsByEventTitle.set('VrShellGl::AcquireFrame',
+        histogramsByEventTitle.get('Vr.AcquireGvrFrame'));
+    histogramsByEventTitle.set('VrShellGl::UpdateController',
+        histogramsByEventTitle.get('Vr.ProcessControllerInput'));
+    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitNow',
+        histogramsByEventTitle.get('Vr.SubmitFrameNow'));
+    histogramsByEventTitle.set('VrShellGl::PostSubmitDrawOnGpu',
+        histogramsByEventTitle.get('Vr.PostSubmitDrawOnGpu'));
+
     // Scene update metrics.
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
