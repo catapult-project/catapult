@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import time
 
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
@@ -151,8 +152,14 @@ class _FindIsolateExecution(execution.Execution):
         logging.debug('Isolate not found.')
       logging.debug(build)
       logging.debug(self._builder_name)
-      logging.debug(self._change)
+      logging.debug(self._change.id_string)
       logging.debug(self._target)
+      time.sleep(1)
+      try:
+        logging.debug(isolate.Get(
+            self._builder_name, self._change, self._target))
+      except KeyError:
+        logging.debug('Isolate not found.')
       raise IsolateNotFoundError(
           'Buildbucket says the build completed successfully, '
           "but Pinpoint can't find the isolate hash.")
