@@ -156,10 +156,12 @@ class BugCommentTest(test.TestCase):
         123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithCommit(self, differences, commit_as_dict):
+  def testCompletedWithCommit(self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(None, c, [0], [1.23456])]
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
@@ -179,10 +181,13 @@ class BugCommentTest(test.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithCommitAndDocs(self, differences, commit_as_dict):
+  def testCompletedWithCommitAndDocs(
+      self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(None, c, [0], [1.23456])]
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
@@ -212,12 +217,14 @@ class BugCommentTest(test.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithPatch(self, differences, patch_as_dict):
+  def testCompletedWithPatch(self, differences, result_values, patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(None, c, [0], [1.23456])]
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -235,12 +242,16 @@ class BugCommentTest(test.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedDoesNotReassign(self, differences, patch_as_dict):
+  def testCompletedDoesNotReassign(
+      self, differences, result_values, patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(None, c, [0], [1.23456])]
+    c = change.Change(commits, patch)
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -257,12 +268,15 @@ class BugCommentTest(test.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedDoesNotReopen(self, differences, patch_as_dict):
+  def testCompletedDoesNotReopen(
+      self, differences, result_values, patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
-    differences.return_value = [(None, c, [0], [1.23456])]
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
         'author': 'author@chromium.org',
         'subject': 'Subject.',
@@ -279,11 +293,14 @@ class BugCommentTest(test.TestCase):
         cc_list=['author@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedMultipleDifferences(self, differences, commit_as_dict):
+  def testCompletedMultipleDifferences(
+      self, differences, result_values, commit_as_dict):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
-    differences.return_value = [(None, c1, [0], []), (None, c2, [], [2])]
+    differences.return_value = [(None, c1), (None, c2)]
+    result_values.side_effect = [0], [], [], [2]
     commit_as_dict.side_effect = (
         {
             'repository': 'chromium',
@@ -312,10 +329,13 @@ class BugCommentTest(test.TestCase):
         cc_list=['author1@chromium.org', 'author2@chromium.org'])
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithAutoroll(self, differences, commit_as_dict):
+  def testCompletedWithAutoroll(
+      self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
-    differences.return_value = [(None, c, [0], [1.23456])]
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',

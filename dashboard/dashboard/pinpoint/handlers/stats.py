@@ -32,7 +32,7 @@ def _GetJobs():
     job_infos.append({
         'created': job.created.isoformat(),
         # TODO: Don't access JobState outside of the Job object.
-        'differences': len(list(job.state.Differences())),
+        'differences': len(job.state.Differences()),
         'status': job.status,
     })
 

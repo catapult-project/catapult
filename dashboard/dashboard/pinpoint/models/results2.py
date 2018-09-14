@@ -120,7 +120,7 @@ def _ChangeList(job):
   # If there are differences, only include Changes with differences.
   changes = []
 
-  for change_a, change_b, _, _ in job.state.Differences():
+  for change_a, change_b in job.state.Differences():
     if change_a not in changes:
       changes.append(change_a)
     if change_b not in changes:

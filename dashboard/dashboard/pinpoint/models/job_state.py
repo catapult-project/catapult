@@ -163,17 +163,16 @@ class JobState(object):
     statistically different results, this method yields the latter one (which is
     assumed to have caused the difference).
 
-    Yields:
-      Tuples of (Change_before, Change_after,
-                 result_values_before, result_values_after).
+    Returns:
+      A list of tuples: [(Change_before, Change_after), ...]
     """
+    differences = []
     for index in xrange(1, len(self._changes)):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
       if self._Compare(change_a, change_b) == compare.DIFFERENT:
-        values_a = self._ResultValues(change_a)
-        values_b = self._ResultValues(change_b)
-        yield change_a, change_b, values_a, values_b
+        differences.append((change_a, change_b))
+    return differences
 
   def AsDict(self):
     state = []
@@ -182,7 +181,7 @@ class JobState(object):
           'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
           'change': change.AsDict(),
           'comparisons': {},
-          'result_values': self._ResultValues(change),
+          'result_values': self.ResultValues(change),
       })
 
     for index in xrange(1, len(self._changes)):
@@ -276,7 +275,7 @@ class JobState(object):
 
     return compare.SAME
 
-  def _ResultValues(self, change):
+  def ResultValues(self, change):
     quest_index = len(self._quests) - 1
     result_values = []
 
