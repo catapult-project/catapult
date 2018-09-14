@@ -68,8 +68,9 @@ def _ProcessTest(test_key):
     ref_rows_by_stat = yield GetRowsToAnalyzeAsync(ref_test, max_num_rows)
 
   for s, rows in rows_by_stat.iteritems():
-    yield _ProcesssTestStat(
-        config, sheriff, test, s, rows, ref_rows_by_stat.get(s))
+    if rows:
+      yield _ProcesssTestStat(
+          config, sheriff, test, s, rows, ref_rows_by_stat.get(s))
 
 
 def _EmailSheriff(sheriff_key, test_key, anomaly_key):
@@ -86,15 +87,6 @@ def _ProcesssTestStat(config, sheriff, test, stat, rows, ref_rows):
 
   # If there were no rows fetched, then there's nothing to analyze.
   if not rows:
-    # In some cases (e.g. if some points are deleted) it might be possible
-    # that last_alerted_revision is incorrect. In this case, reset it.
-    highest_rev = yield _HighestRevision(test_key)
-    if test.last_alerted_revision > highest_rev:
-      logging.error('last_alerted_revision %d is higher than highest rev %d '
-                    'for test %s; setting last_alerted_revision to None.',
-                    test.last_alerted_revision, highest_rev, test.test_path)
-      test.last_alerted_revision = None
-      yield test.put_async()
     logging.error('No rows fetched for %s', test.test_path)
     raise ndb.Return(None)
 
@@ -120,10 +112,7 @@ def _ProcesssTestStat(config, sheriff, test, stat, rows, ref_rows):
   logging.info(' Stat: %s', stat)
   logging.info(' Sheriff: %s', test.sheriff.id())
 
-  # Update the last_alerted_revision property of the test.
-  test.last_alerted_revision = anomalies[-1].end_revision
-
-  yield (test.put_async(), ndb.put_multi_async(anomalies))
+  yield ndb.put_multi_async(anomalies)
 
   # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
   # code will run serially.
@@ -133,6 +122,18 @@ def _ProcesssTestStat(config, sheriff, test, stat, rows, ref_rows):
         not anomaly_entity.is_improvement and
         not sheriff.summarize):
       deferred.defer(_EmailSheriff, sheriff.key, test.key, anomaly_entity.key)
+
+
+@ndb.tasklet
+def _FindLatestAlert(test, stat):
+  query = anomaly.Anomaly.query()
+  query = query.filter(anomaly.Anomaly.test == test.key)
+  query = query.filter(anomaly.Anomaly.statistic == stat)
+  query = query.order(-anomaly.Anomaly.end_revision)
+  results = yield query.get_async()
+  if not results:
+    raise ndb.Return(None)
+  raise ndb.Return(results)
 
 
 @ndb.tasklet
@@ -165,50 +166,53 @@ def GetRowsToAnalyzeAsync(test, max_num_rows):
   # to analyze
   alerted_stats = yield _FindMonitoredStatsForTest(test)
 
+  latest_alert_by_stat = dict(
+      (s, _FindLatestAlert(test, s)) for s in alerted_stats)
+
+  results = {}
+  for s in alerted_stats:
+    results[s] = _FetchRowsByStat(
+        test.key, s, latest_alert_by_stat[s], max_num_rows)
+
+  for s in results.iterkeys():
+    results[s] = yield results[s]
+
+  raise ndb.Return(results)
+
+
+@ndb.tasklet
+def _FetchRowsByStat(test_key, stat, last_alert_future, max_num_rows):
   # If stats are specified, we only want to alert on those, otherwise alert on
   # everything.
-  if len(alerted_stats) == 1 and alerted_stats[0] == 'avg':
+  if stat == 'avg':
     query = graph_data.Row.query(projection=['revision', 'value'])
   else:
     query = graph_data.Row.query()
 
   query = query.filter(
-      graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
+      graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
 
   # The query is ordered in descending order by revision because we want
   # to get the newest points.
-  query = query.filter(graph_data.Row.revision > test.last_alerted_revision)
+  if last_alert_future:
+    last_alert = yield last_alert_future
+    if last_alert:
+      query = query.filter(graph_data.Row.revision > last_alert.end_revision)
   query = query.order(-graph_data.Row.revision)
 
   # However, we want to analyze them in ascending order.
   rows = yield query.fetch_async(limit=max_num_rows)
 
-  result = {}
-  for s in alerted_stats:
-    vals = []
-    for r in list(reversed(rows)):
-      if s == 'avg':
-        vals.append((r.revision, r, r.value))
-      elif s == 'std':
-        vals.append((r.revision, r, r.error))
-      else:
-        vals.append((r.revision, r, getattr(r, 'd_%s' % s)))
+  vals = []
+  for r in list(reversed(rows)):
+    if stat == 'avg':
+      vals.append((r.revision, r, r.value))
+    elif stat == 'std':
+      vals.append((r.revision, r, r.error))
+    else:
+      vals.append((r.revision, r, getattr(r, 'd_%s' % stat)))
 
-    result[s] = vals
-
-  raise ndb.Return(result)
-
-
-@ndb.tasklet
-def _HighestRevision(test_key):
-  """Gets the revision number of the Row with the highest ID for a test."""
-  query = graph_data.Row.query(
-      graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-  query = query.order(-graph_data.Row.revision)
-  highest_row_key = yield query.get_async(keys_only=True)
-  if highest_row_key:
-    raise ndb.Return(highest_row_key.id())
-  raise ndb.Return(None)
+  raise ndb.Return(vals)
 
 
 def _FilterAnomaliesFoundInRef(change_points, ref_change_points, test):

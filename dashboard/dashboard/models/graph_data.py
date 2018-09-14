@@ -165,9 +165,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # Units of the child Rows of this test, or None if there are no child Rows.
   units = ndb.StringProperty(indexed=False)
 
-  # The last alerted revision is used to avoid duplicate alerts.
-  last_alerted_revision = ndb.IntegerProperty(indexed=False)
-
   # Whether or not the test has child rows. Set by hook on Row class put.
   has_rows = ndb.BooleanProperty(default=False, indexed=True)
 
