@@ -9,7 +9,7 @@ libraries:
 - name: pycrypto
   version: "2.6"
 - name: webapp2
-  version: "2.5.1"
+  version: "2.5.2"
 
 handlers:
 
