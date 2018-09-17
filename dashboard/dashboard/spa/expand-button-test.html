@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/expand-button.html">
+
+<test-fixture id="clickToggles">
+  <template>
+    <expand-button state-path="clickToggles"></expand-button>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('expand-button', function() {
+  test('click toggles isExpanded', function() {
+    const expandButton = fixture('clickToggles');
+    expandButton.dispatch(Redux.UPDATE(
+        expandButton.statePath, cp.ExpandButton.buildState({})));
+    assert.isFalse(expandButton.isExpanded);
+    assert.isFalse(Polymer.Path.get(
+        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+    expandButton.click();
+    assert.isTrue(expandButton.isExpanded);
+    assert.isTrue(Polymer.Path.get(
+        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+    expandButton.click();
+    assert.isFalse(expandButton.isExpanded);
+    assert.isFalse(Polymer.Path.get(
+        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+  });
+
+  test('getIcon', function() {
+    assert.strictEqual('cp:more', cp.ExpandButton.getIcon(false, false, false));
+    assert.strictEqual('cp:less', cp.ExpandButton.getIcon(false, false, true));
+    assert.strictEqual('cp:right', cp.ExpandButton.getIcon(false, true, false));
+    assert.strictEqual('cp:left', cp.ExpandButton.getIcon(false, true, true));
+    assert.strictEqual('cp:less', cp.ExpandButton.getIcon(true, false, false));
+    assert.strictEqual('cp:more', cp.ExpandButton.getIcon(true, false, true));
+    assert.strictEqual('cp:left', cp.ExpandButton.getIcon(true, true, false));
+    assert.strictEqual('cp:right', cp.ExpandButton.getIcon(true, true, true));
+  });
+});
+</script>

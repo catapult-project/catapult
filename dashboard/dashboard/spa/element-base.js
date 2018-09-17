@@ -70,10 +70,12 @@ tr.exportTo('cp', () => {
   ElementBase.register = subclass => {
     subclass.is = Polymer.CaseMap.camelToDashCase(subclass.name).substr(1);
     customElements.define(subclass.is, subclass);
-    Redux.registerReducers(subclass, [
-      Redux.renameReducer(subclass.name + '.'),
-      ...Redux.DEFAULT_REDUCER_WRAPPERS,
-    ]);
+    if (subclass.reducers) {
+      Redux.registerReducers(subclass.reducers, [
+        Redux.renameReducer(subclass.name + '.'),
+        ...Redux.DEFAULT_REDUCER_WRAPPERS,
+      ]);
+    }
   };
 
   return {

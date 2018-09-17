@@ -14,7 +14,7 @@ from py_utils import dependency_util
 from py_utils import xvfb
 
 
-def RunWct(base_dir, dep_dirs, chrome_channel='stable'):
+def RunWct(base_dir, dep_dirs, persist=False, chrome_channel='stable'):
   wct_bin = os.environ.get('WCT', 'wct')
   if os.system('which %s > /dev/null' % wct_bin):
     print 'FATAL ERROR: wct not found. Install it and add it to your path:'
@@ -45,6 +45,8 @@ def RunWct(base_dir, dep_dirs, chrome_channel='stable'):
   command += ['-chrome', chrome_bin]
   command += ['-dir', user_data_dir]
   command += ['-base', base_dir]
+  if persist:
+    command += ['-persist']
   for dep in dep_dirs:
     command += ['-dep', dep]
   logging.info('Starting WCT: %r', command)
