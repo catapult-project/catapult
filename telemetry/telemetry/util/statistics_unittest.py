@@ -184,25 +184,6 @@ class StatisticsUnitTest(unittest.TestCase):
     # If the 'count' is zero, then zero is returned.
     self.assertEquals(0, statistics.ArithmeticMean([]))
 
-  def testDurationsDiscrepancy(self):
-    durations = []
-    d = statistics.DurationsDiscrepancy(durations)
-    self.assertEquals(d, 0.0)
-
-    durations = [4]
-    d = statistics.DurationsDiscrepancy(durations)
-    self.assertEquals(d, 4.0)
-
-    durations_a = [1, 1, 1, 1, 1]
-    durations_b = [1, 1, 2, 1, 1]
-    durations_c = [1, 2, 1, 2, 1]
-
-    d_a = statistics.DurationsDiscrepancy(durations_a)
-    d_b = statistics.DurationsDiscrepancy(durations_b)
-    d_c = statistics.DurationsDiscrepancy(durations_c)
-
-    self.assertTrue(d_a < d_b < d_c)
-
   def testStandardDeviation(self):
     self.assertAlmostEquals(math.sqrt(2/3.0),
                             statistics.StandardDeviation([1, 2, 3]))

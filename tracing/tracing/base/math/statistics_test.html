@@ -453,27 +453,6 @@ tr.b.unittest.testSuite(function() {
     }
   });
 
-  test('durationsDiscrepancy', function() {
-    let durations = [];
-    let d = Statistics.durationsDiscrepancy(durations);
-    assert.strictEqual(d, 0.0);
-
-    durations = [4];
-    d = Statistics.durationsDiscrepancy(durations);
-    assert.strictEqual(d, 4.0);
-
-    const durationsA = [1, 1, 1, 1, 1];
-    const durationsB = [1, 1, 2, 1, 1];
-    const durationsC = [1, 2, 1, 2, 1];
-
-    const dA = Statistics.durationsDiscrepancy(durationsA);
-    const dB = Statistics.durationsDiscrepancy(durationsB);
-    const dC = Statistics.durationsDiscrepancy(durationsC);
-
-    assert.isBelow(dA, dB);
-    assert.isBelow(dB, dC);
-  });
-
   test('uniformlySampleArray', function() {
     const samples = ['A', 'B', 'C', 'D', 'E'];
     for (let i = samples.length; i >= 0; --i) {

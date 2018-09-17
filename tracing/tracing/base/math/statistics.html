@@ -383,35 +383,6 @@ tr.exportTo('tr.b.math', function() {
   };
 
   /**
-   * A discrepancy based metric for measuring duration jank.
-   *
-   * DurationsDiscrepancy computes a jank metric which measures how irregular a
-   * given sequence of intervals is. In order to minimize jank, each duration
-   * should be equally long. This is similar to how timestamp jank works,
-   * and we therefore reuse the timestamp discrepancy function above to compute
-   * a similar duration discrepancy number.
-   *
-   * Because timestamp discrepancy is defined in terms of timestamps, we first
-   * convert the list of durations to monotonically increasing timestamps.
-   *
-   * Args:
-   *  durations: List of interval lengths in milliseconds.
-   *  absolute: See TimestampsDiscrepancy.
-   *  opt_locationCount: See TimestampsDiscrepancy.
-   **/
-  Statistics.durationsDiscrepancy = function(
-      durations, opt_absolute, opt_locationCount) {
-    if (durations.length === 0) return 0.0;
-
-    const timestamps = durations.reduce(function(prev, curr, index, array) {
-      prev.push(prev[prev.length - 1] + curr);
-      return prev;
-    }, [0]);
-    return Statistics.timestampsDiscrepancy(
-        timestamps, opt_absolute, opt_locationCount);
-  };
-
-  /**
    * Modifies |samples| in-place to reduce its length down to |count|.
    *
    * @param {!Array} samples

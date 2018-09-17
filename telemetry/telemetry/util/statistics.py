@@ -176,32 +176,6 @@ def TimestampsDiscrepancy(timestamps, absolute=True,
   return discrepancy
 
 
-def DurationsDiscrepancy(durations, absolute=True,
-                         location_count=None):
-  """A discrepancy based metric for measuring duration jank.
-
-  DurationsDiscrepancy computes a jank metric which measures how irregular a
-  given sequence of intervals is. In order to minimize jank, each duration
-  should be equally long. This is similar to how timestamp jank works,
-  and we therefore reuse the timestamp discrepancy function above to compute a
-  similar duration discrepancy number.
-
-  Because timestamp discrepancy is defined in terms of timestamps, we first
-  convert the list of durations to monotonically increasing timestamps.
-
-  Args:
-    durations: List of interval lengths in milliseconds.
-    absolute: See TimestampsDiscrepancy.
-    interval_multiplier: See TimestampsDiscrepancy.
-  """
-  if not durations:
-    return 0.0
-
-  timestamps = [0]
-  for items in durations:
-    timestamps.append(timestamps[-1] + items)
-  return TimestampsDiscrepancy(timestamps, absolute, location_count)
-
 def ArithmeticMean(data):
   """Calculates arithmetic mean.
 
