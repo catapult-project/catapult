@@ -41,8 +41,13 @@
           </th>
         </template>
         <template v-for='add in additional'>
-            <th><input type='checkbox' @click='pickHeadTable(add)' class='checkbox-head'/>&nbsp;
+            <th
+            @click="sortBy(add)"
+            :class="{ active: sortKey == add }">
+            <input type='checkbox' @click='pickHeadTable(add)' class='checkbox-head'/>&nbsp;
             {{ add | capitalize }}
+            <span class="arrow" :class="sortOrders[add] > 0 ? 'asc' : 'dsc'">
+            </span>
           </th>
         </template>
       </tr>
@@ -76,23 +81,13 @@
                 </template>
               </tr>
               <template v-if='openedStory.includes(story.story)'>
-                        <tr>
-                          <v-select placeholder='Pick a diagnostic' 
-                                    v-model="diagnostic" 
-                                    :options='diagnosticsEntries'></v-select>
-                       </tr>
                        <tr>
-                          <v-select placeholder='Available disgnostics'
+                          <v-select placeholder='Available storysetRepeats'
                                     multiple v-model='selected_diagnostics'
                                     :options='diagnostics_options'
-                                    v-if='seen_diagnostics'></v-select>
+                                    v-if='seen_diagnostics'
+                                    id='storySetRepeats'></v-select>
                       </tr>
-                      <tr>
-                        <v-select placeholder='Choose a plot' 
-                                  v-model='chosen_plot' 
-                                  :options='plot_kinds'
-                                  v-if='seen_plot'></v-select>
-                        </tr>
               </template>
             </template>
           </template> 
@@ -187,28 +182,8 @@
         v-bind:test-results="testResults"
         v-bind:reference-column="referenceColumn"></stat-test-summary>
   </div>
-
   <!-- the root component -->
   <div class='appRight' id='app'>
-      <v-select placeholder="Pick a metric"
-                v-if="data_loaded"
-                :options="metrics"
-                v-model="selected_metric"
-                id='select_item'></v-select>
-      <v-select placeholder="Pick a story"
-                v-if="seen_stories"
-                :options="stories" 
-                v-model="selected_story" 
-                id='select_item'></v-select>
-      <v-select placeholder="Pick a diagnostic" 
-                v-if="seen_diagnostics" 
-                :options="diagnostics" 
-                v-model="selected_diagnostic" 
-                id='select_item'></v-select>
-      <button v-if='data_loaded'
-              id='reset_button'
-              v-on:click='resetDropDownMenu=true'>
-              Reset menu</button>
         <div id='canvas'></div>
         <form id="search">
           <input v-if="gridDataLoaded"
@@ -232,6 +207,7 @@
           :columns="gridColumns"
           :filter-key="searchQuery"
           :additional='columnsForChosenDiagnostic'
+          :plot = 'chosenTypeOfPlot'
           ref='tableComponent'>
         </data-table>
     </div
