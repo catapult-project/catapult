@@ -16,9 +16,7 @@ found in the LICENSE file.
 // A few histograms are produced with the names as described below:
 // 1. messageloop_start_time - time till the message loop of the browser main
 //    starts processing posted tasts (after having loaded the Profile)
-// 2. request_start_time - time till the network request is made in the network
-//    stack
-// 3. first_contentful_paint_time - time to the first contentful paint of the
+// 2. first_contentful_paint_time - time to the first contentful paint of the
 //    page loaded at startup
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
@@ -31,7 +29,8 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstContentfulPaintTimestampsAndEvents = [];
 
     // Walk the browser slices, extract timestamps for the browser start,
-    // message loop start and request start.
+    // message loop start. TODO(crbug.com/883290): re-introduce
+    // request_start_time.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
