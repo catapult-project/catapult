@@ -194,7 +194,7 @@ def PinpointParamsFromPerfTryParams(params):
   extra_test_args = params['extra_test_args']
 
   email = users.get_current_user().email()
-  job_name = 'Job on [%s/%s] for [%s]' % (bot_name, suite, email)
+  job_name = 'Try job on %s/%s' % (bot_name, suite)
 
   return {
       'configuration': bot_name,
@@ -260,7 +260,7 @@ def PinpointParamsFromBisectParams(params):
   target = _GetIsolateTarget(bot_name, suite, start_commit, end_commit)
 
   email = users.get_current_user().email()
-  job_name = 'Job on [%s/%s/%s] for [%s]' % (bot_name, suite, chart_name, email)
+  job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
 
   # Histogram names don't include the statistic, so split these
   chart_name, statistic_name = ParseStatisticNameFromChart(chart_name)

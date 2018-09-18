@@ -11,14 +11,14 @@ found in the LICENSE file.
   <template>
     <style include="base-style">
       p {
-        margin: 1em 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     </style>
 
-    <p>
-      <a href="[[url(change)]]" target="_blank">[[subject(change)]]</a>
-      <span class="byline">by [[author(change)]]</span>
-    </p>
+    <p><a href="[[url(change)]]" target="_blank">[[subject(change)]]</a></p>
+    <p class="byline">By [[author(change)]]</p>
   </template>
 
   <script>
