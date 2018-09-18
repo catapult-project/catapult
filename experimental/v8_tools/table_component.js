@@ -16,14 +16,11 @@ Vue.component('data-table', {
     // TODO(anthonyalridge): Create route back to bar plots.
     const jumpToStory = (story) => {
       this.plot = 'Cumulative frequency plot';
-      // TODO(anthonyalridge): This should be a field on one of the vue
-      // components (or may not in fact be needed at all)
-      // once the row based diagnostic selection is removed.
-      const activeDiagnostic = 'labels';
+      const diagnostic = 'labels';
       app.plotSingleMetric(
           this.metric.metric,
           story,
-          activeDiagnostic,
+          diagnostic,
           this.markedTableDiagnostics,
           this.plot);
     };

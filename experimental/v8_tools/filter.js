@@ -29,7 +29,9 @@ const menu = new Vue({
     referenceColumn: '',
     significanceTester: new MetricSignificance(),
   },
-
+  mounted() {
+    app.$on('stack_clicked', this.splitMemoryMetric);
+  },
   computed: {
     //  Compute size options. The user will be provided with all
     //  sizes and the probe will be auto detected from it.

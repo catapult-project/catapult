@@ -179,7 +179,7 @@ class StackedBarPlotter {
     this.initChart_(graph, chart, chartDimensions, bars);
     bars.forEach(({ data, key }) => {
       data.forEach((bars) => {
-        this.drawStackedBar_(chart, bars, chartDimensions, key);
+        this.drawStackedBar_(chart, bars, chartDimensions, key, graph);
       });
     });
     if (bars.length > 0) {
@@ -230,7 +230,7 @@ class StackedBarPlotter {
     });
   }
 
-  drawStackedBar_(selection, bars, chartDimensions, key) {
+  drawStackedBar_(selection, bars, chartDimensions, key, graph) {
     const barName = bars[this.name_];
     const stacks = bars[this.data_];
     const x = this.outerBandScale_(barName) + this.innerBandScale_(key);
@@ -244,7 +244,16 @@ class StackedBarPlotter {
           .attr('y', this.scaleForYAxis_(positions.height + positions.start))
           .attr('width', this.innerBandScale_.bandwidth())
           .attr('height', height)
-          .attr('fill', this.getColorForStack_(stack[this.name_]));
+          .attr('fill', this.getColorForStack_(stack[this.name_]))
+          .on('click', () =>
+            graph.interactiveCallbackForCategory(stack[this.name_]))
+          .on('mouseover', function() {
+            d3.select(this).attr('opacity', 0.5);
+          })
+          .on('mouseout', function() {
+            // Removes the opacity attribute.
+            d3.select(this).attr('opacity', null);
+          });
       totalHeight += positions.height;
     });
     const barMid = x + this.innerBandScale_.bandwidth() / 2;

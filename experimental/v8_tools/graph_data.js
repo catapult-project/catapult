@@ -83,13 +83,8 @@ class GraphData {
     this.callInteractiveCallback_(key, index);
   }
 
-  /**
-   * Calls the provided callback if provided.
-   * @param {string} story
-   * @param {string} key
-   */
-  interactiveCallbackForBarPlot(story, key) {
-    this.callInteractiveCallback_(story, key);
+  interactiveCallbackForCategory(category) {
+    this.callInteractiveCallback_(category);
   }
 
   callInteractiveCallback_(...args) {

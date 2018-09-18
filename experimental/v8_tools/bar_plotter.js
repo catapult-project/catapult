@@ -198,7 +198,7 @@ class BarPlotter {
         .attr('height', d => barHeight(d[this.y_].mean))
         .attr('fill', color)
         .on('click', d =>
-          graph.interactiveCallbackForBarPlot(d[this.x_], key))
+          graph.interactiveCallbackForCategory(d[this.x_]))
         .on('mouseover', function() {
           d3.select(this).attr('opacity', 0.5);
         })

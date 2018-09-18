@@ -142,7 +142,7 @@ const app = new Vue({
       this.graph.xAxis('Stories')
           .yAxis('Memory used (MiB)')
           .title(title)
-          .setData(obj)
+          .setData(obj, metric => app.$emit('stack_clicked', metric))
           .plotStackedBar();
     },
 
