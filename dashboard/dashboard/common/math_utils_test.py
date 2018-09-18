@@ -86,6 +86,12 @@ class MathUtilsTest(unittest.TestCase):
   def testPercentile_Interpolation(self):
     self.assertEqual(5.1, math_utils.Percentile(range(8), 0.7))
 
+  def testPercentile_Min(self):
+    self.assertEqual(0, math_utils.Percentile(range(8), 0))
+
+  def testPercentile_Max(self):
+    self.assertEqual(7, math_utils.Percentile(range(8), 1))
+
 
 if __name__ == '__main__':
   unittest.main()

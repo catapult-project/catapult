@@ -76,8 +76,8 @@ def Percentile(values, percentile):
   """
   values = sorted(values)
   index = len(values) * percentile - 0.5
-  floor = math.floor(index)
-  ceil = math.ceil(index)
+  floor = max(math.floor(index), 0)
+  ceil = min(math.ceil(index), len(values) - 1)
   if floor == ceil:
     return values[int(index)]
   low = values[int(floor)] * (ceil - index)
