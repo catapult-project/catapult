@@ -29,4 +29,4 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
     del timeout
     surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
     trace_data_builder.AddTraceFor(
-        trace_data.SURFACE_FLINGER_PART, surface_flinger_trace_data)
+        trace_data.CHROME_TRACE_PART, surface_flinger_trace_data)

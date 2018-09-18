@@ -14,7 +14,6 @@ from telemetry.timeline import bounds
 from telemetry.timeline import event_container
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import process as process_module
-from telemetry.timeline import surface_flinger_importer
 from telemetry.timeline import trace_event_importer
 from tracing.trace_data import trace_data as trace_data_module
 
@@ -23,8 +22,7 @@ from tracing.trace_data import trace_data as trace_data_module
 
 _IMPORTERS = [
     inspector_importer.InspectorTimelineImporter,
-    trace_event_importer.TraceEventTimelineImporter,
-    surface_flinger_importer.SurfaceFlingerTimelineImporter
+    trace_event_importer.TraceEventTimelineImporter
 ]
 
 

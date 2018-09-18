@@ -192,22 +192,21 @@ class AndroidPlatformBackend(
     finally:
       self._surface_stats_collector = None
     # TODO(sullivan): should this code be inline, or live elsewhere?
-    events = []
+    events = [_BuildEvent(
+        '__metadata', 'process_name', 'M', pid, 0, {'name': 'SurfaceFlinger'})]
     for ts in timestamps:
-      events.append({
-          'cat': 'SurfaceFlinger',
-          'name': 'vsync_before',
-          'ts': ts,
-          'pid': pid,
-          'tid': pid,
-          'args': {
-              'data': {
-                  'frame_count': 1,
-                  'refresh_period': refresh_period,
-              }
-          }
-      })
-    return events
+      events.append(_BuildEvent('SurfaceFlinger', 'vsync_before', 'I', pid, ts,
+                                {'data': {'frame_count': 1}}))
+
+    return {
+        'traceEvents': events,
+        'metadata': {
+            'clock-domain': 'LINUX_CLOCK_MONOTONIC',
+            'surface_flinger': {
+                'refresh_period': refresh_period,
+            },
+        }
+    }
 
   def CanTakeScreenshot(self):
     return True
@@ -742,3 +741,18 @@ def _FixPossibleAdbInstability():
           process.set_cpu_affinity([0])
     except (psutil.NoSuchProcess, psutil.AccessDenied):
       logging.warn('Failed to set adb process CPU affinity')
+
+def _BuildEvent(cat, name, ph, pid, ts, args):
+  event = {
+      'cat': cat,
+      'name': name,
+      'ph': ph,
+      'pid': pid,
+      'tid': pid,
+      'ts': ts * 1000,
+      'args': args
+  }
+  # Instant events need to specify the scope, too.
+  if ph == 'I':
+    event['s'] = 't'
+  return event

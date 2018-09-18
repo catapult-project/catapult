@@ -87,28 +87,24 @@ def AddSurfaceFlingerStats(mock_timer, thread, first_frame,
   first_frame: Is this the first frame within the bounds of an action?
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
-  # Create random data and timestamp for impl thread rendering stats.
-  data = {'frame_count': 1,
-          'refresh_period': 16.6666}
+  # Create timestamp for impl thread rendering stats.
   timestamp = mock_timer.AdvanceAndGet()
 
   # Add a slice with the event data to the given thread.
   thread.PushCompleteSlice(
       'SurfaceFlinger', 'vsync_before',
       timestamp, duration=0.0, thread_timestamp=None, thread_duration=None,
-      args={'data': data})
+      args={'data': {'frame_count': 1}})
 
   if not ref_stats:
     return
 
-  # Add timestamp only if a frame was output
-  if data['frame_count'] == 1:
-    if not first_frame:
-      # Add frame_time if this is not the first frame in within the bounds of an
-      # action.
-      prev_timestamp = ref_stats.frame_timestamps[-1][-1]
-      ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
-    ref_stats.frame_timestamps[-1].append(timestamp)
+  if not first_frame:
+    # Add frame_time if this is not the first frame in within the bounds of an
+    # action.
+    prev_timestamp = ref_stats.frame_timestamps[-1][-1]
+    ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
+  ref_stats.frame_timestamps[-1].append(timestamp)
 
 
 def AddDrmEventFlipStats(mock_timer, vblank_timer, thread,
@@ -338,8 +334,16 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
     records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
                for e in timeline_markers]
+    metadata = [{
+        'name': 'metadata',
+        'value': {
+            'surface_flinger': {
+                'refresh_period': 16.6666
+            }
+        }
+    }]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, surface_flinger, None, records)
+        renderer, browser, surface_flinger, None, records, metadata)
 
     # Compare rendering stats to reference - Only SurfaceFlinger stats should
     # count

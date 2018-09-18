@@ -55,7 +55,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
         renderer_process, model.browser_process, model.surface_flinger_process,
-        model.gpu_process, interaction_records)
+        model.gpu_process, interaction_records, model.metadata)
     has_ui_interactions = any(
         [r.label.startswith("ui_") for r in interaction_records])
     has_surface_flinger_stats = model.surface_flinger_process is not None

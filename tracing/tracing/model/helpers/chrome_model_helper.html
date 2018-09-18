@@ -35,6 +35,13 @@ tr.exportTo('tr.model.helpers', function() {
     return gpuProcesses[0];
   }
 
+  function findTelemetrySurfaceFlingerProcess(model) {
+    const surfaceFlingerProcesses = model.getAllProcesses(
+        process => (process.name === 'SurfaceFlinger'));
+    if (surfaceFlingerProcesses.length !== 1) return undefined;
+    return surfaceFlingerProcesses[0];
+  }
+
   function ChromeModelHelper(model) {
     this.model_ = model;
 
@@ -61,6 +68,8 @@ tr.exportTo('tr.model.helpers', function() {
           this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
+
+    this.surfaceFlingerProcess_ = findTelemetrySurfaceFlingerProcess(model);
 
     this.chromeBounds_ = undefined;
   }
@@ -109,6 +118,10 @@ tr.exportTo('tr.model.helpers', function() {
 
     get rendererHelpers() {
       return this.rendererHelpers_;
+    },
+
+    get surfaceFlingerProcess() {
+      return this.surfaceFlingerProcess_;
     },
 
 

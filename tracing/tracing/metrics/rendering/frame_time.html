@@ -39,26 +39,34 @@ tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
   const DISPLAY_EVENT = 'BenchmarkInstrumentation::DisplayRenderingStats';
   const DRM_EVENT = 'DrmEventFlipComplete';
+  const SURFACE_FLINGER_EVENT = 'vsync_before';
 
   function addFrameTimeHistograms(histograms, model, segments) {
     const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!modelHelper || !modelHelper.browserProcess) return;
-    // If DRM events exists, they are the source of truth. Otherwise, look for
-    // display rendering stats. With viz, display rendering stats are emitted
-    // from the GPU process; otherwise, they are emitted from the browser
-    // process.
+    // On ChromeOS, DRM events, if they exist, are the source of truth. On
+    // Android, Surface Flinger events are the source of truth. Otherwise, look
+    // for display rendering stats. With viz, display rendering stats are
+    // emitted from the GPU process; otherwise, they are emitted from the
+    // browser process.
     let events = [];
-    if (modelHelper.gpuHelper) {
-      const gpuProcess = modelHelper.gpuHelper.process;
-      events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
-      if (events.length === 0) {
-        events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
+    if (modelHelper.surfaceFlingerProcess) {
+      events =
+          [...modelHelper.surfaceFlingerProcess.findTopmostSlicesNamed(
+              SURFACE_FLINGER_EVENT)];
+    } else {
+      if (modelHelper.gpuHelper) {
+        const gpuProcess = modelHelper.gpuHelper.process;
+        events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
+        if (events.length === 0) {
+          events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
+        }
       }
-    }
-    if (events.length === 0) {
-      events = [...modelHelper.browserProcess.findTopmostSlicesNamed(
-          DISPLAY_EVENT)];
+      if (events.length === 0) {
+        events = [...modelHelper.browserProcess.findTopmostSlicesNamed(
+            DISPLAY_EVENT)];
+      }
     }
     if (events.length === 0) return;
 

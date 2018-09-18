@@ -128,7 +128,7 @@ def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
 
 class RenderingStats(object):
   def __init__(self, renderer_process, browser_process, surface_flinger_process,
-               gpu_process, interaction_records):
+               gpu_process, interaction_records, metadata=None):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other logging facilities), and providing them in a common format to classes
@@ -144,8 +144,8 @@ class RenderingStats(object):
 
     timestamp_event_name, timestamp_process = GetTimeStampEventNameAndProcess(
         browser_process, surface_flinger_process, gpu_process)
-    if surface_flinger_process:
-      self._GetRefreshPeriodFromSurfaceFlingerProcess(surface_flinger_process)
+    if surface_flinger_process and metadata:
+      self._GetRefreshPeriodFromSurfaceFlingerProcess(metadata)
 
     # A lookup from list names below to any errors or exceptions encountered
     # in attempting to generate that list.
@@ -193,10 +193,13 @@ class RenderingStats(object):
       self._InitFrameQueueingDurationsFromTimeline(
           renderer_process, timeline_range)
 
-  def _GetRefreshPeriodFromSurfaceFlingerProcess(self, surface_flinger_process):
-    for event in surface_flinger_process.IterAllEventsOfName('vsync_before'):
-      self.refresh_period = event.args['data']['refresh_period']
-      return
+  def _GetRefreshPeriodFromSurfaceFlingerProcess(self, metadata):
+    for kv in metadata:
+      if kv['name'] == 'metadata':
+        value = kv['value']
+        if 'surface_flinger' in value:
+          self.refresh_period = value['surface_flinger']['refresh_period']
+          return
 
   def _InitInputLatencyStatsFromTimeline(
       self, browser_process, renderer_process, timeline_range):
