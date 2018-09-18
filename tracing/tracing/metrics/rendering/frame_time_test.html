@@ -43,11 +43,6 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(17, hist.max, 2e-6);
     assert.closeTo(9, hist.average, 1e-6);
 
-    hist = histograms.getHistogramNamed('mean_frame_time_tbmv2');
-    assert.closeTo(9, hist.min, 1e-6);
-    assert.closeTo(9, hist.max, 2e-6);
-    assert.closeTo(9, hist.average, 1e-6);
-
     // One of the two frame times is not smooth.
     hist = histograms.getHistogramNamed('smooth_frames');
     assert.closeTo(0.5, hist.min, 1e-6);

@@ -22,10 +22,6 @@ found in the LICENSE file.
  * The distribution of durations between consecutive display compositor's swap
  * buffer calls, or DRM page flips on ChromeOS devices, during animations.
  *
- * mean_frame_time_tbmv2
- * =====================
- * The arithmetic mean of frame_times.
- *
  * smooth_frames
  * =============
  * The percentage of frame_times that are less than 17ms.
@@ -102,12 +98,6 @@ tr.exportTo('tr.metrics.rendering', function() {
         frameTimes,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
           description: 'Raw frame times.' });
-    histograms.createHistogram(
-        'mean_frame_time_tbmv2',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        tr.b.math.Statistics.mean(frameTimes),
-        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
-          description: 'Arithmetic mean of frame times.' });
     histograms.createHistogram(
         'smooth_frames',
         tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,

@@ -32,7 +32,6 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
   results object with several representative metrics:
 
     frame_times: A list of raw frame times
-    mean_frame_time: The arithmetic mean of frame times
     percentage_smooth: Percentage of frames that were hitting 60 FPS.
     mean_pixels_approximated: The mean percentage of pixels that we didn't have
     time to rasterize so we used an "approximation" (background color or
@@ -67,14 +66,14 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     values = [
         self._ComputeQueueingDuration(page, stats),
         self._ComputeMeanPixelsApproximated(page, stats),
-        self._ComputeMeanPixelsCheckerboarded(page, stats)
+        self._ComputeMeanPixelsCheckerboarded(page, stats),
+        self._ComputeLatencyMetric(page, stats, 'input_event_latency',
+                                   stats.input_event_latency),
+        self._ComputeLatencyMetric(page, stats,
+                                   'main_thread_scroll_latency',
+                                   stats.main_thread_scroll_latency),
+        self._ComputeFirstGestureScrollUpdateLatencies(page, stats)
     ]
-    values += self._ComputeLatencyMetric(page, stats, 'input_event_latency',
-                                         stats.input_event_latency)
-    values += self._ComputeLatencyMetric(page, stats,
-                                         'main_thread_scroll_latency',
-                                         stats.main_thread_scroll_latency)
-    values.append(self._ComputeFirstGestureScrollUpdateLatencies(page, stats))
     values += self._ComputeDisplayFrameTimeMetric(page, stats)
     if has_ui_interactions:
       values += self._ComputeUIFrameTimeMetric(page, stats)
@@ -82,7 +81,8 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       values += self._ComputeSurfaceFlingerMetric(page, stats)
 
     for v in values:
-      results.AddValue(v)
+      if v:
+        results.AddValue(v)
 
   def _HasEnoughFrames(self, list_of_frame_timestamp_lists):
     """Whether we have collected at least two frames in every timestamp list."""
@@ -171,29 +171,20 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     )
 
   def _ComputeLatencyMetric(self, page, stats, name, list_of_latency_lists):
-    """Returns Values for the mean for given latency stats."""
-    mean_latency = None
+    """Returns Values for given latency stats."""
     none_value_reason = None
     latency_list = None
     if self._HasEnoughFrames(stats.frame_timestamps):
       latency_list = perf_tests_helper.FlattenList(list_of_latency_lists)
       if len(latency_list) == 0:
-        return ()
-      mean_latency = round(statistics.ArithmeticMean(latency_list), 3)
+        return None
     else:
       none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
-    return (
-        list_of_scalar_values.ListOfScalarValues(
-            page, name, 'ms', latency_list,
-            description='Raw %s values' % name,
-            none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.DOWN),
-        scalar.ScalarValue(
-            page, 'mean_%s' % name, 'ms', mean_latency,
-            description='Arithmetic mean of the raw %s values' % name,
-            none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.DOWN),
-    )
+    return list_of_scalar_values.ListOfScalarValues(
+        page, name, 'ms', latency_list,
+        description='Raw %s values' % name,
+        none_value_reason=none_value_reason,
+        improvement_direction=improvement_direction.DOWN)
 
   def _ComputeFirstGestureScrollUpdateLatencies(self, page, stats):
     """Returns a ListOfScalarValuesValues of gesture scroll update latencies.
@@ -253,12 +244,10 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     frames that were hitting 60 fps.
     """
     flatten_frame_times = None
-    mean_frame_time = None
     percentage_smooth = None
     none_value_reason = None
     if self._HasEnoughFrames(frame_timestamps):
       flatten_frame_times = perf_tests_helper.FlattenList(frame_times)
-      mean_frame_time = round(statistics.ArithmeticMean(flatten_frame_times), 3)
       # We use 17ms as a somewhat looser threshold, instead of 1000.0/60.0.
       smooth_threshold = 17.0
       smooth_count = sum(1 for t in flatten_frame_times if t < smooth_threshold)
@@ -270,11 +259,6 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
             page, '%sframe_times' % prefix, 'ms', flatten_frame_times,
             description='List of raw frame times, helpful to understand the '
                         'other metrics.',
-            none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.DOWN),
-        scalar.ScalarValue(
-            page, '%smean_frame_time' % prefix, 'ms', mean_frame_time,
-            description='Arithmetic mean of frame times.',
             none_value_reason=none_value_reason,
             improvement_direction=improvement_direction.DOWN),
         scalar.ScalarValue(
