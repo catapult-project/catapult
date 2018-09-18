@@ -28,12 +28,12 @@ class TestRequest(unittest.TestCase):
     self.http.request.return_value = Response(200, 'OK!')
     self.assertEqual(request.Request('http://example.com/'), 'OK!')
     self.http.request.assert_called_once_with(
-        'http://example.com/', method='POST', headers=mock.ANY)
+        'http://example.com/', method='GET', headers=mock.ANY)
 
-  def testRequest_withParams(self):
+  def testRequest_postWithParams(self):
     self.http.request.return_value = Response(200, 'OK!')
     self.assertEqual(request.Request(
-        'http://example.com/', params={'q': 'foo'}), 'OK!')
+        'http://example.com/', params={'q': 'foo'}, method='POST'), 'OK!')
     self.http.request.assert_called_once_with(
         'http://example.com/?q=foo', method='POST', headers=mock.ANY)
 

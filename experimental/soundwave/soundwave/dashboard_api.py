@@ -28,7 +28,7 @@ class PerfDashboardCommunicator(object):
       Contents of the response from the dashboard.
     """
     return json.loads(request.Request(
-        self.REQUEST_URL + endpoint, params=params,
+        self.REQUEST_URL + endpoint, params=params, method='POST',
         credentials=self._credentials))
 
   def ListTestPaths(self, test_suite, sheriff):

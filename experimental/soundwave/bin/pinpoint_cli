@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# Copyright 2018 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import argparse
+import os
+import sys
+
+import oauth2client.tools
+
+ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+PY_UTILS_PATH = os.path.normpath(os.path.join(
+    ROOT_PATH, '..', '..', 'common', 'py_utils'))
+
+sys.path.append(ROOT_PATH)
+sys.path.append(PY_UTILS_PATH)
+
+from services import chrome_perf_auth
+from services import pinpoint_service
+
+
+def main():
+  parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
+  args = parser.parse_args()
+
+  credentials = chrome_perf_auth.GetUserCredentials(args)
+  api = pinpoint_service.Api(credentials)
+
+  print api.Jobs()
+
+
+if __name__ == '__main__':
+  sys.exit(main())
