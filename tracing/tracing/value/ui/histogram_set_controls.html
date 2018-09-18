@@ -193,7 +193,7 @@ tr.exportTo('tr.v.ui', function() {
       searchQuery: {
         type: String,
         value: '',
-        observer: 'onUserChange_',
+        observer: 'onSearchQueryChange_',
       },
       showAll: {
         type: Boolean,
@@ -230,6 +230,7 @@ tr.exportTo('tr.v.ui', function() {
       // to polymer properties, disable onUserChange_ until all properties are
       // copied in order to prevent nested mutations to the ViewState.
       this.isInOnViewStateUpdate_ = false;
+      this.searchQueryDebounceMs = 200;
     },
 
     ready() {
@@ -250,6 +251,14 @@ tr.exportTo('tr.v.ui', function() {
       // It would be arduous to construct a delta and call viewStateListener_
       // here in case vs contains non-default values, so callers must set
       // viewState first and then update it.
+    },
+
+    async onSearchQueryChange_() {
+      // Bypass debouncing for testing purpose:
+      if (this.searchQueryDebounceMs === 0) return this.onUserChange_();
+      // Limit the update rate for instance caused by typing in a search.
+      this.debounce('onSearchQueryDebounce', this.onUserChange_,
+          this.searchQueryDebounceMs);
     },
 
     async onUserChange_() {
