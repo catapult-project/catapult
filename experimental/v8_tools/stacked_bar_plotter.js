@@ -254,7 +254,9 @@ class StackedBarPlotter {
           .on('mouseout', function() {
             // Removes the opacity attribute.
             d3.select(this).attr('opacity', null);
-          });
+          })
+          .append('title')
+          .text(stack[this.name_]);
       totalHeight += positions.height;
     });
     const barMid = x + this.innerBandScale_.bandwidth() / 2;
