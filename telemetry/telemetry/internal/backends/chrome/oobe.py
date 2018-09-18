@@ -6,7 +6,7 @@ import logging
 
 from telemetry.core import exceptions
 from telemetry.internal.browser import web_contents
-from websocket import WebSocketConnectionClosedException
+from websocket import WebSocketException
 
 import py_utils
 
@@ -33,7 +33,7 @@ class Oobe(web_contents.WebContents):
           py_utils.WaitFor(webview.HasReachedQuiescence, 20)
           return webview
       except (exceptions.DevtoolsTargetCrashException,
-              WebSocketConnectionClosedException):
+              WebSocketException):
         pass
     return None
 
