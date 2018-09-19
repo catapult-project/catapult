@@ -4,8 +4,10 @@
 
 import datetime
 import json
+import logging
 import webapp2
 
+from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import ndb
@@ -47,7 +49,13 @@ class Migrate(webapp2.RequestHandler):
   def _Migrate(self, query, status):
     cursor = datastore_query.Cursor(urlsafe=self.request.get('cursor'))
     jobs, next_cursor, more = query.fetch_page(_BATCH_SIZE, start_cursor=cursor)
-    ndb.put_multi(jobs)
+    for j in jobs:
+      _MigrateJob(j)
+    try:
+      ndb.put_multi(jobs)
+    except datastore_errors.BadRequestError as e:
+      logging.critical(e)
+      logging.critical([j.job_id for j in jobs])
 
     if more:
       status['count'] += len(jobs)
@@ -56,3 +64,7 @@ class Migrate(webapp2.RequestHandler):
       taskqueue.add(url='/api/migrate', params=params)
     else:
       stored_object.Set(_STATUS_KEY, None)
+
+
+def _MigrateJob(j):
+  del j
