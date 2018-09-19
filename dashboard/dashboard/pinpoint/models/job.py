@@ -374,11 +374,13 @@ class Job(ndb.Model):
 
         'arguments': self.arguments,
         'bug_id': self.bug_id,
-        'name': self.name,
+        'comparison_mode': self.comparison_mode,
+        'name': self.name or 'Untitled job',
         'user': self.user,
 
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
+        'difference_count': self.difference_count,
         'exception': self.exception,
         'status': self.status,
     }

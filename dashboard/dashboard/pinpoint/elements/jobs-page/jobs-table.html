@@ -30,31 +30,35 @@ found in the LICENSE file.
         background-image: url("/static/sort-down.svg");
       }
 
-      td {
-        word-break: break-all;
+      td:first-child {
+        max-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 40%;
       }
     </style>
 
     <table id="jobs">
       <thead>
         <tr>
-          <th id="job_id" on-click="columnHeaderClicked">Job ID
-          <th id="status" on-click="columnHeaderClicked">Status
+          <th id="name" on-click="columnHeaderClicked">Job name
+          <th id="user" on-click="columnHeaderClicked">User
+          <th id="bug_id" on-click="columnHeaderClicked">Bug
           <th id="created" on-click="columnHeaderClicked">Created
-          <th id="configuration" on-click="columnHeaderClicked">Configuration
-          <th id="benchmark" on-click="columnHeaderClicked">Benchmark
-          <th id="story" on-click="columnHeaderClicked">Story
-          <th id="chart" on-click="columnHeaderClicked">Chart
+          <th id="comparison_mode" on-click="columnHeaderClicked">Type
+          <th id="status" on-click="columnHeaderClicked">Status
+          <th id="difference_count" on-click="columnHeaderClicked">Differences
       <tbody>
         <template is="dom-repeat" items="[[jobs]]" sort="[[jobSorter(sortBy, sortDescending)]]">
           <tr>
-            <td><a href='/job/[[item.job_id]]'>[[item.job_id]]</a>
-            <td>[[item.status]]
+            <td><a href='/job/[[item.job_id]]'>[[item.name]]</a>
+            <td>[[item.user]]
+            <td><a href="https://crbug.com/[[item.bug_id]]">[[item.bug_id]]</a>
             <td>[[formatDate(item.created)]]
-            <td>[[item.arguments.configuration]]
-            <td>[[item.arguments.benchmark]]
-            <td>[[item.arguments.story]]
-            <td>[[item.arguments.chart]]
+            <td>[[formatComparisonMode(item.comparison_mode)]]
+            <td>[[item.status]]
+            <td>[[item.difference_count]]
         </template>
     </table>
   </template>
@@ -143,6 +147,13 @@ found in the LICENSE file.
 
       formatDate(dateString) {
         return new Date(dateString + 'Z').toLocaleString();
+      },
+
+      formatComparisonMode(comparisonMode) {
+        if (!comparisonMode) {
+          return 'try';
+        }
+        return comparisonMode;
       }
     });
   </script>
