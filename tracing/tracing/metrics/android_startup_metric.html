@@ -16,21 +16,16 @@ found in the LICENSE file.
 // A few histograms are produced with the names as described below:
 // 1. messageloop_start_time - time till the message loop of the browser main
 //    starts processing posted tasts (after having loaded the Profile)
-// 2. first_contentful_paint_time - time to the first contentful paint of the
-//    page loaded at startup
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
 tr.exportTo('tr.metrics.sh', function() {
   const MESSAGE_LOOP_EVENT_NAME =
       'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
-  const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
   function androidStartupMetric(histograms, model) {
-    const browserStartTimestamps = [];
-    const firstContentfulPaintTimestampsAndEvents = [];
-
     // Walk the browser slices, extract timestamps for the browser start,
     // message loop start. TODO(crbug.com/883290): re-introduce
-    // request_start_time.
+    // request_start_time. TODO(crbug.com/886621): deflake the
+    // first_contentful_paint_time metric and re-introduce it.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
@@ -42,44 +37,8 @@ tr.exportTo('tr.metrics.sh', function() {
         if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
           messageLoopStartHistogram.addSample(ev.duration,
               { events: new tr.v.d.RelatedEventSet([ev]) });
-          browserStartTimestamps.push(ev.start);
         }
       }
-    }
-
-    // Walk the renderer slices and extract the 'first contentful paint'
-    // histogram samples.
-    const firstContentfulPaintHistogram = histograms.createHistogram(
-        'first_contentful_paint_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    const rendererHelpers = chromeHelper.rendererHelpers;
-    const pids = Object.keys(rendererHelpers);
-    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-        if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
-          firstContentfulPaintTimestampsAndEvents.push(
-              {timestamp: ev.end, event: new tr.v.d.RelatedEventSet([ev]) });
-          // There are usually several 'First Contentful Paint' events recorded
-          // for each page load. Take only the first one per renderer.
-          break;
-        }
-      }
-    }
-
-    // Group the relevant events with the corresponding browser starts and emit
-    // the metrics.
-    const totalBrowserStarts = browserStartTimestamps.length;
-    const totalFcpTimestamps = firstContentfulPaintTimestampsAndEvents.length;
-    if (totalFcpTimestamps !== totalBrowserStarts) {
-      throw new Error('Number of FCP events (' + totalFcpTimestamps +
-          ') differs from number of browser starts (' + totalBrowserStarts +
-          ')');
-    }
-    for (let i = 0; i < totalBrowserStarts; i++) {
-      const browserStart = browserStartTimestamps[i];
-      const fcpInfo = firstContentfulPaintTimestampsAndEvents[i];
-      firstContentfulPaintHistogram.addSample(fcpInfo.timestamp - browserStart,
-          {events: fcpInfo.event});
     }
   }
 

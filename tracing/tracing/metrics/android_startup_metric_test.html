@@ -32,29 +32,6 @@ tr.b.unittest.testSuite(function() {
       start: (offset + 6800.125),
       duration: (incrementForMetrics + 1700.0625)
     }));
-
-    const rendererProcess = model.getOrCreateProcess(
-        tr.b.GUID.allocateSimple());
-    const rendererMainThread =
-      rendererProcess.getOrCreateThread(tr.b.GUID.allocateSimple());
-    rendererMainThread.name = 'CrRendererMain';
-    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'loading,rail,devtools.timeline',
-      title: 'firstContentfulPaint',
-      start: (offset + 8400.125 + incrementForMetrics),
-      duration: 0.0,
-      args: {frame: '0x0'}
-    }));
-
-    // Add an extra FCP event in the same renderer process appearing after the
-    // initial FCP even to check that it is ignored by metric computations.
-    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'loading,rail,devtools.timeline',
-      title: 'firstContentfulPaint',
-      start: (offset + 8400.125 + incrementForMetrics + 0.125),
-      duration: 0.0,
-      args: {frame: '0x0'}
-    }));
   }
 
   function makeTestModel(offset, incrementForMetrics) {
@@ -71,10 +48,6 @@ tr.b.unittest.testSuite(function() {
         'messageloop_start_time');
     assert.strictEqual(1, messageLoopStartHistogram.numValues);
     assert.strictEqual(1700.0625, messageLoopStartHistogram.average);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1600.0, firstContentfulPaintHistogram.average);
   });
 
   // Checks the metrics after adding an offset to events in the model, and
@@ -86,10 +59,6 @@ tr.b.unittest.testSuite(function() {
         'messageloop_start_time');
     assert.strictEqual(1, messageLoopStartHistogram.numValues);
     assert.strictEqual(1707.0625, messageLoopStartHistogram.average);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1607.0, firstContentfulPaintHistogram.average);
   });
 
   test('androidStartupMetric_twoSessions', function() {
@@ -109,11 +78,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(2, messageLoopStartHistogram.numValues);
     assert.strictEqual(1700.0625, messageLoopStartHistogram.min);
     assert.strictEqual(1700.0625 + delta, messageLoopStartHistogram.max);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(2, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1600.0, firstContentfulPaintHistogram.min);
-    assert.strictEqual(1600.0 + delta, firstContentfulPaintHistogram.max);
   });
 });
 </script>
