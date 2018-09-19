@@ -43,8 +43,10 @@ class DotPlotter {
   }
 
   createXAxisScale_(graph, chartDimensions) {
+    const range = Math.round(graph.max(point => +point));
+    const defaultRange = 1;
     return d3.scaleLinear()
-        .domain([0, graph.max(x => x)])
+        .domain([0, range || defaultRange]).nice()
         .range([0, chartDimensions.width]);
   }
 

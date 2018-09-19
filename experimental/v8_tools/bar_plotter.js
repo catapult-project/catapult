@@ -61,8 +61,11 @@ class BarPlotter {
   }
 
   createYAxisScale_(graph, chartDimensions) {
+    const maxHeight =
+        Math.round(graph.max(row => this.computeAverage_(row[this.y_])));
+    const defaultRange = 1;
     return d3.scaleLinear()
-        .domain([graph.max(row => this.computeAverage_(row[this.y_])), 0])
+        .domain([maxHeight || defaultRange, 0]).nice()
         .range([0, chartDimensions.height]);
   }
 
