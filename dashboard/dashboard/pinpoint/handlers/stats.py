@@ -4,13 +4,15 @@
 
 """Provides the web interface for displaying an overview of jobs."""
 
+import datetime
 import json
+
 import webapp2
 
 from dashboard.pinpoint.models import job as job_module
 
 
-_MAX_JOBS_TO_FETCH = 1000
+_MAX_JOBS_TO_FETCH = 10000
 
 
 # TODO: Generalize the Jobs handler to allow the user to choose what fields to
@@ -24,15 +26,16 @@ class Stats(webapp2.RequestHandler):
 
 
 def _GetJobs():
-  query = job_module.Job.query().order(-job_module.Job.created)
+  created_limit = datetime.datetime.now() - datetime.timedelta(days=28)
+  query = job_module.Job.query(job_module.Job.created >= created_limit)
   jobs = query.fetch(limit=_MAX_JOBS_TO_FETCH)
 
   job_infos = []
   for job in jobs:
     job_infos.append({
+        'comparison_mode': job.comparison_mode,
         'created': job.created.isoformat(),
-        # TODO: Don't access JobState outside of the Job object.
-        'differences': len(job.state.Differences()),
+        'difference_count': job.difference_count,
         'status': job.status,
     })
 

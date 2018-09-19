@@ -17,8 +17,9 @@ class StatsTest(test.TestCase):
     data = json.loads(self.testapp.get('/api/stats').body)
 
     expected = [{
+        'comparison_mode': None,
         'created': job.created.isoformat(),
-        'differences': 0,
+        'difference_count': None,
         'status': 'Completed',
     }]
     self.assertEqual(data, expected)

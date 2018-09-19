@@ -14,7 +14,28 @@ found in the LICENSE file.
 
     <h1>Stats</h1>
     <loading-wrapper url="/api/stats" response="{{jobs}}">
-      <!-- TODO: Insert cool charts and data here -->
+      <table>
+        <thead>
+          <tr>
+            <th>
+            <th>Total jobs
+            <th>Repro
+            <th>No repro
+            <th>Failed
+        <tbody>
+          <tr>
+            <th>Last 7 days
+            <td>[[completedJobCount(jobs, 7)]]
+            <td>[[reproJobs(jobs, 7)]]
+            <td>[[noReproJobs(jobs, 7)]]
+            <td>[[failedJobs(jobs, 7)]]
+          <tr>
+            <th>Last 28 days
+            <td>[[completedJobCount(jobs, 28)]]
+            <td>[[reproJobs(jobs, 28)]]
+            <td>[[noReproJobs(jobs, 28)]]
+            <td>[[failedJobs(jobs, 28)]]
+      </table>
     </loading-wrapper>
   </template>
 
@@ -28,6 +49,50 @@ found in the LICENSE file.
           type: Object,
         },
       },
+
+      completedJobCount(jobs, days) {
+        return this.completedPerfBisectJobs(jobs, days).length;
+      },
+
+      completedPerfBisectJobs(jobs, days) {
+        jobs = this.filterDays(jobs, days);
+        jobs = jobs.filter(job => job.comparison_mode);
+        jobs = jobs.filter(job => job.status != 'Running');
+        return jobs;
+      },
+
+      failedJobs(jobs, days) {
+        const completedJobs = this.completedPerfBisectJobs(jobs, days);
+        const failedJobs = completedJobs.filter(job => job.status == 'Failed');
+        return formatPercent(failedJobs.length, completedJobs.length);
+      },
+
+      noReproJobs(jobs, days) {
+        const completedJobs = this.completedPerfBisectJobs(jobs, days);
+        let noReproJobs = completedJobs.filter(job => job.status == 'Completed');
+        noReproJobs = noReproJobs.filter(job => job.difference_count == 0);
+        return formatPercent(noReproJobs.length, completedJobs.length);
+      },
+
+      reproJobs(jobs, days) {
+        const completedJobs = this.completedPerfBisectJobs(jobs, days);
+        let reproJobs = completedJobs.filter(job => job.status == 'Completed');
+        reproJobs = reproJobs.filter(job => job.difference_count > 0);
+        return formatPercent(reproJobs.length, completedJobs.length);
+      },
+
+      filterDays(jobs, days) {
+        const now = Date.now();
+        const daysInMs = days * 24 * 60 * 60 * 1000;
+        return jobs.filter(function(job) {
+          return now - new Date(job.created + 'Z') < daysInMs;
+        });
+      },
     });
+
+    function formatPercent(num, total) {
+      const percent = 100.0 * num / total;
+      return num + ' (' + percent.toFixed(1) + '%)';
+    }
   </script>
 </dom-module>
