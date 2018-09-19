@@ -13,6 +13,7 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_console
+from telemetry.internal.backends.chrome_inspector import inspector_log
 from telemetry.internal.backends.chrome_inspector import inspector_memory
 from telemetry.internal.backends.chrome_inspector import inspector_page
 from telemetry.internal.backends.chrome_inspector import inspector_runtime
@@ -68,6 +69,7 @@ class InspectorBackend(object):
     try:
       self._websocket.Connect(self.debugger_url, timeout)
       self._console = inspector_console.InspectorConsole(self._websocket)
+      self._log = inspector_log.InspectorLog(self._websocket)
       self._memory = inspector_memory.InspectorMemory(self._websocket)
       self._page = inspector_page.InspectorPage(
           self._websocket, timeout=timeout)
