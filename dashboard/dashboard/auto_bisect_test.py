@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import unittest
 
 import mock
@@ -145,14 +146,12 @@ class StartNewBisectForBugTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   @mock.patch.object(
-      auto_bisect.pinpoint_service, 'NewJob',
-      mock.MagicMock(
-          return_value={'jobId': 123, 'jobUrl': 'http://pinpoint/123'}))
+      auto_bisect.pinpoint_service, 'NewJob')
   @mock.patch.object(
       auto_bisect.start_try_job, 'GuessStoryFilter')
   @mock.patch.object(auto_bisect.pinpoint_request, 'ResolveToGitHash',
                      mock.MagicMock(return_value='abc123'))
-  def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_guess):
+  def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_guess, mock_new):
     namespaced_stored_object.Set('bot_configurations', {
         'linux-pinpoint': {
             'dimensions': [{'key': 'foo', 'value': 'bar'}]
@@ -162,6 +161,8 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     namespaced_stored_object.Set('repositories', {
         'chromium': {'some': 'params'},
     })
+
+    mock_new.return_value = {'jobId': 123, 'jobUrl': 'http://pinpoint/123'}
 
     testing_common.AddTests(
         ['ChromiumPerf'], ['linux-pinpoint'], {'sunspider': {'score': {}}})
@@ -188,6 +189,15 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     mock_guess.assert_called_once_with(
         'ChromiumPerf/linux-pinpoint/sunspider/score')
     self.assertEqual('123', a.get().pinpoint_bisects[0])
+    self.assertEqual(
+        {'alert': a.urlsafe(), 'test_path': test_key.id()},
+        json.loads(mock_new.call_args[0][0]['tags']))
+    anomaly_entity = a.get()
+    anomaly_magnitude = (anomaly_entity.median_after_anomaly -
+                         anomaly_entity.median_before_anomaly)
+    self.assertEqual(
+        anomaly_magnitude,
+        mock_new.call_args[0][0]['comparison_magnitude'])
 
   @mock.patch.object(
       auto_bisect.pinpoint_request, 'PinpointParamsFromBisectParams',

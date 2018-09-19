@@ -4,6 +4,7 @@
 
 """URL endpoint for a cron job to automatically run bisects."""
 
+import json
 import logging
 
 from dashboard import can_bisect
@@ -71,6 +72,7 @@ def _StartPinpointBisect(bug_id, test_anomaly, test):
       'bug_id': bug_id,
       'bisect_mode': 'performance',
       'story_filter': start_try_job.GuessStoryFilter(test.test_path),
+      'alerts': json.dumps([test_anomaly.key.urlsafe()])
   }
 
   try:
