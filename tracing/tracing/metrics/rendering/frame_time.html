@@ -51,7 +51,8 @@ tr.exportTo('tr.metrics.rendering', function() {
       events =
           [...modelHelper.surfaceFlingerProcess.findTopmostSlicesNamed(
               SURFACE_FLINGER_EVENT)];
-    } else {
+    }
+    if (events.length === 0) {
       if (modelHelper.gpuHelper) {
         const gpuProcess = modelHelper.gpuHelper.process;
         events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];

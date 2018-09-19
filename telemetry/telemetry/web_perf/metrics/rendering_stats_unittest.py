@@ -300,6 +300,49 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
 
 class RenderingStatsUnitTest(unittest.TestCase):
 
+  def testNoSurfaceFlingerStats(self):
+    timeline = model.TimelineModel()
+    timer = MockTimer()
+
+    ref_stats = ReferenceRenderingStats()
+    ref_stats.AppendNewRange()
+    surface_flinger = timeline.GetOrCreateProcess(pid=4)
+    surface_flinger.name = 'SurfaceFlinger'
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    browser = timeline.GetOrCreateProcess(pid=3)
+    browser_main = browser.GetOrCreateThread(tid=31)
+    browser_main.BeginSlice('webkit.console', 'ActionA',
+                            timer.AdvanceAndGet(2, 4), '')
+
+    for i in xrange(0, 10):
+      first = (i == 0)
+      AddDisplayRenderingStats(timer, browser_main, first, ref_stats)
+      timer.Advance(5, 10)
+
+    browser_main.EndSlice(timer.AdvanceAndGet())
+    timer.Advance(2, 4)
+
+    browser.FinalizeImport()
+    renderer.FinalizeImport()
+    timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
+    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
+               for e in timeline_markers]
+    metadata = [{
+        'name': 'metadata',
+        'value': {
+            'surface_flinger': {
+                'refresh_period': 16.6666
+            }
+        }
+    }]
+    stats = rendering_stats.RenderingStats(
+        renderer, browser, surface_flinger, None, records, metadata)
+
+    # Compare rendering stats to reference - we should fallback to Display
+    # Compositor stats, in absence of Surface Flinger stats.
+    self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
+    self.assertEquals(stats.frame_times, ref_stats.frame_times)
+
   def testBothSurfaceFlingerAndDisplayStats(self):
     timeline = model.TimelineModel()
     timer = MockTimer()

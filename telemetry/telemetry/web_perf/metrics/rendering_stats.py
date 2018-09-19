@@ -110,8 +110,10 @@ def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
   """ Returns the name of the event used to count frame timestamps, and the
       process that produced the events.
   """
+  surface_flinger_event_name = 'vsync_before'
   if surface_flinger_process:
-    return 'vsync_before', surface_flinger_process
+    if surface_flinger_process.GetAllEventsOfName(surface_flinger_event_name):
+      return surface_flinger_event_name, surface_flinger_process
 
   drm_event_name = 'DrmEventFlipComplete'
   display_rendering_stats = 'BenchmarkInstrumentation::DisplayRenderingStats'

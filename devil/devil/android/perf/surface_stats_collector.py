@@ -161,17 +161,20 @@ class SurfaceStatsCollector(object):
     # If this happens a lot during an animation, the animation appears
     # janky, even if it runs at 60 fps in average.
     window_name = self._GetSurfaceViewWindowName()
-    if not window_name:
-      return (None, None)
-    results = self._device.RunShellCommand(
-        ['dumpsys', 'SurfaceFlinger', '--latency', window_name],
-        check_return=True)
+    command = ['dumpsys', 'SurfaceFlinger', '--latency']
+    # Even if we don't find the window name, run the command to get the refresh
+    # period.
+    if window_name:
+      command.append(window_name)
+    results = self._device.RunShellCommand(command, check_return=True)
     if not len(results):
       return (None, None)
 
     timestamps = []
     nanoseconds_per_millisecond = 1e6
     refresh_period = long(results[0]) / nanoseconds_per_millisecond
+    if not window_name:
+      return (refresh_period, timestamps)
 
     # If a fence associated with a frame is still pending when we query the
     # latency data, SurfaceFlinger gives the frame a timestamp of INT64_MAX.
