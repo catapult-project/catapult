@@ -10,6 +10,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 
 from long_term_health import utils
 from long_term_health.apk_finder import ChromeVersion
@@ -185,13 +186,14 @@ def IsTaskCompleted(task_id):
        '--swarming', SWARMING_URL])
 
 
-def GetResultFromSwarming(isolate_hash, output_dir, benchmark_name):
+def GetResultFromSwarming(isolate_hash, output_dir, benchmark_name, shard_id):
   """Download `perf_results.json` in the given isolate hash.
 
   Args:
     isolate_hash(string): the output isolate hash given by the swarming server
     output_dir(string): the dir to put the downloaded files
     benchmark_name(string): the benchmark that we ran
+    shard_id(int): the shard id
   """
   # download the json that contains the description of other files
   # do not use the `--cache`, it will clear the directory
@@ -214,11 +216,65 @@ def GetResultFromSwarming(isolate_hash, output_dir, benchmark_name):
     subprocess.call(
         [ISOLATE_SERVER_SCRIPT, 'download',
          '--isolate-server', ISOLATE_SERVER_URL,
-         '--file=%s' % result_json_hash, RESULT_FILE_NAME,
+         '--file=%s' % result_json_hash, '%d_' % shard_id + RESULT_FILE_NAME,
          '--target=%s' % output_dir,
         ])
 
   os.remove(os.path.join(output_dir, 'files.json'))
+
+
+def CollectResults(version_task_id_table, run_label, benchmark_name):
+  """Collect the result from swarming if there is task id in the table.
+
+  This function repeatedly checks with the swarming server to see if the
+  task has completed, if yes it will collect the result and update the task
+  state and output isolate hash. The function terminates once all the tasks are
+  completed.
+
+  Args:
+    version_task_id_table(string, list of dicts): the mapping table for the
+    milestone number and the swarming jobs info. It will be like the following:
+       {'version1':
+         [
+           {'task_hash': hash_1,
+            'completed': False,
+            'results_isolate': None},
+           {'task_hash': hash_2,
+            'completed': True,
+            'results_isolate': None},
+            ...
+         ],
+        'version2': [...]}
+    In the case of running locally, all the `completed` key will be set to True.
+
+    run_label(string): the name for the output directory, user supplies this
+    when invoking the tool
+
+    benchmark_name(string): the name of the benchmark that the user ran
+  """
+  while True:
+    completed = True
+    for version, tasks in version_task_id_table.iteritems():
+      for shard_id, task in enumerate(tasks):
+        if not task['completed']:
+          if IsTaskCompleted(task['task_hash']):
+            output = subprocess.check_output(
+                [SWARMING_SCRIPT, 'query', 'task/%s/result' % task['task_hash'],
+                 '--swarming', SWARMING_URL])
+            output_isolate_data = json.loads(output)['outputs_ref']
+            GetResultFromSwarming(
+                output_isolate_data['isolated'],
+                os.path.join(utils.APP_ROOT, 'results', run_label, version),
+                benchmark_name,
+                shard_id)
+            task['results_isolate'] = output_isolate_data['isolated']
+            task['completed'] = True
+          else:
+            completed = False
+    if completed:
+      break
+    print 'Waiting for job to complete.'
+    time.sleep(300)
 
 
 def RunBenchmark(path_to_apk, run_label):
