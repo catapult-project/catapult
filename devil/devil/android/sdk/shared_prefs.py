@@ -278,12 +278,17 @@ class SharedPrefs(object):
       self._xml = None
       self._changed = True
 
-  def Commit(self):
+  def Commit(self, force_commit=False):
     """Save the current set of preferences to the device.
 
-    Only actually saves if some preferences have been modified.
+    Only actually saves if some preferences have been modified or force_commit
+    is set to True.
+
+    Args:
+      force_commit: Commit even if no changes have been made to the SharedPrefs
+        instance.
     """
-    if not self.changed:
+    if not (self.changed or force_commit):
       return
     self._device.RunShellCommand(
         ['mkdir', '-p', posixpath.dirname(self.path)],

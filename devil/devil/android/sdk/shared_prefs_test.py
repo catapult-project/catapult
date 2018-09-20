@@ -19,6 +19,14 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
 
+INITIAL_XML = ("<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
+               '<map>\n'
+               '  <int name="databaseVersion" value="107" />\n'
+               '  <boolean name="featureEnabled" value="false" />\n'
+               '  <string name="someHashValue">249b3e5af13d4db2</string>\n'
+               '</map>')
+
+
 def MockDeviceWithFiles(files=None):
   if files is None:
     files = {}
@@ -43,13 +51,7 @@ class SharedPrefsTest(unittest.TestCase):
 
   def setUp(self):
     self.device = MockDeviceWithFiles({
-      '/data/data/com.some.package/shared_prefs/prefs.xml':
-          "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
-          '<map>\n'
-          '  <int name="databaseVersion" value="107" />\n'
-          '  <boolean name="featureEnabled" value="false" />\n'
-          '  <string name="someHashValue">249b3e5af13d4db2</string>\n'
-          '</map>'})
+      '/data/data/com.some.package/shared_prefs/prefs.xml': INITIAL_XML})
     self.expected_data = {'databaseVersion': 107,
                           'featureEnabled': False,
                           'someHashValue': '249b3e5af13d4db2'}
@@ -126,6 +128,22 @@ class SharedPrefsTest(unittest.TestCase):
         'myMetric': 3.14,
         'bigNumner': 6000000000,
         'apps': ['gmail', 'chrome', 'music']})  # data survived roundtrip
+
+  def testForceCommit(self):
+    prefs = shared_prefs.SharedPrefs(
+        self.device, 'com.some.package', 'prefs.xml')
+    prefs.Load()
+    new_xml = 'Not valid XML'
+    self.device.WriteFile('/data/data/com.some.package/shared_prefs/prefs.xml',
+        new_xml)
+    prefs.Commit()
+    # Since we didn't change anything, Commit() should be a no-op.
+    self.assertEquals(self.device.ReadFile(
+        '/data/data/com.some.package/shared_prefs/prefs.xml'), new_xml)
+    prefs.Commit(force_commit=True)
+    # Forcing the commit should restore the originally read XML.
+    self.assertEquals(self.device.ReadFile(
+        '/data/data/com.some.package/shared_prefs/prefs.xml'), INITIAL_XML)
 
   def testAsContextManager_onlyReads(self):
     with shared_prefs.SharedPrefs(
