@@ -8,6 +8,7 @@ import unittest
 from google.appengine.ext import ndb
 
 from dashboard.common import descriptor
+from dashboard.common import report_query
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.models import graph_data
@@ -19,8 +20,13 @@ from dashboard.models import report_template
     template_id=584630894,
     name='Test:External',
     modified=datetime.datetime.now())
-def _External(unused_revisions):
-  return {'url': 'external'}
+def _External(revisions):
+  template = {
+      'rows': [],
+      'statistics': ['avg'],
+      'url': 'http://exter.nal',
+  }
+  return report_query.ReportQuery(template, revisions)
 
 
 class ReportTemplateTest(testing_common.TestCase):
@@ -144,9 +150,9 @@ class ReportTemplateTest(testing_common.TestCase):
 
   def testGetReport_Static(self):
     self.SetCurrentUser(testing_common.EXTERNAL_USER.email())
-    report = report_template.GetReport(584630894, [10, 20])
+    report = report_template.GetReport(584630894, ['latest'])
     self.assertFalse(report['internal'])
-    self.assertEqual({'url': 'external'}, report['report'])
+    self.assertEqual('http://exter.nal', report['report']['url'])
     self.assertEqual('Test:External', report['name'])
     self.assertFalse(report['editable'])
     self.assertNotIn('owners', report)

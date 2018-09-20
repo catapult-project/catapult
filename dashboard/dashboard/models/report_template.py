@@ -83,6 +83,8 @@ def Static(internal_only, template_id, name, modified):
     @functools.wraps(decorated)
     def Replacement(revisions):
       report = decorated(revisions)
+      if isinstance(report, report_query.ReportQuery):
+        report = report.FetchSync()
       assert isinstance(report.get('url'), basestring), (
           'Reports are required to link to documentation')
       return report
