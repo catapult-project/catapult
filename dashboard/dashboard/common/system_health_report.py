@@ -26,7 +26,7 @@ STARTUP_BY_BROWSER = {
     'chrome': {
         'testSuites': ['start_with_url.cold.startup_pages'],
         'measurement': 'foreground_tab_request_start',
-        'testCases': ['http://bbc.co.uk']
+        'testCases': ['http___bbc.co.uk']
     },
     'webview': {
         'testSuites': ['system_health.webview_startup'],
