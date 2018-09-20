@@ -3,10 +3,13 @@
 # found in the LICENSE file.
 """Helper function to run the benchmark.
 """
+import ast
+import contextlib
 import json
 import os
 import shutil
 import subprocess
+import tempfile
 
 from long_term_health import utils
 from long_term_health.apk_finder import ChromeVersion
@@ -23,8 +26,80 @@ ISOLATE_SERVER_SCRIPT = os.path.join(SWARMING_CLIENT, 'isolateserver.py')
 ISOLATE_SCRIPT = os.path.join(SWARMING_CLIENT, 'isolate.py')
 SWARMING_SCRIPT = os.path.join(SWARMING_CLIENT, 'swarming.py')
 PATH_TO_APKS = os.path.join(CHROMIUM_ROOT, 'tools', 'perf', 'swarming_apk')
+TEST_BUILD_GN = os.path.join(CHROMIUM_ROOT, 'chrome', 'test', 'BUILD.gn')
+GN_ISOLATE_MAP = os.path.join(
+    CHROMIUM_ROOT, 'testing', 'buildbot', 'gn_isolate_map.pyl')
+
 
 RESULT_FILE_NAME = 'perf_results.json'
+
+
+@contextlib.contextmanager
+def RestoreFileContents(file_paths):
+  """Context Manager to restore the file contents after modifications.
+
+  Args:
+    file_paths(list of strings): a list of paths to the files that you want to
+      keep unmodified
+
+  Yields:
+    To allow for modification of the file content.
+  """
+  temp_dir = tempfile.mkdtemp()
+  try:
+    for file_path in file_paths:
+      shutil.copyfile(
+          file_path, os.path.join(temp_dir, os.path.basename(file_path)))
+    yield
+    for file_path in file_paths:
+      shutil.copyfile(
+          os.path.join(temp_dir, os.path.basename(file_path)), file_path)
+  finally:
+    shutil.rmtree(temp_dir)
+
+
+def AddNewTargetToBUILD():
+  """Add a new target to the `chrome/test/BUILD.gn`."""
+  with open(TEST_BUILD_GN, 'a') as build_gn:
+    build_gn.write(
+        '''
+# Difference between this and performance_test_suite is that this runs a devil
+# script before the build, to remove the system chrome. See
+# //testing/buildbot/gn_isolate_map.pyl
+group("performance_system_chrome_test_suite") {
+  testonly = true
+  deps = [
+    "//chrome/test:performance_test_suite",
+  ]
+}
+        '''
+    )
+    build_gn.write('\n')  # seems like causing some strange indent problem...
+
+
+def AddTargetToIsolateMap():
+  """Add a ninja target to the corresponding gn label."""
+  with open(GN_ISOLATE_MAP, 'r') as content:
+    isolate_map_content = ast.literal_eval(content.read())
+
+  isolate_map_content['performance_system_chrome_test_suite'] = {
+      'label': '//chrome/test:performance_system_chrome_test_suite',
+      'type': 'script',
+      'script':
+          '//third_party/catapult/devil/devil/android/tools/system_app.py',
+      'args': [
+          'remove',
+          '--package',
+          'com.android.chrome',
+          '-v',
+          '--',
+          '../../testing/scripts/run_performance_tests.py',
+          '../../tools/perf/run_benchmark',
+      ],
+  }
+
+  with open(GN_ISOLATE_MAP, 'w') as isolate_map_file:
+    isolate_map_file.write(repr(isolate_map_content))
 
 
 def IncludeAPKInIsolate(apk_path):
@@ -38,7 +113,10 @@ def IncludeAPKInIsolate(apk_path):
 
 def GenerateIsolate(out_dir_path, target_name):
   # TODO(wangge): need to make it work even if there is no `out/Debug`
-  subprocess.call([MB, 'isolate', out_dir_path, target_name])
+  with RestoreFileContents([TEST_BUILD_GN, GN_ISOLATE_MAP]):
+    AddNewTargetToBUILD()
+    AddTargetToIsolateMap()
+    subprocess.call([MB, 'isolate', out_dir_path, target_name])
 
 
 def UploadIsolate(isolated_path):
