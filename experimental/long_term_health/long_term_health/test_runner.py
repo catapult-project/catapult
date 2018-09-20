@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """Helper function to run the benchmark.
+
+If there is problem, try `gclient sync` to ensure everything is the latest.
 """
 import ast
 import contextlib
@@ -33,6 +35,14 @@ GN_ISOLATE_MAP = os.path.join(
 
 
 RESULT_FILE_NAME = 'perf_results.json'
+
+
+def FindFilesByExtension(dir_path, extension):
+  files = []
+  for name in os.listdir(dir_path):
+    if name.endswith(extension):
+      files.append(os.path.join(dir_path, name))
+  return files
 
 
 @contextlib.contextmanager
@@ -113,17 +123,37 @@ def IncludeAPKInIsolate(apk_path):
 
 
 def GenerateIsolate(out_dir_path, target_name):
+  """Generate the isolate for the given target.
+
+  This function will try to fetch the latest benchmark DEPs and remove sha1 file
+  before generating the isolate.
+
+  Args:
+    out_dir_path(string): the directory that you want the isolate to be in
+    target_name(string): the name of the target
+  """
   # TODO(wangge): need to make it work even if there is no `out/Debug`
-  with RestoreFileContents([TEST_BUILD_GN, GN_ISOLATE_MAP]):
+  subprocess.check_call(
+      ['python', os.path.join(
+          CHROMIUM_ROOT, 'tools', 'perf', 'fetch_benchmark_deps.py'),
+       'system_health.memory_mobile'])
+  hash_files = FindFilesByExtension(os.path.join(
+      CHROMIUM_ROOT, 'tools', 'perf', 'page_sets', 'data'), '.sha1')
+  with RestoreFileContents([TEST_BUILD_GN, GN_ISOLATE_MAP] + hash_files):
     AddNewTargetToBUILD()
     AddTargetToIsolateMap()
-    subprocess.call([MB, 'isolate', out_dir_path, target_name])
+    # remove the hash files to allow the swarming bot to run the benchmark,
+    # otherwise the Telemetry will attempt to download the WPR recordings again.
+    for hash_file in hash_files:
+      os.remove(hash_file)
+    subprocess.check_call([MB, 'isolate', out_dir_path, target_name])
 
 
 def UploadIsolate(isolated_path):
+  """Returns the input isolate hash."""
   return subprocess.check_output(
       [ISOLATE_SCRIPT, 'archive', '-I', ISOLATE_SERVER_URL,
-       '-s', isolated_path])
+       '-s', isolated_path]).split(' ')[0]
 
 
 def TriggerSwarmingJob(isolate_hash, isolated_apk_path):
@@ -153,7 +183,7 @@ def TriggerSwarmingJob(isolate_hash, isolated_apk_path):
   bot_dimension_options = [
       '--dimension', 'pool', 'chrome.tests.pinpoint',
       '--dimension', 'os', 'Android',
-      '--dimension', 'device_os_flavor', 'aosp',
+      '--dimension', 'device_os_flavor', 'google',
   ]
   # options provided to the `run_benchmark` script
   run_benchmark_options = [
@@ -213,7 +243,7 @@ def GetResultFromSwarming(isolate_hash, output_dir, benchmark_name, shard_id):
   with open(os.path.join(output_dir, 'files.json')) as data:
     result_json_hash = json.load(data)['files'][
         '%s/%s' % (benchmark_name, RESULT_FILE_NAME)]['h']
-    subprocess.call(
+    subprocess.check_call(
         [ISOLATE_SERVER_SCRIPT, 'download',
          '--isolate-server', ISOLATE_SERVER_URL,
          '--file=%s' % result_json_hash, '%d_' % shard_id + RESULT_FILE_NAME,
@@ -277,35 +307,68 @@ def CollectResults(version_task_id_table, run_label, benchmark_name):
     time.sleep(300)
 
 
-def RunBenchmark(path_to_apk, run_label):
+def RunBenchmarkOnSwarming(apk_path):
+  isolated_apk_path = IncludeAPKInIsolate(apk_path)
+  GenerateIsolate(os.path.join(CHROMIUM_ROOT, 'out', 'Debug'),
+                  'performance_system_chrome_test_suite')
+  input_isolate_hash = UploadIsolate(os.path.join(
+      CHROMIUM_ROOT, 'out', 'Debug',
+      'performance_system_chrome_test_suite.isolated'))
+  return TriggerSwarmingJob(input_isolate_hash, isolated_apk_path)
+
+
+def RunBenchmarkLocally(apk_path, run_label):
   """Install the APK and run the benchmark on it.
 
   Args:
-    path_to_apk(string): the *relative* path to the APK
+    apk_path(string): the *relative* path to the APK
     run_label(string): the name of the directory to contains all the output
     from this run
   """
   # `path_to_apk` is similar to `./out/59.0.3071.132_arm_MonochromeStable.apk`
-  chrome_version = ChromeVersion(path_to_apk.split('/')[-1].split('_')[0])
-  subprocess.call(['adb', 'install', '-r', '-d', path_to_apk])
-  subprocess.call([os.path.join(utils.CHROMIUM_SRC, 'tools',
-                                'perf', 'run_benchmark'),
-                   '--browser=android-system-chrome',
-                   '--pageset-repeat=1',  # could remove this later
-                   '--results-label=%s' % str(chrome_version),
-                   # TODO(wangge):not sure if we should run in compatibility
-                   # mode even for the later version, probably add a check in
-                   # caller to determine if we should run it in compatibility
-                   # mode and add an argument `run_in_compatibility_mode` to
-                   # the `RunBenchmark` function
-                   '--compatibility-mode=no-field-trials',
-                   '--compatibility-mode=ignore-certificate-errors',
-                   '--compatibility-mode=legacy-command-line-path',
-                   '--compatibility-mode=gpu-benchmarking-fallbacks',
-                   '--story-filter=wikipedia',  # could remove this
-                   # thinking of adding an argument to the tool to set this
-                   '--output-dir=%s' % os.path.join(
-                       utils.APP_ROOT, 'results', run_label,
-                       str(chrome_version.milestone)),
-                   # thinking of adding an argument to the tool to set this too
-                   'system_health.memory_mobile'])
+  chrome_version = ChromeVersion(apk_path.split('/')[-1].split('_')[0])
+  subprocess.check_call(['adb', 'install', '-r', '-d', apk_path])
+  subprocess.check_call([os.path.join(utils.CHROMIUM_SRC, 'tools',
+                                      'perf', 'run_benchmark'),
+                         '--browser=android-system-chrome',
+                         '--pageset-repeat=1',  # could remove this later
+                         '--results-label=%s' % str(chrome_version),
+                         # TODO(wangge):not sure if we should run in
+                         # compatibility mode even for the later version,
+                         # probably add a check in the caller to determine if
+                         # we should run it in compatibility mode and add an
+                         # argument `run_in_compatibility_mode` to the
+                         # `RunBenchmark` function
+                         '--compatibility-mode=no-field-trials',
+                         '--compatibility-mode=ignore-certificate-errors',
+                         '--compatibility-mode=legacy-command-line-path',
+                         '--compatibility-mode=gpu-benchmarking-fallbacks',
+                         '--story-filter=wikipedia',  # could remove this
+                         '--output-dir=%s' % os.path.join(
+                             utils.APP_ROOT, 'results', run_label,
+                             str(chrome_version.milestone)),
+                         'system_health.memory_mobile'])
+
+
+def RunBenchmark(apk_path, run_label, use_swarming):
+  """Run the benchmark.
+
+  Args:
+    apk_path(string): path to the Clank APK
+    run_label(string): the user supplied label, i.e. directory name
+    use_swarming(boolean): whether to run on swarming
+
+  Returns:
+    dict: containing the task meta info
+  """
+  task_status = {
+      'task_hash': None,
+      'completed': False,
+      'result_isolate': None,
+  }
+  if use_swarming:
+    task_status['task_hash'] = RunBenchmarkOnSwarming(apk_path)
+  else:
+    RunBenchmarkLocally(apk_path, run_label)
+    task_status['completed'] = True
+  return task_status

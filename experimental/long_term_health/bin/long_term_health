@@ -106,7 +106,7 @@ def main(args):
       path_to_apk = apk_finder.GetAPK(
           milestone, args.output_path, milestone_info)
       print utils.ColoredStr('Running benchmark for milestone %d:' % milestone)
-      test_runner.RunBenchmark(path_to_apk, args.run_label)
+      test_runner.RunBenchmarkLocally(path_to_apk, args.run_label)
 
     aggregate_results.AggregateResults(args.run_label)
 
