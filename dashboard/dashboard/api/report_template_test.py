@@ -2,31 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
 import json
 import unittest
+
+from google.appengine.ext import ndb
 
 from dashboard.api import api_auth
 from dashboard.api import report_template as api_report_template
 from dashboard.common import testing_common
 from dashboard.models import report_template
-
-@report_template.Static(
-    internal_only=False,
-    template_id=464092444,
-    name='Test:ExternalTemplate',
-    modified=datetime.datetime.now())
-def _External(unused_revisions):
-  return 'external'
-
-
-@report_template.Static(
-    internal_only=True,
-    template_id=130723169,
-    name='Test:InternalTemplate',
-    modified=datetime.datetime.now())
-def _Internal(unused_revisions):
-  return 'internal'
 
 
 class ReportTemplateTest(testing_common.TestCase):
@@ -36,13 +20,19 @@ class ReportTemplateTest(testing_common.TestCase):
     self.SetUpApp([
         ('/api/report/template', api_report_template.ReportTemplateHandler),
     ])
-    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
   def _Post(self, **params):
     return json.loads(self.Post('/api/report/template', params).body)
 
+  def testUnprivileged(self):
+    self.Post('/api/report/template', dict(
+        owners=testing_common.INTERNAL_USER.email(),
+        name='Test:New',
+        template=json.dumps({'rows': []})), status=403)
+
   def testInvalid(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.Post('/api/report/template', dict(
         template=json.dumps({'rows': []})), status=400)
     self.Post('/api/report/template', dict(
@@ -57,13 +47,26 @@ class ReportTemplateTest(testing_common.TestCase):
         name='Test:New',
         template=json.dumps({'rows': []}))
     names = [d['name'] for d in response]
-    self.assertIn('Test:ExternalTemplate', names)
-    self.assertIn('Test:InternalTemplate', names)
     self.assertIn('Test:New', names)
 
     template = report_template.ReportTemplate.query(
         report_template.ReportTemplate.name == 'Test:New').get()
     self.assertEqual({'rows': []}, template.template)
+
+  def testInternal_UpdateTemplate(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    response = self._Post(
+        owners=testing_common.INTERNAL_USER.email(),
+        name='Test:New',
+        template=json.dumps({'rows': []}))
+    new_id = [info['id'] for info in response if info['name'] == 'Test:New'][0]
+    response = self._Post(
+        owners=testing_common.INTERNAL_USER.email(),
+        name='Test:Updated',
+        id=new_id,
+        template=json.dumps({'rows': []}))
+    template = ndb.Key('ReportTemplate', new_id).get()
+    self.assertEqual('Test:Updated', template.name)
 
   def testAnonymous_PutTemplate(self):
     self.SetCurrentUserOAuth(None)
