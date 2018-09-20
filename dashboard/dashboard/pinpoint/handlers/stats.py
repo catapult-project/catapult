@@ -9,7 +9,7 @@ import json
 
 import webapp2
 
-from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import job
 
 
 _MAX_JOBS_TO_FETCH = 10000
@@ -27,16 +27,18 @@ class Stats(webapp2.RequestHandler):
 
 def _GetJobs():
   created_limit = datetime.datetime.now() - datetime.timedelta(days=28)
-  query = job_module.Job.query(job_module.Job.created >= created_limit)
+  query = job.Job.query(job.Job.created >= created_limit)
   jobs = query.fetch(limit=_MAX_JOBS_TO_FETCH)
 
   job_infos = []
-  for job in jobs:
+  for j in jobs:
     job_infos.append({
-        'comparison_mode': job.comparison_mode,
-        'created': job.created.isoformat(),
-        'difference_count': job.difference_count,
-        'status': job.status,
+        'comparison_mode': j.comparison_mode,
+        'completed': j.completed,
+        'created': j.created.isoformat(),
+        'difference_count': j.difference_count,
+        'failed': j.failed,
+        'updated': j.updated.isoformat(),
     })
 
   return job_infos

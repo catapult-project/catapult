@@ -10,10 +10,21 @@ found in the LICENSE file.
 
 <dom-module id="stats-page">
   <template>
-    <style include="base-style"></style>
+    <style include="base-style">
+      td {
+        text-align: center;
+      }
+
+      svg {
+        fill: var(--paper-indigo-500);
+        height: 56px;
+        width: 505px;
+      }
+    </style>
 
     <h1>Stats</h1>
     <loading-wrapper url="/api/stats" response="{{jobs}}">
+      <h2>Reliability and reproducibility</h2>
       <table>
         <thead>
           <tr>
@@ -24,17 +35,75 @@ found in the LICENSE file.
             <th>Failed
         <tbody>
           <tr>
-            <th>Last 7 days
-            <td>[[completedJobCount(jobs, 7)]]
+            <th>Bisects last 7 days
+            <td>[[completedCount(jobs, 1, 7)]]
             <td>[[reproJobs(jobs, 7)]]
             <td>[[noReproJobs(jobs, 7)]]
-            <td>[[failedJobs(jobs, 7)]]
+            <td>[[failedJobs(jobs, 1, 7)]]
           <tr>
-            <th>Last 28 days
-            <td>[[completedJobCount(jobs, 28)]]
+            <th>Bisects last 28 days
+            <td>[[completedCount(jobs, 1, 28)]]
             <td>[[reproJobs(jobs, 28)]]
             <td>[[noReproJobs(jobs, 28)]]
-            <td>[[failedJobs(jobs, 28)]]
+            <td>[[failedJobs(jobs, 1, 28)]]
+          <tr>
+            <th>Try jobs last 7 days
+            <td>[[completedCount(jobs, 0, 7)]]
+            <td>
+            <td>
+            <td>[[failedJobs(jobs, 0, 7)]]
+          <tr>
+            <th>Try jobs last 28 days
+            <td>[[completedCount(jobs, 0, 28)]]
+            <td>
+            <td>
+            <td>[[failedJobs(jobs, 0, 28)]]
+      </table>
+
+      <h2>Latency</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>
+            <th>Total jobs
+            <th>Duration 50%
+            <th>Duration 75%
+            <th>Duration 90%
+            <th>Duration 99%
+            <th>Duration
+        <tbody>
+          <tr>
+            <th>Bisects last 7 days
+            <td>[[completedCount(jobs, 1, 7)]]
+            <td>[[completedDuration(jobs, 1, 7, 0.50)]]
+            <td>[[completedDuration(jobs, 1, 7, 0.75)]]
+            <td>[[completedDuration(jobs, 1, 7, 0.90)]]
+            <td>[[completedDuration(jobs, 1, 7, 0.99)]]
+            <td><svg id="bisectDurations7"></svg>
+          <tr>
+            <th>Bisects last 28 days
+            <td>[[completedCount(jobs, 1, 28)]]
+            <td>[[completedDuration(jobs, 1, 28, 0.50)]]
+            <td>[[completedDuration(jobs, 1, 28, 0.75)]]
+            <td>[[completedDuration(jobs, 1, 28, 0.90)]]
+            <td>[[completedDuration(jobs, 1, 28, 0.99)]]
+            <td><svg id="bisectDurations28"></svg>
+          <tr>
+            <th>Try jobs last 7 days
+            <td>[[completedCount(jobs, 0, 7)]]
+            <td>[[completedDuration(jobs, 0, 7, 0.50)]]
+            <td>[[completedDuration(jobs, 0, 7, 0.75)]]
+            <td>[[completedDuration(jobs, 0, 7, 0.90)]]
+            <td>[[completedDuration(jobs, 0, 7, 0.99)]]
+            <td><svg id="tryDurations7"></svg>
+          <tr>
+            <th>Try jobs last 28 days
+            <td>[[completedCount(jobs, 0, 28)]]
+            <td>[[completedDuration(jobs, 0, 28, 0.50)]]
+            <td>[[completedDuration(jobs, 0, 28, 0.75)]]
+            <td>[[completedDuration(jobs, 0, 28, 0.90)]]
+            <td>[[completedDuration(jobs, 0, 28, 0.99)]]
+            <td><svg id="tryDurations28"></svg>
       </table>
     </loading-wrapper>
   </template>
@@ -47,52 +116,120 @@ found in the LICENSE file.
       properties: {
         jobs: {
           type: Object,
+          observer: '_jobsChanged',
         },
       },
 
-      completedJobCount(jobs, days) {
-        return this.completedPerfBisectJobs(jobs, days).length;
+      _jobsChanged() {
+        this.async(this.drawDurationHistograms, 1);
       },
 
-      completedPerfBisectJobs(jobs, days) {
-        jobs = this.filterDays(jobs, days);
-        jobs = jobs.filter(job => job.comparison_mode);
-        jobs = jobs.filter(job => job.status != 'Running');
-        return jobs;
+      drawDurationHistograms() {
+        const bisectDurations7Days = this.completedDurations(this.jobs, true, 7);
+        const bisectDurations28Days = this.completedDurations(this.jobs, true, 28);
+        const tryDurations7Days = this.completedDurations(this.jobs, false, 7);
+        const tryDurations28Days = this.completedDurations(this.jobs, false, 28);
+        drawHistogram(d3.select(this.$.bisectDurations7), bisectDurations7Days);
+        drawHistogram(d3.select(this.$.bisectDurations28), bisectDurations28Days);
+        drawHistogram(d3.select(this.$.tryDurations7), tryDurations7Days);
+        drawHistogram(d3.select(this.$.tryDurations28), tryDurations28Days);
       },
 
-      failedJobs(jobs, days) {
-        const completedJobs = this.completedPerfBisectJobs(jobs, days);
-        const failedJobs = completedJobs.filter(job => job.status == 'Failed');
+      completedCount(jobs, comparisonMode, days) {
+        return this.completedJobs(jobs, comparisonMode, days).length;
+      },
+
+      failedJobs(jobs, comparisonMode, days) {
+        const completedJobs = this.completedJobs(jobs, comparisonMode, days);
+        const failedJobs = completedJobs.filter(job => job.failed);
         return formatPercent(failedJobs.length, completedJobs.length);
       },
 
       noReproJobs(jobs, days) {
-        const completedJobs = this.completedPerfBisectJobs(jobs, days);
-        let noReproJobs = completedJobs.filter(job => job.status == 'Completed');
-        noReproJobs = noReproJobs.filter(job => job.difference_count == 0);
+        const completedJobs = this.completedJobs(jobs, true, days);
+        const passedJobs = completedJobs.filter(job => !job.failed);
+        const noReproJobs = passedJobs.filter(job => job.difference_count == 0);
         return formatPercent(noReproJobs.length, completedJobs.length);
       },
 
       reproJobs(jobs, days) {
-        const completedJobs = this.completedPerfBisectJobs(jobs, days);
-        let reproJobs = completedJobs.filter(job => job.status == 'Completed');
-        reproJobs = reproJobs.filter(job => job.difference_count > 0);
+        const completedJobs = this.completedJobs(jobs, true, days);
+        const passedJobs = completedJobs.filter(job => !job.failed);
+        const reproJobs = passedJobs.filter(job => job.difference_count > 0);
         return formatPercent(reproJobs.length, completedJobs.length);
       },
 
-      filterDays(jobs, days) {
+      completedDuration(jobs, comparisonMode, days, p) {
+        const durations = this.completedDurations(jobs, comparisonMode, days);
+        durations.sort((a, b) => a - b);
+        const duration = d3.quantile(durations, p);
+        return formatDuration(duration);
+      },
+
+      completedDurations(jobs, comparisonMode, days) {
+        jobs = this.completedJobs(jobs, comparisonMode, days);
+        const durations = jobs.map(function(job) {
+          const durationMs =
+              new Date(job.updated + 'Z') - new Date(job.created + 'Z');
+          return durationMs / 1000 / 60 / 60;
+        });
+        return durations;
+      },
+
+      completedJobs(jobs, comparisonMode, days) {
         const now = Date.now();
         const daysInMs = days * 24 * 60 * 60 * 1000;
-        return jobs.filter(function(job) {
+        jobs = jobs.filter(function(job) {
           return now - new Date(job.created + 'Z') < daysInMs;
         });
+
+        jobs = jobs.filter(job => job.completed);
+        return jobs.filter(job => !!job.comparison_mode == !!comparisonMode);
       },
     });
 
     function formatPercent(num, total) {
       const percent = 100.0 * num / total;
       return num + ' (' + percent.toFixed(1) + '%)';
+    }
+
+    function formatDuration(durationHr) {
+      return durationHr.toFixed(1) + ' hours';
+    }
+
+    function drawHistogram(svg, values) {
+      const x = d3.scaleLinear()
+          .domain([0, 50])
+          .rangeRound([0, 500]);
+
+      svg.append('g')
+          .attr('transform', 'translate(0, 40)')
+          .call(d3.axisBottom(x).ticks(10));
+
+      const histogram = d3.histogram()
+          .domain([0, d3.max(values)])
+          .thresholds(x.ticks(96));
+      const histogramBins = bins(histogram, values);
+      const maxBucket = d3.max(histogramBins, bucket => bucket.proportion);
+      const y = d3.scaleLinear()
+          .domain([0, maxBucket])
+          .range([40, 0]);
+
+      const rect = svg.selectAll('rect')
+          .data(histogramBins.filter(bin => bin.length));
+      rect.enter().append('rect')
+          .attr('x', d => x(d.x0))
+          .attr('width', d => x(d.x1) - x(d.x0))
+          .attr('y', d => y(d.proportion))
+          .attr('height', d => y(0) - y(d.proportion));
+    }
+
+    function bins(histogram, values) {
+      const bins = histogram(values);
+      for (const bin of bins) {
+        bin.proportion = bin.length / values.length;
+      }
+      return bins;
     }
   </script>
 </dom-module>

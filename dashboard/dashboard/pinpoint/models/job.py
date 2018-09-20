@@ -90,6 +90,9 @@ class Job(ndb.Model):
   # to be able to modify the Job without changing the Job's completion time.
   updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
+  completed = ndb.ComputedProperty(lambda self: not self.task)
+  failed = ndb.ComputedProperty(lambda self: bool(self.exception))
+
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
   task = ndb.StringProperty()
@@ -149,10 +152,10 @@ class Job(ndb.Model):
 
   @property
   def status(self):
-    if self.task:
+    if not self.completed:
       return 'Running'
 
-    if self.exception:
+    if self.failed:
       return 'Failed'
 
     return 'Completed'

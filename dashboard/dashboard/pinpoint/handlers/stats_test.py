@@ -18,8 +18,10 @@ class StatsTest(test.TestCase):
 
     expected = [{
         'comparison_mode': None,
+        'completed': True,
         'created': job.created.isoformat(),
         'difference_count': None,
-        'status': 'Completed',
+        'failed': False,
+        'updated': job.updated.isoformat(),
     }]
     self.assertEqual(data, expected)

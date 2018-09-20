@@ -341,10 +341,10 @@ found in the LICENSE file.
       return changeString;
     }
 
-    function bins(histogram, resultValues) {
-      const bins = histogram(resultValues);
+    function bins(histogram, values) {
+      const bins = histogram(values);
       for (const bin of bins) {
-        bin.proportion = bin.length / resultValues.length;
+        bin.proportion = bin.length / values.length;
       }
       return bins;
     }
