@@ -4,17 +4,21 @@
 const app = new Vue({
   el: '#app',
   data: {
+    state: {
+      parsedMetrics: [],
+      gridData: [],
+      typesOfPlot: ['Cumulative frequency plot', 'Dot plot'],
+      chosenTypeOfPlot: null,
+      searchQuery: '',
+      currentState: true,
+    },
     sampleArr: [],
     guidValue: null,
     graph: new GraphData(),
-    searchQuery: '',
     gridColumns: ['metric'],
-    gridData: [],
-    parsedMetrics: null,
     columnsForChosenDiagnostic: null,
     defaultGridData: [],
-    typesOfPlot: ['Cumulative frequency plot', 'Dot plot'],
-    chosenTypeOfPlot: null
+    stateManager: new StateManager(),
   },
 
   methods: {
@@ -22,8 +26,8 @@ const app = new Vue({
     //  previous default way with all the components
     //  available.
     resetTableData() {
-      this.gridData = this.defaultGridData;
-      this.typesOfPlot = ['Cumulative frequency plot', 'Dot plot'];
+      this.state.typesOfPlot = ['Cumulative frequency plot', 'Dot plot'];
+      this.state.gridData = this.defaultGridData;
     },
 
     //  Get all stories for a specific metric.
@@ -104,6 +108,7 @@ const app = new Vue({
 
     //  Draw a bar chart.
     plotBarChart(data) {
+      this.pushCurrentState();
       this.graph.xAxis('Story')
           .yAxis('Memory used (MiB)')
           .title('Labels')
@@ -114,6 +119,7 @@ const app = new Vue({
     //  Draw a dot plot depending on the target value.
     //  This is mainly for results from the table.
     plotDotPlot(target, story, traces) {
+      this.pushCurrentState();
       const openTrace = (label, index) => {
         window.open(traces[label][index]);
       };
@@ -131,6 +137,7 @@ const app = new Vue({
       const openTrace = (label, index) => {
         window.open(traces[label][index]);
       };
+      this.pushCurrentState();
       this.graph.yAxis('Cumulative frequency')
           .xAxis('Memory used (MiB)')
           .title(story)
@@ -139,6 +146,7 @@ const app = new Vue({
     },
 
     plotStackBar(obj, title) {
+      this.pushCurrentState();
       this.graph.xAxis('Stories')
           .yAxis('Memory used (MiB)')
           .title(title)
@@ -146,6 +154,60 @@ const app = new Vue({
           .plotStackedBar();
     },
 
+    /**
+     * Pushes the current state of data being displayed onto a stack to
+     * be retrieved when an undo occurs.
+     */
+    pushCurrentState() {
+      // Only states just popped of the stack have current state set to
+      // false and should not be pushed back on.
+      if (this.state.currentState) {
+        // The state that is pushed is not current and should be marked
+        // as such so that it is not pushed back onto the stack when an
+        // undo occurs and the graph is plotted.
+        this.state.currentState = false;
+        // Deep clone the state objects so that their state is saved
+        // and not mutated by future changes in Vue's state object.
+        const clone = obj => JSON.parse(JSON.stringify(obj));
+        this.stateManager.pushState({
+          app: clone(this.state),
+          menu: clone(menu.state),
+          table: clone(this.$refs.tableComponent.state),
+        });
+      }
+      this.state.currentState = true;
+    },
+
+    /**
+     * Pops the previous state from the top of the stack and amends the
+     * state objects of the vue components. This will trigger the
+     * affected watchers and cause the graph to be plotted again based
+     * on the retrieved data.
+     */
+    undo() {
+      const savedState = this.stateManager.popState();
+      this.replaceState(this.state, savedState.app);
+      this.replaceState(menu.state, savedState.menu);
+      this.replaceState(this.$refs.tableComponent.state, savedState.table);
+    },
+
+    /**
+     * Checks if the state manager has any state saved onto the stack.
+     */
+    hasHistory() {
+      return this.stateManager.hasHistory();
+    },
+
+    replaceState(oldState, newState) {
+      Object.keys(oldState).forEach((key) => {
+        // Only replace properties which have actually changed to
+        // avoid triggering watchers for data which has not really
+        // changed.
+        if (!_.isEqual(oldState[key], newState[key])) {
+          oldState[key] = newState[key];
+        }
+      });
+    },
     //  Being given a metric, a story, a diagnostic and a set of
     //  subdiagnostics (i.e. 3 labels from the total of 4), the
     //  method return the sample values for each subdiagnostic.
@@ -213,6 +275,7 @@ const app = new Vue({
     //  and the chosen type of plot. All are chosen from the table.
     plotSingleMetric(metric, story, diagnostic,
         diagnostics, chosenPlot) {
+      this.state.chosenTypeOfPlot = chosenPlot;
       const target = this.targetForMultipleDiagnostics(
           this.getSampleValues, metric, story, diagnostic, diagnostics);
       const traces = this.targetForMultipleDiagnostics(
@@ -241,7 +304,7 @@ const app = new Vue({
 
   computed: {
     gridDataLoaded() {
-      return this.gridData.length > 0;
+      return this.state.gridData.length > 0;
     },
     data_loaded() {
       return this.sampleArr.length > 0;
@@ -249,36 +312,36 @@ const app = new Vue({
   },
 
   watch: {
-    //  Whenever a new metric/ story/ diagnostic is chosen
-    //  this function will run for drawing a new type of plot.
-    //  These items are chosen from the drop-down menu.
-    filteredData() {
-      this.plotCumulativeFrequency();
-    },
 
     //  Whenever we have new inputs from the menu (parsed inputs that
     //  where obtained by choosing from the tree) these should be
     //  added in the table (adding the average sample value).
     //  Also it creates by default a stack plot for all the metrics
     //  obtained from the tree-menu, all the stories from the top-level
-    //  metric and all labels.
-    parsedMetrics() {
+    //  metric and all available labels.
+    'state.parsedMetrics'() {
+      if (this.state.parsedMetrics.length === 0) {
+        // The menu has no metrics selected (the default state) so show
+        // the entire table.
+        this.resetTableData();
+        return;
+      }
       const newGridData = [];
-      for (const metric of this.parsedMetrics) {
+      for (const metric of this.state.parsedMetrics) {
         for (const elem of this.defaultGridData) {
           if (elem.metric === metric) {
             newGridData.push(elem);
           }
         }
       }
-      this.gridData = newGridData;
+      this.state.gridData = newGridData;
 
       //  We select from sampleValues all the metrics thath
       //  corespond to the result from tree menu (gridData)
       const metricsDependingOnGrid = [];
       const gridMetricsName = [];
 
-      for (const metric of this.gridData) {
+      for (const metric of this.state.gridData) {
         gridMetricsName.push(metric.metric);
       }
 
@@ -289,21 +352,21 @@ const app = new Vue({
       }
       //  The top level metric is taken as source in
       //  computing stories.
-      const storiesName = this.getStoriesByMetric(this
-          .gridData[0].metric);
+      const storiesName =
+          this.getStoriesByMetric(this.state.gridData[0].metric);
       const labelsName = this.columnsForChosenDiagnostic;
       const obj = this.computeDataForStackPlot(metricsDependingOnGrid,
           storiesName, labelsName);
       this.plotStackBar(obj, newGridData[0].metric);
-      //  From now on the user will be aible to switch between
+      //  From now on the user will be able to switch between
       //  this 2 types of plot (taking into consideration that
       //  the scope of the tree-menu is to analyse using the
       //  the stacked plot and bar plot, we avoid for the moment
       //  other types of plot that should be actually used without
       //  using the tree menu)
-      this.typesOfPlot = ['Bar chart plot', 'Stacked bar plot',
+      this.state.typesOfPlot = ['Bar chart plot', 'Stacked bar plot',
         'Cumulative frequency plot', 'Dot plot'];
-      this.chosenTypeOfPlot = 'Stacked bar plot';
+      this.state.chosenTypeOfPlot = 'Stacked bar plot';
     }
   }
 });

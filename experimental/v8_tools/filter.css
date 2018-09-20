@@ -52,24 +52,21 @@
 }
 
 #apply_button{
-  background-color: rgb(245, 250, 245);
-  border: 2px solid #42b983;
-  border-radius: 10px;
   margin-left:300px;
   margin-top:7px;
-  margin-bottom: 4px;
-  padding: 5px;
 }
 
 #reset_button{
   margin-left:740px;
   margin-top: 7px;
-  padding: 5px;
+}
+
+button {
   background-color: rgb(245, 250, 245);
   border: 2px solid #ade0c8;
   border-radius: 13px;
+  padding: 5px;
 }
-
 #subcomponentBox {
   background-color: rgb(229, 245, 229);
   border: 2px solid #c6ddc6;

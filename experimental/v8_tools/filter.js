@@ -5,28 +5,25 @@ Vue.component('v-select', VueSelect.VueSelect);
 const menu = new Vue({
   el: '#menu',
   data: {
-    sampleArr: null,
-    guidValueInfo: null,
-
-    browser: null,
-    subprocess: null,
-
-    component: null,
-    size: null,
-    metricNames: null,
-
+    state: {
+      browser: null,
+      subprocess: null,
+      component: null,
+      size: null,
+      subcomponent: null,
+      subsubcomponent: null,
+      testResults: [],
+      referenceColumn: '',
+    },
     browserOptions: [],
     subprocessOptions: [],
-
-    subcomponent: null,
-    subsubcomponent: null,
-
+    metricNames: null,
+    sampleArr: null,
+    guidValueInfo: null,
     componentMap: null,
     sizeMap: null,
 
     allLabels: [],
-    testResults: [],
-    referenceColumn: '',
     significanceTester: new MetricSignificance(),
   },
   mounted() {
@@ -50,11 +47,11 @@ const menu = new Vue({
     //  The probe is auto detected depending on the chosen size.
     //  Then the user is provided with the first level of components.
     componentsOptions() {
-      if (this.componentMap === null || this.size === null) {
+      if (this.componentMap === null || this.state.size === null) {
         return undefined;
       }
       for (const [key, value] of this.sizeMap.entries()) {
-        if (value.includes(this.size)) {
+        if (value.includes(this.state.size)) {
           this.probe = key;
         }
       }
@@ -68,12 +65,12 @@ const menu = new Vue({
     //  Compute the options for the first subcomponent depending on the probes.
     //  When the user chooses a component, it might be a hierarchical one.
     firstSubcompOptions() {
-      if (this.component === null) {
+      if (this.state.component === null) {
         return undefined;
       }
       const subcomponent = [];
       for (const [key, value] of this
-          .componentMap.get(this.probe).get(this.component).entries()) {
+          .componentMap.get(this.probe).get(this.state.component).entries()) {
         subcomponent.push(key);
       }
       return subcomponent;
@@ -82,43 +79,43 @@ const menu = new Vue({
     //  In case when the component is from Chrome, the hierarchy might have more
     //  levels.
     secondSubcompOptions() {
-      if (this.subcomponent === null) {
+      if (this.state.subcomponent === null) {
         return undefined;
       }
       const subcomponent = [];
       for (const [key, value] of this
           .componentMap
           .get(this.probe)
-          .get(this.component)
-          .get(this.subcomponent).entries()) {
+          .get(this.state.component)
+          .get(this.state.subcomponent).entries()) {
         subcomponent.push(key);
       }
       return subcomponent;
     }
   },
   watch: {
-    size() {
-      this.component = null;
-      this.subcomponent = null;
-      this.subsubcomponent = null;
+    'state.size'() {
+      this.state.component = null;
+      this.state.subcomponent = null;
+      this.state.subsubcomponent = null;
     },
 
-    component() {
-      this.subcomponent = null;
-      this.subsubcomponent = null;
+    'state.component'() {
+      this.state.subcomponent = null;
+      this.state.subsubcomponent = null;
     },
 
-    subcomponent() {
-      this.subsubcomponent = null;
+    'state.subcomponent'() {
+      this.state.subsubcomponent = null;
     },
 
-    referenceColumn() {
-      if (this.referenceColumn === null) {
-        this.testResults = [];
+    'state.referenceColumn'() {
+      if (this.state.referenceColumn === null) {
+        this.state.testResults = [];
         return;
       }
-      this.significanceTester.referenceColumn = this.referenceColumn;
-      this.testResults = this.significanceTester.mostSignificant();
+      this.significanceTester.referenceColumn = this.state.referenceColumn;
+      this.state.testResults = this.significanceTester.mostSignificant();
     }
 
   },
@@ -130,31 +127,36 @@ const menu = new Vue({
     //  will be the first one in array and the first row in table.
     apply() {
       let nameOfMetric = 'memory:' +
-        this.browser + ':' +
-        this.subprocess + ':' +
+        this.state.browser + ':' +
+        this.state.subprocess + ':' +
         this.probe + ':' +
-        this.component;
-      if (this.subcomponent !== null) {
-        nameOfMetric += ':' + this.subcomponent;
+        this.state.component;
+      if (this.state.subcomponent !== null) {
+        nameOfMetric += ':' + this.state.subcomponent;
       }
-      if (this.subsubcomponent !== null) {
-        nameOfMetric += ':' + this.subsubcomponent;
+      if (this.state.subsubcomponent !== null) {
+        nameOfMetric += ':' + this.state.subsubcomponent;
       }
       let metrics = [];
       for (const name of this.metricNames) {
-        if (this.browser !== null && name.includes(this.browser) &&
-          this.subprocess !== null && name.includes(this.subprocess) &&
-          this.component !== null && name.includes(this.component) &&
-          this.size !== null && name.includes(this.size) &&
-          this.probe !== null && name.includes(this.probe)) {
-          if (this.subcomponent === null) {
+        if (this.state.browser !== null &&
+          name.includes(this.state.browser) &&
+          this.state.subprocess !== null &&
+          name.includes(this.state.subprocess) &&
+          this.state.component !== null &&
+          name.includes(this.state.component) &&
+          this.state.size !== null &&
+          name.includes(this.state.size) &&
+          this.probe !== null &&
+          name.includes(this.probe)) {
+          if (this.state.subcomponent === null) {
             metrics.push(name);
           } else {
-            if (name.includes(this.subcomponent)) {
-              if (this.subsubcomponent === null) {
+            if (name.includes(this.state.subcomponent)) {
+              if (this.state.subsubcomponent === null) {
                 metrics.push(name);
               } else {
-                if (name.includes(this.subsubcomponent)) {
+                if (name.includes(this.state.subsubcomponent)) {
                   metrics.push(name);
                 }
               }
@@ -162,14 +164,14 @@ const menu = new Vue({
           }
         }
       }
-      nameOfMetric += ':' + this.size;
+      nameOfMetric += ':' + this.state.size;
       if (_.uniq(metrics).length === 0) {
         alert('No metrics found');
       } else {
         metrics = _.uniq(metrics);
         metrics.splice(metrics.indexOf(nameOfMetric), 1);
         metrics.unshift(nameOfMetric);
-        app.parsedMetrics = metrics;
+        app.state.parsedMetrics = metrics;
       }
     },
 
@@ -200,15 +202,16 @@ const menu = new Vue({
       };
       // Assigning to these fields updates the corresponding select
       // menu in the UI.
-      this.browser = parts[heirarchyInformation.browser];
-      this.subprocess = parts[heirarchyInformation.process];
+      this.state.browser = parts[heirarchyInformation.browser];
+      this.state.subprocess = parts[heirarchyInformation.process];
       this.probe = parts[heirarchyInformation.probe];
-      this.size = parts[heirarchyInformation.size];
-      // The size watcher sets 'this.component' to null so we must wait for the
-      // DOM to be updated. Then the size watcher is called before assigning
-      // to 'this.component' and so it is not overwritten with null.
+      this.state.size = parts[heirarchyInformation.size];
+      // The size watcher sets 'this.state.component' to null so we must wait
+      // for the DOM to be updated. Then the size watcher is called before
+      // assigning to 'this.state.component' and so it is not overwritten
+      // with null.
       await this.$nextTick();
-      this.component = parts[heirarchyInformation.componentStart];
+      this.state.component = parts[heirarchyInformation.componentStart];
       const start = heirarchyInformation.componentStart;
       const end = heirarchyInformation.componentsEnd;
       for (let i = start + 1; i <= end; i++) {
@@ -217,20 +220,20 @@ const menu = new Vue({
           case 1: {
             // See above comment (component watcher sets subcomponent to null).
             await this.$nextTick();
-            this.subcomponent = parts[i];
+            this.state.subcomponent = parts[i];
             break;
           }
           case 2: {
             // See above comment
             // (subcomponent watcher sets subsubcomponent to null).
             await this.$nextTick();
-            this.subsubcomponent = parts[i];
+            this.state.subsubcomponent = parts[i];
             break;
           }
           default: throw new Error('Unexpected number of subcomponents.');
         }
       }
-      app.parsedMetrics = [metricName];
+      app.state.parsedMetrics = [metricName];
     },
   }
 });
@@ -356,7 +359,8 @@ function readSingleFile(e) {
       }
     }
 
-    app.gridData = tableElems;
+
+    app.state.gridData = tableElems;
     app.defaultGridData = tableElems;
     app.sampleArr = sampleArr;
     app.guidValue = guidValueInfo;
