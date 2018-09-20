@@ -92,6 +92,10 @@ tr.exportTo('tr.ui.tracks', function() {
       this.vSyncTimes_ = [];
     },
 
+    get processViews() {
+      return Polymer.dom(this).querySelectorAll('.process-track-base');
+    },
+
     // upperMode is true if the track is being used on the ruler.
     get upperMode() {
       return this.upperMode_;

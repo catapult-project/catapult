@@ -175,5 +175,31 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
     await view.builtPromise;
   });
+
+  test('filterProcessesUI', async function() {
+    const view = document.createElement('tr-ui-timeline-view');
+    view.style.height = '400px';
+    view.model = createFullyPopulatedModel(false, false);
+
+    const container = document.createElement('track-view-container');
+    container.id = 'track_view_container';
+    Polymer.dom(view).appendChild(container);
+    this.addHTMLOutput(view);
+    await view.builtPromise;
+
+    const procFilter = Polymer.dom(view.processFilter_);
+    const checkboxes = procFilter.querySelectorAll('input[type=checkbox]');
+    assert.lengthOf(checkboxes, 51);
+
+    const trackView =
+      view.trackViewContainer_.querySelector('tr-ui-timeline-track-view');
+    const countVisibleTracks = () => trackView.processViews.filter(
+        view => view.visible).length;
+    assert.strictEqual(checkboxes.length, trackView.processViews.length);
+    assert.strictEqual(countVisibleTracks(), 51);
+
+    checkboxes[0].click();
+    assert.strictEqual(countVisibleTracks(), 50);
+  });
 });
 </script>

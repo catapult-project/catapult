@@ -235,6 +235,10 @@ Polymer({
     this.timelineView_ = view;
   },
 
+  get processViews() {
+    return this.modelTrack_.processViews;
+  },
+
   onSelectionChanged_() {
     this.showHintText_('Press \'m\' to mark current selection');
     this.viewport_.dispatchChangeEvent();

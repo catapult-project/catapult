@@ -97,7 +97,7 @@ found in the LICENSE file.
     tr-ui-b-drag-handle { flex: 0 0 auto; }
     tr-ui-a-analysis-view { flex: 0 0 auto; }
 
-    #view_options_dropdown {
+    #view_options_dropdown, #process_filter_dropdown {
       --dropdown-button: {
         -webkit-appearance: none;
         align-items: normal;
@@ -118,6 +118,7 @@ found in the LICENSE file.
         <div id="left_controls"></div>
         <div id="title">^_^</div>
         <div id="right_controls">
+          <tr-ui-b-dropdown id="process_filter_dropdown" label="Processes"></tr-ui-b-dropdown>
           <tr-ui-b-toolbar-button id="view_metadata_button">
             M
           </tr-ui-b-toolbar-button>
@@ -205,6 +206,8 @@ Polymer({
     } else {
       this.railScoreSpan_ = undefined;
     }
+
+    this.processFilter_ = this.$.process_filter_dropdown;
 
     this.optionsDropdown_ = this.$.view_options_dropdown;
     Polymer.dom(this.optionsDropdown_.iconElement).textContent = 'View Options';
@@ -364,6 +367,36 @@ Polymer({
         (this.model && this.model.metadata.length) ? '' : 'none';
   },
 
+  updateProcessList_() {
+    const dropdown = Polymer.dom(this.processFilter_);
+    while (dropdown.firstChild) {
+      dropdown.removeChild(dropdown.firstChild);
+    }
+    if (!this.model) return;
+
+    const trackView =
+        this.trackViewContainer_.querySelector('tr-ui-timeline-track-view');
+    const processViews = trackView.processViews;
+    const cboxes = [];
+    const updateAll = (checked) => {
+      for (const cbox of cboxes) {
+        cbox.checked = checked;
+      }
+    };
+
+    dropdown.appendChild(tr.ui.b.createButton('All', () => updateAll(true)));
+    dropdown.appendChild(tr.ui.b.createButton('None', () => updateAll(false)));
+
+    for (const view of processViews) {
+      const cbox = tr.ui.b.createCheckBox(undefined, undefined, undefined,
+          true, view.process.userFriendlyName,
+          () => view.visible = cbox.checked);
+      cbox.checked = view.visible;
+      cboxes.push(cbox);
+      dropdown.appendChild(cbox);
+    }
+  },
+
   get leftControls() {
     return this.leftControlsEl_;
   },
@@ -484,6 +517,7 @@ Polymer({
 
     // Do things that are selection specific
     if (modelInstanceChanged) {
+      this.updateProcessList_();
       this.updateMetadataButtonVisibility_();
       this.brushingStateController_.modelDidChange();
       this.onViewportChanged_();
