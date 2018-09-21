@@ -16,6 +16,7 @@ PY_UTILS_PATH = os.path.normpath(os.path.join(
 sys.path.append(ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
 
+from common import utils
 from services import chrome_perf_auth
 from services import pinpoint_service
 
@@ -25,7 +26,11 @@ def main():
   parser.add_argument('--repository', default='chromium')
   parser.add_argument('--revision', required=True)
   parser.add_argument('--patch', required=True)
+  parser.add_argument(
+      '-v', '--verbose', action='count', default=0,
+      help='Increase verbosity level')
   args = parser.parse_args()
+  utils.ConfigureLogging(args.verbose)
 
   credentials = chrome_perf_auth.GetUserCredentials(args)
   api = pinpoint_service.Api(credentials)

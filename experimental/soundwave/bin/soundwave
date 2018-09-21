@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 import argparse
-import logging
 import oauth2client.tools
 import os
 import sys
@@ -17,6 +16,7 @@ PY_UTILS_PATH = os.path.normpath(os.path.join(
 sys.path.append(SOUNDWAVE_ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
 
+from common import utils
 from soundwave import commands
 
 # For help creating service account credentials see:
@@ -24,15 +24,6 @@ from soundwave import commands
 
 DEFAULT_DATABASE_PATH = os.path.join(
     SOUNDWAVE_ROOT_PATH, 'soundwave.db')
-
-
-def VerboseLevel(count):
-  if count == 0:
-    return logging.WARNING
-  elif count == 1:
-    return logging.INFO
-  else:
-    return logging.DEBUG
 
 
 def Main():
@@ -82,7 +73,7 @@ def Main():
 
   args = parser.parse_args()
 
-  logging.basicConfig(level=VerboseLevel(args.verbose))
+  utils.ConfigureLogging(args.verbose)
   if args.action == 'alerts':
     commands.FetchAlertsData(args)
   elif args.action == 'timeseries':
