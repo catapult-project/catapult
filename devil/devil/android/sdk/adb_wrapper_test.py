@@ -9,12 +9,10 @@ Unit tests for some APIs with conditional logic in adb_wrapper.py
 
 import unittest
 
-from devil import devil_env
+import mock
+
 from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 
 class AdbWrapperTest(unittest.TestCase):

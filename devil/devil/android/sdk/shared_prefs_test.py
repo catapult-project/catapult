@@ -10,13 +10,11 @@ Unit tests for the contents of shared_prefs.py (mostly SharedPrefs).
 import logging
 import unittest
 
-from devil import devil_env
+import mock
+
 from devil.android import device_utils
 from devil.android.sdk import shared_prefs
 from devil.android.sdk import version_codes
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 
 INITIAL_XML = ("<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"

@@ -8,12 +8,10 @@
 import time
 import unittest
 
-from devil import devil_env
+import mock
+
 from devil.utils import lazy
 from devil.utils import timeout_retry
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock
 
 
 class DynamicSideEffect(object):

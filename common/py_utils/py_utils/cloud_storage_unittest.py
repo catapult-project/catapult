@@ -22,11 +22,11 @@ def _FakeReadHash(_):
   return 'hashthis!'
 
 
-def _FakeCalulateHashMatchesRead(_):
+def _FakeCalculateHashMatchesRead(_):
   return 'hashthis!'
 
 
-def _FakeCalulateHashNewHash(_):
+def _FakeCalculateHashNewHash(_):
   return 'omgnewhash'
 
 
@@ -213,7 +213,7 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
   @mock.patch('py_utils.cloud_storage._GetLocked')
   def testHashPathDoesNotExists(self, unused_get_locked, unused_lock_mock):
     cloud_storage.ReadHash = _FakeReadHash
-    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
     file_path = 'test-file-path.wpr'
 
     cloud_storage._GetLocked = self._FakeGet
@@ -226,7 +226,7 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
   def testHashPathExistsButFilePathDoesNot(
       self, unused_get_locked, unused_lock_mock):
     cloud_storage.ReadHash = _FakeReadHash
-    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
     file_path = 'test-file-path.wpr'
     hash_path = file_path + '.sha1'
 
@@ -240,7 +240,7 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
   def testHashPathAndFileHashExistWithSameHash(
       self, unused_get_locked, unused_lock_mock):
     cloud_storage.ReadHash = _FakeReadHash
-    cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+    cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
     file_path = 'test-file-path.wpr'
 
     # hash_path and file_path exist, and have same hash.
@@ -253,13 +253,13 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
   def testHashPathAndFileHashExistWithDifferentHash(
       self, mock_get_locked, unused_get_locked):
     cloud_storage.ReadHash = _FakeReadHash
-    cloud_storage.CalculateHash = _FakeCalulateHashNewHash
+    cloud_storage.CalculateHash = _FakeCalculateHashNewHash
     file_path = 'test-file-path.wpr'
     hash_path = file_path + '.sha1'
 
     def _FakeGetLocked(bucket, expected_hash, file_path):
       del bucket, expected_hash, file_path  # unused
-      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+      cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
 
     mock_get_locked.side_effect = _FakeGetLocked
 
@@ -273,14 +273,14 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
   @mock.patch('py_utils.cloud_storage._GetLocked')
   def testNoHashComputationNeededUponSecondCall(
       self, mock_get_locked, mock_calculate_hash, unused_get_locked):
-    mock_calculate_hash.side_effect = _FakeCalulateHashNewHash
+    mock_calculate_hash.side_effect = _FakeCalculateHashNewHash
     cloud_storage.ReadHash = _FakeReadHash
     file_path = 'test-file-path.wpr'
     hash_path = file_path + '.sha1'
 
     def _FakeGetLocked(bucket, expected_hash, file_path):
       del bucket, expected_hash, file_path  # unused
-      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+      cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
 
     mock_get_locked.side_effect = _FakeGetLocked
 
@@ -293,26 +293,29 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
     # The fetch left a .fetchts file on machine.
     self.assertTrue(os.path.exists(file_path + '.fetchts'))
 
+    mock_calculate_hash.assert_called_once()
+
     # Subsequent invocations of GetIfChanged should not invoke CalculateHash.
+    mock_calculate_hash.reset_mock()
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
+    self.assertFalse(cloud_storage.GetIfChanged(file_path,
+                                                cloud_storage.PUBLIC_BUCKET))
     mock_calculate_hash.assert_not_called()
-    self.assertFalse(cloud_storage.GetIfChanged(file_path,
-                                                cloud_storage.PUBLIC_BUCKET))
-    self.assertFalse(cloud_storage.GetIfChanged(file_path,
-                                                cloud_storage.PUBLIC_BUCKET))
 
   @mock.patch('py_utils.cloud_storage._FileLock')
   @mock.patch('py_utils.cloud_storage.CalculateHash')
   @mock.patch('py_utils.cloud_storage._GetLocked')
   def testRefetchingFileUponHashFileChange(
       self, mock_get_locked, mock_calculate_hash, unused_get_locked):
-    mock_calculate_hash.side_effect = _FakeCalulateHashNewHash
+    mock_calculate_hash.side_effect = _FakeCalculateHashNewHash
     cloud_storage.ReadHash = _FakeReadHash
     file_path = 'test-file-path.wpr'
     hash_path = file_path + '.sha1'
 
     def _FakeGetLocked(bucket, expected_hash, file_path):
       del bucket, expected_hash, file_path  # unused
-      cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
+      cloud_storage.CalculateHash = _FakeCalculateHashMatchesRead
 
     mock_get_locked.side_effect = _FakeGetLocked
 

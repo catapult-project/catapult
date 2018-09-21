@@ -7,18 +7,16 @@ import os
 import sys
 import unittest
 
+import mock
+
 if __name__ == '__main__':
   sys.path.append(os.path.abspath(
       os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
-from devil import devil_env
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import version_codes
 from devil.android.tools import system_app
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock
 
 
 class SystemAppTest(unittest.TestCase):

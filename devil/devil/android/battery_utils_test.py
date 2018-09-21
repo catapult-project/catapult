@@ -12,15 +12,14 @@ Unit tests for the contents of battery_utils.py
 import logging
 import unittest
 
-from devil import devil_env
+import mock
+
 from devil.android import battery_utils
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android import device_utils_test
 from devil.utils import mock_calls
 
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 _DUMPSYS_OUTPUT = [
     '9,0,i,uid,1000,test_package1',

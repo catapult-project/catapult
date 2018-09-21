@@ -62,7 +62,6 @@ _AddDirToPythonPath(util.GetCatapultThirdPartyDir(), 'six')
 # Add Telemetry third party dependencies into our path.
 _TELEMETRY_3P = util.GetTelemetryThirdPartyDir()
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mox3')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')

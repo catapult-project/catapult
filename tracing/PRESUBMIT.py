@@ -74,8 +74,6 @@ def _CheckChange(input_api, output_api):
 def _GetPathsToPrepend(input_api):
   import tracing_project
   project_dir = input_api.PresubmitLocalPath()
-  catapult_dir = input_api.os_path.join(project_dir, '..')
   return [
       project_dir,
-      input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
   ] + tracing_project.GetDependencyPaths()

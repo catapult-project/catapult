@@ -7,18 +7,16 @@ import os
 import sys
 import unittest
 
+import mock
+
 if __name__ == '__main__':
   sys.path.append(
         os.path.abspath(os.path.join(os.path.dirname(__file__),
                                            '..', '..', '..')))
 
-from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import device_monitor
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 
 class DeviceMonitorTest(unittest.TestCase):
