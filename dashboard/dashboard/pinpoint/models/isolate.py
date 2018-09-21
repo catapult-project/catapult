@@ -16,7 +16,12 @@ from google.appengine.ext import ndb
 # A list of builders that recently changed names.
 # TODO(dtu): Remove 6 months after LUCI migration is complete.
 _BUILDER_NAME_MAP = {
+    'Android Compile Perf': 'android-builder-perf',
     'Android arm64 Compile Perf': 'android_arm64-builder-perf',
+    'Linux Builder Perf': 'linux-builder-perf',
+    'Mac Builder Perf': 'mac-builder-perf',
+    'Win Builder Perf': 'win32-builder-perf',
+    'Win x64 Builder Perf': 'win64-builder-perf',
 }
 
 
