@@ -25,6 +25,12 @@ tr.exportTo('cp', () => {
     // Based on dot-prop-immutable:
     // https://github.com/debitoor/dot-prop-immutable/blob/master/index.js
     root = Array.isArray(root) ? [...root] : {...root};
+    if (path.length === 0) {
+      if (typeof value === 'function') {
+        return value(root);
+      }
+      return value;
+    }
     let node = root;
     const maxDepth = path.length - 1;
     for (let depth = 0; depth < maxDepth; ++depth) {

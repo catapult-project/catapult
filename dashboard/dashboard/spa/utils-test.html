@@ -31,6 +31,12 @@ found in the LICENSE file.
 
   suite('basic tests', function() {
     test('setImmutable', function() {
+      assert.deepEqual({b: 'c'}, cp.setImmutable(
+          {a: []}, '', {b: 'c'}));
+      assert.deepEqual({a: [], b: 'c'}, cp.setImmutable(
+          {a: []}, '', rootState => {
+            return {...rootState, b: 'c'};
+          }));
       assert.deepEqual({a: [{b: 'c'}]}, cp.setImmutable(
           {a: []}, 'a.0.b', 'c'));
       assert.deepEqual({a: {b: 1, c: 2}}, cp.setImmutable(
