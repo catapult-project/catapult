@@ -133,7 +133,7 @@ tr.exportTo('tr.model', function() {
      * its palette id (see base/color_scheme.html).
      */
     beginSlice(category, title, ts, opt_args, opt_tts,
-        opt_argsStripped, opt_colorId) {
+        opt_argsStripped, opt_colorId, opt_bindId) {
       const colorId = opt_colorId ||
           ColorScheme.getColorIdForGeneralPurposeString(title);
       const sliceConstructorSubTypes = this.sliceConstructorSubTypes;
@@ -142,7 +142,7 @@ tr.exportTo('tr.model', function() {
       const slice = new sliceType(category, title, colorId, ts,
           opt_args ? opt_args : {}, null,
           opt_tts, undefined,
-          opt_argsStripped);
+          opt_argsStripped, opt_bindId);
       this.openPartialSlices_.push(slice);
       slice.didNotFinish = true;
       this.pushSlice(slice);

@@ -496,7 +496,7 @@ tr.exportTo('tr.e.importer', function() {
             event.cat, event.name, this.toModelTimeFromUs_(event.ts),
             this.deepCopyIfNeeded_(event.args),
             this.toModelTimeFromUs_(event.tts), event.argsStripped,
-            getEventColor(event));
+            getEventColor(event), event.bind_id);
         slice.startStackFrame = this.getStackFrameForEvent_(event);
         this.setContextsFromThread_(thread, slice);
       } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
@@ -509,7 +509,7 @@ tr.exportTo('tr.e.importer', function() {
             this.deepCopyIfNeeded_(event.args),
             this.toModelTimeFromUs_(event.tts),
             event.argsStripped,
-            getEventColor(event));
+            getEventColor(event), event.bind_id);
         const slice = thread.sliceGroup.endSlice(
             this.toModelTimeFromUs_(event.ts),
             this.toModelTimeFromUs_(event.tts));
