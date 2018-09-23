@@ -45,8 +45,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
-  @property
-  def pid(self):
+  def GetPid(self):
     return self._cri.GetChromePid()
 
   def __del__(self):
@@ -64,7 +63,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     startup_args = [a.replace(',', '\\,') for a in startup_args]
 
     # Restart Chrome with the login extension and remote debugging.
-    pid = self.pid
+    pid = self.GetPid()
     logging.info('Restarting Chrome (pid=%d) with remote port', pid)
     args = ['dbus-send', '--system', '--type=method_call',
             '--dest=org.chromium.SessionManager',
@@ -77,18 +76,18 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri.RunCmdOnDevice(args)
 
     # Wait for new chrome and oobe.
-    py_utils.WaitFor(lambda: pid != self.pid, 15)
+    py_utils.WaitFor(lambda: pid != self.GetPid(), 15)
     self.BindDevToolsClient()
     py_utils.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:
       if self._is_guest:
-        pid = self.pid
+        pid = self.GetPid()
         self.oobe.NavigateGuestLogin()
         # Guest browsing shuts down the current browser and launches an
         # incognito browser in a separate process, which we need to wait for.
         try:
-          py_utils.WaitFor(lambda: pid != self.pid, 15)
+          py_utils.WaitFor(lambda: pid != self.GetPid(), 15)
         except py_utils.TimeoutException:
           self._RaiseOnLoginFailure(
               'Failed to restart browser in guest mode (pid %d).' % pid)
@@ -127,7 +126,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def IsBrowserRunning(self):
     if not self._cri:
       return False
-    return bool(self.pid)
+    return bool(self.GetPid())
 
   def GetStandardOutput(self):
     return 'Cannot get standard output on CrOS'

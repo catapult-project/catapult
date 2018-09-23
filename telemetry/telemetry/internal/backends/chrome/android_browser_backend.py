@@ -158,8 +158,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise exceptions.AppCrashException(
           self.browser, 'Error getting browser PIDs: %s' % exc)
 
-  @property
-  def pid(self):
+  def GetPid(self):
     browser_processes = self._GetBrowserProcesses()
     assert len(browser_processes) <= 1, (
         'Found too many browsers: %r' % browser_processes)

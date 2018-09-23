@@ -61,8 +61,6 @@ class BrowserBackendIntegrationTest(browser_test_case.BrowserTestCase):
     self.assertFalse(self._browser_backend.IsBrowserRunning())
 
   def testBrowserPid(self):
-    pid = self._browser_backend.pid
-    self.assertTrue(self._browser_backend.pid)
-    # TODO(crbug.com/869588): pid getter is heavyweight and should not be a
-    # property
-    self.assertEqual(pid, self._browser_backend.pid)
+    pid = self._browser_backend.GetPid()
+    self.assertTrue(self._browser_backend.GetPid())
+    self.assertEqual(pid, self._browser_backend.GetPid())

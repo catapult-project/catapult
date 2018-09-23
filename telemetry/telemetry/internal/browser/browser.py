@@ -97,7 +97,7 @@ class Browser(app.App):
     return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
 
   def _LogBrowserInfo(self):
-    logging.info('Browser started (pid=%s).', self._browser_backend.pid)
+    logging.info('Browser started (pid=%s).', self._browser_backend.GetPid())
     logging.info('OS: %s %s',
                  self._platform_backend.platform.GetOSName(),
                  self._platform_backend.platform.GetOSVersionName())
@@ -131,7 +131,7 @@ class Browser(app.App):
       logging.warning('System info not supported')
 
   def _GetStatsCommon(self, pid_stats_function):
-    browser_pid = self._browser_backend.pid
+    browser_pid = self._browser_backend.GetPid()
     result = {
         'Browser': dict(pid_stats_function(browser_pid), **{'ProcessCount': 1}),
         'Renderer': {'ProcessCount': 0},
@@ -205,7 +205,8 @@ class Browser(app.App):
     """Closes this browser."""
     try:
       if self._browser_backend.IsBrowserRunning():
-        logging.info('Closing browser (pid=%s) ...', self._browser_backend.pid)
+        logging.info(
+            'Closing browser (pid=%s) ...', self._browser_backend.GetPid())
 
       if self._browser_backend.supports_uploading_logs:
         try:
@@ -216,7 +217,8 @@ class Browser(app.App):
       self._browser_backend.Close()
       if self._browser_backend.IsBrowserRunning():
         logging.error(
-            'Browser is still running (pid=%s).', self._browser_backend.pid)
+            'Browser is still running (pid=%s).'
+            , self._browser_backend.GetPid())
       else:
         logging.info('Browser is closed.')
 

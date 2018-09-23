@@ -29,8 +29,7 @@ class AppBackend(object):
   def app_type(self):
     return self._app_type
 
-  @property
-  def pid(self):
+  def GetPid(self):
     raise NotImplementedError
 
   @property

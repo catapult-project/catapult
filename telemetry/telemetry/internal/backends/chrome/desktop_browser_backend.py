@@ -267,8 +267,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Return code: %d' % self._proc.returncode)
     super(DesktopBrowserBackend, self).BindDevToolsClient()
 
-  @property
-  def pid(self):
+  def GetPid(self):
     if self._proc:
       return self._proc.pid
     return None
