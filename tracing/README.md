@@ -16,7 +16,7 @@ files. Its particularly good at viewing linux kernel traces (aka [ftrace](https:
 $CATAPULT/tracing/bin/trace2html my_trace.json --output=my_trace.html && open my_trace.html
 ```
 
-Its easy to [extend trace viewer](https://github.com/catapult-project/catapult/wiki/Extending-and-Customizing-Trace-Viewer) to support your favorite trace format, or add domain specific visualizations to the UI to simplify drilling down into complex data.
+Its easy to [extend trace viewer](https://github.com/catapult-project/catapult/blob/master/tracing/docs/extending-and-customizing-trace-viewer.md) to support your favorite trace format, or add domain specific visualizations to the UI to simplify drilling down into complex data.
 
 Contributing, quick version
 ===
