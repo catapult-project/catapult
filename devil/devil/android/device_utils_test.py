@@ -17,8 +17,7 @@ import os
 import stat
 import unittest
 
-import mock
-
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_signal
 from devil.android import device_utils
@@ -29,6 +28,8 @@ from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
 
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 ARM32_ABI = 'armeabi-v7a'
 ARM64_ABI = 'arm64-v8a'

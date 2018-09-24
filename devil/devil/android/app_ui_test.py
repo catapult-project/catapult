@@ -7,12 +7,13 @@
 import unittest
 from xml.etree import ElementTree as element_tree
 
-import mock
-
+from devil import devil_env
 from devil.android import app_ui
 from devil.android import device_errors
 from devil.utils import geometry
 
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 
 MOCK_XML_LOADING = '''

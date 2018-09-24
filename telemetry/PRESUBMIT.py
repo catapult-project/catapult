@@ -105,6 +105,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(catapult_dir, 'tracing'),
       input_api.os_path.join(catapult_dir, 'common', 'py_trace_event'),
 
+      input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyserial'),
       input_api.os_path.join(catapult_dir, 'third_party', 'typ'),

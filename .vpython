@@ -29,37 +29,6 @@ python_version: "2.7"
 #   telemetry/
 #
 # This version must be compatible with the version range specified by
-# //third_party/catapult/telemetry/telemetry/internal/util/external_modules.py
-#
-# This version must also be compatible with the "numpy" version, as "cv2"
-# depends on "numpy". In this case, OpenCV@2.4.13.2 has been built against
-# numpy@1.11.3.
-wheel: <
-  name: "infra/python/wheels/opencv_python/${vpython_platform}"
-  version: "version:2.4.13.2"
-  match_tag: <
-    platform: "win32"
-  >
-  match_tag: <
-    platform: "win_amd64"
-  >
-  match_tag: <
-    abi: "cp27mu"
-    platform: "manylinux1_i686"
-  >
-  match_tag: <
-    abi: "cp27mu"
-    platform: "manylinux1_x86_64"
-  >
-  match_tag: <
-    platform: "macosx_10_6_intel"
-  >
->
-
-# Used by:
-#   telemetry/
-#
-# This version must be compatible with the version range specified by
 # //telemetry/telemetry/internal/util/external_modules.py
 wheel: <
   name: "infra/python/wheels/numpy/${vpython_platform}"
@@ -104,23 +73,4 @@ wheel: <
 wheel: <
   name: "infra/python/wheels/boto-py2_py3"
   version: "version:2.48.0"
->
-
-# Used by:
-#   *
-wheel: <
-  name: "infra/python/wheels/six-py2_py3"
-  version: "version:1.10.0"
->
-wheel: <
-  name: "infra/python/wheels/pbr-py2_py3"
-  version: "version:3.0.0"
->
-wheel: <
-  name: "infra/python/wheels/funcsigs-py2_py3"
-  version: "version:1.0.2"
->
-wheel: <
-  name: "infra/python/wheels/mock-py2_py3"
-  version: "version:2.0.0"
 >

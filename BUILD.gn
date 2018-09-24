@@ -84,6 +84,7 @@ group("telemetry_chrome_test_support") {
     "third_party/jquery/",
     "third_party/mapreduce/",
     "third_party/mocha/",
+    "third_party/mock/",
     "third_party/mox3/",
     "third_party/oauth2client/",
     "third_party/pipeline/",

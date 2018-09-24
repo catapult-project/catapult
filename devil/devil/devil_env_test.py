@@ -9,24 +9,22 @@ import logging
 import sys
 import unittest
 
-import mock
-
 from devil import devil_env
 
-_SYS_PATH_BEFORE = list(sys.path)
-_SAMPLE_PATH = '/path/to/fake/modules'
-with devil_env.SysPath(_SAMPLE_PATH):
-  _SYS_PATH_WITH_SAMPLE = list(sys.path)
-_SYS_PATH_AFTER = list(sys.path)
+_sys_path_before = list(sys.path)
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  _sys_path_with_pymock = list(sys.path)
+  import mock  # pylint: disable=import-error
+_sys_path_after = list(sys.path)
 
 
 class DevilEnvTest(unittest.TestCase):
 
   def testSysPath(self):
-    self.assertEquals(_SYS_PATH_BEFORE, _SYS_PATH_AFTER)
+    self.assertEquals(_sys_path_before, _sys_path_after)
     self.assertEquals(
-        _SYS_PATH_BEFORE + [_SAMPLE_PATH],
-        _SYS_PATH_WITH_SAMPLE)
+        _sys_path_before + [devil_env.PYMOCK_PATH],
+        _sys_path_with_pymock)
 
   def testGetEnvironmentVariableConfig_configType(self):
     with mock.patch('os.environ.get',

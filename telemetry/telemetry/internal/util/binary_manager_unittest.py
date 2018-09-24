@@ -20,27 +20,33 @@ class BinaryManagerTest(unittest.TestCase):
 
   def testReinitialization(self):
     binary_manager.InitDependencyManager(None)
-    with self.assertRaises(exceptions.InitializationError):
-      binary_manager.InitDependencyManager(None)
+    self.assertRaises(exceptions.InitializationError,
+                      binary_manager.InitDependencyManager, None)
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
   def testFetchPathInitialized(self, binary_manager_mock):
+    expected = [
+        mock.call.binary_manager.BinaryManager(['base_config_object']),
+        mock.call.binary_manager.BinaryManager().FetchPath('dep', 'plat_arch')
+    ]
     binary_manager.InitDependencyManager(None)
-    binary_manager.FetchPath('dep', 'arch', 'plat')
-    binary_manager_mock.return_value.FetchPath.assert_called_with(
-        'dep', 'plat', 'arch', None)
+    binary_manager.FetchPath('dep', 'plat', 'arch')
+    binary_manager_mock.assert_call_args(expected)
 
   def testFetchPathUninitialized(self):
-    with self.assertRaises(exceptions.InitializationError):
-      binary_manager.FetchPath('dep', 'arch', 'plat')
+    self.assertRaises(exceptions.InitializationError,
+                      binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
   def testLocalPathInitialized(self, binary_manager_mock):
+    expected = [
+        mock.call.binary_manager.BinaryManager(['base_config_object']),
+        mock.call.binary_manager.BinaryManager().LocalPath('dep', 'plat_arch')
+    ]
     binary_manager.InitDependencyManager(None)
-    binary_manager.LocalPath('dep', 'arch', 'plat')
-    binary_manager_mock.return_value.LocalPath.assert_called_with(
-        'dep', 'plat', 'arch', None)
+    binary_manager.LocalPath('dep', 'plat', 'arch')
+    binary_manager_mock.assert_call_args(expected)
 
   def testLocalPathUninitialized(self):
-    with self.assertRaises(exceptions.InitializationError):
-      binary_manager.LocalPath('dep', 'arch', 'plat')
+    self.assertRaises(exceptions.InitializationError,
+                      binary_manager.LocalPath, 'dep', 'plat', 'arch')
