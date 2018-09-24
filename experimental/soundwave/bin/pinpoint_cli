@@ -23,28 +23,40 @@ from services import pinpoint_service
 
 def main():
   parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
-  parser.add_argument('--repository', default='chromium')
-  parser.add_argument('--revision', required=True)
-  parser.add_argument('--patch', required=True)
   parser.add_argument(
       '-v', '--verbose', action='count', default=0,
       help='Increase verbosity level')
+  subparsers = parser.add_subparsers(dest='action')
+  subparsers.required = True
+  # Subparser args for getting state of a job.
+  subparser = subparsers.add_parser('job')
+  subparser.add_argument('job_id')
+  # Subparser args for creating a new job.
+  subparser = subparsers.add_parser('new-job')
+  subparser.add_argument('--repository', default='chromium')
+  subparser.add_argument('--revision', required=True)
+  subparser.add_argument('--patch', required=True)
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
   credentials = chrome_perf_auth.GetUserCredentials(args)
   api = pinpoint_service.Api(credentials)
 
-  print api.NewJob(
-      name='Test job from command line',
-      configuration='android-go-perf',
-      target='performance_test_suite',
-      benchmark='system_health.memory_mobile',
-      extra_test_args='--story-tag-filter health_check',
-      repository=args.repository,
-      start_git_hash=args.revision,
-      end_git_hash=args.revision,
-      patch=args.patch)
+  if args.action == 'job':
+    print api.Job(args.job_id, with_state=True)
+  elif args.action == 'new-job':
+    print api.NewJob(
+        name='Test job from command line',
+        configuration='android-go-perf',
+        target='performance_test_suite',
+        benchmark='system_health.memory_mobile',
+        extra_test_args='--story-tag-filter health_check',
+        repository=args.repository,
+        start_git_hash=args.revision,
+        end_git_hash=args.revision,
+        patch=args.patch)
+  else:
+    raise NotImplementedError(args.action)
 
 
 if __name__ == '__main__':

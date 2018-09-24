@@ -21,6 +21,18 @@ class TestPinpointApi(unittest.TestCase):
   def tearDown(self):
     mock.patch.stopall()
 
+  def testJob(self):
+    self.assertEqual(self.api.Job('1234'), 'OK')
+    self.mock_request.assert_called_once_with(
+        self.api.SERVICE_URL + '/job/1234', params=[],
+        credentials=self.mock_credentials)
+
+  def testJob_withState(self):
+    self.assertEqual(self.api.Job('1234', with_state=True), 'OK')
+    self.mock_request.assert_called_once_with(
+        self.api.SERVICE_URL + '/job/1234', params=[('o', 'STATE')],
+        credentials=self.mock_credentials)
+
   def testJobs(self):
     self.mock_request.return_value = '["job1", "job2", "job3"]'
     self.assertEqual(self.api.Jobs(), ['job1', 'job2', 'job3'])

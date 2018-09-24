@@ -24,6 +24,15 @@ class Api(object):
     kwargs.setdefault('credentials', self._credentials)
     return json.loads(request.Request(self.SERVICE_URL + endpoint, **kwargs))
 
+  def Job(self, job_id, with_state=False, with_tags=False):
+    """Get job informaiton from its id."""
+    params = []
+    if with_state:
+      params.append(('o', 'STATE'))
+    if with_tags:
+      params.append(('o', 'TAGS'))
+    return self.Request('/job/%s' % job_id, params=params)
+
   def Jobs(self):
     """List jobs for the authenticated user."""
     return self.Request('/jobs')
