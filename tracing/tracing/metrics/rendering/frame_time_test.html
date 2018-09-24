@@ -223,5 +223,37 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.numValues, 1e-6);
     assert.closeTo(1, hist.min, 1e-6);
   });
+
+  test('uiFrameTimes', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      // Add four swap buffer events, at times 1, 2, 19, 21
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'FramePresented', start: 1, end: 1 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'FramePresented', start: 2, end: 2 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'FramePresented', start: 19, end: 19 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { title: 'FramePresented', start: 21, end: 21 }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addUIFrameTimeHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 20)]);
+
+    // The fourth frame is outside the interaction perdiod and should be
+    // discarded. The durations between the remaining three frames are 1 and 17.
+    let hist = histograms.getHistogramNamed('ui_frame_times_tbmv2');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(17, hist.max, 2e-6);
+    assert.closeTo(9, hist.average, 1e-6);
+
+    // One of the two frame times is not smooth.
+    hist = histograms.getHistogramNamed('ui_smooth_frames');
+    assert.closeTo(0.5, hist.min, 1e-6);
+    assert.closeTo(0.5, hist.max, 2e-6);
+    assert.closeTo(0.5, hist.average, 1e-6);
+  });
 });
 </script>

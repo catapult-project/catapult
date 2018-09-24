@@ -41,7 +41,6 @@ tr.exportTo('tr.metrics.rendering', function() {
     //
     // This code should be merged into UserModelBuilder when another metric
     // wants it, too.
-    const segments = [];
     const gestureEvents = [];
     const interactionRecords = [];
     const IRExp = /Interaction\.([^/]+)(\/[^/]*)?$/;
@@ -62,6 +61,8 @@ tr.exportTo('tr.metrics.rendering', function() {
     // demarcate when the gesture was running. We check for overlap, not
     // inclusion, because gesture actions can start/end slightly outside the
     // telemetry markers on Windows.
+    const segments = [];
+    const uiSegments = [];
     for (const ir of interactionRecords) {
       const parts = IRExp.exec(ir.title);
       let gestureEventFound = false;
@@ -75,6 +76,8 @@ tr.exportTo('tr.metrics.rendering', function() {
             break;
           }
         }
+      } else if (parts[1].startsWith('ui_')) {
+        uiSegments.push(new tr.model.um.Segment(ir.start, ir.duration));
       }
       if (!gestureEventFound) {
         segments.push(new tr.model.um.Segment(ir.start, ir.duration));
@@ -91,6 +94,11 @@ tr.exportTo('tr.metrics.rendering', function() {
     tr.metrics.rendering.addPixelsHistograms(histograms, model, segments);
     tr.metrics.rendering.addQueueingDurationHistograms(
         histograms, model, segments);
+
+    if (uiSegments.length === 0) return;
+    uiSegments.sort((x, y) => x.start - y.start);
+    tr.metrics.rendering.addUIFrameTimeHistograms(
+        histograms, model, uiSegments);
   }
 
   tr.metrics.MetricRegistry.register(renderingMetric, {

@@ -24,7 +24,7 @@ found in the LICENSE file.
  *
  * smooth_frames
  * =============
- * The percentage of frame_times that are less than 17ms.
+ * The percentage of frame_times_tbmv2 that are less than 17ms.
  *
  * TODO(chiniforooshan): This metric weighs all frames equally. So, e.g.
  * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
@@ -47,12 +47,22 @@ found in the LICENSE file.
  * The number times that frame lengths are increased, during animations. For
  * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then
  * jank_count_tbmv2 will be 2 (1 -> 2 and 2 -> 3).
+ *
+ * ui_frame_times_tbmv2
+ * ====================
+ * The distribution of durations between consecutive UI compositor frame's
+ * presentation times, during UI animations.
+ *
+ * ui_smooth_frames
+ * ================
+ * The percentage of ui_frame_times_tbmv2 that are less than 17ms.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
   const DISPLAY_EVENT = 'BenchmarkInstrumentation::DisplayRenderingStats';
   const DRM_EVENT = 'DrmEventFlipComplete';
   const SURFACE_FLINGER_EVENT = 'vsync_before';
+  const COMPOSITOR_FRAME_PRESENTED_EVENT = 'FramePresented';
 
   // In computing frame_lengths_tbmv2, avg_surface_fps_tbmv2, and
   // jank_count_tbmv2, frames that are shorter than half a vsync are ignored.
@@ -62,7 +72,7 @@ tr.exportTo('tr.metrics.rendering', function() {
   // least PAUSE_THRESHOLD vsyncs are considered pauses, not janks.
   const PAUSE_THRESHOLD = 20;
 
-  function getPresentationEvents_(modelHelper) {
+  function getDisplayCompositorPresentationEvents_(modelHelper) {
     if (!modelHelper || !modelHelper.browserProcess) return [];
     // On ChromeOS, DRM events, if they exist, are the source of truth. On
     // Android, Surface Flinger events are the source of truth. Otherwise, look
@@ -84,6 +94,12 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
     return [...modelHelper.browserProcess.findTopmostSlicesNamed(
         DISPLAY_EVENT)];
+  }
+
+  function getUIPresentationEvents_(modelHelper) {
+    if (!modelHelper || !modelHelper.browserProcess) return [];
+    return [...modelHelper.browserProcess.findTopmostSlicesNamed(
+        COMPOSITOR_FRAME_PRESENTED_EVENT)];
   }
 
   function addSurfaceFlingerHistograms_(histograms, frameTimes, refreshPeriod) {
@@ -116,49 +132,56 @@ tr.exportTo('tr.metrics.rendering', function() {
         { description: 'Number of changes in frame rate.' });
   }
 
-  function addFrameTimeHistograms(histograms, model, segments) {
-    const events = getPresentationEvents_(
-        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper));
-    if (!events) return;
-
-    // Presentation Timestamps should be sorted.
-    const timestamps = events.map(
-        event => (
-          event.title !== DRM_EVENT ? event.start : (
-            tr.b.convertUnit(
-                event.args.data['vblank.tv_sec'],
-                tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC) +
-            tr.b.convertUnit(
-                event.args.data['vblank.tv_usec'],
-                tr.b.UnitScale.TIME.MICRO_SEC, tr.b.UnitScale.TIME.MILLI_SEC)))
-    );
-
+  function computeFrameTimes_(timestamps, segments) {
     // We use filterArray for the sake of a cleaner code. The time complexity
     // will be O(m + n log m), where m is |timestamps| and n is |segments|.
     // Alternatively, we could directly loop through the timestamps and segments
     // here for a slightly better time complexity of O(m + n).
     const frameTimes = [];
     for (const segment of segments) {
-      const filteredTimestamps = segment.boundsRange.filterArray(timestamps);
-      for (let i = 1; i < filteredTimestamps.length; i++) {
-        frameTimes.push(filteredTimestamps[i] - filteredTimestamps[i - 1]);
+      const filtered = segment.boundsRange.filterArray(timestamps, x => x[0]);
+      for (let i = 1; i < filtered.length; i++) {
+        frameTimes.push(filtered[i][1] - filtered[i - 1][1]);
       }
     }
+    return frameTimes;
+  }
 
+  function addBasicFrameTimeHistograms_(histograms, frameTimes, prefix) {
     // TODO(chiniforooshan): Figure out what kind of break down makes sense
     // here. Perhaps break down by tasks in the Viz/Browser process?
     histograms.createHistogram(
-        'frame_times_tbmv2',
+        `${prefix}frame_times_tbmv2`,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         frameTimes,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
           description: 'Raw frame times.' });
     histograms.createHistogram(
-        'smooth_frames',
+        `${prefix}smooth_frames`,
         tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,
         tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
         { description: 'Percentage of frames that were hitting 60 FPS.' });
+  }
+
+  function addFrameTimeHistograms(histograms, model, segments) {
+    const events = getDisplayCompositorPresentationEvents_(
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper));
+    if (!events) return;
+
+    // Presentation Timestamps should be sorted.
+    const timestamps = events.map(
+        event => [event.start,
+          event.title !== DRM_EVENT ? event.start : (
+            tr.b.convertUnit(
+                event.args.data['vblank.tv_sec'],
+                tr.b.UnitScale.TIME.SEC, tr.b.UnitScale.TIME.MILLI_SEC) +
+            tr.b.convertUnit(
+                event.args.data['vblank.tv_usec'],
+                tr.b.UnitScale.TIME.MICRO_SEC, tr.b.UnitScale.TIME.MILLI_SEC))]
+    );
+    const frameTimes = computeFrameTimes_(timestamps, segments);
+    addBasicFrameTimeHistograms_(histograms, frameTimes, '');
 
     // If Surface Flinger information is captured, add Surface Flinger
     // histograms.
@@ -172,8 +195,20 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
   }
 
+  function addUIFrameTimeHistograms(histograms, model, segments) {
+    const events = getUIPresentationEvents_(
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper));
+    if (!events) return;
+
+    // Presentation Timestamps should be sorted.
+    const timestamps = events.map(event => [event.start, event.start]);
+    const frameTimes = computeFrameTimes_(timestamps, segments);
+    addBasicFrameTimeHistograms_(histograms, frameTimes, 'ui_');
+  }
+
   return {
     addFrameTimeHistograms,
+    addUIFrameTimeHistograms,
   };
 });
 </script>
