@@ -30,6 +30,23 @@ found in the LICENSE file.
  * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
  * 1s-frames. I think it makes more sense to compute the percentage of
  * non-smooth time during animation.
+ *
+ * frame_lengths_tbmv2 (Android only)
+ * ==================================
+ * frame_times_tbmv2 in vsyncs instead of milli-seconds. There is one
+ * difference, which is short frames (ones shorter than half of the refresh
+ * period) are filtered out.
+ *
+ * avg_surface_fps_tbmv2 (Android only)
+ * ====================================
+ * Average number of frames, ignoring short frames, per second during
+ * animations.
+ *
+ * jank_count_tbmv2 (Android only)
+ * ===============================
+ * The number times that frame lengths are increased, during animations. For
+ * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then
+ * jank_count_tbmv2 will be 2 (1 -> 2 and 2 -> 3).
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
@@ -37,10 +54,16 @@ tr.exportTo('tr.metrics.rendering', function() {
   const DRM_EVENT = 'DrmEventFlipComplete';
   const SURFACE_FLINGER_EVENT = 'vsync_before';
 
-  function addFrameTimeHistograms(histograms, model, segments) {
-    const modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    if (!modelHelper || !modelHelper.browserProcess) return;
+  // In computing frame_lengths_tbmv2, avg_surface_fps_tbmv2, and
+  // jank_count_tbmv2, frames that are shorter than half a vsync are ignored.
+  const MIN_FRAME_LENGTH = 0.5;
+
+  // In computing the number of janks, frame length differences that are at
+  // least PAUSE_THRESHOLD vsyncs are considered pauses, not janks.
+  const PAUSE_THRESHOLD = 20;
+
+  function getPresentationEvents_(modelHelper) {
+    if (!modelHelper || !modelHelper.browserProcess) return [];
     // On ChromeOS, DRM events, if they exist, are the source of truth. On
     // Android, Surface Flinger events are the source of truth. Otherwise, look
     // for display rendering stats. With viz, display rendering stats are
@@ -48,24 +71,55 @@ tr.exportTo('tr.metrics.rendering', function() {
     // browser process.
     let events = [];
     if (modelHelper.surfaceFlingerProcess) {
-      events =
-          [...modelHelper.surfaceFlingerProcess.findTopmostSlicesNamed(
-              SURFACE_FLINGER_EVENT)];
+      events = [...modelHelper.surfaceFlingerProcess.findTopmostSlicesNamed(
+          SURFACE_FLINGER_EVENT)];
+      if (events) return events;
     }
-    if (events.length === 0) {
-      if (modelHelper.gpuHelper) {
-        const gpuProcess = modelHelper.gpuHelper.process;
-        events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
-        if (events.length === 0) {
-          events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
-        }
-      }
-      if (events.length === 0) {
-        events = [...modelHelper.browserProcess.findTopmostSlicesNamed(
-            DISPLAY_EVENT)];
-      }
+    if (modelHelper.gpuHelper) {
+      const gpuProcess = modelHelper.gpuHelper.process;
+      events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
+      if (events) return events;
+      events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
+      if (events) return events;
     }
-    if (events.length === 0) return;
+    return [...modelHelper.browserProcess.findTopmostSlicesNamed(
+        DISPLAY_EVENT)];
+  }
+
+  function addSurfaceFlingerHistograms_(histograms, frameTimes, refreshPeriod) {
+    let frameLengths = frameTimes.map(time => time / refreshPeriod);
+    frameLengths = frameLengths.filter(length => length >= MIN_FRAME_LENGTH);
+    histograms.createHistogram(
+        'frame_lengths_tbmv2',
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
+        frameLengths,
+        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 5, 20),
+          description: 'Frame times in vsyncs.' });
+
+    histograms.createHistogram(
+        'avg_surface_fps_tbmv2',
+        tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
+        frameLengths.length / tr.b.convertUnit(
+            tr.b.math.Statistics.sum(frameTimes),
+            tr.b.UnitScale.TIME.MILLI_SEC, tr.b.UnitScale.TIME.SEC),
+        { description: 'Average frames per second.' });
+
+    let jankCount = 0;
+    for (let i = 1; i < frameLengths.length; i++) {
+      const change = Math.round(frameLengths[i] - frameLengths[i - 1]);
+      if (change > 0 && change < PAUSE_THRESHOLD) jankCount++;
+    }
+    histograms.createHistogram(
+        'jank_count_tbmv2',
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
+        jankCount,
+        { description: 'Number of changes in frame rate.' });
+  }
+
+  function addFrameTimeHistograms(histograms, model, segments) {
+    const events = getPresentationEvents_(
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper));
+    if (!events) return;
 
     // Presentation Timestamps should be sorted.
     const timestamps = events.map(
@@ -105,6 +159,17 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
         { description: 'Percentage of frames that were hitting 60 FPS.' });
+
+    // If Surface Flinger information is captured, add Surface Flinger
+    // histograms.
+    for (const metadata of model.metadata) {
+      if (metadata.value && metadata.value.surface_flinger) {
+        addSurfaceFlingerHistograms_(
+            histograms, frameTimes,
+            metadata.value.surface_flinger.refresh_period);
+        return;
+      }
+    }
   }
 
   return {
