@@ -28,14 +28,21 @@ class TestRequest(unittest.TestCase):
     self.http.request.return_value = Response(200, 'OK!')
     self.assertEqual(request.Request('http://example.com/'), 'OK!')
     self.http.request.assert_called_once_with(
-        'http://example.com/', method='GET', headers=mock.ANY)
+        'http://example.com/', method='GET', body=None, headers=mock.ANY)
 
   def testRequest_postWithParams(self):
     self.http.request.return_value = Response(200, 'OK!')
     self.assertEqual(request.Request(
         'http://example.com/', params={'q': 'foo'}, method='POST'), 'OK!')
     self.http.request.assert_called_once_with(
-        'http://example.com/?q=foo', method='POST', headers=mock.ANY)
+        'http://example.com/?q=foo', method='POST', body=None, headers=mock.ANY)
+
+  def testRequest_postWithData(self):
+    self.http.request.return_value = Response(200, 'OK!')
+    self.assertEqual(request.Request(
+        'http://example.com/', data={'q': 'foo'}, method='POST'), 'OK!')
+    self.http.request.assert_called_once_with(
+        'http://example.com/', method='POST', body='q=foo', headers=mock.ANY)
 
   def testRequest_retryOnServerError(self):
     self.http.request.side_effect = [

@@ -22,12 +22,24 @@ from services import pinpoint_service
 
 def main():
   parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
+  parser.add_argument('--repository', default='chromium')
+  parser.add_argument('--revision', required=True)
+  parser.add_argument('--patch', required=True)
   args = parser.parse_args()
 
   credentials = chrome_perf_auth.GetUserCredentials(args)
   api = pinpoint_service.Api(credentials)
 
-  print api.Jobs()
+  print api.NewJob(
+      name='Test job from command line',
+      configuration='android-go-perf',
+      target='performance_test_suite',
+      benchmark='system_health.memory_mobile',
+      extra_test_args='--story-tag-filter health_check',
+      repository=args.repository,
+      start_git_hash=args.revision,
+      end_git_hash=args.revision,
+      patch=args.patch)
 
 
 if __name__ == '__main__':

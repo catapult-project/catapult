@@ -67,11 +67,41 @@ def BuildRequestError(request, response, content):
 
 
 @retry_util.RetryOnException(ServerError, retries=3)
-def Request(url, params=None, method='GET', credentials=None, retries=None):
+def Request(url, method='GET', params=None, data=None, credentials=None,
+            retries=None):
+  """Perform an HTTP request of a given resource.
+
+  Args:
+    url: A string with the URL to request.
+    method: A string with the HTTP method to perform, e.g. 'GET' or 'POST'.
+    params: An optional dict or sequence of key, value pairs to be added as
+      a query to the url.
+    data: An optional dict or sequence of key, value pairs to be form-encoded
+      and included in the body of the request.
+    credentials: An optional OAuth2Credentials object used to authenticate
+      the request.
+    retries: Number of times to retry the request in case of ServerError. Note,
+      the request is _not_ retried if the response is a ClientError.
+
+  Returns:
+    A string with the content of the response when it has a successful status.
+
+  Raises:
+    A ClientError if the response has a 4xx stauts, or ServerError if the
+    response has a 5xx status.
+  """
   del retries  # Handled by the decorator.
 
   if params:
     url = '%s?%s' % (url, urllib.urlencode(params))
+
+  body = None
+  headers = {}
+  if data is not None:
+    body = urllib.urlencode(data)
+    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+  else:
+    headers['Content-Length'] = '0'
 
   http = httplib2.Http()
   if credentials is not None:
@@ -81,7 +111,7 @@ def Request(url, params=None, method='GET', credentials=None, retries=None):
 
   logging.info('Making API request: %s', url)
   response, content = http.request(
-      url, method=method, headers={'Content-length': '0'})
+      url, method=method, body=body, headers=headers)
   if response.status != 200:
     raise BuildRequestError(url, response, content)
   return content
