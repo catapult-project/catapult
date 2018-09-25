@@ -389,7 +389,7 @@ Polymer({
 
     for (const view of processViews) {
       const cbox = tr.ui.b.createCheckBox(undefined, undefined, undefined,
-          true, view.process.userFriendlyName,
+          true, view.processBase.userFriendlyName,
           () => view.visible = cbox.checked);
       cbox.checked = view.visible;
       cboxes.push(cbox);
