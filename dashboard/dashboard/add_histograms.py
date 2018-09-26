@@ -139,9 +139,18 @@ def _LogDebugInfo(histograms):
   log_urls = hist.diagnostics.get(reserved_infos.LOG_URLS.name)
   if log_urls:
     log_urls = list(log_urls)
-    logging.info('Buildbot URL: %s', str(log_urls))
+    msg = 'Buildbot URL: %s' % str(log_urls)
+    logging.info(msg)
   else:
     logging.info('No LOG_URLS in data.')
+
+  build_urls = hist.diagnostics.get(reserved_infos.BUILD_URLS.name)
+  if build_urls:
+    build_urls = list(build_urls)
+    msg = 'Build URL: %s' % str(build_urls)
+    logging.info(msg)
+  else:
+    logging.info('No BUILD_URLS in data.')
 
 
 def ProcessHistogramSet(histogram_dicts):

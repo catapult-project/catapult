@@ -365,6 +365,14 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
 
 
 def _AddStdioUris(tracing_histogram, row_dict):
+  build_urls_diagnostic = tracing_histogram.diagnostics.get(
+      reserved_infos.BUILD_URLS.name)
+  if build_urls_diagnostic:
+    build_tuple = build_urls_diagnostic.GetOnlyElement()
+    if isinstance(build_tuple, list):
+      link = '[%s](%s)' % tuple(build_tuple)
+      row_dict['supplemental_columns']['a_build_uri'] = link
+
   log_urls = tracing_histogram.diagnostics.get(reserved_infos.LOG_URLS.name)
   if not log_urls:
     return

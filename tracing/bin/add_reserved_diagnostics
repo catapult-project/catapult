@@ -23,6 +23,9 @@ LOG_URLS_CAMELCASE = camel_case.ToUnderscore(reserved_infos.LOG_URLS.name)
 LOG_URLS_K = LOG_URLS_CAMELCASE + '_k'
 LOG_URLS_V = LOG_URLS_CAMELCASE + '_v'
 
+BUILD_URLS_CAMELCASE = camel_case.ToUnderscore(reserved_infos.BUILD_URLS.name)
+BUILD_URLS_K = BUILD_URLS_CAMELCASE + '_k'
+BUILD_URLS_V = BUILD_URLS_CAMELCASE + '_v'
 
 def main():
   parser = argparse.ArgumentParser(
@@ -52,6 +55,9 @@ def main():
   parser.add_argument('--%s' % LOG_URLS_K)
   parser.add_argument('--%s' % LOG_URLS_V)
 
+  parser.add_argument('--%s' % BUILD_URLS_K)
+  parser.add_argument('--%s' % BUILD_URLS_V)
+
   args = parser.parse_args()
 
   names_to_values = {}
@@ -59,6 +65,10 @@ def main():
     if name == LOG_URLS_K and value is not None:
       v_value = vars(args)[LOG_URLS_V]
       names_to_values[reserved_infos.LOG_URLS.name] = [value, v_value]
+      continue
+    if name == BUILD_URLS_K and value is not None:
+      v_value = vars(args)[BUILD_URLS_V]
+      names_to_values[reserved_infos.BUILD_URLS.name] = [value, v_value]
       continue
     if name in arg_names_to_infos and value is not None:
       diagnostic_name = arg_names_to_infos[name].name

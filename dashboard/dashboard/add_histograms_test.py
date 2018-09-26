@@ -40,7 +40,7 @@ def _CreateHistogram(
     device=None, owner=None, stories=None, story_tags=None,
     benchmark_description=None, commit_position=None, summary_options=None,
     samples=None, max_samples=None, is_ref=False, is_summary=None,
-    point_id=None):
+    point_id=None, build_url=None):
   hists = [histogram_module.Histogram(name, 'count')]
   if max_samples:
     hists[0].max_num_sample_values = max_samples
@@ -99,6 +99,10 @@ def _CreateHistogram(
     histograms.AddSharedDiagnostic(
         reserved_infos.POINT_ID.name,
         generic_set.GenericSet([point_id]))
+  if build_url is not None:
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BUILD_URLS.name,
+        generic_set.GenericSet([['build', build_url]]))
   return histograms
 
 
@@ -226,6 +230,26 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     # the rows by iterating over a dict.
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_BuildUrls_Added(self):
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=123,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3],
+        build_url='http://foo')
+    data = zlib.compress(json.dumps(hs.AsDicts()))
+
+    self.PostAddHistogram(data)
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(rows[0].a_build_uri, '[build](http://foo)')
 
   def testPost_NotZlib_Fails(self):
     hs = _CreateHistogram(
@@ -1407,8 +1431,14 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     histograms.AddSharedDiagnostic(
         reserved_infos.LOG_URLS.name,
         generic_set.GenericSet(['http://foo']))
+    histograms.AddSharedDiagnostic(
+        reserved_infos.BUILD_URLS.name,
+        generic_set.GenericSet(['http://bar']))
     add_histograms._LogDebugInfo(histograms)
-    mock_log.assert_called_once_with('Buildbot URL: %s', "['http://foo']")
+    self.assertEqual(
+        'Buildbot URL: %s' % "['http://foo']", mock_log.call_args_list[0][0][0])
+    self.assertEqual(
+        'Build URL: %s' % "['http://bar']", mock_log.call_args_list[1][0][0])
 
   @mock.patch('logging.info')
   def testLogDebugInfo_NoHistograms(self, mock_log):
@@ -1421,4 +1451,5 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     add_histograms._LogDebugInfo(histograms)
-    mock_log.assert_called_once_with('No LOG_URLS in data.')
+    self.assertEqual('No LOG_URLS in data.', mock_log.call_args_list[0][0][0])
+    self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
