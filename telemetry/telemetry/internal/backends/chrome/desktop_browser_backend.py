@@ -236,6 +236,16 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       sys.stderr.write(
           'Chrome log file will be saved in %s\n' % self.log_file_path)
       env['CHROME_LOG_FILE'] = self.log_file_path
+    # Make sure we have predictable lanugage settings that don't differ from the
+    # recording.
+    for name in ('LC_ALL', 'LC_MESSAGES', 'LANG'):
+      encoding = 'en_US.UTF-8'
+      if env.get(name, encoding) != encoding:
+        logging.warn('Overriding env[%s]=="%s" with default value "%s"',
+                     name, env[name], encoding)
+      env[name] = 'en_US.UTF-8'
+
+    logging.info('Chrome Env: %s', repr(env))
     logging.info('Starting Chrome %s', cmd)
 
     if not self.browser_options.show_stdout:
