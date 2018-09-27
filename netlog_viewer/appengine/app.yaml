@@ -1,0 +1,17 @@
+runtime: go
+api_version: go1
+default_expiration: "7d"
+
+handlers:
+
+# If the path is empty, show static index.html file
+- url: /
+  static_files: static/index.html
+  upload: static/index.html
+  secure: always
+
+# Otherwise, find file in static directory
+- url: /(.*)
+  static_files: static/\1
+  upload: static/(.*)
+  secure: always
