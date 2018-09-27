@@ -100,7 +100,6 @@ class SymbolizeTraceEndToEndTest(unittest.TestCase):
         os.remove(temporary_trace)
 
 
-  @unittest.skip('crbug.com/888947')
   def testMacv2(self):
     if sys.platform != 'darwin':
       return
