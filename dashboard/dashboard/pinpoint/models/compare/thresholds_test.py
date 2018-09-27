@@ -23,7 +23,7 @@ class ThresholdsTest(unittest.TestCase):
 
   def testHighThresholdLowMagnitude(self):
     threshold = thresholds.HighThreshold('performance', 0.1, 20)
-    self.assertEqual(threshold, 0.0811)
+    self.assertEqual(threshold, 0.9246)
 
   def testHighThresholdHighMagnitude(self):
     threshold = thresholds.HighThreshold('performance', 10, 5)

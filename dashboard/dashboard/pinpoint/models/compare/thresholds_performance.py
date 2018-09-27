@@ -18,17 +18,18 @@ P_VALUE = 0.01
 
 
 # The number of simulations to run. 1 million will give pretty
-# stable numbers, but will take about 15 hours to run on 4 cores.
+# stable numbers, but will take about 12 hours to run on 4 cores.
 N = 1000000
 
 
-# As the distances increase, the sample sizes we need
-# decreases. It's costly to run too many extra repeats, but
-# we need to know in advance how many repeats we want to run,
-# so prepopulate a table with some estimated sample sizes.
+# As the distances increase, the sample sizes we need decreases. It's
+# costly to run too many extra repeats, but we need to know in advance how
+# many repeats we want to run, so prepopulate a table with some estimated
+# sample sizes. We can estimate these values by running this script and
+# seeing how many samples are needed for the threshold to cross P_VALUE.
 DISTANCES_AND_SAMPLE_SIZES = (
-    (0.5, 110),
-    (0.6, 80), (0.7, 70), (0.8, 50), (0.9, 40), (1.0, 35),
+    (0.5, 120),
+    (0.6, 90), (0.7, 70), (0.8, 50), (0.9, 40), (1.0, 35),
     (1.1, 25), (1.2, 25), (1.3, 20), (1.4, 20), (1.5, 15),
     (1.6, 15), (1.7, 15), (1.8, 15), (1.9, 10), (2.0, 10),
     (2.1, 10), (2.2, 10), (2.3, 10), (2.4, 10), (2.5, 10),
