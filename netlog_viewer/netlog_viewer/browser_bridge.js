@@ -24,7 +24,6 @@ var BrowserBridge = (function() {
     assertFirstConstructorCall(BrowserBridge);
 
     // List of observers for various bits of browser state.
-    this.connectionTestsObservers_ = [];
     this.hstsObservers_ = [];
     this.expectCTObservers_ = [];
     this.constantsObservers_ = [];
@@ -164,10 +163,6 @@ var BrowserBridge = (function() {
       this.sendClearBrowserCache();
     },
 
-    sendStartConnectionTests: function(url) {
-      this.send('startConnectionTests', [url]);
-    },
-
     sendHSTSQuery: function(domain) {
       this.send('hstsQuery', [domain]);
     },
@@ -303,30 +298,6 @@ var BrowserBridge = (function() {
 
     receivedServiceProviders: function(serviceProviders) {
       this.pollableDataHelpers_.serviceProviders.update(serviceProviders);
-    },
-
-    receivedStartConnectionTestSuite: function() {
-      for (var i = 0; i < this.connectionTestsObservers_.length; i++)
-        this.connectionTestsObservers_[i].onStartedConnectionTestSuite();
-    },
-
-    receivedStartConnectionTestExperiment: function(experiment) {
-      for (var i = 0; i < this.connectionTestsObservers_.length; i++) {
-        this.connectionTestsObservers_[i].onStartedConnectionTestExperiment(
-            experiment);
-      }
-    },
-
-    receivedCompletedConnectionTestExperiment: function(info) {
-      for (var i = 0; i < this.connectionTestsObservers_.length; i++) {
-        this.connectionTestsObservers_[i].onCompletedConnectionTestExperiment(
-            info.experiment, info.result);
-      }
-    },
-
-    receivedCompletedConnectionTestSuite: function() {
-      for (var i = 0; i < this.connectionTestsObservers_.length; i++)
-        this.connectionTestsObservers_[i].onCompletedConnectionTestSuite();
     },
 
     receivedHSTSResult: function(info) {
@@ -543,19 +514,6 @@ var BrowserBridge = (function() {
         this.pollableDataHelpers_.serviceProviders.addObserver(
             observer, ignoreWhenUnchanged);
       }
-    },
-
-    /**
-     * Adds a listener for the progress of the connection tests.
-     * The observer will be called back with:
-     *
-     *   observer.onStartedConnectionTestSuite();
-     *   observer.onStartedConnectionTestExperiment(experiment);
-     *   observer.onCompletedConnectionTestExperiment(experiment, result);
-     *   observer.onCompletedConnectionTestSuite();
-     */
-    addConnectionTestsObserver: function(observer) {
-      this.connectionTestsObservers_.push(observer);
     },
 
     /**
