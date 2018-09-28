@@ -8,7 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
+<link rel="import" href="/tracing/metrics/rendering/cpu_utilization.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/user_model/segment.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -53,8 +55,8 @@ found in the LICENSE file.
  * The distribution of durations between consecutive UI compositor frame's
  * presentation times, during UI animations.
  *
- * ui_smooth_frames
- * ================
+ * ui_smooth_frames_tbmv2
+ * ======================
  * The percentage of ui_frame_times_tbmv2 that are less than 17ms.
  */
 tr.exportTo('tr.metrics.rendering', function() {
@@ -83,14 +85,14 @@ tr.exportTo('tr.metrics.rendering', function() {
     if (modelHelper.surfaceFlingerProcess) {
       events = [...modelHelper.surfaceFlingerProcess.findTopmostSlicesNamed(
           SURFACE_FLINGER_EVENT)];
-      if (events) return events;
+      if (events.length > 0) return events;
     }
     if (modelHelper.gpuHelper) {
       const gpuProcess = modelHelper.gpuHelper.process;
       events = [...gpuProcess.findTopmostSlicesNamed(DRM_EVENT)];
-      if (events) return events;
+      if (events.length > 0) return events;
       events = [...gpuProcess.findTopmostSlicesNamed(DISPLAY_EVENT)];
-      if (events) return events;
+      if (events.length > 0) return events;
     }
     return [...modelHelper.browserProcess.findTopmostSlicesNamed(
         DISPLAY_EVENT)];
@@ -102,8 +104,9 @@ tr.exportTo('tr.metrics.rendering', function() {
         COMPOSITOR_FRAME_PRESENTED_EVENT)];
   }
 
-  function addSurfaceFlingerHistograms_(histograms, frameTimes, refreshPeriod) {
-    let frameLengths = frameTimes.map(time => time / refreshPeriod);
+  function addSurfaceFlingerHistograms_(
+      histograms, frameSegments, refreshPeriod) {
+    let frameLengths = frameSegments.map(x => x.duration / refreshPeriod);
     frameLengths = frameLengths.filter(length => length >= MIN_FRAME_LENGTH);
     histograms.createHistogram(
         'frame_lengths_tbmv2',
@@ -116,7 +119,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         'avg_surface_fps_tbmv2',
         tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         frameLengths.length / tr.b.convertUnit(
-            tr.b.math.Statistics.sum(frameTimes),
+            tr.b.math.Statistics.sum(frameSegments, x => x.duration),
             tr.b.UnitScale.TIME.MILLI_SEC, tr.b.UnitScale.TIME.SEC),
         { description: 'Average frames per second.' });
 
@@ -132,24 +135,27 @@ tr.exportTo('tr.metrics.rendering', function() {
         { description: 'Number of changes in frame rate.' });
   }
 
-  function computeFrameTimes_(timestamps, segments) {
+  function computeFrameSegments_(timestamps, segments) {
     // We use filterArray for the sake of a cleaner code. The time complexity
     // will be O(m + n log m), where m is |timestamps| and n is |segments|.
     // Alternatively, we could directly loop through the timestamps and segments
     // here for a slightly better time complexity of O(m + n).
-    const frameTimes = [];
+    const frameSegments = [];
     for (const segment of segments) {
       const filtered = segment.boundsRange.filterArray(timestamps, x => x[0]);
       for (let i = 1; i < filtered.length; i++) {
-        frameTimes.push(filtered[i][1] - filtered[i - 1][1]);
+        const duration = filtered[i][1] - filtered[i - 1][1];
+        frameSegments.push(
+            new tr.model.um.Segment(filtered[i - 1][0], duration));
       }
     }
-    return frameTimes;
+    return frameSegments;
   }
 
-  function addBasicFrameTimeHistograms_(histograms, frameTimes, prefix) {
+  function addBasicFrameTimeHistograms_(histograms, frameSegments, prefix) {
     // TODO(chiniforooshan): Figure out what kind of break down makes sense
     // here. Perhaps break down by tasks in the Viz/Browser process?
+    const frameTimes = frameSegments.map(x => x.duration);
     histograms.createHistogram(
         `${prefix}frame_times_tbmv2`,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -180,15 +186,17 @@ tr.exportTo('tr.metrics.rendering', function() {
                 event.args.data['vblank.tv_usec'],
                 tr.b.UnitScale.TIME.MICRO_SEC, tr.b.UnitScale.TIME.MILLI_SEC))]
     );
-    const frameTimes = computeFrameTimes_(timestamps, segments);
-    addBasicFrameTimeHistograms_(histograms, frameTimes, '');
+    const frameSegments = computeFrameSegments_(timestamps, segments);
+    addBasicFrameTimeHistograms_(histograms, frameSegments, '');
+    tr.metrics.rendering.addCpuUtilizationHistograms(
+        histograms, model, frameSegments, 'frame', false);
 
     // If Surface Flinger information is captured, add Surface Flinger
     // histograms.
     for (const metadata of model.metadata) {
       if (metadata.value && metadata.value.surface_flinger) {
         addSurfaceFlingerHistograms_(
-            histograms, frameTimes,
+            histograms, frameSegments,
             metadata.value.surface_flinger.refresh_period);
         return;
       }
@@ -202,8 +210,8 @@ tr.exportTo('tr.metrics.rendering', function() {
 
     // Presentation Timestamps should be sorted.
     const timestamps = events.map(event => [event.start, event.start]);
-    const frameTimes = computeFrameTimes_(timestamps, segments);
-    addBasicFrameTimeHistograms_(histograms, frameTimes, 'ui_');
+    const frameSements = computeFrameSegments_(timestamps, segments);
+    addBasicFrameTimeHistograms_(histograms, frameSements, 'ui_');
   }
 
   return {

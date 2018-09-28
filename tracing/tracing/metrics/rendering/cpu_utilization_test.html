@@ -14,7 +14,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('cpuUtilization', function() {
+  test('cpuPerSecond', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
       browserMain.name = 'CrBrowserMain';
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addCpuUtilizationHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 10)]);
+        histograms, model, [new tr.model.um.Segment(0, 10)], 'second', true);
 
     // Verify the browser and renderer main threads and IO threads CPU usage.
     let hist = histograms.getHistogramNamed(
@@ -72,6 +72,101 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(0.7, hist.min, 1e-6);
     assert.closeTo(0.7, hist.max, 1e-6);
     assert.closeTo(0.7, hist.average, 1e-6);
+  });
+
+  test('cpuPerFrame', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      // A slice during the animation with CPU duration 2.
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 1, end: 4, cpuStart: 0, cpuEnd: 2 }));
+      // A slice after the animation.
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 10, end: 12, cpuStart: 2, cpuEnd: 3 }));
+
+
+      const rendererMain = model.getOrCreateProcess(1).getOrCreateThread(0);
+      rendererMain.name = 'CrRendererMain';
+      // A slice half of which intersects with the animation.
+      rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 5, end: 15, cpuStart: 0, cpuEnd: 8 }));
+
+      const rendererIO = model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererIO.name = 'Chrome_ChildIOThread';
+      rendererIO.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addCpuUtilizationHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 10)], 'frame', false);
+
+    // Verify the browser and renderer main threads and IO threads CPU usage.
+    let hist = histograms.getHistogramNamed(
+        'thread_browser_cpu_time_per_frame_tbmv2');
+    assert.closeTo(2, hist.min, 1e-6);
+    assert.closeTo(2, hist.max, 1e-6);
+    assert.closeTo(2, hist.average, 1e-6);
+
+    hist = histograms.getHistogramNamed(
+        'thread_renderer_main_cpu_time_per_frame_tbmv2');
+    assert.closeTo(4, hist.min, 1e-6);
+    assert.closeTo(4, hist.max, 1e-6);
+    assert.closeTo(4, hist.average, 1e-6);
+
+    hist = histograms.getHistogramNamed('thread_io_cpu_time_per_frame_tbmv2');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(1, hist.max, 1e-6);
+    assert.closeTo(1, hist.average, 1e-6);
+
+    // Also, verify fast_path threads, that includs IO threads and the browser
+    // main thread, but not the renderer main thread.
+    hist = histograms.getHistogramNamed(
+        'thread_fast_path_cpu_time_per_frame_tbmv2');
+    assert.closeTo(3, hist.min, 1e-6);
+    assert.closeTo(3, hist.max, 1e-6);
+    assert.closeTo(3, hist.average, 1e-6);
+
+    // Verify sum of all threads.
+    hist = histograms.getHistogramNamed('thread_all_cpu_time_per_frame_tbmv2');
+    assert.closeTo(7, hist.min, 1e-6);
+    assert.closeTo(7, hist.max, 1e-6);
+    assert.closeTo(7, hist.average, 1e-6);
+  });
+
+  test('multipleSegments', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 1, end: 4, cpuStart: 0, cpuEnd: 2 }));
+      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 8, end: 12, cpuStart: 2, cpuEnd: 4 }));
+
+
+      const rendererMain = model.getOrCreateProcess(1).getOrCreateThread(0);
+      rendererMain.name = 'CrRendererMain';
+      rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 5, end: 15, cpuStart: 0, cpuEnd: 8 }));
+
+      const rendererIO = model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererIO.name = 'Chrome_ChildIOThread';
+      rendererIO.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addCpuUtilizationHistograms(
+        histograms, model,
+        [new tr.model.um.Segment(0, 5), new tr.model.um.Segment(5, 5)],
+        'frame', false);
+
+    // The first slice is in the first segment, using 2ms of CPU. The rest are
+    // in the second segment, using 1 + 4 + 1 = 6ms of CPU.
+    const hist = histograms.getHistogramNamed(
+        'thread_all_cpu_time_per_frame_tbmv2');
+    assert.closeTo(2, hist.min, 1e-6);
+    assert.closeTo(6, hist.max, 1e-6);
+    assert.closeTo(4, hist.average, 1e-6);
   });
 });
 </script>
