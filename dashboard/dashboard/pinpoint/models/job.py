@@ -182,7 +182,8 @@ class Job(ndb.Model):
     self._PostBugComment(comment, send_email=False)
 
   def _Complete(self):
-    self.difference_count = len(self.state.Differences())
+    if self.comparison_mode:
+      self.difference_count = len(self.state.Differences())
 
     try:
       results2.ScheduleResults2Generation(self)
@@ -193,7 +194,7 @@ class Job(ndb.Model):
     self._UpdateGerritIfNeeded()
 
   def _FormatAndPostBugCommentOnComplete(self):
-    if not self.state.comparison_mode:
+    if not self.comparison_mode:
       # There is no comparison metric.
       title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
       self._PostBugComment('\n'.join((title, self.url)))
@@ -334,7 +335,7 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      if self.state.comparison_mode:
+      if self.comparison_mode:
         self.state.Explore()
       work_left = self.state.ScheduleWork()
 

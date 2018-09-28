@@ -58,10 +58,6 @@ class JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
-  @property
-  def comparison_mode(self):
-    return self._comparison_mode
-
   def AddAttempts(self, change):
     if not hasattr(self, '_pin'):
       # TODO: Remove after data migration.

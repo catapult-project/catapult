@@ -42,9 +42,7 @@ def _FetchCompletedPinpointJobs(start_date):
       return False
     if not job.bug_id:
       return False
-    if not hasattr(job.state, '_comparison_mode'):
-      return False
-    if job.state.comparison_mode != job_state.PERFORMANCE:
+    if job.comparison_mode != job_state.PERFORMANCE:
       return False
     diffs = len(list(job.state.Differences()))
     if diffs != 1:
