@@ -67,8 +67,8 @@ def BuildRequestError(request, response, content):
 
 
 @retry_util.RetryOnException(ServerError, retries=3)
-def Request(url, method='GET', params=None, data=None, credentials=None,
-            retries=None):
+def Request(url, method='GET', params=None, data=None,
+            content_type='urlencoded', credentials=None, retries=None):
   """Perform an HTTP request of a given resource.
 
   Args:
@@ -98,8 +98,14 @@ def Request(url, method='GET', params=None, data=None, credentials=None,
   body = None
   headers = {}
   if data is not None:
-    body = urllib.urlencode(data)
-    headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    if content_type == 'json':
+      body = json.dumps(data, sort_keys=True, separators=(',', ':'))
+      headers['Content-Type'] = 'application/json'
+    elif content_type == 'urlencoded':
+      body = urllib.urlencode(data)
+      headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    else:
+      raise NotImplementedError('Invalid content type: %s' % content_type)
   else:
     headers['Content-Length'] = '0'
 

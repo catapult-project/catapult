@@ -44,6 +44,15 @@ class TestRequest(unittest.TestCase):
     self.http.request.assert_called_once_with(
         'http://example.com/', method='POST', body='q=foo', headers=mock.ANY)
 
+  def testRequest_postWithJsonData(self):
+    self.http.request.return_value = Response(200, 'OK!')
+    self.assertEqual(request.Request(
+        'http://example.com/', data={'q': 'foo'}, content_type='json',
+        method='POST'), 'OK!')
+    self.http.request.assert_called_once_with(
+        'http://example.com/', method='POST', body='{"q":"foo"}',
+        headers=mock.ANY)
+
   def testRequest_retryOnServerError(self):
     self.http.request.side_effect = [
         Response(500, 'Oops. Something went wrong!'),
