@@ -18,8 +18,7 @@ sys.path.append(PY_UTILS_PATH)
 
 from common import utils
 from pinpoint_cli import job_results
-from services import chrome_perf_auth
-from services import pinpoint_service
+import services
 
 
 def main():
@@ -40,15 +39,14 @@ def main():
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
-  credentials = chrome_perf_auth.GetUserCredentials(args)
-  api = pinpoint_service.Api(credentials)
+  api = services.UserServices(args)
 
   if args.action == 'job':
-    job = api.Job(args.job_id, with_state=True)
+    job = api.pinpoint.Job(args.job_id, with_state=True)
     for change_id, isolate_hash in job_results.IterTestOutputIsolates(job):
       print change_id, isolate_hash
   elif args.action == 'new-job':
-    print api.NewJob(
+    print api.pinpoint.NewJob(
         name='Test job from command line',
         configuration='android-go-perf',
         target='performance_test_suite',
