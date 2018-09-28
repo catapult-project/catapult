@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
 import datetime
 import httplib
 import time
@@ -165,6 +166,16 @@ def _ProcessAlerts():
   if not alerts:
     raise ndb.Return()
 
+  alerts_by_bot = collections.defaultdict(list)
+  for a in alerts:
+    alerts_by_bot[a.bot_name].append(a)
+
+  for bot_name, bot_alerts in alerts_by_bot.iteritems():
+    yield _ProcessAlertsForBot(bot_name, bot_alerts)
+
+
+@ndb.tasklet
+def _ProcessAlertsForBot(bot_name, alerts):
   alerts_total = _CreateHistogram('chromium.perf.alerts', 'count')
   alerts_total.AddSample(len(alerts))
 
@@ -183,7 +194,7 @@ def _ProcessAlerts():
     hists_by_suite[s].AddSample(c)
 
   hs = _CreateHistogramSet(
-      'ChromiumPerfFyi', 'test1', 'chromeperf.stats', int(time.time()),
+      'ChromiumPerfFyi', bot_name, 'chromeperf.stats', int(time.time()),
       [alerts_total] + hists_by_suite.values())
 
   deferred.defer(
