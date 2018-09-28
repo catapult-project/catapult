@@ -90,6 +90,12 @@ indexes:
     direction: desc
   - name: timestamp
     direction: desc
+- kind: Anomaly
+  properties:
+  - name: statistic
+  - name: test
+  - name: end_revision
+    direction: desc
 
 # This composite index supports the most important type of query in alerts.py
 # when improvements and triaged alerts are not required. Without this index,
