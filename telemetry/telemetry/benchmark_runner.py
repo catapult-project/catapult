@@ -48,16 +48,20 @@ def _IsBenchmarkEnabled(bench, possible_browser, expectations_file):
                                            possible_browser))
 
 
-def _GetStoryTags(b):
-  """Finds story tags given a benchmark.
+def _GetStoriesWithTags(b):
+  """Finds all stories and their tags given a benchmark.
 
   Args:
     b: a subclass of benchmark.Benchmark
   Returns:
-    A list of story tags as strings.
+    A list of dicts for the stories, each of the form:
+    {
+      'name' : story.name
+      'tags': list(story.tags)
+    }
   """
   # Create a options object which hold default values that are expected
-  # by Benchmark.CreateStorySet(options) method.
+  # by Benchmark.CreateStoriesWithTags(options) method.
   parser = optparse.OptionParser()
   b.AddBenchmarkCommandLineArgs(parser)
   options, _ = parser.parse_args([])
@@ -68,13 +72,16 @@ def _GetStoryTags(b):
     story_set = b().CreateStorySet(options)
   # pylint: disable=broad-except
   except Exception as e:
-    logging.warning('Unable to get story tags for %s due to "%s"', b.Name(), e)
+    logging.warning('Unable to get stories for %s due to "%s"', b.Name(), e)
     story_set = []
 
-  story_tags = set()
+  stories_info = []
   for s in story_set:
-    story_tags.update(s.tags)
-  return sorted(story_tags)
+    stories_info.append({
+        'name': s.name,
+        'tags': list(s.tags)
+    })
+  return sorted(stories_info)
 
 
 def PrintBenchmarkList(
@@ -124,7 +131,7 @@ def PrintBenchmarkList(
     benchmark_info['enabled'] = (
         not possible_browser or
         _IsBenchmarkEnabled(b, possible_browser, expectations_file))
-    benchmark_info['story_tags'] = _GetStoryTags(b)
+    benchmark_info['stories'] = _GetStoriesWithTags(b)
     all_benchmark_info.append(benchmark_info)
 
   # Align the benchmark names to the longest one.

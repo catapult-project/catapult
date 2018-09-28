@@ -94,11 +94,20 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
             {'name': BenchmarkFoo.Name(),
              'description': BenchmarkFoo.Description(),
              'enabled': True,
-             'story_tags': ['bar', 'foo']},
+             'stories': [
+                 {
+                     'name': 'dummy_page',
+                     'tags': [
+                         'foo',
+                         'bar'
+                     ]
+                 }
+             ]
+            },
             {'name': BenchmarkBar.Name(),
              'description': BenchmarkBar.Description(),
              'enabled': False,
-             'story_tags': []}], key=lambda b: b['name']),
+             'stories': []}], key=lambda b: b['name']),
         indent=4, sort_keys=True, separators=(',', ': '))
 
     expectations_file_contents = (
