@@ -13,9 +13,14 @@ from dashboard.services import request
 
 OAUTH_SCOPE_GERRIT = 'https://www.googleapis.com/auth/gerritcodereview'
 
+
+NotFoundError = request.NotFoundError
+
+
 def GetChange(server_url, change_id, fields=None):
   url = '%s/changes/%s' % (server_url, change_id)
   return request.RequestJson(url, o=fields)
+
 
 def PostChangeComment(server_url, change_id, comment):
   url = '%s/a/changes/%s/revisions/current/review' % (server_url, change_id)

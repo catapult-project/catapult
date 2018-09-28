@@ -80,7 +80,7 @@ class GerritPatch(collections.namedtuple(
       A GerritPatch.
 
     Raises:
-      KeyError: The patch doesn't have the given revision.
+      KeyError: The patch doesn't exist or doesn't have the given revision.
       ValueError: The URL has an unrecognized format.
     """
     if isinstance(data, basestring):
@@ -106,8 +106,11 @@ class GerritPatch(collections.namedtuple(
       revision = data.get('revision')
 
     # Look up the patch and convert everything to a canonical format.
-    patch_info = gerrit_service.GetChange(
-        server, change, fields=('ALL_REVISIONS',))
+    try:
+      patch_info = gerrit_service.GetChange(
+          server, change, fields=('ALL_REVISIONS',))
+    except gerrit_service.NotFoundError as e:
+      raise KeyError(str(e))
     change = patch_info['id']
 
     # Revision can be a revision ID or numeric patch number.
