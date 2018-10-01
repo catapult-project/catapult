@@ -40,6 +40,7 @@ def GetFromBrowserOptions(browser_options):
   args.append('--metrics-recording-only')
   args.append('--no-default-browser-check')
   args.append('--no-first-run')
+  args.append('--ignore-background-tasks')
 
   # Turn on GPU benchmarking extension for all runs. The only side effect of
   # the extension being on is that render stats are tracked. This is believed
