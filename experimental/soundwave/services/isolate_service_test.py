@@ -5,6 +5,8 @@
 
 import base64
 import json
+import shutil
+import tempfile
 import unittest
 import zlib
 
@@ -23,11 +25,14 @@ def UrlResponse(url, content):
 
 class TestIsolateApi(unittest.TestCase):
   def setUp(self):
+    self.cache_dir = tempfile.mkdtemp()
     self.mock_credentials = mock.Mock()
     self.mock_request = mock.patch('services.request.Request').start()
     self.api = isolate_service.Api(self.mock_credentials)
+    self.api.CACHE_DIR = self.cache_dir
 
   def tearDown(self):
+    shutil.rmtree(self.cache_dir)
     mock.patch.stopall()
 
   def testRetrieve_content(self):
@@ -47,6 +52,15 @@ class TestIsolateApi(unittest.TestCase):
     self.mock_request.side_effect = UrlResponse('http://get/response', 'OK!')
     self.assertEqual(
         self.api.RetrieveCompressed('hash'), zlib.compress('OK!'))
+
+  def testRetrieveCompressed_usesCache(self):
+    self.mock_request.side_effect = ContentResponse('OK!')
+    self.assertEqual(
+        self.api.RetrieveCompressed('hash'), zlib.compress('OK!'))
+    self.assertEqual(
+        self.api.RetrieveCompressed('hash'), zlib.compress('OK!'))
+    # We retrieve the same hash twice, but the request is only made once.
+    self.assertEqual(self.mock_request.call_count, 1)
 
   def testRetrieveFile_succeeds(self):
     self.mock_request.side_effect = (

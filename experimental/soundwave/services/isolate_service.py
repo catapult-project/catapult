@@ -5,6 +5,7 @@
 
 import base64
 import json
+import os
 import zlib
 
 from services import request
@@ -12,12 +13,16 @@ from services import request
 
 class Api(object):
   SERVICE_URL = 'https://chrome-isolated.appspot.com/_ah/api/isolateservice/v1'
+  CACHE_DIR = os.path.normpath(os.path.join(
+      os.path.dirname(__file__), '..', '_isolate_cache'))
 
   def __init__(self, credentials):
     self._credentials = credentials
+    if not os.path.isdir(self.CACHE_DIR):
+      os.makedirs(self.CACHE_DIR)
 
   def Request(self, endpoint, **kwargs):
-    """Send a request to some insolate service endpoint."""
+    """Send a request to some isolate service endpoint."""
     kwargs.setdefault('credentials', self._credentials)
     return json.loads(request.Request(self.SERVICE_URL + endpoint, **kwargs))
 
@@ -31,6 +36,22 @@ class Api(object):
     return self.Retrieve(container['files'][filename]['h'])
 
   def RetrieveCompressed(self, digest):
+    """Retrieve the compressed content stored at some isolate digest.
+
+    Responses are cached locally to speed up retrieving content multiple times
+    for the same digest.
+    """
+    cache_file = os.path.join(self.CACHE_DIR, digest)
+    if os.path.exists(cache_file):
+      with open(cache_file, 'rb') as f:
+        return f.read()
+    else:
+      content = self._RetrieveCompressed(digest)
+      with open(cache_file, 'wb') as f:
+        f.write(content)
+      return content
+
+  def _RetrieveCompressed(self, digest):
     """Retrieve the compressed content stored at some isolate digest."""
     data = self.Request(
         '/retrieve', method='POST', content_type='json',
