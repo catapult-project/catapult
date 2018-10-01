@@ -393,6 +393,7 @@ Polymer({
           () => view.visible = cbox.checked);
       cbox.checked = view.visible;
       cboxes.push(cbox);
+      view.addEventListener('visibility', () => cbox.checked = view.visible);
       dropdown.appendChild(cbox);
     }
   },

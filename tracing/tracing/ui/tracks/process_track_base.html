@@ -50,8 +50,13 @@ tr.exportTo('tr.ui.tracks', function() {
       this.processNameEl_ = tr.ui.b.createSpan();
       Polymer.dom(this.processNameEl_).classList.add('process-track-name');
 
+      this.closeEl_ = tr.ui.b.createSpan();
+      Polymer.dom(this.closeEl_).classList.add('process-track-close');
+      this.closeEl_.textContent = 'X';
+
       this.headerEl_ = tr.ui.b.createDiv({className: 'process-track-header'});
       Polymer.dom(this.headerEl_).appendChild(this.processNameEl_);
+      Polymer.dom(this.headerEl_).appendChild(this.closeEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
       Polymer.dom(this).appendChild(this.headerEl_);
@@ -104,6 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (visible === this.visible) return;
       this.hidden = !visible;
 
+      tr.b.dispatchSimpleEvent(this, 'visibility');
       // Changing the visibility of the tracks can grow and shrink the viewport.
       // We dispatch a change event to trigger any processing to happen.
       this.viewport_.dispatchChangeEvent();
@@ -129,7 +135,11 @@ tr.exportTo('tr.ui.tracks', function() {
     onHeaderClick_(e) {
       e.stopPropagation();
       e.preventDefault();
-      this.expanded = !this.expanded;
+      if (e.target === this.closeEl_) {
+        this.visible = false;
+      } else {
+        this.expanded = !this.expanded;
+      }
     },
 
     updateContents_() {
