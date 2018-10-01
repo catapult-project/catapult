@@ -42,7 +42,8 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.FUCHSIA_GARNET_REVISIONS.name: 'r_fuchsia_garnet_git',
     reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name: 'r_fuchsia_peridot_git',
     reserved_infos.FUCHSIA_TOPAZ_REVISIONS.name: 'r_fuchsia_topaz_git',
-    reserved_infos.FUCHSIA_ZIRCON_REVISIONS.name: 'r_fuchsia_zircon_git'
+    reserved_infos.FUCHSIA_ZIRCON_REVISIONS.name: 'r_fuchsia_zircon_git',
+    reserved_infos.REVISION_TIMESTAMPS.name: 'r_revision_timestamp',
 }
 
 

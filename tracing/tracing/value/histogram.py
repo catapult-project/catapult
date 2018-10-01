@@ -370,6 +370,14 @@ class DateRange(diagnostic.Diagnostic):
     return datetime.datetime.fromtimestamp(self._range.max / 1000)
 
   @property
+  def min_timestamp(self):
+    return self._range.min
+
+  @property
+  def max_timestamp(self):
+    return self._range.max
+
+  @property
   def duration_ms(self):
     return self._range.duration
 

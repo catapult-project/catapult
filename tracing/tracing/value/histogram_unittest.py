@@ -751,6 +751,7 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
 
 
 class DateRangeUnittest(unittest.TestCase):
+
   def testRoundtrip(self):
     dr = histogram.DateRange(1496693745000)
     dr.AddDiagnostic(histogram.DateRange(1496693746000))
@@ -759,6 +760,16 @@ class DateRangeUnittest(unittest.TestCase):
     clone = diagnostic.Diagnostic.FromDict(dr.AsDict())
     self.assertEqual(clone.min_date, dr.min_date)
     self.assertEqual(clone.max_date, dr.max_date)
+
+  def testMinTimestamp(self):
+    dr = histogram.DateRange(1496693745123)
+    dr.AddDiagnostic(histogram.DateRange(1496693746123))
+    self.assertEqual(dr.min_timestamp, 1496693745123)
+
+  def testMaxTimestamp(self):
+    dr = histogram.DateRange(1496693745123)
+    dr.AddDiagnostic(histogram.DateRange(1496693746123))
+    self.assertEqual(dr.max_timestamp, 1496693746123)
 
 
 class DiagnosticMapUnittest(unittest.TestCase):
