@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/option-group.html">
+
+<test-fixture id="test">
+  <template>
+    <option-group state-path="test" root-state-path="test">
+    </option-group>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+setup(() => {
+  fixture('test').dispatch(Redux.UPDATE('', {
+    test: cp.OptionGroup.buildState({
+      options: cp.OptionGroup.groupValues(new Set([
+        'aaa',
+        'bbb:ccc',
+        'bbb:ddd',
+        'bbb:ddd:eee',
+        'bbb:ddd:fff',
+      ])),
+    }),
+  }));
+});
+
+suite('option-group', function() {
+  test('groupValues', function() {
+    const actual = cp.OptionGroup.groupValues([
+      'aaa',
+      'bbb:ccc',
+      'bbb:ddd',
+      'bbb:ddd:eee',
+      'bbb:ddd:fff',
+    ]);
+    const expected = [
+      {
+        'label': 'aaa',
+        'value': 'aaa',
+        'valueLowerCase': 'aaa',
+      },
+      {
+        'isExpanded': false,
+        'label': 'bbb',
+        'options': [
+          {
+            'label': 'ccc',
+            'value': 'bbb:ccc',
+            'valueLowerCase': 'bbb:ccc',
+          },
+          {
+            'isExpanded': false,
+            'label': 'ddd',
+            'options': [
+              {
+                'label': 'eee',
+                'value': 'bbb:ddd:eee',
+                'valueLowerCase': 'bbb:ddd:eee',
+              },
+              {
+                'label': 'fff',
+                'value': 'bbb:ddd:fff',
+                'valueLowerCase': 'bbb:ddd:fff',
+              },
+            ],
+            'value': 'bbb:ddd',
+            'valueLowerCase': 'bbb:ddd',
+          },
+        ],
+      },
+    ];
+    assert.deepEqual(actual, expected);
+  });
+
+  test('select simple', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
+    checkbox.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual(['aaa'], optionGroup.getState().test.selectedOptions);
+  });
+
+  test('deselect simple', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['aaa']}));
+    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
+    checkbox.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual([], optionGroup.getState().test.selectedOptions);
+  });
+
+  test('select all descendents', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    const bLeaf = tr.ui.b.findDeepElementWithTextContent(optionGroup, /bbb/);
+    bLeaf.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual(['bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],
+        optionGroup.getState().test.selectedOptions);
+  });
+
+  test('deselect all descendents', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: [
+      'bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff',
+    ]}));
+    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    checkbox.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual(['bbb:ccc'], optionGroup.getState().test.selectedOptions);
+  });
+
+  test('select tri-state single', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: []}));
+    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    checkbox.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual(['bbb:ddd'], optionGroup.getState().test.selectedOptions);
+  });
+
+  test('select tri-state all descendents', async function() {
+    const optionGroup = fixture('test');
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['bbb:ddd']}));
+    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    checkbox.$.native.click();
+    await cp.afterRender();
+    assert.deepEqual(['bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],
+        optionGroup.getState().test.selectedOptions);
+  });
+});
+</script>
