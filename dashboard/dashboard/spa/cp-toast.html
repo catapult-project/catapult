@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="cp-toast">
+  <template>
+    <style>
+      :host {
+        background-color: var(--primary-color-dark, blue);
+        bottom: 0;
+        box-shadow: var(--elevation-2);
+        color: var(--background-color, white);
+        left: 0;
+        margin: 16px;
+        padding: 8px;
+        position: fixed;
+      }
+      :host(:not([opened])) {
+        visibility: hidden;
+      }
+    </style>
+
+    <iron-collapse opened="[[opened]]">
+      <slot></slot>
+    </iron-collapse>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/cp-toast.js"></script>
