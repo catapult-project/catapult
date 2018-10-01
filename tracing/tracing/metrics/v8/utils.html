@@ -109,6 +109,20 @@ tr.exportTo('tr.metrics.v8.utils', function() {
             event.parentSlice.title === MINOR_GC_EVENT);
   }
 
+  function isNotForcedTopGarbageCollectionEvent(event) {
+    // We exclude garbage collection events forced by benchmark runner,
+    // because they cannot happen in real world.
+    return tr.metrics.v8.utils.isTopGarbageCollectionEvent(event) &&
+           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
+  }
+
+  function isNotForcedSubGarbageCollectionEvent(event) {
+    // We exclude garbage collection events forced by benchmark runner,
+    // because they cannot happen in real world.
+    return tr.metrics.v8.utils.isSubGarbageCollectionEvent(event) &&
+           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
+  }
+
   function isFullMarkCompactorEvent(event) {
     return event.title === 'V8.GCCompactor';
   }
@@ -147,6 +161,10 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   function isV8RCSEvent(event) {
     return event instanceof tr.e.v8.V8ThreadSlice;
+  }
+
+  function forcedGCEventName() {
+    return LOW_MEMORY_EVENT;
   }
 
   function topGarbageCollectionEventName(event) {
@@ -232,6 +250,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   return {
     findParent,
+    forcedGCEventName,
     groupAndProcessEvents,
     isForcedGarbageCollectionEvent,
     isFullMarkCompactorEvent,
@@ -241,6 +260,8 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isLatencyMarkCompactorEvent,
     isLowMemoryEvent,
     isMemoryMarkCompactorEvent,
+    isNotForcedTopGarbageCollectionEvent,
+    isNotForcedSubGarbageCollectionEvent,
     isScavengerEvent,
     isSubGarbageCollectionEvent,
     isTopGarbageCollectionEvent,
