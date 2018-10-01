@@ -10,14 +10,16 @@ import sys
 import oauth2client.tools
 
 ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-PY_UTILS_PATH = os.path.normpath(os.path.join(
-    ROOT_PATH, '..', '..', 'common', 'py_utils'))
+CATAPULT_PATH = os.path.normpath(os.path.join(ROOT_PATH, '..', '..'))
+PY_UTILS_PATH = os.path.join(CATAPULT_PATH, 'common', 'py_utils')
+TRACING_PATH = os.path.join(CATAPULT_PATH, 'tracing')
 
 sys.path.append(ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
+sys.path.append(TRACING_PATH)
 
 from common import utils
-from pinpoint_cli import job_results
+from pinpoint_cli import commands
 import services
 
 
@@ -28,9 +30,14 @@ def main():
       help='Increase verbosity level')
   subparsers = parser.add_subparsers(dest='action')
   subparsers.required = True
-  # Subparser args for getting state of a job.
-  subparser = subparsers.add_parser('job')
-  subparser.add_argument('job_id')
+  # Subparser args for downloading the perf results of a job as a csv file.
+  subparser = subparsers.add_parser('get-csv')
+  subparser.add_argument(
+      'job_id', metavar='JOB_ID',
+      help='id of a pinpoint job for which to get results')
+  subparser.add_argument(
+      'output', metavar='OUTPUT_CSV',
+      help='path to a file where to store perf results as a csv file')
   # Subparser args for creating a new job.
   subparser = subparsers.add_parser('new-job')
   subparser.add_argument('--repository', default='chromium')
@@ -41,10 +48,8 @@ def main():
 
   api = services.UserServices(args)
 
-  if args.action == 'job':
-    job = api.pinpoint.Job(args.job_id, with_state=True)
-    for change_id, isolate_hash in job_results.IterTestOutputIsolates(job):
-      print change_id, isolate_hash
+  if args.action == 'get-csv':
+    return commands.DownloadJobResultsAsCsv(api, args.job_id, args.output)
   elif args.action == 'new-job':
     print api.pinpoint.NewJob(
         name='Test job from command line',
