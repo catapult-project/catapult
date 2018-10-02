@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import urllib2
 import os
 
 from telemetry.core import exceptions
@@ -61,8 +60,13 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     if not credentials:
       return (None, None)
 
-    user, password = credentials.split(':')
+    username, password = credentials.split(':')
+    return self._Canonicalize(username, password)
+
+  def _Canonicalize(self, user, password):
+    """Get rid of dots in username and add @gmail.com."""
     # Canonicalize.
+    user = user.lower()
     if user.find('@') == -1:
       username = user
       domain = 'gmail.com'
@@ -75,12 +79,12 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     return ('%s@%s' % (username, domain), password)
 
   @decorators.Enabled('chromeos')
-  def testGetCredentials(self):
-    (username, password) = self._GetCredentials('user.1:foo.1')
+  def testCanonicalize(self):
+    (username, password) = self._Canonicalize('User.1', 'foo.1')
     self.assertEquals(username, 'user1@gmail.com')
     self.assertEquals(password, 'foo.1')
 
-    (username, password) = self._GetCredentials('user.1@chromium.org:bar.1')
+    (username, password) = self._Canonicalize('user.1@chromium.org', 'bar.1')
     self.assertEquals(username, 'user.1@chromium.org')
     self.assertEquals(password, 'bar.1')
 
@@ -119,10 +123,9 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
       return
     username, password = self._GetCredentials()
     if not username or not password:
-      username = 'powerloadtest@gmail.com'
-      password = urllib2.urlopen(
-          'https://sites.google.com/a/chromium.org/dev/chromium-os/testing/'
-          'power-testing/pltp/pltp').read().rstrip()
+      username = 'autotest.catapult'
+      password = 'autotest'
+    username, password = self._Canonicalize(username, password)
     with self._CreateBrowser(gaia_login=True,
                              username=username,
                              password=password):
