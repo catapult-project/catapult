@@ -6,7 +6,8 @@ import logging
 
 from telemetry.core import exceptions
 from telemetry.internal.browser import web_contents
-from websocket import WebSocketException
+from telemetry.internal.backends.chrome_inspector.inspector_websocket import \
+    WebSocketException
 
 import py_utils
 
