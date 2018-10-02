@@ -46,6 +46,10 @@ class ReadHistogramsJsonValue(quest.Quest):
   def __str__(self):
     return 'Get results'
 
+  @property
+  def metric(self):
+    return self._hist_name
+
   def Start(self, change, isolate_server=None, isolate_hash=None):
     del change
 
@@ -211,6 +215,10 @@ class ReadGraphJsonValue(quest.Quest):
 
   def __str__(self):
     return 'Get results'
+
+  @property
+  def metric(self):
+    return self._chart
 
   def Start(self, change, isolate_server=None, isolate_hash=None):
     del change

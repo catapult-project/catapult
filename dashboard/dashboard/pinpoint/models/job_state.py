@@ -58,6 +58,12 @@ class JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
+  @property
+  def metric(self):
+    if self._comparison_mode == 'functional':
+      return 'Failure rate'
+    return self._quests[-1].metric if self._quests else ''
+
   def AddAttempts(self, change):
     if not hasattr(self, '_pin'):
       # TODO: Remove after data migration.

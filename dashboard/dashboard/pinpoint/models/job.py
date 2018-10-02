@@ -235,7 +235,8 @@ class Job(ndb.Model):
 
       values_a = self.state.ResultValues(change_a)
       values_b = self.state.ResultValues(change_b)
-      difference = _FormatDifferenceForBug(commit_info, values_a, values_b)
+      difference = _FormatDifferenceForBug(commit_info, values_a, values_b,
+                                           self.state.metric)
       difference_details.append(difference)
 
     # Header.
@@ -425,7 +426,7 @@ class Job(ndb.Model):
     return issue_data.get('status')
 
 
-def _FormatDifferenceForBug(commit_info, values_a, values_b):
+def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
   subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
 
   if values_a:
@@ -442,7 +443,12 @@ def _FormatDifferenceForBug(commit_info, values_a, values_b):
     mean_b = None
     formatted_b = 'No values'
 
-  difference = '%s %s %s' % (formatted_a, _RIGHT_ARROW, formatted_b)
+  if metric:
+    metric = '%s: ' % metric
+  else:
+    metric = ''
+
+  difference = '%s%s %s %s' % (metric, formatted_a, _RIGHT_ARROW, formatted_b)
   if values_a and values_b:
     difference += ' (%+.4g)' % (mean_b - mean_a)
 
