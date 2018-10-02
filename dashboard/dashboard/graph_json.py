@@ -252,7 +252,9 @@ def _PointInfoDict(row, anomaly_annotation_map):
       logdog_link, status_page_link = _GetUpdatedBuildbotLinks(val)
       if logdog_link:
         val = logdog_link
-      if status_page_link:
+      # TODO(simonhatch): Remove this sometime in 2019.
+      # crbug.com/891424
+      if status_page_link and not 'a_build_uri' in row_dict:
         point_info['a_buildbot_status_page'] = status_page_link
 
     if name.startswith('r_'):
