@@ -50,6 +50,8 @@ tr.exportTo('tr.metrics.rendering', function() {
   CATEGORY_THREAD_MAP.set('renderer_compositor', [/^Compositor$/]);
   CATEGORY_THREAD_MAP.set('renderer_main', [/^CrRendererMain$/]);
 
+  const ALL_CATEGORIES = [...CATEGORY_THREAD_MAP.keys(), 'other'];
+
   function addValueToMap_(map, key, value) {
     const oldValue = map.get(key) || 0;
     map.set(key, oldValue + value);
@@ -81,7 +83,7 @@ tr.exportTo('tr.metrics.rendering', function() {
   function addCpuUtilizationHistograms(
       histograms, model, segments, segmentName, shouldNormalize) {
     const histogramMap = new Map();
-    for (const category of CATEGORY_THREAD_MAP.keys()) {
+    for (const category of ALL_CATEGORIES) {
       const histogram = histograms.createHistogram(
           `thread_${category}_cpu_time_per_${segmentName}_tbmv2`,
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
@@ -137,7 +139,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         }
       }
 
-      for (const category of CATEGORY_THREAD_MAP.keys()) {
+      for (const category of ALL_CATEGORIES) {
         let value = categoryValues.get(category) || 0;
         if (shouldNormalize) value /= segment.duration;
         const diagnostics = new tr.v.d.DiagnosticMap();
