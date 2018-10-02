@@ -26,19 +26,33 @@ tr.exportTo('tr.metrics.sh', function() {
     // message loop start. TODO(crbug.com/883290): re-introduce
     // request_start_time. TODO(crbug.com/886621): deflake the
     // first_contentful_paint_time metric and re-introduce it.
-    const messageLoopStartHistogram = histograms.createHistogram(
-        'messageloop_start_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    const messageLoopStartEvents = [];
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) return;
     for (const helper of chromeHelper.browserHelpers) {
       for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
         if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
-          messageLoopStartHistogram.addSample(ev.duration,
-              { events: new tr.v.d.RelatedEventSet([ev]) });
+          messageLoopStartEvents.push(ev);
         }
       }
+    }
+
+    // Output all times to start the messageloop except the earliest one. The
+    // earliest start on the trace is affected by the state of the system coming
+    // from the time before the benchmark started. Removing these influencing
+    // factors allows reducing the noise.
+    const messageLoopStartHistogram = histograms.createHistogram(
+        'messageloop_start_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    messageLoopStartEvents.sort(function(event1, event2) {
+      return event1.start - event2.start;
+    });
+    const totalMessageLoopStarts = messageLoopStartEvents.length;
+    for (let i = 1; i < totalMessageLoopStarts; i++) {
+      const ev = messageLoopStartEvents[i];
+      messageLoopStartHistogram.addSample(ev.duration,
+          {events: new tr.v.d.RelatedEventSet([ev])});
     }
   }
 

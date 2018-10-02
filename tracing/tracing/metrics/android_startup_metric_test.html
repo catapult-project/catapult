@@ -13,20 +13,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  // Add a browser and renderer to the process, with a few key events necessary
-  // to calculate the |androidStartupMetric|. An |offset| can be added to all
-  // events and the length of a few events can be extended by
-  // |incrementForMetrics|.
-  function fillModelWithOneBrowserSession(model, offset, incrementForMetrics) {
+  function createNewThread(model) {
     const browserProcess = model.getOrCreateProcess(tr.b.GUID.allocateSimple());
     const mainThread = browserProcess.getOrCreateThread(
         tr.b.GUID.allocateSimple());
     // Initializing the thread name is necessary to pass validation checks
     // made by the ChromeModelHelper.
     mainThread.name = 'CrBrowserMain';
+    return mainThread;
+  }
+
+  // Add a browser and renderer to the process, with a few key events necessary
+  // to calculate the |androidStartupMetric|. An |offset| can be added to all
+  // events and the length of a few events can be extended by
+  // |incrementForMetrics|.
+  function fillModelWithOneBrowserSession(model, offset, incrementForMetrics) {
     // In order for the tests below to succeed with strictEqual, the floating
     // point values should have exact representation as IEEE754 float.
-    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+    createNewThread(model).asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'startup',
       title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
       start: (offset + 6800.125),
@@ -34,9 +38,22 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
+  // Adds an event for the messageloop metric with an early start timestamp. The
+  // metric should ignore the very first messageloop start event in the trace.
+  // The specific lengths are not important.
+  function addEarlyMessageLoopEvent(model, offset) {
+    createNewThread(model).asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'startup',
+      title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+      start: (offset + 1.0),
+      duration: 1000.0
+    }));
+  }
+
   function makeTestModel(offset, incrementForMetrics) {
     return tr.c.TestUtils.newModel(function(model) {
       fillModelWithOneBrowserSession(model, offset, incrementForMetrics);
+      addEarlyMessageLoopEvent(model, offset);
     });
   }
 
@@ -67,6 +84,7 @@ tr.b.unittest.testSuite(function() {
       return tr.c.TestUtils.newModel(function(model) {
         fillModelWithOneBrowserSession(model, 0.0, 0.0);
         fillModelWithOneBrowserSession(model, offset, incrementForMetrics);
+        addEarlyMessageLoopEvent(model, 0.0, 0.0);
       });
     }
     const delta = 0.125;
