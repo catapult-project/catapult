@@ -99,11 +99,25 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
     return result
 
   @classmethod
+  def FromData(cls, data):
+    if isinstance(data, basestring):
+      return cls.FromUrl(data)
+    else:
+      return cls.FromDict(data)
+
+  @classmethod
+  def FromUrl(cls, url):
+    try:
+      return cls((commit_module.Commit.FromUrl(url),))
+    except (KeyError, ValueError):
+      return cls((), patch=patch_module.GerritPatch.FromUrl(url))
+
+  @classmethod
   def FromDict(cls, data):
     commits = tuple(commit_module.Commit.FromDict(commit)
                     for commit in data['commits'])
     if 'patch' in data:
-      patch = patch_module.FromDict(data['patch'])
+      patch = patch_module.GerritPatch.FromDict(data['patch'])
     else:
       patch = None
 

@@ -10,7 +10,6 @@ from dashboard.common import utils
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
-from dashboard.pinpoint.models.change import patch
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -89,33 +88,33 @@ def _ValidateBugId(bug_id):
 def _ValidateChanges(arguments):
   changes = arguments.get('changes')
   if changes:
-    # FromDict() performs input validation.
-    return [change.Change.FromDict(c) for c in json.loads(changes)]
+    # FromData() performs input validation.
+    return [change.Change.FromData(c) for c in json.loads(changes)]
 
-  change_1 = {
-      'commits': [{
-          'repository': arguments.get('repository'),
-          'git_hash': arguments.get('start_git_hash')
-      }],
-  }
+  commit_1 = change.Commit.FromDict({
+      'repository': arguments.get('repository'),
+      'git_hash': arguments.get('start_git_hash'),
+  })
 
-  change_2 = {
-      'commits': [{
-          'repository': arguments.get('repository'),
-          'git_hash': arguments.get('end_git_hash')
-      }]
-  }
+  commit_2 = change.Commit.FromDict({
+      'repository': arguments.get('repository'),
+      'git_hash': arguments.get('end_git_hash'),
+  })
 
-  if arguments.get('patch'):
-    change_2['patch'] = arguments.get('patch')
+  if 'patch' in arguments:
+    patch = change.GerritPatch.FromUrl(arguments['patch'])
+  else:
+    patch = None
 
-  # FromDict() performs input validation.
-  return (change.Change.FromDict(change_1), change.Change.FromDict(change_2))
+  change_1 = change.Change(commits=(commit_1,))
+  change_2 = change.Change(commits=(commit_2,), patch=patch)
+
+  return change_1, change_2
 
 
 def _ValidatePatch(patch_data):
   if patch_data:
-    patch_details = patch.FromDict(patch_data)
+    patch_details = change.GerritPatch.FromData(patch_data)
     return patch_details.server, patch_details.change
   return None, None
 
@@ -179,7 +178,7 @@ def _GenerateQuests(arguments):
 def _ValidatePin(pin):
   if not pin:
     return None
-  return change.Change.FromDict({'commits': [], 'patch': pin})
+  return change.Change.FromData(pin)
 
 
 def _ValidateTags(tags):

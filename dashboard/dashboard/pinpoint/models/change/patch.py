@@ -8,12 +8,6 @@ import urlparse
 from dashboard.services import gerrit_service
 
 
-def FromDict(data):
-  # If we have more Patch types in the future, we can loop
-  # through them all and try each one's FromDict() in turn.
-  return GerritPatch.FromDict(data)
-
-
 class GerritPatch(collections.namedtuple(
     'GerritPatch', ('server', 'change', 'revision'))):
   """A patch in Gerrit.
@@ -65,8 +59,8 @@ class GerritPatch(collections.namedtuple(
     }
 
   @classmethod
-  def FromDict(cls, data):
-    """Creates a new GerritPatch from the given data.
+  def FromData(cls, data):
+    """Creates a new GerritPatch from the given request data.
 
     Args:
       data: A patch URL string, for example:
@@ -84,26 +78,67 @@ class GerritPatch(collections.namedtuple(
       ValueError: The URL has an unrecognized format.
     """
     if isinstance(data, basestring):
-      url_parts = urlparse.urlparse(data)
-      server = urlparse.urlunsplit(
-          (url_parts.scheme, url_parts.netloc, '', '', ''))
-
-      path_parts = iter(data.split('/'))
-      for path_part in path_parts:
-        if path_part == '+':
-          break
-      else:
-        raise ValueError('Unknown patch URL format: ' + data)
-
-      change = path_parts.next()
-      try:
-        revision = int(path_parts.next())
-      except StopIteration:
-        revision = None
+      return cls.FromUrl(data)
     else:
-      server = data['server']
-      change = data['change']
-      revision = data.get('revision')
+      return cls.FromDict(data)
+
+  @classmethod
+  def FromUrl(cls, url):
+    """Creates a new GerritPatch from the given URL.
+
+    Args:
+      url: A patch URL string, for example:
+        https://chromium-review.googlesource.com/c/chromium/tools/build/+/679595
+
+    Returns:
+      A GerritPatch.
+
+    Raises:
+      KeyError: The patch doesn't have the given revision.
+      ValueError: The URL has an unrecognized format.
+    """
+    url_parts = urlparse.urlparse(url)
+    server = urlparse.urlunsplit(
+        (url_parts.scheme, url_parts.netloc, '', '', ''))
+
+    path_parts = iter(url.split('/'))
+    for path_part in path_parts:
+      if path_part == '+':
+        break
+    else:
+      raise ValueError('Unknown patch URL format: ' + url)
+
+    change = path_parts.next()
+    try:
+      revision = int(path_parts.next())
+    except StopIteration:
+      revision = None
+
+    return cls.FromDict({
+        'server': server,
+        'change': change,
+        'revision': revision,
+    })
+
+  @classmethod
+  def FromDict(cls, data):
+    """Creates a new GerritPatch from the given dict.
+
+    Args:
+      data: A dict containing {server, change, revision [optional]}.
+        change is a {change-id} as described in the Gerrit API documentation.
+        revision is a commit ID hash or numeric patch number.
+        If revision is omitted, it is the change's current revision.
+
+    Returns:
+      A GerritPatch.
+
+    Raises:
+      KeyError: The patch doesn't have the given revision.
+    """
+    server = data['server']
+    change = data['change']
+    revision = data.get('revision')
 
     # Look up the patch and convert everything to a canonical format.
     try:

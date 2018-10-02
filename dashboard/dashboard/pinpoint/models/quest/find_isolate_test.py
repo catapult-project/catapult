@@ -108,8 +108,8 @@ class BuildTest(_FindIsolateExecutionTest):
         'builder_name': 'Mac Builder',
         'properties': {
             'clobber': True,
-            'parent_got_revision': 'commit 123',
-            'deps_revision_overrides': {test.CATAPULT_URL: 'commit 456'},
+            'parent_got_revision': 'commit_123',
+            'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
             'patch_gerrit_url': 'https://codereview.com',
             'patch_issue': 567890,
             'patch_project': 'project/name',

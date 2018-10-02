@@ -44,25 +44,6 @@ _GERRIT_CHANGE_INFO = {
 }
 
 
-class FromDictTest(test.TestCase):
-
-  def setUp(self):
-    super(FromDictTest, self).setUp()
-    self.get_change.return_value = _GERRIT_CHANGE_INFO
-
-  def testFromDictGerrit(self):
-    p = patch.FromDict('https://codereview.com/c/repo/+/658277')
-    self.assertEqual(p, Patch('current revision'))
-
-  def testFromDictGerritWithRevision(self):
-    p = patch.FromDict('https://codereview.com/c/repo/+/658277/4')
-    self.assertEqual(p, Patch('other revision'))
-
-  def testFromDictBadUrl(self):
-    with self.assertRaises(ValueError):
-      patch.FromDict('https://codereview.com/not/a/codereview/url')
-
-
 class GerritPatchTest(test.TestCase):
 
   def setUp(self):
@@ -103,6 +84,30 @@ class GerritPatchTest(test.TestCase):
     }
     self.assertEqual(p.AsDict(), expected)
 
+  def testFromDataUrl(self):
+    p = patch.GerritPatch.FromData('https://codereview.com/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))
+
+  def testFromDataDict(self):
+    p = patch.GerritPatch.FromData({
+        'server': 'https://codereview.com',
+        'change': 658277,
+        'revision': 4,
+    })
+    self.assertEqual(p, Patch('other revision'))
+
+  def testFromUrl(self):
+    p = patch.GerritPatch.FromUrl('https://codereview.com/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))
+
+  def testFromUrlWithHash(self):
+    p = patch.GerritPatch.FromUrl('https://codereview.com/#/c/repo/+/658277')
+    self.assertEqual(p, Patch('current revision'))
+
+  def testFromUrlBadUrl(self):
+    with self.assertRaises(ValueError):
+      patch.GerritPatch.FromUrl('https://example.com/not/a/gerrit/url')
+
   def testFromDict(self):
     p = patch.GerritPatch.FromDict({
         'server': 'https://codereview.com',
@@ -110,11 +115,3 @@ class GerritPatchTest(test.TestCase):
         'revision': 4,
     })
     self.assertEqual(p, Patch('other revision'))
-
-  def testFromDictString(self):
-    p = patch.GerritPatch.FromDict('https://codereview.com/c/repo/+/658277')
-    self.assertEqual(p, Patch('current revision'))
-
-  def testFromDictStringWithHash(self):
-    p = patch.GerritPatch.FromDict('https://codereview.com/#/c/repo/+/658277')
-    self.assertEqual(p, Patch('current revision'))

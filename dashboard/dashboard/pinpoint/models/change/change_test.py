@@ -67,20 +67,20 @@ class ChangeTest(test.TestCase):
             {
                 'author': 'author@chromium.org',
                 'commit_position': 123456,
-                'git_hash': 'commit 123',
+                'git_hash': 'commit_123',
                 'repository': 'chromium',
                 'subject': 'Subject.',
                 'time': 'Fri Jan 01 00:01:00 2018',
-                'url': u'https://chromium.googlesource.com/chromium/src/+/commit 123',
+                'url': u'https://chromium.googlesource.com/chromium/src/+/commit_123',
             },
             {
                 'author': 'author@chromium.org',
                 'commit_position': 123456,
-                'git_hash': 'commit 456',
+                'git_hash': 'commit_456',
                 'repository': 'catapult',
                 'subject': 'Subject.',
                 'time': 'Fri Jan 01 00:01:00 2018',
-                'url': u'https://chromium.googlesource.com/catapult/+/commit 456',
+                'url': u'https://chromium.googlesource.com/catapult/+/commit_456',
             },
         ],
         'patch': {
@@ -95,9 +95,27 @@ class ChangeTest(test.TestCase):
     }
     self.assertEqual(c.AsDict(), expected)
 
+  def testFromDataUrl(self):
+    c = change.Change.FromData(test.CHROMIUM_URL + '/+/commit_0')
+    self.assertEqual(c, Change(0))
+
+  def testFromDataDict(self):
+    c = change.Change.FromData({
+        'commits': [{'repository': 'chromium', 'git_hash': 'commit_123'}],
+    })
+    self.assertEqual(c, Change(chromium=123))
+
+  def testFromUrlCommit(self):
+    c = change.Change.FromUrl(test.CHROMIUM_URL + '/+/commit_0')
+    self.assertEqual(c, Change(0))
+
+  def testFromUrlPatch(self):
+    c = change.Change.FromUrl('https://codereview.com/c/repo/+/658277')
+    self.assertEqual(c, Change(patch=True))
+
   def testFromDictWithJustOneCommit(self):
     c = change.Change.FromDict({
-        'commits': [{'repository': 'chromium', 'git_hash': 'commit 123'}],
+        'commits': [{'repository': 'chromium', 'git_hash': 'commit_123'}],
     })
     self.assertEqual(c, Change(chromium=123))
 
@@ -109,8 +127,8 @@ class ChangeTest(test.TestCase):
 
     c = change.Change.FromDict({
         'commits': (
-            {'repository': 'chromium', 'git_hash': 'commit 123'},
-            {'repository': 'catapult', 'git_hash': 'commit 456'},
+            {'repository': 'chromium', 'git_hash': 'commit_123'},
+            {'repository': 'catapult', 'git_hash': 'commit_456'},
         ),
         'patch': {
             'server': 'https://codereview.com',
@@ -132,11 +150,11 @@ class MidpointTest(test.TestCase):
       del path
       if repository_url != test.CHROMIUM_URL:
         return 'deps = {}'
-      if int(git_hash.split()[1]) <= 4:  # DEPS roll at chromium@5
-        return 'deps = {"chromium/catapult": "%s@commit 0"}' % (
+      if int(git_hash.split('_')[1]) <= 4:  # DEPS roll at chromium@5
+        return 'deps = {"chromium/catapult": "%s@commit_0"}' % (
             test.CATAPULT_URL + '.git')
       else:
-        return 'deps = {"chromium/catapult": "%s@commit 9"}' % test.CATAPULT_URL
+        return 'deps = {"chromium/catapult": "%s@commit_9"}' % test.CATAPULT_URL
     self.file_contents.side_effect = _FileContents
 
   def testDifferingPatch(self):

@@ -7,7 +7,7 @@ from dashboard.pinpoint import test
 
 
 def Commit(number, repository='chromium'):
-  return commit.Commit(repository, 'commit ' + str(number))
+  return commit.Commit(repository, 'commit_' + str(number))
 
 
 class CommitTest(test.TestCase):
@@ -93,20 +93,39 @@ deps_os = {
     self.assertEqual(c, commit.Commit('url', 'git_hash'))
 
   def testFromDepExistingRepo(self):
-    c = commit.Commit.FromDep(commit.Dep(test.CHROMIUM_URL, 'commit 0'))
+    c = commit.Commit.FromDep(commit.Dep(test.CHROMIUM_URL, 'commit_0'))
     self.assertEqual(c, Commit(0))
+
+  def testFromDataUrl(self):
+    c = commit.Commit.FromData(test.CHROMIUM_URL + '/+/commit_0')
+    self.assertEqual(c, Commit(0))
+
+  def testFromDataDict(self):
+    c = commit.Commit.FromData({
+        'repository': 'chromium',
+        'git_hash': 'commit_0',
+    })
+    self.assertEqual(c, Commit(0))
+
+  def testFromUrl(self):
+    c = commit.Commit.FromUrl(test.CHROMIUM_URL + '/+/commit_0')
+    self.assertEqual(c, Commit(0))
+
+  def testFromUrlBadUrl(self):
+    with self.assertRaises(ValueError):
+      commit.Commit.FromUrl('https://example.com/not/a/gitiles/url')
 
   def testFromDict(self):
     c = commit.Commit.FromDict({
         'repository': 'chromium',
-        'git_hash': 'commit 0',
+        'git_hash': 'commit_0',
     })
     self.assertEqual(c, Commit(0))
 
   def testFromDictWithRepositoryUrl(self):
     c = commit.Commit.FromDict({
         'repository': test.CHROMIUM_URL,
-        'git_hash': 'commit 0',
+        'git_hash': 'commit_0',
     })
     self.assertEqual(c, Commit(0))
 

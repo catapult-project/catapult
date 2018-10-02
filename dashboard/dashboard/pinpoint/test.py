@@ -49,6 +49,8 @@ class TestCase(testing_common.TestCase):
     self.get_change = patcher.start()
     self.get_change.return_value = {
         '_number': 567890,
+        'id': 'repo~branch~id',
+        'current_revision': 'abc123',
         'project': 'project/name',
         'subject': 'Patch subject.',
         'revisions': {
@@ -90,7 +92,7 @@ def _CommitInfoStub(repository_url, git_hash):
 
 
 def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
-  first_number = int(first_git_hash.split()[1])
-  last_number = int(last_git_hash.split()[1])
-  return [_CommitInfoStub(repository_url, 'commit ' + str(x))
+  first_number = int(first_git_hash.split('_')[1])
+  last_number = int(last_git_hash.split('_')[1])
+  return [_CommitInfoStub(repository_url, 'commit_' + str(x))
           for x in xrange(last_number, first_number, -1)]
