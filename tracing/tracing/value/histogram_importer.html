@@ -35,7 +35,12 @@ tr.exportTo('tr.v', function() {
      */
     async update_(message) {
       this.loadingEl_.textContent = message;
-      await tr.b.animationFrame();
+      // Use rAF callbacks only if the document is visible. If the document is
+      // hidden, then the user-agent can stop triggering the rAF callbacks. So
+      // avoid rAF callbacks when hidden.
+      if (window.document.visibilityState === 'visible') {
+        await tr.b.animationFrame();
+      }
     }
 
     /**
