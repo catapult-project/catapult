@@ -398,3 +398,32 @@ class WebContents(object):
         native_virtual_key_code=native_virtual_key_code,
         auto_repeat=auto_repeat, is_keypad=is_keypad,
         is_system_key=is_system_key, timeout=timeout)
+
+  def DispatchMouseEvent(
+      self, mouse_event_type, x, y, modifiers=None, timestamp=None,
+      button=None, click_count=1, timeout=60):
+    """Dispatches a mouse event to the page.
+
+    Args:
+      type: Type of the mouse event. Allowed values: 'mousePressed',
+          'mouseReleased', 'mouseMoved'.
+      x: X coordinate of the event relative to the main frame's viewport.
+      y: Y coordinate of the event relative to the main frame's viewport.
+          0 refers to the top of the viewport and Y increases as it proceeds
+          towards the bottom of the viewport.
+      modifiers: Bit field representing pressed modifier keys. Alt=1, Ctrl=2,
+          Meta/Command=4, Shift=8 (default: 0).
+      timestamp: Time at which the event occurred. Measured in UTC time in
+          seconds since January 1, 1970 (default: current time).
+      button: Mouse button (default: 'none'). Allowed values: 'none', 'left',
+          'middel', 'right'.
+      click_count: Number of times the mouse button was clicked (default: 1).
+
+    Raises:
+      py_utils.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.DispatchMouseEvent(
+        mouse_event_type=mouse_event_type, x=x, y=y, modifiers=modifiers,
+        timestamp=timestamp, button=button, click_count=click_count,
+        timeout=timeout)
