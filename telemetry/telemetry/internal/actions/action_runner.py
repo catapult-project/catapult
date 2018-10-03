@@ -7,10 +7,11 @@ import time
 import urlparse
 
 from telemetry.core import exceptions
-from telemetry.internal.actions.click import ClickAction
 from telemetry.internal.actions.drag import DragAction
+from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.key_event import KeyPressAction
 from telemetry.internal.actions.load_media import LoadMediaAction
+from telemetry.internal.actions.mouse_click import MouseClickAction
 from telemetry.internal.actions.navigate import NavigateAction
 from telemetry.internal.actions.page_action import GESTURE_SOURCE_DEFAULT
 from telemetry.internal.actions.page_action import SUPPORTED_GESTURE_SOURCES
@@ -316,18 +317,8 @@ class ActionRunner(object):
           to retrieve the element. For example:
           '(function() { return foo.element; })()'.
     """
-    self._RunAction(ClickAction(
+    self._RunAction(ClickElementAction(
         selector=selector, text=text, element_function=element_function))
-
-  def MouseClick(self, selector=None):
-    """Mouse click the given element.
-
-    TODO(zmo): Remove this and use ClickElement() instead.
-
-    Args:
-      selector: A CSS selector describing the element.
-    """
-    self._RunAction(ClickAction(selector=selector))
 
   def DragPage(self, left_start_ratio, top_start_ratio, left_end_ratio,
                top_end_ratio, speed_in_pixels_per_second=800, use_touch=False,
@@ -595,6 +586,14 @@ class ActionRunner(object):
         direction=direction, distance=distance,
         overscroll=overscroll, repeat_count=repeat_count,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
+
+  def MouseClick(self, selector=None):
+    """Mouse click the given element.
+
+    Args:
+      selector: A CSS selector describing the element.
+    """
+    self._RunAction(MouseClickAction(selector=selector))
 
   def SwipePage(self, left_start_ratio=0.5, top_start_ratio=0.5,
                 direction='left', distance=100, speed_in_pixels_per_second=800):

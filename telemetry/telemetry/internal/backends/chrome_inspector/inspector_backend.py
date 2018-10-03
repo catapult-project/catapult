@@ -461,51 +461,6 @@ class InspectorBackend(object):
     }
     return self._runtime.RunInspectorCommand(key_command, timeout)
 
-  @_HandleInspectorWebSocketExceptions
-  def DispatchMouseEvent(
-      self, mouse_event_type, x, y, modifiers=0, timestamp=None, button=None,
-      click_count=1, timeout=60):
-    """Dispatches a mouse event to the page.
-
-    Args:
-      type: Type of the mouse event. Allowed values: 'mousePressed',
-          'mouseReleased', 'mouseMoved'.
-      x: X coordinate of the event relative to the main frame's viewport.
-      y: Y coordinate of the event relative to the main frame's viewport.
-          0 refers to the top of the viewport and Y increases as it proceeds
-          towards the bottom of the viewport.
-      modifiers: Bit field representing pressed modifier keys. Alt=1, Ctrl=2,
-          Meta/Command=4, Shift=8 (default: 0).
-      timestamp: Time at which the event occurred. Measured in UTC time in
-          seconds since January 1, 1970 (default: current time).
-      button: Mouse button (default: 'none'). Allowed values: 'none', 'left',
-          'middel', 'right'.
-      click_count: Number of times the mouse button was clicked (default: 1).
-
-    Raises:
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    params = {
-        'type': mouse_event_type,
-        'x': x,
-        'y': y,
-        'clickCount': click_count,
-    }
-
-    if modifiers is not None:
-      params['modifiers'] = modifiers
-    if timestamp is not None:
-      params['timestamp'] = timestamp
-    if button is not None:
-      params['button'] = button
-
-    mouse_command = {
-        'method': 'Input.dispatchMouseEvent',
-        'params': params
-    }
-    return self._runtime.RunInspectorCommand(mouse_command, timeout)
-
   # Methods used internally by other backends.
 
   def _HandleInspectorDomainNotification(self, res):
