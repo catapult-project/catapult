@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
 
     // Frame lengths are 3/3, 6/3, 3/3, and 1/3. The last one is too small and
     // should be filtered out. So, the final result is [1, 2, 1].
-    const hist = histograms.getHistogramNamed('frame_lengths_tbmv2');
+    const hist = histograms.getHistogramNamed('frame_lengths');
     assert.closeTo(3, hist.numValues, 1e-6);
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
         histograms, model, [new tr.model.um.Segment(0, 20)]);
 
     // We have 3 frames (ignoring the very short ones) in 13 milliseconds.
-    const hist = histograms.getHistogramNamed('avg_surface_fps_tbmv2');
+    const hist = histograms.getHistogramNamed('avg_surface_fps');
     assert.closeTo(1, hist.numValues, 1e-6);
     assert.closeTo(3 / 0.013, hist.min, 1e-6);
   });
@@ -219,7 +219,7 @@ tr.b.unittest.testSuite(function() {
         histograms, model, [new tr.model.um.Segment(0, 100)]);
 
     // There is 1 jank in [1, 1, 2, 1, 21]. The last long frame is a pause.
-    const hist = histograms.getHistogramNamed('jank_count_tbmv2');
+    const hist = histograms.getHistogramNamed('jank_count');
     assert.closeTo(1, hist.numValues, 1e-6);
     assert.closeTo(1, hist.min, 1e-6);
   });

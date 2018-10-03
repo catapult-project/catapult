@@ -33,22 +33,24 @@ found in the LICENSE file.
  * 1s-frames. I think it makes more sense to compute the percentage of
  * non-smooth time during animation.
  *
- * frame_lengths_tbmv2 (Android only)
- * ==================================
- * frame_times_tbmv2 in vsyncs instead of milli-seconds. There is one
- * difference, which is short frames (ones shorter than half of the refresh
- * period) are filtered out.
+ * frame_lengths (Android only)
+ * ============================
+ * frame_times_tbmv2 in vsyncs instead of milli-seconds. In other words,
+ * frame_lengths is the distribution of durations between consecutive display
+ * compositor's swap buffer calls, in terms of vsyncs. Short frames (ones
+ * shorter than half of the refresh period) are filtered out, unlike in
+ * frame_times_tbmv2.
  *
- * avg_surface_fps_tbmv2 (Android only)
- * ====================================
+ * avg_surface_fps (Android only)
+ * ==============================
  * Average number of frames, ignoring short frames, per second during
  * animations.
  *
- * jank_count_tbmv2 (Android only)
- * ===============================
- * The number times that frame lengths are increased, during animations. For
+ * jank_count (Android only)
+ * =========================
+ * The number of times that frame lengths are increased, during animations. For
  * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then
- * jank_count_tbmv2 will be 2 (1 -> 2 and 2 -> 3).
+ * jank_count will be 2 (1 -> 2 and 2 -> 3).
  *
  * ui_frame_times_tbmv2
  * ====================
@@ -66,8 +68,8 @@ tr.exportTo('tr.metrics.rendering', function() {
   const SURFACE_FLINGER_EVENT = 'vsync_before';
   const COMPOSITOR_FRAME_PRESENTED_EVENT = 'FramePresented';
 
-  // In computing frame_lengths_tbmv2, avg_surface_fps_tbmv2, and
-  // jank_count_tbmv2, frames that are shorter than half a vsync are ignored.
+  // In computing frame_lengths, avg_surface_fps, and jank_count, frames that
+  // are shorter than half a vsync are ignored.
   const MIN_FRAME_LENGTH = 0.5;
 
   // In computing the number of janks, frame length differences that are at
@@ -109,14 +111,14 @@ tr.exportTo('tr.metrics.rendering', function() {
     let frameLengths = frameSegments.map(x => x.duration / refreshPeriod);
     frameLengths = frameLengths.filter(length => length >= MIN_FRAME_LENGTH);
     histograms.createHistogram(
-        'frame_lengths_tbmv2',
+        'frame_lengths',
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
         frameLengths,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 5, 20),
           description: 'Frame times in vsyncs.' });
 
     histograms.createHistogram(
-        'avg_surface_fps_tbmv2',
+        'avg_surface_fps',
         tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         frameLengths.length / tr.b.convertUnit(
             tr.b.math.Statistics.sum(frameSegments, x => x.duration),
@@ -129,7 +131,7 @@ tr.exportTo('tr.metrics.rendering', function() {
       if (change > 0 && change < PAUSE_THRESHOLD) jankCount++;
     }
     histograms.createHistogram(
-        'jank_count_tbmv2',
+        'jank_count',
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
         jankCount,
         { description: 'Number of changes in frame rate.' });

@@ -105,16 +105,10 @@ def ComputeEventLatencies(input_events):
   return [(name, latency) for _, name, latency in input_event_latencies]
 
 
-def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
-                                    gpu_process):
+def GetTimeStampEventNameAndProcess(browser_process, gpu_process):
   """ Returns the name of the event used to count frame timestamps, and the
       process that produced the events.
   """
-  surface_flinger_event_name = 'vsync_before'
-  if surface_flinger_process:
-    if surface_flinger_process.GetAllEventsOfName(surface_flinger_event_name):
-      return surface_flinger_event_name, surface_flinger_process
-
   drm_event_name = 'DrmEventFlipComplete'
   display_rendering_stats = 'BenchmarkInstrumentation::DisplayRenderingStats'
   if gpu_process:
@@ -129,8 +123,8 @@ def GetTimeStampEventNameAndProcess(browser_process, surface_flinger_process,
 
 
 class RenderingStats(object):
-  def __init__(self, renderer_process, browser_process, surface_flinger_process,
-               gpu_process, interaction_records, metadata=None):
+  def __init__(self, renderer_process, browser_process, gpu_process,
+               interaction_records):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other logging facilities), and providing them in a common format to classes
@@ -145,9 +139,7 @@ class RenderingStats(object):
     self.refresh_period = None
 
     timestamp_event_name, timestamp_process = GetTimeStampEventNameAndProcess(
-        browser_process, surface_flinger_process, gpu_process)
-    if surface_flinger_process and metadata:
-      self._GetRefreshPeriodFromSurfaceFlingerProcess(metadata)
+        browser_process, gpu_process)
 
     # A lookup from list names below to any errors or exceptions encountered
     # in attempting to generate that list.
@@ -194,14 +186,6 @@ class RenderingStats(object):
           browser_process, renderer_process, timeline_range)
       self._InitFrameQueueingDurationsFromTimeline(
           renderer_process, timeline_range)
-
-  def _GetRefreshPeriodFromSurfaceFlingerProcess(self, metadata):
-    for kv in metadata:
-      if kv['name'] == 'metadata':
-        value = kv['value']
-        if 'surface_flinger' in value:
-          self.refresh_period = value['surface_flinger']['refresh_period']
-          return
 
   def _InitInputLatencyStatsFromTimeline(
       self, browser_process, renderer_process, timeline_range):

@@ -79,34 +79,6 @@ class ReferenceInputLatencyStats(object):
     self.input_event = []
 
 
-def AddSurfaceFlingerStats(mock_timer, thread, first_frame,
-                           ref_stats=None):
-  """ Adds a random surface flinger stats event.
-
-  thread: The timeline model thread to which the event will be added.
-  first_frame: Is this the first frame within the bounds of an action?
-  ref_stats: A ReferenceRenderingStats object to record expected values.
-  """
-  # Create timestamp for impl thread rendering stats.
-  timestamp = mock_timer.AdvanceAndGet()
-
-  # Add a slice with the event data to the given thread.
-  thread.PushCompleteSlice(
-      'SurfaceFlinger', 'vsync_before',
-      timestamp, duration=0.0, thread_timestamp=None, thread_duration=None,
-      args={'data': {'frame_count': 1}})
-
-  if not ref_stats:
-    return
-
-  if not first_frame:
-    # Add frame_time if this is not the first frame in within the bounds of an
-    # action.
-    prev_timestamp = ref_stats.frame_timestamps[-1][-1]
-    ref_stats.frame_times[-1].append(timestamp - prev_timestamp)
-  ref_stats.frame_timestamps[-1].append(timestamp)
-
-
 def AddDrmEventFlipStats(mock_timer, vblank_timer, thread,
                          first_frame, ref_stats=None):
   """ Adds a random drm flip complete event.
@@ -300,99 +272,6 @@ def AddInputLatencyStats(mock_timer, start_thread, end_thread,
 
 class RenderingStatsUnitTest(unittest.TestCase):
 
-  def testNoSurfaceFlingerStats(self):
-    timeline = model.TimelineModel()
-    timer = MockTimer()
-
-    ref_stats = ReferenceRenderingStats()
-    ref_stats.AppendNewRange()
-    surface_flinger = timeline.GetOrCreateProcess(pid=4)
-    surface_flinger.name = 'SurfaceFlinger'
-    renderer = timeline.GetOrCreateProcess(pid=2)
-    browser = timeline.GetOrCreateProcess(pid=3)
-    browser_main = browser.GetOrCreateThread(tid=31)
-    browser_main.BeginSlice('webkit.console', 'ActionA',
-                            timer.AdvanceAndGet(2, 4), '')
-
-    for i in xrange(0, 10):
-      first = (i == 0)
-      AddDisplayRenderingStats(timer, browser_main, first, ref_stats)
-      timer.Advance(5, 10)
-
-    browser_main.EndSlice(timer.AdvanceAndGet())
-    timer.Advance(2, 4)
-
-    browser.FinalizeImport()
-    renderer.FinalizeImport()
-    timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
-               for e in timeline_markers]
-    metadata = [{
-        'name': 'metadata',
-        'value': {
-            'surface_flinger': {
-                'refresh_period': 16.6666
-            }
-        }
-    }]
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, surface_flinger, None, records, metadata)
-
-    # Compare rendering stats to reference - we should fallback to Display
-    # Compositor stats, in absence of Surface Flinger stats.
-    self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
-    self.assertEquals(stats.frame_times, ref_stats.frame_times)
-
-  def testBothSurfaceFlingerAndDisplayStats(self):
-    timeline = model.TimelineModel()
-    timer = MockTimer()
-
-    ref_stats = ReferenceRenderingStats()
-    ref_stats.AppendNewRange()
-    surface_flinger = timeline.GetOrCreateProcess(pid=4)
-    surface_flinger.name = 'SurfaceFlinger'
-    surface_flinger_thread = surface_flinger.GetOrCreateThread(tid=41)
-    renderer = timeline.GetOrCreateProcess(pid=2)
-    browser = timeline.GetOrCreateProcess(pid=3)
-    browser_main = browser.GetOrCreateThread(tid=31)
-    browser_main.BeginSlice('webkit.console', 'ActionA',
-                            timer.AdvanceAndGet(2, 4), '')
-
-    # Create SurfaceFlinger stats and display rendering stats.
-    for i in xrange(0, 10):
-      first = (i == 0)
-      AddSurfaceFlingerStats(timer, surface_flinger_thread, first, ref_stats)
-      timer.Advance(2, 4)
-
-    for i in xrange(0, 10):
-      first = (i == 0)
-      AddDisplayRenderingStats(timer, browser_main, first, None)
-      timer.Advance(5, 10)
-
-    browser_main.EndSlice(timer.AdvanceAndGet())
-    timer.Advance(2, 4)
-
-    browser.FinalizeImport()
-    renderer.FinalizeImport()
-    timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
-    records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
-               for e in timeline_markers]
-    metadata = [{
-        'name': 'metadata',
-        'value': {
-            'surface_flinger': {
-                'refresh_period': 16.6666
-            }
-        }
-    }]
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, surface_flinger, None, records, metadata)
-
-    # Compare rendering stats to reference - Only SurfaceFlinger stats should
-    # count
-    self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
-    self.assertEquals(stats.frame_times, ref_stats.frame_times)
-
   def testBothDrmAndDisplayStats(self):
     timeline = model.TimelineModel()
     timer = MockTimer()
@@ -433,8 +312,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
     records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
                for e in timeline_markers]
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, None, gpu, records)
+    stats = rendering_stats.RenderingStats(renderer, browser, gpu, records)
 
     # Compare rendering stats to reference - Only drm flip stats should
     # count
@@ -472,8 +350,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
     records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
                for e in timeline_markers]
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, records)
+    stats = rendering_stats.RenderingStats(renderer, browser, None, records)
 
     # Compare rendering stats to reference - Only display stats should count
     self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
@@ -514,7 +391,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
                for e in timeline_markers]
 
-    stats = rendering_stats.RenderingStats(renderer, None, None, None, records)
+    stats = rendering_stats.RenderingStats(renderer, None, None, records)
     self.assertEquals(0, len(stats.frame_timestamps[1]))
 
   def testFromTimeline(self):
@@ -597,8 +474,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
         ['Action0', 'ActionA', 'ActionB', 'ActionA'])
     records = [tir_module.TimelineInteractionRecord(e.name, e.start, e.end)
                for e in timeline_markers]
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, records)
+    stats = rendering_stats.RenderingStats(renderer, browser, None, records)
 
     # Compare rendering stats to reference.
     self.assertEquals(stats.frame_timestamps,
@@ -667,8 +543,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     self.assertEquals(event_latency_result,
                       ref_latency.input_event_latency)
 
-    stats = rendering_stats.RenderingStats(
-        renderer, browser, None, None, records)
+    stats = rendering_stats.RenderingStats(renderer, browser, None, records)
     self.assertEquals(
         perf_tests_helper.FlattenList(stats.input_event_latency),
         [latency for name, latency in ref_latency.input_event_latency
