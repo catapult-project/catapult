@@ -242,33 +242,80 @@ func TestEndToEnd(t *testing.T) {
 }
 
 func TestUpdateDates(t *testing.T) {
-        const (
-                oldDate         = "Thu, 17 Aug 2017 12:00:00 GMT"
-                oldLastModified = "Thu, 17 Aug 2017 09:00:00 GMT"
-                oldExpires      = "Thu, 17 Aug 2017 17:00:00 GMT"
-                newDate         = "Fri, 17 Aug 2018 12:00:00 GMT"
-                newLastModified = "Fri, 17 Aug 2018 09:00:00 GMT"
-                newExpires      = "Fri, 17 Aug 2018 17:00:00 GMT"
-        )
-        now, err := http.ParseTime(newDate)
-        if err != nil {
-                t.Fatal(err)
-        }
+	const (
+		oldDate         = "Thu, 17 Aug 2017 12:00:00 GMT"
+		oldLastModified = "Thu, 17 Aug 2017 09:00:00 GMT"
+		oldExpires      = "Thu, 17 Aug 2017 17:00:00 GMT"
+		newDate         = "Fri, 17 Aug 2018 12:00:00 GMT"
+		newLastModified = "Fri, 17 Aug 2018 09:00:00 GMT"
+		newExpires      = "Fri, 17 Aug 2018 17:00:00 GMT"
+	)
+	now, err := http.ParseTime(newDate)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-        responseHeader := http.Header{
-                "Date":          {oldDate},
-                "Last-Modified": {oldLastModified},
-                "Expires":       {oldExpires},
-        }
-        updateDates(responseHeader, now)
+	responseHeader := http.Header{
+		"Date":          {oldDate},
+		"Last-Modified": {oldLastModified},
+		"Expires":       {oldExpires},
+	}
+	updateDates(responseHeader, now)
 
-        wantHeader := http.Header{
-                "Date":          {newDate},
-                "Last-Modified": {newLastModified},
-                "Expires":       {newExpires},
-        }
-        // Check if dates are updated as expected.
-        if !reflect.DeepEqual(responseHeader, wantHeader) {
-                t.Errorf("got: %v\nwant: %v\n", responseHeader, wantHeader)
-        }
+	wantHeader := http.Header{
+		"Date":          {newDate},
+		"Last-Modified": {newLastModified},
+		"Expires":       {newExpires},
+	}
+	// Check if dates are updated as expected.
+	if !reflect.DeepEqual(responseHeader, wantHeader) {
+		t.Errorf("got: %v\nwant: %v\n", responseHeader, wantHeader)
+	}
+}
+
+func assertEquals(t *testing.T, actual, expected string) {
+	if expected != actual {
+		t.Errorf("Expected \"%s\" but was \"%s\"", expected, actual)
+	}
+}
+
+func UpdateContentSecurityPolicyForInlineScript(
+	oldContentSecurityPolicy string) string {
+	responseHeader := http.Header{
+		"Content-Security-Policy": {oldContentSecurityPolicy},
+	}
+	updateContentSecurityPolicy(responseHeader)
+	contentSecurityPolicy := responseHeader.Get("Content-Security-Policy")
+	return contentSecurityPolicy
+}
+
+func TestContentSecurityPolicy(t *testing.T) {
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src 'self' https://foo.com;"),
+		"script-src 'unsafe-inline' 'self' https://foo.com ; ")
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src 'strict-dynamic' 'nonce-2726c7f26c'"),
+		"script-src 'unsafe-inline' ")
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src 'sha256-pwltXkdHyMvChFSLNauyy5WItOFOm+iDDsgqRTr8peI='"),
+		"script-src 'unsafe-inline' ")
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src "+
+				"'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/"+
+				"uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC'"),
+		"script-src 'unsafe-inline' ")
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src 'sha512-cLuU6nVzrYJlo7rUa6TMmz3nylPFrPQrEUpOHllb5ic='"),
+		"script-src 'unsafe-inline' ")
+	assertEquals(t,
+		UpdateContentSecurityPolicyForInlineScript(
+			"script-src 'self' https://foo.com "+
+				"'sha512-cLuU6nVzrYJlo7rUa6TMmz3nylPFrPQrEUpOHllb5ic=' "+
+				"'strict-dynamic' 'nonce-2726c7f26c';"),
+		"script-src 'unsafe-inline' 'self' https://foo.com ; ")
 }
