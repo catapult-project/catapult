@@ -34,6 +34,7 @@ class Oobe(web_contents.WebContents):
           py_utils.WaitFor(webview.HasReachedQuiescence, 20)
           return webview
       except (exceptions.DevtoolsTargetCrashException,
+              exceptions.TimeoutException,
               WebSocketException):
         pass
     return None
