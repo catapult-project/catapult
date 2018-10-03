@@ -128,6 +128,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.SIERRA
     if os_version.startswith('17.'):
       return os_version_module.HIGHSIERRA
+    if os_version.startswith('18.'):
+      return os_version_module.MOJAVE
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
