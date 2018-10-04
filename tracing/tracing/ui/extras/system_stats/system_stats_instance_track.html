@@ -49,7 +49,10 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     'write_operation_count': 0,
     'other_operation_count': 0,
     'pagefile_pages_written': 0,
-    'pagefile_pages_write_ios': 0}
+    'pagefile_pages_write_ios': 0,
+    'available_pages': 0,
+    'pages_read': 0,
+    'page_read_ios': 0}
   };
 
   /**
@@ -61,6 +64,8 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
   const SystemStatsInstanceTrack = tr.ui.b.define(
       'tr-ui-e-system-stats-instance-track', tr.ui.tracks.StackedBarsTrack);
+
+  const kPageSizeWindows = 4096;
 
   SystemStatsInstanceTrack.prototype = {
 
@@ -146,6 +151,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
                                              prevStats.pswpout) *
                                             1000 / timeIntervalSeconds;
           }
+
+          // All the stats below are available only on Windows:
+
           if (statName === 'idle_time') {
             // Total amount of idle_time, in unit of 100 nanoseconds.
             const units = tr.b.convertUnit(100.,
@@ -188,7 +196,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
           if (statName === 'pagefile_pages_written') {
             const pageFileBytesWritten =
                 (stats.pagefile_pages_written -
-                     prevStats.pagefile_pages_written) * 4096;
+                     prevStats.pagefile_pages_written) * kPageSizeWindows;
             stats.pagefile_bytes_written_per_sec =
                 pageFileBytesWritten / timeIntervalSeconds;
           }
@@ -198,6 +206,24 @@ tr.exportTo('tr.ui.e.system_stats', function() {
                     prevStats.pagefile_pages_write_ios;
             stats.pagefile_write_operation_per_sec =
                 pagefileWriteOperation / timeIntervalSeconds;
+          }
+          if (statName === 'available_pages') {
+            // Nothing to do here for now.
+            stats.available_pages_in_bytes =
+                stats.available_pages * kPageSizeWindows;
+            // TODO(sebmarchand): Add a available_pages_field that tracks the
+            // variation of this metric?
+          }
+          if (statName === 'pages_read') {
+            const pagesBytesRead =
+                (stats.pages_read - prevStats.pages_read) * kPageSizeWindows;
+            stats.bytes_read_per_sec = pagesBytesRead / timeIntervalSeconds;
+          }
+          if (statName === 'page_read_ios') {
+            const pagesBytesReadOperations =
+                stats.page_read_ios - prevStats.page_read_ios;
+            stats.pagefile_write_operation_per_sec =
+                pagesBytesReadOperations / timeIntervalSeconds;
           }
         }
       }
