@@ -15,8 +15,8 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * mean_pixels_approximated_tbmv2
- * ==============================
+ * mean_pixels_approximated
+ * ========================
  * The percentage of tiles which are missing or of low or non-ideal resolution.
  *
  * TODO(crbug.com/875010): The documentation claims that
@@ -25,8 +25,8 @@ found in the LICENSE file.
  * the perf dashboard. We should either correct the documentations or fix the
  * metrics.
  *
- * mean_pixels_checkerboarded_tbmv2
- * ================================
+ * mean_pixels_checkerboarded
+ * ==========================
  * The percentage of tiles which are only missing. It does not take into
  * consideration tiles which are of low or non-ideal resolution.
  */
@@ -78,16 +78,19 @@ tr.exportTo('tr.metrics.rendering', function() {
       }
     }
 
+    // TODO(crbug.com/892501): The averages are multiplied by 100 to match an
+    // error in legacy code so that we have continuity in graphs in the perf
+    // dashboard. We should fix historic data and remove the multiplication.
     histograms.createHistogram(
-        'mean_pixels_approximated_tbmv2',
+        'mean_pixels_approximated',
         tr.b.Unit.byName.normalizedPercentage_smallerIsBetter,
-        tr.b.math.Statistics.mean(approximatedPixelPercentages),
+        100 * tr.b.math.Statistics.mean(approximatedPixelPercentages),
         { description: 'Percentage of pixels that were approximated ' +
                        '(checkerboarding, low-resolution tiles, etc.).' });
     histograms.createHistogram(
-        'mean_pixels_checkerboarded_tbmv2',
+        'mean_pixels_checkerboarded',
         tr.b.Unit.byName.normalizedPercentage_smallerIsBetter,
-        tr.b.math.Statistics.mean(checkerboardedPixelPercentages),
+        100 * tr.b.math.Statistics.mean(checkerboardedPixelPercentages),
         { description: 'Percentage of pixels that were checkerboarded.' });
   }
 

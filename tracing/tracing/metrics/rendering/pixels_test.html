@@ -49,16 +49,16 @@ tr.b.unittest.testSuite(function() {
         histograms, model, [new tr.model.um.Segment(0, 10)]);
 
     // The mean of 8/50 and 6/25 is 0.2.
-    let hist = histograms.getHistogramNamed('mean_pixels_approximated_tbmv2');
-    assert.closeTo(0.2, hist.min, 1e-6);
-    assert.closeTo(0.2, hist.max, 1e-6);
-    assert.closeTo(0.2, hist.average, 1e-6);
+    let hist = histograms.getHistogramNamed('mean_pixels_approximated');
+    assert.closeTo(20, hist.min, 1e-6);
+    assert.closeTo(20, hist.max, 1e-6);
+    assert.closeTo(20, hist.average, 1e-6);
 
     // The mean of 3/50 and 5/25 is 0.13.
-    hist = histograms.getHistogramNamed('mean_pixels_checkerboarded_tbmv2');
-    assert.closeTo(0.13, hist.min, 1e-6);
-    assert.closeTo(0.13, hist.max, 1e-6);
-    assert.closeTo(0.13, hist.average, 1e-6);
+    hist = histograms.getHistogramNamed('mean_pixels_checkerboarded');
+    assert.closeTo(13, hist.min, 1e-6);
+    assert.closeTo(13, hist.max, 1e-6);
+    assert.closeTo(13, hist.average, 1e-6);
   });
 });
 </script>
