@@ -21,7 +21,7 @@ class DescribeTest(testing_common.TestCase):
 
   def setUp(self):
     super(DescribeTest, self).setUp()
-    self.SetUpApp([(r'/api/describe/(.*)', describe.DescribeHandler)])
+    self.SetUpApp([(r'/api/describe', describe.DescribeHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
         update_test_suite_descriptors.CacheKey(TEST_SUITE_NAME),
@@ -41,7 +41,7 @@ class DescribeTest(testing_common.TestCase):
     })
 
   def _Post(self, suite):
-    return json.loads(self.Post('/api/describe/' + suite).body)
+    return json.loads(self.Post('/api/describe?test_suite=' + suite).body)
 
   def testInternal(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
