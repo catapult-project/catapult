@@ -51,6 +51,28 @@ tr.exportTo('tr.e.chrome', function() {
     }
 
     /**
+     * Returns the list of main thread slices of |rendererHelper|
+     * with title |eventTitle| and category |eventCategory|.
+     * Returned slices do not include telemetry internal events.
+     *
+     * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper
+     * @param {string} eventTitle
+     * @param {string} eventCategory
+     * @returns {Array<!tr.model.ThreadSlice>}
+     */
+    static* getMainThreadEvents(
+        rendererHelper, eventTitle, eventCategory) {
+      // Events yielded by childEvents() are sorted by start time.
+      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+        if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
+        if (!this.hasCategoryAndName(ev, eventCategory, eventTitle)) {
+          continue;
+        }
+        yield ev;
+      }
+    }
+
+    /**
      * Returns a map of frame id to main thread slices of |rendererHelper| with
      * title |eventTitle| and categry |eventCategory|, sorted by start
      * time. Returned slices do not include telemetry internal events.
@@ -63,14 +85,9 @@ tr.exportTo('tr.e.chrome', function() {
     static getSortedMainThreadEventsByFrame(
         rendererHelper, eventTitle, eventCategory) {
       const eventsByFrame = new Map();
-
-      // Events yielded by childEvents() are sorted by start time.
-      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-        if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-        if (!this.hasCategoryAndName(ev, eventCategory, eventTitle)) {
-          continue;
-        }
-
+      const events = this.getMainThreadEvents(
+          rendererHelper, eventTitle, eventCategory);
+      for (const ev of events) {
         const frameIdRef = ev.args.frame;
         if (frameIdRef === undefined) continue;
         if (!eventsByFrame.has(frameIdRef)) {
@@ -80,6 +97,31 @@ tr.exportTo('tr.e.chrome', function() {
       }
 
       return eventsByFrame;
+    }
+
+    /**
+     * Returns a map of navigation id to main thread slices of |rendererHelper|
+     * with title |eventTitle| and categry |eventCategory|.
+     * Returned slices do not include telemetry internal events.
+     *
+     * @param {tr.model.helpers.ChromeRendererHelper} rendererHelper
+     * @param {string} eventTitle
+     * @param {string} eventCategory
+     * @returns {Map.<string, tr.model.ThreadSlice>}
+     */
+    static getSortedMainThreadEventsByNavId(
+        rendererHelper, eventTitle, eventCategory) {
+      const eventsByNavId = new Map();
+      const events = this.getMainThreadEvents(
+          rendererHelper, eventTitle, eventCategory);
+      for (const ev of events) {
+        if (ev.args.data === undefined) continue;
+        const navIdRef = ev.args.data.navigationId;
+        if (navIdRef === undefined) continue;
+        eventsByNavId.set(navIdRef, ev);
+      }
+
+      return eventsByNavId;
     }
 
     /**

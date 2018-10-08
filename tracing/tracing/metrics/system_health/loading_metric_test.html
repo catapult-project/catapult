@@ -166,6 +166,62 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(400, hist.running.mean);
   });
 
+  test('timeToFirstContentfulPaintWithNavId', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef', data: {navigationId: '0xfirstnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 400,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef', data: {navigationId: '0xsecondnav'}}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading,rail,devtools.timeline',
+        title: 'firstContentfulPaint',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef', data: {navigationId: '0xfirstnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'ResourceDispatcher::OnRequestComplete',
+        start: 200,
+        duration: 100,
+        cpuStart: 210,
+        cpuDuration: 25,
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(800, hist.running.mean);
+    const fcpResourceLoading = histograms.getHistogramNamed(
+        'timeToFirstContentfulPaint:resource_loading');
+    assert.strictEqual(
+        hist.diagnostics.get('breakdown').get(
+            'resource_loading'),
+        'timeToFirstContentfulPaint:resource_loading');
+    assert.strictEqual(fcpResourceLoading.sum, 100);
+    assert.strictEqual(tr.b.getOnlyElement(hist.getBinForValue(
+        800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);
+  });
+
   test('timeToFirstMeaningfulPaint', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;

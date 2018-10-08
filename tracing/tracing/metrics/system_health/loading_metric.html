@@ -112,9 +112,9 @@ tr.exportTo('tr.metrics.sh', function() {
     return targetEvents;
   }
 
-
   function collectTimeToEvent(
-      category, eventName, rendererHelper, frameToNavStartEvents) {
+      category, eventName, rendererHelper, frameToNavStartEvents,
+      navIdToNavStartEvents) {
     const targetEvents = findAllEvents(rendererHelper, category, eventName);
     const samples = [];
     for (const ev of targetEvents) {
@@ -125,9 +125,17 @@ tr.exportTo('tr.metrics.sh', function() {
       if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
       const url = snapshot.args.documentLoaderURL;
       if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(url)) continue;
-      const navigationStartEvent =
-          EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
-              frameToNavStartEvents.get(frameIdRef) || [], ev.start);
+      let navigationStartEvent;
+      if (ev.args.data === undefined ||
+          ev.args.data.navigationId === undefined) {
+        navigationStartEvent =
+            EventFinderUtils.findLastEventStartingOnOrBeforeTimestamp(
+                frameToNavStartEvents.get(frameIdRef) || [], ev.start);
+      } else {
+        navigationStartEvent = navIdToNavStartEvents.get(
+            ev.args.data.navigationId);
+      }
+
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined) continue;
@@ -261,15 +269,18 @@ tr.exportTo('tr.metrics.sh', function() {
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
             rendererHelper, 'navigationStart', 'blink.user_timing');
+    const navIdToNavStartEvents =
+        EventFinderUtils.getSortedMainThreadEventsByNavId(
+            rendererHelper, 'navigationStart', 'blink.user_timing');
     const firstPaintSamples = collectTimeToEvent(
         'loading', 'firstPaint',
-        rendererHelper, frameToNavStartEvents);
+        rendererHelper, frameToNavStartEvents, navIdToNavStartEvents);
     const firstContentfulPaintSamples = collectTimeToEvent(
         'loading', 'firstContentfulPaint',
-        rendererHelper, frameToNavStartEvents);
+        rendererHelper, frameToNavStartEvents, navIdToNavStartEvents);
     const onLoadSamples = collectTimeToEvent(
         'blink.user_timing', 'loadEventStart',
-        rendererHelper, frameToNavStartEvents);
+        rendererHelper, frameToNavStartEvents, navIdToNavStartEvents);
 
     return {
       frameToNavStartEvents,

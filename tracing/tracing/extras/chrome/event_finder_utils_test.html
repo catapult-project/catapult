@@ -72,6 +72,61 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(frameToSlices.get('0x1')[0].start, 300);
   });
 
+  test('getSortedMainThreadEventsByNavId', () => {
+    const model = tr.c.TestUtils.newModel(model => {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0x0', data: { navigationId: '0xa' }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 300,
+        duration: 0.0,
+        args: {frame: '0x1', data: { navigationId: '0xb' }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 400,
+        duration: 0.0,
+        args: {frame: '0x0', data: { navigationId: '0xc' }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'devtools.timeline',
+        title: 'navigationStart',
+        start: 500,
+        duration: 0.0,
+        args: {frame: '0x0', data: { navigationId: '0xd' }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'firstPaint',
+        start: 600,
+        duration: 0.0,
+        args: {frame: '0x0'}
+      }));
+    });
+
+
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const rendererHelper = chromeHelper.rendererHelpers[1];
+    const navIdToSlices = EventFinderUtils.getSortedMainThreadEventsByNavId(
+        rendererHelper, 'navigationStart', 'blink.user_timing');
+
+    assert.strictEqual(navIdToSlices.size, 3);
+    assert.strictEqual(navIdToSlices.get('0xa').start, 200);
+    assert.strictEqual(navIdToSlices.get('0xb').start, 300);
+    assert.strictEqual(navIdToSlices.get('0xc').start, 400);
+  });
+
   test('multipleCategoriesOnAnEvent', () => {
     const model = tr.c.TestUtils.newModel(model => {
       const rendererProcess = model.getOrCreateProcess(1);
