@@ -19,14 +19,14 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * frame_times_tbmv2
- * =================
+ * frame_times
+ * ===========
  * The distribution of durations between consecutive display compositor's swap
  * buffer calls, or DRM page flips on ChromeOS devices, during animations.
  *
- * smooth_frames
- * =============
- * The percentage of frame_times_tbmv2 that are less than 17ms.
+ * percentage_smooth
+ * =================
+ * The percentage of frame_times that are less than 17ms.
  *
  * TODO(chiniforooshan): This metric weighs all frames equally. So, e.g.
  * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
@@ -35,11 +35,10 @@ found in the LICENSE file.
  *
  * frame_lengths (Android only)
  * ============================
- * frame_times_tbmv2 in vsyncs instead of milli-seconds. In other words,
- * frame_lengths is the distribution of durations between consecutive display
- * compositor's swap buffer calls, in terms of vsyncs. Short frames (ones
- * shorter than half of the refresh period) are filtered out, unlike in
- * frame_times_tbmv2.
+ * frame_times in vsyncs instead of milli-seconds. In other words, frame_lengths
+ * is the distribution of durations between consecutive display compositor's
+ * swap buffer calls, in terms of vsyncs. Short frames (ones shorter than half
+ * of the refresh period) are filtered out, unlike in frame_times.
  *
  * avg_surface_fps (Android only)
  * ==============================
@@ -49,17 +48,17 @@ found in the LICENSE file.
  * jank_count (Android only)
  * =========================
  * The number of times that frame lengths are increased, during animations. For
- * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then
- * jank_count will be 2 (1 -> 2 and 2 -> 3).
+ * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then jank_count
+ * will be 2 (1 -> 2 and 2 -> 3).
  *
- * ui_frame_times_tbmv2
- * ====================
+ * ui_frame_times
+ * ==============
  * The distribution of durations between consecutive UI compositor frame's
  * presentation times, during UI animations.
  *
- * ui_smooth_frames_tbmv2
- * ======================
- * The percentage of ui_frame_times_tbmv2 that are less than 17ms.
+ * ui_percentage_smooth
+ * ====================
+ * The percentage of ui_frame_times that are less than 17ms.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
@@ -159,14 +158,14 @@ tr.exportTo('tr.metrics.rendering', function() {
     // here. Perhaps break down by tasks in the Viz/Browser process?
     const frameTimes = frameSegments.map(x => x.duration);
     histograms.createHistogram(
-        `${prefix}frame_times_tbmv2`,
+        `${prefix}frame_times`,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         frameTimes,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
           description: 'Raw frame times.' });
     histograms.createHistogram(
-        `${prefix}smooth_frames`,
-        tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,
+        `${prefix}percentage_smooth`,
+        tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
         { description: 'Percentage of frames that were hitting 60 FPS.' });

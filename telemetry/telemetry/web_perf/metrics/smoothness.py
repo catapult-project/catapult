@@ -5,19 +5,8 @@
 from telemetry.util import perf_tests_helper
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
-from telemetry.value import scalar
 from telemetry.web_perf.metrics import rendering_stats
 from telemetry.web_perf.metrics import timeline_based_metric
-
-
-NOT_ENOUGH_FRAMES_MESSAGE = (
-    'Not enough frames for smoothness metrics (at least two are required).\n'
-    'Issues that have caused this in the past:\n'
-    '- Browser bugs that prevents the page from redrawing\n'
-    '- Bugs in the synthetic gesture code\n'
-    '- Page and benchmark out of sync (e.g. clicked element was renamed)\n'
-    '- Pages that render extremely slow\n'
-    '- Pages that can\'t be scrolled')
 
 
 class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
@@ -49,49 +38,32 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     self.VerifyNonOverlappedRecords(interaction_records)
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
-        renderer_process, model.browser_process, model.gpu_process,
-        interaction_records)
-    has_ui_interactions = any(
-        [r.label.startswith("ui_") for r in interaction_records])
-    self._PopulateResultsFromStats(results, stats, has_ui_interactions)
+        renderer_process, model.browser_process, interaction_records)
+    self._PopulateResultsFromStats(results, stats)
 
-  def _PopulateResultsFromStats(self, results, stats, has_ui_interactions):
+  def _PopulateResultsFromStats(self, results, stats):
     page = results.current_page
     values = [
         self._ComputeQueueingDuration(page, stats),
-        self._ComputeLatencyMetric(page, stats, 'input_event_latency',
+        self._ComputeLatencyMetric(page, 'input_event_latency',
                                    stats.input_event_latency),
-        self._ComputeLatencyMetric(page, stats,
-                                   'main_thread_scroll_latency',
+        self._ComputeLatencyMetric(page, 'main_thread_scroll_latency',
                                    stats.main_thread_scroll_latency),
         self._ComputeFirstGestureScrollUpdateLatencies(page, stats)
     ]
-    values += self._ComputeDisplayFrameTimeMetric(page, stats)
-    if has_ui_interactions:
-      values += self._ComputeUIFrameTimeMetric(page, stats)
-
     for v in values:
       if v:
         results.AddValue(v)
 
-  def _HasEnoughFrames(self, list_of_frame_timestamp_lists):
-    """Whether we have collected at least two frames in every timestamp list."""
-    return all(len(s) >= 2 for s in list_of_frame_timestamp_lists)
-
-  def _ComputeLatencyMetric(self, page, stats, name, list_of_latency_lists):
+  def _ComputeLatencyMetric(self, page, name, list_of_latency_lists):
     """Returns Values for given latency stats."""
-    none_value_reason = None
     latency_list = None
-    if self._HasEnoughFrames(stats.frame_timestamps):
-      latency_list = perf_tests_helper.FlattenList(list_of_latency_lists)
-      if len(latency_list) == 0:
-        return None
-    else:
-      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
+    latency_list = perf_tests_helper.FlattenList(list_of_latency_lists)
+    if len(latency_list) == 0:
+      return None
     return list_of_scalar_values.ListOfScalarValues(
         page, name, 'ms', latency_list,
         description='Raw %s values' % name,
-        none_value_reason=none_value_reason,
         improvement_direction=improvement_direction.DOWN)
 
   def _ComputeFirstGestureScrollUpdateLatencies(self, page, stats):
@@ -100,15 +72,12 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     Returns a Value for the first gesture scroll update latency for each
     interaction record in |stats|.
     """
-    none_value_reason = None
     first_gesture_scroll_update_latencies = [
         round(latencies[0], 4)
         for latencies in stats.gesture_scroll_update_latency
         if len(latencies)]
-    if (not self._HasEnoughFrames(stats.frame_timestamps) or
-        not first_gesture_scroll_update_latencies):
-      first_gesture_scroll_update_latencies = None
-      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
+    if not first_gesture_scroll_update_latencies:
+      return None
     return list_of_scalar_values.ListOfScalarValues(
         page, 'first_gesture_scroll_update_latency', 'ms',
         first_gesture_scroll_update_latencies,
@@ -116,7 +85,6 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                     'takes to process the very first gesture scroll update '
                     'input event. The first scroll gesture can often get '
                     'delayed by work related to page loading.',
-        none_value_reason=none_value_reason,
         improvement_direction=improvement_direction.DOWN)
 
   def _ComputeQueueingDuration(self, page, stats):
@@ -125,14 +93,12 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     none_value_reason = None
     if 'frame_queueing_durations' in stats.errors:
       none_value_reason = stats.errors['frame_queueing_durations']
-    elif self._HasEnoughFrames(stats.frame_timestamps):
+    else:
       queueing_durations = perf_tests_helper.FlattenList(
           stats.frame_queueing_durations)
       if len(queueing_durations) == 0:
         queueing_durations = None
         none_value_reason = 'No frame queueing durations recorded.'
-    else:
-      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
     return list_of_scalar_values.ListOfScalarValues(
         page, 'queueing_durations', 'ms', queueing_durations,
         description='The frame queueing duration quantifies how out of sync '
@@ -143,43 +109,3 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
                     'main thread.',
         none_value_reason=none_value_reason,
         improvement_direction=improvement_direction.DOWN)
-
-  def _ComputeFrameTimeMetric(
-      self, prefix, page, frame_timestamps, frame_times):
-    """Returns Values for the frame time metrics.
-
-    This includes the raw and mean frame times, as well as the percentage of
-    frames that were hitting 60 fps.
-    """
-    flatten_frame_times = None
-    percentage_smooth = None
-    none_value_reason = None
-    if self._HasEnoughFrames(frame_timestamps):
-      flatten_frame_times = perf_tests_helper.FlattenList(frame_times)
-      # We use 17ms as a somewhat looser threshold, instead of 1000.0/60.0.
-      smooth_threshold = 17.0
-      smooth_count = sum(1 for t in flatten_frame_times if t < smooth_threshold)
-      percentage_smooth = float(smooth_count) / len(flatten_frame_times) * 100.0
-    else:
-      none_value_reason = NOT_ENOUGH_FRAMES_MESSAGE
-    return (
-        list_of_scalar_values.ListOfScalarValues(
-            page, '%sframe_times' % prefix, 'ms', flatten_frame_times,
-            description='List of raw frame times, helpful to understand the '
-                        'other metrics.',
-            none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.DOWN),
-        scalar.ScalarValue(
-            page, '%spercentage_smooth' % prefix, 'score', percentage_smooth,
-            description='Percentage of frames that were hitting 60 fps.',
-            none_value_reason=none_value_reason,
-            improvement_direction=improvement_direction.UP)
-    )
-
-  def _ComputeDisplayFrameTimeMetric(self, page, stats):
-    return self._ComputeFrameTimeMetric(
-        '', page, stats.frame_timestamps, stats.frame_times)
-
-  def _ComputeUIFrameTimeMetric(self, page, stats):
-    return self._ComputeFrameTimeMetric(
-        'ui_', page, stats.ui_frame_timestamps, stats.ui_frame_times)

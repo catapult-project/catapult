@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     // first two frames and the fifth frame are outside the interaction record
     // and should be discarded. The remaining frames are 11 and 13 which result
     // in a single frame time of 2 = 13 - 11.
-    const hist = histograms.getHistogramNamed('frame_times_tbmv2');
+    const hist = histograms.getHistogramNamed('frame_times');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 2e-6);
     assert.closeTo(2, hist.average, 1e-6);

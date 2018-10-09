@@ -3,8 +3,6 @@
 # found in the LICENSE file.
 import itertools
 
-from operator import attrgetter
-
 from telemetry.web_perf.metrics import rendering_frame
 
 # These are LatencyInfo component names indicating the various components
@@ -95,26 +93,8 @@ def ComputeEventLatencies(input_events):
   return [(name, latency) for _, name, latency in input_event_latencies]
 
 
-def GetTimeStampEventNameAndProcess(browser_process, gpu_process):
-  """ Returns the name of the event used to count frame timestamps, and the
-      process that produced the events.
-  """
-  drm_event_name = 'DrmEventFlipComplete'
-  display_rendering_stats = 'BenchmarkInstrumentation::DisplayRenderingStats'
-  if gpu_process:
-    # Look for Drm events first. If there are no Drm events, then look for
-    # display rendering stats (which lives in the gpu process with viz).
-    for event_name in (drm_event_name, display_rendering_stats):
-      for event in gpu_process.IterAllSlicesOfName(event_name):
-        if 'data' in event.args and event.args['data']['frame_count'] == 1:
-          return event_name, gpu_process
-
-  return display_rendering_stats, browser_process
-
-
 class RenderingStats(object):
-  def __init__(self, renderer_process, browser_process, gpu_process,
-               interaction_records):
+  def __init__(self, renderer_process, browser_process, interaction_records):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other logging facilities), and providing them in a common format to classes
@@ -128,17 +108,10 @@ class RenderingStats(object):
     assert len(interaction_records) > 0
     self.refresh_period = None
 
-    timestamp_event_name, timestamp_process = GetTimeStampEventNameAndProcess(
-        browser_process, gpu_process)
-
     # A lookup from list names below to any errors or exceptions encountered
     # in attempting to generate that list.
     self.errors = {}
 
-    self.frame_timestamps = []
-    self.frame_times = []
-    self.ui_frame_timestamps = []
-    self.ui_frame_times = []
     # End-to-end latency for input event - from when input event is
     # generated to when the its resulted page is swap buffered.
     self.input_event_latency = []
@@ -151,21 +124,12 @@ class RenderingStats(object):
 
     for record in interaction_records:
       timeline_range = record.GetBounds()
-      self.frame_timestamps.append([])
-      self.frame_times.append([])
-      self.ui_frame_timestamps.append([])
-      self.ui_frame_times.append([])
       self.input_event_latency.append([])
       self.main_thread_scroll_latency.append([])
       self.gesture_scroll_update_latency.append([])
 
       if timeline_range.is_empty:
         continue
-      if timestamp_process:
-        self._InitFrameTimestampsFromTimeline(
-            timestamp_process, timestamp_event_name, timeline_range)
-      if record.label.startswith("ui_"):
-        self._InitUIFrameTimestampsFromTimeline(browser_process, timeline_range)
       self._InitInputLatencyStatsFromTimeline(
           browser_process, renderer_process, timeline_range)
       self._InitFrameQueueingDurationsFromTimeline(
@@ -189,46 +153,6 @@ class RenderingStats(object):
     self.gesture_scroll_update_latency[-1] = [
         latency for name, latency in event_latencies
         if name == GESTURE_SCROLL_UPDATE_EVENT_NAME]
-
-  def _GatherEvents(self, event_name, process, timeline_range, need_data=True):
-    events = []
-    for event in process.IterAllSlicesOfName(event_name):
-      if event.start >= timeline_range.min and event.end <= timeline_range.max:
-        if need_data and 'data' not in event.args:
-          continue
-        events.append(event)
-    events.sort(key=attrgetter('start'))
-    return events
-
-  def _AddFrameTimestamp(self, event):
-    frame_count = event.args['data']['frame_count']
-    if frame_count > 1:
-      raise ValueError('trace contains multi-frame render stats')
-    if frame_count == 1:
-      if event.name == 'DrmEventFlipComplete':
-        self.frame_timestamps[-1].append(
-            event.args['data']['vblank.tv_sec'] * 1000.0 +
-            event.args['data']['vblank.tv_usec'] / 1000.0)
-      else:
-        self.frame_timestamps[-1].append(
-            event.start)
-      if len(self.frame_timestamps[-1]) >= 2:
-        self.frame_times[-1].append(
-            self.frame_timestamps[-1][-1] - self.frame_timestamps[-1][-2])
-
-  def _InitFrameTimestampsFromTimeline(
-      self, process, timestamp_event_name, timeline_range):
-    for event in self._GatherEvents(
-        timestamp_event_name, process, timeline_range):
-      self._AddFrameTimestamp(event)
-
-  def _InitUIFrameTimestampsFromTimeline(self, process, timeline_range):
-    event_name = 'FramePresented'
-    for event in self._GatherEvents(event_name, process, timeline_range, False):
-      self.ui_frame_timestamps[-1].append(event.start)
-      if len(self.ui_frame_timestamps[-1]) >= 2:
-        self.ui_frame_times[-1].append(
-            self.ui_frame_timestamps[-1][-1] - self.ui_frame_timestamps[-1][-2])
 
   def _InitFrameQueueingDurationsFromTimeline(self, process, timeline_range):
     try:
