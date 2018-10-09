@@ -37,6 +37,18 @@ tr.exportTo('tr.metrics.sh', function() {
         }
       }
     }
+    if (messageLoopStartEvents.length === 0) {
+      // Sometimes the browser process does not have the proper name attached.
+      // This often happens when both chrome trace and systrace are merged. Fall
+      // back to the slower method: scanning all processes.
+      for (const proc of Object.values(model.processes)) {
+        for (const ev of proc.getDescendantEvents()) {
+          if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
+            messageLoopStartEvents.push(ev);
+          }
+        }
+      }
+    }
 
     // Output all times to start the messageloop except the earliest one. The
     // earliest start on the trace is affected by the state of the system coming
