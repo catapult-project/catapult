@@ -114,7 +114,7 @@ class StartBisectHandler(request_handler.RequestHandler):
     This end-point should always output valid JSON with different contents
     depending on the value of "step".
     """
-    user = users.get_current_user()
+    user = utils.GetEmail()
     if not utils.IsValidSheriffUser():
       message = 'User "%s" not authorized.' % user
       self.response.out.write(json.dumps({'error': message}))
@@ -163,7 +163,7 @@ class StartBisectHandler(request_handler.RequestHandler):
         bot=bisect_bot,
         config=config_python_string,
         bug_id=bug_id,
-        email=user.email(),
+        email=user,
         master_name=master_name,
         internal_only=internal_only,
         job_type='bisect')
@@ -211,7 +211,7 @@ def _PrefillInfo(test_path):
   info['all_bots'] = _GetAvailableBisectBots(suite.master_name)
   info['bisect_bot'] = GuessBisectBot(suite.master_name, suite.bot_name)
 
-  user = users.get_current_user()
+  user = utils.GetEmail()
   if not user:
     return {'error': 'User not logged in.'}
 
@@ -224,7 +224,7 @@ def _PrefillInfo(test_path):
   else:
     info['is_admin'] = False
 
-  info['email'] = user.email()
+  info['email'] = user
 
   info['all_metrics'] = []
   metric_keys = list_tests.GetTestDescendants(graph_key, has_rows=True)
