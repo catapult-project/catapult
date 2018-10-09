@@ -33,11 +33,13 @@ def main():
   # Subparser args for downloading the perf results of a job as a csv file.
   subparser = subparsers.add_parser('get-csv')
   subparser.add_argument(
-      'job_id', metavar='JOB_ID',
-      help='id of a pinpoint job for which to get results')
+      '--output', metavar='OUTPUT_CSV', default='job_results.csv',
+      help='path to a file where to store perf results as a csv file'
+           ' (default: %(default)s)')
   subparser.add_argument(
-      'output', metavar='OUTPUT_CSV',
-      help='path to a file where to store perf results as a csv file')
+      'job_ids', metavar='JOB_ID', nargs='+',
+      help='id of a pinpoint job for which to get results, one or more ids'
+           ' can be speficied')
   # Subparser args for creating a new job.
   subparser = subparsers.add_parser('new-job')
   subparser.add_argument('--repository', default='chromium')
@@ -49,7 +51,7 @@ def main():
   api = services.UserServices(args)
 
   if args.action == 'get-csv':
-    return commands.DownloadJobResultsAsCsv(api, args.job_id, args.output)
+    return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
   elif args.action == 'new-job':
     print api.pinpoint.NewJob(
         name='Test job from command line',
