@@ -25,17 +25,18 @@ tr.exportTo('tr.metrics.blink', function() {
     'BlinkGC.LazySweepOnAllocation': 'blink-gc-lazy-sweep-allocation'
   };
 
-  function isBlinkGarbageCollectionEvent(event) {
-    return event.title in BLINK_TOP_GC_EVENTS &&
-           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
-  }
-
   function blinkGarbageCollectionEventName(event) {
     return BLINK_TOP_GC_EVENTS[event.title];
   }
 
-  function isNonNestedBlinkGarbageCollectionEvent(event) {
-    return isBlinkGarbageCollectionEvent(event) &&
+  function isNonForcedBlinkGarbageCollectionEvent(event) {
+    return event.title in BLINK_TOP_GC_EVENTS &&
+           (!event.args || !event.args.forced) &&
+           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
+  }
+
+  function isNonNestedNonForcedBlinkGarbageCollectionEvent(event) {
+    return isNonForcedBlinkGarbageCollectionEvent(event) &&
            !tr.metrics.v8.utils.findParent(event,
                tr.metrics.v8.utils.isGarbageCollectionEvent);
   }
@@ -133,7 +134,7 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isBlinkGarbageCollectionEvent,
+        isNonForcedBlinkGarbageCollectionEvent,
         blinkGarbageCollectionEventName,
         function(name, events) {
           const cpuDuration = createNumericForTopEventTime(name);
@@ -151,7 +152,7 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addTotalDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isBlinkGarbageCollectionEvent,
+        isNonForcedBlinkGarbageCollectionEvent,
         event => 'blink-gc-total',
         function(name, events) {
           const cpuDuration = createNumericForTotalEventTime(name);
@@ -171,7 +172,7 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isBlinkGarbageCollectionEvent,
+        isNonForcedBlinkGarbageCollectionEvent,
         blinkGarbageCollectionEventName,
         function(name, events) {
           addIdleTimes(histograms, model, name, events);
@@ -187,7 +188,7 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addTotalIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isBlinkGarbageCollectionEvent,
+        isNonForcedBlinkGarbageCollectionEvent,
         event => 'blink-gc-total',
         function(name, events) {
           addIdleTimes(histograms, model, name, events);
@@ -234,7 +235,7 @@ tr.exportTo('tr.metrics.blink', function() {
 
   function isV8OrBlinkTopLevelGarbageCollectionEvent(event) {
     return tr.metrics.v8.utils.isNotForcedTopGarbageCollectionEvent(event) ||
-           isNonNestedBlinkGarbageCollectionEvent(event);
+           isNonNestedNonForcedBlinkGarbageCollectionEvent(event);
   }
 
   /**
