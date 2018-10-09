@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/request-base.html">
+
+<script>
+'use strict';
+suite('RequestBase', function() {
+  let originalFetch;
+  let originalAuthorizationHeaders;
+  setup(() => {
+    originalFetch = window.fetch;
+    originalAuthorizationHeaders = cp.authorizationHeaders;
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+    cp.authorizationHeaders = originalAuthorizationHeaders;
+  });
+
+  class TestRequest extends cp.RequestBase {
+    get url_() {
+      return '/url';
+    }
+
+    postProcess_(response) {
+      return response.map(x => x * x);
+    }
+  }
+
+  test('authorizationHeaders', async() => {
+    cp.authorizationHeaders = async() => [
+      ['Authorization', 'test Authorization'],
+    ];
+    window.fetch = async(url, options) => {
+      assert.strictEqual('test Authorization',
+          options.headers.get('Authorization'));
+      return {
+        async json() {
+          return [1];
+        }
+      };
+    };
+
+    const request = new TestRequest({});
+    const response = await request.response;
+    assert.deepEqual([1], response);
+  });
+
+  test('postProcess', async() => {
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          return [3, 4, 5];
+        }
+      };
+    };
+
+    const request = new TestRequest({});
+    assert.deepEqual([9, 16, 25], await request.response);
+  });
+
+  test('memoized responsePromise', async() => {
+    window.fetch = async(url, options) => {
+      window.fetch = async() => {
+        throw new Error('Unexpected call to fetch()');
+      };
+      return {
+        async json() {
+          return [1];
+        }
+      };
+    };
+
+    const request = new TestRequest({});
+    assert.strictEqual(request.response, request.response);
+    const response = await request.response;
+    assert.deepEqual([1], response);
+  });
+});
+</script>

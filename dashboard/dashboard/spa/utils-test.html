@@ -19,278 +19,272 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-(() => {
-  let FIXTURE;
-
-  setup(function() {
-    FIXTURE = fixture('input');
+suite('basic tests', function() {
+  test('setImmutable', function() {
+    assert.deepEqual({b: 'c'}, cp.setImmutable(
+        {a: []}, '', {b: 'c'}));
+    assert.deepEqual({a: [], b: 'c'}, cp.setImmutable(
+        {a: []}, '', rootState => {
+          return {...rootState, b: 'c'};
+        }));
+    assert.deepEqual({a: [{b: 'c'}]}, cp.setImmutable(
+        {a: []}, 'a.0.b', 'c'));
+    assert.deepEqual({a: {b: 1, c: 2}}, cp.setImmutable(
+        {a: {b: 1}}, 'a', o => {
+          return {...o, c: 2};
+        }));
   });
 
-  teardown(function() {
+  test('deepFreeze', function() {
+    const frozen = {
+      str: 'a',
+      array: ['b'],
+      obj: {a: 'c'},
+      instance: new class {
+        constructor() {
+          this.property = 'd';
+        }
+      },
+    };
+    cp.deepFreeze(frozen);
+    assert.throws(() => {
+      frozen.str = 'x';
+    }, 'Cannot assign to read only property');
+    assert.throws(() => {
+      frozen.array[0] = 'x';
+    }, 'Cannot assign to read only property');
+    assert.throws(() => {
+      frozen.array[1] = 'x';
+    }, 'Cannot add property');
+    assert.throws(() => {
+      frozen.obj.a = 'x';
+    }, 'Cannot assign to read only property');
+    frozen.instance.property = 'x';
+    assert.strictEqual('x', frozen.instance.property);
   });
 
-  suite('basic tests', function() {
-    test('setImmutable', function() {
-      assert.deepEqual({b: 'c'}, cp.setImmutable(
-          {a: []}, '', {b: 'c'}));
-      assert.deepEqual({a: [], b: 'c'}, cp.setImmutable(
-          {a: []}, '', rootState => {
-            return {...rootState, b: 'c'};
-          }));
-      assert.deepEqual({a: [{b: 'c'}]}, cp.setImmutable(
-          {a: []}, 'a.0.b', 'c'));
-      assert.deepEqual({a: {b: 1, c: 2}}, cp.setImmutable(
-          {a: {b: 1}}, 'a', o => {
-            return {...o, c: 2};
-          }));
-    });
-
-    test('deepFreeze', function() {
-      const frozen = {
-        str: 'a',
-        array: ['b'],
-        obj: {a: 'c'},
-        instance: new class {
-          constructor() {
-            this.property = 'd';
-          }
-        },
-      };
-      cp.deepFreeze(frozen);
-      assert.throws(() => {
-        frozen.str = 'x';
-      }, 'Cannot assign to read only property');
-      assert.throws(() => {
-        frozen.array[0] = 'x';
-      }, 'Cannot assign to read only property');
-      assert.throws(() => {
-        frozen.array[1] = 'x';
-      }, 'Cannot add property');
-      assert.throws(() => {
-        frozen.obj.a = 'x';
-      }, 'Cannot assign to read only property');
-      frozen.instance.property = 'x';
-      assert.strictEqual('x', frozen.instance.property);
-    });
-
-    test('isElementChildOf', function() {
-      assert.isTrue(cp.isElementChildOf(
-          document.body, document.body.parentElement));
-      assert.isTrue(cp.isElementChildOf(
-          document.body.children[0], document.body.parentElement));
-      assert.isFalse(cp.isElementChildOf(
-          document.body, document.body));
-      assert.isFalse(cp.isElementChildOf(
-          document.body.parentElement, document.body));
-    });
-
-    test('getActiveElement', function() {
-      FIXTURE.focus();
-      assert.strictEqual(FIXTURE, cp.getActiveElement());
-    });
-
-    test('measureElement', async function() {
-      const rect = await cp.measureElement(FIXTURE);
-      assert.isBelow(0, rect.bottom);
-      assert.isBelow(0, rect.height);
-      assert.isBelow(0, rect.left);
-      assert.isBelow(0, rect.right);
-      assert.isBelow(0, rect.top);
-      assert.isBelow(0, rect.width);
-      assert.isBelow(0, rect.x);
-      assert.isBelow(0, rect.y);
-    });
-
-    test('measureText cache', async function() {
-      assert.strictEqual(await cp.measureText('hello'),
-          await cp.measureText('hello'));
-    });
-
-    test('measureText', async function() {
-      const [rect, larger] = await Promise.all([
-        cp.measureText('hello'),
-        cp.measureText('hello', {fontSize: 'larger'}),
-      ]);
-      assert.isBelow(0, rect.height);
-      assert.isBelow(0, rect.width);
-      assert.isBelow(rect.height, larger.height);
-      assert.isBelow(rect.width, larger.width);
-    });
-
-    test('authorizationHeaders empty', async function() {
-      window.gapi = undefined;
-      assert.deepEqual([], await cp.authorizationHeaders());
-
-      window.gapi = {};
-      assert.deepEqual([], await cp.authorizationHeaders());
-
-      window.gapi = {
-        auth2: {
-          getAuthInstance() {
-            return undefined;
-          },
-        },
-      };
-      assert.deepEqual([], await cp.authorizationHeaders());
-
-      window.gapi = {
-        auth2: {
-          getAuthInstance() {
-            return {
-              currentUser: {
-                get() {
-                  return {
-                    getAuthResponse() {
-                      return {};
-                    },
-                  };
-                }
-              },
-            };
-          },
-        },
-      };
-      assert.deepEqual([], await cp.authorizationHeaders());
-      window.gapi = undefined;
-    });
-
-    test('authorizationHeaders success', async function() {
-      window.gapi = {
-        auth2: {
-          getAuthInstance() {
-            return {
-              currentUser: {
-                get() {
-                  return {
-                    getAuthResponse() {
-                      return {
-                        expires_at: new Date() + 100,
-                        token_type: 'TYPE',
-                        access_token: 'TOKEN',
-                      };
-                    },
-                  };
-                }
-              },
-            };
-          },
-        },
-      };
-      assert.deepEqual([['Authorization', 'TYPE TOKEN']],
-          await cp.authorizationHeaders());
-      window.gapi = undefined;
-    });
-
-    test('authorizationHeaders reload', async function() {
-      window.gapi = {
-        auth2: {
-          getAuthInstance() {
-            return {
-              currentUser: {
-                get() {
-                  return {
-                    getAuthResponse() {
-                      return {
-                        expires_at: new Date() - 100,
-                      };
-                    },
-
-                    reloadAuthResponse() {
-                      return {
-                        expires_at: new Date() + 100,
-                        token_type: 'TYPE',
-                        access_token: 'TOKEN',
-                      };
-                    }
-                  };
-                }
-              },
-            };
-          },
-        },
-      };
-      assert.deepEqual([['Authorization', 'TYPE TOKEN']],
-          await cp.authorizationHeaders());
-      window.gapi = undefined;
-    });
-
-    test('sha', async function() {
-      assert.strictEqual(
-          'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-          await cp.sha(''));
-    });
-
-    test('measureTrace', function() {
-      tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
-      const trace = cp.measureTrace();
-      assert.lengthOf(trace.filter(e =>
-        e.name === 'spa/utils-test:measureTrace'), 3);
-    });
-
-    test('measureHistograms', function() {
-      tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
-      const histograms = cp.measureHistograms();
-      const hist = histograms.getHistogramNamed(
-          'spa/utils-test:measureHistograms');
-      assert.strictEqual(3, hist.numValues);
-    });
-
-    test('measureTable', function() {
-      tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
-      tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
-      const rows = cp.measureTable().split('\n');
-      assert.include(rows, '0     spa/utils-test:measureTable');
-    });
-
-    test('buildProperties', function() {
-      const properties = cp.buildProperties('state', {
-        aaa: options => options.aaa || [],
-        bbb: {
-          reflectToAttribute: true,
-          value: options => options.bbb || '',
-        },
-      });
-      assert.strictEqual(String, properties.statePath.type);
-      assert.isTrue(properties.state.readOnly);
-      /* TODO(#4461) Uncomment this when this test moves to Polymer2.
-      assert.isDefined(properties.state.statePath({}));
-      assert.isDefined(properties.state.statePath.apply({}, {}));
-      const fakeState = {aaa: ['overriddenAAA'], bbb: 'overriddenBBB'};
-      assert.strictEqual(fakeState, properties.state.statePath.apply(
-        {statePath: 'test'}, {test: fakeState}));
-      */
-      assert.strictEqual('identity_(state.aaa)', properties.aaa.computed);
-      assert.strictEqual('identity_(state.bbb)', properties.bbb.computed);
-      assert.isTrue(properties.bbb.reflectToAttribute);
-
-      assert.throws(() =>
-        cp.buildProperties('state', {state: () => 0}));
-      assert.throws(() =>
-        cp.buildProperties('state', {statePath: () => 0}));
-    });
-
-    test('buildState', function() {
-      const configs = {
-        aaa: options => options.aaa || [],
-        bbb: {
-          value: options => (options.b || '').repeat(3),
-        },
-        ccc: () => 0,
-      };
-      const options = {
-        aaa: ['A'],
-        b: 'b',
-      };
-      const state = cp.buildState(configs, options);
-      assert.strictEqual('A', state.aaa[0]);
-      assert.strictEqual('bbb', state.bbb);
-      assert.strictEqual(0, state.ccc);
-    });
+  test('isElementChildOf', function() {
+    assert.isTrue(cp.isElementChildOf(
+        document.body, document.body.parentElement));
+    assert.isTrue(cp.isElementChildOf(
+        document.body.children[0], document.body.parentElement));
+    assert.isFalse(cp.isElementChildOf(
+        document.body, document.body));
+    assert.isFalse(cp.isElementChildOf(
+        document.body.parentElement, document.body));
   });
-})();
+
+  test('getActiveElement', function() {
+    const input = fixture('input');
+    input.focus();
+    assert.strictEqual(input, cp.getActiveElement());
+  });
+
+  test('measureElement', async function() {
+    const rect = await cp.measureElement(fixture('input'));
+    assert.isBelow(0, rect.bottom);
+    assert.isBelow(0, rect.height);
+    assert.isBelow(0, rect.left);
+    assert.isBelow(0, rect.right);
+    assert.isBelow(0, rect.top);
+    assert.isBelow(0, rect.width);
+    assert.isBelow(0, rect.x);
+    assert.isBelow(0, rect.y);
+  });
+
+  test('measureText cache', async function() {
+    assert.strictEqual(await cp.measureText('hello'),
+        await cp.measureText('hello'));
+  });
+
+  test('measureText', async function() {
+    const [rect, larger] = await Promise.all([
+      cp.measureText('hello'),
+      cp.measureText('hello', {fontSize: 'larger'}),
+    ]);
+    assert.isBelow(0, rect.height);
+    assert.isBelow(0, rect.width);
+    assert.isBelow(rect.height, larger.height);
+    assert.isBelow(rect.width, larger.width);
+  });
+
+  test('authorizationHeaders empty', async function() {
+    window.gapi = undefined;
+    assert.deepEqual([], await cp.authorizationHeaders());
+
+    window.gapi = {};
+    assert.deepEqual([], await cp.authorizationHeaders());
+
+    window.gapi = {
+      auth2: {
+        getAuthInstance() {
+          return undefined;
+        },
+      },
+    };
+    assert.deepEqual([], await cp.authorizationHeaders());
+
+    window.gapi = {
+      auth2: {
+        getAuthInstance() {
+          return {
+            currentUser: {
+              get() {
+                return {
+                  getAuthResponse() {
+                    return {};
+                  },
+                };
+              }
+            },
+          };
+        },
+      },
+    };
+    assert.deepEqual([], await cp.authorizationHeaders());
+    window.gapi = undefined;
+  });
+
+  test('authorizationHeaders success', async function() {
+    window.gapi = {
+      auth2: {
+        getAuthInstance() {
+          return {
+            currentUser: {
+              get() {
+                return {
+                  getAuthResponse() {
+                    return {
+                      expires_at: new Date() + 100,
+                      token_type: 'TYPE',
+                      access_token: 'TOKEN',
+                    };
+                  },
+                };
+              }
+            },
+          };
+        },
+      },
+    };
+    assert.deepEqual([['Authorization', 'TYPE TOKEN']],
+        await cp.authorizationHeaders());
+    window.gapi = undefined;
+  });
+
+  test('authorizationHeaders reload', async function() {
+    window.gapi = {
+      auth2: {
+        getAuthInstance() {
+          return {
+            currentUser: {
+              get() {
+                return {
+                  getAuthResponse() {
+                    return {
+                      expires_at: new Date() - 100,
+                    };
+                  },
+
+                  reloadAuthResponse() {
+                    return {
+                      expires_at: new Date() + 100,
+                      token_type: 'TYPE',
+                      access_token: 'TOKEN',
+                    };
+                  }
+                };
+              }
+            },
+          };
+        },
+      },
+    };
+    assert.deepEqual([['Authorization', 'TYPE TOKEN']],
+        await cp.authorizationHeaders());
+    window.gapi = undefined;
+  });
+
+  test('sha', async function() {
+    assert.strictEqual(
+        'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        await cp.sha(''));
+  });
+
+  test('measureTrace', function() {
+    tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
+    const trace = cp.measureTrace();
+    assert.lengthOf(trace.filter(e =>
+      e.name === 'spa/utils-test:measureTrace'), 3);
+  });
+
+  test('measureHistograms', function() {
+    tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
+    const histograms = cp.measureHistograms();
+    const hist = histograms.getHistogramNamed(
+        'spa/utils-test:measureHistograms');
+    assert.strictEqual(3, hist.numValues);
+  });
+
+  test('measureTable', function() {
+    tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
+    tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
+    const rows = cp.measureTable().split('\n');
+    assert.include(rows, '0     spa/utils-test:measureTable');
+  });
+
+  test('buildProperties', function() {
+    const properties = cp.buildProperties('state', {
+      aaa: options => options.aaa || [],
+      bbb: {
+        reflectToAttribute: true,
+        value: options => options.bbb || '',
+      },
+    });
+    assert.strictEqual(String, properties.statePath.type);
+    assert.isTrue(properties.state.readOnly);
+    /* TODO(#4461) Uncomment this when this test moves to Polymer2.
+    assert.isDefined(properties.state.statePath({}));
+    assert.isDefined(properties.state.statePath.apply({}, {}));
+    const fakeState = {aaa: ['overriddenAAA'], bbb: 'overriddenBBB'};
+    assert.strictEqual(fakeState, properties.state.statePath.apply(
+      {statePath: 'test'}, {test: fakeState}));
+    */
+    assert.strictEqual('identity_(state.aaa)', properties.aaa.computed);
+    assert.strictEqual('identity_(state.bbb)', properties.bbb.computed);
+    assert.isTrue(properties.bbb.reflectToAttribute);
+
+    assert.throws(() =>
+      cp.buildProperties('state', {state: () => 0}));
+    assert.throws(() =>
+      cp.buildProperties('state', {statePath: () => 0}));
+  });
+
+  test('buildState', function() {
+    const configs = {
+      aaa: options => options.aaa || [],
+      bbb: {
+        value: options => (options.b || '').repeat(3),
+      },
+      ccc: () => 0,
+    };
+    const options = {
+      aaa: ['A'],
+      b: 'b',
+    };
+    const state = cp.buildState(configs, options);
+    assert.strictEqual('A', state.aaa[0]);
+    assert.strictEqual('bbb', state.bbb);
+    assert.strictEqual(0, state.ccc);
+  });
+
+  test('normalize', function() {
+    assert.deepEqual({a: 1, b: 2}, cp.normalize(['a', 'b'], [1, 2]));
+  });
+});
 </script>

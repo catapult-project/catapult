@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/timeseries-request.html">
+
+<script>
+'use strict';
+suite('TimeseriesRequest', function() {
+  let originalFetch;
+  setup(() => {
+    originalFetch = window.fetch;
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+  });
+
+  test('xy', () => {
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
+    });
+    const expectedColumns = 'revision,timestamp,avg,count';
+    assert.strictEqual(request.body_.get('columns'), expectedColumns);
+  });
+
+  test('alerts', () => {
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+    });
+    const expectedColumns = 'revision,alert';
+    assert.strictEqual(request.body_.get('columns'), expectedColumns);
+  });
+
+  test('annotations', () => {
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.ANNOTATIONS,
+    });
+    const expectedColumns =
+      'revision,timestamp,avg,count,alert,diagnostics,revisions';
+    assert.strictEqual(request.body_.get('columns'), expectedColumns);
+  });
+
+  test('histograms', () => {
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.HISTOGRAMS,
+    });
+    const expectedColumns = 'revision,histogram';
+    assert.strictEqual(request.body_.get('columns'), expectedColumns);
+  });
+
+  test('postProcess TBM2 annotations', async() => {
+    const unit = tr.b.Unit.byName.timeDurationInMs;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          const diagnostics = {
+            [tr.v.d.RESERVED_NAMES.DEVICE_IDS]: new tr.v.d.GenericSet([
+              'device a']).asDict(),
+          };
+          const revisions = {
+            r_v8: 12345,
+          };
+          return {
+            units: unit.jsonName,
+            data: [[1, 1000, 10, 1, null, diagnostics, revisions]],
+          };
+        }
+      };
+    };
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.ANNOTATIONS,
+    });
+    const response = await request.response;
+    assert.lengthOf(response, 1);
+    assert.strictEqual(unit, response[0].unit);
+    assert.strictEqual(1, response[0].revision);
+    assert.strictEqual(1000, response[0].timestamp.getTime());
+    assert.strictEqual(10, response[0].avg);
+    assert.strictEqual(1, response[0].count);
+    assert.instanceOf(response[0].diagnostics, tr.v.d.DiagnosticMap);
+    assert.strictEqual('device a', tr.b.getOnlyElement(
+        response[0].diagnostics.get(tr.v.d.RESERVED_NAMES.DEVICE_IDS)));
+    assert.strictEqual(12345, response[0].revisions.r_v8);
+  });
+
+  test('postProcess xy legacy unit', async() => {
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          return {
+            units: 'kb',
+            data: [[1, 1000, 10, 1]],
+          };
+        }
+      };
+    };
+    const request = new cp.TimeseriesRequest({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
+    });
+    const response = await request.response;
+    assert.lengthOf(response, 1);
+    assert.strictEqual(tr.b.Unit.byName.sizeInBytes, response[0].unit);
+    assert.strictEqual(1, response[0].revision);
+    assert.strictEqual(1000, response[0].timestamp.getTime());
+    assert.strictEqual(10240, response[0].avg);
+    assert.strictEqual(1, response[0].count);
+  });
+});
+</script>
