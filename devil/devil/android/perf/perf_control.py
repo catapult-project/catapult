@@ -24,6 +24,10 @@ _atexit_messages = set()
 # TODO(crbug.com/383566): Add definitions for all devices used in the perf
 # waterfall.
 _PERFORMANCE_MODE_DEFINITIONS = {
+  # Fire TV Edition - 4K
+  'AFTKMST12': {
+    'default_mode_governor': 'interactive',
+  },
   'GT-I9300': {
     'default_mode_governor': 'pegasusq',
   },
