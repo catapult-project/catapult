@@ -103,6 +103,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         inputEventLatencies,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
           description: 'Input event latencies.' });
 
     const mainThreadScrollLatencies = [...iterAsyncEvents_(
@@ -113,6 +114,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         mainThreadScrollLatencies,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 50),
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
           description: 'Main thread scroll latencies.' });
 
     const gestureScrollUpdateLatencies = [...iterAsyncEvents_(
@@ -124,6 +126,7 @@ tr.exportTo('tr.metrics.rendering', function() {
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
           gestureScrollUpdateLatencies[0][1],
           { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
+            summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
             description: 'Latency of the first gesture scroll update.' });
     }
   }

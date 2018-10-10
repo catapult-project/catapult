@@ -70,6 +70,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, queueingDurations, {
           binBoundaries:
             tr.v.HistogramBinBoundaries.createExponential(0.01, 2, 20),
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
           description: 'Time between ScheduledActionSendBeginMainFrame in ' +
                        'the compositor thread and the corresponding ' +
                        'BeginMainFrame in the main thread.'

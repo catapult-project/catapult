@@ -114,6 +114,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
         frameLengths,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 5, 20),
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
           description: 'Frame times in vsyncs.' });
 
     histograms.createHistogram(
@@ -122,7 +123,9 @@ tr.exportTo('tr.metrics.rendering', function() {
         frameLengths.length / tr.b.convertUnit(
             tr.b.math.Statistics.sum(frameSegments, x => x.duration),
             tr.b.UnitScale.TIME.MILLI_SEC, tr.b.UnitScale.TIME.SEC),
-        { description: 'Average frames per second.' });
+        { description: 'Average frames per second.',
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        });
 
     let jankCount = 0;
     for (let i = 1; i < frameLengths.length; i++) {
@@ -133,7 +136,9 @@ tr.exportTo('tr.metrics.rendering', function() {
         'jank_count',
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
         jankCount,
-        { description: 'Number of changes in frame rate.' });
+        { description: 'Number of changes in frame rate.',
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        });
   }
 
   function computeFrameSegments_(timestamps, segments) {
@@ -162,13 +167,17 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         frameTimes,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
-          description: 'Raw frame times.' });
+          description: 'Raw frame times.',
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        });
     histograms.createHistogram(
         `${prefix}percentage_smooth`,
         tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
-        { description: 'Percentage of frames that were hitting 60 FPS.' });
+        { description: 'Percentage of frames that were hitting 60 FPS.',
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        });
   }
 
   function addFrameTimeHistograms(histograms, model, segments) {
