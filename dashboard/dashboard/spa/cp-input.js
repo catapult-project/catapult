@@ -40,6 +40,12 @@
         await cp.timeout(50);
         this.nativeInput.focus();
       }
+
+      // Sometimes calling focus() doesn't dispatch the focus event.
+      this.dispatchEvent(new CustomEvent('focus', {
+        bubbles: true,
+        composed: true,
+      }));
     }
 
     async blur() {

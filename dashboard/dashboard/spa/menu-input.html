@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/cp-input.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/option-group.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="menu-input">
+  <template>
+    <style>
+      :host {
+        padding-top: 12px;
+        display: block;
+      }
+
+      #input_clear {
+        color: var(--neutral-color-dark, grey);
+        cursor: pointer;
+        flex-shrink: 0;
+        height: var(--icon-size, 1em);
+        width: var(--icon-size, 1em);
+      }
+
+      #menu {
+        @apply --elevation-2;
+        background-color: var(--background-color, white);
+        max-height: 600px;
+        overflow: auto;
+        outline: none;
+        padding-right: 8px;
+        position: absolute;
+        z-index: var(--layer-menu, 100);
+      }
+    </style>
+
+    <cp-input
+        id="input"
+        autofocus="[[isFocused]]"
+        error$="[[!isValid_(selectedOptions, alwaysEnabled, options)]]"
+        disabled="[[isDisabled_(alwaysEnabled, options)]]"
+        label="[[label]]"
+        value="[[getInputValue_(isFocused, query, selectedOptions)]]"
+        on-blur="onBlur_"
+        on-focus="onFocus_"
+        on-keyup="onKeyup_">
+      <iron-icon
+          id="input_clear"
+          hidden$="[[isEmpty_(selectedOptions)]]"
+          icon="cp:cancel"
+          title="clear"
+          alt="clear"
+          on-click="onClear_">
+      </iron-icon>
+    </cp-input>
+
+    <div id="menu" tabindex="0">
+      <iron-collapse opened="[[isFocused]]">
+        <option-group
+            state-path="[[statePath]]"
+            root-state-path="[[statePath]]">
+        </option-group>
+      </iron-collapse>
+    </div>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/menu-input.js"></script>

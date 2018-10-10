@@ -72,6 +72,13 @@ suite('basic tests', function() {
         document.body, document.body));
     assert.isFalse(cp.isElementChildOf(
         document.body.parentElement, document.body));
+
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    div.root = div.createShadowRoot();
+    const child = document.createElement('div');
+    div.root.appendChild(child);
+    assert.isTrue(cp.isElementChildOf(child, document.body));
   });
 
   test('getActiveElement', function() {

@@ -36,11 +36,11 @@ tr.exportTo('cp', () => {
     }
 
     isMultiple_(seq) {
-      return this._len(seq) > 1;
+      return this.lengthOf_(seq) > 1;
     }
 
     isEmpty_(seq) {
-      return this._len(seq) === 0;
+      return this.lengthOf_(seq) === 0;
     }
 
     /**
