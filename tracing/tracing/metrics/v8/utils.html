@@ -47,6 +47,16 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     'V8.GCScavenger': 'v8-gc-scavenger'
   };
 
+  const MARK_COMPACTOR_EVENTS = new Set([
+    'V8.GCCompactor',
+    'V8.GCFinalizeMC',
+    'V8.GCFinalizeMCReduceMemory',
+    'V8.GCIncrementalMarking',
+    'V8.GCIncrementalMarkingFinalize',
+    'V8.GCIncrementalMarkingStart',
+    'V8.GCPhantomHandleProcessingCallback'
+  ]);
+
   const LOW_MEMORY_MARK_COMPACTOR = 'v8-gc-low-memory-mark-compactor';
 
   /**
@@ -163,6 +173,15 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event instanceof tr.e.v8.V8ThreadSlice;
   }
 
+  function isMarkCompactorEvent(event) {
+    return MARK_COMPACTOR_EVENTS.has(event.title);
+  }
+
+  function isNotForcedMarkCompactorEvent(event) {
+    return !isForcedGarbageCollectionEvent(event) &&
+        isMarkCompactorEvent(event);
+  }
+
   function forcedGCEventName() {
     return LOW_MEMORY_EVENT;
   }
@@ -248,7 +267,180 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return tr.b.math.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
   }
 
+  /**
+   * An end-point of a window that is sliding from left to right
+   * over |points| starting from time |start|.
+   * It is intended to be used only by the |mutatorUtilization| function.
+   * @constructor
+   */
+  class WindowEndpoint {
+    constructor(start, points) {
+      this.points = points;
+      // The index of the last passed point.
+      this.lastIndex = -1;
+      // The position of the end-point in the time line.
+      this.position = start;
+      this.distanceUntilNextPoint = points[0].position - start;
+      // The cumulative duration of GC pauses until this position.
+      this.cummulativePause = 0;
+      // The number of entered GC intervals.
+      this.stackDepth = 0;
+    }
+
+    // Advance the end-point by the given |delta|.
+    advance(delta) {
+      if (delta < this.distanceUntilNextPoint) {
+        this.position += delta;
+        this.cummulativePause += this.stackDepth > 0 ? delta : 0;
+        this.distanceUntilNextPoint =
+            this.points[this.lastIndex + 1].position - this.position;
+      } else {
+        this.position += this.distanceUntilNextPoint;
+        this.cummulativePause +=
+            this.stackDepth > 0 ? this.distanceUntilNextPoint : 0;
+        this.distanceUntilNextPoint = 0;
+        this.lastIndex++;
+        if (this.lastIndex < this.points.length) {
+          this.stackDepth += this.points[this.lastIndex].delta;
+          if (this.lastIndex + 1 < this.points.length) {
+            this.distanceUntilNextPoint =
+                this.points[this.lastIndex + 1].position - this.position;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns mutator utilization as a piecewise linear function.
+   * Mutator utilization for a window size w is a function of time mu_w(t)
+   * that shows how much time in [t, t+w] is left for the mutator relative
+   * to the time window size.
+   * More formally:
+   * mu_w(t) = (w - total_time_spent_in_gc_in(t, t + w)) / w.
+   * The range of mu_w(t) is [0..1].
+   * See "A Parallel, Real-Time Garbage Collector" by Cheng et. al. for
+   * more info [https://www.cs.cmu.edu/~guyb/papers/gc2001.pdf].
+   *
+   * All parameters must use the same time unit.
+   * @param {number} start The start time of execution.
+   * @param {number} end The end time of execution.
+   * @param {number} timeWindow The size of the time window.
+   * @param {!Array<!{start: number, end: number}>} intervals The list of
+   *     GC pauses.
+   */
+  function mutatorUtilization(start, end, timeWindow, intervals) {
+    const mu = new tr.b.math.PiecewiseLinearFunction();
+    // If the interval is smaller than the time window, then the function is
+    // empty.
+    if (end - start <= timeWindow) {
+      return mu;
+    }
+
+    // If there are GC pauses then the mutator utilization is 1.0.
+    if (intervals.length === 0) {
+      mu.push(start, 1.0, end - timeWindow, 1.0);
+      return mu;
+    }
+
+    intervals = unionOfIntervals(intervals);
+
+    // Create a point for the start and the end of each interval.
+    const points = [];
+    for (const interval of intervals) {
+      points.push({position: interval.start, delta: 1});
+      points.push({position: interval.end, delta: -1});
+    }
+    points.sort((a, b) => a.position - b.position);
+    points.push({position: end, delta: 0});
+
+    // The left and the right limit of the sliding window.
+    const left = new WindowEndpoint(start, points);
+    const right = new WindowEndpoint(start, points);
+
+    // Advance the right end-point until we get the correct window size.
+    while (right.position - left.position < timeWindow) {
+      right.advance(timeWindow - (right.position - left.position));
+    }
+
+    while (right.lastIndex < points.length) {
+      // Advance the window end-points by the largest possible amount
+      // without jumping over a point.
+      const distanceUntilNextPoint =
+          Math.min(left.distanceUntilNextPoint, right.distanceUntilNextPoint);
+      const position1 = left.position;
+      const value1 = right.cummulativePause - left.cummulativePause;
+      left.advance(distanceUntilNextPoint);
+      right.advance(distanceUntilNextPoint);
+      // Add a new mutator utilization segment only if it is non-trivial.
+      if (distanceUntilNextPoint > 0) {
+        const position2 = left.position;
+        const value2 = right.cummulativePause - left.cummulativePause;
+        mu.push(position1, 1.0 - value1 / timeWindow,
+            position2, 1.0 - value2 / timeWindow);
+      }
+    }
+    return mu;
+  }
+
+  /**
+   * Computes the minimum mutator utilization (MMU) metric for the given time
+   * windows and the given renderers. The results are added as histograms to
+   * the given histogram set.
+   *
+   * For example, passing 'v8-gc-mark-compactor-mmu' as the metric name and
+   * [16, 50, 100] as the time windows will produce the following:
+   * - v8-gc-mark-compactor-mmu-16ms_window
+   * - v8-gc-mark-compactor-mmu-50ms_window
+   * - v8-gc-mark-compactor-mmu-100ms_window
+   *
+   * @param {!string} metricName the name of the metric.
+   * @param {!function(tr.b.Event): boolean} eventFilter the predicate for
+   *     filtering the events that will be used for computing the MMU.
+   * @param {!Array.<tr.model.helpers.ChromeRendererHelper>} rendererHelpers
+   * @param {!tr.v.HistogramSet} histograms
+   */
+  function addMutatorUtilization(
+      metricName, eventFilter, timeWindows, rendererHelpers, histograms) {
+    const histogramMap = new Map();
+
+    for (const timeWindow of timeWindows) {
+      const histogramOptions = {
+        avg: false,
+        count: false,
+        max: false,
+        min: true,
+        std: false,
+        sum: false
+      };
+      const histogram = histograms.createHistogram(
+          `${metricName}-${timeWindow}ms_window`,
+          tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,
+          [], histogramOptions);
+      histogramMap.set(timeWindow, histogram);
+    }
+
+    for (const rendererHelper of rendererHelpers) {
+      if (rendererHelper.isChromeTracingUI) continue;
+      const pauses = [];
+      for (const event of rendererHelper.mainThread.sliceGroup.childEvents()) {
+        if (eventFilter(event) && event.end > event.start) {
+          pauses.push({start: event.start, end: event.end});
+        }
+      }
+      pauses.sort((a, b) => a.start - b.start);
+      const start = rendererHelper.mainThread.bounds.min;
+      const end = rendererHelper.mainThread.bounds.max;
+      for (const timeWindow of timeWindows) {
+        const mu = mutatorUtilization(start, end, timeWindow, pauses);
+        histogramMap.get(timeWindow).addSample(mu.min);
+      }
+    }
+  }
+
+
   return {
+    addMutatorUtilization,
     findParent,
     forcedGCEventName,
     groupAndProcessEvents,
@@ -260,6 +452,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isLatencyMarkCompactorEvent,
     isLowMemoryEvent,
     isMemoryMarkCompactorEvent,
+    isNotForcedMarkCompactorEvent,
     isNotForcedTopGarbageCollectionEvent,
     isNotForcedSubGarbageCollectionEvent,
     isScavengerEvent,
@@ -273,6 +466,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isCompileOptimizeRCSCategory,
     isCompileUnoptimizeRCSCategory,
     isCompileParseRCSCategory,
+    mutatorUtilization,
     rangeForMemoryDumps,
     subGarbageCollectionEventName,
     topGarbageCollectionEventName,

@@ -16,19 +16,16 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createModel(start, end, slices) {
-    const opts = {
-      customizeModelCallback(model) {
-        const process = model.getOrCreateProcess(1);
-        const thread = process.getOrCreateThread(2);
-        const group = thread.sliceGroup;
-        slices.forEach(function(slice) {
-          group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
-        });
-        group.createSubSlices();
+    return tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      const group = mainThread.sliceGroup;
+      for (const slice of slices) {
+        group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
       }
-    };
-    const model = tr.c.TestUtils.newModelWithEvents([], opts);
-    return model;
+      group.createSubSlices();
+      mainThread.updateBounds();
+    });
   }
 
   function constructName(name, suffix) {
@@ -75,7 +72,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subEvents', function() {
-    const histograms = new tr.v.HistogramSet();
     const slices = [
       {
         title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
@@ -95,7 +91,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('total', function() {
-    const histograms = new tr.v.HistogramSet();
     const slices = [
       {
         title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
@@ -116,7 +111,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('percentageInV8Execute', function() {
-    const histograms = new tr.v.HistogramSet();
     const slices = [
       {
         title: 'V8.Execute',
@@ -137,6 +131,35 @@ tr.b.unittest.testSuite(function() {
         'v8-gc-latency-mark-compactor_percentage_in_v8_execute');
     assert.strictEqual(value.average,
         (190 - 110) / ((190 - 110) + (220 - 210)));
+  });
+
+  test('markCompactorMutatorUtilization', function() {
+    const slices = [
+      {
+        title: 'V8.GCIncrementalMarkingStart',
+        args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+      {
+        title: 'V8.GCIncrementalMarking',
+        args: {}, start: 150, end: 160,
+        cpuStart: 150, cpuEnd: 160
+      },
+      {
+        title: 'V8.GCIncrementalMarkingFinalize',
+        args: {}, start: 200, end: 220,
+        cpuStart: 200, cpuEnd: 220
+      },
+      {
+        title: 'V8.GCFinalizeMC',
+        args: {}, start: 250, end: 300,
+        cpuStart: 250, cpuEnd: 300
+      }
+    ];
+    const histograms = run(slices);
+    const mmu = histograms.getHistogramNamed(
+        'v8-gc-mark-compactor-mmu-100ms_window');
+    assert.closeTo(0.3, mmu.min, 1e-3);
   });
 });
 </script>

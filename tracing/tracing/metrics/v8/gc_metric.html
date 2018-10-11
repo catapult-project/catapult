@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -27,6 +28,7 @@ tr.exportTo('tr.metrics.v8', function() {
     addDurationOfSubEvents(histograms, model);
     addPercentageInV8ExecuteOfTopEvents(histograms, model);
     addTotalPercentageInV8Execute(histograms, model);
+    addMarkCompactorMutatorUtilization(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -203,6 +205,22 @@ tr.exportTo('tr.metrics.v8', function() {
         name + '_percentage_in_v8_execute', cpuDurationInV8Execute,
         cpuDurationTotal, percentage_smallerIsBetter);
     histograms.addHistogram(percentage);
+  }
+
+  /**
+   * Example output:
+   * - v8-gc-mark-compactor-mmu-100ms_window.
+   */
+  function addMarkCompactorMutatorUtilization(histograms, model) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
+    tr.metrics.v8.utils.addMutatorUtilization(
+        'v8-gc-mark-compactor-mmu',
+        tr.metrics.v8.utils.isNotForcedMarkCompactorEvent,
+        [100],
+        rendererHelpers,
+        histograms);
   }
 
   return {
