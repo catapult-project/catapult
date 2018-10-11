@@ -42,10 +42,6 @@ def GetFromBrowserOptions(browser_options):
   args.append('--no-first-run')
   args.append('--ignore-background-tasks')
 
-  # Needed for overriding the synthetic field trial set by a coin flip.
-  # TODO(crbug.com/758566): remove after the 'madvise' experiment is done.
-  args.append('--orderfile-memory-optimization=on')
-
   # Turn on GPU benchmarking extension for all runs. The only side effect of
   # the extension being on is that render stats are tracked. This is believed
   # to be effectively free. And, by doing so here, it avoids us having to
