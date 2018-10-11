@@ -72,7 +72,7 @@ def DataFrameFromJson(data):
     row.update(zip(header, values))
     row['point_id'] = row['revision']
     row['commit_pos'] = _ParseIntValue(row['r_commit_pos'])
-    row['chromium_rev'] = row['r_chromium']
+    row['chromium_rev'] = row.get('r_chromium')
     row['clank_rev'] = row.get('r_clank', None)
     rows.append(tuple(row.get(k) for k in COLUMNS))
 
