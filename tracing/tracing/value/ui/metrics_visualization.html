@@ -22,7 +22,6 @@ found in the LICENSE file.
         padding: 4px;
         font-size: 14px;
       }
-
       .error {
         color: red;
         display: none;
@@ -40,6 +39,7 @@ found in the LICENSE file.
       }
 
       #selectors {
+        display: none;
         padding-bottom: 10px;
         display: none;
       }
@@ -107,6 +107,22 @@ const COLORS = [
   ['#FFAB40', '#FF9100', '#FF6D00', '#D65C02'],
   ['#8C9EFF', '#536DFE', '#3D5AFE', '#304FFE']];
 
+const METRICS = new Map([
+  ['Pipeline', [
+    'pipeline:begin_frame_transport',
+    'pipeline:begin_frame_to_frame_submission',
+    'pipeline:frame_submission_to_display',
+    'pipeline:draw']],
+  ['Thread', [
+    'thread_browser_cpu_time_per_frame',
+    'thread_display_compositor_cpu_time_per_frame',
+    'thread_GPU_cpu_time_per_frame',
+    'thread_IO_cpu_time_per_frame',
+    'thread_other_cpu_time_per_frame',
+    'thread_raster_cpu_time_per_frame',
+    'thread_renderer_compositor_cpu_time_per_frame',
+    'thread_renderer_main_cpu_time_per_frame']]]);
+
 // Used to access the running statistic of a metric
 const STATISTIC_KEY = 'statistic';
 
@@ -114,82 +130,64 @@ Polymer({
   is: 'tr-v-ui-metrics-visualization',
 
   created() {
-    this.chart_ = new tr.ui.b.NameColumnChart();
-    this.chart_.isStacked = true;
-    this.chart_.yAxisLabel = 'ms';
-    this.chart_.hideXAxis = true;
-    this.chart_.displayXInHover = true;
-    this.chart_.isGrouped = true;
-    this.chart_.enableToolTip = true;
-    this.chart_.showTitleInLegend = true;
-    this.chart_.toolTipCallBack = (rect) => this.openChildChart_(rect);
-
-    this.sortedPages_ = undefined;
-    this.displayLabels_ = undefined;
+    this.sortedPages_ = new Map();
+    this.displayLabels_ = new Map();
     this.groups_ = new Map();
-
-    this.mainMetricNames_ = undefined;
+    this.charts_ = new Map();
     this.subMetricNames_ = new Map();
   },
 
-  ready() {
-    this.$.start.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.filterByPercentile_();
-    });
-
-    this.$.end.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.filterByPercentile_();
-    });
-
-    this.$.search_page.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.searchByPage_();
-    });
-  },
-
-  build(histograms, mainMetricNames) {
-    if (!histograms || histograms.length < 1 ||
-        !mainMetricNames || mainMetricNames.length < 1) {
+  build(leafHistograms, histograms) {
+    if (!leafHistograms || leafHistograms.length < 1 ||
+        !histograms || histograms.length < 1) {
       this.$.data_error.style.display = 'block';
       return;
     }
 
-    this.mainMetricNames_ = mainMetricNames;
-    Polymer.dom(this.$.container).appendChild(this.chart_);
-    this.populateChart_(histograms, this.mainMetricNames_, this.chart_);
+    this.histograms = histograms;
+
+    for (const key of METRICS.keys()) {
+      const newAggregateChart = this.initializeColumnChart(key);
+      Polymer.dom(this.$.container).appendChild(newAggregateChart);
+      this.populateChart_(leafHistograms, key, newAggregateChart, true);
+      newAggregateChart.toolTipCallBack = () =>
+        this.openMetricsChart_(key);
+    }
 
     if (this.groups_.size < 1) {
       this.$.data_error.style.display = 'block';
       return;
     }
-
-    this.$.selectors.style.display = 'block';
   },
 
-  populateChart_(histograms, mainMetricNames, chart) {
+  populateChart_(histograms, metricName, chart, aggregate) {
     const storiesGrouping = tr.v.HistogramGrouping.BY_KEY.get(
         tr.v.d.RESERVED_NAMES.STORIES);
     const benchmarkStartGrouping = tr.v.HistogramGrouping.BY_KEY.get(
         tr.v.d.RESERVED_NAMES.BENCHMARK_START);
 
     const labels = new Map();
+    const groups = new Map();
 
-    for (const metric of mainMetricNames) {
+    for (const metric of METRICS.get(metricName)) {
       const metricHistograms = histograms.getHistogramsNamed(metric);
       for (const histogram of metricHistograms) {
         const benchmarkStart = benchmarkStartGrouping.callback(histogram);
         const page = storiesGrouping.callback(histogram);
         const displayLabel = tr.v.HistogramGrouping.
             DISPLAY_LABEL.callback(histogram);
-        const average = histogram.average === undefined ? 0 : histogram.average;
+        const average = histogram.average === undefined ? 0 :
+          histogram.average;
         labels.set(displayLabel, Date.parse(benchmarkStart));
 
         let pageMap = new Map();
         let labelMap = new Map();
-        if (this.groups_.get(page) === undefined) {
-          this.groups_.set(page, pageMap);
+
+        if (groups.get(page) === undefined) {
+          groups.set(page, pageMap);
           pageMap.set(displayLabel, labelMap);
         } else {
-          pageMap = this.groups_.get(page);
+          pageMap = groups.get(page);
           if (pageMap.get(displayLabel) === undefined) {
             pageMap.set(displayLabel, labelMap);
           } else {
@@ -236,15 +234,24 @@ Polymer({
       }
     }
 
-    this.displayLabels_ = this.getSortedDisplayLabels_(labels);
-    this.sortedPages_ = [...this.groups_.keys()].sort((a, b) =>
-      this.sortGroups_(a, b, this.groups_,
-          this.displayLabels_, mainMetricNames));
+    const displayLabels = this.getSortedDisplayLabels_(labels);
+    const sortedPages = [...groups.keys()].sort((a, b) =>
+      this.sortGroups_(a, b, groups,
+          displayLabels, METRICS.get(metricName)));
 
-    this.setChartColors_(mainMetricNames, this.displayLabels_, chart);
-    this.setChartSize_(this.groups_.size, this.displayLabels_.length, chart);
-    this.setChartData_(this.groups_, this.sortedPages_, this.displayLabels_,
-        mainMetricNames, chart);
+    this.setChartColors_(METRICS.get(metricName), displayLabels, chart);
+    this.setChartSize_(groups.size, displayLabels.length, chart);
+    this.setChartData_(groups, sortedPages, displayLabels, chart);
+
+    // so that there isn't two map entries with the same key
+    let mapName = metricName;
+    if (aggregate) {
+      mapName = 'Aggregate ' + mapName;
+    }
+
+    this.groups_.set(mapName, groups);
+    this.displayLabels_.set(mapName, displayLabels);
+    this.sortedPages_.set(mapName, sortedPages);
   },
 
   getSortedDisplayLabels_(labels) {
@@ -273,7 +280,7 @@ Polymer({
     return (aValue < bValue) ? -1 : 1;
   },
 
-  setChartData_(groups, sortedPages, displayLabels, mainMetricNames, chart) {
+  setChartData_(groups, sortedPages, displayLabels, chart) {
     const chartData = [];
     for (const page of sortedPages) {
       const pageMap = groups.get(page);
@@ -313,7 +320,6 @@ Polymer({
         const mainColorIndex = i % COLORS.length;
         const subColorIndex = j % COLORS[mainColorIndex].length;
         const color = COLORS[mainColorIndex][subColorIndex];
-
         const displayLabel = displayLabels[j];
         const series = this.getSeriesKey_(mainMetric, displayLabel);
         chart.getDataSeries(series).color = color;
@@ -323,6 +329,20 @@ Polymer({
 
   getSeriesKey_(metricName, displayLabel) {
     return metricName + '-' + displayLabel;
+  },
+
+  initializeColumnChart(title) {
+    const newChart = new tr.ui.b.NameColumnChart();
+    newChart.isStacked = true;
+    newChart.yAxisLabel = 'ms';
+    newChart.hideXAxis = true;
+    newChart.displayXInHover = true;
+    newChart.isGrouped = true;
+    newChart.enableToolTip = true;
+    newChart.showTitleInLegend = true;
+    newChart.chartTitle = title;
+    newChart.titleHeight = '14pt';
+    return newChart;
   },
 
   initializeChildChart_(title, height, width) {
@@ -339,13 +359,65 @@ Polymer({
     return childChart;
   },
 
-  initializeCloseButton_(div) {
+  initializeCloseButton_(div, parent) {
     const button = this.$.close.cloneNode(true);
     button.style.display = 'inline-block';
     button.addEventListener ('click', () => {
-      Polymer.dom(this.$.children).removeChild(div);
+      Polymer.dom(parent).removeChild(div);
     });
     return button;
+  },
+
+  initializeSelectors_(mainStep) {
+    const select = this.$.selectors.cloneNode(true);
+    select.style.display = 'block';
+
+    Polymer.dom(select).querySelector('#start')
+        .addEventListener ('keydown', (e) => {
+          if (e.key === 'Enter') this.filterByPercentile_(select, mainStep);
+        });
+
+    Polymer.dom(select).querySelector('#end')
+        .addEventListener ('keydown', (e) => {
+          if (e.key === 'Enter') this.filterByPercentile_(select, mainStep);
+        });
+
+    Polymer.dom(select).querySelector('#filter')
+        .addEventListener ('click', () => {
+          this.filterByPercentile_(select, mainStep);
+        });
+
+    Polymer.dom(select).querySelector('#search_page')
+        .addEventListener ('keydown', (e) => {
+          if (e.key === 'Enter') this.searchByPage_(select, mainStep);
+        });
+
+    Polymer.dom(select).querySelector('#search')
+        .addEventListener ('click', () => {
+          this.searchByPage_(select, mainStep);
+        });
+
+    return select;
+  },
+
+  // Create new metrics chart with selectors and a close button
+  openMetricsChart_(mainStep) {
+    const div = document.createElement('div');
+    div.classList.add('child_container');
+    Polymer.dom(this.$.container).appendChild(div);
+
+    const selectors = this.initializeSelectors_(mainStep);
+    div.appendChild(selectors);
+
+    const childChart = this.initializeColumnChart(mainStep + ' Breakdown');
+    childChart.toolTipCallBack = (rect) =>
+      this.openChildChart_(rect, mainStep);
+    div.appendChild(childChart);
+
+    const button = this.initializeCloseButton_(div, this.$.container);
+    div.appendChild(button);
+    this.populateChart_(this.histograms, mainStep, childChart, false);
+    this.charts_.set(mainStep, childChart);
   },
 
   // Adds new child chart with close button
@@ -357,36 +429,38 @@ Polymer({
     const childChart = this.initializeChildChart_(title, height, width);
     div.appendChild(childChart);
 
-    const button = this.initializeCloseButton_(div);
+    const button = this.initializeCloseButton_(div, this.$.children);
     div.appendChild(button);
 
     return childChart;
   },
 
   // Create child chart and populate it
-  openChildChart_(rect) {
+  openChildChart_(rect, metricName) {
     // Find main metric and corresponding sub-metrics
+    let mainStep;
     let mainStepIndex;
-    for (let i = 0; i < this.mainMetricNames_.length; ++i) {
-      if (rect.key.startsWith(this.mainMetricNames_[i])) {
+    for (let i = 0; i < METRICS.get(metricName).length; ++i) {
+      if (rect.key.startsWith(METRICS.get(metricName)[i])) {
+        mainStep = METRICS.get(metricName)[i];
         mainStepIndex = i;
         break;
       }
     }
 
     // Create child chart
-    const mainStep = this.mainMetricNames_[mainStepIndex];
     const subSteps = this.subMetricNames_.get(mainStep);
     const width = tr.b.math.clamp(subSteps.length * 150, 300, 700);
     const height = tr.b.math.clamp(subSteps.length *
-        this.displayLabels_.length * 50, 300, 700);
+        this.displayLabels_.get(metricName).length * 50, 300, 700);
 
     const pageName = rect.datum.group;
     const title = mainStep + ': ' + pageName;
-    const childChart = this.initializeChild_(title, height, width);
+    const childChart =
+      this.initializeChild_(title, height, width);
 
     // Get breakdown data for main step
-    const pageData = this.groups_.get(pageName);
+    const pageData = this.groups_.get(metricName).get(pageName);
     const subStepData = this.processSubStepData(childChart,
         mainStepIndex, mainStep, pageData, pageName, 0);
     childChart.data = subStepData.childData;
@@ -430,20 +504,21 @@ Polymer({
   },
 
   // Handle filtering by start and end percentiles
-  filterByPercentile_() {
-    const startPercentile = this.$.start.value;
-    const endPercentile = this.$.end.value;
+  filterByPercentile_(select, metricName) {
+    const startPercentile = Polymer.dom(select).querySelector('#start').value;
+    const endPercentile = Polymer.dom(select).querySelector('#end').value;
 
     if (startPercentile === '' || endPercentile === '') return;
 
-    const length = this.sortedPages_.length;
+    const length = this.sortedPages_.get(metricName).length;
     const startIndex = this.getPercentileIndex_(startPercentile, length);
     const endIndex = this.getPercentileIndex_(endPercentile, length);
 
-    const slicedPages = this.sortedPages_.slice(startIndex, endIndex);
+    const slicedPages = this.sortedPages_.get(metricName)
+        .slice(startIndex, endIndex);
 
-    this.setChartData_(this.groups_, slicedPages, this.displayLabels_,
-        this.mainMetricNames_, this.chart_);
+    this.setChartData_(this.groups_.get(metricName), slicedPages,
+        this.displayLabels_.get(metricName), this.charts_.get(metricName));
   },
 
   // Get index of x percentile value
@@ -455,40 +530,42 @@ Polymer({
   },
 
   // Handle searching by page name
-  searchByPage_() {
-    const criteria = this.$.search_page.value;
+  searchByPage_(select, metricName) {
+    const criteria = Polymer.dom(select).querySelector('#search_page').value;
     if (criteria === '') return;
 
     const query = new RegExp(criteria);
-    const filteredGroups = [...this.groups_].filter(group =>
-      group[0].match(query));
+    const filteredGroups = [...this.groups_.get(metricName)]
+        .filter(group => group[0].match(query));
 
     if (filteredGroups.length < 1) {
-      this.$.search_error.style.display = 'block';
+      Polymer.dom(select).querySelector('#search_error')
+          .style.display = 'block';
       return;
     }
-    this.$.search_error.style.display = 'hide';
+    Polymer.dom(select).querySelector('#search_error')
+        .style.display = 'none';
 
     // Create child chart with breakdown data
     const matchedPageName = filteredGroups[0][0];
-    const match = this.groups_.get(matchedPageName);
-    const title = 'Breakdown: ' + matchedPageName;
+    const match = this.groups_.get(metricName).get(matchedPageName);
+    const title = metricName + ' Breakdown: ' + matchedPageName;
 
     let totalSteps = 0;
     for (const [mainStep, subSteps] of this.subMetricNames_) {
       totalSteps += subSteps.length;
     }
     const width = tr.b.math.clamp(totalSteps * 150, 300, 700);
-    const height = tr.b.math.clamp(totalSteps * this.displayLabels_.length * 30,
-        300, 700);
+    const height = tr.b.math.clamp(totalSteps *
+        this.displayLabels_.get(metricName).length * 30, 300, 700);
 
     const childChart = this.initializeChild_(title, height, width);
 
     const childData = [];
     let total = 0;
-    for (let i = 0; i < this.mainMetricNames_.length; ++i) {
+    for (let i = 0; i < METRICS.get(metricName).length; ++i) {
       const stepData = this.processSubStepData(childChart, i,
-          this.mainMetricNames_[i], match, matchedPageName, total);
+          METRICS.get(metricName)[i], match, matchedPageName, total);
       childData.push(...stepData.childData);
 
       total = stepData.total;

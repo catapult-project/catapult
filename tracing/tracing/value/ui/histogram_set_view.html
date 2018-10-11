@@ -187,13 +187,7 @@ tr.exportTo('tr.v.ui', function() {
 
     onLoadVisualization_(event) {
       if (!this.metricsVisualizationLoaded_) { // Initial loading
-        const histograms = event.merged ? this.$.table.leafHistograms :
-          this.histograms;
-        const mainMetricNames = ['pipeline:begin_frame_transport',
-          'pipeline:begin_frame_to_frame_submission',
-          'pipeline:frame_submission_to_display',
-          'pipeline:draw'];
-        this.$.metrics.build(histograms, mainMetricNames);
+        this.$.metrics.build(this.$.table.leafHistograms, this.histograms);
         this.metricsVisualizationLoaded_ = true;
       } else if (this.$.metrics.style.display === 'none') { // Toggle to hide
         this.$.metrics.style.display = 'block';
