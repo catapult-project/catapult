@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
-      title: 'FrameView::layout',
+      title: 'LocalFrameView::layout',
       start: 450,
       duration: 100,
       cpuStart: 1360,
@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
-      title: 'WebViewImpl::layout',
+      title: 'WebViewImpl::updateAllLifecyclePhases',
       start: 600,
       duration: 20,
       cpuStart: 1480,
@@ -107,8 +107,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 120,
       events: {
-        'FrameView::layout': 100,
-        'WebViewImpl::layout': 20,
+        'LocalFrameView::layout': 100,
+        'WebViewImpl::updateAllLifecyclePhases': 20,
       }
     }, breakdownTree.layout);
     assert.deepEqual({
@@ -152,8 +152,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 110,
       events: {
-        'FrameView::layout': 100,
-        'WebViewImpl::layout': 10,
+        'LocalFrameView::layout': 100,
+        'WebViewImpl::updateAllLifecyclePhases': 10,
       }
     }, breakdownTree.layout);
     assert.deepEqual({
@@ -186,8 +186,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 96,
       events: {
-        'FrameView::layout': 80,
-        'WebViewImpl::layout': 16,
+        'LocalFrameView::layout': 80,
+        'WebViewImpl::updateAllLifecyclePhases': 16,
       }
     }, breakdownTree.layout);
     assert.deepEqual({
@@ -231,8 +231,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 88,
       events: {
-        'FrameView::layout': 80,
-        'WebViewImpl::layout': 8,
+        'LocalFrameView::layout': 80,
+        'WebViewImpl::updateAllLifecyclePhases': 8,
       }
     }, breakdownTree.layout);
     assert.deepEqual({
@@ -289,7 +289,7 @@ tr.b.unittest.testSuite(function() {
       mainThread.asyncSliceGroup.push(networkEvent);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink',
-        title: 'FrameView::layout',
+        title: 'LocalFrameView::layout',
         start: 160,
         duration: 140,
       }));
