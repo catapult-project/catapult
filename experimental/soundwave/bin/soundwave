@@ -19,8 +19,6 @@ sys.path.append(PY_UTILS_PATH)
 from common import utils
 from soundwave import commands
 
-# For help creating service account credentials see:
-# https://developers.google.com/api-client-library/python/auth/service-accounts#creatinganaccount
 
 DEFAULT_DATABASE_PATH = os.path.join(
     SOUNDWAVE_ROOT_PATH, 'soundwave.db')
