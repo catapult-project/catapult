@@ -11,6 +11,7 @@ from telemetry.testing import run_tests
 class MockArgs(object):
   def __init__(self):
     self.positional_args = []
+    self.test_filter = ''
     self.exact_test_filter = True
     self.run_disabled_tests = False
     self.skip = []
@@ -129,7 +130,7 @@ class RunTestsUnitTest(unittest.TestCase):
              'testHasTabs']),
         self._GetEnabledTests('canary', 'win', 'win7', True, args))
 
-  def testTestFiltering(self):
+  def testtPostionalArgsTestFiltering(self):
     args = MockArgs()
     args.positional_args = ['testAllEnabled']
     args.exact_test_filter = False
@@ -137,11 +138,22 @@ class RunTestsUnitTest(unittest.TestCase):
         set(['testAllEnabled', 'testAllEnabledVersion2']),
         self._GetEnabledTests('system', 'win', 'win7', True, args))
 
-  def testExactTestFiltering(self):
+  def testExactPositionalArgsTestFiltering(self):
     args = MockArgs()
     args.positional_args = [
         'telemetry.testing.disabled_cases.DisabledCases.testAllEnabled']
     args.exact_test_filter = True
     self.assertEquals(
         set(['testAllEnabled']),
+        self._GetEnabledTests('system', 'win', 'win7', True, args))
+
+  def testPostionalArgsTestFiltering(self):
+    args = MockArgs()
+    args.test_filter = (
+        'telemetry.testing.disabled_cases.DisabledCases.testAllEnabled::'
+        'telemetry.testing.disabled_cases.DisabledCases.testNoMavericks::'
+        'testAllEnabledVersion2')  # Partial test name won't match
+    args.exact_test_filter = False
+    self.assertEquals(
+        set(['testAllEnabled', 'testNoMavericks']),
         self._GetEnabledTests('system', 'win', 'win7', True, args))
