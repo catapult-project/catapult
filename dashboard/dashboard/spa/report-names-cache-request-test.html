@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+
+<script type="module" src="/dashboard/spa/report-names-cache-request.js"></script>
+
+<script type="module">
+'use strict';
+import TestSuitesCacheRequest from './report-names-cache-request.js';
+
+class MockFetchEvent {
+  constructor(internal) {
+    const headers = new Map();
+    if (internal) headers.set('Authorization');
+    this.request = {
+      url: 'http://example.com/path',
+      headers,
+    };
+  }
+
+  waitUntil() {
+  }
+}
+
+suite('TestSuitesCacheRequest', function() {
+  test('external', async() => {
+    const cacheRequest = new TestSuitesCacheRequest(new MockFetchEvent());
+    assert.strictEqual('report_names', await cacheRequest.databaseKeyPromise);
+  });
+
+  test('internal', async() => {
+    const cacheRequest = new TestSuitesCacheRequest(new MockFetchEvent(true));
+    const actual = await cacheRequest.databaseKeyPromise;
+    assert.strictEqual('report_names_internal', actual);
+  });
+});
+</script>
