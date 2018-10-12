@@ -24,6 +24,8 @@ module.exports = {
     modules: [thirdParty],
     alias: {
       '/idb/idb.js': path.resolve(thirdParty, 'idb', 'idb.js'),
+      '/tsmon_client/tsmon-client.js': path.resolve(
+          thirdParty, 'tsmon_client', 'tsmon-client.js'),
     },
   },
   resolveLoader: {

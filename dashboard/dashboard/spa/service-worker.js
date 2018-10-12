@@ -7,7 +7,6 @@
 import DescribeCacheRequest from './describe-cache-request.js';
 import ReportNamesCacheRequest from './report-names-cache-request.js';
 import TestSuitesCacheRequest from './test-suites-cache-request.js';
-import analytics from './google-analytics.js';
 
 self.addEventListener('activate', activateEvent => {
   activateEvent.waitUntil(self.clients.claim());

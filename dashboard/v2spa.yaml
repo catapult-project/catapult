@@ -33,6 +33,11 @@ handlers:
   upload: index.vulcanized.html
   secure: always
 
+- url: /service-worker.js
+  static_files: webpack/service-worker.js
+  upload: webpack/service-worker.js
+  secure: always
+
 - url: /.+
   script: dashboard.dispatcher.APP
   secure: always

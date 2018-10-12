@@ -1,0 +1,10 @@
+Name: Timeseries Monitoring Client
+URL: https://chromium.googlesource.com/infra/infra/+/027080e646efa6bbef384fdc1aeaa359c02fabc5/crdx/chopsui/tsmon-client.js
+Version: 2018 October 12
+License: See LICENSE file.
+
+Description:
+Web client for uploading measurements to tsmon
+
+Local modifications:
+Converted to an es6 module.
