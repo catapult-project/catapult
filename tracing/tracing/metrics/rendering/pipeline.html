@@ -19,11 +19,12 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   function eventIsValidGraphicsEvent_(event, eventMap) {
-    if (!event.bindId || !event.args || !event.args.step) {
+    if (event.title !== 'Graphics.Pipeline' || !event.bindId || !event.args ||
+        !event.args.step) {
       return false;
     }
     const bindId = event.bindId;
-    if (bindId in eventMap && event.args.step in eventMap[bindId]) {
+    if (eventMap.has(bindId) && event.args.step in eventMap.get(bindId)) {
       // It is possible for a client to submit multiple compositor frames for
       // one begin-message. So most steps can be present multiple times.
       // However, a begin-frame is issued only once, and received only once. So
@@ -86,30 +87,21 @@ tr.exportTo('tr.metrics.rendering', function() {
   }
 
   function addPipelineHistograms(histograms, model, segments) {
-    let events = [];
+    const ranges = segments.map(s => s.boundsRange);
+    const bindEvents = new Map();
     for (const thread of model.getAllThreads()) {
-      const graphicsEvents = thread.sliceGroup.slices.filter(
-          slice => {
-            if (slice.title !== 'Graphics.Pipeline') return false;
-            for (const segment of segments) {
-              if (segment.boundsRange.containsExplicitRangeInclusive(
-                  slice.start, slice.end)) {
-                return true;
-              }
-            }
-            return false;
+      for (const event of thread.sliceGroup.childEvents()) {
+        if (!eventIsValidGraphicsEvent_(event, bindEvents)) continue;
+        for (const range of ranges) {
+          if (range.containsExplicitRangeInclusive(event.start, event.end)) {
+            if (!bindEvents.has(event.bindId)) bindEvents.set(event.bindId, {});
+            break;
           }
-      );
-      events = events.concat(graphicsEvents);
-    }
-    const bindEvents = {};
-    for (const event of events) {
-      if (!eventIsValidGraphicsEvent_(event, bindEvents)) continue;
-      const bindId = event.bindId;
-      if (!(bindId in bindEvents)) {
-        bindEvents[bindId] = {};
+        }
+        if (bindEvents.has(event.bindId)) {
+          bindEvents.get(event.bindId)[event.args.step] = event;
+        }
       }
-      bindEvents[bindId][event.args.step] = event;
     }
 
     const dcThread = getDisplayCompositorThread_(model);
@@ -169,7 +161,7 @@ tr.exportTo('tr.metrics.rendering', function() {
           summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
         });
 
-    for (const flow of Object.values(bindEvents)) {
+    for (const flow of bindEvents.values()) {
       // Report only for the cases that go through the complete pipeline.
       if (!flow.IssueBeginFrame || !flow.ReceiveBeginFrame ||
           !flow.SubmitCompositorFrame || !flow.SurfaceAggregation) {
