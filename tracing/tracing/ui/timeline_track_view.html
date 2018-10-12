@@ -396,7 +396,7 @@ Polymer({
 
   addKeyPressHotKeys_() {
     this.addKeyPressHotKey({
-      keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0)],
+      keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0), 'z'.charCodeAt(0)],
       callback(e) {
         this.zoomBy_(1.5, true);
         e.stopPropagation();
@@ -428,7 +428,7 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0)],
+      keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0), 'Z'.charCodeAt(0)],
       callback(e) {
         this.zoomBy_(10, true);
         e.stopPropagation();
@@ -443,8 +443,8 @@ Polymer({
       }
     });
 
-    this.addKeyPressHotKey({
-      keyCode: 'a'.charCodeAt(0),
+      this.addKeyPressHotKey({
+      keyCode: ['a'.charCodeAt(0), 'q'.charCodeAt(0)],
       callback(e) {
         this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
         e.stopPropagation();
@@ -460,7 +460,7 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCode: 'A'.charCodeAt(0),
+      keyCode: ['A'.charCodeAt(0), 'Q'.charCodeAt(0)],
       callback(e) {
         this.queueSmoothPan_(viewWidth * 0.5, 0);
         e.stopPropagation();
