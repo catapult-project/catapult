@@ -16,17 +16,19 @@ found in the LICENSE file.
 // A few histograms are produced with the names as described below:
 // 1. messageloop_start_time - time till the message loop of the browser main
 //    starts processing posted tasts (after having loaded the Profile)
+// 2. first_contentful_paint_time - time to the first contentful paint of the
+//    page loaded at startup
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
 tr.exportTo('tr.metrics.sh', function() {
   const MESSAGE_LOOP_EVENT_NAME =
       'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
+  const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
   function androidStartupMetric(histograms, model) {
     // Walk the browser slices, extract timestamps for the browser start,
     // message loop start. TODO(crbug.com/883290): re-introduce
-    // request_start_time. TODO(crbug.com/886621): deflake the
-    // first_contentful_paint_time metric and re-introduce it.
-    const messageLoopStartEvents = [];
+    // request_start_time.
+    let messageLoopStartEvents = [];
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) return;
@@ -37,34 +39,80 @@ tr.exportTo('tr.metrics.sh', function() {
         }
       }
     }
-    if (messageLoopStartEvents.length === 0) {
-      // Sometimes the browser process does not have the proper name attached.
-      // This often happens when both chrome trace and systrace are merged. Fall
-      // back to the slower method: scanning all processes.
+
+    // Walk the renderer slices and extract the 'first contentful paint'
+    // histogram samples.
+    let firstContentfulPaintEvents = [];
+    const rendererHelpers = chromeHelper.rendererHelpers;
+    const pids = Object.keys(rendererHelpers);
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      if (!rendererHelper.mainThread) continue;
+      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+        if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
+          firstContentfulPaintEvents.push(ev);
+          // There are usually several 'First Contentful Paint' events recorded
+          // for each page load. Take only the first one per renderer.
+          break;
+        }
+      }
+    }
+
+    // Fallback to scanning all processes if important events are not found.
+    let totalBrowserStarts = messageLoopStartEvents.length;
+    let totalFcpEvents = firstContentfulPaintEvents.length;
+    if (totalFcpEvents !== totalBrowserStarts || totalBrowserStarts === 0) {
+      messageLoopStartEvents = [];
+      firstContentfulPaintEvents = [];
+      // Sometimes either the browser process or the renderer process does not
+      // have the proper name attached. This often happens when both chrome
+      // trace and systrace are merged. Other multi-process trickery, like
+      // Perfetto, may also cause this.
       for (const proc of Object.values(model.processes)) {
         for (const ev of proc.getDescendantEvents()) {
           if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
             messageLoopStartEvents.push(ev);
           }
         }
+        for (const ev of proc.getDescendantEvents()) {
+          if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
+            firstContentfulPaintEvents.push(ev);
+            break;
+          }
+        }
       }
+      totalBrowserStarts = messageLoopStartEvents.length;
+      totalFcpEvents = firstContentfulPaintEvents.length;
     }
 
-    // Output all times to start the messageloop except the earliest one. The
-    // earliest start on the trace is affected by the state of the system coming
-    // from the time before the benchmark started. Removing these influencing
-    // factors allows reducing the noise.
+    if (totalFcpEvents !== totalBrowserStarts) {
+      throw new Error('Number of FCP events (' + totalFcpEvents +
+        ') differs from number of browser starts (' + totalBrowserStarts + ')');
+    }
+
+    // Group the relevant events with the corresponding browser starts and emit
+    // the metrics.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    messageLoopStartEvents.sort(function(event1, event2) {
+    const firstContentfulPaintHistogram = histograms.createHistogram(
+        'first_contentful_paint_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    function orderEvents(event1, event2) {
       return event1.start - event2.start;
-    });
-    const totalMessageLoopStarts = messageLoopStartEvents.length;
-    for (let i = 1; i < totalMessageLoopStarts; i++) {
-      const ev = messageLoopStartEvents[i];
-      messageLoopStartHistogram.addSample(ev.duration,
-          {events: new tr.v.d.RelatedEventSet([ev])});
+    }
+    messageLoopStartEvents.sort(orderEvents);
+    firstContentfulPaintEvents.sort(orderEvents);
+    // The earliest browser start is skipped because it is affected by the state
+    // of the system coming from the time before the benchmark started. Removing
+    // these influencing factors allows reducing measurement noise.
+    for (let i = 1; i < totalBrowserStarts; i++) {
+      const startEvent = messageLoopStartEvents[i];
+      messageLoopStartHistogram.addSample(startEvent.duration,
+          {events: new tr.v.d.RelatedEventSet([startEvent])});
+      const fcpEvent = firstContentfulPaintEvents[i];
+      firstContentfulPaintHistogram.addSample(
+          fcpEvent.end - startEvent.start,
+          {events: new tr.v.d.RelatedEventSet([startEvent, fcpEvent])});
     }
   }
 
