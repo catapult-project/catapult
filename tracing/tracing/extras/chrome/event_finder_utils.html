@@ -66,6 +66,7 @@ tr.exportTo('tr.e.chrome', function() {
      */
     static* getMainThreadEvents(
         rendererHelper, eventTitle, eventCategory) {
+      if (!rendererHelper.mainThread) return;
       // Events yielded by childEvents() are sorted by start time.
       for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
         if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
