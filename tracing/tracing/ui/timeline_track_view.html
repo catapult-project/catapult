@@ -396,7 +396,7 @@ Polymer({
 
   addKeyPressHotKeys_() {
     this.addKeyPressHotKey({
-      keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0), 'z'.charCodeAt(0)],
+      keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0), 'z'.charCodeAt(0), 'i'.charCodeAt(0)],
       callback(e) {
         this.zoomBy_(1.5, true);
         e.stopPropagation();
@@ -404,9 +404,25 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCodes: ['s'.charCodeAt(0), 'o'.charCodeAt(0)],
+      keyCode: ['a'.charCodeAt(0), 'q'.charCodeAt(0), , 'j'.charCodeAt(0)],
+      callback(e) {
+          this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
+          e.stopPropagation();
+      }
+    });
+
+    this.addKeyPressHotKey({
+      keyCodes: ['s'.charCodeAt(0), 'o'.charCodeAt(0), 'k'.charCodeAt(0)],
       callback(e) {
         this.zoomBy_(1 / 1.5, true);
+        e.stopPropagation();
+      }
+    });
+
+    this.addKeyPressHotKey({
+      keyCodes: ['d'.charCodeAt(0), 'e'.charCodeAt(0), 'l'.charCodeAt(0)],
+      callback(e) {
+        this.queueSmoothPan_(this.viewWidth_ * -0.3, 0);
         e.stopPropagation();
       }
     });
@@ -428,7 +444,7 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0), 'Z'.charCodeAt(0)],
+      keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0), 'Z'.charCodeAt(0), 'I'.charCodeAt(0)],
       callback(e) {
         this.zoomBy_(10, true);
         e.stopPropagation();
@@ -436,31 +452,7 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCodes: ['S'.charCodeAt(0), 'O'.charCodeAt(0)],
-      callback(e) {
-        this.zoomBy_(1 / 10, true);
-        e.stopPropagation();
-      }
-    });
-
-      this.addKeyPressHotKey({
-      keyCode: ['a'.charCodeAt(0), 'q'.charCodeAt(0)],
-      callback(e) {
-        this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
-        e.stopPropagation();
-      }
-    });
-
-    this.addKeyPressHotKey({
-      keyCodes: ['d'.charCodeAt(0), 'e'.charCodeAt(0)],
-      callback(e) {
-        this.queueSmoothPan_(this.viewWidth_ * -0.3, 0);
-        e.stopPropagation();
-      }
-    });
-
-    this.addKeyPressHotKey({
-      keyCode: ['A'.charCodeAt(0), 'Q'.charCodeAt(0)],
+      keyCode: ['A'.charCodeAt(0), 'Q'.charCodeAt(0), 'J'.charCodeAt(0)],
       callback(e) {
         this.queueSmoothPan_(viewWidth * 0.5, 0);
         e.stopPropagation();
@@ -468,7 +460,15 @@ Polymer({
     });
 
     this.addKeyPressHotKey({
-      keyCode: 'D'.charCodeAt(0),
+      keyCodes: ['S'.charCodeAt(0), 'O'.charCodeAt(0), , 'K'.charCodeAt(0)],
+      callback(e) {
+        this.zoomBy_(1 / 10, true);
+        e.stopPropagation();
+      }
+    });
+
+    this.addKeyPressHotKey({
+      keyCode: ['D'.charCodeAt(0), 'L'.charCodeAt(0)],
       callback(e) {
         this.queueSmoothPan_(viewWidth * -0.5, 0);
         e.stopPropagation();
