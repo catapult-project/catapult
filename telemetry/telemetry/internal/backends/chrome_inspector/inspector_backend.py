@@ -210,6 +210,9 @@ class InspectorBackend(object):
       timeout: The number of seconds to wait for the statement to execute.
       context_id: The id of an iframe where to execute the code; the main page
           has context_id=1, the first iframe context_id=2, etc.
+      user_gesture: Whether execution should be treated as initiated by user
+          in the UI. Code that plays media or requests fullscreen may not take
+          effects without user_gesture set to True.
       Additional keyword arguments provide values to be interpolated within
           the statement. See telemetry.util.js_template for details.
 
@@ -222,8 +225,10 @@ class InspectorBackend(object):
     # Use the default both when timeout=None or the option is ommited.
     timeout = kwargs.pop('timeout', None) or 60
     context_id = kwargs.pop('context_id', None)
+    user_gesture = kwargs.pop('user_gesture', None) or False
     statement = js_template.Render(statement, **kwargs)
-    self._runtime.Execute(statement, context_id, timeout)
+    self._runtime.Execute(statement, context_id, timeout,
+                          user_gesture=user_gesture)
 
   def EvaluateJavaScript(self, expression, **kwargs):
     """Returns the result of evaluating a given JavaScript expression.
@@ -237,6 +242,9 @@ class InspectorBackend(object):
       timeout: The number of seconds to wait for the expression to evaluate.
       context_id: The id of an iframe where to execute the code; the main page
           has context_id=1, the first iframe context_id=2, etc.
+      user_gesture: Whether execution should be treated as initiated by user
+          in the UI. Code that plays media or requests fullscreen may not take
+          effects without user_gesture set to True.
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
 
@@ -249,8 +257,10 @@ class InspectorBackend(object):
     # Use the default both when timeout=None or the option is ommited.
     timeout = kwargs.pop('timeout', None) or 60
     context_id = kwargs.pop('context_id', None)
+    user_gesture = kwargs.pop('user_gesture', None) or False
     expression = js_template.Render(expression, **kwargs)
-    return self._EvaluateJavaScript(expression, context_id, timeout)
+    return self._EvaluateJavaScript(expression, context_id, timeout,
+                                    user_gesture=user_gesture)
 
   def WaitForJavaScriptCondition(self, condition, **kwargs):
     """Wait for a JavaScript condition to become truthy.
@@ -530,9 +540,11 @@ class InspectorBackend(object):
     error.AddDebuggingMessage('Debugger url: %s' % self.debugger_url)
 
   @_HandleInspectorWebSocketExceptions
-  def _EvaluateJavaScript(self, expression, context_id, timeout):
+  def _EvaluateJavaScript(self, expression, context_id, timeout,
+                          user_gesture=False):
     try:
-      return self._runtime.Evaluate(expression, context_id, timeout)
+      return self._runtime.Evaluate(expression, context_id, timeout,
+                                    user_gesture)
     except inspector_websocket.WebSocketException as e:
       # Assume the renderer's main thread is hung. Try to use DevTools
       # to crash the target renderer process (on its IO thread) so we

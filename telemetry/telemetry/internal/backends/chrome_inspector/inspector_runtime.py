@@ -16,10 +16,10 @@ class InspectorRuntime(object):
         msg['method'] == 'Runtime.executionContextCreated'):
       self._all_context_ids.add(msg['params']['context']['id'])
 
-  def Execute(self, expr, context_id, timeout):
-    self.Evaluate(expr + '; 0;', context_id, timeout)
+  def Execute(self, expr, context_id, timeout, user_gesture=False):
+    self.Evaluate(expr + '; 0;', context_id, timeout, user_gesture)
 
-  def Evaluate(self, expr, context_id, timeout):
+  def Evaluate(self, expr, context_id, timeout, user_gesture=False):
     """Evaluates a javascript expression and returns the result.
 
     |context_id| can refer to an iframe. The main page has context_id=1, the
@@ -35,7 +35,8 @@ class InspectorRuntime(object):
         'method': 'Runtime.evaluate',
         'params': {
             'expression': expr,
-            'returnByValue': True
+            'returnByValue': True,
+            'userGesture': user_gesture,
         }
     }
     if context_id is not None:

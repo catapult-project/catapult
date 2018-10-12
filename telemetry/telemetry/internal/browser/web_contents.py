@@ -180,6 +180,9 @@ class WebContents(object):
       timeout: The number of seconds to wait for the statement to execute.
       context_id: The id of an iframe where to execute the code; the main page
           has context_id=1, the first iframe context_id=2, etc.
+      user_gesture: Whether execution should be treated as initiated by user
+          in the UI. Code that plays media or requests fullscreen may not take
+          effects without user_gesture set to True.
       Additional keyword arguments provide values to be interpolated within
           the statement. See telemetry.util.js_template for details.
 
@@ -203,6 +206,9 @@ class WebContents(object):
       timeout: The number of seconds to wait for the expression to evaluate.
       context_id: The id of an iframe where to execute the code; the main page
           has context_id=1, the first iframe context_id=2, etc.
+      user_gesture: Whether execution should be treated as initiated by user
+          in the UI. Code that plays media or requests fullscreen may not take
+          effects without user_gesture set to True.
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
 

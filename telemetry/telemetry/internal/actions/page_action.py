@@ -41,7 +41,7 @@ class PageAction(object):
 
 def EvaluateCallbackWithElement(
     tab, callback_js, selector=None, text=None, element_function=None,
-    wait=False, timeout_in_seconds=60):
+    wait=False, timeout_in_seconds=60, user_gesture=False):
   """Evaluates the JavaScript callback with the given element.
 
   The element may be selected via selector, text, or element_function.
@@ -70,6 +70,9 @@ def EvaluateCallbackWithElement(
         '(function() { return foo.element; })()'.
     wait: Whether to wait for the return value to be true.
     timeout_in_seconds: The timeout for wait (if waiting).
+    user_gesture: Whether execution should be treated as initiated by user
+        in the UI. Code that plays media or requests fullscreen may not take
+        effects without user_gesture set to True.
   """
   count = 0
   info_msg = ''
@@ -127,7 +130,7 @@ def EvaluateCallbackWithElement(
     tab.WaitForJavaScriptCondition(code, timeout=timeout_in_seconds)
     return True
   else:
-    return tab.EvaluateJavaScript(code)
+    return tab.EvaluateJavaScript(code, user_gesture=user_gesture)
 
 
 @decorators.Cache

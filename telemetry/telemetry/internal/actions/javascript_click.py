@@ -20,6 +20,8 @@ class ClickElementAction(page_action.PageAction):
           }
           element.click();
         }'''
+    # Click handler that plays media or requests fullscreen may not take
+    # effects without user_gesture set to True.
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self.selector, text=self.text,
-        element_function=self.element_function)
+        element_function=self.element_function, user_gesture=True)
