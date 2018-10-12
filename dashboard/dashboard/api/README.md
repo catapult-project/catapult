@@ -7,7 +7,7 @@ Google account or a service account to access the API. See
 for examples of how to access the API.
 
 ## Alerts
-URL patterns for accessing alerts:
+URL pattern for accessing alerts:
 
  * `/api/alerts?<params>`: Get matching alerts. Supported query parameters:
     * `key`: Urlsafe alert entity key.
@@ -36,24 +36,7 @@ URL patterns for accessing alerts:
       `report`s may be specified. Filters alerts to the timeseries referenced by
       the reports.
 
- * `/api/alerts/bug_id/id`: Get all the alerts associated with bug `id`.
-    * `include_comments`: When omitted or set to `false` only bug metadata
-      will be returned. When set to `true` the text of all bug comments
-      is also included in the response.
- * `/api/alerts/keys/comma_sep_list`: Get the alerts with the given list of
-   keys, separated by commas.
- * `/api/alerts/rev/revision`: Get all the alerts with `revision` in the
-   revision range. Note that `revision` should be the revision that is sent to
-   the perf dashboard as the point ID; for ChromiumPerf it is the chromium
-   commit pos; for v8 master it is the v8 commit pos.
- * `/api/alerts/history/N`: Get all the alerts for N days (defaults to 7).
-   Can specify a `sheriff` param in postdata, defaults to `Chromium Perf
-   Sheriff`. Can specify an `improvements` param equal to 1 to include
-   improvements. Can specify a `benchmark` param equal to the name to include
-   only alerts for a given benchmark.
-
-No matter what the url pattern, the alerts API returns a JSON list of alerts
-with the following fields:
+The alerts API returns a JSON list of alerts with the following fields:
 
  * `date`: Date the alert fired in YYYY-MM-DD format
  * `master`: Buildbot master the alert fired on.
