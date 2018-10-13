@@ -45,9 +45,9 @@ tr.b.unittest.testSuite(function() {
 
     // One of the two frame times is not smooth.
     hist = histograms.getHistogramNamed('percentage_smooth');
-    assert.closeTo(0.5, hist.min, 1e-6);
-    assert.closeTo(0.5, hist.max, 2e-6);
-    assert.closeTo(0.5, hist.average, 1e-6);
+    assert.closeTo(50, hist.min, 1e-6);
+    assert.closeTo(50, hist.max, 2e-6);
+    assert.closeTo(50, hist.average, 1e-6);
   });
 
   test('frameTimes_drmEvents', function() {
@@ -251,9 +251,9 @@ tr.b.unittest.testSuite(function() {
 
     // One of the two frame times is not smooth.
     hist = histograms.getHistogramNamed('ui_percentage_smooth');
-    assert.closeTo(0.5, hist.min, 1e-6);
-    assert.closeTo(0.5, hist.max, 2e-6);
-    assert.closeTo(0.5, hist.average, 1e-6);
+    assert.closeTo(50, hist.min, 1e-6);
+    assert.closeTo(50, hist.max, 2e-6);
+    assert.closeTo(50, hist.average, 1e-6);
   });
 });
 </script>

@@ -173,7 +173,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     histograms.createHistogram(
         `${prefix}percentage_smooth`,
         tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
-        tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
+        100 * tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
         { description: 'Percentage of frames that were hitting 60 FPS.',
           summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
