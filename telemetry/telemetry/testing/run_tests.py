@@ -59,11 +59,6 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
-    # TODO(crbug.com/894261): remove this flag once
-    # run_telemetry_as_googletest.py is switched to use '--test-filter' flag.
-    parser.add_option('--exact-test-filter', action='store_true', default=False,
-                      help='Treat test filter as exact matches (default is '
-                           'substring matches).')
     parser.add_option('--test-filter', metavar='TEST_NAMES',
                       help=('a double-colon-separated ("::") list of'
                             'exact test names, to run just that subset'
@@ -223,7 +218,7 @@ def GetClassifier(args, possible_browser):
     selected_tests_are_exact = True
   else:
     selected_tests = args.positional_args
-    selected_tests_are_exact = args.exact_test_filter
+    selected_tests_are_exact = False
 
   def ClassifyTestWithoutBrowser(test_set, test):
     name = test.id()

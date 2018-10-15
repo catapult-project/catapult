@@ -138,15 +138,6 @@ class RunTestsUnitTest(unittest.TestCase):
         set(['testAllEnabled', 'testAllEnabledVersion2']),
         self._GetEnabledTests('system', 'win', 'win7', True, args))
 
-  def testExactPositionalArgsTestFiltering(self):
-    args = MockArgs()
-    args.positional_args = [
-        'telemetry.testing.disabled_cases.DisabledCases.testAllEnabled']
-    args.exact_test_filter = True
-    self.assertEquals(
-        set(['testAllEnabled']),
-        self._GetEnabledTests('system', 'win', 'win7', True, args))
-
   def testPostionalArgsTestFiltering(self):
     args = MockArgs()
     args.test_filter = (
