@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   function newSchedulerTask(startTime, duration) {
     return tr.c.TestUtils.newSliceEx({
       cat: 'toplevel',
-      title: 'ThreadControllerImpl::DoWork',
+      title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
       start: startTime,
       duration
     });

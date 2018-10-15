@@ -199,21 +199,36 @@ tr.b.unittest.testSuite(function() {
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'ThreadControllerImpl::DoWork',
+        title: 'ThreadControllerImpl::RunTask',
         start: 10,
         duration: 1,
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        title: 'ThreadControllerImpl::DoWork',
         start: 20,
         duration: 2,
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
-        title: 'MessageLoop::RunTask',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
         start: 30,
         duration: 3,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'MessageLoop::RunTask',
+        start: 40,
+        duration: 4,
+      }));
+      // The category of 'ThreadControllerImpl::DoWork' slice was changed to
+      // 'sequence_manager' because it is not longer a scheduler top level task.
+      // See crbug.com/871204 for context.
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'sequence_manager',
+        title: 'ThreadControllerImpl::DoWork',
+        start: 50,
+        duration: 5,
       }));
     });
 
@@ -223,13 +238,19 @@ tr.b.unittest.testSuite(function() {
     const tasks = EventFinderUtils.findToplevelSchedulerTasks(
         rendererHelper.mainThread);
 
-    assert.strictEqual(tasks.length, 2);
-    assert.strictEqual(tasks[0].title, 'ThreadControllerImpl::DoWork');
+    assert.strictEqual(tasks.length, 3);
+    assert.strictEqual(tasks[0].title,
+        'ThreadControllerImpl::RunTask');
     assert.strictEqual(tasks[0].start, 10);
     assert.strictEqual(tasks[0].duration, 1);
     assert.strictEqual(tasks[1].title,
-        'TaskQueueManager::ProcessTaskFromWorkQueue');
+        'ThreadControllerImpl::DoWork');
+    assert.strictEqual(tasks[1].start, 20);
     assert.strictEqual(tasks[1].duration, 2);
+    assert.strictEqual(tasks[2].title,
+        'TaskQueueManager::ProcessTaskFromWorkQueue');
+    assert.strictEqual(tasks[2].start, 30);
+    assert.strictEqual(tasks[2].duration, 3);
   });
 });
 </script>

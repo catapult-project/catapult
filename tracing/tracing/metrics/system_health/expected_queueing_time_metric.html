@@ -117,7 +117,9 @@ tr.exportTo('tr.metrics.sh', function() {
      */
     function getTasks(rendererHelper) {
       const tasks = [];
-      for (const slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
+      for (const slice of
+        tr.e.chrome.EventFinderUtils.findToplevelSchedulerTasks(
+            rendererHelper.mainThread)) {
         const times = getEventTimes(slice);
         if (times.duration > 0 && !containsForcedGC_(slice)) {
           tasks.push({start: times.start, end: times.start + times.duration});
