@@ -135,11 +135,21 @@ export function clearInProgressForTest() {
   IN_PROGRESS_REQUESTS.clear();
 }
 
+export async function deleteDatabaseForTest(databaseName) {
+  if (CONNECTION_POOL.has(databaseName)) {
+    await CONNECTION_POOL.get(databaseName).close();
+    CONNECTION_POOL.delete(databaseName);
+  }
+
+  await idb.delete(databaseName);
+}
+
 export default {
   CacheRequestBase,
   READONLY,
   READWRITE,
   clearInProgressForTest,
+  deleteDatabaseForTest,
   flushWriterForTest,
   jsonResponse,
 };

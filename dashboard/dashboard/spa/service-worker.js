@@ -5,6 +5,7 @@
 'use strict';
 
 import DescribeCacheRequest from './describe-cache-request.js';
+import ReportCacheRequest from './report-cache-request.js';
 import ReportNamesCacheRequest from './report-names-cache-request.js';
 import TestSuitesCacheRequest from './test-suites-cache-request.js';
 
@@ -14,6 +15,7 @@ self.addEventListener('activate', activateEvent => {
 
 const FETCH_HANDLERS = {
   '/api/describe': DescribeCacheRequest,
+  '/api/report/generate': ReportCacheRequest,
   '/api/report/names': ReportNamesCacheRequest,
   '/api/test_suites': TestSuitesCacheRequest,
 };
