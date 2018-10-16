@@ -203,7 +203,7 @@ class TracingBackend(object):
       timeout = 1200  # 20 minutes.
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
-    except inspector_websocket.WebsocketException as err:
+    except inspector_websocket.WebSocketException as err:
       if issubclass(
           err.websocket_error_type, websocket.WebSocketTimeoutException):
         raise TracingTimeoutException(

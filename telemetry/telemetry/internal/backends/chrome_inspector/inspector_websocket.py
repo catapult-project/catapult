@@ -20,7 +20,7 @@ class WebSocketException(exceptions.Error):
   """Wrapper around websocket.WebSocketException to make the error handleable.
   """
   def __init__(self, websocket_error):
-    msg = 'WebsocketException of type %s. Error message: %s' % (
+    msg = 'WebSocketException of type %s. Error message: %s' % (
         type(websocket_error), websocket_error.message)
     super(WebSocketException, self).__init__(msg)
     self._websocket_error_type = type(websocket_error)
