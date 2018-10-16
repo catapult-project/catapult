@@ -10,5 +10,5 @@ if __name__ == '__main__':
   tracing_path = os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)), '..'))
   sys.path.append(tracing_path)
-  from tracing_build import update_gypi
-  sys.exit(update_gypi.Update())
+  from tracing_build import update_gni
+  sys.exit(update_gni.Update())
