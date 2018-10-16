@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -455,6 +456,14 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self._tab.WaitForJavaScriptCondition(
         'document.querySelector("textarea").value === "This is interesting"',
         timeout=1)
+
+    action_runner.PressKey('End')  # This is interesting|.
+    action_runner.EnterText(u'ğҖ⌛XX') # This is interestingğҖ⌛XX|.
+    self._tab.WaitForJavaScriptCondition(
+        u'document.querySelector("textarea").value ==='
+        u'"This is interestingğҖ⌛XX"',
+        timeout=1)
+
 
   @decorators.Enabled('chromeos')
   def testOverviewMode(self):
