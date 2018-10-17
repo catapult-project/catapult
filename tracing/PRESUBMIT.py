@@ -54,8 +54,8 @@ def _CheckChange(input_api, output_api):
   original_sys_path = sys.path
   try:
     sys.path += [input_api.PresubmitLocalPath()]
-    from tracing_build import check_gni
-    error = check_gni.GniCheck()
+    from tracing_build import check_gypi
+    error = check_gypi.GypiCheck()
     if error:
       results.append(output_api.PresubmitError(error))
   finally:

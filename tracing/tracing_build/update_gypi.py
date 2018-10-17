@@ -66,7 +66,7 @@ class BuildFile(object):
     raise NotImplementedError
 
 
-class GniFile(BuildFile):
+class GypiFile(BuildFile):
 
   def _ProcessMatch(self, match):
     min_index = match.start(2)
@@ -77,14 +77,14 @@ class GniFile(BuildFile):
 
   def _TokenRegex(self):
     # regexp to match the following:
-    #   file_group_name = [
+    #   'file_group_name': [
     #     'path/to/one/file.extension',
     #     'another/file.ex',
     #   ]
     # In the match,
     # group 1 is : 'file_group_name'
     # group 2 is : """  'path/to/one/file.extension',\n  'another/file.ex',\n"""
-    regexp_str = r"(%s) = \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
+    regexp_str = r"'(%s)': \[\n(.+?) +\],?\n" % "|".join(self._file_groups)
     return re.compile(regexp_str, re.MULTILINE | re.DOTALL)
 
   def _GetReplacementListAsString(self, existing_list_as_string, filelist):
@@ -113,11 +113,11 @@ def _UpdateBuildFile(filename, build_file_class):
     build_file.Write(f)
 
 
-def UpdateGni():
+def UpdateGypi():
   tvp = tracing_project.TracingProject()
   _UpdateBuildFile(
-      os.path.join(tvp.tracing_root_path, 'trace_viewer.gni'), GniFile)
+      os.path.join(tvp.tracing_root_path, 'trace_viewer.gypi'), GypiFile)
 
 
 def Update():
-  UpdateGni()
+  UpdateGypi()

@@ -31,7 +31,7 @@ Quick descriptions of the scripts in tracing/bin/:
  * `symbolize_trace`: Modifies trace JSON to symbolize symbols using a Chromium
    Debug build output directory.
  * `trace2html`: Vulcanizes trace data from a JSON file to an HTML file.
- * `update_gni`: Updates `trace_viewer.gni`.
+ * `update_gypi`: Updates `trace_viewer.gypi`.
  * `validate_all_diagnostics`: Checks that all Diagnostic classes in
    `tracing/tracing/value/diagnostics/` are registered correctly.
  * `validate_all_metrics`: Checks that all metric functions in
