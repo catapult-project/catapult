@@ -144,6 +144,12 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('-v', '--verbose', action='count', default=0,
                               help=('Prints more stuff (can specify multiple '
                                     'times for more output).'))
+            self.add_argument('-r', '--repeat', default=1, type=int,
+                              help='The number of times to repeat running each '
+                                    'test. Note that if the tests are A, B, C '
+                                    'and repeat is 2, the execution order would'
+                                    ' be A B C [possible retries] A B C '
+                                    '[possible retries].')
             self.add_argument('--passthrough', action='store_true',
                               default=False,
                               help='Prints all output while running.')

@@ -250,10 +250,27 @@ class TestCli(test_case.MainTestCase):
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure', out)
 
+    def test_pass_repeat(self):
+        self.check(
+            ['--repeat', '2'], files=PASS_TEST_FILES, ret=0, err='',
+            out=d("""\
+                  [1/2] pass_test.PassingTest.test_pass passed
+                  [2/2] pass_test.PassingTest.test_pass passed
+                  1 test passed, 0 skipped, 0 failures.
+                  """))
+
     def test_fail(self):
         _, out, _, _ = self.check([], files=FAIL_TEST_FILES, ret=1, err='')
         self.assertIn('fail_test.FailingTest.test_fail failed unexpectedly',
                       out)
+
+    def test_fail_repeat(self):
+        _, out, _, _ = self.check(
+            ['--repeat', '2'], files=FAIL_TEST_FILES, ret=1, err='')
+        self.assertIn(
+            '[1/2] fail_test.FailingTest.test_fail failed unexpectedly', out)
+        self.assertIn(
+            '[2/2] fail_test.FailingTest.test_fail failed unexpectedly', out)
 
     def test_fail_then_pass(self):
         files = {'fail_then_pass_test.py': d("""\
@@ -278,6 +295,30 @@ class TestCli(test_case.MainTestCase):
             results['tests'][
                 'fail_then_pass_test']['FPTest']['test_count']['actual'],
             'FAIL PASS')
+
+    def test_fail_then_pass_repeat(self):
+        files = {'fail_then_pass_test.py': d("""\
+            import unittest
+            count = 0
+            class FPTest(unittest.TestCase):
+                def test_count(self):
+                    global count
+                    count += 1
+                    if count % 2 == 1:
+                        self.fail()
+            """)}
+        _, out, _, files = self.check(['--retry-limit', '3',
+                                       '--write-full-results-to',
+                                       'full_results.json',
+                                       '--repeat', '2'],
+                                      files=files, ret=0, err='')
+        results = json.loads(files['full_results.json'])
+        self.assertIn('Retrying failed tests (attempt #1 of 3)', out)
+        self.assertNotIn('Retrying failed tests (attempt #2 of 3)', out)
+        self.assertEqual(
+            results['tests'][
+                'fail_then_pass_test']['FPTest']['test_count']['actual'],
+            'FAIL PASS FAIL PASS')
 
     def test_fail_then_skip(self):
         files = {'fail_then_skip_test.py': d("""\
@@ -379,6 +420,21 @@ class TestCli(test_case.MainTestCase):
                        'quux.second_test.PassingTest.test_pass\n'
                        ))
         self.check(['-l', '--top-level-dirs', 'foo', '--top-level-dirs', 'baz'],
+                   files=files,
+                   ret=0, err='',
+                   out=(
+                       'bar.pass_test.PassingTest.test_pass\n'
+                       'quux.second_test.PassingTest.test_pass\n'
+                       ))
+
+    def test_list_with_repeat(self):
+        files = {
+            'foo/bar/__init__.py': '',
+            'foo/bar/pass_test.py': PASS_TEST_PY,
+            'baz/quux/__init__.py': '',
+            'baz/quux/second_test.py': PASS_TEST_PY,
+        }
+        self.check(['-l', 'foo/bar', 'baz/quux', '--repeat', '10'],
                    files=files,
                    ret=0, err='',
                    out=(

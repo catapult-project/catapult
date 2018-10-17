@@ -51,8 +51,6 @@ class RunTestsCommand(command_line.OptparseCommand):
     parser.add_option('--disable-cloud-storage-io', action='store_true',
                       default=False, help=('Disable cloud storage IO when '
                                            'tests are run in parallel.'))
-    parser.add_option('--repeat-count', type='int', default=1,
-                      help='Repeats each a provided number of times.')
     parser.add_option('--no-browser', action='store_true', default=False,
                       help='Don\'t require an actual browser to run the tests.')
     parser.add_option('-d', '--also-run-disabled-tests',
@@ -184,6 +182,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.top_level_dirs = args.top_level_dirs
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
+    runner.args.repeat = args.repeat
     runner.args.list_only = args.list_only
     runner.args.shard_index = args.shard_index
     runner.args.total_shards = args.total_shards

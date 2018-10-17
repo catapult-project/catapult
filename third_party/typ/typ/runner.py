@@ -83,6 +83,11 @@ class TestSet(object):
         self.isolated_tests = promote(isolated_tests)
         self.tests_to_skip = promote(tests_to_skip)
 
+    def copy(self):
+        return TestSet(
+            self.parallel_tests[:], self.isolated_tests[:],
+            self.tests_to_skip[:])
+
 
 class WinMultiprocessing(object):
     ignore = 'ignore'
@@ -176,7 +181,20 @@ class Runner(object):
         find_end = h.time()
 
         if not ret:
-            ret, full_results = self._run_tests(result_set, test_set)
+            self.stats.total = (len(test_set.parallel_tests) +
+                                len(test_set.isolated_tests) +
+                                len(test_set.tests_to_skip)) * self.args.repeat
+            all_tests = [ti.name for ti in
+            _sort_inputs(test_set.parallel_tests +
+                         test_set.isolated_tests +
+                         test_set.tests_to_skip)]
+            if self.args.list_only:
+                self.print_('\n'.join(all_tests))
+            else:
+                for _ in range(self.args.repeat):
+                    current_ret, full_results= self._run_tests(
+                        result_set, test_set.copy(), all_tests)
+                    ret = ret or current_ret
 
         if self.cov:  # pragma: no cover
             self.cov.stop()
@@ -451,17 +469,8 @@ class Runner(object):
             # the errors also get recorded so you can err out immediately.
             raise ImportError(loader.errors)
 
-    def _run_tests(self, result_set, test_set):
+    def _run_tests(self, result_set, test_set, all_tests):
         h = self.host
-
-        all_tests = [ti.name for ti in
-                     _sort_inputs(test_set.parallel_tests +
-                                  test_set.isolated_tests +
-                                  test_set.tests_to_skip)]
-
-        if self.args.list_only:
-            self.print_('\n'.join(all_tests))
-            return 0, None
 
         self._run_one_set(self.stats, result_set, test_set)
 
@@ -501,9 +510,6 @@ class Runner(object):
                 full_results)
 
     def _run_one_set(self, stats, result_set, test_set):
-        stats.total = (len(test_set.parallel_tests) +
-                       len(test_set.isolated_tests) +
-                       len(test_set.tests_to_skip))
         self._skip_tests(stats, result_set, test_set.tests_to_skip)
         self._run_list(stats, result_set,
                        test_set.parallel_tests, self.args.jobs)

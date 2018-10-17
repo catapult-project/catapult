@@ -304,6 +304,7 @@ def RunTests(args):
   runner.args.metadata = options.metadata
   runner.args.passthrough = options.passthrough
   runner.args.path = options.path
+  runner.args.repeat = options.repeat
   runner.args.retry_limit = options.retry_limit
   runner.args.test_results_server = options.test_results_server
   runner.args.test_type = options.test_type
