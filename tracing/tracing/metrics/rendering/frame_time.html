@@ -54,7 +54,13 @@ found in the LICENSE file.
  * ui_frame_times
  * ==============
  * The distribution of durations between consecutive UI compositor frame's
- * presentation times, during UI animations.
+ * presentation times, during UI animations. In ChromeOS, if Ash uses its own
+ * instance of ui::compositor, then frames submitted by that compositor will be
+ * used. Otherwise, frames submitted by the browser's ui::compositor will be
+ * used.
+ *
+ * TODO(crbug.com/896231): we may want to consider reporting frame_times for all
+ * ui::compositors separately, e.g. as ash_frame_times and browser_frame_times.
  *
  * ui_percentage_smooth
  * ====================
@@ -74,6 +80,9 @@ tr.exportTo('tr.metrics.rendering', function() {
   // In computing the number of janks, frame length differences that are at
   // least PAUSE_THRESHOLD vsyncs are considered pauses, not janks.
   const PAUSE_THRESHOLD = 20;
+
+  const ASH_ENVIRONMENT = 'ash';
+  const BROWSER_ENVIRONMENT = 'browser';
 
   function getDisplayCompositorPresentationEvents_(modelHelper) {
     if (!modelHelper || !modelHelper.browserProcess) return [];
@@ -101,8 +110,28 @@ tr.exportTo('tr.metrics.rendering', function() {
 
   function getUIPresentationEvents_(modelHelper) {
     if (!modelHelper || !modelHelper.browserProcess) return [];
-    return [...modelHelper.browserProcess.findTopmostSlicesNamed(
-        COMPOSITOR_FRAME_PRESENTED_EVENT)];
+
+    const legacyEvents = [];
+    const eventsByEnvironment = {};
+    eventsByEnvironment[ASH_ENVIRONMENT] = [];
+    eventsByEnvironment[BROWSER_ENVIRONMENT] = [];
+    for (const event of modelHelper.browserProcess.findTopmostSlicesNamed(
+        COMPOSITOR_FRAME_PRESENTED_EVENT)) {
+      if (!('environment' in event.args)) {
+        // For chrome versions before crrev.com/c/1282039.
+        legacyEvents.push(event);
+      } else {
+        eventsByEnvironment[event.args.environment].push(event);
+      }
+    }
+
+    if (eventsByEnvironment[ASH_ENVIRONMENT].length > 0) {
+      return eventsByEnvironment[ASH_ENVIRONMENT];
+    }
+    if (eventsByEnvironment[BROWSER_ENVIRONMENT].length > 0) {
+      return eventsByEnvironment[BROWSER_ENVIRONMENT];
+    }
+    return legacyEvents;
   }
 
   function addSurfaceFlingerHistograms_(
