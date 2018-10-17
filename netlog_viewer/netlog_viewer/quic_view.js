@@ -160,7 +160,6 @@ var QuicView = (function() {
         var tr = addNode(tbody, 'tr');
 
         addNodeWithText(tr, 'td', q.aliases ? q.aliases.join(' ') : '');
-        addNodeWithText(tr, 'td', !!q.secure);
         addNodeWithText(tr, 'td', q.version);
         addNodeWithText(tr, 'td', q.peer_address);
 
