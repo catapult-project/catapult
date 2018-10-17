@@ -25,7 +25,7 @@ architecture independent.
     from an HTTP localhost server:
     ```
     git clone https://chromium.googlesource.com/catapult
-    cd catapult/netlog_viewer
+    cd catapult/netlog_viewer/netlog_viewer
     python -m SimpleHTTPServer 8080
     ```
 
