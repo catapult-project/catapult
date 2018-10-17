@@ -137,6 +137,10 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event.title === 'V8.GCCompactor';
   }
 
+  function isMarkCompactorSummaryEvent(event) {
+    return event.title === 'V8.GCMarkCompactorSummary';
+  }
+
   function isIncrementalMarkingEvent(event) {
     return event.title.startsWith('V8.GCIncrementalMarking');
   }
@@ -451,6 +455,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isIncrementalMarkingEvent,
     isLatencyMarkCompactorEvent,
     isLowMemoryEvent,
+    isMarkCompactorSummaryEvent,
     isMemoryMarkCompactorEvent,
     isNotForcedMarkCompactorEvent,
     isNotForcedTopGarbageCollectionEvent,

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/metrics/v8/gc_metric.html">
 <link rel="import" href="/tracing/model/slice_group.html">
@@ -160,6 +161,21 @@ tr.b.unittest.testSuite(function() {
     const mmu = histograms.getHistogramNamed(
         'v8-gc-mark-compactor-mmu-100ms_window');
     assert.closeTo(0.3, mmu.min, 1e-3);
+  });
+
+  test('markCompactorSummary', function() {
+    const slices = [
+      {
+        title: 'V8.GCMarkCompactorSummary',
+        args: {'duration': 3.1},
+        start: 100, end: 100,
+        cpuStart: 100, cpuEnd: 100
+      },
+    ];
+    const histograms = run(slices);
+    const markCompactor = histograms.getHistogramNamed(
+        'v8-gc-mark-compactor');
+    assert.closeTo(3.1, markCompactor.sum, 1e-3);
   });
 });
 </script>

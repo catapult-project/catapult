@@ -29,6 +29,7 @@ tr.exportTo('tr.metrics.v8', function() {
     addPercentageInV8ExecuteOfTopEvents(histograms, model);
     addTotalPercentageInV8Execute(histograms, model);
     addMarkCompactorMutatorUtilization(histograms, model);
+    addTotalMarkCompactorTime(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -140,6 +141,29 @@ tr.exportTo('tr.metrics.v8', function() {
             cpuDuration.addSample(event.cpuDuration);
           });
           histograms.addHistogram(cpuDuration);
+        }
+    );
+  }
+
+  function isV8MarkCompactorSummary(event) {
+    return !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event) &&
+           tr.metrics.v8.utils.isMarkCompactorSummaryEvent(event);
+  }
+
+  /**
+   * Example output:
+   * - v8-gc-mark-compactor
+   */
+  function addTotalMarkCompactorTime(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isV8MarkCompactorSummary,
+        event => 'v8-gc-mark-compactor',
+        function(name, events) {
+          const duration = createNumericForTopEventTime(name);
+          for (const event of events) {
+            duration.addSample(event.args.duration);
+          }
+          histograms.addHistogram(duration);
         }
     );
   }
