@@ -84,7 +84,7 @@ def CheckCommon(file_name, listed_files):
         '\n\n'
         '  Note: only files actually used in about:tracing should\n'
         '  be listed in the build files. Try running \n'
-        '       tracing/bin/update_gypi\n'
+        '       tracing/bin/update_gni\n'
         '  to update the files automatically.')
 
   return error
