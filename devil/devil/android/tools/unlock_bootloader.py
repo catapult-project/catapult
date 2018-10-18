@@ -106,8 +106,10 @@ def unlock_bootloader(d):
         logging.info('Device %s already unlocked.', d)
       elif 'unlock is not allowed' in out:
         logging.error("Device %s is oem locked. Can't unlock bootloader.", d)
+        return 1
       else:
         logging.error('Device %s in unknown state: "%s"', d, out)
+        return 1
     break
 
   if leftover_pids:
