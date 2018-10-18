@@ -13,6 +13,7 @@ import collections
 import fnmatch
 import json
 import logging
+import math
 import os
 import posixpath
 import pprint
@@ -2824,7 +2825,7 @@ class DeviceUtils(object):
       return parallelizer.SyncParallelizer(devices)
 
   @classmethod
-  def HealthyDevices(cls, blacklist=None, device_arg='default', retry=True,
+  def HealthyDevices(cls, blacklist=None, device_arg='default', retries=1,
                      abis=None, **kwargs):
     """Returns a list of DeviceUtils instances.
 
@@ -2847,8 +2848,9 @@ class DeviceUtils(object):
               blacklisted.
           ['A', 'B', ...] -> Returns instances for the subset that is not
               blacklisted.
-      retry: If true, will attempt to restart adb server and query it again if
-          no devices are found.
+      retries: Number of times to restart adb server and query it again if no
+          devices are found on the previous attempts, with exponential backoffs
+          up to 60s between each retry.
       abis: A list of ABIs for which the device needs to support at least one of
           (optional).
       A device serial, or a list of device serials (optional).
@@ -2910,15 +2912,20 @@ class DeviceUtils(object):
         raise device_errors.MultipleDevicesError(devices)
       return sorted(devices)
 
-    try:
-      return _get_devices()
-    except device_errors.NoDevicesError:
-      if not retry:
-        raise
-      logger.warning(
-          'No devices found. Will try again after restarting adb server.')
-      RestartServer()
-      return _get_devices()
+    for attempt in xrange(retries+1):
+      try:
+        return _get_devices()
+      except device_errors.NoDevicesError:
+        if attempt == retries:
+          logging.error('No devices found after exhausting all retries.')
+          raise
+        # math.pow returns floats, so cast to int for easier testing
+        sleep_s = min(int(math.pow(2, attempt + 1)), 60)
+        logger.warning(
+            'No devices found. Will try again after restarting adb server '
+            'and a short nap of %d s.', sleep_s)
+        time.sleep(sleep_s)
+        RestartServer()
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
