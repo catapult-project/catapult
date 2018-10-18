@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import argparse
+import json
 import os
 import sys
 
@@ -13,6 +14,7 @@ ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 CATAPULT_PATH = os.path.normpath(os.path.join(ROOT_PATH, '..', '..'))
 PY_UTILS_PATH = os.path.join(CATAPULT_PATH, 'common', 'py_utils')
 TRACING_PATH = os.path.join(CATAPULT_PATH, 'tracing')
+JOB_CONFIGS_PATH = os.path.join(ROOT_PATH, 'job_configs')
 
 sys.path.append(ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
@@ -40,11 +42,11 @@ def main():
       'job_ids', metavar='JOB_ID', nargs='+',
       help='id of a pinpoint job for which to get results, one or more ids'
            ' can be speficied')
-  # Subparser args for creating a new job.
-  subparser = subparsers.add_parser('new-job')
+  # Subparser args for starting a new job.
+  subparser = subparsers.add_parser('start-job')
+  subparser.add_argument('config')
   subparser.add_argument('--repository', default='chromium')
-  subparser.add_argument('--revision', required=True)
-  subparser.add_argument('--patch', required=True)
+  subparser.add_argument('--revision', default='HEAD')
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
@@ -52,17 +54,16 @@ def main():
 
   if args.action == 'get-csv':
     return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
-  elif args.action == 'new-job':
-    print api.pinpoint.NewJob(
-        name='Test job from command line',
-        configuration='android-go-perf',
-        target='performance_test_suite',
-        benchmark='system_health.memory_mobile',
-        extra_test_args='--story-tag-filter health_check',
+  elif args.action == 'start-job':
+    with open(os.path.join(JOB_CONFIGS_PATH, args.config + '.json')) as f:
+      options = json.load(f)
+
+    options.update(dict(
         repository=args.repository,
         start_git_hash=args.revision,
         end_git_hash=args.revision,
-        patch=args.patch)
+    ))
+    print api.pinpoint.NewJob(**options)
   else:
     raise NotImplementedError(args.action)
 

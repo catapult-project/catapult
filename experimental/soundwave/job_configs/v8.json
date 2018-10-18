@@ -1,0 +1,8 @@
+{
+  "name": "Try job for v8: enable Lite mode",
+  "target": "performance_test_suite",
+  "configuration": "android-go-perf",
+  "benchmark": "v8.browsing_mobile",
+  "extra_test_args": "--story-tag-filter emerging_market",
+  "patch": "https://chromium-review.googlesource.com/c/v8/v8/+/1278496"
+}
