@@ -18,6 +18,7 @@ sys.path.append(PY_UTILS_PATH)
 
 from common import utils
 from soundwave import commands
+from soundwave import studies
 
 
 DEFAULT_DATABASE_PATH = os.path.join(
@@ -60,6 +61,9 @@ def Main():
   group = subparser.add_mutually_exclusive_group(required=True)
   group.add_argument(
       '-b', '--benchmark', help='Fetch timeseries for this benchmark.')
+  group.add_argument(
+      '--study', choices=studies.NAMES,
+      help='Fetch timeseries needed for a specific study.')
   group.add_argument(
       '-i', '--input-file',
       help='Fetch timeseries for test paths listed in this file, one path '
