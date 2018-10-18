@@ -68,6 +68,9 @@ def Main():
       '-f', '--filters', action='append',
       help=('Only get data for timeseries whose path contains all the given '
             'substrings.'))
+  subparser.add_argument(
+      '--output-csv', metavar='FILENAME',
+      help='Additionally export the timeseries data as a csv file.')
 
   args = parser.parse_args()
 

@@ -59,7 +59,55 @@ class TestTimeSeries(unittest.TestCase):
     }
 
     timeseries = tables.timeseries.DataFrameFromJson(data).reset_index()
-    self.assertTrue(timeseries['test_case'].isnull().all())
+    self.assertTrue((timeseries['test_case'] == '').all())
+
+  def testGetTimeSeries(self):
+    test_path = (
+        'ChromiumPerf/android-nexus5/loading.mobile'
+        '/timeToFirstInteractive/PageSet/Google')
+    data = {
+        'test_path': test_path,
+        'improvement_direction': 1,
+        'timeseries': [
+            ['revision', 'value', 'timestamp', 'r_commit_pos', 'r_chromium'],
+            [547397, 2300.3, '2018-04-01T14:16:32.000', '547397', 'adb123'],
+            [547398, 2750.9, '2018-04-01T18:24:04.000', '547398', 'cde456'],
+            [547423, 2342.2, '2018-04-02T02:19:00.000', '547423', 'fab789'],
+        ]
+    }
+
+    timeseries_in = tables.timeseries.DataFrameFromJson(data)
+    with tables.DbSession(':memory:') as con:
+      pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries_in)
+      timeseries_out = tables.timeseries.GetTimeSeries(con, test_path)
+      # Both DataFrame's should be equal, except the one we get out of the db
+      # does not have an index defined.
+      timeseries_in = timeseries_in.reset_index()
+      self.assertTrue(timeseries_in.equals(timeseries_out))
+
+  def testGetTimeSeries_withSummaryMetric(self):
+    test_path = (
+        'ChromiumPerf/android-nexus5/loading.mobile/timeToFirstInteractive')
+    data = {
+        'test_path': test_path,
+        'improvement_direction': 1,
+        'timeseries': [
+            ['revision', 'value', 'timestamp', 'r_commit_pos', 'r_chromium'],
+            [547397, 2300.3, '2018-04-01T14:16:32.000', '547397', 'adb123'],
+            [547398, 2750.9, '2018-04-01T18:24:04.000', '547398', 'cde456'],
+            [547423, 2342.2, '2018-04-02T02:19:00.000', '547423', 'fab789'],
+        ]
+    }
+
+    timeseries_in = tables.timeseries.DataFrameFromJson(data)
+    with tables.DbSession(':memory:') as con:
+      pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries_in)
+      timeseries_out = tables.timeseries.GetTimeSeries(con, test_path)
+      print timeseries_out
+      # Both DataFrame's should be equal, except the one we get out of the db
+      # does not have an index defined.
+      timeseries_in = timeseries_in.reset_index()
+      self.assertTrue(timeseries_in.equals(timeseries_out))
 
   def testGetMostRecentPoint_success(self):
     test_path = (
