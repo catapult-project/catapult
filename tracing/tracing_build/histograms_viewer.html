@@ -51,18 +51,19 @@ ga('set', 'historyImportTask', null);
   const domContentLoadedMark = tr.b.Timing.mark('results2', 'domContentLoaded');
   let importer = new tr.v.HistogramImporter(document.getElementById('loading'));
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener('DOMContentLoaded', async() => {
     domContentLoadedMark.end();
 
-    const jsonEls = document.getElementsByTagName('histogram-json');
+    const jsonData = document.getElementById('histogram-json-data');
     const view = document.getElementById('histograms');
     const locus = new tr.v.ui.HistogramSetLocation();
 
-    await importer.importHistograms(jsonEls, view);
+    const data = jsonData.childNodes[0].textContent;
+    await importer.importHistograms(data, view);
     await locus.build(view.viewState);
 
     // Free the objects and DOM referenced by the importer.
-    document.body.removeChild(jsonEls[0].parentNode);
+    document.body.removeChild(jsonData);
     importer = undefined;
   });
 })();

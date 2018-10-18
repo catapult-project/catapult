@@ -10,43 +10,90 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tr.b.unittest.testSuite(function() {
-  test('importHistograms', function() {
-    const loadingEl = document.createElement('div');
-    this.addHTMLOutput(loadingEl);
-    const importer = new tr.v.HistogramImporter(loadingEl);
+tr.b.unittest.testSuite(() => {
+  const kHtmlString = '<script>throw new Error("oops");<' + '/script>';
 
-    const hist = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
-    hist.addSample(42);
-    hist.customizeSummaryOptions({
+  function createHistogram(id) {
+    const histogram = new tr.v.Histogram('foo' + id, tr.b.Unit.byName.count);
+    histogram.addSample(id);
+    histogram.customizeSummaryOptions({
       count: false,
       max: false,
       min: false,
       std: false,
       sum: false,
     });
-    const htmlString = '<script>throw new Error("oops");<' + '/script>';
-    hist.diagnostics.set('html', new tr.v.d.GenericSet([
-      // RenderHistogramsViewer escapes html characters.
-      htmlString.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
-    ]));
-    const jsonEl = document.createElement('div');
-    jsonEl.innerHTML = JSON.stringify(hist.asDict());
-    jsonEl.style.display = 'none';
-    this.addHTMLOutput(jsonEl);
+    histogram.diagnostics.set('html', new tr.v.d.GenericSet([kHtmlString]));
+    return histogram;
+  }
+
+  test('importZeroHistograms', async function() {
+    const loadingEl = document.createElement('div');
+    this.addHTMLOutput(loadingEl);
+    const importer = new tr.v.HistogramImporter(loadingEl);
+    const histogramData = '\n';
 
     const view = document.createElement('tr-v-ui-histogram-set-view');
     view.style.display = 'none';
     this.addHTMLOutput(view);
 
-    return importer.importHistograms([jsonEl], view).then(() => {
-      assert.strictEqual('none', loadingEl.style.display);
-      assert.strictEqual('block', view.style.display);
-      assert.lengthOf(view.histograms, 1);
-      const hist2 = view.histograms.getHistogramNamed('foo');
-      assert.strictEqual(htmlString, tr.b.getOnlyElement(
-          hist2.diagnostics.get('html')));
-    });
+    await importer.importHistograms(histogramData, view);
+
+    assert.strictEqual('block', view.style.display);
+    assert.strictEqual(undefined, view.histograms);
+  });
+
+  test('importOneHistogram', async function() {
+    const loadingEl = document.createElement('div');
+    this.addHTMLOutput(loadingEl);
+    const importer = new tr.v.HistogramImporter(loadingEl);
+
+    const hist = createHistogram(42);
+    const histogramData = '\n' + JSON.stringify(hist.asDict()) + '\n';
+
+    const view = document.createElement('tr-v-ui-histogram-set-view');
+    view.style.display = 'none';
+    this.addHTMLOutput(view);
+
+    await importer.importHistograms(histogramData, view);
+
+    assert.strictEqual('none', loadingEl.style.display);
+    assert.strictEqual('block', view.style.display);
+    assert.lengthOf(view.histograms, 1);
+    const histogram = view.histograms.getHistogramNamed('foo42');
+    assert.strictEqual(kHtmlString, tr.b.getOnlyElement(
+        histogram.diagnostics.get('html')));
+    assert.deepEqual([42], histogram.sampleValues);
+  });
+
+  test('importNHistogram', async function() {
+    const loadingEl = document.createElement('div');
+    this.addHTMLOutput(loadingEl);
+    const importer = new tr.v.HistogramImporter(loadingEl);
+
+    const kNofHistograms = 10;
+    let histogramData = '\n';
+    for (let i = 0; i < kNofHistograms; i++) {
+      const histogram = createHistogram(1000 + i);
+      histogramData += JSON.stringify(histogram.asDict()) + '\n';
+    }
+
+    const view = document.createElement('tr-v-ui-histogram-set-view');
+    view.style.display = 'none';
+    this.addHTMLOutput(view);
+
+    await importer.importHistograms(histogramData, view);
+
+    assert.strictEqual('none', loadingEl.style.display);
+    assert.strictEqual('block', view.style.display);
+    assert.lengthOf(view.histograms, kNofHistograms);
+    for (let i = 0; i < kNofHistograms; i++) {
+      const id = 1000 + i;
+      const histogram = view.histograms.getHistogramNamed('foo' + id);
+      assert.strictEqual(kHtmlString, tr.b.getOnlyElement(
+          histogram.diagnostics.get('html')));
+      assert.deepEqual([id], histogram.sampleValues);
+    }
   });
 });
 </script>

@@ -19,13 +19,13 @@ tr.exportTo('tr.v', function() {
     constructor(loadingEl) {
       this.loadingEl_ = loadingEl;
       this.histograms_ = undefined;
-      this.jsonEls_ = [];
-      this.jsonDivIndex_ = 0;
+      this.string_ = '';
+      this.dataOffset_ = 0;
       this.view_ = undefined;
       this.fmpMark_ = tr.b.Timing.mark('HistogramImporter', 'fmp');
 
       this.loadingEl_.textContent = 'Parsing HTML...';
-      // The json divs appear after this script tag in results.html, so the
+      // The json comment appears after this script tag in results.html, so the
       // browser will parse them into DOM now.
     }
 
@@ -44,29 +44,31 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Each jsonEl should contain a Histogram JSON in its innerHTML.
-     * The |view| should have display: none so that it doesn't obnoxiously
+     * The string contains a list of histograms of the following form:
+     *  JSON\n
+     *  JSON\n
+     *  ...
+     * The |view| should have 'display:none' so that it doesn't obnoxiously
      * display "zero Histograms" while they are being imported.
      *
-     * @param {!Array.<!Element>} jsonEls
+     * @param {!String} string
      * @param {!Element} view A histogram-set-view.
      * @return {Promise} resolves when |view| is displayed.
      */
-    async importHistograms(jsonEls, view) {
+    async importHistograms(string, view) {
       this.histograms_ = new tr.v.HistogramSet();
-      this.jsonEls_ = jsonEls;
+      this.string_ = string;
       this.view_ = view;
-      tr.b.Timing.instant(
-          'HistogramImporter', 'jsonCount', this.jsonEls_.length);
+      tr.b.Timing.instant('HistogramImporter', 'string', this.string_.length);
 
-      if (this.jsonEls_.length > 0) {
-        await this.update_(`Loading Histogram 0 of ${this.jsonEls_.length}`);
+      if (this.string_.length > 0) {
+        await this.update_('Loading Histogram 0');
         const loadMark = tr.b.Timing.mark(
             'HistogramImporter', 'loadHistograms');
         await this.loadSomeHistograms_();
         loadMark.end();
         tr.b.Timing.instant('HistogramImporter', 'nsPerJson',
-            parseInt(1e3 * loadMark.durationMs / this.jsonEls_.length));
+            parseInt(1e3 * loadMark.durationMs / this.histograms_.length));
       }
 
       await this.update_('Resolving Histogram relationships...');
@@ -84,22 +86,25 @@ tr.exportTo('tr.v', function() {
       // frustrated, but also don't call requestAnimationFrame faster than every
       // 16ms, so that the browser doesn't have to wait for the next vsync.
       // Powerful computers can load several hundred Histograms in 32ms.
-      // Also don't call new Date() more often than necessary.
-      const start = new Date();
-      let stopIndex;
+      // Also don't call performance.now() more often than necessary.
+      const startTime = performance.now();
       do {
-        stopIndex = Math.min(
-            this.jsonDivIndex_ + 100, this.jsonEls_.length);
-        for (; this.jsonDivIndex_ < stopIndex; ++this.jsonDivIndex_) {
-          const dict = JSON.parse(this.jsonEls_[this.jsonDivIndex_].innerText);
-          this.histograms_.importDicts([dict]);
+        this.dataOffset_ = this.string_.indexOf('\n', this.dataOffset_);
+        if (this.dataOffset_ < 0) return;
+        // Skip over newline character.
+        this.dataOffset_++;
+        for (let i = 0; i < 100; i++) {
+          const endIndex = this.string_.indexOf('\n', this.dataOffset_);
+          if (endIndex < 0) return;
+          const json = this.string_.substring(this.dataOffset_, endIndex);
+          const dict = JSON.parse(json);
+          this.histograms_.importDict(dict);
+          // Continue after last found newline character.
+          this.dataOffset_ = endIndex + 1;
         }
-      } while (new Date() - start < 50);
+      } while (performance.now() - startTime < 50);
 
-      if (this.jsonDivIndex_ === this.jsonEls_.length) return;
-
-      await this.update_(
-          `Loading Histogram ${stopIndex} of ${this.jsonEls_.length}`);
+      await this.update_(`Loading Histogram ${this.histograms_.length}`);
       await this.loadSomeHistograms_();
     }
 
