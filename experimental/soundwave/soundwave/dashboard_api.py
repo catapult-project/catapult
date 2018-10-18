@@ -3,33 +3,20 @@
 # found in the LICENSE file.
 
 import datetime
-import json
 import urllib
 
 from services import chrome_perf_auth
+from services import dashboard_service
 from services import request
 
 
 class PerfDashboardCommunicator(object):
-  REQUEST_URL = 'https://chromeperf.appspot.com/api/'
+  # TODO(crbug.com/890691): Remove this class and merge functionality with
+  # dashboard_service.Api instead.
 
   def __init__(self, flags):
-    self._credentials = chrome_perf_auth.GetUserCredentials(flags)
-
-  def _MakeApiRequest(self, endpoint, params=None):
-    """Used to communicate with perf dashboard.
-
-    Args:
-      endpoint: String with the API endpoint to which the request is made.
-      params: A dictionary with parameters for the request.
-      retries: Number of times to retry in case of server errors.
-
-    Returns:
-      Contents of the response from the dashboard.
-    """
-    return json.loads(request.Request(
-        self.REQUEST_URL + endpoint, params=params, method='POST',
-        credentials=self._credentials))
+    credentials = chrome_perf_auth.GetUserCredentials(flags)
+    self.dashboard = dashboard_service.Api(credentials)
 
   def ListTestPaths(self, test_suite, sheriff):
     """Lists test paths for the given test_suite.
@@ -42,8 +29,8 @@ class PerfDashboardCommunicator(object):
     Returns:
       A list of test paths. Ex. ['TestPath1', 'TestPath2']
     """
-    return self._MakeApiRequest(
-        'list_timeseries/%s' % test_suite, {'sheriff': sheriff})
+    return self.dashboard.Request(
+        '/list_timeseries/%s' % test_suite, params={'sheriff': sheriff})
 
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.
@@ -68,8 +55,8 @@ class PerfDashboardCommunicator(object):
       or None if the test_path is not found.
     """
     try:
-      return self._MakeApiRequest(
-          'timeseries/%s' % urllib.quote(test_path), {'num_days': days})
+      return self.dashboard.Request(
+          '/timeseries/%s' % urllib.quote(test_path), params={'num_days': days})
     except request.ClientError as exc:
       if 'Invalid test_path' in exc.json['error']:
         return None
@@ -81,7 +68,7 @@ class PerfDashboardCommunicator(object):
     if not hasattr(bug_ids, '__iter__'):
       bug_ids = [bug_ids]
     for bug_id in bug_ids:
-      yield self._MakeApiRequest('bugs/%d' % bug_id)
+      yield self.dashboard.Request('/bugs/%d' % bug_id)
 
   def IterAlertData(self, test_suite, sheriff, days=30):
     """Returns alerts for the given test_suite.
@@ -104,7 +91,7 @@ class PerfDashboardCommunicator(object):
     if sheriff != 'all':
       params['sheriff'] = sheriff
     while True:
-      response = self._MakeApiRequest('alerts', params)
+      response = self.dashboard.Request('/alerts', params=params)
       yield response
       if 'next_cursor' in response:
         params['cursor'] = response['next_cursor']
