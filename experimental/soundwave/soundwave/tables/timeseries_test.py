@@ -5,6 +5,7 @@
 import datetime
 import unittest
 
+from soundwave import pandas_sqlite
 from soundwave import tables
 
 
@@ -59,6 +60,36 @@ class TestTimeSeries(unittest.TestCase):
 
     timeseries = tables.timeseries.DataFrameFromJson(data).reset_index()
     self.assertTrue(timeseries['test_case'].isnull().all())
+
+  def testGetMostRecentPoint_success(self):
+    test_path = (
+        'ChromiumPerf/android-nexus5/loading.mobile'
+        '/timeToFirstInteractive/PageSet/Google')
+    data = {
+        'test_path': test_path,
+        'improvement_direction': 1,
+        'timeseries': [
+            ['revision', 'value', 'timestamp', 'r_commit_pos', 'r_chromium'],
+            [547397, 2300.3, '2018-04-01T14:16:32.000', '547397', 'adb123'],
+            [547398, 2750.9, '2018-04-01T18:24:04.000', '547398', 'cde456'],
+            [547423, 2342.2, '2018-04-02T02:19:00.000', '547423', 'fab789'],
+        ]
+    }
+
+    timeseries = tables.timeseries.DataFrameFromJson(data)
+    with tables.DbSession(':memory:') as con:
+      pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries)
+      point = tables.timeseries.GetMostRecentPoint(con, test_path)
+      self.assertEqual(point['point_id'], 547423)
+
+  def testGetMostRecentPoint_empty(self):
+    test_path = (
+        'ChromiumPerf/android-nexus5/loading.mobile'
+        '/timeToFirstInteractive/PageSet/Google')
+
+    with tables.DbSession(':memory:') as con:
+      point = tables.timeseries.GetMostRecentPoint(con, test_path)
+      self.assertIsNone(point)
 
 
 if __name__ == '__main__':

@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import contextlib
 import pandas  # pylint: disable=import-error
 import sqlite3
 
@@ -23,31 +22,9 @@ def _FetchBugsWorker(args):
   worker_pool.Process = Process
 
 
-@contextlib.contextmanager
-def _ApiAndDbSession(args):
-  """Context manage a session with API and DB connections.
-
-  Ensures API has necessary credentials and DB tables have been initialized.
-  """
-  api = dashboard_api.PerfDashboardCommunicator(args)
-  con = sqlite3.connect(args.database_file)
-
-  # Tell sqlite to use a write-ahead log, which drastically increases its
-  # concurrency capabilities. This helps prevent 'database is locked' exceptions
-  # when we have many workers writing to a single database. This mode is sticky,
-  # so we only need to set it once and future connections will automatically
-  # use the log. More details are available at https://www.sqlite.org/wal.html.
-  con.execute('PRAGMA journal_mode=WAL')
-
-  try:
-    tables.CreateIfNeeded(con)
-    yield api, con
-  finally:
-    con.close()
-
-
 def FetchAlertsData(args):
-  with _ApiAndDbSession(args) as (api, con):
+  api = dashboard_api.PerfDashboardCommunicator(args)
+  with tables.DbSession(args.database_file) as con:
     # Get alerts.
     num_alerts = 0
     bug_ids = set()
@@ -119,7 +96,8 @@ def FetchTimeseriesData(args):
   def _MatchesAllFilters(test_path):
     return all(f in test_path for f in args.filters)
 
-  with _ApiAndDbSession(args) as (api, con):
+  api = dashboard_api.PerfDashboardCommunicator(args)
+  with tables.DbSession(args.database_file) as con:
     # Get test_paths.
     if args.benchmark is not None:
       api = dashboard_api.PerfDashboardCommunicator(args)
