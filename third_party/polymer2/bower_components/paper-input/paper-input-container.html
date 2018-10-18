@@ -104,7 +104,6 @@ Custom property | Description | Default
 `--paper-input-container-input-invalid` | Mixin applied to the input when invalid | `{}`
 `--paper-input-container-input-webkit-spinner` | Mixin applied to the webkit spinner | `{}`
 `--paper-input-container-input-webkit-clear` | Mixin applied to the webkit clear button | `{}`
-`--paper-input-container-input-webkit-calendar-picker-indicator` | Mixin applied to the webkit calendar picker indicator | `{}`
 `--paper-input-container-ms-clear` | Mixin applied to the Internet Explorer clear button | `{}`
 `--paper-input-container-underline` | Mixin applied to the underline | `{}`
 `--paper-input-container-underline-focus` | Mixin applied to the underline when the input is focused | `{}`
@@ -116,36 +115,30 @@ This element is `display:block` by default, but you can set the `inline` attribu
 `display:inline-block`.
 -->
 
-<custom-style>
-  <style is="custom-style">
-    html {
-      --paper-input-container-shared-input-style: {
-        position: relative; /* to make a stacking context */
-        outline: none;
-        box-shadow: none;
-        padding: 0;
-        margin: 0;
-        width: 100%;
-        max-width: 100%;
-        background: transparent;
-        border: none;
-        color: var(--paper-input-container-input-color, var(--primary-text-color));
-        -webkit-appearance: none;
-        text-align: inherit;
-        vertical-align: bottom;
-
-        @apply --paper-font-subhead;
-      };
-    }
-  </style>
-</custom-style>
-
 <dom-module id="paper-input-container">
   <template>
     <style>
       :host {
         display: block;
         padding: 8px 0;
+
+        --paper-input-container-shared-input-style: {
+          position: relative; /* to make a stacking context */
+          outline: none;
+          box-shadow: none;
+          padding: 0;
+          width: 100%;
+          max-width: 100%;
+          background: transparent;
+          border: none;
+          color: var(--paper-input-container-input-color, var(--primary-text-color));
+          -webkit-appearance: none;
+          text-align: inherit;
+          vertical-align: bottom;
+
+          @apply --paper-font-subhead;
+        };
+
         @apply --paper-input-container;
       }
 
@@ -290,15 +283,15 @@ This element is `display:block` by default, but you can set the `inline` attribu
         visibility: hidden;
       }
 
+      .input-content ::slotted(iron-input) {
+        @apply --paper-input-container-shared-input-style;
+      }
+
       .input-content ::slotted(input),
-      .input-content ::slotted(iron-input),
       .input-content ::slotted(textarea),
       .input-content ::slotted(iron-autogrow-textarea),
       .input-content ::slotted(.paper-input-input) {
         @apply --paper-input-container-shared-input-style;
-        /* The apply shim doesn't apply the nested color custom property,
-          so we have to re-apply it here. */
-        color: var(--paper-input-container-input-color, var(--primary-text-color));
         @apply --paper-input-container-input;
       }
 
@@ -308,7 +301,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
 
       .input-content.focused ::slotted(input),
-      .input-content.focused ::slotted(iron-input),
       .input-content.focused ::slotted(textarea),
       .input-content.focused ::slotted(iron-autogrow-textarea),
       .input-content.focused ::slotted(.paper-input-input) {
@@ -316,7 +308,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
 
       .input-content.is-invalid ::slotted(input),
-      .input-content.is-invalid ::slotted(iron-input),
       .input-content.is-invalid ::slotted(textarea),
       .input-content.is-invalid ::slotted(iron-autogrow-textarea),
       .input-content.is-invalid ::slotted(.paper-input-input) {
@@ -510,12 +501,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
     },
 
     ready: function() {
-      // Paper-input treats a value of undefined differently at startup than
-      // the rest of the time (specifically: it does not validate it at startup, but
-      // it does after that. We need to track whether the first time we encounter
-      // the value is basically this first time, so that we can validate it
-      // correctly the rest of the time. See https://github.com/PolymerElements/paper-input/issues/605
-      this.__isFirstValueUpdate = true;
       if (!this._addons) {
         this._addons = [];
       }
@@ -538,7 +523,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
     },
 
-    /** @private */
     _onAddonAttached: function(event) {
       if (!this._addons) {
         this._addons = [];
@@ -552,41 +536,37 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
     },
 
-    /** @private */
     _onFocus: function() {
       this._setFocused(true);
     },
 
-    /** @private */
     _onBlur: function() {
       this._setFocused(false);
       this._handleValueAndAutoValidate(this._inputElement);
     },
 
-    /** @private */
     _onInput: function(event) {
       this._handleValueAndAutoValidate(event.target);
     },
 
-    /** @private */
     _onValueChanged: function(event) {
       var input = event.target;
 
-      // Paper-input treats a value of undefined differently at startup than
-      // the rest of the time (specifically: it does not validate it at startup, but
-      // it does after that. If this is in fact the bootup case, ignore validation,
-      // just this once.
-      if (this.__isFirstValueUpdate) {
-        this.__isFirstValueUpdate = false;
-        if (input.value === undefined) {
-          return;
-        }
+      // Problem: if the input is required but has no text entered, we should
+      // only validate it on blur (so that an empty form doesn't come up red
+      // immediately; however, in this handler, we don't know whether this is
+      // the booting up value or a value in the future. I am assuming that the
+      // case  we care about manifests itself when the value is undefined.
+      // If this causes future problems, we need to do something like track whether
+      // the iron-input-ready event has fired, and this handler came before that.
+
+      if (input.value === undefined) {
+        return;
       }
 
       this._handleValueAndAutoValidate(event.target);
     },
 
-    /** @private */
     _handleValue: function(inputElement) {
       var value = this._inputElementValue;
 
@@ -604,7 +584,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       });
     },
 
-    /** @private */
     _handleValueAndAutoValidate: function(inputElement) {
       if (this.autoValidate && inputElement) {
         var valid;
@@ -621,12 +600,10 @@ This element is `display:block` by default, but you can set the `inline` attribu
       this._handleValue(inputElement);
     },
 
-    /** @private */
     _onIronInputValidate: function(event) {
       this.invalid = this._inputElement.invalid;
     },
 
-    /** @private */
     _invalidChanged: function() {
       if (this._addons) {
         this.updateAddons({invalid: this.invalid});
@@ -643,7 +620,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
     },
 
-    /** @private */
     _computeInputContentClass: function(noLabelFloat, alwaysFloatLabel, focused, invalid, _inputHasContent) {
       var cls = 'input-content';
       if (!noLabelFloat) {
@@ -683,7 +659,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       return cls;
     },
 
-    /** @private */
     _computeUnderlineClass: function(focused, invalid) {
       var cls = 'underline';
       if (invalid) {
@@ -694,7 +669,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       return cls;
     },
 
-    /** @private */
     _computeAddOnContentClass: function(focused, invalid) {
       var cls = 'add-on-content';
       if (invalid) {

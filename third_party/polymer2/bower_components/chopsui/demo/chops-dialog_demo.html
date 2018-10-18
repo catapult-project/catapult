@@ -1,0 +1,51 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-button.html">
+<link rel="import" href="../chops-dialog.html">
+
+<demo-snippet>
+  <chops-button onclick="dialog.open()">Open dialog</chops-button>
+  <chops-button onclick="tabDialog.open()">Dialog with tabbable children</chops-button>
+  <template>
+    <chops-dialog id="dialog">
+      <h1>Test dialog</h1>
+      <p>
+        Here is a test dialog.
+      </p>
+    </chops-dialog>
+    <chops-dialog id="tabDialog">
+      <h1>Tabbable children dialog</h1>
+      <p>
+        To see how chops-dialog handles tabbing, try tabbing
+        through the elements in this dialog.
+      </p>
+      <chops-button>Button 1</chops-button>
+      <chops-button>Button 2</chops-button>
+      <a href="#">A link</a>
+    </chops-dialog>
+  </template>
+</demo-snippet>
+<demo-snippet>
+  <h2>Accessibility notes</h2>
+  <p>
+    Please consider <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_dialog_role">
+      best practices for accessible dialogs
+    </a> when using chops-dialog.
+  </p>
+  <p>
+    While chops-dialog sets dialogs to role="dialog"
+    by default, it is up to you to set the aria-labelledby and aria-describedby
+    attributes when using chops-dialog. chops-dialog doesn't set these
+    attributes by default because we try to avoid making assumptions about the
+    shape of the markup in your dialog.
+  </p>
+  <chops-button onclick="ariaDialog.open()">Open dialog with aria-labelledby and aria-describedby</chops-button>
+  <template>
+    <chops-dialog id="ariaDialog" aria-labelledby="dialogTitle" aria-describedby="dialogDescription">
+      <h1 id="dialogTitle">Test dialog</h1>
+      <p id="dialogDescription">
+        Here is a description for a dialog.
+      </p>
+    </chops-dialog>
+  </template>
+</demo-snippet>

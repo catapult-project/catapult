@@ -1,0 +1,162 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<dom-module id="chops-chip">
+  <template>
+    <style>
+      :host {
+        vertical-align: top;
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-size: 0.9em;
+        display: inline-flex;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        border-radius: 15px;
+        padding: 0.25em 4px;
+        margin: 0.25em 2px;
+        background-color: hsl(0, 0%, 92%);
+        color: hsl(0, 0%, 13%);
+        /* Make sure chips with and without images are the same height. */
+        line-height: var(--chops-chip-img-size);
+        --chops-chip-img-size: 18px;
+        --chops-chip-remove-button-size: 15px;
+      }
+      img {
+        border-radius: 50%;
+        height: var(--chops-chip-img-size);
+        width: var(--chops-chip-img-size);
+      }
+      a {
+        color: hsl(0, 0%, 13%);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      iron-icon {
+        cursor: pointer;
+        --iron-icon-height: var(--chops-chip-remove-button-size);
+        --iron-icon-width: var(--chops-chip-remove-button-size);
+      }
+      iron-icon:hover {
+        background-color: hsl(0, 0%, 78%);
+        border-radius: 50%;
+      }
+      .label {
+        padding: 0 4px;
+      }
+    </style>
+    <template is="dom-if" if="[[imageSrc]]">
+      <img
+        src$="[[imageSrc]]"
+        title$="[[_displayedLabel]]"
+        role="presentation"
+        aria-hidden="true"
+      />
+    </template>
+    <template is="dom-if" if="[[url]]">
+      <a href$="[[url]]" class="label">[[_displayedLabel]]</a>
+    </template>
+    <template is="dom-if" if="[[!url]]">
+      <span class="label">
+        [[_displayedLabel]]
+      </span>
+    </template>
+    <iron-icon
+      icon="clear"
+      hidden$="[[!removeable]]"
+      on-click="remove"
+    ></iron-icon>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+    * `<chops-chip>` is an element used for displaying a general data chip.
+    *
+    * See https://material.io/design/components/chips.html
+    *
+    *
+    * @customElement
+    * @polymer
+    * @demo /demo/chops-chip_demo.html
+    */
+    class ChopsChip extends Polymer.Element {
+      static get is() { return 'chops-chip'; }
+
+      static get properties() {
+        return {
+          /**
+           * The data value represented by the chip. We recommend making this
+           * value unique between chips in a set.
+           *
+           * @type String
+           */
+          value: {
+            type: String,
+          },
+          /**
+           * The text displayed for a given chip. Defaults to displaying value
+           * if no label is specified.
+           *
+           * @type String
+           */
+          label: {
+            type: String,
+          },
+          /**
+           * An optional url for a link to an image to be displayed on the chip.
+           *
+           * @type String
+           */
+          imageSrc: {
+            type: String,
+            value: '',
+          },
+          /**
+           * An optional value for the text in the chip to be linked to.
+           *
+           * @type String
+           */
+          url: {
+            type: String,
+            value: '',
+          },
+          /**
+           * If true, a 'remove' icon will be visible and fire 'remove' on click.
+           *
+           * @type Boolean
+           */
+          removeable: {
+            type: Boolean,
+            value: false,
+          },
+          _displayedLabel: {
+            type: String,
+            computed: '_computeDisplayedLabel(value, label)',
+          },
+        }
+      }
+
+      /** Fires 'remove-chip' event. */
+      remove(e) {
+        this.dispatchEvent(new CustomEvent('remove-chip', {
+          detail: {value: this.value}
+        }));
+      }
+
+      _computeDisplayedLabel(value, label) {
+        return label || value;
+      }
+
+      /**
+       * Fired when someone attempts to remove a chip.
+       *
+       * @event remove-chip
+       * @param {Object} value string containing the value for the chip.
+       */
+    }
+    customElements.define(ChopsChip.is, ChopsChip);
+  </script>
+  <dom-module>

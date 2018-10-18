@@ -1,0 +1,50 @@
+{
+  "name": "chopsui",
+  "description": "Common elements for ChOps Frontends",
+  "authors": [
+    "ChOps CRDX Team"
+  ],
+  "keywords": [
+    "chopsui",
+    "chops-ui"
+  ],
+  "main": "chops-user-dropdown.html",
+  "repository": {
+    "type": "git",
+    "url": "https://chromium.googlesource.com/infra/infra/crdx/chopsui.git"
+  },
+  "moduleType": [
+    "es6"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "README.md"
+  ],
+  "dependencies": {
+    "iron-behaviors": "^2.1.0",
+    "iron-dropdown": "PolymerElements/iron-dropdown#~2.0",
+    "iron-icons": "^2.0.0",
+    "moment": "2.17.1",
+    "moment-timezone": "^0.5.10",
+    "paper-item": "PolymerElements/paper-item#~2.0",
+    "paper-input": "PolymerElements/paper-input#~2.0",
+    "polymer": "Polymer/polymer#^2.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.1",
+    "marked": "^0.4.0"
+  },
+  "devDependencies": {
+    "iron-test-helpers": "PolymerElements/iron-test-helpers",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers",
+    "web-component-tester": "web-component-tester#6.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0",
+    "iron-behaviors": "1 - 2",
+    "marked": "^0.4.0"
+  }
+}

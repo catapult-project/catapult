@@ -41,7 +41,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="prefix-1">
     <template>
       <paper-input-container>
-        <div slot="prefix">$</div>
+        <div prefix>$</div>
         <label slot="label" id="l">label</label>
         <input is="iron-input" slot="input" id="i">
       </paper-input-container>
@@ -51,7 +51,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="prefix-2">
     <template>
       <paper-input-container>
-        <div slot="prefix">$</div>
+        <div prefix>$</div>
         <label slot="label" id="l">label</label>
         <iron-input slot="input" id="i">
           <input>
@@ -63,7 +63,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="prefix-has-value-1">
     <template>
       <paper-input-container>
-        <div slot="prefix">$</div>
+        <div prefix>$</div>
         <label slot="label" id="l">label</label>
         <input is="iron-input" slot="input" id="i" bind-value="foo">
       </paper-input-container>
@@ -73,7 +73,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="prefix-has-value-2">
     <template>
       <paper-input-container>
-        <div slot="prefix">$</div>
+        <div prefix>$</div>
         <label slot="label" id="l">label</label>
         <iron-input slot="input" id="i" bind-value="foo">
           <input>
@@ -152,7 +152,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="required-validate-1">
     <template>
       <paper-input-container>
-        <label id="l" slot="label">label</label>
+        <label id="l">label</label>
         <input is="iron-input" id="i" slot="input" required>
       </paper-input-container>
     </template>
@@ -160,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="required-validate-2">
     <template>
       <paper-input-container>
-        <label id="l" slot="label">label</label>
+        <label id="l">label</label>
         <iron-input id="i" slot="input">
           <input required>
         </iron-input>

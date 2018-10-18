@@ -1,0 +1,39 @@
+<script>
+  'use strict';
+
+  const bugIdRe = /[0-9]{3,}/;
+  const bugRe = /([^0-9]*)?[0-9]{3,}([^0-9]*)?/;
+  const bugProjectUrlRe = /(\/p\/[a-z0-9][-a-z0-9]*[a-z0-9]\/)/i;
+  const bugProjectPairRe = /([a-z0-9][-a-z0-9]*[a-z0-9]:)/i;
+  const bugProjectNameRe = /[a-z0-9][-a-z0-9]*[a-z0-9]/i;
+
+  /**
+   * A class mixin for use in parsing bug data.
+   *
+   * This class is based around parsing "bugString", a free form user bug input
+   * that is in the format of a bug id, bug url, or a bug in the form of
+   * 'projectName:bugId'.
+   */
+  // TODO(zhangtiff): Add support for Buganizer bugs here.
+  var ChopsBugMixin = function(superClass) {
+    return class extends superClass {
+      constructor() {
+        super();
+      }
+
+      _computeBugId(bugString) {
+        return bugRe.test(bugString) ? bugIdRe.exec(bugString) : 'Unknown';
+      }
+
+      _computeBugProject(bugString) {
+        let cleanBug = bugString.replace(/http(s?):/i, "");
+        let projectSection = bugProjectUrlRe.exec(cleanBug) || bugProjectPairRe.exec(cleanBug);
+        return projectSection ? bugProjectNameRe.exec(projectSection)[0] : 'chromium';
+      }
+
+      _computeInvalidBug(bugId) {
+        return bugId == 'Unknown';
+      }
+    };
+  }
+</script>

@@ -1,0 +1,60 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="chops-login">
+  <template>
+    <style>
+      :host {
+        --chops-login-link-color: inherit;
+      }
+      a, a:link {
+        color: var(--chops-login-link-color);
+        font-size: 0.75em;
+        text-decoration: none;
+      }
+    </style>
+    <template is="dom-if" if="[[!user]]">
+      <a href="[[loginUrl]]">LOGIN</a>
+    </template>
+    <template is="dom-if" if="[[user]]">
+      [[user]] (<a href="[[logoutUrl]]">LOGOUT</a>)
+    </template>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     * `chops-login` shows the login/logout links and current user, if provided.
+     *
+     * When the user is logged in provide, at least, the user and logoutURL properties.
+     * When there is no user logged in provide, at least the loginURL property.
+     * In either case, bother URLs may be provided but only one will be shown.
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo /demo/chops-login_demo.html
+     */
+    class ChopsLogin extends Polymer.Element {
+      static get is() { return 'chops-login'; }
+
+      static get properties() {
+        return {
+          /** The login URL must be provided if no user is given. */
+          loginUrl: {
+            type: String,
+          },
+          /** The logout URL must be provided if a user is given. */
+          logoutUrl: {
+            type: String,
+          },
+          /** The logged in user. If this isn't given the login URL will be shown.*/
+          user: {
+            type: String,
+            value: '',
+          },
+        }
+      }
+    }
+    customElements.define(ChopsLogin.is, ChopsLogin);
+  </script>
+<dom-module>

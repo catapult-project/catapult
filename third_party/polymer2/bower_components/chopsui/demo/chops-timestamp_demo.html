@@ -1,0 +1,29 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-timestamp.html">
+
+<demo-snippet>
+  <template>
+    <script>
+      // Set first chops-timestamp element properties.
+      let date = new Date();
+      let ts1 = document.getElementById('js-ts1');
+      ts1.date = date;
+
+      // Set second chops-timestamp element properties.
+      let date2 = date;
+      date2.setDate(date2.getDate() - 3);
+      let ts2 = document.getElementById('js-ts2')
+      ts2.date = date2;
+      ts2.dateFormat = 'D MMM YYYY';
+
+      // Set second chops-timestamp element properties.
+      document.getElementById('js-ts3').date = date;
+    </script>
+    <chops-timestamp id="js-ts1"></chops-timestamp>
+    <br>
+    <chops-timestamp id="js-ts2"></chops-timestamp>
+    <br>
+    <chops-timestamp id="js-ts3" short></chops-timestamp>
+  </template>
+</demo-snippet>

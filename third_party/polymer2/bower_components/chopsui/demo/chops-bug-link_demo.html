@@ -1,0 +1,12 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-bug-link.html">
+
+<demo-snippet>
+  <template>
+    <chops-bug-link bug="https://bugs.chromium.org/p/monorail/issues/detail?id=1347#c3"></chops-bug-link>
+    <chops-bug-link bug="crbug/761347" short description="Some long bug description" pri="0" status="Untriaged"></chops-bug-link>
+    <chops-bug-link bug="crbug.com/761347" pri="2" description="Some long bug description"></chops-bug-link>
+    <chops-bug-link bug="gerrit:1347" pri="2" description="problem in gerrit"></chops-bug-link>
+  </template>
+</demo-snippet>

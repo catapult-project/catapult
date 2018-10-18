@@ -1,0 +1,63 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="chops-bug-mixin.html">
+
+<dom-module id="chops-bug-input">
+  <template>
+    <paper-input
+      label="[[label]]"
+      value="{{value}}"
+      auto-validate
+      pattern="[[_bugPattern]]"
+      error-message="Please enter a bug id or bug url">
+    </paper-input>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     * `<chops-bug-input>` is an input element for crbug urls and bug ids.
+     *
+     * `<chops-bug-input>` does validation on the input and puts the final bug id in
+     * the bugId property. If the input is invalid, this will be expressed in
+     * the invalidBug property.
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo /demo/chops-bug-input_demo.html
+     */
+    class ChopsBugInput extends ChopsBugMixin(Polymer.Element) {
+      static get is() { return 'chops-bug-input'; }
+
+      static get properties() {
+        return {
+          /** A bug id, bug url, or a bug in the form of 'projectName:bugId' . Required. */
+          value: String,
+          /** The bug id. */
+          bugId: {
+            type: String,
+            computed: '_computeBugId(value)',
+          },
+          /** The bug's project name. */
+          bugProject: {
+            type: String,
+            computed: '_computeBugProject(value)',
+          },
+          /** The input label for the user inputting the bug with 'Bug # or URL' default. */
+          label: {
+            type: String,
+            value: 'Bug # or URL',
+          },
+          /** True if the given bug is an invalid id or url. */
+          invalidBug: {
+            type: Boolean,
+            notify: true,
+            computed: '_computeInvalidBug(bugId)',
+          },
+        }
+      }
+    }
+    customElements.define(ChopsBugInput.is, ChopsBugInput);
+  </script>
+<dom-module>

@@ -1,0 +1,19 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-login.html">
+
+Example of chops-login with no current user specified
+
+<demo-snippet>
+  <template>
+    <chops-login login-url="https://www.google.com/" logout-url="https://store.google.com/"></chops-login>
+  </template>
+</demo-snippet>
+
+Example of chops-login with a current user specified
+
+<demo-snippet>
+  <template>
+    <chops-login login-url="https://www.google.com/" logout-url="https://store.google.com/" user="jojwang@chromium.org"></chops-login>
+  </template>
+</demo-snippet>

@@ -1,0 +1,83 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-button.html">
+
+<demo-snippet>
+  <template>
+    <style>
+    .blue {
+      background-color: hsla(207, 90%, 54%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    .green {
+      background-color: hsla(122, 39%, 49%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    .red {
+      background-color: hsla(4, 90%, 58%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    </style>
+    <chops-button onclick="console.log('You clicked a basic button!');">Basic Button</chops-button>
+    <chops-button raised>Raised Button</chops-button>
+    <chops-button disabled>Disabled Button</chops-button>
+    <chops-button class="blue">Blue</chops-button>
+    <chops-button class="blue" raised>Raised Blue</chops-button>
+    <chops-button class="blue" disabled>Disabled Blue</chops-button>
+    <chops-button class="green" raised>Green</chops-button>
+    <chops-button class="red" raised>Warning!</chops-button>
+  </template>
+</demo-snippet>
+
+<h2>Styling tips for buttons</h2>
+<p>
+  Use color on your buttons to create hierarchy. Buttons with bright or
+  contrasting colors stand out more than plain buttons, so it's often a good
+  idea to reserve certain buttons colors for the primary actions your users use.
+  On the flipside, if you want to de-emphasize a button, you can make the
+  background color the same as your app's background color.
+</p>
+<demo-snippet>
+  <template>
+    <style>
+    .primary {
+      background-color: hsla(207, 90%, 54%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    .tertiary {
+      background: hsla(0, 0%, 100%, 1);
+    }
+    </style>
+    <chops-button class="primary">Primary Action</chops-button>
+    <chops-button class="secondary">Secondary Action 1</chops-button>
+    <chops-button class="secondary">Secondary Action 2</chops-button>
+    <chops-button class="tertiary">Tertiary Action</chops-button>
+  </template>
+</demo-snippet>
+
+<p>
+  Consider adding a subtle text-shadow to your buttons if you are using white
+  text against a color background. This can help make the text on your buttons
+  "pop" more.
+</p>
+<demo-snippet>
+  <template>
+    <style>
+    .blue {
+      background-color: hsla(207, 90%, 54%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    .green {
+      background-color: hsla(122, 39%, 49%, 1);
+      color: hsla(0, 0%, 100%, 1);
+    }
+    .text-shadow {
+      text-shadow: 1px 1px 3px hsla(0, 0%, 0%, 0.25);
+    }
+    </style>
+    <chops-button class="blue" raised>Raised Blue Button</chops-button>
+    <chops-button class="blue text-shadow" raised>Subtle Text Shadow</chops-button>
+    <chops-button class="green" raised>Raised Green Button</chops-button>
+    <chops-button class="green text-shadow" raised>Subtle Text Shadow</chops-button>
+  </template>
+</demo-snippet>

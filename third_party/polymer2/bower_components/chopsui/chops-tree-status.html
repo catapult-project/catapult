@@ -1,0 +1,143 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="chops-tree-status">
+  <template>
+    <style>
+      .closed {
+        background-color: hsl(0, 70%, 71%);
+      }
+      .maintenance {
+        background-color: hsl(300, 100%, 75%);
+      }
+      .open {
+        background-color: hsl(98, 67%, 62%);
+      }
+      .throttled {
+        background-color: hsl(59, 100%, 71%);
+      }
+      .tree-banner {
+        box-sizing: border-box;
+        color: #222;
+        margin: 0.5em auto;
+        padding: 0.5em 8px;
+        width: 100%;
+      }
+    </style>
+    <div class="error" hidden$="[[!_hasError]]">
+      Error fetching tree status from <a href$="[[statusUrl]]" target="_blank">[[statusUrl]]</a>
+    </div>
+    <div class$="treeStatus [[_status]]" hidden$="[[_hasError]]">
+      Tree status: [[_message]] by
+      <a href$="mailto:[[_email]]">[[_username]]</a>
+      on [[_time]]
+      (<a href$="[[statusUrl]]" target="_blank">More</a>)
+    </div>
+  </template>
+  <script>
+    'use strict';
+    /**
+     * `<chops-tree-status>` is an element used for displaying the tree status
+     * available via the statusUrl.
+     *
+     * Provide a statusUrl like 'https://infra-status.appspot.com/' or
+     * 'http://chromium-status.appspot.com/'
+     *
+     * @customElement
+     * @polymer
+     * @demo /demo/chops-tree-status_demo.html
+     */
+    class ChopsTreeStatus extends Polymer.Element {
+      static get is() { return 'chops-tree-status'; }
+
+      static get properties() {
+        return {
+          /**
+           * The url where the tree's status can be found.
+           *
+           * @type String
+           */
+          statusUrl: {
+            type: String,
+            value: '',
+          },
+          /**
+           * The error data json. This property should only be passed in if
+           * there was an error getting the status.
+           *
+           * @type Object{error}
+           */
+          statusErrorJson: {
+            type: Object,
+            value: () => { return {}; },
+          },
+          /**
+           * The tree status data json. This can be taken directly from the
+           * 'current?format=json' page and passed directly to <chops-tree-status>
+           *
+           * @type Object{username, generatl_status, date, message}
+           */
+          statusJson: {
+            type: Object,
+            value: () => {
+              return {message: 'Unknown', date: 'Unknown', general_state: '', username: ''};
+            },
+          },
+          _hasError: {
+            type: Boolean,
+            computed: '_computeHasError(statusErrorJson)',
+            value: false,
+          },
+
+          // Processed JSON data
+          _email: {
+            type: String,
+            computed: '_computeEmail(statusJson)',
+          },
+          _message: {
+            type: String,
+            computed: '_computeMessage(statusJson)',
+          },
+          _status: {
+            type: String,
+            computed: '_computeStatus(statusJson)',
+          },
+          _time: {
+            type: String,
+            computed: '_computeTime(statusJson)',
+          },
+          _username: {
+            type: String,
+            computed: '_computeUsername(_email)',
+          },
+        };
+      }
+
+      _computeHasError(errorJson) {
+        return !!errorJson && Object.keys(errorJson).length > 0;
+      }
+
+      _computeEmail(json) {
+        return json ? json.username : '';
+      }
+
+      _computeStatus(json) {
+        return json ? json.general_state : ''
+      }
+
+      _computeMessage(json) {
+        return json ? json.message : 'Unknown';
+      }
+
+      _computeTime(json) {
+        return json ? `${json.date.split(".")[0]} GMT`: 'Unknown';
+      }
+
+      _computeUsername(email) {
+        let cutoff = email.indexOf('@');
+        return (cutoff < 0) ? 'Unknown' : email.substring(0, cutoff);
+      }
+
+    }
+    customElements.define(ChopsTreeStatus.is, ChopsTreeStatus);
+  </script>
+</dom-module>

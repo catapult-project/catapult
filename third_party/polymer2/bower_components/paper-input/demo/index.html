@@ -22,7 +22,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
   <link rel="import" href="../../iron-icon/iron-icon.html">
   <link rel="import" href="../../iron-icons/iron-icons.html">
-  <link rel="import" href="../../iron-input/iron-input.html">
   <link rel="import" href="../../paper-icon-button/paper-icon-button.html">
   <link rel="import" href="../../paper-styles/color.html">
   <link rel="import" href="../paper-input-container.html">
@@ -140,86 +139,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <ssn-input class="paper-input-input" slot="input"></ssn-input>
           <paper-input-error slot="add-on">SSN invalid!</paper-input-error>
         </paper-input-container>
-      </template>
-    </demo-snippet>
-
-    <h3>You can use <code>paper-input-container</code> directly if you want more control
-      over the input (for example, if you want to use this in a native <code>form</code>, etc.)</h3>
-    <demo-snippet>
-      <template>
-        <custom-style>
-          <style is="custom-style">
-            input.my-input {
-              @apply --paper-input-container-shared-input-style;
-            }
-          </style>
-        </custom-style>
-        <paper-input-container>
-          <label slot="label">This is a label</label>
-          <iron-input slot="input">
-            <input class="my-input">
-          </iron-input>
-        </paper-input-container>
-      </template>
-    </demo-snippet>
-
-    <h3>Inputs can be completely restyled</h3>
-    <demo-snippet>
-      <template>
-        <custom-style>
-          <style is="custom-style">
-            .custom-parent {
-              font-size: 12px;
-            }
-            paper-input.custom:hover {
-              border: 1px solid #29B6F6;
-            }
-            paper-input.custom {
-              margin-bottom: 14px;
-              --primary-text-color: #01579B;
-              --paper-input-container-color: black;
-              --paper-input-container-focus-color: black;
-              --paper-input-container-invalid-color: black;
-              border: 1px solid #BDBDBD;
-              border-radius: 5px;
-
-              /* Reset some defaults */
-              --paper-input-container: { padding: 0;};
-              --paper-input-container-underline: { display: none; height: 0;};
-              --paper-input-container-underline-focus: { display: none; };
-
-              /* New custom styles */
-              --paper-input-container-input: {
-                box-sizing: border-box;
-                font-size: inherit;
-                padding: 4px;
-              };
-              --paper-input-container-input-focus: {
-                background: rgba(0, 0, 0, 0.1);
-              };
-              --paper-input-container-input-invalid: {
-                background: rgba(255, 0, 0, 0.3);
-              };
-              --paper-input-container-label: {
-                top: -8px;
-                left: 4px;
-                background: white;
-                padding: 2px;
-                font-weight: bold;
-              };
-              --paper-input-container-label-floating: {
-                width: auto;
-              };
-            }
-          </style>
-        </custom-style>
-        <div class="custom-parent">
-          <paper-input class="custom" label="Name" value="Batman" always-float-label>
-          </paper-input>
-          <paper-input class="custom" label="Address (letters only, will autovalidate)"
-              always-float-label auto-validate pattern="[a-zA-Z]*">
-          </paper-input>
-        </div>
       </template>
     </demo-snippet>
   </div>

@@ -1,0 +1,177 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="chops-user-dropdown.html">
+<link rel="import" href="chops-user-id.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../iron-behaviors/iron-control-state.html">
+
+<dom-module id="chops-user-input">
+  <template>
+    <style>
+    </style>
+    <paper-input id="input" label="[[label]]" value="{{inputValue}}" on-input="_inputChanged">
+      <template is="dom-repeat" items="[[selectedUsers]]">
+        <chops-user-id
+          slot="prefix"
+          user-id="[[item.userId]]"
+          email="[[item.email]]"
+          profile-link="[[item.profileLink]]"
+          full-name="[[item.fullName]]"
+          on-remove-user="_removeUser"
+          removeable>
+        </chops-user-id>
+      </template>
+    </paper-input>
+    <chops-user-dropdown id="dropdown" on-user-selected="_saveUser" suggestions="[[suggestions]]">
+    </chops-user-dropdown>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     *
+     * `<chops-user-input>` as an input element for choosing users with
+     * dropdown suggestions and autocomplete.
+     *
+     * It is up to the developer using this element to provide and update
+     * the users listed in the `suggestions` property. The properties,
+     * `inputValue` and `selectedUsers` are available for two-way binding
+     * for this purpose.
+     *
+     * customElement
+     * @polymer
+     * @demo /demo/chops-user-input_demo.html
+     *
+     */
+    class ChopsUserInput extends Polymer.mixinBehaviors(
+        [Polymer.IronControlState], Polymer.Element) {
+      static get is() { return 'chops-user-input'; }
+
+      static get properties() {
+        return {
+          /**
+           * The current input value.
+           *
+           * @type String
+           */
+          inputValue: {
+            type: String,
+            value: '',
+            notify: true,
+          },
+          /**
+           * The display label.
+           *
+           * @type String
+           */
+          label: {
+            type: String,
+            value: 'place holder',
+          },
+          /**
+           * List of suggestions displayed in the dropdown.
+           *
+           * @type Array<Object{userId, email(opt), profileLink(opt), fullName(opt)}>
+           */
+          suggestions: {
+            type: Array,
+            value: () => { return []; },
+            notify: true,
+          },
+          /**
+           * List of users selected, so far.
+           *
+           * @type Array<Object{userId, email(opt), profileLink(opt), fullName(opt)}>
+           */
+          selectedUsers: {
+            type: Array,
+            value: () => { return []; },
+            notify: true,
+          },
+          /**
+           * If true, multiple users can be selected.
+           *
+           * @type Boolean
+           */
+          multiple: {
+            type: Boolean,
+            value: false,
+          },
+          /**
+           * If true, additional users cannot be selected.
+           *
+           * @type Boolean
+           */
+          _inputDisabled: {
+            type: Boolean,
+            value: false,
+          },
+        }
+      }
+
+      static get observers() {
+        return [
+          '_updateInputDisabled(selectedUsers.length)'
+        ]
+      }
+
+      ready() {
+        super.ready();
+        this.addEventListener('focused-changed', e => this._toggleDropdown(e));
+      }
+
+      /** Updates inputDisabled. */
+      _updateInputDisabled(length) {
+        this._inputDisabled = Boolean(!this.multiple && length);
+      }
+
+      /** Toggles the visibility of the dropdown element. */
+      _toggleDropdown(e) {
+        if (!this._inputDisabled) {
+          if (!this.focused) {
+            this.$.dropdown.close();
+          } else {
+            this.$.dropdown.open();
+          }
+        }
+      }
+
+      /**
+       * Pushes a newly selected user to the selectedUser property
+       *
+       * @param {Event} e event that triggered the function with selectedUser
+       * in the detail{}.
+       */
+      _saveUser(e) {
+         this.push('selectedUsers', e.detail.selectedUser);
+         this.$.dropdown.close();
+         this.inputValue = '';
+         this.dispatchEvent(
+             new CustomEvent('user-selected', {detail: e.detail}));
+      }
+
+      /**
+       * Removes a selected user from the selectedUser property.
+       *
+       * @param {Event} e event that triggered the function with removedUser
+       * in the detail{}.
+      */
+      _removeUser(e) {
+        let userId = e.detail.removedUser.userId;
+        let index = -1;
+        this.selectedUsers.forEach((user, i) => {
+          if (user.userId === userId) {
+            index = i;
+          }
+        });
+        if (index != -1) {
+          this.splice('selectedUsers', index, 1);
+        }
+      }
+
+      _inputChanged(e) {
+        this.dispatchEvent(new CustomEvent('input', {detail: e.detail}));
+      }
+    }
+    customElements.define(ChopsUserInput.is, ChopsUserInput);
+  </script>
+</dom-moduel>

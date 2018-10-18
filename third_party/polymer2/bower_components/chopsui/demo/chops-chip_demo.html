@@ -1,0 +1,43 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-chip.html">
+
+<demo-snippet>
+  <template>
+    <chops-chip value="chip"></chops-chip>
+    <chops-chip value="chip2" label="A charming chip"></chops-chip>
+    <chops-chip value="chip3" label="A linked chip" url="https://www.google.com"></chops-chip>
+    <chops-chip value="chip4" label="Chip with an image" image-src="../img/logo.png"></chops-chip>
+  </template>
+</demo-snippet>
+
+<h2>Handling remove events</h2>
+<p>
+  The parent for a given chip is responsible for figuring out what to do when
+  the 'remove-chip' event is fired.
+</p>
+<demo-snippet>
+  <template>
+    <chops-chip id="removeable1"
+      value="chip1"
+      label="A removeable chip"
+      removeable></chops-chip>
+    <chops-chip id="removeable2"
+      value="chip2"
+      label="I have an image"
+      image-src="../img/logo.png"
+      removeable></chops-chip>
+    <chops-chip id="removeable3"
+      value="chip3"
+      label="Delete me"
+      removeable></chops-chip>
+    <script>
+      const removeHandler = (evt) => {
+        evt.target.remove();
+      }
+      removeable1.addEventListener('remove-chip', removeHandler);
+      removeable2.addEventListener('remove-chip', removeHandler);
+      removeable3.addEventListener('remove-chip', removeHandler);
+    </script>
+  </template>
+</demo-snippet>

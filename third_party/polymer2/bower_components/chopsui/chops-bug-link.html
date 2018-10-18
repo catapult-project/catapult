@@ -1,0 +1,77 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="chops-bug-mixin.html">
+
+<dom-module id="chops-bug-link">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      p {
+        display: inline;
+      }
+    </style>
+    <a href$="https://bugs.chromium.org/p/[[_bugProject]]/issues/detail?id=[[_bugId]]">
+      [[bugProject]]:[[bugId]]</a>
+    <template is="dom-if" if="[[status]]">
+      <p>([[status]])</p>
+    </template>
+
+    <template is="dom-if" if="[[pri]]">
+      <p>(Pri-[[pri]])</p>
+    </template>
+
+    <template is="dom-if" if="[[!short]]">
+      <p>[[description]]</p>
+    </template>
+
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     * `<chops-bug-link>` displays a link to a chromium bug.
+     *
+     * All properties except for `bug` are optional. Set short to true
+     * when the description should not be shown.
+     *
+     * @customElement
+     * @polymer
+     * @demo /demo/chops-bug-link_demo.html
+     */
+    class ChopsBugLink extends ChopsBugMixin(Polymer.Element) {
+      static get is() { return 'chops-bug-link'; }
+
+      static get properties() {
+        return {
+          /** A bug id, bug url, or a bug in the form of 'projectName:bugId' . Required. */
+          bug: String,
+          /** The bug id. */
+          bugId: {
+            type: String,
+            computed: '_computeBugId(bug)',
+          },
+          /** The bug's project name. */
+          bugProject: {
+            type: String,
+            computed: '_computeBugProject(bug)',
+          },
+          /** The status of the bug, eg. 'Untriaged', 'Available'. Optional. */
+          status: String,
+          /** The priority number of the bug. Optional. */
+          pri: {
+            type: String,
+          },
+          /** The bug's description. Optional. */
+          description: String,
+          /** Set to true if you don't want the bug's description to be displayed. */
+          short: {
+            type: Boolean,
+            value: false,
+          }
+        }
+      }
+    }
+    customElements.define(ChopsBugLink.is, ChopsBugLink);
+  </script>
+<dom-module>

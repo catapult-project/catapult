@@ -55,10 +55,9 @@ style this element.
         disabled$="[[disabled]]"
         invalid="[[invalid]]">
 
-      <label hidden$="[[!label]]" aria-hidden="true" for$="[[_inputId]]" slot="label">[[label]]</label>
+      <label hidden$="[[!label]]" aria-hidden="true" for="input" slot="label">[[label]]</label>
 
-      <iron-autogrow-textarea class="paper-input-input" slot="input"
-        id$="[[_inputId]]"
+      <iron-autogrow-textarea id="input" class="paper-input-input" slot="input"
         aria-labelledby$="[[_ariaLabelledBy]]"
         aria-describedby$="[[_ariaDescribedBy]]"
         bind-value="{{value}}"
@@ -137,9 +136,6 @@ style this element.
       },
     },
 
-    /**
-     * @return {number}
-     */
     get selectionStart() {
       return this.$.input.textarea.selectionStart;
     },
@@ -147,9 +143,6 @@ style this element.
       this.$.input.textarea.selectionStart = start;
     },
 
-    /**
-     * @return {number}
-     */
     get selectionEnd() {
       return this.$.input.textarea.selectionEnd;
     },
@@ -158,15 +151,15 @@ style this element.
     },
 
     _ariaLabelledByChanged: function(ariaLabelledBy) {
-      this._focusableElement.setAttribute('aria-labelledby', ariaLabelledBy);
+      this.$.input.textarea.setAttribute('aria-labelledby', ariaLabelledBy);
     },
 
     _ariaDescribedByChanged: function(ariaDescribedBy) {
-      this._focusableElement.setAttribute('aria-describedby', ariaDescribedBy);
+      this.$.input.textarea.setAttribute('aria-describedby', ariaDescribedBy);
     },
 
     get _focusableElement() {
-      return this.inputElement.textarea;
+      return this.$.input.textarea;
     },
   });
 </script>

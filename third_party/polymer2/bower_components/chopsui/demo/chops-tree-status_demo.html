@@ -1,0 +1,38 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-tree-status.html">
+
+<demo-snippet>
+  <template>
+    <script>
+      let closedStatusJson = {
+        'username': 'nobody@chromium.org',
+        'general_state': 'closed',
+        'date': '2017-08-28 18:29:00.267230',
+        'message': 'whoopsie',
+      }
+      let closedTree = document.getElementById('closed-tree');
+      closedTree.statusJson = closedStatusJson;
+      closedTree.statusUrl = 'http://chromium-status.appspot.com/';
+
+      let openStatusJson = {
+        'username': 'nobody@chromium.org',
+        'general_state': 'open',
+        'date': '2017-08-28 18:29:00.267230',
+        'message': 'chill',
+      }
+      let openTree = document.getElementById('open-tree');
+      openTree.statusJson = openStatusJson;
+      openTree.statusUrl = 'https://infra-status.appspot.com/';
+
+      let errorTree = document.getElementById('error-tree');
+      errorTree.statusErrorJson = {error: 'Failure!'};
+      errorTree.statusUrl = 'https://infra-status.appspot.com/';
+    </script>
+    <chops-tree-status id="closed-tree"> </chops-tree-status>
+    <br>
+    <chops-tree-status id="open-tree"></chops-tree-status>
+    <br>
+    <chops-tree-status id="error-tree"></chops-tree-status>
+  </template>
+</demo-snippet>

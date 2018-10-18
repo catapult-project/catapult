@@ -1,0 +1,127 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+
+<dom-module id="chops-user-id">
+  <template>
+    <style>
+      a {
+        color: black;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      iron-icon {
+        top: -1px;
+        --iron-icon-height: 10px;
+        --iron-icon-width: 10px;
+      }
+      iron-icon:hover {
+        background-color: hsl(0, 0%, 81%);
+      }
+      .user-label {
+        font-size: .81em;
+        border-radius: 15px;
+        padding: 2px 8px;
+        background-color: hsl(0, 0%, 88%);
+      }
+    </style>
+    <span class="user-label">
+      <template is="dom-if" if="[[profileLink]]">
+        <a href$="[[profileLink]]">[[userId]]</a>
+      </template>
+      <template is="dom-if" if="[[!profileLink]]">
+        [[userId]]
+      </template>
+      <iron-icon
+        icon="clear"
+        hidden$="[[!removeable]]"
+        on-click="_removeUser"
+        title="[[fullName]] [[email]]"></iron-icon>
+    </span>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+    * `<chops-user-id>` is an element used for displaying users.
+    *
+    * The only required attribute is userId. If the profile-link is provided
+    * the userId text will be displayed as a link. If an email and/or fullName
+    * are provided they will be visible when hovering over the element.
+    *
+    *
+    * @customElement
+    * @polymer
+    * @demo /demo/chops-user-id_demo.html
+    */
+    class ChopsUserId extends Polymer.Element {
+      static get is() { return 'chops-user-id'; }
+
+      static get properties() {
+        return {
+          /**
+           * The user's id to be displayed. Required.
+           *
+           * @type String
+           */
+          userId: {
+            type: String,
+          },
+          /**
+           * The user's email. Optional.
+           *
+           * @type String
+           */
+          email: {
+            type: String,
+          },
+          /**
+           * The full name of the user. Optional.
+           *
+           * @type String
+           */
+          fullName: {
+            type: String,
+          },
+          /**
+           * The link to the user's profile page. Optional.
+           *
+           * @type String
+           */
+          profileLink: {
+            type: String,
+            value: "",
+          },
+          /**
+           * If true, a 'remove' icon will be visible and fire 'remove-user' on click.
+           *
+           * @type Boolean
+           */
+          removeable: {
+            type: Boolean,
+            value: false,
+          },
+        }
+      }
+
+      /** Gets the user information and fires 'user-removed'. */
+      _removeUser(e) {
+        let user = {userId: this.userId};
+        if (this.email) { user.email = this.email; }
+        if (this.fullName) { user.fullName = this.fullName; }
+        if (this.profileLink) { user.profileLink = this.profileLink; }
+        this.dispatchEvent(new CustomEvent('remove-user', {detail: {removedUser: user}}));
+      }
+
+      /**
+       * Fired when a user wants to remove this user.
+       *
+       * @event remove-user
+       * @param {Object} removedUser object containing all of the user's given information.
+       */
+
+    }
+    customElements.define(ChopsUserId.is, ChopsUserId);
+  </script>
+  <dom-module>

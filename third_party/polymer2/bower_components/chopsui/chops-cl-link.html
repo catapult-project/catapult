@@ -1,0 +1,53 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="chops-cl-link">
+  <template>
+    <style>
+      :host {
+        font-family: 'Roboto', 'Noto', sans-serif;
+      }
+    </style>
+    <a href$="https://crrev.com/[[change]]">[[change]]</a>
+    (<a href$="mailto:[[ownerEmail]]">[[_userName]]</a>):
+    [[description]]
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     * `<chops-cl-link>` displays basic information of a cl with a
+     * link to the full details of the change
+     *
+     * Provide the change number, owner email, and description.
+     *
+     * @customElement
+     * @polymer
+     * @demo /demo/chops-cl-link_demo.html
+     */
+    class ChopsClLink extends Polymer.Element {
+      static get is() { return 'chops-cl-link'; }
+
+      static get properties() {
+        return {
+          /** The change number. */
+          change: String,
+          /** The owner's email. */
+          ownerEmail: String,
+          /** The change description. */
+          description: String,
+          _userName : {
+            type: String,
+            computed: '_computeUserName(ownerEmail)',
+          },
+        }
+      }
+
+      _computeUserName(email) {
+        let cutoff = email.indexOf('@');
+        return (cutoff < 0) ? 'Unkown' : email.substring(0, cutoff);
+      }
+
+    }
+    customElements.define(ChopsClLink.is, ChopsClLink);
+  </script>
+<dom-module>

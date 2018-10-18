@@ -1,0 +1,25 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+<link rel="import" href="../chops-header.html">
+<link rel="import" href="../chops-login.html">
+
+<link rel="stylesheet" type="text/css" href="../chops-styles.css">
+
+Example of chops-header without any content in slots
+
+<demo-snippet>
+  <template>
+    <chops-header app-title="Demo" logo-src="../img/logo.png"></chops-header>
+  </template>
+</demo-snippet>
+
+Example of chops-header using slots and chops-login
+
+<demo-snippet>
+  <template>
+    <chops-header app-title="Demo" logo-src="../img/logo.png">
+      <span slot="subheader">&gt; <a href="#">Breadcrumbs</a></span>
+      <chops-login login-url="https://www.google.com/" logout-url="https://store.google.com/" user="jojwang@chromium.org"></chops-login>
+    </chops-header>
+  </template>
+</demo-snippet>

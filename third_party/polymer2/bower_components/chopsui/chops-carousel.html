@@ -1,0 +1,215 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="chops-carousel">
+  <template>
+    <style>
+      :host {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        --chops-carousel-slide-height: 256px;
+        --chops-carousel-slide-width: 400px;
+      }
+      .carousel-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.5em 32px;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+      .carousel-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+        padding: 0.5em 16px;
+        box-sizing: border-box;
+      }
+      .carousel-nav-item {
+        border: 0;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        margin: 0 8px;
+        background: hsl(227, 5%, 80%);
+        transition: box-shadow 0.5s ease-in-out, background 0.5s ease-in-out;
+        cursor: pointer;
+      }
+      .carousel-nav-item:hover,
+      .carousel-nav-item.focused {
+        background: hsl(227, 20%, 60%);
+      }
+      .carousel-nav-item.focused {
+        box-shadow: 0px 2px 8px -1px hsla(0, 0%, 0%, 0.3);
+      }
+      .img-wrapper {
+        width: var(--chops-carousel-slide-width);
+        height: var(--chops-carousel-slide-height);
+        overflow-y: hidden;
+        box-sizing: border-box;
+        transition: opacity 0.5s ease-in-out, box-shadow 0.5s linear;
+        opacity: 0.7;
+        cursor: pointer;
+        transform: scale(0.95, 0.95);
+        border: 1px solid hsl(0, 0%, 83%);
+        padding: 0.5em 8px;
+        margin: 0 8px;
+        background: hsl(0, 0%, 95%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .img-wrapper.focused {
+        border: 1px solid hsl(227, 20%, 75%);
+        opacity: 1;
+        transform: scale(1, 1);
+        flex-grow: 1;
+      }
+      .img-wrapper:hover {
+        box-shadow: 0px 2px 8px -1px hsla(0, 0%, 0%, 0.5);
+        opacity: 1;
+      }
+    </style>
+    <div id="carouselRoot" class="carousel-content">
+      <button id="prevImage" hidden$="[[!_showNav]]"
+          class="img-wrapper prev-image"
+          on-click="_focusPrevImage">
+        <img src$="[[_prevImage]]" />
+      </button>
+      <button
+          class="img-wrapper focused"
+          on-click="_focusedImageClicked">
+        <img src$="[[_focusedImage]]" />
+      </button>
+      <button id="nextImage" hidden$="[[!_showNav]]"
+          class="img-wrapper next-image"
+          on-click="_focusNextImage">
+        <img src$="[[_nextImage]]" />
+      </button>
+    </div>
+    <template is="dom-if" if="[[_showNav]]">
+      <div id="carouselNav" class="carousel-nav">
+        <template is="dom-repeat" items="[[images]]">
+          <button
+            class$="carousel-nav-item [[_computeFocusedClass(focusedIndex, index)]]"
+            data-index$="[[index]]"
+            on-click="_handleNavClick"></button>
+        </template>
+      </div>
+    </template>
+  </template>
+  <script>
+  'use strict';
+
+  /**
+   * `<chops-carousel>`
+   *
+   * This creates a carousel of images to browse through.
+   *
+   * @customElement
+   * @polymer
+   * @demo /demo/chops-carousel_demo.html
+   */
+  class ChopsCarousel extends Polymer.Element {
+    static get is() {
+      return 'chops-carousel';
+    }
+
+    static get properties() {
+      return {
+        /** Index of the currently focused image. */
+        focusedIndex: {
+          type: Number,
+          value: 0,
+        },
+        /**
+         * Function handler that gets fired when the user clicks the
+         * focused image. Useful for functions like displaying the image in a
+         * lightbox.
+         */
+        handleFocusedClick: Function,
+        /** Array of image urls to be displayed in the carousel. */
+        images: {
+          type: Array,
+          value: [],
+          observer: '_preloadImages',
+        },
+        _focusedImage: {
+          type: String,
+          computed: '_computeFocusedImage(images, focusedIndex)',
+        },
+        _showNav: {
+          type: Boolean,
+          computed: '_computeShowNav(images.length)',
+        },
+        _prevImage: {
+          type: String,
+          computed: '_computePrevImage(images, focusedIndex)',
+        },
+        _nextImage: {
+          type: String,
+          computed: '_computeNextImage(images, focusedIndex)',
+        },
+      };
+    }
+
+    _computeFocusedClass(focusedIndex, i) {
+      if (focusedIndex === i) {
+        return 'focused';
+      }
+      return '';
+    }
+
+    _computeFocusedImage(images, i) {
+      if (!images || i >= images.length || i < 0) return;
+      return images[i];
+    }
+
+    _computeNextImage(images, i) {
+      if (!images || i >= images.length || i < 0) return;
+      return images[(i + 1) % images.length];
+    }
+
+    _computePrevImage(images, i) {
+      if (!images || i >= images.length || i < 0) return;
+      return images[(i - 1 + images.length) % images.length];
+    }
+
+    _computeShowNav(len) {
+      return len > 1;
+    }
+
+    _focusedImageClicked(evt) {
+      if (this.handleFocusedClick) {
+        this.handleFocusedClick();
+      }
+    }
+
+    _focusNextImage() {
+      this.focusedIndex = (this.focusedIndex + 1) % this.images.length;
+    }
+
+    _focusPrevImage() {
+      const l = this.images.length;
+      this.focusedIndex = (this.focusedIndex - 1 + l) % l;
+    }
+
+    _handleNavClick(evt) {
+      this.focusedIndex = evt.target.dataset.index * 1;
+    }
+
+    _preloadImages(images) {
+      images.forEach((img) => {
+        let image = new Image();
+        image.src = img;
+      });
+    }
+  }
+  customElements.define(ChopsCarousel.is, ChopsCarousel);
+  </script>
+<dom-module>

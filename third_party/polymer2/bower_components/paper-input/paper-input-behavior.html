@@ -19,7 +19,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   Polymer.PaperInputHelper = {};
   Polymer.PaperInputHelper.NextLabelID = 1;
   Polymer.PaperInputHelper.NextAddonID = 1;
-  Polymer.PaperInputHelper.NextInputID = 1;
 
   /**
    * Use `Polymer.PaperInputBehavior` to implement inputs with `<paper-input-container>`. This
@@ -354,62 +353,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         type: Boolean
       },
 
-      /** @private */
       _ariaDescribedBy: {
         type: String,
         value: ''
       },
 
-      /** @private */
       _ariaLabelledBy: {
         type: String,
         value: ''
-      },
-
-      /** @private */
-      _inputId: {
-        type: String,
-        value: ''
       }
+
     },
 
     listeners: {
       'addon-attached': '_onAddonAttached',
     },
 
-    /**
-     * @type {!Object}
-     */
     keyBindings: {
       'shift+tab:keydown': '_onShiftTabDown'
     },
 
-    /** @private */
     hostAttributes: {
       tabindex: 0
     },
 
     /**
      * Returns a reference to the input element.
-     * @return {!HTMLElement}
      */
     get inputElement() {
-      // Chrome generates audit errors if an <input type="password"> has a
-      // duplicate ID, which is almost always true in Shady DOM. Generate
-      // a unique ID instead.
-      if (!this.$) {
-        this.$ = {}
-      }
-      if (!this.$.input) {
-        this._generateInputId();
-        this.$.input = this.$$('#' + this._inputId);
-      }
       return this.$.input;
     },
 
     /**
      * Returns a reference to the focusable element.
-     * @return {!HTMLElement}
      */
     get _focusableElement() {
       return this.inputElement;
@@ -538,12 +514,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         label.id = labelledBy;
       }
       this._ariaLabelledBy = labelledBy;
-    },
-
-    _generateInputId: function() {
-      if (!this._inputId || this._inputId === '') {
-        this._inputId =  'input-' + Polymer.PaperInputHelper.NextInputID++;
-      }
     },
 
     _onChange:function(event) {

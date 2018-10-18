@@ -1,0 +1,89 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-item/paper-item.html">
+
+<dom-module id="chops-user-dropdown">
+  <template>
+    <style>
+      .resize {
+        display: block;
+        overflow: auto;
+      }
+      .hidden {
+        display: none !important;
+      }
+      paper-item:hover {
+        background: grey;
+      }
+    </style>
+    <div id="dropdown" class="resize">
+      <template is="dom-repeat" items="[[suggestions]]">
+        <paper-item id$="[[index]]" on-click="_userSelected">[[_computeUserDisplay(item)]]</paper-item>
+      </template>
+    </div>
+  </template>
+  <script>
+    'use strict';
+
+    /**
+     * `chops-user-dropdown` is a dropdown element displaying a list of user ids.
+     *
+     * When using this, provide an array of suggestions that should be displayed
+     * This element should, idealy, be used with chops-user-input
+     *
+     * @customElement
+     * @polymer
+     *
+     */
+    class UserDropdown extends Polymer.Element {
+      static get is() { return 'chops-user-dropdown'; }
+
+      static get properties() {
+        return {
+        /**
+         * The array of users that should be listed.
+         *
+         * @type Array<Object{userId, email(opt), profileLink(opt), fullName(opt)}>
+         */
+          suggestions: {
+            type: Array,
+            value: () => {return []; },
+          },
+        }
+      }
+
+      ready() {
+        super.ready();
+        this.$.dropdown.classList.add('hidden');
+      }
+
+      /** Opens the dropdown element. */
+      open() {
+        this.$.dropdown.classList.remove('hidden');
+      }
+
+      /** Closes the dropdown element. */
+      close() {
+        this.$.dropdown.classList.add('hidden');
+      }
+
+      /** Gets the selected user information and fires 'user-selected'. */
+      _userSelected(e) {
+        let user = this.suggestions[e.currentTarget.id];
+        this.dispatchEvent(new CustomEvent('user-selected', {detail: {selectedUser: user}}));
+      }
+
+      _computeUserDisplay(user) {
+        return user.email ? `${user.userId} <${user.email}> ` : user.userId;
+      }
+
+      /**
+       * Fired when a user has been selected.
+       *
+       * @event user-selected
+       * @param {string} selectedUser username of the selected user.
+       */
+
+    }
+    customElements.define(UserDropdown.is, UserDropdown);
+  </script>
+</dom-module>
