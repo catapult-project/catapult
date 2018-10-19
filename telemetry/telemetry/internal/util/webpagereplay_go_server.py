@@ -221,7 +221,7 @@ class ReplayServer(object):
     is_posix = sys.platform.startswith('linux') or sys.platform == 'darwin'
     logging.info('Starting Web-Page-Replay: %s', self._cmd_line)
     self._CreateTempLogFilePath()
-    with open(self._temp_log_file_path, 'w') as log_fh:
+    with self._OpenLogFile() as log_fh:
       self.replay_process = subprocess.Popen(
           self._cmd_line, stdout=log_fh, stderr=subprocess.STDOUT,
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
@@ -233,16 +233,15 @@ class ReplayServer(object):
       atexit_with_log.Register(self.StopServer)
       return dict(self._started_ports)
     except Exception:
-      log_output = self.StopServer()
-      raise ReplayNotStartedError(
-          'Web Page Replay failed to start. Log output:\n%s' % log_output)
+      self.StopServer(logging.ERROR)
+      raise ReplayNotStartedError('Web Page Replay failed to start.')
 
   def _IsReplayProcessStarted(self):
     if not self.replay_process:
       return False
     return self.replay_process and self.replay_process.poll() is None
 
-  def StopServer(self):
+  def StopServer(self, log_level=logging.DEBUG):
     """Stop Web Page Replay.
 
     This also attempts to return stdout/stderr logs of wpr process if there is
@@ -251,9 +250,7 @@ class ReplayServer(object):
     """
     if self._IsReplayProcessStarted():
       self._StopReplayProcess()
-    wpr_log_output = ''.join(self._LogLines())
-    self._CleanUpTempLogFilePath()
-    return wpr_log_output
+    self._CleanUpTempLogFilePath(log_level)
 
   def _StopReplayProcess(self):
     if not self.replay_process:
@@ -299,16 +296,16 @@ class ReplayServer(object):
     handle, self._temp_log_file_path = tempfile.mkstemp()
     os.close(handle)
 
-  def _CleanUpTempLogFilePath(self):
+  def _CleanUpTempLogFilePath(self, log_level):
     if not self._temp_log_file_path:
-      return
-    if logging.getLogger('').isEnabledFor(logging.DEBUG):
+      return ''
+    if logging.getLogger('').isEnabledFor(log_level):
       with open(self._temp_log_file_path, 'r') as f:
-        wpr_log_content = '\n'.join([
-            '************************** WPR LOG *****************************',
-            f.read(),
-            '************************** END OF WPR LOG **********************'])
-      logging.debug(wpr_log_content)
+        wpr_log_output = f.read()
+      logging.log(log_level, '\n'.join([
+          '************************** WPR LOG *****************************',
+          wpr_log_output,
+          '************************** END OF WPR LOG **********************']))
     os.remove(self._temp_log_file_path)
     self._temp_log_file_path = None
 
