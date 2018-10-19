@@ -242,6 +242,21 @@ tr.b.unittest.testSuite(function() {
     const p = m.processes[9393];
     assert.strictEqual(p.pid, 9393);
   });
+
+  test('importWithMissingNames', function() {
+    const lines = [
+      '       Binder_1-217   (  438) [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=F|O ==> next_comm=ndroid.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
+      '<...>-584   (  954) [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
+      'ndroid.launcher-584   (  954) [001] d..3 12622.506950: sched_switch: prev_comm=ndroid.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
+    ];
+
+    const m = newModel(lines.join('\n'));
+    assert.isFalse(m.hasImportWarnings);
+
+    const p = m.processes[954];
+    const t = p.getThread(584);
+    assert.strictEqual(t.name, 'ndroid.launcher');
+  });
 });
 </script>
 

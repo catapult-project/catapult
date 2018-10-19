@@ -53,6 +53,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       /comm=(.+) pid=(\d+) prio=(\d+)(?: success=\d+)? target_cpu=(\d+)/;
   TestExports.schedWakeupRE = schedWakeupRE;
 
+  const unknownThreadName = '<...>';
+
   SchedParser.prototype = {
     __proto__: Parser.prototype,
 
@@ -62,7 +64,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     schedSwitchEvent(eventName, cpuNumber, pid, ts, eventBase) {
       const event = schedSwitchRE.exec(eventBase.details);
       if (!event) return false;
-
       const prevState = event[4];
       const nextComm = event[5];
       const nextPid = parseInt(event[6]);
@@ -71,9 +72,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (eventBase.tgid !== undefined) {
         const tgid = parseInt(eventBase.tgid);
         const process = this.importer.model_.getOrCreateProcess(tgid);
-        if (!process.getThread(pid)) {
+        const storedThread = process.getThread(pid);
+        if (!storedThread) {
           const thread = process.getOrCreateThread(pid);
           thread.name = eventBase.threadName;
+        } else if (storedThread.name === unknownThreadName) {
+          storedThread.name = eventBase.threadName;
         }
       }
 
