@@ -17,9 +17,12 @@ class RequestError(OSError):
     self.request = request
     self.response = response
     self.content = content
-    super(RequestError, self).__init__(
-        '%s returned HTTP Error %d: %s' % (
-            self.request, self.response.status, self.error_message))
+    message = '%s returned HTTP Error %d: %s' % (
+        self.request, self.response.status, self.error_message)
+    # Note: often the message will contain unicode characters, so we explicitly
+    # encode them as utf-8; otherwise by default python will encode as ascii
+    # and choke when trying to display the exception message.
+    super(RequestError, self).__init__(message.encode('utf-8'))
 
   def __reduce__(self):
     # Method needed to make the exception pickleable [1], otherwise it causes

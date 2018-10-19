@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import pickle
 import unittest
 
@@ -87,3 +88,9 @@ class TestRequestErrors(unittest.TestCase):
     self.assertEqual(error.request, 'api')
     self.assertEqual(error.response.status, 500)
     self.assertEqual(error.content, 'Oops, I had a problem!')
+
+  def testErrorMessageToString(self):
+    message = u'Something went wrong. That\u2019s all we know.'
+    error = request.ServerError(
+        '/endpoint', *Response(500, json.dumps({'error': message})))
+    self.assertIn('Something went wrong.', str(error))
