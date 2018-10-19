@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() {
           cat: 'startup',
           title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
           start: (offset + 1.0),
-          duration: 1000.0}));
+          duration: 10.0}));
     createRendererThread(model).sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading,rail,devtools.timeline',
       title: 'firstContentfulPaint',
@@ -85,6 +85,7 @@ tr.b.unittest.testSuite(function() {
     return tr.c.TestUtils.newModel(function(model) {
       fillModelWithOneBrowserSession(model, offset, incrementForMetrics);
       addEarlyEventsToBeIgnored(model, offset);
+      addEarlyEventsToBeIgnored(model, offset + 20.0);
     });
   }
 
@@ -124,6 +125,7 @@ tr.b.unittest.testSuite(function() {
         fillModelWithOneBrowserSession(model, 0.0, 0.0);
         fillModelWithOneBrowserSession(model, offset, incrementForMetrics);
         addEarlyEventsToBeIgnored(model, 0.0, 0.0);
+        addEarlyEventsToBeIgnored(model, 0.0, 1.0);
       });
     }
     const delta = 0.125;

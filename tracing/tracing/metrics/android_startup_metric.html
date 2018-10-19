@@ -105,7 +105,9 @@ tr.exportTo('tr.metrics.sh', function() {
     // The earliest browser start is skipped because it is affected by the state
     // of the system coming from the time before the benchmark started. Removing
     // these influencing factors allows reducing measurement noise.
-    for (let i = 1; i < totalBrowserStarts; i++) {
+    // Note: Two early starts are ignored below, the reasons for spurious
+    // slowdowns of the 2nd run are not known yet, see http://crbug.com/891797.
+    for (let i = 2; i < totalBrowserStarts; i++) {
       const startEvent = messageLoopStartEvents[i];
       messageLoopStartHistogram.addSample(startEvent.duration,
           {events: new tr.v.d.RelatedEventSet([startEvent])});
