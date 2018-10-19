@@ -33,6 +33,9 @@ def IterTestOutputIsolates(job):
       test_run = executions['Test']
       if not test_run['completed']:
         continue
-      isolate_hash = next(
-          d['value'] for d in test_run['details'] if d['key'] == 'isolate')
+      try:
+        isolate_hash = next(
+            d['value'] for d in test_run['details'] if d['key'] == 'isolate')
+      except StopIteration:
+        continue
       yield change_id, isolate_hash

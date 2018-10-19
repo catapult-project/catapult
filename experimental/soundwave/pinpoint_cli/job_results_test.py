@@ -54,8 +54,7 @@ class TestJobResults(unittest.TestCase):
                     {
                         'executions': [
                             Execution(),  # Build
-                            Execution(isolate='results2'),  # Test
-                            Execution()  # Get results
+                            Execution(),  # Test (completed but failed)
                         ]
                     },
                     {
@@ -96,7 +95,6 @@ class TestJobResults(unittest.TestCase):
         list(job_results.IterTestOutputIsolates(job)),
         [
             ('src@1234', 'results1'),
-            ('src@1234', 'results2'),
             ('src@1234', 'results3'),
             ('src@1234+crrev.com/c/123', 'results4')
         ])
