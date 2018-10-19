@@ -792,8 +792,12 @@ UNIT_NAMES = [
     'tsMs',
     'n%',
     'sizeInBytes',
-    'J',
-    'W',
+    'bytesPerSecond',
+    'J',  # Joule
+    'W',  # Watt
+    'A',  # Ampere
+    'V',  # Volt
+    'Hz',  # Hertz
     'unitless',
     'count',
     'sigma',
@@ -1435,8 +1439,12 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
     'msBestFitFormat': _CreateMsAutoFormatBins(),
     'n%': HistogramBinBoundaries.CreateLinear(0, 1.0, 20),
     'sizeInBytes': HistogramBinBoundaries.CreateExponential(1, 1e12, 100),
+    'bytesPerSecond': HistogramBinBoundaries.CreateExponential(1, 1e12, 100),
     'J': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
     'W': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
+    'A': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
+    'V': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
+    'Hz': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'unitless': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
     'count': HistogramBinBoundaries.CreateExponential(1, 1e3, 20),
     'sigma': HistogramBinBoundaries.CreateLinear(-5, 5, 50),

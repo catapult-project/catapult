@@ -381,6 +381,16 @@ tr.exportTo('tr.b', function() {
   });
 
   Unit.define({
+    baseUnitName: 'bandwidthInBytesPerSecond',
+    baseJsonName: 'bytesPerSecond',
+    formatSpec: {
+      unitScale: tr.b.UnitScale.BANDWIDTH_BYTES.AUTO,
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }
+  });
+
+  Unit.define({
     baseUnitName: 'energyInJoules',
     baseJsonName: 'J',
     formatSpec: {
@@ -394,6 +404,33 @@ tr.exportTo('tr.b', function() {
     baseJsonName: 'W',
     formatSpec: {
       baseSymbol: 'W',
+      minimumFractionDigits: 3
+    }
+  });
+
+  Unit.define({
+    baseUnitName: 'electricCurrentInAmperes',
+    baseJsonName: 'A',
+    formatSpec: {
+      baseSymbol: 'A',
+      minimumFractionDigits: 3
+    }
+  });
+
+  Unit.define({
+    baseUnitName: 'electricPotentialInVolts',
+    baseJsonName: 'V',
+    formatSpec: {
+      baseSymbol: 'V',
+      minimumFractionDigits: 3
+    }
+  });
+
+  Unit.define({
+    baseUnitName: 'frequencyInHertz',
+    baseJsonName: 'Hz',
+    formatSpec: {
+      baseSymbol: 'Hz',
       minimumFractionDigits: 3
     }
   });
