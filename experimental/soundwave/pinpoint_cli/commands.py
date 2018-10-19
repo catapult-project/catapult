@@ -4,6 +4,7 @@
 
 import csv
 import json
+import ntpath
 import posixpath
 
 from pinpoint_cli import histograms_df
@@ -18,8 +19,8 @@ def DownloadJobResultsAsCsv(api, job_ids, output_file):
     num_rows = 0
     for job_id in job_ids:
       job = api.pinpoint.Job(job_id, with_state=True)
-      # TODO: Make this also work for jobs that ran on windows platform.
-      results_file = posixpath.join(
+      os_path = _OsPathFromJob(job)
+      results_file = os_path.join(
           job['arguments']['benchmark'], 'perf_results.json')
       print 'Fetching results for %s job %s:' % (job['status'].lower(), job_id)
       for change_id, isolate_hash in job_results.IterTestOutputIsolates(job):
@@ -29,3 +30,10 @@ def DownloadJobResultsAsCsv(api, job_ids, output_file):
           writer.writerow((job_id, change_id, isolate_hash) + row)
           num_rows += 1
   print 'Wrote data from %d histograms in %s.' % (num_rows, output_file)
+
+
+def _OsPathFromJob(job):
+  if job['arguments']['configuration'].lower().startswith('win'):
+    return ntpath
+  else:
+    return posixpath
