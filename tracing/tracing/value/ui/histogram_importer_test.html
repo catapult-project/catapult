@@ -14,7 +14,8 @@ tr.b.unittest.testSuite(() => {
   const kHtmlString = '<script>throw new Error("oops");<' + '/script>';
 
   function createHistogram(id) {
-    const histogram = new tr.v.Histogram('foo' + id, tr.b.Unit.byName.count);
+    const histogram =
+        new tr.v.Histogram('name<' + id + '>', tr.b.Unit.byName.count);
     histogram.addSample(id);
     histogram.customizeSummaryOptions({
       count: false,
@@ -60,7 +61,7 @@ tr.b.unittest.testSuite(() => {
     assert.strictEqual('none', loadingEl.style.display);
     assert.strictEqual('block', view.style.display);
     assert.lengthOf(view.histograms, 1);
-    const histogram = view.histograms.getHistogramNamed('foo42');
+    const histogram = view.histograms.getHistogramNamed('name<42>');
     assert.strictEqual(kHtmlString, tr.b.getOnlyElement(
         histogram.diagnostics.get('html')));
     assert.deepEqual([42], histogram.sampleValues);
@@ -71,10 +72,11 @@ tr.b.unittest.testSuite(() => {
     this.addHTMLOutput(loadingEl);
     const importer = new tr.v.HistogramImporter(loadingEl);
 
-    const kNofHistograms = 10;
+    const kNofHistograms = 1000;
     let histogramData = '\n';
     for (let i = 0; i < kNofHistograms; i++) {
-      const histogram = createHistogram(1000 + i);
+      const id = kNofHistograms * 100 + i;
+      const histogram = createHistogram(id);
       histogramData += JSON.stringify(histogram.asDict()) + '\n';
     }
 
@@ -88,8 +90,8 @@ tr.b.unittest.testSuite(() => {
     assert.strictEqual('block', view.style.display);
     assert.lengthOf(view.histograms, kNofHistograms);
     for (let i = 0; i < kNofHistograms; i++) {
-      const id = 1000 + i;
-      const histogram = view.histograms.getHistogramNamed('foo' + id);
+      const id = kNofHistograms * 100 + i;
+      const histogram = view.histograms.getHistogramNamed('name<' + id + '>');
       assert.strictEqual(kHtmlString, tr.b.getOnlyElement(
           histogram.diagnostics.get('html')));
       assert.deepEqual([id], histogram.sampleValues);

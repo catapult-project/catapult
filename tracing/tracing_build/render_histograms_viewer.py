@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import cgi
 import json
 import logging
 import re
@@ -101,7 +100,9 @@ def RenderHistogramsViewer(histogram_dicts, output_stream, reset_results=False,
   for histogram in histogram_dicts:
     hist_json = json.dumps(histogram, separators=(',', ':'))
     output_stream.write('\n')
-    output_stream.write(cgi.escape(hist_json))
+    # No escaping is necessary since the data is stored inside an html comment.
+    # This assumes that {hist_json} doesn't contain an html comment itself.
+    output_stream.write(hist_json)
   output_stream.write('\n%s\n' % _DATA_END)
 
   # If the output file already existed and was longer than the new contents,

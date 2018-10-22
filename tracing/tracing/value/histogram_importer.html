@@ -65,6 +65,7 @@ tr.exportTo('tr.v', function() {
         await this.update_('Loading Histogram 0');
         const loadMark = tr.b.Timing.mark(
             'HistogramImporter', 'loadHistograms');
+        if (!this.findDataStart_()) return;
         await this.loadSomeHistograms_();
         loadMark.end();
         tr.b.Timing.instant('HistogramImporter', 'nsPerJson',
@@ -81,6 +82,15 @@ tr.exportTo('tr.v', function() {
       await this.displayHistograms_();
     }
 
+    findDataStart_() {
+      // Find the initial data start.
+      this.dataOffset_ = this.string_.indexOf('\n', this.dataOffset_);
+      if (this.dataOffset_ < 0) return false;
+      // Skip over newline character.
+      this.dataOffset_++;
+      return true;
+    }
+
     async loadSomeHistograms_() {
       // Don't spend so long on this chunk of Histograms that the user gets
       // frustrated, but also don't call requestAnimationFrame faster than every
@@ -89,10 +99,6 @@ tr.exportTo('tr.v', function() {
       // Also don't call performance.now() more often than necessary.
       const startTime = performance.now();
       do {
-        this.dataOffset_ = this.string_.indexOf('\n', this.dataOffset_);
-        if (this.dataOffset_ < 0) return;
-        // Skip over newline character.
-        this.dataOffset_++;
         for (let i = 0; i < 100; i++) {
           const endIndex = this.string_.indexOf('\n', this.dataOffset_);
           if (endIndex < 0) return;

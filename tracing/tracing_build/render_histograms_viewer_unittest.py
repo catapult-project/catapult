@@ -92,6 +92,7 @@ class ResultsRendererTest(unittest.TestCase):
     self.assertIn(value1_json, self.GetOutputFileContent())
 
   def testHtmlEscape(self):
+    # No escaping is needed since data is stored in an html comment.
     render_histograms_viewer.RenderHistogramsViewer(
         [{'name': '<a><b>'}], self.output_stream, False)
-    self.assertIn('&lt;a&gt;&lt;b&gt;', self.GetOutputFileContent())
+    self.assertIn('<a><b>', self.GetOutputFileContent())
