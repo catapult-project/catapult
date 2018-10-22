@@ -242,6 +242,24 @@ class DescriptorTest(testing_common.TestCase):
     self.assertEqual('measure', desc.measurement)
     self.assertEqual('cold:24h', desc.test_case)
 
+  def testFromTestPath_Pct(self):
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/suite/measure_pct_090')
+    self.assertEqual('suite', desc.test_suite)
+    self.assertEqual('measure', desc.measurement)
+    self.assertEqual('master:bot', desc.bot)
+    self.assertEqual(None, desc.test_case)
+    self.assertEqual('pct_090', desc.statistic)
+    self.assertEqual(descriptor.TEST_BUILD_TYPE, desc.build_type)
+
+  def testToTestPaths_Pct(self):
+    expected = {'master/bot/suite/measure_pct_090'}
+    self.assertEqual(expected, descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='suite',
+        measurement='measure',
+        statistic='pct_090').ToTestPathsSync())
+
   def testToTestPaths_Loading(self):
     expected = {
         'master/bot/loading.foo/measure/cold/24h_cold',

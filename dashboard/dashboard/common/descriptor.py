@@ -19,6 +19,8 @@ This translation layer should be temporary until the descriptor concept can be
 pushed down into the Model layer.
 """
 
+import re
+
 from google.appengine.ext import ndb
 
 from dashboard.common import bot_configurations
@@ -222,10 +224,14 @@ class Descriptor(object):
     measurement, test_case = yield cls._MeasurementCase(test_suite, path)
 
     statistic = None
-    for suffix in STATISTICS:
-      if measurement.endswith('_' + suffix):
-        statistic = suffix
-        measurement = measurement[:-(1 + len(suffix))]
+    pct_match = re.match(r'(.*)_(pct_[\d_]+)', measurement)
+    if pct_match:
+      measurement, statistic = pct_match.groups()
+    else:
+      for suffix in STATISTICS:
+        if measurement.endswith('_' + suffix):
+          statistic = suffix
+          measurement = measurement[:-(1 + len(suffix))]
 
     if path:
       raise ValueError('Unable to parse %r' % test_path)
