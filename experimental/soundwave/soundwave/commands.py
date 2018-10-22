@@ -130,12 +130,13 @@ def FetchTimeseriesData(args):
   print '[%.1f test paths per second]' % (len(test_paths) / total_seconds)
 
   if args.output_csv is not None:
-    with open(args.output_csv, 'w') as output:
-      with tables.DbSession(args.database_file) as con:
-        header = True
-        for test_path in test_paths:
-          df = tables.timeseries.GetTimeSeries(con, test_path)
-          df.to_csv(output, header=header, index=False)
-          header = False
     print
+    print 'Post-processing data for study ...'
+    dfs = []
+    with tables.DbSession(args.database_file) as con:
+      for test_path in test_paths:
+        df = tables.timeseries.GetTimeSeries(con, test_path)
+        dfs.append(df)
+    df = studies.PostProcess(pandas.concat(dfs, ignore_index=True))
+    df.to_csv(args.output_csv, index=False)
     print 'Wrote timeseries data to:', args.output_csv
