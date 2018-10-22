@@ -14,7 +14,6 @@ ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 CATAPULT_PATH = os.path.normpath(os.path.join(ROOT_PATH, '..', '..'))
 PY_UTILS_PATH = os.path.join(CATAPULT_PATH, 'common', 'py_utils')
 TRACING_PATH = os.path.join(CATAPULT_PATH, 'tracing')
-JOB_CONFIGS_PATH = os.path.join(ROOT_PATH, 'job_configs')
 
 sys.path.append(ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
@@ -42,28 +41,26 @@ def main():
       'job_ids', metavar='JOB_ID', nargs='+',
       help='id of a pinpoint job for which to get results, one or more ids'
            ' can be speficied')
-  # Subparser args for starting a new job.
-  subparser = subparsers.add_parser('start-job')
-  subparser.add_argument('config')
-  subparser.add_argument('--repository', default='chromium')
-  subparser.add_argument('--revision', default='HEAD')
+  # Subparser args for starting new jobs.
+  subparser = subparsers.add_parser('start-jobs')
+  subparser.add_argument(
+      'config', metavar='CONFIG',
+      help='name of a job configuration (see job_configs dir)')
+  subparser.add_argument(
+      '--revision', default='HEAD',
+      help='run jobs pinned to this revision (default: %(default)s)')
+  subparser.add_argument(
+      '--repository', default='chromium',
+      help='the --revision provided is relative to this repository'
+           ' (default: %(default)s)')
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
   api = services.UserServices(args)
-
   if args.action == 'get-csv':
     return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
-  elif args.action == 'start-job':
-    with open(os.path.join(JOB_CONFIGS_PATH, args.config + '.json')) as f:
-      options = json.load(f)
-
-    options.update(dict(
-        repository=args.repository,
-        start_git_hash=args.revision,
-        end_git_hash=args.revision,
-    ))
-    print api.pinpoint.NewJob(**options)
+  elif args.action == 'start-jobs':
+    return commands.StartJobsFromConfig(api, args)
   else:
     raise NotImplementedError(args.action)
 

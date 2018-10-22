@@ -5,10 +5,34 @@
 import csv
 import json
 import ntpath
+import os
 import posixpath
 
 from pinpoint_cli import histograms_df
 from pinpoint_cli import job_results
+
+
+JOB_CONFIGS_PATH = os.path.normpath(os.path.join(
+    os.path.dirname(__file__), '..', 'job_configs'))
+
+
+def StartJobsFromConfig(api, args):
+  """Start some pinpoint jobs based on a config file."""
+  config_file = os.path.join(JOB_CONFIGS_PATH, args.config + '.json')
+  with open(config_file) as f:
+    configs = json.load(f)
+
+  if not isinstance(configs, list):
+    configs = [configs]
+
+  print 'Starting jobs:'
+  for config in configs:
+    config.update(dict(
+        repository=args.repository,
+        start_git_hash=args.revision,
+        end_git_hash=args.revision,
+    ))
+    print '-', api.pinpoint.NewJob(**config)['jobUrl']
 
 
 def DownloadJobResultsAsCsv(api, job_ids, output_file):
