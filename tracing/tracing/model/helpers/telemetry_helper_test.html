@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('renderersWithIR', function() {
+    const m = tr.c.TestUtils.newModel((m) => {
+      m.getOrCreateProcess(0).getOrCreateThread(0).name = 'CrBrowserMain';
+
+      // There is no IR in this renderer process.
+      const r1 = m.getOrCreateProcess(1).getOrCreateThread(1);
+      r1.name = 'CrRendererMain';
+      r1.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('AnAsyncSlice', 1, 1));
+
+      // This is the renderer created by Telemetry.
+      const r2 = m.getOrCreateProcess(2).getOrCreateThread(2);
+      r2.name = 'CrRendererMain';
+      r2.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      // This is the Telemetry process, not a real renderer process.
+      const r3 = m.getOrCreateProcess(3).getOrCreateThread(3);
+      r3.name = 'CrRendererMain';
+      r3.parent.labels = ['chrome://tracing'];
+      r3.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+    });
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const renderers = modelHelper.telemetryHelper.renderersWithIR;
+    assert.strictEqual(1, renderers.length);
+    assert.strictEqual(2, renderers[0].process.pid);
+  });
+
+  test('segments', function() {
+    const m = tr.c.TestUtils.newModel((m) => {
+      // There is no IR in this renderer process.
+      const r = m.getOrCreateProcess(1).getOrCreateThread(1);
+      r.name = 'CrRendererMain';
+      r.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceNamed(
+          'SyntheticGestureController::running', 6, 2));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.A', 1, 1));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Gesture_C', 5, 2));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.ui_B', 3, 1));
+    });
+
+    // Async slices are:
+    //
+    //              1       2       3       4       5       6       7       8
+    // Interactions <-- A -->       <-- B -->       <------ C ------>
+    // Gestures                                             <--------------->
+    //
+    // Segments should be: [1, 2], [3, 4], and [6, 8].
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const segments = modelHelper.telemetryHelper.segments;
+    assert.strictEqual(3, segments.length);
+    assert.deepEqual([1, 2], [segments[0].start, segments[0].end]);
+    assert.deepEqual([3, 4], [segments[1].start, segments[1].end]);
+    assert.deepEqual([6, 8], [segments[2].start, segments[2].end]);
+  });
+
+  test('uiSegments', function() {
+    const m = tr.c.TestUtils.newModel((m) => {
+      // There is no IR in this renderer process.
+      const r = m.getOrCreateProcess(1).getOrCreateThread(1);
+      r.name = 'CrRendererMain';
+      r.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceNamed(
+          'SyntheticGestureController::running', 6, 2));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.A', 1, 1));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Gesture_C', 5, 2));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.ui_B', 3, 1));
+    });
+
+    // Async slices are:
+    //
+    //              1       2       3       4       5       6       7       8
+    // Interactions <-- A -->       <-- B -->       <------ C ------>
+    // Gestures                                             <--------------->
+    //
+    // The only UI segment is [3, 4].
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const uiSegments = modelHelper.telemetryHelper.uiSegments;
+    assert.strictEqual(1, uiSegments.length);
+    assert.deepEqual([3, 4], [uiSegments[0].start, uiSegments[0].end]);
+  });
+});
+</script>

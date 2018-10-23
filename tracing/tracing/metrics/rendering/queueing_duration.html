@@ -22,8 +22,8 @@ found in the LICENSE file.
  * ScheduledActionSendBeginMainFrame event in the compositor thread and the
  * corresponding BeginMainFrame event in the main thread.
  *
- * All renderer processes, including ones for out-of-process iframes, are used
- * to compute the metric.
+ * TODO(chiniforooshan): Does it make sense to just ignore data from OOPIF
+ * processes, like what we are doing here?
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
@@ -49,9 +49,13 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) return;
 
+    let targetRenderers = chromeHelper.telemetryHelper.renderersWithIR;
+    if (targetRenderers.length === 0) {
+      targetRenderers = Object.values(chromeHelper.rendererHelpers);
+    }
     const queueingDurations = [];
     const ranges = segments.map(s => s.boundsRange);
-    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+    for (const rendererHelper of targetRenderers) {
       const mainThread = rendererHelper.mainThread;
       const compositorThread = rendererHelper.compositorThread;
       if (mainThread === undefined || compositorThread === undefined) continue;

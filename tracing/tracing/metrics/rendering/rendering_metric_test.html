@@ -15,8 +15,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('renderingMetric_gestureIR', function() {
     const model = tr.c.TestUtils.newModel((model) => {
-      const telemetry = model.getOrCreateProcess(1).getOrCreateThread(0);
-      telemetry.asyncSliceGroup.push(
+      const rendererMain = model.getOrCreateProcess(1).getOrCreateThread(0);
+      rendererMain.name = 'CrRendererMain';
+      rendererMain.asyncSliceGroup.push(
           tr.c.TestUtils.newAsyncSliceNamed(
               'Interaction.Gesture_LoadAction', 10, 10));
 
