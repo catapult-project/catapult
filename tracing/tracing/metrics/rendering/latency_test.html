@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
     // The first input latency is 10 - 9 = 1. The second input latency is
     // 8 - 6 = 2.
-    const hist = histograms.getHistogramNamed('input_event_latency_tbmv2');
+    const hist = histograms.getHistogramNamed('input_event_latency');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
     assert.closeTo(1.5, hist.average, 1e-6);
@@ -72,8 +72,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.rendering.addLatencyHistograms(
         histograms, model, [new tr.model.um.Segment(0, 10)]);
 
-    const hist = histograms.getHistogramNamed(
-        'main_thread_scroll_latency_tbmv2');
+    const hist = histograms.getHistogramNamed('main_thread_scroll_latency');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(1, hist.max, 1e-6);
     assert.closeTo(1, hist.average, 1e-6);
@@ -111,7 +110,7 @@ tr.b.unittest.testSuite(function() {
 
     // The chronologically first gesture scroll update latency is 8 - 6 = 2.
     const hist = histograms.getHistogramNamed(
-        'first_gesture_scroll_update_latency_tbmv2');
+        'first_gesture_scroll_update_latency');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
     assert.closeTo(2, hist.average, 1e-6);

@@ -17,8 +17,8 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * input_event_latency_tbmv2
- * =========================
+ * input_event_latency
+ * ===================
  * The distribution of durations between the time when an input event is
  * generated to the time when the GPU service swaps buffers due to the input
  * event. The time when an input is generated is the first of the following
@@ -29,15 +29,15 @@ found in the LICENSE file.
  * 3. Timestamp when the input event is sent from RenderWidgetHost to the
  *    renderer.
  *
- * main_thread_scroll_latency_tbmv2
- * ================================
+ * main_thread_scroll_latency
+ * ==========================
  * The distribution of durations between the time when the main thread scroll
  * listener update is begun to the time when the GPU service swaps buffers due
  * to the scroll event.
  *
- * first_gesture_scroll_update_latency_tbmv2
- * =========================================
- * This shows the latency, as defined in input_event_latency_tbmv2, of the first
+ * first_gesture_scroll_update_latency
+ * ===================================
+ * This shows the latency, as defined in input_event_latency, of the first
  * gesture scroll update input event. The first event can often get delayed by
  * work related to page loading.
  */
@@ -99,7 +99,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     const inputEventLatencies = [...iterAsyncEvents_(
         modelHelper.browserHelpers, ranges, processInputLatencyEvent)];
     histograms.createHistogram(
-        'input_event_latency_tbmv2',
+        'input_event_latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         inputEventLatencies,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),
@@ -110,7 +110,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         Object.values(modelHelper.rendererHelpers), ranges,
         processLatencyEvent)];
     histograms.createHistogram(
-        'main_thread_scroll_latency_tbmv2',
+        'main_thread_scroll_latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         mainThreadScrollLatencies,
         { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 50),
@@ -122,7 +122,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         processGestureScrollUpdateLatencyEvent)].sort();
     if (gestureScrollUpdateLatencies.length) {
       histograms.createHistogram(
-          'first_gesture_scroll_update_latency_tbmv2',
+          'first_gesture_scroll_update_latency',
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
           gestureScrollUpdateLatencies[0][1],
           { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 50, 20),

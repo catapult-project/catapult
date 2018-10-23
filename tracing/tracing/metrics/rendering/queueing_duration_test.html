@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.rendering.addQueueingDurationHistograms(
         histograms, model, [new tr.model.um.Segment(0, 10)]);
 
-    const hist = histograms.getHistogramNamed('queueing_durations_tbmv2');
+    const hist = histograms.getHistogramNamed('queueing_durations');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(3, hist.max, 1e-6);
     assert.closeTo(2, hist.average, 1e-6);

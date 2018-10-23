@@ -15,8 +15,8 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * queueing_durations_tbmv2
- * ========================
+ * queueing_durations
+ * ==================
  * This quantifies how out of sync the compositor and renderer threads are. It
  * is the amount of wall time that elapses between a
  * ScheduledActionSendBeginMainFrame event in the compositor thread and the
@@ -70,7 +70,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
 
     histograms.createHistogram(
-        'queueing_durations_tbmv2',
+        'queueing_durations',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, queueingDurations, {
           binBoundaries:
             tr.v.HistogramBinBoundaries.createExponential(0.01, 2, 20),
