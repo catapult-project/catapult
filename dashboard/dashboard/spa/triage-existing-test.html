@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/triage-existing.html">
+
+<script>
+'use strict';
+suite('triage-existing', function() {
+  test('filterBugs', function() {
+    const bugs = [
+      {revisionRange: tr.b.math.Range.fromExplicitRange(9, 9)},
+      {revisionRange: tr.b.math.Range.fromExplicitRange(9, 10)},
+      {revisionRange: tr.b.math.Range.fromExplicitRange(20, 21)},
+      {revisionRange: tr.b.math.Range.fromExplicitRange(21, 21)},
+    ];
+    const selectedRange = tr.b.math.Range.fromExplicitRange(10, 20);
+    assert.deepEqual([], cp.TriageExisting.filterBugs(bugs, false, undefined));
+    assert.deepEqual([], cp.TriageExisting.filterBugs(
+        undefined, false, selectedRange));
+    assert.strictEqual(bugs, cp.TriageExisting.filterBugs(
+        bugs, false, selectedRange));
+
+    const actual = cp.TriageExisting.filterBugs(bugs, true, selectedRange);
+    assert.notInclude(actual, bugs[0]);
+    assert.include(actual, bugs[1]);
+    assert.include(actual, bugs[2]);
+    assert.notInclude(actual, bugs[3]);
+  });
+});
+</script>
