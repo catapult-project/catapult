@@ -148,7 +148,7 @@ path (`--full-path`).
 E.g.
 
 ```
-go run src/httparchive.go ls /tmp/archive.wprgo --host=example.com --full-path=/index.html
+go run src/httparchive.go ls /tmp/archive.wprgo --host=example.com --full_path=/index.html
 ```
 
 ## Running unit tests
