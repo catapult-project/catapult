@@ -29,4 +29,4 @@ class Api(object):
     Returns:
       A dict with information about: bots, caseTags, cases, and measurements.
     """
-    return self.Request('/describe', params={'test_suite': test_suite})
+    return self.Request('/describe/%s' % test_suite)
