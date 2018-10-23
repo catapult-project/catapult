@@ -102,7 +102,8 @@ def FetchTimeseriesData(args):
     # Get test_paths.
     if args.benchmark is not None:
       api = dashboard_api.PerfDashboardCommunicator(args)
-      test_paths = api.ListTestPaths(args.benchmark, sheriff=args.sheriff)
+      test_paths = api.dashboard.ListTestPaths(
+          args.benchmark, sheriff=args.sheriff)
     elif args.input_file is not None:
       test_paths = list(_ReadTestPathsFromFile(args.input_file))
     elif args.study is not None:

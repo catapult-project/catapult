@@ -18,20 +18,6 @@ class PerfDashboardCommunicator(object):
     credentials = chrome_perf_auth.GetUserCredentials(flags)
     self.dashboard = dashboard_service.Api(credentials)
 
-  def ListTestPaths(self, test_suite, sheriff):
-    """Lists test paths for the given test_suite.
-
-    Args:
-      test_suite: String with test suite (benchmark) to get paths for.
-      sheriff: Include only test paths monitored by the given sheriff rotation,
-          use 'all' to return all test pathds regardless of rotation.
-
-    Returns:
-      A list of test paths. Ex. ['TestPath1', 'TestPath2']
-    """
-    return self.dashboard.Request(
-        '/list_timeseries/%s' % test_suite, params={'sheriff': sheriff})
-
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.
 

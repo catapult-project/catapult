@@ -25,3 +25,9 @@ class TestDashboardApi(unittest.TestCase):
     self.mock_request.assert_called_once_with(
         self.api.SERVICE_URL + '/describe/my_test', method='POST',
         credentials=self.mock_credentials)
+
+  def testListTestPaths(self):
+    self.assertEqual(self.api.ListTestPaths('my_test', 'a_rotation'), 'OK')
+    self.mock_request.assert_called_once_with(
+        self.api.SERVICE_URL + '/list_timeseries/my_test', method='POST',
+        params={'sheriff': 'a_rotation'}, credentials=self.mock_credentials)

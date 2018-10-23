@@ -30,3 +30,17 @@ class Api(object):
       A dict with information about: bots, caseTags, cases, and measurements.
     """
     return self.Request('/describe/%s' % test_suite)
+
+  def ListTestPaths(self, test_suite, sheriff):
+    """Lists test paths for the given test_suite.
+
+    Args:
+      test_suite: String with test suite to get paths for.
+      sheriff: Include only test paths monitored by the given sheriff rotation,
+          use 'all' to return all test paths regardless of rotation.
+
+    Returns:
+      A list of test paths. Ex. ['TestPath1', 'TestPath2']
+    """
+    return self.Request(
+        '/list_timeseries/%s' % test_suite, params={'sheriff': sheriff})
