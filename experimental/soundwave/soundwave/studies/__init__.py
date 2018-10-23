@@ -5,10 +5,11 @@
 
 import pandas  # pylint: disable=import-error
 
+from soundwave.studies import health_study
 from soundwave.studies import v8_study
 
 
-_STUDIES = {'v8': v8_study}
+_STUDIES = {'health': health_study, 'v8': v8_study}
 
 NAMES = sorted(_STUDIES)
 

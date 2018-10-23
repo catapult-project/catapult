@@ -19,8 +19,8 @@ TEST_SUITES = {
 
 
 def GetEmergingMarketStories(api):
-  desciption = api.dashboard.Describe('system_health.memory_mobile')
-  return desciption['caseTags']['emerging_market']
+  description = api.dashboard.Describe('system_health.memory_mobile')
+  return description['caseTags']['emerging_market']
 
 
 def IterTestPaths(api):
