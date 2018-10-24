@@ -20,6 +20,14 @@ from typ import arg_parser
 TEST_SUFFIXES = ['*_test.py', '*_tests.py', '*_unittest.py', '*_unittests.py']
 
 
+def PrintTelemetryHelp():
+  options = browser_options.BrowserFinderOptions()
+  options.browser_type = 'any'
+  parser = options.CreateParser()
+  print '\n\nCommand line arguments handled by Telemetry:'
+  parser.print_help()
+
+
 def ProcessCommandLineOptions(test_class, typ_options, args):
   options = browser_options.BrowserFinderOptions()
   options.browser_type = 'any'
@@ -244,6 +252,7 @@ def RunTests(args):
   try:
     options, extra_args = parser.parse_known_args(args)
   except arg_parser._Bailout:
+    PrintTelemetryHelp()
     return parser.exit_status
   binary_manager.InitDependencyManager(options.client_configs)
 
