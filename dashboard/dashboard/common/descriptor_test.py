@@ -35,6 +35,9 @@ class DescriptorTest(testing_common.TestCase):
     stored_object.Set(descriptor.TWO_TWO_TEST_SUITES_KEY, [
         'TEST_PARTIAL_TEST_SUITE:two_two',
     ])
+    stored_object.Set(descriptor.COMPLEX_CASES_TEST_SUITES_KEY, [
+        'v8:browsing_desktop',
+    ])
     namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY, {
         'a': {
             'alias': 'b',
