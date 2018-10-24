@@ -163,6 +163,11 @@ tr.exportTo('tr.b', function() {
       let deltaValue = context.deltaValue === undefined ? value :
         context.deltaValue;
       deltaValue = Math.abs(deltaValue) * this.scaleBaseUnit.value;
+      if (deltaValue === 0) {
+        // In this special case we need to format to unit the same, if the value
+        // was 1. It is required for example to prevent 0 nJ instead of 0 J.
+        deltaValue = 1;
+      }
       let i = 0;
       while (i < scale.length - 1 &&
              deltaValue / scale[i + 1].value >= 1) {
@@ -394,7 +399,8 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'energyInJoules',
     baseJsonName: 'J',
     formatSpec: {
-      baseSymbol: 'J',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'J', 'JOULE', tr.b.UnitPrefixScale.METRIC, 'JOULE').AUTO,
       minimumFractionDigits: 3
     }
   });
@@ -403,7 +409,8 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'powerInWatts',
     baseJsonName: 'W',
     formatSpec: {
-      baseSymbol: 'W',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'W', 'WATT', tr.b.UnitPrefixScale.METRIC, 'WATT').AUTO,
       minimumFractionDigits: 3
     }
   });
@@ -413,6 +420,8 @@ tr.exportTo('tr.b', function() {
     baseJsonName: 'A',
     formatSpec: {
       baseSymbol: 'A',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'A', 'AMPERE', tr.b.UnitPrefixScale.METRIC, 'AMPERE').AUTO,
       minimumFractionDigits: 3
     }
   });
@@ -422,6 +431,8 @@ tr.exportTo('tr.b', function() {
     baseJsonName: 'V',
     formatSpec: {
       baseSymbol: 'V',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'V', 'VOLT', tr.b.UnitPrefixScale.METRIC, 'VOLT').AUTO,
       minimumFractionDigits: 3
     }
   });
@@ -431,6 +442,8 @@ tr.exportTo('tr.b', function() {
     baseJsonName: 'Hz',
     formatSpec: {
       baseSymbol: 'Hz',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'Hz', 'HERTZ', tr.b.UnitPrefixScale.METRIC, 'HERTZ').AUTO,
       minimumFractionDigits: 3
     }
   });

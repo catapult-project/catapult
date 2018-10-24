@@ -247,7 +247,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_biggerIsBetter', function() {
     checkScalarSpan(this, 0.07, Unit.byName.powerInWatts_smallerIsBetter,
-        '0.070 W');
+        '70.000 mW');
     checkScalarSpan(this, 0, Unit.byName.timeStampInMs_biggerIsBetter,
         '0.000 ms');
     checkScalarSpan(this, -0.003,
@@ -276,7 +276,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_delta_biggerIsBetter', function() {
     checkScalarSpan(this, 0.07, Unit.byName.powerInWattsDelta_biggerIsBetter,
-        '+0.070 W', {expectedColor: 'rgb(0, 128, 0)'});
+        '+70.000 mW', {expectedColor: 'rgb(0, 128, 0)'});
     checkScalarSpan(this, 0, Unit.byName.timeStampInMsDelta_biggerIsBetter,
         '\u00B10.000 ms');
     checkScalarSpan(this, -0.003,

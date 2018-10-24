@@ -282,11 +282,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         Unit.byName.energyInJoules.format(0.4444,
             { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
-        '0.444 J');
+        '444.40 mJ');
     assert.strictEqual(
         Unit.byName.energyInJoules.format(0.6,
             { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
-        '0.60 J');
+        '600.00 mJ');
     assert.strictEqual(
         Unit.byName.sizeInBytesDelta_smallerIsBetter.format(0,
             { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
@@ -316,53 +316,65 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('energyInJoules', function() {
-    assert.strictEqual(Unit.byName.energyInJoules.format(1000), '1,000.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(1000), '1.000 kJ');
     assert.strictEqual(Unit.byName.energyInJoules.format(1), '1.000 J');
-    assert.strictEqual(Unit.byName.energyInJoules.format(.005), '0.005 J');
-    assert.strictEqual(Unit.byName.energyInJoules.format(.0005), '0.001 J');
-    assert.strictEqual(Unit.byName.energyInJoules.format(.0004), '0.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(0), '0.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(.005), '5.000 mJ');
+    assert.strictEqual(
+        Unit.byName.energyInJoules.format(.0005),
+        '500.000 ' + tr.b.GREEK_SMALL_LETTER_MU + 'J');
+    assert.strictEqual(
+        Unit.byName.energyInJoules.format(.0004),
+        '400.000 ' + tr.b.GREEK_SMALL_LETTER_MU + 'J');
   });
 
   test('powerInWatts', function() {
-    assert.strictEqual(Unit.byName.powerInWatts.format(1000), '1,000.000 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(1000), '1.000 kW');
     assert.strictEqual(Unit.byName.powerInWatts.format(1), '1.000 W');
-    assert.strictEqual(Unit.byName.powerInWatts.format(.001), '0.001 W');
-    assert.strictEqual(Unit.byName.powerInWatts.format(.001005), '0.001 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(0), '0.000 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(.001), '1.000 mW');
+    assert.strictEqual(Unit.byName.powerInWatts.format(.001005), '1.005 mW');
   });
 
   test('electricCurrentInAmperes', function() {
     assert.strictEqual(
-        Unit.byName.electricCurrentInAmperes.format(1000), '1,000.000 A');
+        Unit.byName.electricCurrentInAmperes.format(1000), '1.000 kA');
     assert.strictEqual(
         Unit.byName.electricCurrentInAmperes.format(1), '1.000 A');
     assert.strictEqual(
-        Unit.byName.electricCurrentInAmperes.format(.001), '0.001 A');
+        Unit.byName.electricCurrentInAmperes.format(0), '0.000 A');
     assert.strictEqual(
-        Unit.byName.electricCurrentInAmperes.format(.001005), '0.001 A');
+        Unit.byName.electricCurrentInAmperes.format(.001), '1.000 mA');
+    assert.strictEqual(
+        Unit.byName.electricCurrentInAmperes.format(.001005), '1.005 mA');
   });
 
   test('electricPotentialInVolts', function() {
     assert.strictEqual(
-        Unit.byName.electricPotentialInVolts.format(1000), '1,000.000 V');
+        Unit.byName.electricPotentialInVolts.format(1000), '1.000 kV');
     assert.strictEqual(
         Unit.byName.electricPotentialInVolts.format(1), '1.000 V');
     assert.strictEqual(
-        Unit.byName.electricPotentialInVolts.format(.001), '0.001 V');
+        Unit.byName.electricPotentialInVolts.format(0), '0.000 V');
     assert.strictEqual(
-        Unit.byName.electricPotentialInVolts.format(.001005), '0.001 V');
+        Unit.byName.electricPotentialInVolts.format(.001), '1.000 mV');
+    assert.strictEqual(
+        Unit.byName.electricPotentialInVolts.format(.001005), '1.005 mV');
   });
 
   test('frequencyInHertz', function() {
     assert.strictEqual(
-        Unit.byName.frequencyInHertz.format(1000), '1,000.000 Hz');
+        Unit.byName.frequencyInHertz.format(1000), '1.000 kHz');
     assert.strictEqual(Unit.byName.frequencyInHertz.format(1), '1.000 Hz');
-    assert.strictEqual(Unit.byName.frequencyInHertz.format(.001), '0.001 Hz');
+    assert.strictEqual(Unit.byName.frequencyInHertz.format(0), '0.000 Hz');
+    assert.strictEqual(Unit.byName.frequencyInHertz.format(.001), '1.000 mHz');
     assert.strictEqual(
-        Unit.byName.frequencyInHertz.format(.001005), '0.001 Hz');
+        Unit.byName.frequencyInHertz.format(.001005), '1.005 mHz');
   });
 
   test('unitlessNumber', function() {
     assert.strictEqual(Unit.byName.unitlessNumber.format(1), '1.000');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(0), '0.000');
     assert.strictEqual(Unit.byName.unitlessNumber.format(1.23), '1.230');
     assert.strictEqual(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
     assert.strictEqual(Unit.byName.unitlessNumber.format(0), '0.000');
