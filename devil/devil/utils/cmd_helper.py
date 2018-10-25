@@ -157,7 +157,7 @@ def _ValidateAndLogCommand(args, cwd, shell):
     cwd = ''
   else:
     cwd = ':' + cwd
-  logger.info('[host]%s> %s', cwd, args)
+  logger.debug('[host]%s> %s', cwd, args)
   return args
 
 
