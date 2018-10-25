@@ -23,8 +23,8 @@ class TestDashboardApi(unittest.TestCase):
   def testDescribe(self):
     self.assertEqual(self.api.Describe('my_test'), 'OK')
     self.mock_request.assert_called_once_with(
-        self.api.SERVICE_URL + '/describe/my_test', method='POST',
-        credentials=self.mock_credentials)
+        self.api.SERVICE_URL + '/describe', method='POST',
+        params={'test_suite': 'my_test'}, credentials=self.mock_credentials)
 
   def testListTestPaths(self):
     self.assertEqual(self.api.ListTestPaths('my_test', 'a_rotation'), 'OK')

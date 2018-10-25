@@ -29,7 +29,7 @@ class Api(object):
     Returns:
       A dict with information about: bots, caseTags, cases, and measurements.
     """
-    return self.Request('/describe/%s' % test_suite)
+    return self.Request('/describe', params={'test_suite': test_suite})
 
   def ListTestPaths(self, test_suite, sheriff):
     """Lists test paths for the given test_suite.
