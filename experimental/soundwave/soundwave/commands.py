@@ -5,6 +5,7 @@
 import pandas  # pylint: disable=import-error
 import sqlite3
 
+from common import utils
 from soundwave import dashboard_api
 from soundwave import pandas_sqlite
 from soundwave import studies
@@ -107,7 +108,7 @@ def FetchTimeseriesData(args):
     elif args.input_file is not None:
       test_paths = list(_ReadTestPathsFromFile(args.input_file))
     elif args.study is not None:
-      test_paths = list(studies.IterTestPaths(api, args.study))
+      test_paths = list(args.study.IterTestPaths(api))
     else:
       raise ValueError('No source for test paths specified')
 
@@ -139,5 +140,6 @@ def FetchTimeseriesData(args):
         df = tables.timeseries.GetTimeSeries(con, test_path)
         dfs.append(df)
     df = studies.PostProcess(pandas.concat(dfs, ignore_index=True))
-    df.to_csv(args.output_csv, index=False)
+    with utils.OpenWrite(args.output_csv) as f:
+      df.to_csv(f, index=False)
     print 'Wrote timeseries data to:', args.output_csv

@@ -4,6 +4,8 @@
 # found in the LICENSE file.
 import logging
 
+from tools import gsutil
+
 
 def VerboseLevel(count):
   if count == 0:
@@ -16,3 +18,11 @@ def VerboseLevel(count):
 
 def ConfigureLogging(verbose_count):
   logging.basicConfig(level=VerboseLevel(verbose_count))
+
+
+def OpenWrite(filepath):
+  """Open file for writing, optionally supporting cloud storage paths."""
+  if filepath.startswith('gs://'):
+    return gsutil.OpenWrite(filepath)
+  else:
+    return open(filepath, 'w')

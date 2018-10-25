@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+CLOUD_PATH = 'gs://chome-health-tvdata/datasets/v8_report.csv'
+
 ANDROID_GO = 'ChromiumPerf/android-go-perf'
 V8_EFFECTIVE_SIZE = (
     'memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size')

@@ -14,8 +14,8 @@ _STUDIES = {'health': health_study, 'v8': v8_study}
 NAMES = sorted(_STUDIES)
 
 
-def IterTestPaths(api, study):
-  return _STUDIES[study].IterTestPaths(api)
+def GetStudy(study):
+  return _STUDIES[study]
 
 
 def PostProcess(df):

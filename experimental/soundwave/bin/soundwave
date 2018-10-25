@@ -25,7 +25,7 @@ DEFAULT_DATABASE_PATH = os.path.join(
     SOUNDWAVE_ROOT_PATH, 'soundwave.db')
 
 
-def Main():
+def main():
   # Args for API access.
   parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
   # Default args for all actions.
@@ -70,11 +70,17 @@ def Main():
            'per line.')
   subparser.add_argument(
       '-f', '--filters', action='append',
-      help=('Only get data for timeseries whose path contains all the given '
-            'substrings.'))
-  subparser.add_argument(
-      '--output-csv', metavar='FILENAME',
-      help='Additionally export the timeseries data as a csv file.')
+      help='Only get data for timeseries whose path contains all the given '
+           'substrings.')
+  group = subparser.add_mutually_exclusive_group()
+  group.add_argument(
+      '--output-csv', metavar='PATH',
+      help='Export the timeseries data to a csv file, the PATH given may be '
+           'either a local or a cloud storage (i.e. gs://...) path.')
+  group.add_argument(
+      '--upload-csv', action='store_true',
+      help='Export the timeseries data to the default cloud storage path for '
+           'a given --study.')
 
   args = parser.parse_args()
 
@@ -82,10 +88,16 @@ def Main():
   if args.action == 'alerts':
     commands.FetchAlertsData(args)
   elif args.action == 'timeseries':
+    if args.study is not None:
+      args.study = studies.GetStudy(args.study)
+      if args.upload_csv:
+        args.output_csv = args.study.CLOUD_PATH
+    elif args.upload_csv:
+      return 'ERROR: --upload-csv also requires a --study to be specified'
     commands.FetchTimeseriesData(args)
   else:
     raise NotImplementedError(args.action)
 
 
 if __name__ == '__main__':
-  Main()
+  sys.exit(main())
