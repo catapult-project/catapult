@@ -31,6 +31,7 @@ OAUTH_CLIENT_ID_WHITELIST = [
     # These client id's are used from Fuchsia CI builders.
     'garnet-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
     'global-integration-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
+    'fuchsia-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
     'peridot-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
     'topaz-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
     'vendor-google-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
