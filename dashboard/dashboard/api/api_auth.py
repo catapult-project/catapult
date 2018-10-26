@@ -39,6 +39,8 @@ OAUTH_CLIENT_ID_WHITELIST = [
     '113172445342431053212',
     # Used by luci builders to upload perf data.
     'chrome-ci-builder@chops-service-accounts.iam.gserviceaccount.com',
+    # This oauth client id is used to upload Android performance metrics.
+    '528014426327-fptk0tpfi4orpcol559k77v7bi9onpq5.apps.googleusercontent.com',
 ]
 
 
