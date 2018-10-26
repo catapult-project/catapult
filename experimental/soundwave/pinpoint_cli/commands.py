@@ -35,6 +35,12 @@ def StartJobsFromConfig(api, args):
     print '-', api.pinpoint.NewJob(**config)['jobUrl']
 
 
+def CheckJobStatus(api, job_ids):
+  for job_id in job_ids:
+    job = api.pinpoint.Job(job_id)
+    print '%s: %s' % (job_id, job['status'].lower())
+
+
 def DownloadJobResultsAsCsv(api, job_ids, output_file):
   """Download the perf results of a job as a csv file."""
   with open(output_file, 'wb') as f:

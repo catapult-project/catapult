@@ -31,18 +31,25 @@ def main():
       help='Increase verbosity level')
   subparsers = parser.add_subparsers(dest='action')
   subparsers.required = True
-  # Subparser args for downloading the perf results of a job as a csv file.
-  subparser = subparsers.add_parser('get-csv')
+
+  subparser = subparsers.add_parser(
+      'status', help='check the status of some pinpoint jobs')
+  subparser.add_argument(
+      'job_ids', metavar='JOB_ID', nargs='+',
+      help='one or more pinpoint job ids')
+
+  subparser = subparsers.add_parser(
+      'get-csv', help='download the perf results from jobs as a csv file')
   subparser.add_argument(
       '--output', metavar='OUTPUT_CSV', default='job_results.csv',
       help='path to a file where to store perf results as a csv file'
            ' (default: %(default)s)')
   subparser.add_argument(
       'job_ids', metavar='JOB_ID', nargs='+',
-      help='id of a pinpoint job for which to get results, one or more ids'
-           ' can be speficied')
-  # Subparser args for starting new jobs.
-  subparser = subparsers.add_parser('start-jobs')
+      help='one or more pinpoint job ids')
+
+  subparser = subparsers.add_parser(
+      'start-jobs', help='start some new pinpoint jobs')
   subparser.add_argument(
       'config', metavar='CONFIG',
       help='name of a job configuration (see job_configs dir)')
@@ -57,7 +64,9 @@ def main():
   utils.ConfigureLogging(args.verbose)
 
   api = services.UserServices(args)
-  if args.action == 'get-csv':
+  if args.action == 'status':
+    return commands.CheckJobStatus(api, args.job_ids)
+  elif args.action == 'get-csv':
     return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
   elif args.action == 'start-jobs':
     return commands.StartJobsFromConfig(api, args)
