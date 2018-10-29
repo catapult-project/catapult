@@ -12,6 +12,7 @@ from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
+from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from tracing.value.diagnostics import generic_set
 
@@ -312,10 +313,9 @@ class Benchmark(command_line.Command):
       Otherwise, a TimelineBasedMeasurement instance.
     """
     is_page_test = issubclass(self.test, legacy_page_test.LegacyPageTest)
-    is_tbm = issubclass(
-        self.test, timeline_based_measurement.TimelineBasedMeasurement)
-    if not is_page_test and not is_tbm:
-      raise TypeError('"%s" is not a PageTest or a TimelineBasedMeasurement.' %
+    is_story_test = issubclass(self.test, story_test.StoryTest)
+    if not is_page_test and not is_story_test:
+      raise TypeError('"%s" is not a PageTest or a StoryTest.' %
                       self.test.__name__)
     if is_page_test:
       # TODO: assert that CreateCoreTimelineBasedMeasurementOptions is not

@@ -15,7 +15,6 @@ from telemetry.internal.util import binary_manager
 from telemetry.page import legacy_page_test
 from telemetry.util import matching
 from telemetry.util import wpr_modes
-from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
 
 from py_utils import discover
@@ -140,7 +139,7 @@ class WprRecorder(object):
     self._ProcessCommandLineArgs()
     if self._benchmark is not None:
       test = self._benchmark.CreatePageTest(self.options)
-      if isinstance(test, timeline_based_measurement.TimelineBasedMeasurement):
+      if not isinstance(test, legacy_page_test.LegacyPageTest):
         test = timeline_based_page_test.TimelineBasedPageTest()
       # This must be called after the command line args are added.
       self._record_page_test.page_test = test

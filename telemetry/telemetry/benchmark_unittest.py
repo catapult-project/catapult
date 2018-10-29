@@ -99,7 +99,7 @@ class BenchmarkTest(unittest.TestCase):
       test = UnknownTestType
 
     type_error_regex = (
-        '"UnknownTestType" is not a PageTest or a TimelineBasedMeasurement')
+        '"UnknownTestType" is not a PageTest or a StoryTest')
     with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
 
