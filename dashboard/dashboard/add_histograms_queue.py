@@ -373,7 +373,7 @@ def _AddStdioUri(name, link_list, row_dict):
   if isinstance(link_list, list):
     row_dict['supplemental_columns'][name] = '[%s](%s)' % tuple(link_list)
   # Support busted format until infra changes roll
-  elif isinstance(link_list, str):
+  elif isinstance(link_list, basestring):
     row_dict['supplemental_columns'][name] = link_list
 
 
