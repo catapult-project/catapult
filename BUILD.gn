@@ -89,6 +89,7 @@ group("telemetry_chrome_test_support") {
     "third_party/oauth2client/",
     "third_party/pipeline/",
     "third_party/polymer/",
+    "third_party/polymer-svg-template/",
     "third_party/polymer3/",
     "third_party/pyfakefs/",
     "third_party/pyserial/",
