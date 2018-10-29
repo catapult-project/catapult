@@ -125,8 +125,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--remote-debugging-port=0',
         # Open a maximized window.
         '--start-maximized',
-        # Disable system startup sound.
+        # Disable sounds.
         '--ash-disable-system-sounds',
+        '--mute-audio',
         # Skip user image selection screen, and post login screens.
         '--oobe-skip-postlogin',
         # Disable chrome logging redirect. crbug.com/724273.
