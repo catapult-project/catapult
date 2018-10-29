@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 
+CLOUD_PATH = 'gs://chome-health-tvdata/datasets/health_study.csv'
+
 OVERALL_PSS = ('memory:{browser}:all_processes:reported_by_os:system_memory'
                ':proportional_resident_size_avg')
 
