@@ -31,13 +31,15 @@ class _SwarmingTest(unittest.TestCase):
     server = 'https://chromium-review.googlesource.com'
     response = gerrit_service.GetChange(server, 672011)
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce(server + '/changes/672011', o=None)
+    self._AssertRequestMadeOnce(server + '/changes/672011',
+                                use_auth=False, o=None)
 
   def testGetChangeWithFields(self):
     server = 'https://chromium-review.googlesource.com'
     response = gerrit_service.GetChange(server, 672011, fields=('FIELD_NAME',))
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce(server + '/changes/672011', o=('FIELD_NAME',))
+    self._AssertRequestMadeOnce(server + '/changes/672011',
+                                use_auth=False, o=('FIELD_NAME',))
 
   def testPostChangeComment(self):
     server = 'https://chromium-review.googlesource.com'

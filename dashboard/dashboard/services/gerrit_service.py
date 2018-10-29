@@ -19,7 +19,8 @@ NotFoundError = request.NotFoundError
 
 def GetChange(server_url, change_id, fields=None):
   url = '%s/changes/%s' % (server_url, change_id)
-  return request.RequestJson(url, o=fields)
+  # TODO: Re-add auth after https://crbug.com/892756 is fixed.
+  return request.RequestJson(url, use_auth=False, o=fields)
 
 
 def PostChangeComment(server_url, change_id, comment):
