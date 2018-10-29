@@ -2,8 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import hashlib
 import os
 import re
+import stat
+import subprocess
+import sys
+import urllib
 
 import py_utils
 
@@ -17,13 +22,77 @@ TRACE_START_REGEXP = r'TRACE\:'
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 
+# Constants required for converting perfetto traces.
+LINUX_SHA1 = 'cd9dbc5c92ed0167245c4559bf1971bb21378928'
+MAC_SHA1 = 'aed4ad02da526a3f1e4f9df47d4989ae9305b30e'
+T2T_OUTPUT = 'trace.systrace'
 
 def try_create_agent(options):
   if options.from_file is not None:
+    with open(options.from_file, 'rb') as f_in:
+      if is_perfetto(f_in):
+        if convert_perfetto_trace(options.from_file):
+          options.from_file = T2T_OUTPUT
+        else:
+          print ('Perfetto trace file: ' + options.from_file +
+                 ' could not be converted.')
+          sys.exit(1)
     return AtraceFromFileAgent(options)
   else:
     return False
 
+def convert_perfetto_trace(in_file):
+  t2t_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                          '../trace_to_text'))
+  loaded_t2t = False
+  if sys.platform.startswith('linux'):
+    t2t_path += '-linux-' + LINUX_SHA1
+    loaded_t2t = load_trace_to_text(t2t_path, 'linux', LINUX_SHA1)
+  elif sys.platform.startswith('darwin'):
+    t2t_path += '-mac-' + MAC_SHA1
+    loaded_t2t = load_trace_to_text(t2t_path, 'mac', MAC_SHA1)
+  if loaded_t2t:
+    os.chmod(t2t_path, stat.S_IXUSR)
+    return subprocess.call([t2t_path, 'systrace', in_file, T2T_OUTPUT]) == 0
+  return False
+
+def load_trace_to_text(t2t_path, platform, sha_value):
+  if not os.path.exists(t2t_path):
+    with open(t2t_path, 'w') as t2t:
+      url = ('https://storage.googleapis.com/chromium-telemetry/binary_dependencies/trace_to_text-'
+             + platform + '-' + sha_value)
+      return urllib.urlretrieve(url, t2t_path)
+  os.chmod(t2t_path, stat.S_IRUSR)
+  with open(t2t_path, 'rb') as t2t:
+    existing_file_hash = hashlib.sha1(t2t.read()).hexdigest()
+    if existing_file_hash != sha_value:
+      print 'Hash of trace_to_text binary does not match.'
+      os.remove(t2t_path)
+      return False
+    return True
+
+def is_perfetto(from_file):
+  # Starts with a preamble for field ID=1 (TracePacket)
+  if ord(from_file.read(1)) != 0x0a:
+    return False
+  for _ in range(10): # Check the first 10 packets are structured correctly
+    # Then a var int that specifies field size
+    field_size = 0
+    shift = 0
+    while True:
+      c = ord(from_file.read(1))
+      field_size |= (c & 0x7f) << shift
+      shift += 7
+      if not c & 0x80:
+        break
+    # The packet itself
+    from_file.seek(field_size, os.SEEK_CUR)
+    # The preamble for the next field ID=1 (TracePacket)
+    if ord(from_file.read(1)) != 0x0a:
+      return False
+  # Go back to the beginning of the file
+  from_file.seek(0)
+  return True
 
 class AtraceFromFileConfig(tracing_agents.TracingConfig):
   def __init__(self, from_file):
