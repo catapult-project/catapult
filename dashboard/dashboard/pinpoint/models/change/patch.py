@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import re
 import urlparse
 
 from dashboard.services import gerrit_service
@@ -101,23 +102,21 @@ class GerritPatch(collections.namedtuple(
     server = urlparse.urlunsplit(
         (url_parts.scheme, url_parts.netloc, '', '', ''))
 
-    path_parts = iter(url.split('/'))
-    for path_part in path_parts:
-      if path_part == '+':
-        break
+    change_rev_match = re.match(r'^.*\/\+\/(\d+)(?:\/(\d+))?\/?$', url)
+    change_match = re.match(r'^\/(\d+)\/?$', url_parts.path)
+    if change_rev_match:
+      change = change_rev_match.group(1)
+      revision = change_rev_match.group(2)
+    elif change_match:  # support URLs returned by the 'git cl issue' command
+      change = change_match.group(1)
+      revision = None
     else:
       raise ValueError('Unknown patch URL format: ' + url)
 
-    change = path_parts.next()
-    try:
-      revision = int(path_parts.next())
-    except StopIteration:
-      revision = None
-
     return cls.FromDict({
         'server': server,
-        'change': change,
-        'revision': revision,
+        'change': int(change),
+        'revision': int(revision) if revision else None,
     })
 
   @classmethod
