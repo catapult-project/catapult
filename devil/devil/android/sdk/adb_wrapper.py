@@ -19,6 +19,7 @@ import posixpath
 import re
 import subprocess
 
+from devil import base_error
 from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
@@ -96,7 +97,11 @@ def _GetVersion():
 
 
 def _ShouldRetryAdbCmd(exc):
-  return not isinstance(exc, device_errors.NoAdbError)
+  # Errors are potentially transient and should be retried, with the exception
+  # of NoAdbError. Exceptions [e.g. generated from SIGTERM handler] should be
+  # raised.
+  return (isinstance(exc, base_error.BaseError) and
+          not isinstance(exc, device_errors.NoAdbError))
 
 
 DeviceStat = collections.namedtuple('DeviceStat',
