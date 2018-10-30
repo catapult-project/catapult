@@ -1021,7 +1021,7 @@ class DeviceUtils(object):
   def RunShellCommand(self, cmd, shell=False, check_return=False, cwd=None,
                       env=None, run_as=None, as_root=False, single_line=False,
                       large_output=False, raw_output=False,
-                      ensure_logs_on_timeout=False, timeout=None, retries=None):
+                      ensure_logs_on_timeout=True, timeout=None, retries=None):
     """Run an ADB shell command.
 
     The command to run |cmd| should be a sequence of program arguments
