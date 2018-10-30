@@ -161,6 +161,8 @@ tr.b.unittest.testSuite(function() {
     const mmu = histograms.getHistogramNamed(
         'v8-gc-mark-compactor-mmu-100ms_window');
     assert.closeTo(0.3, mmu.min, 1e-3);
+    assert.strictEqual(mmu.summaryOptions.get('min'), true);
+    assert.strictEqual(mmu.summaryOptions.get('max'), false);
   });
 
   test('markCompactorSummary', function() {

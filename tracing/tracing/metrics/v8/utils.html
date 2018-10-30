@@ -413,7 +413,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     const histogramMap = new Map();
 
     for (const timeWindow of timeWindows) {
-      const histogramOptions = {
+      const summaryOptions = {
         avg: false,
         count: false,
         max: false,
@@ -421,10 +421,12 @@ tr.exportTo('tr.metrics.v8.utils', function() {
         std: false,
         sum: false
       };
+      const description =
+          `The minimum mutator utilization in ${timeWindow}ms time window`;
       const histogram = histograms.createHistogram(
           `${metricName}-${timeWindow}ms_window`,
           tr.b.Unit.byName.normalizedPercentage_biggerIsBetter,
-          [], histogramOptions);
+          [], {summaryOptions, description});
       histogramMap.set(timeWindow, histogram);
     }
 
