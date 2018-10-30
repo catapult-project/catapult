@@ -43,18 +43,18 @@ tr.b.unittest.testSuite(function() {
 
     // Verify the browser and renderer main threads and IO threads CPU usage.
     let hist = histograms.getHistogramNamed(
-        'thread_browser_cpu_time_per_second_tbmv2');
+        'thread_browser_cpu_time_per_second');
     assert.closeTo(0.2, hist.min, 1e-6);
     assert.closeTo(0.2, hist.max, 1e-6);
     assert.closeTo(0.2, hist.average, 1e-6);
 
     hist = histograms.getHistogramNamed(
-        'thread_renderer_main_cpu_time_per_second_tbmv2');
+        'thread_renderer_main_cpu_time_per_second');
     assert.closeTo(0.4, hist.min, 1e-6);
     assert.closeTo(0.4, hist.max, 1e-6);
     assert.closeTo(0.4, hist.average, 1e-6);
 
-    hist = histograms.getHistogramNamed('thread_io_cpu_time_per_second_tbmv2');
+    hist = histograms.getHistogramNamed('thread_IO_cpu_time_per_second');
     assert.closeTo(0.1, hist.min, 1e-6);
     assert.closeTo(0.1, hist.max, 1e-6);
     assert.closeTo(0.1, hist.average, 1e-6);
@@ -62,13 +62,13 @@ tr.b.unittest.testSuite(function() {
     // Also, verify fast_path threads, that includs IO threads and the browser
     // main thread, but not the renderer main thread.
     hist = histograms.getHistogramNamed(
-        'thread_fast_path_cpu_time_per_second_tbmv2');
+        'thread_total_fast_path_cpu_time_per_second');
     assert.closeTo(0.3, hist.min, 1e-6);
     assert.closeTo(0.3, hist.max, 1e-6);
     assert.closeTo(0.3, hist.average, 1e-6);
 
     // Verify sum of all threads.
-    hist = histograms.getHistogramNamed('thread_all_cpu_time_per_second_tbmv2');
+    hist = histograms.getHistogramNamed('thread_total_all_cpu_time_per_second');
     assert.closeTo(0.7, hist.min, 1e-6);
     assert.closeTo(0.7, hist.max, 1e-6);
     assert.closeTo(0.7, hist.average, 1e-6);
@@ -103,18 +103,18 @@ tr.b.unittest.testSuite(function() {
 
     // Verify the browser and renderer main threads and IO threads CPU usage.
     let hist = histograms.getHistogramNamed(
-        'thread_browser_cpu_time_per_frame_tbmv2');
+        'thread_browser_cpu_time_per_frame');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
     assert.closeTo(2, hist.average, 1e-6);
 
     hist = histograms.getHistogramNamed(
-        'thread_renderer_main_cpu_time_per_frame_tbmv2');
+        'thread_renderer_main_cpu_time_per_frame');
     assert.closeTo(4, hist.min, 1e-6);
     assert.closeTo(4, hist.max, 1e-6);
     assert.closeTo(4, hist.average, 1e-6);
 
-    hist = histograms.getHistogramNamed('thread_io_cpu_time_per_frame_tbmv2');
+    hist = histograms.getHistogramNamed('thread_IO_cpu_time_per_frame');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(1, hist.max, 1e-6);
     assert.closeTo(1, hist.average, 1e-6);
@@ -122,13 +122,13 @@ tr.b.unittest.testSuite(function() {
     // Also, verify fast_path threads, that includs IO threads and the browser
     // main thread, but not the renderer main thread.
     hist = histograms.getHistogramNamed(
-        'thread_fast_path_cpu_time_per_frame_tbmv2');
+        'thread_total_fast_path_cpu_time_per_frame');
     assert.closeTo(3, hist.min, 1e-6);
     assert.closeTo(3, hist.max, 1e-6);
     assert.closeTo(3, hist.average, 1e-6);
 
     // Verify sum of all threads.
-    hist = histograms.getHistogramNamed('thread_all_cpu_time_per_frame_tbmv2');
+    hist = histograms.getHistogramNamed('thread_total_all_cpu_time_per_frame');
     assert.closeTo(7, hist.min, 1e-6);
     assert.closeTo(7, hist.max, 1e-6);
     assert.closeTo(7, hist.average, 1e-6);
@@ -163,7 +163,7 @@ tr.b.unittest.testSuite(function() {
     // The first slice is in the first segment, using 2ms of CPU. The rest are
     // in the second segment, using 1 + 4 + 1 = 6ms of CPU.
     const hist = histograms.getHistogramNamed(
-        'thread_all_cpu_time_per_frame_tbmv2');
+        'thread_total_all_cpu_time_per_frame');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(6, hist.max, 1e-6);
     assert.closeTo(4, hist.average, 1e-6);
@@ -198,13 +198,12 @@ tr.b.unittest.testSuite(function() {
 
     // Verify the browser and renderer main threads and IO threads CPU usage.
     let hist = histograms.getHistogramNamed(
-        'thread_browser_cpu_time_per_frame_tbmv2');
+        'thread_browser_cpu_time_per_frame');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
     assert.closeTo(2, hist.average, 1e-6);
 
-    hist = histograms.getHistogramNamed(
-        'thread_other_cpu_time_per_frame_tbmv2');
+    hist = histograms.getHistogramNamed('thread_other_cpu_time_per_frame');
     assert.closeTo(5, hist.min, 1e-6);
     assert.closeTo(5, hist.max, 1e-6);
     assert.closeTo(5, hist.average, 1e-6);
