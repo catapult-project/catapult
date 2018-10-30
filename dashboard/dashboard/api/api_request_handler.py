@@ -5,6 +5,7 @@
 import json
 import logging
 import re
+import traceback
 
 import webapp2
 
@@ -69,7 +70,7 @@ class ApiRequestHandler(webapp2.RequestHandler):
       self.WriteErrorMessage(e.message, 404)
     except ForbiddenError as e:
       self.WriteErrorMessage(e.message, 403)
-    except BadRequestError as e:
+    except (BadRequestError, KeyError, TypeError, ValueError) as e:
       self.WriteErrorMessage(e.message, 400)
 
   def options(self, *_):  # pylint: disable=invalid-name
@@ -102,6 +103,6 @@ class ApiRequestHandler(webapp2.RequestHandler):
     self.response.headers.add_header('Access-Control-Max-Age', '3600')
 
   def WriteErrorMessage(self, message, status):
-    logging.error('Error: %r', message)
+    logging.error(traceback.format_exc())
     self.response.set_status(status)
     self.response.out.write(json.dumps({'error': message}))

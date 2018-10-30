@@ -20,16 +20,13 @@ class New(api_request_handler.ApiRequestHandler):
   """Handler that cooks up a fresh Pinpoint job."""
 
   def PrivilegedPost(self):
-    try:
-      job = _CreateJob(self.request)
-      job.Start()
+    job = _CreateJob(self.request)
+    job.Start()
 
-      return {
-          'jobId': job.job_id,
-          'jobUrl': job.url,
-      }
-    except (KeyError, TypeError, ValueError) as e:
-      raise api_request_handler.BadRequestError(e.message)
+    return {
+        'jobId': job.job_id,
+        'jobUrl': job.url,
+    }
 
 
 def _CreateJob(request):
