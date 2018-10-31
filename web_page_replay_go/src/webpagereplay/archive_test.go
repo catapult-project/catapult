@@ -135,3 +135,49 @@ func TestNoHeadersMatch(t *testing.T) {
 		t.Fatalf("expected %s , actual %s\n", want, got)
 	}
 }
+
+func TestMerge(t *testing.T) {
+	a := newArchive()
+	b := newArchive()
+	const host = "example.com"
+	a.Requests[host] = make(map[string][]*ArchivedRequest)
+	b.Requests[host] = make(map[string][]*ArchivedRequest)
+	// Create three requests with very closely matching params; only the first one
+	// is different.
+	const u1 = "https://example.com/index.html?a=AB&b=1&c=2"
+	a.Requests[host][u1] = []*ArchivedRequest{createArchivedRequest(t, u1, nil)}
+	b.Requests[host][u1] = []*ArchivedRequest{createArchivedRequest(t, u1, nil)}
+
+	const u2 = "https://example.com/index.html?a=A&b=1&c=2"
+	a.Requests[host][u2] = []*ArchivedRequest{createArchivedRequest(t, u2, nil)}
+
+	const u3 = "https://example.com/index.html?a=B&b=1&c=2"
+	b.Requests[host][u3] = []*ArchivedRequest{createArchivedRequest(t, u3, nil)}
+
+	// Merging an archive with itself should yield the same results.
+	if len(a.Requests[host]) != 2 {
+		t.Fatalf("Expected 2 requests in archive a")
+	}
+	_ = a.Merge(&a)
+	if len(a.Requests[host]) != 2 {
+		t.Fatalf("Expected 2 requests in archive a")
+	}
+
+	if len(b.Requests[host]) != 2 {
+		t.Fatalf("Expected 2 requests in archive b")
+	}
+	_ = b.Merge(&b)
+	if len(b.Requests[host]) != 2 {
+		t.Fatalf("Expected 2 requests in archive b")
+	}
+
+	// Merge b into a.
+	_ = a.Merge(&b)
+	if size := len(a.Requests[host]); size != 3 {
+		t.Fatalf("Expected 3 requests in archive a but got %d", size)
+	}
+	if len(b.Requests[host]) != 2 {
+		t.Fatalf("Expected 2 requests in archive b")
+	}
+
+}

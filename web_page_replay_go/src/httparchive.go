@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,7 +23,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const usage = "%s [ls|cat|edit] [options] archive_file [output_file]"
+const usage = "%s [ls|cat|edit|merge] [options] archive_file [output_file]"
 
 type Config struct {
 	method, host, fullPath string
@@ -77,9 +78,9 @@ func fail(msg string) {
 }
 
 func list(cfg *Config, a *webpagereplay.Archive, printFull bool) {
-	a.ForEach(func(req *http.Request, resp *http.Response) {
+	a.ForEach(func(fullURL *url.URL, req *http.Request, resp *http.Response) bool {
 		if !cfg.requestEnabled(req) {
-			return
+			return true
 		}
 		if printFull {
 			fmt.Fprint(os.Stdout, "----------------------------------------\n")
@@ -94,6 +95,7 @@ func list(cfg *Config, a *webpagereplay.Archive, printFull bool) {
 		} else {
 			fmt.Fprintf(os.Stdout, "%s %s %s\n", req.Method, req.Host, req.URL)
 		}
+		return true
 	})
 }
 
@@ -193,21 +195,41 @@ func edit(cfg *Config, a *webpagereplay.Archive, outfile string) {
 		return
 	}
 
+	if !writeArchive(newA, outfile) {
+		return
+	}
+
+	fmt.Printf("Wrote edited archive to %s\n", outfile)
+}
+
+func writeArchive(archive *webpagereplay.Archive, outfile string) bool {
 	outf, err := os.OpenFile(outfile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
 	if err != nil {
 		fmt.Printf("Error opening output file %s: %v\n", outfile, err)
-		return
+		return false
 	}
-	err0 := newA.Serialize(outf)
+	err0 := archive.Serialize(outf)
 	err1 := outf.Close()
 	if err0 != nil || err1 != nil {
 		if err0 == nil {
 			err0 = err1
 		}
 		fmt.Printf("Error writing edited archive to %s: %v\n", outfile, err0)
+		return false
+	}
+	return true
+}
+
+func merge(cfg *Config, archive *webpagereplay.Archive, input *webpagereplay.Archive, outfile string) {
+	if err := archive.Merge(input); err != nil {
+		fmt.Printf("Merge archives failed: %v", err)
 		return
 	}
 
+	if !writeArchive(archive, outfile) {
+		fmt.Printf("Merge archives failed")
+		return
+	}
 	fmt.Printf("Wrote edited archive to %s\n", outfile)
 }
 
@@ -247,8 +269,8 @@ func main() {
 			return nil
 		}
 	}
-	loadArchiveOrDie := func(c *cli.Context) *webpagereplay.Archive {
-		archive, err := webpagereplay.OpenArchive(c.Args().Get(0))
+	loadArchiveOrDie := func(c *cli.Context, arg int) *webpagereplay.Archive {
+		archive, err := webpagereplay.OpenArchive(c.Args().Get(arg))
 		if err != nil {
 			cli.ShowSubcommandHelp(c)
 			os.Exit(1)
@@ -264,7 +286,7 @@ func main() {
 			ArgsUsage: "archive",
 			Flags:     cfg.Flags(),
 			Before:    checkArgs("ls", 1),
-			Action:    func(c *cli.Context) { list(cfg, loadArchiveOrDie(c), false) },
+			Action:    func(c *cli.Context) { list(cfg, loadArchiveOrDie(c, 0), false) },
 		},
 		cli.Command{
 			Name:      "cat",
@@ -272,7 +294,7 @@ func main() {
 			ArgsUsage: "archive",
 			Flags:     cfg.Flags(),
 			Before:    checkArgs("cat", 1),
-			Action:    func(c *cli.Context) { list(cfg, loadArchiveOrDie(c), true) },
+			Action:    func(c *cli.Context) { list(cfg, loadArchiveOrDie(c, 0), true) },
 		},
 		cli.Command{
 			Name:      "edit",
@@ -280,7 +302,17 @@ func main() {
 			ArgsUsage: "input_archive output_archive",
 			Flags:     cfg.Flags(),
 			Before:    checkArgs("edit", 2),
-			Action:    func(c *cli.Context) { edit(cfg, loadArchiveOrDie(c), c.Args().Get(1)) },
+			Action:    func(c *cli.Context) { edit(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1)) },
+		},
+		cli.Command{
+			Name:      "merge",
+			Usage:     "Merge the requests/responses of two archives",
+			ArgsUsage: "base_archive input_archive output_archive",
+			Flags:     cfg.Flags(),
+			Before:    checkArgs("edit", 3),
+			Action: func(c *cli.Context) {
+				merge(cfg, loadArchiveOrDie(c, 0), loadArchiveOrDie(c, 1), c.Args().Get(2))
+			},
 		},
 	}
 	app.Usage = "HTTP Archive Utils"

@@ -110,16 +110,19 @@ func OpenArchive(path string) (*Archive, error) {
 }
 
 // ForEach applies f to all requests in the archive.
-func (a *Archive) ForEach(f func(req *http.Request, resp *http.Response)) {
+func (a *Archive) ForEach(f func(url *url.URL, req *http.Request, resp *http.Response) bool) {
 	for _, urlmap := range a.Requests {
-		for url, requests := range urlmap {
+		for urlString, requests := range urlmap {
+			fullURL, _ := url.Parse(urlString)
 			for k, ar := range requests {
 				req, resp, err := ar.unmarshal()
 				if err != nil {
-					log.Printf("Error unmarshaling request #%d for %s: %v", k, url, err)
+					log.Printf("Error unmarshaling request #%d for %s: %v", k, urlString, err)
 					continue
 				}
-				f(req, resp)
+				if !f(fullURL, req, resp) {
+					return
+				}
 			}
 		}
 	}
@@ -246,7 +249,6 @@ func findExactMatch(requests []*ArchivedRequest, method string) (*http.Request, 
 			return req, resp, nil
 		}
 	}
-
 	return nil, nil, ErrNotFound
 }
 
@@ -272,34 +274,53 @@ func (a *Archive) addArchivedRequest(scheme string, req *http.Request, resp *htt
 // Edit iterates over all requests in the archive. For each request, it calls f to
 // edit the request. If f returns a nil pair, the request is deleted.
 // The edited archive is returned, leaving the current archive is unchanged.
-func (a *Archive) Edit(f func(req *http.Request, resp *http.Response) (*http.Request, *http.Response, error)) (*Archive, error) {
+func (a *Archive) Edit(edit func(req *http.Request, resp *http.Response) (*http.Request, *http.Response, error)) (*Archive, error) {
 	clone := newArchive()
-	for _, urlmap := range a.Requests {
-		for ustr, requests := range urlmap {
-			u, _ := url.Parse(ustr)
-			for k, ar := range requests {
-				oldReq, oldResp, err := ar.unmarshal()
-				if err != nil {
-					return nil, fmt.Errorf("Error unmarshaling request #%d for %s: %v", k, ustr, err)
-				}
-				newReq, newResp, err := f(oldReq, oldResp)
-				if err != nil {
-					return nil, err
-				}
-				if newReq == nil || newResp == nil {
-					if newReq != nil || newResp != nil {
-						panic("programming error: newReq/newResp must both be nil or non-nil")
-					}
-					continue
-				}
-				// TODO: allow changing scheme or protocol?
-				if err := clone.addArchivedRequest(u.Scheme, newReq, newResp); err != nil {
-					return nil, err
-				}
-			}
+	var resultErr error
+	a.ForEach(func(fullURL *url.URL, oldReq *http.Request, oldResp *http.Response) bool {
+		newReq, newResp, err := edit(oldReq, oldResp)
+		if err != nil {
+			resultErr = err
+			return false
 		}
+		if newReq == nil || newResp == nil {
+			if newReq != nil || newResp != nil {
+				panic("programming error: newReq/newResp must both be nil or non-nil")
+			}
+			return true
+		}
+		// TODO: allow changing scheme or protocol?
+		resultErr = clone.addArchivedRequest(fullURL.Scheme, newReq, newResp)
+		return resultErr != nil
+	})
+	if resultErr != nil {
+		return nil, resultErr
 	}
 	return &clone, nil
+}
+
+// Merge adds all the request of the provided archive to the receiver.
+func (a *Archive) Merge(other *Archive) error {
+	var cerr error
+	var numAddedRequests = 0
+	var numSkippedRequests = 0
+	other.ForEach(func(fullURL *url.URL, req *http.Request, resp *http.Response) bool {
+		if foundReq, _, notFoundErr := a.FindRequest(req, fullURL.Scheme); notFoundErr == ErrNotFound {
+			cerr = a.addArchivedRequest(fullURL.Scheme, req, resp)
+			numAddedRequests++
+		} else {
+			// Add requests if the query doesn't fully match.
+			if !reflect.DeepEqual(foundReq, req) {
+				cerr = a.addArchivedRequest(fullURL.Scheme, req, resp)
+				numAddedRequests++
+			} else {
+				numSkippedRequests++
+			}
+		}
+		return cerr == nil
+	})
+	log.Printf("Merged requests: added=%d duplicates=%d \n", numAddedRequests, numSkippedRequests)
+	return cerr
 }
 
 // Serialize serializes this archive to the given writer.

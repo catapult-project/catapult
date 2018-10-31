@@ -22,7 +22,7 @@ import py_utils
 _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
 
 
-_SUPPORTED_GO_VERSIONS = ('go1.8', 'go1.9')
+_SUPPORTED_GO_VERSIONS = ('go1.8', 'go1.9', 'go1.10', 'go1.11')
 
 
 def check_go_version():
