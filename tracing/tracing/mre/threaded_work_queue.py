@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 import threading
 import traceback
-import Queue
+try:
+  import queue
+except ImportError:
+  import Queue as queue
 
 
 class ThreadedWorkQueue(object):
@@ -37,8 +40,8 @@ class ThreadedWorkQueue(object):
     else:
       self._RunMultiThreaded()
 
-    self._main_thread_tasks = Queue.Queue()
-    self._any_thread_tasks = Queue.Queue()
+    self._main_thread_tasks = queue.Queue()
+    self._any_thread_tasks = queue.Queue()
 
     r = self._stop_result
     self._stop_result = None
@@ -58,8 +61,8 @@ class ThreadedWorkQueue(object):
 
   def Reset(self):
     assert not self.is_running
-    self._main_thread_tasks = Queue.Queue()
-    self._any_thread_tasks = Queue.Queue()
+    self._main_thread_tasks = queue.Queue()
+    self._any_thread_tasks = queue.Queue()
 
   def PostMainThreadTask(self, cb, *args, **kwargs):
     def RunTask():
@@ -71,16 +74,16 @@ class ThreadedWorkQueue(object):
       cb(*args, **kwargs)
     self._any_thread_tasks.put(RunTask)
 
-  def _TryToRunOneTask(self, queue, block=False):
+  def _TryToRunOneTask(self, task_queue, block=False):
     if block:
       try:
-        task = queue.get(True, 0.1)
-      except Queue.Empty:
+        task = task_queue.get(True, 0.1)
+      except queue.Empty:
         return
     else:
-      if queue.empty():
+      if task_queue.empty():
         return
-      task = queue.get()
+      task = task_queue.get()
 
     try:
       task()
@@ -89,7 +92,7 @@ class ThreadedWorkQueue(object):
     except Exception:  # pylint: disable=broad-except
       traceback.print_exc()
     finally:
-      queue.task_done()
+      task_queue.task_done()
 
   def _RunSingleThreaded(self):
     while True:

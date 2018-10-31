@@ -30,7 +30,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 3, 'dur': 5, 'args': {}}
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
       tr.mre.FunctionRegistry.register(
@@ -52,12 +52,14 @@ class MapSingleTraceTests(unittest.TestCase):
   def testProcessingGiantTrace(self):
     # Populate a string trace of 2 million events.
     trace_events = ['[']
-    for i in xrange(2000000):
+    for i in range(2000000):
       trace_events.append(
           '{"pid": 1, "tid": %i, "ph": "X", "name": "a", "cat": "c",'
           '"ts": %i, "dur": 1, "args": {}},' %  (i % 5, 2 * i))
     trace_events.append('{}]')
     trace_data = ''.join(trace_events)
+    if not isinstance(trace_data, bytes):
+      trace_data = trace_data.encode('utf-8')
     trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', trace_data)
 
@@ -85,7 +87,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
 
   def testTraceDidntImport(self):
-    trace_string = 'This is intentionally not a trace-formatted string.'
+    trace_string = b'This is intentionally not a trace-formatted string.'
     trace_handle = file_handle.InMemoryFileHandle(
         '/a.json', trace_string)
 
@@ -110,7 +112,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 3, 'dur': 5, 'args': {}}
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
       tr.mre.FunctionRegistry.register(
@@ -134,7 +136,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 3, 'dur': 5, 'args': {}}
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
       throw new Error('Expected load error');
@@ -153,7 +155,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 0, 'dur': 10, 'args': {}},
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
           quit(100);
@@ -174,7 +176,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 3, 'dur': 5, 'args': {}}
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
     """) as map_script:
@@ -194,7 +196,7 @@ class MapSingleTraceTests(unittest.TestCase):
          'ts': 3, 'dur': 5, 'args': {}}
     ]
     trace_handle = file_handle.InMemoryFileHandle(
-        '/a.json', json.dumps(events))
+        '/a.json', json.dumps(events).encode('utf-8'))
 
     with map_single_trace.TemporaryMapScript("""
       tr.mre.FunctionRegistry.register(

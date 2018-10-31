@@ -33,10 +33,10 @@ def Main(argv):
   with codecs.open(trace_path, mode='r', encoding='utf-8') as f:
     SlimTrace(f, slimmed_trace_path)
 
-  print 'Original trace %s (%s Mb)' % (
-      trace_path, GetFileSizeInMb(trace_path))
-  print 'Slimmed trace file://%s (%s Mb)' % (
-      slimmed_trace_path, GetFileSizeInMb(slimmed_trace_path))
+  print('Original trace %s (%s Mb)' % (
+      trace_path, GetFileSizeInMb(trace_path)))
+  print('Slimmed trace file://%s (%s Mb)' % (
+      slimmed_trace_path, GetFileSizeInMb(slimmed_trace_path)))
 
 def SlimTraceEventsList(events_list):
   filtered_events = []

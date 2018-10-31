@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import json
 import math
 import os
@@ -156,7 +158,7 @@ class CompareSamplesUnittest(unittest.TestCase):
   def MakeCharts(self, metric, seed, mu, sigma, n, keys=None):
     return [
         self.MakeChartJSONScalar(metric, seed + '%d' % i, mu, sigma, keys)
-        for i in xrange(n)]
+        for i in range(n)]
 
   def MakeChartJSONScalar(self, metric, seed, mu, sigma, keys=None):
     """Creates a normally distributed pseudo-random sample. (continuous).
@@ -329,6 +331,6 @@ class CompareSamplesUnittest(unittest.TestCase):
                                              mu=20, sigma=2, n=10, keys=keys))
     result = compare_samples.CompareSamples(
         lower_values, higher_values, full_metric_name).stdout
-    print result
+    print(result)
     result = json.loads(result)
     self.assertEqual(result['result']['significance'], REJECT)

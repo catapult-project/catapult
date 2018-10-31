@@ -32,6 +32,9 @@ class GenericSet(diagnostic.Diagnostic):
   def __eq__(self, other):
     return self._GetComparableSet() == other._GetComparableSet()
 
+  def __hash__(self):
+    return id(self)
+
   def SetValues(self, values):
     # Use a list because Python sets cannot store dicts or lists because they
     # are not hashable.

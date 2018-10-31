@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import parser
 import symbol
 import sys
@@ -140,13 +142,13 @@ class TokenSnippet(Snippet):
   def PrintTree(self, indent=0, stream=sys.stdout):
     stream.write(' ' * indent)
     if not self.tokens:
-      print >> stream, self.type_name
+      print(self.type_name, file=stream)
       return
 
-    print >> stream, '%-4s' % self.type_name, repr(self.tokens[0].string)
+    print('%-4s' % self.type_name, repr(self.tokens[0].string), file=stream)
     for tok in self.tokens[1:]:
       stream.write(' ' * indent)
-      print >> stream, ' ' * max(len(self.type_name), 4), repr(tok.string)
+      print(' ' * max(len(self.type_name), 4), repr(tok.string), file=stream)
 
 
 class Symbol(Snippet):
@@ -191,10 +193,10 @@ class Symbol(Snippet):
     # If there's only one child, collapse it onto the same line.
     node = self
     while len(node.children) == 1 and len(node.children[0].children) == 1:
-      print >> stream, node.type_name,
+      print(node.type_name, end=' ', file=stream)
       node = node.children[0]
 
-    print >> stream, node.type_name
+    print(node.type_name, file=stream)
     for child in node.children:
       child.PrintTree(indent + 2, stream)
 

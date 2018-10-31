@@ -32,7 +32,7 @@ class LocalPathInfo(object):
       Local file path, if found, or None otherwise.
     """
     for priority_group in self._path_priority_groups:
-      priority_group = filter(os.path.exists, priority_group)
+      priority_group = [g for g in priority_group if os.path.exists(g)]
       if not priority_group:
         continue
       return max(priority_group, key=lambda path: os.stat(path).st_mtime)

@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import time
 import sys
 
@@ -21,17 +23,17 @@ class GTestRunReporter(progress_reporter.RunReporter):
 
   def DidAddFailure(self, failure):
     super(GTestRunReporter, self).DidAddFailure(failure)
-    print >> self._output_stream, failure.stack.encode('utf-8')
+    print(failure.stack.encode('utf-8'), file=self._output_stream)
     self._output_stream.flush()
 
   def DidRun(self, run_failed):
     super(GTestRunReporter, self).DidRun(run_failed)
     if run_failed:
-      print >> self._output_stream, '[  FAILED  ] %s (%0.f ms)' % (
-          self.canonical_url, self._GetMs())
+      print('[  FAILED  ] %s (%0.f ms)' % (self.canonical_url, self._GetMs()),
+            file=self._output_stream)
     else:
-      print >> self._output_stream, '[       OK ] %s (%0.f ms)' % (
-          self.canonical_url, self._GetMs())
+      print('[       OK ] %s (%0.f ms)' % (self.canonical_url, self._GetMs()),
+            file=self._output_stream)
     self._output_stream.flush()
 
 
@@ -41,9 +43,9 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
   Be careful each print should only handle one string. Otherwise, the output
   might be interrupted by Chrome logging, and the output interpretation might
   be incorrect. For example:
-      print >> self._output_stream, "[ OK ]", testname
+      print("[ OK ]", testname, file=self._output_stream)
   should be written as
-      print >> self._output_stream, "[ OK ] %s" % testname
+      print("[ OK ] %s" % testname, file=self._output_stream)
   """
 
   def __init__(self, output_stream=sys.stdout):
@@ -52,8 +54,8 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
   def WillRun(self, canonical_url):
     super(GTestProgressReporter, self).WillRun(canonical_url)
-    print >> self._output_stream, '[ RUN      ] %s' % (
-        canonical_url.encode('utf-8'))
+    print('[ RUN      ] %s' % canonical_url.encode('utf-8'),
+          file=self._output_stream)
     self._output_stream.flush()
     return GTestRunReporter(canonical_url, self._output_stream, time.time())
 
@@ -71,19 +73,19 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
         successful_runs += 1
 
     unit = 'test' if successful_runs == 1 else 'tests'
-    print >> self._output_stream, '[  PASSED  ] %d %s.' % (
-        (successful_runs, unit))
+    print('[  PASSED  ] %d %s.' % (successful_runs, unit),
+          file=self._output_stream)
     if len(failed_canonical_urls) > 0:
       unit = 'test' if len(failed_canonical_urls) == 1 else 'tests'
-      print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
-          (failed_runs, unit))
+      print('[  FAILED  ] %d %s, listed below:' % (failed_runs, unit),
+            file=self._output_stream)
       for failed_canonical_url in failed_canonical_urls:
-        print >> self._output_stream, '[  FAILED  ]  %s' % (
-            failed_canonical_url.encode('utf-8'))
-      print >> self._output_stream
+        print('[  FAILED  ]  %s' % failed_canonical_url.encode('utf-8'),
+              file=self._output_stream)
+      print(file=self._output_stream)
       count = len(failed_canonical_urls)
       unit = 'TEST' if count == 1 else 'TESTS'
-      print >> self._output_stream, '%d FAILED %s' % (count, unit)
-    print >> self._output_stream
+      print('%d FAILED %s' % (count, unit), file=self._output_stream)
+    print(file=self._output_stream)
 
     self._output_stream.flush()

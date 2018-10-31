@@ -12,6 +12,12 @@ import tempfile
 import time
 
 
+try:
+  StringTypes = basestring
+except NameError:
+  StringTypes = str
+
+
 _TRACING_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             os.path.pardir, os.path.pardir)
 _TRACE2HTML_PATH = os.path.join(_TRACING_DIR, 'bin', 'trace2html')
@@ -80,7 +86,7 @@ def _GetFilePathForTrace(trace, dir_path):
   if isinstance(trace, TraceFileHandle):
     return trace.file_path
   with tempfile.NamedTemporaryFile(mode='w', dir=dir_path, delete=False) as fp:
-    if isinstance(trace, basestring):
+    if isinstance(trace, StringTypes):
       fp.write(trace)
     elif isinstance(trace, dict) or isinstance(trace, list):
       json.dump(trace, fp)
@@ -160,7 +166,7 @@ class TraceData(object):
     Those include traces stored in memory & on disk. After invoking this,
     one can no longer uses this object for collecting the traces.
     """
-    for traces_list in self._raw_data.itervalues():
+    for traces_list in self._raw_data.values():
       for trace in traces_list:
         if isinstance(trace, TraceFileHandle):
           trace.Clean()
@@ -177,7 +183,7 @@ class TraceData(object):
     trace_files = []
     try:
       trace_size_data = {}
-      for part, traces_list in self._raw_data.iteritems():
+      for part, traces_list in self._raw_data.items():
         for trace in traces_list:
           path = _GetFilePathForTrace(trace, temp_dir)
           trace_size_data.setdefault(part, 0)
@@ -219,7 +225,7 @@ class TraceFileHandle(object):
     self._backing_file = tempfile.NamedTemporaryFile(delete=False, mode='a')
 
   def AppendTraceData(self, partial_trace_data):
-    assert isinstance(partial_trace_data, basestring)
+    assert isinstance(partial_trace_data, StringTypes)
     self._backing_file.write(partial_trace_data)
 
   @property
@@ -286,7 +292,7 @@ class TraceDataBuilder(object):
               isinstance(trace, list) or
               isinstance(trace, TraceFileHandle))
     else:
-      assert (isinstance(trace, basestring) or
+      assert (isinstance(trace, StringTypes) or
               isinstance(trace, dict) or
               isinstance(trace, list))
 
@@ -314,7 +320,7 @@ def CreateTraceDataFromRawData(raw_data):
 
   """
   raw_data = copy.deepcopy(raw_data)
-  if isinstance(raw_data, basestring):
+  if isinstance(raw_data, StringTypes):
     json_data = json.loads(raw_data)
   else:
     json_data = raw_data

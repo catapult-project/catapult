@@ -4,6 +4,8 @@
 
 """Filters a big trace keeping only the last memory-infra dumps."""
 
+from __future__ import print_function
+
 import collections
 import gzip
 import json
@@ -19,7 +21,7 @@ def FormatBytes(value):
 
 def Main(argv):
   if len(argv) < 2:
-    print 'Usage: %s trace.json[.gz]' % argv[0]
+    print('Usage: %s trace.json[.gz]' % argv[0])
     return 1
 
   in_path = argv[1]
@@ -28,11 +30,11 @@ def Main(argv):
   else:
     fin = open(in_path, 'r')
   with fin:
-    print 'Loading trace (can take 1 min on a z620 for a 1GB trace)...'
+    print('Loading trace (can take 1 min on a z620 for a 1GB trace)...')
     trace = json.load(fin)
-    print 'Done. Read ' + FormatBytes(fin.tell())
+    print('Done. Read ' + FormatBytes(fin.tell()))
 
-  print 'Filtering events'
+  print('Filtering events')
   phase_count = collections.defaultdict(int)
   out_events = []
   global_dumps = collections.OrderedDict()
@@ -60,16 +62,16 @@ def Main(argv):
     global_dumps[event_id].append(evt)
 
 
-  print 'Detected %d memory-infra global dumps' % len(global_dumps)
+  print('Detected %d memory-infra global dumps' % len(global_dumps))
   if global_dumps:
-    max_procs = max(len(x) for x in global_dumps.itervalues())
-    print 'Max number of processes seen: %d' % max_procs
+    max_procs = max(len(x) for x in global_dumps.values())
+    print('Max number of processes seen: %d' % max_procs)
 
   ndumps = 2
-  print 'Preserving the last %d memory-infra dumps' % ndumps
+  print('Preserving the last %d memory-infra dumps' % ndumps)
   detailed_dumps = []
   non_detailed_dumps = []
-  for global_dump in global_dumps.itervalues():
+  for global_dump in global_dumps.values():
     try:
       level_of_detail = global_dump[0]['args']['dumps']['level_of_detail']
     except KeyError:
@@ -87,14 +89,14 @@ def Main(argv):
   for global_dump in dumps_to_preserve:
     out_events += global_dump
 
-  print '\nEvents histogram for the original trace (count by phase)'
-  print '--------------------------------------------------------'
+  print('\nEvents histogram for the original trace (count by phase)')
+  print('--------------------------------------------------------')
   for phase, count in sorted(phase_count.items(), key=lambda x: x[1]):
-    print '%s %d' % (phase, count)
+    print('%s %d' % (phase, count))
 
   out_path = in_path.split('.json')[0] + '-filtered.json'
-  print '\nWriting filtered trace to ' + out_path,
+  print('\nWriting filtered trace to ' + out_path, end='')
   with open(out_path, 'w') as fout:
     json.dump({'traceEvents': out_events}, fout)
     num_bytes_written = fout.tell()
-  print ' (%s written)' % FormatBytes(num_bytes_written)
+  print(' (%s written)' % FormatBytes(num_bytes_written))

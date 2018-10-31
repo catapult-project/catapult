@@ -4,6 +4,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import functools
 import inspect
 import os
@@ -100,7 +102,7 @@ def TimeoutDeco(func, default_timeout):
     try:
       return timeout_retry.Run(func, timeout, 0, args=args)
     except reraiser_thread.TimeoutError:
-      print '%s timed out.' % func.__name__
+      print('%s timed out.' % func.__name__)
       return False
   return RunWithTimeout
 

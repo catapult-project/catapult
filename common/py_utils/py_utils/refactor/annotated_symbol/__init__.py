@@ -55,7 +55,7 @@ def _AnnotateNode(node):
   if not isinstance(node, snippet.Symbol):
     return node
 
-  children = map(_AnnotateNode, node.children)
+  children = [_AnnotateNode(c) for c in node.children]
 
   for symbol_type in ANNOTATED_GROUPINGS:
     annotated_grouping = symbol_type.Annotate(children)

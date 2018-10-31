@@ -41,7 +41,10 @@ def Main(argv):
       args.metric,
       args.format
   )
-  print vinn_result.stdout
+  stdout = vinn_result
+  if not isinstance(stdout, str):
+    stdout = stdout.decode('utf-8')
+  print(stdout)
   return vinn_result.returncode
 
 if __name__ == '__main__':

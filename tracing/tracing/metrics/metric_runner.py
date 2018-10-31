@@ -10,6 +10,13 @@ from tracing.mre import map_runner
 from tracing.mre import file_handle
 from tracing.mre import job as job_module
 
+
+try:
+  StringTypes = basestring
+except NameError:
+  StringTypes = str
+
+
 _METRIC_MAP_FUNCTION_FILENAME = 'metric_map_function.html'
 
 _METRIC_MAP_FUNCTION_NAME = 'metricMapFunction'
@@ -20,7 +27,7 @@ def _GetMetricsDir():
 def _GetMetricRunnerHandle(metrics):
   assert isinstance(metrics, list)
   for metric in metrics:
-    assert isinstance(metric, basestring)
+    assert isinstance(metric, StringTypes)
   metrics_dir = _GetMetricsDir()
   metric_mapper_path = os.path.join(metrics_dir, _METRIC_MAP_FUNCTION_FILENAME)
 

@@ -9,6 +9,8 @@
 #
 # To run this test suite, use ./tracing/bin/run_symbolizer_tests
 
+from __future__ import print_function
+
 import json
 import os
 import shutil
@@ -34,7 +36,7 @@ import py_utils.cloud_storage as cloud_storage  # pylint: disable=wrong-import-p
 
 
 def _DownloadFromCloudStorage(path):
-  print 'Downloading %s from gcs.' % (path)
+  print('Downloading %s from gcs.' % (path))
   cloud_storage.GetIfChanged(path, cloud_storage.PARTNER_BUCKET)
 
 

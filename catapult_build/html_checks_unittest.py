@@ -27,7 +27,7 @@ class MockInputApi(object):
 
   def AffectedFiles(self, file_filter=None, **_):
     if file_filter:
-      return filter(file_filter, self.affected_files)
+      return [f for f in self.affected_files if file_filter(f)]
     return self.affected_files
 
 

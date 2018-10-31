@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import codecs
-import StringIO
 import json
 import unittest
 import os
@@ -12,12 +11,13 @@ import tempfile
 from tracing_build import render_histograms_viewer
 
 
-# Wrap string IO with a .name property so that it behaves more like a file.
-class StringIOFile(StringIO.StringIO):
-  name = 'fake_output_file'
-
-
 class ResultsRendererTest(unittest.TestCase):
+
+  # Renamed between Python 2 and Python 3.
+  try:
+    assertCountEqual = unittest.TestCase.assertItemsEqual
+  except AttributeError:
+    pass
 
   def setUp(self):
     tmp = tempfile.NamedTemporaryFile(delete=False)
@@ -42,15 +42,14 @@ class ResultsRendererTest(unittest.TestCase):
     render_histograms_viewer.RenderHistogramsViewer(
         [], self.output_stream, False)
     self.output_stream.seek(0)
-    self.assertEquals([], render_histograms_viewer.ReadExistingResults(
+    self.assertCountEqual([], render_histograms_viewer.ReadExistingResults(
         self.output_stream.read()))
     render_histograms_viewer.RenderHistogramsViewer(
         [value0], self.output_stream, False)
     self.output_stream.seek(0)
-    self.assertEquals(
-        sorted([value0]),
-        sorted(render_histograms_viewer.ReadExistingResults(
-            self.output_stream.read())))
+    self.assertCountEqual(
+        [value0],
+        render_histograms_viewer.ReadExistingResults(self.output_stream.read()))
     self.assertIn(value0_json, self.GetOutputFileContent())
 
   def testExistingResults(self):
@@ -65,10 +64,9 @@ class ResultsRendererTest(unittest.TestCase):
     render_histograms_viewer.RenderHistogramsViewer(
         [value1], self.output_stream, False)
     self.output_stream.seek(0)
-    self.assertEquals(
-        sorted([value0, value1]),
-        sorted(render_histograms_viewer.ReadExistingResults(
-            self.output_stream.read())))
+    self.assertCountEqual(
+        [value0, value1],
+        render_histograms_viewer.ReadExistingResults(self.output_stream.read()))
     self.assertIn(value0_json, self.GetOutputFileContent())
     self.assertIn(value1_json, self.GetOutputFileContent())
 
@@ -84,10 +82,9 @@ class ResultsRendererTest(unittest.TestCase):
     render_histograms_viewer.RenderHistogramsViewer(
         [value1], self.output_stream, True)
     self.output_stream.seek(0)
-    self.assertEquals(
-        sorted([value1]),
-        sorted(render_histograms_viewer.ReadExistingResults(
-            self.output_stream.read())))
+    self.assertCountEqual(
+        [value1],
+        render_histograms_viewer.ReadExistingResults(self.output_stream.read()))
     self.assertNotIn(value0_json, self.GetOutputFileContent())
     self.assertIn(value1_json, self.GetOutputFileContent())
 

@@ -5,17 +5,21 @@
 import json
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 
 from tracing.trace_data import trace_data
-from tracing_build import merge_traces
+if sys.version_info < (3,):
+  from tracing_build import merge_traces
 
 
 def _FakeDumpEvent(pid, tid):
   return {'ph': 'v', 'ts': 100, 'pid': pid, 'tid': tid, 'args': {'dumps': {}}}
 
 
+@unittest.skipIf(sys.version_info >= (3,),
+                 'py_vulcanize is not ported to python3')
 class MergeTracesTest(unittest.TestCase):
   def setUp(self):
     self.test_dir = tempfile.mkdtemp()

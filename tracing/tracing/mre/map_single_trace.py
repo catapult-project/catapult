@@ -6,7 +6,6 @@ import os
 import re
 import sys
 import tempfile
-import types
 import platform
 
 import tracing_project
@@ -24,7 +23,11 @@ _MAP_SINGLE_TRACE_CMDLINE_PATH = os.path.join(
 
 class TemporaryMapScript(object):
   def __init__(self, js):
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    tempfile_kwargs = {'mode': 'w+', 'delete': False}
+    if sys.version_info >= (3,):
+      tempfile_kwargs['encoding'] = 'utf-8'
+    temp_file = tempfile.NamedTemporaryFile(**tempfile_kwargs)
+
     temp_file.write("""
 <!DOCTYPE html>
 <script>
@@ -80,9 +83,8 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
 def MapSingleTrace(trace_handle,
                    job,
                    extra_import_options=None):
-  assert (isinstance(extra_import_options, types.NoneType) or
-          isinstance(extra_import_options, types.DictType)), (
-              'extra_import_options should be a dict or None.')
+  assert (isinstance(extra_import_options, (type(None), dict))), (
+      'extra_import_options should be a dict or None.')
   project = tracing_project.TracingProject()
 
   all_source_paths = list(project.source_paths)
@@ -111,8 +113,12 @@ def MapSingleTrace(trace_handle,
         js_args=js_args,
         v8_args=v8_args)
 
+  stdout = res.stdout
+  if not isinstance(stdout, str):
+    stdout = stdout.decode('utf-8', errors='replace')
+
   if res.returncode != 0:
-    sys.stderr.write(res.stdout)
+    sys.stderr.write(stdout)
     result.AddFailure(failure.Failure(
         job,
         trace_handle.canonical_url,
@@ -120,7 +126,7 @@ def MapSingleTrace(trace_handle,
         'vinn runtime error while mapping trace.', 'Unknown stack'))
     return result
 
-  for line in res.stdout.split('\n'):
+  for line in stdout.split('\n'):
     m = re.match('^MRE_RESULT: (.+)', line, re.DOTALL)
     if m:
       found_dict = json.loads(m.group(1))
@@ -131,7 +137,7 @@ def MapSingleTrace(trace_handle,
       for f in failures:
         result.AddFailure(f)
 
-      for k, v in found_dict['pairs'].iteritems():
+      for k, v in found_dict['pairs'].items():
         result.AddPair(k, v)
 
     else:

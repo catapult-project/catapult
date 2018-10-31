@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import datetime
-import exceptions
 import os
 import shutil
 import tempfile
@@ -79,14 +78,14 @@ class TraceDataBuilderTest(unittest.TestCase):
   def testSetTraceForRaisesWithInvalidPart(self):
     builder = trace_data.TraceDataBuilder()
 
-    self.assertRaises(exceptions.AssertionError,
+    self.assertRaises(AssertionError,
                       lambda: builder.AddTraceFor('not_a_trace_part', {}))
 
   def testSetTraceForRaisesWithInvalidTrace(self):
     builder = trace_data.TraceDataBuilder()
 
     self.assertRaises(
-        exceptions.AssertionError,
+        AssertionError,
         lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART,
                                     datetime.time.min))
 
@@ -95,5 +94,5 @@ class TraceDataBuilderTest(unittest.TestCase):
     builder.AsData()
 
     self.assertRaises(
-        exceptions.Exception,
+        Exception,
         lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART, {}))

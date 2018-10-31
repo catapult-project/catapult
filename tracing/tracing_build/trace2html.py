@@ -2,17 +2,25 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import argparse
 import codecs
 import base64
 import gzip
+import io
 import json
 import os
-import StringIO
 
 import tracing_project
 
 from py_vulcanize import generate
+
+
+try:
+  StringTypes = basestring
+except NameError:
+  StringTypes = str
 
 
 def Main(argv):
@@ -51,7 +59,7 @@ def Main(argv):
                              config_name=args.config_name)
 
   if not args.quiet:
-    print output_filename
+    print(output_filename)
   return 0
 
 
@@ -64,7 +72,7 @@ class ViewerDataScript(generate.ExtraScript):
 
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="%s">\n' % self._mime_type)
-    compressed_trace = StringIO.StringIO()
+    compressed_trace = io.BytesIO()
     with gzip.GzipFile(fileobj=compressed_trace, mode='w', mtime=0) as f:
       f.write(self._trace_data_string)
     b64_content = base64.b64encode(compressed_trace.getvalue())
@@ -93,7 +101,7 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
     # WriteHTMLForTracesToFile), it will be a JSON object at this point and we
     # should re-serialize it into a string. Other types of data will be already
     # be strings.
-    if not isinstance(trace_data, basestring):
+    if not isinstance(trace_data, StringTypes):
       trace_data = json.dumps(trace_data)
       mime_type = 'application/json'
     else:

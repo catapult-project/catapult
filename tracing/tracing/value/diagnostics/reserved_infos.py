@@ -76,7 +76,7 @@ WEBRTC_REVISIONS = _Info('webrtcRevisions', 'GenericSet', str)
 
 def _CreateCachedInfoTypes():
   info_types = {}
-  for info in globals().itervalues():
+  for info in globals().values():
     if isinstance(info, _Info):
       info_types[info.name] = info
   return info_types
@@ -89,7 +89,7 @@ def GetTypeForName(name):
     return info.type
 
 def AllInfos():
-  for info in _CACHED_INFO_TYPES.itervalues():
+  for info in _CACHED_INFO_TYPES.values():
     yield info
 
 def AllNames():

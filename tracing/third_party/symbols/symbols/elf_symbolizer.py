@@ -8,12 +8,15 @@ import logging
 import multiprocessing
 import os
 import posixpath
-import Queue
 import re
 import subprocess
 import sys
 import threading
 import time
+try:
+  import Queue
+except ImportError:
+  import queue as Queue
 
 
 # addr2line builds a possibly infinite memory cache that can exhaust

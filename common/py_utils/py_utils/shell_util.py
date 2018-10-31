@@ -4,6 +4,8 @@
 #
 # Shell scripting helpers (created for Telemetry dependency roll scripts).
 
+from __future__ import print_function
+
 import os as _os
 import shutil as _shutil
 import subprocess as _subprocess
@@ -14,12 +16,12 @@ from contextlib import contextmanager as _contextmanager
 def ScopedChangeDir(new_path):
   old_path = _os.getcwd()
   _os.chdir(new_path)
-  print '> cd', _os.getcwd()
+  print('> cd', _os.getcwd())
   try:
     yield
   finally:
     _os.chdir(old_path)
-    print '> cd', old_path
+    print('> cd', old_path)
 
 @_contextmanager
 def ScopedTempDir():
@@ -36,5 +38,5 @@ def CallProgram(path_parts, *args, **kwargs):
   args = [_os.path.join(*path_parts)] + list(args)
   env = dict(_os.environ)
   env.update(kwargs)
-  print '>', ' '.join(args)
+  print('>', ' '.join(args))
   _subprocess.check_call(args, env=env)

@@ -6,12 +6,16 @@ import codecs
 import gzip
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 
-from tracing_build import trace2html
+if sys.version_info < (3,):
+  from tracing_build import trace2html
 
 
+@unittest.skipIf(sys.version_info >= (3,),
+                 'py_vulcanize is not ported to python3')
 class Trace2HTMLTests(unittest.TestCase):
   SIMPLE_TRACE_PATH = os.path.join(
       os.path.dirname(__file__),

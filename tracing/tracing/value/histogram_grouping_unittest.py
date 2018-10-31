@@ -27,6 +27,7 @@ class HistogramGroupingUnittest(unittest.TestCase):
     groupings = histogram_grouping.BuildFromTags(
         ['audio', 'video'], reserved_infos.STORY_TAGS.name)
     self.assertEqual(len(groupings), 2)
+    groupings.sort(key=lambda g: g.key)
     self.assertEqual(groupings[0].key, 'audioTag')
     self.assertEqual(groupings[1].key, 'videoTag')
     self.assertEqual(groupings[0].callback(a_hist), 'audio')

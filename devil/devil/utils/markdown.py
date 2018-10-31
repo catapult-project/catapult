@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import argparse
 import imp
 import os
@@ -221,7 +223,7 @@ def md_module(module_obj, module_path=None, module_link=None):
   for f in functions_to_doc:
     content += md_function(f)
 
-  print '\n'.join(content)
+  print('\n'.join(content))
 
   return 0
 

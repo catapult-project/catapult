@@ -39,7 +39,7 @@ class JSChecker(object):
         return True
       return False
 
-    affected_js_files = filter(ShouldCheck, affected_files)
+    affected_js_files = [f for f in affected_files if ShouldCheck(f)]
     error_lines = []
     for f in affected_js_files:
       contents = list(f.NewContents())

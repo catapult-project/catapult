@@ -2,13 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import argparse
 import cProfile
 import pstats
-import StringIO
 import inspect
 import sys
 
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
 
 
 class Bench(object):
@@ -47,12 +52,12 @@ def Main(args):
     for _ in range(args.repeat_count):
       bench.Run()
     pr.disable()
-    s = StringIO.StringIO()
+    s = StringIO()
 
     sortby = 'cumulative'
     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
     ps.print_stats()
-    print s.getvalue()
+    print(s.getvalue())
     return 0
   finally:
     bench.TearDown()

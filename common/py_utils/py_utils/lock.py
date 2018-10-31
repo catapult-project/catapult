@@ -84,7 +84,7 @@ def _LockImplWin(target_file, flags):
   hfile = win32file._get_osfhandle(target_file.fileno())
   try:
     win32file.LockFileEx(hfile, flags, 0, -0x10000, _OVERLAPPED)
-  except pywintypes.error, exc_value:
+  except pywintypes.error as exc_value:
     if exc_value[0] == 33:
       raise LockException('Error trying acquiring lock of %s: %s' %
                           (target_file.name, exc_value[2]))
@@ -96,7 +96,7 @@ def _UnlockImplWin(target_file):
   hfile = win32file._get_osfhandle(target_file.fileno())
   try:
     win32file.UnlockFileEx(hfile, 0, -0x10000, _OVERLAPPED)
-  except pywintypes.error, exc_value:
+  except pywintypes.error as exc_value:
     if exc_value[0] == 158:
       # error: (158, 'UnlockFileEx', 'The segment is already unlocked.')
       # To match the 'posix' implementation, silently ignore this error
@@ -109,7 +109,7 @@ def _UnlockImplWin(target_file):
 def _LockImplPosix(target_file, flags):
   try:
     fcntl.flock(target_file.fileno(), flags)
-  except IOError, exc_value:
+  except IOError as exc_value:
     if exc_value[0] == 11 or exc_value[0] == 35:
       raise LockException('Error trying acquiring lock of %s: %s' %
                           (target_file.name, exc_value[1]))

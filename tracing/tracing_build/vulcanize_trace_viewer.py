@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import codecs
 import argparse
 import os
@@ -54,7 +56,7 @@ def Main(argv):
         tracing_dir,
         'tracing/bin/trace_viewer_%s%s' % (args.config_name, output_suffix))
 
-  print 'Writing output to %s' % output_filename
+  print('Writing output to %s' % output_filename)
   with codecs.open(output_filename, 'w', encoding='utf-8') as f:
     WriteTraceViewer(
         f,

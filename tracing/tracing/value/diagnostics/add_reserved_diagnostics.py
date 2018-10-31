@@ -73,7 +73,7 @@ def ComputeTestPath(hist):
 
 def _MergeHistogramSetByPath(hs):
   with TempFile() as temp:
-    temp.write(json.dumps(hs.AsDicts()))
+    temp.write(json.dumps(hs.AsDicts()).encode('utf-8'))
     temp.close()
 
     return merge_histograms.MergeHistograms(temp.name, (
@@ -176,7 +176,7 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
       reserved_infos.TAG_MAP.name, histograms)
 
   histograms.DeduplicateDiagnostics()
-  for name, value in names_to_values.iteritems():
+  for name, value in names_to_values.items():
     assert name in ALL_NAMES
     histograms.AddSharedDiagnostic(name, generic_set.GenericSet([value]))
   histograms.RemoveOrphanedDiagnostics()

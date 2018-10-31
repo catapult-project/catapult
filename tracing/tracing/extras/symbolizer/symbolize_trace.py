@@ -212,6 +212,8 @@ main differences relevant to this script are:
 See crbug.com/708930 for more information about the modern format.
 """
 
+from __future__ import print_function
+
 import argparse
 import bisect
 import collections
@@ -408,7 +410,7 @@ class MemoryMap(NodeWrapper):
         if region == previous_region:
           continue
         if region.start_address < previous_region.end_address:
-          print 'Regions {} and {} overlap.'.format(previous_region, region)
+          print('Regions {} and {} overlap.'.format(previous_region, region))
       previous_region = region
       self._regions.append(region)
 
@@ -505,7 +507,7 @@ class StringMap(NodeWrapper):
     for strings_node in self._strings_nodes:
       del strings_node[:]
     strings_node = self._strings_nodes[0]
-    for string_id, string in self._string_by_id.iteritems():
+    for string_id, string in self._string_by_id.items():
       strings_node.append({'id': string_id, 'string': string})
 
     self._modified = False
@@ -589,7 +591,7 @@ class TypeNameMap(NodeWrapper):
     for types_node in self._type_name_nodes:
       del types_node[:]
     types_node = self._type_name_nodes[0]
-    for type_id, type_name in self._name_by_id.iteritems():
+    for type_id, type_name in self._name_by_id.items():
       types_node.append({
           'id': type_id,
           'name_sid': string_map.AddString(type_name)})
@@ -696,7 +698,7 @@ class StackFrameMap(NodeWrapper):
   def modified(self):
     """Returns True if the wrapper or any of its frames were modified."""
     return (self._modified or
-            any(f.modified for f in self._frame_by_id.itervalues()))
+            any(f.modified for f in self._frame_by_id.values()))
 
   @property
   def frame_by_id(self):
@@ -714,7 +716,7 @@ class StackFrameMap(NodeWrapper):
     if heap_dump_version == Trace.HEAP_DUMP_VERSION_LEGACY:
       if self._stack_frames_nodes:
         raise Exception('Legacy stack frames node is expected only once.')
-      for frame_id, frame_node in stack_frames_node.iteritems():
+      for frame_id, frame_node in stack_frames_node.items():
         frame = self.Frame(frame_id,
                            frame_node['name'],
                            frame_node.get('parent'))
@@ -753,7 +755,7 @@ class StackFrameMap(NodeWrapper):
         del frames_node[:]
 
     frames_node = self._stack_frames_nodes[0]
-    for frame in self._frame_by_id.itervalues():
+    for frame in self._frame_by_id.values():
       if self._heap_dump_version == Trace.HEAP_DUMP_VERSION_LEGACY:
         frame_node = {'name': frame.name}
         frames_node[frame.id] = frame_node
@@ -915,7 +917,7 @@ class Trace(NodeWrapper):
           version = self._UseHeapDumpVersion(heaps['version'])
           maps = heaps.get('maps')
           if maps:
-            process_ext.mapped_entry_names.update(maps.iterkeys())
+            process_ext.mapped_entry_names.update(maps.keys())
             types = maps.get('types')
             stack_frames = maps.get('nodes')
             strings = maps.get('strings')
@@ -938,7 +940,7 @@ class Trace(NodeWrapper):
                   version, stack_frames, process._string_map)
 
     self._processes = []
-    for pe in process_ext_by_pid.itervalues():
+    for pe in process_ext_by_pid.values():
       pe.process._heap_dump_version = self._heap_dump_version
       if pe.process_mmaps_node:
         # Now parse the most recent memory map.
@@ -1057,7 +1059,7 @@ def ResolveSymbolizableFiles(processes):
   for process in processes:
     if not process.memory_map:
       continue
-    for frame in process.stack_frame_map.frame_by_id.itervalues():
+    for frame in process.stack_frame_map.frame_by_id.values():
       if frame.pc is None:
         continue
       region = process.memory_map.FindRegion(frame.pc)
@@ -1160,7 +1162,7 @@ class Symbolizer(object):
                                               _SymbolizerCallback,
                                               inlines=True)
 
-    for address, frames in symfile.frames_by_address.iteritems():
+    for address, frames in symfile.frames_by_address.items():
       # SymbolizeAsync() asserts that the type of address is int. We operate
       # on longs (since they are raw pointers possibly from 64-bit processes).
       # It's OK to cast here because we're passing relative PC, which should
@@ -1177,7 +1179,7 @@ class Symbolizer(object):
     address_os_file, address_file_path = tempfile.mkstemp()
     try:
       with os.fdopen(address_os_file, 'w') as address_file:
-        for address in symfile.frames_by_address.iterkeys():
+        for address in symfile.frames_by_address.keys():
           address_file.write('{:x} '.format(address + load_address))
 
       cmd = [self.symbolizer_path, '-arch', 'x86_64', '-l',
@@ -1185,7 +1187,7 @@ class Symbolizer(object):
              '-f', address_file_path]
       output_array = subprocess.check_output(cmd).split('\n')
 
-      for i, frames in enumerate(symfile.frames_by_address.itervalues()):
+      for i, frames in enumerate(symfile.frames_by_address.values()):
         symbolized_name = self._matcher.Match(output_array[i])
         for frame in frames:
           frame.name = symbolized_name
@@ -1232,9 +1234,9 @@ class Symbolizer(object):
     module.Parse()
 
     if module.code_id and symfile.code_id and module.code_id != symfile.code_id:
-      print "Warning: Code identifiers do not match for %s" % symfile.path
-      print "  from trace file: %s" % symfile.code_id
-      print "  from debug file: %s" % module.code_id
+      print("Warning: Code identifiers do not match for %s" % symfile.path)
+      print("  from trace file: %s" % symfile.code_id)
+      print("  from debug file: %s" % module.code_id)
       return
 
     addresses = symfile.frames_by_address.keys()
@@ -1242,11 +1244,11 @@ class Symbolizer(object):
 
     symbols_addresses = module.symbols.keys()
     symbols_addresses.sort()
-    symbols_addresses.append(sys.maxint)
+    symbols_addresses.append(float('inf'))
 
     offset = 0
     skipped_addresses = 0
-    for symbol_offset in xrange(1, len(symbols_addresses)):
+    for symbol_offset in range(1, len(symbols_addresses)):
       symbol_address_start = symbols_addresses[symbol_offset - 1]
       symbol_address_end = symbols_addresses[symbol_offset]
       resolved_symbol = module.symbols[symbol_address_start]
@@ -1260,11 +1262,11 @@ class Symbolizer(object):
         offset = offset + 1
 
     if skipped_addresses:
-      print "warning: %d unsymbolized symbols!" % skipped_addresses
+      print("warning: %d unsymbolized symbols!" % skipped_addresses)
 
   def SymbolizeSymfile(self, symfile):
     if symfile.skip_symbolization:
-      for address, frames in symfile.frames_by_address.iteritems():
+      for address, frames in symfile.frames_by_address.items():
         unsymbolized_name = ('<' + os.path.basename(symfile.symbolizable_path)
                              + '>')
         # Only append the address if there's a library.
@@ -1300,13 +1302,13 @@ def SymbolizeFiles(symfiles, symbolizer):
      and updates stack frames with symbolization results."""
 
   if not symfiles:
-    print 'Nothing to symbolize.'
+    print('Nothing to symbolize.')
     return
 
-  print 'Symbolizing...'
+  print('Symbolizing...')
 
   def _SubPrintf(message, *args):
-    print ('  ' + message).format(*args)
+    print(('  ' + message).format(*args))
 
   for symfile in symfiles:
     problem = None
@@ -1457,9 +1459,9 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
         # Some version, like mac, doesn't have the .zip extension.
         gcs_file = gcs_file + '.zip'
       elif not cloud_storage.Exists(cloud_storage_bucket, gcs_file):
-        print "Can't find symbols on GCS " + gcs_file + "."
+        print("Can't find symbols on GCS " + gcs_file + ".")
         return False
-      print 'Downloading symbols files from GCS, please wait.'
+      print('Downloading symbols files from GCS, please wait.')
       cloud_storage.Get(cloud_storage_bucket, gcs_file, zip_path)
 
       with zipfile.ZipFile(zip_path, 'r') as zip_file:
@@ -1508,9 +1510,9 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version,
   bzip_path = GetLocalPath(symbol_base_directory, version)
   if not os.path.isfile(bzip_path):
     if not cloud_storage.Exists(cloud_storage_bucket, GetSymbolsPath(version)):
-      print "Can't find symbols on GCS '%s'." % version
+      print("Can't find symbols on GCS '%s'." % version)
       return False
-    print "Downloading symbols files from GCS, please wait."
+    print("Downloading symbols files from GCS, please wait.")
     cloud_storage.Get(cloud_storage_bucket, GetSymbolsPath(version), bzip_path)
 
   ExtractSymbolTarFile(symbol_sub_dir, bzip_path)
@@ -1523,12 +1525,12 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
   def DownloadAndExtractZipFile(zip_path, source, destination):
     if not os.path.isfile(zip_path):
       if not cloud_storage.Exists(cloud_storage_bucket, source):
-        print "Can't find symbols on GCS '%s'." % version
+        print("Can't find symbols on GCS '%s'." % version)
         return False
-      print "Downloading symbols files from GCS, please wait."
+      print("Downloading symbols files from GCS, please wait.")
       cloud_storage.Get(cloud_storage_bucket, source, zip_path)
       if not os.path.isfile(zip_path):
-        print "Can't download symbols on GCS."
+        print("Can't download symbols on GCS.")
         return False
     with zipfile.ZipFile(zip_path, "r") as zip_file:
       for member in zip_file.namelist():
@@ -1632,17 +1634,17 @@ def main(args):
 
   trace_file_path = options.file
 
-  print 'Reading trace file...'
+  print('Reading trace file...')
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file))
-  print 'Trace loaded for %s/%s' % (trace.os, trace.version)
+  print('Trace loaded for %s/%s' % (trace.os, trace.version))
 
   trace.is_chromium = options.is_local_build
 
   # Perform some sanity checks.
   if (trace.is_win and sys.platform != 'win32' and
       not options.use_breakpad_symbols):
-    print "Cannot symbolize a windows trace on this architecture!"
+    print("Cannot symbolize a windows trace on this architecture!")
     return False
 
   # If the trace is from Chromium, assume that symbols are already present.
@@ -1680,7 +1682,7 @@ def main(args):
         raise Exception('OS not supported for native symbolization (%s/%s)' %
                         (trace.os, trace.version))
     if not has_symbols:
-      print 'Cannot fetch symbols from GCS'
+      print('Cannot fetch symbols from GCS')
       return False
 
   SymbolizeTrace(options, trace, symbolizer)
@@ -1690,14 +1692,14 @@ def main(args):
 
     if options.backup:
       backup_file_path = trace_file_path + BACKUP_FILE_TAG
-      print 'Backing up trace file to {}'.format(backup_file_path)
+      print('Backing up trace file to {}'.format(backup_file_path))
       os.rename(trace_file_path, backup_file_path)
 
-    print 'Updating the trace file...'
+    print('Updating the trace file...')
     with OpenTraceFile(trace_file_path, 'w') as trace_file:
       trace_file.write(json.dumps(trace.node))
   else:
-    print 'No modifications were made - not updating the trace file.'
+    print('No modifications were made - not updating the trace file.')
   return True
 
 

@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import functools
 import os
 import sys
@@ -35,7 +37,7 @@ def _Update(moves, module):
         if move.UpdateImportAndReferences(module, import_statement):
           break
       except NotImplementedError as e:
-        print >> sys.stderr, 'Error updating %s: %s' % (module.file_path, e)
+        print('Error updating %s: %s' % (module.file_path, e), file=sys.stderr)
 
 
 class _Move(object):

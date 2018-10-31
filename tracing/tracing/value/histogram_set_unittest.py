@@ -229,7 +229,7 @@ class HistogramSetUnittest(unittest.TestCase):
     # All diagnostics should have been serialized as DiagnosticRefs.
     for d in histogram_dicts:
       if 'type' not in d:
-        for diagnostic_dict in d['diagnostics'].itervalues():
+        for diagnostic_dict in d['diagnostics'].values():
           self.assertIsInstance(diagnostic_dict, str)
 
     histograms2 = histogram_set.HistogramSet()

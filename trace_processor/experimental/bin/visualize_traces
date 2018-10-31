@@ -26,7 +26,7 @@ if __name__ == '__main__':
   try:
     import ggplot
     import pandas
-  except ImportError, e:
+  except ImportError as e:
     print _MISSING_DEPENDENCIES
     sys.exit(1)
 

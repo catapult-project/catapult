@@ -19,18 +19,18 @@ class PercentToStringUnittest(unittest.TestCase):
   def testPercentToString(self):
     with self.assertRaises(Exception) as ex:
       histogram.PercentToString(-1)
-    self.assertEqual(ex.exception.message, 'percent must be in [0,1]')
+    self.assertEqual(str(ex.exception), 'percent must be in [0,1]')
 
     with self.assertRaises(Exception) as ex:
       histogram.PercentToString(2)
-    self.assertEqual(ex.exception.message, 'percent must be in [0,1]')
+    self.assertEqual(str(ex.exception), 'percent must be in [0,1]')
 
     self.assertEqual(histogram.PercentToString(0), '000')
     self.assertEqual(histogram.PercentToString(1), '100')
 
     with self.assertRaises(Exception) as ex:
       histogram.PercentToString(float('nan'))
-    self.assertEqual(ex.exception.message, 'Unexpected percent')
+    self.assertEqual(str(ex.exception), 'Unexpected percent')
 
     self.assertEqual(histogram.PercentToString(0.50), '050')
     self.assertEqual(histogram.PercentToString(0.95), '095')
@@ -39,11 +39,11 @@ class PercentToStringUnittest(unittest.TestCase):
 class StatisticsUnittest(unittest.TestCase):
   def testFindHighIndexInSortedArray(self):
     self.assertEqual(histogram.FindHighIndexInSortedArray(
-        range(0, -10, -1), lambda x: x + 5), 6)
+        list(range(0, -10, -1)), lambda x: x + 5), 6)
 
   def testUniformlySampleArray(self):
     self.assertEqual(len(histogram.UniformlySampleArray(
-        range(10), 5)), 5)
+        list(range(10)), 5)), 5)
 
   def testUniformlySampleStream(self):
     samples = []
@@ -143,7 +143,7 @@ class RunningStatisticsUnittest(unittest.TestCase):
 
 
 def ToJSON(x):
-  return json.dumps(x, separators=(',', ':'))
+  return json.dumps(x, separators=(',', ':'), sort_keys=True)
 
 
 class HistogramUnittest(unittest.TestCase):
@@ -214,7 +214,7 @@ class HistogramUnittest(unittest.TestCase):
 
     # Add samples to most bins so that allBinsArray is more efficient than
     # allBinsDict.
-    for i in xrange(10, 100):
+    for i in range(10, 100):
       hist.AddSample(10 * i)
     d = hist.AsDict()
     self.assertEqual(697, len(ToJSON(d)))
@@ -307,7 +307,7 @@ class HistogramUnittest(unittest.TestCase):
     Check([0, 11], 0.5, 10.5, 10, 1)
     Check([0, 6, 11], 0.5, 10.5, 10, 1)
     array = []
-    for i in xrange(1000):
+    for i in range(1000):
       array.append((i * i) % 10 + 1)
     Check(array, 0.5, 10.5, 10, 1e-3)
     # If the real percentile is outside the bin range then the approximation
@@ -323,7 +323,7 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(boundaries.range.max, expected_max_boundary)
 
     # Check that the boundaries can be used multiple times.
-    for _ in xrange(3):
+    for _ in range(3):
       hist = histogram.Histogram('', 'unitless', boundaries)
       self.assertEqual(len(expected_bin_ranges), len(hist.bins))
       for j, hbin in enumerate(hist.bins):
@@ -512,7 +512,7 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(hist1.max_num_sample_values, 120)
     values0 = []
     values1 = []
-    for i in xrange(10):
+    for i in range(10):
       values0.append(i)
       hist0.AddSample(i)
       values1.append(10 + i)
@@ -524,13 +524,13 @@ class HistogramUnittest(unittest.TestCase):
     hist2 = hist0.Clone()
     self.assertDeepEqual(hist2.sample_values, values0 + values1)
 
-    for i in xrange(200):
+    for i in range(200):
       hist0.AddSample(i)
     self.assertEqual(len(hist0.sample_values), hist0.max_num_sample_values)
 
     hist3 = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
     hist3.max_num_sample_values = 10
-    for i in xrange(100):
+    for i in range(100):
       hist3.AddSample(i)
     self.assertEqual(len(hist3.sample_values), 10)
 
@@ -569,6 +569,12 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(4, hist.GetApproximatePercentile(1))
 
 
+def _SortStories(d):
+  for story_names in d['tagsToStoryNames'].values():
+    story_names.sort()
+  return d
+
+
 class TagMapUnittest(unittest.TestCase):
 
   def testEquality(self):
@@ -605,7 +611,8 @@ class TagMapUnittest(unittest.TestCase):
     info = histogram.TagMap({'tagsToStoryNames': tags})
     d = info.AsDict()
     clone = diagnostic.Diagnostic.FromDict(d)
-    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(ToJSON(_SortStories(d)),
+                     ToJSON(_SortStories(clone.AsDict())))
     self.assertSetEqual(
         clone.tags_to_story_names['tag1'], set(tags['tag1']))
     self.assertSetEqual(
@@ -654,11 +661,11 @@ class TagMapUnittest(unittest.TestCase):
     m1 = diagnostic.Diagnostic.FromDict(t1.AsDict())
     m1.AddDiagnostic(t0)
 
-    self.assertDictEqual(m0.AsDict(), m1.AsDict())
+    self.assertDictEqual(_SortStories(m0.AsDict()), _SortStories(m1.AsDict()))
 
     m2 = diagnostic.Diagnostic.FromDict(t1.AsDict())
 
-    self.assertNotEqual(m2.AsDict(), m0.AsDict())
+    self.assertNotEqual(_SortStories(m2.AsDict()), _SortStories(m0.AsDict()))
 
     # Test round-tripping of merged diagnostic
     clone = diagnostic.Diagnostic.FromDict(m0.AsDict())

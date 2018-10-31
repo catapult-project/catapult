@@ -4,7 +4,6 @@
 
 import json
 import math
-import sys
 import unittest
 
 from tracing.value.diagnostics import breakdown
@@ -20,7 +19,7 @@ class BreakdownUnittest(unittest.TestCase):
     bd.Set('inf', float('inf'))
     bd.Set('nun', float('nan'))
     bd.Set('ninf', float('-inf'))
-    bd.Set('long', 1 + sys.maxint)
+    bd.Set('long', 2**65)
     d = bd.AsDict()
     clone = diagnostic.Diagnostic.FromDict(d)
     self.assertEqual(json.dumps(d), json.dumps(clone.AsDict()))
@@ -29,4 +28,4 @@ class BreakdownUnittest(unittest.TestCase):
     self.assertEqual(clone.Get('inf'), float('inf'))
     self.assertTrue(math.isnan(clone.Get('nun')))
     self.assertEqual(clone.Get('ninf'), float('-inf'))
-    self.assertEqual(clone.Get('long'), 1 + sys.maxint)
+    self.assertEqual(clone.Get('long'), 2**65)

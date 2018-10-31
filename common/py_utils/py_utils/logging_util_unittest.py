@@ -2,15 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 import logging
-import StringIO
 import unittest
+
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
 
 from py_utils import logging_util
 
 
 class LoggingUtilTest(unittest.TestCase):
   def testCapture(self):
-    s = StringIO.StringIO()
+    s = StringIO()
     with logging_util.CaptureLogs(s):
       logging.fatal('test')
 

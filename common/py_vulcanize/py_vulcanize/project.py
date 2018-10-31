@@ -4,7 +4,11 @@
 
 import collections
 import os
-import cStringIO
+
+try:
+  from cStringIO import StringIO
+except ImportError:
+  from io import StringIO
 
 from py_vulcanize import resource_loader
 
@@ -209,7 +213,7 @@ class _Graph(object):
     self.edges = []
 
   def AddModule(self, m):
-    f = cStringIO.StringIO()
+    f = StringIO()
     m.AppendJSContentsToFile(f, False, None)
 
     attrs = {

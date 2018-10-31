@@ -8,6 +8,12 @@ import numbers
 from tracing.value.diagnostics import diagnostic
 
 
+try:
+  StringTypes = basestring
+except NameError:
+  StringTypes = str
+
+
 class Breakdown(diagnostic.Diagnostic):
   __slots__ = '_values', '_color_scheme'
 
@@ -24,7 +30,7 @@ class Breakdown(diagnostic.Diagnostic):
   def FromDict(d):
     result = Breakdown()
     result._color_scheme = d.get('colorScheme')
-    for name, value in d['values'].iteritems():
+    for name, value in d['values'].items():
       if value in ['NaN', 'Infinity', '-Infinity']:
         value = float(value)
       result.Set(name, value)
@@ -49,7 +55,7 @@ class Breakdown(diagnostic.Diagnostic):
       d['colorScheme'] = self._color_scheme
 
   def Set(self, name, value):
-    assert isinstance(name, basestring), (
+    assert isinstance(name, StringTypes), (
         'Expected basestring, found %s: "%r"' % (type(name).__name__, name))
     assert isinstance(value, numbers.Number), (
         'Expected number, found %s: "%r"', (type(value).__name__, value))
@@ -59,5 +65,5 @@ class Breakdown(diagnostic.Diagnostic):
     return self._values.get(name, 0)
 
   def __iter__(self):
-    for name, value in self._values.iteritems():
+    for name, value in self._values.items():
       yield name, value

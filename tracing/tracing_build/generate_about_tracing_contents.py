@@ -44,7 +44,7 @@ def Main(args):
           title='chrome://tracing',
           flattened_js_url='tracing.js',
           minify=not args.no_min)
-    except py_vulcanize.module.DepsException, ex:
+    except py_vulcanize.module.DepsException as ex:
       sys.stderr.write('Error: %s\n\n' % str(ex))
       return 255
     o.close()

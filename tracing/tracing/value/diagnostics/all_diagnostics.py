@@ -28,7 +28,7 @@ def IsDiagnosticTypename(name):
 
 
 def GetDiagnosticTypenames():
-  return _MODULES_BY_DIAGNOSTIC_NAME.iterkeys()
+  return _MODULES_BY_DIAGNOSTIC_NAME.keys()
 
 
 def GetDiagnosticClassForName(name):
