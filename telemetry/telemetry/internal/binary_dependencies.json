@@ -59,26 +59,6 @@
         }
       }
     },
-    "determine_if_keychain_entry_is_decryptable": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "mac_x86_64": {
-          "cloud_storage_hash": "5daabb8e5d485a99efc9139634a8242fa60a25e7",
-          "download_path": "bin/mac/x86_64/determine_if_keychain_entry_is_decryptable"
-        }
-      }
-    },
-    "determine_if_keychain_is_locked": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "mac_x86_64": {
-          "cloud_storage_hash": "13a57efae9a680ac0f160b3567e02e81f4ac493c",
-          "download_path": "bin/mac/x86_64/determine_if_keychain_is_locked"
-        }
-      }
-    },
     "device_forwarder": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
