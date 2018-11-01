@@ -484,7 +484,7 @@ class DevToolsClientBackend(object):
     """Obtain the inspector backend for the firstly created tab."""
     return next(self._IterInspectorBackends(['page']), None)
 
-  def CollectChromeTracingData(self, trace_data_builder, timeout=60):
+  def CollectChromeTracingData(self, trace_data_builder, timeout=120):
     self._CreateTracingBackendIfNeeded()
     self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
