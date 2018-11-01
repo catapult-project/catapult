@@ -11,12 +11,14 @@ import threading
 import time
 import traceback
 
+from devil import base_error
 from devil.utils import watchdog_timer
 
 
-class TimeoutError(Exception):
+class TimeoutError(base_error.BaseError):
   """Module-specific timeout exception."""
-  pass
+  def __init__(self, message):
+    super(TimeoutError, self).__init__(message)
 
 
 def LogThreadStack(thread, error_log_func=logging.critical):
