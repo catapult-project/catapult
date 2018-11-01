@@ -14,21 +14,17 @@ from telemetry.testing import tab_test_case
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
-from telemetry.web_perf import timeline_interaction_record as tir_module
 
 import py_utils
 
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
 
-  def GetInteractionRecords(self, trace_data):
+  def GetInteractionRecordEvents(self, trace_data):
     timeline_model = model.TimelineModel(trace_data)
     renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
-    return [
-        tir_module.TimelineInteractionRecord.FromAsyncEvent(e)
-        for e in renderer_thread.async_slices
-        if tir_module.IsTimelineInteractionRecord(e.name)
-    ]
+    return [e for e in renderer_thread.async_slices
+            if e.name.startswith('Interaction.')]
 
   def VerifyIssuingInteractionRecords(self, **interaction_kwargs):
     action_runner = action_runner_module.ActionRunner(
@@ -45,15 +41,15 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
     trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
     self.assertEqual(errors, [])
 
-    records = self.GetInteractionRecords(trace_data)
+    records = self.GetInteractionRecordEvents(trace_data)
     self.assertEqual(
         1,
         len(records),
         'Failed to issue the interaction record on the tracing timeline.'
         ' Trace data:\n%s' % repr(trace_data._raw_data))
-    self.assertEqual('InteractionName', records[0].label)
+    self.assertIn('InteractionName', records[0].name)
     for attribute_name in interaction_kwargs:
-      self.assertTrue(getattr(records[0], attribute_name))
+      self.assertIn(attribute_name, records[0].name)
 
   # Test disabled for android: crbug.com/437057
   # Test disabled for linux: crbug.com/513874
