@@ -193,6 +193,7 @@ class JobState(object):
 
     return {
         'comparison_mode': self._comparison_mode,
+        'metric': self.metric,
         'quests': map(str, self._quests),
         'state': state,
     }

@@ -31,13 +31,16 @@ found in the LICENSE file.
       }
 
       #yaxis_title {
+        max-height: 256px;
+        overflow: hidden;
         text-orientation: mixed;
+        text-overflow: ellipsis;
         writing-mode: vertical-rl;
       }
 
       #yaxis {
         margin-top: 16px;
-        width: 48px;
+        width: 64px;
       }
 
       #plot {
@@ -114,9 +117,9 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="yaxis_title"></div>
+    <div id="yaxis_title">[[job.metric]]</div>
     <svg id="yaxis">
-      <g id="yaxis_group" transform="translate(48, 0)"></g>
+      <g id="yaxis_group" transform="translate(64, 0)"></g>
     </svg>
     <iron-selector id="plot" selected="{{reverseChangeIndex}}"></iron-selector>
     <div id="xaxis_title">Commit position or git hash</div>
