@@ -420,13 +420,12 @@ class AndroidPlatformBackend(
   def GetNetworkData(self, browser):
     return self._battery.GetNetworkData(browser._browser_backend.package)
 
-  def PathExists(self, device_path, timeout=None, retries=None):
+  def PathExists(self, device_path, **kwargs):
     """ Return whether the given path exists on the device.
     This method is the same as
     devil.android.device_utils.DeviceUtils.PathExists.
     """
-    return self._device.PathExists(
-        device_path, timeout=timeout, retries=retries)
+    return self._device.PathExists(device_path, **kwargs)
 
   def GetFileContents(self, fname):
     if not self._can_elevate_privilege:
