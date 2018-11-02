@@ -10,15 +10,8 @@ found in the LICENSE file.
     <!-- Don't use automatic scaling on mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0,
                                    maximum-scale=1.0, user-scalable=no">
-    <script src="https://polygit.org/polymer+^1.9.1/webcomponentsjs+^0.7.0/components/webcomponentsjs/webcomponents.js"></script>
-    <!-- TODO(rayraymond): The use of this URL rather than referencing
-    the polymer libary in Catapult is due to the fact that when the app
-    is served through GitHub it does not have access to those files
-    because it does not make use of Catapult's dev server (which
-    normally handles getting these file paths). This is a temporary
-    solution for now until the files that are served by GitHub Pages
-    change. -->
-    <link rel="import" href="https://polygit.org/polymer+^1.9.1/webcomponentsjs+^0.7.0/components/polymer/polymer.html">
+    <script src="/components/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="/components/polymer/polymer.html">
 
     <!-- TODO(rayraymond): Styles specific to a module should go
     in the module's style and styles shared across many modules

@@ -26,6 +26,7 @@ architecture independent.
     ```
     git clone https://chromium.googlesource.com/catapult
     cd catapult/netlog_viewer/netlog_viewer
+    ln -s ../../third_party/polymer/components/
     python -m SimpleHTTPServer 8080
     ```
 
@@ -50,22 +51,26 @@ Deploying
 gcloud auth login
 ```
 
-4. Create "static" symlink. (The symlink is not commited to git due to
-cross-platform issues.)
+4. Build the vulcanized version that will be served by appengine.
 ```
-cd appengine
-ln -s ../netlog_viewer static
+netlog_viewer_build/build_for_appengine.py
 ```
 
-5. Run app server locally, load in browser, and test that everything looks good.
+5. Run app server locally, load in browser, and test that everything looks good. (Be sure to shift-reload so you aren't testing an old cached version.)
 ```
+cd appengine
 dev_appserver.py app.yaml
 ```
 
-6. Deploy.
+6. Deploy without making it the default version.
 ```
-gcloud app deploy --project netlog-viewer
+gcloud app deploy --no-promote --project netlog-viewer
 ```
+
+7. Load the versioned URL that was printed and test that it works.
+
+8. Send live traffic to the new version using the
+[GCP console](https://console.cloud.google.com/appengine/versions).
 
 
 Merge history
