@@ -152,6 +152,18 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(expected.percentile(0.9), actual.percentile(0.9), 1e-3);
   });
 
+  test('mutatorUtilizationMakesProgress', function() {
+    const start = 44173.32375717163;
+    const end = 80378.0457572937;
+    const pauses = [
+      interval(500, 700),
+      interval(900, 990)];
+    const actual = tr.metrics.v8.utils.mutatorUtilization(
+        start, end, 16.67, pauses);
+    assert.closeTo(0.9548, actual.average, 1e-3);
+  });
+
+
   test('rangeForMemoryDumps', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const process = model.getOrCreateProcess(1);

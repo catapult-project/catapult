@@ -367,7 +367,9 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     const right = new WindowEndpoint(start, points);
 
     // Advance the right end-point until we get the correct window size.
-    while (right.position - left.position < timeWindow) {
+    // Allow the floating-point precision errors of this magnitude.
+    const EPSILON = 1e-6;
+    while (right.position - left.position < timeWindow - EPSILON) {
       right.advance(timeWindow - (right.position - left.position));
     }
 
