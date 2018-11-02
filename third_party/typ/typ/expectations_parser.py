@@ -6,7 +6,9 @@ import re
 
 
 class ParseError(Exception):
-    pass
+
+    def __init__(self, lineno, msg):
+        super(ParseError, self).__init__('%d: %s' % (lineno, msg))
 
 
 class Expectation(object):
@@ -24,10 +26,8 @@ class Expectation(object):
         self._reason = reason
         assert isinstance(test, basestring)
         self._test = test
-        assert isinstance(conditions, list)
-        self._conditions = conditions
-        assert isinstance(results, list)
-        self._results = results
+        self._conditions = frozenset(conditions)
+        self._results = frozenset(results)
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -83,25 +83,25 @@ class TestExpectationParser(object):
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
-        for count, line in list(enumerate(raw_data.splitlines(), start=1)):
+        for lineno, line in list(enumerate(raw_data.splitlines(), start=1)):
             # Handle metadata and comments.
             if line.startswith(self.TAG_TOKEN):
                 for word in line[len(self.TAG_TOKEN):].split():
                     # Expectations must be after all tags are declared.
                     if self._expectations:
-                        raise ParseError('Tag found after first expectation.')
+                        raise ParseError(lineno,
+                                         'Tag found after first expectation.')
                     self._tags.append(word)
             elif line.startswith('#') or not line:
                 continue  # Ignore, it is just a comment or empty.
             else:
                 self._expectations.append(
-                    self._parse_expectation_line(count, line, self._tags))
+                    self._parse_expectation_line(lineno, line, self._tags))
 
-    def _parse_expectation_line(self, line_number, line, tags):
+    def _parse_expectation_line(self, lineno, line, tags):
         match = self.MATCHER.match(line)
         if not match:
-            raise ParseError('Expectation has invalid syntax on line %d: %s' %
-                             (line_number, line))
+            raise ParseError(lineno, 'Syntax error: %s' % line)
         # Unused group is optional trailing comment.
         reason, raw_conditions, test, results, _ = match.groups()
         conditions = [c for c in raw_conditions.split()
@@ -109,9 +109,7 @@ class TestExpectationParser(object):
 
         for c in conditions:
             if c not in tags:
-                raise ParseError(
-                    'Condition %s not found in expectations tag data. Line %d'
-                    % (c, line_number))
+                raise ParseError(lineno, 'Unknown tag value "%s"' % c)
         return Expectation(reason, test, conditions,
                            [r for r in results.split()])
 
