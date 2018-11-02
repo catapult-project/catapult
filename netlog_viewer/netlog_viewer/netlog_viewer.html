@@ -67,16 +67,6 @@ found in the LICENSE file.
 <script src="bandwidth_view.js"></script>
 
 <dom-module id="netlog-viewer">
-  <!-- TODO(rayraymond): Styles specific to a module should go
-       in the module's style and styles shared across many modules
-       should be separated out into style modules. -->
-  <link type="text/css" rel="stylesheet" href="main.css">
-  <link type="text/css" rel="stylesheet" href="status_view.css">
-  <link type="text/css" rel="stylesheet" href="events_view.css">
-  <link type="text/css" rel="stylesheet" href="timeline_view.css">
-  <link type="text/css" rel="stylesheet" href="chromeos_view.css">
-  <link type="text/css" rel="stylesheet" href="tab_views.css">
-
   <template>
     <div id=import-view-drop-target>  
       <top-bar-view></top-bar-view>
@@ -108,7 +98,10 @@ found in the LICENSE file.
     'use strict';
 
     Polymer({
-      is: 'netlog-viewer'
+      is: 'netlog-viewer',
+      attached: function() {
+        MainView.getInstance();  // entry point, from main.js
+      }
     });
   </script>
 </dom-module>

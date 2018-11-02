@@ -10,6 +10,7 @@ found in the LICENSE file.
     <!-- Don't use automatic scaling on mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0,
                                    maximum-scale=1.0, user-scalable=no">
+    <script src="https://polygit.org/polymer+^1.9.1/webcomponentsjs+^0.7.0/components/webcomponentsjs/webcomponents.js"></script>
     <!-- TODO(rayraymond): The use of this URL rather than referencing
     the polymer libary in Catapult is due to the fact that when the app
     is served through GitHub it does not have access to those files
@@ -19,14 +20,20 @@ found in the LICENSE file.
     change. -->
     <link rel="import" href="https://polygit.org/polymer+^1.9.1/webcomponentsjs+^0.7.0/components/polymer/polymer.html">
 
+    <!-- TODO(rayraymond): Styles specific to a module should go
+    in the module's style and styles shared across many modules
+    should be separated out into style modules. -->
+    <link type="text/css" rel="stylesheet" href="main.css">
+    <link type="text/css" rel="stylesheet" href="status_view.css">
+    <link type="text/css" rel="stylesheet" href="events_view.css">
+    <link type="text/css" rel="stylesheet" href="timeline_view.css">
+    <link type="text/css" rel="stylesheet" href="chromeos_view.css">
+    <link type="text/css" rel="stylesheet" href="tab_views.css">
+
     <link rel="import" href="netlog_viewer.html">
   </head>
   <body>
     <netlog-viewer></netlog-viewer>
-
-    <script>
-      MainView.getInstance();  // entry point, from main.js
-    </script>
   </body>
 </html>
 
