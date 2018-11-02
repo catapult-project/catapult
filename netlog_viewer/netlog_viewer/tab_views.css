@@ -9,7 +9,7 @@
   * CSS should live in its respective component.
   */
 
-#top-bar-view {
+#top-bar-view-content {
   border-bottom: 1px solid gray;
   color: #fff;
   display: -webkit-flex;

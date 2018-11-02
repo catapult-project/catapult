@@ -29,7 +29,7 @@ var TopBarView = (function() {
     this.activeSubView_ = null;
   }
 
-  TopBarView.BOX_ID = 'top-bar-view';
+  TopBarView.BOX_ID = 'top-bar-view-content';
 
   cr.addSingletonGetter(TopBarView);
 
