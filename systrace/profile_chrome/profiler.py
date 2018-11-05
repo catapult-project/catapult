@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import time
 
 from profile_chrome import chrome_startup_tracing_agent
@@ -48,10 +49,14 @@ def _GetResults(trace_results, controller, output, compress, write_json,
     util.ArchiveData(trace_results, result)
   elif output:
     result = output
+    if not os.path.exists(os.path.dirname(result)):
+      os.makedirs(os.path.dirname(result))
     with open(result, 'wb') as f:
       f.write(trace_results[0].raw_data)
   else:
     result = trace_results[0].source_name
+    if not os.path.exists(os.path.dirname(result)):
+      os.makedirs(os.path.dirname(result))
     with open(result, 'wb') as f:
       f.write(trace_results[0].raw_data)
 
