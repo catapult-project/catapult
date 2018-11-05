@@ -263,7 +263,7 @@ class AdbWrapper(object):
   @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
                  check_error=True, cpu_affinity=None,
-                 ensure_logs_on_timeout=False):
+                 ensure_logs_on_timeout=True):
     timeout = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
     if ensure_logs_on_timeout:
       timeout = 0.95 * timeout
@@ -296,7 +296,7 @@ class AdbWrapper(object):
 
   def _RunDeviceAdbCmd(
       self, args, timeout, retries, check_error=True,
-      ensure_logs_on_timeout=False):
+      ensure_logs_on_timeout=True):
     """Runs an adb command on the device associated with this object.
 
     Args:
@@ -507,7 +507,7 @@ class AdbWrapper(object):
     return cmd_helper.StartCmd(
         self._BuildAdbCmd(['shell'] + cmd, self._device_serial))
 
-  def Shell(self, command, expect_status=0, ensure_logs_on_timeout=False,
+  def Shell(self, command, expect_status=0, ensure_logs_on_timeout=True,
             timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """Runs a shell command on the device.
 
