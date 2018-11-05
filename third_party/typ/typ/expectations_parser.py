@@ -12,26 +12,29 @@ class ParseError(Exception):
 
 
 class Expectation(object):
-    def __init__(self, reason, test, conditions, results):
+    def __init__(self, reason, test, tags, results):
         """Constructor for expectations.
 
-    Args:
-      reason: String that indicates the reason for disabling.
-      test: String indicating which test is being disabled.
-      conditions: List of tags indicating which conditions to disable for.
-          Conditions are combined using logical and. Example: ['Mac', 'Debug']
-      results: List of outcomes for test. Example: ['Skip', 'Pass']
-    """
+        Args:
+          reason: String that indicates the reason for the expectation.
+          test: String indicating which test is being affected.
+          tags: List of tags that the expectation applies to. Tags are combined
+              using a logical and, i.e., all of the tags need to be present for
+              the expectation to apply. For example, if tags = ['Mac', 'Debug'],
+              then the test must be running with the 'Mac' and 'Debug' tags
+              set; just 'Mac', or 'Mac' and 'Release', would not qualify.
+          results: List of outcomes for test. Example: ['Skip', 'Pass']
+        """
         assert isinstance(reason, basestring) or reason is None
-        self._reason = reason
         assert isinstance(test, basestring)
+        self._reason = reason
         self._test = test
-        self._conditions = frozenset(conditions)
+        self._tags = frozenset(tags)
         self._results = frozenset(results)
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
-                and self.conditions == other.conditions
+                and self.tags == other.tags
                 and self.results == other.results)
 
     @property
@@ -43,8 +46,8 @@ class Expectation(object):
         return self._test
 
     @property
-    def conditions(self):
-        return self._conditions
+    def tags(self):
+        return self._tags
 
     @property
     def results(self):
@@ -57,8 +60,7 @@ class TestExpectationParser(object):
   This parser covers the 'tagged' test lists format in:
       bit.ly/chromium-test-list-format
 
-  Takes raw expectations data as a string read from the TA/DA expectation file
-  in the format:
+  Takes raw expectations data as a string read from the file in the format:
 
     # This is an example expectation file.
     #
@@ -102,16 +104,17 @@ class TestExpectationParser(object):
         match = self.MATCHER.match(line)
         if not match:
             raise ParseError(lineno, 'Syntax error: %s' % line)
-        # Unused group is optional trailing comment.
-        reason, raw_conditions, test, results, _ = match.groups()
-        conditions = [c for c in raw_conditions.split()
-                      ] if raw_conditions else []
 
-        for c in conditions:
-            if c not in tags:
-                raise ParseError(lineno, 'Unknown tag value "%s"' % c)
-        return Expectation(reason, test, conditions,
-                           [r for r in results.split()])
+        # Unused group is optional trailing comment.
+        reason, raw_tags, test, raw_results, _ = match.groups()
+
+        tags = [c for c in raw_tags.split()] if raw_tags else []
+        for tag in tags:
+            if tag not in self._tags:
+                raise ParseError(lineno, 'Unknown tag "%s"' % tag)
+
+        results = raw_results.split()
+        return Expectation(reason, test, tags, results)
 
     @property
     def expectations(self):
