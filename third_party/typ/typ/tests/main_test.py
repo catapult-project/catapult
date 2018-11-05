@@ -23,6 +23,7 @@ from typ import test_case
 from typ import Host
 from typ import VERSION
 from typ.fakes import test_result_server_fake
+from typ.fakes import host_fake
 
 
 is_python3 = bool(sys.version_info.major == 3)
@@ -250,6 +251,7 @@ class TestCli(test_case.MainTestCase):
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure', out)
 
+
     def test_pass_repeat(self):
         self.check(
             ['--repeat', '2'], files=PASS_TEST_FILES, ret=0, err='',
@@ -258,6 +260,55 @@ class TestCli(test_case.MainTestCase):
                   [2/2] pass_test.PassingTest.test_pass passed
                   1 test passed, 0 skipped, 0 failures.
                   """))
+
+    def test_expectations(self):
+        files = {
+            'expectations.txt': d('''\
+                # tags: [ foo bar ]
+                crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
+                '''),
+            'fail_test.py': FAIL_TEST_PY,
+        }
+
+        # No tags are passed, so this should fail unexpectedly.
+        #_, out, _, _ = self.check(['-X', 'expectations.txt'],
+        #                          files=files, ret=1)
+
+        # A matching tag is passed, so the test should fail as expected.
+        self.check(['-X', 'expectations.txt', '-x', 'foo'], files=files, ret=0)
+
+        # A tag that doesn't match is passed, so the test should fail
+        # unexpectedly.
+        self.check(['-X', 'expectations.txt', '-x', 'bar'], files=files, ret=1)
+
+        # Passing a tag without an expectations file doesn't make sense.
+        self.check(['-x', 'bar'], files=files, ret=1)
+
+    def test_multiple_expectations_files_do_not_work(self):
+        files = {
+            'expectations_1.txt': d('''\
+                # tags: [ foo bar ]
+                crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
+                '''),
+            'expectations_2.txt': d('''\
+                # tags: [ foo bar ]
+                crbug.com/12345 [ foo ] fail_test.FailingTest.test_skip [ Skip ]
+                '''),
+            'fail_test.py': FAIL_TEST_PY,
+        }
+        # This isn't supported yet.
+        self.check(['-X', 'expectations_1.txt', '-X', 'expectations_2.txt', 
+                    '-x', 'foo'], files=files, ret=1)
+
+    def test_expectations_file_has_syntax_error(self):
+        files = {
+            'expectations.txt': d('''\
+                # tags: [ 
+                crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
+                '''),
+            'fail_test.py': FAIL_TEST_PY,
+        }
+        self.check(['-X', 'expectations.txt', '-x', 'foo'], files=files, ret=1)
 
     def test_fail(self):
         _, out, _, _ = self.check([], files=FAIL_TEST_FILES, ret=1, err='')
@@ -621,13 +672,19 @@ class TestCli(test_case.MainTestCase):
              '                                            \r'
              '1 test passed, 1 skipped, 0 failures.'))
 
+    def test_skip_via_expectations(self):
+        files = {'expectations.txt': 'crbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
+                 'fail_test.py': FAIL_TEST_PY,
+                 'pass_test.py': PASS_TEST_PY}
+        self.check(['-X', 'expectations.txt'], files=files, ret=0)
+
     def test_skips_and_failures(self):
         _, out, _, _ = self.check(['-j', '1', '-v', '-v'], files=SF_TEST_FILES,
                                   ret=1, err='')
 
         # We do a bunch of assertIn()'s to work around the non-portable
         # tracebacks.
-        self.assertIn(('[1/9] sf_test.ExpectedFailures.test_fail failed:\n'
+        self.assertIn(('[1/9] sf_test.ExpectedFailures.test_fail failed as expected:\n'
                        '  Traceback '), out)
         self.assertIn(('[2/9] sf_test.ExpectedFailures.test_pass '
                        'passed unexpectedly'), out)
@@ -789,6 +846,18 @@ class TestCli(test_case.MainTestCase):
                          '1 test passed, 0 skipped, 0 failures.\n'
                          'Uploading the JSON results raised .*\n'))
 
+    def test_unexpected_skip(self):
+        files = {
+            'expectations.txt':
+                'crbug.com/23456 skip_test.SkipSetup.test_notrun [ Pass ]\n',
+            'skip_test.py': SF_TEST_PY
+        }
+        _, out, _, _ = self.check(['-X', 'expectations.txt', 
+                                   'skip_test.SkipSetup.test_notrun'],
+                                   files=files, ret=1, err='')
+        self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly',
+                      out)
+
     def test_verbose_2(self):
         self.check(['-vv', '-j', '1', 'output_test.PassTest'],
                    files=OUTPUT_TEST_FILES, ret=0,
@@ -831,15 +900,15 @@ class TestCli(test_case.MainTestCase):
         self.assertEqual(len(result['times']), 1)
         self.assertGreater(result['times'][0], 0)
         result.pop('times')
-        self.assertEqual(results['tests'],
-                         {u'pass_test': {
+        self.assertEqual({u'pass_test': {
                              u'PassingTest': {
                                  u'test_pass': {
                                      u'actual': u'PASS',
                                      u'expected': u'PASS',
                                  }
                              }
-                         }})
+                         }},
+                         results['tests'])
 
     def test_write_trace_to(self):
         _, _, _, files = self.check(['--write-trace-to', 'trace.json'],

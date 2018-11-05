@@ -135,6 +135,12 @@ class ArgumentParser(argparse.ArgumentParser):
                               default=False,
                               help=('Runs as quietly as possible '
                                     '(only prints errors).'))
+            self.add_argument('-r', '--repeat', default=1, type=int,
+                              help='The number of times to repeat running each '
+                                    'test. Note that if the tests are A, B, C '
+                                    'and repeat is 2, the execution order would'
+                                    ' be A B C [possible retries] A B C '
+                                    '[possible retries].')
             self.add_argument('-s', '--status-format',
                               default=self._host.getenv('NINJA_STATUS',
                                                         DEFAULT_STATUS_FORMAT),
@@ -144,12 +150,15 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('-v', '--verbose', action='count', default=0,
                               help=('Prints more stuff (can specify multiple '
                                     'times for more output).'))
-            self.add_argument('-r', '--repeat', default=1, type=int,
-                              help='The number of times to repeat running each '
-                                    'test. Note that if the tests are A, B, C '
-                                    'and repeat is 2, the execution order would'
-                                    ' be A B C [possible retries] A B C '
-                                    '[possible retries].')
+            self.add_argument('-x', '--tag',
+                              dest='tags', default=[], action='append',
+                              help=('test tags (conditions) that apply to '
+                                    'this run (can specify multiple times'))
+            self.add_argument('-X', '--expectations-file',
+                              dest='expectations_files',
+                              default=[], action='append',
+                              help=('test expectations file (can specify '
+                                    'multiple times'))
             self.add_argument('--passthrough', action='store_true',
                               default=False,
                               help='Prints all output while running.')
