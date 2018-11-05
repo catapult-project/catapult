@@ -43,12 +43,6 @@
  - *num\_after*: Number of points to fetch starting from rev.
  - *config*: JSON containing custom thresholds parameters.
 
-**/new\_points**: View recently-added points for some set of tests, and verify whether or not data was received.
-- *num\_points*: Max number of points to fetch.
-- *pattern*: A test path pattern (Master/bot/benchmark/...) with wildcards to match.
-- *max\_tests*: Maximum number of tests that match the pattern to fetch.
-
-
 **/graph\_csv**: Download data points from a chart in CSV format.
 - *test\_path*: Full test path (Master/bot/benchmark...) to get data points for.
   This is shown in the tooltip for each data point.
