@@ -84,6 +84,24 @@ tr.exportTo('tr.metrics.sh', function() {
       totalFcpEvents = firstContentfulPaintEvents.length;
     }
 
+    // Sometimes a number of early trace events are not recorded because tracing
+    // takes time to start. This leads to having more FCP events than
+    // messageloop_start events. As a workaround remove the earliest FCP event
+    // in this case.
+    let initialStartupsToIgnore = 2;
+    function orderEvents(event1, event2) {
+      return event1.start - event2.start;
+    }
+    messageLoopStartEvents.sort(orderEvents);
+    firstContentfulPaintEvents.sort(orderEvents);
+    if (firstContentfulPaintEvents[0].start < messageLoopStartEvents[0].start) {
+      // Early trace event is missing: ignore the earliest event that would have
+      // been a pair for it.
+      firstContentfulPaintEvents.shift();
+      totalFcpEvents = firstContentfulPaintEvents.length;
+      initialStartupsToIgnore -= 1;
+    }
+
     if (totalFcpEvents !== totalBrowserStarts) {
       throw new Error('Number of FCP events (' + totalFcpEvents +
         ') differs from number of browser starts (' + totalBrowserStarts + ')');
@@ -97,17 +115,12 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstContentfulPaintHistogram = histograms.createHistogram(
         'first_contentful_paint_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    function orderEvents(event1, event2) {
-      return event1.start - event2.start;
-    }
-    messageLoopStartEvents.sort(orderEvents);
-    firstContentfulPaintEvents.sort(orderEvents);
     // The earliest browser start is skipped because it is affected by the state
     // of the system coming from the time before the benchmark started. Removing
     // these influencing factors allows reducing measurement noise.
     // Note: Two early starts are ignored below, the reasons for spurious
     // slowdowns of the 2nd run are not known yet, see http://crbug.com/891797.
-    for (let i = 2; i < totalBrowserStarts; i++) {
+    for (let i = initialStartupsToIgnore; i < totalBrowserStarts; i++) {
       const startEvent = messageLoopStartEvents[i];
       messageLoopStartHistogram.addSample(startEvent.duration,
           {events: new tr.v.d.RelatedEventSet([startEvent])});
