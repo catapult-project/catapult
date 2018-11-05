@@ -228,7 +228,16 @@ tr.exportTo('tr.metrics.rendering', function() {
     const frameSegments = computeFrameSegments_(timestamps, segments);
     addBasicFrameTimeHistograms_(histograms, frameSegments, '');
     tr.metrics.rendering.addCpuUtilizationHistograms(
-        histograms, model, frameSegments, 'frame', false);
+        histograms, model, frameSegments, false,
+        (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
+        category => `thread_${category}_cpu_time_per_frame`,
+        'CPU cores of a thread group per frame');
+    tr.metrics.rendering.addCpuUtilizationHistograms(
+        histograms, model, frameSegments, false,
+        (thread, segment) =>
+          thread.getNumToplevelSlicesForRange(segment.boundsRange),
+        category => `tasks_per_frame_${category}`,
+        'Number of tasks of a thread group per frame');
 
     // If Surface Flinger information is captured, add Surface Flinger
     // histograms.

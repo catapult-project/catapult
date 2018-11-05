@@ -235,31 +235,47 @@ tr.exportTo('tr.model', function() {
       return i;
     },
 
-    /**
-     * Returns the total cpu time consumed within |range| by this thread.
-     */
-    getCpuTimeForRange(range) {
-      let totalCpuTime = 0;
+    sumOverToplevelSlicesInRange(range, func) {
+      let sum = 0;
       tr.b.iterateOverIntersectingIntervals(
           this.sliceGroup.topLevelSlices,
           slice => slice.start, slice => slice.end,
           range.min, range.max,
           slice => {
-            if (slice.duration === 0) return;
-            if (!slice.cpuDuration) return;
-
-            const intersection = range.findIntersection(slice.range);
-            const fractionOfSliceInsideRangeOfInterest =
-                intersection.duration / slice.duration;
-
+            let fractionOfSliceInsideRangeOfInterest = 1;
+            if (slice.duration > 0) {
+              const intersection = range.findIntersection(slice.range);
+              fractionOfSliceInsideRangeOfInterest =
+                  intersection.duration / slice.duration;
+            }
             // We assume that if a slice doesn't lie entirely inside the range
-            // of interest, then the CPU time is evenly distributed inside of
-            // the slice.
-            totalCpuTime +=
-                slice.cpuDuration * fractionOfSliceInsideRangeOfInterest;
+            // of interest, then |func| is evenly distributed inside of the
+            // slice.
+            sum += func(slice) * fractionOfSliceInsideRangeOfInterest;
           });
+      return sum;
+    },
 
-      return totalCpuTime;
+    /**
+     * Returns the total cpu time consumed within |range| by this thread.
+     */
+    getCpuTimeForRange(range) {
+      return this.sumOverToplevelSlicesInRange(
+          range, slice => slice.cpuDuration || 0);
+    },
+
+    /**
+     * Returns the total number of top-level slices within |range| in this
+     * thread. If a slice overlaps with |range| and is not completely inside it,
+     * then we attribute the portion that is inside the range only. For example,
+     * |getNumToplevelSlicesForRange| will return 1 + 1/3 when we have:
+     *
+     * 01  02  03  04  05  06  07  08  09 10
+     *         <---------- range ---------->
+     * <- slice #1 ->      <- slice #2 ->
+     */
+    getNumToplevelSlicesForRange(range) {
+      return this.sumOverToplevelSlicesInRange(range, slice => 1);
     },
 
     getSchedulingStatsForRange(start, end) {
