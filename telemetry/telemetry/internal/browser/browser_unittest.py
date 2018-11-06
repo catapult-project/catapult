@@ -269,6 +269,7 @@ class TestBrowserCreation(unittest.TestCase):
     self.assertEqual(before_browser_run_temp_dir_content,
                      after_browser_run_temp_dir_content)
 
+  @decorators.Disabled('win10')  # crbug.com/902268
   def testSuccessfullyStartBrowserWithSystemCacheClearOptions(self):
     browser_options = self.browser_options
     browser_options.clear_sytem_cache_for_browser_and_profile_on_start = True
