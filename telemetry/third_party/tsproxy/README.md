@@ -64,6 +64,11 @@ Add a --proxy-server command-line option.
 --proxy-server="socks://localhost:1080"
 ```
 
+Additionally if you need localhost addresses (ex: localhost, 127.0.0.1) to be sent through the proxy add:
+```bash
+--proxy-bypass-list="<-loopback>"
+```
+
 # Known Shortcomings/Issues
 * DNS lookups on OSX (and FreeBSD) will block each other when it comes to actually resolving.  DNS in Python on most platforms is allowed to run concurrently in threads (which tsproxy does) but on OSX and FreeBSD it is not thread-safe and there is a lock around the actual lookups.  For most cases this isn't an issue because the latency isn't added on the actual DNS lookup (it is from the browser perspective but it is added outside of the actual lookup). This is also not an issue when desthost is used to override the destination address since dns lookups will be disabled.
 * QUIC support. Chrome [doesn't currently support QUIC proxies](https://bugs.chromium.org/p/chromium/issues/detail?id=335275), and further work would be neccessary to correctly handle UDP traffic in tsproxy.
