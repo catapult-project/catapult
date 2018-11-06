@@ -265,7 +265,7 @@ class AdbWrapper(object):
                  check_error=True, cpu_affinity=None,
                  ensure_logs_on_timeout=True):
     timeout = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
-    if ensure_logs_on_timeout:
+    if ensure_logs_on_timeout and timeout:
       timeout = 0.95 * timeout
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
