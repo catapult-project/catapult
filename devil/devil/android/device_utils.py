@@ -1027,8 +1027,8 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, shell=False, check_return=False, cwd=None,
                       env=None, run_as=None, as_root=False, single_line=False,
-                      large_output=False, raw_output=False,
-                      ensure_logs_on_timeout=True, timeout=None, retries=None):
+                      large_output=False, raw_output=False, timeout=None,
+                      retries=None):
     """Run an ADB shell command.
 
     The command to run |cmd| should be a sequence of program arguments
@@ -1071,10 +1071,6 @@ class DeviceUtils(object):
         this large output will be truncated.
       raw_output: Whether to only return the raw output
           (no splitting into lines).
-      ensure_logs_on_timeout: If True, will use a slightly smaller timeout for
-          the internal adb command, which allows to retrive logs on timeout.
-          Note that that logs are not guaranteed to be produced with this option
-          as adb command may still hang and fail to respect the reduced timeout.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1098,7 +1094,7 @@ class DeviceUtils(object):
       return '%s=%s' % (key, cmd_helper.DoubleQuote(value))
 
     def run(cmd):
-      return self.adb.Shell(cmd, ensure_logs_on_timeout=ensure_logs_on_timeout)
+      return self.adb.Shell(cmd)
 
     def handle_check_return(cmd):
       try:
