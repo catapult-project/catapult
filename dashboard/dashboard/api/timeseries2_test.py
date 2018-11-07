@@ -166,6 +166,27 @@ class Timeseries2Test(testing_common.TestCase):
       self.assertEqual(6, len(datum))
       self.assertEqual(5 + (2 * i), datum[1])
 
+  def testAnnotations(self):
+    test = graph_data.TestMetadata(
+        has_rows=True,
+        id='master/bot/suite/measure/case',
+        improvement_direction=anomaly.DOWN,
+        units='units')
+    test.UpdateSheriff()
+    test.put()
+    graph_data.Row(
+        parent=test.key, id=1, value=42.0,
+        a_trace_uri='http://example.com').put()
+
+    response = self._Post(
+        test_suite='suite', measurement='measure', bot='master:bot',
+        test_case='case', build_type='test',
+        columns='revision,annotations')
+    self.assertEqual(1, len(response['data']))
+    self.assertEqual(1, response['data'][0][0])
+    self.assertEqual('http://example.com',
+                     response['data'][0][1]['a_trace_uri'])
+
   def testMixOldStyleRowsWithNewStyleRows(self):
     old_count_test = graph_data.TestMetadata(
         has_rows=True,
