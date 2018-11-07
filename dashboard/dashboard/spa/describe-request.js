@@ -15,6 +15,24 @@ tr.exportTo('cp', () => {
     get url_() {
       return '/api/describe';
     }
+
+    static mergeDescriptor(merged, descriptor) {
+      for (const bot of descriptor.bots) merged.bots.add(bot);
+      for (const measurement of descriptor.measurements) {
+        merged.measurements.add(measurement);
+      }
+      for (const c of descriptor.cases) {
+        merged.cases.add(c);
+      }
+      for (const [tag, cases] of Object.entries(descriptor.caseTags || {})) {
+        if (!merged.caseTags.has(tag)) {
+          merged.caseTags.set(tag, new Set());
+        }
+        for (const c of cases) {
+          merged.caseTags.get(tag).add(c);
+        }
+      }
+    }
   }
 
   return {DescribeRequest};
