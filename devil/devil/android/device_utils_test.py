@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import stat
+import sys
 import unittest
 
 from devil import devil_env
@@ -2948,6 +2949,30 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), [])):
       with self.assertRaises(device_errors.NoDevicesError):
         device_utils.DeviceUtils.HealthyDevices(device_arg=[], retries=4)
+    self.assertEquals(mock_restart.call_count, 4)
+    self.assertEquals(mock_sleep.call_args_list, [
+        mock.call(2), mock.call(4), mock.call(8), mock.call(16)])
+
+  @mock.patch('time.sleep')
+  @mock.patch('devil.android.device_utils.RestartServer')
+  def testHealthyDevices_EmptyListDeviceArg_no_attached_with_resets(
+      self, mock_restart, mock_sleep):
+    # The reset_usb import fails on windows. Mock the full import here so it can
+    # succeed like it would on linux.
+    mock_reset_import = mock.MagicMock()
+    sys.modules['devil.utils.reset_usb'] = mock_reset_import
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), []),
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), []),
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), []),
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), []),
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(), [])):
+      with self.assertRaises(device_errors.NoDevicesError):
+        with mock.patch.object(
+            mock_reset_import, 'reset_all_android_devices') as mock_reset:
+          device_utils.DeviceUtils.HealthyDevices(device_arg=[], retries=4,
+                                                  enable_usb_resets=True)
+          self.assertEquals(mock_reset.call_count, 1)
     self.assertEquals(mock_restart.call_count, 4)
     self.assertEquals(mock_sleep.call_args_list, [
         mock.call(2), mock.call(4), mock.call(8), mock.call(16)])

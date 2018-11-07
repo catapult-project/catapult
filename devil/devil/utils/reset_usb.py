@@ -3,12 +3,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
+if sys.platform == 'win32':
+  raise ImportError('devil.utils.reset_usb only supported on unix systems.')
+
 import argparse
 import fcntl
 import logging
 import os
 import re
-import sys
 
 if __name__ == '__main__':
   sys.path.append(

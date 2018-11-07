@@ -21,6 +21,7 @@ import random
 import re
 import shutil
 import stat
+import sys
 import tempfile
 import time
 import threading
@@ -49,6 +50,12 @@ from devil.utils import timeout_retry
 from devil.utils import zip_utils
 
 from py_utils import tempfile_ext
+
+try:
+  from devil.utils import reset_usb
+except ImportError:
+  # Fail silently if we can't import reset_usb. We're likely on windows.
+  reset_usb = None
 
 logger = logging.getLogger(__name__)
 
@@ -2826,7 +2833,7 @@ class DeviceUtils(object):
 
   @classmethod
   def HealthyDevices(cls, blacklist=None, device_arg='default', retries=1,
-                     abis=None, **kwargs):
+                     enable_usb_resets=False, abis=None, **kwargs):
     """Returns a list of DeviceUtils instances.
 
     Returns a list of DeviceUtils instances that are attached, not blacklisted,
@@ -2851,6 +2858,9 @@ class DeviceUtils(object):
       retries: Number of times to restart adb server and query it again if no
           devices are found on the previous attempts, with exponential backoffs
           up to 60s between each retry.
+      enable_usb_resets: If true, will attempt to trigger a USB reset prior to
+          the last attempt if there are no available devices. It will only reset
+          those that appear to be android devices.
       abis: A list of ABIs for which the device needs to support at least one of
           (optional).
       A device serial, or a list of device serials (optional).
@@ -2912,6 +2922,18 @@ class DeviceUtils(object):
         raise device_errors.MultipleDevicesError(devices)
       return sorted(devices)
 
+    def _reset_devices():
+      if not reset_usb:
+        logging.error(
+            'reset_usb.py not supported on this platform (%s). Skipping usb '
+            'resets.', sys.platform)
+        return
+      if device_arg:
+        for serial in device_arg:
+          reset_usb.reset_android_usb(serial)
+      else:
+        reset_usb.reset_all_android_devices()
+
     for attempt in xrange(retries+1):
       try:
         return _get_devices()
@@ -2919,6 +2941,11 @@ class DeviceUtils(object):
         if attempt == retries:
           logging.error('No devices found after exhausting all retries.')
           raise
+        elif attempt == retries - 1 and enable_usb_resets:
+          logging.warning(
+              'Attempting to reset relevant USB devices prior to the last '
+              'attempt.')
+          _reset_devices()
         # math.pow returns floats, so cast to int for easier testing
         sleep_s = min(int(math.pow(2, attempt + 1)), 60)
         logger.warning(
