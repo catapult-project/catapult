@@ -20,6 +20,9 @@ from telemetry.core import local_server
 ByteRange = namedtuple('ByteRange', ['from_byte', 'to_byte'])
 ResourceAndRange = namedtuple('ResourceAndRange', ['resource', 'byte_range'])
 
+_MIME_TYPES_FILE = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'mime.types'))
+
 
 class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
@@ -155,6 +158,11 @@ class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
   def __init__(self, host_port, handler, paths):
     BaseHTTPServer.HTTPServer.__init__(self, host_port, handler)
     self.resource_map = {}
+    # Use Telemetry's 'mime.types' file instead of relying on system files to
+    # ensure the mime type inference is deterministic
+    # (also see crbug.com/894868).
+    assert os.path.isfile(_MIME_TYPES_FILE)
+    mimetypes.init([_MIME_TYPES_FILE])
     for path in paths:
       if os.path.isdir(path):
         self.AddDirectoryToResourceMap(path)
