@@ -70,6 +70,60 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(labels, histograms.lookupDiagnostic(labels.guid));
   });
 
+  test('convertWithoutName', function() {
+    const charts = {
+      benchmark_name: 'the.benchmark',
+      label: 'the_label',
+      charts: {
+        mean_frame_time: {
+          'http://games.yahoo.com': {
+            std: 0.0,
+            type: 'list_of_scalar_values',
+            improvement_direction: 'down',
+            units: 'ms',
+            page_id: 16,
+            description: 'Arithmetic mean of frame times.'
+          },
+          'summary': {
+            std: 0.0,
+            improvement_direction: 'down',
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            description: 'Arithmetic mean of frame times.'
+          },
+        }
+      }
+    };
+    const histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    assert.lengthOf(histograms, 1);
+    const hist = [...histograms][0];
+    assert.strictEqual('mean_frame_time', hist.name);
+    assert.strictEqual('http://games.yahoo.com',
+        tr.v.HistogramGrouping.BY_KEY.get(
+            tr.v.d.RESERVED_NAMES.STORIES).callback(hist));
+    assert.strictEqual('the.benchmark',
+        tr.v.HistogramGrouping.BY_KEY.get(
+            tr.v.d.RESERVED_NAMES.BENCHMARKS).callback(hist));
+    assert.strictEqual('the_label',
+        tr.v.HistogramGrouping.DISPLAY_LABEL.callback(hist));
+    assert.strictEqual(0, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+
+    const stories = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES);
+    assert.isTrue(stories.hasGuid);
+    assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
+
+    const benchmarks = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.BENCHMARKS);
+    assert.isTrue(benchmarks.hasGuid);
+    assert.strictEqual(benchmarks, histograms.lookupDiagnostic(
+        benchmarks.guid));
+
+    const labels = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.LABELS);
+    assert.isTrue(labels.hasGuid);
+    assert.strictEqual(labels, histograms.lookupDiagnostic(labels.guid));
+  });
   test('convertWithoutTIRLabel', function() {
     const charts = {
       charts: {

@@ -64,7 +64,8 @@ tr.exportTo('tr.v', function() {
               improvementDirection);
 
           const hist = histograms.createHistogram(
-              value.name, tr.b.Unit.byName[unitName + unitNameSuffix], [], {
+              value.name || name,
+              tr.b.Unit.byName[unitName + unitNameSuffix], [], {
                 binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
                 description: value.description || '',
               });
