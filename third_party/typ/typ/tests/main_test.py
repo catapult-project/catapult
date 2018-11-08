@@ -753,7 +753,7 @@ class TestCli(test_case.MainTestCase):
 
         self.assertEqual(len(posts), 1)
         payload = posts[0][2].decode('utf8')
-        self.assertIn('"test_pass": {"actual": "PASS"',
+        self.assertIn('"test_pass": {"expected": "PASS", "actual": "PASS"',
                       payload)
         self.assertTrue(payload.endswith('--\r\n'))
         self.assertNotEqual(server.log.getvalue(), '')
@@ -852,8 +852,8 @@ class TestCli(test_case.MainTestCase):
         self.assertEqual(event['name'], 'pass_test.PassingTest.test_pass')
         self.assertEqual(event['ph'], 'X')
         self.assertEqual(event['tid'], 1)
-        self.assertEqual(event['args']['expected'], ['Pass'])
-        self.assertEqual(event['args']['actual'], 'Pass')
+        self.assertEqual(event['args']['expected'], ['PASS'])
+        self.assertEqual(event['args']['actual'], 'PASS')
 
 
 class TestMain(TestCli):
