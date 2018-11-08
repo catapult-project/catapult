@@ -79,6 +79,7 @@ class NewAuthTest(_NewTest):
             mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(api_auth, 'Authorize', mock.MagicMock())
+@mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
 class NewTest(_NewTest):
 
   def testPost(self):

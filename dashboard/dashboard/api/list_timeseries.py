@@ -12,10 +12,10 @@ from dashboard.models import graph_data
 class ListTimeseriesHandler(api_request_handler.ApiRequestHandler):
   """API handler for listing timeseries for a benchmark."""
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
+  def _CheckUser(self):
+    self._CheckIsLoggedIn()
 
-  def UnprivilegedPost(self, *args):
+  def Post(self, *args):
     """Returns list in response to API requests.
 
     Argument:

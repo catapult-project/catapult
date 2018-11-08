@@ -27,13 +27,10 @@ CACHE_SECONDS = 60 * 60 * 24 * 7
 
 class Timeseries2Handler(api_request_handler.ApiRequestHandler):
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    pass
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
-
-  def UnprivilegedPost(self, *_):
+  def Post(self):
     desc = descriptor.Descriptor(
         test_suite=self.request.get('test_suite'),
         measurement=self.request.get('measurement'),

@@ -36,7 +36,7 @@ class AuthTest(test.TestCase):
     testing_common.SetIpWhitelist(['invalid'])
     self.SetCurrentUserOAuth(None)
 
-    self.Post('/api/isolate', self._ValidParams(), status=403)
+    self.Post('/api/isolate', self._ValidParams(), status=401)
 
   def testPost_Internal_Oauth_Succeeds(self):
     testing_common.SetIpWhitelist(['invalid'])
@@ -95,7 +95,7 @@ class FunctionalityTest(test.TestCase):
 
   def testPostPermissionDenied(self):
     testing_common.SetIpWhitelist([])
-    self.testapp.post('/api/isolate', status=403)
+    self.testapp.post('/api/isolate', status=401)
 
 
 class ParameterValidationTest(test.TestCase):

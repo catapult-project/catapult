@@ -10,13 +10,10 @@ from dashboard.models import report_template
 
 class ReportGenerateHandler(api_request_handler.ApiRequestHandler):
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    pass
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
-
-  def UnprivilegedPost(self, *_):
+  def Post(self):
     revisions = self.request.get('revisions', None)
     if revisions is None:
       raise api_request_handler.BadRequestError

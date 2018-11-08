@@ -94,7 +94,10 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
-  def PrivilegedPost(self):
+  def _CheckUser(self):
+    self._CheckIsInternalUser()
+
+  def Post(self):
     with timing.WallTimeLogger('decompress'):
       try:
         data_str = self.request.body

@@ -455,13 +455,19 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
 def IsValidSheriffUser():
   """Checks whether the user should be allowed to triage alerts."""
   email = GetEmail()
+  if not email:
+    return False
+
   sheriff_domains = stored_object.Get(SHERIFF_DOMAINS_KEY)
-  if email:
-    domain_matched = sheriff_domains and any(
-        email.endswith('@' + domain) for domain in sheriff_domains)
-    return domain_matched or IsGroupMember(
-        identity=email, group='project-chromium-tryjob-access')
-  return False
+  domain_matched = sheriff_domains and any(
+      email.endswith('@' + domain) for domain in sheriff_domains)
+  return domain_matched or IsTryjobUser()
+
+
+def IsTryjobUser():
+  email = GetEmail()
+  return bool(email) and IsGroupMember(
+      identity=email, group='project-chromium-tryjob-access')
 
 
 def GetIpWhitelist():

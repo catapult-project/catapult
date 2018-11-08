@@ -10,9 +10,10 @@ from dashboard.models import report_template
 
 class ReportTemplateHandler(api_request_handler.ApiRequestHandler):
 
-  # Do not allow anonymous PutTemplate!
+  def _CheckUser(self):
+    self._CheckIsInternalUser()
 
-  def PrivilegedPost(self, *_):
+  def Post(self):
     template = json.loads(self.request.get('template'))
     name = self.request.get('name', None)
     owners = self.request.get('owners', None)

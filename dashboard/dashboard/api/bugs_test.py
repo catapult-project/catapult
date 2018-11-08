@@ -155,8 +155,8 @@ class BugsTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_NoAccess_ShowsError(self):
     self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
-    response = self.Post('/api/bugs/foo', status=400)
-    self.assertIn('No access', response.body)
+    response = self.Post('/api/bugs/foo', status=403)
+    self.assertIn('Access denied', response.body)
 
   def testPost_NoOauthUser(self):
     self.SetCurrentUserOAuth(None)

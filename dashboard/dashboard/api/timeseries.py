@@ -17,10 +17,10 @@ class BadRequestError(Exception):
 class TimeseriesHandler(api_request_handler.ApiRequestHandler):
   """API handler for getting timeseries data."""
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
+  def _CheckUser(self):
+    self._CheckIsLoggedIn()
 
-  def UnprivilegedPost(self, *args):
+  def Post(self, *args):
     """Returns timeseries data in response to API requests.
 
     Argument:

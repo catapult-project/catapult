@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.api import utils as api_utils
 from dashboard.api import api_request_handler
+from dashboard.api import utils as api_utils
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
 from dashboard.models import try_job
@@ -16,10 +16,12 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
   Convenience methods for getting bug data; only available to internal users.
   """
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
+  def _CheckUser(self):
+    self._CheckIsLoggedIn()
+    if not datastore_hooks.IsUnalteredQueryPermitted():
+      raise api_request_handler.ForbiddenError()
 
-  def UnprivilegedPost(self, *args):
+  def Post(self, *args):
     """Returns alert data in response to API requests.
 
     Argument:
@@ -28,10 +30,6 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       JSON data for the bug, see README.md.
     """
-    # Users must log in with privileged access to see all bugs.
-    if not datastore_hooks.IsUnalteredQueryPermitted():
-      raise api_request_handler.BadRequestError('No access.')
-
     try:
       bug_id = int(args[0])
     except ValueError:

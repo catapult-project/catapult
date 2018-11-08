@@ -9,12 +9,9 @@ from dashboard.api import api_request_handler
 class DescribeHandler(api_request_handler.ApiRequestHandler):
   """API handler for describing test suites."""
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    pass
 
-  def PrivilegedPost(self):
-    return self.UnprivilegedPost()
-
-  def UnprivilegedPost(self):
+  def Post(self):
     return update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
         self.request.get('test_suite'))

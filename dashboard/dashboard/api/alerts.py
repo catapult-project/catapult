@@ -20,13 +20,10 @@ from dashboard.models import report_template
 class AlertsHandler(api_request_handler.ApiRequestHandler):
   """API handler for various alert requests."""
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    pass
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
-
-  def UnprivilegedPost(self, *args):
+  def Post(self, *args):
     """Returns alert data in response to API requests.
 
     Possible list types:

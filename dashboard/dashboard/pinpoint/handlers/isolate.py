@@ -60,16 +60,13 @@ class Isolate(api_request_handler.ApiRequestHandler):
         'isolate_hash': isolate_hash,
     }))
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    # TODO: Remove when all Pinpoint builders are migrated to LUCI.
+    if self.request.remote_addr in utils.GetIpWhitelist():
+      return
+    self._CheckIsInternalUser()
 
-  def UnprivilegedPost(self):
-    # Fall back to ip whitelisting
-    if self.request.remote_addr not in utils.GetIpWhitelist():
-      raise api_request_handler.ForbiddenError()
-    self.PrivilegedPost()
-
-  def PrivilegedPost(self):
+  def Post(self):
     """Add new isolate information.
 
     Args:

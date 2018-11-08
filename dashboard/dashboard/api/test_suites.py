@@ -9,11 +9,8 @@ from dashboard.api import api_request_handler
 class TestSuitesHandler(api_request_handler.ApiRequestHandler):
   """API handler for listing test suites."""
 
-  def _AllowAnonymous(self):
-    return True
+  def _CheckUser(self):
+    pass
 
-  def PrivilegedPost(self, *args):
-    return self.UnprivilegedPost(*args)
-
-  def UnprivilegedPost(self, *_):
+  def Post(self):
     return update_test_suites.FetchCachedTestSuites2()
