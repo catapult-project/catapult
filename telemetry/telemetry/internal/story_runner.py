@@ -34,6 +34,12 @@ from tracing.value.diagnostics import reserved_infos
 _PAUSE_STAGES = ('before-start-browser', 'after-start-browser',
                  'before-run-story', 'after-run-story')
 
+_UNHANDLEABLE_ERRORS = (
+    SystemExit,
+    KeyboardInterrupt,
+    ImportError,
+    MemoryError)
+
 
 class ArchiveError(Exception):
   pass
@@ -126,20 +132,20 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       state.RunStory(results)
       if isinstance(test, story_test.StoryTest):
         test.Measure(state.platform, results)
+    except page_action.PageActionNotSupported as exc:
+      results.Skip('Unsupported page action: %s' % exc)
     except (legacy_page_test.Failure, exceptions.TimeoutException,
             exceptions.LoginException, py_utils.TimeoutException) as exc:
       ProcessError(exc, log_message='Handleable error')
-    except exceptions.Error as exc:
-      ProcessError(
-          exc, log_message='Handleable error. Will try to restart shared state')
-      # The caller (|Run| function) will catch this exception, destory and
-      # create a new shared state.
-      raise
-    except page_action.PageActionNotSupported as exc:
-      results.Skip('Unsupported page action: %s' % exc)
-    except Exception as exc:
+    except _UNHANDLEABLE_ERRORS as exc:
       ProcessError(exc, log_message=('Unhandleable error. '
                                      'Benchmark run will be interrupted'))
+      raise
+    except Exception as exc:  # pylint: disable=broad-except
+      ProcessError(exc, log_message=('Possibly handleable error. '
+                                     'Will try to restart shared state'))
+      # The caller (|Run| function) will catch this exception, destory and
+      # create a new shared state.
       raise
     finally:
       has_existing_exception = (sys.exc_info() != (None, None, None))
@@ -155,7 +161,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
           test.DidRunPage(state.platform)
         # And the following normally causes the browser to be closed.
         state.DidRunStory(results)
-      except Exception: # pylint: disable=broad-except
+      except Exception:  # pylint: disable=broad-except
         if not has_existing_exception:
           state.DumpStateUponFailure(story, results)
           raise
@@ -247,10 +253,13 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             results.Fail(msg)
 
           device_info_diags = _MakeDeviceInfoDiagnostics(state)
-        except exceptions.Error:
-          # Catch all Telemetry errors to give the story a chance to retry.
-          # The retry is enabled by tearing down the state and creating
-          # a new state instance in the next iteration.
+        except _UNHANDLEABLE_ERRORS:
+          # Nothing else we should do for these. Re-raise the error.
+          raise
+        except Exception:  # pylint: disable=broad-except
+          # For all other errors, try to give the rest of stories a chance
+          # to run by tearing down the state and creating a new state instance
+          # in the next iteration.
           try:
             # If TearDownState raises, do not catch the exception.
             # (The Error was saved as a failure value.)
@@ -265,7 +274,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
               _CheckThermalThrottling(state.platform)
             results.DidRunPage(story)
             story_run.SetDuration(time.time() - start_timestamp)
-          except Exception: # pylint: disable=broad-except
+          except Exception:  # pylint: disable=broad-except
             if not has_existing_exception:
               raise
             # Print current exception and propagate existing exception.
