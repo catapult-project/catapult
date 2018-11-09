@@ -54,11 +54,15 @@ class ApiRequestHandler(webapp2.RequestHandler):
     raise NotImplementedError()
 
   def _CheckIsInternalUser(self):
+    if utils.IsDevAppserver():
+      return
     self._CheckIsLoggedIn()
     if not utils.IsInternalUser():
       raise ForbiddenError()
 
   def _CheckIsLoggedIn(self):
+    if utils.IsDevAppserver():
+      return
     api_auth.Authorize()
 
   def post(self, *args):

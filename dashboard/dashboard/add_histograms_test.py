@@ -125,8 +125,12 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     self.SetCurrentUser('foo@bar.com', is_admin=True)
     oauth_patcher = mock.patch.object(api_auth, 'oauth')
     self.addCleanup(oauth_patcher.stop)
-    mock_oauth = oauth_patcher.start()
-    SetGooglerOAuth(mock_oauth)
+    SetGooglerOAuth(oauth_patcher.start())
+
+    identity_patcher = mock.patch.object(utils, 'app_identity')
+    self.addCleanup(identity_patcher.stop)
+    self.mock_utils = identity_patcher.start()
+    self.mock_utils.get_application_id.return_value = 'chromeperf'
 
     patcher = mock.patch.object(add_histograms, 'cloudstorage')
     self.mock_cloudstorage = patcher.start()

@@ -13,6 +13,7 @@ import urllib
 
 from apiclient import discovery
 from apiclient import errors
+from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.api import oauth
 from google.appengine.api import urlfetch
@@ -34,6 +35,10 @@ OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
 )
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms']
+
+
+def IsDevAppserver():
+  return app_identity.get_application_id() == 'None'
 
 
 def _GetNowRfc3339():
@@ -369,6 +374,8 @@ def MinimumRange(ranges):
 
 def IsInternalUser():
   """Checks whether the user should be able to see internal-only data."""
+  if IsDevAppserver():
+    return True
   email = GetEmail()
   if not email:
     return False

@@ -98,6 +98,14 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
     self._CheckIsInternalUser()
 
   def Post(self):
+    if utils.IsDevAppserver():
+      # Don't require developers to zip the body.
+      # In prod, the data will be written to cloud storage and processed on the
+      # taskqueue, so the caller will not see any errors. In dev_appserver,
+      # process the data immediately so the caller will see errors.
+      ProcessHistogramSet(json.loads(self.request.body))
+      return
+
     with timing.WallTimeLogger('decompress'):
       try:
         data_str = self.request.body
