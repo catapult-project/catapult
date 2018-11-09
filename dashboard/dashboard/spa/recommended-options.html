@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/option-group.html">
+
+<dom-module id="recommended-options">
+  <template>
+    <style>
+      option-group {
+        border-bottom: 1px solid var(--primary-color-dark, blue);
+      }
+    </style>
+
+    <b style="margin: 4px;">Recommended</b>
+    <option-group
+        state-path="[[statePath]].recommended"
+        root-state-path="[[statePath]]">
+    </option-group>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/recommended-options.js"></script>

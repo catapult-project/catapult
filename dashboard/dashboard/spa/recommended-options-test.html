@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/recommended-options.html">
+
+<test-fixture id="test">
+  <template>
+    <recommended-options state-path="test"></recommended-options>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+setup(() => {
+  localStorage.removeItem(cp.RecommendedOptions.STORAGE_KEY);
+});
+
+suite('recommended-options', function() {
+  test('getRecommendations', async function() {
+    const now = new Date().getTime();
+    localStorage.setItem(cp.RecommendedOptions.STORAGE_KEY, JSON.stringify({
+      aaa: [
+        new Date(now - 1 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 2 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 3 - cp.RecommendedOptions.OLD_MS),
+      ],
+      bbb: [
+        new Date(now - cp.RecommendedOptions.OLD_MS + 1000),
+      ],
+      ccc: [
+        new Date(now - 1),
+      ],
+    }));
+    const rec = fixture('test');
+    rec.ready();
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
+        options: ['aaa', 'bbb', 'ccc'],
+      }),
+    }));
+    const state = rec.getState().test;
+    assert.deepEqual(['ccc', 'bbb'], state.recommended.optionValues);
+  });
+
+  test('select', async function() {
+    // localStorage is updated when the user selects an option.
+    const rec = fixture('test');
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
+        options: ['aaa', 'bbb', 'ccc'],
+        selectedOptions: [],
+      }),
+    }));
+    await cp.afterRender();
+    rec.dispatch(Redux.UPDATE('test', {selectedOptions: ['aaa']}));
+    await cp.afterRender();
+    let optionRecommendations = JSON.parse(localStorage.getItem(
+        cp.RecommendedOptions.STORAGE_KEY));
+    assert.lengthOf(optionRecommendations.aaa, 1);
+
+    // localStorage is not updated when the user selects a whole group of
+    // options.
+    rec.dispatch(Redux.UPDATE('test', {selectedOptions: ['bbb', 'ccc']}));
+    await cp.afterRender();
+    optionRecommendations = JSON.parse(localStorage.getItem(
+        cp.RecommendedOptions.STORAGE_KEY));
+    assert.lengthOf(optionRecommendations.aaa, 1);
+  });
+
+  test('recommendOptions', async function() {
+    // recommended options change when optionValues change.
+    const now = new Date().getTime();
+    localStorage.setItem(cp.RecommendedOptions.STORAGE_KEY, JSON.stringify({
+      aaa: [
+        new Date(now - 1 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 2 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 3 - cp.RecommendedOptions.OLD_MS),
+      ],
+      bbb: [
+        new Date(now - cp.RecommendedOptions.OLD_MS + 1000),
+      ],
+      ccc: [
+        new Date(now - 1),
+      ],
+    }));
+    const rec = fixture('test');
+    rec.dispatch(Redux.UPDATE('', {
+      optionRecommendations: undefined,
+    }));
+    await cp.afterRender();
+    rec.ready();
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
+        options: ['aaa', 'bbb', 'ccc'],
+      }),
+    }));
+    let state = rec.getState().test;
+    assert.deepEqual(['ccc', 'bbb'], state.recommended.optionValues);
+
+    rec.dispatch(Redux.UPDATE('test', {optionValues: ['ddd', 'ccc']}));
+    await cp.afterRender();
+    state = rec.getState().test;
+    assert.deepEqual(['ccc'], state.recommended.optionValues);
+  });
+});
+</script>
