@@ -1,0 +1,16 @@
+{
+  "name": "Example bisect job",
+  "bug_id": "893896",
+  "target": "performance_test_suite",
+  "configuration": "android-go-perf",
+  "benchmark": "memory.top_10_mobile",
+  "comparison_mode": "performance",
+  "story": "http.m.youtube.com.results.q.science",
+  "chart": "memory:chrome:all_processes:reported_by_os:system_memory:private_footprint_size",
+  "tir_label": "foreground",
+  "trace": "http_m_youtube_com_results_q_science",
+  "statistic": "avg",
+  "repository": "chromium",
+  "start_git_hash": "daa361c6e17be19c30de3896efeb63ca0034e9b8",
+  "end_git_hash": "30588560782b21f7910332d49796948a3b482c19"
+}

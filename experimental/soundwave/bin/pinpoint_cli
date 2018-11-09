@@ -49,17 +49,11 @@ def main():
       help='one or more pinpoint job ids')
 
   subparser = subparsers.add_parser(
-      'start-jobs', help='start some new pinpoint jobs')
+      'start-job', help='start a new pinpoint job')
   subparser.add_argument(
-      'config', metavar='CONFIG',
-      help='name of a job configuration (see job_configs dir)')
-  subparser.add_argument(
-      '--revision', default='HEAD',
-      help='run jobs pinned to this revision (default: %(default)s)')
-  subparser.add_argument(
-      '--repository', default='chromium',
-      help='the --revision provided is relative to this repository'
-           ' (default: %(default)s)')
+      'config_path', metavar='CONFIG_PATH',
+      help='path to a json file with a pinpoint job configuration (see'
+           " pinpoint_examples dir) or '-' to read it from stdin")
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
@@ -68,8 +62,8 @@ def main():
     return commands.CheckJobStatus(api, args.job_ids)
   elif args.action == 'get-csv':
     return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
-  elif args.action == 'start-jobs':
-    return commands.StartJobsFromConfig(api, args)
+  elif args.action == 'start-job':
+    return commands.StartJobFromConfig(api, args.config_path)
   else:
     raise NotImplementedError(args.action)
 

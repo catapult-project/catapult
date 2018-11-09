@@ -1,7 +1,0 @@
-{
-  "name": "Try job for cold startup on Go",
-  "target": "performance_test_suite",
-  "configuration": "android-go-perf",
-  "benchmark": "startup.mobile",
-  "patch": "https://chromium-review.googlesource.com/c/chromium/src/+/1214223"
-}
