@@ -186,7 +186,7 @@ func (r *ConvertorConfig) Convert(c *cli.Context) {
 			httpReq.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 		}
 		resp.Body = ioutil.NopCloser(bytes.NewReader(responseBody))
-		if err := archive.RecordRequest(url.Scheme, &httpReq, resp); err != nil {
+		if err := archive.RecordRequest(&httpReq, resp); err != nil {
 			panic(fmt.Sprintf("failed recording request: %v", err))
 		}
 		if err := r.recordServerCert(url.Scheme, url.Host, archive); err != nil {

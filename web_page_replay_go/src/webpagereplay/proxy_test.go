@@ -100,7 +100,7 @@ func TestDoNotSaveDeterministicJS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenArchive: %v", err)
 	}
-	_, recordedResp, err := replayArchive.FindRequest(req, "http")
+	_, recordedResp, err := replayArchive.FindRequest(req)
 	if err != nil {
 		t.Fatalf("unexpected error : %v", err)
 	}

@@ -131,7 +131,7 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	logf := makeLogger(req)
 
 	// Lookup the response in the archive.
-	_, storedResp, err := proxy.a.FindRequest(req, proxy.scheme)
+	_, storedResp, err := proxy.a.FindRequest(req)
 	if err != nil {
 		logf("couldn't find matching request: %v", err)
 		w.WriteHeader(http.StatusNotFound)
@@ -274,7 +274,7 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	if req.Body != nil {
 		req.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 	}
-	if err := proxy.a.RecordRequest(proxy.scheme, req, resp); err != nil {
+	if err := proxy.a.RecordRequest(req, resp); err != nil {
 		logf("failed recording request: %v", err)
 	}
 
