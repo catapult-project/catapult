@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/menu-input.html">
+
+<dom-module id="tag-filter">
+  <template>
+    <style>
+      :host {
+        align-items: center;
+        border-right: 1px solid black;
+        display: flex;
+        flex-direction: column;
+        padding-right: 8px;
+      }
+      #head {
+        padding: 4px;
+        color: var(--neutral-color-dark, grey);
+        font-weight: bold;
+      }
+    </style>
+
+    <span id="tag_head">Tags</span>
+    <option-group
+        state-path="[[statePath]].tags"
+        root-state-path="[[statePath]].tags"
+        on-option-select="onTagSelect_">
+    </option-group>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/tag-filter.js"></script>

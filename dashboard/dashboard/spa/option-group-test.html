@@ -21,13 +21,13 @@ found in the LICENSE file.
 setup(() => {
   fixture('test').dispatch(Redux.UPDATE('', {
     test: cp.OptionGroup.buildState({
-      options: cp.OptionGroup.groupValues(new Set([
+      options: new Set([
         'aaa',
         'bbb:ccc',
         'bbb:ddd',
         'bbb:ddd:eee',
         'bbb:ddd:fff',
-      ])),
+      ]),
     }),
   }));
 });

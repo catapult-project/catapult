@@ -23,23 +23,23 @@ setup(() => {
   fixture('test')[0].dispatch(Redux.UPDATE('', {
     xxx: cp.MenuInput.buildState({
       label: 'XXX',
-      options: cp.OptionGroup.groupValues(new Set([
+      options: new Set([
         'aaa',
         'bbb:ccc',
         'bbb:ddd',
         'bbb:ddd:eee',
         'bbb:ddd:fff',
-      ])),
+      ]),
     }),
     yyy: cp.MenuInput.buildState({
       label: 'YYY',
-      options: cp.OptionGroup.groupValues(new Set([
+      options: new Set([
         'aaa',
         'bbb:ccc',
         'bbb:ddd',
         'bbb:ddd:eee',
         'bbb:ddd:fff',
-      ])),
+      ]),
     }),
   }));
 });
