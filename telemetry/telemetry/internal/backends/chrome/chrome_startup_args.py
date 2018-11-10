@@ -90,14 +90,17 @@ def GetFromBrowserOptions(browser_options):
   return args
 
 
-def GetReplayArgs(network_backend, supports_spki_list=True):
+def GetReplayArgs(network_backend, supports_spki_list=True,
+                  use_socks_proxy=True):
   args = []
   if not network_backend.is_open:
     return args
 
-  proxy_port = network_backend.forwarder.remote_port
-  args.append('--proxy-server=socks://localhost:%s' % proxy_port)
-  args.append('--proxy-bypass-list=<-loopback>')
+  if use_socks_proxy:
+    proxy_port = network_backend.forwarder.remote_port
+    args.append('--proxy-server=socks://localhost:%s' % proxy_port)
+    args.append('--proxy-bypass-list=<-loopback>')
+
   if not network_backend.use_live_traffic:
     if supports_spki_list:
       # Ignore certificate errors for certs that are signed with Wpr's root.
