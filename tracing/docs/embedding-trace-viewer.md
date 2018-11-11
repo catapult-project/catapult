@@ -31,7 +31,8 @@ In your code, `<link rel="import" href="trace_viewer_full.html">`. Then, to get 
 With the viewer created, you need to then make a TraceModel:
 ```
     var model = new tr.Model();
-    var i = new tr.importer.Import(m);
+    var i = new tr.importer.Import(model);
+    // `result` below is the javascript object of the data to analyze.
     var p = i.importTracesWithProgressDialog([result]);
     p.then(function() {
       viewer.model = model;
