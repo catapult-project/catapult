@@ -41,7 +41,7 @@ def Main(argv):
       args.metric,
       args.format
   )
-  stdout = vinn_result
+  stdout = vinn_result.stdout
   if not isinstance(stdout, str):
     stdout = stdout.decode('utf-8')
   print(stdout)
