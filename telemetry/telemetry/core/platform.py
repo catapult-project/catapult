@@ -442,15 +442,6 @@ class Platform(object):
 
     server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
     self.StartLocalServer(server)
-
-    # Requires port forwarding if platform is on ChromeOS, and
-    # replaces the http_server port number with the one resolved by
-    # remote machine with ssh/adb remote port forwarding.
-    if (self.GetOSName() == 'chromeos' and
-        self._platform_backend.IsRemoteDevice()):
-      self._forwarder = self._platform_backend.forwarder_factory.Create(
-          local_port=self.http_server.port, remote_port=0)
-      self.http_server.port = self._forwarder.remote_port
     return True
 
   def StopAllLocalServers(self):

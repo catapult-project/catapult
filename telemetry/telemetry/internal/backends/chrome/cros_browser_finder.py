@@ -111,18 +111,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
 
-    # The setup for remote ChromeOS uses direct connections to the
-    # port-forwarded server rather than the SOCKS proxy
-    # (done in Platform.SetHTTPServerDirectories()).
-    #
-    # This was probably done because of the inability to proxy
-    # localhost/127.0.0.1 on ChromeOS. Once crbug.com/902579 is resolved
-    # can just proxy like on other platforms.
-    use_socks_proxy = not self._platform_backend.IsRemoteDevice()
-
     startup_args.extend(chrome_startup_args.GetReplayArgs(
-        self._platform_backend.network_controller_backend,
-        use_socks_proxy=use_socks_proxy))
+        self._platform_backend.network_controller_backend))
 
     vmodule = ','.join('%s=2' % pattern for pattern in [
         '*/chromeos/net/*',

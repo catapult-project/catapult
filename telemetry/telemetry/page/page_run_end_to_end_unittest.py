@@ -220,7 +220,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       story_runner.Run(test, story_set, options, results)
 
-  @decorators.Disabled('chromeos')  # crbug.com/652385
   def testTrafficSettings(self):
     story_set = story.StorySet()
     slow_page = page_module.Page(
