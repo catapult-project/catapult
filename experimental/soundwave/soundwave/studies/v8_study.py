@@ -2,6 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from services import dashboard_service
+
+
 CLOUD_PATH = 'gs://chome-health-tvdata/datasets/v8_report.csv'
 
 ANDROID_GO = 'ChromiumPerf/android-go-perf'
@@ -20,14 +23,14 @@ TEST_SUITES = {
 }
 
 
-def GetEmergingMarketStories(api):
-  description = api.dashboard.Describe('system_health.memory_mobile')
+def GetEmergingMarketStories():
+  description = dashboard_service.Describe('system_health.memory_mobile')
   return description['caseTags']['emerging_market']
 
 
-def IterTestPaths(api):
+def IterTestPaths():
   # We want to track emerging market stories only.
-  stories = GetEmergingMarketStories(api)
+  stories = GetEmergingMarketStories()
 
   for test_suite, measurements in TEST_SUITES.iteritems():
     # v8.browsing_mobile only runs 'browse:*' stories, while other benchmarks

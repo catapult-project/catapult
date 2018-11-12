@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from services import dashboard_service
+
 
 CLOUD_PATH = 'gs://chome-health-tvdata/datasets/health_study.csv'
 
@@ -27,8 +29,8 @@ STARTUP_BY_BROWSER = {
 }
 
 
-def IterSystemHealthBots(api):
-  description = api.dashboard.Describe('memory.top_10_mobile')
+def IterSystemHealthBots():
+  description = dashboard_service.Describe('memory.top_10_mobile')
   for bot in description['bots']:
     if 'Internal' not in bot:
       continue
@@ -41,8 +43,8 @@ def GetBrowserFromBot(bot):
   return 'webview' if 'webview' in bot else 'chrome'
 
 
-def IterTestPaths(api):
-  for bot in IterSystemHealthBots(api):
+def IterTestPaths():
+  for bot in IterSystemHealthBots():
     browser = GetBrowserFromBot(bot)
     overall_pss = OVERALL_PSS.format(browser=browser)
     for story_group in ('foreground', 'background'):

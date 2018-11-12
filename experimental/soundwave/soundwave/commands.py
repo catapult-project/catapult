@@ -6,6 +6,7 @@ import pandas  # pylint: disable=import-error
 import sqlite3
 
 from common import utils
+from services import dashboard_service
 from soundwave import dashboard_api
 from soundwave import pandas_sqlite
 from soundwave import studies
@@ -14,7 +15,7 @@ from soundwave import worker_pool
 
 
 def _FetchBugsWorker(args):
-  api = dashboard_api.PerfDashboardCommunicator(args)
+  api = dashboard_api.PerfDashboardCommunicator()
   con = sqlite3.connect(args.database_file, timeout=10)
 
   def Process(bug_id):
@@ -25,7 +26,7 @@ def _FetchBugsWorker(args):
 
 
 def FetchAlertsData(args):
-  api = dashboard_api.PerfDashboardCommunicator(args)
+  api = dashboard_api.PerfDashboardCommunicator()
   with tables.DbSession(args.database_file) as con:
     # Get alerts.
     num_alerts = 0
@@ -74,7 +75,7 @@ def _IterStaleTestPaths(con, test_paths):
 
 
 def _FetchTimeseriesWorker(args):
-  api = dashboard_api.PerfDashboardCommunicator(args)
+  api = dashboard_api.PerfDashboardCommunicator()
   con = sqlite3.connect(args.database_file, timeout=10)
 
   def Process(test_path):
@@ -98,17 +99,15 @@ def FetchTimeseriesData(args):
   def _MatchesAllFilters(test_path):
     return all(f in test_path for f in args.filters)
 
-  api = dashboard_api.PerfDashboardCommunicator(args)
   with tables.DbSession(args.database_file) as con:
     # Get test_paths.
     if args.benchmark is not None:
-      api = dashboard_api.PerfDashboardCommunicator(args)
-      test_paths = api.dashboard.ListTestPaths(
+      test_paths = dashboard_service.ListTestPaths(
           args.benchmark, sheriff=args.sheriff)
     elif args.input_file is not None:
       test_paths = list(_ReadTestPathsFromFile(args.input_file))
     elif args.study is not None:
-      test_paths = list(args.study.IterTestPaths(api))
+      test_paths = list(args.study.IterTestPaths())
     else:
       raise ValueError('No source for test paths specified')
 

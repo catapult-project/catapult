@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 import argparse
-import oauth2client.tools
 import os
 import sys
 
@@ -17,6 +16,7 @@ sys.path.append(SOUNDWAVE_ROOT_PATH)
 sys.path.append(PY_UTILS_PATH)
 
 from common import utils
+from services import luci_auth
 from soundwave import commands
 from soundwave import studies
 
@@ -26,8 +26,7 @@ DEFAULT_DATABASE_PATH = os.path.join(
 
 
 def main():
-  # Args for API access.
-  parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
+  parser = argparse.ArgumentParser()
   # Default args for all actions.
   parser.add_argument(
       '-s', '--sheriff', default='Chromium Perf Sheriff',
@@ -85,6 +84,7 @@ def main():
   args = parser.parse_args()
 
   utils.ConfigureLogging(args.verbose)
+  luci_auth.CheckLoggedIn()
   if args.action == 'alerts':
     commands.FetchAlertsData(args)
   elif args.action == 'timeseries':

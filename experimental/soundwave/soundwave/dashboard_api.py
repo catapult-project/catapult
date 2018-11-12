@@ -5,18 +5,15 @@
 import datetime
 import urllib
 
-from services import chrome_perf_auth
 from services import dashboard_service
 from services import request
 
 
 class PerfDashboardCommunicator(object):
   # TODO(crbug.com/890691): Remove this class and merge functionality with
-  # dashboard_service.Api instead.
-
-  def __init__(self, flags):
-    credentials = chrome_perf_auth.GetUserCredentials(flags)
-    self.dashboard = dashboard_service.Api(credentials)
+  # dashboard_service module instead.
+  def __init__(self):
+    self.dashboard = dashboard_service
 
   def GetTimeseries(self, test_path, days=30):
     """Get timeseries for the given test path.

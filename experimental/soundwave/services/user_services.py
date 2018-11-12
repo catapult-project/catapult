@@ -5,7 +5,6 @@
 
 
 from services import chrome_perf_auth
-from services import dashboard_service
 from services import isolate_service
 
 
@@ -13,15 +12,7 @@ class UserServices(object):
   def __init__(self, flags):
     """Wrapper for access to APIs available to an authenticated user."""
     self._credentials = chrome_perf_auth.GetUserCredentials(flags)
-    self._dashboard = None
     self._isolate = None
-    self._pinpoint = None
-
-  @property
-  def dashboard(self):
-    if self._dashboard is None:
-      self._dashboard = dashboard_service.Api(self._credentials)
-    return self._dashboard
 
   @property
   def isolate(self):
