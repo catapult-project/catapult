@@ -373,9 +373,9 @@ class MemoryMap(NodeWrapper):
     regions.sort()
 
     # Iterate through the regions in order. If two regions border each other,
-    # and have the same file_path, but the latter region has file_offset == 0,
-    # then set the file_offset of the latter region to be
-    # former_region.file_offset + former_region.size.
+    # and have the same file_path [or at least one of them is unnamed], but the
+    # latter region has file_offset == 0, then set the file_offset of the latter
+    # region to be former_region.file_offset + former_region.size.
     #
     # Rationale: Semantically, we want file_offset to be the distance between
     # the base address of the region and the base address of the module [which
@@ -388,19 +388,19 @@ class MemoryMap(NodeWrapper):
     # In the rare cases that it doesn't [observed on Chrome Linux official
     # builds], this heuristic correctly computes it.
     #
-    # This hack relies on the assumption that if two regions are being mapped
-    # from the same file, and are next to each other, then their file_offsets
-    # can be computed based on the previous region's size. It's possible to
-    # construct pathological scenarios where this will fail, but those have not
-    # been observed.
-    last_region = None
+    # This hack relies on the assumption that all regions with the same name are
+    # mapped from the same file. Each region's file_offset should be computed
+    # based on the first region's base address.
+    last_region_with_file_path = {}
     for region in regions:
-      if (last_region and
-          last_region.file_path == region.file_path and
-          last_region.start_address + last_region.size == region.start_address
-          and region.file_offset == 0):
-        region.file_offset = last_region.file_offset + last_region.size
-      last_region = region
+      if (region.file_path in last_region_with_file_path and
+          region.file_offset == 0):
+        region.file_offset = (
+            region.start_address -
+            last_region_with_file_path[region.file_path].start_address)
+      if (region.file_path and
+          region.file_path not in last_region_with_file_path):
+        last_region_with_file_path[region.file_path] = region
 
     # Copy regions without duplicates and check for overlaps.
     self._regions = []
