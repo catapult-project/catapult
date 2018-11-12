@@ -7,7 +7,6 @@
 from services import chrome_perf_auth
 from services import dashboard_service
 from services import isolate_service
-from services import pinpoint_service
 
 
 class UserServices(object):
@@ -29,9 +28,3 @@ class UserServices(object):
     if self._isolate is None:
       self._isolate = isolate_service.Api(self._credentials)
     return self._isolate
-
-  @property
-  def pinpoint(self):
-    if self._pinpoint is None:
-      self._pinpoint = pinpoint_service.Api(self._credentials)
-    return self._pinpoint

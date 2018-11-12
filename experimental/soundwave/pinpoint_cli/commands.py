@@ -10,10 +10,11 @@ import sys
 
 from pinpoint_cli import histograms_df
 from pinpoint_cli import job_results
+from services import pinpoint_service
 
 
-def StartJobFromConfig(api, config_path):
-  """Start some pinpoint jobs based on a config file."""
+def StartJobFromConfig(config_path):
+  """Start a pinpoint job based on a config file."""
   src = sys.stdin if config_path == '-' else open(config_path)
   with src as f:
     config = json.load(f)
@@ -21,13 +22,13 @@ def StartJobFromConfig(api, config_path):
   if not isinstance(config, dict):
     raise ValueError('Invalid job config')
 
-  response = api.pinpoint.NewJob(**config)
+  response = pinpoint_service.NewJob(**config)
   print 'Started:', response['jobUrl']
 
 
-def CheckJobStatus(api, job_ids):
+def CheckJobStatus(job_ids):
   for job_id in job_ids:
-    job = api.pinpoint.Job(job_id)
+    job = pinpoint_service.Job(job_id)
     print '%s: %s' % (job_id, job['status'].lower())
 
 
@@ -38,7 +39,7 @@ def DownloadJobResultsAsCsv(api, job_ids, output_file):
     writer.writerow(('job_id', 'change', 'isolate') + histograms_df.COLUMNS)
     num_rows = 0
     for job_id in job_ids:
-      job = api.pinpoint.Job(job_id, with_state=True)
+      job = pinpoint_service.Job(job_id, with_state=True)
       os_path = _OsPathFromJob(job)
       results_file = os_path.join(
           job['arguments']['benchmark'], 'perf_results.json')

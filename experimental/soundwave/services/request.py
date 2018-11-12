@@ -10,6 +10,8 @@ import httplib2
 
 from py_utils import retry_util  # pylint: disable=import-error
 
+from services import luci_auth
+
 
 class RequestError(OSError):
   """Exception class for errors while making a request."""
@@ -71,7 +73,8 @@ def BuildRequestError(request, response, content):
 
 @retry_util.RetryOnException(ServerError, retries=3)
 def Request(url, method='GET', params=None, data=None,
-            content_type='urlencoded', credentials=None, retries=None):
+            content_type='urlencoded', use_auth=False,
+            credentials=None, retries=None):
   """Perform an HTTP request of a given resource.
 
   Args:
@@ -114,9 +117,12 @@ def Request(url, method='GET', params=None, data=None,
 
   http = httplib2.Http()
   if credentials is not None:
+    assert use_auth is False, "can't use both credentials and use_auth"
     if credentials.access_token_expired:
       credentials.refresh(http)
     http = credentials.authorize(http)
+  elif use_auth:
+    headers['Authorization'] = 'Bearer %s' % luci_auth.GetAccessToken()
 
   logging.info('Making API request: %s', url)
   response, content = http.request(

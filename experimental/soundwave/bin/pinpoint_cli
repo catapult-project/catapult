@@ -22,6 +22,7 @@ sys.path.append(TRACING_PATH)
 from common import utils
 from pinpoint_cli import commands
 import services
+from services import luci_auth
 
 
 def main():
@@ -57,13 +58,14 @@ def main():
   args = parser.parse_args()
   utils.ConfigureLogging(args.verbose)
 
+  luci_auth.CheckLoggedIn()
   api = services.UserServices(args)
   if args.action == 'status':
-    return commands.CheckJobStatus(api, args.job_ids)
+    return commands.CheckJobStatus(args.job_ids)
   elif args.action == 'get-csv':
     return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
   elif args.action == 'start-job':
-    return commands.StartJobFromConfig(api, args.config_path)
+    return commands.StartJobFromConfig(args.config_path)
   else:
     raise NotImplementedError(args.action)
 

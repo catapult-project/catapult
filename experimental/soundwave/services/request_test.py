@@ -69,6 +69,17 @@ class TestRequest(unittest.TestCase):
     with self.assertRaises(request.ClientError):
       request.Request('http://example.com/')
 
+  @mock.patch('services.luci_auth.GetAccessToken')
+  def testRequest_withLuciAuth(self, get_access_token):
+    get_access_token.return_value = 'access-token'
+    self.http.request.return_value = Response(200, 'OK!')
+    self.assertEqual(
+        request.Request('http://example.com/', use_auth=True), 'OK!')
+    self.http.request.assert_called_once_with(
+        'http://example.com/', method='GET', body=None, headers={
+            'Content-Length': '0',
+            'Authorization': 'Bearer access-token'})
+
 
 class TestRequestErrors(unittest.TestCase):
   def testClientErrorPickleable(self):
