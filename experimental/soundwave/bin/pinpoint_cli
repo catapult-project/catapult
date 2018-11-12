@@ -8,8 +8,6 @@ import json
 import os
 import sys
 
-import oauth2client.tools
-
 ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 CATAPULT_PATH = os.path.normpath(os.path.join(ROOT_PATH, '..', '..'))
 PY_UTILS_PATH = os.path.join(CATAPULT_PATH, 'common', 'py_utils')
@@ -26,7 +24,7 @@ from services import luci_auth
 
 
 def main():
-  parser = argparse.ArgumentParser(parents=[oauth2client.tools.argparser])
+  parser = argparse.ArgumentParser()
   parser.add_argument(
       '-v', '--verbose', action='count', default=0,
       help='Increase verbosity level')
@@ -59,11 +57,10 @@ def main():
   utils.ConfigureLogging(args.verbose)
 
   luci_auth.CheckLoggedIn()
-  api = services.UserServices(args)
   if args.action == 'status':
     return commands.CheckJobStatus(args.job_ids)
   elif args.action == 'get-csv':
-    return commands.DownloadJobResultsAsCsv(api, args.job_ids, args.output)
+    return commands.DownloadJobResultsAsCsv(args.job_ids, args.output)
   elif args.action == 'start-job':
     return commands.StartJobFromConfig(args.config_path)
   else:

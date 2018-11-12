@@ -10,6 +10,7 @@ import sys
 
 from pinpoint_cli import histograms_df
 from pinpoint_cli import job_results
+from services import isolate_service
 from services import pinpoint_service
 
 
@@ -32,7 +33,7 @@ def CheckJobStatus(job_ids):
     print '%s: %s' % (job_id, job['status'].lower())
 
 
-def DownloadJobResultsAsCsv(api, job_ids, output_file):
+def DownloadJobResultsAsCsv(job_ids, output_file):
   """Download the perf results of a job as a csv file."""
   with open(output_file, 'wb') as f:
     writer = csv.writer(f)
@@ -46,7 +47,7 @@ def DownloadJobResultsAsCsv(api, job_ids, output_file):
       print 'Fetching results for %s job %s:' % (job['status'].lower(), job_id)
       for change_id, isolate_hash in job_results.IterTestOutputIsolates(job):
         print '- isolate: %s ...' % isolate_hash
-        histograms = api.isolate.RetrieveFile(isolate_hash, results_file)
+        histograms = isolate_service.RetrieveFile(isolate_hash, results_file)
         for row in histograms_df.IterRows(json.loads(histograms)):
           writer.writerow((job_id, change_id, isolate_hash) + row)
           num_rows += 1
