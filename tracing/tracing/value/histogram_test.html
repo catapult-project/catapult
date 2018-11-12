@@ -721,6 +721,21 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(4, hist.getApproximatePercentile(1));
   });
 
+  test('singularBin_with_multiBin', function() {
+    const multiBin = new tr.v.Histogram('', unitlessNumber);
+    const singleBin = new tr.v.Histogram('', unitlessNumber,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    multiBin.addSample(1);
+    singleBin.addSample(3);
+    assert.strictEqual(1, multiBin.average);
+    assert.strictEqual(3, singleBin.average);
+    multiBin.addHistogram(singleBin);
+    assert.strictEqual(2, multiBin.average);
+    multiBin.addSample(1);
+    singleBin.addHistogram(multiBin);
+    assert.strictEqual(2, singleBin.average);
+  });
+
   test('mergeSummaryOptions', function() {
     const hist0 = new tr.v.Histogram('', unitlessNumber);
     const hist1 = new tr.v.Histogram('', unitlessNumber);

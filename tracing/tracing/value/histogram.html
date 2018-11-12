@@ -513,6 +513,9 @@ tr.exportTo('tr.v', function() {
       if (this.binBoundariesDict_ === other.binBoundariesDict_) {
         return true;
       }
+      if (!this.binBoundariesDict_ || !other.binBoundariesDict_) {
+        return true;
+      }
       // |binBoundariesDict_| may be equal even if they are not the same object.
       if (this.binBoundariesDict_.length !== other.binBoundariesDict_.length) {
         return false;
@@ -551,6 +554,36 @@ tr.exportTo('tr.v', function() {
         throw new Error('Merging incompatible Histograms');
       }
 
+      if (!!this.binBoundariesDict_ === !!other.binBoundariesDict_) {
+        for (let i = 0; i < this.allBins.length; ++i) {
+          let bin = this.allBins[i];
+          if (bin.count === 0) {
+            bin = new HistogramBin(bin.range);
+            this.allBins[i] = bin;
+          }
+          bin.addBin(other.allBins[i]);
+        }
+      } else {
+        const [multiBin, singleBin] = this.binBoundariesDict_ ?
+          [this, other] : [other, this];
+        // TODO(benjhayden) This can't propagate sample diagnostics until
+        // sampleValues are merged into bins alongside their diagnostics.
+        for (const value of singleBin.sampleValues) {
+          if (typeof(value) !== 'number' || isNaN(value)) {
+            continue;
+          }
+          const binIndex = multiBin.getBinIndexForValue(value);
+          let bin = multiBin.allBins[binIndex];
+          if (bin.count === 0) {
+            // Copy HistogramBin on write, share the rest with the other
+            // Histograms that use the same HistogramBinBoundaries.
+            bin = new HistogramBin(bin.range);
+            multiBin.allBins[binIndex] = bin;
+          }
+          bin.addSample(value);
+        }
+      }
+
       tr.b.math.Statistics.mergeSampledStreams(this.nanDiagnosticMaps,
           this.numNans, other.nanDiagnosticMaps, other.numNans,
           MAX_DIAGNOSTIC_MAPS);
@@ -565,15 +598,6 @@ tr.exportTo('tr.v', function() {
           this.running_ = new tr.b.math.RunningStatistics();
         }
         this.running_ = this.running_.merge(other.running_);
-      }
-
-      for (let i = 0; i < this.allBins.length; ++i) {
-        let bin = this.allBins[i];
-        if (bin.count === 0) {
-          bin = new HistogramBin(bin.range);
-          this.allBins[i] = bin;
-        }
-        bin.addBin(other.allBins[i]);
       }
 
       let mergedFrom = this.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_FROM);
