@@ -61,8 +61,13 @@ def Run(label, worker, args, items, stream=None):
   pool = multiprocessing.Pool(
       processes=args.processes, initializer=worker, initargs=(args,))
   time_started = pandas.Timestamp.utcnow()
-  ProgressIndicator(label, pool.imap_unordered(_Worker, items), stream=stream)
-  time_finished = pandas.Timestamp.utcnow()
+  try:
+    ProgressIndicator(label, pool.imap_unordered(_Worker, items), stream=stream)
+    time_finished = pandas.Timestamp.utcnow()
+  finally:
+    # Ensure resources (e.g. db connections from workers) are freed up.
+    pool.close()
+    pool.join()
   return (time_finished - time_started).total_seconds()
 
 

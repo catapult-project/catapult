@@ -111,6 +111,10 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
+        'name': 'Soundwave Tests',
+        'path': 'experimental/soundwave/bin/run_tests',
+    },
+    {
         'name': 'Telemetry Tests with Stable Browser (Desktop)',
         'path': 'catapult_build/fetch_telemetry_deps_and_run_tests',
         'additional_args': [

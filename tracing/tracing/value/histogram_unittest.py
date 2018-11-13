@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import calendar
 import json
 import math
-import time
 import unittest
 
 from tracing.value import histogram
@@ -762,8 +762,8 @@ class DateRangeUnittest(unittest.TestCase):
   def testRoundtrip(self):
     dr = histogram.DateRange(1496693745000)
     dr.AddDiagnostic(histogram.DateRange(1496693746000))
-    self.assertEqual(time.mktime(dr.min_date.timetuple()), 1496693745)
-    self.assertEqual(time.mktime(dr.max_date.timetuple()), 1496693746)
+    self.assertEqual(calendar.timegm(dr.min_date.timetuple()), 1496693745)
+    self.assertEqual(calendar.timegm(dr.max_date.timetuple()), 1496693746)
     clone = diagnostic.Diagnostic.FromDict(dr.AsDict())
     self.assertEqual(clone.min_date, dr.min_date)
     self.assertEqual(clone.max_date, dr.max_date)

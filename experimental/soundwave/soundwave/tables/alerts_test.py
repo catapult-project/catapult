@@ -5,6 +5,8 @@
 import datetime
 import unittest
 
+import pandas  # pylint: disable=import-error
+
 from soundwave import tables
 
 
@@ -60,7 +62,7 @@ class TestAlerts(unittest.TestCase):
     self.assertEqual(alert['status'], 'triaged')
 
     # We expect bug_id's to be integers.
-    self.assertEqual(alerts['bug_id'].dtype, int)
+    self.assertTrue(pandas.api.types.is_integer_dtype(alerts['bug_id'].dtype))
 
     # Missing bug_id's become 0.
     self.assertEqual(alerts.loc['xyz567']['bug_id'], 0)

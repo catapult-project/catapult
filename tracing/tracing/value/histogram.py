@@ -375,11 +375,11 @@ class DateRange(diagnostic.Diagnostic):
 
   @property
   def min_date(self):
-    return datetime.datetime.fromtimestamp(self._range.min / 1000)
+    return datetime.datetime.utcfromtimestamp(self._range.min / 1000)
 
   @property
   def max_date(self):
-    return datetime.datetime.fromtimestamp(self._range.max / 1000)
+    return datetime.datetime.utcfromtimestamp(self._range.max / 1000)
 
   @property
   def min_timestamp(self):

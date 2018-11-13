@@ -14,7 +14,7 @@ from tracing.value.diagnostics import generic_set
 
 def TestHistogram(name, units, values, **kwargs):
   def DiagnosticValue(value):
-    if isinstance(value, int):
+    if isinstance(value, (int, long)):
       return histogram.DateRange(value)
     elif isinstance(value, list):
       return generic_set.GenericSet(value)
