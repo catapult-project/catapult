@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/column-head.html">
+<link rel="import" href="/dashboard/spa/cp-checkbox.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/expand-button.html">
+<link rel="import" href="/dashboard/spa/scalar-span.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="alerts-table">
+  <template>
+    <style>
+      #cat {
+        display: block;
+        height: 300px;
+        width: 300px;
+      }
+
+      :host {
+        --min-table-height: 122px;
+        --non-table-height: 483px;
+      }
+
+      #scroll {
+        max-height: calc(100vh - var(--non-table-height));
+        margin: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      @media screen and (max-height: calc(var(--min-table-height) + var(--non-table-height))) {
+        #scroll {
+          max-height: var(--min-table-height);
+        }
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      table[is-placeholder] {
+        color: var(--neutral-color-dark, grey);
+      }
+
+      th {
+        padding: 8px;
+        white-space: nowrap;
+      }
+
+      th.checkbox {
+        padding-left: 4px;
+        text-align: left;
+      }
+
+      td {
+        padding: 4px;
+      }
+
+      tbody tr:hover {
+        background: #eee;
+      }
+
+      td:last-child {
+        padding-right: 0;
+      }
+
+      expand-button {
+        align-items: center;
+        justify-content: flex-end;
+        margin-right: 16px;
+      }
+
+      tbody {
+        border-color: var(--background-color, white);
+        border-style: solid;
+        border-width: 0 8px;
+        transition: border-width var(--transition-short, 0.2s);
+      }
+
+      tbody[expandedGroup] {
+        border-color: var(--primary-color-light, lightblue);
+        border-width: 8px;
+      }
+    </style>
+
+    <template is="dom-if" if="[[allTriaged_(alertGroups, showingTriaged)]]">
+      <center>
+        All alerts triaged!
+        <iron-icon id="cat" icon="cp-big:cat">
+        </iron-icon>
+      </center>
+    </template>
+
+    <template is="dom-if" if="[[!allTriaged_(alertGroups, showingTriaged)]]">
+      <div id="scroll">
+        <table is-placeholder$="[[areAlertGroupsPlaceholders]]">
+          <thead>
+            <tr>
+              <th>
+                <column-head
+                    name="count"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Count
+                </column-head>
+              </th>
+
+              <template is="dom-if" if="[[showTriagedColumn]]">
+                <th>
+                  <column-head
+                      name="triaged"
+                      sort-column="[[sortColumn]]"
+                      sort-descending="[[sortDescending]]"
+                      disabled="[[areAlertGroupsPlaceholders]]"
+                      on-click="onSort_">
+                    Triaged
+                  </column-head>
+                </th>
+              </template>
+
+              <th class="checkbox">
+                <cp-checkbox
+                    checked="[[anySelectedAlerts_(alertGroups)]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-change="onSelectAll_">
+                </cp-checkbox>
+              </th>
+
+              <template is="dom-if" if="[[showBugColumn]]">
+                <th>
+                  <column-head
+                      name="bugId"
+                      sort-column="[[sortColumn]]"
+                      sort-descending="[[sortDescending]]"
+                      disabled="[[areAlertGroupsPlaceholders]]"
+                      on-click="onSort_">
+                    Bug
+                  </column-head>
+                </th>
+              </template>
+
+              <th>
+                <column-head
+                    name="startRevision"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Revisions
+                </column-head>
+              </th>
+
+              <th>
+                <column-head
+                    name="testSuite"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Test Suite
+                </column-head>
+              </th>
+
+              <th>
+                <column-head
+                    name="measurement"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Measurement
+                </column-head>
+              </th>
+
+              <template is="dom-if" if="[[showMasterColumn]]">
+                <th>
+                  <column-head
+                      name="master"
+                      sort-column="[[sortColumn]]"
+                      sort-descending="[[sortDescending]]"
+                      disabled="[[areAlertGroupsPlaceholders]]"
+                      on-click="onSort_">
+                    Master
+                  </column-head>
+                </th>
+              </template>
+
+              <th>
+                <column-head
+                    name="bot"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Bot
+                </column-head>
+              </th>
+
+              <template is="dom-if" if="[[showTestCaseColumn]]">
+                <th>
+                  <column-head
+                      name="testCase"
+                      sort-column="[[sortColumn]]"
+                      sort-descending="[[sortDescending]]"
+                      disabled="[[areAlertGroupsPlaceholders]]"
+                      on-click="onSort_">
+                    Test case
+                  </column-head>
+                </th>
+              </template>
+
+              <th>
+                <column-head
+                    name="deltaValue"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Delta
+                </column-head>
+              </th>
+
+              <th>
+                <column-head
+                    name="percentDeltaValue"
+                    sort-column="[[sortColumn]]"
+                    sort-descending="[[sortDescending]]"
+                    disabled="[[areAlertGroupsPlaceholders]]"
+                    on-click="onSort_">
+                  Delta %
+                </column-head>
+              </th>
+            </tr>
+          </thead>
+
+          <template is="dom-repeat" items="[[alertGroups]]" as="alertGroup" index-as="alertGroupIndex">
+            <tbody expandedGroup$="[[isExpandedGroup_(alertGroup.isExpanded, alertGroup.triaged.isExpanded)]]">
+              <template is="dom-repeat" items="[[alertGroup.alerts]]" as="alert" index-as="alertIndex">
+                <template is="dom-if" if="[[shouldDisplayAlert_(areAlertGroupsPlaceholders, showingTriaged, alertGroup, alertIndex, alertGroup.triaged.isExpanded)]]">
+                  <tr on-click="onRowTap_">
+
+                    <td>
+                      <template is="dom-if"
+                        if="[[shouldDisplayExpandGroupButton_(alertGroup,
+                        alertIndex, showingTriaged, sortColumn, sortDescending)]]">
+                        <expand-button state-path="[[statePath]].alertGroups.[[alertGroupIndex]]">
+                          [[getExpandGroupButtonLabel_(alertGroup, showingTriaged)]]
+                        </expand-button>
+                      </template>
+                    </td>
+
+                    <template is="dom-if" if="[[showTriagedColumn]]">
+                      <td>
+                        <template is="dom-if" if="[[shouldDisplayExpandTriagedButton_(showingTriaged, alertGroup, alertIndex, sortColumn, sortDescending)]]">
+                          <expand-button state-path="[[statePath]].alertGroups.[[alertGroupIndex]].triaged">
+                            [[alertGroup.triaged.count]]
+                          </expand-button>
+                        </template>
+                      </td>
+                    </template>
+
+                    <td>
+                      <cp-checkbox
+                          checked="[[alert.isSelected]]"
+                          disabled="[[areAlertGroupsPlaceholders]]"
+                          on-change="onSelect_">
+                        <template is="dom-if" if="[[shouldDisplaySelectedCount_(showingTriaged, alertGroup, alertIndex, sortColumn, sortDescending)]]">
+                          [[selectedCount_(alertGroup)]]
+                        </template>
+                      </cp-checkbox>
+                    </td>
+
+                    <template is="dom-if" if="[[showBugColumn]]">
+                      <td>
+                        <template is="dom-if" if="[[!isEqual_(alert.bugId, '')]]">
+                          <template is="dom-if" if="[[areAlertGroupsPlaceholders]]">
+                            [[alert.bugId]]
+                          </template>
+                          <template is="dom-if" if="[[!areAlertGroupsPlaceholders]]">
+                            <template is="dom-if" if="[[isAlertIgnored_(alert.bugId)]]">
+                              ignored
+                            </template>
+                            <template is="dom-if" if="[[!isAlertIgnored_(alert.bugId)]]">
+                              <a href="https://crbug.com/[[alert.bugId]]" target="_blank">
+                                [[alert.bugId]]
+                              </a>
+                            </template>
+                          </template>
+                        </template>
+                      </td>
+                    </template>
+
+                    <td>
+                      <a href="[[alertRevisionHref_(alert)]]" target="_blank">
+                        [[alertRevisionString_(alert)]]
+                      </a>
+                    </td>
+
+                    <td style$="color: [[alert.color]];">
+                      [[breakWords_(alert.testSuite)]]
+                    </td>
+                    <td style$="color: [[alert.color]];">
+                      [[breakWords_(alert.measurement)]]
+                    </td>
+
+                    <template is="dom-if" if="[[showMasterColumn]]">
+                      <td style$="color: [[alert.color]];">
+                        [[alert.master]]
+                      </td>
+                    </template>
+
+                    <td style$="color: [[alert.color]];">
+                      [[alert.bot]]
+                    </td>
+
+                    <template is="dom-if" if="[[showTestCaseColumn]]">
+                      <td style$="color: [[alert.color]];">
+                        [[breakWords_(alert.testCase)]]
+                      </td>
+                    </template>
+
+                    <td>
+                      <scalar-span
+                          value="[[alert.deltaValue]]"
+                          unit="[[alert.deltaUnit]]">
+                      </scalar-span>
+                    </td>
+
+                    <td>
+                      <scalar-span
+                          value="[[alert.percentDeltaValue]]"
+                          unit="[[alert.percentDeltaUnit]]"
+                          maximum-fraction-digits="1">
+                      </scalar-span>
+                    </td>
+                  </tr>
+                </template>
+              </template>
+            </tbody>
+          </template>
+        </table>
+      </div>
+    </template>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/alerts-table.js"></script>

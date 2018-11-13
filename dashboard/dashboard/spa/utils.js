@@ -428,11 +428,37 @@ tr.exportTo('cp', () => {
     }
   }
 
+  const ZERO_WIDTH_SPACE = String.fromCharCode(0x200b);
+  const NON_BREAKING_SPACE = String.fromCharCode(0xA0);
+
+  function breakWords(str) {
+    if (!str) return NON_BREAKING_SPACE;
+
+    // Insert spaces before underscores.
+    str = str.replace(/_/g, ZERO_WIDTH_SPACE + '_');
+
+    // Insert spaces after colons and dots.
+    str = str.replace(/\./g, '.' + ZERO_WIDTH_SPACE);
+    str = str.replace(/:/g, ':' + ZERO_WIDTH_SPACE);
+
+    // Insert spaces before camel-case words.
+    str = str.split(/([a-z][A-Z])/g);
+    str = str.map((s, i) => {
+      if ((i % 2) === 0) return s;
+      return s[0] + ZERO_WIDTH_SPACE + s[1];
+    });
+    str = str.join('');
+    return str;
+  }
+
   return {
     BatchIterator,
+    NON_BREAKING_SPACE,
+    ZERO_WIDTH_SPACE,
     afterRender,
     animationFrame,
     authorizationHeaders,
+    breakWords,
     buildProperties,
     buildState,
     deepFreeze,

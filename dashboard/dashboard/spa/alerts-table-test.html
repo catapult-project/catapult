@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/alerts-table.html">
+
+<test-fixture id="test">
+  <template>
+    <alerts-table state-path="test">
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('alerts-table', function() {
+  setup(() => {
+    fixture('test').dispatch(Redux.ENSURE('test'));
+  });
+
+  test('placeholder', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({})));
+    await cp.afterRender();
+    assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
+        tr.ui.b.findDeepElementMatching(table, 'table')).color);
+    const dashes = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+      e.innerHTML.trim() === cp.AlertsTable.DASHES);
+    assert.lengthOf(dashes, 30);
+  });
+
+  test('allTriaged newAlerts', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          isSelected: false,
+          triaged: {
+            count: 2,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    assert.isDefined(tr.ui.b.findDeepElementMatching(table,
+        'iron-icon[icon="cp-big:cat"]'));
+  });
+
+  test('allTriaged showingTriaged', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      showingTriaged: true,
+      alertGroups: [],
+    })));
+    await cp.afterRender();
+    assert.isDefined(tr.ui.b.findDeepElementMatching(table,
+        'iron-icon[icon="cp-big:cat"]'));
+  });
+
+  test('sort', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'ccc',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+
+    const measurementColumn = tr.ui.b.findDeepElementMatching(
+        table, 'column-head[name="measurement"]');
+    measurementColumn.click();
+    await cp.afterRender();
+    let state = table.getState().test;
+    assert.strictEqual('aaa', state.alertGroups[0].alerts[0].measurement);
+    assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
+    assert.strictEqual('ccc', state.alertGroups[2].alerts[0].measurement);
+
+    measurementColumn.click();
+    await cp.afterRender();
+    state = table.getState().test;
+    assert.strictEqual('ccc', state.alertGroups[0].alerts[0].measurement);
+    assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
+    assert.strictEqual('aaa', state.alertGroups[2].alerts[0].measurement);
+  });
+
+  test('shouldDisplayAlert', async function() {
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+        true, false, {}, -1, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+        false, true, {isExpanded: true}, -1, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+        false, true, {isExpanded: false}, 0, false));
+    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(
+        false, false, {alerts: []}, 0, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+        false, false, {isExpanded: true, alerts: [{}]}, 0, false));
+    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(false, false, {
+      isExpanded: true,
+      alerts: [
+        {bugId: 42},
+        {},
+      ],
+    }, 0, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(false, false, {
+      isExpanded: true,
+      alerts: [
+        {bugId: 42},
+        {},
+      ],
+    }, 1, false));
+    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(
+        false, false, {alerts: [{bugId: 42}]}, 0, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+        false, false, {alerts: [{bugId: 42}]}, 0, true));
+    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(false, false, {
+      alerts: [
+        {bugId: 42},
+        {},
+      ],
+    }, 0, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(false, false, {
+      alerts: [
+        {bugId: 42},
+        {},
+      ],
+    }, 1, false));
+  });
+
+  test('shouldDisplayExpandGroupButton', async function() {
+    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{}, {}]}, 0, true));
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{}, {}]}, 1, true));
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{}]}, 0, true));
+    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{}, {}], triaged: {count: 0}}, 0, false));
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{bugId: 42}, {}], triaged: {count: 1}}, 1, false));
+    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{bugId: 42}, {}, {}], triaged: {count: 1}}, 1, false));
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+        {alerts: [{bugId: 42}, {}, {}], triaged: {count: 1}}, 0, false));
+  });
+
+  test('shouldDisplayExpandTriagedButton', async function() {
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+        true, {triaged: {count: 1}}, 0));
+    assert.isFalse(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+        false, {triaged: {count: 0}}, 0));
+    assert.isTrue(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+        false, {triaged: {count: 1}, alerts: [
+          {}, {bugId: 42},
+        ]}, 0));
+    assert.isTrue(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+        false, {triaged: {count: 1}, alerts: [
+          {bugId: 42}, {},
+        ]}, 1));
+  });
+
+  test('shouldDisplaySelectedCount newAlerts', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              isSelected: true,
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+      e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
+    assert.lengthOf(selectedCounts, 1);
+    const row = selectedCounts[0].parentElement.parentElement;
+    const tbody = row.parentElement;
+    assert.strictEqual(row, tbody.children[1]);
+  });
+
+  test('shouldDisplaySelectedCount showingTriaged', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      showingTriaged: true,
+      alertGroups: [
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              isSelected: true,
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+      e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
+    assert.lengthOf(selectedCounts, 1);
+    const row = selectedCounts[0].parentElement.parentElement;
+    const tbody = row.parentElement;
+    assert.strictEqual(row, tbody.children[0]);
+  });
+
+  test('isAlertIgnored', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      showingTriaged: true,
+      alertGroups: [
+        {
+          isSelected: false,
+          triaged: {
+            count: 0,
+            isExpanded: false,
+          },
+          alerts: [
+            {
+              bugId: -1,
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'measurement',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(table, e =>
+      e.tagName === 'TD' && e.textContent.trim() === 'ignored'));
+  });
+
+  test('selectAlert single', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          triaged: {count: 0, isExpanded: false},
+          alerts: [
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'measurement',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    const checkbox = tr.ui.b.findDeepElementMatching(
+        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    checkbox.click();
+    await cp.afterRender();
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
+  });
+
+  test('selectAlert toggleAll', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          triaged: {count: 0, isExpanded: false},
+          alerts: [
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    const checkbox = tr.ui.b.findDeepElementMatching(
+        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    checkbox.click();
+    await cp.afterRender();
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
+  });
+
+  test('selectAlert shiftKey', async function() {
+    const table = fixture('test');
+    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+      alertGroups: [
+        {
+          isExpanded: true,
+          triaged: {count: 0, isExpanded: false},
+          alerts: [
+            {
+              key: 'a',
+              isSelected: false,
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'aaa',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              key: 'b',
+              isSelected: false,
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'bbb',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              key: 'c',
+              isSelected: false,
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'ccc',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              key: 'd',
+              isSelected: false,
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'ddd',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+            {
+              key: 'e',
+              isSelected: false,
+              bugId: '',
+              revisions: '123-456',
+              testSuite: 'test suite',
+              measurement: 'eee',
+              master: 'master',
+              bot: 'bot',
+              testCase: 'test case',
+              deltaValue: -1,
+              deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+              percentDeltaValue: -1,
+              percentDeltaUnit:
+                tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+            },
+          ],
+        },
+      ],
+    })));
+    await cp.afterRender();
+    const checkboxes = tr.ui.b.findDeepElementsMatching(
+        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    checkboxes[1].click();
+    checkboxes[3].$.native.dispatchEvent(new CustomEvent('change', {
+      detail: {shiftKey: true},
+    }));
+    await cp.afterRender();
+    assert.isFalse(table.getState().test.alertGroups[0].alerts[0].isSelected);
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[2].isSelected);
+    assert.isTrue(table.getState().test.alertGroups[0].alerts[3].isSelected);
+    assert.isFalse(table.getState().test.alertGroups[0].alerts[4].isSelected);
+  });
+});
+</script>
