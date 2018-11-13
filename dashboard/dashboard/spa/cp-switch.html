@@ -36,12 +36,12 @@ found in the LICENSE file.
         border-radius: 8px;
       }
       label:after {
-        left: 0;
-        width: 20px;
-        height: 20px;
         background-color: var(--neutral-color-light, lightgrey);
         border-radius: 50%;
-        @apply --elevation-2;
+        box-shadow: var(--elevation-2);
+        height: 20px;
+        left: 0;
+        width: 20px;
       }
       input:checked + label:before {
         background-color: var(--primary-color-medium, lightblue);

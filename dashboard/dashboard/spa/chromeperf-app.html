@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/bower_components/app-route/app-location.html">
+<link rel="import" href="/bower_components/app-route/app-route.html">
+<link rel="import" href="/bower_components/chopsui/chops-header.html">
+<link rel="import" href="/bower_components/google-signin/google-signin.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
+
+<dom-module id="chromeperf-app">
+  <template>
+    <style>
+      chops-header {
+        background: var(--background-color, white);
+        border-bottom: 1px solid var(--primary-color-medium, blue);
+        --chops-header-text-color: var(--primary-color-dark, blue);
+      }
+
+      chops-header a {
+        color: var(--primary-color-dark, blue);
+      }
+
+      .spacer {
+        flex-grow: 1;
+        margin: auto;
+      }
+
+      .buttons {
+        display: flex;
+        flex-grow: 1;
+        justify-content: center;
+        font-size: var(--font-size, 13px);
+      }
+
+      .bottom.buttons {
+        margin: 12px 0;
+        justify-content: space-evenly;
+      }
+
+      .bottom.buttons raised-button {
+        flex-grow: 1;
+      }
+
+      #please_signin {
+        color: var(--error-color, red);
+        font-size: larger;
+        font-weight: bold;
+      }
+
+      cp-toast {
+        border-radius: 24px;
+        cursor: pointer;
+        text-transform: uppercase;
+        user-select: none;
+      }
+
+      cp-toast iron-icon {
+        color: var(--background-color, white);
+      }
+
+      @media (max-width: 1100px) {
+        .nav_button_label {
+          display: none;
+        }
+      }
+    </style>
+
+    <app-route route="{{route}}"></app-route>
+    <app-location route="{{route}}" use-hash-as-path></app-location>
+
+    <template is="dom-if" if="[[enableNav]]">
+      <chops-header app-title="Chromium Performance">
+        <div class="buttons">
+          <raised-button
+              title="Open Report"
+              disabled$="[[showingReportSection]]"
+              on-click="onShowReportSection_">
+            <iron-icon icon="cp:report">
+            </iron-icon>
+            Report
+          </raised-button>
+
+          <raised-button
+              title="New Alerts section"
+              on-click="onNewAlertsSection_">
+            <iron-icon icon="cp:alert">
+            </iron-icon>
+            <span class="nav_button_label">
+              Alerts
+            </span>
+          </raised-button>
+
+          <raised-button
+              title="New Chart"
+              on-click="onNewChart_">
+            <iron-icon icon="cp:chart">
+            </iron-icon>
+            <span class="nav_button_label">
+              New Chart
+            </span>
+          </raised-button>
+
+          <raised-button
+              title="Close all charts"
+              disabled$="[[isEmpty_(chartSectionIds)]]"
+              on-click="onCloseAllCharts_">
+            <iron-icon icon="cp:close">
+            </iron-icon>
+            <span class="nav_button_label">
+              Close charts
+            </span>
+          </raised-button>
+        </div>
+
+        <a href="https://github.com/catapult-project/catapult/tree/master/dashboard"
+            target="_blank"
+            title="Documentation">
+          <iron-icon icon="cp:help">
+          </iron-icon>
+        </a>
+
+        <template is="dom-if" if="[[isInternal_(userEmail)]]">
+          <a href="http://go/chromeperf-v2-status"
+              target="_blank"
+              title="Status of this prototype">
+            <iron-icon icon="cp:update">
+            </iron-icon>
+          </a>
+        </template>
+
+        <a href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0A%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&summary=[chromeperf2]+"
+            target="_blank"
+            title="File a bug">
+          <iron-icon icon="cp:feedback">
+          </iron-icon>
+        </a>
+
+        <template is="dom-if" if="[[isProduction]]">
+          <template is="dom-if" if="[[!userEmail]]">
+            <span id="please_signin">
+              Some features require signing in:
+            </span>
+          </template>
+          [[userEmail]]
+
+          <google-signin
+              id="signin"
+              client-id="[[clientId]]"
+              height="short"
+              theme="dark"
+              scopes="email"
+              on-google-signin-success="onSignin_"
+              on-google-signed-out="onSignout_">
+          </google-signin>
+        </template>
+      </chops-header>
+    </template>
+
+    <cp-loading loading$="[[isLoading]]"></cp-loading>
+
+    TODO report-section, alerts-sections, chart-sections
+
+    <div class="buttons bottom">
+      <span class="spacer"></span>
+
+      <raised-button
+          title="New Alerts section"
+          on-click="onNewAlertsSection_">
+        <iron-icon icon="cp:alert">
+        </iron-icon>
+        Alerts
+      </raised-button>
+
+      <raised-button
+          title="New Chart"
+          on-click="onNewChart_">
+        <iron-icon icon="cp:chart">
+        </iron-icon>
+        New Chart
+      </raised-button>
+
+      <raised-button
+          title="Close all charts"
+          disabled$="[[isEmpty_(chartSectionIds)]]"
+          on-click="onCloseAllCharts_">
+        <iron-icon icon="cp:close">
+        </iron-icon>
+        Close charts
+      </raised-button>
+
+      <span class="spacer"></span>
+    </div>
+
+    <span style="color: grey;">
+      [[vulcanizedDate]]
+    </span>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/chromeperf-app.js"></script>

@@ -6,6 +6,8 @@
 
 tr.exportTo('window', () => {
   const DEBUG = location.hostname === 'localhost';
+  const PRODUCTION = 'v2spa-dot-chromeperf.appspot.com';
+  const IS_PRODUCTION = location.hostname === PRODUCTION;
 
   // Register the Service Worker when in production. Service Workers are not
   // helpful in development mode because all backend responses are being mocked.
@@ -24,5 +26,6 @@ tr.exportTo('window', () => {
   }
 
   return {
+    IS_PRODUCTION,
   };
 });

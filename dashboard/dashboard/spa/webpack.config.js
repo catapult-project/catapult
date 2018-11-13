@@ -20,6 +20,9 @@ module.exports = {
     filename: '[name].js',
     path: outputPath,
   },
+  optimization: {
+    minimizer: [],
+  },
   resolve: {
     modules: [thirdParty],
     alias: {
