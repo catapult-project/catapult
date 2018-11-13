@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
       browser.name = 'CrBrowserMain';
       browser.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
         title: 'InputLatency::GestureScrollUpdate',
-        start: 9, end: 10,
+        start: 10, end: 11,
         args: {
           data: {
             INPUT_EVENT_GPU_SWAP_BUFFER_COMPONENT: {time: 10000},
@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addLatencyHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 10)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)]);
 
     // The chronologically first gesture scroll update latency is 8 - 6 = 2.
     const hist = histograms.getHistogramNamed(

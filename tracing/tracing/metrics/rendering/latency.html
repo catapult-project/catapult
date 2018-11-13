@@ -119,7 +119,7 @@ tr.exportTo('tr.metrics.rendering', function() {
 
     const gestureScrollUpdateLatencies = [...iterAsyncEvents_(
         modelHelper.browserHelpers, ranges,
-        processGestureScrollUpdateLatencyEvent)].sort();
+        processGestureScrollUpdateLatencyEvent)].sort((x, y) => x[0] - y[0]);
     if (gestureScrollUpdateLatencies.length) {
       histograms.createHistogram(
           'first_gesture_scroll_update_latency',
