@@ -1765,9 +1765,10 @@ triaging functionality in the chart.
           }
 
           // Make an ordered list of all revision numbers for any series.
-          const orderedRevisions = Object.keys(allRevisions).sort(function(a, b) {
-            return a - b;
-          });
+          // Object.keys() turns the revisions from numbers to strings, so
+          // change them back to numbers.
+          const orderedRevisions = Object.keys(allRevisions).map(r =>
+            parseInt(r)).sort((a, b) => a - b);
           if (orderedRevisions.length == 0) {
             // If there's no data to plot, then this array will be empty.
             return;
