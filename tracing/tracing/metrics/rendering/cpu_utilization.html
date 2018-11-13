@@ -112,12 +112,11 @@ tr.exportTo('tr.metrics.rendering', function() {
 
   function addCpuUtilizationHistograms(
       histograms, model, segments, shouldNormalize, segmentCostFunc,
-      histogramNameFunc, description) {
+      histogramNameFunc, description, unit) {
     const histogramMap = new Map();
     for (const category of ALL_CATEGORIES) {
       const histogram = histograms.createHistogram(
-          histogramNameFunc(category),
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
+          histogramNameFunc(category), unit, [], {
             binBoundaries:
                 tr.v.HistogramBinBoundaries.createExponential(1, 50, 20),
             description,
