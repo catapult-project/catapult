@@ -127,12 +127,14 @@ tr.exportTo('cp', () => {
   RecommendedOptions.recommendOptions = (values, recommendations) => {
     if (!recommendations) return [];
     const now = new Date();
-    values = values.map(value => {
-      return {value, score: score(recommendations[value], now)};
-    });
-    values = values.filter(v => v.score > 0);
-    values.sort((valueA, valueB) => valueB.score - valueA.score);
-    return values.map(v => v.value);
+    const recommended = [];
+    for (const value of values) {
+      const s = score(recommendations[value], now);
+      if (s <= 0) continue;
+      recommended.push({value, score: s});
+    }
+    recommended.sort((valueA, valueB) => valueB.score - valueA.score);
+    return recommended.map(v => v.value);
   };
 
   cp.ElementBase.register(RecommendedOptions);

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/cp-checkbox.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/recommended-options.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="timeseries-descriptor">
+  <template>
+    <style>
+      :host {
+        display: flex;
+      }
+    </style>
+
+    <div>
+      <menu-input
+          state-path="[[statePath]].suite"
+          on-option-select="onSuiteSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].suite">
+        </recommended-options>
+      </menu-input>
+
+      <cp-checkbox
+          disabled$="[[!isMultiple_(suite.selectedOptions)]]"
+          checked="[[suite.isAggregated]]"
+          on-change="onSuiteAggregateChange_">
+        Aggregate
+      </cp-checkbox>
+    </div>
+
+    <menu-input
+        state-path="[[statePath]].measurement"
+        on-option-select="onMeasurementSelect_">
+      <div slot="top">
+        <recommended-options state-path="[[statePath]].measurement">
+        </recommended-options>
+        <memory-components state-path="[[statePath]].measurement">
+        </memory-components>
+      </div>
+    </menu-input>
+
+    <div>
+      <menu-input
+          state-path="[[statePath]].bot"
+          on-option-select="onBotSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].bot">
+        </recommended-options>
+      </menu-input>
+
+      <cp-checkbox
+          disabled$="[[!isMultiple_(bot.selectedOptions)]]"
+          checked="[[bot.isAggregated]]"
+          on-change="onBotAggregateChange_">
+        Aggregate
+      </cp-checkbox>
+    </div>
+
+    <div>
+      <menu-input
+          state-path="[[statePath]].case"
+          on-option-select="onCaseSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].case">
+        </recommended-options>
+
+        <tag-filter slot="left" state-path="[[statePath]].case">
+        </tag-filter>
+      </menu-input>
+
+      <cp-checkbox
+          disabled$="[[!isMultiple_(case.selectedOptions)]]"
+          checked="[[case.isAggregated]]"
+          on-change="onCaseAggregateChange_">
+        Aggregate
+      </cp-checkbox>
+    </div>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/timeseries-descriptor.js"></script>

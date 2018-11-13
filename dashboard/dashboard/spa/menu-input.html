@@ -61,10 +61,14 @@ found in the LICENSE file.
 
     <div id="menu" tabindex="0">
       <iron-collapse opened="[[isFocused]]">
-        <option-group
-            state-path="[[statePath]]"
-            root-state-path="[[statePath]]">
-        </option-group>
+        <slot name="top"></slot>
+        <div>
+          <slot name="left"></slot>
+          <option-group
+              state-path="[[statePath]]"
+              root-state-path="[[statePath]]">
+          </option-group>
+        </div>
       </iron-collapse>
     </div>
   </template>

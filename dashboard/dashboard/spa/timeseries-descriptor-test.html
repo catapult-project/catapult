@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
+
+<test-fixture id="test">
+  <template>
+    <timeseries-descriptor state-path="test"></timeseries-descriptor>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('timeseries-descriptor', function() {
+  let originalFetch;
+  setup(() => {
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          if (url === '/api/test_suites') {
+            return ['suite_a', 'suite_b', 'suite_c'];
+          }
+          if (url === '/api/describe') {
+            return {
+              measurements: [
+                'measurement_a', 'measurement_b', 'measurement_c',
+              ],
+              bots: ['bot_a', 'bot_b', 'bot_c'],
+              cases: ['case_a', 'case_b', 'case_c'],
+              caseTags: {
+                tag_a: ['case_b', 'case_c'],
+                tag_b: ['case_a', 'case_c'],
+                tag_c: ['case_a', 'case_b'],
+              },
+            };
+          }
+        }
+      };
+    };
+    fixture('test').dispatch(Redux.ENSURE('test'));
+  });
+
+  teardown(() => {
+    window.fetch = originalFetch;
+  });
+
+  test('suite select describe', async function() {
+    const td = fixture('test');
+    td.dispatch(Redux.UPDATE('test', cp.TimeseriesDescriptor.buildState({
+    })));
+    await cp.afterRender();
+
+    tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
+    await cp.afterRender();
+
+    const state = td.getState().test;
+    assert.lengthOf(state.measurement.options, 3);
+    assert.lengthOf(state.bot.options, 3);
+    assert.lengthOf(state.case.options, 1);
+    assert.lengthOf(state.case.options[0].options, 3);
+    assert.lengthOf(state.case.tags.options, 3);
+  });
+
+  test('option-select matrix-change', async function() {
+    const td = fixture('test');
+    td.dispatch(Redux.UPDATE('test', cp.TimeseriesDescriptor.buildState({
+    })));
+    await cp.afterRender();
+
+    let matrix;
+    td.addEventListener('matrix-change', e => {
+      matrix = e.detail;
+    });
+
+    tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
+    tr.ui.b.findDeepElementWithTextContent(td, /suite_b/).click();
+    await cp.afterRender();
+    tr.ui.b.findDeepElementWithTextContent(td, /measurement_a/).click();
+    tr.ui.b.findDeepElementWithTextContent(td, /bot_a/).click();
+    tr.ui.b.findDeepElementWithTextContent(td, /bot_b/).click();
+    await cp.afterRender();
+
+    assert.deepEqual([['suite_a', 'suite_b']], matrix.suites);
+    assert.deepEqual(['measurement_a'], matrix.measurements);
+    assert.deepEqual([['bot_a', 'bot_b']], matrix.bots);
+    assert.deepEqual([[]], matrix.cases);
+
+    td.dispatch(Redux.TOGGLE('test.suite.isAggregated'));
+    td.dispatch(Redux.TOGGLE('test.bot.isAggregated'));
+    td.dispatch(Redux.TOGGLE('test.case.isAggregated'));
+
+    tr.ui.b.findDeepElementWithTextContent(td, /case_a/).click();
+    tr.ui.b.findDeepElementWithTextContent(td, /case_b/).click();
+    await cp.afterRender();
+
+    assert.deepEqual([['suite_a'], ['suite_b']], matrix.suites);
+    assert.deepEqual(['measurement_a'], matrix.measurements);
+    assert.deepEqual([['bot_a'], ['bot_b']], matrix.bots);
+    assert.deepEqual([['case_a'], ['case_b']], matrix.cases);
+  });
+});
+</script>
