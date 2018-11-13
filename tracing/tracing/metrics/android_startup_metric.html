@@ -86,25 +86,17 @@ tr.exportTo('tr.metrics.sh', function() {
 
     // Sometimes a number of early trace events are not recorded because tracing
     // takes time to start. This leads to having more FCP events than
-    // messageloop_start events. As a workaround remove the earliest FCP event
-    // in this case.
-    let initialStartupsToIgnore = 2;
+    // messageloop_start events. As a workaround ignore the FCP events for which
+    // there are no browser starts.
     function orderEvents(event1, event2) {
       return event1.start - event2.start;
     }
     messageLoopStartEvents.sort(orderEvents);
     firstContentfulPaintEvents.sort(orderEvents);
-    if (firstContentfulPaintEvents[0].start < messageLoopStartEvents[0].start) {
-      // Early trace event is missing: ignore the earliest event that would have
-      // been a pair for it.
-      firstContentfulPaintEvents.shift();
-      totalFcpEvents = firstContentfulPaintEvents.length;
-      initialStartupsToIgnore -= 1;
-    }
 
-    if (totalFcpEvents !== totalBrowserStarts) {
-      throw new Error('Number of FCP events (' + totalFcpEvents +
-        ') differs from number of browser starts (' + totalBrowserStarts + ')');
+    if (totalFcpEvents < totalBrowserStarts) {
+      throw new Error('Found less FCP events (' + totalFcpEvents +
+          ') than browser starts (' + totalBrowserStarts + ')');
     }
 
     // Group the relevant events with the corresponding browser starts and emit
@@ -120,11 +112,32 @@ tr.exportTo('tr.metrics.sh', function() {
     // these influencing factors allows reducing measurement noise.
     // Note: Two early starts are ignored below, the reasons for spurious
     // slowdowns of the 2nd run are not known yet, see http://crbug.com/891797.
-    for (let i = initialStartupsToIgnore; i < totalBrowserStarts; i++) {
-      const startEvent = messageLoopStartEvents[i];
+    let fcpIndex = 0;
+    for (let loopStartIndex = 0; loopStartIndex < totalBrowserStarts;) {
+      const startEvent = messageLoopStartEvents[loopStartIndex];
+      if (fcpIndex === totalFcpEvents) {
+        break;
+      }
+
+      // Skip all FCP events that appear before the next browser start.
+      const fcpEvent = firstContentfulPaintEvents[fcpIndex];
+      if (fcpEvent.start < startEvent.start) {
+        fcpIndex++;
+        continue;
+      }
+
+      // The pair of matching events is found.
+      loopStartIndex++;
+
+      // Skip the two initial FCP events and (potentially missing) browser
+      // starts.
+      if (fcpIndex < 2) {
+        continue;
+      }
+
+      // Record the histograms.
       messageLoopStartHistogram.addSample(startEvent.duration,
           {events: new tr.v.d.RelatedEventSet([startEvent])});
-      const fcpEvent = firstContentfulPaintEvents[i];
       firstContentfulPaintHistogram.addSample(
           fcpEvent.end - startEvent.start,
           {events: new tr.v.d.RelatedEventSet([startEvent, fcpEvent])});
