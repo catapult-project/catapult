@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/option-group.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="memory-components">
+  <template>
+    <style>
+      :host {
+        border-bottom: 1px solid var(--primary-color-dark, blue);
+        display: flex;
+        padding-bottom: 4px;
+      }
+
+      .column {
+        max-height: 143px;
+        overflow-y: auto;
+      }
+    </style>
+
+    <template is="dom-repeat" items="[[columns]]" as="column" index-as="columnIndex">
+      <div class="column">
+        <option-group
+            state-path="[[statePath]].columns.[[columnIndex]]"
+            root-state-path="[[statePath]].columns.[[columnIndex]]"
+            on-option-select="onColumnSelect_">
+        </option-group>
+      </div>
+    </template>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/memory-components.js"></script>

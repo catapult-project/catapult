@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+
+<test-fixture id="test">
+  <template>
+    <memory-components state-path="test"></memory-components>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+setup(() => {
+  fixture('test').dispatch(Redux.UPDATE('', {
+    test: cp.MemoryComponents.buildState({
+      options: [
+        // See getNumericName in memoryMetric:
+        // /tracing/tracing/metrics/system_health/memory_metric.html
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size',
+        'memory:chrome:aaa_process:reported_bbb:fff:ddd_size',
+        'memory:chrome:aaa_process:reported_bbb:fff:eee_size',
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size',
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size',
+        'memory:chrome:aaa_process:reported_ggg:fff:ddd_size',
+        'memory:chrome:aaa_process:reported_ggg:fff:eee_size',
+        'memory:chrome:hhh_process:reported_bbb:ccc:ddd_size',
+        'memory:chrome:hhh_process:reported_bbb:ccc:eee_size',
+        'memory:chrome:hhh_process:reported_bbb:fff:ddd_size',
+        'memory:chrome:hhh_process:reported_bbb:fff:eee_size',
+        'memory:chrome:hhh_process:reported_ggg:ccc:ddd_size',
+        'memory:chrome:hhh_process:reported_ggg:ccc:eee_size',
+        'memory:chrome:hhh_process:reported_ggg:fff:ddd_size',
+        'memory:chrome:hhh_process:reported_ggg:fff:eee_size',
+        'memory:webview:aaa_process:reported_bbb:ccc:ddd_size',
+        'memory:webview:aaa_process:reported_bbb:ccc:eee_size',
+        'memory:webview:aaa_process:reported_bbb:fff:ddd_size',
+        'memory:webview:aaa_process:reported_bbb:fff:eee_size',
+        'memory:webview:aaa_process:reported_ggg:ccc:ddd_size',
+        'memory:webview:aaa_process:reported_ggg:ccc:eee_size',
+        'memory:webview:aaa_process:reported_ggg:fff:ddd_size',
+        'memory:webview:aaa_process:reported_ggg:fff:eee_size',
+        'memory:webview:hhh_process:reported_bbb:ccc:ddd_size',
+        'memory:webview:hhh_process:reported_bbb:ccc:eee_size',
+        'memory:webview:hhh_process:reported_bbb:fff:ddd_size',
+        'memory:webview:hhh_process:reported_bbb:fff:eee_size',
+        'memory:webview:hhh_process:reported_ggg:ccc:ddd_size',
+        'memory:webview:hhh_process:reported_ggg:ccc:eee_size',
+        'memory:webview:hhh_process:reported_ggg:fff:ddd_size',
+        'memory:webview:hhh_process:reported_ggg:fff:eee_size',
+      ],
+      selectedOptions: [
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
+      ],
+    }),
+  }));
+});
+
+suite('memory-components', function() {
+  test('select', async function() {
+    const memoryComponents = fixture('test');
+    await cp.afterRender();
+    let state = memoryComponents.getState().test;
+    assert.lengthOf(state.columns, 5);
+    assert.strictEqual('chrome', state.columns[0].options[0].value);
+    assert.strictEqual('aaa', state.columns[1].options[0].value);
+    assert.strictEqual('bbb', state.columns[2].options[0].value);
+    assert.strictEqual('ccc', state.columns[3].options[0].value);
+    assert.strictEqual('ddd', state.columns[4].options[0].value);
+    assert.strictEqual('webview', state.columns[0].options[1].value);
+    assert.strictEqual('hhh', state.columns[1].options[1].value);
+    assert.strictEqual('ggg', state.columns[2].options[1].value);
+    assert.strictEqual('fff', state.columns[3].options[1].value);
+    assert.strictEqual('eee', state.columns[4].options[1].value);
+    assert.deepEqual(['chrome'], state.columns[0].selectedOptions);
+    assert.deepEqual(['aaa'], state.columns[1].selectedOptions);
+    assert.deepEqual(['bbb'], state.columns[2].selectedOptions);
+    assert.deepEqual(['ccc'], state.columns[3].selectedOptions);
+    assert.deepEqual(['ddd'], state.columns[4].selectedOptions);
+
+    const ggg = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /ggg/);
+    ggg.click();
+    await cp.afterRender();
+    state = memoryComponents.getState().test;
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size');
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size');
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
+
+    const eee = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /eee/);
+    eee.click();
+    await cp.afterRender();
+    state = memoryComponents.getState().test;
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
+
+    const ddd = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /ddd/);
+    ddd.click();
+    await cp.afterRender();
+    state = memoryComponents.getState().test;
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
+
+    const bbb = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /bbb/);
+    bbb.click();
+    await cp.afterRender();
+    state = memoryComponents.getState().test;
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size');
+    assert.notInclude(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size');
+    assert.include(state.selectedOptions,
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
+  });
+});
+</script>
