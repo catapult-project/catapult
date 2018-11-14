@@ -184,7 +184,7 @@ class SelectDefaultBrowserTest(unittest.TestCase):
 
 class SetUpProfileBrowserTest(unittest.TestCase):
 
-  @decorators.Enabled('android')
+  @decorators.Disabled('all')  # http://crbug.com/905359
   def testPushEmptyProfile(self):
     finder_options = options_for_unittests.GetCopy()
     finder_options.browser_options.profile_dir = None

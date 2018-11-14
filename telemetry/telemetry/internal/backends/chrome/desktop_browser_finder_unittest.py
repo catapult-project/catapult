@@ -7,6 +7,7 @@ import unittest
 
 from pyfakefs import fake_filesystem_unittest
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
@@ -193,6 +194,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
   def DoFindAllTypes(self):
     return [b.browser_type for b in self.DoFindAll()]
 
+  @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindAllWithCheckout(self):
     for target in ['Release', 'Debug']:
       for browser in ['chrome', 'content_shell']:
@@ -207,6 +209,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
     self.assertFalse(self.DoFindAllTypes())
 
+  @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindWithProvidedExecutable(self):
     self.CreateBrowser('/foo/chrome')
     self._finder_options.browser_executable = '/foo/chrome'
@@ -225,6 +228,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
       self.DoFindAllTypes()
     self.assertIn('does not exist or is not executable', str(cm.exception))
 
+  @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindAllWithInstalled(self):
     official_names = ['chrome', 'chrome-beta', 'chrome-unstable']
 
@@ -233,12 +237,14 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
     self.assertEquals(set(self.DoFindAllTypes()), {'stable', 'beta', 'dev'})
 
+  @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindAllSystem(self):
     self.CreateBrowser('/opt/google/chrome/chrome')
     os.symlink('/opt/google/chrome/chrome', '/usr/bin/google-chrome')
 
     self.assertEquals(set(self.DoFindAllTypes()), {'system', 'stable'})
 
+  @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindAllSystemIsBeta(self):
     self.CreateBrowser('/opt/google/chrome/chrome')
     self.CreateBrowser('/opt/google/chrome-beta/chrome')
