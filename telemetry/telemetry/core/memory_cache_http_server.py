@@ -6,6 +6,7 @@ import BaseHTTPServer
 from collections import namedtuple
 import errno
 import gzip
+import logging
 import mimetypes
 import os
 import SimpleHTTPServer
@@ -13,6 +14,7 @@ import socket
 import SocketServer
 import StringIO
 import sys
+import traceback
 import urlparse
 
 from telemetry.core import local_server
@@ -213,6 +215,17 @@ class _MemoryCacheHTTPServerImpl(SocketServer.ThreadingMixIn,
     if os.path.basename(file_path) == index:
       dir_path = os.path.dirname(file_path)
       self.resource_map[dir_path] = self.resource_map[file_path]
+
+  def handle_error(self, request, client_address):
+    """Handle error in a thread-safe way
+
+    We override handle_error method of our base TCPServer class. It does the
+    same but uses thread-safe logging.error instead of print, because
+    SocketServer.ThreadingMixIn runs network operations on multiple threads and
+    there's a race condition on stdout.
+    """
+    logging.error('Exception happened during processing of request from '
+                  '%s\n%s%s', client_address, traceback.format_exc(), '-'*80)
 
 
 class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
