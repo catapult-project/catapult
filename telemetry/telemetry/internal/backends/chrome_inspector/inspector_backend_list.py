@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import sys
 from telemetry.core import exceptions
 
 
@@ -75,9 +76,10 @@ class InspectorBackendList(collections.Sequence):
             context_id)
       except exceptions.Error as e:
         self._HandleDevToolsConnectionError(e)
-        raise e
+        # Raise exception preserving stacktrace
+        exc_info = sys.exc_info()
+        raise exc_info[0], exc_info[1], exc_info[2]
       # Propagate KeyError from GetInspectorBackend call.
-
       wrapper = self.CreateWrapper(backend)
       self._wrapper_dict[context_id] = wrapper
     return self._wrapper_dict[context_id]
