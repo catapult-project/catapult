@@ -360,11 +360,16 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
 
   bug_components = queried_diagnostics.get(
       reserved_infos.BUG_COMPONENTS.name, {}).get('values')
+  if bug_components:
+    bug_components = bug_components[0]
+    # TODO(902796): Remove this typecheck.
+    if isinstance(bug_components, list):
+      bug_components = bug_components[0]
 
   ownership_information = {
       'emails': queried_diagnostics.get(
           reserved_infos.OWNERS.name, {}).get('values'),
-      'component': (bug_components[0] if bug_components else None)}
+      'component': bug_components}
 
   new_anomaly = anomaly.Anomaly(
       start_revision=start_rev,

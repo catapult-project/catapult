@@ -286,7 +286,10 @@ def _FetchBugComponents(alert_keys):
     alert_test = alert.test.id()
     if (alert.ownership and alert.ownership.get('component') and
         most_recent_components.get(alert_test) is None):
-      most_recent_components[alert_test] = alert.ownership['component']
+      if isinstance(alert.ownership['component'], list):
+        most_recent_components[alert_test] = alert.ownership['component'][0]
+      else:
+        most_recent_components[alert_test] = alert.ownership['component']
 
   return set(most_recent_components.values())
 
