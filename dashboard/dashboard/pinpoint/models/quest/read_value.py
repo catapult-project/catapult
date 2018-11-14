@@ -235,13 +235,13 @@ class ReadGraphJsonValue(quest.Quest):
   @classmethod
   def FromDict(cls, arguments):
     chart = arguments.get('chart')
+    if not chart:
+      raise TypeError('Missing "chart" argument.')
+
     trace = arguments.get('trace')
-    if not (chart or trace):
-      return None
-    if chart and not trace:
-      raise TypeError('"chart" specified but no "trace" given.')
-    if trace and not chart:
-      raise TypeError('"trace" specified but no "chart" given.')
+    if not trace:
+      raise TypeError('Missing "trace" argument.')
+
     return cls(chart, trace)
 
 
@@ -293,10 +293,3 @@ def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
     raise ReadValueError("The test didn't produce %s." % filename)
   output_json_isolate_hash = output_files[filename]['h']
   return json.loads(isolate.Retrieve(isolate_server, output_json_isolate_hash))
-
-
-def _GetStoryFromHistogram(hist):
-  stories = hist.diagnostics.get(reserved_infos.STORIES.name)
-  if stories and len(stories) == 1:
-    return list(stories)[0]
-  return None

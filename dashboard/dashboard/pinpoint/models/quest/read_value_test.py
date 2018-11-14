@@ -65,7 +65,7 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
 
 class ReadGraphJsonValueQuestTest(unittest.TestCase):
 
-  def testAllArguments(self):
+  def testMinimumArguments(self):
     quest = read_value.ReadGraphJsonValue.FromDict(_BASE_ARGUMENTS_GRAPH_JSON)
     expected = read_value.ReadGraphJsonValue('chart_name', 'trace_name')
     self.assertEqual(quest, expected)
