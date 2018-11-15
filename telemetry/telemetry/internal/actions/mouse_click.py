@@ -6,10 +6,7 @@ from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 
 
-class MouseClickAction(page_action.PageAction):
-  def __init__(self, selector=None):
-    super(MouseClickAction, self).__init__()
-    self._selector = selector
+class MouseClickAction(page_action.ElementPageAction):
 
   def WillRunAction(self, tab):
     """Load the mouse click JS code prior to running the action."""
@@ -31,6 +28,5 @@ class MouseClickAction(page_action.PageAction):
             element: element
           });
         }'''
-    page_action.EvaluateCallbackWithElement(
-        tab, code, selector=self._selector)
+    self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition('window.__mouseClickActionDone', timeout=60)

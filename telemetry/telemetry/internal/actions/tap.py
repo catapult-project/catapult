@@ -7,7 +7,7 @@ from telemetry.internal.actions import utils
 from telemetry.util import js_template
 
 
-class TapAction(page_action.PageAction):
+class TapAction(page_action.ElementPageAction):
 
   def __init__(self,
                selector=None,
@@ -17,13 +17,10 @@ class TapAction(page_action.PageAction):
                top_position_percentage=0.5,
                duration_ms=50,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(TapAction, self).__init__()
-    self.selector = selector
-    self.text = text
-    self.element_function = element_function
-    self.left_position_percentage = left_position_percentage
-    self.top_position_percentage = top_position_percentage
-    self.duration_ms = duration_ms
+    super(TapAction, self).__init__(selector, text, element_function)
+    self._left_position_percentage = left_position_percentage
+    self._top_position_percentage = top_position_percentage
+    self._duration_ms = duration_ms
     self._synthetic_gesture_source = (
         'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
 
@@ -42,13 +39,9 @@ class TapAction(page_action.PageAction):
           window.__tapActionDone = true;
         });""")
 
-  def HasElementSelector(self):
-    return (self.element_function is not None or self.selector is not None or
-            self.text is not None)
-
   def RunAction(self, tab):
     if not self.HasElementSelector():
-      self.element_function = 'document.body'
+      self._element_function = 'document.body'
 
     code = js_template.Render(
         """
@@ -64,17 +57,12 @@ class TapAction(page_action.PageAction):
             gesture_source_type: {{ @gesture_source_type }}
           });
         }""",
-        left_position_percentage=self.left_position_percentage,
-        top_position_percentage=self.top_position_percentage,
-        duration_ms=self.duration_ms,
+        left_position_percentage=self._left_position_percentage,
+        top_position_percentage=self._top_position_percentage,
+        duration_ms=self._duration_ms,
         gesture_source_type=self._synthetic_gesture_source)
 
-    page_action.EvaluateCallbackWithElement(
-        tab,
-        code,
-        selector=self.selector,
-        text=self.text,
-        element_function=self.element_function)
+    self.EvaluateCallback(tab, code)
     # The second disjunct handles the case where the tap action leads to an
     # immediate navigation (in which case the expression below might already be
     # evaluated on the new page).

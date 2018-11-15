@@ -57,3 +57,6 @@ class SeekAction(media_action.MediaAction):
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot seek media element(s) with '
                                          'selector = %s.' % self._selector)
+
+  def __str__(self):
+    return "%s(%s)" % (self.__class__.__name__, self._selector)

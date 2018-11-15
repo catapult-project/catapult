@@ -22,17 +22,14 @@ from telemetry.internal.actions import utils
 from telemetry.util import js_template
 
 
-class DragAction(page_action.PageAction):
+class DragAction(page_action.ElementPageAction):
 
   def __init__(self, selector=None, text=None, element_function=None,
                left_start_ratio=None, top_start_ratio=None, left_end_ratio=None,
                top_end_ratio=None, speed_in_pixels_per_second=800,
                use_touch=False,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(DragAction, self).__init__()
-    self._selector = selector
-    self._text = text
-    self._element_function = element_function
+    super(DragAction, self).__init__(selector, text, element_function)
     self._left_start_ratio = left_start_ratio
     self._top_start_ratio = top_start_ratio
     self._left_end_ratio = left_end_ratio
@@ -69,8 +66,7 @@ class DragAction(page_action.PageAction):
         });""")
 
   def RunAction(self, tab):
-    if (self._selector is None and self._text is None and
-        self._element_function is None):
+    if not self.HasElementSelector():
       self._element_function = 'document.body'
 
     gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
@@ -100,10 +96,5 @@ class DragAction(page_action.PageAction):
         top_end_ratio=self._top_end_ratio,
         speed=self._speed,
         gesture_source_type=gesture_source_type)
-    page_action.EvaluateCallbackWithElement(
-        tab,
-        code,
-        selector=self._selector,
-        text=self._text,
-        element_function=self._element_function)
+    self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition('window.__dragActionDone', timeout=60)

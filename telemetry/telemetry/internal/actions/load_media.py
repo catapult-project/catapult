@@ -36,3 +36,6 @@ class LoadMediaAction(media_action.MediaAction):
       raise page_action.PageActionFailed('Failed waiting for event "%s" on '
                                          'elements with selector = %s.' %
                                          (self._event_to_await, self._selector))
+
+  def __str__(self):
+    return "%s(%s)" % (self.__class__.__name__, self._selector)

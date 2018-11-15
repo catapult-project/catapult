@@ -38,6 +38,42 @@ class PageAction(object):
   def CleanUp(self, tab):
     pass
 
+  def __str__(self):
+    return self.__class__.__name__
+
+
+class ElementPageAction(PageAction):
+  """A PageAction which acts on DOM elements"""
+
+  def __init__(self, selector=None, text=None, element_function=None):
+    super(ElementPageAction, self).__init__()
+    self._selector = selector
+    self._text = text
+    self._element_function = element_function
+
+  def RunAction(self, tab):
+    raise NotImplementedError()
+
+  def HasElementSelector(self):
+    return (self._selector is not None or
+            self._text is not None or
+            self._element_function is not None)
+
+  def EvaluateCallback(self, tab, code, **kwargs):
+    return EvaluateCallbackWithElement(
+        tab, code, selector=self._selector, text=self._text,
+        element_function=self._element_function, **kwargs)
+
+  def __str__(self):
+    query_string = ''
+    if self._selector is not None:
+      query_string = self._selector
+    if self._text is not None:
+      query_string = 'text=%s' % self._text
+    if self._element_function:
+      query_string = 'element_function=%s' % self._element_function
+    return '%s(%s)' % (self.__class__.__name__, query_string)
+
 
 def EvaluateCallbackWithElement(
     tab, callback_js, selector=None, text=None, element_function=None,

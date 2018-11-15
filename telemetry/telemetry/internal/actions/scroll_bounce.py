@@ -7,7 +7,7 @@ from telemetry.internal.actions import utils
 from telemetry.util import js_template
 
 
-class ScrollBounceAction(page_action.PageAction):
+class ScrollBounceAction(page_action.ElementPageAction):
 
   def __init__(self,
                selector=None,
@@ -21,13 +21,10 @@ class ScrollBounceAction(page_action.PageAction):
                repeat_count=10,
                speed_in_pixels_per_second=400,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(ScrollBounceAction, self).__init__()
+    super(ScrollBounceAction, self).__init__(selector, text, element_function)
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
-    self._selector = selector
-    self._text = text
-    self._element_function = element_function
     self._left_start_ratio = left_start_ratio
     self._top_start_ratio = top_start_ratio
     # Should be big enough to do more than just hide the URL bar.
@@ -98,11 +95,6 @@ class ScrollBounceAction(page_action.PageAction):
         overscroll=self._overscroll,
         repeat_count=self._repeat_count,
         speed=self._speed)
-    page_action.EvaluateCallbackWithElement(
-        tab,
-        code,
-        selector=self._selector,
-        text=self._text,
-        element_function=self._element_function)
+    self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition(
         'window.__scrollBounceActionDone', timeout=60)

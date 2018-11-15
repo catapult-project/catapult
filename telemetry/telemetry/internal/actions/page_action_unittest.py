@@ -4,6 +4,8 @@
 
 """Tests for page_action."""
 
+import unittest
+
 from telemetry.internal.actions import page_action
 from telemetry.testing import tab_test_case
 
@@ -78,3 +80,32 @@ class PageActionTest(tab_test_case.TabTestCase):
       page_action.EvaluateCallbackWithElement(
           self._tab, 'function() {}', text='foo', element_function='')
     self.assertRaises(page_action.PageActionFailed, Evaluate3)
+
+
+class ElementPageActionTest(unittest.TestCase):
+
+  def testToString(self):
+    action = page_action.ElementPageAction()
+    self.assertEqual("ElementPageAction()", str(action))
+
+    action = page_action.ElementPageAction(selector='#id')
+    self.assertEqual("ElementPageAction(#id)", str(action))
+
+    action = page_action.ElementPageAction(text='my text')
+    self.assertEqual("ElementPageAction(text=my text)", str(action))
+
+    action = page_action.ElementPageAction(
+        element_function='() => false')
+    self.assertEqual(
+        "ElementPageAction(element_function=() => false)",
+        str(action))
+
+    action = page_action.ElementPageAction(
+        'a', 'b', element_function='() => false')
+    self.assertEqual(
+        "ElementPageAction(element_function=() => false)",
+        str(action))
+
+    action = page_action.ElementPageAction(
+        'a', 'b', element_function=None)
+    self.assertEqual("ElementPageAction(text=b)", str(action))

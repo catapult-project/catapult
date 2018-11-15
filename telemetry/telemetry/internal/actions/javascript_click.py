@@ -5,12 +5,7 @@
 from telemetry.internal.actions import page_action
 
 
-class ClickElementAction(page_action.PageAction):
-  def __init__(self, selector=None, text=None, element_function=None):
-    super(ClickElementAction, self).__init__()
-    self.selector = selector
-    self.text = text
-    self.element_function = element_function
+class ClickElementAction(page_action.ElementPageAction):
 
   def RunAction(self, tab):
     code = '''
@@ -22,6 +17,4 @@ class ClickElementAction(page_action.PageAction):
         }'''
     # Click handler that plays media or requests fullscreen may not take
     # effects without user_gesture set to True.
-    page_action.EvaluateCallbackWithElement(
-        tab, code, selector=self.selector, text=self.text,
-        element_function=self.element_function, user_gesture=True)
+    self.EvaluateCallback(tab, code)

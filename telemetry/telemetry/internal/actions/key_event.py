@@ -103,3 +103,6 @@ class KeyPressAction(page_action.PageAction):
         dom_key=self._dom_key,
         windows_virtual_key_code=self._windows_virtual_key_code,
         timeout=self._timeout)
+
+  def __str__(self):
+    return "%s('%s')" % (self.__class__.__name__, self._dom_key)

@@ -7,7 +7,7 @@ from telemetry.internal.actions import utils
 from telemetry.util import js_template
 
 
-class SwipeAction(page_action.PageAction):
+class SwipeAction(page_action.ElementPageAction):
 
   def __init__(self,
                selector=None,
@@ -19,13 +19,10 @@ class SwipeAction(page_action.PageAction):
                distance=100,
                speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(SwipeAction, self).__init__()
+    super(SwipeAction, self).__init__(selector, text, element_function)
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
-          'Invalid swipe direction: %s' % self.direction)
-    self._selector = selector
-    self._text = text
-    self._element_function = element_function
+          'Invalid swipe direction: %s' % direction)
     self._left_start_ratio = left_start_ratio
     self._top_start_ratio = top_start_ratio
     self._direction = direction
@@ -58,8 +55,7 @@ class SwipeAction(page_action.PageAction):
         });""")
 
   def RunAction(self, tab):
-    if (self._selector is None and self._text is None and
-        self._element_function is None):
+    if not self.HasElementSelector():
       self._element_function = '(document.scrollingElement || document.body)'
     code = js_template.Render(
         """
@@ -81,10 +77,5 @@ class SwipeAction(page_action.PageAction):
         direction=self._direction,
         distance=self._distance,
         speed=self._speed)
-    page_action.EvaluateCallbackWithElement(
-        tab,
-        code,
-        selector=self._selector,
-        text=self._text,
-        element_function=self._element_function)
+    self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition('window.__swipeActionDone', timeout=60)

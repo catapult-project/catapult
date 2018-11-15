@@ -58,8 +58,10 @@ class ActionRunner(object):
     return self._tab
 
   def _RunAction(self, action):
+    logging.info("START Page Action: %s", action)
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
+    logging.info("DONE Page Action: %s", action.__class__.__name__)
 
   def CreateInteraction(self, label, repeatable=False):
     """ Create an action.Interaction object that issues interaction record.

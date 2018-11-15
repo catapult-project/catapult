@@ -26,3 +26,6 @@ class NavigateAction(page_action.PageAction):
     time_left_in_seconds = max(0, time_left_in_seconds)
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter(time_left_in_seconds)
     tab.WaitForFrameToBeDisplayed()
+
+  def __str__(self):
+    return "%s(%s)" % (self.__class__.__name__, self._url)
