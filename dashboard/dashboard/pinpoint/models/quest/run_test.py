@@ -279,23 +279,24 @@ class _RunTestExecution(execution_module.Execution):
     if not hasattr(self, '_isolate_server'):
       # TODO: Remove after data migration. crbug.com/822008
       self._isolate_server = 'https://isolateserver.appspot.com'
+    properties = {
+        'inputs_ref': {
+            'isolatedserver': self._isolate_server,
+            'isolated': self._isolate_hash,
+        },
+        'extra_args': self._extra_args,
+        'dimensions': dimensions,
+        'execution_timeout_secs': '21600',  # 6 hours, for rendering.mobile.
+        'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
+    }
+    properties.update(_VPYTHON_PARAMS)
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '86400',  # 1 day.
-        'properties': {
-            'inputs_ref': {
-                'isolatedserver': self._isolate_server,
-                'isolated': self._isolate_hash,
-            },
-            'extra_args': self._extra_args,
-            'dimensions': dimensions,
-            'execution_timeout_secs': '21600',  # 6 hours, for rendering.mobile.
-            'io_timeout_secs': '1200',  # 20 minutes, to match the perf bots.
-        },
+        'properties': properties,
     }
-    body.update(_VPYTHON_PARAMS)
     if not hasattr(self, '_swarming_server'):
       # TODO: Remove after data migration. crbug.com/822008
       self._swarming_server = 'https://chromium-swarm.appspot.com'
