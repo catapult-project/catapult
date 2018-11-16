@@ -48,6 +48,29 @@ class TelemetryInfoTest(unittest.TestCase):
     self.assertEqual(ti_dict[reserved_infos.BENCHMARK_DESCRIPTIONS.name],
                      ['foo'])
 
+  def testTraceLocalPathWithoutLabel(self):
+    ti = page_test_results.TelemetryInfo(output_dir='/tmp')
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    bar_story = page_module.Page("http://www.bar.com/", story_set,
+                                 story_set.base_dir,
+                                 name='http://www.bar.com/')
+    story_set.AddStory(bar_story)
+    ti.WillRunStory(bar_story, None)
+    self.assertIn('www_bar_com', ti.trace_local_path)
+    self.assertNotIn('custom_label', ti.trace_local_path)
+
+  def testTraceLocalPathWithLabel(self):
+    ti = page_test_results.TelemetryInfo(output_dir='/tmp')
+    ti.label = 'custom_label'
+    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    bar_story = page_module.Page("http://www.bar.com/", story_set,
+                                 story_set.base_dir,
+                                 name='http://www.bar.com/')
+    story_set.AddStory(bar_story)
+    ti.WillRunStory(bar_story, None)
+    self.assertIn('www_bar_com', ti.trace_local_path)
+    self.assertIn('custom_label', ti.trace_local_path)
+
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):

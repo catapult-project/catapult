@@ -135,10 +135,15 @@ class TelemetryInfo(object):
     self._story_tags = story.tags
     self._storyset_repeat_counter = storyset_repeat_counter
 
-    trace_name = '%s_%s_%s.html' % (
-        story.file_safe_name,
+    trace_name_suffix = '%s_%s.html' % (
         datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
         random.randint(1, 1e5))
+    if self.label:
+      trace_name = '%s_%s_%s' % (
+          story.file_safe_name, self.label, trace_name_suffix)
+    else:
+      trace_name = '%s_%s' % (
+          story.file_safe_name, trace_name_suffix)
 
     if self._upload_bucket:
       self._trace_remote_path = trace_name
