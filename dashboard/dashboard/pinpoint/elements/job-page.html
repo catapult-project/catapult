@@ -115,10 +115,10 @@ found in the LICENSE file.
             <h2>Job failed</h2>
             <p id="exception">[[job.exception]]</p>
           </template>
+          <template is="dom-if" if="[[shouldShowChart(job)]]">
+            <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>
+          </template>
           <template is="dom-if" if="[[!failed(job)]]">
-            <template is="dom-if" if="[[job.comparison_mode]]">
-              <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>
-            </template>
             <template is="dom-if" if="[[!job.comparison_mode]]">
               <results2-frame job-id="[[job.job_id]]"></results2-frame>
             </template>
@@ -198,6 +198,11 @@ found in the LICENSE file.
 
         const hours = durationMs / (1000 * 60 * 60);
         return hours.toFixed(1) + ' hours';
+      },
+
+      shouldShowChart(job) {
+        return job.comparison_mode &&
+          job.state.some(state => state.result_values.length);
       },
 
       previousChangeState(jobState, changeIndex) {
