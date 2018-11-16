@@ -116,7 +116,7 @@ def IsDevicePortUsed(device, device_port, state=''):
   """
   base_urls = ('127.0.0.1:%d' % device_port, 'localhost:%d' % device_port)
   netstat_results = device.RunShellCommand(
-      ['netstat', '-a'], check_return=True, large_output=True)
+      ['netstat', '-an'], check_return=True, large_output=True)
   for single_connect in netstat_results:
     # Column 3 is the local address which we want to check with.
     connect_results = single_connect.split()
