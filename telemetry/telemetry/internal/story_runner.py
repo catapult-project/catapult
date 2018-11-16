@@ -76,7 +76,7 @@ def AddCommandLineArgs(parser):
   parser.add_option('-d', '--also-run-disabled-tests',
                     dest='run_disabled_tests',
                     action='store_true', default=False,
-                    help='Ignore @Disabled and @Enabled restrictions.')
+                    help='Ignore expectations.config disabling.')
 
 def ProcessCommandLineArgs(parser, args):
   story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
