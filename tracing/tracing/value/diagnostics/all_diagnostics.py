@@ -10,13 +10,13 @@ import sys
 _MODULES_BY_DIAGNOSTIC_NAME = {
     'Breakdown': 'diagnostics.breakdown',
     'GenericSet': 'diagnostics.generic_set',
-    'UnmergeableDiagnosticSet': 'histogram',
-    'RelatedEventSet': 'histogram',
-    'DateRange': 'histogram',
-    'TagMap': 'histogram',
-    'RelatedHistogramBreakdown': 'histogram',
+    'UnmergeableDiagnosticSet': 'diagnostics.unmergeable_diagnostic_set',
+    'RelatedEventSet': 'diagnostics.related_event_set',
+    'DateRange': 'diagnostics.date_range',
+    'TagMap': 'diagnostics.tag_map',
+    'RelatedHistogramBreakdown': 'diagnostics.related_histogram_breakdown',
     'RelatedHistogramMap': 'histogram',
-    'RelatedNameMap': 'histogram',
+    'RelatedNameMap': 'diagnostics.related_name_map',
 }
 
 

@@ -9,8 +9,8 @@ from telemetry.testing import page_test_test_case
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
-from tracing.value import histogram
 from tracing.value import histogram_set
+from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -121,7 +121,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(0, list(repeats)[0])
     hist = hs.GetFirstHistogram()
     trace_start = hist.diagnostics.get(reserved_infos.TRACE_START.name)
-    self.assertIsInstance(trace_start, histogram.DateRange)
+    self.assertIsInstance(trace_start, date_range.DateRange)
 
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)

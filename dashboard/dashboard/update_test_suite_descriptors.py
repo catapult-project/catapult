@@ -18,8 +18,8 @@ from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import tag_map as tag_map_module
 
 
 def CacheKey(test_suite):
@@ -81,12 +81,12 @@ def _QueryCaseTags(test_suite, bots):
         utils.TestKey(test_path), [reserved_infos.TAG_MAP.name]))
 
   ndb.Future.wait_all(futures)
-  tag_map = histogram_module.TagMap({})
+  tag_map = tag_map_module.TagMap({})
   for future in futures:
     data = future.get_result().get(reserved_infos.TAG_MAP.name)
     if not data:
       continue
-    tag_map.AddDiagnostic(histogram_module.TagMap.FromDict(data))
+    tag_map.AddDiagnostic(tag_map_module.TagMap.FromDict(data))
 
   return {tag: list(sorted(cases))
           for tag, cases in tag_map.tags_to_story_names.iteritems()}

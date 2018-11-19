@@ -45,6 +45,7 @@ from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import tag_map
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -822,7 +823,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
-      if isinstance(diagnostic, histogram_module.TagMap):
+      if isinstance(diagnostic, tag_map.TagMap):
         tagmap = diagnostic
         break
 
@@ -857,7 +858,7 @@ class StoryRunnerTest(unittest.TestCase):
     hs.ImportDicts(self.results.AsHistogramDicts())
     tagmap = None
     for diagnostic in hs.shared_diagnostics:
-      if isinstance(diagnostic, histogram_module.TagMap):
+      if isinstance(diagnostic, tag_map.TagMap):
         tagmap = diagnostic
         break
 

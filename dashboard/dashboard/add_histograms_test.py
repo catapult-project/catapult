@@ -24,6 +24,7 @@ from dashboard.models import sheriff
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import breakdown
+from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -106,7 +107,7 @@ def _CreateHistogram(
   if revision_timestamp is not None:
     histograms.AddSharedDiagnostic(
         reserved_infos.REVISION_TIMESTAMPS.name,
-        histogram_module.DateRange(revision_timestamp))
+        date_range.DateRange(revision_timestamp))
   return histograms
 
 

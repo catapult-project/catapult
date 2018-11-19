@@ -15,8 +15,8 @@ from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
-from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import tag_map
 
 
 class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
@@ -105,13 +105,13 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         test=utils.TestKey('master/a/suite'),
         name=reserved_infos.TAG_MAP.name,
         end_revision=sys.maxint,
-        data=histogram_module.TagMap(
+        data=tag_map.TagMap(
             {'tagsToStoryNames': {'j': ['x']}}).AsDict()).put()
     histogram.SparseDiagnostic(
         test=utils.TestKey('master/b/suite'),
         name=reserved_infos.TAG_MAP.name,
         end_revision=sys.maxint,
-        data=histogram_module.TagMap(
+        data=tag_map.TagMap(
             {'tagsToStoryNames': {'j': ['y'], 'k': ['y']}}).AsDict()).put()
 
     self.Post('/update_test_suite_descriptors')

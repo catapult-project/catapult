@@ -25,9 +25,9 @@ from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
 from telemetry.web_perf import story_test
-from tracing.value import histogram
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import tag_map
 
 
 # Allowed stages to pause for user interaction at.
@@ -87,7 +87,7 @@ def ProcessCommandLineArgs(parser, args):
 
 
 def _GenerateTagMapFromStorySet(stories):
-  tagmap = histogram.TagMap({})
+  tagmap = tag_map.TagMap({})
   for s in stories:
     for t in s.tags:
       tagmap.AddTagAndStoryDisplayName(t, s.name)

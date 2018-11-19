@@ -9,13 +9,14 @@ import pandas  # pylint: disable=import-error
 from pinpoint_cli import histograms_df
 from tracing.value import histogram
 from tracing.value import histogram_set
+from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import generic_set
 
 
 def TestHistogram(name, units, values, **kwargs):
   def DiagnosticValue(value):
     if isinstance(value, (int, long)):
-      return histogram.DateRange(value)
+      return date_range.DateRange(value)
     elif isinstance(value, list):
       return generic_set.GenericSet(value)
     else:
