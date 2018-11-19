@@ -40,6 +40,10 @@ tr.b.unittest.testSuite(function() {
     renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
           start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
+          args: {source_frame_number_: 1}}));
+    renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: EVENT_NAME,
+          start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
           args: {step: 'SubmitCompositorFrame'}}));
     compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
@@ -49,6 +53,7 @@ tr.b.unittest.testSuite(function() {
         { title: EVENT_NAME,
           start: frame.SurfaceAggregation, duration: 1, bindId: id,
           args: {step: 'SurfaceAggregation', display_trace: displayTrace}}));
+    renderer.sliceGroup.createSubSlices();
   }
 
   function addDrawSlice(compositor, displayTrace, start, steps, opt_args) {

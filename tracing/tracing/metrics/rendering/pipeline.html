@@ -86,6 +86,31 @@ tr.exportTo('tr.metrics.rendering', function() {
         'CrBrowserMain');
   }
 
+  function getAverageRasterTaskStartTime(sourceFrameNumber, model) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const rendererHelper = chromeHelper.rendererWithLargestPid;
+    if (!rendererHelper) return 0;
+    const rasterThreads = rendererHelper.rasterWorkerThreads;
+
+    let totalSum = 0;
+    for (const rasterThread of rasterThreads) {
+      let slicesCounted = 0;
+      let threadTotal = 0;
+      for (const slice of rasterThread.sliceGroup.topLevelSlices) {
+        if (slice.args &&
+            slice.args.source_frame_number_ &&
+            slice.args.source_frame_number_ === sourceFrameNumber) {
+          threadTotal += slice.start;
+          slicesCounted++;
+        }
+      }
+      if (slicesCounted > 0) totalSum += (threadTotal / slicesCounted);
+    }
+    if (rasterThreads.length > 0) return (totalSum / rasterThreads.length);
+    return 0;
+  }
+
   function addPipelineHistograms(histograms, model, segments) {
     const ranges = segments.map(s => s.boundsRange);
     const bindEvents = new Map();
@@ -143,6 +168,14 @@ tr.exportTo('tr.metrics.rendering', function() {
           'CompositorFrame submission in the renderer.',
           summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
         });
+    const receiptToRaster = histograms.createHistogram(
+        'pipeline:begin_frame_to_raster_tasks',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        [], {
+          description: 'Latency between begin-frame reception and ' +
+          'CompositorTasks run in the compositor.',
+          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        });
     const submitToAggregate = histograms.createHistogram(
         'pipeline:frame_submission_to_display',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -167,11 +200,20 @@ tr.exportTo('tr.metrics.rendering', function() {
           !flow.SubmitCompositorFrame || !flow.SurfaceAggregation) {
         continue;
       }
+
+      const sourceFrameNumber = flow.SubmitCompositorFrame.parentSlice
+          .args.source_frame_number_;
+
+      const averageRasterStartTime =
+          getAverageRasterTaskStartTime(sourceFrameNumber, model);
+
       issueToReceipt.addSample(flow.ReceiveBeginFrame.start -
                                flow.IssueBeginFrame.start);
       receiptToSubmit.addSample(
           flow.SubmitCompositorFrame.end - flow.ReceiveBeginFrame.start,
           {breakdown: generateBreakdownForCompositorPipelineInClient_(flow)});
+      receiptToRaster.addSample(averageRasterStartTime -
+          flow.ReceiveBeginFrame.start);
       submitToAggregate.addSample(
           flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
           {breakdown: generateBreakdownForCompositorPipelineInService_(flow)});
