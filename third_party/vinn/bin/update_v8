@@ -175,7 +175,7 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
         # must be present in PATH.
         mipsel_gcc_exec = distutils.spawn.find_executable('mipsel-linux-gnu-gcc')
         if (target_os == 'linux' and
-            mipsel_gcc_exec not None and
+            mipsel_gcc_exec is not None and
             os.path.isfile(mipsel_gcc_exec)):
           _RunCommand(V8_INSTALL_SYSROOT_MIPS_CMD)
           _RunCommand(V8_GN_GEN_MIPS_CMD)
@@ -189,7 +189,7 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
         # must be present in PATH.
         mipsel_gcc_exec = distutils.spawn.find_executable('mips64el-linux-gnu-gcc')
         if (target_os == 'linux' and
-            mipsel_gcc_exec not None and
+            mipsel_gcc_exec is not None and
             os.path.isfile(mipsel_gcc_exec)):
           _RunCommand(V8_INSTALL_SYSROOT_MIPS64_CMD)
           _RunCommand(V8_GN_GEN_MIPS64_CMD)
