@@ -110,5 +110,18 @@ tr.b.unittest.testSuite(function() {
       updateBrushedRange();
     });
   });
+
+  test('instantiation_hideXandYAxis', function() {
+    const chart = new tr.ui.b.NameBarChart();
+    chart.hideXAxis = true;
+    chart.hideYAxis = true;
+    this.addHTMLOutput(chart);
+    chart.data = [
+      {x: 'apple', value: 100},
+      {x: 'ball', value: 110},
+      {x: 'cat', value: 100},
+      {x: 'dog', value: 50}
+    ];
+  });
 });
 </script>

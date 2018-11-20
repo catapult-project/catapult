@@ -53,6 +53,7 @@ tr.exportTo('tr.ui.b', function() {
 
       // When we can measure text, we're ready to build the y-axis.
       yAxis.selectAll('*').remove();
+      if (this.hideYAxis) return;
       const nameTexts = yAxis.selectAll('text').data(this.data_);
       nameTexts
           .enter()

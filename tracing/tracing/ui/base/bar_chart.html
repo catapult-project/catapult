@@ -114,7 +114,7 @@ tr.exportTo('tr.ui.b', function() {
       let xHeightPx = 0;
       let groupWidthPx = 0;
       let groupHeightPx = 0;
-      if (seriesKeys.length > 1 && !this.isWaterfall_) {
+      if (seriesKeys.length > 1 && !this.isGrouped && !this.isWaterfall_) {
         keyWidthPx = tr.ui.b.getSVGTextSize(
             this.chartAreaElement, rect.key).width;
         keyHeightPx = this.textHeightPx_;
@@ -136,8 +136,12 @@ tr.exportTo('tr.ui.b', function() {
           groupWidthPx, valueWidthPx) + 5;
       const hoverWidthPx = this.isGrouped ? maxWidthPx : Math.min(maxWidthPx,
           Math.max(50, rect.widthPx));
-      const hoverTopPx = rect.topPx + (rect.heightPx / 2);
-      const hoverLeftPx = rect.leftPx + rect.widthPx - hoverWidthPx;
+      let hoverTopPx = rect.topPx;
+      hoverTopPx = Math.min(
+          hoverTopPx, this.getBoundingClientRect().height -
+          valueHeightPx);
+      let hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
+      hoverLeftPx = Math.max(hoverLeftPx - hoverWidthPx, -this.margin.left);
 
       chartAreaSel
           .append('rect')
@@ -149,11 +153,11 @@ tr.exportTo('tr.ui.b', function() {
           .attr('height', keyHeightPx + xHeightPx +
               valueHeightPx + groupHeightPx);
 
-      if (seriesKeys.length > 1 && !this.isWaterfall_) {
+      if (seriesKeys.length > 1 && !this.isGrouped && !this.isWaterfall_) {
         chartAreaSel
             .append('text')
             .attr('class', 'hover')
-            .attr('fill', rect.color)
+            .attr('fill', rect.color === 'transparent' ? '#000000' : rect.color)
             .attr('x', hoverLeftPx + 2)
             .attr('y', hoverTopPx + keyHeightPx - 3)
             .text(rect.key);
@@ -162,7 +166,7 @@ tr.exportTo('tr.ui.b', function() {
         chartAreaSel
             .append('text')
             .attr('class', 'hover')
-            .attr('fill', rect.color)
+            .attr('fill', rect.color === 'transparent' ? '#000000' : rect.color)
             .attr('x', hoverLeftPx + 2)
             .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
             .text('' + rect.datum.x);
@@ -172,7 +176,7 @@ tr.exportTo('tr.ui.b', function() {
             .append('text')
             .on('mouseleave', () => this.clearHoverValueBox_(rect))
             .attr('class', 'hover')
-            .attr('fill', rect.color)
+            .attr('fill', rect.color === 'transparent' ? '#000000' : rect.color)
             .attr('x', hoverLeftPx + 2)
             .attr('y', hoverTopPx + keyHeightPx + xHeightPx + groupHeightPx - 3)
             .text(rect.datum.group);
@@ -180,7 +184,7 @@ tr.exportTo('tr.ui.b', function() {
       chartAreaSel
           .append('text')
           .attr('class', 'hover')
-          .attr('fill', rect.color)
+          .attr('fill', rect.color === 'transparent' ? '#000000' : rect.color)
           .attr('x', hoverLeftPx + 2)
           .attr('y', hoverTopPx + xHeightPx + keyHeightPx +
               groupHeightPx + valueHeightPx - 3)

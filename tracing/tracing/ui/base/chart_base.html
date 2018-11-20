@@ -358,10 +358,12 @@ tr.exportTo('tr.ui.b', function() {
       let seriesText;
       if (this.showTitleInLegend) {
         series = [...this.seriesByKey_.values()].
-            filter(series => series.title !== '').reverse();
+            filter(series => series.title !== '').
+            filter(series => series.color !== 'transparent').reverse();
         seriesText = series => series.title;
       } else {
-        series = [...this.seriesByKey_.values()].reverse();
+        series = [...this.seriesByKey_.values()].
+            filter(series => series.color !== 'transparent').reverse();
         seriesText = series => series.key;
       }
 

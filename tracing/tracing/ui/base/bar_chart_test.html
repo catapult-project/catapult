@@ -151,7 +151,7 @@ tr.b.unittest.testSuite(function() {
     ];
   });
 
-  test('instantiationWaterfall', function() {
+  test('instantiation_Waterfall', function() {
     const chart = new tr.ui.b.BarChart();
     chart.graphWidth = 300;
     chart.graphHeight = 200;
@@ -168,6 +168,27 @@ tr.b.unittest.testSuite(function() {
       {x: 5},
       {x: 6, hide: 95, omega: 10, group: 'group1' },
       {x: 7, hide: 95, omega: 20, group: 'group2' }
+    ];
+  });
+
+  test('instantiation_showHoverValuesForTransparentData', function() {
+    const chart = new tr.ui.b.BarChart();
+    chart.graphWidth = 300;
+    chart.graphHeight = 200;
+    chart.isStacked = true;
+    chart.isGrouped = true;
+    chart.displayXInHover = true;
+    chart.getDataSeries('alpha').color = 'transparent';
+    this.addHTMLOutput(chart);
+    chart.data = [
+      {x: 0, alpha: 40, beta: 32, omega: 13, group: 'group1' },
+      {x: 1, alpha: 30, beta: 22, omega: 14, group: 'group2' },
+      {x: 2},
+      {x: 3, alpha: 55, beta: 35, omega: 15, group: 'group1' },
+      {x: 4, alpha: 45, beta: 40, omega: 16, group: 'group2' },
+      {x: 5},
+      {x: 6, alpha: 50, beta: 10, omega: 17, group: 'group1' },
+      {x: 7, alpha: 60, beta: 15, omega: 18, group: 'group2' }
     ];
   });
 });
