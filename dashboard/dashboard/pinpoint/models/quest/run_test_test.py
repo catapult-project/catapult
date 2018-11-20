@@ -96,31 +96,38 @@ class _RunTestExecutionTest(unittest.TestCase):
             'io_timeout_secs': '1200',
             'caches': [
                 {
-                    'name': 'pinpoint_cache_vpython',
-                    'path': '.pinpoint_cache/vpython'
+                    'name': 'swarming_module_cache_vpython',
+                    'path': '.swarming_module_cache/vpython',
                 },
             ],
             'cipd_input': {
-                'client_package': mock.ANY,
-                'server': mock.ANY,
+                'client_package': {
+                    'version': mock.ANY,
+                    'package_name': 'infra/tools/cipd/${platform}',
+                },
                 'packages': [
                     {
                         'package_name': 'infra/tools/luci/vpython/${platform}',
-                        'path': '',
+                        'path': '.swarming_module',
                         'version': mock.ANY,
                     },
                     {
                         'package_name':
                             'infra/tools/luci/vpython-native/${platform}',
-                        'path': '',
+                        'path': '.swarming_module',
                         'version': mock.ANY,
                     },
                 ],
+                'server': 'https://chrome-infra-packages.appspot.com',
             },
-            'env': [
+            'env_prefixes': [
+                {
+                    'key': 'PATH',
+                    'value': ['.swarming_module', '.swarming_module/bin'],
+                },
                 {
                     'key': 'VPYTHON_VIRTUALENV_ROOT',
-                    'value': '.pinpoint_cache/vpython',
+                    'value': ['.swarming_module_cache/vpython'],
                 },
             ],
         },
@@ -147,7 +154,7 @@ class _RunTestExecutionTest(unittest.TestCase):
             'io_timeout_secs': '1200',
             'caches': mock.ANY,
             'cipd_input': mock.ANY,
-            'env': mock.ANY,
+            'env_prefixes': mock.ANY,
         },
     }
     swarming_tasks_new.assert_called_with(body)

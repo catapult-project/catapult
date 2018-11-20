@@ -18,37 +18,43 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 
 
-_CACHE_NAME = 'pinpoint_cache'
-_CACHE_BASE = '.pinpoint_cache'
-_VPYTHON_VERSION = 'git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc'
+_CIPD_VERSION = 'git_revision:66410e06ff82b4e79e849977e4e58c0a261d9953'
+_VPYTHON_VERSION = 'git_revision:00e2d8b49a4e7505d1c71f19d15c9e7c5b9245a5'
 _VPYTHON_PARAMS = {
     'caches': [
         {
-            'name': '_'.join((_CACHE_NAME, 'vpython')),
-            'path': '/'.join((_CACHE_BASE, 'vpython')),
+            'name': 'swarming_module_cache_vpython',
+            'path': '.swarming_module_cache/vpython',
         },
     ],
     'cipd_input': {
-        'client_package': None,
+        'client_package': {
+            'version': _CIPD_VERSION,
+            'package_name': 'infra/tools/cipd/${platform}',
+        },
         'packages': [
             {
                 'package_name': 'infra/tools/luci/vpython/${platform}',
-                'path': '',
+                'path': '.swarming_module',
                 'version': _VPYTHON_VERSION,
             },
             {
                 'package_name': 'infra/tools/luci/vpython-native/${platform}',
-                'path': '',
+                'path': '.swarming_module',
                 'version': _VPYTHON_VERSION,
             },
         ],
-        'server': None,
+        'server': 'https://chrome-infra-packages.appspot.com',
     },
-    'env': [
+    'env_prefixes': [
+        {
+            'key': 'PATH',
+            'value': ['.swarming_module', '.swarming_module/bin'],
+        },
         {
             'key': 'VPYTHON_VIRTUALENV_ROOT',
-            'value': '/'.join((_CACHE_BASE, 'vpython')),
-        }
+            'value': ['.swarming_module_cache/vpython'],
+        },
     ],
 }
 
