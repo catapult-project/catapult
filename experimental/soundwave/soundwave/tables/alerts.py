@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import pandas  # pylint: disable=import-error
+from soundwave import pandas_sqlite
 
 
 TABLE_NAME = 'alerts'
@@ -15,11 +15,11 @@ COLUMN_TYPES = (
     ('test_case', str),  # story name ('Wikipedia')
     ('start_revision', str),  # git hash or commit position before anomaly
     ('end_revision', str),  # git hash or commit position after anomaly
-    ('median_before_anomaly', float),  # median of values before anomaly
-    ('median_after_anomaly', float),  # median of values after anomaly
+    ('median_before_anomaly', 'float64'),  # median of values before anomaly
+    ('median_after_anomaly', 'float64'),  # median of values after anomaly
     ('units', str),  # unit in which values are masured ('ms')
     ('improvement', bool),  # whether anomaly is an improvement or regression
-    ('bug_id', int),  # crbug number associated with this alert, 0 if missing
+    ('bug_id', 'int64'),  # crbug number associated with this alert, 0 if missing
     ('status', str),  # one of 'ignored', 'invalid', 'triaged', 'untriaged'
     ('bisect_status', str),  # one of 'started', 'falied', 'completed'
 )
@@ -33,6 +33,10 @@ _CODE_TO_STATUS = {
     None: 'untriaged',
     # Any positive integer represents a bug_id and maps to a 'triaged' status.
 }
+
+
+def DataFrame(rows=None):
+  return pandas_sqlite.DataFrame(COLUMN_TYPES, index=INDEX, rows=rows)
 
 
 def _RowFromJson(data):
@@ -64,8 +68,4 @@ def _RowFromJson(data):
 
 
 def DataFrameFromJson(data):
-  df = pandas.DataFrame.from_records(
-      list(_RowFromJson(d) for d in data['anomalies']),
-      index=INDEX, columns=COLUMNS)
-  df['timestamp'] = pandas.to_datetime(df['timestamp'])
-  return df
+  return DataFrame([_RowFromJson(d) for d in data['anomalies']])

@@ -8,26 +8,51 @@ Helper methods for dealing with a SQLite database with pandas.
 import pandas  # pylint: disable=import-error
 
 
-def _EmptyFrame(column_types):
+def DataFrame(column_types, index=None, rows=None):
+  """Create a DataFrame with given column types as index.
+
+  Unlike usual pandas DataFrame constructors, this allows to have explicitly
+  typed column values, even when no rows of data are provided. And, when such
+  data is available, values are explicitly casted, instead of letting pandas
+  guess a type.
+
+  Args:
+    column_types: A sequence of (name, dtype) pairs to define the columns.
+    index: An optional column name or sequence of column names to use as index
+      of the frame.
+    rows: An optional sequence of rows of data.
+  """
+  if rows:
+    cols = zip(*rows)
+    assert len(cols) == len(column_types)
+    cols = (list(vs) for vs in cols)
+  else:
+    cols = (None for _ in column_types)
   df = pandas.DataFrame()
-  for column, dtype in column_types:
-    df[column] = pandas.Series(dtype=dtype)
+  for (column, dtype), values in zip(column_types, cols):
+    df[column] = pandas.Series(values, dtype=dtype)
+  if index is not None:
+    index = [index] if isinstance(index, basestring) else list(index)
+    df.set_index(index, inplace=True)
   return df
 
 
-def CreateTableIfNotExists(con, name, column_types, keys=None):
+def CreateTableIfNotExists(con, name, frame):
   """Create a new empty table, if it doesn't already exist.
 
   Args:
     con: A sqlite connection object.
     name: Name of SQL table to create.
-    column_types: A sequence of (column, dtype) pairs for the table schema.
-    keys: A sequence of column names to set as PRIMARY KEY of the table.
+    frame: A DataFrame used to infer the schema of the table; the index of the
+      DataFrame is set as PRIMARY KEY of the table.
   """
-  frame = _EmptyFrame(column_types)
+  keys = [k for k in frame.index.names if k is not None]
+  if not keys:
+    keys = None
   db = pandas.io.sql.SQLiteDatabase(con)
   table = pandas.io.sql.SQLiteTable(
-      name, db, frame=frame, index=False, keys=keys, if_exists='append')
+      name, db, frame=frame, index=keys is not None, keys=keys,
+      if_exists='append')
   table.create()
 
 

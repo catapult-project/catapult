@@ -4,10 +4,12 @@
 
 import pandas  # pylint: disable=import-error
 
+from soundwave import pandas_sqlite
+
 
 TABLE_NAME = 'bugs'
 COLUMN_TYPES = (
-    ('id', int),  # crbug number identifying this issue
+    ('id', 'int64'),  # crbug number identifying this issue
     ('summary', str),  # issue title ('1%-5% regression in loading.mobile ...')
     ('published', 'datetime64[ns]'),  # when the issue got created
     ('updated', 'datetime64[ns]'),  # when the issue got last updated
@@ -22,6 +24,10 @@ COLUMN_TYPES = (
 COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
 DATE_COLUMNS = tuple(c for c, t in COLUMN_TYPES if t == 'datetime64[ns]')
 INDEX = COLUMNS[0]
+
+
+def DataFrame(rows=None):
+  return pandas_sqlite.DataFrame(COLUMN_TYPES, index=INDEX, rows=rows)
 
 
 def _CommaSeparate(values):
@@ -40,10 +46,7 @@ def DataFrameFromJson(data):
       row[key] = _CommaSeparate(row[key])
     rows.append(tuple(row[k] for k in COLUMNS))
 
-  df = pandas.DataFrame.from_records(rows, index=INDEX, columns=COLUMNS)
-  for key in DATE_COLUMNS:
-    df[key] = pandas.to_datetime(df[key])
-  return df
+  return DataFrame(rows)
 
 
 def Get(con, bug_id):

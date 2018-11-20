@@ -103,7 +103,6 @@ class TestTimeSeries(unittest.TestCase):
     with tables.DbSession(':memory:') as con:
       pandas_sqlite.InsertOrReplaceRecords(con, 'timeseries', timeseries_in)
       timeseries_out = tables.timeseries.GetTimeSeries(con, test_path)
-      print timeseries_out
       # Both DataFrame's should be equal, except the one we get out of the db
       # does not have an index defined.
       timeseries_in = timeseries_in.reset_index()
