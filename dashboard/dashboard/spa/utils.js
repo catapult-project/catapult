@@ -451,6 +451,11 @@ tr.exportTo('cp', () => {
     return str;
   }
 
+  function plural(count, pluralSuffix = 's', singularSuffix = '') {
+    if (count === 1) return singularSuffix;
+    return pluralSuffix;
+  }
+
   return {
     BatchIterator,
     NON_BREAKING_SPACE,
@@ -471,6 +476,7 @@ tr.exportTo('cp', () => {
     measureText,
     measureTrace,
     normalize,
+    plural,
     setImmutable,
     sha,
     timeout,

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/cp-switch.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
+<link rel="import" href="/dashboard/spa/report-names-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="alerts-controls">
+  <template>
+    <style>
+      :host {
+        align-items: center;
+        display: flex;
+        margin-bottom: 8px;
+      }
+
+      #sheriff {
+        width: 350px;
+      }
+
+      #sheriff-container,
+      #bug-container,
+      #report-container,
+      #min-revision,
+      #max-revision {
+        margin-right: 8px;
+      }
+
+      #triaged {
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+
+      #summary {
+        flex-grow: 1;
+        text-align: center;
+      }
+
+      #recent-bugs-container {
+        position: relative;
+      }
+
+      .bug_notification {
+        background-color: var(--background-color, white);
+        box-shadow: var(--elevation-2);
+        overflow: hidden;
+        padding: 8px;
+        position: absolute;
+        right: 0;
+        white-space: nowrap;
+        z-index: var(--layer-menu, 100);
+      }
+
+      #recent-bugs-table {
+        margin: 0;
+        padding: 0;
+      }
+
+      #close {
+        align-self: flex-start;
+        cursor: pointer;
+        flex-shrink: 0;
+        height: var(--icon-size, 1em);
+        width: var(--icon-size, 1em);
+      }
+
+      #edit, #documentation {
+        color: var(--primary-color-dark, blue);
+        padding: 8px;
+      }
+    </style>
+
+    <iron-collapse
+        horizontal
+        id="sheriff-container"
+        opened="[[showSheriff_(bug, report)]]">
+      <menu-input
+          id="sheriff"
+          state-path="[[statePath]].sheriff"
+          on-clear="onSheriffClear_"
+          on-option-select="onSheriffSelect_">
+      </menu-input>
+    </iron-collapse>
+
+    <iron-collapse
+        horizontal
+        id="bug-container"
+        opened="[[showBug_(sheriff, report)]]">
+      <menu-input
+          id="bug"
+          state-path="[[statePath]].bug"
+          on-clear="onBugClear_"
+          on-input-keyup="onBugKeyup_"
+          on-option-select="onBugSelect_">
+      </menu-input>
+    </iron-collapse>
+
+    <iron-collapse
+        horizontal
+        id="report-container"
+        opened="[[showReport_(sheriff, bug)]]">
+      <menu-input
+          id="report"
+          state-path="[[statePath]].report"
+          on-clear="onReportClear_"
+          on-input-keyup="onReportKeyup_"
+          on-option-select="onReportSelect_">
+      </menu-input>
+    </iron-collapse>
+
+    <cp-input
+        id="min-revision"
+        value="[[minRevision]]"
+        label="Min Revision"
+        on-keyup="onMinRevisionKeyup_">
+    </cp-input>
+
+    <cp-input
+        id="max-revision"
+        value="[[maxRevision]]"
+        label="Max Revision"
+        on-keyup="onMaxRevisionKeyup_">
+    </cp-input>
+
+    <cp-switch
+        id="improvements"
+        disabled="[[!isEmpty_(bug.selectedOptions)]]"
+        checked$="[[showingImprovements]]"
+        on-change="onToggleImprovements_">
+      <template is="dom-if" if="[[showingImprovements]]">
+        Regressions and Improvements
+      </template>
+      <template is="dom-if" if="[[!showingImprovements]]">
+        Regressions Only
+      </template>
+    </cp-switch>
+
+    <cp-switch
+        id="triaged"
+        disabled="[[!isEmpty_(bug.selectedOptions)]]"
+        checked$="[[showingTriaged]]"
+        on-change="onToggleTriaged_">
+      <template is="dom-if" if="[[showingTriaged]]">
+        New and Triaged
+      </template>
+      <template is="dom-if" if="[[!showingTriaged]]">
+        New Only
+      </template>
+    </cp-switch>
+
+    <span id="summary">
+      <template is="dom-if" if="[[!areAlertGroupsPlaceholders]]">
+        [[summary_(showingTriaged, alertGroups)]]
+      </template>
+    </span>
+
+    <span id="recent-bugs-container">
+      <raised-button
+          id="recent-bugs"
+          disabled$="[[isEmpty_(recentlyModifiedBugs)]]"
+          on-click="onTapRecentlyModifiedBugs_">
+        Recent Bugs
+      </raised-button>
+
+      <iron-collapse
+          class="bug_notification"
+          opened="[[hasTriagedNew]]">
+        Created
+        <a href="[[crbug_(triagedBugId)]]" target="_blank">
+          [[triagedBugId]]
+        </a>
+      </iron-collapse>
+
+      <iron-collapse
+          class="bug_notification"
+          opened="[[hasTriagedExisting]]">
+        Updated
+        <a href="[[crbug_(triagedBugId)]]" target="_blank">
+          [[triagedBugId]]
+        </a>
+      </iron-collapse>
+
+      <iron-collapse
+          class="bug_notification"
+          opened="[[hasIgnored]]">
+        Ignored [[ignoredCount]] alert[[plural_(ignoredCount)]]
+      </iron-collapse>
+
+      <iron-collapse
+          class="bug_notification"
+          opened="[[showingRecentlyModifiedBugs]]"
+          on-blur="onRecentlyModifiedBugsBlur_">
+        <table id="recent-bugs-table">
+          <thead>
+            <tr>
+              <th>Bug #</th>
+              <th>Summary</th>
+            </tr>
+          </thead>
+          <template is="dom-repeat" items="[[recentlyModifiedBugs]]" as="bug" index-as="bugIndex">
+            <tr>
+              <td>
+                <a href="[[crbug_(bug.id)]]" target="_blank">
+                  [[bug.id]]
+                </a>
+              </td>
+              <td>[[bug.summary]]</td>
+            </tr>
+          </template>
+        </table>
+      </iron-collapse>
+    </span>
+
+    <iron-icon id="close" icon="cp:close" on-click="onClose_">
+    </iron-icon>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/alerts-controls.js"></script>

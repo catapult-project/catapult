@@ -26,6 +26,10 @@ tr.exportTo('cp', () => {
       return true;
     }
 
+    plural_(count, pluralSuffix = 's', singularSuffix = '') {
+      return cp.plural(count, pluralSuffix, singularSuffix);
+    }
+
     lengthOf_(seq) {
       if (seq === undefined) return 0;
       if (seq === null) return 0;

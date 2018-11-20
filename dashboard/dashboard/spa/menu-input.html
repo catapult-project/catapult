@@ -19,7 +19,7 @@ found in the LICENSE file.
         display: block;
       }
 
-      #input_clear {
+      #clear {
         color: var(--neutral-color-dark, grey);
         cursor: pointer;
         flex-shrink: 0;
@@ -50,7 +50,7 @@ found in the LICENSE file.
         on-focus="onFocus_"
         on-keyup="onKeyup_">
       <iron-icon
-          id="input_clear"
+          id="clear"
           hidden$="[[isEmpty_(selectedOptions)]]"
           icon="cp:cancel"
           title="clear"

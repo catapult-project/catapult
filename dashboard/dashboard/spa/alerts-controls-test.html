@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/alerts-controls.html">
+
+<test-fixture id="test">
+  <template>
+    <alerts-controls state-path="test"></alerts-controls>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('alerts-controls', function() {
+  let originalFetch;
+  setup(() => {
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === '/api/report/names') {
+        return {
+          async json() {
+            return [{name: 'aaa', id: 42, modified: new Date()}];
+          }
+        };
+      }
+    };
+    localStorage.setItem('recentlyModifiedBugs', JSON.stringify([
+      {id: 42, summary: 'bbb'},
+    ]));
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', cp.AlertsControls.buildState({}))));
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+    localStorage.removeItem('recentlyModifiedBugs');
+  });
+
+  test('summary', function() {
+    assert.strictEqual('', cp.AlertsControls.summary(undefined, undefined));
+    assert.strictEqual('', cp.AlertsControls.summary(true, undefined));
+
+    assert.strictEqual('1 alert in 1 group', cp.AlertsControls.summary(
+        true, [{alerts: [{}]}]));
+    assert.strictEqual('2 alerts in 1 group', cp.AlertsControls.summary(
+        true, [{alerts: [{}, {}]}]));
+    assert.strictEqual('2 alerts in 2 groups', cp.AlertsControls.summary(
+        true, [{alerts: [{}]}, {alerts: [{}]}]));
+
+    assert.strictEqual('0 alerts in 0 groups', cp.AlertsControls.summary(
+        false, [{triaged: {count: 1}, alerts: [{}]}]));
+    assert.strictEqual('1 alert in 1 group', cp.AlertsControls.summary(
+        false, [{triaged: {count: 1}, alerts: [{}, {}]}]));
+    assert.strictEqual('1 alert in 1 group', cp.AlertsControls.summary(false, [
+      {triaged: {count: 0}, alerts: [{}]},
+      {triaged: {count: 1}, alerts: [{}]},
+    ]));
+  });
+
+  test('connected', async function() {
+    const controls = fixture('test');
+    await cp.afterRender();
+    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /aaa/));
+    assert.isDefined(tr.ui.b.findDeepElementsMatchingPredicate(controls, e =>
+      e.tagName === 'A' && e.href === 'http://crbug.com/42' &&
+      e.textContent.trim() === '42'));
+    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /bbb/));
+  });
+
+  test('change', async function() {
+    const controls = fixture('test');
+    controls.dispatch(Redux.UPDATE('test.sheriff', cp.MenuInput.buildState({
+      label: 'Sheriff',
+      options: ['ccc', 'ddd'],
+    })));
+    let sources;
+    controls.addEventListener('sources', e => {
+      sources = e.detail.sources;
+    });
+    await cp.afterRender();
+
+    tr.ui.b.findDeepElementWithTextContent(controls, /ccc/).click();
+    await cp.afterRender();
+    assert.lengthOf(sources, 1);
+    assert.strictEqual('ccc', sources[0].sheriff);
+
+    controls.$['min-revision'].dispatchEvent(new CustomEvent('keyup', {
+      detail: {value: '10'},
+    }));
+    await cp.afterRender();
+    assert.lengthOf(sources, 1);
+    assert.strictEqual('ccc', sources[0].sheriff);
+    assert.strictEqual(10, sources[0].minRevision);
+
+    controls.$['max-revision'].dispatchEvent(new CustomEvent('keyup', {
+      detail: {value: '20'},
+    }));
+    await cp.afterRender();
+    assert.lengthOf(sources, 1);
+    assert.strictEqual('ccc', sources[0].sheriff);
+    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(20, sources[0].maxRevision);
+    assert.isFalse(sources[0].improvements);
+
+    controls.$.improvements.click();
+    await cp.afterRender();
+    assert.strictEqual('ccc', sources[0].sheriff);
+    assert.isTrue(sources[0].improvements);
+    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(20, sources[0].maxRevision);
+
+    tr.ui.b.findDeepElementWithTextContent(controls, /ddd/).click();
+    await cp.afterRender();
+    assert.lengthOf(sources, 2);
+    assert.strictEqual('ccc', sources[0].sheriff);
+    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(20, sources[0].maxRevision);
+    assert.strictEqual('ddd', sources[1].sheriff);
+    assert.strictEqual(10, sources[1].minRevision);
+    assert.strictEqual(20, sources[1].maxRevision);
+
+    tr.ui.b.findDeepElementWithTextContent(controls, /ccc/).click();
+    tr.ui.b.findDeepElementWithTextContent(controls, /ddd/).click();
+    tr.ui.b.findDeepElementWithTextContent(controls, /aaa/).click();
+    await cp.afterRender();
+    assert.lengthOf(sources, 1);
+    assert.strictEqual(42, sources[0].report);
+    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(20, sources[0].maxRevision);
+
+    tr.ui.b.findDeepElementWithTextContent(controls, /aaa/).click();
+    controls.$.bug.dispatchEvent(new CustomEvent('input-keyup', {
+      detail: {value: '123'},
+    }));
+    await cp.afterRender();
+    tr.ui.b.findDeepElementWithTextContent(controls, /123/).click();
+    await cp.afterRender();
+    assert.lengthOf(sources, 1);
+    assert.strictEqual('123', sources[0].bug);
+    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(20, sources[0].maxRevision);
+  });
+});
+</script>

@@ -444,5 +444,15 @@ suite('basic tests', function() {
     assert.strictEqual(`a.${Z}b`, cp.breakWords('a.b'));
     assert.strictEqual(`a${Z}B`, cp.breakWords('aB'));
   });
+
+  test('plural', function() {
+    assert.strictEqual('s', cp.plural(0));
+    assert.strictEqual('', cp.plural(1));
+    assert.strictEqual('s', cp.plural(2));
+
+    assert.strictEqual('es', cp.plural(0, 'es', 'x'));
+    assert.strictEqual('x', cp.plural(1, 'es', 'x'));
+    assert.strictEqual('es', cp.plural(2, 'es', 'x'));
+  });
 });
 </script>

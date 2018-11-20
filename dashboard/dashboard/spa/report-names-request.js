@@ -5,7 +5,7 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ReportNamesRequest extends cp.RequestBase {
-    constructor(options) {
+    constructor(options = {}) {
       super(options);
       this.method_ = 'POST';
     }
