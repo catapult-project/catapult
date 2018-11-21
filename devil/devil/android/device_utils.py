@@ -219,6 +219,8 @@ _SPECIAL_ROOT_DEVICE_LIST = [
     'taimen', # Pixel 2 XL
     'vega', # Lenovo Mirage Solo
     'walleye', # Pixel 2
+    'crosshatch', # Pixel 3 XL
+    'blueline', # Pixel 3
 ]
 _IMEI_RE = re.compile(r'  Device ID = (.+)$')
 # The following regex is used to match result parcels like:
