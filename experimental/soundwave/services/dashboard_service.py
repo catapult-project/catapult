@@ -35,6 +35,19 @@ def Describe(test_suite):
   return Request('/describe', params={'test_suite': test_suite})
 
 
+def Timeseries2(**kwargs):
+  """Get timeseries data for a particular test path."""
+  for col in ('test_suite', 'measurement', 'bot'):
+    if col not in kwargs:
+      raise TypeError('Missing required argument: %s' % col)
+  try:
+    return Request('/timeseries2', params=kwargs)
+  except request.ClientError as exc:
+    if exc.response.status == 404:
+      raise KeyError('Timeseries not found')
+    raise  # Re-raise the original exception.
+
+
 def ListTestPaths(test_suite, sheriff):
   """Lists test paths for the given test_suite.
 

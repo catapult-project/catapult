@@ -24,10 +24,11 @@ class TestDashboardCommunicator(unittest.TestCase):
     self.mock_request.return_value = {'some': 'data'}
     self.assertEqual(self.api.GetTimeseries('test_path'), {'some': 'data'})
 
-  def testGetTimeseries_missingPathReturnsNone(self):
+  def testGetTimeseries_missingPathRaises(self):
     self.mock_request.side_effect = request.ClientError(
         'api', Response(400), '{"error": "Invalid test_path foo"}')
-    self.assertIsNone(self.api.GetTimeseries('foo'))
+    with self.assertRaises(KeyError):
+      self.api.GetTimeseries('foo')
 
   def testGetTimeseries_serverErrorRaises(self):
     self.mock_request.side_effect = request.ServerError(

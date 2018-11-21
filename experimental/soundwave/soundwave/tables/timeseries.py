@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import collections
+
 import pandas  # pylint: disable=import-error
 
 from soundwave import pandas_sqlite
@@ -21,11 +23,12 @@ COLUMN_TYPES = (
     ('commit_pos', 'int64'),  # chromium commit position
     ('chromium_rev', str),  # git hash of chromium revision
     ('clank_rev', str),  # git hash of clank revision
+    ('trace_url', str),  # URL to a sample trace.
+    ('units', str),  # unit of measurement (e.g. 'ms', 'bytes')
     ('improvement_direction', str),  # good direction ('up', 'down', 'unknown')
 )
 COLUMNS = tuple(c for c, _ in COLUMN_TYPES)
 INDEX = COLUMNS[:5]
-
 
 # Copied from https://goo.gl/DzGYpW.
 _CODE_TO_IMPROVEMENT_DIRECTION = {
@@ -44,6 +47,30 @@ _QUERY_TIME_SERIES = (
     % (TABLE_NAME, ' AND '.join('%s=?' % c for c in INDEX[:-1])))
 
 
+# Required columns to request from /timeseries2 API.
+_TIMESERIES2_COLS = [
+    'revision',
+    'revisions',
+    'avg',
+    'timestamp',
+    'annotations']
+
+
+class Key(collections.namedtuple('Key', INDEX[:-1])):
+  """Uniquely identifies a single timeseries."""
+
+  def AsDict(self):
+    return dict(zip(self._fields, self))
+
+  def AsApiParams(self):
+    """Return a dict with params for a /timeseries2 API request."""
+    params = self.AsDict()
+    if not params['test_case']:
+      del params['test_case']  # test_case is optional.
+    params['columns'] = ','.join(_TIMESERIES2_COLS)
+    return params
+
+
 def DataFrame(rows=None):
   return pandas_sqlite.DataFrame(COLUMN_TYPES, index=INDEX, rows=rows)
 
@@ -57,6 +84,9 @@ def _ParseIntValue(value, on_error=-1):
 
 
 def _ParseConfigFromTestPath(test_path):
+  if isinstance(test_path, Key):
+    return test_path.AsDict()
+
   values = test_path.split('/', len(TEST_PATH_PARTS) - 1)
   if len(values) < len(TEST_PATH_PARTS):
     values.append('')  # Possibly missing test_case.
@@ -67,7 +97,34 @@ def _ParseConfigFromTestPath(test_path):
   return config
 
 
-def DataFrameFromJson(data):
+def DataFrameFromJson(test_path, data):
+  if isinstance(test_path, Key):
+    return _DataFrameFromJsonV2(test_path, data)
+  else:
+    # TODO(crbug.com/907121): Remove when we can switch entirely to v2.
+    return _DataFrameFromJsonV1(test_path, data)
+
+
+def _DataFrameFromJsonV2(ts_key, data):
+  rows = []
+  for point in data['data']:
+    point = dict(zip(_TIMESERIES2_COLS, point))
+    rows.append(ts_key + (
+        point['revision'],  # point_id
+        point['avg'],  # value
+        point['timestamp'],  # timestamp
+        _ParseIntValue(point['revisions']['r_commit_pos']),  # commit_pos
+        point['revisions'].get('r_chromium'),  # chromium_rev
+        point['revisions'].get('r_clank'),  # clank_rev
+        point['annotations'].get('a_tracing_uri'),  # trace_url
+        data['units'],  # units
+        data['improvement_direction'],  # improvement_direction
+    ))
+  return DataFrame(rows)
+
+
+def _DataFrameFromJsonV1(test_path, data):
+  assert test_path == data['test_path']
   config = _ParseConfigFromTestPath(data['test_path'])
   config['improvement_direction'] = _CODE_TO_IMPROVEMENT_DIRECTION.get(
       data['improvement_direction'], 'unknown')

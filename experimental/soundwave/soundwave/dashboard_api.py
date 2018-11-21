@@ -35,14 +35,15 @@ class PerfDashboardCommunicator(object):
              ],
          'test_path': test_path}
 
-      or None if the test_path is not found.
+    Raises:
+      KeyError if the test_path is not found.
     """
     try:
       return self.dashboard.Request(
           '/timeseries/%s' % urllib.quote(test_path), params={'num_days': days})
     except request.ClientError as exc:
       if 'Invalid test_path' in exc.json['error']:
-        return None
+        raise KeyError(test_path)
       else:
         raise
 
