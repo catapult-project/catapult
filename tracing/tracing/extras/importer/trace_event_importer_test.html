@@ -6216,6 +6216,77 @@ tr.b.unittest.testSuite(function() {
     checkParsedAndStreamInput(events, checkModel);
   });
 
+  test('UserTimingAsyncSlicesParsingMeasureNameShouldNotFail', function() {
+    function checkModel(m) {
+      assert(m.numProcesses, 1);
+      const p = m.processes[1];
+      assert.isDefined(p);
+      assert.strictEqual(p.numThreads, 1);
+      const t = p.threads[2];
+      const asyncSliceGroup = t.asyncSliceGroup;
+
+      assert.strictEqual(asyncSliceGroup.length, 1);
+      assert.isTrue(asyncSliceGroup.slices[0] instanceof MeasureAsyncSlice);
+
+      const slice = asyncSliceGroup.slices[0];
+      assert.strictEqual(slice.viewSubGroupTitle, '<extended@component');
+      assert.strictEqual(slice.title,
+          'shared@dropdown/dropdown-options::ember30> (Rendering: initial)');
+      assert.strictEqual(slice.subSlices.length, 3);
+      assert.strictEqual(slice.subSlices[0].title,
+          'shared@dropdown/dropdown-options::ember30>:didReceiveAttrs:34');
+      assert.strictEqual(slice.subSlices[1].title,
+          'shared@dropdown/dropdown-options::ember30>:willRender:35');
+      assert.strictEqual(slice.subSlices[2].title,
+          'shared@dropdown/dropdown-options::ember30>:willInsertElement:36');
+    }
+
+    // events from ember-perf-timeline addon performance.measure() calls
+    const events = [
+      {
+        pid: 1, tid: 2, ts: 2695561803887, ph: 'b', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:didReceiveAttrs:34', // @suppress longLineCheck
+        args: {}, tts: 10533196, id: '0x9e9a4a'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561803907, ph: 'e', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:didReceiveAttrs:34', // @suppress longLineCheck
+        args: {}, tts: 10533202, id: '0x9e9a4a'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561803987, ph: 'b', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:willRender:35', // @suppress longLineCheck
+        args: {}, tts: 10533295, id: '0xd0fc77'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561804002, ph: 'e', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:willRender:35', // @suppress longLineCheck
+        args: {}, tts: 10533300, id: '0xd0fc77'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561804252, ph: 'b', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:willInsertElement:36', // @suppress longLineCheck
+        args: {}, tts: 10533557, id: '0x5dfb0b'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561804262, ph: 'e', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30>:willInsertElement:36', // @suppress longLineCheck
+        args: {}, tts: 10533561, id: '0x5dfb0b'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561803852, ph: 'b', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30> (Rendering: initial)', // @suppress longLineCheck
+        args: {}, tts: 10533951, id: '0xc824e5'
+      },
+      {
+        pid: 1, tid: 2, ts: 2695561804652, ph: 'e', cat: 'blink.user_timing',
+        name: '\u003Cextended@component:shared@dropdown/dropdown-options::ember30> (Rendering: initial)', // @suppress longLineCheck
+        args: {}, tts: 10533956, id: '0xc824e5'
+      }
+    ];
+    checkParsedAndStreamInput(events, checkModel);
+  });
+
   test('clockSync_requesterWithoutMetadata', function() {
     const events = [{
       name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5000},
