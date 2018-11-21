@@ -173,6 +173,20 @@ class Job(ndb.Model):
     # Point to the default status page if no results are available.
     return '/results2/%s' % self.job_id
 
+  @property
+  def auto_name(self):
+    if self.name:
+      return self.name
+    result = ''
+    if 'configuration' in self.arguments:
+      result = '%s' % self.arguments['configuration']
+      if 'benchmark' in self.arguments:
+        result = '%s: %s' % (result, self.arguments['benchmark'])
+        if 'story' in self.arguments:
+          result = '%s:%s' % (result, self.arguments['story'])
+      return result
+    return 'Untitled Job'
+
   def AddChange(self, change):
     self.state.AddChange(change)
 
@@ -390,7 +404,7 @@ class Job(ndb.Model):
         'arguments': self.arguments,
         'bug_id': self.bug_id,
         'comparison_mode': self.comparison_mode,
-        'name': self.name or 'Untitled job',
+        'name': self.auto_name,
         'user': self.user,
 
         'created': self.created.isoformat(),
