@@ -66,7 +66,7 @@ def Run(label, worker, args, items, stream=None):
     time_finished = pandas.Timestamp.utcnow()
   finally:
     # Ensure resources (e.g. db connections from workers) are freed up.
-    pool.close()
+    pool.terminate()
     pool.join()
   return (time_finished - time_started).total_seconds()
 
