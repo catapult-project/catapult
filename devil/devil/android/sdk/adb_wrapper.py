@@ -264,10 +264,13 @@ class AdbWrapper(object):
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
                  check_error=True, cpu_affinity=None):
     if timeout:
-      # Use a slightly smaller timeout than remaining time to ensure that we
-      # have time to collect output from the command.
-      timeout = (
-          0.95 * timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
+      remaining = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
+      if remaining:
+        # Use a slightly smaller timeout than remaining time to ensure that we
+        # have time to collect output from the command.
+        timeout = 0.95 * remaining
+      else:
+        timeout = None
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
           cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
