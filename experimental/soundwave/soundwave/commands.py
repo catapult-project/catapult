@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import sqlite3
 
@@ -99,12 +100,10 @@ def _FetchTimeseriesWorker(args):
   worker_pool.Process = Process
 
 
-def _ReadTestPathsFromFile(filename):
-  with open(filename, 'rU') as f:
-    for line in f:
-      line = line.strip()
-      if line and not line.startswith('#'):
-        yield line
+def _ReadTimeseriesFromFile(filename):
+  with open(filename, 'r') as f:
+    data = json.load(f)
+  return [tables.timeseries.Key.FromDict(ts) for ts in data]
 
 
 def FetchTimeseriesData(args):
@@ -117,7 +116,7 @@ def FetchTimeseriesData(args):
       test_paths = dashboard_service.ListTestPaths(
           args.benchmark, sheriff=args.sheriff)
     elif args.input_file is not None:
-      test_paths = list(_ReadTestPathsFromFile(args.input_file))
+      test_paths = _ReadTimeseriesFromFile(args.input_file)
     elif args.study is not None:
       test_paths = list(args.study.IterTestPaths())
     else:

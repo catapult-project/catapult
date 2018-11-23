@@ -34,6 +34,39 @@ def SamplePoint(point_id, value, timestamp=None, missing_commit_pos=False):
   ]
 
 
+class TestKey(unittest.TestCase):
+  def testKeyFromDict_typical(self):
+    key1 = tables.timeseries.Key.FromDict({
+        'test_suite': 'loading.mobile',
+        'bot': 'ChromiumPerf:android-nexus5',
+        'measurement': 'timeToFirstInteractive',
+        'test_case': 'Wikipedia'})
+    key2 = tables.timeseries.Key(
+        test_suite='loading.mobile',
+        measurement='timeToFirstInteractive',
+        bot='ChromiumPerf:android-nexus5',
+        test_case='Wikipedia')
+    self.assertEqual(key1, key2)
+
+  def testKeyFromDict_defaultTestCase(self):
+    key1 = tables.timeseries.Key.FromDict({
+        'test_suite': 'loading.mobile',
+        'bot': 'ChromiumPerf:android-nexus5',
+        'measurement': 'timeToFirstInteractive'})
+    key2 = tables.timeseries.Key(
+        test_suite='loading.mobile',
+        measurement='timeToFirstInteractive',
+        bot='ChromiumPerf:android-nexus5',
+        test_case='')
+    self.assertEqual(key1, key2)
+
+  def testKeyFromDict_invalidArgsRaises(self):
+    with self.assertRaises(TypeError):
+      tables.timeseries.Key.FromDict({
+          'test_suite': 'loading.mobile',
+          'bot': 'ChromiumPerf:android-nexus5'})
+
+
 class TestTimeSeries(unittest.TestCase):
   def testDataFrameFromJsonV1(self):
     test_path = ('ChromiumPerf/android-nexus5/loading.mobile'

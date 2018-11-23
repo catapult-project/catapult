@@ -59,6 +59,12 @@ _TIMESERIES2_COLS = [
 class Key(collections.namedtuple('Key', INDEX[:-1])):
   """Uniquely identifies a single timeseries."""
 
+  @classmethod
+  def FromDict(cls, *args, **kwargs):
+    kwargs = dict(*args, **kwargs)
+    kwargs.setdefault('test_case', '')  # test_case is optional.
+    return cls(**kwargs)
+
   def AsDict(self):
     return dict(zip(self._fields, self))
 

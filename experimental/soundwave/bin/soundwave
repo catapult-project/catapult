@@ -65,8 +65,8 @@ def main():
       help='Fetch timeseries needed for a specific study.')
   group.add_argument(
       '-i', '--input-file',
-      help='Fetch timeseries for test paths listed in this file, one path '
-           'per line.')
+      help='Fetch timeseries listed in this json file (see e.g.'
+           ' soundwave_examples).')
   subparser.add_argument(
       '-f', '--filters', action='append',
       help='Only get data for timeseries whose path contains all the given '
