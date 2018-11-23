@@ -78,7 +78,6 @@ def _IterStaleTestPaths(con, test_paths):
 
 
 def _FetchTimeseriesWorker(args):
-  api = dashboard_api.PerfDashboardCommunicator()
   con = sqlite3.connect(args.database_file, timeout=10)
   min_timestamp = utils.DaysAgoToTimestamp(args.days)
 
@@ -89,7 +88,7 @@ def _FetchTimeseriesWorker(args):
         params['min_timestamp'] = min_timestamp
         data = dashboard_service.Timeseries2(**params)
       else:
-        data = api.GetTimeseries(test_path, days=args.days)
+        data = dashboard_service.Timeseries(test_path, days=args.days)
     except KeyError:
       logging.info('Timeseries not found: %s', test_path)
       return

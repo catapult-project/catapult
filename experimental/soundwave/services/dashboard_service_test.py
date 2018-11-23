@@ -5,15 +5,29 @@
 
 import unittest
 
+import httplib2
 import mock
 
 from services import dashboard_service
+from services import request
+
+
+def TestResponse(code, content):
+  def Request(url, *args, **kwargs):
+    del args  # Unused.
+    del kwargs  # Unused.
+    response = httplib2.Response({'status': str(code)})
+    if code != 200:
+      raise request.BuildRequestError(url, response, content)
+    else:
+      return content
+  return Request
 
 
 class TestDashboardApi(unittest.TestCase):
   def setUp(self):
     self.mock_request = mock.patch('services.request.Request').start()
-    self.mock_request.return_value = '"OK"'
+    self.mock_request.side_effect = TestResponse(200, '"OK"')
 
   def tearDown(self):
     mock.patch.stopall()
@@ -30,3 +44,47 @@ class TestDashboardApi(unittest.TestCase):
     self.mock_request.assert_called_once_with(
         dashboard_service.SERVICE_URL + '/list_timeseries/my_test', method='POST',
         params={'sheriff': 'a_rotation'}, use_auth=True)
+
+  def testTimeseries2(self):
+    response = dashboard_service.Timeseries2(
+        test_suite='loading.mobile',
+        measurement='timeToFirstContenrfulPaint',
+        bot='ChromiumPerf:androd-go-perf',
+        columns='revision,avg')
+    self.assertEqual(response, 'OK')
+    self.mock_request.assert_called_once_with(
+        dashboard_service.SERVICE_URL + '/timeseries2',
+        params={'test_suite': 'loading.mobile',
+                'measurement': 'timeToFirstContenrfulPaint',
+                'bot': 'ChromiumPerf:androd-go-perf',
+                'columns': 'revision,avg'},
+        method='POST',
+        use_auth=True)
+
+  def testTimeseries2_notFoundRaisesKeyError(self):
+    self.mock_request.side_effect = TestResponse(404, 'Not found')
+    with self.assertRaises(KeyError):
+      dashboard_service.Timeseries2(
+          test_suite='loading.mobile',
+          measurement='timeToFirstContenrfulPaint',
+          bot='ChromiumPerf:androd-go-perf',
+          columns='revision,avg')
+
+  def testTimeseries2_missingArgsRaisesTypeError(self):
+    with self.assertRaises(TypeError):
+      dashboard_service.Timeseries2(
+          test_suite='loading.mobile',
+          measurement='timeToFirstContenrfulPaint')
+
+  def testTimeseries(self):
+    response = dashboard_service.Timeseries('some test path')
+    self.assertEqual(response, 'OK')
+    self.mock_request.assert_called_once_with(
+        dashboard_service.SERVICE_URL + '/timeseries/some%20test%20path',
+        params={'num_days': 30}, method='POST', use_auth=True)
+
+  def testTimeseries_notFoundRaisesKeyError(self):
+    self.mock_request.side_effect = TestResponse(
+        400, '{"error": "Invalid test_path"}')
+    with self.assertRaises(KeyError):
+      dashboard_service.Timeseries('some test path')

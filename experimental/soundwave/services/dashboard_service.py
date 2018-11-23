@@ -10,6 +10,7 @@ https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/dashboard/api/RE
 """
 
 import json
+import urllib
 
 from services import request
 
@@ -36,8 +37,26 @@ def Describe(test_suite):
 
 
 def Timeseries2(**kwargs):
-  """Get timeseries data for a particular test path."""
-  for col in ('test_suite', 'measurement', 'bot'):
+  """Get timeseries data for a particular test path.
+
+  Args:
+    test_suite: A string with the test suite or benchmark name.
+    measurement: A string with the metric name, e.g. timeToFirstContentfulPaint.
+    bot: A string with the bot name, usually of the form 'master:builder'.
+    columns: A string with a comma separated list of colum names to retrieve;
+      may contain: revision, avg, std, count, max, min, sum, revisions,
+      timestamp, alert, histogram, diagnostics.
+    test_case: An optional string with the name of a test case or story.
+    **kwargs: For other options and full details see the API docs.
+
+  Returns:
+    A dict with timeseries data, alerts, Histograms, and SparseDiagnostics.
+
+  Raises:
+    TypeError if any required arguments are missing.
+    KeyError if the timeseries is not found.
+  """
+  for col in ('test_suite', 'measurement', 'bot', 'columns'):
     if col not in kwargs:
       raise TypeError('Missing required argument: %s' % col)
   try:
@@ -48,8 +67,35 @@ def Timeseries2(**kwargs):
     raise  # Re-raise the original exception.
 
 
+def Timeseries(test_path, days=30):
+  """Get timeseries for the given test path.
+
+  TODO(crbug.com/907121): Remove when no longer needed.
+
+  Args:
+    test_path: test path to get timeseries for.
+    days: Number of days to get data points for.
+
+  Returns:
+    A dict with timeseries data for the given test_path
+
+  Raises:
+    KeyError if the test_path is not found.
+  """
+  try:
+    return Request(
+        '/timeseries/%s' % urllib.quote(test_path), params={'num_days': days})
+  except request.ClientError as exc:
+    if 'Invalid test_path' in exc.json['error']:
+      raise KeyError(test_path)
+    else:
+      raise
+
+
 def ListTestPaths(test_suite, sheriff):
   """Lists test paths for the given test_suite.
+
+  TODO(crbug.com/907121): Remove when no longer needed.
 
   Args:
     test_suite: String with test suite to get paths for.

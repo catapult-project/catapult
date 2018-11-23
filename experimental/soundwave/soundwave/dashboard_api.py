@@ -3,10 +3,8 @@
 # found in the LICENSE file.
 
 import datetime
-import urllib
 
 from services import dashboard_service
-from services import request
 
 
 class PerfDashboardCommunicator(object):
@@ -14,38 +12,6 @@ class PerfDashboardCommunicator(object):
   # dashboard_service module instead.
   def __init__(self):
     self.dashboard = dashboard_service
-
-  def GetTimeseries(self, test_path, days=30):
-    """Get timeseries for the given test path.
-
-    Args:
-      test_path: test path to get timeseries for.
-      days: Number of days to get data points for.
-
-    Returns:
-      A dict in the format:
-
-        {'revision_logs':{
-            r_commit_pos: {... data ...},
-            r_chromium_rev: {... data ...},
-            ...},
-         'timeseries': [
-             [revision, value, timestamp, r_commit_pos, r_webkit_rev],
-             ...
-             ],
-         'test_path': test_path}
-
-    Raises:
-      KeyError if the test_path is not found.
-    """
-    try:
-      return self.dashboard.Request(
-          '/timeseries/%s' % urllib.quote(test_path), params={'num_days': days})
-    except request.ClientError as exc:
-      if 'Invalid test_path' in exc.json['error']:
-        raise KeyError(test_path)
-      else:
-        raise
 
   def GetBugData(self, bug_ids):
     """Yields data for a given bug id or sequence of bug ids."""
