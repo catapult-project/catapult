@@ -63,8 +63,8 @@ class HistogramSetUnittest(unittest.TestCase):
     d0 = generic_set.GenericSet(['foo'])
     d1 = date_range.DateRange(0)
     hs = histogram_set.HistogramSet()
-    hs.AddSharedDiagnostic('generic', d0)
-    hs.AddSharedDiagnostic('generic', d1)
+    hs.AddSharedDiagnosticToAllHistograms('generic', d0)
+    hs.AddSharedDiagnosticToAllHistograms('generic', d1)
     diagnostics = hs.GetSharedDiagnosticsOfType(generic_set.GenericSet)
     self.assertEqual(len(diagnostics), 1)
     self.assertIsInstance(diagnostics[0], generic_set.GenericSet)
@@ -106,9 +106,9 @@ class HistogramSetUnittest(unittest.TestCase):
     a = histogram.Histogram('a', 'unitless')
     b = histogram.Histogram('b', 'unitless')
     hs = histogram_set.HistogramSet([a])
-    hs.AddSharedDiagnostic('a', da)
+    hs.AddSharedDiagnosticToAllHistograms('a', da)
     hs.AddHistogram(b)
-    hs.AddSharedDiagnostic('b', db)
+    hs.AddSharedDiagnosticToAllHistograms('b', db)
     hs.FilterHistograms(lambda h: h.name == 'a')
 
     dicts = hs.AsDicts()
@@ -118,11 +118,41 @@ class HistogramSetUnittest(unittest.TestCase):
     dicts = hs.AsDicts()
     self.assertEqual(2, len(dicts))
 
+  def testAddSharedDiagnostic(self):
+    diags = {}
+    da = generic_set.GenericSet(['a'])
+    db = generic_set.GenericSet(['b'])
+    diags['da'] = da
+    diags['db'] = db
+    a = histogram.Histogram('a', 'unitless')
+    b = histogram.Histogram('b', 'unitless')
+    hs = histogram_set.HistogramSet()
+    hs.AddSharedDiagnostic(da)
+    hs.AddHistogram(a, {'da': da})
+    hs.AddHistogram(b, {'db': db})
+
+    # This should produce one shared diagnostic and 2 histograms.
+    dicts = hs.AsDicts()
+    self.assertEqual(3, len(dicts))
+    self.assertEqual(da.AsDict(), dicts[0])
+
+
+    # Assert that you only see the shared diagnostic once.
+    seen_once = False
+    for idx, val in enumerate(dicts):
+      if idx == 0:
+        continue
+      if 'da' in val['diagnostics']:
+        self.assertFalse(seen_once)
+        self.assertEqual(val['diagnostics']['da'], da.guid)
+        seen_once = True
+
+
   def testSharedDiagnostic(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
     diag = generic_set.GenericSet(['shared'])
-    hists.AddSharedDiagnostic('generic', diag)
+    hists.AddSharedDiagnosticToAllHistograms('generic', diag)
 
     # Serializing a single Histogram with a single shared diagnostic should
     # produce 2 dicts.
@@ -149,8 +179,8 @@ class HistogramSetUnittest(unittest.TestCase):
     hists = histogram_set.HistogramSet([hist])
     diag0 = generic_set.GenericSet(['shared0'])
     diag1 = generic_set.GenericSet(['shared1'])
-    hists.AddSharedDiagnostic('generic0', diag0)
-    hists.AddSharedDiagnostic('generic1', diag1)
+    hists.AddSharedDiagnosticToAllHistograms('generic0', diag0)
+    hists.AddSharedDiagnosticToAllHistograms('generic1', diag1)
 
     guid0 = diag0.guid
     guid1 = diag1.guid
@@ -166,7 +196,7 @@ class HistogramSetUnittest(unittest.TestCase):
     hists = histogram_set.HistogramSet([hist])
     diag0 = generic_set.GenericSet(['shared0'])
     diag1 = generic_set.GenericSet(['shared1'])
-    hists.AddSharedDiagnostic('generic0', diag0)
+    hists.AddSharedDiagnosticToAllHistograms('generic0', diag0)
 
     guid0 = diag0.guid
     guid1 = diag1.guid

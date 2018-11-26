@@ -27,6 +27,13 @@ def _MakeStorySet():
       'http://www.bar.com/', ps, ps.base_dir, name='http://www.bar.com/'))
   return ps
 
+def _MakePageTestResults():
+  results = page_test_results.PageTestResults()
+  results.telemetry_info.benchmark_name = 'benchmark'
+  results.telemetry_info.benchmark_start_epoch = 123
+  results.telemetry_info.benchmark_descriptions = 'foo'
+  return results
+
 class ChartJsonTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
@@ -37,7 +44,7 @@ class ChartJsonTest(unittest.TestCase):
         self._output, self._benchmark_metadata)
 
   def testOutputAndParse(self):
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
 
     self._output.truncate(0)
 
@@ -60,7 +67,7 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictSerializable(self):
     v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -72,7 +79,7 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictBaseKeys(self):
     d = chart_json_output_formatter.ResultsAsChartDict(
         self._benchmark_metadata,
-        page_test_results.PageTestResults())
+        _MakePageTestResults())
 
     self.assertEquals(d['format_version'], '0.1')
     self.assertEquals(d['next_version'], '0.2')
@@ -85,7 +92,7 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictNoDescription(self):
     d = chart_json_output_formatter.ResultsAsChartDict(
         benchmark.BenchmarkMetadata('benchmark_name', ''),
-        page_test_results.PageTestResults())
+        _MakePageTestResults())
 
     self.assertEquals('', d['benchmark_metadata']['description'])
 
@@ -96,7 +103,7 @@ class ChartJsonTest(unittest.TestCase):
     v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN,
                             tir_label='MyIR')
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v0)
     results.AddValue(v1)
@@ -114,7 +121,7 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v0)
     results.AddValue(v1)
@@ -133,7 +140,7 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[1], 'foo.bar', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -155,7 +162,7 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[1], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -176,7 +183,7 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo.bar', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.AddSummaryValue(v0)
 
     d = chart_json_output_formatter.ResultsAsChartDict(
@@ -189,7 +196,7 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.AddSummaryValue(v0)
 
     d = chart_json_output_formatter.ResultsAsChartDict(
@@ -202,7 +209,7 @@ class ChartJsonTest(unittest.TestCase):
     v = trace.TraceValue(self._story_set[0],
                          trace_data.CreateTraceDataFromRawData([{'test': 1}]))
     v.tir_label = 'background'
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     results.AddValue(v)
     results.DidRunPage(self._story_set[0])
@@ -219,7 +226,7 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo.bar', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = page_test_results.PageTestResults()
+    results = _MakePageTestResults()
     results.AddSummaryValue(v0)
 
     d = chart_json_output_formatter.ResultsAsChartDict(

@@ -37,11 +37,11 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
 
   def testAddReservedDiagnostics_TagmapsMerged(self):
     hs1 = histogram_set.HistogramSet([self._CreateHistogram('foo1')])
-    hs1.AddSharedDiagnostic(
+    hs1.AddSharedDiagnosticToAllHistograms(
         reserved_infos.TAG_MAP.name,
         tag_map.TagMap({'tagsToStoryNames': {'foo1': ['bar1']}}))
     hs2 = histogram_set.HistogramSet([self._CreateHistogram('foo1')])
-    hs2.AddSharedDiagnostic(
+    hs2.AddSharedDiagnosticToAllHistograms(
         reserved_infos.TAG_MAP.name,
         tag_map.TagMap({'tagsToStoryNames': {'foo1': ['bar2']}}))
 

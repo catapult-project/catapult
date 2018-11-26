@@ -45,6 +45,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
         self._output, self._benchmark_metadata, False)
     results = page_test_results.PageTestResults(
         benchmark_metadata=self._benchmark_metadata)
+    results.telemetry_info.benchmark_name = 'benchmark_name'
     results.telemetry_info.benchmark_start_epoch = 1501773200
 
     results.WillRunPage(self._story_set[0])

@@ -251,7 +251,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     hist = histogram_module.Histogram('hist', 'count')
     hist.AddSample(42)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['http://unescaped_story']))
 

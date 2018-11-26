@@ -28,6 +28,7 @@ from telemetry.value import trace
 from tracing.value import convert_chart_json
 from tracing.value import histogram
 from tracing.value import histogram_set
+from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
 
 class TelemetryInfo(object):
@@ -47,6 +48,7 @@ class TelemetryInfo(object):
     self._output_dir = output_dir
     self._trace_local_path = None
     self._had_failures = None
+    self._diagnostics = {}
 
   @property
   def upload_bucket(self):
@@ -119,6 +121,10 @@ class TelemetryInfo(object):
   def had_failures(self):
     return self._had_failures
 
+  @property
+  def diagnostics(self):
+    return self._diagnostics
+
   @had_failures.setter
   def had_failures(self, had_failures):
     assert self.had_failures is None, (
@@ -151,6 +157,8 @@ class TelemetryInfo(object):
     if self._output_dir:
       self._trace_local_path = os.path.abspath(os.path.join(
           self._output_dir, trace_name))
+
+    self._UpdateDiagnostics()
 
   @property
   def trace_local_path(self):
@@ -202,6 +210,37 @@ class TelemetryInfo(object):
     if self.had_failures:
       d[reserved_infos.HAD_FAILURES.name] = [self.had_failures]
     return d
+
+  def _UpdateDiagnostics(self):
+    """ Benchmarks that add histograms but don't use
+    timeline_base_measurement need to add shared diagnostics separately.
+    Make them available on the telemetry info."""
+    for name, value in self.AsDict().items():
+      if name in self.diagnostics:
+        # If it is of type name, description or start time don't create new
+        if name in [reserved_infos.BENCHMARKS.name,
+                    reserved_infos.BENCHMARK_START.name,
+                    reserved_infos.BENCHMARK_DESCRIPTIONS.name]:
+          continue
+        else:
+          # this a stale value from the last run, remove it.
+          del self.diagnostics[name]
+
+      if isinstance(value, list):
+        keep = False
+        for val in value:
+          if val:
+            keep = True
+        if not keep:
+          continue
+      else:
+        if value is None:
+          continue
+
+      name_type = reserved_infos.GetTypeForName(name)
+      diag_class = all_diagnostics.GetDiagnosticClassForName(name_type)
+      diag = diag_class(value)
+      self.diagnostics[name] = diag
 
 
 class PageTestResults(object):
@@ -455,7 +494,10 @@ class PageTestResults(object):
 
   def AddHistogram(self, hist):
     if self._ShouldAddHistogram(hist):
-      self._histograms.AddHistogram(hist)
+      diags = self._telemetry_info.diagnostics
+      for _, diag in diags.items():
+        self._histograms.AddSharedDiagnostic(diag)
+      self._histograms.AddHistogram(hist, diags)
 
   def ImportHistogramDicts(self, histogram_dicts, import_immediately=True):
     dicts_to_add = []
@@ -524,8 +566,8 @@ class PageTestResults(object):
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)
 
-  def AddSharedDiagnostic(self, name, diagnostic):
-    self._histograms.AddSharedDiagnostic(name, diagnostic)
+  def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):
+    self._histograms.AddSharedDiagnosticToAllHistograms(name, diagnostic)
 
   def Fail(self, failure):
     """Mark the current story run as failed.

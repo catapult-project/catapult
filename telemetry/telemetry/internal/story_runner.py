@@ -288,11 +288,11 @@ def Run(test, story_set, finder_options, results, max_failures=None,
     results.PopulateHistogramSet()
 
     for name, diag in device_info_diags.iteritems():
-      results.AddSharedDiagnostic(name, diag)
+      results.AddSharedDiagnosticToAllHistograms(name, diag)
 
     tagmap = _GenerateTagMapFromStorySet(stories)
     if tagmap.tags_to_story_names:
-      results.AddSharedDiagnostic(
+      results.AddSharedDiagnosticToAllHistograms(
           reserved_infos.TAG_MAP.name, tagmap)
 
     if state:
@@ -403,15 +403,15 @@ def RunBenchmark(benchmark, finder_options):
     benchmark_documentation_url = benchmark.GetDocumentationLink()
 
     if benchmark_owners:
-      results.AddSharedDiagnostic(
+      results.AddSharedDiagnosticToAllHistograms(
           reserved_infos.OWNERS.name, benchmark_owners)
 
     if benchmark_component:
-      results.AddSharedDiagnostic(
+      results.AddSharedDiagnosticToAllHistograms(
           reserved_infos.BUG_COMPONENTS.name, benchmark_component)
 
     if benchmark_documentation_url:
-      results.AddSharedDiagnostic(
+      results.AddSharedDiagnosticToAllHistograms(
           reserved_infos.DOCUMENTATION_URLS.name, benchmark_documentation_url)
 
     try:

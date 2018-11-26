@@ -37,6 +37,9 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._story_set = _MakeStorySet()
     self._results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark.BenchmarkMetadata('benchmark'))
+    self._results.telemetry_info.benchmark_name = 'benchmark'
+    self._results.telemetry_info.benchmark_start_epoch = 15e8
+    self._results.telemetry_info.benchmark_descriptions = 'foo'
     self._formatter = None
     self.MakeFormatter()
 
@@ -57,7 +60,6 @@ class CsvOutputFormatterTest(unittest.TestCase):
       self._results.DidRunPage(page)
 
   def Format(self):
-    self._results.telemetry_info.benchmark_start_epoch = 15e8
     self._results.PopulateHistogramSet()
     self._formatter.Format(self._results)
     return self._output.getvalue()

@@ -47,12 +47,12 @@ def ConvertLegacyDicts(dicts):
 
     hs.AddHistogram(h)
 
-  hs.AddSharedDiagnostic(reserved_infos.MASTERS.name, generic_set.GenericSet(
-      [master]))
-  hs.AddSharedDiagnostic(reserved_infos.BOTS.name, generic_set.GenericSet(
-      [bot]))
-  hs.AddSharedDiagnostic(reserved_infos.BENCHMARKS.name, generic_set.GenericSet(
-      [suite]))
+  hs.AddSharedDiagnosticToAllHistograms(
+      reserved_infos.MASTERS.name, generic_set.GenericSet([master]))
+  hs.AddSharedDiagnosticToAllHistograms(
+      reserved_infos.BOTS.name, generic_set.GenericSet([bot]))
+  hs.AddSharedDiagnosticToAllHistograms(
+      reserved_infos.BENCHMARKS.name, generic_set.GenericSet([suite]))
   _AddRevision(first_dict, hs)
 
   return hs
@@ -65,4 +65,4 @@ def _AddRevision(d, hs):
     name = reserved_infos.CHROMIUM_COMMIT_POSITIONS.name
   else:
     name = reserved_infos.POINT_ID.name
-  hs.AddSharedDiagnostic(name, generic_set.GenericSet([rev]))
+  hs.AddSharedDiagnosticToAllHistograms(name, generic_set.GenericSet([rev]))

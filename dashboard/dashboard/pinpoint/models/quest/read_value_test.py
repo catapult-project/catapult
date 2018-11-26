@@ -124,10 +124,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist.AddSample(1)
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
@@ -147,10 +147,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist.AddSample(1)
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['http://story']))
     self.SetOutputFileContents(histograms.AsDicts())
@@ -170,10 +170,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist.AddSample(1)
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
@@ -191,10 +191,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
   def testReadHistogramsJsonValueStatisticNoSamples(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
@@ -221,10 +221,10 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist3.AddSample(4)
     hist3.AddSample(5)
     histograms = histogram_set.HistogramSet([hist, hist2, hist3])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
@@ -329,7 +329,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist.AddSample(1)
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 
@@ -350,7 +350,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     hist.AddSample(1)
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story']))
 
@@ -379,7 +379,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
       samples.extend(hist.sample_values)
 
     histograms = histogram_set.HistogramSet(hists)
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 
@@ -422,7 +422,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
       samples.extend(hist.sample_values)
 
     histograms = histogram_set.HistogramSet(hists)
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 
@@ -453,7 +453,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
       samples.extend(hist.sample_values)
 
     histograms = histogram_set.HistogramSet(hists)
-    histograms.AddSharedDiagnostic(
+    histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['group:tir_label']))
 

@@ -178,7 +178,8 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
   histograms.DeduplicateDiagnostics()
   for name, value in names_to_values.items():
     assert name in ALL_NAMES
-    histograms.AddSharedDiagnostic(name, generic_set.GenericSet([value]))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        name, generic_set.GenericSet([value]))
   histograms.RemoveOrphanedDiagnostics()
 
   return json.dumps(histograms.AsDicts())

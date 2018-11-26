@@ -46,7 +46,10 @@ class HistogramSet(object):
 
     self._histograms_by_guid[hist.guid] = hist
 
-  def AddSharedDiagnostic(self, name, diag):
+  def AddSharedDiagnostic(self, diag):
+    self._shared_diagnostics_by_guid[diag.guid] = diag
+
+  def AddSharedDiagnosticToAllHistograms(self, name, diag):
     self._shared_diagnostics_by_guid[diag.guid] = diag
 
     for hist in self:

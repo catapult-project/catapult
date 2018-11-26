@@ -63,6 +63,9 @@ class TimelineBasedMetricTestData(object):
 
     self._results_wrapper = tbm_module._TBMResultWrapper()
     self._results = page_test_results.PageTestResults()
+    self._results.telemetry_info.benchmark_name = 'benchmark'
+    self._results.telemetry_info.benchmark_start_epoch = 123
+    self._results.telemetry_info.benchmark_descriptions = 'foo'
     self._story_set = None
     self._threads_to_records_map = None
     self._tbm_options = options
