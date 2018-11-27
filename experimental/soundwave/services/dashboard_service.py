@@ -107,3 +107,35 @@ def ListTestPaths(test_suite, sheriff):
   """
   return Request(
       '/list_timeseries/%s' % test_suite, params={'sheriff': sheriff})
+
+
+def Bugs(bug_id):
+  """Get all the information about a given bug id."""
+  return Request('/bugs/%d' % bug_id)
+
+
+def IterAlerts(**kwargs):
+  """Returns alerts matching the supplied query parameters.
+
+  The reponse for the dashboard may be returned in multiple chunks, this
+  function will take care of following `next_cursor`s in responses and
+  iterate over all the chunks.
+
+  Args:
+    test_suite: Match alerts on a given test suite (benchmark).
+    sheriff: Match only alerts of a given sheriff rotation.
+    min_timestamp, max_timestamp: Match only alerts on a given time range.
+    limit: Max number of responses per chunk (defaults to 1000).
+    **kwargs: See API docs for other possible query params.
+
+  Yields:
+    Data for all the matching alerts in chunks.
+  """
+  kwargs.setdefault('limit', 1000)
+  while True:
+    response = Request('/alerts', params=kwargs)
+    yield response
+    if 'next_cursor' in response:
+      kwargs['cursor'] = response['next_cursor']
+    else:
+      return

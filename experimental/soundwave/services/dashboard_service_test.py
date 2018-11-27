@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import unittest
 
 import httplib2
@@ -88,3 +89,29 @@ class TestDashboardApi(unittest.TestCase):
         400, '{"error": "Invalid test_path"}')
     with self.assertRaises(KeyError):
       dashboard_service.Timeseries('some test path')
+
+  def testBugs(self):
+    self.assertEqual(dashboard_service.Bugs(123), 'OK')
+    self.mock_request.assert_called_once_with(
+        dashboard_service.SERVICE_URL + '/bugs/123', method='POST',
+        use_auth=True)
+
+  def testIterAlerts(self):
+    pages = {'page1': {'data': 'foo', 'next_cursor': 'page2'},
+             'page2': {'data': 'bar'}}
+
+    def RequestStub(endpoint, method=None, params=None, **kwargs):
+      del kwargs  # Unused.
+      self.assertEqual(endpoint, dashboard_service.SERVICE_URL + '/alerts')
+      self.assertEqual(method, 'POST')
+      self.assertDictContainsSubset(
+          {'test_suite': 'loading.mobile', 'limit': 1000}, params)
+      cursor = params.get('cursor', 'page1')
+      return json.dumps(pages[cursor])
+
+    self.mock_request.side_effect = RequestStub
+    response = [
+        resp['data']
+        for resp in dashboard_service.IterAlerts(test_suite='loading.mobile')]
+    self.assertEqual(response, ['foo', 'bar'])
+    self.assertEqual(self.mock_request.call_count, 2)

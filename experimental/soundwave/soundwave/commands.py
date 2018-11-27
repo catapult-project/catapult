@@ -10,7 +10,6 @@ import pandas  # pylint: disable=import-error
 
 from common import utils
 from services import dashboard_service
-from soundwave import dashboard_api
 from soundwave import pandas_sqlite
 from soundwave import studies
 from soundwave import tables
@@ -18,25 +17,30 @@ from soundwave import worker_pool
 
 
 def _FetchBugsWorker(args):
-  api = dashboard_api.PerfDashboardCommunicator()
   con = sqlite3.connect(args.database_file, timeout=10)
 
   def Process(bug_id):
-    bugs = tables.bugs.DataFrameFromJson(api.GetBugData(bug_id))
+    bugs = tables.bugs.DataFrameFromJson([dashboard_service.Bugs(bug_id)])
     pandas_sqlite.InsertOrReplaceRecords(con, 'bugs', bugs)
 
   worker_pool.Process = Process
 
 
 def FetchAlertsData(args):
-  api = dashboard_api.PerfDashboardCommunicator()
+  params = {
+      'test_suite': args.benchmark,
+      'min_timestamp': utils.DaysAgoToTimestamp(args.days)
+  }
+  if args.sheriff != 'all':
+    params['sheriff'] = args.sheriff
+
   with tables.DbSession(args.database_file) as con:
     # Get alerts.
     num_alerts = 0
     bug_ids = set()
     # TODO: This loop may be slow when fetching thousands of alerts, needs a
     # better progress indicator.
-    for data in api.IterAlertData(args.benchmark, args.sheriff, args.days):
+    for data in dashboard_service.IterAlerts(**params):
       alerts = tables.alerts.DataFrameFromJson(data)
       pandas_sqlite.InsertOrReplaceRecords(con, 'alerts', alerts)
       num_alerts += len(alerts)
