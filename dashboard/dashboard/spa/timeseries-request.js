@@ -99,6 +99,7 @@ tr.exportTo('cp', () => {
   }
 
   return {
+    getColumnsByLevelOfDetail,
     LEVEL_OF_DETAIL,
     TimeseriesRequest,
   };

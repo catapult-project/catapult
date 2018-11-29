@@ -27,6 +27,7 @@ export class CacheRequestBase {
     this.databasePromise_ = undefined;
     this.responsePromise_ = undefined;
     this.writing_ = false;
+    this.responded_ = false;
 
     IN_PROGRESS_REQUESTS.add(this);
     TASK_QUEUE.cancelFlush();
@@ -56,7 +57,7 @@ export class CacheRequestBase {
     }
   }
 
-  onComplete() {
+  onResponded() {
     // This is automatically called when getResponse() returns if
     // scheduleWrite() is not called, or when writeDatabase() returns.
     // However, subclasses may need to call this if they use
@@ -64,8 +65,21 @@ export class CacheRequestBase {
     // that request from blocking on this one.
     // Database writes are batched and delayed until after database reads are
     // done in order to keep the writes from delaying the reads.
+
+    this.responded_ = true;
+    if (!this.writing_) this.onComplete();
+
+    // scheduleFlush if all in-progress-requests have responded.
+    for (const other of IN_PROGRESS_REQUESTS) {
+      if (!other.responded_) {
+        return;
+      }
+    }
+    TASK_QUEUE.scheduleFlush();
+  }
+
+  onComplete() {
     IN_PROGRESS_REQUESTS.delete(this);
-    if (IN_PROGRESS_REQUESTS.size === 0) TASK_QUEUE.scheduleFlush();
   }
 
   // Subclasses may override this to read a database and/or fetch() from the
@@ -76,7 +90,7 @@ export class CacheRequestBase {
 
   respond() {
     this.fetchEvent.respondWith(this.responsePromise.then(response => {
-      if (!this.writing_) this.onComplete();
+      this.onResponded();
       return jsonResponse(response);
     }));
   }
@@ -97,9 +111,9 @@ export class CacheRequestBase {
       try {
         await this.writeDatabase(options);
       } finally {
+        this.writing_ = false;
         this.onComplete();
         complete();
-        this.writing_ = false;
       }
     });
   }
