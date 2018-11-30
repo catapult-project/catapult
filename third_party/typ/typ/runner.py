@@ -39,7 +39,7 @@ if dir_above_typ not in sys.path:  # pragma: no cover
 
 from typ import json_results
 from typ.arg_parser import ArgumentParser
-from typ.expectations_parser import TestExpectationParser, ParseError
+from typ.expectations_parser import TestExpectations
 from typ.host import Host
 from typ.pool import make_pool
 from typ.stats import Stats
@@ -121,8 +121,7 @@ class Runner(object):
         self.win_multiprocessing = WinMultiprocessing.spawn
         self.final_responses = []
         self.has_expectations = False
-        self.expectations = {}
-        self.tags = set()
+        self.expectations = None
 
         # initialize self.args to the defaults.
         parser = ArgumentParser(self.host)
@@ -375,6 +374,7 @@ class Runner(object):
 
     def parse_expectations(self):
         args = self.args
+
         if len(args.expectations_files) != 1:
             # TODO(crbug.com/835690): Fix this.
             self.print_(
@@ -382,19 +382,15 @@ class Runner(object):
                 stream=self.host.stderr)
             return 1
         contents = self.host.read_text_file(args.expectations_files[0])
-        try:
-            parser = TestExpectationParser(contents)
-        except ParseError as e:
-            self.print_(e.message, stream=self.host.stderr)
-            return 1
+
+        expectations = TestExpectations(set(args.tags))
+        err, msg = expectations.parse_tagged_list(contents)
+        if err:
+            self.print_(msg, stream=self.host.stderr)
+            return err
+
         self.has_expectations = True
-        for exp in parser.expectations:
-            self.expectations.setdefault(exp.test, [])
-            # TODO(crbug.com/83560) - Add support for multiple policies
-            # for supporting multiple matching lines, e.g., allow/union,
-            # reject, etc.
-            self.expectations[exp.test].append(exp)
-        self.tags = set(args.tags)
+        self.expectations = expectations
 
     def find_tests(self, args):
         test_set = TestSet()
@@ -834,7 +830,6 @@ class _Child(object):
         self.loaded_suites = {}
         self.cov = None
         self.has_expectations = parent.has_expectations
-        self.tags = parent.tags
         self.expectations = parent.expectations
 
 
@@ -888,7 +883,11 @@ def _run_one_test(child, test_input):
     # This comes up when using the FakeTestLoader and testing typ itself,
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
-    expected_results = expected_results_for(child, test_name)
+    if child.has_expectations:
+      expected_results = child.expectations.expected_results_for(test_name)
+    else:
+      expected_results = {ResultType.Pass}
+
     ex_str = ''
     try:
         orig_skip = unittest.skip
@@ -954,29 +953,6 @@ def _run_one_test(child, test_input):
     return _result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
                                     expected_results, child.has_expectations)
-
-
-def expected_results_for(child, test):
-    # A TestExpectations file may contain multiple lines of tests with
-    # the same name, each with different sets of tags for the results,
-    # e.g.:
-    #  [ Mac ] TestFoo.test_bar [ Skip ]
-    #  [ Debug Win ] TestFoo.test_bar [ Pass Failure ]
-    #
-    # To determine the expected results for a test, we have to loop over
-    # all of the failures matching a test, find the ones whose tags are
-    # a subset of the ones in effect, and  return the union of all of the
-    # results. For example, if the runner is running with {Debug, Mac, Mac10.12}
-    # then lines with no tags, {Mac}, or {Debug, Mac} would all match, but
-    # {Debug, Win} would not.
-    #
-    # TODO(crbug.com/83560): Handle multiple policies for multiple matching
-    # lines (also see above in parse_expectations()).
-    results = set()
-    for exp in child.expectations.get(test, []):
-        if exp.tags.issubset(child.tags):
-            results.update(exp.results)
-    return results if results else {ResultType.Pass}
 
 
 def _run_under_debugger(host, test_case, suite,

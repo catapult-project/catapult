@@ -2,6 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# TODO(dpranke): Rename this to 'expectations.py' to remove the 'parser'
+# part and make it a bit more generic. Consider if we can reword this to
+# also not talk about 'expectations' so much (i.e., to find a clearer way
+# to talk about them that doesn't have quite so much legacy baggage), but
+# that might not be possible.
+
 import re
 
 from typ.json_results import ResultType
@@ -63,7 +69,7 @@ class Expectation(object):
         return self._results
 
 
-class TestExpectationParser(object):
+class TaggedTestListParser(object):
     """Parses lists of tests and expectations for them.
 
     This parser covers the 'tagged' test lists format in:
@@ -169,3 +175,46 @@ class TestExpectationParser(object):
                 raise ParseError(lineno, 'Unknown result type "%s"' % r)
 
         return Expectation(reason, test, tags, results)
+
+
+class TestExpectations(object):
+
+    def __init__(self, tags):
+        self.tags = tags
+        self.tests = {}
+
+    def parse_tagged_list(self, raw_data):
+        try:
+            parser = TaggedTestListParser(raw_data)
+        except ParseError as e:
+            return 1, e.message
+
+        # TODO(crbug.com/83560) - Add support for multiple policies
+        # for supporting multiple matching lines, e.g., allow/union,
+        # reject, etc. Right now, you effectively just get a union.
+        for exp in parser.expectations:
+            self.tests.setdefault(exp.test, []).append(exp)
+
+        return 0, None
+
+    def expected_results_for(self, test):
+        # A given test may have multiple expectations, each with different
+        # sets of tags that apply and different expected results, e.g.:
+        #
+        #  [ Mac ] TestFoo.test_bar [ Skip ]
+        #  [ Debug Win ] TestFoo.test_bar [ Pass Failure ]
+        #
+        # To determine the expected results for a test, we have to loop over
+        # all of the failures matching a test, find the ones whose tags are
+        # a subset of the ones in effect, and  return the union of all of the
+        # results. For example, if the runner is running with {Debug, Mac, Mac10.12}
+        # then lines with no tags, {Mac}, or {Debug, Mac} would all match, but
+        # {Debug, Win} would not.
+        #
+        # TODO(crbug.com/83560): Handle multiple policies for multiple matching
+        # lines (also see above in parse_tagged_list()).
+        results = set()
+        for exp in self.tests.get(test, []):
+            if exp.tags.issubset(self.tags):
+                results.update(exp.results)
+        return results if results else {ResultType.Pass}
