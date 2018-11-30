@@ -251,7 +251,6 @@ class TestCli(test_case.MainTestCase):
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure', out)
 
-
     def test_pass_repeat(self):
         self.check(
             ['--repeat', '2'], files=PASS_TEST_FILES, ret=0, err='',
@@ -283,6 +282,15 @@ class TestCli(test_case.MainTestCase):
 
         # Passing a tag without an expectations file doesn't make sense.
         self.check(['-x', 'bar'], files=files, ret=1)
+
+    def test_expectations_with_globs(self):
+        files = {
+            'expectations.txt': d('''\
+                crbug.com/12345 fail_test.FailingTest.* [ Failure ]
+                '''),
+            'fail_test.py': FAIL_TEST_PY,
+        }
+        self.check(['-X', 'expectations.txt'], files=files, ret=0)
 
     def test_multiple_expectations_files_do_not_work(self):
         files = {

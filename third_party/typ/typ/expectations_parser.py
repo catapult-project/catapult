@@ -8,7 +8,10 @@
 # to talk about them that doesn't have quite so much legacy baggage), but
 # that might not be possible.
 
+import fnmatch
 import re
+
+from collections import OrderedDict
 
 from typ.json_results import ResultType
 
@@ -181,7 +184,14 @@ class TestExpectations(object):
 
     def __init__(self, tags):
         self.tags = tags
-        self.tests = {}
+
+        # Expectations may either refer to individual tests, or globs of
+        # tests. Each test (or glob) may have multiple sets of tags and
+        # expected results, so we store these in dicts ordered by the string
+        # for ease of retrieve. glob_exps use an OrderedDict rather than
+        # a regular dict for reasons given below.
+        self.individual_exps = {}
+        self.glob_exps = OrderedDict()
 
     def parse_tagged_list(self, raw_data):
         try:
@@ -192,8 +202,19 @@ class TestExpectations(object):
         # TODO(crbug.com/83560) - Add support for multiple policies
         # for supporting multiple matching lines, e.g., allow/union,
         # reject, etc. Right now, you effectively just get a union.
+        glob_exps = []
         for exp in parser.expectations:
-            self.tests.setdefault(exp.test, []).append(exp)
+            if exp.test.endswith('*'):
+                glob_exps.append(exp)
+            else:
+                self.individual_exps.setdefault(exp.test, []).append(exp)
+
+        # Each glob may also have multiple matching lines. By ordering the
+        # globs by decreasing length, this allows us to find the most
+        # specific glob by a simple linear search in expected_results_for().
+        glob_exps.sort(key=lambda exp: len(exp.test), reverse=True)
+        for exp in glob_exps:
+            self.glob_exps.setdefault(exp.test, []).append(exp)
 
         return 0, None
 
@@ -211,10 +232,30 @@ class TestExpectations(object):
         # then lines with no tags, {Mac}, or {Debug, Mac} would all match, but
         # {Debug, Win} would not.
         #
-        # TODO(crbug.com/83560): Handle multiple policies for multiple matching
-        # lines (also see above in parse_tagged_list()).
+        # The longest matching test string (name or glob) has priority.
         results = set()
-        for exp in self.tests.get(test, []):
+
+        # First, check for an exact match on the test name.
+        for exp in self.individual_exps.get(test, []):
             if exp.tags.issubset(self.tags):
                 results.update(exp.results)
-        return results if results else {ResultType.Pass}
+        if results:
+            return results
+
+        # If we didn't find an exact match, check for matching globs. Match by
+        # the most specific (i.e., longest) glob first. Because self.globs is
+        # ordered by length, this is a simple linear search.
+        for glob, exps in self.glob_exps.items():
+            if fnmatch.fnmatch(test, glob):
+                for exp in exps:
+                    if exp.tags.issubset(self.tags):
+                        results.update(exp.results)
+
+                # if *any* of the exps matched, results will be non-empty,
+                # and we're done. If not, keep looking through ever-shorter
+                # globs.
+                if results:
+                    return results
+
+        # Nothing matched, so by default, the test is expected to pass.
+        return {ResultType.Pass}
