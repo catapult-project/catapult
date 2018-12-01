@@ -51,10 +51,20 @@ def AddCommandLineArgs(parser):
 
   # Page set options
   group = optparse.OptionGroup(parser, 'Page set repeat options')
+  # Note that the default for pageset-repeat is 1 unless the benchmark
+  # specifies a different default by adding
+  # `options = {'pageset_repeat': X}` in their benchmark. Defaults are always
+  # overridden by passed in commandline arguments.
   group.add_option('--pageset-repeat', default=1, type='int',
-                   help='Number of times to repeat the entire pageset.')
+                   help='Number of times to repeat the entire pageset. ')
   group.add_option('--smoke-test-mode', action='store_true',
-                   help='run this test in smoke test mode so do not repeat.')
+                   help='This flag does not do anything right now and is'
+                   'scheduled for deletion.')
+  # TODO(crbug.com/910809): Add flag to reduce iterations to 1.
+  # (An iteration is a repeat of the benchmark without restarting Chrome. It
+  # must be supported in benchmark-specific code.) This supports the smoke
+  # test use case since we don't want to waste time with iterations in smoke
+  # tests.
   group.add_option('--max-failures', default=None, type='int',
                    help='Maximum number of test failures before aborting '
                    'the run. Defaults to the number specified by the '
@@ -214,9 +224,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   # TODO(crbug.com/866458): unwind the nested blocks
   # pylint: disable=too-many-nested-blocks
   try:
-    pageset_repeat = _GetPageSetRepeat(finder_options)
-    if finder_options.smoke_test_mode:
-      pageset_repeat = 1
+    pageset_repeat = finder_options.pageset_repeat
     for storyset_repeat_counter in xrange(pageset_repeat):
       for story in stories:
         start_timestamp = time.time()
@@ -394,7 +402,7 @@ def RunBenchmark(benchmark, finder_options):
 
       filtered_stories = story_module.StoryFilter.FilterStorySet(stories)
       results.InterruptBenchmark(
-          filtered_stories, _GetPageSetRepeat(finder_options))
+          filtered_stories, finder_options.pageset_repeat)
       exception_formatter.PrintFormattedException()
       return_code = 2
 
@@ -422,11 +430,6 @@ def RunBenchmark(benchmark, finder_options):
       memory_debug.LogHostMemoryUsage()
       results.PrintSummary()
   return return_code
-
-def _GetPageSetRepeat(finder_options):
-  if finder_options.smoke_test_mode:
-    return 1
-  return finder_options.pageset_repeat
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                             filtered_stories):

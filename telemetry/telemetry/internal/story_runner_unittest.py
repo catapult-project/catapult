@@ -271,7 +271,6 @@ def _GenerateBaseBrowserFinderOptions(options_callback=None):
   options.max_failures = 100
   options.pause = None
   options.pageset_repeat = 1
-  options.smoke_test_mode = False
   options.output_formats = ['chartjson']
   options.run_disabled_tests = False
 
@@ -614,7 +613,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn(green_value, values)
     self.assertIn(merged_value, values)
 
-  def testSmokeTestMode(self):
+  def testRepeatOnce(self):
     story_set = story_module.StorySet()
 
     blank_story = DummyLocalStory(TestSharedPageState, name='blank')
@@ -622,8 +621,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(blank_story)
     story_set.AddStory(green_story)
 
-    self.options.pageset_repeat = 2
-    self.options.smoke_test_mode = True
+    self.options.pageset_repeat = 1
     results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
     story_runner.Run(_Measurement(), story_set, self.options, results)
