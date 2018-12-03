@@ -4,9 +4,6 @@
 # For CrOS-related changes.
 achuith@chromium.org
 
-# For web_perf/, value/, internal/results/ related changes.
-eakuefner@chromium.org
-
 nednguyen@google.com
 perezju@chromium.org
 
@@ -16,6 +13,7 @@ perezju@chromium.org
 # aiolos@chromium.org
 # chrishenry@google.com
 # dtu@chromium.org
+# eakuefner@chromium.org
 # skyostil@chromium.org
 # ernstm@chromium.org
 # marja@chromium.org
