@@ -2659,7 +2659,7 @@ WINDOW MANAGER WINDOWS (dumpsys window windows)
       self.assertIsNone(package_name)
 
   def testDismissCrashDialogIfNeeded_crashedPageckageFound(self):
-    sample_dumpsys_output = '''
+    sample_dumpsys_window_output = '''
 WINDOW MANAGER WINDOWS (dumpsys window windows)
   Window #11 Window{f8b647a u0 SearchPanel}:
     mDisplayId=0 mSession=Session{8 94:122} mClient=android.os.BinderProxy@1ba5
@@ -2671,16 +2671,31 @@ WINDOW MANAGER WINDOWS (dumpsys window windows)
   mCurrentFocus=Window{3a27740f u0 Application Error: com.android.chrome}
   mFocusedApp=AppWindowToken{470af6f token=Token{272ec24e ActivityRecord{t894}}}
 '''
+    sample_dumpsys_display_output = '''
+Color Fade State:
+  mPrepared=true
+  mMode=0
+  mDisplayLayerStack=0
+  mDisplayWidth=1080
+  mDisplayHeight=1920
+  mSurfaceVisible=false
+  mSurfaceAlpha=0.0
+'''
     with self.assertCalls(
         (self.call.device.RunShellCommand(
             ['dumpsys', 'window', 'windows'], check_return=True,
-            large_output=True), sample_dumpsys_output.split('\n')),
+            large_output=True), sample_dumpsys_window_output.split('\n')),
         (self.call.device.RunShellCommand(
             ['input', 'keyevent', '22'], check_return=True)),
         (self.call.device.RunShellCommand(
             ['input', 'keyevent', '22'], check_return=True)),
         (self.call.device.RunShellCommand(
             ['input', 'keyevent', '66'], check_return=True)),
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'display'], check_return=True),
+            sample_dumpsys_display_output.split('\n')),
+        (self.call.device.RunShellCommand(
+            ['input', 'swipe', '540', '960', '540', '1440'])),
         (self.call.device.RunShellCommand(
             ['dumpsys', 'window', 'windows'], check_return=True,
             large_output=True), [])):
