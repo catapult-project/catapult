@@ -328,7 +328,9 @@ tr.exportTo('tr.e.chrome', function() {
       // if the overlap is sufficiently large.
       const PRECISION_MS = 0.1;
       if (sortedTasks[i - 1].end > sortedTasks[i].start + PRECISION_MS) {
-        throw Error('Tasks must not overlap');
+        throw Error('Tasks must not overlap: [' + sortedTasks[i - 1].start +
+              ', ' + sortedTasks[i - 1].end + '] - [' + sortedTasks[i].start +
+              ', ' + sortedTasks[i].end + ']');
       }
       // Ensure that the previous task finishes not later than the current task.
       if (sortedTasks[i - 1].end > sortedTasks[i].start) {
