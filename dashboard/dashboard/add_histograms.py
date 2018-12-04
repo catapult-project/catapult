@@ -211,10 +211,10 @@ def ProcessHistogramSet(histogram_dicts):
 
   with timing.WallTimeLogger('ComputeRevision'):
     suite_key = utils.TestKey('%s/%s/%s' % (master, bot, benchmark))
-
     logging.info('Suite: %s', suite_key.id())
 
     revision = ComputeRevision(histograms)
+    logging.info('Revision: %s', revision)
 
     internal_only = graph_data.Bot.GetInternalOnlySync(master, bot)
 

@@ -205,6 +205,12 @@ indexes:
 
 - kind: SparseDiagnostic
   properties:
+  - name: test
+  - name: end_revision
+    direction: desc
+
+- kind: SparseDiagnostic
+  properties:
   - name: internal_only
   - name: start_revision
     direction: desc
