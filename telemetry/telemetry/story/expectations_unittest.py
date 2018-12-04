@@ -413,14 +413,14 @@ class TestConditionTest(unittest.TestCase):
 
   def testAndroidNexus6AOSP(self):
     self._platform.SetOSName('android')
-    self._platform.SetDeviceTypeName('motorola AOSP on Shamu')
+    self._platform.SetDeviceTypeName('AOSP on Shamu')
     self.assertTrue(
         expectations.ANDROID_NEXUS6.ShouldDisable(
             self._platform, self._finder_options))
 
   def testAndroidNexus5XAOSP(self):
     self._platform.SetOSName('android')
-    self._platform.SetDeviceTypeName('LGE AOSP on BullHead')
+    self._platform.SetDeviceTypeName('AOSP on BullHead')
     self.assertTrue(
         expectations.ANDROID_NEXUS5X.ShouldDisable(
             self._platform, self._finder_options))
@@ -428,7 +428,7 @@ class TestConditionTest(unittest.TestCase):
   def testAndroidNexus6WebviewAOSP(self):
     self._platform.SetOSName('android')
     self._finder_options.browser_type = 'android-webview'
-    self._platform.SetDeviceTypeName('motorola AOSP on Shamu')
+    self._platform.SetDeviceTypeName('AOSP on Shamu')
     self.assertTrue(
         expectations.ANDROID_NEXUS6_WEBVIEW.ShouldDisable(
             self._platform, self._finder_options))
@@ -436,7 +436,7 @@ class TestConditionTest(unittest.TestCase):
   def testAndroidNexus5XWebviewAOSP(self):
     self._platform.SetOSName('android')
     self._finder_options.browser_type = 'android-webview'
-    self._platform.SetDeviceTypeName('LGE AOSP on BullHead')
+    self._platform.SetDeviceTypeName('AOSP on BullHead')
     self.assertTrue(
         expectations.ANDROID_NEXUS5X_WEBVIEW.ShouldDisable(
             self._platform, self._finder_options))

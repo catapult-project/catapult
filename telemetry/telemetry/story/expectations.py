@@ -328,11 +328,11 @@ ALL_DESKTOP = _TestConditionByPlatformList(
 ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile')
 ANDROID_NEXUS5 = _TestConditionByAndroidModel('Nexus 5')
 _ANDROID_NEXUS5X = _TestConditionByAndroidModel('Nexus 5X')
-_ANDROID_NEXUS5XAOSP = _TestConditionByAndroidModel('LGE AOSP on BullHead')
+_ANDROID_NEXUS5XAOSP = _TestConditionByAndroidModel('AOSP on BullHead')
 ANDROID_NEXUS5X = _TestConditionLogicalOrConditions(
     [_ANDROID_NEXUS5X, _ANDROID_NEXUS5XAOSP], 'Nexus 5X')
 _ANDROID_NEXUS6 = _TestConditionByAndroidModel('Nexus 6')
-_ANDROID_NEXUS6AOSP = _TestConditionByAndroidModel('motorola AOSP on Shamu')
+_ANDROID_NEXUS6AOSP = _TestConditionByAndroidModel('AOSP on Shamu')
 ANDROID_NEXUS6 = _TestConditionLogicalOrConditions(
     [_ANDROID_NEXUS6, _ANDROID_NEXUS6AOSP], 'Nexus 6')
 ANDROID_NEXUS6P = _TestConditionByAndroidModel('Nexus 6P')
