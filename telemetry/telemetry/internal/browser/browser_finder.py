@@ -32,7 +32,7 @@ def FindBrowser(options):
   """Finds the best PossibleBrowser object given a BrowserOptions object.
 
   Args:
-    A BrowserOptions object.
+    A BrowserFinderOptions object.
 
   Returns:
     A PossibleBrowser object. None if browser does not exist in DUT.
