@@ -42,6 +42,7 @@ OAUTH_CLIENT_ID_WHITELIST = [
     # These oauth client ids are used to upload Android performance metrics.
     '528014426327-fptk0tpfi4orpcol559k77v7bi9onpq5.apps.googleusercontent.com',
     'android-metrics-dashboard@android-metrics-dashboard.iam.gserviceaccount.com',
+    '107857144893180953937',
     # This oauth client id is used by all LUCI binaries. In particular, it will
     # allow accessing the APIs by authorized users that generate tokens via
     # luci-auth command.
