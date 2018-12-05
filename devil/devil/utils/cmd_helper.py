@@ -4,6 +4,7 @@
 
 """A wrapper for subprocess to make calling shell commands easier."""
 
+import codecs
 import logging
 import os
 import pipes
@@ -20,6 +21,10 @@ from devil import base_error
 logger = logging.getLogger(__name__)
 
 _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
+
+# Cache the string-escape codec to ensure subprocess can find it
+# later. Return value doesn't matter.
+codecs.lookup('string-escape')
 
 
 def SingleQuote(s):
