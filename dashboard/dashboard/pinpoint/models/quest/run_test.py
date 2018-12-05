@@ -19,6 +19,8 @@ from dashboard.services import swarming
 
 
 _CIPD_VERSION = 'git_revision:66410e06ff82b4e79e849977e4e58c0a261d9953'
+_CPYTHON_VERSION = 'version:2.7.14.chromium14'
+_LOGDOG_BUTLER_VERSION = 'git_revision:e1abc57be62d198b5c2f487bfb2fa2d2eb0e867c'
 _VPYTHON_VERSION = 'git_revision:00e2d8b49a4e7505d1c71f19d15c9e7c5b9245a5'
 _VPYTHON_PARAMS = {
     'caches': [
@@ -33,6 +35,16 @@ _VPYTHON_PARAMS = {
             'package_name': 'infra/tools/cipd/${platform}',
         },
         'packages': [
+            {
+                'package_name': 'infra/python/cpython/${platform}',
+                'path': '.swarming_module',
+                'version': _CPYTHON_VERSION,
+            },
+            {
+                'package_name': 'infra/tools/luci/logdog/butler/${platform}',
+                'path': '.swarming_module',
+                'version': _LOGDOG_BUTLER_VERSION,
+            },
             {
                 'package_name': 'infra/tools/luci/vpython/${platform}',
                 'path': '.swarming_module',

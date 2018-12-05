@@ -107,6 +107,17 @@ class _RunTestExecutionTest(unittest.TestCase):
                 },
                 'packages': [
                     {
+                        'package_name': 'infra/python/cpython/${platform}',
+                        'path': '.swarming_module',
+                        'version': mock.ANY,
+                    },
+                    {
+                        'package_name':
+                            'infra/tools/luci/logdog/butler/${platform}',
+                        'path': '.swarming_module',
+                        'version': mock.ANY,
+                    },
+                    {
                         'package_name': 'infra/tools/luci/vpython/${platform}',
                         'path': '.swarming_module',
                         'version': mock.ANY,
