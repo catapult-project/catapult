@@ -23,6 +23,8 @@ _EXPECTATION_MAP = {
     'Skip': ResultType.Skip
 }
 
+def _group_to_string(group):
+    return ', '.join(group).replace(', ' + group[-1], ' and ' + group[-1])
 
 class ParseError(Exception):
 
@@ -110,6 +112,9 @@ class TaggedTestListParser(object):
         lines = raw_data.splitlines()
         lineno = 1
         num_lines = len(lines)
+        master_tag_set = set()
+        tag_sets_intersection = set()
+        first_tag_line = None
         while lineno <= num_lines:
             line = lines[lineno - 1].strip()
             if line.startswith(self.TAG_TOKEN):
@@ -117,6 +122,8 @@ class TaggedTestListParser(object):
                 if self.expectations:
                     raise ParseError(lineno,
                                      'Tag found after first expectation.')
+                if not first_tag_line:
+                    first_tag_line = lineno
                 right_bracket = line.find(']')
                 if right_bracket == -1:
                     # multi-line tag set
@@ -147,15 +154,27 @@ class TaggedTestListParser(object):
                             'bracket')
                     tag_set = set(
                         line[len(self.TAG_TOKEN):right_bracket].split())
+                tag_sets_intersection.update(master_tag_set & tag_set)
+                master_tag_set.update(tag_set)
                 self.tag_sets.append(tag_set)
             elif line.startswith('#') or not line:
                 # Ignore, it is just a comment or empty.
                 lineno += 1
                 continue
-            else:
+            elif not tag_sets_intersection:
                 self.expectations.append(
                     self._parse_expectation_line(lineno, line, self.tag_sets))
+            else:
+                break
             lineno += 1
+        if tag_sets_intersection:
+            is_multiple_tags = len(tag_sets_intersection) > 1
+            tag_tags = 'tags' if is_multiple_tags else 'tag'
+            was_were = 'were' if is_multiple_tags else 'was'
+            error_msg = 'The {0} {1} {2} found in multiple tag sets'.format(
+                tag_tags, _group_to_string(
+                    sorted(list(tag_sets_intersection))), was_were)
+            raise ParseError(first_tag_line, error_msg)
 
     def _parse_expectation_line(self, lineno, line, tag_sets):
         match = self.MATCHER.match(line)

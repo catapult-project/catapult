@@ -190,9 +190,53 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
                     'crbug.com/23456 [ Mac ] b1/s2 [ Skip ]')
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
+
     def testParseUnknownResult(self):
         raw_data = ('# tags: [ Mac ]\n'
                     'crbug.com/23456 [ Mac ] b1/s2 [ UnknownResult ]')
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
+
+    def testOneTagInMultipleTagsets(self):
+        raw_data = ('# tags: [ Mac Win Linux ]\n'
+                    '# tags: [ Mac BMW ]')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertEqual(
+            '1: The tag Mac was found in multiple tag sets',
+            str(context.exception))
+
+    def testTwoTagsinMultipleTagsets(self):
+        raw_data = ('\n# tags: [ Mac Linux ]\n# tags: [ Mac BMW Win ]\n'
+                    '# tags: [ Win Android ]\n# tags: [ IOS ]')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertEqual(
+            '2: The tags Mac and Win were found in multiple tag sets',
+            str(context.exception))
+
+    def testTwoPlusTagsinMultipleTagsets(self):
+        raw_data = ('\n\n# tags: [ Mac Linux ]\n# tags: [ Mac BMW Win ]\n'
+                    '# tags: [ Win Android ]\n# tags: [ IOS BMW ]')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertEqual(
+            '3: The tags BMW, Mac and Win'
+            ' were found in multiple tag sets',
+            str(context.exception))
+
+    def testTwoTagsetPairsSharingTags(self):
+        raw_data = ('\n\n\n# tags: [ Mac Linux Win ]\n# tags: [ Mac BMW Win ]\n'
+                    '# tags: [ Android ]\n# tags: [ IOS Android ]')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertEqual(
+            '4: The tags Android, Mac and Win'
+            ' were found in multiple tag sets',
+            str(context.exception))
+
+    def testDisjoinTagsets(self):
+        raw_data = ('# tags: [ Mac Win Linux ]\n'
+                    '# tags: [ Honda BMW ]')
+        expectations_parser.TaggedTestListParser(raw_data)
 
