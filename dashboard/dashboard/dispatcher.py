@@ -61,6 +61,7 @@ from dashboard.api import list_timeseries
 from dashboard.api import report_generate
 from dashboard.api import report_names
 from dashboard.api import report_template
+from dashboard.api import sheriffs
 from dashboard.api import test_suites
 from dashboard.api import timeseries
 from dashboard.api import timeseries2
@@ -81,6 +82,7 @@ _URL_MAPPING = [
     (r'/api/report/generate', report_generate.ReportGenerateHandler),
     (r'/api/report/names', report_names.ReportNamesHandler),
     (r'/api/report/template', report_template.ReportTemplateHandler),
+    (r'/api/sheriffs', sheriffs.SheriffsHandler),
     (r'/api/test_suites', test_suites.TestSuitesHandler),
     (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
     (r'/api/timeseries2', timeseries2.Timeseries2Handler),

@@ -29,6 +29,13 @@ suite('alerts-controls', function() {
           }
         };
       }
+      if (url === '/api/sheriffs') {
+        return {
+          async json() {
+            return ['ccc', 'ddd'];
+          }
+        };
+      }
     };
     localStorage.setItem('recentlyModifiedBugs', JSON.stringify([
       {id: 42, summary: 'bbb'},
@@ -71,14 +78,12 @@ suite('alerts-controls', function() {
       e.tagName === 'A' && e.href === 'http://crbug.com/42' &&
       e.textContent.trim() === '42'));
     assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /bbb/));
+    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /ccc/));
+    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /ddd/));
   });
 
   test('change', async function() {
     const controls = fixture('test');
-    controls.dispatch(Redux.UPDATE('test.sheriff', cp.MenuInput.buildState({
-      label: 'Sheriff',
-      options: ['ccc', 'ddd'],
-    })));
     let sources;
     controls.addEventListener('sources', e => {
       sources = e.detail.sources;

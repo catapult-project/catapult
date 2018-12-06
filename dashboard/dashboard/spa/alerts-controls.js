@@ -195,8 +195,19 @@ tr.exportTo('cp', () => {
       }));
     },
 
+    loadSheriffs: statePath => async(dispatch, getState) => {
+      const sheriffs = await new cp.SheriffsRequest().response;
+      dispatch({
+        type: AlertsControls.reducers.receiveSheriffs.name,
+        statePath,
+        sheriffs,
+      });
+      dispatch(cp.MenuInput.actions.focus(statePath + '.sheriff'));
+    },
+
     connected: statePath => async(dispatch, getState) => {
       AlertsControls.actions.loadReportNames(statePath)(dispatch, getState);
+      AlertsControls.actions.loadSheriffs(statePath)(dispatch, getState);
       dispatch({
         type: AlertsControls.reducers.receiveRecentlyModifiedBugs.name,
         statePath,
@@ -213,6 +224,15 @@ tr.exportTo('cp', () => {
   };
 
   AlertsControls.reducers = {
+    receiveSheriffs: (state, {sheriffs}, rootState) => {
+      const sheriff = cp.MenuInput.buildState({
+        label: `Sheriffs (${sheriffs.length})`,
+        options: sheriffs,
+        selectedOptions: state.sheriff ? state.sheriff.selectedOptions : [],
+      });
+      return {...state, sheriff};
+    },
+
     onBugKeyup: (state, action, rootState) => {
       const options = state.bug.options.filter(option => !option.manual);
       const bugIds = options.map(option => option.value);
