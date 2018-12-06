@@ -12,6 +12,7 @@ import fnmatch
 import re
 
 from collections import OrderedDict
+from collections import defaultdict
 
 from typ.json_results import ResultType
 
@@ -24,7 +25,9 @@ _EXPECTATION_MAP = {
 }
 
 def _group_to_string(group):
-    return ', '.join(group).replace(', ' + group[-1], ' and ' + group[-1])
+    msg = ', '.join(group)
+    k = msg.rfind(', ')
+    return msg[:k] + ' and ' + msg[k+2:] if k != -1 else msg
 
 class ParseError(Exception):
 
@@ -106,13 +109,13 @@ class TaggedTestListParser(object):
     def __init__(self, raw_data):
         self.tag_sets = []
         self.expectations = []
+        self._tag_to_tag_set = {}
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
         lines = raw_data.splitlines()
         lineno = 1
         num_lines = len(lines)
-        master_tag_set = set()
         tag_sets_intersection = set()
         first_tag_line = None
         while lineno <= num_lines:
@@ -154,16 +157,17 @@ class TaggedTestListParser(object):
                             'bracket')
                     tag_set = set(
                         line[len(self.TAG_TOKEN):right_bracket].split())
-                tag_sets_intersection.update(master_tag_set & tag_set)
-                master_tag_set.update(tag_set)
+                tag_sets_intersection.update(
+                    (t for t in tag_set if t in self._tag_to_tag_set))
                 self.tag_sets.append(tag_set)
+                self._tag_to_tag_set.update({tg: id(tag_set) for tg in tag_set})
             elif line.startswith('#') or not line:
                 # Ignore, it is just a comment or empty.
                 lineno += 1
                 continue
             elif not tag_sets_intersection:
                 self.expectations.append(
-                    self._parse_expectation_line(lineno, line, self.tag_sets))
+                    self._parse_expectation_line(lineno, line))
             else:
                 break
             lineno += 1
@@ -176,18 +180,32 @@ class TaggedTestListParser(object):
                     sorted(list(tag_sets_intersection))), was_were)
             raise ParseError(first_tag_line, error_msg)
 
-    def _parse_expectation_line(self, lineno, line, tag_sets):
+    def _parse_expectation_line(self, lineno, line):
         match = self.MATCHER.match(line)
         if not match:
             raise ParseError(lineno, 'Syntax error: %s' % line)
 
         # Unused group is optional trailing comment.
         reason, raw_tags, test, raw_results, _ = match.groups()
-
         tags = raw_tags.split() if raw_tags else []
-        for tag in tags:
-            if not any(tag in tag_set for tag_set in tag_sets):
-                raise ParseError(lineno, 'Unknown tag "%s"' % tag)
+        tag_set_ids = set()
+
+        for t in tags:
+            if not t in self._tag_to_tag_set:
+                raise ParseError(lineno, 'Unknown tag "%s"' % t)
+            else:
+                tag_set_ids.add(self._tag_to_tag_set[t])
+
+        if len(tag_set_ids) != len(tags):
+            error_msg = ('The tag group contains tags that are '
+                         'part of the same tag set')
+            tags_by_tag_set_id = defaultdict(list)
+            for t in tags:
+                tags_by_tag_set_id[self._tag_to_tag_set[t]].append(t)
+            for tag_intersection in tags_by_tag_set_id.values():
+                error_msg += ('\n  - Tags %s are part of the same tag set' %
+                              _group_to_string(sorted(tag_intersection)))
+            raise ParseError(lineno, error_msg)
 
         results = []
         for r in raw_results.split():

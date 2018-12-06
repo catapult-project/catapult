@@ -103,11 +103,17 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
 
     def testParseExpectationLineMultipleTags(self):
         raw_data = ('# tags: [ All None Batman ]\n'
-                    'crbug.com/123 [ All None Batman ] b1/s1 [ Skip ]')
+                    'crbug.com/123 [ All ] b1/s1 [ Skip ]\n'
+                    'crbug.com/124 [ None ] b1/s2 [ Pass ]\n'
+                    'crbug.com/125 [ Batman ] b1/s3 [ Failure ]')
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation(
-                'crbug.com/123', 'b1/s1', ['All', 'None', 'Batman'], ['SKIP']),
+                'crbug.com/123', 'b1/s1', ['All'], ['SKIP']),
+            expectations_parser.Expectation(
+                'crbug.com/124', 'b1/s2', ['None'], ['PASS']),
+            expectations_parser.Expectation(
+                'crbug.com/125', 'b1/s3', ['Batman'], ['FAIL'])
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -240,3 +246,42 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
                     '# tags: [ Honda BMW ]')
         expectations_parser.TaggedTestListParser(raw_data)
 
+    def testEachTagInGroupIsNotFromDisjointTagSets(self):
+        raw_data = (
+            '# tags: [ Mac Win Amd Intel]\n'
+            '# tags: [Linux Batman Robin Superman]\n'
+            'crbug.com/23456 [ Mac Win Amd Robin Linux ] b1/s1 [ Pass ]\n')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertIn(
+            '3: The tag group contains tags '
+            'that are part of the same tag set\n',
+            str(context.exception))
+        self.assertIn('  - Tags Linux and Robin are part of the same tag set',
+                      str(context.exception))
+        self.assertIn('  - Tags Amd, Mac and Win are part of the same tag set',
+                      str(context.exception))
+
+    def testEachTagInGroupIsFromDisjointTagSets(self):
+        raw_data = (
+            '# tags: [ Mac Win Linux ]\n'
+            '# tags: [ Batman Robin Superman ]\n'
+            '# tags: [ Android Iphone ]\n'
+            'crbug.com/23456 [ Android Mac Superman ] b1/s1 [ Failure ]\n'
+            'crbug.com/23457 [ Iphone Win Robin ] b1/s2 [ Pass ]\n'
+            'crbug.com/23458 [ Android Linux  ] b1/s3 [ Pass ]\n'
+            'crbug.com/23459 [ Batman ] b1/s4 [ Skip ]\n')
+        expectations_parser.TaggedTestListParser(raw_data)
+
+    def testDuplicateTagsInGroupRaisesError(self):
+        raw_data = (
+            '# tags: [ Mac Win Linux ]\n'
+            '# tags: [ Batman Robin Superman ]\n'
+            'crbug.com/23456 [ Batman Batman Batman ] b1/s1 [ Failure ]\n')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertIn('3: The tag group contains '
+                      'tags that are part of the same tag set\n',
+                      str(context.exception))
+        self.assertIn('  - Tags Batman, Batman and Batman are'
+                      ' part of the same tag set', str(context.exception))
