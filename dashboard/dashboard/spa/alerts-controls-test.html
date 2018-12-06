@@ -96,7 +96,7 @@ suite('alerts-controls', function() {
     await cp.afterRender();
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
-    assert.strictEqual(10, sources[0].minRevision);
+    assert.strictEqual(10, sources[0].min_end_revision);
 
     controls.$['max-revision'].dispatchEvent(new CustomEvent('keyup', {
       detail: {value: '20'},
@@ -104,26 +104,26 @@ suite('alerts-controls', function() {
     await cp.afterRender();
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
-    assert.strictEqual(10, sources[0].minRevision);
-    assert.strictEqual(20, sources[0].maxRevision);
-    assert.isFalse(sources[0].improvements);
+    assert.strictEqual(10, sources[0].min_end_revision);
+    assert.strictEqual(20, sources[0].max_start_revision);
+    assert.isFalse(sources[0].is_improvement);
 
     controls.$.improvements.click();
     await cp.afterRender();
     assert.strictEqual('ccc', sources[0].sheriff);
-    assert.isTrue(sources[0].improvements);
-    assert.strictEqual(10, sources[0].minRevision);
-    assert.strictEqual(20, sources[0].maxRevision);
+    assert.isTrue(sources[0].is_improvement);
+    assert.strictEqual(10, sources[0].min_end_revision);
+    assert.strictEqual(20, sources[0].max_start_revision);
 
     tr.ui.b.findDeepElementWithTextContent(controls, /ddd/).click();
     await cp.afterRender();
     assert.lengthOf(sources, 2);
     assert.strictEqual('ccc', sources[0].sheriff);
-    assert.strictEqual(10, sources[0].minRevision);
-    assert.strictEqual(20, sources[0].maxRevision);
+    assert.strictEqual(10, sources[0].min_end_revision);
+    assert.strictEqual(20, sources[0].max_start_revision);
     assert.strictEqual('ddd', sources[1].sheriff);
-    assert.strictEqual(10, sources[1].minRevision);
-    assert.strictEqual(20, sources[1].maxRevision);
+    assert.strictEqual(10, sources[1].min_end_revision);
+    assert.strictEqual(20, sources[1].max_start_revision);
 
     tr.ui.b.findDeepElementWithTextContent(controls, /ccc/).click();
     tr.ui.b.findDeepElementWithTextContent(controls, /ddd/).click();
@@ -131,8 +131,8 @@ suite('alerts-controls', function() {
     await cp.afterRender();
     assert.lengthOf(sources, 1);
     assert.strictEqual(42, sources[0].report);
-    assert.strictEqual(10, sources[0].minRevision);
-    assert.strictEqual(20, sources[0].maxRevision);
+    assert.strictEqual(10, sources[0].min_end_revision);
+    assert.strictEqual(20, sources[0].max_start_revision);
 
     tr.ui.b.findDeepElementWithTextContent(controls, /aaa/).click();
     controls.$.bug.dispatchEvent(new CustomEvent('input-keyup', {
@@ -142,9 +142,9 @@ suite('alerts-controls', function() {
     tr.ui.b.findDeepElementWithTextContent(controls, /123/).click();
     await cp.afterRender();
     assert.lengthOf(sources, 1);
-    assert.strictEqual('123', sources[0].bug);
-    assert.strictEqual(10, sources[0].minRevision);
-    assert.strictEqual(20, sources[0].maxRevision);
+    assert.strictEqual('123', sources[0].bug_id);
+    assert.strictEqual(10, sources[0].min_end_revision);
+    assert.strictEqual(20, sources[0].max_start_revision);
   });
 });
 </script>

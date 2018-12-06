@@ -142,7 +142,6 @@ tr.exportTo('cp', () => {
     hasTriagedExisting: options => false,
     hasIgnored: options => false,
     ignoredCount: options => 0,
-    isLoading: options => false,
     maxRevision: options => options.maxRevision || '',
     minRevision: options => options.minRevision || '',
     recentlyModifiedBugs: options => [],
@@ -151,10 +150,6 @@ tr.exportTo('cp', () => {
       options: [],
       selectedOptions: options.reports || [],
     }),
-    sectionId: options => 0,
-    selectedAlertPath: options => undefined,
-    selectedAlertsCount: options => 0,
-    selectedAlertsCount: options => 0,
     sheriff: options => cp.MenuInput.buildState({
       label: 'Sheriff',
       options: [],
@@ -261,20 +256,22 @@ tr.exportTo('cp', () => {
 
   AlertsControls.compileSources = async(
     sheriffs, bugs, reports, minRevision, maxRevision, improvements) => {
+    // Returns a list of AlertsRequest bodies. See ../api/alerts.py for
+    // request body parameters.
     const revisions = {
-      minRevision: maybeInt(minRevision),
-      maxRevision: maybeInt(maxRevision),
+      min_end_revision: maybeInt(minRevision),
+      max_start_revision: maybeInt(maxRevision),
     };
     const sources = [];
     for (const sheriff of sheriffs) {
       sources.push({
         sheriff,
-        improvements,
+        is_improvement: improvements,
         ...revisions,
       });
     }
     for (const bug of bugs) {
-      sources.push({bug, ...revisions});
+      sources.push({bug_id: bug, ...revisions});
     }
     if (reports.length) {
       const reportTemplateInfos = await new cp.ReportNamesRequest().response;

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/alerts-controls.html">
+<link rel="import" href="/dashboard/spa/alerts-request.html">
+<link rel="import" href="/dashboard/spa/alerts-table.html">
+<link rel="import" href="/dashboard/spa/cp-loading.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/existing-bug-request.html">
+<link rel="import" href="/dashboard/spa/new-bug-request.html">
+<link rel="import" href="/dashboard/spa/triage-existing.html">
+<link rel="import" href="/dashboard/spa/triage-new.html">
+<link rel="import" href="/dashboard/static/group_alerts.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
+
+<dom-module id="alerts-section">
+  <template>
+    <style>
+      #triage_controls {
+        align-items: center;
+        display: flex;
+        padding-left: 24px;
+        transition: background-color var(--transition-short, 0.2s), color var(--transition-short, 0.2s);
+      }
+
+      #triage_controls[anySelected] {
+        background-color: var(--primary-color-light, lightblue);
+        color: var(--primary-color-dark, blue);
+      }
+
+      #triage_controls .button {
+        background: unset;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 8px;
+        text-transform: uppercase;
+      }
+
+      #triage_controls .button[disabled] {
+        color: var(--neutral-color-dark, grey);
+        font-weight: normal;
+      }
+
+      #count {
+        flex-grow: 1;
+      }
+    </style>
+
+    <alerts-controls
+        id="controls"
+        state-path="[[statePath]]"
+        on-sources="onSources_">
+    </alerts-controls>
+
+    <cp-loading loading$="[[isLoading]]">
+    </cp-loading>
+
+    <template is="dom-if" if="[[!isEmpty_(alertGroups)]]">
+      <div id="triage_controls"
+           anySelected$="[[!isEqual_(0, selectedAlertsCount)]]">
+        <div id="count">
+          [[selectedAlertsCount]] selected
+          alert[[plural_(selectedAlertsCount)]]
+        </div>
+
+        <span style="position: relative;">
+          <div class="button"
+              disabled$="[[!canTriage_(alertGroups)]]"
+              on-click="onTriageNew_">
+            New Bug
+          </div>
+
+          <triage-new
+              tabindex="0"
+              state-path="[[statePath]].newBug"
+              on-submit="onTriageNewSubmit_">
+          </triage-new>
+        </span>
+
+        <span style="position: relative;">
+          <div class="button"
+              disabled$="[[!canTriage_(alertGroups)]]"
+              on-click="onTriageExisting_">
+            Existing Bug
+          </div>
+
+          <triage-existing
+              tabindex="0"
+              state-path="[[statePath]].existingBug"
+              on-submit="onTriageExistingSubmit_">
+          </triage-existing>
+        </span>
+
+        <div class="button"
+            disabled$="[[!canTriage_(alertGroups)]]"
+            on-click="onIgnore_">
+          Ignore
+        </div>
+
+        <div class="button"
+            disabled$="[[!canUnassignAlerts_(alertGroups)]]"
+            on-click="onUnassign_">
+          Unassign
+        </div>
+      </div>
+    </template>
+
+    <alerts-table
+        state-path="[[statePath]]"
+        on-select-alert="onSelectAlert_"
+        on-sort="onSort_">
+    </alerts-table>
+
+    <!-- TODO chart-complex -->
+  </template>
+</dom-module>
+<script src="/dashboard/spa/alerts-section.js"></script>

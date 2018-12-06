@@ -351,10 +351,7 @@ tr.exportTo('cp', () => {
       this.errors_ = [];
       this.promises_ = new Set();
 
-      for (let task of tasks) {
-        if (task instanceof Promise) task = asGenerator(task);
-        this.generate_(task);
-      }
+      for (const task of tasks) this.add(task);
 
       this.getDelay_ = ms => {
         const promise = getDelay(ms).then(() => {
@@ -362,6 +359,11 @@ tr.exportTo('cp', () => {
         });
         return promise;
       };
+    }
+
+    add(task) {
+      if (task instanceof Promise) task = asGenerator(task);
+      this.generate_(task);
     }
 
     // Adds a Promise to this.promises_ that resolves when the generator next

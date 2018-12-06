@@ -11,14 +11,18 @@ CATAPULT_PATH = os.path.normpath(os.path.join(
 SOUNDWAVE_PATH = os.path.join(CATAPULT_PATH, 'experimental', 'soundwave')
 PY_UTILS_PATH = os.path.join(CATAPULT_PATH, 'common', 'py_utils')
 TRACING_PATH = os.path.join(CATAPULT_PATH, 'tracing')
+MOCK_PATH = os.path.join(CATAPULT_PATH, 'third_party', 'mock')
 
 sys.path.append(CATAPULT_PATH)
 from catapult_build import run_with_typ
 
 
 def main():
-  return run_with_typ.Run(
-      top_level_dir=SOUNDWAVE_PATH, path=[PY_UTILS_PATH, TRACING_PATH])
+  return run_with_typ.Run(top_level_dir=SOUNDWAVE_PATH, path=[
+      PY_UTILS_PATH,
+      TRACING_PATH,
+      MOCK_PATH,
+  ])
 
 
 if __name__ == '__main__':
