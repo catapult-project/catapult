@@ -132,6 +132,7 @@ tracing_js_html_files = [
   "tracing/extras/importer/linux_perf/parser.html",
   "tracing/extras/importer/linux_perf/power_parser.html",
   "tracing/extras/importer/linux_perf/regulator_parser.html",
+  "tracing/extras/importer/linux_perf/rss_parser.html",
   "tracing/extras/importer/linux_perf/sched_parser.html",
   "tracing/extras/importer/linux_perf/sync_parser.html",
   "tracing/extras/importer/linux_perf/workqueue_parser.html",
