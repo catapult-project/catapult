@@ -372,13 +372,6 @@ tr.b.unittest.testSuite(function() {
     );
   });
 
-  test('maxExpectedQueueingTimeInSlidingWindow_overlappingTasksThrow', () => {
-    assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 100, 10,
-        [{start: 0, end: 100}, {start: 99, end: 101}]),
-    'Tasks must not overlap'
-    );
-  });
-
   test('maxExpectedQueueingTimeInSlidingWindow_smallOverlapIsTolerated', () => {
     // Allow small floating-point precision error when comparing task
     // end-points for overlapping.
@@ -386,14 +379,6 @@ tr.b.unittest.testSuite(function() {
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
             [{start: 0, end: 100.02}, {start: 100.0, end: 200}]),
         1e-6);
-  });
-
-  test('maxExpectedQueueingTimeInSlidingWindow_largeOverlapThrows', () => {
-    // Overlap larger than 0.1 should trigger exception.
-    assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 100, 10,
-        [{start: 0, end: 100.11}, {start: 100.0, end: 101}]),
-    'Tasks must not overlap'
-    );
   });
 });
 </script>

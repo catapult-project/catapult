@@ -319,20 +319,9 @@ tr.exportTo('tr.e.chrome', function() {
     const sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
 
     for (let i = 1; i < sortedTasks.length; i++) {
-      // Due to floating-point precision errors it might happen that the end
-      // of the previous task is larger than the start of the current task.
-      // Here is an example from a real trace:
-      // Task 1: start=25851.0181016922 end=25851.0481016922
-      // Task 2: start=25851.0251016616 end=34496.0291013717.
-      // To account for precision errors we consider tasks as overlapping
-      // if the overlap is sufficiently large.
-      const PRECISION_MS = 0.1;
-      if (sortedTasks[i - 1].end > sortedTasks[i].start + PRECISION_MS) {
-        throw Error('Tasks must not overlap: [' + sortedTasks[i - 1].start +
-              ', ' + sortedTasks[i - 1].end + '] - [' + sortedTasks[i].start +
-              ', ' + sortedTasks[i].end + ']');
-      }
       // Ensure that the previous task finishes not later than the current task.
+      // This can happen with short trace events late in the timeline, when
+      // floating point errors increasingly come into play.
       if (sortedTasks[i - 1].end > sortedTasks[i].start) {
         const midpoint = (sortedTasks[i - 1].end + sortedTasks[i].start) / 2;
         sortedTasks[i - 1].end = midpoint;
