@@ -48,6 +48,19 @@ git checkout master
 git branch -D foo
 ```
 
+# Troubleshooting
+
+If you get errors running git cl:
+```
+Credentials for the following hosts are required:
+  github-review.com
+  github.com
+```
+Then you cloned the github url of this repository. That confuses git cl /o\.
+To make things work, you'll need to re-clone from
+https://chromium.googlesource.com/catapult for things to work.
+
+
 # Becoming a committer
 
 If you're new to the chromium-family of projects, you will also need to sign the
