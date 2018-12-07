@@ -18,6 +18,31 @@ tr.exportTo('tr.metrics.tabs', function() {
       // Chrome isn't present.
       return;
     }
+
+    const tabSwitchRequestDelays = [];
+    const TAB_SWITCHING_REQUEST_TITLE = 'TabSwitchVisibilityRequest';
+    // initialization, *startTabSwitchVisibilityRequest stores the
+    // first legal TabSwitchVisibilityRequest's start time.
+    let startTabSwitchVisibilityRequest = Number.MAX_SAFE_INTEGER;
+    for (const helper of chromeHelper.browserHelpers) {
+      if (!helper.mainThread) continue;
+      for (const slice of helper.mainThread.asyncSliceGroup.slices) {
+        if (slice.title === TAB_SWITCHING_REQUEST_TITLE && !slice.error) {
+          tabSwitchRequestDelays.push(slice.duration);
+          // find the first legal TabSwitchVisibilityRequest's start time
+          if (slice.start < startTabSwitchVisibilityRequest) {
+            startTabSwitchVisibilityRequest = slice.start;
+          }
+        }
+      }
+    }
+
+    histograms.createHistogram('tab_switching_request_delay',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tabSwitchRequestDelays, {
+          description: 'Delay before tab-request is made',
+          summaryOptions: {sum: false}});
+
     const tabSwitchLatencies = [];
     const TAB_SWITCHING_SLICE_TITLE = 'TabSwitching::Latency';
 
@@ -29,7 +54,10 @@ tr.exportTo('tr.metrics.tabs', function() {
         const thread = helper.mainThread;
         for (const slice of thread.asyncSliceGroup.slices) {
           if (slice.title === TAB_SWITCHING_SLICE_TITLE &&
-              (legacy || slice.args.latency)) {
+              (legacy || slice.args.latency) &&
+              slice.start > startTabSwitchVisibilityRequest) {
+            // push legal tabSwitchLatency which only starts after the
+            // first legal TabSwitchVisibilityRequest's start time
             tabSwitchLatencies.push(
                 legacy ? slice.duration : slice.args.latency);
           }
@@ -47,22 +75,6 @@ tr.exportTo('tr.metrics.tabs', function() {
     histograms.createHistogram('tab_switching_latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tabSwitchLatencies, { description: 'Tab switching time in ms',
-          summaryOptions: {sum: false}});
-
-    const tabSwitchRequestDelays = [];
-    const TAB_SWITCHING_REQUEST_TITLE = 'TabSwitchVisibilityRequest';
-    for (const helper of chromeHelper.browserHelpers) {
-      if (!helper.mainThread) continue;
-      for (const slice of helper.mainThread.asyncSliceGroup.slices) {
-        if (slice.title === TAB_SWITCHING_REQUEST_TITLE && !slice.error) {
-          tabSwitchRequestDelays.push(slice.duration);
-        }
-      }
-    }
-    histograms.createHistogram('tab_switching_request_delay',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        tabSwitchRequestDelays, {
-          description: 'Delay before tab-request is made',
           summaryOptions: {sum: false}});
   }
 
