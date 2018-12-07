@@ -2236,28 +2236,6 @@ class DeviceUtils(object):
     """
     return self.GetProp('persist.sys.country', cache=cache)
 
-  def GetResolution(self):
-    """Returns a (width, height) tuple of the device's display resolution.
-
-    Raises:
-      CommandFailedError if the resolution is unable to be determined.
-    """
-    # There doesn't currently seem to be a way to get the resolution via getprop
-    # so instead we need to dump the display data and manually parse it.
-    display_data = self.RunShellCommand(
-        ['dumpsys', 'display'], check_return=True)
-    display_width = 0
-    display_height = 0
-    for line in display_data:
-      if 'mDisplayWidth' in line:
-        display_width = int(line.split('=')[1].strip())
-      elif 'mDisplayHeight' in line:
-        display_height = int(line.split('=')[1].strip())
-      if display_width and display_height:
-        return (display_width, display_height)
-    raise device_errors.CommandFailedError(
-        'Unable to determine screen resolution')
-
   @property
   def screen_density(self):
     """Returns the screen density of the device."""
@@ -2730,18 +2708,6 @@ class DeviceUtils(object):
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_ENTER)
-    # Workaround for https://crbug.com/908917
-    # Inputting keyevents over adb causes Chrome's web contents to be slightly
-    # darker, because Android. This normally isn't an issue, but can cause
-    # problems with pixel diff tests that have the web contents in view.
-    # This issue goes away after any sort of touchscreen input is used, so
-    # perform a "swipe" down in the middle of the screen, which shouldn't be
-    # able to select something accidentally like a tap could.
-    display_width, display_height = self.GetResolution()
-    self.RunShellCommand(
-        ['input', 'swipe',
-         str(display_width / 2), str(display_height / 2),
-         str(display_width / 2), str(3 * display_height / 4)])
     match = _FindFocusedWindow()
     if match:
       logger.error('Still showing a %s dialog for %s', *match.groups())
