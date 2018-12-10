@@ -40,6 +40,10 @@ def main():
   subparser = subparsers.add_parser(
       'get-csv', help='download the perf results from jobs as a csv file')
   subparser.add_argument(
+      '--only-differences', action='store_true',
+      help='on bisect jobs, only get data for changes immediately before/after'
+           ' differences in the comparison metric.')
+  subparser.add_argument(
       '--output', metavar='OUTPUT_CSV', default='job_results.csv',
       help='path to a file where to store perf results as a csv file'
            ' (default: %(default)s)')
@@ -60,7 +64,8 @@ def main():
   if args.action == 'status':
     return commands.CheckJobStatus(args.job_ids)
   elif args.action == 'get-csv':
-    return commands.DownloadJobResultsAsCsv(args.job_ids, args.output)
+    return commands.DownloadJobResultsAsCsv(
+        args.job_ids, args.only_differences, args.output)
   elif args.action == 'start-job':
     return commands.StartJobFromConfig(args.config_path)
   else:

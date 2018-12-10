@@ -13,7 +13,7 @@ def ChangeToStr(change):
   return change_id
 
 
-def IterTestOutputIsolates(job):
+def IterTestOutputIsolates(job, only_differences=False):
   """Iterate over test execution results for all changes tested in the job.
 
   Args:
@@ -25,6 +25,9 @@ def IterTestOutputIsolates(job):
   """
   quests = job['quests']
   for change_state in job['state']:
+    if only_differences and not any(
+        v == 'different' for v in change_state['comparisons'].itervalues()):
+      continue
     change_id = ChangeToStr(change_state['change'])
     for attempt in change_state['attempts']:
       executions = dict(zip(quests, attempt['executions']))

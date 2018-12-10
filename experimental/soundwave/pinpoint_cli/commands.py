@@ -33,7 +33,7 @@ def CheckJobStatus(job_ids):
     print '%s: %s' % (job_id, job['status'].lower())
 
 
-def DownloadJobResultsAsCsv(job_ids, output_file):
+def DownloadJobResultsAsCsv(job_ids, only_differences, output_file):
   """Download the perf results of a job as a csv file."""
   with open(output_file, 'wb') as f:
     writer = csv.writer(f)
@@ -45,7 +45,8 @@ def DownloadJobResultsAsCsv(job_ids, output_file):
       results_file = os_path.join(
           job['arguments']['benchmark'], 'perf_results.json')
       print 'Fetching results for %s job %s:' % (job['status'].lower(), job_id)
-      for change_id, isolate_hash in job_results.IterTestOutputIsolates(job):
+      for change_id, isolate_hash in job_results.IterTestOutputIsolates(
+          job, only_differences):
         print '- isolate: %s ...' % isolate_hash
         histograms = isolate_service.RetrieveFile(isolate_hash, results_file)
         for row in histograms_df.IterRows(json.loads(histograms)):
