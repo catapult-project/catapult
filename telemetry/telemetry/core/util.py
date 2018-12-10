@@ -1,6 +1,7 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import glob
 import imp
 import logging
@@ -112,6 +113,30 @@ def GetBuildDirectories(chrome_root=None):
     for build_dir in build_dirs:
       for build_type in build_types:
         yield os.path.join(chrome_root, build_dir, build_type)
+
+
+def FindLatestApkOnHost(chrome_root, apk_name):
+  """Chooses the path to the APK that was updated latest.
+
+  If CHROMIUM_OUTPUT_DIR environment variable is set, the search is limited to
+  checking one APK file in that directory.
+
+  Args:
+    chrome_root: Path to chrome src/.
+    apk_name: The name of the APK file to find (example: 'MapsWebApk.apk').
+  Returns:
+    The absolute path to the latest APK found.
+  """
+  found_apk_path = None
+  latest_mtime = 0
+  for build_path in GetBuildDirectories(chrome_root):
+    apk_path = os.path.join(build_path, 'apks', apk_name)
+    if os.path.exists(apk_path):
+      mtime = os.path.getmtime(apk_path)
+      if mtime > latest_mtime:
+        latest_mtime = mtime
+        found_apk_path = apk_path
+  return found_apk_path
 
 
 def GetSequentialFileName(base_name):

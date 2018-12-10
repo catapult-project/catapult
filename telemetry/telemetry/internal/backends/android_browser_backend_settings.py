@@ -77,7 +77,7 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
     if apk_name is None:
       return None
     else:
-      return _FindLocalApk(chrome_root, apk_name)
+      return util.FindLatestApkOnHost(chrome_root, apk_name)
 
 
 class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
@@ -146,17 +146,14 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
       return 'SystemWebView.apk'
 
   def FindEmbedderApk(self, apk_path, chrome_root):
+    # Try to find the embedder next to the local APK found.
     if apk_path is not None:
-      # Try to find the embedder next to the local apk found.
       embedder_apk_path = os.path.join(
           os.path.dirname(apk_path), self.embedder_apk_name)
       if os.path.exists(embedder_apk_path):
         return embedder_apk_path
-    if chrome_root is not None:
-      # Otherwise fall back to an APK found on chrome_root
-      return _FindLocalApk(chrome_root, self.embedder_apk_name)
-    else:
-      return None
+    # Otherwise fall back to an APK found among possible build directories.
+    return util.FindLatestApkOnHost(chrome_root, self.embedder_apk_name)
 
 
 class WebViewGoogleBackendSettings(WebViewBackendSettings):
@@ -231,18 +228,3 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROME_CANARY,
     ANDROID_SYSTEM_CHROME
 )
-
-
-def _FindLocalApk(chrome_root, apk_name):
-  found_apk_path = None
-  found_last_changed = None
-  for build_path in util.GetBuildDirectories(chrome_root):
-    apk_path = os.path.join(build_path, 'apks', apk_name)
-    if os.path.exists(apk_path):
-      last_changed = os.path.getmtime(apk_path)
-      # Keep the most recently updated apk only.
-      if found_last_changed is None or last_changed > found_last_changed:
-        found_apk_path = apk_path
-        found_last_changed = last_changed
-
-  return found_apk_path
