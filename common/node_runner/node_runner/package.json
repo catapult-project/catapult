@@ -15,6 +15,7 @@
   "gypfile": false,
   "private": true,
   "dependencies": {
+    "chops-wct-runner": "^0.0.1",
     "dom5": "^1.0.0",
     "escodegen": "^1.11.0",
     "eslint": "^4.0.0",

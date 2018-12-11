@@ -6,9 +6,9 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "5750e968975e7f5ab8cb694f5e92a34a890e129d",
+          "cloud_storage_hash": "27ad092b0ce59d2da32090a00f717f0c31e65240",
           "download_path": "bin/node/node-linux64.zip",
-          "path_within_archive": "node-v6.7.0-linux-x64/bin/node",
+          "path_within_archive": "node-v10.14.1-linux-x64/bin/node",
           "version_in_cs": "6.7.0"
         },
         "mac_x86_64": {

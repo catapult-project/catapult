@@ -65,7 +65,6 @@ _CATAPULT_TESTS = [
         'name': 'Dashboard WCT Tests',
         'path': 'dashboard/bin/run_wct_tests',
         'disabled': ['android', 'win', 'mac'],
-        'uses_wct': True,
     },
     {
         'name': 'Dependency Manager Tests',
@@ -281,8 +280,6 @@ def main(args=None):
       step['env']['CHROME_DEVEL_SANDBOX'] = '/opt/chromium/chrome_sandbox'
     if test.get('outputs_presentation_json'):
       step['outputs_presentation_json'] = True
-    if test.get('uses_wct'):
-      step['env']['WCT'] = args.wct_path
     steps.append(step)
   with open(args.output_json, 'w') as outfile:
     json.dump(steps, outfile)
