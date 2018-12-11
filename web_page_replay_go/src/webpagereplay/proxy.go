@@ -61,50 +61,6 @@ func updateDates(h http.Header, now time.Time) {
 	updateDate(h, "Expires", now, oldNow)
 }
 
-// updateContentSecurityPolicy add "unsafe-inline" to the "Content-Security-Policy" header. This
-// allows a page under replay to execute the scripts WPR injects.
-func updateContentSecurityPolicy(h http.Header) {
-	oldContentSecurityPolicy := h.Get("Content-Security-Policy")
-	if oldContentSecurityPolicy == "" {
-		return
-	}
-
-	tokens := strings.Split(oldContentSecurityPolicy, ";")
-	for i := 0; i < len(tokens); i++ {
-		token := strings.Trim(tokens[i], " ")
-
-		// If a request contains the script-src token but not the 'unsafe-inline' rule,
-		// add the rule to the script-src.
-		if strings.HasPrefix(token, "script-src ") {
-			// Break 'script src' into more tokens, and remove any nounce or hashes that will
-			// invalidate the 'unsafe-inline' rule.
-			scriptSrcTokensList := strings.Split(token, " ")
-			newScriptSrcToken := "script-src 'unsafe-inline' "
-
-			for j := 1; j < len(scriptSrcTokensList); j++ {
-				scriptSrcToken := strings.Trim(scriptSrcTokensList[j], " ")
-				if !strings.HasPrefix(scriptSrcToken, "'nonce-") &&
-					!strings.HasPrefix(scriptSrcToken, "'sha256-") &&
-					!strings.HasPrefix(scriptSrcToken, "'sha384-") &&
-					!strings.HasPrefix(scriptSrcToken, "'sha512-") &&
-					// The 'strict-dynamic' token invalidates the 'unsafe-inline' rule.
-					// So this function will remove the 'strict-dynamic' token from the
-					// 'Content-Security-Policy' header.
-					scriptSrcToken != "'strict-dynamic'" &&
-					scriptSrcToken != "'unsafe-inline'" {
-					newScriptSrcToken += scriptSrcToken + " "
-				}
-			}
-
-			tokens[i] = newScriptSrcToken
-			break
-		}
-	}
-
-	newContentSecurityPolicy := strings.Join(tokens, "; ")
-	h.Set("Content-Security-Policy", newContentSecurityPolicy)
-}
-
 // NewReplayingProxy constructs an HTTP proxy that replays responses from an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
 func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransformer) http.Handler {
@@ -174,9 +130,6 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 
 	// Update dates in response header.
 	updateDates(storedResp.Header, time.Now())
-
-	// Allow the page to execute inline scripts.
-	updateContentSecurityPolicy(storedResp.Header)
 
 	// Transform.
 	for _, t := range proxy.transformers {

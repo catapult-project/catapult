@@ -12,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -71,7 +70,7 @@ func (cfg *Config) requestEnabled(req *http.Request) bool {
 }
 
 func list(cfg *Config, a *webpagereplay.Archive, printFull bool) error {
-	return a.ForEach(func(fullURL *url.URL, req *http.Request, resp *http.Response) error {
+	return a.ForEach(func(req *http.Request, resp *http.Response) error {
 		if !cfg.requestEnabled(req) {
 			return nil
 		}
