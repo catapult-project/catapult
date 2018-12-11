@@ -173,6 +173,54 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
   });
 
+  test('convertWithoutType', function() {
+    const charts = {
+      charts: {
+        mean_frame_time: {
+          'http://games.yahoo.com': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            improvement_direction: 'down',
+            value: 42,
+            units: 'ms',
+            page_id: 16,
+            description: 'Arithmetic mean of frame times.'
+          },
+          'summary': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            improvement_direction: 'down',
+            values: [
+              16.693,
+              16.646,
+              16.918,
+              16.681
+            ],
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            description: 'Arithmetic mean of frame times.'
+          },
+        }
+      }
+    };
+    const histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    assert.lengthOf(histograms, 1);
+    const hist = [...histograms][0];
+    assert.strictEqual('mean_frame_time', hist.name);
+    assert.strictEqual('http://games.yahoo.com',
+        tr.v.HistogramGrouping.BY_KEY.get(
+            tr.v.d.RESERVED_NAMES.STORIES).callback(hist));
+    assert.strictEqual(42, hist.average);
+    assert.strictEqual(1, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+
+    const stories = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.STORIES);
+    assert.isTrue(stories.hasGuid);
+    assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
+  });
+
   test('convertWithTIRLabel', function() {
     const charts = {
       charts: {
