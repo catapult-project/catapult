@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/ui/visualizations_data_container.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function getHistogram(name) {
+    const samples = [];
+    for (let i = 0; i < 5; ++i) {
+      const total = Math.random();
+      const values = {};
+      values[name + 'a'] = total / 2.0;
+      values[name + 'b'] = total / 4.0;
+      values[name + 'c'] = total / 4.0;
+      samples.push({
+        value: total,
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START,
+            new tr.v.d.DateRange(Date.now()),
+          ], [
+            'breakdown', tr.v.d.Breakdown.fromDict({values}),
+          ],
+        ]),
+      });
+    }
+    return tr.v.Histogram.create(name, tr.b.Unit.byName.count, samples);
+  }
+
+  function getHistogramSet(displayLabel, story) {
+    const histograms = new tr.v.HistogramSet();
+    let metrics = [];
+    for (const category of tr.v.ui.METRICS.values()) {
+      metrics = metrics.concat(category);
+    }
+    metrics.push('pipeline:begin_frame_to_raster_tasks');
+    metrics.push('pipeline:raster_tasks_to_frame_submission');
+    for (const metric of metrics) {
+      histograms.addHistogram(getHistogram(metric));
+    }
+    histograms.addSharedDiagnosticToAllHistograms(
+        tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet([displayLabel]));
+    histograms.addSharedDiagnosticToAllHistograms(
+        tr.v.d.RESERVED_NAMES.STORIES, new tr.v.d.GenericSet([story]));
+    return histograms;
+  }
+
+  function groupHistograms(histograms) {
+    const groupings = [
+      tr.v.HistogramGrouping.HISTOGRAM_NAME,
+      tr.v.HistogramGrouping.DISPLAY_LABEL];
+
+    function canSkipGrouping(grouping, groupedHistograms) {
+      // Never skip meaningful groupings.
+      if (groupedHistograms.size > 1) return false;
+
+      // Never skip the zero-th grouping.
+      if (grouping.key === groupings[0].key) return false;
+
+      // Never skip the grouping that defines the table columns.
+      if (grouping.key === tr.v.HistogramGrouping.DISPLAY_LABEL.key) {
+        return false;
+      }
+
+      // Skip meaningless groupings.
+      return true;
+    }
+
+    return histograms.groupHistogramsRecursively(
+        groupings, canSkipGrouping);
+  }
+
+  test('instantiate', function() {
+    const cp = document.createElement('tr-v-ui-visualizations-data-container');
+    this.addHTMLOutput(cp);
+
+    const histograms = getHistogramSet('Run 1', 'test.com');
+
+    const histograms2 = getHistogramSet('Run 2', 'test.com');
+    histograms.importDicts(histograms2.asDicts());
+
+    const histograms3 = getHistogramSet('Run 1', 'abc.com');
+    histograms.importDicts(histograms3.asDicts());
+
+    const histograms4 = getHistogramSet('Run 2', 'abc.com');
+    histograms.importDicts(histograms4.asDicts());
+
+    const groupedHistograms = groupHistograms(histograms);
+
+    cp.build(histograms, groupedHistograms);
+  });
+
+  test('instantiateWithRepeat', function() {
+    const cp = document.createElement('tr-v-ui-visualizations-data-container');
+    this.addHTMLOutput(cp);
+
+    const histograms = getHistogramSet('Run 1', 'repeat.com');
+    const histograms2 = getHistogramSet('Run 1', 'repeat.com');
+    histograms.importDicts(histograms2.asDicts());
+
+    const groupedHistograms = groupHistograms(histograms);
+
+    cp.build(histograms, groupedHistograms);
+  });
+});
+</script>

@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/histogram_parameter_collector.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_controls.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table.html">
-<link rel="import" href="/tracing/value/ui/metrics_visualization.html">
+<link rel="import" href="/tracing/value/ui/visualizations_data_container.html">
 
 <dom-module id="tr-v-ui-histogram-set-view">
   <template>
@@ -33,6 +33,10 @@ found in the LICENSE file.
     #container {
       display: none;
     }
+
+    #visualizations{
+      display: none;
+    }
     </style>
 
     <div id="zero">zero Histograms</div>
@@ -41,8 +45,8 @@ found in the LICENSE file.
       <tr-v-ui-histogram-set-controls id="controls">
       </tr-v-ui-histogram-set-controls>
 
-      <tr-v-ui-metrics-visualization id="metrics">
-      </tr-v-ui-metrics-visualization>
+      <tr-v-ui-visualizations-data-container id="visualizations">
+      </tr-v-ui-visualizations-data-container>
 
       <tr-v-ui-histogram-set-table id="table"></tr-v-ui-histogram-set-table>
     </div>
@@ -63,7 +67,7 @@ tr.exportTo('tr.v.ui', function() {
     created() {
       this.brushingStateController_ = new tr.ui.NullBrushingStateController();
       this.viewState_ = new tr.v.ui.HistogramSetViewState();
-      this.metricsVisualizationLoaded_ = false;
+      this.visualizationLoaded_ = false;
     },
 
     ready() {
@@ -91,7 +95,7 @@ tr.exportTo('tr.v.ui', function() {
     /**
      * @param {!tr.v.HistogramSet} histograms
      * @param {!Object=} opt_options
-     * @param {function(string):!Promise=} opt_options.progress
+     * @param {function(string):!Promise=} opt_options.progressconst
      * @param {string=} opt_options.helpHref
      * @param {string=} opt_options.feedbackHref
      */
@@ -186,13 +190,16 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onLoadVisualization_(event) {
-      if (!this.metricsVisualizationLoaded_) { // Initial loading
-        this.$.metrics.build(this.$.table.leafHistograms, this.histograms);
-        this.metricsVisualizationLoaded_ = true;
-      } else if (this.$.metrics.style.display === 'none') { // Toggle to hide
-        this.$.metrics.style.display = 'block';
+      if (!this.visualizationLoaded_) { // Initial loading
+        this.$.visualizations.style.display = 'block';
+        this.$.visualizations.build(this.$.table.leafHistograms,
+            this.$.table.groupedHistograms);
+        this.visualizationLoaded_ = true;
+      } else if (this.$.visualizations.style.display === 'none') {
+        // Toggle to hide
+        this.$.visualizations.style.display = 'block';
       } else {
-        this.$.metrics.style.display = 'none';
+        this.$.visualizations.style.display = 'none';
       }
     },
   });

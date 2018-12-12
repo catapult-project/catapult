@@ -22,6 +22,7 @@ found in the LICENSE file.
         padding: 4px;
         font-size: 14px;
       }
+
       .error {
         color: red;
         display: none;
@@ -39,9 +40,8 @@ found in the LICENSE file.
       }
 
       #selectors {
-        display: none;
+        display: block;
         padding-bottom: 10px;
-        display: none;
       }
 
       #search_page {
@@ -71,507 +71,282 @@ found in the LICENSE file.
         stroke: white;
       }
     </style>
-    <div id="title">Metrics Visualization</div>
-    <div id="data_error" class="error">Invalid data provided.</div>
-    <div id="selectors">
-      <div id="percentile_label">Percentile Range:</div>
-      <input id="start" class="text_input" placeholder="0">
-      <input id="end" class="text_input" placeholder="100">
-      <button id="filter" on-tap="filterByPercentile_">Filter</button>
-      <input id="search_page" class="text_input" placeholder="Page Name">
-      <button id="search" on-tap="searchByPage_">Search</button>
-      <div id="search_error" class="error">Sorry, could not find that page!</div>
-    </div>
-    <div id="container">
-    </div>
-    <div id="children">
-    </div>
-    <span id="close">
-      <svg viewbox="0 0 128 128">
-        <line x1="28" y1="28" x2="100" y2="100"/>
-        <line x1="28" y1="100" x2="100" y2="28"/>
-      </svg>
-    </span>
+      <span id="aggregateContainer" display="inline-block">
+      </span>
+      <span id="pageByPageContainer" display="inline-block">
+        <div id="selectors">
+          <div id="percentile_label">Percentile Range:</div>
+          <input id="start" class="text_input" placeholder="0">
+          <input id="end" class="text_input" placeholder="100">
+          <button id="filter" on-tap="filterByPercentile_">Filter</button>
+          <input id="search_page" class="text_input" placeholder="Page Name">
+          <button id="search" on-tap="searchByPage_">Search</button>
+          <div id="search_error" class="error">Sorry, could not find that page!</div>
+        </div>
+      </span>
+      <div id="submetricsContainer" display="block">
+        <span id="close">
+          <svg viewbox="0 0 128 128">
+            <line x1="28" y1="28" x2="100" y2="100"/>
+            <line x1="28" y1="100" x2="100" y2="28"/>
+          </svg>
+        </span>
+      </div>
   </template>
 </dom-module>
 <script>
 'use strict';
 
-const COLORS = [
-  ['#FFD740', '#FFC400', '#FFAB00', '#E29800'],
-  ['#FF6E40', '#FF3D00', '#DD2C00', '#A32000'],
-  ['#40C4FF', '#00B0FF', '#0091EA', '#006DAF'],
-  ['#89C641', '#54B503', '#4AA510', '#377A0D'],
-  ['#B388FF', '#7C4DFF', '#651FFF', '#6200EA'],
-  ['#FF80AB', '#FF4081', '#F50057', '#C51162'],
-  ['#FFAB40', '#FF9100', '#FF6D00', '#D65C02'],
-  ['#8C9EFF', '#536DFE', '#3D5AFE', '#304FFE']];
+tr.exportTo('tr.v.ui', function() {
+  const PAGE_BREAKDOWN_KEY = 'pageBreakdown';
 
-const METRICS = new Map([
-  ['Pipeline', [
-    'pipeline:begin_frame_transport',
-    'pipeline:begin_frame_to_frame_submission',
-    'pipeline:frame_submission_to_display',
-    'pipeline:draw']],
-  ['Thread', [
-    'thread_browser_cpu_time_per_frame',
-    'thread_display_compositor_cpu_time_per_frame',
-    'thread_GPU_cpu_time_per_frame',
-    'thread_IO_cpu_time_per_frame',
-    'thread_other_cpu_time_per_frame',
-    'thread_raster_cpu_time_per_frame',
-    'thread_renderer_compositor_cpu_time_per_frame',
-    'thread_renderer_main_cpu_time_per_frame']]]);
+  Polymer({
+    is: 'tr-v-ui-metrics-visualization',
 
-// Used to access the running statistic of a metric
-const STATISTIC_KEY = 'statistic';
+    created() {
+      this.charts_ = new Map();
+    },
 
-Polymer({
-  is: 'tr-v-ui-metrics-visualization',
+    ready() {
+      this.$.start.addEventListener ('keydown', (e) => {
+        if (e.key === 'Enter') this.filterByPercentile_();
+      });
 
-  created() {
-    this.sortedPages_ = new Map();
-    this.displayLabels_ = new Map();
-    this.groups_ = new Map();
-    this.charts_ = new Map();
-    this.subMetricNames_ = new Map();
-  },
+      this.$.end.addEventListener ('keydown', (e) => {
+        if (e.key === 'Enter') this.filterByPercentile_();
+      });
 
-  build(leafHistograms, histograms) {
-    if (!leafHistograms || leafHistograms.length < 1 ||
-        !histograms || histograms.length < 1) {
-      this.$.data_error.style.display = 'block';
-      return;
-    }
+      this.$.search_page.addEventListener ('keydown', (e) => {
+        if (e.key === 'Enter') this.searchByPage_();
+      });
+    },
 
-    this.histograms = histograms;
+    build(chartName, chartData) {
+      this.title_ = chartData.title;
+      this.aggregateData_ = chartData.aggregate;
+      this.data_ = chartData.page;
+      this.submetricsData_ = chartData.submetrics;
+      this.benchmarkCount_ = chartData.aggregate.length;
 
-    for (const key of METRICS.keys()) {
-      const newAggregateChart = this.initializeColumnChart(key);
-      Polymer.dom(this.$.container).appendChild(newAggregateChart);
-      this.populateChart_(leafHistograms, key, newAggregateChart, true);
-      newAggregateChart.toolTipCallBack = () =>
-        this.openMetricsChart_(key);
-    }
+      // build aggregate chart
+      const aggregateChart = this.initializeColumnChart(this.title_);
+      Polymer.dom(this.$.aggregateContainer).appendChild(aggregateChart);
+      this.charts_.set(tr.v.ui.AGGREGATE_KEY, aggregateChart);
+      this.setChartColors_(tr.v.ui.AGGREGATE_KEY);
+      this.setChartSize_(tr.v.ui.AGGREGATE_KEY);
+      aggregateChart.data = chartData.aggregate;
 
-    if (this.groups_.size < 1) {
-      this.$.data_error.style.display = 'block';
-      return;
-    }
-  },
+      // build page by page
+      const newChart = this.initializeColumnChart(this.title_ + ' Breakdown');
+      newChart.enableToolTip = true;
+      newChart.toolTipCallBack = (rect) =>
+        this.openChildChart_(rect);
+      Polymer.dom(this.$.pageByPageContainer).appendChild(newChart);
+      this.charts_.set(PAGE_BREAKDOWN_KEY, newChart);
+      this.setChartColors_(PAGE_BREAKDOWN_KEY);
+      this.setChartSize_(PAGE_BREAKDOWN_KEY);
+      newChart.data = this.data_;
+    },
 
-  populateChart_(histograms, metricName, chart, aggregate) {
-    const storiesGrouping = tr.v.HistogramGrouping.BY_KEY.get(
-        tr.v.d.RESERVED_NAMES.STORIES);
-    const benchmarkStartGrouping = tr.v.HistogramGrouping.BY_KEY.get(
-        tr.v.d.RESERVED_NAMES.BENCHMARK_START);
+    setChartSize_(page) {
+      const chart = this.charts_.get(page);
+      const pageCount = chart.data.length;
+      chart.graphHeight = tr.b.math.clamp(pageCount * 20,
+          400, 600);
+      chart.graphWidth = tr.b.math.clamp(pageCount * 30,
+          200, 1000);
+    },
 
-    const labels = new Map();
-    const groups = new Map();
-
-    for (const metric of METRICS.get(metricName)) {
-      const metricHistograms = histograms.getHistogramsNamed(metric);
-      for (const histogram of metricHistograms) {
-        const benchmarkStart = benchmarkStartGrouping.callback(histogram);
-        const page = storiesGrouping.callback(histogram);
-        const displayLabel = tr.v.HistogramGrouping.
-            DISPLAY_LABEL.callback(histogram);
-        const average = histogram.average === undefined ? 0 :
-          histogram.average;
-        labels.set(displayLabel, Date.parse(benchmarkStart));
-
-        let pageMap = new Map();
-        let labelMap = new Map();
-
-        if (groups.get(page) === undefined) {
-          groups.set(page, pageMap);
-          pageMap.set(displayLabel, labelMap);
-        } else {
-          pageMap = groups.get(page);
-          if (pageMap.get(displayLabel) === undefined) {
-            pageMap.set(displayLabel, labelMap);
+    // Assign color gradient to series in chart
+    setChartColors_(page) {
+      const chart = this.charts_.get(page);
+      const metrics = tr.v.ui.METRICS.get(this.title_);
+      for (let i = 0; i < this.benchmarkCount_; ++i) {
+        for (let j = 0; j < metrics.length; ++j) {
+          const mainColorIndex = j % tr.v.ui.COLORS.length;
+          const subColorIndex = i % tr.v.ui.COLORS[mainColorIndex].length;
+          const color = tr.v.ui.COLORS[mainColorIndex][subColorIndex];
+          const series = metrics[j] + '-' + this.aggregateData_[i].x;
+          chart.getDataSeries(series).color = color;
+          if (i === 0) {
+            chart.getDataSeries(series).title = metrics[j];
           } else {
-            labelMap = pageMap.get(displayLabel);
+            chart.getDataSeries(series).title = '';
           }
         }
+      }
+    },
 
-        let metricMap = new Map();
-        let statistic = new tr.b.math.RunningStatistics();
-        if (labelMap.has(metric)) { // Check for repeated page sets
-          metricMap = labelMap.get(metric);
-          statistic = metricMap.get(STATISTIC_KEY);
+    // Element creation
+    initializeColumnChart(title) {
+      const newChart = new tr.ui.b.NameColumnChart();
+      newChart.hideLegend = false;
+      newChart.isStacked = true;
+      newChart.yAxisLabel = 'ms';
+      newChart.hideXAxis = true;
+      newChart.displayXInHover = true;
+      newChart.isGrouped = true;
+      newChart.showTitleInLegend = true;
+      newChart.chartTitle = title;
+      newChart.titleHeight = '14pt';
+      return newChart;
+    },
+
+    initializeChildChart_(title, height, width) {
+      const div = document.createElement('div');
+      div.classList.add('child_container');
+      Polymer.dom(this.$.submetricsContainer).
+          insertBefore(div, this.$.submetricsContainer.firstChild);
+
+      const childChart = new tr.ui.b.NameBarChart();
+      childChart.xAxisLabel = 'ms';
+      childChart.chartTitle = title;
+      childChart.graphHeight = height;
+      childChart.graphWidth = width;
+      childChart.titleHeight = '14pt';
+      childChart.isStacked = true;
+      childChart.hideLegend = true;
+      childChart.isGrouped = true;
+      childChart.isWaterfall = true;
+
+      div.appendChild(childChart);
+
+      const button = this.initializeCloseButton_(div,
+          this.$.submetricsContainer);
+      div.appendChild(button);
+      return childChart;
+    },
+
+    initializeCloseButton_(div, parent) {
+      const button = this.$.close.cloneNode(true);
+      button.style.display = 'inline-block';
+      button.addEventListener ('click', () => {
+        Polymer.dom(parent).removeChild(div);
+      });
+      return button;
+    },
+
+    // Create child chart and populate it
+    openChildChart_(rect) {
+      // Find main metric and corresponding sub-metrics
+      const metrics = tr.v.ui.METRICS.get(this.title_);
+      let metric;
+      let metricIndex;
+      for (let i = 0; i < metrics.length; ++i) {
+        if (rect.key.startsWith(metrics[i])) {
+          metric = metrics[i];
+          metricIndex = i;
+          break;
         }
-        statistic.add(average);
-        metricMap.set(STATISTIC_KEY, statistic);
-        labelMap.set(metric, metricMap);
+      }
 
-        const merged = new tr.v.d.DiagnosticMap();
-        for (const bin of histogram.allBins) {
-          for (const map of bin.diagnosticMaps) {
-            merged.addDiagnostics(map);
+      // Create child chart
+      const page = rect.datum.group;
+      const title = this.title_ + ': ' + page;
+      const submetrics = this.submetricsData_.get(page).get(metric);
+      const width = tr.b.math.clamp(submetrics.size * 150, 300, 700);
+      const height = tr.b.math.clamp(submetrics.size *
+          this.benchmarkCount_ * 50, 300, 700);
+
+      const childChart = this.initializeChildChart_(title, height, width);
+
+      // Get breakdown data for main step
+      childChart.data = this.processSubmetrics_(childChart,
+          submetrics, 0, metricIndex).data;
+    },
+
+    processSubmetrics_(chart, submetrics, hideValue, metricIndex) {
+      const finalData = [];
+      let submetricIndex = 0;
+      for (const submetric of submetrics.values()) {
+        let benchmarkIndex = 0;
+        for (const benchmark of submetric.values()) {
+          benchmark.hide = !hideValue ? 0 : hideValue;
+          const series = benchmark.x + '-' + benchmark.group;
+          chart.getDataSeries(series).color =
+              tr.v.ui.COLORS[metricIndex][benchmarkIndex];
+          if (benchmarkIndex) benchmark.x = '.';
+          if (benchmarkIndex === (this.benchmarkCount_ - 1)) {
+            hideValue += benchmark[series];
           }
+          finalData.push(benchmark);
+          benchmarkIndex++;
         }
+        submetricIndex++;
+      }
+      return {data: finalData, hide: hideValue};
+    },
 
-        const subMetrics = [];
-        if (merged.get('breakdown') === undefined) {
-          metricMap.set(metric, statistic);
-          subMetrics.push(metric);
-        } else {
-          for (const [subMetric, total] of merged.get('breakdown')) {
-            let subStatistic = new tr.b.math.RunningStatistics();
-            if (metricMap.has(subMetric)) { // Check for repeated page sets
-              subStatistic = metricMap.get(subMetric);
-            }
-            subStatistic.add(total);
-            metricMap.set(subMetric, subStatistic);
-            subMetrics.push(subMetric);
-          }
+    // Handle filtering by start and end percentiles
+    filterByPercentile_() {
+      const startPercentile = this.$.start.value;
+      const endPercentile = this.$.end.value;
+
+      if (startPercentile === '' || endPercentile === '') return;
+
+      const length = this.data_.length / (this.benchmarkCount_ + 1);
+      const startIndex = this.getPercentileIndex_(startPercentile, length);
+      const endIndex = this.getPercentileIndex_(endPercentile, length);
+      this.charts_.get(PAGE_BREAKDOWN_KEY).data =
+        this.data_.slice(startIndex, endIndex);
+    },
+
+    // Get index of x percentile value
+    getPercentileIndex_(percentile, arrayLength) {
+      const index = Math.ceil(arrayLength * (percentile / 100.0));
+      if (index === -1) return 0;
+      if (index >= arrayLength) return arrayLength;
+      return index * this.benchmarkCount_;
+    },
+
+    // Handle searching by page name
+    searchByPage_() {
+      const criteria = this.$.search_page.value;
+      if (criteria === '') return;
+
+      const query = new RegExp(criteria);
+
+      const filteredData = [...this.data_]
+          .filter(group => {
+            if (group.group) return group.group.match(query);
+            return false;
+          });
+
+      if (filteredData.length < 1) {
+        this.$.search_error.style.display = 'block';
+        return;
+      }
+
+      // Create child chart with breakdown data
+      const page = filteredData[0].group;
+      const title = this.title_ + ' Breakdown: ' + page;
+      const metricToSubmetricMap = this.submetricsData_.get(page);
+
+      let totalSubmetrics = 0;
+      for (const submetrics of metricToSubmetricMap.values()) {
+        for (const benchmark of submetrics.values()) {
+          totalSubmetrics += benchmark.length;
         }
-        const prevSubMetrics = this.subMetricNames_.get(metric);
-        if (!prevSubMetrics || subMetrics.length > prevSubMetrics.length) {
-          this.subMetricNames_.set(metric, subMetrics);
-        }
       }
-    }
+      const width = tr.b.math.clamp(totalSubmetrics * 150, 300, 700);
+      const height = tr.b.math.clamp(totalSubmetrics *
+          this.benchmarkCount_ * 30, 300, 700);
 
-    const displayLabels = this.getSortedDisplayLabels_(labels);
-    const sortedPages = [...groups.keys()].sort((a, b) =>
-      this.sortGroups_(a, b, groups,
-          displayLabels, METRICS.get(metricName)));
+      const childChart = this.initializeChildChart_(title, height, width);
 
-    this.setChartColors_(METRICS.get(metricName), displayLabels, chart);
-    this.setChartSize_(groups.size, displayLabels.length, chart);
-    this.setChartData_(groups, sortedPages, displayLabels, chart);
-
-    // so that there isn't two map entries with the same key
-    let mapName = metricName;
-    if (aggregate) {
-      mapName = 'Aggregate ' + mapName;
-    }
-
-    this.groups_.set(mapName, groups);
-    this.displayLabels_.set(mapName, displayLabels);
-    this.sortedPages_.set(mapName, sortedPages);
-  },
-
-  getSortedDisplayLabels_(labels) {
-    return Array.from(labels.keys()).sort((a, b) =>
-      labels.get(a) - labels.get(b));
-  },
-
-  sortGroups_(a, b, groups, displayLabels, mainMetricNames) {
-    let aValue = 0;
-    const aMap = groups.get(a);
-    if (aMap.get(displayLabels[0]) !== undefined) {
-      for (const metricName of mainMetricNames) {
-        const aMetricMap = aMap.get(displayLabels[0]).get(metricName);
-        aValue += aMetricMap.get(STATISTIC_KEY).mean;
+      const childData = [];
+      let hide = 0;
+      let metricIndex = 0;
+      for (const submetrics of metricToSubmetricMap.values()) {
+        const submetricsData = this.processSubmetrics_(childChart, submetrics,
+            hide, metricIndex);
+        childData.push(...submetricsData.data);
+        hide = submetricsData.hide;
+        metricIndex++;
       }
-    }
-    let bValue = 0;
-    const bMap = groups.get(b);
-    if (bMap.get(displayLabels[0]) !== undefined) {
-      for (const metricName of mainMetricNames) {
-        const bMetricMap = bMap.get(displayLabels[0]).get(metricName);
-        bValue += bMetricMap.get(STATISTIC_KEY).mean;
-      }
-    }
-    if (aValue === bValue) return 0;
-    return (aValue < bValue) ? -1 : 1;
-  },
+      childChart.data = childData;
+    },
 
-  setChartData_(groups, sortedPages, displayLabels, chart) {
-    const chartData = [];
-    for (const page of sortedPages) {
-      const pageMap = groups.get(page);
-      for (const label of displayLabels) {
-        const data = {x: label, group: page};
-        if (!pageMap.has(label)) continue;
-        const labelMap = pageMap.get(label);
-        for (const [metric, metricMap] of labelMap) {
-          const key = this.getSeriesKey_(metric, label);
-          const mean = metricMap.get(STATISTIC_KEY).mean;
-          data[key] = Math.round(mean * 100) / 100;
-          if (label === displayLabels[0]) {
-            chart.getDataSeries(key).title = metric;
-          } else {
-            chart.getDataSeries(key).title = '';
-          }
-        }
-        chartData.push(data);
-      }
-      chartData.push({});
-    }
-    chart.data = chartData;
-  },
-
-  setChartSize_(pageCount, displayLabelCount, chart) {
-    chart.graphHeight = tr.b.math.clamp(pageCount * displayLabelCount * 20,
-        300, 600);
-    chart.graphWidth = tr.b.math.clamp(pageCount * displayLabelCount * 25,
-        500, 1000);
-  },
-
-  // Assign color gradient to series in chart
-  setChartColors_(mainMetricNames, displayLabels, chart) {
-    for (let i = 0; i < mainMetricNames.length; ++i) {
-      const mainMetric = mainMetricNames[i];
-      for (let j = 0; j < displayLabels.length; ++j) {
-        const mainColorIndex = i % COLORS.length;
-        const subColorIndex = j % COLORS[mainColorIndex].length;
-        const color = COLORS[mainColorIndex][subColorIndex];
-        const displayLabel = displayLabels[j];
-        const series = this.getSeriesKey_(mainMetric, displayLabel);
-        chart.getDataSeries(series).color = color;
-      }
-    }
-  },
-
-  getSeriesKey_(metricName, displayLabel) {
-    return metricName + '-' + displayLabel;
-  },
-
-  initializeColumnChart(title) {
-    const newChart = new tr.ui.b.NameColumnChart();
-    newChart.isStacked = true;
-    newChart.yAxisLabel = 'ms';
-    newChart.hideXAxis = true;
-    newChart.displayXInHover = true;
-    newChart.isGrouped = true;
-    newChart.enableToolTip = true;
-    newChart.showTitleInLegend = true;
-    newChart.chartTitle = title;
-    newChart.titleHeight = '14pt';
-    return newChart;
-  },
-
-  initializeChildChart_(title, height, width) {
-    const childChart = new tr.ui.b.NameBarChart();
-    childChart.xAxisLabel = 'ms';
-    childChart.chartTitle = title;
-    childChart.graphHeight = height;
-    childChart.graphWidth = width;
-    childChart.titleHeight = '14pt';
-    childChart.isStacked = true;
-    childChart.hideLegend = true;
-    childChart.isGrouped = true;
-    childChart.isWaterfall = true;
-    return childChart;
-  },
-
-  initializeCloseButton_(div, parent) {
-    const button = this.$.close.cloneNode(true);
-    button.style.display = 'inline-block';
-    button.addEventListener ('click', () => {
-      Polymer.dom(parent).removeChild(div);
-    });
-    return button;
-  },
-
-  initializeSelectors_(mainStep) {
-    const select = this.$.selectors.cloneNode(true);
-    select.style.display = 'block';
-
-    Polymer.dom(select).querySelector('#start')
-        .addEventListener ('keydown', (e) => {
-          if (e.key === 'Enter') this.filterByPercentile_(select, mainStep);
-        });
-
-    Polymer.dom(select).querySelector('#end')
-        .addEventListener ('keydown', (e) => {
-          if (e.key === 'Enter') this.filterByPercentile_(select, mainStep);
-        });
-
-    Polymer.dom(select).querySelector('#filter')
-        .addEventListener ('click', () => {
-          this.filterByPercentile_(select, mainStep);
-        });
-
-    Polymer.dom(select).querySelector('#search_page')
-        .addEventListener ('keydown', (e) => {
-          if (e.key === 'Enter') this.searchByPage_(select, mainStep);
-        });
-
-    Polymer.dom(select).querySelector('#search')
-        .addEventListener ('click', () => {
-          this.searchByPage_(select, mainStep);
-        });
-
-    return select;
-  },
-
-  // Create new metrics chart with selectors and a close button
-  openMetricsChart_(mainStep) {
-    const div = document.createElement('div');
-    div.classList.add('child_container');
-    Polymer.dom(this.$.container).appendChild(div);
-
-    const selectors = this.initializeSelectors_(mainStep);
-    div.appendChild(selectors);
-
-    const childChart = this.initializeColumnChart(mainStep + ' Breakdown');
-    childChart.toolTipCallBack = (rect) =>
-      this.openChildChart_(rect, mainStep);
-    div.appendChild(childChart);
-
-    const button = this.initializeCloseButton_(div, this.$.container);
-    div.appendChild(button);
-    this.populateChart_(this.histograms, mainStep, childChart, false);
-    this.charts_.set(mainStep, childChart);
-  },
-
-  // Adds new child chart with close button
-  initializeChild_(title, height, width) {
-    const div = document.createElement('div');
-    div.classList.add('child_container');
-    Polymer.dom(this.$.children).insertBefore(div, this.$.children.firstChild);
-
-    const childChart = this.initializeChildChart_(title, height, width);
-    div.appendChild(childChart);
-
-    const button = this.initializeCloseButton_(div, this.$.children);
-    div.appendChild(button);
-
-    return childChart;
-  },
-
-  // Create child chart and populate it
-  openChildChart_(rect, metricName) {
-    // Find main metric and corresponding sub-metrics
-    let mainStep;
-    let mainStepIndex;
-    for (let i = 0; i < METRICS.get(metricName).length; ++i) {
-      if (rect.key.startsWith(METRICS.get(metricName)[i])) {
-        mainStep = METRICS.get(metricName)[i];
-        mainStepIndex = i;
-        break;
-      }
-    }
-
-    // Create child chart
-    const subSteps = this.subMetricNames_.get(mainStep);
-    const width = tr.b.math.clamp(subSteps.length * 150, 300, 700);
-    const height = tr.b.math.clamp(subSteps.length *
-        this.displayLabels_.get(metricName).length * 50, 300, 700);
-
-    const pageName = rect.datum.group;
-    const title = mainStep + ': ' + pageName;
-    const childChart =
-      this.initializeChild_(title, height, width);
-
-    // Get breakdown data for main step
-    const pageData = this.groups_.get(metricName).get(pageName);
-    const subStepData = this.processSubStepData(childChart,
-        mainStepIndex, mainStep, pageData, pageName, 0);
-    childChart.data = subStepData.childData;
-  },
-
-  // Get data for breakdown of a main step
-  processSubStepData(childChart, mainStepIndex, mainStep,
-      pageData, pageName, total) {
-    const childData = [];
-    const subSteps = this.subMetricNames_.get(mainStep);
-
-    if (subSteps === undefined) return {childData, total};
-
-    for (const subStep of subSteps) {
-      const currentTotal = total; // Used to align bars for each step
-      let j = 0;
-      for (const [displayLabel, labelMap] of pageData) {
-        const data = {x: subStep, hide: currentTotal, group: displayLabel};
-
-        const metricMap = labelMap.get(mainStep);
-        const series = this.getSeriesKey_(subStep, displayLabel);
-        const mean = metricMap.get(subStep).mean;
-        const roundedMean = Math.round(mean * 100) / 100;
-
-        data[series] = roundedMean === undefined ? 0 : roundedMean;
-        childData.push(data);
-
-        // Align bars with first value
-        if (j === 0) total += data[series];
-        else data.x = '.';
-
-        // Get same color as main chart
-        const subColorIndex = j % COLORS[mainStepIndex].length;
-        const color = COLORS[mainStepIndex][subColorIndex];
-        childChart.getDataSeries(series).color = color;
-        j++;
-      }
-      childData.push({x: '.'});
-    }
-    return {childData, total};
-  },
-
-  // Handle filtering by start and end percentiles
-  filterByPercentile_(select, metricName) {
-    const startPercentile = Polymer.dom(select).querySelector('#start').value;
-    const endPercentile = Polymer.dom(select).querySelector('#end').value;
-
-    if (startPercentile === '' || endPercentile === '') return;
-
-    const length = this.sortedPages_.get(metricName).length;
-    const startIndex = this.getPercentileIndex_(startPercentile, length);
-    const endIndex = this.getPercentileIndex_(endPercentile, length);
-
-    const slicedPages = this.sortedPages_.get(metricName)
-        .slice(startIndex, endIndex);
-
-    this.setChartData_(this.groups_.get(metricName), slicedPages,
-        this.displayLabels_.get(metricName), this.charts_.get(metricName));
-  },
-
-  // Get index of x percentile value
-  getPercentileIndex_(percentile, arrayLength) {
-    const index = Math.ceil(arrayLength * (percentile / 100.0));
-    if (index === -1) return 0;
-    if (index >= arrayLength) return arrayLength;
-    return index;
-  },
-
-  // Handle searching by page name
-  searchByPage_(select, metricName) {
-    const criteria = Polymer.dom(select).querySelector('#search_page').value;
-    if (criteria === '') return;
-
-    const query = new RegExp(criteria);
-    const filteredGroups = [...this.groups_.get(metricName)]
-        .filter(group => group[0].match(query));
-
-    if (filteredGroups.length < 1) {
-      Polymer.dom(select).querySelector('#search_error')
-          .style.display = 'block';
-      return;
-    }
-    Polymer.dom(select).querySelector('#search_error')
-        .style.display = 'none';
-
-    // Create child chart with breakdown data
-    const matchedPageName = filteredGroups[0][0];
-    const match = this.groups_.get(metricName).get(matchedPageName);
-    const title = metricName + ' Breakdown: ' + matchedPageName;
-
-    let totalSteps = 0;
-    for (const [mainStep, subSteps] of this.subMetricNames_) {
-      totalSteps += subSteps.length;
-    }
-    const width = tr.b.math.clamp(totalSteps * 150, 300, 700);
-    const height = tr.b.math.clamp(totalSteps *
-        this.displayLabels_.get(metricName).length * 30, 300, 700);
-
-    const childChart = this.initializeChild_(title, height, width);
-
-    const childData = [];
-    let total = 0;
-    for (let i = 0; i < METRICS.get(metricName).length; ++i) {
-      const stepData = this.processSubStepData(childChart, i,
-          METRICS.get(metricName)[i], match, matchedPageName, total);
-      childData.push(...stepData.childData);
-
-      total = stepData.total;
-    }
-    childChart.data = childData;
-  },
-
+  });
 });
 </script>

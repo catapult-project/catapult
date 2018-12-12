@@ -591,6 +591,7 @@ tracing_js_html_files = [
   "tracing/value/ui/scalar_span.html",
   "tracing/value/ui/tag_map_span.html",
   "tracing/value/ui/unmergeable_diagnostic_set_span.html",
+  "tracing/value/ui/visualizations_data_container.html",
 ]
 tracing_img_files = [
   "tracing/ui/extras/chrome/cc/images/input-event.png",
