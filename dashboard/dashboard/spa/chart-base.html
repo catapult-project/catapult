@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/polymer-svg-template/polymer-svg-template.html">
+
+<dom-module id="chart-base">
+  <template>
+    <style>
+      :host {
+        display: flex;
+      }
+
+      #right {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      #brush_handles {
+        position: relative;
+        height: 15px;
+      }
+
+      .brush_handle {
+        cursor: ew-resize;
+        position: absolute;
+        top: 0;
+        width: 100%;
+      }
+
+      .brush_handle path {
+        fill: rgba(0, 0, 0, 0.3);
+      }
+
+      path {
+        vector-effect: non-scaling-stroke;
+      }
+
+      rect {
+        opacity: 0.05;
+      }
+
+      #yaxis {
+        margin-right: 3px;
+      }
+
+      #xaxis {
+        margin-top: 3px;
+      }
+
+      #xaxis, #yaxis {
+        user-select: none;
+      }
+
+      line {
+        stroke-width: 1;
+        stroke: #ccc;
+      }
+
+      #main {
+        position: relative;
+      }
+
+      #tooltip {
+        background-color: var(--background-color, white);
+        border-style: solid;
+        border-width: 2px;
+        display: flex;
+        padding: 8px;
+        position: absolute;
+        white-space: pre;
+        z-index: var(--layer-menu, 100);
+      }
+
+      #tooltip td {
+        vertical-align: text-top;
+      }
+
+      .icon {
+        transform: translate(-12px, -12px);
+      }
+
+      .icon iron-icon {
+        position: static;
+      }
+    </style>
+
+    <svg
+        id="yaxis"
+        width$="[[yAxis.width]]"
+        height$="[[graphHeight]]"
+        style$="margin-top: [[brushPointSize_(brushSize)]]px; margin-bottom: [[xAxis.height]]px;">
+      <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+        <text
+            x$="[[yAxis.width]]"
+            y$="[[tick.yPct]]"
+            text-anchor="end"
+            alignment-baseline="middle">
+          [[tick.text]]
+        </text>
+      </template>
+    </svg>
+
+    <div id="right">
+      <div id="brush_handles">
+        <template is="dom-repeat" items="[[xAxis.brushes]]" as="brush" index-as="brushIndex">
+          <div class="brush_handle"
+               on-track="onTrackBrushHandle_"
+               style$="transform: translateX([[brush.xPct]]) translateX(-5px);">
+            <svg
+                height$="[[brushPointSize_(brushSize)]]"
+                width$="[[brushSize]]"
+                viewBox="0 0 2 3">
+              <path d="M0,0 L2,0 L2,2 L1,3 L0,2">
+              </path>
+            </svg>
+          </div>
+        </template>
+      </div>
+
+      <div id="main">
+        <svg
+            width="100%"
+            height$="[[graphHeight]]"
+            preserveAspectRatio="none"
+            on-click="onMainClick_">
+          <template is="dom-if" if="[[yAxis.showTickLines]]">
+            <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+              <line
+                  x1="0"
+                  x2="100%"
+                  y1$="[[tick.yPct]]"
+                  y2$="[[tick.yPct]]">
+              </line>
+            </template>
+          </template>
+
+          <template is="dom-if" if="[[xAxis.showTickLines]]">
+            <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+              <line
+                  x1$="[[tick.xPct]]"
+                  x2$="[[tick.xPct]]"
+                  y1="0"
+                  y2="100%">
+              </line>
+            </template>
+          </template>
+
+          <template is="dom-repeat" items="[[antiBrushes_(xAxis.brushes)]]" as="antiBrush">
+            <rect
+                x$="[[antiBrush.start]]"
+                y="0"
+                width$="[[antiBrush.length]]"
+                height="100%">
+            </rect>
+          </template>
+
+          <template is="dom-repeat" items="[[lines]]" as="line" index-as="lineIndex">
+            <svg
+                viewBox="0 0 100 100"
+                x="0"
+                y="0"
+                width="100%"
+                height="100%"
+                preserveAspectRatio="none">
+              <path
+                  d$="[[line.path]]"
+                  stroke$="[[line.color]]"
+                  stroke-width$="[[line.strokeWidth]]"
+                  fill="none">
+              </path>
+              <template is="dom-if" if="[[line.shadePoints]]">
+                <polygon
+                    points$="[[line.shadePoints]]"
+                    fill$="[[line.shadeFill]]"
+                    stroke="0">
+                </polygon>
+              </template>
+            </svg>
+
+            <template is="dom-repeat" items="[[collectIcons_(line)]]" as="datum">
+              <foreignObject
+                  x$="[[datum.xPct]]"
+                  y$="[[datum.yPct]]"
+                  class="icon">
+                <body xmlns="http://www.w3.org/1999/xhtml">
+                  <iron-icon
+                      icon$="[[datum.icon]]"
+                      style$="color: [[datum.iconColor]]">
+                  </iron-icon>
+                </body>
+              </foreignObject>
+            </template>
+          </template>
+        </svg>
+
+        <div id="tooltip"
+             hidden$="[[tooltipHidden_(tooltip)]]"
+             style$="left: [[tooltip.left]]; right: [[tooltip.right]]; top: [[tooltip.top]]; bottom: [[tooltip.bottom]]; border-color: [[tooltip.color]];">
+          <table>
+            <template is="dom-repeat" items="[[tooltip.rows]]" as="row" index-as="rowIndex">
+              <tr style$="color: [[row.color]]">
+                <td colspan$="[[row.colspan]]">[[row.name]]</td>
+                <template is="dom-if" if="[[!isEqual_(row.colspan, 2)]]">
+                  <td>[[row.value]]</td>
+                </template>
+              </tr>
+            </template>
+          </table>
+        </div>
+      </div>
+
+      <svg
+          id="xaxis"
+          width="100%"
+          height$="[[xAxis.height]]">
+        <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+          <text
+              x$="[[tick.xPct]]"
+              y="100%"
+              text-anchor="middle"
+              alignment-baseline="after-edge">
+            [[tick.text]]
+          </text>
+        </template>
+      </svg>
+    </div>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/chart-base.js"></script>

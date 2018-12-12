@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--
+Copyright 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/chart-base.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+
+<test-fixture id="test">
+  <template>
+    <chart-base state-path="test"></chart-base>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('chart-base', function() {
+  setup(() => {
+    fixture('test').dispatch(Redux.ENSURE('test'));
+    // Mocha sets min-width: 900px inside #subsuites, but only 500px outside it,
+    // which makes it difficult to see the chart in 'lines'. Reset those
+    // min-widths so that the chart can expand to an appropriate size.
+    document.body.style.margin = 0;
+    document.body.style.minWidth = 0;
+    document.documentElement.style.minWidth = 0;
+  });
+
+  test('lines', async function() {
+    const chart = fixture('test');
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
+      lines: [
+        {
+          path: 'M0,0 L100,100',
+          color: 'red',
+          strokeWidth: 1,
+          shadePoints: '0,50 50,100 100,50',
+          shadeFill: 'hsla(0, 50%, 50%, 0.5)',
+          data: [
+            {xPct: '50%', yPct: '50%', icon: 'cp:error', iconColor: 'blue'},
+          ],
+        },
+        {
+          path: 'M0,100 L100,0',
+          color: 'green',
+          strokeWidth: 1,
+          shadePoints: '0,50 100,50 50,0',
+          shadeFill: 'hsla(100, 50%, 50%, 0.5)',
+        },
+      ],
+      xAxis: {
+        brushes: [{xPct: '20%'}, {xPct: '80%'}],
+        showTickLines: true,
+        height: '20px',
+        ticks: [
+          {xPct: '10%', text: '10%'},
+          {xPct: '50%', text: '50%'},
+          {xPct: '90%', text: '90%'},
+        ],
+      },
+      yAxis: {
+        showTickLines: true,
+        width: '50px',
+        ticks: [
+          {yPct: '10%', text: '10%'},
+          {yPct: '50%', text: '50%'},
+          {yPct: '90%', text: '90%'},
+        ],
+      },
+      tooltip: {
+        isVisible: true,
+        color: 'purple',
+        left: '50%',
+        top: '50%',
+        rows: [
+          {name: 'left top', value: 'right top', color: 'red'},
+          {name: 'center', colspan: 2, color: 'green'},
+          {name: 'left bottom', value: 'right bottom', color: 'blue'},
+        ],
+      },
+    })));
+    await cp.afterRender();
+
+    assert.strictEqual('50%', chart.$.tooltip.style.left);
+    assert.strictEqual('50%', chart.$.tooltip.style.top);
+    assert.strictEqual('purple', chart.$.tooltip.style.borderColor);
+    assert.strictEqual('flex', getComputedStyle(chart.$.tooltip).display);
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'foreignObject' &&
+      e.className.baseVal === 'icon' &&
+      e.getAttribute('x') === '50%' &&
+      e.getAttribute('y') === '50%'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'IRON-ICON' &&
+      e.icon === 'cp:error' &&
+      e.style.color === 'blue'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'polygon' &&
+      e.getAttribute('points') === '0,50 50,100 100,50' &&
+      e.getAttribute('fill') === 'hsla(0, 50%, 50%, 0.5)'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'polygon' &&
+      e.getAttribute('points') === '0,50 100,50 50,0' &&
+      e.getAttribute('fill') === 'hsla(100, 50%, 50%, 0.5)'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'path' &&
+      e.getAttribute('d') === 'M0,0 L100,100' &&
+      e.getAttribute('stroke') === 'red'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'path' &&
+      e.getAttribute('d') === 'M0,100 L100,0' &&
+      e.getAttribute('stroke') === 'green'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '10%' &&
+      e.getAttribute('x') === '50px' &&
+      e.textContent.trim() === '10%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '50%' &&
+      e.getAttribute('x') === '50px' &&
+      e.textContent.trim() === '50%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '90%' &&
+      e.getAttribute('x') === '50px' &&
+      e.textContent.trim() === '90%'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '100%' &&
+      e.getAttribute('x') === '10%' &&
+      e.textContent.trim() === '10%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '100%' &&
+      e.getAttribute('x') === '50%' &&
+      e.textContent.trim() === '50%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'text' &&
+      e.getAttribute('y') === '100%' &&
+      e.getAttribute('x') === '90%' &&
+      e.textContent.trim() === '90%'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'rect' &&
+      e.getAttribute('y') === '0' &&
+      e.getAttribute('x') === '0%' &&
+      e.getAttribute('height') === '100%' &&
+      e.getAttribute('width') === '20%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'rect' &&
+      e.getAttribute('y') === '0' &&
+      e.getAttribute('x') === '80%' &&
+      e.getAttribute('height') === '100%' &&
+      e.getAttribute('width') === '20%'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '0' &&
+      e.getAttribute('x2') === '100%' &&
+      e.getAttribute('y1') === '10%' &&
+      e.getAttribute('y2') === '10%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '0' &&
+      e.getAttribute('x2') === '100%' &&
+      e.getAttribute('y1') === '50%' &&
+      e.getAttribute('y2') === '50%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '0' &&
+      e.getAttribute('x2') === '100%' &&
+      e.getAttribute('y1') === '90%' &&
+      e.getAttribute('y2') === '90%'));
+
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '10%' &&
+      e.getAttribute('x2') === '10%' &&
+      e.getAttribute('y1') === '0' &&
+      e.getAttribute('y2') === '100%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '50%' &&
+      e.getAttribute('x2') === '50%' &&
+      e.getAttribute('y1') === '0' &&
+      e.getAttribute('y2') === '100%'));
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.tagName === 'line' &&
+      e.getAttribute('x1') === '90%' &&
+      e.getAttribute('x2') === '90%' &&
+      e.getAttribute('y1') === '0' &&
+      e.getAttribute('y2') === '100%'));
+  });
+
+  test('antiBrushes empty', function() {
+    assert.deepEqual([], cp.ChartBase.antiBrushes());
+    assert.deepEqual([], cp.ChartBase.antiBrushes([]));
+  });
+
+  test('antiBrushes odd', function() {
+    assert.throws(() => cp.ChartBase.antiBrushes([{}]));
+    assert.throws(() => cp.ChartBase.antiBrushes([{}, {}, {}]));
+  });
+
+  test('antiBrushes 0-100', function() {
+    assert.deepEqual([], cp.ChartBase.antiBrushes([
+      {xPct: 0}, {xPct: 100},
+    ]));
+  });
+
+  test('antiBrushes 20-80', function() {
+    assert.deepEqual([
+      {start: '0%', length: '20%'},
+      {start: '80%', length: '20%'},
+    ], cp.ChartBase.antiBrushes([
+      {xPct: 20}, {xPct: 80},
+    ]));
+  });
+
+  test('antiBrushes 20-100', function() {
+    assert.deepEqual([
+      {start: '0%', length: '20%'},
+    ], cp.ChartBase.antiBrushes([
+      {xPct: 20}, {xPct: 100},
+    ]));
+  });
+
+  test('antiBrushes 0-80', function() {
+    assert.deepEqual([{start: '80%', length: '20%'}], cp.ChartBase.antiBrushes(
+        [{xPct: 0}, {xPct: 80}]));
+  });
+});
+</script>
