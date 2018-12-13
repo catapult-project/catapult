@@ -263,7 +263,15 @@ func findExactMatch(requests []*ArchivedRequest, method string, scheme string) (
 	return nil, nil, ErrNotFound
 }
 
-func (a *Archive) addArchivedRequest(req *http.Request, resp *http.Response) error {
+type AddMode int
+
+const (
+	AddModeAppend            AddMode = 0
+	AddModeOverwriteExisting AddMode = 1
+	AddModeSkipExisting      AddMode = 2
+)
+
+func (a *Archive) addArchivedRequest(req *http.Request, resp *http.Response, mode AddMode) error {
 	// Always use the absolute URL in this mapping.
 	assertCompleteURL(req.URL)
 
@@ -271,12 +279,26 @@ func (a *Archive) addArchivedRequest(req *http.Request, resp *http.Response) err
 	if err != nil {
 		return err
 	}
+
 	if a.Requests[req.Host] == nil {
 		a.Requests[req.Host] = make(map[string][]*ArchivedRequest)
 	}
 
 	urlStr := req.URL.String()
-	a.Requests[req.Host][urlStr] = append(a.Requests[req.Host][urlStr], archivedRequest)
+	requests := a.Requests[req.Host][urlStr]
+	if mode == AddModeAppend {
+		requests = append(requests, archivedRequest)
+	} else if mode == AddModeOverwriteExisting {
+		log.Printf("Overwriting existing request")
+		requests = []*ArchivedRequest{archivedRequest}
+	} else if mode == AddModeSkipExisting {
+		if requests != nil {
+			log.Printf("Skipping existing request: %s", urlStr)
+			return nil
+		}
+		requests = append(requests, archivedRequest)
+	}
+	a.Requests[req.Host][urlStr] = requests
 	return nil
 }
 
@@ -297,7 +319,7 @@ func (a *Archive) Edit(edit func(req *http.Request, resp *http.Response) (*http.
 			return nil
 		}
 		// TODO: allow changing scheme or protocol?
-		return clone.addArchivedRequest(newReq, newResp)
+		return clone.addArchivedRequest(newReq, newResp, AddModeAppend)
 	})
 	if err != nil {
 		return nil, err
@@ -312,7 +334,7 @@ func (a *Archive) Merge(other *Archive) error {
 	err := other.ForEach(func(req *http.Request, resp *http.Response) error {
 		foundReq, _, notFoundErr := a.FindRequest(req)
 		if notFoundErr == ErrNotFound || req.URL.String() != foundReq.URL.String() {
-			if err := a.addArchivedRequest(req, resp); err != nil {
+			if err := a.addArchivedRequest(req, resp, AddModeAppend); err != nil {
 				return err
 			}
 			numAddedRequests++
@@ -326,10 +348,25 @@ func (a *Archive) Merge(other *Archive) error {
 }
 
 // Add the result of a get request to the receiver.
-func (a *Archive) Add(method string, urlString string) error {
+func (a *Archive) Add(method string, urlString string, mode AddMode) error {
 	req, err := http.NewRequest(method, urlString, nil)
 	if err != nil {
 		return fmt.Errorf("Error creating request object: %v", err)
+	}
+
+	url, _ := url.Parse(urlString)
+	// Print a warning for duplicate requests since the replay server will only
+	// return the first found response.
+	if mode == AddModeAppend || mode == AddModeSkipExisting {
+		if foundReq, _, notFoundErr := a.FindRequest(req); notFoundErr != ErrNotFound {
+			if foundReq.URL.String() == url.String() {
+				if mode == AddModeSkipExisting {
+					log.Printf("Skipping existing request: %s %s", req.Method, urlString)
+					return nil
+				}
+				log.Printf("Adding duplicate request:")
+			}
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -337,16 +374,12 @@ func (a *Archive) Add(method string, urlString string) error {
 		return fmt.Errorf("Error fetching url: %v", err)
 	}
 
-	url, _ := url.Parse(urlString)
-	// Print a warning for duplicate requests since the replay server will only
-	// return the first found response.
-	if foundReq, _, notFoundErr := a.FindRequest(req); notFoundErr != ErrNotFound {
-		if foundReq.URL.String() == url.String() {
-			log.Printf("Potentially adding duplicate request")
-		}
+	if err = a.addArchivedRequest(req, resp, mode); err != nil {
+		return err
 	}
 
-	return a.addArchivedRequest(req, resp)
+	fmt.Printf("Added request: (%s %s) %s\n", req.Method, resp.Status, urlString)
+	return nil
 }
 
 // Serialize serializes this archive to the given writer.
@@ -380,7 +413,7 @@ func OpenWritableArchive(path string) (*WritableArchive, error) {
 func (a *WritableArchive) RecordRequest(req *http.Request, resp *http.Response) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return a.addArchivedRequest(req, resp)
+	return a.addArchivedRequest(req, resp, AddModeAppend)
 }
 
 // RecordTlsConfig records the cert used and protocol negotiated for a host.
