@@ -21,7 +21,8 @@ def Run(project_config, args):
     args.extend(['--client-config', c])
   for s in project_config.start_dirs:
     args.extend(['--start-dir', s])
-
+  for e in project_config.expectations_files:
+    args.extend(['--expectations-file', e])
   if project_config.default_chrome_root and not '--chrome-root' in args:
     args.extend(['--chrome-root', project_config.default_chrome_root])
 

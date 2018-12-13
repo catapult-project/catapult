@@ -257,13 +257,7 @@ def RunTests(args):
     PrintTelemetryHelp()
     return parser.exit_status
   binary_manager.InitDependencyManager(options.client_configs)
-
-  not_using_typ_expectation = False
-  if options.expectations_files:
-    parser.error('--expectation-files flag is not supported yet.')
-  else:
-    not_using_typ_expectation = True
-
+  not_using_typ_expectation = len(options.expectations_files) == 0
   for start_dir in options.start_dirs:
     modules_to_classes = discover.DiscoverClasses(
         start_dir,
@@ -293,6 +287,7 @@ def RunTests(args):
   context.finder_options = ProcessCommandLineOptions(
       test_class, options, extra_args)
   context.test_class = test_class
+  context.expectations_files = options.expectations_files
   test_times = None
   if options.read_abbreviated_json_results_from:
     with open(options.read_abbreviated_json_results_from, 'r') as f:
@@ -316,7 +311,7 @@ def RunTests(args):
   runner.context = context
   runner.setup_fn = _SetUpProcess
   runner.teardown_fn = _TearDownProcess
-
+  runner.args.expectations_files = options.expectations_files
   runner.args.jobs = options.jobs
   runner.args.metadata = options.metadata
   runner.args.passthrough = options.passthrough

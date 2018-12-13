@@ -31,6 +31,7 @@ class TypTestContext(object):
   """
   def __init__(self):
     self._client_configs = []
+    self._expectations_files = []
     self._finder_options = None
     self._test_class = None
     self._test_cases_ids_to_run = set()
@@ -46,6 +47,7 @@ class TypTestContext(object):
     self._frozen = True
     self._test_cases_ids_to_run = sets.ImmutableSet(self._test_cases_ids_to_run)
     self._client_configs = tuple(self._client_configs)
+    self._expectations_files = tuple(self._expectations_files)
 
   @property
   def finder_options(self):
@@ -62,6 +64,15 @@ class TypTestContext(object):
   @property
   def test_case_ids_to_run(self):
     return self._test_cases_ids_to_run
+
+  @property
+  def expectations_files(self):
+    return self._expectations_files
+
+  @expectations_files.setter
+  def expectations_files(self, value):
+    assert not self._frozen
+    self._expectations_files = value
 
   @finder_options.setter
   def finder_options(self, value):
