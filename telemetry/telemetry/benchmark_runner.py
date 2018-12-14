@@ -272,7 +272,7 @@ class Run(command_line.OptparseCommand):
       possible_browser = (browser_finder.FindBrowser(args)
                           if args.browser_type else None)
       PrintBenchmarkList(
-          all_benchmarks, possible_browser, environment.expectations_file)
+          all_benchmarks, possible_browser, environment.expectations_files)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -308,7 +308,7 @@ class Run(command_line.OptparseCommand):
     benchmark_class.ProcessCommandLineArgs(parser, args)
 
     cls._benchmark = benchmark_class
-    cls._expectations_path = environment.expectations_file
+    cls._expectations_path = environment.expectations_files
 
   def Run(self, args):
     b = self._benchmark()
