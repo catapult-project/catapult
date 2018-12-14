@@ -14,8 +14,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function addPipelineForOneFrame(compositor, renderer, id, frame,
-      displayTrace) {
+  function addPipelineForOneFrame(compositor, renderer, rasterWorker,
+      id, frame, displayTrace) {
     const EVENT_NAME = 'Graphics.Pipeline';
     if (frame.IssueBeginFrame) {
       compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
           start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
-          args: {source_frame_number_: 1}}));
+          args: {source_frame_number_: id}}));
     renderer.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         { title: EVENT_NAME,
           start: frame.SubmitCompositorFrame, duration: 1, bindId: id,
@@ -54,6 +54,10 @@ tr.b.unittest.testSuite(function() {
           start: frame.SurfaceAggregation, duration: 1, bindId: id,
           args: {step: 'SurfaceAggregation', display_trace: displayTrace}}));
     renderer.sliceGroup.createSubSlices();
+    rasterWorker.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        { title: 'TaskGraphRunner::RunTask',
+          start: frame.rasterTaskStart, duration: 6, bindId: id,
+          args: {source_frame_number_: id}}));
   }
 
   function addDrawSlice(compositor, displayTrace, start, steps, opt_args) {
@@ -83,26 +87,43 @@ tr.b.unittest.testSuite(function() {
           model.getOrCreateProcess(1).getOrCreateThread(1);
       rendererCompositor.name = 'Compositor';
 
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
-        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
-        ReceiveCompositorFrame: 6, SurfaceAggregation: 10
-      });
-      addPipelineForOneFrame(browserMain, rendererCompositor, 2, {
-        IssueBeginFrame: 15, ReceiveBeginFrame: 16, GenerateRenderPass: 17,
-        GenerateCompositorFrame: 18, SubmitCompositorFrame: 19,
-        ReceiveCompositorFrame: 20, SurfaceAggregation: 21
-      });
-      addPipelineForOneFrame(browserMain, rendererCompositor, 3, {
-        IssueBeginFrame: 32, ReceiveBeginFrame: 34, GenerateRenderPass: 35,
-        GenerateCompositorFrame: 36, SubmitCompositorFrame: 37,
-        SubmitCompositorFrame: 38, ReceiveCompositorFrame: 41,
-        SurfaceAggregation: 44
-      });
+      // Creates a renderer thread
+      const renderer = model.getOrCreateProcess(2).getOrCreateThread(2);
+      renderer.name = 'CrRendererMain';
+      renderer.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorker = model.getOrCreateProcess(2).getOrCreateThread(5);
+      rasterWorker.name = 'CompositorTileWorker';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 10,
+            rasterTaskStart: 2
+          });
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 2, {
+            IssueBeginFrame: 15, ReceiveBeginFrame: 16,
+            GenerateRenderPass: 17, GenerateCompositorFrame: 18,
+            SubmitCompositorFrame: 19, ReceiveCompositorFrame: 20,
+            SurfaceAggregation: 21, rasterTaskStart: 22
+          });
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 3, {
+            IssueBeginFrame: 32, ReceiveBeginFrame: 34,
+            GenerateRenderPass: 35, GenerateCompositorFrame: 36,
+            SubmitCompositorFrame: 37, SubmitCompositorFrame: 38,
+            ReceiveCompositorFrame: 41, SurfaceAggregation: 44,
+            rasterTaskStart: 25
+          });
     });
+
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addPipelineHistograms(
         histograms, model, [new tr.model.um.Segment(0, 50)]);
+
 
     const beginFrameTransport = histograms.getHistogramNamed(
         'pipeline:begin_frame_transport');
@@ -110,9 +131,15 @@ tr.b.unittest.testSuite(function() {
         'pipeline:begin_frame_to_frame_submission');
     const surfaceAggregation = histograms.getHistogramNamed(
         'pipeline:frame_submission_to_display');
+    const rasterStart = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_start');
+    const rasterEnd = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_end');
     assert.closeTo(beginFrameTransport.average, 4 / 3, 1e-6);
     assert.closeTo(frameSubmission.average, 13 / 3, 1e-6);
     assert.closeTo(surfaceAggregation.average, 13 / 3, 1e-6);
+    assert.closeTo(rasterStart.average, 6 / 2, 1e-6);
+    assert.closeTo(rasterEnd.average, 16 / 2, 1e-6);
   });
 
   test('graphicsPipeline_duplicateSteps', function() {
@@ -123,19 +150,31 @@ tr.b.unittest.testSuite(function() {
           model.getOrCreateProcess(1).getOrCreateThread(1);
       rendererCompositor.name = 'Compositor';
 
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
-        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
-        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
-      });
+      // Creates a renderer thread
+      const renderer = model.getOrCreateProcess(2).getOrCreateThread(2);
+      renderer.name = 'CrRendererMain';
+      renderer.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorker = model.getOrCreateProcess(2).getOrCreateThread(5);
+      rasterWorker.name = 'CompositorTileWorker';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 9,
+            rasterTaskStart: 3
+          });
 
       // Add duplicate steps for SubmitCompositorFrame and the subsequent
       // steps for the same trace-id.
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        GenerateRenderPass: 10, GenerateCompositorFrame: 11,
-        SubmitCompositorFrame: 12, ReceiveCompositorFrame: 15,
-        SurfaceAggregation: 18
-      });
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            GenerateRenderPass: 10, GenerateCompositorFrame: 11,
+            SubmitCompositorFrame: 12, ReceiveCompositorFrame: 15,
+            SurfaceAggregation: 18, rasterTaskStart: 3
+          });
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addPipelineHistograms(
@@ -148,9 +187,69 @@ tr.b.unittest.testSuite(function() {
         'pipeline:begin_frame_to_frame_submission');
     const surfaceAggregation = histograms.getHistogramNamed(
         'pipeline:frame_submission_to_display');
+    const rasterStart = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_start');
+    const rasterEnd = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_end');
     assert.strictEqual(beginFrameTransport.average, 1);
     assert.strictEqual(frameSubmission.average, 4);
     assert.strictEqual(surfaceAggregation.average, 4);
+    assert.strictEqual(rasterStart.average, 1);
+    assert.strictEqual(rasterEnd.average, 6);
+  });
+
+  test('graphicsPipeline_duplicateRenderers', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      const rendererCompositor =
+          model.getOrCreateProcess(1).getOrCreateThread(1);
+      rendererCompositor.name = 'Compositor';
+
+      // Creates a renderer thread
+      const rendererWithIR = model.getOrCreateProcess(2).getOrCreateThread(2);
+      rendererWithIR.name = 'CrRendererMain';
+      rendererWithIR.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorkerWithIR = model.getOrCreateProcess(2)
+          .getOrCreateThread(5);
+      rasterWorkerWithIR.name = 'CompositorTileWorker';
+
+      const rendererWithoutIR = model.getOrCreateProcess(3)
+          .getOrCreateThread(2);
+      rendererWithoutIR.name = 'CrRendererMain';
+
+      const rasterWorkerWithoutIR = model.getOrCreateProcess(3)
+          .getOrCreateThread(5);
+      rasterWorkerWithoutIR.name = 'CompositorTileWorker';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorkerWithIR, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 10,
+            rasterTaskStart: 3
+          });
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorkerWithoutIR, 2, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 10,
+            rasterTaskStart: 4
+          });
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addPipelineHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 50)]);
+
+    const rasterStart = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_start');
+    const rasterEnd = histograms.getHistogramNamed(
+        'pipeline:begin_frame_to_raster_end');
+    assert.strictEqual(rasterStart.average, 1);
+    assert.strictEqual(rasterEnd.average, 6);
   });
 
   test('graphicsPipeline_drawSteps', function() {
@@ -161,12 +260,23 @@ tr.b.unittest.testSuite(function() {
           model.getOrCreateProcess(1).getOrCreateThread(1);
       rendererCompositor.name = 'Compositor';
 
+      // Creates a renderer thread
+      const renderer = model.getOrCreateProcess(2).getOrCreateThread(2);
+      renderer.name = 'CrRendererMain';
+      renderer.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorker = model.getOrCreateProcess(2).getOrCreateThread(5);
+      rasterWorker.name = 'CompositorTileWorker';
+
       const displayTrace = '1';
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
-        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
-        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
-      }, displayTrace);
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 9,
+            rasterTaskStart: 3
+          }, displayTrace);
 
       addDrawSlice(browserMain, displayTrace, 10,
           {Draw: 2, Swap: 1, WaitForAck: 5}, {});
@@ -187,12 +297,23 @@ tr.b.unittest.testSuite(function() {
           model.getOrCreateProcess(1).getOrCreateThread(1);
       rendererCompositor.name = 'Compositor';
 
+      // Creates a renderer thread
+      const renderer = model.getOrCreateProcess(2).getOrCreateThread(2);
+      renderer.name = 'CrRendererMain';
+      renderer.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorker = model.getOrCreateProcess(2).getOrCreateThread(5);
+      rasterWorker.name = 'CompositorTileWorker';
+
       const displayTrace = '1';
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
-        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
-        ReceiveCompositorFrame: 6, SurfaceAggregation: 9
-      }, displayTrace);
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 6, SurfaceAggregation: 9,
+            rasterTaskStart: 3
+          }, displayTrace);
 
       addDrawSlice(browserMain, displayTrace, 10,
           {Draw: 2, Swap: 1, WaitForAck: 5}, {status: 'canceled'});
@@ -215,11 +336,22 @@ tr.b.unittest.testSuite(function() {
           model.getOrCreateProcess(1).getOrCreateThread(1);
       rendererCompositor.name = 'Compositor';
 
-      addPipelineForOneFrame(browserMain, rendererCompositor, 1, {
-        IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
-        GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
-        ReceiveCompositorFrame: 11, SurfaceAggregation: 15
-      });
+      // Creates a renderer thread
+      const renderer = model.getOrCreateProcess(2).getOrCreateThread(2);
+      renderer.name = 'CrRendererMain';
+      renderer.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Action', 1, 1));
+
+      const rasterWorker = model.getOrCreateProcess(2).getOrCreateThread(5);
+      rasterWorker.name = 'CompositorTileWorker';
+
+      addPipelineForOneFrame(browserMain, rendererCompositor,
+          rasterWorker, 1, {
+            IssueBeginFrame: 1, ReceiveBeginFrame: 2, GenerateRenderPass: 3,
+            GenerateCompositorFrame: 4, SubmitCompositorFrame: 5,
+            ReceiveCompositorFrame: 11, SurfaceAggregation: 15,
+            rasterTaskStart: 2
+          });
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addPipelineHistograms(
