@@ -53,6 +53,9 @@ def _CreateOptionParser():
   parser.add_option('-t', '--time', help='Stops tracing after N seconds, 0 to '
                     'manually stop (startup trace ends after at most 5s).',
                     default=5, metavar='N', type='int', dest='trace_time')
+  parser.add_option('-c', '--chrome_categories', help='Chrome tracing '
+                    'categories to record.', default=_DEFAULT_CHROME_CATEGORIES,
+                    type='string')
 
   parser.add_option_group(chrome_startup_tracing_agent.add_options(parser))
   parser.add_option_group(atrace_agent.add_options(parser))
@@ -91,7 +94,6 @@ def main():
   # removed.
   options.ring_buffer = False
   options.trace_memory = False
-  options.chrome_categories = _DEFAULT_CHROME_CATEGORIES
 
   if options.atrace_categories in ['list', 'help']:
     atrace_agent.list_categories(atrace_agent.get_config(options))
