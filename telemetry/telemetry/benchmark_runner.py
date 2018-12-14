@@ -210,6 +210,11 @@ class List(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, environment):
+    if environment.expectations_files:
+      assert len(environment.expectations_files) == 1
+      expectations_file = environment.expectations_files[0]
+    else:
+      expectations_file = None
     if not args.positional_args:
       args.benchmarks = _Benchmarks(environment)
     elif len(args.positional_args) == 1:
@@ -217,7 +222,7 @@ class List(command_line.OptparseCommand):
           args.positional_args[0], environment, exact_matches=False)
     else:
       parser.error('Must provide at most one benchmark name.')
-    cls._expectations_file = environment.expectations_file
+    cls._expectations_file = expectations_file
 
   def Run(self, args):
     # Set at least log info level for List command.
@@ -268,11 +273,16 @@ class Run(command_line.OptparseCommand):
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, environment):
     all_benchmarks = _Benchmarks(environment)
+    if environment.expectations_files:
+      assert len(environment.expectations_files) == 1
+      expectations_file = environment.expectations_files[0]
+    else:
+      expectations_file = None
     if not args.positional_args:
       possible_browser = (browser_finder.FindBrowser(args)
                           if args.browser_type else None)
       PrintBenchmarkList(
-          all_benchmarks, possible_browser, environment.expectations_files)
+          all_benchmarks, possible_browser, expectations_file)
       sys.exit(-1)
 
     input_benchmark_name = args.positional_args[0]
@@ -285,7 +295,7 @@ class Run(command_line.OptparseCommand):
       if most_likely_matched_benchmarks:
         print >> sys.stderr, 'Do you mean any of those benchmarks below?'
         PrintBenchmarkList(most_likely_matched_benchmarks, None,
-                           environment.expectations_file, sys.stderr)
+                           expectations_file, sys.stderr)
       sys.exit(-1)
 
     if len(matching_benchmarks) > 1:
@@ -294,7 +304,7 @@ class Run(command_line.OptparseCommand):
       print >> sys.stderr, 'Did you mean one of these?'
       print >> sys.stderr
       PrintBenchmarkList(matching_benchmarks, None,
-                         environment.expectations_file, sys.stderr)
+                         expectations_file, sys.stderr)
       sys.exit(-1)
 
     benchmark_class = matching_benchmarks.pop()
@@ -308,7 +318,7 @@ class Run(command_line.OptparseCommand):
     benchmark_class.ProcessCommandLineArgs(parser, args)
 
     cls._benchmark = benchmark_class
-    cls._expectations_path = environment.expectations_files
+    cls._expectations_path = expectations_file
 
   def Run(self, args):
     b = self._benchmark()

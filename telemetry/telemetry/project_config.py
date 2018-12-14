@@ -22,7 +22,8 @@ class ProjectConfig(object):
                benchmark_aliases=None, client_configs=None,
                default_chrome_root=None, expectations_file=None,
                expectations_files=None):
-    expectations_files = expectations_file or expectations_files
+    if expectations_file:
+      expectations_files = [expectations_file]
     self._top_level_dir = top_level_dir
     self._benchmark_dirs = benchmark_dirs or []
     self._benchmark_aliases = benchmark_aliases or dict()
