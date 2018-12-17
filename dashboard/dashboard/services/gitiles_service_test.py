@@ -6,6 +6,7 @@ import unittest
 
 import mock
 
+from dashboard.services import gerrit_service
 from dashboard.services import gitiles_service
 
 
@@ -55,7 +56,7 @@ class GitilesTest(unittest.TestCase):
         return_value)
     self._request_json.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON',
-        use_cache=False, use_auth=False)
+        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRange(self):
     return_value = {
@@ -102,7 +103,7 @@ class GitilesTest(unittest.TestCase):
     self._request_json.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+log/'
         'commit_0_hash..commit_2_hash?format=JSON',
-        use_cache=False, use_auth=False)
+        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRangePaginated(self):
     return_value_1 = {
@@ -134,7 +135,7 @@ class GitilesTest(unittest.TestCase):
         'hello')
     self._request.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT',
-        use_cache=False, use_auth=False)
+        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
 
   def testCache(self):
     self._request_json.return_value = {'log': []}
@@ -146,14 +147,14 @@ class GitilesTest(unittest.TestCase):
     gitiles_service.CommitInfo(repository, git_hash)
     self._request_json.assert_called_with(
         '%s/+/%s?format=JSON' % (repository, git_hash),
-        use_cache=True, use_auth=False)
+        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.CommitRange(repository, git_hash, git_hash)
     self._request_json.assert_called_with(
         '%s/+log/%s..%s?format=JSON' % (repository, git_hash, git_hash),
-        use_cache=True, use_auth=False)
+        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.FileContents(repository, git_hash, 'path')
     self._request.assert_called_with(
         '%s/+/%s/path?format=TEXT' % (repository, git_hash),
-        use_cache=True, use_auth=False)
+        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
