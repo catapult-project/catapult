@@ -69,10 +69,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return True
     return [arg for arg in args if arg.startswith('--proxy-server=')]
 
-  def GetBrowserStartupUrl(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    return None
-
   def HasDevToolsConnection(self):
     return self._devtools_client and self._devtools_client.IsAlive()
 

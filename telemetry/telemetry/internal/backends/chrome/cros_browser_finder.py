@@ -1,7 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Finds CrOS browsers that can be controlled by telemetry."""
+"""Finds CrOS browsers that can be started and controlled by telemetry."""
 
 import logging
 import os
@@ -103,6 +103,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
           browser_backend, self._platform_backend, startup_args)
     returned_browser = browser.Browser(
         browser_backend, self._platform_backend, startup_args)
+    # TODO(crbug.com/916086): Move this assertion to callers.
     if self._browser_options.assert_gpu_compositing:
       gpu_compositing_checker.AssertGpuCompositingEnabled(
           returned_browser.GetSystemInfo())

@@ -203,10 +203,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
-  def GetBrowserStartupUrl(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    return self.browser_options.startup_url
-
   def Start(self, startup_args, startup_url=None):
     assert not self._proc, 'Must call Close() before Start()'
 

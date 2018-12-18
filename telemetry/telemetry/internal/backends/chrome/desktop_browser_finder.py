@@ -1,7 +1,7 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-"""Finds desktop browsers that can be controlled by telemetry."""
+"""Finds desktop browsers that can be started and controlled by telemetry."""
 
 import logging
 import os
@@ -140,6 +140,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         # may not be guaranteed the same each time
         # For example, see: crbug.com/865895#c17
         startup_args = self.GetBrowserStartupArgs(self._browser_options)
+        startup_url = self._browser_options.startup_url
         returned_browser = None
 
         browser_backend = desktop_browser_backend.DesktopBrowserBackend(
@@ -152,7 +153,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
           self._ClearCachesOnStart()
 
         returned_browser = browser.Browser(
-            browser_backend, self._platform_backend, startup_args)
+            browser_backend, self._platform_backend, startup_args,
+            startup_url=startup_url)
+        # TODO(crbug.com/916086): Move this assertion to callers.
         if self._browser_options.assert_gpu_compositing:
           gpu_compositing_checker.AssertGpuCompositingEnabled(
               returned_browser.GetSystemInfo())

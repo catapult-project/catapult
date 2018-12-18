@@ -124,17 +124,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
         blocking=True)
 
-  def GetBrowserStartupUrl(self):
-    # TODO(crbug.com/787834): Move to the corresponding possible-browser class.
-    if self.browser_options.startup_url:
-      return self.browser_options.startup_url
-    elif self.browser_options.profile_dir:
-      return None
-    else:
-      # If we have no existing tabs start with a blank page since default
-      # startup with the NTP can lead to race conditions with Telemetry
-      return 'about:blank'
-
   def ForceJavaHeapGarbageCollection(self):
     # Send USR1 signal to force GC on Chrome processes forked from Zygote.
     # (c.f. crbug.com/724032)
