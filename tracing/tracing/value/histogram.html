@@ -233,6 +233,7 @@ tr.exportTo('tr.v', function() {
           diagnostics = Object.entries(diagnostics);
         }
         for (const [name, diagnostic] of diagnostics) {
+          if (!diagnostic) continue;
           hist.diagnostics.set(name, diagnostic);
         }
       }

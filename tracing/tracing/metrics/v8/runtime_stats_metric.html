@@ -161,95 +161,84 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function addDurationHistogram(railStageName, runtimeGroupName, sampleValue,
-      histograms, durationRelatedHistsByGroupName) {
-    const durationHistogram = histograms.createHistogram(
-        `${railStageName}_${runtimeGroupName}:duration`,
+      histograms, durationNamesByGroupName) {
+    const histName = `${railStageName}_${runtimeGroupName}:duration`;
+    histograms.createHistogram(
+        histName,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         convertMicroToMilli_(sampleValue), {
           binBoundaries: DURATION_CUSTOM_BOUNDARIES,
           summaryOptions: SUMMARY_OPTIONS,
         });
-
-    // Record this histogram in RelatedHistogramMap.
-    if (durationRelatedHistsByGroupName.get(runtimeGroupName) ===
-      undefined) {
-      const durationHistogramMap = new tr.v.d.RelatedHistogramMap();
-      durationHistogramMap.set(railStageName, durationHistogram);
-      durationRelatedHistsByGroupName.set(runtimeGroupName,
-          durationHistogramMap);
-    } else {
-      durationRelatedHistsByGroupName.get(runtimeGroupName).set(railStageName,
-          durationHistogram);
+    let relatedNames = durationNamesByGroupName.get(runtimeGroupName);
+    if (!relatedNames) {
+      relatedNames = new tr.v.d.RelatedNameMap();
+      durationNamesByGroupName.set(runtimeGroupName, relatedNames);
     }
+    relatedNames.set(railStageName, histName);
   }
 
   function addCountHistogram(railStageName, runtimeGroupName, sampleValue,
-      histograms, countRelatedHistsByGroupName) {
-    const countHistogram = histograms.createHistogram(
-        `${railStageName}_${runtimeGroupName}:count`,
+      histograms, countNamesByGroupName) {
+    const histName = `${railStageName}_${runtimeGroupName}:count`;
+    histograms.createHistogram(
+        histName,
         tr.b.Unit.byName.count_smallerIsBetter, sampleValue, {
           binBoundaries: COUNT_CUSTOM_BOUNDARIES,
           summaryOptions: SUMMARY_OPTIONS,
         });
-
-    // Record this histogram in RelatedHistogramMap.
-    if (countRelatedHistsByGroupName.get(runtimeGroupName) === undefined) {
-      const countHistogramMap = new tr.v.d.RelatedHistogramMap();
-      countHistogramMap.set(railStageName, countHistogram);
-      countRelatedHistsByGroupName.set(runtimeGroupName,
-          countHistogramMap);
-    } else {
-      countRelatedHistsByGroupName.get(runtimeGroupName).set(railStageName,
-          countHistogram);
+    let relatedNames = countNamesByGroupName.get(runtimeGroupName);
+    if (!relatedNames) {
+      relatedNames = new tr.v.d.RelatedNameMap();
+      countNamesByGroupName.set(runtimeGroupName, relatedNames);
     }
+    relatedNames.set(railStageName, histName);
   }
 
   function addTotalDurationHistogram(histogramName, time, histograms,
-      durationRelatedHistsByGroupName) {
-    const durationHistogram = histograms.createHistogram(
+      relatedNames) {
+    const value = convertMicroToMilli_(time);
+    const breakdown = new tr.v.d.Breakdown();
+    if (relatedNames) {
+      for (const [cat, histName] of relatedNames) {
+        breakdown.set(cat, histograms.getHistogramNamed(histName).average);
+      }
+    }
+    histograms.createHistogram(
         `${histogramName}:duration`,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        convertMicroToMilli_(time), {
+        {value, diagnostics: {'RAIL stages': breakdown}}, {
           binBoundaries: DURATION_CUSTOM_BOUNDARIES,
           summaryOptions: SUMMARY_OPTIONS,
+          diagnostics: {'RAIL stages': relatedNames},
         });
-
-    // Add UE histograms as a diagnostic, so they can be hidden in the main
-    // view, and the data across UE buckets can be grouped together.
-    const durationRelatedHistogram = durationRelatedHistsByGroupName.get(
-        histogramName);
-    if (durationRelatedHistogram !== undefined) {
-      durationHistogram.diagnostics.set('RAIL stages',
-          durationRelatedHistogram);
-    }
   }
 
-  function addTotalCountHistogram(histogramName, count, histograms,
-      countRelatedHistsByGroupName) {
-    const countHistogram = histograms.createHistogram(
+  function addTotalCountHistogram(histogramName, value, histograms,
+      relatedNames) {
+    const breakdown = new tr.v.d.Breakdown();
+    if (relatedNames) {
+      for (const [cat, histName] of relatedNames) {
+        breakdown.set(cat, histograms.getHistogramNamed(histName).average);
+      }
+    }
+    histograms.createHistogram(
         `${histogramName}:count`,
         tr.b.Unit.byName.count_smallerIsBetter,
-        count, {
+        {value, diagnostics: {'RAIL stages': breakdown}}, {
           binBoundaries: COUNT_CUSTOM_BOUNDARIES,
           summaryOptions: SUMMARY_OPTIONS,
+          diagnostics: {'RAIL stages': relatedNames},
         });
-
-    // Add UE histograms as a diagnostic, so they can be hidden in the main
-    // view, and the data across UE buckets can be grouped together.
-    const countRelatedHistogram = countRelatedHistsByGroupName.get(
-        histogramName);
-    if (countRelatedHistogram !== undefined) {
-      countHistogram.diagnostics.set('RAIL stages', countRelatedHistogram);
-    }
   }
 
   function computeRuntimeStatsBucketOnUE(histograms, slices,
       v8SlicesBucketOnUEMap) {
-    const durationRelatedHistsByGroupName = new Map();
-    const countRelatedHistsByGroupName = new Map();
+    const durationNamesByGroupName = new Map();
+    const countNamesByGroupName = new Map();
 
     // Compute runtimeStats in each of the UE buckets. Also record the
-    // histograms in RelatedHistogramMap. These histograms are added to the
+    // histograms in RelatedNameMap. These histograms are added to the
     // corresponding histograms in the total bucket as a diagnostic. This keeps
     // the data grouped.
     for (const [name, slicesUE] of v8SlicesBucketOnUEMap) {
@@ -260,13 +249,13 @@ tr.exportTo('tr.metrics.v8', function() {
       let overallV8Count = runtimeGroupCollection.totalCount;
       for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
         addDurationHistogram(name, runtimeGroup.name, runtimeGroup.time,
-            histograms, durationRelatedHistsByGroupName);
+            histograms, durationNamesByGroupName);
         if (runtimeGroup.name === 'Blink C++') {
           overallV8Time -= runtimeGroup.time;
         }
 
         addCountHistogram(name, runtimeGroup.name, runtimeGroup.count,
-            histograms, countRelatedHistsByGroupName);
+            histograms, countNamesByGroupName);
         if (runtimeGroup.name === 'Blink C++') {
           overallV8Count -= runtimeGroup.count;
         }
@@ -276,18 +265,18 @@ tr.exportTo('tr.metrics.v8', function() {
         const blinkRCSGroupCollection =
             runtimeGroupCollection.blinkRCSGroupCollection;
         for (const group of blinkRCSGroupCollection.runtimeGroups) {
-          addDurationHistogram(name, group.name, group.time,
-              histograms, durationRelatedHistsByGroupName);
-          addCountHistogram(name, group.name, group.count,
-              histograms, countRelatedHistsByGroupName);
+          addDurationHistogram(name, group.name, group.time, histograms,
+              durationNamesByGroupName);
+          addCountHistogram(name, group.name, group.count, histograms,
+              countNamesByGroupName);
         }
       }
 
       // Add V8 only time that is Total - Blink C++ duration.
       addDurationHistogram(name, 'V8-Only', overallV8Time, histograms,
-          durationRelatedHistsByGroupName);
+          durationNamesByGroupName);
       addCountHistogram(name, 'V8-Only', overallV8Count, histograms,
-          countRelatedHistsByGroupName);
+          countNamesByGroupName);
     }
 
     // Add the runtimeStats for all the samples. Please note, the values in
@@ -300,13 +289,13 @@ tr.exportTo('tr.metrics.v8', function() {
     let overallV8Count = runtimeGroupCollection.totalCount;
     for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
       addTotalDurationHistogram(runtimeGroup.name, runtimeGroup.time,
-          histograms, durationRelatedHistsByGroupName);
+          histograms, durationNamesByGroupName.get(runtimeGroup.name));
       if (runtimeGroup.name === 'Blink C++') {
         overallV8Time -= runtimeGroup.time;
       }
 
-      addTotalCountHistogram(runtimeGroup.name, runtimeGroup.count,
-          histograms, countRelatedHistsByGroupName);
+      addTotalCountHistogram(runtimeGroup.name, runtimeGroup.count, histograms,
+          countNamesByGroupName.get(runtimeGroup.name));
       if (runtimeGroup.name === 'Blink C++') {
         overallV8Count -= runtimeGroup.count;
       }
@@ -316,18 +305,18 @@ tr.exportTo('tr.metrics.v8', function() {
       const blinkRCSGroupCollection =
         runtimeGroupCollection.blinkRCSGroupCollection;
       for (const group of blinkRCSGroupCollection.runtimeGroups) {
-        addTotalDurationHistogram(group.name, group.time,
-            histograms, durationRelatedHistsByGroupName);
-        addTotalCountHistogram(group.name, group.count,
-            histograms, countRelatedHistsByGroupName);
+        addTotalDurationHistogram(group.name, group.time, histograms,
+            durationNamesByGroupName.get(group.name));
+        addTotalCountHistogram(group.name, group.count, histograms,
+            countNamesByGroupName.get(group.name));
       }
     }
 
     // Add V8 only time that is Total - Blink C++ duration.
     addTotalDurationHistogram('V8-Only', overallV8Time, histograms,
-        durationRelatedHistsByGroupName);
+        durationNamesByGroupName.get('V8-Only'));
     addTotalCountHistogram('V8-Only', overallV8Count, histograms,
-        countRelatedHistsByGroupName);
+        countNamesByGroupName.get('V8-Only'));
   }
 
   function runtimeStatsTotalMetric(histograms, model) {
