@@ -2,8 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-import time
+import json
 
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
@@ -92,7 +91,7 @@ class _FindIsolateExecution(execution.Execution):
     return details
 
   def _Poll(self):
-    if self._CheckCompleted():
+    if self._CheckIsolateCache():
       return
 
     if self._build:
@@ -101,7 +100,7 @@ class _FindIsolateExecution(execution.Execution):
 
     self._RequestBuild()
 
-  def _CheckCompleted(self):
+  def _CheckIsolateCache(self):
     """Checks the isolate cache to see if a build is already available.
 
     Returns:
@@ -135,30 +134,26 @@ class _FindIsolateExecution(execution.Execution):
 
     if build['result'] == 'FAILURE':
       raise BuildError('Build failed: ' + build['failure_reason'])
-    elif build['result'] == 'CANCELED':
+    if build['result'] == 'CANCELED':
       raise BuildError('Build was canceled: ' + build['cancelation_reason'])
-    else:
-      if self._CheckCompleted():
-        return
-      logging.debug('Debugging info for chromium:882573')
-      try:
-        logging.debug(isolate.Get(
-            self._builder_name, self._change, self._target))
-      except KeyError:
-        logging.debug('Isolate not found.')
-      logging.debug(build)
-      logging.debug(self._builder_name)
-      logging.debug(self._change.id_string)
-      logging.debug(self._target)
-      time.sleep(1)
-      try:
-        logging.debug(isolate.Get(
-            self._builder_name, self._change, self._target))
-      except KeyError:
-        logging.debug('Isolate not found.')
+
+    # The build succeeded. Parse the result and complete this Quest.
+    properties = json.loads(build['result_details_json'])['properties']
+
+    commit_position = properties['got_revision_cp'].replace('@', '(at)')
+    suffix = 'with_patch' if 'patch_storage' in properties else 'without_patch'
+    key = '_'.join(('swarm_hashes', commit_position, suffix))
+
+    if self._target not in properties[key]:
       raise IsolateNotFoundError(
           'Buildbucket says the build completed successfully, '
           "but Pinpoint can't find the isolate hash.")
+
+    result_arguments = {
+        'isolate_server': properties['isolate_server'],
+        'isolate_hash': properties[key][self._target],
+    }
+    self._Complete(result_arguments=result_arguments)
 
   def _RequestBuild(self):
     """Requests a build.

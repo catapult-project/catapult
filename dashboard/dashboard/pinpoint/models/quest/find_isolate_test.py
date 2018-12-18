@@ -131,10 +131,21 @@ class BuildTest(_FindIsolateExecutionTest):
     get_job_status.assert_called_once_with('build_id')
 
     # Look up isolate hash.
-    isolate.Put((
-        ('Mac Builder', change, 'telemetry_perf_tests',
-         'https://isolate.server', 'isolate git hash'),
-    ))
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'SUCCESS',
+            'url': 'build_url',
+            'result_details_json': """{
+                "properties": {
+                    "got_revision_cp": "refs/heads/master@{#123}",
+                    "isolate_server": "https://isolate.server",
+                    "swarm_hashes_refs/heads/master(at){#123}_without_patch":
+                        {"telemetry_perf_tests": "isolate git hash"}
+                }
+            }""",
+        }
+    }
     execution.Poll()
 
     expected_result_arguments = {
@@ -193,10 +204,20 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertEqual(get_job_status.call_count, 2)
 
     # Look up isolate hash.
-    isolate.Put((
-        ('Mac Builder', change, 'telemetry_perf_tests',
-         'https://isolate.server', 'isolate git hash'),
-    ))
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'SUCCESS',
+            'result_details_json': """{
+                "properties": {
+                    "got_revision_cp": "refs/heads/master@{#123}",
+                    "isolate_server": "https://isolate.server",
+                    "swarm_hashes_refs/heads/master(at){#123}_without_patch":
+                        {"telemetry_perf_tests": "isolate git hash"}
+                }
+            }""",
+        }
+    }
     execution_1.Poll()
     execution_2.Poll()
 
@@ -256,6 +277,13 @@ class BuildTest(_FindIsolateExecutionTest):
         'build': {
             'status': 'COMPLETED',
             'result': 'SUCCESS',
+            'result_details_json': """{
+                "properties": {
+                    "got_revision_cp": "refs/heads/master@{#123}",
+                    "isolate_server": "https://isolate.server",
+                    "swarm_hashes_refs/heads/master(at){#123}_without_patch": {}
+                }
+            }""",
         }
     }
     with self.assertRaises(find_isolate.IsolateNotFoundError):
