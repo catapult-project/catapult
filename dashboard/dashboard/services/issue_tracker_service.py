@@ -137,7 +137,7 @@ class IssueTrackerService(object):
     return False
 
   def NewBug(self, title, description, labels=None, components=None,
-             owner=None, cc=None):
+             owner=None, cc=None, status=None):
     """Creates a new bug.
 
     Args:
@@ -147,6 +147,7 @@ class IssueTrackerService(object):
       components: Starting components for the bug.
       owner: Starting owner account name.
       cc: CSV of email addresses to CC on the bug.
+      status: defaults to Assigned if owner else Unconfirmed.
 
     Returns:
       A dict containing the bug_id (if successful), or the error message if not.
@@ -157,7 +158,7 @@ class IssueTrackerService(object):
         'description': description,
         'labels': labels or [],
         'components': components or [],
-        'status': 'Assigned' if owner else 'Untriaged',
+        'status': status or ('Assigned' if owner else 'Unconfirmed'),
         'projectId': 'chromium'
     }
     if owner:

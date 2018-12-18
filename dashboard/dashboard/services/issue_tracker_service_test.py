@@ -139,7 +139,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'description': 'body',
             'labels': [],
             'components': [],
-            'status': 'Untriaged',
+            'status': 'Unconfirmed',
             'projectId': 'chromium',
             'cc': [{'name': 'somebody@chromium.org'},
                    {'name': 'nobody@chromium.org'}],
