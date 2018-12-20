@@ -58,9 +58,6 @@ def AddCommandLineArgs(parser):
   # overridden by passed in commandline arguments.
   group.add_option('--pageset-repeat', default=1, type='int',
                    help='Number of times to repeat the entire pageset. ')
-  group.add_option('--smoke-test-mode', action='store_true',
-                   help='This flag does not do anything right now and is'
-                   'scheduled for deletion.')
   # TODO(crbug.com/910809): Add flag to reduce iterations to 1.
   # (An iteration is a repeat of the benchmark without restarting Chrome. It
   # must be supported in benchmark-specific code.) This supports the smoke
