@@ -12,6 +12,9 @@ class RelatedNameMap(diagnostic.Diagnostic):
     super(RelatedNameMap, self).__init__()
     self._map = {}
 
+  def __len__(self):
+    return len(self._map)
+
   def __eq__(self, other):
     if not isinstance(other, RelatedNameMap):
       return False

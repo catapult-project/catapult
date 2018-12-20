@@ -62,6 +62,11 @@ class HistogramSet(object):
   def GetHistogramsNamed(self, name):
     return [h for h in self if h.name == name]
 
+  def GetHistogramNamed(self, name):
+    hs = self.GetHistogramsNamed(name)
+    assert len(hs) == 1, 'Found %d Histograms names "%s"' % (len(hs), name)
+    return hs[0]
+
   def GetSharedDiagnosticsOfType(self, typ):
     return [d for d in self.shared_diagnostics if isinstance(d, typ)]
 
