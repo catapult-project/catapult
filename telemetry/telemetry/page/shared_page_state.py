@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 
+from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
@@ -277,8 +278,20 @@ class SharedPageState(story_module.SharedState):
     del browser_info, page  # unused
     return True
 
+  def _GetCurrentTab(self):
+    try:
+      return self.browser.tabs[0]
+    # The tab may have gone away in some case, so we create a new tab and retry
+    # (See crbug.com/496280)
+    except exceptions.DevtoolsTargetCrashException as e:
+      logging.error('Tab may have crashed: %s' % str(e))
+      self.browser.tabs.New()
+      # See below in WillRunStory for why this waiting is needed.
+      self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+      return self.browser.tabs[0]
+
   def _PreparePage(self):
-    self._current_tab = self._test.TabForPage(self._current_page, self.browser)
+    self._current_tab = self._GetCurrentTab()
     if self._current_page.is_file:
       self.platform.SetHTTPServerDirectories(
           self._current_page.page_set.serving_dirs |

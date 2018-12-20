@@ -2,11 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
-
 from py_trace_event import trace_event
 
-from telemetry.core import exceptions
 from telemetry.internal.actions import action_runner as action_runner_module
 
 # Export story_test.Failure to this page_test module
@@ -99,21 +96,6 @@ class LegacyPageTest(object):
 
   def DidRunPage(self, platform):
     """Called after the test run method was run, even if it failed."""
-
-  def TabForPage(self, page, browser):   # pylint: disable=unused-argument
-    """Override to select a different tab for the page.  For instance, to
-    create a new tab for every page, return browser.tabs.New()."""
-    try:
-      return browser.tabs[0]
-    # The tab may have gone away in some case, so we create a new tab and retry
-    # (See crbug.com/496280)
-    except exceptions.DevtoolsTargetCrashException as e:
-      logging.error('Tab may have crashed: %s' % str(e))
-      browser.tabs.New()
-      # See comment in shared_page_state.WillRunStory for why this waiting
-      # is needed.
-      browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
-      return browser.tabs[0]
 
   def ValidateAndMeasurePage(self, page, tab, results):
     """Override to check test assertions and perform measurement.

@@ -8,7 +8,6 @@ import unittest
 
 from telemetry import benchmark
 from telemetry import story
-from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -73,38 +72,3 @@ class PageTestTestCase(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(measurement, ps, options, results)
     return results
-
-  def TestTracingCleanedUp(self, measurement_class, options=None):
-    ps = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
-    start_tracing_called = [False]
-    stop_tracing_called = [False]
-
-    class BuggyMeasurement(measurement_class):
-      def __init__(self, *args, **kwargs):
-        measurement_class.__init__(self, *args, **kwargs)
-
-      # Inject fake tracing methods to tracing_controller
-      def TabForPage(self, page, browser):
-        ActualStartTracing = browser.platform.tracing_controller.StartTracing
-        def FakeStartTracing(*args, **kwargs):
-          ActualStartTracing(*args, **kwargs)
-          start_tracing_called[0] = True
-          raise exceptions.IntentionalException
-        browser.StartTracing = FakeStartTracing
-
-        ActualStopTracing = browser.platform.tracing_controller.StopTracing
-        def FakeStopTracing(*args, **kwargs):
-          result = ActualStopTracing(*args, **kwargs)
-          stop_tracing_called[0] = True
-          return result
-        browser.platform.tracing_controller.StopTracing = FakeStopTracing
-
-        return measurement_class.TabForPage(self, page, browser)
-
-    measurement = BuggyMeasurement()
-    try:
-      self.RunMeasurement(measurement, ps, options=options)
-    except legacy_page_test.TestNotSupportedOnPlatformError:
-      pass
-    if start_tracing_called[0]:
-      self.assertTrue(stop_tracing_called[0])
