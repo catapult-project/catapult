@@ -177,15 +177,20 @@ class Job(ndb.Model):
   def auto_name(self):
     if self.name:
       return self.name
-    result = ''
+
+    if self.comparison_mode == job_state.FUNCTIONAL:
+      name = 'Functional bisect'
+    elif self.comparison_mode == job_state.PERFORMANCE:
+      name = 'Performance bisect'
+    else:
+      name = 'Try job'
+
     if 'configuration' in self.arguments:
-      result = '%s' % self.arguments['configuration']
+      name += ' on ' + self.arguments['configuration']
       if 'benchmark' in self.arguments:
-        result = '%s: %s' % (result, self.arguments['benchmark'])
-        if 'story' in self.arguments:
-          result = '%s:%s' % (result, self.arguments['story'])
-      return result
-    return 'Untitled Job'
+        name += '/' + self.arguments['benchmark']
+
+    return name
 
   def AddChange(self, change):
     self.state.AddChange(change)
