@@ -280,14 +280,20 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+
     const eqt = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
-    const v8eqt = eqt.diagnostics.get('v8').get('v8');
-    assert.strictEqual(0.025, v8eqt.average);
+    assert.strictEqual('interactive:500ms_window:renderer_eqt:v8',
+        eqt.diagnostics.get('v8').get('v8'));
+    assert.strictEqual(0.025,
+        eqt.getBinForValue(0.1).diagnosticMaps[0].get('v8').get('v8'));
+
     const eqtCpu = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt_cpu');
-    const v8eqtCpu = eqtCpu.diagnostics.get('v8').get('v8');
-    assert.strictEqual(0.025, v8eqtCpu.average);
+    assert.strictEqual('interactive:500ms_window:renderer_eqt_cpu:v8',
+        eqtCpu.diagnostics.get('v8').get('v8'));
+    assert.strictEqual(0.025,
+        eqtCpu.getBinForValue(0.1).diagnosticMaps[0].get('v8').get('v8'));
   });
 
   test('expectedQueueingTimeRCS', function() {
@@ -379,16 +385,25 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+
     const eqt = histograms.getHistogramNamed(
         'total:500ms_window:renderer_eqt');
-    const optimizeEqt = eqt.diagnostics.get('v8').get(
-        'v8:compile:optimize_rcs');
-    assert.strictEqual(1.6, optimizeEqt.average);
-    const parseEqt = eqt.diagnostics.get('v8').get('v8:compile:parse_rcs');
-    assert.strictEqual(0.1, parseEqt.average);
-    const compileUnoptimizeEqt = eqt.diagnostics.get('v8').get(
-        'v8:compile:compile-unoptimize_rcs');
-    assert.strictEqual(0.4, compileUnoptimizeEqt.average);
+    assert.strictEqual(
+        'total:500ms_window:renderer_eqt:v8:compile:optimize_rcs',
+        eqt.diagnostics.get('v8').get('v8:compile:optimize_rcs'));
+    assert.strictEqual(1.6, eqt.getBinForValue(10).diagnosticMaps[0].get(
+        'v8').get('v8:compile:optimize_rcs'));
+
+    assert.strictEqual('total:500ms_window:renderer_eqt:v8:compile:parse_rcs',
+        eqt.diagnostics.get('v8').get('v8:compile:parse_rcs'));
+    assert.strictEqual(0.1, eqt.getBinForValue(10).diagnosticMaps[0].get(
+        'v8').get('v8:compile:parse_rcs'));
+
+    assert.strictEqual(
+        'total:500ms_window:renderer_eqt:v8:compile:compile-unoptimize_rcs',
+        eqt.diagnostics.get('v8').get('v8:compile:compile-unoptimize_rcs'));
+    assert.strictEqual(0.4, eqt.getBinForValue(10).diagnosticMaps[0].get(
+        'v8').get('v8:compile:compile-unoptimize_rcs'));
   });
 });
 </script>

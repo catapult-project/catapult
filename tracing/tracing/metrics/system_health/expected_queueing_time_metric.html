@@ -50,19 +50,20 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {!string} description Description of the histogram.
    * @returns {!tr.v.Histogram}
    */
-  function createHistogramForEQT_(name, description) {
-    const histogram = new tr.v.Histogram(name,
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, EQT_BOUNDARIES);
-    histogram.customizeSummaryOptions({
-      avg: false,
-      count: false,
-      max: true,
-      min: false,
-      std: false,
-      sum: false,
-    });
-    histogram.description = description;
-    return histogram;
+  function getOrCreateHistogram_(histograms, name, description) {
+    return histograms.getHistogramNamed(name) || histograms.createHistogram(
+        name, tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: EQT_BOUNDARIES,
+          description,
+          summaryOptions: {
+            avg: false,
+            count: false,
+            max: true,
+            min: false,
+            std: false,
+            sum: false,
+          },
+        });
   }
 
   /**
@@ -127,11 +128,13 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       return tasks;
     }
-    const totalHistogram = createHistogramForEQT_(
+    const totalHistogram = getOrCreateHistogram_(
+        histograms,
         `total:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
         `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
         ' for a given renderer');
-    const interactiveHistogram = createHistogramForEQT_(
+    const interactiveHistogram = getOrCreateHistogram_(
+        histograms,
         `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
         `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
         ' for a given renderer while the page is interactive');
@@ -142,11 +145,21 @@ tr.exportTo('tr.metrics.sh', function() {
       if (rendererHelper.mainThread.bounds.duration < WINDOW_SIZE_MS) continue;
 
       const tasks = getTasks(rendererHelper);
+      const {totalBreakdown, interactiveBreakdown} = getV8Contribution_(
+          eqtName,
+          getEventTimes,
+          isCpuTime,
+          totalHistogram,
+          interactiveHistogram,
+          rendererToInteractiveTimestamps,
+          histograms,
+          rendererHelper,
+          model);
       totalHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               rendererHelper.mainThread.bounds.min,
               rendererHelper.mainThread.bounds.max,
-              WINDOW_SIZE_MS, tasks));
+              WINDOW_SIZE_MS, tasks), {v8: totalBreakdown});
       const interactiveTimestamps =
         rendererToInteractiveTimestamps.get(rendererHelper.pid);
       if (interactiveTimestamps.length === 0) continue;
@@ -161,37 +174,47 @@ tr.exportTo('tr.metrics.sh', function() {
       interactiveHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               interactiveWindow.min, interactiveWindow.max,
-              WINDOW_SIZE_MS, tasks));
+              WINDOW_SIZE_MS, tasks), {v8: interactiveBreakdown});
     }
-    addV8ContributionToExpectedQueueingTime_(
-        eqtName, getEventTimes, isCpuTime, totalHistogram, interactiveHistogram,
-        rendererToInteractiveTimestamps, histograms, model);
-    histograms.addHistogram(totalHistogram);
-    histograms.addHistogram(interactiveHistogram);
   }
 
   /**
-   * Adds v8 related diagnostic histograms for the total and interactive EQT
-   * of the renderer.
-   * Sample histograms:
+   * Computes the contribution of the selected events to the expected queueing
+   * time. We define the contribution as the maximum expected queueing time in
+   * the sliding time window of size 500ms (WINDOW_SIZE_MS) for the trace that
+   * is modified as follows:
+   * - from each top-level task remove all subevents except the selected events.
+   * - removing subevents shrinks a task by shifting its end time closer to
+   *   the start time. The start time does not change.
+   *
+   * Similar to the expectedQueueingTime this function computes two histograms:
+   * total and interactive. For example:
    * - total:500ms_window:renderer_eqt:v8,
-   * - total:500ms_window:renderer_eqt:v8:gc,
-   * - interactive:500ms_window:renderer_eqt:v8:gc:scavenger,
-   * - interactive:500ms_window:renderer_eqt:v8:compile.
+   * - interactive:500ms_window:renderer_eqt:v8.
+   * Each renderer process adds one sample to the histograms.
+   * Both histograms are added to the given histogram set.
+   *
    * @param {!string} eqtName the metric name part of the histogram name.
    * @param {!EventTimesCallback} getEventTimes.
-   * @param {!tr.v.Histogram} totalEqtHistogram.
-   * @param {!tr.v.Histogram} interactiveEqtHistogram.
+   * @param {boolean} isCpuTime
+   * @param {!tr.v.Histogram} totalEqtHistogram
+   * @param {!tr.v.Histogram} interactiveEqtHistogram
    * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
    *     a map from renderer pid to an array of interactive timestamps.
+   * @param {!tr.v.HistogramSet} histograms
+   * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
+   * @param {!tr.model.Model} model
+   * @return {{totalBreakdown: !tr.v.d.Breakdown,
+   *           interactiveBreakdown: !tr.v.d.Breakdown}}
    */
-  function addV8ContributionToExpectedQueueingTime_(
+  function getV8Contribution_(
       eqtName, getEventTimes, isCpuTime, totalEqtHistogram,
-      interactiveEqtHistogram, rendererToInteractiveTimestamps,
-      histograms, model) {
-    if (!model.categories.includes('v8')) return;
-    const breakdownForTotal = new tr.v.d.RelatedHistogramMap();
-    const breakdownForInteractive = new tr.v.d.RelatedHistogramMap();
+      interactiveEqtHistogram, rendererToInteractiveTimestamps, histograms,
+      rendererHelper, model) {
+    if (!model.categories.includes('v8')) return {};
+
+    const totalBreakdown = new tr.v.d.Breakdown();
+    const interactiveBreakdown = new tr.v.d.Breakdown();
     // Include task extractors that use tracing.
     const eventNamesWithTaskExtractors =
         getV8EventNamesWithTaskExtractors_(getEventTimes);
@@ -204,15 +227,62 @@ tr.exportTo('tr.metrics.sh', function() {
         eventNamesWithTaskExtractors.set(eventName, getTasks);
       }
     }
-    for (const [eventName, getTasks] of eventNamesWithTaskExtractors) {
-      const contribution = contributionToExpectedQueueingTime_(
-          eqtName, eventName, getTasks, rendererToInteractiveTimestamps,
-          histograms, model);
-      breakdownForTotal.set(eventName, contribution.total);
-      breakdownForInteractive.set(eventName, contribution.interactive);
+
+    let totalNames = totalEqtHistogram.diagnostics.get('v8');
+    if (!totalNames) {
+      totalNames = new tr.v.d.RelatedNameMap();
+      totalEqtHistogram.diagnostics.set('v8', totalNames);
     }
-    totalEqtHistogram.diagnostics.set('v8', breakdownForTotal);
-    interactiveEqtHistogram.diagnostics.set('v8', breakdownForInteractive);
+    let interactiveNames = interactiveEqtHistogram.diagnostics.get('v8');
+    if (!interactiveNames) {
+      interactiveNames = new tr.v.d.RelatedNameMap();
+      interactiveEqtHistogram.diagnostics.set('v8', interactiveNames);
+    }
+
+    for (const [eventName, getTasks] of eventNamesWithTaskExtractors) {
+      const totalHistogram = getOrCreateHistogram_(histograms,
+          `total:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
+          `Contribution to the expected queueing time by ${eventName}` +
+          ' for a given renderer. It is computed as the maximum EQT in' +
+          ` a ${WINDOW_SIZE_MS}ms sliding window after shrinking top-level` +
+          ` tasks to contain only ${eventName} subevents`);
+      const interactiveHistogram = getOrCreateHistogram_(histograms,
+          `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
+          `Contribution to the expected queueing time by ${eventName}` +
+          ' for a given renderer while the page is interactive. It is' +
+          ` computed as the maximum EQT in a ${WINDOW_SIZE_MS}ms sliding` +
+          ' window after shrinking top-level tasks to contain only' +
+          ` ${eventName} subevents`);
+
+      const tasks = getTasks(rendererHelper);
+      const totalSample = tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
+          rendererHelper.mainThread.bounds.min,
+          rendererHelper.mainThread.bounds.max,
+          WINDOW_SIZE_MS, tasks);
+      totalHistogram.addSample(totalSample);
+      totalBreakdown.set(eventName, totalSample);
+      totalNames.set(eventName, totalHistogram.name);
+
+      const interactiveTimestamps =
+          rendererToInteractiveTimestamps.get(rendererHelper.pid);
+      if (interactiveTimestamps.length === 0) continue;
+      if (interactiveTimestamps.length > 1) {
+        // TODO(ulan): Support multiple interactive time windows when
+        // https://crbug.com/692112 is fixed.
+        continue;
+      }
+      const interactiveWindow =
+          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
+              .findIntersection(rendererHelper.mainThread.bounds);
+      const interactiveSample =
+        tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
+            interactiveWindow.min, interactiveWindow.max,
+            WINDOW_SIZE_MS, tasks);
+      interactiveHistogram.addSample(interactiveSample);
+      interactiveBreakdown.set(eventName, interactiveSample);
+      interactiveNames.set(eventName, interactiveHistogram.name);
+    }
+    return {totalBreakdown, interactiveBreakdown};
   }
 
   /**
@@ -381,82 +451,6 @@ tr.exportTo('tr.metrics.sh', function() {
             tr.metrics.v8.utils.isCompileUnoptimizeRCSCategory,
             rendererHelper));
     return extractors;
-  }
-
-  /**
-   * Computes the contribution of the selected events to the expected queueing
-   * time. We define the contribution as the maximum expected queueing time in
-   * the sliding time window of size 500ms (WINDOW_SIZE_MS) for the trace that
-   * is modified as follows:
-   * - from each top-level task remove all subevents except the selected events.
-   * - removing subevents shrinks a task by shifting its end time closer to
-   *   the start time. The start time does not change.
-   *
-   * Similar to the expectedQueueingTime this function computes two histograms:
-   * total and interactive. For example:
-   * - total:500ms_window:renderer_eqt:v8,
-   * - interactive:500ms_window:renderer_eqt:v8.
-   * Each renderer process adds one sample to the histograms.
-   * Both histograms are added to the given histogram set.
-   *
-   * @param {!string} eqtName the metric name part of the histogram name.
-   * @param {!string} eventName the name describing the selected events. This
-   *     name will be added to metric names.
-   * @param {!TaskExtractor} getTasks a function that given a renderer returns
-   *     tasks for computing the EQT taking into account the contribution of
-   *     the selected events.
-   * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
-   *     a map from renderer pid to an array of interactive timestamps.
-   * @returns {{total: !tr.v.Histogram, interactive: !tr.v.Histogram}}
-   */
-  function contributionToExpectedQueueingTime_(
-      eqtName, eventName, getTasks,
-      rendererToInteractiveTimestamps, histograms, model) {
-    const chromeHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    const totalHistogram = createHistogramForEQT_(
-        `total:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
-        `Contribution to the expected queueing time by ${eventName}` +
-        ' for a given renderer. It is computed as the maximum EQT in' +
-        ` a ${WINDOW_SIZE_MS}ms sliding window after shrinking top-level` +
-        ` tasks to contain only ${eventName} subevents`);
-    const interactiveHistogram = createHistogramForEQT_(
-        `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
-        `Contribution to the expected queueing time by ${eventName}` +
-        ' for a given renderer while the page is interactive. It is computed' +
-        ` as the maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window after` +
-        ` shrinking top-level tasks to contain only ${eventName} subevents`);
-    const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
-    for (const rendererHelper of rendererHelpers) {
-      if (rendererHelper.isChromeTracingUI) continue;
-      const tasks = getTasks(rendererHelper);
-      totalHistogram.addSample(
-          tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
-              rendererHelper.mainThread.bounds.min,
-              rendererHelper.mainThread.bounds.max,
-              WINDOW_SIZE_MS, tasks));
-      const interactiveTimestamps =
-          rendererToInteractiveTimestamps.get(rendererHelper.pid);
-      if (interactiveTimestamps.length === 0) continue;
-      if (interactiveTimestamps.length > 1) {
-        // TODO(ulan): Support multiple interactive time windows when
-        // https://crbug.com/692112 is fixed.
-        continue;
-      }
-      const interactiveWindow =
-          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
-              .findIntersection(rendererHelper.mainThread.bounds);
-      interactiveHistogram.addSample(
-          tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
-              interactiveWindow.min, interactiveWindow.max,
-              WINDOW_SIZE_MS, tasks));
-    }
-    histograms.addHistogram(totalHistogram);
-    histograms.addHistogram(interactiveHistogram);
-    return {
-      total: totalHistogram,
-      interactive: interactiveHistogram
-    };
   }
 
   tr.metrics.MetricRegistry.register(expectedQueueingTimeMetric);
