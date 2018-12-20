@@ -295,6 +295,10 @@ class DevToolsClientBackend(object):
     self._devtools_http.Disconnect()
     self._devtools_http = None
 
+    if self._devtools_config:
+      self._devtools_config.Close()
+      self._devtools_config = None
+
   @decorators.Cache
   def GetVersion(self):
     """Return the version dict as provided by the DevTools agent."""
