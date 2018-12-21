@@ -27,7 +27,9 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
   def testMinimumArguments(self):
     quest = read_value.ReadHistogramsJsonValue.FromDict(
         _BASE_ARGUMENTS_HISTOGRAMS)
-    expected = read_value.ReadHistogramsJsonValue('chartjson-output.json')
+    expected = read_value.ReadHistogramsJsonValue(
+        'speedometer/perf_results.json')
+    print quest._results_filename
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -39,23 +41,13 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
     quest = read_value.ReadHistogramsJsonValue.FromDict(arguments)
 
     expected = read_value.ReadHistogramsJsonValue(
-        'chartjson-output.json', 'timeToFirst',
+        'speedometer/perf_results.json', 'timeToFirst',
         'pcv1-cold', 'trace_name', 'avg')
     self.assertEqual(quest, expected)
 
-  def testPerformanceTestSuite(self):
-    arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
-    arguments['target'] = 'performance_test_suite'
-    quest = read_value.ReadHistogramsJsonValue.FromDict(arguments)
-
-    expected = read_value.ReadHistogramsJsonValue(
-        'speedometer/perf_results.json')
-    self.assertEqual(quest, expected)
-
-  def testPerformanceTestSuiteWindows(self):
+  def testWindows(self):
     arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
     arguments['dimensions'] = [{'key': 'os', 'value': 'Windows-10'}]
-    arguments['target'] = 'performance_test_suite'
     quest = read_value.ReadHistogramsJsonValue.FromDict(arguments)
 
     expected = read_value.ReadHistogramsJsonValue(

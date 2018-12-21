@@ -126,9 +126,6 @@ class RunTest(quest.Quest):
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
 
-    if not hasattr(self, '_swarming_server'):
-      # TODO: Remove after data migration. crbug.com/822008
-      self._swarming_server = 'https://chromium-swarm.appspot.com'
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(self._swarming_server, self._dimensions,
                                     extra_args, isolate_server, isolate_hash)
@@ -151,6 +148,8 @@ class RunTest(quest.Quest):
       raise TypeError('Missing a "dimensions" argument.')
     if isinstance(dimensions, basestring):
       dimensions = json.loads(dimensions)
+    if not any(dimension['key'] == 'pool' for dimension in dimensions):
+      raise ValueError('Missing a "pool" dimension.')
 
     extra_test_args = cls._ExtraTestArgs(arguments)
 
@@ -194,9 +193,6 @@ class _RunTestExecution(execution_module.Execution):
 
   def _AsDict(self):
     details = []
-    if not hasattr(self, '_swarming_server'):
-      # TODO: Remove after data migration. crbug.com/822008
-      self._swarming_server = 'https://chromium-swarm.appspot.com'
     if self._bot_id:
       details.append({
           'key': 'bot',
@@ -210,10 +206,6 @@ class _RunTestExecution(execution_module.Execution):
           'url': self._swarming_server + '/task?id=' + self._task_id,
       })
     if self._result_arguments:
-      if 'isolate_server' not in self._result_arguments:
-        # TODO: Remove after data migration. crbug.com/822008
-        self._result_arguments['isolate_server'] = (
-            'https://isolateserver.appspot.com')
       details.append({
           'key': 'isolate',
           'value': self._result_arguments['isolate_hash'],
@@ -227,9 +219,6 @@ class _RunTestExecution(execution_module.Execution):
       self._StartTask()
       return
 
-    if not hasattr(self, '_swarming_server'):
-      # TODO: Remove after data migration. crbug.com/822008
-      self._swarming_server = 'https://chromium-swarm.appspot.com'
     swarming_task = swarming.Swarming(self._swarming_server).Task(self._task_id)
 
     result = swarming_task.Result()
@@ -284,19 +273,12 @@ class _RunTestExecution(execution_module.Execution):
 
     if self._previous_execution:
       dimensions = [
-          # TODO: Remove fallback after data migration. crbug.com/822008
-          pool_dimension or {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
+          pool_dimension,
           {'key': 'id', 'value': self._previous_execution.bot_id}
       ]
     else:
       dimensions = self._dimensions
-      if not pool_dimension:
-        # TODO: Remove after data migration. crbug.com/822008
-        dimensions.insert(0, {'key': 'pool', 'value': 'Chrome-perf-pinpoint'})
 
-    if not hasattr(self, '_isolate_server'):
-      # TODO: Remove after data migration. crbug.com/822008
-      self._isolate_server = 'https://isolateserver.appspot.com'
     properties = {
         'inputs_ref': {
             'isolatedserver': self._isolate_server,
@@ -315,9 +297,6 @@ class _RunTestExecution(execution_module.Execution):
         'expiration_secs': '86400',  # 1 day.
         'properties': properties,
     }
-    if not hasattr(self, '_swarming_server'):
-      # TODO: Remove after data migration. crbug.com/822008
-      self._swarming_server = 'https://chromium-swarm.appspot.com'
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
 
     self._task_id = response['task_id']
