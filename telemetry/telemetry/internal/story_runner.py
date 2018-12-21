@@ -90,7 +90,7 @@ def AddCommandLineArgs(parser):
 
 def ProcessCommandLineArgs(parser, args):
   story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
-  results_options.ProcessCommandLineArgs(parser, args)
+  results_options.ProcessCommandLineArgs(args)
 
   if args.pageset_repeat < 1:
     parser.error('--pageset-repeat must be a positive integer.')

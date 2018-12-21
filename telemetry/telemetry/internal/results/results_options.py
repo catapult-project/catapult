@@ -57,12 +57,6 @@ def AddResultsOptions(parser):
       help='Output format. Defaults to "%%default". '
       'Can be %s.' % ', '.join(_OUTPUT_FORMAT_CHOICES))
   group.add_option(
-      '-o',
-      '--output',
-      dest='output_file',
-      default=None,
-      help='Redirects output to a file. Defaults to stdout.')
-  group.add_option(
       '--output-dir',
       default=util.GetBaseDir(),
       help='Where to save output data after the run.')
@@ -95,12 +89,7 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def ProcessCommandLineArgs(parser, args):
-  # TODO(ariblue): Delete this flag entirely at some future data, when the
-  # existence of such a flag has been long forgotten.
-  if args.output_file:
-    parser.error('This flag is deprecated. Please use --output-dir instead.')
-
+def ProcessCommandLineArgs(args):
   try:
     os.makedirs(args.output_dir)
   except OSError:

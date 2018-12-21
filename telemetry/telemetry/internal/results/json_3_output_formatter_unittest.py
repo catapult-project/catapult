@@ -218,8 +218,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     options.output_dir = tempfile_dir
     options.suppress_gtest_report = False
     options.results_label = None
-    parser = options.CreateParser()
-    results_options.ProcessCommandLineArgs(parser, options)
+    results_options.ProcessCommandLineArgs(options)
     results = results_options.CreateResults(
         benchmark_metadata, options, benchmark_enabled=False)
     results.PrintSummary()
@@ -247,8 +246,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     options.output_dir = tempfile_dir
     options.suppress_gtest_report = False
     options.results_label = None
-    parser = options.CreateParser()
-    results_options.ProcessCommandLineArgs(parser, options)
+    results_options.ProcessCommandLineArgs(options)
     results = results_options.CreateResults(benchmark_metadata, options)
 
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
