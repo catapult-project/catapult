@@ -28,9 +28,10 @@ found in the LICENSE file.
         display: none;
       }
 
-      .child_container {
+      .container {
         position: relative;
         display: inline-block;
+        margin-left: 15px;
       }
 
       #title {
@@ -71,18 +72,18 @@ found in the LICENSE file.
         stroke: white;
       }
     </style>
-      <span id="aggregateContainer" display="inline-block">
+      <span id="aggregateContainer" class="container">
       </span>
-      <span id="pageByPageContainer" display="inline-block">
-        <div id="selectors">
-          <div id="percentile_label">Percentile Range:</div>
+      <span id="pageByPageContainer" class="container">
+        <span id="selectors">
+          <span id="percentile_label">Percentile Range:</span>
           <input id="start" class="text_input" placeholder="0">
           <input id="end" class="text_input" placeholder="100">
           <button id="filter" on-tap="filterByPercentile_">Filter</button>
           <input id="search_page" class="text_input" placeholder="Page Name">
           <button id="search" on-tap="searchByPage_">Search</button>
-          <div id="search_error" class="error">Sorry, could not find that page!</div>
-        </div>
+          <span id="search_error" class="error">Sorry, could not find that page!</span>
+        </span>
       </span>
       <div id="submetricsContainer" display="block">
         <span id="close">
@@ -133,8 +134,8 @@ tr.exportTo('tr.v.ui', function() {
       Polymer.dom(this.$.aggregateContainer).appendChild(aggregateChart);
       this.charts_.set(tr.v.ui.AGGREGATE_KEY, aggregateChart);
       this.setChartColors_(tr.v.ui.AGGREGATE_KEY);
-      this.setChartSize_(tr.v.ui.AGGREGATE_KEY);
       aggregateChart.data = chartData.aggregate;
+      this.setChartSize_(tr.v.ui.AGGREGATE_KEY);
 
       // build page by page
       const newChart = this.initializeColumnChart(this.title_ + ' Breakdown');
@@ -144,17 +145,15 @@ tr.exportTo('tr.v.ui', function() {
       Polymer.dom(this.$.pageByPageContainer).appendChild(newChart);
       this.charts_.set(PAGE_BREAKDOWN_KEY, newChart);
       this.setChartColors_(PAGE_BREAKDOWN_KEY);
-      this.setChartSize_(PAGE_BREAKDOWN_KEY);
       newChart.data = this.data_;
+      this.setChartSize_(PAGE_BREAKDOWN_KEY);
     },
 
     setChartSize_(page) {
       const chart = this.charts_.get(page);
       const pageCount = chart.data.length;
-      chart.graphHeight = tr.b.math.clamp(pageCount * 20,
-          400, 600);
-      chart.graphWidth = tr.b.math.clamp(pageCount * 30,
-          200, 1000);
+      chart.graphHeight = tr.b.math.clamp(pageCount * 20, 400, 600);
+      chart.graphWidth = tr.b.math.clamp(pageCount * 30, 200, 1000);
     },
 
     // Assign color gradient to series in chart
@@ -194,7 +193,7 @@ tr.exportTo('tr.v.ui', function() {
 
     initializeChildChart_(title, height, width) {
       const div = document.createElement('div');
-      div.classList.add('child_container');
+      div.classList.add('container');
       Polymer.dom(this.$.submetricsContainer).
           insertBefore(div, this.$.submetricsContainer.firstChild);
 
@@ -242,7 +241,7 @@ tr.exportTo('tr.v.ui', function() {
 
       // Create child chart
       const page = rect.datum.group;
-      const title = this.title_ + ': ' + page;
+      const title = this.title_ + ' ' + metric + ': ' + page;
       const submetrics = this.submetricsData_.get(page).get(metric);
       const width = tr.b.math.clamp(submetrics.size * 150, 300, 700);
       const height = tr.b.math.clamp(submetrics.size *
@@ -263,9 +262,11 @@ tr.exportTo('tr.v.ui', function() {
         for (const benchmark of submetric.values()) {
           benchmark.hide = !hideValue ? 0 : hideValue;
           const series = benchmark.x + '-' + benchmark.group;
+          const mainColorIndex = metricIndex % tr.v.ui.COLORS.length;
+          const subColorIndex = benchmarkIndex %
+              tr.v.ui.COLORS[mainColorIndex].length;
           chart.getDataSeries(series).color =
-              tr.v.ui.COLORS[metricIndex][benchmarkIndex];
-          if (benchmarkIndex) benchmark.x = '.';
+              tr.v.ui.COLORS[mainColorIndex][subColorIndex];
           if (benchmarkIndex === (this.benchmarkCount_ - 1)) {
             hideValue += benchmark[series];
           }
