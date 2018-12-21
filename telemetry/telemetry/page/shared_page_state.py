@@ -308,9 +308,14 @@ class SharedPageState(story_module.SharedState):
   def current_tab(self):
     return self._current_tab
 
-  @property
-  def page_test(self):
-    return self._test
+  def NavigateToPage(self, action_runner, page):
+    # Method called by page.Run(), lives in shared_state to avoid exposing
+    # references to the legacy self._test object.
+    self._test.WillNavigateToPage(page, action_runner.tab)
+    with self.interval_profiling_controller.SamplePeriod(
+        'navigation', action_runner):
+      page.RunNavigateSteps(action_runner)
+    self._test.DidNavigateToPage(page, action_runner.tab)
 
   def RunStory(self, results):
     self._PreparePage()
