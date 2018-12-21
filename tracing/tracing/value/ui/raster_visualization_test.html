@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/raster_visualization.html">
+<link rel="import" href="/tracing/value/ui/visualizations_data_container.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function generateBars(page, benchmark) {
+    const benchmarkData = [];
+    for (const [threadName, thread] of tr.v.ui.FRAME.entries()) {
+      const data = {x: benchmark, hide: 0};
+      if (page !== tr.v.ui.AGGREGATE_KEY) data.group = page;
+      for (const metric of thread.keys()) {
+        const key = metric + '-' + data.x + '-' + threadName;
+        const mean = Math.random() * 100;
+        data[key] = Math.round(mean * 100) / 100;
+      }
+      benchmarkData.push(data);
+    }
+    return benchmarkData;
+  }
+
+  test('instantiate', function() {
+    const rv = document.createElement('tr-v-ui-raster-visualization');
+    this.addHTMLOutput(rv);
+
+    const allChartData = new Map();
+
+    // generate aggregate data
+    let aggregateData = [];
+    for (let i = 1; i <= 5; i++) {
+      aggregateData = aggregateData.concat(generateBars(tr.v.ui.AGGREGATE_KEY,
+          'Run ' + i));
+    }
+    allChartData.set(tr.v.ui.AGGREGATE_KEY, aggregateData);
+
+    // generate data per page
+    for (let i = 1; i <= 5; i++) {
+      const page = 'Page ' + i;
+      let chartData = [];
+      for (let j = 1; j <= 5; j++) {
+        chartData = chartData.concat(generateBars(page, 'Run ' + j));
+      }
+      allChartData.set(page, chartData);
+    }
+
+    rv.build(allChartData);
+  });
+});
+</script>

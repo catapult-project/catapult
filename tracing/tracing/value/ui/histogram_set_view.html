@@ -193,7 +193,7 @@ tr.exportTo('tr.v.ui', function() {
       if (!this.visualizationLoaded_) { // Initial loading
         this.$.visualizations.style.display = 'block';
         this.$.visualizations.build(this.$.table.leafHistograms,
-            this.$.table.groupedHistograms);
+            this.histograms);
         this.visualizationLoaded_ = true;
       } else if (this.$.visualizations.style.display === 'none') {
         // Toggle to hide

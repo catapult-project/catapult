@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/value/ui/metrics_visualization.html">
+<link rel="import" href="/tracing/value/ui/raster_visualization.html">
 <meta charset="utf-8">
 <dom-module id='tr-v-ui-visualizations-data-container'>
   <template>
@@ -38,8 +39,13 @@ found in the LICENSE file.
     <div id="title">Visualizations</div>
     <div id="data_error" class="error">Invalid data provided.</div>
     <div id="pipeline_per_frame_container">
-      <div class="subtitle">Graphics Pipeline Per Frame</div>
-      <div class="description">When raster tasks are completed in comparison to the rest of the graphics pipeline.</div>
+      <div class="subtitle">Graphics Pipeline and Raster Tasks</div>
+      <div class="description">
+        When raster tasks are completed in comparison to the rest of the graphics pipeline.<br>
+        Only pages where raster tasks are completed after beginFrame is issued are included.
+      </div>
+      <tr-v-ui-raster-visualization id="rasterVisualization">
+      </tr-v-ui-raster-visualization>
     </div>
     <div id=metrics_container>
       <div class="subtitle">Metrics</div>
@@ -56,6 +62,7 @@ tr.exportTo('tr.v.ui', function() {
   const STATISTICS_KEY = 'statistics';
   const SUBMETRICS_KEY = 'submetrics';
   const AGGREGATE_KEY = 'aggregate';
+  const RASTER_START_METRIC_KEY = 'pipeline:begin_frame_to_raster_start';
 
   const COLORS = [
     ['#FFD740', '#FFC400', '#FFAB00', '#E29800'],
@@ -68,8 +75,8 @@ tr.exportTo('tr.v.ui', function() {
     ['#8C9EFF', '#536DFE', '#3D5AFE', '#304FFE']];
 
   const FRAME = [new Map([
-    ['pipeline:begin_frame_to_raster_tasks', false],
-    ['thread_raster_cpu_time_per_frame', true]]), new Map([
+    ['pipeline:begin_frame_to_raster_start', false],
+    ['pipeline:begin_frame_to_raster_end', true]]), new Map([
     ['pipeline:begin_frame_transport', true],
     ['pipeline:begin_frame_to_frame_submission', true],
     ['pipeline:frame_submission_to_display', true],
@@ -116,61 +123,73 @@ tr.exportTo('tr.v.ui', function() {
         this.$.data_error.style.display = 'block';
         return;
       }
-      this.processHistograms_(histograms, leafHistograms);
+
+      this.processHistograms_(this.groupHistograms_(histograms),
+          this.groupHistograms_(leafHistograms));
       this.buildCharts_();
     },
 
-    processHistograms_(groupedHistograms, leafHistograms) {
-      const storiesGrouping = tr.v.HistogramGrouping.BY_KEY.get(
-          tr.v.d.RESERVED_NAMES.STORIES);
+    processHistograms_(histograms, leafHistograms) {
       const benchmarkStartGrouping = tr.v.HistogramGrouping.BY_KEY.get(
           tr.v.d.RESERVED_NAMES.BENCHMARK_START);
 
       const benchmarkToStartTime = new Map();
-      for (const [metric, benchmarks] of groupedHistograms.entries()) {
+      for (const [metric, benchmarks] of histograms.entries()) {
         // process aggregate data
-        for (const histogram of leafHistograms.getHistogramsNamed(metric)) {
-          const aggregateToBenchmarkMap = getValueFromMap(AGGREGATE_KEY,
-              this.groupedData_);
-          const benchmark = tr.v.HistogramGrouping.
-              DISPLAY_LABEL.callback(histogram);
-          const benchmarkToMetricMap = getValueFromMap(benchmark,
-              aggregateToBenchmarkMap);
+        for (const [benchmark, pages] of leafHistograms.get(metric).entries()) {
+          for (const [page, histograms] of pages.entries()) {
+            for (const histogram of histograms) {
+              const aggregateToBenchmarkMap = getValueFromMap(AGGREGATE_KEY,
+                  this.groupedData_);
+              const benchmarkToMetricMap = getValueFromMap(benchmark,
+                  aggregateToBenchmarkMap);
 
-          benchmarkToMetricMap.set(metric, new Map([
-            [STATISTICS_KEY, histogram.running]]));
+              benchmarkToMetricMap.set(metric, new Map([
+                [STATISTICS_KEY, histogram.running]]));
+            }
+          }
         }
 
         // process data per page
-        for (const [benchmark, histograms] of benchmarks.entries()) {
-          for (const histogram of histograms) {
-            if (!benchmarkToStartTime.get(benchmark)) {
-              benchmarkToStartTime.set(benchmark,
-                  benchmarkStartGrouping.callback(histogram));
-            }
-
-            const page = storiesGrouping.callback(histogram);
-            const pageToBenchmarkMap = getValueFromMap(page,
-                this.groupedData_);
-            const benchmarkToMetricMap = getValueFromMap(benchmark,
-                pageToBenchmarkMap);
-
-            // retrieving submetric _ta
-            const mergedSubmetrics = new tr.v.d.DiagnosticMap();
-            for (const bin of histogram.allBins) {
-              for (const map of bin.diagnosticMaps) {
-                mergedSubmetrics.addDiagnostics(map);
+        for (const [benchmark, pages] of benchmarks.entries()) {
+          for (const [page, histograms] of pages.entries()) {
+            for (const histogram of histograms) {
+              if (!benchmarkToStartTime.get(benchmark)) {
+                benchmarkToStartTime.set(benchmark,
+                    benchmarkStartGrouping.callback(histogram));
               }
-            }
 
-            if (benchmarkToMetricMap.get(metric)) continue;
-            benchmarkToMetricMap.set(metric, new Map([
-              [STATISTICS_KEY, histogram.running],
-              [SUBMETRICS_KEY, mergedSubmetrics.get('breakdown')]]));
+              const pageToBenchmarkMap = getValueFromMap(page,
+                  this.groupedData_);
+              const benchmarkToMetricMap = getValueFromMap(benchmark,
+                  pageToBenchmarkMap);
+
+              // retrieving submetric _ta
+              const mergedSubmetrics = new tr.v.d.DiagnosticMap();
+              for (const bin of histogram.allBins) {
+                for (const map of bin.diagnosticMaps) {
+                  mergedSubmetrics.addDiagnostics(map);
+                }
+              }
+
+              if (benchmarkToMetricMap.get(metric)) continue;
+              benchmarkToMetricMap.set(metric, new Map([
+                [STATISTICS_KEY, histogram.running],
+                [SUBMETRICS_KEY, mergedSubmetrics.get('breakdown')]]));
+            }
           }
         }
       }
       this.orderedBenchmarks_ = this.sortBenchmarks_(benchmarkToStartTime);
+    },
+
+    groupHistograms_(histograms) {
+      const groupings = [
+        tr.v.HistogramGrouping.HISTOGRAM_NAME,
+        tr.v.HistogramGrouping.DISPLAY_LABEL,
+        tr.v.HistogramGrouping.BY_KEY.get(tr.v.d.RESERVED_NAMES.STORIES)];
+
+      return histograms.groupHistogramsRecursively(groupings);
     },
 
     sortBenchmarks_(benchmarks) {
@@ -184,38 +203,57 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     buildCharts_() {
-      const frameDataToBePassed = this.buildFrameChart_();
+      const rasterDataToBePassed = this.buildRasterChart_();
+      this.$.rasterVisualization.build(rasterDataToBePassed);
 
       for (const chartName of METRICS.keys()) {
         const metricsDataToBePassed = this.buildMetricsData_(chartName);
         const newChart = this.$.metricsVisualization.cloneNode(true);
         newChart.style.display = 'block';
         Polymer.dom(this.$.metrics_container).appendChild(newChart);
-        newChart.build(chartName, metricsDataToBePassed);
+        newChart.build(metricsDataToBePassed);
       }
     },
 
-    buildFrameChart_() {
+    buildRasterChart_() {
+      const orderedPages = [...this.groupedData_.keys()]
+          .filter((page) => this.filterPagesWithoutRasterMetric_(page))
+          .sort((a, b) => this.sortByRasterStart_(a, b));
       const allChartData = new Map();
-      for (const [page, pageMap] of this.groupedData_.entries()) {
-        const chartData = [];
+      for (const page of orderedPages) {
+        const pageMap = this.groupedData_.get(page);
+        let chartData = [];
         for (const benchmark of this.orderedBenchmarks_) {
           if (!pageMap.has(benchmark)) continue;
           const benchmarkMap = pageMap.get(benchmark);
-          for (const bar of FRAME) {
-            const data = {x: benchmark, group: page};
-            for (const metric of bar.keys()) {
-              const metricMap = benchmarkMap.get(metric);
-              const key = this.getSeriesKey_(metric, benchmark);
-              const mean = metricMap.get(STATISTICS_KEY).mean;
-              data[key] = Math.round(mean * 100) / 100;
-            }
-            chartData.push(data);
+          const benchmarkData = [];
+          if (benchmarkMap.get(RASTER_START_METRIC_KEY) === undefined) {
+            continue;
           }
+          for (const [threadName, thread] of FRAME.entries()) {
+            const data = {x: benchmark, hide: 0};
+            if (page !== AGGREGATE_KEY) data.group = page;
+            let rasterBegin = 0;
+            for (const metric of thread.keys()) {
+              const metricMap = benchmarkMap.get(metric);
+              const key = this.getSeriesKey_(metric,
+                  data.x + '-' + threadName);
+              const stats = metricMap.get(STATISTICS_KEY);
+              const mean = stats ? stats.mean : 0;
+              let roundedMean = Math.round(mean * 100) / 100;
+              if (metric === RASTER_START_METRIC_KEY) {
+                rasterBegin = roundedMean;
+              } else if (metric === 'pipeline:begin_frame_to_raster_end') {
+                roundedMean -= rasterBegin;
+              }
+              data[key] = roundedMean;
+            }
+            benchmarkData.push(data);
+          }
+          chartData = chartData.concat(benchmarkData);
         }
         allChartData.set(page, chartData);
       }
-
       return allChartData;
     },
 
@@ -223,7 +261,7 @@ tr.exportTo('tr.v.ui', function() {
       // pages are ordered from smallest to largest by their total
       // values for the first benchmark
       const orderedPages = [...this.groupedData_.keys()].sort((a, b) =>
-        this.sortGroups_(a, b, chartName));
+        this.sortByTotal_(a, b, chartName));
       const chartData = [];
       const aggregateChart = [];
       for (const page of orderedPages) {
@@ -235,7 +273,8 @@ tr.exportTo('tr.v.ui', function() {
           for (const metric of METRICS.get(chartName)) {
             const metricMap = benchmarkMap.get(metric);
             const key = this.getSeriesKey_(metric, benchmark);
-            const mean = metricMap.get(STATISTICS_KEY).mean;
+            const stats = metricMap.get(STATISTICS_KEY);
+            const mean = stats ? stats.mean : 0;
             data[key] = Math.round(mean * 100) / 100;
           }
           if (page === AGGREGATE_KEY) {
@@ -255,6 +294,20 @@ tr.exportTo('tr.v.ui', function() {
       };
     },
 
+    submetricsHelper_(submetric, value, benchmark, metricToSubmetricMap) {
+      let submetricToBenchmarkMap = metricToSubmetricMap.get(submetric);
+      if (!submetricToBenchmarkMap) {
+        submetricToBenchmarkMap = [];
+        metricToSubmetricMap.set(submetric, submetricToBenchmarkMap);
+      }
+      const data = {x: submetric, hide: 0, group: benchmark};
+      const mean = value;
+      const roundedMean = Math.round(mean * 100) / 100;
+      if (!roundedMean) return;
+      data[this.getSeriesKey_(submetric, benchmark)] = roundedMean;
+      submetricToBenchmarkMap.push(data);
+    },
+
     // Get data for breakdown of a main step
     processSubmetricsData_(chartName) {
       // page -> metric -> submetric ->
@@ -267,22 +320,17 @@ tr.exportTo('tr.v.ui', function() {
           const benchmarkMap = pageMap.get(benchmark);
           for (const metric of METRICS.get(chartName)) {
             const metricMap = benchmarkMap.get(metric);
+            const metricToSubmetricMap = getValueFromMap(metric,
+                pageToMetricMap);
             const submetrics = metricMap.get(SUBMETRICS_KEY);
-            if (!submetrics) continue;
+            if (!submetrics) {
+              this.submetricsHelper_(metric, metricMap.get(STATISTICS_KEY),
+                  benchmark, metricToSubmetricMap);
+              continue;
+            }
             for (const [submetric, value] of [...submetrics]) {
-              const metricToSubmetricMap = getValueFromMap(metric,
-                  pageToMetricMap);
-              let submetricToBenchmarkMap = metricToSubmetricMap.get(submetric);
-              if (!submetricToBenchmarkMap) {
-                submetricToBenchmarkMap = [];
-                metricToSubmetricMap.set(submetric, submetricToBenchmarkMap);
-              }
-              const data = {x: submetric, hide: 0, group: benchmark};
-              const mean = value;
-              const roundedMean = Math.round(mean * 100) / 100;
-              data[this.getSeriesKey_(submetric, benchmark)] =
-                  roundedMean === undefined ? 0 : roundedMean;
-              submetricToBenchmarkMap.push(data);
+              this.submetricsHelper_(submetric, value, benchmark,
+                  metricToSubmetricMap);
             }
           }
         }
@@ -290,7 +338,7 @@ tr.exportTo('tr.v.ui', function() {
       return submetrics;
     },
 
-    sortGroups_(a, b, chartName) {
+    sortByTotal_(a, b, chartName) {
       if (a === AGGREGATE_KEY) return -1;
       if (b === AGGREGATE_KEY) return 1;
       let aValue = 0;
@@ -298,7 +346,8 @@ tr.exportTo('tr.v.ui', function() {
       if (aMap.get(this.orderedBenchmarks_[0]) !== undefined) {
         for (const metric of METRICS.get(chartName)) {
           const aMetricMap = aMap.get(this.orderedBenchmarks_[0]).get(metric);
-          aValue += aMetricMap.get(STATISTICS_KEY).mean;
+          const aStats = aMetricMap.get(STATISTICS_KEY);
+          aValue += aStats ? aStats.mean : 0;
         }
       }
       let bValue = 0;
@@ -306,11 +355,43 @@ tr.exportTo('tr.v.ui', function() {
       if (bMap.get(this.orderedBenchmarks_[0]) !== undefined) {
         for (const metric of METRICS.get(chartName)) {
           const bMetricMap = bMap.get(this.orderedBenchmarks_[0]).get(metric);
-          bValue += bMetricMap.get(STATISTICS_KEY).mean;
+          const bStats = bMetricMap.get(STATISTICS_KEY);
+          bValue += bStats ? bStats.mean : 0;
         }
       }
-
       return aValue - bValue;
+    },
+
+    filterPagesWithoutRasterMetric_(page) {
+      const pageMap = this.groupedData_.get(page);
+      for (const benchmark of this.orderedBenchmarks_) {
+        const pageMetricMap = pageMap.get(benchmark)
+            .get(RASTER_START_METRIC_KEY);
+        if (pageMetricMap !== undefined) return true;
+      }
+      return false;
+    },
+
+    sortByRasterStart_(a, b) {
+      if (a === AGGREGATE_KEY) return 1;
+      if (b === AGGREGATE_KEY) return -1;
+      let aValue = 0;
+      const aMap = this.groupedData_.get(a);
+      if (aMap.get(this.orderedBenchmarks_[0]) !== undefined) {
+        const aMetricMap = aMap.get(this.orderedBenchmarks_[0])
+            .get(RASTER_START_METRIC_KEY);
+        const aStats = aMetricMap.get(STATISTICS_KEY);
+        aValue = aStats ? aStats.mean : 0;
+      }
+      let bValue = 0;
+      const bMap = this.groupedData_.get(b);
+      if (bMap.get(this.orderedBenchmarks_[0]) !== undefined) {
+        const bMetricMap = bMap.get(this.orderedBenchmarks_[0])
+            .get(RASTER_START_METRIC_KEY);
+        const bStats = bMetricMap.get(STATISTICS_KEY);
+        bValue = bStats ? bStats.mean : 0;
+      }
+      return bValue - aValue;
     },
   });
 

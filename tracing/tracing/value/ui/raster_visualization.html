@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<dom-module id='tr-v-ui-raster-visualization'>
+  <template>
+    <style>
+      button {
+        padding: 5px;
+        font-size: 14px;
+      }
+      .error {
+        color: red;
+        display: none;
+      }
+
+      .text_input {
+        width: 200px;
+        padding: 4px;
+        font-size: 14px;
+      }
+
+      .selector_container{
+        padding: 5px;
+      }
+
+      #search {
+        display: inline-block;
+        padding-bottom: 10px;
+      }
+
+      #search_page {
+        width: 200px;
+      }
+
+      #pageSelector {
+        display: inline-block;
+        font-size: 12pt;
+      }
+
+      #close {
+        display: none;
+        vertical-align: top;
+      }
+
+      #close svg{
+        height: 1em;
+      }
+
+      #close svg line {
+        stroke-width: 18;
+        stroke: black;
+      }
+
+      #close:hover svg {
+        background: black;
+      }
+
+      #close:hover svg line {
+        stroke: white;
+      }
+    </style>
+    <span id="aggregateContainer">
+      <div>
+        <div class="selector_container">
+          <span id="select_page_label">Individual Page Results:</span>
+          <select id="pageSelector">
+            <option id="select_page" value="">Select a page</option>
+          </select>
+        </div>
+        <div class="selector_container">
+          <div id="search_page_label">Search for a page:</div>
+          <input id="search_page" class="text_input" placeholder="Page Name">
+          <button id="search_button">Search</button>
+          <div id="search_error" class="error">Sorry, could not find that page!</div>
+        </div>
+      </div>
+    </span>
+    <span id="pageContainer">
+      <span id="close">
+          <svg viewbox="0 0 128 128">
+            <line x1="28" y1="28" x2="100" y2="100"/>
+            <line x1="28" y1="100" x2="100" y2="28"/>
+          </svg>
+        </span>
+      </span>
+  </template>
+</dom-module>
+<script>
+'use strict';
+
+Polymer({
+  is: 'tr-v-ui-raster-visualization',
+
+  ready() {
+    this.$.pageSelector.addEventListener ('click', () => {
+      this.selectPage_();
+    });
+
+    this.$.search_page.addEventListener ('keydown', (e) => {
+      if (e.key === 'Enter') this.searchByPage_();
+    });
+
+    this.$.search_button.addEventListener ('click', () => {
+      this.searchByPage_();
+    });
+  },
+
+
+  build(chartData) {
+    this.data_ = chartData;
+    const aggregateChart = this.createChart_('Aggregate Data by Run');
+    Polymer.dom(this.$.aggregateContainer).appendChild(aggregateChart);
+    aggregateChart.enableToolTip = true;
+    aggregateChart.toolTipCallBack = (rect) =>
+      this.openBenchmarkChart_(rect);
+    this.setChartColors_(aggregateChart, this.data_.get(tr.v.ui.AGGREGATE_KEY));
+    aggregateChart.data = this.data_.get(tr.v.ui.AGGREGATE_KEY);
+    this.setChartSize_(aggregateChart,
+        this.data_.get(tr.v.ui.AGGREGATE_KEY).length);
+
+    for (const page of this.data_.keys()) {
+      if (page === tr.v.ui.AGGREGATE_KEY) continue;
+      const option = document.createElement('option');
+      option.textContent = page;
+      option.value = page;
+      this.$.pageSelector.appendChild(option);
+    }
+  },
+
+  setChartSize_(chart, pageCount, dataLength) {
+    chart.graphHeight = tr.b.math.clamp(pageCount * 25, 175, 1000);
+    chart.graphWidth = tr.b.math.clamp(pageCount * 25, 500, 1000);
+  },
+
+  setChartColors_(chart, data) {
+    const metrics = new Map();
+    let count = 0;
+    for (const thread of tr.v.ui.FRAME.values()) {
+      for (const metric of thread.keys()) {
+        metrics.set(metric, count);
+        count++;
+      }
+    }
+    for (let i = 0; i < Math.floor(data.length / tr.v.ui.FRAME.length); ++i) {
+      let j = 0;
+      for (const [threadName, thread] of tr.v.ui.FRAME.entries()) {
+        for (const metric of thread.keys()) {
+          let color = 'transparent';
+          if (thread.get(metric)) {
+            const mainColorIndex = metrics.get(metric) % tr.v.ui.COLORS.length;
+            const subColorIndex = i % tr.v.ui.COLORS[mainColorIndex].length;
+            color = tr.v.ui.COLORS[mainColorIndex][subColorIndex];
+          }
+          const series = metric + '-' + data[i * 2 + j].x + '-' + threadName;
+          chart.getDataSeries(series).color = color;
+          chart.getDataSeries(series).title = !i ? metric : '';
+        }
+        j++;
+      }
+    }
+  },
+
+  createChart_(title) {
+    const newChart = new tr.ui.b.NameBarChart();
+    newChart.chartTitle = title;
+    newChart.xAxisLabel = 'ms';
+    newChart.hideLegend = false;
+    newChart.showTitleInLegend = true;
+    newChart.hideYAxis = true;
+    newChart.isStacked = true;
+    newChart.displayXInHover = true;
+    newChart.isGrouped = true;
+    return newChart;
+  },
+
+  openBenchmarkChart_(rect) {
+    // Find main metric and corresponding sub-metrics
+    const benchmarkIndex = Math.floor(rect.index / tr.v.ui.FRAME.length);
+    const title = rect.datum.x;
+
+    // Create child chart with breakdown data
+    const div = document.createElement('div');
+    Polymer.dom(this.$.pageContainer).
+        insertBefore(div, this.$.pageContainer.firstChild);
+
+    const chart = this.createChart_(title);
+
+    div.appendChild(chart);
+    const button = this.initializeCloseButton_(div, this.$.pageContainer);
+    div.appendChild(button);
+
+    const newDataSet = [];
+
+    for (const page of this.data_.keys()) {
+      if (page === tr.v.ui.AGGREGATE_KEY) continue;
+      for (let i = 0; i < tr.v.ui.FRAME.length; i++) {
+        newDataSet.push(this.data_
+            .get(page)[benchmarkIndex * tr.v.ui.FRAME.length + i]);
+      }
+    }
+
+    this.setChartColors_(chart, newDataSet);
+    chart.data = newDataSet;
+    this.setChartSize_(chart, newDataSet.length);
+  },
+
+  selectPage_() {
+    // Create child chart with breakdown data
+    const div = document.createElement('div');
+    const page = this.$.pageSelector.value;
+    if (page === '') return;
+    Polymer.dom(this.$.pageContainer).
+        insertBefore(div, this.$.pageContainer.firstChild);
+
+    const pageChart = this.createChart_(page);
+
+    div.appendChild(pageChart);
+    const button = this.initializeCloseButton_(div, this.$.pageContainer);
+    div.appendChild(button);
+
+    const pageData = this.data_.get(page);
+
+    this.setChartColors_(pageChart, pageData);
+    pageChart.data = pageData;
+    this.setChartSize_(pageChart, pageData.length);
+  },
+
+  searchByPage_() {
+    const criteria = this.$.search_page.value;
+    if (criteria === '') return;
+
+    const query = new RegExp(criteria);
+
+    const filteredData = [...this.data_.keys()]
+        .filter(page => page.match(query));
+
+    if (filteredData.length < 1) {
+      this.$.search_error.style.display = 'block';
+      return;
+    }
+
+    // Create child chart with breakdown data
+    const page = filteredData[0];
+
+    const div = document.createElement('div');
+    Polymer.dom(this.$.pageContainer).
+        insertBefore(div, this.$.pageContainer.firstChild);
+
+    const pageChart = this.createChart_(page);
+
+    div.appendChild(pageChart);
+    const button = this.initializeCloseButton_(div, this.$.pageContainer);
+    div.appendChild(button);
+
+    const pageData = this.data_.get(page);
+
+    this.setChartColors_(pageChart, pageData);
+    pageChart.data = pageData;
+    this.setChartSize_(pageChart, pageData.length);
+  },
+
+  initializeCloseButton_(div, parent) {
+    const button = this.$.close.cloneNode(true);
+    button.style.display = 'inline-block';
+    button.addEventListener('click', () => {
+      Polymer.dom(parent).removeChild(div);
+    });
+    return button;
+  },
+});
+</script>

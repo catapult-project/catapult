@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2018 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/metrics_visualization.html">
+<link rel="import" href="/tracing/value/ui/visualizations_data_container.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  function generateChartBar(metrics, benchmark, page) {
+    const data = {x: benchmark, group: page};
+    for (const metric of metrics) {
+      const key = metric + '-' + benchmark;
+      const mean = Math.random() * 100;
+      data[key] = Math.round(mean * 100) / 100;
+    }
+    return data;
+  }
+
+  function generateSubmetricBar(submetric, benchmark, page,
+      metricToSubmetricMap) {
+    let submetricToBenchmarkMap = metricToSubmetricMap.get(submetric);
+    if (!submetricToBenchmarkMap) {
+      submetricToBenchmarkMap = [];
+      metricToSubmetricMap.set(submetric, submetricToBenchmarkMap);
+    }
+    const data = {x: submetric, hide: 0, group: benchmark};
+    const mean = Math.random() * 100;
+    data[submetric + '-' + benchmark] = Math.round(mean * 100) / 100;
+    submetricToBenchmarkMap.push(data);
+  }
+
+  test('instantiate', function() {
+    const mv = document.createElement('tr-v-ui-metrics-visualization');
+    this.addHTMLOutput(mv);
+
+    const testMetrics = tr.v.ui.METRICS.get('Thread');
+
+    // generate aggregate chart
+    const aggregateChart = [];
+    for (let i = 1; i <= 5; i++) {
+      aggregateChart.push(generateChartBar(testMetrics,
+          'Run ' + i, 'aggregate'));
+    }
+
+    // generate chart with individual page metrics
+    const chartData = [];
+    for (let i = 1; i <= 5; i++) {
+      for (let j = 1; j <= 5; j++) {
+        chartData.push(generateChartBar(testMetrics,
+            'Run ' + i, 'Page ' + j));
+      }
+    }
+
+    // generate submetrics
+    const submetricsData = new Map();
+    for (const metric in testMetrics) {
+      const testSubmetrics = [metric + 'a', metric + 'b', metric + 'c'];
+      for (let i = 1; i <= 5; i++) {
+        const page = 'Page ' + i;
+        const pageToMetricMap = tr.v.ui.getValueFromMap(page,
+            submetricsData);
+        const metricToSubmetricMap = tr.v.ui.getValueFromMap(metric,
+            pageToMetricMap);
+        for (let j = 1; j <= 5; j++) {
+          for (const submetric in testSubmetrics) {
+            generateSubmetricBar(submetric, 'Run ' + j, page,
+                metricToSubmetricMap);
+          }
+        }
+      }
+    }
+
+    mv.build({
+      title: 'Thread',
+      aggregate: aggregateChart,
+      page: chartData,
+      submetrics: submetricsData
+    });
+  });
+});
+</script>
