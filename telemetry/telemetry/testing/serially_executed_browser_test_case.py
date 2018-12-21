@@ -156,6 +156,31 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
   def UrlOfStaticFilePath(cls, file_path):
     return cls.platform.http_server.UrlOf(file_path)
 
+  @classmethod
+  def GenerateTags(cls, finder_options, possible_browser):
+    """This class method is part of the API for all test suites
+    that inherit this class. All test suites that override this function
+    can use the browser_options and possible_browser parameters to generate
+    test expectations file tags.
+
+    Args:
+    finder_options are command line arguments parsed using the parser returned
+    from telemetry.internal.browser.possible_browser.BrowserFinderOptions's
+    CreateParser class method
+
+    possible_browser is an instance of
+    telemetry.internal.browser.possible_browser.PossibleBrowser.
+    It can be used to create an actual browser. For example the code below
+    shows how to create a browser from the possible_browser object
+
+    with possible_browser.BrowserSession(browser_options) as browser:
+      # Do something with the browser.
+
+    Returns:
+    A list of test expectations file tags
+    """
+    del finder_options, possible_browser
+    return []
 
 def LoadAllTestsInModule(module):
   """ Load all tests & generated browser tests in a given module.
