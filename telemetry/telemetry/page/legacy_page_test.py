@@ -50,23 +50,12 @@ class LegacyPageTest(object):
 
     self.options = None
     self._clear_cache_before_each_run = clear_cache_before_each_run
-    self._close_tabs_before_run = True
 
   @property
   def clear_cache_before_each_run(self):
     """When set to True, the browser's disk and memory cache will be cleared
     before each run."""
     return self._clear_cache_before_each_run
-
-  @property
-  def close_tabs_before_run(self):
-    """When set to True, all tabs are closed before running the test for the
-    first time."""
-    return self._close_tabs_before_run
-
-  @close_tabs_before_run.setter
-  def close_tabs_before_run(self, close_tabs):
-    self._close_tabs_before_run = close_tabs
 
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""

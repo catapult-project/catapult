@@ -225,7 +225,7 @@ class SharedPageState(story_module.SharedState):
 
     if not self.browser:
       self._StartBrowser(page)
-    if self.browser.supports_tab_control and self._test.close_tabs_before_run:
+    if self.browser.supports_tab_control:
       # Create a tab if there's none.
       if len(self.browser.tabs) == 0:
         self.browser.tabs.New()
