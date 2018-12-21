@@ -12,8 +12,6 @@ class TimelineBasedPageTest(legacy_page_test.LegacyPageTest):
   explicitly. For the moment we need this wrapper around LegacyPageTest to:
   - provide an empty implementation for ValidateAndMeasurePage (which is
     abstract in the parent class).
-  - provide RunNavigateSteps (from the parent class), which is also deprecated
-    and its code could be moved to the shared state.
 
   TODO(crbug.com/851948): This class is due to be removed.
   """

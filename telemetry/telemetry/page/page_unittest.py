@@ -205,8 +205,6 @@ class TestPageRun(unittest.TestCase):
           mock.call.interval_profiling_controller.SamplePeriod(
               'navigation', mock_action_runner),
           mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
-          mock.call.page_test.RunNavigateSteps(
-              p, mock_shared_state.current_tab),
           mock.call.interval_profiling_controller.SamplePeriod().__exit__(
               None, None, None),
           mock.call.page_test.DidNavigateToPage(

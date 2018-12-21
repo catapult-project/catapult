@@ -66,12 +66,6 @@ class RecorderPageTest(legacy_page_test.LegacyPageTest):
     if self.page_test:
       self.page_test.ValidateAndMeasurePage(page, tab, results)
 
-  def RunNavigateSteps(self, page, tab):
-    if self.page_test:
-      self.page_test.RunNavigateSteps(page, tab)
-    else:
-      super(RecorderPageTest, self).RunNavigateSteps(page, tab)
-
 
 def _GetSubclasses(base_dir, cls):
   """Returns all subclasses of |cls| in |base_dir|.

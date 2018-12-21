@@ -25,10 +25,6 @@ class MockPage(page_module.Page):
                                    name=url)
     self.func_calls = []
 
-  def RunNavigateSteps(self, action_runner):
-    self.func_calls.append('RunNavigateSteps')
-    super(MockPage, self).RunNavigateSteps(action_runner)
-
   def RunPageInteractions(self, _):
     self.func_calls.append('RunPageInteractions')
 
@@ -114,15 +110,6 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     super(RecordWprUnitTests, cls).setUpClass()
     cls._url = cls.UrlOfUnittestFile('blank.html')
     cls._test_options = options_for_unittests.GetCopy()
-
-  # When the RecorderPageTest is created from a PageSet, we do not have a
-  # PageTest to use. In this case, we will record every available action.
-  def testRunPage_AllActions(self):
-    record_page_test = record_wpr.RecorderPageTest()
-    page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
-
-    record_page_test.RunNavigateSteps(page, self._tab)
-    self.assertTrue('RunNavigateSteps' in page.func_calls)
 
   # When the RecorderPageTest is created from a Benchmark, the benchmark will
   # have a PageTest, specified by its test attribute.

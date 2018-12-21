@@ -4,8 +4,6 @@
 
 from py_trace_event import trace_event
 
-from telemetry.internal.actions import action_runner as action_runner_module
-
 # Export story_test.Failure to this page_test module
 from telemetry.web_perf.story_test import Failure
 
@@ -122,13 +120,3 @@ class LegacyPageTest(object):
       results: A telemetry.results.PageTestResults instance.
     """
     raise NotImplementedError
-
-  # Deprecated: do not use this hook. (crbug.com/470147)
-  def RunNavigateSteps(self, page, tab):
-    """Navigates the tab to the page URL attribute.
-
-    Runs the 'navigate_steps' page attribute as a compound action.
-    """
-    action_runner = action_runner_module.ActionRunner(
-        tab, skip_waits=page.skip_waits)
-    page.RunNavigateSteps(action_runner)

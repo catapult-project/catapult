@@ -92,7 +92,7 @@ class Page(story.Story):
     shared_state.page_test.WillNavigateToPage(self, current_tab)
     with shared_state.interval_profiling_controller.SamplePeriod(
         'navigation', action_runner):
-      shared_state.page_test.RunNavigateSteps(self, current_tab)
+      self.RunNavigateSteps(action_runner)
     shared_state.page_test.DidNavigateToPage(self, current_tab)
     with shared_state.interval_profiling_controller.SamplePeriod(
         'interactions', action_runner):
