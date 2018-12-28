@@ -605,7 +605,7 @@ class AndroidPlatformBackend(
           ['am', 'set-debug-app', '--persistent', package],
           check_return=True)
 
-  def GetLogCat(self, number_of_lines=500):
+  def GetLogCat(self, number_of_lines=1500):
     """Returns most recent lines of logcat dump.
 
     Args:
