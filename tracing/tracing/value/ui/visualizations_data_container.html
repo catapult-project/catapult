@@ -318,6 +318,7 @@ tr.exportTo('tr.v.ui', function() {
         const pageToMetricMap = getValueFromMap(page, submetrics);
         for (const benchmark of this.orderedBenchmarks_) {
           const benchmarkMap = pageMap.get(benchmark);
+          if (!benchmarkMap) continue;
           for (const metric of METRICS.get(chartName)) {
             const metricMap = benchmarkMap.get(metric);
             const metricToSubmetricMap = getValueFromMap(metric,
@@ -365,9 +366,10 @@ tr.exportTo('tr.v.ui', function() {
     filterPagesWithoutRasterMetric_(page) {
       const pageMap = this.groupedData_.get(page);
       for (const benchmark of this.orderedBenchmarks_) {
-        const pageMetricMap = pageMap.get(benchmark)
-            .get(RASTER_START_METRIC_KEY);
-        if (pageMetricMap !== undefined) return true;
+        const pageMetricMap = pageMap.get(benchmark);
+        if (!pageMetricMap) continue;
+        const wantedMetric = pageMetricMap.get(RASTER_START_METRIC_KEY);
+        if (wantedMetric !== undefined) return true;
       }
       return false;
     },

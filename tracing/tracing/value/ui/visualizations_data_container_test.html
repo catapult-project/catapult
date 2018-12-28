@@ -105,5 +105,20 @@ tr.b.unittest.testSuite(function() {
 
     cp.build(histograms, histograms);
   });
+
+  test('instantiateWithDifferentStorySets', function() {
+    const cp = document.createElement('tr-v-ui-visualizations-data-container');
+    this.addHTMLOutput(cp);
+
+    const histograms = getHistogramSet('Run 1', 'test.com');
+
+    const histograms2 = getHistogramSet('Run 1', 'abc.com');
+    histograms.importDicts(histograms2.asDicts());
+
+    const histograms3 = getHistogramSet('Run 2', 'abc.com');
+    histograms.importDicts(histograms3.asDicts());
+
+    cp.build(histograms, histograms);
+  });
 });
 </script>
