@@ -8,6 +8,7 @@ Quick descriptions of the scripts in tracing/bin/:
  * `histograms2html`: Vulcanizes results.html. Optionally copies HistogramSet
    JSON from existing results.html and/or histograms.json file.
  * `html2trace`: Extracts trace JSON from a vulcanized trace HTML file.
+ * `label_histograms`: Add a label to Histograms in an HTML or JSON file.
  * `map_traces`: Runs a trace map function over multiple traces. See also
    `run_metric`.
  * `memory_infra_remote_dump`: Extracts before/after memory dumps from a
