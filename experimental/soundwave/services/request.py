@@ -13,6 +13,13 @@ from py_utils import retry_util  # pylint: disable=import-error
 from services import luci_auth
 
 
+# Some services pad JSON responses with a security prefix to prevent against
+# XSSI attacks. If found, the prefix is stripped off before attempting to parse
+# a JSON response.
+# See e.g.: https://gerrit-review.googlesource.com/Documentation/rest-api.html#output
+JSON_SECURITY_PREFIX = ")]}'"
+
+
 class RequestError(OSError):
   """Exception class for errors while making a request."""
   def __init__(self, request, response, content):
@@ -72,7 +79,7 @@ def BuildRequestError(request, response, content):
 
 
 @retry_util.RetryOnException(ServerError, retries=3)
-def Request(url, method='GET', params=None, data=None,
+def Request(url, method='GET', params=None, data=None, accept=None,
             content_type='urlencoded', use_auth=False, retries=None):
   """Perform an HTTP request of a given resource.
 
@@ -83,6 +90,10 @@ def Request(url, method='GET', params=None, data=None,
       a query to the url.
     data: An optional dict or sequence of key, value pairs to send as payload
       data in the body of the request.
+    accept: An optional string to specify the expected response format.
+      Currently only 'json' is supported, which attempts to parse the response
+      content as json. If ommitted, the default is to return the raw response
+      content as a string.
     content_type: A string specifying how to encode the payload data,
       can be either 'urlencoded' (default) or 'json'.
     use_auth: A boolean indecating whether to send authorized requests, if True
@@ -94,7 +105,7 @@ def Request(url, method='GET', params=None, data=None,
     A string with the content of the response when it has a successful status.
 
   Raises:
-    A ClientError if the response has a 4xx stauts, or ServerError if the
+    A ClientError if the response has a 4xx status, or ServerError if the
     response has a 5xx status.
   """
   del retries  # Handled by the decorator.
@@ -104,6 +115,12 @@ def Request(url, method='GET', params=None, data=None,
 
   body = None
   headers = {}
+
+  if accept == 'json':
+    headers['Accept'] = 'application/json'
+  elif accept is not None:
+    raise NotImplementedError('Invalid accept format: %s' % accept)
+
   if data is not None:
     if content_type == 'json':
       body = json.dumps(data, sort_keys=True, separators=(',', ':'))
@@ -125,4 +142,9 @@ def Request(url, method='GET', params=None, data=None,
       url, method=method, body=body, headers=headers)
   if response.status != 200:
     raise BuildRequestError(url, response, content)
+
+  if accept == 'json':
+    if content[:4] == JSON_SECURITY_PREFIX:
+      content = content[4:]  # Strip off security prefix if found.
+    content = json.loads(content)
   return content

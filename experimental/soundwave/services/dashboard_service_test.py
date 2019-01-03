@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import unittest
 
 import httplib2
@@ -28,7 +27,7 @@ def TestResponse(code, content):
 class TestDashboardApi(unittest.TestCase):
   def setUp(self):
     self.mock_request = mock.patch('services.request.Request').start()
-    self.mock_request.side_effect = TestResponse(200, '"OK"')
+    self.mock_request.side_effect = TestResponse(200, 'OK')
 
   def tearDown(self):
     mock.patch.stopall()
@@ -37,14 +36,14 @@ class TestDashboardApi(unittest.TestCase):
     self.assertEqual(dashboard_service.Describe('my_test'), 'OK')
     self.mock_request.assert_called_once_with(
         dashboard_service.SERVICE_URL + '/describe', method='POST',
-        params={'test_suite': 'my_test'}, use_auth=True)
+        params={'test_suite': 'my_test'}, use_auth=True, accept='json')
 
   def testListTestPaths(self):
     self.assertEqual(
         dashboard_service.ListTestPaths('my_test', 'a_rotation'), 'OK')
     self.mock_request.assert_called_once_with(
         dashboard_service.SERVICE_URL + '/list_timeseries/my_test', method='POST',
-        params={'sheriff': 'a_rotation'}, use_auth=True)
+        params={'sheriff': 'a_rotation'}, use_auth=True, accept='json')
 
   def testTimeseries2(self):
     response = dashboard_service.Timeseries2(
@@ -59,8 +58,7 @@ class TestDashboardApi(unittest.TestCase):
                 'measurement': 'timeToFirstContenrfulPaint',
                 'bot': 'ChromiumPerf:androd-go-perf',
                 'columns': 'revision,avg'},
-        method='POST',
-        use_auth=True)
+        method='POST', use_auth=True, accept='json')
 
   def testTimeseries2_notFoundRaisesKeyError(self):
     self.mock_request.side_effect = TestResponse(404, 'Not found')
@@ -82,7 +80,7 @@ class TestDashboardApi(unittest.TestCase):
     self.assertEqual(response, 'OK')
     self.mock_request.assert_called_once_with(
         dashboard_service.SERVICE_URL + '/timeseries/some%20test%20path',
-        params={'num_days': 30}, method='POST', use_auth=True)
+        params={'num_days': 30}, method='POST', use_auth=True, accept='json')
 
   def testTimeseries_notFoundRaisesKeyError(self):
     self.mock_request.side_effect = TestResponse(
@@ -94,7 +92,7 @@ class TestDashboardApi(unittest.TestCase):
     self.assertEqual(dashboard_service.Bugs(123), 'OK')
     self.mock_request.assert_called_once_with(
         dashboard_service.SERVICE_URL + '/bugs/123', method='POST',
-        use_auth=True)
+        use_auth=True, accept='json')
 
   def testIterAlerts(self):
     pages = {'page1': {'data': 'foo', 'next_cursor': 'page2'},
@@ -107,7 +105,7 @@ class TestDashboardApi(unittest.TestCase):
       self.assertDictContainsSubset(
           {'test_suite': 'loading.mobile', 'limit': 1000}, params)
       cursor = params.get('cursor', 'page1')
-      return json.dumps(pages[cursor])
+      return pages[cursor]
 
     self.mock_request.side_effect = RequestStub
     response = [

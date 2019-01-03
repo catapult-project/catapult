@@ -3,8 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
-
 from services import luci_auth
 from services import request
 
@@ -15,7 +13,8 @@ SERVICE_URL = 'https://pinpoint-dot-chromeperf.appspot.com/api'
 def Request(endpoint, **kwargs):
   """Send a request to some pinpoint endpoint."""
   kwargs.setdefault('use_auth', True)
-  return json.loads(request.Request(SERVICE_URL + endpoint, **kwargs))
+  kwargs.setdefault('accept', 'json')
+  return request.Request(SERVICE_URL + endpoint, **kwargs)
 
 
 def Job(job_id, with_state=False, with_tags=False):

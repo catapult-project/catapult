@@ -17,11 +17,11 @@ from services import isolate_service
 
 
 def ContentResponse(content):
-  return [json.dumps({'content': base64.b64encode(zlib.compress(content))})]
+  return [{'content': base64.b64encode(zlib.compress(content))}]
 
 
 def UrlResponse(url, content):
-  return [json.dumps({'url': url}), zlib.compress(content)]
+  return [{'url': url}, zlib.compress(content)]
 
 
 class TestIsolateApi(unittest.TestCase):
@@ -29,7 +29,6 @@ class TestIsolateApi(unittest.TestCase):
     self.temp_dir = tempfile.mkdtemp()
     mock.patch('services.isolate_service.CACHE_DIR', os.path.join(
         self.temp_dir, 'isolate_cache')).start()
-    self.mock_credentials = mock.Mock()
     self.mock_request = mock.patch('services.request.Request').start()
 
   def tearDown(self):

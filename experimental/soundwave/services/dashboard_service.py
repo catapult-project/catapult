@@ -9,7 +9,6 @@ For more details on the API see:
 https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/dashboard/api/README.md
 """
 
-import json
 import urllib
 
 from services import request
@@ -21,7 +20,8 @@ def Request(endpoint, **kwargs):
   """Send a request to some dashboard service endpoint."""
   kwargs.setdefault('use_auth', True)
   kwargs.setdefault('method', 'POST')
-  return json.loads(request.Request(SERVICE_URL + endpoint, **kwargs))
+  kwargs.setdefault('accept', 'json')
+  return request.Request(SERVICE_URL + endpoint, **kwargs)
 
 
 def Describe(test_suite):

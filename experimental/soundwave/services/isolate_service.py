@@ -19,7 +19,8 @@ CACHE_DIR = os.path.normpath(os.path.join(
 def Request(endpoint, **kwargs):
   """Send a request to some isolate service endpoint."""
   kwargs.setdefault('use_auth', True)
-  return json.loads(request.Request(SERVICE_URL + endpoint, **kwargs))
+  kwargs.setdefault('accept', 'json')
+  return request.Request(SERVICE_URL + endpoint, **kwargs)
 
 
 def Retrieve(digest):
