@@ -4,8 +4,8 @@
 # For CrOS-related changes.
 achuith@chromium.org
 
-nednguyen@google.com
 perezju@chromium.org
+crouleau@chromium.org
 
 # TEAM: telemetry@chromium.org
 # COMPONENT: Speed>Telemetry
@@ -21,3 +21,4 @@ perezju@chromium.org
 # sullivan@chromium.org
 # tonyg@chromium.org
 # zhenw@chromium.org
+# nednguyen@google.com
