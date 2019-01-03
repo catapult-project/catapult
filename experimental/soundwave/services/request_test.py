@@ -114,8 +114,13 @@ class TestRequestErrors(unittest.TestCase):
     self.assertEqual(error.response.status, 500)
     self.assertEqual(error.content, 'Oops, I had a problem!')
 
-  def testErrorMessageToString(self):
+  def testJsonErrorMessageToString(self):
     message = u'Something went wrong. That\u2019s all we know.'
     error = request.ServerError(
         '/endpoint', *Response(500, json.dumps({'error': message})))
+    self.assertIn('Something went wrong.', str(error))
+
+  def testErrorMessageToString(self):
+    content = u'Something went wrong. That\u2019s all we know.'.encode('utf-8')
+    error = request.ServerError('/endpoint', *Response(500, content))
     self.assertIn('Something went wrong.', str(error))

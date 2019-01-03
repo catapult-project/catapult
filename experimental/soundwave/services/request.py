@@ -26,22 +26,23 @@ class RequestError(OSError):
     self.request = request
     self.response = response
     self.content = content
-    message = '%s returned HTTP Error %d: %s' % (
+    message = u'%s returned HTTP Error %d: %s' % (
         self.request, self.response.status, self.error_message)
-    # Note: often the message will contain unicode characters, so we explicitly
-    # encode them as utf-8; otherwise by default python will encode as ascii
-    # and choke when trying to display the exception message.
+    # Note: the message is a unicode object, possibly with special characters,
+    # so it needs to be turned into a str as expected by the constructor of
+    # the base class.
     super(RequestError, self).__init__(message.encode('utf-8'))
 
   def __reduce__(self):
     # Method needed to make the exception pickleable [1], otherwise it causes
-    # the mutliprocess pool to hang when raised by a worker [2].
+    # the multiprocess pool to hang when raised by a worker [2].
     # [1]: https://stackoverflow.com/a/36342588
     # [2]: https://github.com/uqfoundation/multiprocess/issues/33
     return (type(self), (self.request, self.response, self.content))
 
   @property
   def json(self):
+    """Attempt to load the content as a json object."""
     try:
       return json.loads(self.content)
     except StandardError:
@@ -49,12 +50,13 @@ class RequestError(OSError):
 
   @property
   def error_message(self):
+    """Returns a unicode object with the error message found in the content."""
     try:
       # Try to find error message within json content.
       return self.json['error']
     except StandardError:
-      # Otherwise fall back to entire content itself.
-      return self.content
+      # Otherwise fall back to entire content itself, converting str to unicode.
+      return self.content.decode('utf-8')
 
 
 class ClientError(RequestError):
