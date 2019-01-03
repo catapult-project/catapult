@@ -114,19 +114,18 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   # When the RecorderPageTest is created from a Benchmark, the benchmark will
   # have a PageTest, specified by its test attribute.
   def testRunPage_OnlyRunBenchmarkAction(self):
-    record_page_test = record_wpr.RecorderPageTest()
-    record_page_test.page_test = MockBenchmark().test()
+    page_test = MockBenchmark().test()
+    record_page_test = record_wpr.RecorderPageTest(page_test)
     page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
     record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
 
   def testRunPage_CallBenchmarksPageTestsFunctions(self):
-    record_page_test = record_wpr.RecorderPageTest()
-    record_page_test.page_test = MockBenchmark().test()
+    page_test = MockBenchmark().test()
+    record_page_test = record_wpr.RecorderPageTest(page_test)
     page = MockPage(story_set=MockStorySet(url=self._url), url=self._url)
     record_page_test.ValidateAndMeasurePage(page, self._tab, results=None)
-    self.assertEqual(1, len(record_page_test.page_test.func_calls))
-    self.assertEqual('ValidateAndMeasurePage',
-                     record_page_test.page_test.func_calls[0])
+    self.assertEqual(1, len(page_test.func_calls))
+    self.assertEqual('ValidateAndMeasurePage', page_test.func_calls[0])
 
   def GetBrowserDeviceFlags(self):
     flags = ['--browser', self._browser.browser_type,
@@ -210,17 +209,16 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   # DidStartBrowser function is called, it forwards the call to the PageTest
   def testRecorderPageTest_BrowserMethods(self):
     flags = ['--mock-benchmark-url', self._url]
-    record_page_test = record_wpr.RecorderPageTest()
-    record_page_test.page_test = MockBenchmark().test()
+    page_test = MockBenchmark().test()
+    record_page_test = record_wpr.RecorderPageTest(page_test)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, MockBenchmark(),
                                           flags)
     record_page_test.CustomizeBrowserOptions(wpr_recorder.options)
     record_page_test.WillStartBrowser(self._tab.browser.platform)
     record_page_test.DidStartBrowser(self._tab.browser)
-    self.assertTrue(
-        'CustomizeBrowserOptions' in record_page_test.page_test.func_calls)
-    self.assertTrue('WillStartBrowser' in record_page_test.page_test.func_calls)
-    self.assertTrue('DidStartBrowser' in record_page_test.page_test.func_calls)
+    self.assertTrue('CustomizeBrowserOptions' in page_test.func_calls)
+    self.assertTrue('WillStartBrowser' in page_test.func_calls)
+    self.assertTrue('DidStartBrowser' in page_test.func_calls)
 
   def testUseLiveSitesUnsupported(self):
     flags = ['--use-live-sites']

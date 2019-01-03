@@ -15,7 +15,6 @@ from telemetry.internal.util import binary_manager
 from telemetry.page import legacy_page_test
 from telemetry.util import matching
 from telemetry.util import wpr_modes
-from telemetry.web_perf import timeline_based_page_test
 
 from py_utils import discover
 import py_utils
@@ -26,45 +25,49 @@ DEFAULT_LOG_FORMAT = (
 
 
 class RecorderPageTest(legacy_page_test.LegacyPageTest):
-  def __init__(self):
+  def __init__(self, page_test):
     super(RecorderPageTest, self).__init__()
-    self.page_test = None
-    self.platform = None
+    self._page_test = page_test
+    self._platform = None
+
+  @property
+  def platform(self):
+    return self._platform
 
   def CustomizeBrowserOptions(self, options):
-    if self.page_test:
-      self.page_test.CustomizeBrowserOptions(options)
+    if self._page_test:
+      self._page_test.CustomizeBrowserOptions(options)
 
   def WillStartBrowser(self, browser):
     if self.platform is not None:
       assert browser.GetOSName() == self.platform
-    self.platform = browser.GetOSName()
-    if self.page_test:
-      self.page_test.WillStartBrowser(browser)
+    self._platform = browser.GetOSName()  # Record platform name from browser.
+    if self._page_test:
+      self._page_test.WillStartBrowser(browser)
 
   def DidStartBrowser(self, browser):
-    if self.page_test:
-      self.page_test.DidStartBrowser(browser)
+    if self._page_test:
+      self._page_test.DidStartBrowser(browser)
 
   def WillNavigateToPage(self, page, tab):
     """Override to ensure all resources are fetched from network."""
     tab.ClearCache(force=False)
-    if self.page_test:
-      self.page_test.WillNavigateToPage(page, tab)
+    if self._page_test:
+      self._page_test.WillNavigateToPage(page, tab)
 
   def DidNavigateToPage(self, page, tab):
-    if self.page_test:
-      self.page_test.DidNavigateToPage(page, tab)
+    if self._page_test:
+      self._page_test.DidNavigateToPage(page, tab)
     tab.WaitForDocumentReadyStateToBeComplete()
     py_utils.WaitFor(tab.HasReachedQuiescence, 30)
 
   def CleanUpAfterPage(self, page, tab):
-    if self.page_test:
-      self.page_test.CleanUpAfterPage(page, tab)
+    if self._page_test:
+      self._page_test.CleanUpAfterPage(page, tab)
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    if self.page_test:
-      self.page_test.ValidateAndMeasurePage(page, tab, results)
+    if self._page_test:
+      self._page_test.ValidateAndMeasurePage(page, tab, results)
 
 
 def _GetSubclasses(base_dir, cls):
@@ -122,7 +125,6 @@ class WprRecorder(object):
 
   def __init__(self, base_dir, target, args=None):
     self._base_dir = base_dir
-    self._record_page_test = RecorderPageTest()
     self._options = self._CreateOptions()
 
     self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
@@ -131,13 +133,14 @@ class WprRecorder(object):
     self._AddCommandLineArgs()
     self._ParseArgs(args)
     self._ProcessCommandLineArgs()
+    page_test = None
     if self._benchmark is not None:
       test = self._benchmark.CreatePageTest(self.options)
-      if not isinstance(test, legacy_page_test.LegacyPageTest):
-        test = timeline_based_page_test.TimelineBasedPageTest()
-      # This must be called after the command line args are added.
-      self._record_page_test.page_test = test
+      # Object only needed for legacy pages; newer TBM stories don't need this.
+      if isinstance(test, legacy_page_test.LegacyPageTest):
+        page_test = test
 
+    self._record_page_test = RecorderPageTest(page_test)
     self._page_set_base_dir = (
         self._options.page_set_base_dir if self._options.page_set_base_dir
         else self._base_dir)
