@@ -16,7 +16,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import histogram
 from tracing.value.diagnostics import reserved_infos
-from tracing.value.diagnostics import tag_map
+from tracing.value.diagnostics import generic_set
 
 
 class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
@@ -73,6 +73,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         'measurements': ['measurement'],
         'bots': ['master:bot'],
         'cases': ['test_case'],
+        'caseTags': {},
     }
     self.SetCurrentUser('internal@chromium.org')
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
@@ -102,17 +103,15 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         test.has_rows = True
         test.put()
     histogram.SparseDiagnostic(
-        test=utils.TestKey('master/a/suite'),
-        name=reserved_infos.TAG_MAP.name,
+        test=utils.TestKey('master/a/suite/measurement/x'),
+        name=reserved_infos.STORY_TAGS.name,
         end_revision=sys.maxint,
-        data=tag_map.TagMap(
-            {'tagsToStoryNames': {'j': ['x']}}).AsDict()).put()
+        data=generic_set.GenericSet(['j']).AsDict()).put()
     histogram.SparseDiagnostic(
-        test=utils.TestKey('master/b/suite'),
-        name=reserved_infos.TAG_MAP.name,
+        test=utils.TestKey('master/a/suite/measurement/y'),
+        name=reserved_infos.STORY_TAGS.name,
         end_revision=sys.maxint,
-        data=tag_map.TagMap(
-            {'tagsToStoryNames': {'j': ['y'], 'k': ['y']}}).AsDict()).put()
+        data=generic_set.GenericSet(['j', 'k']).AsDict()).put()
 
     self.Post('/update_test_suite_descriptors')
 
@@ -155,6 +154,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         'measurements': ['measurement'],
         'bots': ['master:bot'],
         'cases': ['test_case'],
+        'caseTags': {},
     }
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
         'TEST_PARTIAL_TEST_SUITE:COMPOSITE')

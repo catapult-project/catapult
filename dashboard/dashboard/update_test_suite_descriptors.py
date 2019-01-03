@@ -19,7 +19,7 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from tracing.value.diagnostics import reserved_infos
-from tracing.value.diagnostics import tag_map as tag_map_module
+from tracing.value.diagnostics import generic_set
 
 
 def CacheKey(test_suite):
@@ -68,35 +68,28 @@ def _QueryTestSuite(test_suite):
   return query
 
 
-def _QueryCaseTags(test_suite, bots):
-  test_paths = set()
-  for bot in bots:
-    desc = descriptor.Descriptor(test_suite=test_suite, bot=bot)
-    for test_path in desc.ToTestPathsSync():
-      test_paths.add(test_path)
+@ndb.tasklet
+def _QueryCaseTags(test_path, case):
+  data_by_name = yield histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
+      utils.TestKey(test_path), [reserved_infos.STORY_TAGS.name])
+  data = data_by_name.get(reserved_infos.STORY_TAGS.name)
+  tags = list(generic_set.GenericSet.FromDict(data)) if data else []
+  raise ndb.Return((case, tags))
 
-  futures = []
-  for test_path in test_paths:
-    futures.append(histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
-        utils.TestKey(test_path), [reserved_infos.TAG_MAP.name]))
 
+def _CollectCaseTags(futures, case_tags):
   ndb.Future.wait_all(futures)
-  tag_map = tag_map_module.TagMap({})
   for future in futures:
-    data = future.get_result().get(reserved_infos.TAG_MAP.name)
-    if not data:
-      continue
-    tag_map.AddDiagnostic(tag_map_module.TagMap.FromDict(data))
-
-  return {tag: list(sorted(cases))
-          for tag, cases in tag_map.tags_to_story_names.iteritems()}
+    case, tags = future.get_result()
+    for tag in tags:
+      case_tags.setdefault(tag, []).append(case)
 
 
 DEADLINE_SECONDS = 60 * 9.5
 
 
 def _UpdateDescriptor(test_suite, namespace, start_cursor=None,
-                      measurements=(), bots=(), cases=()):
+                      measurements=(), bots=(), cases=(), case_tags=None):
   logging.info('%s %s %d %d %d', test_suite, namespace,
                len(measurements), len(bots), len(cases))
 
@@ -110,29 +103,37 @@ def _UpdateDescriptor(test_suite, namespace, start_cursor=None,
   measurements = set(measurements)
   bots = set(bots)
   cases = set(cases)
+  case_tags = case_tags or {}
 
   # Some test suites have more keys than can fit in memory or can be processed
   # in 10 minutes, so use an iterator instead of a page limit.
   query_iter = _QueryTestSuite(test_suite).iter(
       keys_only=True, produce_cursors=True, start_cursor=start_cursor,
       use_cache=False, use_memcache=False)
+  tags_futures = []
 
   try:
     for key in query_iter:
+      test_path = utils.TestPath(key)
       key_count += 1
-      desc = descriptor.Descriptor.FromTestPathSync(utils.TestPath(key))
+      desc = descriptor.Descriptor.FromTestPathSync(test_path)
       bots.add(desc.bot)
       if desc.measurement:
         measurements.add(desc.measurement)
       if desc.test_case:
-        cases.add(desc.test_case)
+        if desc.test_case not in cases:
+          cases.add(desc.test_case)
+          tags_futures.append(_QueryCaseTags(test_path, desc.test_case))
       if time.time() > deadline:
         break
   except db.BadRequestError:
     pass
 
-  logging.info('%d keys, %d measurements, %d bots, %d cases',
-               key_count, len(measurements), len(bots), len(cases))
+  _CollectCaseTags(tags_futures, case_tags)
+
+  logging.info('%d keys, %d measurements, %d bots, %d cases, %d tags',
+               key_count, len(measurements), len(bots), len(cases),
+               len(case_tags))
   if key_count:
     logging.info('per_key:wall_us=%f',
                  round(1e6 * (time.time() - start) / key_count))
@@ -140,18 +141,16 @@ def _UpdateDescriptor(test_suite, namespace, start_cursor=None,
   if query_iter.probably_has_next():
     logging.info('continuing')
     deferred.defer(_UpdateDescriptor, test_suite, namespace,
-                   query_iter.cursor_before(), measurements, bots, cases)
+                   query_iter.cursor_before(), measurements, bots, cases,
+                   case_tags)
     return
 
   desc = {
       'measurements': list(sorted(measurements)),
       'bots': list(sorted(bots)),
       'cases': list(sorted(cases)),
+      'caseTags': {tag: sorted(cases) for tag, cases in case_tags.items()}
   }
-
-  case_tags = _QueryCaseTags(test_suite, bots)
-  if case_tags:
-    desc['caseTags'] = case_tags
 
   key = namespaced_stored_object.NamespaceKey(
       CacheKey(test_suite), namespace)
